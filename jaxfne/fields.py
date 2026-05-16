@@ -45,15 +45,9 @@ def validate_source_field_status(field_output: FieldOutput, cfg_metadata: dict |
     source_calib = cfg_metadata.get("source_calibration_status", "uncalibrated_izhikevich_native_current")
     is_calibrated = "calibrated" in source_calib.lower() and not "uncalibrated" in source_calib.lower()
 
-    if is_proxy and not is_calibrated:
-        field_claim_level = "laminar_proxy_uncalibrated"
-        physical_amplitude_claim_allowed = False
-    elif is_proxy and is_calibrated:
-        field_claim_level = "laminar_proxy_calibrated"
-        physical_amplitude_claim_allowed = False
-    else:
-        field_claim_level = "pde_solution_candidate"
-        physical_amplitude_claim_allowed = False
+    # All proxy and PDE paths use proxy_readout_only claim level (not calibrated for amplitude yet)
+    field_claim_level = "proxy_readout_only"
+    physical_amplitude_claim_allowed = False
 
     return {
         "field_claim_level": field_claim_level,
