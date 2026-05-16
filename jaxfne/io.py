@@ -43,14 +43,23 @@ def config_hash(cfg: Any) -> str:
 
 
 def manifest(cfg: Any, signals: Optional[Any] = None) -> Dict[str, Any]:
+    cfg_metadata = getattr(cfg, "metadata", {})
     data: Dict[str, Any] = {
         "package": "jaxfne",
-        "truth_mode": getattr(cfg, "metadata", {}).get("truth_mode", "truth_safe_unverified"),
-        "claim_level": getattr(cfg, "metadata", {}).get("claim_level", "computational_scaffold"),
-        "config_hash": config_hash(cfg),
-        "source_calibration_status": getattr(cfg, "metadata", {}).get(
+        "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.2"),
+        "truth_mode": cfg_metadata.get("truth_mode", "truth_safe_unverified"),
+        "claim_level": cfg_metadata.get("claim_level", "computational_scaffold"),
+        "source_calibration_status": cfg_metadata.get(
             "source_calibration_status", "uncalibrated_izhikevich_native_current"
         ),
+        "source_projection_mode": cfg_metadata.get("source_projection_mode", "proxy_no_field_solve"),
+        "source_decomposition": cfg_metadata.get("source_decomposition", "proxy_reduced_emitter"),
+        "boundary_condition": cfg_metadata.get("boundary_condition", "mean_zero_neumann"),
+        "gauge": cfg_metadata.get("gauge", "mean_zero"),
+        "csd_sign_convention": cfg_metadata.get("csd_sign_convention", "proxy_positive_equals_extracellular_source_like"),
+        "field_solver_status": cfg_metadata.get("field_solver_status", "laminar_proxy_no_pde"),
+        "operator_status": cfg_metadata.get("operator_status", {}),
+        "config_hash": config_hash(cfg),
     }
     if signals is not None:
         data["signals"] = {

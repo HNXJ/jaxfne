@@ -32,6 +32,24 @@ class Configuration:
         "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
+        "source_projection_mode": "proxy_no_field_solve",
+        "source_decomposition": "proxy_reduced_emitter",
+        "boundary_condition": "mean_zero_neumann",
+        "gauge": "mean_zero",
+        "csd_sign_convention": "proxy_positive_equals_extracellular_source_like",
+        "field_solver_status": "laminar_proxy_no_pde",
+        "manifest_schema_version": "0.0.2",
+        "operator_status": {
+            "E_theta": "prototype_api",
+            "S_WDR": "specified_future_module",
+            "C_mu_nu": "specified_future_module",
+            "Q_eta_alpha": "prototype_api",
+            "F_field": "prototype_api",
+            "P_probe": "prototype_api",
+            "A_objective": "prototype_api",
+            "O_optimizer": "specified_future_module",
+            "C_constraints": "prototype_api",
+        },
     })
 
     def network(self, **kwargs: Any) -> "Configuration":
@@ -95,8 +113,8 @@ class Probe:
 
 
 @dataclass(frozen=True)
-class Signal:
-    """Simulation output container."""
+class Signals:
+    """Simulation output container holding multiple arrays: time, voltage, spikes, sources, field, diagnostics."""
 
     time_ms: jnp.ndarray
     V_m: jnp.ndarray
@@ -104,6 +122,10 @@ class Signal:
     sources: jnp.ndarray
     field: Optional[FieldOutput]
     metadata: Dict[str, Any]
+
+
+# Backwards compatibility alias
+Signal = Signals
 
 
 @dataclass(frozen=True)
@@ -143,7 +165,7 @@ class Model:
     params: Dict[str, Any]
     static: Dict[str, Any]
 
-    def simulate(self, sim: Simulation, paradigm: Optional[Mapping[str, Any]] = None) -> Signal:
+    def simulate(self, sim: Simulation, paradigm: Optional[Mapping[str, Any]] = None) -> Signals:
         """Run the default EIG/Izhikevich vertical slice."""
         key = jax.random.PRNGKey(sim.seed)
         V_m, spikes, sources = simulate_izhikevich_eig(self.params["emitter"], sim.n_steps, sim.dt_ms, key)
@@ -163,7 +185,29 @@ class Model:
         }
         return Signal(time_ms=time_ms, V_m=V_m, spikes=spikes, sources=sources, field=field_output, metadata=metadata)
 
-    def record(self, signals: Signal, modes: Sequence[str]) -> Dict[str, Any]:
+    def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> Dict[str, Any]:
+        """Canonical TFNE readout method.
+
+        Args:
+            signals: Signals container from simulate().
+            modes: List of mode strings to extract (spikes, V_m, source, phi_e, J_e, CSD, LFP).
+
+        Returns:
+            Dict with requested modes and their arrays.
+        """
+        if modes is None:
+            modes = []
+        return self._extract_modes(signals, modes)
+
+    def record(self, signals: Signals, modes: Sequence[str]) -> Dict[str, Any]:
+        """User-friendly alias for probe(). Extracts named arrays from Signals.
+
+        This is the convenience name; probe() is the canonical TFNE term.
+        """
+        return self.probe(signals, modes)
+
+    def _extract_modes(self, signals: Signals, modes: Sequence[str]) -> Dict[str, Any]:
+        """Internal mode extraction logic."""
         out: Dict[str, Any] = {}
         if "spikes" in modes:
             out["spikes"] = signals.spikes
@@ -182,7 +226,7 @@ class Model:
                 out["J_e"] = signals.field.J_e
         return out
 
-    def evaluate(self, signals: Signal, objective: Objective | str) -> Dict[str, Any]:
+    def evaluate(self, signals: Signals, objective: Objective | str) -> Dict[str, Any]:
         spike_rate_hz = jnp.mean(signals.spikes) * (1000.0 / (signals.time_ms[1] - signals.time_ms[0]))
         mean_pairwise_corr_proxy = _mean_pairwise_corr_proxy(signals.spikes)
         return {
@@ -204,7 +248,7 @@ class Model:
         _ = (objective, optimizer, steps)
         return self
 
-    def manifest(self, signals: Optional[Signal] = None) -> Dict[str, Any]:
+    def manifest(self, signals: Optional[Signals] = None) -> Dict[str, Any]:
         return manifest(self.cfg, signals)
 
 

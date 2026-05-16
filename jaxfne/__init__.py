@@ -10,6 +10,7 @@ from .core import (
     Paradigm,
     Probe,
     Signal,
+    Signals,
     Simulation,
     configuration,
     construct,
@@ -28,6 +29,7 @@ __all__ = [
     "Paradigm",
     "Probe",
     "Signal",
+    "Signals",
     "Simulation",
     "configuration",
     "construct",
@@ -41,4 +43,4 @@ __all__ = [
     "save_json",
 ]
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
