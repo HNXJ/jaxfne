@@ -1,37 +1,27 @@
 # jaxfne
 
-**JAX Field Neural Equations** (v0.0.3): a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations.
+**JAX Field Neural Equations** (`jaxfne`) is a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations (TFNE).
 
 ```python
-import jax
-import jax.numpy as jnp
 import jaxfne as jtfne
 
-cfg = jtfne.configuration()
-cfg = cfg.network(
-    name="V1",
-    kind="cortical_column",
-    n=1000,
-    layers=["L1", "L2/3", "L4", "L5", "L6"],
-    cell_types={"E": 0.80, "PV": 0.10, "SST": 0.07, "VIP": 0.03},
+cfg = (
+    jtfne.configuration()
+    .network(name="V1", kind="cortical_column", n=64)
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+    .probe(name="laminar_probe", modes=["spikes", "V_m", "CSD", "LFP"])
 )
-cfg = cfg.emitter(family="izhikevich", preset="cortical_eig")
-cfg = cfg.field(domain="laminar_column", conductivity="isotropic", boundary="mean_zero_neumann", gauge="mean_zero")
-cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e", "J_e", "CSD", "LFP"])
 
-# Metadata gates and runtime config (v0.0.3)
 model = jtfne.construct(cfg)
-sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.05, plasticity=1.0, seed=0)
+rt = jtfne.runtime(dtype="float32", backend="auto")
+sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0, runtime=rt)
 signals = model.simulate(sim)
-
-# probe() is canonical TFNE method; record() is user-friendly alias
 readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
-
-# Manifest includes truth gates
-manifest = model.manifest(signals)
+manifest = model.manifest(signals, readout)
 ```
 
-## Doctrine
+## Identity
 
 `jaxfne` is not primarily a neuron model, optimizer, plotting library, or data format. It is the composition layer:
 
@@ -39,66 +29,78 @@ manifest = model.manifest(signals)
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 ```
 
-JAX handles array compilation and batching. Jaxley can provide detailed emitters. Optax can provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, and manifests.
+JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Status and Roadmap
+## Current status
 
-**v0.0.3** (current): Runtime metadata and source-field status discipline
-- RuntimeConfig dataclass (device, dtype, x64_enabled, seed, n_steps)
-- runtime() factory function for runtime environment declaration
-- validate_source_field_status() helper documenting field solver claim level
-- Manifest includes runtime_report() and source_field_status (field_claim_level, is_proxy, is_calibrated)
-- Scientific claims remain `truth_safe_unverified`: design scaffold only
+This local package is a **v0.0.4 candidate** that hardens source/probe invariants on top of public v0.0.3.
 
-**v0.0.4**: Source-field invariant tests
-- Mean-zero gauge validation (current is conserved and sink-free)
-- Symmetric Positive Definite (SPD) tensor validation
-- NaN/Inf detection and rejection guardrails
-- Passivity/causality test framework
-- Full vs. proxy field solver mode discrimination
+It still does **not** solve the full resistive extracellular TFNE PDE:
 
-**v0.0.5+**: Paradigm execution and optimization
-- Paradigm.batch() runtime execution engine
-- Model.tune() with Optax/GSDR integration
-- Detailed Jaxley compartment bridge
-- MEG/EEG readout modes
-
-## Architecture
-
-Core pipeline (Tensor-Field Neural Equations):
 ```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
+J_e = -sigma_e grad(phi_e)
+div(J_e) = q
+div(-sigma_e grad(phi_e)) = q
+CSD = div(J_e)
 ```
 
-Package structure:
+Current field outputs are **laminar proxy readouts**:
+
+```text
+source_projection_mode = proxy_no_field_solve
+field_solver_status = laminar_proxy_no_pde
+field_claim_level = proxy_readout_only
+physical_amplitude_claim_allowed = false
+```
+
+## Version roadmap
+
+```text
+v0.0.1  skeleton
+v0.0.2  API/object hardening
+v0.0.3  runtime + source-field status metadata
+v0.0.4  source projection + probe invariant tests
+v0.0.5  objective/evaluation path
+v0.0.6  optax-free tuning scaffold
+v0.0.7  Jaxley bridge skeleton hardening
+```
+
+## Package structure
+
 ```text
 jaxfne/
-  __init__.py        # public API surface
-  core.py            # Configuration, Model, Simulation, Signal/Signals, Probe, Objective, Paradigm
-  emitters.py        # Izhikevich EIG scaffold
-  fields.py          # laminar field/probe (proxy, not full PDE)
-  optim.py           # AGSDR placeholder + require_optax guard
-  bridges.py         # Jaxley bridge scaffold + require_jaxley guard
-  io.py              # manifest, JSON-safe serialization, hashing
+  __init__.py        public API surface
+  core.py            Configuration, Model, Simulation, RuntimeConfig, Signals, Probe, Objective, Paradigm
+  emitters.py        Izhikevich EIG scaffold
+  fields.py          laminar proxy source/probe layer and invariant diagnostics
+  optim.py           AGSDR placeholder + require_optax guard
+  bridges.py         Jaxley bridge scaffold + require_jaxley guard
+  io.py              strict JSON manifest, hashing, save/load
 ```
 
-## Truth Status
+## Runtime doctrine
 
-- `truth_mode`: "truth_safe_unverified"
-- `claim_level`: "computational_scaffold"
-- `source_calibration_status`: "uncalibrated_izhikevich_native_current"
+- JAX is required.
+- Jaxley and Optax are optional and deferred.
+- CPU must work by default.
+- GPU/TPU should not be blocked by object design.
+- `float32` is the default dtype.
+- `float64` is used only when JAX x64 is enabled; otherwise manifests report the actual dtype.
+- Simulation kernels use JAX arrays and explicit PRNG keys.
+- Manifests record runtime, backend, devices, dtype, source-field status, and truth gates.
 
-This package provides a JAX-native computational scaffold for declaring TFNE models, running simulations, recording outputs, and manifesting results with truth gates. **No biological or biophysical claims** are made. Amplitude calibration, field solver validation, and paradigm execution are planned for v0.0.3+.
-
-## Optional Dependencies
-
-Install with optional extras for extended features:
+## Development smoke
 
 ```bash
-pip install -e ".[opt]"      # Optax integration (v0.0.4+)
-pip install -e ".[jaxley]"   # Jaxley compartment bridge (v0.0.4+)
-pip install -e ".[dev]"      # dev tools (pytest, ruff)
-pip install -e ".[all]"      # all extras
+python -m compileall -q jaxfne tests examples
+python -m pytest -q
+python examples/minimal_eig_column.py
+python examples/global_local_oddball_sketch.py
 ```
 
-Optional dependencies are not required. The core package works with JAX, NumPy, and SciPy.
+## Truth status
+
+- `truth_mode`: `truth_safe_unverified`
+- `claim_level`: `computational_scaffold`
+- `source_calibration_status`: `uncalibrated_izhikevich_native_current`
+- No calibrated physical CSD/LFP/EEG/MEG amplitude claim is made.

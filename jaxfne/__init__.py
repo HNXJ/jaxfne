@@ -1,6 +1,7 @@
 """jaxfne: JAX Field Neural Equations.
 
-A compact source-to-field neurophysiology skeleton for Tensor-Field Neural Equations.
+A compact source-to-field neurophysiology engine for Tensor-Field Neural
+Equations (TFNE).  Public API is object-oriented; numerical kernels are JAX-first.
 """
 
 from .core import (
@@ -16,13 +17,22 @@ from .core import (
     configuration,
     construct,
     objective,
+    operator_status,
     paradigm,
     runtime,
+    runtime_report,
     simulation,
 )
-from .emitters import izhikevich_eig_params, simulate_izhikevich_eig
-from .fields import project_sources_to_laminar_field
-from .io import manifest, save_json
+from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
+from .fields import (
+    FieldOutput,
+    project_laminar_sources,
+    project_sources_to_laminar_field,
+    probe_laminar_modes,
+    validate_projection_invariants,
+    validate_source_field_status,
+)
+from .io import config_hash, json_safe, manifest, save_json, sha256_file, sha256_text
 
 __all__ = [
     "Configuration",
@@ -37,14 +47,27 @@ __all__ = [
     "configuration",
     "construct",
     "objective",
+    "operator_status",
     "paradigm",
     "runtime",
+    "runtime_report",
     "simulation",
-    "izhikevich_eig_params",
-    "simulate_izhikevich_eig",
+    "EIGNetwork",
+    "IzhikevichParams",
+    "make_eig_network",
+    "simulate_eig_izhikevich",
+    "FieldOutput",
+    "project_laminar_sources",
     "project_sources_to_laminar_field",
+    "probe_laminar_modes",
+    "validate_projection_invariants",
+    "validate_source_field_status",
+    "config_hash",
+    "json_safe",
     "manifest",
     "save_json",
+    "sha256_file",
+    "sha256_text",
 ]
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
