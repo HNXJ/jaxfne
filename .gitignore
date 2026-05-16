@@ -1,0 +1,127 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.sublime-project
+.sublime-workspace
+*.code-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+.pytest_cache
+*.cover
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb_checkpoints
+*.ipynb~
+
+# Data & artifacts
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.csv
+*.log
+outputs/
+artifacts/
+results/
+data/
+*.tmp
+
+# JAX/NumPy
+*.jax
+*.npy.swp
+.jax_cache/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Secrets (CRITICAL)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.pem.pub
+secrets.json
+credentials.json
+config.local.py
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.bak
+*.orig
+*.tmp
+*.temp
+*~
+
+# Build artifacts
+*.so
+*.o
+*.c
+*.cpp.swp
+
+# macOS
+.AppleDouble
+.LSOverride
+*.localized
