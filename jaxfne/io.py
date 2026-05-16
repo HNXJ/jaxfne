@@ -42,11 +42,13 @@ def config_hash(cfg: Any) -> str:
     return hashlib.sha256(payload).hexdigest()[:16]
 
 
-def manifest(cfg: Any, signals: Optional[Any] = None) -> Dict[str, Any]:
+def manifest(cfg: Any, signals: Optional[Any] = None, runtime_config: Optional[Any] = None) -> Dict[str, Any]:
+    from .fields import validate_source_field_status
+
     cfg_metadata = getattr(cfg, "metadata", {})
     data: Dict[str, Any] = {
         "package": "jaxfne",
-        "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.2"),
+        "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.3"),
         "truth_mode": cfg_metadata.get("truth_mode", "truth_safe_unverified"),
         "claim_level": cfg_metadata.get("claim_level", "computational_scaffold"),
         "source_calibration_status": cfg_metadata.get(
@@ -61,6 +63,8 @@ def manifest(cfg: Any, signals: Optional[Any] = None) -> Dict[str, Any]:
         "operator_status": cfg_metadata.get("operator_status", {}),
         "config_hash": config_hash(cfg),
     }
+    if runtime_config is not None:
+        data["runtime_report"] = runtime_config.runtime_report()
     if signals is not None:
         data["signals"] = {
             "n_time": int(signals.time_ms.shape[0]),
@@ -70,6 +74,7 @@ def manifest(cfg: Any, signals: Optional[Any] = None) -> Dict[str, Any]:
         }
         if signals.field is not None:
             data["field_diagnostics"] = signals.field.diagnostics
+            data["source_field_status"] = validate_source_field_status(signals.field, cfg_metadata)
     return json_safe(data)
 
 

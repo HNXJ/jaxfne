@@ -55,7 +55,7 @@ def test_metadata_gates_defaults():
     cfg = jtfne.configuration()
     meta = cfg.metadata
 
-    # Required fields in v0.0.2
+    # Required fields in v0.0.3
     assert meta.get("truth_mode") == "truth_safe_unverified"
     assert meta.get("claim_level") == "computational_scaffold"
     assert meta.get("source_calibration_status") == "uncalibrated_izhikevich_native_current"
@@ -64,7 +64,7 @@ def test_metadata_gates_defaults():
     assert meta.get("gauge") == "mean_zero"
     assert meta.get("csd_sign_convention") == "proxy_positive_equals_extracellular_source_like"
     assert meta.get("field_solver_status") == "laminar_proxy_no_pde"
-    assert meta.get("manifest_schema_version") == "0.0.2"
+    assert meta.get("manifest_schema_version") == "0.0.3"
     assert isinstance(meta.get("operator_status"), dict)
 
 
@@ -117,5 +117,44 @@ def test_optional_dependency_guards():
 
 
 def test_version():
-    """Test that package version is 0.0.2."""
-    assert jtfne.__version__ == "0.0.2"
+    """Test that package version is 0.0.3."""
+    assert jtfne.__version__ == "0.0.3"
+
+
+def test_runtime_config():
+    """Test that RuntimeConfig exists and can be instantiated (v0.0.3)."""
+    assert hasattr(jtfne, "RuntimeConfig")
+    assert hasattr(jtfne, "runtime")
+    rc = jtfne.runtime(device_type="cpu", dtype_primary="float32", seed=42, n_steps=100)
+    assert rc.device_type == "cpu"
+    assert rc.dtype_primary == "float32"
+    assert rc.seed == 42
+    assert rc.n_steps == 100
+    report = rc.runtime_report()
+    assert report["device_type"] == "cpu"
+    assert report["seed"] == 42
+
+
+def test_manifest_with_source_field_status():
+    """Test that manifest includes source_field_status when signals are present (v0.0.3)."""
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=8)
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column")
+        .probe(name="test_probe", modes=["spikes", "V_m", "CSD"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=5.0, dt_ms=0.1, seed=42)
+    signals = model.simulate(sim)
+    manifest = model.manifest(signals)
+
+    assert "manifest_schema_version" in manifest
+    assert manifest["manifest_schema_version"] == "0.0.3"
+    assert "source_field_status" in manifest
+    status = manifest["source_field_status"]
+    assert "field_claim_level" in status
+    assert "physical_amplitude_claim_allowed" in status
+    assert "is_proxy" in status
+    assert status["is_proxy"] is True
+    assert status["physical_amplitude_claim_allowed"] is False

@@ -20,6 +20,50 @@ class FieldOutput:
     diagnostics: dict
 
 
+def validate_source_field_status(field_output: FieldOutput, cfg_metadata: dict | None = None) -> dict:
+    """Validate and report source-field projection status.
+
+    Returns dict with field_claim_level, physical_amplitude_claim_allowed, warnings.
+    Used by manifest in v0.0.3 to document the confidence level of field outputs.
+    """
+    cfg_metadata = cfg_metadata or {}
+    warnings = []
+
+    # Check finiteness
+    if not field_output.diagnostics.get("finite_phi_e", False):
+        warnings.append("non_finite_phi_e")
+    if not field_output.diagnostics.get("finite_J_e", False):
+        warnings.append("non_finite_J_e")
+    if not field_output.diagnostics.get("finite_CSD", False):
+        warnings.append("non_finite_CSD")
+
+    # Field solver status from diagnostics
+    field_solver = field_output.diagnostics.get("field_solver", "unknown")
+    is_proxy = "proxy" in field_solver or "no_pde" in field_solver
+
+    # Claim level depends on solver type and source calibration
+    source_calib = cfg_metadata.get("source_calibration_status", "uncalibrated_izhikevich_native_current")
+    is_calibrated = "calibrated" in source_calib.lower() and not "uncalibrated" in source_calib.lower()
+
+    if is_proxy and not is_calibrated:
+        field_claim_level = "laminar_proxy_uncalibrated"
+        physical_amplitude_claim_allowed = False
+    elif is_proxy and is_calibrated:
+        field_claim_level = "laminar_proxy_calibrated"
+        physical_amplitude_claim_allowed = False
+    else:
+        field_claim_level = "pde_solution_candidate"
+        physical_amplitude_claim_allowed = False
+
+    return {
+        "field_claim_level": field_claim_level,
+        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "is_proxy": is_proxy,
+        "is_calibrated": is_calibrated,
+        "warnings": warnings,
+    }
+
+
 def project_sources_to_laminar_field(sources: jnp.ndarray, positions: jnp.ndarray, n_contacts: int = 16) -> FieldOutput:
     """Project source traces to simple laminar contacts.
 

@@ -1,6 +1,6 @@
 # jaxfne
 
-**JAX Field Neural Equations** (v0.0.2): a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations.
+**JAX Field Neural Equations** (v0.0.3): a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations.
 
 ```python
 import jax
@@ -19,7 +19,7 @@ cfg = cfg.emitter(family="izhikevich", preset="cortical_eig")
 cfg = cfg.field(domain="laminar_column", conductivity="isotropic", boundary="mean_zero_neumann", gauge="mean_zero")
 cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e", "J_e", "CSD", "LFP"])
 
-# Metadata gates included by default (v0.0.2)
+# Metadata gates and runtime config (v0.0.3)
 model = jtfne.construct(cfg)
 sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.05, plasticity=1.0, seed=0)
 signals = model.simulate(sim)
@@ -43,22 +43,23 @@ JAX handles array compilation and batching. Jaxley can provide detailed emitters
 
 ## Status and Roadmap
 
-**v0.0.2** (current): API hardening with metadata gates
-- Signal → Signals container (plural: holds multiple arrays)
-- probe() canonical readout; record() is alias
-- Metadata gates baked in (truth_mode, claim_level, calibration status, etc.)
-- test suite validates JSON-safe manifest and optional dependency guards
+**v0.0.3** (current): Runtime metadata and source-field status discipline
+- RuntimeConfig dataclass (device, dtype, x64_enabled, seed, n_steps)
+- runtime() factory function for runtime environment declaration
+- validate_source_field_status() helper documenting field solver claim level
+- Manifest includes runtime_report() and source_field_status (field_claim_level, is_proxy, is_calibrated)
 - Scientific claims remain `truth_safe_unverified`: design scaffold only
 
-**v0.0.3** (next): First vertical slice hardening
-- Source-to-field contract validation
-- Calibration status enforcement
-- JSON-safe reproducibility gates
-- Field solver proxy/full status documentation
+**v0.0.4**: Source-field invariant tests
+- Mean-zero gauge validation (current is conserved and sink-free)
+- Symmetric Positive Definite (SPD) tensor validation
+- NaN/Inf detection and rejection guardrails
+- Passivity/causality test framework
+- Full vs. proxy field solver mode discrimination
 
-**v0.0.4+**: Paradigm execution, optimization, detailed emitters
-- Paradigm.batch() runtime engine
-- Model.tune() with Optax/GSDR
+**v0.0.5+**: Paradigm execution and optimization
+- Paradigm.batch() runtime execution engine
+- Model.tune() with Optax/GSDR integration
 - Detailed Jaxley compartment bridge
 - MEG/EEG readout modes
 

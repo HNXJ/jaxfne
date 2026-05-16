@@ -38,7 +38,7 @@ class Configuration:
         "gauge": "mean_zero",
         "csd_sign_convention": "proxy_positive_equals_extracellular_source_like",
         "field_solver_status": "laminar_proxy_no_pde",
-        "manifest_schema_version": "0.0.2",
+        "manifest_schema_version": "0.0.3",
         "operator_status": {
             "E_theta": "prototype_api",
             "S_WDR": "specified_future_module",
@@ -103,6 +103,31 @@ class Simulation:
 
     def with_plasticity(self, gain: float) -> "Simulation":
         return replace(self, plasticity=float(gain))
+
+
+@dataclass(frozen=True)
+class RuntimeConfig:
+    """Runtime environment and dtype policy state.
+
+    Declares actual platform state (device type, dtype used) at runtime.
+    This allows manifests to document physical simulation precision independently of configuration.
+    """
+
+    device_type: str = "cpu"  # "cpu", "gpu", "tpu"
+    dtype_primary: str = "float32"  # Primary computation dtype
+    x64_enabled: bool = False  # JAX x64 mode flag
+    seed: int = 0  # Execution PRNG seed
+    n_steps: int = 0  # Actual number of timesteps executed
+
+    def runtime_report(self) -> Dict[str, Any]:
+        """Return runtime status for manifest inclusion."""
+        return {
+            "device_type": self.device_type,
+            "dtype_primary": self.dtype_primary,
+            "x64_enabled": self.x64_enabled,
+            "seed": self.seed,
+            "n_steps": self.n_steps,
+        }
 
 
 @dataclass(frozen=True)
@@ -277,6 +302,11 @@ def objective() -> Objective:
 
 def paradigm(name: str = "none") -> Paradigm:
     return Paradigm(name=name)
+
+
+def runtime(device_type: str = "cpu", dtype_primary: str = "float32", x64_enabled: bool = False, seed: int = 0, n_steps: int = 0) -> RuntimeConfig:
+    """Factory for RuntimeConfig (v0.0.3: runtime environment and dtype policy state)."""
+    return RuntimeConfig(device_type=device_type, dtype_primary=dtype_primary, x64_enabled=x64_enabled, seed=seed, n_steps=n_steps)
 
 
 def construct(cfg: Configuration) -> Model:

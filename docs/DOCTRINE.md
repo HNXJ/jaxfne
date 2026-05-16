@@ -1,6 +1,6 @@
 # jaxfne doctrine
 
-**Version:** 0.0.2  
+**Version:** 0.0.3  
 **Status:** Design scaffold / computational framework, not biological validation.
 
 ## Identity
@@ -55,7 +55,7 @@ q = q_cap_ion + q_syn + q_ext
 
 but never both simultaneously.
 
-## v0.0.2 API naming
+## v0.0.3 API naming and runtime discipline
 
 **Signals** (plural) is the canonical container name:
 - Holds time_ms, V_m, spikes, sources, field, metadata.
@@ -68,7 +68,15 @@ but never both simultaneously.
 - record() is an alias for user convenience.
 - Both return a dict of arrays keyed by mode.
 
-## v0.0.2 metadata gates
+**RuntimeConfig** (new in v0.0.3) declares runtime environment:
+- device_type: "cpu", "gpu", or "tpu"
+- dtype_primary: "float32" (default) or "float64" when JAX x64 enabled
+- x64_enabled: boolean flag for JAX precision mode
+- seed: PRNG seed for reproducibility
+- n_steps: actual number of timesteps executed
+- runtime_report() method returns dict for manifest inclusion
+
+## v0.0.3 metadata gates and runtime reporting
 
 Configuration includes these immutable metadata fields (defaults):
 
@@ -79,26 +87,52 @@ Configuration includes these immutable metadata fields (defaults):
 | source_calibration_status | "uncalibrated_izhikevich_native_current" | Source units warning |
 | source_projection_mode | "proxy_no_field_solve" | Declares laminar proxy solver |
 | source_decomposition | "proxy_reduced_emitter" | Reduced source model |
-| boundary_condition | "mean_zero_neumann" | Field boundary (declared, not enforced in v0.0.2) |
-| gauge | "mean_zero" | Field gauge (declared, not enforced in v0.0.2) |
+| boundary_condition | "mean_zero_neumann" | Field boundary (declared, not enforced in v0.0.3) |
+| gauge | "mean_zero" | Field gauge (declared, not enforced in v0.0.3) |
 | csd_sign_convention | "proxy_positive_equals_extracellular_source_like" | CSD interpretation |
 | field_solver_status | "laminar_proxy_no_pde" | Solver type (proxy, not PDE) |
-| manifest_schema_version | "0.0.2" | Manifest format version |
+| manifest_schema_version | "0.0.3" | Manifest format version |
 | operator_status | {...} | Status of TFNE operators (E, S, C, Q, F, P, A, O, C) |
 
 All gates propagate to manifest.json for downstream audit and validation.
 
-## Placeholder policies (v0.0.2)
+**source_field_status** (new in v0.0.3) added to manifest when signals are present:
+- field_claim_level: "laminar_proxy_uncalibrated" or "laminar_proxy_calibrated"
+- physical_amplitude_claim_allowed: false (until calibration/validation complete)
+- is_proxy: boolean flag indicating proxy vs. full PDE solver
+- is_calibrated: boolean flag for source calibration status
+- warnings: list of issues (non_finite_phi_e, non_finite_J_e, non_finite_CSD, etc.)
 
-Do not implement these in v0.0.2. They remain API scaffolds:
+## Placeholder policies (v0.0.3)
 
-- Paradigm.batch() — specification only; execution planned for v0.0.4
-- Model.tune() — API stub; optimization planned for v0.0.4
-- Objective losses/regularizers/gates — builder only; not used in v0.0.2
+Do not implement these in v0.0.3. They remain API scaffolds:
+
+- Paradigm.batch() — specification only; execution planned for v0.0.5+
+- Model.tune() — API stub; optimization planned for v0.0.5+
+- Objective losses/regularizers/gates — builder only; not used in v0.0.3
 - AGSDR optimizer — placeholder class; no real training
 - Jaxley emitter bridge — connector only; no compartment simulations
 - Optax adapter — guard only; no gradient-based training
-- Full field PDE solver — laminar proxy only in v0.0.2
-- MEG/EEG readouts — not supported in v0.0.2
+- Full field PDE solver — laminar proxy only in v0.0.3
+- MEG/EEG readouts — not supported in v0.0.3
+- Source conservation tests — framework planned for v0.0.4
+- SPD tensor validation — planned for v0.0.4
+- Passivity/causality tests — planned for v0.0.4
 
 These APIs exist so designs can be experimented with before implementation locks the behavior.
+
+## v0.0.3 vs. v0.0.2 changes
+
+**New in v0.0.3:**
+- RuntimeConfig dataclass and runtime() factory for documenting execution environment
+- validate_source_field_status() helper for field solver claim assessment
+- manifest_schema_version bumped to "0.0.3"
+- source_field_status dict added to manifest (field_claim_level, is_proxy, is_calibrated, warnings)
+- Runtime environment (device, dtype, x64_enabled, seed, n_steps) can be passed to manifest() for full context
+
+**Preserved from v0.0.2:**
+- All metadata gates and defaults unchanged
+- API shape (configuration(), construct(), simulate(), probe(), record(), manifest())
+- Izhikevich EIG and laminar field proxy architecture
+- JSON-safe serialization with allow_nan=False
+- Optional dependency guards (require_jaxley, require_optax)

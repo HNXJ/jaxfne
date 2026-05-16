@@ -9,6 +9,7 @@ from .core import (
     Objective,
     Paradigm,
     Probe,
+    RuntimeConfig,
     Signal,
     Signals,
     Simulation,
@@ -16,6 +17,7 @@ from .core import (
     construct,
     objective,
     paradigm,
+    runtime,
     simulation,
 )
 from .emitters import izhikevich_eig_params, simulate_izhikevich_eig
@@ -28,6 +30,7 @@ __all__ = [
     "Objective",
     "Paradigm",
     "Probe",
+    "RuntimeConfig",
     "Signal",
     "Signals",
     "Simulation",
@@ -35,6 +38,7 @@ __all__ = [
     "construct",
     "objective",
     "paradigm",
+    "runtime",
     "simulation",
     "izhikevich_eig_params",
     "simulate_izhikevich_eig",
@@ -43,4 +47,4 @@ __all__ = [
     "save_json",
 ]
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
