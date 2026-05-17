@@ -258,3 +258,46 @@ def require_optax() -> Any:
             "Install with: pip install -e '.[opt]'"
         ) from exc
     return optax
+
+
+def propose_blackbox_candidates(
+    optimizer: OptimizerSpec,
+    n_steps: int,
+    seed: int,
+    bounds: tuple[float, float],
+) -> list[float]:
+    """Return deterministic scalar candidates for black-box tuning.
+
+    This utility is deliberately small and dependency-free.  It is suitable for
+    v0.0.x smoke tuning, but the returned candidates are computational proposals
+    only and do not carry biological meaning.
+    """
+    import random
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if hi < lo:
+        lo, hi = hi, lo
+    n = max(0, int(n_steps))
+    if n == 0:
+        return []
+    rng = random.Random(int(seed))
+    if optimizer.optimizer == "random_search":
+        return [lo + (hi - lo) * rng.random() for _ in range(n)]
+    if optimizer.optimizer == "AGSDR":
+        center = 0.5 * (lo + hi)
+        span = max(0.0, hi - lo)
+        out: list[float] = []
+        for step in range(n):
+            radius = span * (optimizer.exploration / (1.0 + step / max(1.0, optimizer.deselect_factor)))
+            proposal = center + rng.uniform(-radius, radius)
+            out.append(min(hi, max(lo, proposal)))
+        return out
+    # GSDR and unknown black-box specs use a deterministic sweep with small jitter.
+    if n == 1:
+        return [0.5 * (lo + hi)]
+    out = []
+    for step in range(n):
+        frac = step / max(1, n - 1)
+        jitter = (rng.random() - 0.5) * optimizer.exploration * (hi - lo)
+        out.append(min(hi, max(lo, lo + frac * (hi - lo) + jitter)))
+    return out

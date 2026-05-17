@@ -742,26 +742,32 @@ class Model:
         seed: int = 0,
         strategy: Optional[str] = None,
         strict: bool = False,
+        simulation: Optional[Simulation] = None,
+        parameter: str = "source_scale",
+        bounds: tuple[float, float] = (0.25, 4.0),
     ) -> tuple["Model", dict[str, Any]]:
-        """Optimizer metadata scaffold for v0.0.5-P3.
+        """Run a small black-box tuning loop or guarded differentiable-path check.
 
-        No parameters are mutated in this phase.  The model returned is always
-        ``self`` (identical object).  The report documents what would happen in
-        a real tuning run and carries the full truth-gate record.
-
-        Returns (model, report) where model is unchanged and report is JSON-safe.
+        v0.0.6 adds a bounded metadata-safe black-box candidate loop for
+        optimizers.  The loop searches one declared scalar parameter and uses
+        Model.evaluate() as the scoring function.  This remains a computational
+        scaffold: no biological calibration, no field-solver upgrade, and no
+        optimizer-selected mechanism claim are made.
         """
         from .io import json_safe
-        from .optim import _resolve_optimizer, _DIFFERENTIABLE_OPTIMIZERS, require_optax
+        from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
 
         cfg_meta = self.cfg.metadata
         spec = _resolve_optimizer(optimizer)
-
+        sim = simulation or Simulation(duration_ms=10.0, dt_ms=0.1, seed=seed)
+        n_steps = max(0, int(steps))
         base_report: dict[str, Any] = {
             "same_model_unchanged": True,
-            "steps_requested": steps,
-            "seed": seed,
-            "strategy": strategy,
+            "steps_requested": n_steps,
+            "seed": int(seed),
+            "strategy": strategy or spec.optimizer,
+            "parameter": parameter,
+            "bounds": [float(bounds[0]), float(bounds[1])],
             "optimizer": spec.to_dict(),
             "objective_name": objective.name if not isinstance(objective, str) else objective,
             "losses_declared": len(objective.losses) if not isinstance(objective, str) else 0,
@@ -769,11 +775,17 @@ class Model:
             "gates_declared": len(objective.gates) if not isinstance(objective, str) else 0,
             "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+            "source_calibration_status": cfg_meta.get(
+                "source_calibration_status", "uncalibrated_izhikevich_native_current"
+            ),
+            "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
+            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
             "field_claim_level": "proxy_readout_only",
             "physical_amplitude_claim_allowed": False,
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
         }
 
-        # Optax path: requires gradient safety declaration.
         if spec.is_differentiable_path():
             if not spec.gradient_path_safe():
                 report = {
@@ -783,11 +795,9 @@ class Model:
                     "warnings": [
                         "optax_requires_differentiable_or_declared_surrogate",
                         "spiking_reset_not_differentiable_without_surrogate",
-                        f"optimizer_differentiability_status={spec.differentiability_status}",
                     ],
                 }
                 return self, json_safe(report)
-            # Gradient path is declared safe — try to import Optax.
             try:
                 require_optax()
                 optax_status = "available"
@@ -795,32 +805,76 @@ class Model:
                 if strict:
                     raise
                 optax_status = "unavailable"
-            if optax_status == "unavailable":
-                report = {
-                    **base_report,
-                    "tuning_status": "optax_unavailable",
-                    "acceptance_decision": "REVISE",
-                    "warnings": ["optax_not_installed_install_with_pip_install_e_opt"],
-                }
-                return self, json_safe(report)
-            # Optax available and gradient path declared.
             report = {
                 **base_report,
-                "tuning_status": "metadata_only_v0.0.5",
-                "acceptance_decision": "ACCEPT_CANDIDATE",
+                "tuning_status": "optax_guarded_path_no_loop_v0.0.8",
+                "acceptance_decision": "REVISE" if optax_status == "unavailable" else "ACCEPT_CANDIDATE",
                 "optax_status": optax_status,
-                "warnings": ["no_optimization_loop_runs_in_v0.0.5"],
+                "same_model_unchanged": True,
+                "warnings": ["differentiable_loop_not_enabled_for_spiking_reset_without_explicit_surrogate_kernel"],
             }
             return self, json_safe(report)
 
-        # Blackbox path: always allowed.
+        if n_steps <= 0:
+            report = {
+                **base_report,
+                "tuning_status": "metadata_only_no_steps_requested",
+                "acceptance_decision": "REVISE",
+                "candidate_history": [],
+                "warnings": ["no_blackbox_steps_requested"],
+            }
+            return self, json_safe(report)
+
+        candidates = propose_blackbox_candidates(
+            optimizer=spec,
+            n_steps=n_steps,
+            seed=int(seed),
+            bounds=(float(bounds[0]), float(bounds[1])),
+        )
+        best_model: Model = self
+        best_loss: Optional[float] = None
+        best_value: Optional[float] = None
+        history: list[dict[str, Any]] = []
+        warnings: list[str] = []
+        for idx, candidate_value in enumerate(candidates):
+            candidate_model = _model_with_scalar_parameter(self, parameter, float(candidate_value))
+            candidate_signals = candidate_model.simulate(replace(sim, seed=int(seed) + idx))
+            candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
+            score = candidate_report.get("total_loss")
+            gates_pass = bool(candidate_report.get("all_gates_pass", False))
+            if score is None:
+                score = 0.0 if gates_pass else float("inf")
+            score = float(score)
+            accepted = math.isfinite(score) and (best_loss is None or score < best_loss)
+            if accepted:
+                best_loss = score
+                best_value = float(candidate_value)
+                best_model = candidate_model
+            history.append({
+                "step": idx,
+                "candidate_value": float(candidate_value),
+                "score": _finite_or_none(score),
+                "all_gates_pass": gates_pass,
+                "accepted_as_best": bool(accepted),
+                "evaluation_status": candidate_report.get("evaluation_status"),
+            })
+        if best_loss is None:
+            warnings.append("no_finite_candidate_score")
+            best_model = self
         report = {
             **base_report,
-            "tuning_status": "metadata_only_v0.0.5",
-            "acceptance_decision": "ACCEPT_CANDIDATE",
-            "warnings": ["no_optimization_loop_runs_in_v0.0.5"],
+            "same_model_unchanged": best_model is self,
+            "tuning_status": "blackbox_loop_v0.0.6",
+            "acceptance_decision": "ACCEPT_CANDIDATE" if best_loss is not None else "REVISE",
+            "best_parameter_value": best_value,
+            "best_score": _finite_or_none(best_loss) if best_loss is not None else None,
+            "candidate_history": history,
+            "warnings": warnings + [
+                "blackbox_loop_is_computational_scaffold_only",
+                "optimizer_selected_candidate_is_not_biological_truth",
+            ],
         }
-        return self, json_safe(report)
+        return best_model, json_safe(report)
 
     def manifest(
         self,
@@ -844,6 +898,20 @@ class Model:
             evaluation=evaluation,
             tuning=tuning,
         )
+
+
+def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> Model:
+    """Return a Model copy with one safe scalar emitter parameter changed."""
+    emitter = model.params["emitter"]
+    if parameter == "source_scale":
+        new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
+    elif parameter == "drive_gain":
+        new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
+    else:
+        raise ValueError(f"Unsupported tunable parameter: {parameter}")
+    params = dict(model.params)
+    params["emitter"] = new_emitter
+    return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
 @dataclass(frozen=True)

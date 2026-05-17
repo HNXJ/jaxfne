@@ -86,8 +86,8 @@ def main():
     eval_json = json.dumps(eval_report, allow_nan=False)
     assert isinstance(eval_json, str)
 
-    # --- Tune metadata smoke (GSDR blackbox, strict=False) ---
-    same_model, tune_report = model.tune(obj, optimizer="GSDR", steps=1, strict=False)
+    # --- Tune metadata smoke (GSDR blackbox, steps=0 → metadata-only path) ---
+    same_model, tune_report = model.tune(obj, optimizer="GSDR", steps=0, strict=False)
 
     print("\n=== Tuning metadata report ===")
     print(f"  tuning_status: {tune_report['tuning_status']!r}")
@@ -95,8 +95,8 @@ def main():
     print(f"  same_model_unchanged: {tune_report['same_model_unchanged']}")
     print(f"  optimizer: {tune_report['optimizer']['optimizer']!r}")
 
-    # The contract: model is never mutated
-    assert same_model is model, "Model must be unchanged after tune()"
+    # steps=0 → metadata_only_no_steps_requested, original model always returned
+    assert same_model is model, "Model must be unchanged after zero-step tune()"
 
     # Verify JSON safety
     tune_json = json.dumps(tune_report, allow_nan=False)
@@ -132,7 +132,8 @@ def main():
     print("  empirical_validation_status: not_empirically_validated")
     print("  mechanism_claim_status: not_claimed")
     print("  Gate pass/fail is a computational diagnostic only.")
-    print("  Model.tune() in v0.0.5 is a metadata scaffold; no parameters were changed.")
+    print("  Model.tune() with steps=0 returns metadata_only_no_steps_requested; no parameters were changed.")
+    print("  not_empirically_validated")
 
 
 if __name__ == "__main__":

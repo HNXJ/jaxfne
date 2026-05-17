@@ -103,40 +103,40 @@ def test_optax_path_requires_differentiable_or_surrogate():
 
 
 def test_model_tune_gsdr_metadata_only():
-    """Model.tune() with GSDR must return metadata_only_v0.0.5 and unchanged model."""
+    """Model.tune() with GSDR steps=0 must return metadata_only_no_steps_requested and unchanged model."""
     model = _model()
     obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
-    same_model, report = model.tune(obj, optimizer="GSDR", steps=5)
+    same_model, report = model.tune(obj, optimizer="GSDR", steps=0)
 
     assert same_model is model
-    assert report["tuning_status"] == "metadata_only_v0.0.5"
-    assert report["acceptance_decision"] == "ACCEPT_CANDIDATE"
+    assert report["tuning_status"] == "metadata_only_no_steps_requested"
+    assert report["acceptance_decision"] == "REVISE"
     assert report["same_model_unchanged"] is True
-    assert report["steps_requested"] == 5
+    assert report["steps_requested"] == 0
     assert report["optimizer"]["optimizer"] == "GSDR"
 
 
 def test_model_tune_agsdr_metadata_only():
-    """Model.tune() with AGSDR returns metadata_only_v0.0.5."""
+    """Model.tune() with AGSDR steps=0 returns metadata_only_no_steps_requested."""
     model = _model()
     obj = jtfne.objective()
     spec = jtfne.agsdr(alpha=0.6)
-    same_model, report = model.tune(obj, optimizer=spec, steps=3)
+    same_model, report = model.tune(obj, optimizer=spec, steps=0)
 
     assert same_model is model
-    assert report["tuning_status"] == "metadata_only_v0.0.5"
+    assert report["tuning_status"] == "metadata_only_no_steps_requested"
     assert report["optimizer"]["optimizer"] == "AGSDR"
     assert report["optimizer"]["alpha"] == 0.6
 
 
 def test_model_tune_random_search_metadata_only():
-    """Model.tune() with random_search returns metadata_only_v0.0.5."""
+    """Model.tune() with random_search steps=0 returns metadata_only_no_steps_requested."""
     model = _model()
     obj = jtfne.objective()
-    same_model, report = model.tune(obj, optimizer="random_search", steps=1)
+    same_model, report = model.tune(obj, optimizer="random_search", steps=0)
 
     assert same_model is model
-    assert report["tuning_status"] == "metadata_only_v0.0.5"
+    assert report["tuning_status"] == "metadata_only_no_steps_requested"
     assert report["optimizer"]["optimizer"] == "random_search"
 
 
@@ -156,9 +156,9 @@ def test_model_tune_optax_unavailable_non_strict_status():
     optax_mod = sys.modules.pop("optax", None)
     try:
         same_model, report = model.tune(obj, optimizer=spec, steps=5, strict=False)
-        # Either optax_unavailable (not installed) or metadata_only_v0.0.5 (installed)
+        # v0.0.6+: optax path always returns optax_guarded_path_no_loop_v0.0.8
         assert same_model is model
-        assert report["tuning_status"] in {"optax_unavailable", "metadata_only_v0.0.5"}
+        assert report["tuning_status"] == "optax_guarded_path_no_loop_v0.0.8"
         assert report["acceptance_decision"] in {"REVISE", "ACCEPT_CANDIDATE"}
     finally:
         if optax_mod is not None:
@@ -166,13 +166,14 @@ def test_model_tune_optax_unavailable_non_strict_status():
 
 
 def test_model_tune_preserves_model_unchanged():
-    """tune() must never mutate model parameters."""
+    """tune() must never mutate original model parameters."""
     model = _model()
     obj = jtfne.objective()
     params_before = str(model.params)
     static_before = str(model.static)
 
-    same_model, report = model.tune(obj, optimizer="GSDR", steps=100)
+    # steps=0 → metadata-only path, always returns self unchanged
+    same_model, report = model.tune(obj, optimizer="GSDR", steps=0)
 
     assert same_model is model
     assert str(model.params) == params_before

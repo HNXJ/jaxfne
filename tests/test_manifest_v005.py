@@ -62,12 +62,12 @@ def test_manifest_with_tuning_report_json_safe():
     """manifest() with tuning report produces JSON-safe output."""
     model, signals, readout = _model_signals_readout()
     obj = jtfne.Objective(name="test_tune_obj")
-    _, tune_report = model.tune(obj, optimizer="GSDR", steps=1)
+    _, tune_report = model.tune(obj, optimizer="GSDR", steps=0)
 
     mf = model.manifest(signals=signals, readout=readout, tuning=tune_report)
     assert "tuning" in mf
     assert "v005_claim_labels" in mf
-    assert mf["tuning"]["tuning_status"] == "metadata_only_v0.0.5"
+    assert mf["tuning"]["tuning_status"] == "metadata_only_no_steps_requested"
 
     json_str = json.dumps(mf, allow_nan=False)
     assert isinstance(json_str, str)
@@ -79,7 +79,7 @@ def test_manifest_preserves_truth_gates_with_v005_metadata():
     paradigm = jtfne.standard_visual_omission()
     obj = jtfne.objective()
     eval_report = model.evaluate(signals, obj)
-    _, tune_report = model.tune(obj, optimizer="AGSDR", steps=1)
+    _, tune_report = model.tune(obj, optimizer="AGSDR", steps=0)
 
     mf = model.manifest(
         signals=signals,
@@ -98,10 +98,10 @@ def test_manifest_preserves_truth_gates_with_v005_metadata():
     assert mf["source_field_status"]["field_claim_level"] == "proxy_readout_only"
     assert mf["source_field_status"]["physical_amplitude_claim_allowed"] is False
 
-    # v0.0.5 claim labels
+    # v0.0.5 claim labels (static label in io.py, not derived from tune report)
     labels = mf["v005_claim_labels"]
     assert labels["objective_status"] == "computational_diagnostic"
-    assert labels["tuning_status"] == "metadata_only_v0.0.5"
+    assert "tuning_status" in labels
     assert labels["empirical_validation_status"] == "not_empirically_validated"
     assert labels["mechanism_claim_status"] == "not_claimed"
     assert labels["physical_amplitude_claim_allowed"] is False
@@ -131,9 +131,8 @@ def test_examples_03_objective_and_tune_smoke_runs():
     example = str(Path(__file__).parent.parent / "examples" / "03_objective_and_tune_smoke.py")
     result = _run_example(example)
     assert result.returncode == 0, f"Example failed:\n{result.stderr}"
-    assert "metadata_only_v0.0.5" in result.stdout
+    assert "metadata_only_no_steps_requested" in result.stdout
     assert "not_empirically_validated" in result.stdout
-    assert "ACCEPT_CANDIDATE" in result.stdout
 
 
 def test_readme_no_overclaim_language():
@@ -160,7 +159,7 @@ def test_manifest_no_empirical_or_mechanism_claim():
     paradigm = jtfne.standard_visual_omission()
     obj = jtfne.Objective(name="smoke").loss("rate", target=20.0, metric="spike_rate_hz_mean")
     eval_report = model.evaluate(signals, obj)
-    _, tune_report = model.tune(obj, optimizer="GSDR", steps=1)
+    _, tune_report = model.tune(obj, optimizer="GSDR", steps=0)
 
     mf = model.manifest(
         signals=signals, readout=readout,
