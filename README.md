@@ -179,6 +179,10 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.9` adds a sparse `EdgeList` recurrent backend using JAX pytrees, `jax.lax.scan`, and `jax.ops.segment_sum`. It is selected with `runtime(recurrent_backend="edge_list")`. This is a computational backend upgrade only; field output remains `laminar_proxy_no_pde`, source calibration remains uncalibrated, and optimizer-selected candidates do not establish empirical or mechanistic claims.
 
+## v0.0.10 synapse metadata
+
+`v0.0.10` hardens source and synapse declarations. It introduces metadata-only `ReceptorSpec` and `SynapseSpec` definitions without adding new conductance-based physical solvers or biological kernels. The backend manifest now flows `EdgeList` details transparently. Dense-vs-edge computations maintain statistical parity. No calibrated synapse claim and no new PDE/field/empirical/mechanism claim is made.
+
 ## Truth status
 
 ```text

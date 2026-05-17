@@ -37,10 +37,13 @@ from .emitters import (
     EdgeList,
     EIGNetwork,
     IzhikevichParams,
+    ReceptorSpec,
+    SynapseSpec,
     make_edge_list_from_dense,
     make_eig_network,
     simulate_edge_recurrent_izhikevich,
     simulate_eig_izhikevich,
+    standard_receptor_specs,
 )
 from .fields import (
     FieldOutput,
@@ -95,10 +98,13 @@ __all__ = [
     "EdgeList",
     "EIGNetwork",
     "IzhikevichParams",
+    "ReceptorSpec",
+    "SynapseSpec",
     "make_edge_list_from_dense",
     "make_eig_network",
     "simulate_edge_recurrent_izhikevich",
     "simulate_eig_izhikevich",
+    "standard_receptor_specs",
     "FieldOutput",
     "project_laminar_sources",
     "project_sources_to_laminar_field",
@@ -121,4 +127,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.9"
+__version__ = "0.0.10"
