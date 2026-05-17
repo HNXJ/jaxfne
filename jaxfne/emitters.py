@@ -217,5 +217,144 @@ def simulate_eig_izhikevich(
     _, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
     return voltages, spikes, sources
 
+
+@jax.tree_util.register_pytree_node_class
+@dataclass(frozen=True)
+class EdgeList:
+    """Sparse recurrent connectivity as a JAX pytree.
+
+    Edges carry signed native weights and first-order synaptic decay constants.
+    This is a computational backend for recurrent reduced emitters; weights are
+    native/unphysical unless a future calibration bridge declares otherwise.
+    """
+
+    pre: jax.Array
+    post: jax.Array
+    weight: jax.Array
+    receptor_index: jax.Array
+    tau_ms: jax.Array
+    source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+
+    @property
+    def n_edges(self) -> int:
+        return int(self.pre.shape[0])
+
+    def tree_flatten(self):
+        children = (self.pre, self.post, self.weight, self.receptor_index, self.tau_ms)
+        aux = {"source_calibration_status": self.source_calibration_status}
+        return children, aux
+
+    @classmethod
+    def tree_unflatten(cls, aux, children):
+        pre, post, weight, receptor_index, tau_ms = children
+        return cls(pre, post, weight, receptor_index, tau_ms, aux["source_calibration_status"])
+
+    def to_dict(self) -> dict:
+        from .io import json_safe
+        return json_safe({
+            "backend": "edge_list_recurrent_v0.0.9",
+            "n_edges": self.n_edges,
+            "receptors": {"0": "excitatory_native", "1": "inhibitory_native"},
+            "source_calibration_status": self.source_calibration_status,
+            "physical_amplitude_claim_allowed": False,
+            "truth_mode": "truth_safe_unverified",
+        })
+
+
+def make_edge_list_from_dense(
+    weights: jax.Array,
+    *,
+    threshold: float = 1e-12,
+    dtype: str = "float32",
+) -> EdgeList:
+    """Convert a dense recurrent weight matrix into a sparse EdgeList.
+
+    The dense matrix uses rows as postsynaptic targets and columns as
+    presynaptic sources, matching ``weights @ spikes`` in the baseline backend.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    W = jnp.asarray(weights, dtype=jdtype)
+    post, pre = jnp.nonzero(jnp.abs(W) > jnp.asarray(threshold, dtype=jdtype))
+    signed_weight = W[post, pre].astype(jdtype)
+    receptor_index = (signed_weight < 0).astype(jnp.int32)
+    tau_exc = jnp.asarray(2.0, dtype=jdtype)
+    tau_inh = jnp.asarray(5.0, dtype=jdtype)
+    tau_ms = jnp.where(receptor_index == 0, tau_exc, tau_inh).astype(jdtype)
+    return EdgeList(
+        pre=pre.astype(jnp.int32),
+        post=post.astype(jnp.int32),
+        weight=signed_weight,
+        receptor_index=receptor_index,
+        tau_ms=tau_ms,
+    )
+
+
+def simulate_edge_recurrent_izhikevich(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    dtype: str = "float32",
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
+
+    The implementation uses ``jax.lax.scan`` over time and
+    ``jax.ops.segment_sum`` over edges. It is JIT/vmap compatible and preserves
+    the uncalibrated proxy-source truth status.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_ms)
+    n_neurons = params.v0.shape[0]
+
+    def step(carry, _):
+        v, u, prev_spikes, syn_state, rng = carry
+        rng, noise_key = jax.random.split(rng)
+        edge_current = weight * syn_state
+        syn = jax.ops.segment_sum(edge_current, post, n_neurons)
+        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
+        current_native = drive + syn + noise
+        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+        du = a * (b * v - u)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        spikes_bool = v_next >= 30.0
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        syn_next = syn_state * decay + spikes[pre]
+        source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+        return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+
+    init = (
+        params.v0.astype(jdtype),
+        params.u0.astype(jdtype),
+        jnp.zeros_like(params.v0, dtype=jdtype),
+        jnp.zeros((edges.n_edges,), dtype=jdtype),
+        key,
+    )
+    final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+    }
+    return voltages, spikes, sources, final_state
+
 # Backwards-compatible name from v0.0.3.
 simulate_izhikevich_eig = simulate_eig_izhikevich

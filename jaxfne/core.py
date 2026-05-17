@@ -14,7 +14,15 @@ from typing import Any, Callable, Mapping, Optional, Sequence
 import jax
 import jax.numpy as jnp
 
-from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
+from .emitters import (
+    EdgeList,
+    EIGNetwork,
+    IzhikevichParams,
+    make_edge_list_from_dense,
+    make_eig_network,
+    simulate_edge_recurrent_izhikevich,
+    simulate_eig_izhikevich,
+)
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, manifest as build_manifest
 
@@ -115,6 +123,7 @@ class RuntimeConfig:
     precision: str = "default"  # "default" | "high"
     seed: int = 0
     n_steps: int = 0
+    recurrent_backend: str = "dense"  # "dense" | "edge_list"
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -156,6 +165,7 @@ class RuntimeConfig:
             "x64_enabled": bool(jax.config.read("jax_enable_x64")),
             "seed": int(self.seed),
             "n_steps": int(self.n_steps),
+            "recurrent_backend": self.recurrent_backend,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -740,6 +750,18 @@ class Model:
 
     def _simulate_arrays(self, sim: Simulation, key: jax.Array, runtime_cfg: RuntimeConfig):
         emitter: IzhikevichParams = self.params["emitter"]
+        if runtime_cfg.recurrent_backend == "edge_list":
+            edges: EdgeList = self.params["edge_list"]
+            if runtime_cfg.jit:
+                run = jax.jit(
+                    lambda k: simulate_edge_recurrent_izhikevich(
+                        emitter, edges, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+                    )[:3]
+                )
+                return run(key)
+            return simulate_edge_recurrent_izhikevich(
+                emitter, edges, sim.n_steps, sim.dt_ms, key, dtype=runtime_cfg.actual_dtype
+            )[:3]
         if runtime_cfg.jit:
             run = jax.jit(
                 lambda k: simulate_eig_izhikevich(
@@ -781,6 +803,7 @@ class Model:
             "paradigm": dict(paradigm) if paradigm is not None else None,
             "plasticity_gain": sim.plasticity,
             "runtime": runtime_cfg.runtime_report(),
+            "recurrent_backend": runtime_cfg.recurrent_backend,
         }
         return Signals(
             time_ms=time_ms,
@@ -805,6 +828,15 @@ class Model:
         emitter: IzhikevichParams = self.params["emitter"]
 
         def one(k):
+            if runtime_cfg.recurrent_backend == "edge_list":
+                return simulate_edge_recurrent_izhikevich(
+                    emitter,
+                    self.params["edge_list"],
+                    sim.n_steps,
+                    sim.dt_ms,
+                    k,
+                    dtype=runtime_cfg.actual_dtype,
+                )[:3]
             return simulate_eig_izhikevich(
                 emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
             )
@@ -818,7 +850,7 @@ class Model:
             "spikes": spikes,
             "sources": sources.astype(runtime_cfg.jnp_dtype),
             "metadata": json_safe({
-                "batch_status": "vmap_seed_batch_v0.0.8",
+                "batch_status": "vmap_seed_batch_v0.0.9" if runtime_cfg.recurrent_backend == "edge_list" else "vmap_seed_batch_v0.0.8",
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
                 "runtime": runtime_cfg.runtime_report(),
@@ -1127,6 +1159,7 @@ def runtime(
     precision: str = "default",
     seed: int = 0,
     n_steps: int = 0,
+    recurrent_backend: str = "dense",
     # v0.0.3 compatibility names.
     device_type: str | None = None,
     dtype_primary: str | None = None,
@@ -1140,6 +1173,7 @@ def runtime(
         precision=precision,
         seed=seed,
         n_steps=n_steps,
+        recurrent_backend=recurrent_backend,
         device_type=device_type,
         dtype_primary=dtype_primary,
         x64_enabled=x64_enabled,
@@ -1170,9 +1204,10 @@ def construct(cfg: Configuration) -> Model:
     n = int(net.get("n", 100))
     cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
     network: EIGNetwork = make_eig_network(n=n, cell_type_fractions=cell_types)
+    edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
     return Model(
         cfg=cfg,
-        params={"emitter": network.params, "positions": network.positions},
+        params={"emitter": network.params, "positions": network.positions, "edge_list": edge_list},
         static={"n_contacts": 16, "operator_status": operator_status()},
     )
 
