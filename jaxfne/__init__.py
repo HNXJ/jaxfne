@@ -33,7 +33,15 @@ from .core import (
     _KNOWN_METRICS,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
-from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
+from .emitters import (
+    EdgeList,
+    EIGNetwork,
+    IzhikevichParams,
+    make_edge_list_from_dense,
+    make_eig_network,
+    simulate_edge_recurrent_izhikevich,
+    simulate_eig_izhikevich,
+)
 from .fields import (
     FieldOutput,
     project_laminar_sources,
@@ -84,9 +92,12 @@ __all__ = [
     "standard_visual_omission",
     "surrogate_config",
     "_KNOWN_METRICS",
+    "EdgeList",
     "EIGNetwork",
     "IzhikevichParams",
+    "make_edge_list_from_dense",
     "make_eig_network",
+    "simulate_edge_recurrent_izhikevich",
     "simulate_eig_izhikevich",
     "FieldOutput",
     "project_laminar_sources",
@@ -110,4 +121,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.8"
+__version__ = "0.0.9"

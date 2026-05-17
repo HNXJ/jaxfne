@@ -175,6 +175,10 @@ python examples/03_objective_and_tune_smoke.py
 
 Expected: 55 passed, 0 failed.
 
+## v0.0.9 edge-list backend
+
+`v0.0.9` adds a sparse `EdgeList` recurrent backend using JAX pytrees, `jax.lax.scan`, and `jax.ops.segment_sum`. It is selected with `runtime(recurrent_backend="edge_list")`. This is a computational backend upgrade only; field output remains `laminar_proxy_no_pde`, source calibration remains uncalibrated, and optimizer-selected candidates do not establish empirical or mechanistic claims.
+
 ## Truth status
 
 ```text
