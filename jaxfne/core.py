@@ -172,6 +172,38 @@ def _jaxlib_version() -> str:
 
 
 @dataclass(frozen=True)
+class SurrogateConfig:
+    """Declared surrogate-gradient metadata for discontinuous emitter paths.
+
+    The current implementation records the declaration only; it does not alter
+    the Izhikevich reset dynamics.  Optax paths may reference this object to
+    distinguish explicit surrogate intent from accidental differentiation
+    through hard spike resets.
+    """
+
+    method: str = "none"  # "none" | "straight_through" | "sigmoid_beta"
+    beta: float = 10.0
+    applies_to: str = "izhikevich_reset"
+    status: str = "declaration_only_v0.0.8"
+
+    def gradient_path_status(self) -> str:
+        if self.method in {"straight_through", "sigmoid_beta"}:
+            return "declared_surrogate"
+        return "required_but_missing"
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "method": self.method,
+            "beta": float(self.beta),
+            "applies_to": self.applies_to,
+            "status": self.status,
+            "gradient_path_status": self.gradient_path_status(),
+            "mechanism_claim_status": "not_claimed",
+        })
+
+
+@dataclass(frozen=True)
 class Simulation:
     duration_ms: float = 1000.0
     dt_ms: float = 0.05
@@ -211,6 +243,24 @@ class Signals:
     sources: jax.Array
     field: Optional[FieldOutput]
     metadata: dict[str, Any]
+
+    def summary(self) -> dict[str, Any]:
+        """Return compact JSON-safe signal diagnostics for notebooks."""
+        from .io import json_safe
+        dt_ms = float(self.time_ms[1] - self.time_ms[0]) if self.time_ms.shape[0] > 1 else None
+        return json_safe({
+            "n_steps": int(self.time_ms.shape[0]),
+            "n_units": int(self.V_m.shape[1]) if self.V_m.ndim == 2 else None,
+            "dt_ms": dt_ms,
+            "spike_count_total": float(jnp.sum(self.spikes)),
+            "spike_rate_hz_mean": (
+                float(jnp.mean(self.spikes) * (1000.0 / dt_ms)) if dt_ms else None
+            ),
+            "V_m_mean": float(jnp.mean(self.V_m)),
+            "field_status": "present" if self.field is not None else "absent",
+            "truth_mode": self.metadata.get("truth_mode", "truth_safe_unverified"),
+            "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout_only"),
+        })
 
 
 # Backwards-compatible alias.
@@ -670,19 +720,48 @@ class Model:
     params: dict[str, Any]
     static: dict[str, Any]
 
+    def summary(self) -> dict[str, Any]:
+        """Return compact JSON-safe model metadata for notebook display."""
+        from .io import json_safe
+        emitter: IzhikevichParams = self.params["emitter"]
+        return json_safe({
+            "config_hash": config_hash(self.cfg),
+            "n_units": int(emitter.v0.shape[0]),
+            "n_contacts": int(self.static.get("n_contacts", 16)),
+            "truth_mode": self.cfg.metadata.get("truth_mode", "truth_safe_unverified"),
+            "claim_level": self.cfg.metadata.get("claim_level", "computational_scaffold"),
+            "source_calibration_status": self.cfg.metadata.get(
+                "source_calibration_status", "uncalibrated_izhikevich_native_current"
+            ),
+            "field_solver_status": self.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+        })
+
+    def _simulate_arrays(self, sim: Simulation, key: jax.Array, runtime_cfg: RuntimeConfig):
+        emitter: IzhikevichParams = self.params["emitter"]
+        if runtime_cfg.jit:
+            run = jax.jit(
+                lambda k: simulate_eig_izhikevich(
+                    emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+                )
+            )
+            return run(key)
+        return simulate_eig_izhikevich(
+            emitter, sim.n_steps, sim.dt_ms, key, dtype=runtime_cfg.actual_dtype
+        )
+
     def simulate(self, sim: Simulation, paradigm: Optional[Mapping[str, Any]] = None) -> Signals:
-        """Run the default EIG/Izhikevich vertical slice."""
+        """Run the default EIG/Izhikevich vertical slice.
+
+        JIT is opt-in through ``Simulation(runtime=RuntimeConfig(jit=True))`` or
+        ``runtime(jit=True)``.  The compiled path preserves the same proxy-field
+        truth status as the eager path.
+        """
 
         runtime_cfg = sim.resolved_runtime
         key = jax.random.PRNGKey(sim.seed)
-        emitter: IzhikevichParams = self.params["emitter"]
-        voltages, spikes, sources = simulate_eig_izhikevich(
-            emitter,
-            sim.n_steps,
-            sim.dt_ms,
-            key,
-            dtype=runtime_cfg.actual_dtype,
-        )
+        voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg)
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
             sim.dt_ms, dtype=runtime_cfg.jnp_dtype
         )
@@ -698,6 +777,7 @@ class Model:
         metadata = {
             "config_hash": config_hash(self.cfg),
             "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
+            "field_claim_level": "proxy_readout_only",
             "paradigm": dict(paradigm) if paradigm is not None else None,
             "plasticity_gain": sim.plasticity,
             "runtime": runtime_cfg.runtime_report(),
@@ -710,6 +790,42 @@ class Model:
             field=field_output,
             metadata=metadata,
         )
+
+    def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = None) -> dict[str, Any]:
+        """Run a vectorized seed batch and return JSON-safe metadata plus arrays.
+
+        This is a trial-replicate utility for notebook statistics.  It uses
+        ``jax.vmap`` over PRNG keys and returns proxy arrays without changing the
+        field-solver or calibration status.
+        """
+        from .io import json_safe
+        runtime_cfg = sim.resolved_runtime
+        base_seed = sim.seed if seed is None else int(seed)
+        keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
+        emitter: IzhikevichParams = self.params["emitter"]
+
+        def one(k):
+            return simulate_eig_izhikevich(
+                emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+            )
+
+        run = jax.vmap(one)
+        if runtime_cfg.jit:
+            run = jax.jit(run)
+        voltages, spikes, sources = run(keys)
+        return {
+            "V_m": voltages.astype(runtime_cfg.jnp_dtype),
+            "spikes": spikes,
+            "sources": sources.astype(runtime_cfg.jnp_dtype),
+            "metadata": json_safe({
+                "batch_status": "vmap_seed_batch_v0.0.8",
+                "n_seeds": int(n_seeds),
+                "seed": base_seed,
+                "runtime": runtime_cfg.runtime_report(),
+                "field_claim_level": "proxy_readout_only",
+                "physical_amplitude_claim_allowed": False,
+            }),
+        }
 
     def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
         """Canonical TFNE readout method."""
@@ -1307,3 +1423,14 @@ def standard_visual_omission() -> Paradigm:
 def dataset_spec(**kwargs: Any) -> DatasetSpec:
     """Return a DatasetSpec schema declaration."""
     return DatasetSpec(**kwargs)
+
+
+def surrogate_config(**kwargs: Any) -> SurrogateConfig:
+    """Return a SurrogateConfig declaration for an Optax gradient path."""
+    return SurrogateConfig(**kwargs)
+
+
+def enable_x64() -> dict[str, Any]:
+    """Enable JAX float64 mode before constructing arrays and report status."""
+    jax.config.update("jax_enable_x64", True)
+    return {"x64_enabled": bool(jax.config.read("jax_enable_x64")), "status": "enabled"}

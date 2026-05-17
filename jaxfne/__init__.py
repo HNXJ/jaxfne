@@ -17,9 +17,11 @@ from .core import (
     Signal,
     Signals,
     Simulation,
+    SurrogateConfig,
     configuration,
     construct,
     dataset_spec,
+    enable_x64,
     objective,
     operator_status,
     paradigm,
@@ -27,6 +29,7 @@ from .core import (
     runtime_report,
     simulation,
     standard_visual_omission,
+    surrogate_config,
     _KNOWN_METRICS,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
@@ -66,9 +69,11 @@ __all__ = [
     "Signal",
     "Signals",
     "Simulation",
+    "SurrogateConfig",
     "configuration",
     "construct",
     "dataset_spec",
+    "enable_x64",
     "objective",
     "operator_status",
     "paradigm",
@@ -77,6 +82,7 @@ __all__ = [
     "runtime_report",
     "simulation",
     "standard_visual_omission",
+    "surrogate_config",
     "_KNOWN_METRICS",
     "EIGNetwork",
     "IzhikevichParams",
@@ -104,4 +110,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.7"
+__version__ = "0.0.8"
