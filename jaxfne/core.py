@@ -575,7 +575,7 @@ def standard_visual_omission() -> Paradigm:
     12 core conditions:
       - AAAB, AXAB, AAXB, AAAX (omission in p2, p3, p4, and p4 respectively)
       - BBBA, BXBA, BBXA, BBBX (omission in p2, p3, p4, and p4 respectively)
-      - RRRR, RXRR, RRXR, RRRX (rewards as rare deviants, omissions in p2, p3, p4)
+      - RRRR, RXRR, RRXR, RRRX (random-control stimuli, omissions in p2, p3, p4)
 
     Event codes:
       - fx: 10 (fixation)
@@ -607,7 +607,7 @@ def standard_visual_omission() -> Paradigm:
     std_A = "stimulus_A"
     std_B = "stimulus_B"
     std_X = "omitted_placeholder"
-    std_R = "reward_marker"
+    std_R = "random_stimulus"
 
     # Define conditions with condition numbers and omission metadata.
     conditions = [
@@ -725,7 +725,7 @@ def standard_visual_omission() -> Paradigm:
                 ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_X, is_omission=True),
             ),
         ),
-        # R-sequence (reward family): oddballs marked as rewards, omissions in p2, p3, p4.
+        # R-sequence (random-control family): random stimulus identity, omissions in p2, p3, p4.
         ParadigmCondition(
             name="RRRR",
             sequence=(std_R, std_R, std_R, std_R),
