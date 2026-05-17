@@ -15,6 +15,46 @@ import jax.numpy as jnp
 
 
 @dataclass(frozen=True)
+class ReceptorSpec:
+    """Metadata declaration for a synaptic receptor. Not a biological kernel."""
+
+    name: str
+    receptor_index: int
+    sign: int
+    tau_ms: float
+    reversal_mV: float | None
+    source_calibration_status: str = "metadata_only_uncalibrated"
+    claim_level: str = "computational_scaffold"
+
+
+@dataclass(frozen=True)
+class SynapseSpec:
+    """Metadata declaration for a synapse. Not a biological kernel."""
+
+    receptors: tuple[ReceptorSpec, ...]
+    source_calibration_status: str = "metadata_only_uncalibrated"
+    physical_amplitude_claim_allowed: bool = False
+
+
+def standard_receptor_specs() -> dict[str, ReceptorSpec]:
+    """Provide standard declarative receptor metadata. No biological claim."""
+    return {
+        "AMPA": ReceptorSpec(
+            name="AMPA", receptor_index=0, sign=1, tau_ms=2.0, reversal_mV=0.0
+        ),
+        "GABA_A": ReceptorSpec(
+            name="GABA_A", receptor_index=1, sign=-1, tau_ms=5.0, reversal_mV=-80.0
+        ),
+        "NMDA": ReceptorSpec(
+            name="NMDA", receptor_index=2, sign=1, tau_ms=100.0, reversal_mV=0.0
+        ),
+        "GABA_B": ReceptorSpec(
+            name="GABA_B", receptor_index=3, sign=-1, tau_ms=150.0, reversal_mV=-95.0
+        ),
+    }
+
+
+@dataclass(frozen=True)
 class IzhikevichParams:
     """Parameter container for a reduced Izhikevich population."""
 

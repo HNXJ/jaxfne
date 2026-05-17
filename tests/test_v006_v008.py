@@ -17,7 +17,8 @@ def _cfg(n=8):
 
 
 def test_version_008_exports_dataset_spec():
-    assert jtfne.__version__ >= "0.0.8"
+    parts = [int(p) for p in jtfne.__version__.split(".")]
+    assert parts >= [0, 0, 8]
     spec = jtfne.dataset_spec(name="nwb_spk", modality="SPK", source_format="npy")
     assert spec.validate()["valid"] is True
     assert spec.to_dict()["empirical_validation_status"] == "not_empirically_validated"

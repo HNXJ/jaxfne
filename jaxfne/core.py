@@ -1101,7 +1101,7 @@ class Model:
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
             runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
-        return build_manifest(
+        res = build_manifest(
             self.cfg,
             signals=signals,
             readout=readout,
@@ -1112,6 +1112,16 @@ class Model:
             tuning=tuning,
             dataset=dataset,
         )
+        if "edge_list" in self.params:
+            edges = self.params["edge_list"]
+            res["backend_metadata"] = {
+                "recurrent_backend": "edge_list",
+                "edge_list_backend": "edge_list_recurrent_v0.0.9",
+                "edge_list_n_edges": int(edges.n_edges),
+                "edge_list_source_calibration_status": edges.source_calibration_status,
+                "edge_list_physical_amplitude_claim_allowed": False,
+            }
+        return res
 
 
 def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> Model:
