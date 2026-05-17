@@ -57,6 +57,7 @@ physical_amplitude_claim_allowed = false
 ### Task paradigm
 
 ```python
+# API scaffold for Paper 2.0 (Omission deferred)
 # Standard visual omission task: 12 conditions, condition-number mapping
 paradigm = jtfne.standard_visual_omission()
 print(paradigm.condition_names())        # ['AAAB', 'AXAB', ..., 'RRRX']
@@ -135,17 +136,38 @@ manifest = model.manifest(
 # All v0.0.4 truth gates still present
 ```
 
-## Version roadmap
+## Version roadmap (Publication Event 1.0)
 
-```text
-v0.0.1  skeleton
-v0.0.2  API/object hardening
-v0.0.3  runtime + source-field status metadata
-v0.0.4  source projection + probe invariant tests
-v0.0.5  task paradigm + objective/evaluate + optimizer metadata scaffold
-v0.0.6  (future) real optimization loop — GSDR/AGSDR/Optax
-v0.0.7  (future) Jaxley bridge skeleton hardening
-```
+The roadmap centers around **Paper 1.0: in-silico spectrolaminar motif**, deferring omission (Paper 2.0) and global/local oddball (Paper 3.0).
+
+**Pre-v0.1 bridge lane:**
+* `v0.0.11`  uncalibrated multi-receptor synaptic kernel
+* `v0.0.12`  paradigm/stimulus injection into recurrent model
+* `v0.0.13`  laminar population builder / source geometry metadata
+* `v0.0.14`  trial runner and condition-aligned outputs
+* `v0.0.15`  v0.1 readiness audit
+
+**Publication Event 1.0 sequence:**
+* `v0.1.0`   practical OOP core freeze
+* `v0.2.x`   spectrolaminar objective/readout base
+* `v0.3.x`   generative spectrolaminar workflow
+* `v0.4.0`   Paper 1.0 minimum sufficient release (in-silico spectrolaminar motif)
+
+**Deferred (Post-Paper 1.0):**
+* Paper 2.0: Omission mismatch workflows
+* Paper 3.0: Global/local oddball workflows
+* Dense Jaxley/NEURON compartment bridges
+* EEG/MEG physical solvers
+
+## Claims Discipline
+
+**Allowed:**
+- v0.1.x provides the compact JAX-native OOP core required to build reproducible TFNE workflows.
+
+**Forbidden:**
+- v0.1.x validates spectrolaminar mechanisms.
+- v0.1.x produces calibrated LFP/CSD amplitudes.
+- v0.1.x is a full simulator.
 
 ## Package structure
 
