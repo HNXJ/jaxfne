@@ -248,9 +248,92 @@ class Objective:
 
 
 @dataclass(frozen=True)
+class ParadigmEvent:
+    """Discrete event within a task trial: stimulus, behavioral code, or omission marker."""
+
+    label: str
+    onset_ms: Optional[float] = None
+    duration_ms: Optional[float] = None
+    code: Optional[int] = None
+    stimulus: Optional[str] = None
+    is_omission: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dictionary representation."""
+        from .io import json_safe
+        return json_safe({
+            "label": self.label,
+            "onset_ms": self.onset_ms,
+            "duration_ms": self.duration_ms,
+            "code": self.code,
+            "stimulus": self.stimulus,
+            "is_omission": self.is_omission,
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
+class ParadigmCondition:
+    """A specific trial condition: sequence of stimuli and associated events."""
+
+    name: str
+    sequence: tuple[str, str, str, str]
+    omission_position: Optional[str] = None
+    probability: Optional[float] = None
+    condition_numbers: tuple[int, ...] = ()
+    events: tuple[ParadigmEvent, ...] = ()
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def has_omission(self) -> bool:
+        """Return True if this condition contains an omission."""
+        return self.omission_position is not None
+
+    def omitted_event_label(self) -> Optional[str]:
+        """Return the label of the omitted event, or None if no omission."""
+        if self.omission_position is None:
+            return None
+        for evt in self.events:
+            if evt.label == self.omission_position:
+                return evt.label
+        return self.omission_position
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dictionary representation."""
+        from .io import json_safe
+        return json_safe({
+            "name": self.name,
+            "sequence": self.sequence,
+            "omission_position": self.omission_position,
+            "probability": self.probability,
+            "condition_numbers": self.condition_numbers,
+            "events": [e.to_dict() for e in self.events],
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
 class Paradigm:
     name: str = "none"
     blocks: list[dict[str, Any]] = field(default_factory=list)
+    conditions: tuple["ParadigmCondition", ...] = ()
+    alignment_code: int = 101
+    alignment_label: str = "p1"
+    pre_stimulus_buffer_ms: float = 1000.0
+    analysis_windows: dict[str, tuple[float, float]] = field(default_factory=lambda: {
+        "baseline": (-500.0, 0.0),
+        "event": (0.0, 500.0),
+        "post_event": (500.0, 1000.0),
+    })
+    event_codes: dict[str, int] = field(default_factory=lambda: {
+        "fx": 10,
+        "p1": 101,
+        "p2": 103,
+        "p3": 105,
+        "p4": 107,
+        "rw": 96,
+    })
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def habituation(self, sequence: Sequence[str], n_trials: int) -> "Paradigm":
         return replace(
@@ -261,8 +344,44 @@ class Paradigm:
     def main_block(self, **kwargs: Any) -> "Paradigm":
         return replace(self, blocks=[*self.blocks, {"kind": "main_block", **kwargs}])
 
-    def batch(self, n_trials: int, seed: int = 0) -> dict[str, Any]:
-        return {"name": self.name, "n_trials": n_trials, "seed": seed, "blocks": self.blocks}
+    def batch(self, n_trials: int, seed: int = 0, condition_weights: Optional[dict[str, float]] = None) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "n_trials": n_trials,
+            "seed": seed,
+            "blocks": self.blocks,
+            "condition_weights": condition_weights,
+        }
+
+    def condition(self, name: str) -> Optional["ParadigmCondition"]:
+        """Return ParadigmCondition by name, or None if not found."""
+        for cond in self.conditions:
+            if cond.name == name:
+                return cond
+        return None
+
+    def condition_names(self) -> list[str]:
+        """Return list of condition names."""
+        return [c.name for c in self.conditions]
+
+    def omission_conditions(self) -> list["ParadigmCondition"]:
+        """Return list of conditions containing omissions."""
+        return [c for c in self.conditions if c.has_omission()]
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dictionary representation."""
+        from .io import json_safe
+        return json_safe({
+            "name": self.name,
+            "blocks": self.blocks,
+            "conditions": [c.to_dict() for c in self.conditions],
+            "alignment_code": self.alignment_code,
+            "alignment_label": self.alignment_label,
+            "pre_stimulus_buffer_ms": self.pre_stimulus_buffer_ms,
+            "analysis_windows": self.analysis_windows,
+            "event_codes": self.event_codes,
+            "metadata": self.metadata,
+        })
 
 
 @dataclass(frozen=True)
@@ -448,3 +567,242 @@ def construct(cfg: Configuration) -> Model:
 
 def operator_status() -> dict[str, str]:
     return _default_operator_status()
+
+
+def standard_visual_omission() -> Paradigm:
+    """Construct a Paradigm with standard visual oddball/omission task conditions.
+
+    12 core conditions:
+      - AAAB, AXAB, AAXB, AAAX (omission in p2, p3, p4, and p4 respectively)
+      - BBBA, BXBA, BBXA, BBBX (omission in p2, p3, p4, and p4 respectively)
+      - RRRR, RXRR, RRXR, RRRX (rewards as rare deviants, omissions in p2, p3, p4)
+
+    Event codes:
+      - fx: 10 (fixation)
+      - p1: 101 (standard visual P1)
+      - p2: 103 (standard visual P2)
+      - p3: 105 (standard visual P3)
+      - p4: 107 (standard visual P4)
+      - rw: 96 (reward marker)
+
+    Analysis windows:
+      - baseline: -500 to 0 ms (pre-stimulus)
+      - event: 0 to 500 ms (post-stimulus)
+      - post_event: 500 to 1000 ms (post-stimulus)
+
+    Alignment: P1 onset (code 101) at t=0.
+    Pre-stimulus buffer: 1000 ms.
+    """
+    # Define event code mapping (immutable, hardcoded).
+    event_codes = {
+        "fx": 10,
+        "p1": 101,
+        "p2": 103,
+        "p3": 105,
+        "p4": 107,
+        "rw": 96,
+    }
+
+    # Standard stimulus identifiers.
+    std_A = "stimulus_A"
+    std_B = "stimulus_B"
+    std_X = "omitted_placeholder"
+    std_R = "reward_marker"
+
+    # Define conditions with condition numbers and omission metadata.
+    conditions = [
+        # A-sequence (AAAB family): oddball in position 4.
+        ParadigmCondition(
+            name="AAAB",
+            sequence=(std_A, std_A, std_A, std_B),
+            omission_position=None,
+            probability=None,
+            condition_numbers=(1, 2),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_A),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_A),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_A),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_B),
+            ),
+        ),
+        ParadigmCondition(
+            name="AXAB",
+            sequence=(std_A, std_X, std_A, std_B),
+            omission_position="p2",
+            probability=None,
+            condition_numbers=(3,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_A),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_A),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_B),
+            ),
+        ),
+        ParadigmCondition(
+            name="AAXB",
+            sequence=(std_A, std_A, std_X, std_B),
+            omission_position="p3",
+            probability=None,
+            condition_numbers=(4,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_A),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_A),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_B),
+            ),
+        ),
+        ParadigmCondition(
+            name="AAAX",
+            sequence=(std_A, std_A, std_A, std_X),
+            omission_position="p4",
+            probability=None,
+            condition_numbers=(5,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_A),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_A),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_A),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_X, is_omission=True),
+            ),
+        ),
+        # B-sequence (BBBA family): oddball in position 4.
+        ParadigmCondition(
+            name="BBBA",
+            sequence=(std_B, std_B, std_B, std_A),
+            omission_position=None,
+            probability=None,
+            condition_numbers=(6, 7),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_B),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_B),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_B),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_A),
+            ),
+        ),
+        ParadigmCondition(
+            name="BXBA",
+            sequence=(std_B, std_X, std_B, std_A),
+            omission_position="p2",
+            probability=None,
+            condition_numbers=(8,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_B),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_B),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_A),
+            ),
+        ),
+        ParadigmCondition(
+            name="BBXA",
+            sequence=(std_B, std_B, std_X, std_A),
+            omission_position="p3",
+            probability=None,
+            condition_numbers=(9,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_B),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_B),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_A),
+            ),
+        ),
+        ParadigmCondition(
+            name="BBBX",
+            sequence=(std_B, std_B, std_B, std_X),
+            omission_position="p4",
+            probability=None,
+            condition_numbers=(10,),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_B),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_B),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_B),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_X, is_omission=True),
+            ),
+        ),
+        # R-sequence (reward family): oddballs marked as rewards, omissions in p2, p3, p4.
+        ParadigmCondition(
+            name="RRRR",
+            sequence=(std_R, std_R, std_R, std_R),
+            omission_position=None,
+            probability=None,
+            condition_numbers=tuple(range(11, 27)),  # [11-26]
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_R),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_R),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_R),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_R),
+                ParadigmEvent(label="rw", onset_ms=500.0, code=event_codes["rw"]),
+            ),
+        ),
+        ParadigmCondition(
+            name="RXRR",
+            sequence=(std_R, std_X, std_R, std_R),
+            omission_position="p2",
+            probability=None,
+            condition_numbers=tuple(range(27, 35)),  # [27-34]
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_R),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_R),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_R),
+                ParadigmEvent(label="rw", onset_ms=500.0, code=event_codes["rw"]),
+            ),
+        ),
+        ParadigmCondition(
+            name="RRXR",
+            sequence=(std_R, std_R, std_X, std_R),
+            omission_position="p3",
+            probability=None,
+            condition_numbers=(35, 37, 39, 41),
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_R),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_R),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_R),
+                ParadigmEvent(label="rw", onset_ms=500.0, code=event_codes["rw"]),
+            ),
+        ),
+        ParadigmCondition(
+            name="RRRX",
+            sequence=(std_R, std_R, std_R, std_X),
+            omission_position="p4",
+            probability=None,
+            condition_numbers=(36, 38, 40) + tuple(range(42, 51)),  # [36, 38, 40, 42-50]
+            events=(
+                ParadigmEvent(label="fx", onset_ms=0.0, code=event_codes["fx"]),
+                ParadigmEvent(label="p1", onset_ms=100.0, code=event_codes["p1"], stimulus=std_R),
+                ParadigmEvent(label="p2", onset_ms=200.0, code=event_codes["p2"], stimulus=std_R),
+                ParadigmEvent(label="p3", onset_ms=300.0, code=event_codes["p3"], stimulus=std_R),
+                ParadigmEvent(label="p4", onset_ms=400.0, code=event_codes["p4"], stimulus=std_X, is_omission=True),
+                ParadigmEvent(label="rw", onset_ms=500.0, code=event_codes["rw"]),
+            ),
+        ),
+    ]
+
+    return Paradigm(
+        name="standard_visual_omission",
+        conditions=tuple(conditions),
+        alignment_code=event_codes["p1"],
+        alignment_label="p1",
+        pre_stimulus_buffer_ms=1000.0,
+        analysis_windows={
+            "baseline": (-500.0, 0.0),
+            "event": (0.0, 500.0),
+            "post_event": (500.0, 1000.0),
+        },
+        event_codes=event_codes,
+        metadata={
+            "task_type": "visual_oddball_omission",
+            "n_conditions": 12,
+            "n_trials_per_condition": {c.name: len(c.condition_numbers) for c in conditions},
+        },
+    )
