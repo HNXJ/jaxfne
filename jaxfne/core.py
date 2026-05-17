@@ -734,11 +734,93 @@ class Model:
             "warnings": warnings,
         })
 
-    def tune(self, objective: Objective, optimizer: Any = None, steps: int = 1) -> "Model":
-        """Placeholder: object API for future Optax/GSDR tuning."""
+    def tune(
+        self,
+        objective: "Objective",
+        optimizer: Any = None,
+        steps: int = 0,
+        seed: int = 0,
+        strategy: Optional[str] = None,
+        strict: bool = False,
+    ) -> tuple["Model", dict[str, Any]]:
+        """Optimizer metadata scaffold for v0.0.5-P3.
 
-        _ = (objective, optimizer, steps)
-        return self
+        No parameters are mutated in this phase.  The model returned is always
+        ``self`` (identical object).  The report documents what would happen in
+        a real tuning run and carries the full truth-gate record.
+
+        Returns (model, report) where model is unchanged and report is JSON-safe.
+        """
+        from .io import json_safe
+        from .optim import _resolve_optimizer, _DIFFERENTIABLE_OPTIMIZERS, require_optax
+
+        cfg_meta = self.cfg.metadata
+        spec = _resolve_optimizer(optimizer)
+
+        base_report: dict[str, Any] = {
+            "same_model_unchanged": True,
+            "steps_requested": steps,
+            "seed": seed,
+            "strategy": strategy,
+            "optimizer": spec.to_dict(),
+            "objective_name": objective.name if not isinstance(objective, str) else objective,
+            "losses_declared": len(objective.losses) if not isinstance(objective, str) else 0,
+            "regularizers_declared": len(objective.regularizers) if not isinstance(objective, str) else 0,
+            "gates_declared": len(objective.gates) if not isinstance(objective, str) else 0,
+            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
+            "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+        }
+
+        # Optax path: requires gradient safety declaration.
+        if spec.is_differentiable_path():
+            if not spec.gradient_path_safe():
+                report = {
+                    **base_report,
+                    "tuning_status": "blocked_non_differentiable_path",
+                    "acceptance_decision": "REVISE",
+                    "warnings": [
+                        "optax_requires_differentiable_or_declared_surrogate",
+                        "spiking_reset_not_differentiable_without_surrogate",
+                        f"optimizer_differentiability_status={spec.differentiability_status}",
+                    ],
+                }
+                return self, json_safe(report)
+            # Gradient path is declared safe — try to import Optax.
+            try:
+                require_optax()
+                optax_status = "available"
+            except ImportError:
+                if strict:
+                    raise
+                optax_status = "unavailable"
+            if optax_status == "unavailable":
+                report = {
+                    **base_report,
+                    "tuning_status": "optax_unavailable",
+                    "acceptance_decision": "REVISE",
+                    "warnings": ["optax_not_installed_install_with_pip_install_e_opt"],
+                }
+                return self, json_safe(report)
+            # Optax available and gradient path declared.
+            report = {
+                **base_report,
+                "tuning_status": "metadata_only_v0.0.5",
+                "acceptance_decision": "ACCEPT_CANDIDATE",
+                "optax_status": optax_status,
+                "warnings": ["no_optimization_loop_runs_in_v0.0.5"],
+            }
+            return self, json_safe(report)
+
+        # Blackbox path: always allowed.
+        report = {
+            **base_report,
+            "tuning_status": "metadata_only_v0.0.5",
+            "acceptance_decision": "ACCEPT_CANDIDATE",
+            "warnings": ["no_optimization_loop_runs_in_v0.0.5"],
+        }
+        return self, json_safe(report)
 
     def manifest(self, signals: Optional[Signals] = None, readout: Optional[dict[str, Any]] = None) -> dict[str, Any]:
         runtime_cfg = None

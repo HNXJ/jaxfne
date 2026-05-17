@@ -37,6 +37,16 @@ from .fields import (
     validate_source_field_status,
 )
 from .io import config_hash, json_safe, manifest, save_json, sha256_file, sha256_text
+from .optim import (
+    AGSDR,
+    OptimizerSpec,
+    agsdr,
+    gsdr,
+    optax_adam,
+    optax_sgd,
+    random_search,
+    require_optax,
+)
 
 __all__ = [
     "Configuration",
@@ -76,6 +86,14 @@ __all__ = [
     "save_json",
     "sha256_file",
     "sha256_text",
+    "AGSDR",
+    "OptimizerSpec",
+    "agsdr",
+    "gsdr",
+    "optax_adam",
+    "optax_sgd",
+    "random_search",
+    "require_optax",
 ]
 
 __version__ = "0.0.4"
