@@ -822,12 +822,28 @@ class Model:
         }
         return self, json_safe(report)
 
-    def manifest(self, signals: Optional[Signals] = None, readout: Optional[dict[str, Any]] = None) -> dict[str, Any]:
+    def manifest(
+        self,
+        signals: Optional[Signals] = None,
+        readout: Optional[dict[str, Any]] = None,
+        paradigm: Optional[dict[str, Any]] = None,
+        objective: Optional[dict[str, Any]] = None,
+        evaluation: Optional[dict[str, Any]] = None,
+        tuning: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
-            # io.manifest accepts any object with runtime_report(); keep a tiny adapter.
             runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
-        return build_manifest(self.cfg, signals=signals, readout=readout, runtime_config=runtime_cfg)
+        return build_manifest(
+            self.cfg,
+            signals=signals,
+            readout=readout,
+            runtime_config=runtime_cfg,
+            paradigm=paradigm,
+            objective=objective,
+            evaluation=evaluation,
+            tuning=tuning,
+        )
 
 
 @dataclass(frozen=True)

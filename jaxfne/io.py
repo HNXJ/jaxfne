@@ -67,9 +67,18 @@ def manifest(
     signals: Optional[Any] = None,
     readout: Optional[dict[str, Any]] = None,
     runtime_config: Optional[Any] = None,
+    paradigm: Optional[dict[str, Any]] = None,
+    objective: Optional[dict[str, Any]] = None,
+    evaluation: Optional[dict[str, Any]] = None,
+    tuning: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
-    """Build a strict JSON-safe run manifest."""
+    """Build a strict JSON-safe run manifest.
 
+    Optional v0.0.5 arguments (paradigm, objective, evaluation, tuning) extend the
+    manifest without changing the base schema version.  All v0.0.4 truth gates are
+    always emitted.  Objective/evaluation/tuning sections carry explicit claim labels
+    so downstream readers cannot mistake them for empirical validation results.
+    """
     from .fields import validate_source_field_status
 
     cfg_metadata = dict(getattr(cfg, "metadata", {}) or {})
@@ -111,6 +120,27 @@ def manifest(
             data["source_field_status"] = validate_source_field_status(
                 signals.field, cfg_metadata, requested_modes=requested_modes
             )
+    # v0.0.5 optional extension blocks — always include claim labels to prevent
+    # downstream misreading of computational reports as empirical validation.
+    _v005_present = any(x is not None for x in (paradigm, objective, evaluation, tuning))
+    if _v005_present:
+        data["v005_claim_labels"] = {
+            "objective_status": "computational_diagnostic",
+            "tuning_status": "metadata_only_v0.0.5",
+            "optimizer_claim_level": "metadata_only",
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+        }
+    if paradigm is not None:
+        data["paradigm"] = paradigm
+    if objective is not None:
+        data["objective"] = objective
+    if evaluation is not None:
+        data["evaluation"] = evaluation
+    if tuning is not None:
+        data["tuning"] = tuning
     return json_safe(data)
 
 
