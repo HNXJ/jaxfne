@@ -7,6 +7,7 @@ source/readout status, not a full PDE field solver.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
 
@@ -218,6 +219,14 @@ Signal = Signals
 
 @dataclass(frozen=True)
 class Objective:
+    """Declarative objective specification: losses, regularizers, and diagnostic gates.
+
+    All specs are stored as plain dicts (no callables) so the objective is always
+    JSON-serializable.  Gate pass/fail is a computational diagnostic only — it does
+    not imply empirical validation or biological calibration.
+    """
+
+    name: str = "anonymous"
     losses: list[dict[str, Any]] = field(default_factory=list)
     regularizers: list[dict[str, Any]] = field(default_factory=list)
     gates: list[dict[str, Any]] = field(default_factory=list)
@@ -225,26 +234,60 @@ class Objective:
     def loss(
         self,
         name: str,
-        fn: Optional[Callable[..., Any]] = None,
+        target: Optional[float] = None,
         weight: float = 1.0,
-        **kwargs: Any,
+        metric: Optional[str] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
-        return replace(self, losses=[*self.losses, {"name": name, "fn": fn, "weight": weight, **kwargs}])
+        spec: dict[str, Any] = {"name": name, "weight": float(weight)}
+        if target is not None:
+            spec["target"] = float(target)
+        if metric is not None:
+            spec["metric"] = str(metric)
+        if metadata:
+            spec["metadata"] = dict(metadata)
+        return replace(self, losses=[*self.losses, spec])
 
     def regularizer(
         self,
         name: str,
         target: float = 0.0,
         weight: float = 1.0,
-        **kwargs: Any,
+        metric: Optional[str] = None,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
-        return replace(
-            self,
-            regularizers=[*self.regularizers, {"name": name, "target": target, "weight": weight, **kwargs}],
-        )
+        spec: dict[str, Any] = {"name": name, "target": float(target), "weight": float(weight)}
+        if metric is not None:
+            spec["metric"] = str(metric)
+        if metadata:
+            spec["metadata"] = dict(metadata)
+        return replace(self, regularizers=[*self.regularizers, spec])
 
-    def gate(self, name: str, **kwargs: Any) -> "Objective":
-        return replace(self, gates=[*self.gates, {"name": name, **kwargs}])
+    def gate(
+        self,
+        name: str,
+        threshold: Any,
+        criterion: str = "below",
+        metric: Optional[str] = None,
+        metadata: Optional[dict[str, Any]] = None,
+    ) -> "Objective":
+        spec: dict[str, Any] = {"name": name, "threshold": threshold, "criterion": str(criterion)}
+        if metric is not None:
+            spec["metric"] = str(metric)
+        if metadata:
+            spec["metadata"] = dict(metadata)
+        return replace(self, gates=[*self.gates, spec])
+
+    def compose(self, *others: "Objective") -> "Objective":
+        """Merge other Objective specs into this one, concatenating all specs."""
+        all_losses = list(self.losses)
+        all_regularizers = list(self.regularizers)
+        all_gates = list(self.gates)
+        for other in others:
+            all_losses.extend(other.losses)
+            all_regularizers.extend(other.regularizers)
+            all_gates.extend(other.gates)
+        return replace(self, losses=all_losses, regularizers=all_regularizers, gates=all_gates)
 
 
 @dataclass(frozen=True)
@@ -384,6 +427,179 @@ class Paradigm:
         })
 
 
+_KNOWN_METRICS = frozenset({
+    "spike_rate_hz_mean",
+    "spike_count_total",
+    "mean_V_m",
+    "source_proxy_abs_mean",
+    "csd_proxy_abs_mean",
+    "lfp_proxy_abs_mean",
+})
+
+
+def _finite_or_none(value: float) -> Optional[float]:
+    return value if math.isfinite(value) else None
+
+
+def _compute_all_metrics(signals: "Signals", readout: Optional[dict[str, Any]] = None) -> dict[str, Optional[float]]:
+    """Compute all known scalar metrics from signals."""
+    dt_ms = float(signals.time_ms[1] - signals.time_ms[0]) if signals.time_ms.shape[0] > 1 else 0.05
+    m: dict[str, Optional[float]] = {}
+    m["spike_rate_hz_mean"] = _finite_or_none(float(jnp.mean(signals.spikes) * (1000.0 / dt_ms)))
+    m["spike_count_total"] = _finite_or_none(float(jnp.sum(signals.spikes)))
+    m["mean_V_m"] = _finite_or_none(float(jnp.mean(signals.V_m)))
+    if signals.field is not None:
+        m["source_proxy_abs_mean"] = _finite_or_none(float(jnp.mean(jnp.abs(signals.field.source_proxy))))
+        m["csd_proxy_abs_mean"] = _finite_or_none(float(jnp.mean(jnp.abs(signals.field.csd_proxy))))
+        m["lfp_proxy_abs_mean"] = _finite_or_none(float(jnp.mean(jnp.abs(signals.field.lfp_proxy))))
+    else:
+        m["source_proxy_abs_mean"] = None
+        m["csd_proxy_abs_mean"] = None
+        m["lfp_proxy_abs_mean"] = None
+    return m
+
+
+def _check_gate_criterion(value: float, threshold: Any, criterion: str) -> bool:
+    """Return True if the gate passes for the given criterion."""
+    if criterion == "below":
+        return float(value) < float(threshold)
+    if criterion == "above":
+        return float(value) > float(threshold)
+    if criterion == "equal":
+        return abs(float(value) - float(threshold)) < 1e-6
+    if criterion == "in_range":
+        lo, hi = float(threshold[0]), float(threshold[1])
+        return lo <= float(value) <= hi
+    return False
+
+
+def _evaluate_loss_spec(
+    spec: dict[str, Any],
+    metrics: dict[str, Optional[float]],
+    warnings: list[str],
+    strict: bool,
+) -> dict[str, Any]:
+    """Evaluate one loss spec against computed metrics."""
+    result: dict[str, Any] = {"name": spec["name"], "weight": spec.get("weight", 1.0)}
+    metric = spec.get("metric")
+    target = spec.get("target")
+    if metric is None:
+        result["value"] = None
+        result["weighted_value"] = None
+        result["status"] = "no_metric_specified"
+        return result
+    if metric not in _KNOWN_METRICS:
+        msg = f"unknown_metric:{metric}"
+        if strict:
+            result["status"] = msg
+            result["value"] = None
+            result["weighted_value"] = None
+            warnings.append(msg)
+            return result
+        warnings.append(msg)
+        result["value"] = None
+        result["weighted_value"] = None
+        result["status"] = msg
+        return result
+    value = metrics.get(metric)
+    result["metric"] = metric
+    result["value"] = value
+    if value is None:
+        result["weighted_value"] = None
+        result["status"] = "metric_unavailable"
+        return result
+    if target is not None:
+        raw = (value - float(target)) ** 2
+    else:
+        raw = value
+    weighted = float(spec.get("weight", 1.0)) * raw
+    result["target"] = target
+    result["raw_loss"] = _finite_or_none(raw)
+    result["weighted_value"] = _finite_or_none(weighted)
+    result["status"] = "ok"
+    return result
+
+
+def _evaluate_regularizer_spec(
+    spec: dict[str, Any],
+    metrics: dict[str, Optional[float]],
+    warnings: list[str],
+    strict: bool,
+) -> dict[str, Any]:
+    """Evaluate one regularizer spec."""
+    result: dict[str, Any] = {
+        "name": spec["name"],
+        "target": spec.get("target", 0.0),
+        "weight": spec.get("weight", 1.0),
+    }
+    metric = spec.get("metric")
+    if metric is None:
+        result["value"] = None
+        result["weighted_value"] = None
+        result["status"] = "no_metric_specified"
+        return result
+    if metric not in _KNOWN_METRICS:
+        msg = f"unknown_metric:{metric}"
+        warnings.append(msg)
+        result["value"] = None
+        result["weighted_value"] = None
+        result["status"] = msg
+        return result
+    value = metrics.get(metric)
+    result["metric"] = metric
+    result["value"] = value
+    if value is None:
+        result["weighted_value"] = None
+        result["status"] = "metric_unavailable"
+        return result
+    target = float(spec.get("target", 0.0))
+    raw = (value - target) ** 2
+    weighted = float(spec.get("weight", 1.0)) * raw
+    result["raw_regularizer"] = _finite_or_none(raw)
+    result["weighted_value"] = _finite_or_none(weighted)
+    result["status"] = "ok"
+    return result
+
+
+def _evaluate_gate_spec(
+    spec: dict[str, Any],
+    metrics: dict[str, Optional[float]],
+    warnings: list[str],
+    strict: bool,
+) -> dict[str, Any]:
+    """Evaluate one gate spec; returns pass/fail."""
+    result: dict[str, Any] = {
+        "name": spec["name"],
+        "threshold": spec.get("threshold"),
+        "criterion": spec.get("criterion", "below"),
+    }
+    metric = spec.get("metric")
+    if metric is None:
+        result["value"] = None
+        result["pass"] = False
+        result["status"] = "no_metric_specified"
+        return result
+    if metric not in _KNOWN_METRICS:
+        msg = f"unknown_metric:{metric}"
+        warnings.append(msg)
+        result["metric"] = metric
+        result["value"] = None
+        result["pass"] = False
+        result["status"] = msg
+        return result
+    value = metrics.get(metric)
+    result["metric"] = metric
+    result["value"] = value
+    if value is None:
+        result["pass"] = False
+        result["status"] = "metric_unavailable"
+        return result
+    passes = _check_gate_criterion(value, spec.get("threshold"), spec.get("criterion", "below"))
+    result["pass"] = passes
+    result["status"] = "pass" if passes else "fail"
+    return result
+
+
 @dataclass(frozen=True)
 class Model:
     cfg: Configuration
@@ -451,24 +667,72 @@ class Model:
 
         return self.probe(signals, modes)
 
-    def evaluate(self, signals: Signals, objective: Objective | str) -> dict[str, Any]:
-        """Minimal smoke evaluator; full objective path is reserved for v0.0.5."""
+    def evaluate(
+        self,
+        signals: Signals,
+        objective: "Objective | str",
+        readout: Optional[dict[str, Any]] = None,
+        strict: bool = False,
+    ) -> dict[str, Any]:
+        """Full objective/gate evaluation with JSON-safe report.
 
-        dt_ms = signals.time_ms[1] - signals.time_ms[0]
-        spike_rate_hz = jnp.mean(signals.spikes) * (1000.0 / dt_ms)
-        mean_pairwise_corr_proxy = _mean_pairwise_corr_proxy(signals.spikes)
-        return {
-            "evaluation_status": "smoke_only_objective_path_future",
-            "spike_rate_hz_mean": float(spike_rate_hz),
-            "mean_pairwise_correlation_proxy": float(mean_pairwise_corr_proxy),
-            "objective": objective
-            if isinstance(objective, str)
-            else {
-                "losses": [x["name"] for x in objective.losses],
-                "regularizers": [x["name"] for x in objective.regularizers],
-                "gates": [x["name"] for x in objective.gates],
-            },
-        }
+        Gate pass/fail is a computational diagnostic only.  It does not imply
+        empirical validation, biological calibration, or mechanism proof.
+        All truth gates from v0.0.4 are preserved in the report.
+        """
+        from .io import json_safe
+
+        if isinstance(objective, str):
+            objective = Objective(name=objective)
+
+        cfg_meta = self.cfg.metadata
+        warnings: list[str] = []
+
+        computed_metrics = _compute_all_metrics(signals, readout)
+
+        loss_results = []
+        total_loss = 0.0
+        has_loss_value = False
+        for spec in objective.losses:
+            r = _evaluate_loss_spec(spec, computed_metrics, warnings, strict)
+            loss_results.append(r)
+            if r.get("weighted_value") is not None:
+                total_loss += r["weighted_value"]
+                has_loss_value = True
+
+        reg_results = []
+        for spec in objective.regularizers:
+            r = _evaluate_regularizer_spec(spec, computed_metrics, warnings, strict)
+            reg_results.append(r)
+            if r.get("weighted_value") is not None:
+                total_loss += r["weighted_value"]
+                has_loss_value = True
+
+        gate_results = []
+        all_gates_pass = True
+        for spec in objective.gates:
+            r = _evaluate_gate_spec(spec, computed_metrics, warnings, strict)
+            gate_results.append(r)
+            if not r.get("pass", True):
+                all_gates_pass = False
+
+        acceptance = "gates_pass" if all_gates_pass else "gates_fail"
+
+        return json_safe({
+            "evaluation_status": "objective_evaluate_v0.0.5",
+            "objective_name": objective.name,
+            "total_loss": _finite_or_none(total_loss) if has_loss_value else None,
+            "losses": loss_results,
+            "regularizers": reg_results,
+            "gates": gate_results,
+            "all_gates_pass": all_gates_pass,
+            "acceptance_decision": acceptance,
+            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
+            "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+            "warnings": warnings,
+        })
 
     def tune(self, objective: Objective, optimizer: Any = None, steps: int = 1) -> "Model":
         """Placeholder: object API for future Optax/GSDR tuning."""

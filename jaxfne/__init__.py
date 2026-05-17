@@ -25,6 +25,7 @@ from .core import (
     runtime_report,
     simulation,
     standard_visual_omission,
+    _KNOWN_METRICS,
 )
 from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
 from .fields import (
@@ -58,6 +59,7 @@ __all__ = [
     "runtime_report",
     "simulation",
     "standard_visual_omission",
+    "_KNOWN_METRICS",
     "EIGNetwork",
     "IzhikevichParams",
     "make_eig_network",
