@@ -107,7 +107,7 @@ Do not implement these in the v0.1.x-v0.4.0 (Paper 1.0) sequence. They remain AP
 
 - Omission and global/local oddball paradigm execution (Paper 2.0/3.0)
 
-- Paradigm.batch() — specification only; execution deferred to Paper 2.0
+- Paradigm.batch() — basic condition/trial execution may support Paper 1.0 spectrolaminar workflows; omission/global-local-specific execution is deferred to Paper 2.0/3.0.
 - Model.tune() — API stub; optimization planned for v0.0.5+
 - Objective losses/regularizers/gates — builder only; not used in v0.0.3
 - AGSDR optimizer — placeholder class; no real training
