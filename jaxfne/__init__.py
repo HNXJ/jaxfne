@@ -9,6 +9,8 @@ from .core import (
     Model,
     Objective,
     Paradigm,
+    ParadigmCondition,
+    ParadigmEvent,
     Probe,
     RuntimeConfig,
     Signal,
@@ -22,6 +24,7 @@ from .core import (
     runtime,
     runtime_report,
     simulation,
+    standard_visual_omission,
 )
 from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
 from .fields import (
@@ -39,6 +42,8 @@ __all__ = [
     "Model",
     "Objective",
     "Paradigm",
+    "ParadigmCondition",
+    "ParadigmEvent",
     "Probe",
     "RuntimeConfig",
     "Signal",
@@ -52,6 +57,7 @@ __all__ = [
     "runtime",
     "runtime_report",
     "simulation",
+    "standard_visual_omission",
     "EIGNetwork",
     "IzhikevichParams",
     "make_eig_network",
