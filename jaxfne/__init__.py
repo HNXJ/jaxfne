@@ -6,6 +6,7 @@ Equations (TFNE).  Public API is object-oriented; numerical kernels are JAX-firs
 
 from .core import (
     Configuration,
+    DatasetSpec,
     Model,
     Objective,
     Paradigm,
@@ -18,6 +19,7 @@ from .core import (
     Simulation,
     configuration,
     construct,
+    dataset_spec,
     objective,
     operator_status,
     paradigm,
@@ -27,6 +29,7 @@ from .core import (
     standard_visual_omission,
     _KNOWN_METRICS,
 )
+from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
 from .emitters import EIGNetwork, IzhikevichParams, make_eig_network, simulate_eig_izhikevich
 from .fields import (
     FieldOutput,
@@ -49,7 +52,10 @@ from .optim import (
 )
 
 __all__ = [
+    "BridgeSpec",
     "Configuration",
+    "DatasetSpec",
+    "JaxleyEmitterBridge",
     "Model",
     "Objective",
     "Paradigm",
@@ -62,9 +68,11 @@ __all__ = [
     "Simulation",
     "configuration",
     "construct",
+    "dataset_spec",
     "objective",
     "operator_status",
     "paradigm",
+    "require_jaxley",
     "runtime",
     "runtime_report",
     "simulation",
@@ -96,4 +104,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.4"
+__version__ = "0.0.7"

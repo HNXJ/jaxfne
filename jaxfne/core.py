@@ -427,6 +427,70 @@ class Paradigm:
         })
 
 
+@dataclass(frozen=True)
+class DatasetSpec:
+    """Manifest-safe dataset/alignment declaration for observed data.
+
+    DatasetSpec is a schema object, not a loader.  It records how an external
+    dataset is aligned and interpreted so objectives can reference data without
+    hard-coding paths or claiming empirical validation.
+    """
+
+    name: str = "unnamed_dataset"
+    modality: str = "unspecified"
+    source_format: str = "unspecified"
+    alignment_label: str = "p1"
+    alignment_code: int = 101
+    sampling_rate_hz: Optional[float] = None
+    units: str = "unspecified"
+    trial_filter: dict[str, Any] = field(default_factory=dict)
+    condition_map: dict[str, list[int]] = field(default_factory=dict)
+    quality_gates: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def with_condition_map(self, condition_map: Mapping[str, Sequence[int]]) -> "DatasetSpec":
+        mapped = {str(k): [int(x) for x in v] for k, v in condition_map.items()}
+        return replace(self, condition_map=mapped)
+
+    def with_quality_gate(self, name: str, value: Any) -> "DatasetSpec":
+        gates = dict(self.quality_gates)
+        gates[str(name)] = value
+        return replace(self, quality_gates=gates)
+
+    def validate(self) -> dict[str, Any]:
+        issues: list[str] = []
+        if not self.name:
+            issues.append("dataset_name_missing")
+        if self.alignment_code is None:
+            issues.append("alignment_code_missing")
+        if self.sampling_rate_hz is not None and self.sampling_rate_hz <= 0:
+            issues.append("sampling_rate_hz_must_be_positive")
+        return {
+            "valid": not issues,
+            "issues": issues,
+            "dataset_status": "schema_only_no_data_loaded",
+            "empirical_validation_status": "not_empirically_validated",
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "name": self.name,
+            "modality": self.modality,
+            "source_format": self.source_format,
+            "alignment_label": self.alignment_label,
+            "alignment_code": self.alignment_code,
+            "sampling_rate_hz": self.sampling_rate_hz,
+            "units": self.units,
+            "trial_filter": self.trial_filter,
+            "condition_map": self.condition_map,
+            "quality_gates": self.quality_gates,
+            "metadata": self.metadata,
+            "dataset_status": "schema_only_no_data_loaded",
+            "empirical_validation_status": "not_empirically_validated",
+        })
+
+
 _KNOWN_METRICS = frozenset({
     "spike_rate_hz_mean",
     "spike_count_total",
@@ -884,6 +948,7 @@ class Model:
         objective: Optional[dict[str, Any]] = None,
         evaluation: Optional[dict[str, Any]] = None,
         tuning: Optional[dict[str, Any]] = None,
+        dataset: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
@@ -897,6 +962,7 @@ class Model:
             objective=objective,
             evaluation=evaluation,
             tuning=tuning,
+            dataset=dataset,
         )
 
 
@@ -1236,3 +1302,8 @@ def standard_visual_omission() -> Paradigm:
             "n_trials_per_condition": {c.name: len(c.condition_numbers) for c in conditions},
         },
     )
+
+
+def dataset_spec(**kwargs: Any) -> DatasetSpec:
+    """Return a DatasetSpec schema declaration."""
+    return DatasetSpec(**kwargs)

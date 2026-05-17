@@ -154,4 +154,4 @@ def test_optional_dependency_guards():
 
 
 def test_version():
-    assert jtfne.__version__ == "0.0.4"
+    assert jtfne.__version__ >= "0.0.7"

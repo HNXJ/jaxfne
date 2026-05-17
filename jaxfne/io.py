@@ -71,6 +71,7 @@ def manifest(
     objective: Optional[dict[str, Any]] = None,
     evaluation: Optional[dict[str, Any]] = None,
     tuning: Optional[dict[str, Any]] = None,
+    dataset: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Build a strict JSON-safe run manifest.
 
@@ -126,7 +127,7 @@ def manifest(
     if _v005_present:
         data["v005_claim_labels"] = {
             "objective_status": "computational_diagnostic",
-            "tuning_status": "metadata_only_v0.0.5",
+            "tuning_status": "blackbox_loop_or_metadata_scaffold_v0.0.8",
             "optimizer_claim_level": "metadata_only",
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
@@ -141,6 +142,14 @@ def manifest(
         data["evaluation"] = evaluation
     if tuning is not None:
         data["tuning"] = tuning
+    if dataset is not None:
+        data["dataset"] = dataset
+        data["dataset_claim_labels"] = {
+            "dataset_status": "schema_only_no_data_loaded",
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+            "physical_amplitude_claim_allowed": False,
+        }
     return json_safe(data)
 
 
