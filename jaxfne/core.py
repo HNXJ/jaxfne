@@ -2513,6 +2513,7 @@ _RECOGNIZED_OPTIONAL_CONFIG_SECTIONS = frozenset({
 })
 
 _CONSERVATIVE_TRUTH_DEFAULTS = {
+    "truth_mode": "truth_safe_unverified",
     "physical_amplitude_claim_allowed": False,
     "claim_level": "computational_scaffold",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -2725,6 +2726,8 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
         )
     if truth.get("field_solver_status") not in (None, "laminar_proxy_no_pde"):
         issues.append(f"truth_escalation:field_solver_status:{truth.get('field_solver_status')!r}")
+    if truth.get("truth_mode") not in (None, "truth_safe_unverified"):
+        issues.append(f"truth_escalation:truth_mode:{truth.get('truth_mode')!r}")
     if truth.get("empirical_validation_status") not in (None, "not_empirically_validated"):
         issues.append(
             f"truth_escalation:empirical_validation_status:"

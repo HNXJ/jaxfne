@@ -280,3 +280,35 @@ def test_o_no_physical_units_in_geometry():
     geo_str = json.dumps(geo_dict)
     assert "depth_um" not in geo_str
     assert "_mm" not in geo_str
+
+
+def test_p_validate_config_truth_mode_missing_is_blocking():
+    """truth_mode is required; absent truth_mode must produce a blocking issue."""
+    truth_without_mode = {k: v for k, v in _VALID_TRUTH.items() if k != "truth_mode"}
+    cfg_dict = {**_MINIMAL_CONFIG, "truth": truth_without_mode}
+    with tempfile.TemporaryDirectory() as tmp:
+        p = Path(tmp) / "test.jcfg.json"
+        _write_config(cfg_dict, p)
+        cfg = jtfne.load_config(p)
+        result = jtfne.validate_config(cfg)
+    assert result.valid is False
+    assert any("truth.truth_mode_missing" in i for i in result.issues)
+
+
+def test_q_validate_config_truth_mode_escalation_is_blocking():
+    """truth_mode value other than truth_safe_unverified must produce a blocking issue."""
+    escalated_truth = {**_VALID_TRUTH, "truth_mode": "validated_biological_truth"}
+    cfg_dict = {**_MINIMAL_CONFIG, "truth": escalated_truth}
+    with tempfile.TemporaryDirectory() as tmp:
+        p = Path(tmp) / "test.jcfg.json"
+        _write_config(cfg_dict, p)
+        cfg = jtfne.load_config(p)
+        result = jtfne.validate_config(cfg)
+    assert result.valid is False
+    assert any("truth_escalation:truth_mode" in i for i in result.issues)
+
+
+def test_r_conservative_truth_defaults_has_truth_mode():
+    """_CONSERVATIVE_TRUTH_DEFAULTS must contain truth_mode as a source-of-truth guard."""
+    assert "truth_mode" in _CONSERVATIVE_TRUTH_DEFAULTS
+    assert _CONSERVATIVE_TRUTH_DEFAULTS["truth_mode"] == "truth_safe_unverified"
