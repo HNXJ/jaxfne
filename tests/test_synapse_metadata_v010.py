@@ -8,12 +8,13 @@ import jaxfne
 
 
 def test_version_alignment():
-    assert jaxfne.__version__ == "0.0.10"
-    
-    # Also verify pyproject.toml
+    parts = [int(p) for p in jaxfne.__version__.split(".")]
+    assert parts >= [0, 0, 10]
+
+    # Also verify pyproject.toml carries the same runtime version.
     pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
     content = pyproject_path.read_text()
-    assert 'version = "0.0.10"' in content
+    assert f'version = "{jaxfne.__version__}"' in content
 
 
 def test_receptor_synapse_metadata():

@@ -43,7 +43,9 @@ from .emitters import (
     make_eig_network,
     simulate_edge_recurrent_izhikevich,
     simulate_eig_izhikevich,
+    simulate_receptor_exponential_izhikevich,
     standard_receptor_specs,
+    standard_receptor_tau_table,
 )
 from .fields import (
     FieldOutput,
@@ -104,7 +106,9 @@ __all__ = [
     "make_eig_network",
     "simulate_edge_recurrent_izhikevich",
     "simulate_eig_izhikevich",
+    "simulate_receptor_exponential_izhikevich",
     "standard_receptor_specs",
+    "standard_receptor_tau_table",
     "FieldOutput",
     "project_laminar_sources",
     "project_sources_to_laminar_field",
@@ -127,4 +131,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.10"
+__version__ = "0.0.11"
