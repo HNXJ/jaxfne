@@ -30,9 +30,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.5 release candidate)
+## Current status (v0.0.18)
 
-v0.0.5 adds the task-flow, objective, and optimizer metadata layers on top of the v0.0.4 source/probe invariant foundation.
+v0.0.18 is the current development HEAD (branch `dev-v0.0.18-objective-report`). The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
@@ -145,7 +145,10 @@ The roadmap centers around **Paper 1.0: in-silico spectrolaminar motif**, deferr
 * `v0.0.12`  paradigm/stimulus injection into recurrent model
 * `v0.0.13`  laminar population builder / source geometry metadata
 * `v0.0.14`  trial runner and condition-aligned outputs
-* `v0.0.15`  v0.1 readiness audit
+* `v0.0.15`  config/JaxFNEConfig standard (.jcfg.json)
+* `v0.0.16`  RunReceipt deterministic audit receipt
+* `v0.0.17`  ReadoutSpec declarative feature extraction
+* `v0.0.18`  ObjectiveReport structured evaluation result
 
 **Publication Event 1.0 sequence:**
 * `v0.1.0`   practical OOP core freeze
@@ -175,13 +178,15 @@ The roadmap centers around **Paper 1.0: in-silico spectrolaminar motif**, deferr
 jaxfne/
   __init__.py        public API surface
   core.py            Configuration, Model, Simulation, RuntimeConfig, Signals,
-                     Probe, Objective, Paradigm, ParadigmEvent, ParadigmCondition
+                     Probe, Objective, Paradigm, ParadigmEvent, ParadigmCondition,
+                     RunReceipt, ReadoutSpec, ReadoutResult, ObjectiveReport,
+                     JaxFNEConfig, ConfigValidationResult (v0.0.15–v0.0.18)
   emitters.py        Izhikevich EIG scaffold
   fields.py          laminar proxy source/probe layer and invariant diagnostics
   optim.py           OptimizerSpec, GSDR/AGSDR/random_search/Optax specs,
                      require_optax guard, legacy AGSDR class
   bridges.py         Jaxley bridge scaffold + require_jaxley guard
-  io.py              strict JSON manifest, hashing, save/load
+  io.py              strict JSON manifest, hashing, save/load, save_receipt
 ```
 
 ## Development smoke
@@ -195,7 +200,7 @@ python examples/02_omission_scaffold.py
 python examples/03_objective_and_tune_smoke.py
 ```
 
-Expected: 55 passed, 0 failed.
+Expected: 178 passed, 0 failed.
 
 ## v0.0.9 edge-list backend
 
@@ -241,28 +246,24 @@ claim is introduced.
 
 
 
-## v0.0.18 objective report
+## v0.0.16 run receipt
 
-`v0.0.18` adds `ObjectiveReport` — a structured, immutable result of evaluating an
-`Objective` against `Signals`.  It introduces `ObjectiveReport` (frozen dataclass)
-and `Model.evaluate_report(signals, objective, *, readout_specs=None)`.
+`v0.0.16` adds `RunReceipt` — an immutable, JSON-safe record of a single simulation run.
+It introduces `RunReceipt`, `Model.run_receipt()`, the module-level `run_receipt()` factory,
+and `save_receipt()` for writing receipts to disk with an overwrite guard.
 
-`evaluate_report` wraps the existing `Model.evaluate()` output into a typed,
-JSON-safe object that also embeds `ReadoutResult` items when `readout_specs`
-are provided.  `ObjectiveReport.truth` carries frozen conservative truth gates.
+A `RunReceipt` captures: config fingerprint (`config_hash`), simulation parameters,
+`Signals.summary()`, frozen truth gates, claim labels, and backend metadata.
+The `receipt_id` is deterministic: same configuration + seed + version always produces
+the same 16-char SHA256 prefix.  `save_receipt(receipt, path)` raises
+`ValueError("receipt_file_exists: ...")` if the path already exists, unless
+`overwrite=True` is passed.
 
-```python
-report = model.evaluate_report(signals, obj, readout_specs=[
-    jtfne.readout_spec("rate", "spike_rate_hz"),
-    jtfne.readout_spec("csd",  "csd_abs_mean"),
-])
-assert report.evaluation_status == "objective_report_v0.0.18"
-assert report.truth["physical_amplitude_claim_allowed"] is False
-json.dumps(report.to_dict(), allow_nan=False)
-```
+The `manifest_schema_version` default in `io.manifest()` is bumped from `"0.0.4"` to
+`"0.0.16"` to reflect the current package version.
 
-Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
-no empirical validation, and no mechanism claim is introduced.
+No new PDE solver, no calibrated current, no empirical validation, and no mechanism
+claim is introduced.
 
 ## v0.0.17 readout spec
 
@@ -291,24 +292,28 @@ temporal and depth windowing.  `ReadoutResult.status` is `"computed"`,
 No new PDE solver, no physical-amplitude claim, no empirical validation, and no
 mechanism claim is introduced.
 
-## v0.0.16 run receipt
+## v0.0.18 objective report
 
-`v0.0.16` adds `RunReceipt` — an immutable, JSON-safe record of a single simulation run.
-It introduces `RunReceipt`, `Model.run_receipt()`, the module-level `run_receipt()` factory,
-and `save_receipt()` for writing receipts to disk with an overwrite guard.
+`v0.0.18` adds `ObjectiveReport` — a structured, immutable result of evaluating an
+`Objective` against `Signals`.  It introduces `ObjectiveReport` (frozen dataclass)
+and `Model.evaluate_report(signals, objective, *, readout_specs=None)`.
 
-A `RunReceipt` captures: config fingerprint (`config_hash`), simulation parameters,
-`Signals.summary()`, frozen truth gates, claim labels, and backend metadata.
-The `receipt_id` is deterministic: same configuration + seed + version always produces
-the same 16-char SHA256 prefix.  `save_receipt(receipt, path)` raises
-`ValueError("receipt_file_exists: ...")` if the path already exists, unless
-`overwrite=True` is passed.
+`evaluate_report` wraps the existing `Model.evaluate()` output into a typed,
+JSON-safe object that also embeds `ReadoutResult` items when `readout_specs`
+are provided.  `ObjectiveReport.truth` carries frozen conservative truth gates.
 
-The `manifest_schema_version` default in `io.manifest()` is bumped from `"0.0.4"` to
-`"0.0.16"` to reflect the current package version.
+```python
+report = model.evaluate_report(signals, obj, readout_specs=[
+    jtfne.readout_spec("rate", "spike_rate_hz"),
+    jtfne.readout_spec("csd",  "csd_abs_mean"),
+])
+assert report.evaluation_status == "objective_report_v0.0.18"
+assert report.truth["physical_amplitude_claim_allowed"] is False
+json.dumps(report.to_dict(), allow_nan=False)
+```
 
-No new PDE solver, no calibrated current, no empirical validation, and no mechanism
-claim is introduced.
+Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
+no empirical validation, and no mechanism claim is introduced.
 
 ## Truth status
 

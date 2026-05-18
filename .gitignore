@@ -25,6 +25,7 @@ MANIFEST
 
 # Virtual environments
 venv/
+venv_push/
 ENV/
 env/
 .venv
