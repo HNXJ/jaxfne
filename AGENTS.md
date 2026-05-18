@@ -33,11 +33,11 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `869694c` | v0.0.19 — last clean state |
-| `dev` | `e24f4e5` (pushed) | v0.0.20 semantic hardening committed + pushed; v0.0.21 fidelity pass in progress |
+| `dev` | `29bbe0a` (pushed) | v0.0.21 config/runtime/source fidelity hardening complete; 236 tests pass; 7 examples pass |
 
-**Version:** `0.0.20`  
-**Tests:** 216 passed, 0 failed  
-**Working tree:** clean baseline; v0.0.21 fidelity pass starting
+**Version:** `0.0.21`  
+**Tests:** 236 passed, 0 failed  
+**Working tree:** clean; v0.0.21 fidelity pass complete
 
 ---
 
@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| `claude-sonnet` | v0.0.21 config/runtime/source fidelity (Tasks C–J) | 2026-05-18 | active |
+| (none) | v0.0.21 complete; awaiting next phase direction | 2026-05-18 | ready for handoff |
 
 ---
 
@@ -53,6 +53,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `claude-sonnet` | v0.0.21 config/runtime/source fidelity (Tasks C–J validation, test suite, doc updates) | `29bbe0a` | 236 tests pass, 7 examples pass; pushed to origin/dev |
 | `claude-sonnet` | v0.0.20 semantic hardening (receipts/readouts/manifest/probes/sim validation) | `e24f4e5` | 216 tests pass; pushed to origin |
 | `gemini-cli` | `docs/roadmaps/v0.0.18_longterm/` | `d7bf899` | 10 roadmap docs staged on dev-v0.0.18; captured at merge |
 | `gemini-cli` | `README.md` hero snippet | `d7bf899` | run_receipt/compute_readout example; captured at merge |
