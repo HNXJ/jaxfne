@@ -1912,7 +1912,7 @@ def trial_batch(
     conditions: Sequence[ParadigmCondition],
     n_reps: int = 1,
     seed: int = 0,
-    seed_policy: str = "unique_per_trial",
+    seed_policy: str = "paired_by_replicate",
     batch_id: Optional[str] = None,
     metadata: Optional[dict[str, Any]] = None,
 ) -> TrialBatch:
@@ -1922,11 +1922,14 @@ def trial_batch(
     Assigns unique trial_id in format "trial_{index:04d}_{condition_name}".
 
     Seed policy:
-      - "unique_per_trial" (default): seed = base_seed + trial_index
-      - "paired_by_replicate": seed = base_seed + replicate_index
+      - "paired_by_replicate" (default): seed = base_seed + replicate_index
+      - "unique_per_trial": seed = base_seed + trial_index
     """
     if seed_policy not in {"unique_per_trial", "paired_by_replicate"}:
-        raise ValueError(f"Invalid seed_policy: {seed_policy}")
+        raise ValueError(
+            f"invalid_seed_policy: {seed_policy!r}; "
+            "must be one of {'paired_by_replicate', 'unique_per_trial'}"
+        )
 
     trials: list[TrialSpec] = []
     idx = 0

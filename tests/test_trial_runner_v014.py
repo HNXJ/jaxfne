@@ -28,7 +28,8 @@ def test_a_trial_batch_factory():
     assert batch.trials[1].trial_id == "trial_0001_AXAB"
     assert batch.trials[3].trial_id == "trial_0003_AAAB"
     assert batch.trials[0].seed == 100
-    assert batch.trials[5].seed == 105
+    # paired_by_replicate default: rep 1 → base_seed + 1 = 101
+    assert batch.trials[5].seed == 101
     assert batch.trials[0].metadata["rep"] == 0
     assert batch.trials[3].metadata["rep"] == 1
 
@@ -51,9 +52,10 @@ def test_c_unique_seeds():
     model = jtfne.construct(cfg)
     paradigm = jtfne.standard_visual_omission()
     conditions = [paradigm.conditions[0]] * 2
-    batch = jtfne.trial_batch(conditions, n_reps=1, seed=42)
+    # Use unique_per_trial to guarantee different seeds per trial
+    batch = jtfne.trial_batch(conditions, n_reps=1, seed=42, seed_policy="unique_per_trial")
     sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.5)
-    
+
     batch_res = model.run_trials(batch, sim)
     # Seeds 42 and 43 should produce different results
     res1 = batch_res.results[0].signals.V_m
@@ -235,7 +237,7 @@ def test_o_seed_policy_unique_per_trial():
 
 def test_p_seed_policy_invalid():
     paradigm = jtfne.standard_visual_omission()
-    with pytest.raises(ValueError, match="Invalid seed_policy"):
+    with pytest.raises(ValueError, match="invalid_seed_policy"):
         jtfne.trial_batch(paradigm.conditions[:1], seed_policy="invalid_policy")
 
 def test_q_manifest_trials_integration():
