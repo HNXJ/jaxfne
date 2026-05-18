@@ -4,6 +4,39 @@ All entries reflect `truth_mode: truth_safe_unverified`. No biological claims
 are made at any version. Receipts, reports, and manifests are computational
 validation artifacts, not empirical evidence.
 
+## v0.0.21
+
+- **Config/runtime fidelity:** Added `_SUPPORTED_RUNTIME_SPEC_KEYS` and
+  `_runtime_from_spec()` to validate runtime declarations from `.jcfg.json`;
+  unknown keys now warn; invalid known values (e.g. bad `synaptic_kernel`) raise.
+- **Truth escalation guard:** Implemented `_conservative_truth_transfer()` to
+  force user-declared truth claims back to conservative defaults
+  (`truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`);
+  escalations trigger warnings; non-scalar unknown keys skipped.
+- **Unsupported config warnings:** Added `_config_section_warnings()` to detect
+  unsupported emitter families, field domains, conductivities, boundaries, and gauges;
+  warnings merged into `Configuration.metadata["unsupported_config_warnings"]`.
+- **Runtime config warnings registry:** Added `_CONFIG_RUNTIME_WARNINGS` module-level
+  dict to surface `runtime_spec` warnings without mutating frozen `RuntimeConfig`.
+- **Backend reporting fidelity:** Enhanced `RuntimeConfig.runtime_report()` to
+  distinguish `requested_backend` vs `actual_backend` and report enforced status
+  and mismatches (e.g. requested GPU on CPU-only JAX device).
+- **vmap behavioral semantics:** Made `simulate_batch()` respect `runtime.vmap` flag:
+  `vmap=True` uses `jax.vmap` over seed batch; `vmap=False` uses Python loop with
+  `jnp.stack`; mode reported in metadata as `batch_execution_mode`.
+- **Source proxy metadata:** Added `_SOURCE_PROXY_METADATA` constant documenting
+  source model: `izhikevich_native_current_plus_spike_impulse_proxy` with spike
+  impulse gain 20.0; injected into `simulate()`, `simulate_batch()`, and
+  `manifest()` under `source_model` and `backend_metadata.source_model`.
+- **Receptor/tau source documentation:** Enhanced `manifest()` to document
+  `receptor_tau_source` distinction: exponential kernel uses default tau;
+  receptor_exponential kernel looks up tau by receptor_index; results equivalent
+  for current default flow.
+- **Schema version bumps:** Updated `_RECEIPT_SCHEMA_VERSION` to
+  `"run_receipt_v0.0.21"`, `_MANIFEST_SCHEMA_VERSION` to `"manifest.v0.0.21"`.
+- Preserved all truth gates at `truth_safe_unverified / computational_scaffold /
+  laminar_proxy_no_pde / proxy_readout_only / physical_amplitude_claim_allowed=False`.
+
 ## v0.0.20
 
 - Fixed `RunReceipt` completeness: `duration_ms`, `dt_ms`, `n_steps`, and

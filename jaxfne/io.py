@@ -99,6 +99,8 @@ def manifest(
             "csd_sign_convention", "proxy_positive_equals_extracellular_source_like"
         ),
         "field_solver_status": cfg_metadata.get("field_solver_status", "laminar_proxy_no_pde"),
+        "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout_only"),
+        "physical_amplitude_claim_allowed": cfg_metadata.get("physical_amplitude_claim_allowed", False),
         "operator_status": cfg_metadata.get("operator_status", {}),
         "config_hash": config_hash(cfg),
     }

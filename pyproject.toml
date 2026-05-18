@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.0.20"
+version = "0.0.21"
 description = "JAX Field Neural Equations: a source-to-field neurophysiology engine for TFNE models."
 readme = "README.md"
 requires-python = ">=3.10"

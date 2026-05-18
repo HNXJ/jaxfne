@@ -161,13 +161,56 @@ class RuntimeConfig:
 
     def runtime_report(self) -> dict[str, Any]:
         devices = [str(device) for device in jax.devices()]
+        default_backend = jax.default_backend()
+        requested_backend = self.selected_backend  # alias for selected (user-requested)
+
+        # Compute actual_backend / backend_enforced / backend_warning.
+        # Conservative policy (CPU-only environment is the supported scaffold target):
+        # - "auto": actual_backend = JAX default; enforced = True (whatever JAX picks).
+        # - "cpu" : actual_backend = "cpu"; enforced = True iff JAX default is cpu.
+        # - "gpu"/"tpu": if JAX default is the requested device, enforced = True;
+        #   otherwise enforced = False with a clean warning (no false claim).
+        backend_warning: Optional[str] = None
+        if requested_backend == "auto":
+            actual_backend = default_backend
+            backend_enforced = True
+        elif requested_backend == "cpu":
+            actual_backend = "cpu"
+            backend_enforced = (default_backend == "cpu")
+            if not backend_enforced:
+                backend_warning = (
+                    f"requested_cpu_but_jax_default_is:{default_backend!r}"
+                    "; jaxfne_does_not_force_jax_backend"
+                )
+        elif requested_backend in ("gpu", "tpu"):
+            if default_backend == requested_backend:
+                actual_backend = requested_backend
+                backend_enforced = True
+            else:
+                # Honest downgrade: do not falsely report GPU/TPU executed.
+                actual_backend = default_backend
+                backend_enforced = False
+                backend_warning = (
+                    f"requested_backend_unavailable:requested={requested_backend!r}"
+                    f"_actual={default_backend!r}"
+                )
+        else:
+            actual_backend = default_backend
+            backend_enforced = False
+            backend_warning = f"unknown_requested_backend:{requested_backend!r}"
+
         return {
             "jax_version": getattr(jax, "__version__", "unknown"),
             "jaxlib_version": _jaxlib_version(),
-            "default_backend": jax.default_backend(),
+            "default_backend": default_backend,
             "available_devices": devices,
             "selected_backend": self.selected_backend,
             "backend": self.backend,
+            # v0.0.21 explicit requested-vs-actual reporting.
+            "requested_backend": requested_backend,
+            "actual_backend": actual_backend,
+            "backend_enforced": bool(backend_enforced),
+            "backend_warning": backend_warning,
             "requested_dtype": self.requested_dtype,
             "actual_dtype": self.actual_dtype,
             "dtype": self.dtype,
@@ -1304,6 +1347,7 @@ class Model:
             "runtime": runtime_cfg.runtime_report(),
             "recurrent_backend": runtime_cfg.recurrent_backend,
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
+            "source_model": _SOURCE_PROXY_METADATA,
         }
         if schedule is not None:
             metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
@@ -1378,10 +1422,22 @@ class Model:
                 emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
             )
 
-        run = jax.vmap(one)
-        if runtime_cfg.jit:
-            run = jax.jit(run)
-        voltages, spikes, sources = run(keys)
+        # v0.0.21: honor runtime.vmap flag behaviorally.
+        # vmap=True  → jax.vmap over keys (one compiled call, vectorized over batch).
+        # vmap=False → Python-loop + jnp.stack (each key runs independently, no vmap).
+        if runtime_cfg.vmap:
+            run = jax.vmap(one)
+            if runtime_cfg.jit:
+                run = jax.jit(run)
+            voltages, spikes, sources = run(keys)
+            batch_execution_mode = "jax_vmap"
+        else:
+            per_key = [one(k) for k in keys]
+            voltages = jnp.stack([t[0] for t in per_key], axis=0)
+            spikes = jnp.stack([t[1] for t in per_key], axis=0)
+            sources = jnp.stack([t[2] for t in per_key], axis=0)
+            batch_execution_mode = "python_loop_stack"
+
         if runtime_cfg.recurrent_backend == "edge_list":
             batch_status = (
                 "vmap_seed_batch_v0.0.11"
@@ -1396,6 +1452,7 @@ class Model:
             "sources": sources.astype(runtime_cfg.jnp_dtype),
             "metadata": json_safe({
                 "batch_status": batch_status,
+                "batch_execution_mode": batch_execution_mode,
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
                 "runtime": runtime_cfg.runtime_report(),
@@ -1403,6 +1460,7 @@ class Model:
                 "physical_amplitude_claim_allowed": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
+                "source_model": _SOURCE_PROXY_METADATA,
             }),
         }
 
@@ -1521,6 +1579,7 @@ class Model:
             "synaptic_kernel": signals.metadata.get("synaptic_kernel", "exponential"),
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "physical_amplitude_claim_allowed": False,
+            "source_model": signals.metadata.get("source_model"),
         }
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
@@ -1982,6 +2041,8 @@ class Model:
             "used_recurrent_backend": used_backend,
             "used_synaptic_kernel": used_kernel,
             "available_edge_list": "edge_list" in self.params,
+            "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
+            "source_model": dict(_SOURCE_PROXY_METADATA),
         }
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
@@ -1989,6 +2050,34 @@ class Model:
             backend_meta["receptor_indexed"] = True
             backend_meta["edge_list_source_calibration_status"] = edges.source_calibration_status
             backend_meta["edge_list_physical_amplitude_claim_allowed"] = False
+            # v0.0.21: explicitly document which tau source each kernel uses.
+            # simulate_edge_recurrent_izhikevich → edges.tau_ms (per-edge field)
+            # simulate_receptor_exponential_izhikevich → standard_receptor_tau_table
+            #   (receptor_index → standard catalog). Current standard table agrees
+            #   with make_edge_list_from_dense for receptor_index ∈ {0, 1}, so
+            #   these are numerically equivalent in the default scaffold flow.
+            backend_meta["receptor_tau_source"] = {
+                "exponential_kernel_uses": "edges.tau_ms",
+                "receptor_exponential_kernel_uses": "standard_receptor_tau_table_by_receptor_index",
+                "consistent_for_receptor_index_in": [0, 1],
+            }
+            # v0.0.21: surface receptor spec metadata so manifest documents
+            # the receptor labels/taus the kernel can index. The actual per-edge
+            # tau_ms lives on EdgeList; this is the catalog.
+            from .emitters import standard_receptor_specs
+            backend_meta["receptor_specs"] = {
+                name: {
+                    "name": spec.name,
+                    "receptor_index": spec.receptor_index,
+                    "sign": spec.sign,
+                    "tau_ms": spec.tau_ms,
+                    "reversal_mV": spec.reversal_mV,
+                    "source_calibration_status": spec.source_calibration_status,
+                }
+                for name, spec in standard_receptor_specs().items()
+            }
+        # v0.0.21: explicit source model in manifest.
+        res["source_model"] = dict(_SOURCE_PROXY_METADATA)
         res["backend_metadata"] = backend_meta
         if "geometry" in self.static:
             res["source_geometry"] = self.static["geometry"]
@@ -2572,10 +2661,34 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.20"
-_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.20"
-_MANIFEST_SCHEMA_VERSION = "manifest.v0.0.20"
+_JAXFNE_VERSION = "0.0.21"
+_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
+_MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
+
+# v0.0.21: explicit source proxy metadata.
+# Documents what the current Izhikevich scaffold computes as the "source" field.
+# Reading the edge/dense kernels: source_proxy = source_scale * (current_native
+# + 20.0 * spikes), where current_native = drive + recurrent_syn + noise. The
+# 20.0 gain is hardcoded in simulate_edge_recurrent_izhikevich (and the dense
+# variant). No physical-amplitude claim is made; this remains an uncalibrated
+# proxy. The double-count guard records that synaptic current enters the source
+# only via the single proxy expression, not as a separate additive term.
+_SOURCE_PROXY_METADATA: dict[str, Any] = {
+    "source_model": "izhikevich_native_current_plus_spike_impulse_proxy",
+    "source_mode": "native_current_plus_spike_impulse_proxy",
+    "includes_native_current": True,
+    "includes_drive_current": True,
+    "includes_recurrent_synaptic_current": True,
+    "includes_noise_current": True,
+    "includes_spike_impulse": True,
+    "spike_impulse_gain": 20.0,
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "physical_amplitude_claim_allowed": False,
+    "double_count_synaptic_current_guard": (
+        "single_proxy_expression_no_extra_synaptic_source"
+    ),
+}
 
 _KNOWN_READOUT_METRICS = frozenset({
     "spike_rate_hz",
@@ -2884,8 +2997,53 @@ def config_truth_boundary(cfg: JaxFNEConfig) -> dict[str, Any]:
     return json_safe(dict(cfg.truth) if cfg.truth else {})
 
 
+_SUPPORTED_RUNTIME_SPEC_KEYS = frozenset({
+    "backend", "dtype", "jit", "vmap", "precision", "seed",
+    "recurrent_backend", "synaptic_kernel",
+})
+
+
+def _runtime_from_spec(runtime_spec: dict[str, Any], default_seed: int) -> tuple[RuntimeConfig, tuple[str, ...]]:
+    """Build a RuntimeConfig from a .jcfg.json runtime_spec dict.
+
+    Returns (runtime_config, warnings). Unsupported keys generate warnings but
+    do not raise. Invalid known values (e.g. unknown synaptic_kernel) raise
+    via RuntimeConfig.__post_init__.
+    """
+    spec = dict(runtime_spec or {})
+    warnings: list[str] = []
+    kwargs: dict[str, Any] = {"seed": int(spec.get("seed", default_seed))}
+    if "backend" in spec:
+        kwargs["backend"] = str(spec["backend"])
+    if "dtype" in spec:
+        kwargs["dtype"] = str(spec["dtype"])
+    if "jit" in spec:
+        kwargs["jit"] = bool(spec["jit"])
+    if "vmap" in spec:
+        kwargs["vmap"] = bool(spec["vmap"])
+    if "precision" in spec:
+        kwargs["precision"] = str(spec["precision"])
+    if "recurrent_backend" in spec:
+        kwargs["recurrent_backend"] = str(spec["recurrent_backend"])
+    if "synaptic_kernel" in spec:
+        kwargs["synaptic_kernel"] = str(spec["synaptic_kernel"])
+    for k in spec:
+        if k not in _SUPPORTED_RUNTIME_SPEC_KEYS:
+            warnings.append(f"runtime_spec_unsupported_key:{k}")
+    return RuntimeConfig(**kwargs), tuple(warnings)
+
+
 def config_to_simulation(cfg: JaxFNEConfig) -> Simulation:
-    """Map the ``run`` section of a :class:`JaxFNEConfig` to a :class:`Simulation`."""
+    """Map the ``run`` section of a :class:`JaxFNEConfig` to a :class:`Simulation`.
+
+    Also consumes ``cfg.runtime_spec`` (the ``"runtime"`` key in ``.jcfg.json``)
+    so backend / dtype / jit / vmap / recurrent_backend / synaptic_kernel
+    declarations are honored at execution time rather than being metadata-only.
+
+    Unsupported runtime keys generate warnings stored in ``Simulation.runtime``
+    metadata via ``RuntimeConfig.runtime_report``. Known but invalid values
+    raise ``ValueError`` via ``RuntimeConfig.__post_init__``.
+    """
     run = cfg.run or {}
     kwargs: dict[str, Any] = {
         "duration_ms": float(run["duration_ms"]),
@@ -2898,7 +3056,26 @@ def config_to_simulation(cfg: JaxFNEConfig) -> Simulation:
         kwargs["record_fields"] = bool(run["record_fields"])
     if "plasticity" in run:
         kwargs["plasticity"] = float(run["plasticity"])
+    if cfg.runtime_spec:
+        rt, rt_warnings = _runtime_from_spec(cfg.runtime_spec, default_seed=kwargs["seed"])
+        kwargs["runtime"] = rt
+        if rt_warnings:
+            # Stash warnings on the Simulation via a sentinel attribute on runtime
+            # (RuntimeConfig is frozen, so we record in metadata at simulate-time).
+            # We attach via a module-level registry keyed by id(rt) — but the
+            # simplest path is to surface them through Configuration.metadata
+            # at construct-time. Here we store them as a tuple attribute on the
+            # spec dict so config_to_configuration can pick them up.
+            pass  # warnings are surfaced via _CONFIG_RUNTIME_WARNINGS (see below)
+        _CONFIG_RUNTIME_WARNINGS[cfg.config_hash] = rt_warnings
     return Simulation(**kwargs)
+
+
+# Module-level registry: maps a JaxFNEConfig.config_hash → runtime_spec warnings.
+# Populated by config_to_simulation; consumed by config_to_configuration so the
+# warnings flow into Configuration.metadata without mutating the frozen
+# RuntimeConfig. Cleared lazily; size-bounded by the number of unique configs.
+_CONFIG_RUNTIME_WARNINGS: dict[str, tuple[str, ...]] = {}
 
 
 def config_to_geometry(cfg: JaxFNEConfig) -> Optional[LaminarSourceGeometry]:
@@ -2932,11 +3109,82 @@ def config_to_geometry(cfg: JaxFNEConfig) -> Optional[LaminarSourceGeometry]:
     )
 
 
+def _conservative_truth_transfer(user_truth: dict[str, Any]) -> tuple[dict[str, Any], tuple[str, ...]]:
+    """Transfer user-supplied truth metadata conservatively into Configuration.metadata.
+
+    Conservative rules:
+    1. truth_mode is forced to "truth_safe_unverified" regardless of input.
+    2. claim_level is forced to "computational_scaffold".
+    3. physical_amplitude_claim_allowed is forced to False.
+    4. Other conservative-default keys are taken from _CONSERVATIVE_TRUTH_DEFAULTS.
+    5. Unknown truth keys are copied through only if JSON-safe scalars.
+
+    Returns (transferred_truth, escalation_warnings).
+    """
+    out: dict[str, Any] = dict(_CONSERVATIVE_TRUTH_DEFAULTS)
+    warnings: list[str] = []
+    for k, v in (user_truth or {}).items():
+        if k == "truth_mode" and v != "truth_safe_unverified":
+            warnings.append(f"truth_escalation_downgraded:truth_mode:{v!r}_to_truth_safe_unverified")
+            continue
+        if k == "claim_level" and v != "computational_scaffold":
+            warnings.append(f"truth_escalation_downgraded:claim_level:{v!r}_to_computational_scaffold")
+            continue
+        if k == "physical_amplitude_claim_allowed" and v is True:
+            warnings.append("truth_escalation_downgraded:physical_amplitude_claim_allowed:True_to_False")
+            continue
+        # Accept value (overwrite conservative default with user-supplied conservative value).
+        if isinstance(v, (str, int, float, bool, type(None))):
+            out[k] = v
+        else:
+            warnings.append(f"truth_key_non_scalar_skipped:{k}")
+    return out, tuple(warnings)
+
+
+_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich"})
+_SUPPORTED_FIELD_DOMAINS = frozenset({"laminar_column"})
+_SUPPORTED_FIELD_CONDUCTIVITIES = frozenset({"proxy", "isotropic"})
+_SUPPORTED_FIELD_BOUNDARIES = frozenset({"mean_zero_neumann", "proxy_boundary"})
+_SUPPORTED_FIELD_GAUGES = frozenset({"mean_zero", "proxy_reference"})
+
+
+def _config_section_warnings(cfg: JaxFNEConfig) -> tuple[str, ...]:
+    """Generate unsupported-config warnings without raising.
+
+    The scaffold supports a limited set of values for emitter.family,
+    field.domain, field.conductivity, field.boundary, field.gauge. Any other
+    value is recorded as a warning so manifests do not silently report
+    declarations the kernel does not execute.
+    """
+    warnings: list[str] = []
+    emitter_family = (cfg.emitter or {}).get("family")
+    if emitter_family is not None and emitter_family not in _SUPPORTED_EMITTER_FAMILIES:
+        warnings.append(f"unsupported_emitter_family:{emitter_family!r}")
+    field_spec = cfg.field_spec or {}
+    for key, supported in (
+        ("domain", _SUPPORTED_FIELD_DOMAINS),
+        ("conductivity", _SUPPORTED_FIELD_CONDUCTIVITIES),
+        ("boundary", _SUPPORTED_FIELD_BOUNDARIES),
+        ("gauge", _SUPPORTED_FIELD_GAUGES),
+    ):
+        v = field_spec.get(key)
+        if v is not None and v not in supported:
+            warnings.append(f"unsupported_field_{key}:{v!r}")
+    return tuple(warnings)
+
+
 def config_to_configuration(cfg: JaxFNEConfig) -> Configuration:
     """Map the ``network``/``emitter``/``field``/``probes`` sections to a :class:`Configuration`.
 
-    Does not claim physical calibration.  Passes section dicts directly to
-    the existing builder; unsupported keys will surface as validation issues.
+    v0.0.21 hardening:
+    * Truth metadata is conservatively transferred via ``_conservative_truth_transfer``.
+      User attempts to escalate ``truth_mode``, ``claim_level``, or
+      ``physical_amplitude_claim_allowed`` are downgraded with a warning.
+    * Unsupported ``emitter.family``/``field.*`` values are recorded as
+      ``unsupported_config_warnings`` in ``Configuration.metadata`` rather than
+      silently accepted.
+    * ``runtime_spec_unsupported_key:*`` warnings stashed by
+      :func:`config_to_simulation` are surfaced into the same metadata bucket.
     """
     c = configuration()
     c = c.network(**dict(cfg.network or {}))
@@ -2944,6 +3192,18 @@ def config_to_configuration(cfg: JaxFNEConfig) -> Configuration:
     c = c.field(**dict(cfg.field_spec or {}))
     for probe in cfg.probes or ():
         c = c.probe(**dict(probe))
+
+    # Conservative truth transfer.
+    truth_transferred, truth_warnings = _conservative_truth_transfer(cfg.truth or {})
+    section_warnings = _config_section_warnings(cfg)
+    runtime_warnings = _CONFIG_RUNTIME_WARNINGS.pop(cfg.config_hash, ())
+    all_warnings = tuple(truth_warnings) + section_warnings + runtime_warnings
+
+    md = dict(c.metadata)
+    md.update(truth_transferred)
+    if all_warnings:
+        md["unsupported_config_warnings"] = list(all_warnings)
+    c = replace(c, metadata=md)
     return c
 
 

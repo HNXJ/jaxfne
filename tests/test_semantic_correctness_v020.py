@@ -350,8 +350,8 @@ def test_v_objective_report_schema_version_defined():
 
 
 def test_w_receipt_schema_version_contains_version():
-    assert "0.0.20" in _RECEIPT_SCHEMA_VERSION
+    assert "0.0.21" in _RECEIPT_SCHEMA_VERSION
 
 
-def test_v_jaxfne_version_is_020():
-    assert _JAXFNE_VERSION == "0.0.20"
+def test_v_jaxfne_version_is_021():
+    assert _JAXFNE_VERSION == "0.0.21"

@@ -46,9 +46,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.20)
+## Current status (v0.0.21)
 
-v0.0.20 is the semantic correctness hardening release: run receipts, manifest fidelity, readout time-window slicing, probe config honoring, and simulation validation. v0.0.20 is the direct predecessor to the v0.1.0 practical OOP core freeze. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
+v0.0.21 is the config/runtime/source metadata fidelity release: declarative runtime validation, conservative truth escalation downgrade, unsupported config warnings, backend reporting fidelity, behavioral vmap semantics, and source proxy metadata documentation. v0.0.21 completes the v0.1.0 pre-release hardening. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
