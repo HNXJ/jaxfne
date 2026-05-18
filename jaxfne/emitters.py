@@ -396,5 +396,116 @@ def simulate_edge_recurrent_izhikevich(
     }
     return voltages, spikes, sources, final_state
 
+def standard_receptor_tau_table(dtype: str = "float32") -> jax.Array:
+    """Return the receptor_index → tau_ms lookup table used by v0.0.11.
+
+    The table is built from :func:`standard_receptor_specs` so the kernel and
+    the declarative receptor metadata cannot drift apart. It carries no
+    biological-calibration claim: the entries are native time constants for a
+    reduced exponential synaptic state, not patch-clamp-derived kinetics.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    specs = standard_receptor_specs()
+    by_index = {spec.receptor_index: spec for spec in specs.values()}
+    n = max(by_index) + 1 if by_index else 0
+    return jnp.asarray(
+        [float(by_index[i].tau_ms) for i in range(n)],
+        dtype=jdtype,
+    )
+
+
+def _edge_tau_from_receptor_index(
+    receptor_index: jax.Array, dtype: str = "float32"
+) -> jax.Array:
+    """Map ``edges.receptor_index`` to the v0.0.11 standard tau table."""
+
+    jdtype = _dtype_from_policy(dtype)
+    table = standard_receptor_tau_table(dtype=dtype)
+    idx = jnp.clip(receptor_index.astype(jnp.int32), 0, table.shape[0] - 1)
+    return jnp.take(table, idx).astype(jdtype)
+
+
+def simulate_receptor_exponential_izhikevich(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    dtype: str = "float32",
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """v0.0.11 receptor-indexed exponential recurrent kernel.
+
+    The kernel keeps one scalar synaptic state per edge (``syn_state.shape ==
+    (n_edges,)``) and selects the exponential decay per edge from
+    ``edges.receptor_index`` via :func:`standard_receptor_tau_table`. Two
+    different receptor channels on the same anatomical connection are
+    represented as two separate edges with identical ``pre``/``post`` but
+    different ``receptor_index``; the kernel does not expand state to
+    ``(n_edges, n_receptors)``.
+
+    The aggregation rule ``segment_sum(weight * syn_state, post, n_neurons)``
+    guarantees each edge contributes exactly once to its postsynaptic native
+    recurrent input. Receptor reversal potentials are metadata-only and are
+    not used in the current computation; weights remain native/unphysical and
+    no conductance equation ``g * (V - E_rev)`` is computed.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_per_edge = jnp.maximum(
+        _edge_tau_from_receptor_index(edges.receptor_index, dtype=dtype),
+        jnp.asarray(1e-6, dtype=jdtype),
+    )
+    decay = jnp.exp(-dt / tau_per_edge)
+    n_neurons = params.v0.shape[0]
+
+    def step(carry, _):
+        v, u, prev_spikes, syn_state, rng = carry
+        rng, noise_key = jax.random.split(rng)
+        edge_drive = weight * syn_state
+        syn = jax.ops.segment_sum(edge_drive, post, n_neurons)
+        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
+        current_native = drive + syn + noise
+        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+        du = a * (b * v - u)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        spikes_bool = v_next >= 30.0
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        syn_next = syn_state * decay + spikes[pre]
+        source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+        return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+
+    init = (
+        params.v0.astype(jdtype),
+        params.u0.astype(jdtype),
+        jnp.zeros_like(params.v0, dtype=jdtype),
+        jnp.zeros((edges.n_edges,), dtype=jdtype),
+        key,
+    )
+    final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "tau_per_edge": tau_per_edge,
+    }
+    return voltages, spikes, sources, final_state
+
+
 # Backwards-compatible name from v0.0.3.
 simulate_izhikevich_eig = simulate_eig_izhikevich

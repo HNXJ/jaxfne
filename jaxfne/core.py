@@ -22,7 +22,10 @@ from .emitters import (
     make_eig_network,
     simulate_edge_recurrent_izhikevich,
     simulate_eig_izhikevich,
+    simulate_receptor_exponential_izhikevich,
 )
+
+_ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, manifest as build_manifest
 
@@ -124,10 +127,18 @@ class RuntimeConfig:
     seed: int = 0
     n_steps: int = 0
     recurrent_backend: str = "dense"  # "dense" | "edge_list"
+    synaptic_kernel: str = "exponential"  # "exponential" | "receptor_exponential"
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
     x64_enabled: Optional[bool] = None
+
+    def __post_init__(self) -> None:
+        if self.synaptic_kernel not in _ALLOWED_SYNAPTIC_KERNELS:
+            raise ValueError(
+                f"synaptic_kernel must be one of {_ALLOWED_SYNAPTIC_KERNELS}; "
+                f"got {self.synaptic_kernel!r}"
+            )
 
     @property
     def requested_dtype(self) -> str:
@@ -166,6 +177,7 @@ class RuntimeConfig:
             "seed": int(self.seed),
             "n_steps": int(self.n_steps),
             "recurrent_backend": self.recurrent_backend,
+            "synaptic_kernel": self.synaptic_kernel,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -752,14 +764,19 @@ class Model:
         emitter: IzhikevichParams = self.params["emitter"]
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
+            kernel_fn = (
+                simulate_receptor_exponential_izhikevich
+                if runtime_cfg.synaptic_kernel == "receptor_exponential"
+                else simulate_edge_recurrent_izhikevich
+            )
             if runtime_cfg.jit:
                 run = jax.jit(
-                    lambda k: simulate_edge_recurrent_izhikevich(
+                    lambda k: kernel_fn(
                         emitter, edges, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
                     )[:3]
                 )
                 return run(key)
-            return simulate_edge_recurrent_izhikevich(
+            return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key, dtype=runtime_cfg.actual_dtype
             )[:3]
         if runtime_cfg.jit:
@@ -804,6 +821,7 @@ class Model:
             "plasticity_gain": sim.plasticity,
             "runtime": runtime_cfg.runtime_report(),
             "recurrent_backend": runtime_cfg.recurrent_backend,
+            "synaptic_kernel": runtime_cfg.synaptic_kernel,
         }
         return Signals(
             time_ms=time_ms,
@@ -827,9 +845,15 @@ class Model:
         keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
         emitter: IzhikevichParams = self.params["emitter"]
 
+        edge_kernel_fn = (
+            simulate_receptor_exponential_izhikevich
+            if runtime_cfg.synaptic_kernel == "receptor_exponential"
+            else simulate_edge_recurrent_izhikevich
+        )
+
         def one(k):
             if runtime_cfg.recurrent_backend == "edge_list":
-                return simulate_edge_recurrent_izhikevich(
+                return edge_kernel_fn(
                     emitter,
                     self.params["edge_list"],
                     sim.n_steps,
@@ -845,17 +869,27 @@ class Model:
         if runtime_cfg.jit:
             run = jax.jit(run)
         voltages, spikes, sources = run(keys)
+        if runtime_cfg.recurrent_backend == "edge_list":
+            batch_status = (
+                "vmap_seed_batch_v0.0.11"
+                if runtime_cfg.synaptic_kernel == "receptor_exponential"
+                else "vmap_seed_batch_v0.0.9"
+            )
+        else:
+            batch_status = "vmap_seed_batch_v0.0.8"
         return {
             "V_m": voltages.astype(runtime_cfg.jnp_dtype),
             "spikes": spikes,
             "sources": sources.astype(runtime_cfg.jnp_dtype),
             "metadata": json_safe({
-                "batch_status": "vmap_seed_batch_v0.0.9" if runtime_cfg.recurrent_backend == "edge_list" else "vmap_seed_batch_v0.0.8",
+                "batch_status": batch_status,
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
                 "runtime": runtime_cfg.runtime_report(),
                 "field_claim_level": "proxy_readout_only",
                 "physical_amplitude_claim_allowed": False,
+                "recurrent_backend": runtime_cfg.recurrent_backend,
+                "synaptic_kernel": runtime_cfg.synaptic_kernel,
             }),
         }
 
@@ -1114,12 +1148,17 @@ class Model:
         )
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
+            synaptic_kernel = "exponential"
+            if signals is not None:
+                synaptic_kernel = signals.metadata.get("synaptic_kernel", synaptic_kernel)
             res["backend_metadata"] = {
                 "recurrent_backend": "edge_list",
+                "synaptic_kernel": synaptic_kernel,
                 "edge_list_backend": "edge_list_recurrent_v0.0.9",
                 "edge_list_n_edges": int(edges.n_edges),
                 "edge_list_source_calibration_status": edges.source_calibration_status,
                 "edge_list_physical_amplitude_claim_allowed": False,
+                "receptor_metadata_status": "v0.0.10_declarative_uncalibrated",
             }
         return res
 
@@ -1170,6 +1209,7 @@ def runtime(
     seed: int = 0,
     n_steps: int = 0,
     recurrent_backend: str = "dense",
+    synaptic_kernel: str = "exponential",
     # v0.0.3 compatibility names.
     device_type: str | None = None,
     dtype_primary: str | None = None,
@@ -1184,6 +1224,7 @@ def runtime(
         seed=seed,
         n_steps=n_steps,
         recurrent_backend=recurrent_backend,
+        synaptic_kernel=synaptic_kernel,
         device_type=device_type,
         dtype_primary=dtype_primary,
         x64_enabled=x64_enabled,

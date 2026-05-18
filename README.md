@@ -205,6 +205,10 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.10` hardens source and synapse declarations. It introduces metadata-only `ReceptorSpec` and `SynapseSpec` definitions without adding new conductance-based physical solvers or biological kernels. The backend manifest now flows `EdgeList` details transparently. Dense-vs-edge computations maintain statistical parity. No calibrated synapse claim and no new PDE/field/empirical/mechanism claim is made.
 
+## v0.0.11 receptor-indexed exponential synaptic kernel
+
+`v0.0.11` adds an opt-in second synaptic kernel selected via `runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")`. The default remains `synaptic_kernel="exponential"`, preserving the v0.0.9/v0.0.10 edge-list path. The new path keeps `syn_state.shape == (n_edges,)` and looks up the per-edge decay time constant from `edge.receptor_index` against the standard `ReceptorSpec` table (AMPA/GABA_A/NMDA/GABA_B). Aggregation uses `jax.ops.segment_sum(weight * syn_state, post, n_neurons)`, so each edge contributes exactly once to its postsynaptic native recurrent input; multiple edges may legitimately converge on the same neuron. Receptor reversal potentials remain metadata-only and are not used in the current computation. Weights remain native/unphysical and the source readout remains a laminar proxy. No conductance equation, no physical-amplitude claim, no PDE upgrade, and no empirical-validation or biological-mechanism claim is introduced.
+
 ## Truth status
 
 ```text
