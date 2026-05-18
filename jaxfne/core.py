@@ -563,6 +563,86 @@ class DatasetSpec:
         })
 
 
+@dataclass(frozen=True)
+class TrialSpec:
+    """Specification for a single simulation trial."""
+
+    trial_id: str
+    condition: Optional[ParadigmCondition] = None
+    seed: int = 0
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "trial_id": self.trial_id,
+            "condition": self.condition.to_dict() if self.condition else None,
+            "seed": self.seed,
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
+class TrialBatch:
+    """A collection of trial specifications to be run."""
+
+    trials: tuple[TrialSpec, ...]
+    batch_id: str = "anonymous_batch"
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "batch_id": self.batch_id,
+            "n_trials": len(self.trials),
+            "trials": [t.to_dict() for t in self.trials],
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
+class TrialResult:
+    """Result of a single simulation trial."""
+
+    trial_id: str
+    condition_label: Optional[str] = None
+    signals: Optional[Signals] = None
+    success: bool = True
+    error_message: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dictionary representation, excluding large JAX arrays."""
+        from .io import json_safe
+        return json_safe({
+            "trial_id": self.trial_id,
+            "condition_label": self.condition_label,
+            "success": self.success,
+            "error_message": self.error_message,
+            "signals": self.signals.summary() if self.signals else None,
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
+class TrialBatchResult:
+    """Results from a batch of trials."""
+
+    batch_id: str
+    results: tuple[TrialResult, ...]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "batch_id": self.batch_id,
+            "n_results": len(self.results),
+            "n_success": sum(1 for r in self.results if r.success),
+            "results": [r.to_dict() for r in self.results],
+            "metadata": self.metadata,
+        })
+
+
 import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
 
 
@@ -1151,6 +1231,43 @@ class Model:
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
             }),
         }
+
+    def run_trials(self, batch: TrialBatch, sim: Simulation) -> TrialBatchResult:
+        """Execute a batch of trials sequentially.
+
+        For each trial in the batch, this method:
+        1. Replaces sim.seed with trial.seed.
+        2. Calls self.simulate(sim_trial, paradigm=trial.condition).
+        3. Captures exceptions into a TrialResult.
+
+        Returns a TrialBatchResult containing all individual TrialResults.
+        """
+        results: list[TrialResult] = []
+        for trial in batch.trials:
+            sim_trial = replace(sim, seed=trial.seed)
+            try:
+                signals = self.simulate(sim_trial, paradigm=trial.condition)
+                results.append(
+                    TrialResult(
+                        trial_id=trial.trial_id,
+                        condition_label=trial.condition.name if trial.condition else None,
+                        signals=signals,
+                        success=True,
+                        metadata=trial.metadata,
+                    )
+                )
+            except Exception as e:
+                results.append(
+                    TrialResult(
+                        trial_id=trial.trial_id,
+                        condition_label=trial.condition.name if trial.condition else None,
+                        signals=None,
+                        success=False,
+                        error_message=str(e),
+                        metadata=trial.metadata,
+                    )
+                )
+        return TrialBatchResult(batch_id=batch.batch_id, results=tuple(results), metadata=batch.metadata)
 
     def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
         """Canonical TFNE readout method."""
@@ -1782,6 +1899,40 @@ def standard_visual_omission() -> Paradigm:
             "n_conditions": 12,
             "n_trials_per_condition": {c.name: len(c.condition_numbers) for c in conditions},
         },
+    )
+
+
+def trial_batch(
+    conditions: Sequence[ParadigmCondition],
+    n_reps: int = 1,
+    seed: int = 0,
+    batch_id: Optional[str] = None,
+    metadata: Optional[dict[str, Any]] = None,
+) -> TrialBatch:
+    """Create a TrialBatch by repeating conditions.
+
+    Correctly iterates reps then conditions to ensure deterministic ordering.
+    Assigns unique trial_id in format "trial_{index:04d}_{condition_name}".
+    Each trial gets a unique seed starting from the base seed.
+    """
+    trials: list[TrialSpec] = []
+    idx = 0
+    for r in range(n_reps):
+        for cond in conditions:
+            t_id = f"trial_{idx:04d}_{cond.name}"
+            trials.append(
+                TrialSpec(
+                    trial_id=t_id,
+                    condition=cond,
+                    seed=seed + idx,
+                    metadata={"rep": r},
+                )
+            )
+            idx += 1
+    return TrialBatch(
+        trials=tuple(trials),
+        batch_id=batch_id or f"batch_{seed}",
+        metadata=metadata or {},
     )
 
 

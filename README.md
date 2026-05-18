@@ -217,6 +217,10 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.13` adds explicit laminar population and source geometry metadata. It introduces the `LaminarPopulation` and `LaminarSourceGeometry` frozen dataclasses and the `laminar_source_geometry()` factory. An optional `geometry` kwarg is added to `construct(cfg, *, geometry=None)`; when provided, the geometry's `n_units_total` must match the network `n` or a `ValueError: geometry_n_units_total_mismatch` is raised. Population depths use deterministic NumPy linspace — no random placement. Co-located populations (depth overlap) are allowed and not treated as errors, as this is anatomically valid for different cell types. The geometry manifest propagates into `Model.manifest()` under `source_geometry`. No new field solver, no physical-amplitude claim, no PDE upgrade, no empirical or mechanism claim is introduced.
 
+## v0.0.14 sequential trial runner
+
+`v0.0.14` adds a sequential trial runner for executing batches of condition-aligned simulations. It introduces `TrialSpec`, `TrialBatch`, `TrialResult`, and `TrialBatchResult` dataclasses, along with a `trial_batch()` factory for deterministic batch creation. The `Model.run_trials(batch, sim)` method performs a sequential loop over `batch.trials`, replacing `sim.seed` with the trial's seed and capturing any exceptions into the `TrialResult`. Serialization via `to_dict()` is strictly JSON-safe and automatically excludes large JAX arrays (`V_m`, `spikes`, `sources`, `field`) from the results, providing instead a compact `Signals.summary()`. This enables robust condition-aligned workflow orchestration for Paper 1.0. No parallel execution, no new field solver, no physical-amplitude claim, no PDE upgrade, and no empirical or mechanism claim is introduced.
+
 ## Truth status
 
 ```text

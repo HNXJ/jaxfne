@@ -21,6 +21,10 @@ from .core import (
     Simulation,
     StimulusSchedule,
     SurrogateConfig,
+    TrialBatch,
+    TrialBatchResult,
+    TrialResult,
+    TrialSpec,
     configuration,
     construct,
     dataset_spec,
@@ -35,6 +39,7 @@ from .core import (
     standard_visual_omission,
     stimulus_schedule,
     surrogate_config,
+    trial_batch,
     _KNOWN_METRICS,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
@@ -91,6 +96,10 @@ __all__ = [
     "Simulation",
     "StimulusSchedule",
     "SurrogateConfig",
+    "TrialBatch",
+    "TrialBatchResult",
+    "TrialResult",
+    "TrialSpec",
     "configuration",
     "construct",
     "dataset_spec",
@@ -106,6 +115,7 @@ __all__ = [
     "standard_visual_omission",
     "stimulus_schedule",
     "surrogate_config",
+    "trial_batch",
     "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",
@@ -141,4 +151,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.13"
+__version__ = "0.0.14"
