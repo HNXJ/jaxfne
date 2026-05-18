@@ -238,6 +238,26 @@ are introduced.
 No new PDE solver, no calibrated current, no empirical validation, and no mechanism
 claim is introduced.
 
+
+## v0.0.16 run receipt
+
+`v0.0.16` adds `RunReceipt` — an immutable, JSON-safe record of a single simulation run.
+It introduces `RunReceipt`, `Model.run_receipt()`, the module-level `run_receipt()` factory,
+and `save_receipt()` for writing receipts to disk with an overwrite guard.
+
+A `RunReceipt` captures: config fingerprint (`config_hash`), simulation parameters,
+`Signals.summary()`, frozen truth gates, claim labels, and backend metadata.
+The `receipt_id` is deterministic: same configuration + seed + version always produces
+the same 16-char SHA256 prefix.  `save_receipt(receipt, path)` raises
+`ValueError("receipt_file_exists: ...")` if the path already exists, unless
+`overwrite=True` is passed.
+
+The `manifest_schema_version` default in `io.manifest()` is bumped from `"0.0.4"` to
+`"0.0.16"` to reflect the current package version.
+
+No new PDE solver, no calibrated current, no empirical validation, and no mechanism
+claim is introduced.
+
 ## Truth status
 
 ```text

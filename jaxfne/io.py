@@ -85,7 +85,7 @@ def manifest(
     cfg_metadata = dict(getattr(cfg, "metadata", {}) or {})
     data: dict[str, Any] = {
         "package": "jaxfne",
-        "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.4"),
+        "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.16"),
         "truth_mode": cfg_metadata.get("truth_mode", "truth_safe_unverified"),
         "claim_level": cfg_metadata.get("claim_level", "computational_scaffold"),
         "source_calibration_status": cfg_metadata.get(
@@ -151,6 +151,25 @@ def manifest(
             "physical_amplitude_claim_allowed": False,
         }
     return json_safe(data)
+
+
+def save_receipt(receipt: Any, path: "str | Path", *, overwrite: bool = False) -> None:
+    """Save a RunReceipt as strict JSON.
+
+    Args:
+        receipt: RunReceipt (or any object with a to_dict() method).
+        path: Destination file path.
+        overwrite: If False (default), raises if the file already exists.
+
+    Raises:
+        ValueError: with token ``receipt_file_exists`` if path exists and
+                    overwrite is False.
+    """
+    path = Path(path)
+    if path.exists() and not overwrite:
+        raise ValueError(f"receipt_file_exists: {path}")
+    d = receipt.to_dict() if hasattr(receipt, "to_dict") else json_safe(receipt)
+    save_json(d, path)
 
 
 def save_json(obj: Any, path: str | Path) -> None:

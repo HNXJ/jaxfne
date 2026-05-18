@@ -643,6 +643,45 @@ class TrialBatchResult:
         })
 
 
+
+
+@dataclass(frozen=True)
+class RunReceipt:
+    """Complete, JSON-safe record of a single simulation run.
+
+    Captures config fingerprint, simulation parameters, signal summary,
+    and truth gates in one immutable object.  ``receipt_id`` is deterministic:
+    same configuration + seed + version always yields the same ID.
+
+    Truth status: all gates are frozen at conservative defaults and cannot be
+    escalated.  No physical-amplitude, empirical-validation, or mechanism
+    claim is introduced by this receipt.
+    """
+
+    receipt_id: str
+    jaxfne_version: str
+    config_hash: str
+    simulation: dict[str, Any]
+    signals_summary: dict[str, Any]
+    truth: dict[str, Any]
+    claim_labels: dict[str, Any]
+    backend: dict[str, Any]
+    tags: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "receipt_id": self.receipt_id,
+            "jaxfne_version": self.jaxfne_version,
+            "config_hash": self.config_hash,
+            "simulation": self.simulation,
+            "signals_summary": self.signals_summary,
+            "truth": self.truth,
+            "claim_labels": self.claim_labels,
+            "backend": self.backend,
+            "tags": self.tags,
+        })
+
 import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
 
 
@@ -1271,6 +1310,72 @@ class Model:
                     )
                 )
         return TrialBatchResult(batch_id=batch.batch_id, results=tuple(results), metadata=batch.metadata)
+
+    def run_receipt(self, signals: Signals, *, tags: Optional[dict[str, Any]] = None) -> RunReceipt:
+        """Build a RunReceipt capturing this run for audit and reproducibility.
+
+        Args:
+            signals: Signals returned by self.simulate().
+            tags: Optional user-supplied key-value metadata (condition, paper, etc.).
+
+        Returns:
+            RunReceipt with frozen truth gates and deterministic receipt_id.
+        """
+        from .io import sha256_text
+
+        cfg_h = config_hash(self.cfg)
+        # Seed is stored inside the runtime sub-dict (via RuntimeConfig.runtime_report)
+        seed = int(signals.metadata.get("runtime", {}).get("seed", signals.metadata.get("seed", 0)))
+        receipt_id = sha256_text(f"{cfg_h}:{seed}:{_JAXFNE_VERSION}")[:16]
+
+        sim_meta = signals.metadata
+        sim_summary: dict[str, Any] = {
+            "duration_ms": sim_meta.get("duration_ms"),
+            "dt_ms": sim_meta.get("dt_ms"),
+            "seed": seed,
+            "n_steps": int(signals.time_ms.shape[0]),
+        }
+
+        truth: dict[str, Any] = {
+            "truth_mode": "truth_safe_unverified",
+            "claim_level": "computational_scaffold",
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "field_solver_status": "laminar_proxy_no_pde",
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+        }
+
+        claim_labels: dict[str, Any] = {
+            "receipt_status": _RECEIPT_SCHEMA_VERSION,
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+            "physical_amplitude_claim_allowed": False,
+        }
+
+        backend: dict[str, Any] = {
+            "recurrent_backend": signals.metadata.get("recurrent_backend", "dense"),
+            "synaptic_kernel": signals.metadata.get("synaptic_kernel", "exponential"),
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "physical_amplitude_claim_allowed": False,
+        }
+        if "edge_list" in self.params:
+            edges = self.params["edge_list"]
+            backend["edge_list_n_edges"] = int(edges.n_edges)
+            backend["edge_list_backend"] = "edge_list_recurrent_v0.0.9"
+
+        return RunReceipt(
+            receipt_id=receipt_id,
+            jaxfne_version=_JAXFNE_VERSION,
+            config_hash=cfg_h,
+            simulation=sim_summary,
+            signals_summary=signals.summary(),
+            truth=truth,
+            claim_labels=claim_labels,
+            backend=backend,
+            tags=dict(tags or {}),
+        )
 
     def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
         """Canonical TFNE readout method."""
@@ -1973,6 +2078,23 @@ def run_trials(
     return model.run_trials(batch, sim, collect_errors=collect_errors)
 
 
+def run_receipt(
+    model: "Model", signals: Signals, *, tags: Optional[dict[str, Any]] = None
+) -> RunReceipt:
+    """Build a RunReceipt for a completed simulation run.
+
+    Convenience wrapper around Model.run_receipt().
+
+    Args:
+        model: Model that produced the signals.
+        signals: Signals returned by model.simulate().
+        tags: Optional user-supplied key-value metadata.
+
+    Returns:
+        RunReceipt with frozen truth gates and deterministic receipt_id.
+    """
+    return model.run_receipt(signals, tags=tags)
+
 def dataset_spec(**kwargs: Any) -> DatasetSpec:
     """Return a DatasetSpec schema declaration."""
     return DatasetSpec(**kwargs)
@@ -2057,6 +2179,14 @@ def enable_x64() -> dict[str, Any]:
     jax.config.update("jax_enable_x64", True)
     return {"x64_enabled": bool(jax.config.read("jax_enable_x64")), "status": "enabled"}
 
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.0.16 run receipt
+# ──────────────────────────────────────────────────────────────
+
+_JAXFNE_VERSION = "0.0.16"
+_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"
 
 # ──────────────────────────────────────────────────────────────
 # v0.0.15 config foundation

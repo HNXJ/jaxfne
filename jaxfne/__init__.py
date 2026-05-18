@@ -17,6 +17,7 @@ from .core import (
     ParadigmCondition,
     ParadigmEvent,
     Probe,
+    RunReceipt,
     RuntimeConfig,
     Signal,
     Signals,
@@ -43,6 +44,8 @@ from .core import (
     paradigm,
     runtime,
     runtime_report,
+    _JAXFNE_VERSION,
+    run_receipt,
     run_trials,
     simulation,
     standard_visual_omission,
@@ -75,7 +78,7 @@ from .fields import (
     validate_projection_invariants,
     validate_source_field_status,
 )
-from .io import config_hash, json_safe, manifest, save_json, sha256_file, sha256_text
+from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
 from .optim import (
     AGSDR,
     OptimizerSpec,
@@ -102,6 +105,7 @@ __all__ = [
     "ParadigmCondition",
     "ParadigmEvent",
     "Probe",
+    "RunReceipt",
     "RuntimeConfig",
     "Signal",
     "Signals",
@@ -128,6 +132,7 @@ __all__ = [
     "operator_status",
     "paradigm",
     "require_jaxley",
+    "run_receipt",
     "runtime",
     "runtime_report",
     "run_trials",
@@ -160,6 +165,7 @@ __all__ = [
     "json_safe",
     "manifest",
     "save_json",
+    "save_receipt",
     "sha256_file",
     "sha256_text",
     "AGSDR",
@@ -172,4 +178,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.15"
+__version__ = _JAXFNE_VERSION
