@@ -1232,15 +1232,16 @@ class Model:
             }),
         }
 
-    def run_trials(self, batch: TrialBatch, sim: Simulation) -> TrialBatchResult:
+    def run_trials(self, batch: TrialBatch, sim: Simulation, collect_errors: bool = False) -> TrialBatchResult:
         """Execute a batch of trials sequentially.
 
         For each trial in the batch, this method:
         1. Replaces sim.seed with trial.seed.
         2. Calls self.simulate(sim_trial, paradigm=trial.condition).
-        3. Captures exceptions into a TrialResult.
+        3. If collect_errors=False (default): raises immediately on failure.
+           If collect_errors=True: records exception in TrialResult and continues.
 
-        Returns a TrialBatchResult containing all individual TrialResults.
+        Returns a TrialBatchResult containing all individual TrialResults (or raises on first failure).
         """
         results: list[TrialResult] = []
         for trial in batch.trials:
@@ -1257,6 +1258,8 @@ class Model:
                     )
                 )
             except Exception as e:
+                if not collect_errors:
+                    raise
                 results.append(
                     TrialResult(
                         trial_id=trial.trial_id,
@@ -1937,14 +1940,20 @@ def trial_batch(
 
 
 def run_trials(
-    model: Model, batch: TrialBatch, sim: Simulation
+    model: Model, batch: TrialBatch, sim: Simulation, *, collect_errors: bool = False
 ) -> TrialBatchResult:
     """Execute a batch of trials using the model.
 
+    Args:
+        model: Model instance to run trials on.
+        batch: TrialBatch with trial specifications.
+        sim: Simulation parameters for each trial.
+        collect_errors: If False (default), raise immediately on first trial failure.
+                       If True, record failures in TrialResult and continue.
+
     Delegates to model.run_trials() for the actual execution.
-    Errors are collected into TrialResult entries with success=False.
     """
-    return model.run_trials(batch, sim)
+    return model.run_trials(batch, sim, collect_errors=collect_errors)
 
 
 def dataset_spec(**kwargs: Any) -> DatasetSpec:
