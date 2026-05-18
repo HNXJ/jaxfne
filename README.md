@@ -213,6 +213,10 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.12` adds explicit event-aligned native-drive stimulus injection. It introduces the `StimulusSchedule` value object and `stimulus_schedule()` factory to build timed drive arrays from `ParadigmCondition` events. Injected drive is added as native (uncalibrated) current to the recurrent kernels (`dense`, `edge_list`, and `receptor_exponential`). This enables basic condition-aligned trial workflows for Paper 1.0. It does not implement a full `Paradigm.batch()` trial runner, and no cognitive omission or global-local logic is encoded. No calibrated current, physical amplitude, PDE upgrade, or empirical/mechanism claim is introduced.
 
+## v0.0.13 laminar source geometry
+
+`v0.0.13` adds explicit laminar population and source geometry metadata. It introduces the `LaminarPopulation` and `LaminarSourceGeometry` frozen dataclasses and the `laminar_source_geometry()` factory. An optional `geometry` kwarg is added to `construct(cfg, *, geometry=None)`; when provided, the geometry's `n_units_total` must match the network `n` or a `ValueError: geometry_n_units_total_mismatch` is raised. Population depths use deterministic NumPy linspace — no random placement. Co-located populations (depth overlap) are allowed and not treated as errors, as this is anatomically valid for different cell types. The geometry manifest propagates into `Model.manifest()` under `source_geometry`. No new field solver, no physical-amplitude claim, no PDE upgrade, no empirical or mechanism claim is introduced.
+
 ## Truth status
 
 ```text

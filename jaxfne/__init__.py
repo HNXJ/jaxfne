@@ -7,6 +7,8 @@ Equations (TFNE).  Public API is object-oriented; numerical kernels are JAX-firs
 from .core import (
     Configuration,
     DatasetSpec,
+    LaminarPopulation,
+    LaminarSourceGeometry,
     Model,
     Objective,
     Paradigm,
@@ -23,6 +25,7 @@ from .core import (
     construct,
     dataset_spec,
     enable_x64,
+    laminar_source_geometry,
     objective,
     operator_status,
     paradigm,
@@ -74,6 +77,8 @@ __all__ = [
     "Configuration",
     "DatasetSpec",
     "JaxleyEmitterBridge",
+    "LaminarPopulation",
+    "LaminarSourceGeometry",
     "Model",
     "Objective",
     "Paradigm",
@@ -90,6 +95,7 @@ __all__ = [
     "construct",
     "dataset_spec",
     "enable_x64",
+    "laminar_source_geometry",
     "objective",
     "operator_status",
     "paradigm",
@@ -135,4 +141,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.12"
+__version__ = "0.0.13"

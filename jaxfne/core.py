@@ -616,6 +616,128 @@ class StimulusSchedule:
         })
 
 
+_KNOWN_LAYERS = frozenset({"L1", "L2/3", "L4", "L5", "L6", "unspecified"})
+
+
+@dataclass(frozen=True)
+class LaminarPopulation:
+    """Metadata descriptor for one named laminar cell population.
+
+    Depth values are normalized proxy coordinates in [0, 1] — not physical
+    microns.  Overlapping depth ranges are allowed; co-located cell types
+    (e.g. E and PV in the same layer) are anatomically expected.
+    No physical-amplitude or calibration claim is made.
+    """
+
+    name: str
+    cell_type: str
+    layer: str
+    depth_min: float
+    depth_max: float
+    n_units: int
+    source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    physical_amplitude_claim_allowed: bool = False
+    claim_level: str = "computational_scaffold"
+
+    def validate(self) -> dict[str, Any]:
+        issues: list[str] = []
+        if not self.name:
+            issues.append("name_empty")
+        if not self.cell_type:
+            issues.append("cell_type_empty")
+        if not self.layer:
+            issues.append("layer_empty")
+        if not (0.0 <= self.depth_min < self.depth_max <= 1.0):
+            issues.append("depth_range_invalid")
+        if self.n_units <= 0:
+            issues.append("n_units_must_be_positive")
+        if self.physical_amplitude_claim_allowed is not False:
+            issues.append("physical_amplitude_claim_must_be_false")
+        if self.claim_level != "computational_scaffold":
+            issues.append("claim_level_must_be_computational_scaffold")
+        warnings: list[str] = []
+        if self.layer not in _KNOWN_LAYERS:
+            warnings.append(f"unrecognized_layer:{self.layer}")
+        return {"valid": not issues, "issues": issues, "warnings": warnings}
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "name": self.name,
+            "cell_type": self.cell_type,
+            "layer": self.layer,
+            "depth_min": float(self.depth_min),
+            "depth_max": float(self.depth_max),
+            "n_units": int(self.n_units),
+            "source_calibration_status": self.source_calibration_status,
+            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "claim_level": self.claim_level,
+        })
+
+
+@dataclass(frozen=True)
+class LaminarSourceGeometry:
+    """Metadata descriptor for the full laminar source geometry.
+
+    Groups named :class:`LaminarPopulation` descriptors and can materialize
+    a deterministic ``(n_units_total, 3)`` positions array for use in field
+    projection.  Depths are proxy-normalized coordinates, not physical
+    microns.  No physical-amplitude, PDE, or calibration claim is made.
+    """
+
+    populations: tuple[LaminarPopulation, ...]
+    n_units_total: int
+    position_units: str = "relative_laminar_depth_proxy"
+    source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    physical_amplitude_claim_allowed: bool = False
+    claim_level: str = "computational_scaffold"
+
+    def validate(self) -> dict[str, Any]:
+        issues: list[str] = []
+        if not self.populations:
+            issues.append("populations_empty")
+        pop_sum = sum(p.n_units for p in self.populations)
+        if pop_sum != self.n_units_total:
+            issues.append(f"n_units_total_mismatch:sum={pop_sum},declared={self.n_units_total}")
+        if self.physical_amplitude_claim_allowed is not False:
+            issues.append("physical_amplitude_claim_must_be_false")
+        pop_issues: list[str] = []
+        for p in self.populations:
+            v = p.validate()
+            pop_issues.extend([f"{p.name}:{i}" for i in v["issues"]])
+        issues.extend(pop_issues)
+        return {"valid": not issues, "issues": issues, "n_populations": len(self.populations)}
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "type": "laminar_source_geometry",
+            "n_units_total": self.n_units_total,
+            "n_populations": len(self.populations),
+            "position_units": self.position_units,
+            "source_calibration_status": self.source_calibration_status,
+            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "claim_level": self.claim_level,
+            "populations": [p.to_dict() for p in self.populations],
+        })
+
+    def positions_array(self, dtype: str = "float32") -> "jax.Array":
+        """Return a deterministic ``(n_units_total, 3)`` positions array.
+
+        x = 0, y = 0, z linearly spaced within each population's depth range.
+        Population order is preserved.  No random sampling.
+        """
+        np_dtype = _np.float64 if dtype == "float64" else _np.float32
+        rows: list[_np.ndarray] = []
+        for pop in self.populations:
+            n = int(pop.n_units)
+            z = _np.linspace(float(pop.depth_min), float(pop.depth_max), n, dtype=np_dtype)
+            xyz = _np.stack([_np.zeros(n, dtype=np_dtype), _np.zeros(n, dtype=np_dtype), z], axis=1)
+            rows.append(xyz)
+        arr = _np.concatenate(rows, axis=0) if rows else _np.zeros((0, 3), dtype=np_dtype)
+        return jnp.asarray(arr)
+
+
 _KNOWN_METRICS = frozenset({
     "spike_rate_hz_mean",
     "spike_count_total",
@@ -1297,6 +1419,8 @@ class Model:
                 "edge_list_physical_amplitude_claim_allowed": False,
                 "receptor_metadata_status": "v0.0.10_declarative_uncalibrated",
             }
+        if "geometry" in self.static:
+            res["source_geometry"] = self.static["geometry"]
         return res
 
 
@@ -1384,7 +1508,7 @@ def paradigm(name: str = "none") -> Paradigm:
     return Paradigm(name=name)
 
 
-def construct(cfg: Configuration) -> Model:
+def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
@@ -1393,10 +1517,28 @@ def construct(cfg: Configuration) -> Model:
     cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
     network: EIGNetwork = make_eig_network(n=n, cell_type_fractions=cell_types)
     edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
+
+    if geometry is not None:
+        if geometry.n_units_total != n:
+            raise ValueError(
+                f"geometry_n_units_total_mismatch: "
+                f"geometry.n_units_total={geometry.n_units_total} but cfg network n={n}"
+            )
+        dtype_name = network.params.v0.dtype.name
+        positions = geometry.positions_array(dtype=dtype_name)
+        geometry_meta: Optional[dict[str, Any]] = geometry.to_dict()
+    else:
+        positions = network.positions
+        geometry_meta = None
+
+    static: dict[str, Any] = {"n_contacts": 16, "operator_status": operator_status()}
+    if geometry_meta is not None:
+        static["geometry"] = geometry_meta
+
     return Model(
         cfg=cfg,
-        params={"emitter": network.params, "positions": network.positions, "edge_list": edge_list},
-        static={"n_contacts": 16, "operator_status": operator_status()},
+        params={"emitter": network.params, "positions": positions, "edge_list": edge_list},
+        static=static,
     )
 
 
@@ -1696,6 +1838,30 @@ def stimulus_schedule(
         events=tuple(ev_dicts),
         n_neurons=int(n_neurons),
     )
+
+
+def laminar_source_geometry(
+    populations: Sequence["LaminarPopulation"],
+) -> "LaminarSourceGeometry":
+    """Build a :class:`LaminarSourceGeometry` from an ordered population sequence.
+
+    Depth overlap between populations is allowed; co-located cell types sharing
+    a layer band are anatomically expected. Hard validation errors are raised only
+    for invalid depth ranges, zero n_units, or empty population list.
+    No physical-amplitude or calibration claim is made.
+    """
+    pops = tuple(populations)
+    if not pops:
+        raise ValueError("laminar_source_geometry requires at least one LaminarPopulation")
+    issues: list[str] = []
+    for p in pops:
+        v = p.validate()
+        if not v["valid"]:
+            issues.extend([f"{p.name}:{i}" for i in v["issues"]])
+    if issues:
+        raise ValueError(f"Invalid LaminarPopulation(s): {issues}")
+    n_total = sum(p.n_units for p in pops)
+    return LaminarSourceGeometry(populations=pops, n_units_total=n_total)
 
 
 def enable_x64() -> dict[str, Any]:
