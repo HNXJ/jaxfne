@@ -7,6 +7,7 @@ source/readout status, not a full PDE field solver.
 
 from __future__ import annotations
 
+import json
 import math
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
@@ -235,6 +236,22 @@ class Simulation:
     record_fields: bool = True
     runtime: RuntimeConfig | None = None
 
+    def __post_init__(self) -> None:
+        if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
+            raise ValueError(
+                f"Simulation.duration_ms must be positive and finite; got {self.duration_ms!r}"
+            )
+        if not (math.isfinite(self.dt_ms) and self.dt_ms > 0):
+            raise ValueError(
+                f"Simulation.dt_ms must be positive and finite; got {self.dt_ms!r}"
+            )
+        n = int(round(self.duration_ms / self.dt_ms))
+        if n <= 0:
+            raise ValueError(
+                f"Simulation produces n_steps={n} <= 0 for "
+                f"duration_ms={self.duration_ms}, dt_ms={self.dt_ms}"
+            )
+
     @property
     def n_steps(self) -> int:
         return int(round(self.duration_ms / self.dt_ms))
@@ -262,7 +279,7 @@ class Signals:
     time_ms: jax.Array
     V_m: jax.Array
     spikes: jax.Array
-    sources: jax.Array
+    sources: Optional[jax.Array]
     field: Optional[FieldOutput]
     metadata: dict[str, Any]
 
@@ -1278,6 +1295,11 @@ class Model:
             "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
             "field_claim_level": "proxy_readout_only",
             "paradigm": paradigm_meta,
+            "duration_ms": float(sim.duration_ms),
+            "dt_ms": float(sim.dt_ms),
+            "n_steps": int(sim.n_steps),
+            "record_sources": bool(sim.record_sources),
+            "record_fields": bool(sim.record_fields),
             "plasticity_gain": sim.plasticity,
             "runtime": runtime_cfg.runtime_report(),
             "recurrent_backend": runtime_cfg.recurrent_backend,
@@ -1293,7 +1315,7 @@ class Model:
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
             spikes=spikes,
-            sources=sources.astype(runtime_cfg.jnp_dtype),
+            sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
             field=field_output,
             metadata=metadata,
         )
@@ -1444,12 +1466,11 @@ class Model:
             identical, because the computational kernel may have changed.
             IDs are audit identifiers; they are not empirical claims.
         """
-        from .io import sha256_text
+        from .io import json_safe, sha256_text
 
         cfg_h = config_hash(self.cfg)
         # Seed is stored inside the runtime sub-dict (via RuntimeConfig.runtime_report)
         seed = int(signals.metadata.get("runtime", {}).get("seed", signals.metadata.get("seed", 0)))
-        receipt_id = sha256_text(f"{cfg_h}:{seed}:{_JAXFNE_VERSION}")[:16]
 
         sim_meta = signals.metadata
         sim_summary: dict[str, Any] = {
@@ -1457,7 +1478,25 @@ class Model:
             "dt_ms": sim_meta.get("dt_ms"),
             "seed": seed,
             "n_steps": int(signals.time_ms.shape[0]),
+            "record_sources": sim_meta.get("record_sources"),
+            "record_fields": sim_meta.get("record_fields"),
         }
+
+        # Deterministic receipt_id based on config, version, simulation, and key runtime metadata
+        receipt_payload = {
+            "config_hash": cfg_h,
+            "jaxfne_version": _JAXFNE_VERSION,
+            "simulation": sim_summary,
+            "runtime": sim_meta.get("runtime"),
+            "condition_name": sim_meta.get("condition_name"),
+            "stimulus_schedule": sim_meta.get("stimulus_schedule"),
+            "recurrent_backend": sim_meta.get("recurrent_backend"),
+            "synaptic_kernel": sim_meta.get("synaptic_kernel"),
+            "source_model": sim_meta.get("source_model"),
+        }
+        receipt_id = sha256_text(
+            json.dumps(json_safe(receipt_payload), sort_keys=True, allow_nan=False)
+        )[:16]
 
         truth: dict[str, Any] = {
             "truth_mode": "truth_safe_unverified",
@@ -1533,31 +1572,34 @@ class Model:
                 ))
                 continue
 
-            # Time slice (optional)
-            if spec.time_window_ms is not None:
-                start_ms, end_ms = spec.time_window_ms
-                dt_ms_arr = (
-                    float(signals.time_ms[1] - signals.time_ms[0])
-                    if signals.time_ms.shape[0] > 1
-                    else 1.0
-                )
-                t0 = max(0, int(start_ms / dt_ms_arr))
-                t1 = min(int(signals.time_ms.shape[0]), int(end_ms / dt_ms_arr))
-                V_m_sl = signals.V_m[t0:t1]
-                sp_sl = signals.spikes[t0:t1]
-                src_sl = signals.sources[t0:t1]
-                n_steps_sl = max(1, t1 - t0)
-            else:
-                V_m_sl = signals.V_m
-                sp_sl = signals.spikes
-                src_sl = signals.sources
-                n_steps_sl = int(signals.time_ms.shape[0])
-
             dt_ms = (
                 float(signals.time_ms[1] - signals.time_ms[0])
                 if signals.time_ms.shape[0] > 1
                 else 1.0
             )
+
+            # Time slice (optional); negative start is treated as empty window.
+            if spec.time_window_ms is not None:
+                start_ms, end_ms = spec.time_window_ms
+                t0 = max(0, int(start_ms / dt_ms))
+                t1 = min(int(signals.time_ms.shape[0]), int(end_ms / dt_ms))
+                if t0 >= t1:
+                    results.append(ReadoutResult(
+                        spec_name=spec.name,
+                        metric=spec.metric,
+                        value=None,
+                        status="empty_time_window",
+                    ))
+                    continue
+                V_m_sl = signals.V_m[t0:t1]
+                sp_sl = signals.spikes[t0:t1]
+                src_sl = signals.sources[t0:t1] if signals.sources is not None else None
+                field_t0, field_t1 = t0, t1
+            else:
+                V_m_sl = signals.V_m
+                sp_sl = signals.spikes
+                src_sl = signals.sources
+                field_t0, field_t1 = 0, int(signals.time_ms.shape[0])
 
             if spec.metric == "spike_rate_hz":
                 value = float(jnp.mean(sp_sl) * (1000.0 / dt_ms))
@@ -1566,6 +1608,14 @@ class Model:
             elif spec.metric == "mean_V_m":
                 value = float(jnp.mean(V_m_sl))
             elif spec.metric == "source_abs_mean":
+                if src_sl is None:
+                    results.append(ReadoutResult(
+                        spec_name=spec.name,
+                        metric=spec.metric,
+                        value=None,
+                        status="missing_sources",
+                    ))
+                    continue
                 value = float(jnp.mean(jnp.abs(src_sl)))
             elif spec.metric in ("csd_abs_mean", "lfp_abs_mean"):
                 if signals.field is None:
@@ -1576,10 +1626,9 @@ class Model:
                         status="no_field",
                     ))
                     continue
-                if spec.metric == "csd_abs_mean":
-                    arr = signals.field.csd
-                else:
-                    arr = signals.field.lfp
+                arr = signals.field.csd if spec.metric == "csd_abs_mean" else signals.field.lfp
+                # Apply time-window slice first, then contact slice.
+                arr = arr[field_t0:field_t1]
                 if spec.n_contacts_slice is not None:
                     c0, c1 = spec.n_contacts_slice
                     arr = arr[:, c0:c1]
@@ -1921,20 +1970,26 @@ class Model:
         )
         if trials is not None:
             res["trials"] = trials
+        # Backend metadata: distinguish executed backend from available infrastructure.
+        used_backend = "dense"
+        used_kernel = "exponential"
+        if signals is not None:
+            used_backend = signals.metadata.get("recurrent_backend", "dense")
+            used_kernel = signals.metadata.get("synaptic_kernel", "exponential")
+        elif "edge_list" in self.params:
+            used_backend = "unknown_not_run"
+        backend_meta: dict[str, Any] = {
+            "used_recurrent_backend": used_backend,
+            "used_synaptic_kernel": used_kernel,
+            "available_edge_list": "edge_list" in self.params,
+        }
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
-            synaptic_kernel = "exponential"
-            if signals is not None:
-                synaptic_kernel = signals.metadata.get("synaptic_kernel", synaptic_kernel)
-            res["backend_metadata"] = {
-                "recurrent_backend": "edge_list",
-                "synaptic_kernel": synaptic_kernel,
-                "edge_list_backend": "edge_list_recurrent_v0.0.9",
-                "edge_list_n_edges": int(edges.n_edges),
-                "edge_list_source_calibration_status": edges.source_calibration_status,
-                "edge_list_physical_amplitude_claim_allowed": False,
-                "receptor_metadata_status": "v0.0.10_declarative_uncalibrated",
-            }
+            backend_meta["edge_count"] = int(edges.n_edges)
+            backend_meta["receptor_indexed"] = True
+            backend_meta["edge_list_source_calibration_status"] = edges.source_calibration_status
+            backend_meta["edge_list_physical_amplitude_claim_allowed"] = False
+        res["backend_metadata"] = backend_meta
         if "geometry" in self.static:
             res["source_geometry"] = self.static["geometry"]
         return res
@@ -2047,7 +2102,19 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         positions = network.positions
         geometry_meta = None
 
-    static: dict[str, Any] = {"n_contacts": 16, "operator_status": operator_status()}
+    n_contacts: int = 16
+    if cfg.probes:
+        _nc = cfg.probes[0].get("n_contacts", 16)
+        try:
+            _nc = int(_nc)
+        except (TypeError, ValueError):
+            _nc = 16
+        if _nc < 2:
+            raise ValueError(
+                f"probe n_contacts must be >= 2; got {_nc!r} in first probe"
+            )
+        n_contacts = _nc
+    static: dict[str, Any] = {"n_contacts": n_contacts, "operator_status": operator_status()}
     if geometry_meta is not None:
         static["geometry"] = geometry_meta
 
@@ -2505,8 +2572,10 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.19"
-_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"  # stable; receipt format unchanged
+_JAXFNE_VERSION = "0.0.20"
+_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.20"
+_MANIFEST_SCHEMA_VERSION = "manifest.v0.0.20"
+_OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
 
 _KNOWN_READOUT_METRICS = frozenset({
     "spike_rate_hz",

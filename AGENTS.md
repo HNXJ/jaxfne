@@ -32,12 +32,12 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `69d3197` | v0.0.19 — clean, pushed |
-| `dev` | `1cbbc2b` | v0.0.14 — behind main, not yet fast-forwarded |
+| `main` | `869694c` | v0.0.19 — last clean state |
+| `dev` | `869694c` | v0.0.20 semantic hardening in-progress (not yet committed) |
 
-**Version:** `0.0.19`  
-**Tests:** 178 passed, 0 failed  
-**Working tree:** clean
+**Version (working tree):** `0.0.20`  
+**Tests:** 178 passed (baseline pre-hardening)  
+**Working tree:** dirty — v0.0.20 hardening pass in progress
 
 ---
 
@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| *(none)* | — | — | idle |
+| `claude-sonnet` | v0.0.20 semantic hardening (Tasks C–K) | 2026-05-18 | active |
 
 ---
 
@@ -60,6 +60,7 @@ cat AGENTS.md               # read active locks before touching anything
 | `claude-sonnet` | v0.0.18 roadmap commit | `d7bf899` | committed Gemini's staged work before branch merge |
 | `claude-sonnet` | merge dev-v0.0.18 → main | `d7bf899` | ff-only; branch deleted |
 | `claude-sonnet` | v0.0.19 docstring + API clarity | `69d3197` | canonical API marked; CHANGELOG.md added |
+| `claude-sonnet` | v0.0.19 docstring + API clarity + v0.0.20 prep | `69d3197` | canonical API marked; CHANGELOG added; premature 0.1.0 commit reverted |
 
 ---
 
@@ -93,4 +94,4 @@ If two agents edited the same file independently (diverged state):
 |---|---|---|---|
 | Push `main` v0.0.19 to remote | `claude-sonnet` | `main` | pending |
 | Fast-forward `dev` to `main` | `claude-sonnet` | `dev` | after push |
-| v0.1.0 bump + tag | `claude-sonnet` | `main` | after v0.0.19 push |
+| v0.0.20 bump + tag | `claude-sonnet` | `dev` | committed (not yet tagged) |

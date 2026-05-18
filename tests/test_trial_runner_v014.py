@@ -16,6 +16,19 @@ import jaxfne as jtfne
 import pytest
 import jax.numpy as jnp
 from dataclasses import replace
+from jaxfne.core import ParadigmCondition
+
+
+def _bad_condition() -> ParadigmCondition:
+    """Return a condition whose events=None will raise inside simulate(), not at construction."""
+    return ParadigmCondition(
+        name="bad_test_condition",
+        sequence=(),
+        omission_position=None,
+        probability=None,
+        condition_numbers=(99,),
+        events=None,
+    )
 
 def test_a_trial_batch_factory():
     paradigm = jtfne.standard_visual_omission()
@@ -102,11 +115,9 @@ def test_f_serialization_array_exclusion():
 def test_g_error_handling():
     cfg = jtfne.configuration().network(n=10).emitter().field().probe()
     model = jtfne.construct(cfg)
-    paradigm = jtfne.standard_visual_omission()
-    batch = jtfne.trial_batch(paradigm.conditions[:1], n_reps=1)
-
-    # Force error by passing invalid simulation (e.g. duration_ms < 0)
-    sim = jtfne.simulation(duration_ms=-10.0, dt_ms=0.5)
+    # Use a condition with events=None to trigger an error inside simulate(), not at construction.
+    batch = jtfne.trial_batch([_bad_condition()], n_reps=1)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.5)
 
     # collect_errors=True records the failure
     batch_res = model.run_trials(batch, sim, collect_errors=True)
@@ -166,11 +177,9 @@ def test_j_module_level_run_trials():
 def test_k_collect_errors_true():
     cfg = jtfne.configuration().network(n=10).emitter().field().probe()
     model = jtfne.construct(cfg)
-    cond = jtfne.standard_visual_omission().conditions[0]
-
-    # Force error with invalid simulation
-    sim = jtfne.simulation(duration_ms=-10.0, dt_ms=0.5)
-    batch = jtfne.trial_batch([cond], n_reps=1)
+    # Use bad condition (events=None) to trigger error inside simulate, not at construction.
+    batch = jtfne.trial_batch([_bad_condition()], n_reps=1)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.5)
 
     # With collect_errors=True, should return TrialBatchResult with failed trial
     result = model.run_trials(batch, sim, collect_errors=True)
@@ -182,11 +191,8 @@ def test_k_collect_errors_true():
 def test_l_collect_errors_false():
     cfg = jtfne.configuration().network(n=10).emitter().field().probe()
     model = jtfne.construct(cfg)
-    cond = jtfne.standard_visual_omission().conditions[0]
-
-    # Force error with invalid simulation
-    sim = jtfne.simulation(duration_ms=-10.0, dt_ms=0.5)
-    batch = jtfne.trial_batch([cond], n_reps=1)
+    batch = jtfne.trial_batch([_bad_condition()], n_reps=1)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.5)
 
     # With collect_errors=False (default), should raise immediately
     with pytest.raises(Exception):
@@ -195,13 +201,10 @@ def test_l_collect_errors_false():
 def test_m_module_level_run_trials_collect_errors():
     cfg = jtfne.configuration().network(n=10).emitter().field().probe()
     model = jtfne.construct(cfg)
-    cond = jtfne.standard_visual_omission().conditions[0]
+    batch = jtfne.trial_batch([_bad_condition()], n_reps=1)
+    sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.5)
 
-    # Force error with invalid simulation
-    sim = jtfne.simulation(duration_ms=-10.0, dt_ms=0.5)
-    batch = jtfne.trial_batch([cond], n_reps=1)
-
-    # Module-level with collect_errors=True should pass through
+    # Module-level with collect_errors=True should capture the error
     result = jtfne.run_trials(model, batch, sim, collect_errors=True)
     assert result.results[0].success is False
 

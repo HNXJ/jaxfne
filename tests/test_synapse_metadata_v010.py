@@ -70,11 +70,10 @@ def test_manifest_propagation():
     
     assert "backend_metadata" in manifest_data
     b_meta = manifest_data["backend_metadata"]
-    assert b_meta["recurrent_backend"] == "edge_list"
-    assert b_meta["edge_list_backend"] == "edge_list_recurrent_v0.0.9"
+    assert b_meta["used_recurrent_backend"] == "edge_list"
     assert b_meta["edge_list_source_calibration_status"] == "uncalibrated_izhikevich_native_current"
     assert b_meta["edge_list_physical_amplitude_claim_allowed"] is False
-    assert b_meta["edge_list_n_edges"] > 0
+    assert b_meta["edge_count"] > 0
     
     # Check truth gates
     assert manifest_data.get("v005_claim_labels", {}).get("physical_amplitude_claim_allowed", False) is False

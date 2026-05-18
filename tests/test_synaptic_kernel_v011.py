@@ -158,8 +158,8 @@ def test_default_exponential_backward_compatibility():
     assert signals.metadata["recurrent_backend"] == "edge_list"
     assert signals.metadata["synaptic_kernel"] == "exponential"
     manifest = model.manifest(signals=signals)
-    assert manifest["backend_metadata"]["synaptic_kernel"] == "exponential"
-    assert manifest["backend_metadata"]["edge_list_backend"] == "edge_list_recurrent_v0.0.9"
+    assert manifest["backend_metadata"]["used_synaptic_kernel"] == "exponential"
+    assert manifest["backend_metadata"]["used_recurrent_backend"] == "edge_list"
     # Dense path must also be unaffected.
     sim_dense = jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=3, runtime=jtfne.runtime())
     signals_dense = model.simulate(sim_dense)
@@ -177,10 +177,10 @@ def test_receptor_exponential_manifest_json_safe():
     manifest = model.manifest(signals=signals, readout=readout)
     assert "backend_metadata" in manifest
     bm = manifest["backend_metadata"]
-    assert bm["recurrent_backend"] == "edge_list"
-    assert bm["synaptic_kernel"] == "receptor_exponential"
+    assert bm["used_recurrent_backend"] == "edge_list"
+    assert bm["used_synaptic_kernel"] == "receptor_exponential"
     assert bm["edge_list_physical_amplitude_claim_allowed"] is False
-    assert bm["edge_list_n_edges"] > 0
+    assert bm["edge_count"] > 0
     json.dumps(manifest, allow_nan=False)
 
 

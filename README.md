@@ -46,9 +46,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.19)
+## Current status (v0.0.20)
 
-v0.0.19 is the current development HEAD on `main`. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
+v0.0.20 is the semantic correctness hardening release: run receipts, manifest fidelity, readout time-window slicing, probe config honoring, and simulation validation. v0.0.20 is the direct predecessor to the v0.1.0 practical OOP core freeze. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
@@ -171,7 +171,8 @@ The roadmap centers around **Paper 1.0: in-silico spectrolaminar motif**, deferr
 * `v0.0.18`  ObjectiveReport structured evaluation result
 
 **Publication Event 1.0 sequence:**
-* `v0.1.0`   practical OOP core freeze
+* `v0.0.20`   semantic correctness hardening  ← **current release**
+* `v0.1.0`   practical OOP core freeze (pending v0.0.20 gate)
 * `v0.2.x`   spectrolaminar objective/readout base
 * `v0.3.x`   generative spectrolaminar workflow
 * `v0.4.0`   Paper 1.0 minimum sufficient release (in-silico spectrolaminar motif)

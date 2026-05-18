@@ -4,6 +4,24 @@ All entries reflect `truth_mode: truth_safe_unverified`. No biological claims
 are made at any version. Receipts, reports, and manifests are computational
 validation artifacts, not empirical evidence.
 
+## v0.0.20
+
+- Fixed `RunReceipt` completeness: `duration_ms`, `dt_ms`, `n_steps`, and
+  record flags now propagate into receipt simulation metadata.
+- Strengthened `receipt_id` hashing to include run-level metadata
+  (recurrent backend, synaptic kernel, condition name, stimulus schedule).
+- Fixed `Model.manifest()` to report executed backend separately from
+  available infrastructure.
+- Honored probe `n_contacts` from `.jcfg.json` in field/readout construction.
+- Applied readout `time_window_ms` slicing to field-backed CSD/LFP metrics.
+- Added safe empty/negative-window handling to avoid NaN in readout output.
+- Added `Simulation.__post_init__` validation (duration/dt must be positive finite).
+- Clarified `record_sources` semantics in metadata.
+- Centralized version/schema constants near `_JAXFNE_VERSION`.
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved canonical v0.1 workflow: `run_receipt`, `compute_readout`,
+  `evaluate_report`. Compatibility aliases (`manifest`, `probe`) unchanged.
+
 ## v0.0.19
 
 - Clarified canonical v0.1 API wording: `run_receipt`, `compute_readout`,

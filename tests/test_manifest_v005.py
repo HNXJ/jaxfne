@@ -108,11 +108,16 @@ def test_manifest_preserves_truth_gates_with_v005_metadata():
 
 
 def _run_example(example_path: str) -> subprocess.CompletedProcess:
+    import os
+    env = os.environ.copy()
+    repo_root = str(Path(__file__).parent.parent)
+    env["PYTHONPATH"] = repo_root + os.pathsep + env.get("PYTHONPATH", "")
     return subprocess.run(
         [sys.executable, example_path],
         capture_output=True,
         text=True,
         timeout=120,
+        env=env,
     )
 
 
