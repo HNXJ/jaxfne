@@ -15,10 +15,26 @@ cfg = (
 
 model = jtfne.construct(cfg)
 sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0)
+
+# canonical v0.0.16+ workflow
 signals = model.simulate(sim)
-readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
-manifest = model.manifest(signals, readout)
+receipt = model.run_receipt(signals)
+readout = model.compute_readout(signals, [
+    jtfne.readout_spec("rate", "spike_rate_hz"),
+    jtfne.readout_spec("csd",  "csd_abs_mean"),
+])
 ```
+
+## Claim Boundary Note
+
+**JaxFNE is a computational scaffold, not a biological proof engine.**
+
+- **Truth Status:** `truth_safe_unverified`.
+- **Claim Level:** `computational_scaffold`.
+- **Source Calibration:** `uncalibrated_izhikevich_native_current`.
+- **Field Solver:** `laminar_proxy_no_pde`.
+
+Receipts and reports are validation artifacts used to document the computational state of a model. They do not constitute empirical validation, biological calibration, or mechanism proof. Calibrated physical CSD/LFP amplitudes and biological mechanism claims are explicitly forbidden until a rigorous validation gate with empirical datasets is established.
 
 ## Identity
 
