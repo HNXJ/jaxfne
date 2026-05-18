@@ -206,3 +206,48 @@ def test_m_module_level_run_trials_collect_errors():
     # Module-level with collect_errors=False should raise
     with pytest.raises(Exception):
         jtfne.run_trials(model, batch, sim, collect_errors=False)
+
+def test_n_seed_policy_paired_by_replicate():
+    paradigm = jtfne.standard_visual_omission()
+    conditions = paradigm.conditions[:2]  # AAAB, AXAB
+    n_reps = 2
+    # paired_by_replicate: seed = base_seed + rep_idx
+    batch = jtfne.trial_batch(conditions, n_reps=n_reps, seed=100, seed_policy="paired_by_replicate")
+    
+    # rep 0
+    assert batch.trials[0].seed == 100  # cond 0
+    assert batch.trials[1].seed == 100  # cond 1
+    # rep 1
+    assert batch.trials[2].seed == 101  # cond 0
+    assert batch.trials[3].seed == 101  # cond 1
+
+def test_o_seed_policy_unique_per_trial():
+    paradigm = jtfne.standard_visual_omission()
+    conditions = paradigm.conditions[:2]
+    n_reps = 2
+    # unique_per_trial (default): seed = base_seed + trial_idx
+    batch = jtfne.trial_batch(conditions, n_reps=n_reps, seed=100, seed_policy="unique_per_trial")
+    
+    assert batch.trials[0].seed == 100
+    assert batch.trials[1].seed == 101
+    assert batch.trials[2].seed == 102
+    assert batch.trials[3].seed == 103
+
+def test_p_seed_policy_invalid():
+    paradigm = jtfne.standard_visual_omission()
+    with pytest.raises(ValueError, match="Invalid seed_policy"):
+        jtfne.trial_batch(paradigm.conditions[:1], seed_policy="invalid_policy")
+
+def test_q_manifest_trials_integration():
+    cfg = jtfne.configuration().network(n=10).emitter().field().probe()
+    model = jtfne.construct(cfg)
+    
+    # Without trials metadata
+    manifest_clean = model.manifest()
+    assert "trials" not in manifest_clean
+    
+    # With trials metadata
+    trials_meta = {"batch_id": "test_batch", "n_trials": 4}
+    manifest_trials = model.manifest(trials=trials_meta)
+    assert "trials" in manifest_trials
+    assert manifest_trials["trials"] == trials_meta

@@ -1510,6 +1510,7 @@ class Model:
         evaluation: Optional[dict[str, Any]] = None,
         tuning: Optional[dict[str, Any]] = None,
         dataset: Optional[dict[str, Any]] = None,
+        trials: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
@@ -1525,6 +1526,8 @@ class Model:
             tuning=tuning,
             dataset=dataset,
         )
+        if trials is not None:
+            res["trials"] = trials
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
             synaptic_kernel = "exponential"
@@ -1909,6 +1912,7 @@ def trial_batch(
     conditions: Sequence[ParadigmCondition],
     n_reps: int = 1,
     seed: int = 0,
+    seed_policy: str = "unique_per_trial",
     batch_id: Optional[str] = None,
     metadata: Optional[dict[str, Any]] = None,
 ) -> TrialBatch:
@@ -1916,18 +1920,28 @@ def trial_batch(
 
     Correctly iterates reps then conditions to ensure deterministic ordering.
     Assigns unique trial_id in format "trial_{index:04d}_{condition_name}".
-    Each trial gets a unique seed starting from the base seed.
+
+    Seed policy:
+      - "unique_per_trial" (default): seed = base_seed + trial_index
+      - "paired_by_replicate": seed = base_seed + replicate_index
     """
+    if seed_policy not in {"unique_per_trial", "paired_by_replicate"}:
+        raise ValueError(f"Invalid seed_policy: {seed_policy}")
+
     trials: list[TrialSpec] = []
     idx = 0
     for r in range(n_reps):
         for cond in conditions:
             t_id = f"trial_{idx:04d}_{cond.name}"
+            if seed_policy == "unique_per_trial":
+                trial_seed = seed + idx
+            else:  # paired_by_replicate
+                trial_seed = seed + r
             trials.append(
                 TrialSpec(
                     trial_id=t_id,
                     condition=cond,
-                    seed=seed + idx,
+                    seed=trial_seed,
                     metadata={"rep": r},
                 )
             )
