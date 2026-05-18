@@ -1,3 +1,10 @@
+## v0.0.22
+- Added packaging, release, and Colab installation documentation.
+- Validated wheel and sdist builds with twine check.
+- Validated fresh virtual-environment install smoke tests for wheel and sdist.
+- Added a minimal Colab spectrolaminar proxy scaffold example.
+- Preserved truth status at truth_safe_unverified.
+
 # Changelog
 
 All entries reflect `truth_mode: truth_safe_unverified`. No biological claims

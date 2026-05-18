@@ -1,3 +1,9 @@
+## Installation
+
+For the future PyPI release, the intended Colab entry point is %pip install jaxfne. Until PyPI publication, use the repository or built wheel.
+
+See [docs/COLAB.md](docs/COLAB.md) and [docs/PACKAGING.md](docs/PACKAGING.md).
+
 # jaxfne
 
 **JAX Field Neural Equations** (`jaxfne`) is a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations (TFNE).
@@ -46,9 +52,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.21)
+## Current status (v0.0.22)
 
-v0.0.21 is the config/runtime/source metadata fidelity release: declarative runtime validation, conservative truth escalation downgrade, unsupported config warnings, backend reporting fidelity, behavioral vmap semantics, and source proxy metadata documentation. v0.0.21 completes the v0.1.0 pre-release hardening. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
+v0.0.22 is the packaging and Colab hardening release: declarative installation documentation, wheel/sdist build validation, and smoke-tested Colab templates. v0.0.22 prepares the jaxfne engine for the upcoming PyPI publication rehearsal.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
