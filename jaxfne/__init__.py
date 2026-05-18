@@ -17,6 +17,7 @@ from .core import (
     Signal,
     Signals,
     Simulation,
+    StimulusSchedule,
     SurrogateConfig,
     configuration,
     construct,
@@ -29,6 +30,7 @@ from .core import (
     runtime_report,
     simulation,
     standard_visual_omission,
+    stimulus_schedule,
     surrogate_config,
     _KNOWN_METRICS,
 )
@@ -82,6 +84,7 @@ __all__ = [
     "Signal",
     "Signals",
     "Simulation",
+    "StimulusSchedule",
     "SurrogateConfig",
     "configuration",
     "construct",
@@ -95,6 +98,7 @@ __all__ = [
     "runtime_report",
     "simulation",
     "standard_visual_omission",
+    "stimulus_schedule",
     "surrogate_config",
     "_KNOWN_METRICS",
     "EdgeList",
@@ -131,4 +135,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"

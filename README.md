@@ -209,6 +209,10 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.11` adds an opt-in second synaptic kernel selected via `runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")`. The default remains `synaptic_kernel="exponential"`, preserving the v0.0.9/v0.0.10 edge-list path. The new path keeps `syn_state.shape == (n_edges,)` and looks up the per-edge decay time constant from `edge.receptor_index` against the standard `ReceptorSpec` table (AMPA/GABA_A/NMDA/GABA_B). Aggregation uses `jax.ops.segment_sum(weight * syn_state, post, n_neurons)`, so each edge contributes exactly once to its postsynaptic native recurrent input; multiple edges may legitimately converge on the same neuron. Receptor reversal potentials remain metadata-only and are not used in the current computation. Weights remain native/unphysical and the source readout remains a laminar proxy. No conductance equation, no physical-amplitude claim, no PDE upgrade, and no empirical-validation or biological-mechanism claim is introduced.
 
+## v0.0.12 native stimulus injection
+
+`v0.0.12` adds explicit event-aligned native-drive stimulus injection. It introduces the `StimulusSchedule` value object and `stimulus_schedule()` factory to build timed drive arrays from `ParadigmCondition` events. Injected drive is added as native (uncalibrated) current to the recurrent kernels (`dense`, `edge_list`, and `receptor_exponential`). This enables basic condition-aligned trial workflows for Paper 1.0. It does not implement a full `Paradigm.batch()` trial runner, and no cognitive omission or global-local logic is encoded. No calibrated current, physical amplitude, PDE upgrade, or empirical/mechanism claim is introduced.
+
 ## Truth status
 
 ```text

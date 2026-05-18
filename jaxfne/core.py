@@ -563,6 +563,59 @@ class DatasetSpec:
         })
 
 
+import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
+
+
+@dataclass(frozen=True)
+class StimulusSchedule:
+    """Explicit native-drive schedule for event-aligned stimulus injection.
+
+    Contains an ordered sequence of drive events as JSON-safe dicts with keys:
+    ``onset_ms``, ``duration_ms``, ``amplitude``, ``label``, ``is_drive_event``.
+    When ``is_drive_event`` is False or ``amplitude`` is 0, the event injects
+    zero drive. No physical-amplitude or calibration claim is made; amplitude
+    values are native Izhikevich current units.
+    """
+
+    events: tuple[dict[str, Any], ...]
+    n_neurons: int
+    source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    physical_amplitude_claim_allowed: bool = False
+    claim_level: str = "computational_scaffold"
+
+    def to_array(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> "jax.Array":
+        """Materialize a ``(n_steps, n_neurons)`` drive schedule array."""
+        schedule = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=_np.float32)
+        for ev in self.events:
+            if not ev.get("is_drive_event", True):
+                continue
+            amp = float(ev.get("amplitude", 0.0))
+            if amp == 0.0:
+                continue
+            onset_ms = float(ev.get("onset_ms", 0.0))
+            dur_ms = float(ev.get("duration_ms", 50.0))
+            start = int(round(onset_ms / dt_ms))
+            end = int(round((onset_ms + dur_ms) / dt_ms))
+            start = max(0, min(start, int(n_steps)))
+            end = max(0, min(end, int(n_steps)))
+            if start < end:
+                schedule[start:end, :] += amp
+        np_dtype = _np.float64 if dtype == "float64" else _np.float32
+        return jnp.asarray(schedule.astype(np_dtype))
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "stimulus_injection_status": "native_drive_schedule_v0.0.12",
+            "n_drive_events": len(self.events),
+            "n_neurons": self.n_neurons,
+            "events": list(self.events),
+            "source_calibration_status": self.source_calibration_status,
+            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "claim_level": self.claim_level,
+        })
+
+
 _KNOWN_METRICS = frozenset({
     "spike_rate_hz_mean",
     "spike_count_total",
@@ -760,8 +813,15 @@ class Model:
             "physical_amplitude_claim_allowed": False,
         })
 
-    def _simulate_arrays(self, sim: Simulation, key: jax.Array, runtime_cfg: RuntimeConfig):
+    def _simulate_arrays(
+        self,
+        sim: Simulation,
+        key: jax.Array,
+        runtime_cfg: RuntimeConfig,
+        drive_schedule: Optional[Any] = None,
+    ):
         emitter: IzhikevichParams = self.params["emitter"]
+        sched = drive_schedule  # None or (n_steps, n_neurons) array
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
             kernel_fn = (
@@ -771,36 +831,75 @@ class Model:
             )
             if runtime_cfg.jit:
                 run = jax.jit(
-                    lambda k: kernel_fn(
-                        emitter, edges, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+                    lambda k, s: kernel_fn(
+                        emitter, edges, sim.n_steps, sim.dt_ms, k,
+                        dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                     )[:3]
                 )
-                return run(key)
+                return run(key, sched)
             return kernel_fn(
-                emitter, edges, sim.n_steps, sim.dt_ms, key, dtype=runtime_cfg.actual_dtype
+                emitter, edges, sim.n_steps, sim.dt_ms, key,
+                dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
             )[:3]
         if runtime_cfg.jit:
             run = jax.jit(
-                lambda k: simulate_eig_izhikevich(
-                    emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+                lambda k, s: simulate_eig_izhikevich(
+                    emitter, sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                 )
             )
-            return run(key)
+            return run(key, sched)
         return simulate_eig_izhikevich(
-            emitter, sim.n_steps, sim.dt_ms, key, dtype=runtime_cfg.actual_dtype
+            emitter, sim.n_steps, sim.dt_ms, key,
+            dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
         )
 
-    def simulate(self, sim: Simulation, paradigm: Optional[Mapping[str, Any]] = None) -> Signals:
+    def _resolve_stimulus_schedule(
+        self,
+        paradigm: Any,
+        sim: Simulation,
+        runtime_cfg: RuntimeConfig,
+    ) -> Optional["StimulusSchedule"]:
+        """Return a StimulusSchedule from paradigm arg, or None."""
+        if paradigm is None:
+            return None
+        if isinstance(paradigm, StimulusSchedule):
+            return paradigm
+        if isinstance(paradigm, ParadigmCondition):
+            return stimulus_schedule(
+                paradigm.events,
+                n_neurons=self.params["emitter"].n_neurons,
+            )
+        return None
+
+    def simulate(
+        self,
+        sim: Simulation,
+        paradigm: "Optional[Any]" = None,
+    ) -> Signals:
         """Run the default EIG/Izhikevich vertical slice.
+
+        When ``paradigm`` is None, behavior is identical to v0.0.11.
+        When ``paradigm`` is a :class:`StimulusSchedule`, its drive array is
+        injected as native (uncalibrated) current at each timestep.
+        When ``paradigm`` is a :class:`ParadigmCondition`, its events are
+        converted to a ``StimulusSchedule`` and injected.
 
         JIT is opt-in through ``Simulation(runtime=RuntimeConfig(jit=True))`` or
         ``runtime(jit=True)``.  The compiled path preserves the same proxy-field
-        truth status as the eager path.
+        truth status as the eager path. No calibrated amplitude, PDE, or empirical
+        claim is introduced by stimulus injection.
         """
 
         runtime_cfg = sim.resolved_runtime
         key = jax.random.PRNGKey(sim.seed)
-        voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg)
+
+        schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
+        drive_array: Optional[Any] = None
+        if schedule is not None:
+            drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+
+        voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
             sim.dt_ms, dtype=runtime_cfg.jnp_dtype
         )
@@ -813,16 +912,29 @@ class Model:
                 n_contacts=self.static.get("n_contacts", 16),
                 dtype=runtime_cfg.actual_dtype,
             )
-        metadata = {
+
+        paradigm_meta: Optional[dict[str, Any]] = None
+        if isinstance(paradigm, Mapping):
+            paradigm_meta = dict(paradigm)
+        elif hasattr(paradigm, "to_dict"):
+            paradigm_meta = paradigm.to_dict()
+
+        metadata: dict[str, Any] = {
             "config_hash": config_hash(self.cfg),
             "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
             "field_claim_level": "proxy_readout_only",
-            "paradigm": dict(paradigm) if paradigm is not None else None,
+            "paradigm": paradigm_meta,
             "plasticity_gain": sim.plasticity,
             "runtime": runtime_cfg.runtime_report(),
             "recurrent_backend": runtime_cfg.recurrent_backend,
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
         }
+        if schedule is not None:
+            metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
+            metadata["stimulus_schedule"] = schedule.to_dict()
+            if isinstance(paradigm, ParadigmCondition):
+                metadata["condition_name"] = paradigm.name
+                metadata["has_omission"] = paradigm.has_omission()
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -831,6 +943,31 @@ class Model:
             field=field_output,
             metadata=metadata,
         )
+
+    def simulate_condition(
+        self,
+        sim: Simulation,
+        condition: "ParadigmCondition",
+        *,
+        drive_amplitude: float = 5.0,
+        event_duration_ms: float = 50.0,
+    ) -> Signals:
+        """Convenience wrapper: simulate one trial condition with event-aligned drive injection.
+
+        Equivalent to ``simulate(sim, paradigm=condition)`` but allows per-call
+        override of ``drive_amplitude`` and ``event_duration_ms``.
+        No calibrated amplitude, PDE, or empirical claim is introduced.
+        """
+        schedule = stimulus_schedule(
+            condition.events,
+            n_neurons=self.params["emitter"].n_neurons,
+            drive_amplitude=drive_amplitude,
+            event_duration_ms=event_duration_ms,
+        )
+        signals = self.simulate(sim, paradigm=schedule)
+        signals.metadata["condition_name"] = condition.name
+        signals.metadata["has_omission"] = condition.has_omission()
+        return signals
 
     def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = None) -> dict[str, Any]:
         """Run a vectorized seed batch and return JSON-safe metadata plus arrays.
@@ -1514,6 +1651,51 @@ def dataset_spec(**kwargs: Any) -> DatasetSpec:
 def surrogate_config(**kwargs: Any) -> SurrogateConfig:
     """Return a SurrogateConfig declaration for an Optax gradient path."""
     return SurrogateConfig(**kwargs)
+
+
+def stimulus_schedule(
+    events: Sequence[Any],
+    n_neurons: int,
+    *,
+    drive_amplitude: float = 5.0,
+    event_duration_ms: float = 50.0,
+) -> StimulusSchedule:
+    """Build a :class:`StimulusSchedule` from a sequence of events.
+
+    Each event may be a :class:`ParadigmEvent` or a dict-like with at least
+    ``onset_ms``.  The ``drive_amplitude`` and ``event_duration_ms`` are the
+    default values applied to all events that do not specify their own.
+
+    Events that carry ``is_omission=True`` or an explicit ``amplitude=0`` inject
+    zero drive (generic no-drive semantics, not cognitive omission logic).
+    No calibrated-current or physical-amplitude claim is made.
+    """
+    ev_dicts: list[dict[str, Any]] = []
+    for e in events:
+        if isinstance(e, ParadigmEvent):
+            amp = float(e.metadata.get("drive_amplitude", drive_amplitude))
+            dur = float(e.metadata.get("event_duration_ms", event_duration_ms))
+            is_drive = not e.is_omission and e.onset_ms is not None
+            ev_dicts.append({
+                "label": e.label,
+                "onset_ms": float(e.onset_ms) if e.onset_ms is not None else 0.0,
+                "duration_ms": dur,
+                "amplitude": amp if is_drive else 0.0,
+                "is_drive_event": is_drive,
+            })
+        else:
+            d = dict(e)
+            if "amplitude" not in d:
+                d["amplitude"] = drive_amplitude
+            if "duration_ms" not in d:
+                d["duration_ms"] = event_duration_ms
+            if "is_drive_event" not in d:
+                d["is_drive_event"] = d.get("onset_ms") is not None and d["amplitude"] != 0.0
+            ev_dicts.append(d)
+    return StimulusSchedule(
+        events=tuple(ev_dicts),
+        n_neurons=int(n_neurons),
+    )
 
 
 def enable_x64() -> dict[str, Any]:
