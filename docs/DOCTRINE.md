@@ -1,6 +1,6 @@
 # jaxfne doctrine
 
-**Version:** 0.0.3  
+**Version:** 0.0.11-pre  
 **Status:** Design scaffold / computational framework, not biological validation.
 
 ## Identity
@@ -17,17 +17,15 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 ## Claims
 
-Allowed early claim:
+**Allowed:**
+- v0.1.x provides the compact JAX-native OOP core required to build reproducible TFNE workflows.
+- jaxfne provides a JAX-native computational scaffold for declaring emitters, source projections, fields, probes, objectives, and manifests.
 
-```text
-jaxfne provides a JAX-native computational scaffold for declaring emitters, source projections, fields, probes, objectives, and manifests.
-```
-
-Forbidden early claim:
-
-```text
-jaxfne validates a biological mechanism or physical CSD/LFP amplitude without calibration.
-```
+**Forbidden:**
+- v0.1.x validates spectrolaminar mechanisms.
+- v0.1.x produces calibrated LFP/CSD amplitudes.
+- v0.1.x is a full simulator.
+- jaxfne validates a biological mechanism or physical CSD/LFP amplitude without calibration.
 
 ## Reduced emitter rule
 
@@ -103,18 +101,20 @@ All gates propagate to manifest.json for downstream audit and validation.
 - is_calibrated: boolean flag for source calibration status
 - warnings: list of issues (non_finite_phi_e, non_finite_J_e, non_finite_CSD, etc.)
 
-## Placeholder policies (v0.0.3)
+## Placeholder policies (Deferred to Post-Paper 1.0)
 
-Do not implement these in v0.0.3. They remain API scaffolds:
+Do not implement these in the v0.1.x-v0.4.0 (Paper 1.0) sequence. They remain API scaffolds:
 
-- Paradigm.batch() — specification only; execution planned for v0.0.5+
+- Omission and global/local oddball paradigm execution (Paper 2.0/3.0)
+
+- Paradigm.batch() — basic condition/trial execution may support Paper 1.0 spectrolaminar workflows; omission/global-local-specific execution is deferred to Paper 2.0/3.0.
 - Model.tune() — API stub; optimization planned for v0.0.5+
 - Objective losses/regularizers/gates — builder only; not used in v0.0.3
 - AGSDR optimizer — placeholder class; no real training
-- Jaxley emitter bridge — connector only; no compartment simulations
+- Jaxley emitter bridge — deferred to post-Paper 1.0
 - Optax adapter — guard only; no gradient-based training
 - Full field PDE solver — laminar proxy only in v0.0.3
-- MEG/EEG readouts — not supported in v0.0.3
+- MEG/EEG readouts — deferred to post-Paper 1.0
 - Source conservation tests — framework planned for v0.0.4
 - SPD tensor validation — planned for v0.0.4
 - Passivity/causality tests — planned for v0.0.4
