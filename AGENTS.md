@@ -33,11 +33,11 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `869694c` | v0.0.19 — last clean state |
-| `dev` | `869694c` | v0.0.20 semantic hardening in-progress (not yet committed) |
+| `dev` | `e24f4e5` (pushed) | v0.0.20 semantic hardening committed + pushed; v0.0.21 fidelity pass in progress |
 
-**Version (working tree):** `0.0.20`  
-**Tests:** 178 passed (baseline pre-hardening)  
-**Working tree:** dirty — v0.0.20 hardening pass in progress
+**Version:** `0.0.20`  
+**Tests:** 216 passed, 0 failed  
+**Working tree:** clean baseline; v0.0.21 fidelity pass starting
 
 ---
 
@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| `claude-sonnet` | v0.0.20 semantic hardening (Tasks C–K) | 2026-05-18 | active |
+| `claude-sonnet` | v0.0.21 config/runtime/source fidelity (Tasks C–J) | 2026-05-18 | active |
 
 ---
 
@@ -53,6 +53,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `claude-sonnet` | v0.0.20 semantic hardening (receipts/readouts/manifest/probes/sim validation) | `e24f4e5` | 216 tests pass; pushed to origin |
 | `gemini-cli` | `docs/roadmaps/v0.0.18_longterm/` | `d7bf899` | 10 roadmap docs staged on dev-v0.0.18; captured at merge |
 | `gemini-cli` | `README.md` hero snippet | `d7bf899` | run_receipt/compute_readout example; captured at merge |
 | `claude-sonnet` | BETA audit + truth_mode fix | `07d2119` | blocking defect resolved; 3 new tests |
@@ -73,7 +74,7 @@ When finishing a scope:
 
 When starting a scope:
 1. Run the session start checklist above.
-2. Add a row to **Active locks** before making any edits.
+2. Add a row to **Active locks before making any edits.
 3. If another agent has a lock on your target file/dir — read only, do not write.
 
 ---
@@ -92,6 +93,7 @@ If two agents edited the same file independently (diverged state):
 
 | Item | Assigned | Branch | Notes |
 |---|---|---|---|
-| Push `main` v0.0.19 to remote | `claude-sonnet` | `main` | pending |
-| Fast-forward `dev` to `main` | `claude-sonnet` | `dev` | after push |
-| v0.0.20 bump + tag | `claude-sonnet` | `dev` | committed (not yet tagged) |
+| Push `dev` v0.0.20 to remote | `gemini-cli` | `dev` | after commit |
+| Fast-forward `main` to `dev` | `claude-sonnet` | `main` | after push |
+| v0.0.21 — config fidelity | `gemini-cli` | `dev` | optional hardening |
+| v0.1.0 bump + tag | `claude-sonnet` | `main` | final freeze |
