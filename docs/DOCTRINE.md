@@ -1,6 +1,6 @@
 # jaxfne doctrine
 
-**Version:** 0.0.17  
+**Version:** 0.0.18  
 **Status:** Design scaffold / computational framework, not biological validation.
 
 ## Identity

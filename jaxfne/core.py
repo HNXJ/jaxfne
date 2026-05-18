@@ -714,6 +714,50 @@ class ReadoutResult:
         })
 
 
+
+@dataclass(frozen=True)
+class ObjectiveReport:
+    """Structured, immutable result of evaluating an Objective against Signals.
+
+    Wraps the dict returned by :meth:`Model.evaluate` into a frozen dataclass
+    that is always JSON-safe and carries explicit truth gates.
+
+    Gate pass/fail is a computational diagnostic only.  It does not imply
+    empirical validation, biological calibration, or mechanism proof.
+
+    ``readout_results`` is populated when ReadoutSpecs are passed to
+    :meth:`Model.evaluate_report`.  It is an empty tuple otherwise.
+    """
+
+    objective_name: str
+    evaluation_status: str
+    total_loss: Optional[float]
+    all_gates_pass: bool
+    losses: tuple[dict[str, Any], ...]
+    regularizers: tuple[dict[str, Any], ...]
+    gates: tuple[dict[str, Any], ...]
+    readout_results: tuple["ReadoutResult", ...] = field(default_factory=tuple)
+    truth: dict[str, Any] = field(default_factory=dict)
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "objective_name": self.objective_name,
+            "evaluation_status": self.evaluation_status,
+            "total_loss": self.total_loss,
+            "all_gates_pass": self.all_gates_pass,
+            "losses": list(self.losses),
+            "regularizers": list(self.regularizers),
+            "gates": list(self.gates),
+            "readout_results": [r.to_dict() for r in self.readout_results],
+            "truth": self.truth,
+            "warnings": list(self.warnings),
+            "metadata": self.metadata,
+        })
+
+
 @dataclass(frozen=True)
 class RunReceipt:
     """Complete, JSON-safe record of a single simulation run.
@@ -1625,6 +1669,60 @@ class Model:
             "warnings": warnings,
         })
 
+
+    def evaluate_report(
+        self,
+        signals: Signals,
+        objective: "Objective | str",
+        *,
+        readout_specs: "Optional[Sequence[ReadoutSpec]]" = None,
+        readout: Optional[dict[str, Any]] = None,
+    ) -> ObjectiveReport:
+        """Evaluate an objective and return a structured, immutable ObjectiveReport.
+
+        Wraps :meth:`evaluate` into a frozen dataclass.  Optionally computes
+        ReadoutSpecs via :meth:`compute_readout` and embeds results in the report.
+
+        Gate pass/fail is a computational diagnostic only.  No biological
+        calibration, no physical-amplitude, empirical-validation, or
+        mechanism claim is introduced.
+
+        Args:
+            signals: Signals returned by self.simulate().
+            objective: Objective or objective name string.
+            readout_specs: Optional list of ReadoutSpec for feature extraction.
+            readout: Optional readout dict (passed through to evaluate()).
+
+        Returns:
+            ObjectiveReport (frozen, JSON-safe).
+        """
+        eval_dict = self.evaluate(signals, objective, readout=readout)
+        rr: tuple[ReadoutResult, ...] = ()
+        if readout_specs:
+            rr = tuple(self.compute_readout(signals, readout_specs))
+        truth: dict[str, Any] = {
+            "truth_mode": "truth_safe_unverified",
+            "claim_level": "computational_scaffold",
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "field_solver_status": "laminar_proxy_no_pde",
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+        }
+        return ObjectiveReport(
+            objective_name=eval_dict.get("objective_name", "anonymous"),
+            evaluation_status="objective_report_v0.0.18",
+            total_loss=eval_dict.get("total_loss"),
+            all_gates_pass=bool(eval_dict.get("all_gates_pass", True)),
+            losses=tuple(eval_dict.get("losses", [])),
+            regularizers=tuple(eval_dict.get("regularizers", [])),
+            gates=tuple(eval_dict.get("gates", [])),
+            readout_results=rr,
+            truth=truth,
+            warnings=tuple(eval_dict.get("warnings", [])),
+        )
+
     def tune(
         self,
         objective: "Objective",
@@ -2378,7 +2476,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.17"
+_JAXFNE_VERSION = "0.0.18"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"  # stable; receipt format unchanged
 
 _KNOWN_READOUT_METRICS = frozenset({

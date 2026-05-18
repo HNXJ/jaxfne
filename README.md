@@ -240,6 +240,30 @@ claim is introduced.
 
 
 
+
+## v0.0.18 objective report
+
+`v0.0.18` adds `ObjectiveReport` — a structured, immutable result of evaluating an
+`Objective` against `Signals`.  It introduces `ObjectiveReport` (frozen dataclass)
+and `Model.evaluate_report(signals, objective, *, readout_specs=None)`.
+
+`evaluate_report` wraps the existing `Model.evaluate()` output into a typed,
+JSON-safe object that also embeds `ReadoutResult` items when `readout_specs`
+are provided.  `ObjectiveReport.truth` carries frozen conservative truth gates.
+
+```python
+report = model.evaluate_report(signals, obj, readout_specs=[
+    jtfne.readout_spec("rate", "spike_rate_hz"),
+    jtfne.readout_spec("csd",  "csd_abs_mean"),
+])
+assert report.evaluation_status == "objective_report_v0.0.18"
+assert report.truth["physical_amplitude_claim_allowed"] is False
+json.dumps(report.to_dict(), allow_nan=False)
+```
+
+Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
+no empirical validation, and no mechanism claim is introduced.
+
 ## v0.0.17 readout spec
 
 `v0.0.17` adds the declarative feature-extraction standard for Paper 1.0 workflows.
@@ -264,7 +288,7 @@ temporal and depth windowing.  `ReadoutResult.status` is `"computed"`,
 
 `_KNOWN_READOUT_METRICS` is exported from both `jaxfne` and `jaxfne.core`.
 
-No new PDE solver, no calibrated amplitude, no empirical validation, and no
+No new PDE solver, no physical-amplitude claim, no empirical validation, and no
 mechanism claim is introduced.
 
 ## v0.0.16 run receipt
