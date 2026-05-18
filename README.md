@@ -46,9 +46,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.18)
+## Current status (v0.0.19)
 
-v0.0.18 is the current development HEAD (branch `dev-v0.0.18-objective-report`). The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
+v0.0.19 is the current development HEAD on `main`. The v0.0.5 API surface documented below is still valid. v0.0.15–v0.0.18 layers are documented in the version-history sections at the bottom.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
@@ -136,7 +136,7 @@ The Optax path requires explicit `differentiability_status="declared_surrogate"`
 `"differentiable"`. The default `"not_checked"` is blocked because spiking networks
 are not differentiable through spike resets without a surrogate gradient declaration.
 
-### Manifest with v0.0.5 metadata
+### Manifest with v0.0.5 metadata (compatibility alias)
 
 ```python
 manifest = model.manifest(
@@ -151,6 +151,10 @@ manifest = model.manifest(
 # manifest["v005_claim_labels"]["mechanism_claim_status"] == "not_claimed"
 # All v0.0.4 truth gates still present
 ```
+
+`model.manifest()` is a compatibility alias retained from v0.0.4–v0.0.14.
+For the canonical v0.1 workflow, prefer `model.run_receipt()` and
+`model.evaluate_report()`.
 
 ## Version roadmap (Publication Event 1.0)
 

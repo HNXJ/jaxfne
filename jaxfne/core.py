@@ -1427,12 +1427,22 @@ class Model:
     def run_receipt(self, signals: Signals, *, tags: Optional[dict[str, Any]] = None) -> RunReceipt:
         """Build a RunReceipt capturing this run for audit and reproducibility.
 
+        **Canonical v0.1 workflow method.**  Prefer this over :meth:`manifest`
+        for recording completed simulation runs.
+
         Args:
             signals: Signals returned by self.simulate().
             tags: Optional user-supplied key-value metadata (condition, paper, etc.).
 
         Returns:
             RunReceipt with frozen truth gates and deterministic receipt_id.
+
+        Note:
+            ``receipt_id`` is deterministic for the same
+            ``(config_hash, seed, _JAXFNE_VERSION)`` triple.  Upgrading the
+            package version changes the ID even when config and seed are
+            identical, because the computational kernel may have changed.
+            IDs are audit identifiers; they are not empirical claims.
         """
         from .io import sha256_text
 
@@ -1497,6 +1507,9 @@ class Model:
         specs: "Sequence[ReadoutSpec]",
     ) -> "list[ReadoutResult]":
         """Compute scalar features from Signals according to a list of ReadoutSpecs.
+
+        **Canonical v0.1 workflow method.**  Prefer this over :meth:`probe`
+        for declarative, typed feature extraction.
 
         Args:
             signals: Signals returned by self.simulate().
@@ -1583,7 +1596,12 @@ class Model:
         return results
 
     def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
-        """Canonical TFNE readout method."""
+        """Extract named arrays from Signals by mode.
+
+        Compatibility alias retained from v0.0.3–v0.0.14.  For typed,
+        declarative feature extraction in the canonical v0.1 workflow, prefer
+        :meth:`compute_readout` with :class:`ReadoutSpec` objects.
+        """
 
         modes = list(modes or [])
         out: dict[str, Any] = {"requested_modes": modes}
@@ -1679,6 +1697,9 @@ class Model:
         readout: Optional[dict[str, Any]] = None,
     ) -> ObjectiveReport:
         """Evaluate an objective and return a structured, immutable ObjectiveReport.
+
+        **Canonical v0.1 workflow method.**  Prefer this over :meth:`evaluate`
+        when a typed, JSON-safe, auditable result is needed.
 
         Wraps :meth:`evaluate` into a frozen dataclass.  Optionally computes
         ReadoutSpecs via :meth:`compute_readout` and embeds results in the report.
@@ -1876,6 +1897,14 @@ class Model:
         dataset: Optional[dict[str, Any]] = None,
         trials: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
+        """Build a JSON-safe run manifest dict.
+
+        Compatibility method retained from v0.0.4–v0.0.14.  For the canonical
+        v0.1 workflow, prefer :meth:`run_receipt` (typed, immutable, with
+        deterministic receipt ID) and :meth:`evaluate_report` (typed objective
+        evaluation).  This method remains supported and is not scheduled for
+        removal.
+        """
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
             runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
@@ -2476,7 +2505,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.18"
+_JAXFNE_VERSION = "0.0.19"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"  # stable; receipt format unchanged
 
 _KNOWN_READOUT_METRICS = frozenset({
@@ -2589,7 +2618,16 @@ class JaxFNEConfig:
 
     @property
     def config_hash(self) -> str:
-        """Return a compact SHA256 hash for the configuration."""
+        """Return a compact SHA256 hash for the configuration.
+
+        The hash is computed over ``to_dict()`` output, which includes all
+        known sections plus any unknown top-level keys that were captured in
+        ``metadata["unknown_keys"]`` during ``load_config()``.  Two configs
+        that differ only in unknown keys will produce different hashes.
+
+        Hash equality is structural identity — it is not biological equivalence
+        or empirical validation.
+        """
         return config_hash(self.to_dict())
 
 
@@ -2763,7 +2801,16 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
 
 
 def config_truth_boundary(cfg: JaxFNEConfig) -> dict[str, Any]:
-    """Return a JSON-safe copy of the truth boundary section."""
+    """Return a JSON-safe copy of the truth boundary section.
+
+    This is a reporting/passthrough helper — it returns the truth dict exactly
+    as stored in the config, without re-validating it.  Call
+    :func:`validate_config` first to confirm the truth section is structurally
+    correct and free of escalated claims.
+
+    This function does not prove biological truth.  It produces a
+    JSON-safe snapshot of the declared claim level for logging and auditing.
+    """
     from .io import json_safe
     return json_safe(dict(cfg.truth) if cfg.truth else {})
 
