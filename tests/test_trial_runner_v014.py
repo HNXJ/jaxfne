@@ -142,3 +142,20 @@ def test_i_consistency():
     
     assert jnp.allclose(signals_manual.V_m, signals_batch.V_m)
     assert jnp.allclose(signals_manual.spikes, signals_batch.spikes)
+
+def test_j_module_level_run_trials():
+    cfg = jtfne.configuration().network(n=5).emitter().field().probe()
+    model = jtfne.construct(cfg)
+    cond = jtfne.standard_visual_omission().conditions[0]
+
+    # Test module-level run_trials function
+    batch = jtfne.trial_batch([cond], n_reps=1, seed=42)
+    sim = jtfne.simulation(duration_ms=20.0, dt_ms=0.5)
+
+    # Call module-level function
+    result = jtfne.run_trials(model, batch, sim)
+
+    # Verify it returns TrialBatchResult
+    assert isinstance(result, jtfne.TrialBatchResult)
+    assert len(result.results) == 1
+    assert result.results[0].success is True

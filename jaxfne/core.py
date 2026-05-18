@@ -1936,6 +1936,17 @@ def trial_batch(
     )
 
 
+def run_trials(
+    model: Model, batch: TrialBatch, sim: Simulation
+) -> TrialBatchResult:
+    """Execute a batch of trials using the model.
+
+    Delegates to model.run_trials() for the actual execution.
+    Errors are collected into TrialResult entries with success=False.
+    """
+    return model.run_trials(batch, sim)
+
+
 def dataset_spec(**kwargs: Any) -> DatasetSpec:
     """Return a DatasetSpec schema declaration."""
     return DatasetSpec(**kwargs)
