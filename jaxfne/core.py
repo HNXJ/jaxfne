@@ -646,6 +646,75 @@ class TrialBatchResult:
 
 
 @dataclass(frozen=True)
+class ReadoutSpec:
+    """Declarative specification for extracting a scalar feature from Signals.
+
+    Defines a single named metric to compute from a simulation's Signals
+    object.  All fields are JSON-safe.  No physical-amplitude or calibration
+    claim is made; all values are proxy or native-current units unless
+    explicitly stated otherwise.
+
+    Supported metrics (``_KNOWN_READOUT_METRICS``):
+        spike_rate_hz, spike_count, mean_V_m,
+        csd_abs_mean, lfp_abs_mean, source_abs_mean.
+
+    Optional filters:
+        time_window_ms: (start_ms, end_ms) tuple for temporal slice.
+        n_contacts_slice: (start, end) tuple for contact-depth slice on field modes.
+    """
+
+    name: str
+    metric: str
+    time_window_ms: Optional[tuple[float, float]] = None
+    n_contacts_slice: Optional[tuple[int, int]] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "name": self.name,
+            "metric": self.metric,
+            "time_window_ms": list(self.time_window_ms) if self.time_window_ms else None,
+            "n_contacts_slice": list(self.n_contacts_slice) if self.n_contacts_slice else None,
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
+class ReadoutResult:
+    """Result of applying a ReadoutSpec to Signals.
+
+    All scalar values are floats or None (when computation is not applicable).
+    JSON-safe via to_dict().
+
+    Status values:
+        "computed"   — value was computed successfully.
+        "no_field"   — metric requires field output but signals has no field.
+        "unknown_metric" — metric not in _KNOWN_READOUT_METRICS.
+    """
+
+    spec_name: str
+    metric: str
+    value: Optional[float]
+    status: str = "computed"
+    claim_level: str = "computational_scaffold"
+    physical_amplitude_claim_allowed: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+        return json_safe({
+            "spec_name": self.spec_name,
+            "metric": self.metric,
+            "value": self.value,
+            "status": self.status,
+            "claim_level": self.claim_level,
+            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "metadata": self.metadata,
+        })
+
+
+@dataclass(frozen=True)
 class RunReceipt:
     """Complete, JSON-safe record of a single simulation run.
 
@@ -1377,6 +1446,98 @@ class Model:
             tags=dict(tags or {}),
         )
 
+
+    def compute_readout(
+        self,
+        signals: Signals,
+        specs: "Sequence[ReadoutSpec]",
+    ) -> "list[ReadoutResult]":
+        """Compute scalar features from Signals according to a list of ReadoutSpecs.
+
+        Args:
+            signals: Signals returned by self.simulate().
+            specs: Sequence of ReadoutSpec objects declaring what to extract.
+
+        Returns:
+            List of ReadoutResult objects in the same order as specs.
+            Values are None when not applicable (missing field, unknown metric).
+
+        No physical-amplitude, empirical-validation, or mechanism claim is
+        introduced.  All values are proxy/native-current scaffold outputs.
+        """
+        results: list[ReadoutResult] = []
+        for spec in specs:
+            if spec.metric not in _KNOWN_READOUT_METRICS:
+                results.append(ReadoutResult(
+                    spec_name=spec.name,
+                    metric=spec.metric,
+                    value=None,
+                    status="unknown_metric",
+                ))
+                continue
+
+            # Time slice (optional)
+            if spec.time_window_ms is not None:
+                start_ms, end_ms = spec.time_window_ms
+                dt_ms_arr = (
+                    float(signals.time_ms[1] - signals.time_ms[0])
+                    if signals.time_ms.shape[0] > 1
+                    else 1.0
+                )
+                t0 = max(0, int(start_ms / dt_ms_arr))
+                t1 = min(int(signals.time_ms.shape[0]), int(end_ms / dt_ms_arr))
+                V_m_sl = signals.V_m[t0:t1]
+                sp_sl = signals.spikes[t0:t1]
+                src_sl = signals.sources[t0:t1]
+                n_steps_sl = max(1, t1 - t0)
+            else:
+                V_m_sl = signals.V_m
+                sp_sl = signals.spikes
+                src_sl = signals.sources
+                n_steps_sl = int(signals.time_ms.shape[0])
+
+            dt_ms = (
+                float(signals.time_ms[1] - signals.time_ms[0])
+                if signals.time_ms.shape[0] > 1
+                else 1.0
+            )
+
+            if spec.metric == "spike_rate_hz":
+                value = float(jnp.mean(sp_sl) * (1000.0 / dt_ms))
+            elif spec.metric == "spike_count":
+                value = float(jnp.sum(sp_sl))
+            elif spec.metric == "mean_V_m":
+                value = float(jnp.mean(V_m_sl))
+            elif spec.metric == "source_abs_mean":
+                value = float(jnp.mean(jnp.abs(src_sl)))
+            elif spec.metric in ("csd_abs_mean", "lfp_abs_mean"):
+                if signals.field is None:
+                    results.append(ReadoutResult(
+                        spec_name=spec.name,
+                        metric=spec.metric,
+                        value=None,
+                        status="no_field",
+                    ))
+                    continue
+                if spec.metric == "csd_abs_mean":
+                    arr = signals.field.csd
+                else:
+                    arr = signals.field.lfp
+                if spec.n_contacts_slice is not None:
+                    c0, c1 = spec.n_contacts_slice
+                    arr = arr[:, c0:c1]
+                value = float(jnp.mean(jnp.abs(arr)))
+            else:
+                value = None
+
+            results.append(ReadoutResult(
+                spec_name=spec.name,
+                metric=spec.metric,
+                value=value,
+                status="computed",
+            ))
+        return results
+
     def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
         """Canonical TFNE readout method."""
 
@@ -2095,6 +2256,37 @@ def run_receipt(
     """
     return model.run_receipt(signals, tags=tags)
 
+
+def readout_spec(
+    name: str,
+    metric: str,
+    *,
+    time_window_ms: Optional[tuple[float, float]] = None,
+    n_contacts_slice: Optional[tuple[int, int]] = None,
+    metadata: Optional[dict[str, Any]] = None,
+) -> ReadoutSpec:
+    """Build a ReadoutSpec for declarative feature extraction.
+
+    Args:
+        name: Unique label for this readout spec.
+        metric: One of _KNOWN_READOUT_METRICS (spike_rate_hz, spike_count,
+                mean_V_m, csd_abs_mean, lfp_abs_mean, source_abs_mean).
+        time_window_ms: Optional (start_ms, end_ms) temporal slice.
+        n_contacts_slice: Optional (start, end) contact-depth slice for field modes.
+        metadata: Optional user-supplied metadata dict.
+
+    Returns:
+        ReadoutSpec (frozen, JSON-safe).
+    """
+    return ReadoutSpec(
+        name=name,
+        metric=metric,
+        time_window_ms=time_window_ms,
+        n_contacts_slice=n_contacts_slice,
+        metadata=metadata or {},
+    )
+
+
 def dataset_spec(**kwargs: Any) -> DatasetSpec:
     """Return a DatasetSpec schema declaration."""
     return DatasetSpec(**kwargs)
@@ -2181,12 +2373,22 @@ def enable_x64() -> dict[str, Any]:
 
 
 
+
 # ──────────────────────────────────────────────────────────────
-# v0.0.16 run receipt
+# v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.16"
-_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"
+_JAXFNE_VERSION = "0.0.17"
+_RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.16"  # stable; receipt format unchanged
+
+_KNOWN_READOUT_METRICS = frozenset({
+    "spike_rate_hz",
+    "spike_count",
+    "mean_V_m",
+    "csd_abs_mean",
+    "lfp_abs_mean",
+    "source_abs_mean",
+})
 
 # ──────────────────────────────────────────────────────────────
 # v0.0.15 config foundation

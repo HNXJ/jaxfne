@@ -239,6 +239,34 @@ No new PDE solver, no calibrated current, no empirical validation, and no mechan
 claim is introduced.
 
 
+
+## v0.0.17 readout spec
+
+`v0.0.17` adds the declarative feature-extraction standard for Paper 1.0 workflows.
+It introduces `ReadoutSpec`, `ReadoutResult`, the `readout_spec()` factory, and
+`Model.compute_readout(signals, specs)`.
+
+A `ReadoutSpec` declares a named scalar metric to extract from `Signals`.
+Supported metrics:
+
+| Metric | Description |
+|--------|-------------|
+| `spike_rate_hz` | Mean firing rate across all units (Hz) |
+| `spike_count` | Total spike count |
+| `mean_V_m` | Mean membrane voltage |
+| `csd_abs_mean` | Mean absolute CSD proxy |
+| `lfp_abs_mean` | Mean absolute LFP proxy |
+| `source_abs_mean` | Mean absolute source proxy |
+
+Optional `time_window_ms=(start, end)` and `n_contacts_slice=(start, end)` allow
+temporal and depth windowing.  `ReadoutResult.status` is `"computed"`,
+`"no_field"`, or `"unknown_metric"`.
+
+`_KNOWN_READOUT_METRICS` is exported from both `jaxfne` and `jaxfne.core`.
+
+No new PDE solver, no calibrated amplitude, no empirical validation, and no
+mechanism claim is introduced.
+
 ## v0.0.16 run receipt
 
 `v0.0.16` adds `RunReceipt` — an immutable, JSON-safe record of a single simulation run.
