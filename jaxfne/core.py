@@ -27,7 +27,7 @@ from .emitters import (
 
 _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
-from .io import config_hash, manifest as build_manifest
+from .io import config_hash, load_json, manifest as build_manifest
 
 
 def _default_operator_status() -> dict[str, str]:
@@ -2056,3 +2056,368 @@ def enable_x64() -> dict[str, Any]:
     """Enable JAX float64 mode before constructing arrays and report status."""
     jax.config.update("jax_enable_x64", True)
     return {"x64_enabled": bool(jax.config.read("jax_enable_x64")), "status": "enabled"}
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.0.15 config foundation
+# ──────────────────────────────────────────────────────────────
+
+_JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.15"
+
+_REQUIRED_CONFIG_SECTIONS = frozenset(
+    {"schema_version", "run", "truth", "network", "emitter", "field", "probes"}
+)
+
+_RECOGNIZED_OPTIONAL_CONFIG_SECTIONS = frozenset({
+    "runtime",
+    "geometry",
+    "paradigm",
+    "trials",
+    "stimulus",
+    "features",
+    "objective",
+    "targets",
+    "validation",
+    "output",
+    "metadata",
+})
+
+_CONSERVATIVE_TRUTH_DEFAULTS = {
+    "physical_amplitude_claim_allowed": False,
+    "claim_level": "computational_scaffold",
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "field_solver_status": "laminar_proxy_no_pde",
+    "empirical_validation_status": "not_empirically_validated",
+    "mechanism_claim_status": "not_claimed",
+}
+
+
+@dataclass(frozen=True)
+class JaxFNEConfig:
+    """JSON-safe container for a complete ``.jcfg.json`` TFNE specification.
+
+    Attributes map to top-level JSON keys.  The JSON key ``"field"`` maps to the
+    Python attribute ``field_spec``.
+    """
+
+    schema_version: str
+    run: dict[str, Any]
+    truth: dict[str, Any]
+    network: dict[str, Any]
+    emitter: dict[str, Any]
+    field_spec: dict[str, Any]
+    probes: tuple[dict[str, Any], ...]
+    geometry: Optional[dict[str, Any]] = None
+    paradigm: Optional[dict[str, Any]] = None
+    trials: Optional[dict[str, Any]] = None
+    runtime_spec: Optional[dict[str, Any]] = None
+    stimulus: Optional[dict[str, Any]] = None
+    features: Optional[dict[str, Any]] = None
+    objective_spec: Optional[dict[str, Any]] = None
+    targets: Optional[dict[str, Any]] = None
+    validation_spec: Optional[dict[str, Any]] = None
+    output: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dictionary representation."""
+        from .io import json_safe
+
+        d = {
+            "schema_version": self.schema_version,
+            "run": self.run,
+            "truth": self.truth,
+            "network": self.network,
+            "emitter": self.emitter,
+            "field": self.field_spec,
+            "probes": list(self.probes),
+        }
+        if self.geometry:
+            d["geometry"] = self.geometry
+        if self.paradigm:
+            d["paradigm"] = self.paradigm
+        if self.trials:
+            d["trials"] = self.trials
+        if self.runtime_spec:
+            d["runtime"] = self.runtime_spec
+        if self.stimulus:
+            d["stimulus"] = self.stimulus
+        if self.features:
+            d["features"] = self.features
+        if self.objective_spec:
+            d["objective"] = self.objective_spec
+        if self.targets:
+            d["targets"] = self.targets
+        if self.validation_spec:
+            d["validation"] = self.validation_spec
+        if self.output:
+            d["output"] = self.output
+        if self.metadata:
+            d["metadata"] = self.metadata
+        return json_safe(d)
+
+    @property
+    def config_hash(self) -> str:
+        """Return a compact SHA256 hash for the configuration."""
+        return config_hash(self.to_dict())
+
+
+@dataclass(frozen=True)
+class ConfigValidationResult:
+    """Report container for configuration validation."""
+
+    valid: bool
+    issues: tuple[str, ...]
+    warnings: tuple[str, ...]
+    truth_boundary: dict[str, Any]
+    schema_version: str
+
+    def to_dict(self) -> dict[str, Any]:
+        from .io import json_safe
+
+        return json_safe({
+            "valid": self.valid,
+            "issues": list(self.issues),
+            "warnings": list(self.warnings),
+            "truth_boundary": self.truth_boundary,
+            "schema_version": self.schema_version,
+        })
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.0.15 config factory functions
+# ──────────────────────────────────────────────────────────────
+
+def load_config(path: Any) -> JaxFNEConfig:
+    """Load a ``.jcfg.json`` file and return a :class:`JaxFNEConfig`.
+
+    Malformed JSON raises.  Missing or invalid sections are surfaced by
+    :func:`validate_config`.  Unknown top-level keys are preserved in
+    ``metadata["unknown_keys"]`` and produce warnings via
+    :func:`validate_config`.
+
+    The JSON key ``"field"`` is mapped to the Python attribute ``field_spec``.
+    """
+    raw: dict[str, Any] = load_json(path)
+
+    known_keys = _REQUIRED_CONFIG_SECTIONS | _RECOGNIZED_OPTIONAL_CONFIG_SECTIONS
+    unknown_keys = [k for k in raw if k not in known_keys]
+
+    meta: dict[str, Any] = dict(raw.get("metadata") or {})
+    if unknown_keys:
+        meta["unknown_keys"] = unknown_keys
+
+    return JaxFNEConfig(
+        schema_version=str(raw.get("schema_version", "")),
+        run=dict(raw.get("run") or {}),
+        truth=dict(raw.get("truth") or {}),
+        network=dict(raw.get("network") or {}),
+        emitter=dict(raw.get("emitter") or {}),
+        field_spec=dict(raw.get("field") or {}),
+        probes=tuple(raw.get("probes") or []),
+        geometry=raw.get("geometry"),
+        paradigm=raw.get("paradigm"),
+        trials=raw.get("trials"),
+        runtime_spec=raw.get("runtime"),
+        stimulus=raw.get("stimulus"),
+        features=raw.get("features"),
+        objective_spec=raw.get("objective"),
+        targets=raw.get("targets"),
+        validation_spec=raw.get("validation"),
+        output=raw.get("output"),
+        metadata=meta,
+    )
+
+
+def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
+    """Validate a :class:`JaxFNEConfig` and return a :class:`ConfigValidationResult`.
+
+    Does not raise for normal validation failures.  Returns issues list.
+    Escalated truth claims and missing required sections are blocking issues.
+    """
+    issues: list[str] = []
+    warnings: list[str] = []
+
+    # Schema version
+    if not cfg.schema_version:
+        issues.append("schema_version_missing")
+    elif cfg.schema_version != _JAXFNE_CONFIG_SCHEMA_VERSION:
+        issues.append(
+            f"schema_version_unsupported:{cfg.schema_version!r};"
+            f"expected:{_JAXFNE_CONFIG_SCHEMA_VERSION!r}"
+        )
+
+    # Required sections
+    for section_key, section_val in [
+        ("run", cfg.run),
+        ("truth", cfg.truth),
+        ("network", cfg.network),
+        ("emitter", cfg.emitter),
+        ("field", cfg.field_spec),
+        ("probes", cfg.probes),
+    ]:
+        if not section_val:
+            issues.append(f"required_section_missing:{section_key}")
+
+    # run validation
+    run = cfg.run or {}
+    for k in ("duration_ms", "dt_ms", "seed"):
+        if k not in run:
+            issues.append(f"run.{k}_missing")
+    if float(run.get("duration_ms", 0)) <= 0:
+        issues.append("run.duration_ms_must_be_positive")
+    if float(run.get("dt_ms", 0)) <= 0:
+        issues.append("run.dt_ms_must_be_positive")
+
+    # network validation
+    network = cfg.network or {}
+    n = network.get("n")
+    if n is None:
+        issues.append("network.n_missing")
+    elif not isinstance(n, int) or n <= 0:
+        issues.append("network.n_must_be_positive_int")
+
+    # Truth boundary — all fields required and must be conservative
+    truth = cfg.truth or {}
+    for tk in _CONSERVATIVE_TRUTH_DEFAULTS:
+        if tk not in truth:
+            issues.append(f"truth.{tk}_missing")
+
+    if truth.get("physical_amplitude_claim_allowed") is not False:
+        issues.append("truth_escalation:physical_amplitude_claim_allowed_must_be_False")
+    if truth.get("claim_level") not in (None, "computational_scaffold"):
+        issues.append(f"truth_escalation:claim_level:{truth.get('claim_level')!r}")
+    if truth.get("source_calibration_status") not in (
+        None, "uncalibrated_izhikevich_native_current"
+    ):
+        issues.append(
+            f"truth_escalation:source_calibration_status:{truth.get('source_calibration_status')!r}"
+        )
+    if truth.get("field_solver_status") not in (None, "laminar_proxy_no_pde"):
+        issues.append(f"truth_escalation:field_solver_status:{truth.get('field_solver_status')!r}")
+    if truth.get("empirical_validation_status") not in (None, "not_empirically_validated"):
+        issues.append(
+            f"truth_escalation:empirical_validation_status:"
+            f"{truth.get('empirical_validation_status')!r}"
+        )
+    if truth.get("mechanism_claim_status") not in (None, "not_claimed"):
+        issues.append(
+            f"truth_escalation:mechanism_claim_status:{truth.get('mechanism_claim_status')!r}"
+        )
+
+    # Warnings for unknown top-level keys
+    for uk in cfg.metadata.get("unknown_keys", []):
+        warnings.append(f"unknown_top_level_key:{uk}")
+
+    # Warnings for absent optional sections
+    for opt_section, opt_val in (
+        ("geometry", cfg.geometry),
+        ("paradigm", cfg.paradigm),
+        ("trials", cfg.trials),
+    ):
+        if opt_val is None:
+            warnings.append(f"optional_section_absent:{opt_section}")
+
+    from .io import json_safe
+    truth_boundary = json_safe(dict(truth))
+    return ConfigValidationResult(
+        valid=len(issues) == 0,
+        issues=tuple(issues),
+        warnings=tuple(warnings),
+        truth_boundary=truth_boundary,
+        schema_version=cfg.schema_version or "",
+    )
+
+
+def config_truth_boundary(cfg: JaxFNEConfig) -> dict[str, Any]:
+    """Return a JSON-safe copy of the truth boundary section."""
+    from .io import json_safe
+    return json_safe(dict(cfg.truth) if cfg.truth else {})
+
+
+def config_to_simulation(cfg: JaxFNEConfig) -> Simulation:
+    """Map the ``run`` section of a :class:`JaxFNEConfig` to a :class:`Simulation`."""
+    run = cfg.run or {}
+    kwargs: dict[str, Any] = {
+        "duration_ms": float(run["duration_ms"]),
+        "dt_ms": float(run["dt_ms"]),
+        "seed": int(run.get("seed", 0)),
+    }
+    if "record_sources" in run:
+        kwargs["record_sources"] = bool(run["record_sources"])
+    if "record_fields" in run:
+        kwargs["record_fields"] = bool(run["record_fields"])
+    if "plasticity" in run:
+        kwargs["plasticity"] = float(run["plasticity"])
+    return Simulation(**kwargs)
+
+
+def config_to_geometry(cfg: JaxFNEConfig) -> Optional[LaminarSourceGeometry]:
+    """Map the ``geometry`` section to a :class:`LaminarSourceGeometry`, or ``None``.
+
+    Depths are normalized proxy coordinates in [0, 1].  No physical spatial
+    units (mm, µm) are introduced.  The default ``position_units`` is
+    ``"relative_laminar_depth_proxy"``.
+    """
+    if cfg.geometry is None:
+        return None
+
+    geo = cfg.geometry
+    populations: list[LaminarPopulation] = []
+    for p in geo.get("populations", []):
+        populations.append(LaminarPopulation(
+            name=str(p["name"]),
+            cell_type=str(p["cell_type"]),
+            layer=str(p.get("layer", "unspecified")),
+            depth_min=float(p["depth_min"]),
+            depth_max=float(p["depth_max"]),
+            n_units=int(p["n_units"]),
+        ))
+
+    position_units = str(geo.get("position_units", "relative_laminar_depth_proxy"))
+    n_units_total = sum(p.n_units for p in populations)
+    return LaminarSourceGeometry(
+        populations=tuple(populations),
+        n_units_total=n_units_total,
+        position_units=position_units,
+    )
+
+
+def config_to_configuration(cfg: JaxFNEConfig) -> Configuration:
+    """Map the ``network``/``emitter``/``field``/``probes`` sections to a :class:`Configuration`.
+
+    Does not claim physical calibration.  Passes section dicts directly to
+    the existing builder; unsupported keys will surface as validation issues.
+    """
+    c = configuration()
+    c = c.network(**dict(cfg.network or {}))
+    c = c.emitter(**dict(cfg.emitter or {}))
+    c = c.field(**dict(cfg.field_spec or {}))
+    for probe in cfg.probes or ():
+        c = c.probe(**dict(probe))
+    return c
+
+
+def config_to_trial_batch(
+    cfg: JaxFNEConfig,
+    conditions: Sequence[ParadigmCondition],
+) -> TrialBatch:
+    """Map the ``trials`` section and conditions to a :class:`TrialBatch`.
+
+    Conservative defaults when section is absent:
+    - n_reps = 1
+    - seed from cfg.run.seed
+    - seed_policy = "paired_by_replicate"
+    """
+    trials_spec = cfg.trials or {}
+    n_reps = int(trials_spec.get("n_reps", 1))
+    base_seed = int(
+        trials_spec.get("base_seed", trials_spec.get("seed", (cfg.run or {}).get("seed", 0)))
+    )
+    seed_policy = str(trials_spec.get("seed_policy", "paired_by_replicate"))
+    return trial_batch(
+        conditions=conditions,
+        n_reps=n_reps,
+        seed=base_seed,
+        seed_policy=seed_policy,
+    )

@@ -221,6 +221,23 @@ Expected: 55 passed, 0 failed.
 
 `v0.0.14` adds a sequential trial runner for executing batches of condition-aligned simulations. It introduces `TrialSpec`, `TrialBatch`, `TrialResult`, and `TrialBatchResult` dataclasses, along with a `trial_batch()` factory for deterministic batch creation. The `Model.run_trials(batch, sim)` method performs a sequential loop over `batch.trials`, replacing `sim.seed` with the trial's seed and capturing any exceptions into the `TrialResult`. Serialization via `to_dict()` is strictly JSON-safe and automatically excludes large JAX arrays (`V_m`, `spikes`, `sources`, `field`) from the results, providing instead a compact `Signals.summary()`. This enables robust condition-aligned workflow orchestration for Paper 1.0. No parallel execution, no new field solver, no physical-amplitude claim, no PDE upgrade, and no empirical or mechanism claim is introduced.
 
+## v0.0.15 config/object standard foundation
+
+`v0.0.15` adds the first formal `.jcfg.json` declarative configuration standard.
+It introduces `JaxFNEConfig`, `ConfigValidationResult`, `load_config`, `validate_config`,
+`config_to_simulation`, `config_to_geometry`, `config_to_configuration`,
+`config_to_trial_batch`, and `config_truth_boundary`.
+
+The config schema maps directly onto existing proven objects (`Simulation`,
+`Configuration`, `LaminarSourceGeometry`, `TrialBatch`) without introducing new kernels,
+field solvers, or physical-amplitude claims.  Truth boundary fields are required in
+every config file and any escalation is a blocking validation error.
+Geometry depths remain normalized proxy coordinates in [0, 1] with default
+`position_units = "relative_laminar_depth_proxy"` — no physical spatial units (mm, µm)
+are introduced.
+No new PDE solver, no calibrated current, no empirical validation, and no mechanism
+claim is introduced.
+
 ## Truth status
 
 ```text

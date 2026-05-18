@@ -6,7 +6,9 @@ Equations (TFNE).  Public API is object-oriented; numerical kernels are JAX-firs
 
 from .core import (
     Configuration,
+    ConfigValidationResult,
     DatasetSpec,
+    JaxFNEConfig,
     LaminarPopulation,
     LaminarSourceGeometry,
     Model,
@@ -25,11 +27,17 @@ from .core import (
     TrialBatchResult,
     TrialResult,
     TrialSpec,
+    config_to_configuration,
+    config_to_geometry,
+    config_to_simulation,
+    config_to_trial_batch,
+    config_truth_boundary,
     configuration,
     construct,
     dataset_spec,
     enable_x64,
     laminar_source_geometry,
+    load_config,
     objective,
     operator_status,
     paradigm,
@@ -41,6 +49,7 @@ from .core import (
     stimulus_schedule,
     surrogate_config,
     trial_batch,
+    validate_config,
     _KNOWN_METRICS,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
@@ -80,8 +89,10 @@ from .optim import (
 
 __all__ = [
     "BridgeSpec",
+    "ConfigValidationResult",
     "Configuration",
     "DatasetSpec",
+    "JaxFNEConfig",
     "JaxleyEmitterBridge",
     "LaminarPopulation",
     "LaminarSourceGeometry",
@@ -101,11 +112,18 @@ __all__ = [
     "TrialBatchResult",
     "TrialResult",
     "TrialSpec",
+
+    "config_to_configuration",
+    "config_to_geometry",
+    "config_to_simulation",
+    "config_to_trial_batch",
+    "config_truth_boundary",
     "configuration",
     "construct",
     "dataset_spec",
     "enable_x64",
     "laminar_source_geometry",
+    "load_config",
     "objective",
     "operator_status",
     "paradigm",
@@ -118,6 +136,7 @@ __all__ = [
     "stimulus_schedule",
     "surrogate_config",
     "trial_batch",
+    "validate_config",
     "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",
@@ -153,4 +172,4 @@ __all__ = [
     "require_optax",
 ]
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
