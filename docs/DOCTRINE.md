@@ -15,17 +15,19 @@ A JAX-native engine for Tensor-Field Neural Equations (TFNE) source-to-field mod
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 ```
 
-## Claims
+## Scope and Capabilities
 
-**Allowed:**
-- v0.1.x provides the compact JAX-native OOP core required to build reproducible TFNE workflows.
-- jaxfne provides a JAX-native computational scaffold for declaring emitters, source projections, fields, probes, objectives, and manifests.
+**What v0.1.x provides:**
+- Compact JAX-native OOP core for reproducible TFNE workflows
+- Declarative architecture for emitters, source projections, fields, probes, objectives, and manifests
+- Deterministic seeding and receipt-based computational audit
+- JSON-safe serialization and metadata flow
 
-**Forbidden:**
-- v0.1.x validates spectrolaminar mechanisms.
-- v0.1.x produces calibrated LFP/CSD amplitudes.
-- v0.1.x is a full simulator.
-- jaxfne validates a biological mechanism or physical CSD/LFP amplitude without calibration.
+**What v0.1.x does not include (deferred to post-Paper 1.0 or calibration phases):**
+- Spectrolaminar mechanism validation (requires empirical data)
+- Calibrated LFP/CSD physical amplitudes (requires benchmark datasets and validation)
+- Full biophysical simulator status (laminar proxy scope)
+- Biological or mechanistic claims without external calibration and peer review
 
 ## Reduced emitter rule
 
