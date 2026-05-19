@@ -1,3 +1,14 @@
+## v0.0.23
+
+- Validated wheel and sdist build via `python -m build`.
+- Confirmed `twine check dist/*` passes for both artifacts.
+- Confirmed wheel artifact contains no unwanted inclusions (.git, venv, __pycache__).
+- Confirmed fresh venv wheel install + import path is site-packages (not repo).
+- Confirmed wheel install smoke: simulate → manifest → truth_mode=truth_safe_unverified.
+- Confirmed sdist install smoke.
+- Bumped package version 0.0.22 → 0.0.23.
+- Preserved truth status at truth_safe_unverified.
+
 ## v0.0.22
 - Added packaging, release, and Colab installation documentation.
 - Validated wheel and sdist builds with twine check.
