@@ -1,3 +1,16 @@
+## v0.1.0
+
+- Declared practical OOP core freeze for the compact JAX-native TFNE scaffold.
+- Preserved canonical workflow: `run_receipt`, `compute_readout`, `evaluate_report`.
+- Includes all v0.0.23 fixes: `manifest(signals, readouts)` readout compatibility,
+  MIT LICENSE, normalized examples 00-06, full packaging validation.
+- Validated wheel and sdist install smokes from `/tmp`; canonical workflow passes
+  from installed package (site-packages, not repo).
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved field status as `laminar_proxy_no_pde`.
+- Preserved source calibration as `uncalibrated_izhikevich_native_current`.
+- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
+
 ## v0.0.23
 
 - **Fixed `Model.manifest()` readout compatibility:** `manifest(signals, readouts)` now
