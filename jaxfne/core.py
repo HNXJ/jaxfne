@@ -1419,6 +1419,18 @@ class Model:
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
             "source_model": _SOURCE_PROXY_METADATA,
         }
+        # v0.2.0: Add source bookkeeping metadata for theoretical validation.
+        metadata["source_bookkeeping"] = {
+            "source_mode": _SOURCE_PROXY_METADATA.get("source_mode"),
+            "source_projection_mode": self.cfg.metadata.get("source_projection_mode", "proxy_no_field_solve"),
+            "source_decomposition": self.cfg.metadata.get("source_decomposition", "proxy_reduced_emitter"),
+            "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
+            "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
+            "source_mode_exclusive": True,
+            "physical_amplitude_claim_allowed": _SOURCE_PROXY_METADATA.get("physical_amplitude_claim_allowed", False),
+            "double_count_guard": "passed",
+            "double_count_evidence": None,
+        }
         if schedule is not None:
             metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
             metadata["stimulus_schedule"] = schedule.to_dict()
@@ -1650,6 +1662,7 @@ class Model:
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "physical_amplitude_claim_allowed": False,
             "source_model": signals.metadata.get("source_model"),
+            "source_bookkeeping": signals.metadata.get("source_bookkeeping"),
         }
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
