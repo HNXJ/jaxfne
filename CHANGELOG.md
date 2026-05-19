@@ -1,3 +1,19 @@
+## v0.1.2
+
+- **Documented scan-backed recurrent execution:** Both dense and edge-list paths use `jax.lax.scan` for 
+  deterministic, JAX-native time stepping. This release formalizes the existing implementation and adds 
+  metadata confirmation.
+- **Added `docs/V012_SCAN_PERFORMANCE.md`:** Design document confirming scan-backed architecture and 
+  benchmark methodology.
+- **Added benchmark harness:** `scripts/benchmark_scan_backends.py` measures wall time for dense and 
+  edge-list backends at scales ranging from 50 to 100 neurons across durations up to 1000 ms.
+- **Added metadata tests:** `tests/test_scan_backends_v012.py` ensures dense, edge-list, and 
+  receptor-exponential paths report correct metadata and preserve truth gates.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, 
+  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `physical_amplitude_claim_allowed=False`.
+- **No kernel refactoring:** Dense and edge-list backends remain unchanged; this release validates 
+  performance and correctness of the existing scan-backed implementations.
+
 ## v0.1.1
 
 - **Corrected VIP/IS Izhikevich preset:** `b` parameter corrected from `+0.20` to `-0.10` to match

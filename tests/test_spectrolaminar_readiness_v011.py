@@ -256,9 +256,9 @@ def test_d_presets_are_json_safe():
 # ─── E. Version assertion ─────────────────────────────────────────────────
 
 
-def test_e_jaxfne_version_is_011():
-    """Version must be 0.1.1."""
-    assert _JAXFNE_VERSION == "0.1.1"
+def test_e_jaxfne_version_is_012():
+    """Version must be 0.1.2."""
+    assert _JAXFNE_VERSION == "0.1.2"
 
 
 # ─── F. Truth gate preservation ───────────────────────────────────────────
