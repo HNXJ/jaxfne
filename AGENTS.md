@@ -32,12 +32,12 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `869694c` | v0.0.19 — last clean state |
-| `dev` | `29bbe0a` (pushed) | v0.0.21 config/runtime/source fidelity hardening complete; 236 tests pass; 7 examples pass |
+| `main` | `cd2fbd3` | v0.0.22 — fast-forwarded from dev |
+| `dev` | `e45e93b` (pushed) | v0.0.23 package validation smoke complete; 236 tests pass; 7 examples pass |
 
-**Version:** `0.0.21`  
+**Version:** `0.0.23`  
 **Tests:** 236 passed, 0 failed  
-**Working tree:** clean; v0.0.21 fidelity pass complete
+**Working tree:** clean; v0.0.23 packaging smoke validated; awaiting hardening pass per external audit
 
 ---
 
@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| (none) | v0.0.21 complete; awaiting next phase direction | 2026-05-18 | ready for handoff |
+| `claude-sonnet` | v0.0.23 hardening: pytest full-suite reliability + manifest field grammar normalization | 2026-05-18 | in progress per external audit PARTIAL ACCEPT report |
 
 ---
 
@@ -53,6 +53,9 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `claude-sonnet` | v0.0.23 packaging validation smoke (wheel/sdist build, twine check, fresh venv install, version bump) | `e45e93b` | 236 tests pass, 7/7 examples pass; pushed to origin/dev; awaiting hardening per audit |
+| `gemini-cli` | v0.0.22 docs/packaging/Colab hardening | `27495a4` | Added Colab scaffold, packaging docs, version bump to 0.0.22 |
+| `claude-sonnet` | v0.0.22 version alignment fix (pyproject.toml sync, test assertion updates) | `cd2fbd3` | Fixed misalignment from Gemini's v0.0.22 bump; fast-forwarded main |
 | `claude-sonnet` | v0.0.21 config/runtime/source fidelity (Tasks C–J validation, test suite, doc updates) | `29bbe0a` | 236 tests pass, 7 examples pass; pushed to origin/dev |
 | `claude-sonnet` | v0.0.20 semantic hardening (receipts/readouts/manifest/probes/sim validation) | `e24f4e5` | 216 tests pass; pushed to origin |
 | `gemini-cli` | `docs/roadmaps/v0.0.18_longterm/` | `d7bf899` | 10 roadmap docs staged on dev-v0.0.18; captured at merge |
@@ -94,7 +97,8 @@ If two agents edited the same file independently (diverged state):
 
 | Item | Assigned | Branch | Notes |
 |---|---|---|---|
-| Push `dev` v0.0.20 to remote | `gemini-cli` | `dev` | after commit |
-| Fast-forward `main` to `dev` | `claude-sonnet` | `main` | after push |
-| v0.0.21 — config fidelity | `gemini-cli` | `dev` | optional hardening |
-| v0.1.0 bump + tag | `claude-sonnet` | `main` | final freeze |
+| v0.0.23 hardening: pytest full-suite reliability | `claude-sonnet` | `dev` | per external audit; timeout issue in full suite (targeted tests pass) |
+| v0.0.23 hardening: manifest field grammar normalization | `claude-sonnet` | `dev` | per external audit; CSD_sign_convention, solver_residual_l2_relative, validation_report, asset_hashes |
+| v0.0.23 hardening: package layout integration | `claude-sonnet` | `dev` | per external audit; missing modules (runtime.py, objectives.py, validation.py), missing LICENSE, missing examples (00, 01, 02, 03) |
+| TestPyPI validation | `claude-sonnet` | `main` | after v0.0.23 hardening complete |
+| PyPI public release v0.1.0 | `claude-sonnet` | `main` | final freeze after TestPyPI validation |
