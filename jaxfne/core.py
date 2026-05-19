@@ -2145,6 +2145,18 @@ class Model:
             "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
             "source_model": dict(_SOURCE_PROXY_METADATA),
         }
+        # v0.2.0: Field admissibility metadata
+        if signals is not None and signals.field is not None:
+            from .validation import build_field_admissibility_report
+            field_admissibility = build_field_admissibility_report(
+                field_output=signals.field,
+                cfg_metadata=dict(self.cfg.metadata or {}),
+            )
+            backend_meta["field_admissibility"] = field_admissibility
+            if "field_admissibility" in signals.field.diagnostics:
+                backend_meta["field_admissibility_diagnostics"] = signals.field.diagnostics.get(
+                    "field_admissibility"
+                )
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
             backend_meta["edge_count"] = int(edges.n_edges)
