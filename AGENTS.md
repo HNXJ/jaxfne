@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| `claude-sonnet` | v0.0.23 hardening: pytest full-suite reliability + manifest field grammar normalization | 2026-05-18 | in progress per external audit PARTIAL ACCEPT report |
+| (none) | v0.0.23 hardening complete; pytest 236/236 pass; examples 7/7 pass; LICENSE added; examples renamed 00-06 | 2026-05-18 | ready for TestPyPI validation |
 
 ---
 
@@ -53,6 +53,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `claude-sonnet` | v0.0.23 package hardening (LICENSE, example naming 00-06, pytest reliability) | `77485e7` | MIT LICENSE added; examples renamed; 236 tests pass in 36s; 7/7 examples pass; per external audit |
 | `claude-sonnet` | v0.0.23 packaging validation smoke (wheel/sdist build, twine check, fresh venv install, version bump) | `e45e93b` | 236 tests pass, 7/7 examples pass; pushed to origin/dev; awaiting hardening per audit |
 | `gemini-cli` | v0.0.22 docs/packaging/Colab hardening | `27495a4` | Added Colab scaffold, packaging docs, version bump to 0.0.22 |
 | `claude-sonnet` | v0.0.22 version alignment fix (pyproject.toml sync, test assertion updates) | `cd2fbd3` | Fixed misalignment from Gemini's v0.0.22 bump; fast-forwarded main |
@@ -97,8 +98,7 @@ If two agents edited the same file independently (diverged state):
 
 | Item | Assigned | Branch | Notes |
 |---|---|---|---|
-| v0.0.23 hardening: pytest full-suite reliability | `claude-sonnet` | `dev` | per external audit; timeout issue in full suite (targeted tests pass) |
-| v0.0.23 hardening: manifest field grammar normalization | `claude-sonnet` | `dev` | per external audit; CSD_sign_convention, solver_residual_l2_relative, validation_report, asset_hashes |
-| v0.0.23 hardening: package layout integration | `claude-sonnet` | `dev` | per external audit; missing modules (runtime.py, objectives.py, validation.py), missing LICENSE, missing examples (00, 01, 02, 03) |
-| TestPyPI validation | `claude-sonnet` | `main` | after v0.0.23 hardening complete |
-| PyPI public release v0.1.0 | `claude-sonnet` | `main` | final freeze after TestPyPI validation |
+| Fast-forward main to dev (v0.0.23) | `claude-sonnet` | `main` | after hardening complete; brings main to 77485e7 with LICENSE and examples normalized |
+| TestPyPI validation | `claude-sonnet` | `main` | build dist/, upload test, fresh venv install, smoke test |
+| Colab install smoke test | `claude-sonnet` | `main` | test Colab notebook installs v0.0.23 and executes basic workflow |
+| PyPI public release v0.1.0 | `claude-sonnet` | `main` | final freeze, tag v0.1.0, PyPI upload, CHANGELOG final entry |
