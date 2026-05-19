@@ -33,11 +33,11 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `cd2fbd3` | v0.0.22 — fast-forwarded from dev |
-| `dev` | `e45e93b` (pushed) | v0.0.23 package validation smoke complete; 236 tests pass; 7 examples pass |
+| `dev` | `c1e89f9` (pushed) | v0.1.0 RC rehearsal complete; 236 tests pass; 7 examples pass; wheel/sdist smokes pass |
 
-**Version:** `0.0.23`  
+**Version:** `0.1.0`  
 **Tests:** 236 passed, 0 failed  
-**Working tree:** clean; v0.0.23 packaging smoke validated; awaiting hardening pass per external audit
+**Working tree:** clean; v0.1.0 RC commit on dev; awaiting TestPyPI credentials + Colab smoke for final release
 
 ---
 
@@ -45,7 +45,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| (none) | v0.0.23 hardening complete; pytest 236/236 pass; examples 7/7 pass; LICENSE added; examples renamed 00-06 | 2026-05-18 | ready for TestPyPI validation |
+| (none) | v0.1.0 RC rehearsal complete; pytest 236/236 pass; examples 7/7 pass; wheel/sdist 0.0.23+0.1.0 smokes pass | 2026-05-18 | awaiting TestPyPI credentials + Colab smoke |
 
 ---
 

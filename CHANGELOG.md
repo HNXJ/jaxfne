@@ -1,3 +1,14 @@
+## v0.1.0
+
+- Declared the practical OOP core freeze for the compact JAX-native TFNE scaffold.
+- Preserved the canonical workflow around `run_receipt`, `compute_readout`, and `evaluate_report`.
+- Validated wheel and sdist install smoke (0.0.23 rebuild from final dev state) before release-candidate rehearsal.
+- Added MIT LICENSE; normalized examples to 00-06 naming convention.
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved field status as `laminar_proxy_no_pde`.
+- Preserved source calibration as `uncalibrated_izhikevich_native_current`.
+- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
+
 ## v0.0.23
 
 - Validated wheel and sdist build via `python -m build`.
