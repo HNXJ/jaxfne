@@ -1013,6 +1013,25 @@ class LaminarSourceGeometry:
             "populations": [p.to_dict() for p in self.populations],
         })
 
+    def population_slices(self) -> dict[str, slice]:
+        """Map population names to neuron index slices.
+
+        Returns:
+            dict mapping population name → slice object spanning neuron indices.
+
+        Example:
+            >>> geom = LaminarSourceGeometry(...)
+            >>> slices = geom.population_slices()
+            >>> V_m_L4 = signals.V_m[slices["L4_E"], :]
+        """
+        result = {}
+        start = 0
+        for pop in self.populations:
+            end = start + pop.n_units
+            result[pop.name] = slice(start, end)
+            start = end
+        return result
+
     def positions_array(self, dtype: str = "float32") -> "jax.Array":
         """Return a deterministic ``(n_units_total, 3)`` positions array.
 
@@ -2730,7 +2749,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.1.0"
+_JAXFNE_VERSION = "0.1.1"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"

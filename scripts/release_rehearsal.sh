@@ -8,7 +8,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-EXPECTED_VERSION="0.1.0"
+# Read expected version dynamically from pyproject.toml
+EXPECTED_VERSION=$(python3 -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])" 2>/dev/null || \
+    grep '^version = ' pyproject.toml | sed 's/version = "//;s/"//')
 WHEEL="dist/jaxfne-${EXPECTED_VERSION}-py3-none-any.whl"
 SDIST="dist/jaxfne-${EXPECTED_VERSION}.tar.gz"
 VENV_WHEEL="/tmp/jaxfne_rehearsal_wheel"
@@ -20,13 +22,13 @@ echo "repo: $REPO_ROOT"
 # 1. Version check
 echo ""
 echo "--- 1. Version check ---"
-ACTUAL_VERSION=$(python3 -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])" 2>/dev/null || \
-    grep '^version = ' pyproject.toml | sed 's/version = "//;s/"//')
-if [ "$ACTUAL_VERSION" != "$EXPECTED_VERSION" ]; then
-  echo "FAIL: pyproject.toml version=$ACTUAL_VERSION, expected $EXPECTED_VERSION"
+PYPROJECT_VERSION="$EXPECTED_VERSION"
+JAXFNE_VERSION=$(python3 -c "import jaxfne; print(jaxfne.__version__)" 2>/dev/null)
+if [ "$JAXFNE_VERSION" != "$PYPROJECT_VERSION" ]; then
+  echo "FAIL: jaxfne.__version__=$JAXFNE_VERSION, pyproject.toml=$PYPROJECT_VERSION"
   exit 1
 fi
-echo "version: $ACTUAL_VERSION OK"
+echo "version: $PYPROJECT_VERSION OK (jaxfne.__version__ matches)"
 
 # 2. Clean build
 echo ""
@@ -51,10 +53,12 @@ python3 -m venv "$VENV_WHEEL"
 "$VENV_WHEEL/bin/python" -m pip install --upgrade pip --quiet
 "$VENV_WHEEL/bin/python" -m pip install "$WHEEL" --quiet
 cd /tmp
-"$VENV_WHEEL/bin/python" - <<'PY'
+EXPECTED_VERSION_PY="$EXPECTED_VERSION"
+"$VENV_WHEEL/bin/python" - <<PY
 import json, jaxfne as jtfne
 assert "site-packages" in jtfne.__file__, f"CWD shadowing! file={jtfne.__file__}"
-assert jtfne.__version__ == "0.1.0", f"version={jtfne.__version__}"
+expected_version = "$EXPECTED_VERSION_PY"
+assert jtfne.__version__ == expected_version, f"version={jtfne.__version__}, expected {expected_version}"
 cfg = (jtfne.configuration()
     .network(n=8).emitter(family="izhikevich", preset="cortical_eig")
     .field(domain="laminar_column", conductivity="proxy",
@@ -79,10 +83,11 @@ python3 -m venv "$VENV_SDIST"
 "$VENV_SDIST/bin/python" -m pip install --upgrade pip --quiet
 "$VENV_SDIST/bin/python" -m pip install "$SDIST" --quiet
 cd /tmp
-"$VENV_SDIST/bin/python" - <<'PY'
+EXPECTED_VERSION_PY="$EXPECTED_VERSION"
+"$VENV_SDIST/bin/python" - <<PY
 import json, jaxfne as jtfne
 assert "site-packages" in jtfne.__file__
-assert jtfne.__version__ == "0.1.0"
+assert jtfne.__version__ == "$EXPECTED_VERSION_PY", f"version={jtfne.__version__}, expected $EXPECTED_VERSION_PY"
 cfg = jtfne.configuration().network(n=8).emitter().field().probe(n_contacts=4)
 model = jtfne.construct(cfg)
 signals = model.simulate(jtfne.simulation(duration_ms=5.0, dt_ms=0.1, seed=0))

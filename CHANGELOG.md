@@ -1,3 +1,18 @@
+## v0.1.1
+
+- **Corrected VIP/IS Izhikevich preset:** `b` parameter corrected from `+0.20` to `-0.10` to match
+  intrinsic-spiking profile (Izhikevich 2003 Table 1).
+- **Added per-neuron `layer_labels` support:** `IzhikevichParams` now accepts optional `layer_labels`
+  tuple for layer-selective analysis (e.g., L1, L2/3, L4, L5, L6).
+- **Added `population_slices()` method:** `LaminarSourceGeometry` now provides programmatic mapping
+  from population names to neuron index ranges for layer-specific readouts.
+- **Added preset registry:** Introduced `jaxfne.presets` with standardized `CELL_TYPE_PRESETS`,
+  `RECEPTOR_KINETICS`, and `DEFAULT_SPIKE_IMPULSE_GAIN` constants for reproducible configuration.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`,
+  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `physical_amplitude_claim_allowed=False`.
+- **No biological calibration changes:** This is a computational-correctness and API-readiness pass,
+  not an empirical validation upgrade.
+
 ## v0.1.0
 
 - Declared practical OOP core freeze for the compact JAX-native TFNE scaffold.
