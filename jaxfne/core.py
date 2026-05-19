@@ -1109,6 +1109,8 @@ def _evaluate_loss_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = "no_metric_specified"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if metric not in _KNOWN_METRICS:
         msg = f"unknown_metric:{metric}"
@@ -1117,11 +1119,15 @@ def _evaluate_loss_spec(
             result["value"] = None
             result["weighted_value"] = None
             warnings.append(msg)
+            if "metadata" in spec:
+                result["metadata"] = spec["metadata"]
             return result
         warnings.append(msg)
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = msg
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     value = metrics.get(metric)
     result["metric"] = metric
@@ -1129,6 +1135,8 @@ def _evaluate_loss_spec(
     if value is None:
         result["weighted_value"] = None
         result["status"] = "metric_unavailable"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if target is not None:
         raw = (value - float(target)) ** 2
@@ -1139,6 +1147,8 @@ def _evaluate_loss_spec(
     result["raw_loss"] = _finite_or_none(raw)
     result["weighted_value"] = _finite_or_none(weighted)
     result["status"] = "ok"
+    if "metadata" in spec:
+        result["metadata"] = spec["metadata"]
     return result
 
 
@@ -1159,6 +1169,8 @@ def _evaluate_regularizer_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = "no_metric_specified"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if metric not in _KNOWN_METRICS:
         msg = f"unknown_metric:{metric}"
@@ -1166,6 +1178,8 @@ def _evaluate_regularizer_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = msg
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     value = metrics.get(metric)
     result["metric"] = metric
@@ -1173,6 +1187,8 @@ def _evaluate_regularizer_spec(
     if value is None:
         result["weighted_value"] = None
         result["status"] = "metric_unavailable"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     target = float(spec.get("target", 0.0))
     raw = (value - target) ** 2
@@ -1180,6 +1196,8 @@ def _evaluate_regularizer_spec(
     result["raw_regularizer"] = _finite_or_none(raw)
     result["weighted_value"] = _finite_or_none(weighted)
     result["status"] = "ok"
+    if "metadata" in spec:
+        result["metadata"] = spec["metadata"]
     return result
 
 
