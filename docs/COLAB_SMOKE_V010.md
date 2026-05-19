@@ -1,0 +1,100 @@
+# Colab Smoke Test — jaxfne v0.1.0
+
+**Purpose:** Validate `pip install jaxfne==0.1.0` works in a fresh Colab runtime and
+the canonical spectrolaminar proxy scaffold executes without local checkout.
+
+**Truth status:** `truth_safe_unverified` — proxy scaffold only, no calibrated CSD/LFP,
+no PDE solve, no biological proof. CPU runtime is sufficient; no GPU required.
+
+---
+
+## Cell 1 — Install from TestPyPI (pre-release gate)
+
+Run this cell before the real PyPI release is published:
+
+```python
+%pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ jaxfne==0.1.0
+```
+
+## Cell 2 — Install from real PyPI (after release)
+
+Run this cell after `pip install jaxfne==0.1.0` is live on real PyPI:
+
+```python
+%pip install jaxfne==0.1.0
+```
+
+---
+
+## Cell 3 — Canonical spectrolaminar proxy smoke
+
+Copy-paste this entire cell into Colab after installing:
+
+```python
+import json
+import jaxfne as jtfne
+
+print("jaxfne", jtfne.__version__)
+
+cfg = (
+    jtfne.configuration()
+    .network(
+        name="V1_proxy",
+        kind="cortical_column",
+        n=20,
+        layers=["L2/3", "L4", "L5", "L6"],
+        cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
+    )
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field(
+        domain="laminar_column",
+        conductivity="proxy",
+        boundary="mean_zero_neumann",
+        gauge="mean_zero",
+    )
+    .probe(
+        name="laminar_probe",
+        modes=["spikes", "V_m", "CSD", "LFP"],
+        n_contacts=8,
+    )
+)
+
+model = jtfne.construct(cfg)
+signals = model.simulate(jtfne.simulation(duration_ms=20.0, dt_ms=0.1, seed=0))
+
+receipt = model.run_receipt(signals)
+readouts = model.compute_readout(
+    signals,
+    [
+        jtfne.readout_spec("rate", "spike_rate_hz"),
+        jtfne.readout_spec("csd", "csd_abs_mean"),
+    ],
+)
+manifest = model.manifest(signals, readouts)
+
+json.dumps(manifest, allow_nan=False)
+
+assert manifest["truth_mode"] == "truth_safe_unverified"
+assert manifest["claim_level"] == "computational_scaffold"
+assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
+assert manifest["physical_amplitude_claim_allowed"] is False
+
+print("receipt_id:", receipt.receipt_id)
+print("readout_status:", [r.status for r in readouts])
+print("truth_mode:", manifest["truth_mode"])
+print("field_solver_status:", manifest["field_solver_status"])
+print("OK")
+```
+
+---
+
+## Scientific guardrails
+
+- **Proxy scaffold only.** Sources are Izhikevich emitters with a spike-impulse proxy;
+  not calibrated to real neuron types.
+- **No calibrated CSD/LFP.** Field output is a laminar proxy, not a PDE-solved forward
+  field. Amplitudes are not physically calibrated.
+- **No PDE solve.** `field_solver_status = laminar_proxy_no_pde`.
+- **No biological proof.** `truth_mode = truth_safe_unverified`. Receipts and manifests
+  are computational validation artifacts, not empirical evidence.
+- **CPU-only runtime assumed.** No GPU required; no distributed execution.

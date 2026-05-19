@@ -32,12 +32,13 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `cd2fbd3` | v0.0.22 — fast-forwarded from dev |
-| `dev` | `e45e93b` (pushed) | v0.0.23 package validation smoke complete; 236 tests pass; 7 examples pass |
+| `main` | `c1e89f9` | v0.0.23 hardening complete |
+| `dev` | `cced014` (pushed) | v0.1.0 practical OOP core freeze; hardening pass complete; CI workflow added; release scripts added |
 
-**Version:** `0.0.23`  
-**Tests:** 236 passed, 0 failed  
-**Working tree:** clean; v0.0.23 packaging smoke validated; awaiting hardening pass per external audit
+**Version:** `0.1.0`  
+**Tests:** 244 passed, 0 failed (verify with pytest before release)  
+**Working tree:** clean after hardening commit; PyPI blocked — no account/token access  
+**Next safe action:** Create `~/.pypirc` with TestPyPI token, then run `./scripts/upload_testpypi.sh`
 
 ---
 
@@ -45,7 +46,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| (none) | v0.0.23 hardening complete; pytest 236/236 pass; examples 7/7 pass; LICENSE added; examples renamed 00-06 | 2026-05-18 | ready for TestPyPI validation |
+| (none) | v0.1.0 hardening pass complete; CI + release scripts + Colab docs added; awaiting PyPI credentials | 2026-05-18 | cleared — no active lock |
 
 ---
 
@@ -53,6 +54,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `claude-sonnet` | v0.1.0 post-RC hardening: CI workflow, release scripts, Colab docs, RELEASE_CHECKLIST | (pending commit) | scripts/release_rehearsal.sh, upload_testpypi.sh, upload_pypi.sh; .github/workflows/ci.yml; docs/COLAB_SMOKE_V010.md; docs/RELEASE_CHECKLIST.md; README patches; no code change; PyPI blocked by missing credentials |
 | `claude-sonnet` | v0.0.23 package hardening (LICENSE, example naming 00-06, pytest reliability) | `77485e7` | MIT LICENSE added; examples renamed; 236 tests pass in 36s; 7/7 examples pass; per external audit |
 | `claude-sonnet` | v0.0.23 packaging validation smoke (wheel/sdist build, twine check, fresh venv install, version bump) | `e45e93b` | 236 tests pass, 7/7 examples pass; pushed to origin/dev; awaiting hardening per audit |
 | `gemini-cli` | v0.0.22 docs/packaging/Colab hardening | `27495a4` | Added Colab scaffold, packaging docs, version bump to 0.0.22 |
@@ -98,7 +100,8 @@ If two agents edited the same file independently (diverged state):
 
 | Item | Assigned | Branch | Notes |
 |---|---|---|---|
-| Fast-forward main to dev (v0.0.23) | `claude-sonnet` | `main` | after hardening complete; brings main to 77485e7 with LICENSE and examples normalized |
-| TestPyPI validation | `claude-sonnet` | `main` | build dist/, upload test, fresh venv install, smoke test |
-| Colab install smoke test | `claude-sonnet` | `main` | test Colab notebook installs v0.0.23 and executes basic workflow |
-| PyPI public release v0.1.0 | `claude-sonnet` | `main` | final freeze, tag v0.1.0, PyPI upload, CHANGELOG final entry |
+| Create `~/.pypirc` with TestPyPI token | user | — | Obtain API token from https://test.pypi.org/manage/account/token/; mode 600 |
+| TestPyPI upload | `claude-sonnet` | `dev` | `./scripts/upload_testpypi.sh` — blocked until ~/.pypirc exists |
+| Colab smoke from TestPyPI | user / `claude-sonnet` | — | Follow `docs/COLAB_SMOKE_V010.md` Cell 1 + Cell 3 |
+| Merge dev → main (ff-only) | `claude-sonnet` | `main` | After TestPyPI + Colab smokes pass |
+| Tag v0.1.0 and PyPI upload | `claude-sonnet` | `main` | `JAXFNE_CONFIRM_REAL_PYPI=1 ./scripts/upload_pypi.sh` — blocked until above complete |

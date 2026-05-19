@@ -75,6 +75,11 @@ from .emitters import (
     standard_receptor_specs,
     standard_receptor_tau_table,
 )
+from .presets import (
+    CELL_TYPE_PRESETS,
+    DEFAULT_SPIKE_IMPULSE_GAIN,
+    RECEPTOR_KINETICS,
+)
 from .fields import (
     FieldOutput,
     project_laminar_sources,
@@ -164,6 +169,9 @@ __all__ = [
     "simulate_receptor_exponential_izhikevich",
     "standard_receptor_specs",
     "standard_receptor_tau_table",
+    "CELL_TYPE_PRESETS",
+    "DEFAULT_SPIKE_IMPULSE_GAIN",
+    "RECEPTOR_KINETICS",
     "FieldOutput",
     "project_laminar_sources",
     "project_sources_to_laminar_field",

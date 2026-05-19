@@ -1,13 +1,52 @@
+## v0.1.1
+
+- **Corrected VIP/IS Izhikevich preset:** `b` parameter corrected from `+0.20` to `-0.10` to match
+  intrinsic-spiking profile (Izhikevich 2003 Table 1).
+- **Added per-neuron `layer_labels` support:** `IzhikevichParams` now accepts optional `layer_labels`
+  tuple for layer-selective analysis (e.g., L1, L2/3, L4, L5, L6).
+- **Added `population_slices()` method:** `LaminarSourceGeometry` now provides programmatic mapping
+  from population names to neuron index ranges for layer-specific readouts.
+- **Added preset registry:** Introduced `jaxfne.presets` with standardized `CELL_TYPE_PRESETS`,
+  `RECEPTOR_KINETICS`, and `DEFAULT_SPIKE_IMPULSE_GAIN` constants for reproducible configuration.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`,
+  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `physical_amplitude_claim_allowed=False`.
+- **No biological calibration changes:** This is a computational-correctness and API-readiness pass,
+  not an empirical validation upgrade.
+
+## v0.1.0
+
+- Declared practical OOP core freeze for the compact JAX-native TFNE scaffold.
+- Preserved canonical workflow: `run_receipt`, `compute_readout`, `evaluate_report`.
+- Includes all v0.0.23 fixes: `manifest(signals, readouts)` readout compatibility,
+  MIT LICENSE, normalized examples 00-06, full packaging validation.
+- Validated wheel and sdist install smokes from `/tmp`; canonical workflow passes
+  from installed package (site-packages, not repo).
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved field status as `laminar_proxy_no_pde`.
+- Preserved source calibration as `uncalibrated_izhikevich_native_current`.
+- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
+
 ## v0.0.23
 
-- Validated wheel and sdist build via `python -m build`.
-- Confirmed `twine check dist/*` passes for both artifacts.
-- Confirmed wheel artifact contains no unwanted inclusions (.git, venv, __pycache__).
-- Confirmed fresh venv wheel install + import path is site-packages (not repo).
-- Confirmed wheel install smoke: simulate → manifest → truth_mode=truth_safe_unverified.
-- Confirmed sdist install smoke.
-- Bumped package version 0.0.22 → 0.0.23.
-- Preserved truth status at truth_safe_unverified.
+- **Fixed `Model.manifest()` readout compatibility:** `manifest(signals, readouts)` now
+  accepts any of: `None`, `dict` (legacy), `list[ReadoutResult]` (canonical v0.1 output
+  of `compute_readout()`), `tuple[ReadoutResult]`, `list[dict]`, or a single
+  `ReadoutResult`. Previously raised `AttributeError: 'list' object has no attribute 'get'`
+  when passed the canonical `compute_readout()` return value.
+- Added `_normalize_manifest_readout()` normaliser; surfaces readout results under
+  `readout_results` key in manifest with `n_results`, `requested_metrics`, and frozen
+  `physical_amplitude_claim_allowed=False` guard.
+- Added 8 tests in `tests/test_manifest_readout_compat.py` covering all argument forms,
+  JSON strictness, and truth-gate non-escalation.
+- Added MIT LICENSE file.
+- Normalized examples directory to 00-06 naming convention.
+- Validated wheel and sdist build via `python -m build`; `twine check dist/*` passes.
+- Confirmed fresh venv wheel and sdist install smokes from `/tmp`; import path confirmed
+  as `site-packages` (not repo).
+- Confirmed canonical workflow from installed wheel:
+  `compute_readout(...)` → `manifest(signals, readouts)` → `json.dumps(allow_nan=False)`.
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
 
 ## v0.0.22
 - Added packaging, release, and Colab installation documentation.

@@ -56,7 +56,12 @@ def standard_receptor_specs() -> dict[str, ReceptorSpec]:
 
 @dataclass(frozen=True)
 class IzhikevichParams:
-    """Parameter container for a reduced Izhikevich population."""
+    """Parameter container for a reduced Izhikevich population.
+
+    Fields:
+    - labels: tuple of cell-type labels (E, PV, SST, VIP)
+    - layer_labels: optional tuple of layer names (L1, L2/3, L4, L5, L6, etc)
+    """
 
     a: jax.Array
     b: jax.Array
@@ -69,6 +74,7 @@ class IzhikevichParams:
     u0: jax.Array
     source_scale: jax.Array
     labels: tuple[str, ...]
+    layer_labels: tuple[str, ...] | None = None
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
 
     @property
@@ -162,11 +168,11 @@ def izhikevich_eig_params(
             d.append(2.0)
             drive.append(3.5)
             sign.append(-1.0)
-        else:
-            a.append(0.05)
-            b.append(0.20)
-            c.append(-65.0)
-            d.append(4.0)
+        else:  # VIP / IS profile
+            a.append(0.02)
+            b.append(-0.10)  # Corrected from +0.20 to IS/chattering profile
+            c.append(-55.0)
+            d.append(6.0)
             drive.append(3.0)
             sign.append(-1.0)
 

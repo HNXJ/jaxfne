@@ -52,9 +52,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 
 JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
 
-## Current status (v0.0.22)
+## Current status (v0.1.0)
 
-v0.0.22 is the packaging and Colab hardening release: declarative installation documentation, wheel/sdist build validation, and smoke-tested Colab templates. v0.0.22 prepares the jaxfne engine for the upcoming PyPI publication rehearsal.
+v0.1.0 declares the practical OOP core freeze for the compact JAX-native TFNE scaffold. Wheel and sdist install smokes validated from final dev state. MIT LICENSE added; examples normalized to 00-06 naming convention. Truth status preserved at `truth_safe_unverified`. v0.1.0 is the release-candidate milestone for TestPyPI rehearsal and subsequent public PyPI release.
 
 It still does **not** solve the full resistive extracellular TFNE PDE:
 
@@ -341,6 +341,18 @@ json.dumps(report.to_dict(), allow_nan=False)
 
 Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
 no empirical validation, and no mechanism claim is introduced.
+
+## Release rehearsal (no credentials required)
+
+```bash
+./scripts/release_rehearsal.sh
+```
+
+Runs the full pre-publish gate locally: clean build → twine check → fresh venv wheel+sdist install smokes from /tmp → pytest → all examples. No upload, no credentials, no tagging.
+
+## Colab smoke
+
+See [`docs/COLAB_SMOKE_V010.md`](docs/COLAB_SMOKE_V010.md) for copy-pasteable Colab cells to validate `pip install jaxfne==0.1.0` from TestPyPI or real PyPI.
 
 ## Truth status
 
