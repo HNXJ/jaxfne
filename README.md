@@ -1,373 +1,220 @@
-## Installation
-
-For the future PyPI release, the intended Colab entry point is %pip install jaxfne. Until PyPI publication, use the repository or built wheel.
-
-See [docs/COLAB.md](docs/COLAB.md) and [docs/PACKAGING.md](docs/PACKAGING.md).
-
 # jaxfne
 
-**JAX Field Neural Equations** (`jaxfne`) is a JAX-native source-to-field neurophysiology engine for Tensor-Field Neural Equations (TFNE).
+**JAX Field Neural Equations** (`jaxfne`) is a compact JAX-native source-to-field/readout engine for Tensor-Field Neural Equations (TFNE).
 
-```python
-import jaxfne as jtfne
-
-cfg = (
-    jtfne.configuration()
-    .network(name="V1", kind="cortical_column", n=64)
-    .emitter(family="izhikevich", preset="cortical_eig")
-    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
-    .probe(name="laminar_probe", modes=["spikes", "V_m", "CSD", "LFP"])
-)
-
-model = jtfne.construct(cfg)
-sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0)
-
-# canonical v0.0.16+ workflow
-signals = model.simulate(sim)
-receipt = model.run_receipt(signals)
-readout = model.compute_readout(signals, [
-    jtfne.readout_spec("rate", "spike_rate_hz"),
-    jtfne.readout_spec("csd",  "csd_abs_mean"),
-])
-```
-
-## Claim Boundary Note
-
-**JaxFNE is a computational scaffold, not a biological proof engine.**
-
-- **Truth Status:** `truth_safe_unverified`.
-- **Claim Level:** `computational_scaffold`.
-- **Source Calibration:** `uncalibrated_izhikevich_native_current`.
-- **Field Solver:** `laminar_proxy_no_pde`.
-
-Receipts and reports are validation artifacts used to document the computational state of a model. They do not constitute empirical validation, biological calibration, or mechanism proof. Calibrated physical CSD/LFP amplitudes and biological mechanism claims are explicitly forbidden until a rigorous validation gate with empirical datasets is established.
-
-## Identity
-
-`jaxfne` is not primarily a neuron model, optimizer, plotting library, or data format. It is the composition layer:
+It provides a practical object-oriented API for building reproducible computational neurophysiology workflows:
 
 ```text
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 ```
 
-JAX handles arrays, compilation, batching, and device execution. Jaxley can later provide detailed emitters. Optax can later provide differentiable optimizers. `jaxfne` handles TFNE source-to-field/readout contracts, diagnostics, invariant checks, and manifests.
+`jaxfne` is designed for laminar proxy simulations, source-field metadata, readouts, objective reports, receipts, manifests, and benchmarkable JAX execution paths.
 
-## Current status (v0.1.0)
+## Installation
 
-v0.1.0 declares the practical OOP core freeze for the compact JAX-native TFNE scaffold. Wheel and sdist install smokes validated from final dev state. MIT LICENSE added; examples normalized to 00-06 naming convention. Truth status preserved at `truth_safe_unverified`. v0.1.0 is the release-candidate milestone for TestPyPI rehearsal and subsequent public PyPI release.
+From PyPI:
 
-It still does **not** solve the full resistive extracellular TFNE PDE:
-
-```text
-J_e = -sigma_e grad(phi_e)
-div(J_e) = q
-div(-sigma_e grad(phi_e)) = q
-CSD = div(J_e)
+```bash
+pip install jaxfne
 ```
 
-Current field outputs are **laminar proxy readouts**:
+In Colab:
+
+```python
+%pip install jaxfne
+```
+
+From a local checkout:
+
+```bash
+git clone https://github.com/HNXJ/jaxfne.git
+cd jaxfne
+pip install -e .
+```
+
+Optional development tools:
+
+```bash
+pip install -e .[dev]
+```
+
+Optional optimizer / bridge extras are installed only when needed:
+
+```bash
+pip install -e .[opt]
+pip install -e .[jaxley]
+```
+
+## Minimal example
+
+```python
+import json
+import jaxfne as jtfne
+
+cfg = (
+    jtfne.configuration()
+    .network(
+        name="V1_proxy",
+        kind="cortical_column",
+        n=100,
+        layers=["L2/3", "L4", "L5", "L6"],
+        cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
+    )
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field(
+        domain="laminar_column",
+        conductivity="proxy",
+        boundary="mean_zero_neumann",
+        gauge="mean_zero",
+    )
+    .probe(
+        name="laminar_probe",
+        modes=["spikes", "V_m", "source", "CSD", "LFP"],
+        n_contacts=16,
+    )
+)
+
+model = jtfne.construct(cfg)
+
+sim = jtfne.simulation(
+    duration_ms=300.0,
+    dt_ms=0.1,
+    seed=0,
+    record_sources=True,
+    record_fields=True,
+)
+
+signals = model.simulate(sim)
+receipt = model.run_receipt(signals)
+
+readouts = model.compute_readout(
+    signals,
+    [
+        jtfne.readout_spec("rate", "spike_rate_hz"),
+        jtfne.readout_spec("source", "source_abs_mean"),
+        jtfne.readout_spec("csd", "csd_abs_mean"),
+        jtfne.readout_spec("lfp", "lfp_abs_mean"),
+    ],
+)
+
+manifest = model.manifest(signals, readouts)
+json.dumps(manifest, allow_nan=False)
+
+print("jaxfne", jtfne.__version__)
+print("spikes:", signals.spikes.shape)
+print("Vm:", signals.V_m.shape)
+print("source:", None if signals.sources is None else signals.sources.shape)
+if signals.field is not None:
+    print("LFP:", signals.field.lfp.shape)
+    print("CSD:", signals.field.csd.shape)
+print("receipt_id:", receipt.receipt_id)
+for result in readouts:
+    print(result.name, result.metric, result.value, result.status)
+```
+
+## What it supports now
+
+`jaxfne` currently supports compact TFNE-style computational workflows with:
+
+- Izhikevich emitter scaffolds;
+- dense and edge-list recurrent paths;
+- scan-backed JAX simulation kernels;
+- native stimulus / drive schedules;
+- laminar source geometry metadata;
+- source proxy traces;
+- LFP-like and CSD-like laminar proxy readouts;
+- readout specifications;
+- objective reports;
+- run receipts;
+- strict JSON-safe manifests;
+- CPU-first validation and optional accelerator execution through JAX.
+
+The standard v0.1.x field mode is a **laminar proxy readout**:
 
 ```text
 source_projection_mode = proxy_no_field_solve
 field_solver_status = laminar_proxy_no_pde
 field_claim_level = proxy_readout_only
-physical_amplitude_claim_allowed = false
 ```
 
-## v0.0.5 API surface
+This is the intended basis for practical laminar spectrolaminar proxy simulations.
 
-### Task paradigm
+## Scientific scope
 
-```python
-# API scaffold for Paper 2.0 (Omission deferred)
-# Standard visual omission task: 12 conditions, condition-number mapping
-paradigm = jtfne.standard_visual_omission()
-print(paradigm.condition_names())        # ['AAAB', 'AXAB', ..., 'RRRX']
-print(paradigm.omission_conditions())    # 9 conditions with omission_position set
-print(paradigm.event_codes)              # {'fx': 10, 'p1': 101, ..., 'rw': 96}
-print(paradigm.analysis_windows)        # {'baseline': (-500, 0), ...}
+`jaxfne` is a computational-biophysics scaffold for constructing, testing, and reporting TFNE source-to-field/readout models under explicit assumptions.
 
-# Paradigm is JSON-safe
-import json
-json.dumps(paradigm.to_dict(), allow_nan=False)
+Current runs should report their status directly in receipts and manifests, including:
+
+```text
+truth_mode: truth_safe_unverified
+claim_level: computational_scaffold
+source_calibration_status: uncalibrated_izhikevich_native_current
+field_solver_status: laminar_proxy_no_pde
+physical_amplitude_claim_allowed: false
 ```
 
-### Objective / evaluation
+Realistic use today: reproducible proxy simulations, source/readout bookkeeping, objective scaffolds, performance benchmarking, and manifest-driven model comparison.
 
-```python
-obj = (
-    jtfne.objective()
-    .loss("rate_loss", target=20.0, weight=1.0, metric="spike_rate_hz_mean")
-    .regularizer("vm_reg", target=-65.0, weight=0.1, metric="mean_V_m")
-    .gate("rate_gate", threshold=200.0, criterion="below", metric="spike_rate_hz_mean")
-)
+Empirical calibration, physical-amplitude CSD/LFP claims, and mechanism-level interpretation require additional datasets, calibration gates, nulls, ablations, and validation evidence.
 
-eval_report = model.evaluate(signals, obj)
-# eval_report["evaluation_status"] == "objective_evaluate_v0.0.5"
-# eval_report["all_gates_pass"] in {True, False}  <- computational diagnostic only
-# eval_report["truth_mode"] == "truth_safe_unverified"
-# eval_report["physical_amplitude_claim_allowed"] == False
-```
-
-Known metrics: `spike_rate_hz_mean`, `spike_count_total`, `mean_V_m`,
-`source_proxy_abs_mean`, `csd_proxy_abs_mean`, `lfp_proxy_abs_mean`.
-
-Gate criteria: `below`, `above`, `equal`, `in_range`.
-
-**Gate pass/fail is a computational diagnostic only.** It does not imply
-empirical validation, biological calibration, or mechanism proof.
-
-### Optimizer metadata / tune scaffold
-
-```python
-# Blackbox path (always allowed, no gradient required)
-same_model, tune_report = model.tune(obj, optimizer="GSDR", steps=1)
-assert same_model is model                          # model never mutated
-assert tune_report["tuning_status"] == "metadata_only_v0.0.5"
-assert tune_report["same_model_unchanged"] is True
-
-# OptimizerSpec with explicit differentiability declaration
-spec = jtfne.gsdr(alpha=0.7, exploration=0.05)
-spec = jtfne.agsdr()
-spec = jtfne.random_search()
-# Optax path (requires declared_surrogate or differentiable, Optax installed)
-spec = jtfne.optax_adam(learning_rate=1e-3, differentiability_status="declared_surrogate")
-```
-
-`Model.tune()` in v0.0.5 is a **metadata-only scaffold**. No optimization loop
-runs and no parameters are changed. The report documents what would happen in
-a future real tuning pass.
-
-The Optax path requires explicit `differentiability_status="declared_surrogate"` or
-`"differentiable"`. The default `"not_checked"` is blocked because spiking networks
-are not differentiable through spike resets without a surrogate gradient declaration.
-
-### Manifest with v0.0.5 metadata (compatibility alias)
-
-```python
-manifest = model.manifest(
-    signals=signals,
-    readout=readout,
-    paradigm=paradigm.to_dict(),
-    objective={"name": obj.name, "losses": obj.losses, ...},
-    evaluation=eval_report,
-    tuning=tune_report,
-)
-# manifest["v005_claim_labels"]["empirical_validation_status"] == "not_empirically_validated"
-# manifest["v005_claim_labels"]["mechanism_claim_status"] == "not_claimed"
-# All v0.0.4 truth gates still present
-```
-
-`model.manifest()` is a compatibility alias retained from v0.0.4–v0.0.14.
-For the canonical v0.1 workflow, prefer `model.run_receipt()` and
-`model.evaluate_report()`.
-
-## Version roadmap (Publication Event 1.0)
-
-The roadmap centers around **Paper 1.0: in-silico spectrolaminar motif**, deferring omission (Paper 2.0) and global/local oddball (Paper 3.0).
-
-**Pre-v0.1 bridge lane:**
-* `v0.0.11`  uncalibrated multi-receptor synaptic kernel
-* `v0.0.12`  paradigm/stimulus injection into recurrent model
-* `v0.0.13`  laminar population builder / source geometry metadata
-* `v0.0.14`  trial runner and condition-aligned outputs
-* `v0.0.15`  config/JaxFNEConfig standard (.jcfg.json)
-* `v0.0.16`  RunReceipt deterministic audit receipt
-* `v0.0.17`  ReadoutSpec declarative feature extraction
-* `v0.0.18`  ObjectiveReport structured evaluation result
-
-**Publication Event 1.0 sequence:**
-* `v0.0.20`   semantic correctness hardening  ← **current release**
-* `v0.1.0`   practical OOP core freeze (pending v0.0.20 gate)
-* `v0.2.x`   spectrolaminar objective/readout base
-* `v0.3.x`   generative spectrolaminar workflow
-* `v0.4.0`   Paper 1.0 minimum sufficient release (in-silico spectrolaminar motif)
-
-**Deferred (Post-Paper 1.0):**
-* Paper 2.0: Omission mismatch workflows
-* Paper 3.0: Global/local oddball workflows
-* Dense Jaxley/NEURON compartment bridges
-* EEG/MEG physical solvers
-
-## Claims Discipline
-
-**Allowed:**
-- v0.1.x provides the compact JAX-native OOP core required to build reproducible TFNE workflows.
-
-**Forbidden:**
-- v0.1.x validates spectrolaminar mechanisms.
-- v0.1.x produces calibrated LFP/CSD amplitudes.
-- v0.1.x is a full simulator.
-
-## Package structure
+## Package layout
 
 ```text
 jaxfne/
-  __init__.py        public API surface
-  core.py            Configuration, Model, Simulation, RuntimeConfig, Signals,
-                     Probe, Objective, Paradigm, ParadigmEvent, ParadigmCondition,
-                     RunReceipt, ReadoutSpec, ReadoutResult, ObjectiveReport,
-                     JaxFNEConfig, ConfigValidationResult (v0.0.15–v0.0.18)
-  emitters.py        Izhikevich EIG scaffold
-  fields.py          laminar proxy source/probe layer and invariant diagnostics
-  optim.py           OptimizerSpec, GSDR/AGSDR/random_search/Optax specs,
-                     require_optax guard, legacy AGSDR class
-  bridges.py         Jaxley bridge scaffold + require_jaxley guard
-  io.py              strict JSON manifest, hashing, save/load, save_receipt
+  __init__.py     public API exports
+  core.py         configuration, model, simulation, signals, receipts, readouts
+  emitters.py     Izhikevich and recurrent emitter kernels
+  fields.py       laminar proxy source/field/readout logic
+  objectives.py   objective and evaluation scaffolds
+  optim.py        optimizer specs and optional Optax guard
+  runtime.py      JAX runtime, dtype, device, and reproducibility reports
+  io.py           JSON-safe manifests, hashes, save/load helpers
+  validation.py   invariant and claim-gate checks
+  bridges.py      optional external backend guards
 ```
 
-## Development smoke
+## Validation
+
+Core local checks:
 
 ```bash
 python -m compileall -q jaxfne tests examples
-python -m pytest -q
-python examples/minimal_eig_column.py
-python examples/global_local_oddball_sketch.py
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short
+```
+
+Run examples:
+
+```bash
+python examples/00_minimal_column.py
+python examples/01_source_field_manifest.py
 python examples/02_omission_scaffold.py
 python examples/03_objective_and_tune_smoke.py
+python examples/04_blackbox_tuning_loop.py
+python examples/05_dataset_bridge_manifest.py
+python examples/06_edge_list_recurrent_backend.py
 ```
 
-Expected: 178 passed, 0 failed.
+Benchmark scan-backed recurrent paths:
 
-## v0.0.9 edge-list backend
-
-`v0.0.9` adds a sparse `EdgeList` recurrent backend using JAX pytrees, `jax.lax.scan`, and `jax.ops.segment_sum`. It is selected with `runtime(recurrent_backend="edge_list")`. This is a computational backend upgrade only; field output remains `laminar_proxy_no_pde`, source calibration remains uncalibrated, and optimizer-selected candidates do not establish empirical or mechanistic claims.
-
-## v0.0.10 synapse metadata
-
-`v0.0.10` hardens source and synapse declarations. It introduces metadata-only `ReceptorSpec` and `SynapseSpec` definitions without adding new conductance-based physical solvers or biological kernels. The backend manifest now flows `EdgeList` details transparently. Dense-vs-edge computations maintain statistical parity. No calibrated synapse claim and no new PDE/field/empirical/mechanism claim is made.
-
-## v0.0.11 receptor-indexed exponential synaptic kernel
-
-`v0.0.11` adds an opt-in second synaptic kernel selected via `runtime(recurrent_backend="edge_list", synaptic_kernel="receptor_exponential")`. The default remains `synaptic_kernel="exponential"`, preserving the v0.0.9/v0.0.10 edge-list path. The new path keeps `syn_state.shape == (n_edges,)` and looks up the per-edge decay time constant from `edge.receptor_index` against the standard `ReceptorSpec` table (AMPA/GABA_A/NMDA/GABA_B). Aggregation uses `jax.ops.segment_sum(weight * syn_state, post, n_neurons)`, so each edge contributes exactly once to its postsynaptic native recurrent input; multiple edges may legitimately converge on the same neuron. Receptor reversal potentials remain metadata-only and are not used in the current computation. Weights remain native/unphysical and the source readout remains a laminar proxy. No conductance equation, no physical-amplitude claim, no PDE upgrade, and no empirical-validation or biological-mechanism claim is introduced.
-
-## v0.0.12 native stimulus injection
-
-`v0.0.12` adds explicit event-aligned native-drive stimulus injection. It introduces the `StimulusSchedule` value object and `stimulus_schedule()` factory to build timed drive arrays from `ParadigmCondition` events. Injected drive is added as native (uncalibrated) current to the recurrent kernels (`dense`, `edge_list`, and `receptor_exponential`). This enables basic condition-aligned trial workflows for Paper 1.0. It does not implement a full `Paradigm.batch()` trial runner, and no cognitive omission or global-local logic is encoded. No calibrated current, physical amplitude, PDE upgrade, or empirical/mechanism claim is introduced.
-
-## v0.0.13 laminar source geometry
-
-`v0.0.13` adds explicit laminar population and source geometry metadata. It introduces the `LaminarPopulation` and `LaminarSourceGeometry` frozen dataclasses and the `laminar_source_geometry()` factory. An optional `geometry` kwarg is added to `construct(cfg, *, geometry=None)`; when provided, the geometry's `n_units_total` must match the network `n` or a `ValueError: geometry_n_units_total_mismatch` is raised. Population depths use deterministic NumPy linspace — no random placement. Co-located populations (depth overlap) are allowed and not treated as errors, as this is anatomically valid for different cell types. The geometry manifest propagates into `Model.manifest()` under `source_geometry`. No new field solver, no physical-amplitude claim, no PDE upgrade, no empirical or mechanism claim is introduced.
-
-## v0.0.14 sequential trial runner
-
-`v0.0.14` adds a sequential trial runner for executing batches of condition-aligned simulations. It introduces `TrialSpec`, `TrialBatch`, `TrialResult`, and `TrialBatchResult` dataclasses, along with a `trial_batch()` factory for deterministic batch creation. The `Model.run_trials(batch, sim)` method performs a sequential loop over `batch.trials`, replacing `sim.seed` with the trial's seed and capturing any exceptions into the `TrialResult`. Serialization via `to_dict()` is strictly JSON-safe and automatically excludes large JAX arrays (`V_m`, `spikes`, `sources`, `field`) from the results, providing instead a compact `Signals.summary()`. This enables robust condition-aligned workflow orchestration for Paper 1.0. No parallel execution, no new field solver, no physical-amplitude claim, no PDE upgrade, and no empirical or mechanism claim is introduced.
-
-## v0.0.15 config/object standard foundation
-
-`v0.0.15` adds the first formal `.jcfg.json` declarative configuration standard.
-It introduces `JaxFNEConfig`, `ConfigValidationResult`, `load_config`, `validate_config`,
-`config_to_simulation`, `config_to_geometry`, `config_to_configuration`,
-`config_to_trial_batch`, and `config_truth_boundary`.
-
-The config schema maps directly onto existing proven objects (`Simulation`,
-`Configuration`, `LaminarSourceGeometry`, `TrialBatch`) without introducing new kernels,
-field solvers, or physical-amplitude claims.  Truth boundary fields are required in
-every config file and any escalation is a blocking validation error.
-Geometry depths remain normalized proxy coordinates in [0, 1] with default
-`position_units = "relative_laminar_depth_proxy"` — no physical spatial units (mm, µm)
-are introduced.
-No new PDE solver, no calibrated current, no empirical validation, and no mechanism
-claim is introduced.
-
-
-
-
-## v0.0.16 run receipt
-
-`v0.0.16` adds `RunReceipt` — an immutable, JSON-safe record of a single simulation run.
-It introduces `RunReceipt`, `Model.run_receipt()`, the module-level `run_receipt()` factory,
-and `save_receipt()` for writing receipts to disk with an overwrite guard.
-
-A `RunReceipt` captures: config fingerprint (`config_hash`), simulation parameters,
-`Signals.summary()`, frozen truth gates, claim labels, and backend metadata.
-The `receipt_id` is deterministic: same configuration + seed + version always produces
-the same 16-char SHA256 prefix.  `save_receipt(receipt, path)` raises
-`ValueError("receipt_file_exists: ...")` if the path already exists, unless
-`overwrite=True` is passed.
-
-The `manifest_schema_version` default in `io.manifest()` is bumped from `"0.0.4"` to
-`"0.0.16"` to reflect the current package version.
-
-No new PDE solver, no calibrated current, no empirical validation, and no mechanism
-claim is introduced.
-
-## v0.0.17 readout spec
-
-`v0.0.17` adds the declarative feature-extraction standard for Paper 1.0 workflows.
-It introduces `ReadoutSpec`, `ReadoutResult`, the `readout_spec()` factory, and
-`Model.compute_readout(signals, specs)`.
-
-A `ReadoutSpec` declares a named scalar metric to extract from `Signals`.
-Supported metrics:
-
-| Metric | Description |
-|--------|-------------|
-| `spike_rate_hz` | Mean firing rate across all units (Hz) |
-| `spike_count` | Total spike count |
-| `mean_V_m` | Mean membrane voltage |
-| `csd_abs_mean` | Mean absolute CSD proxy |
-| `lfp_abs_mean` | Mean absolute LFP proxy |
-| `source_abs_mean` | Mean absolute source proxy |
-
-Optional `time_window_ms=(start, end)` and `n_contacts_slice=(start, end)` allow
-temporal and depth windowing.  `ReadoutResult.status` is `"computed"`,
-`"no_field"`, or `"unknown_metric"`.
-
-`_KNOWN_READOUT_METRICS` is exported from both `jaxfne` and `jaxfne.core`.
-
-No new PDE solver, no physical-amplitude claim, no empirical validation, and no
-mechanism claim is introduced.
-
-## v0.0.18 objective report
-
-`v0.0.18` adds `ObjectiveReport` — a structured, immutable result of evaluating an
-`Objective` against `Signals`.  It introduces `ObjectiveReport` (frozen dataclass)
-and `Model.evaluate_report(signals, objective, *, readout_specs=None)`.
-
-`evaluate_report` wraps the existing `Model.evaluate()` output into a typed,
-JSON-safe object that also embeds `ReadoutResult` items when `readout_specs`
-are provided.  `ObjectiveReport.truth` carries frozen conservative truth gates.
-
-```python
-report = model.evaluate_report(signals, obj, readout_specs=[
-    jtfne.readout_spec("rate", "spike_rate_hz"),
-    jtfne.readout_spec("csd",  "csd_abs_mean"),
-])
-assert report.evaluation_status == "objective_report_v0.0.18"
-assert report.truth["physical_amplitude_claim_allowed"] is False
-json.dumps(report.to_dict(), allow_nan=False)
+```bash
+python scripts/benchmark_scan_backends.py
 ```
 
-Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
-no empirical validation, and no mechanism claim is introduced.
-
-## Release rehearsal (no credentials required)
+Release rehearsal without publishing:
 
 ```bash
 ./scripts/release_rehearsal.sh
 ```
 
-Runs the full pre-publish gate locally: clean build → twine check → fresh venv wheel+sdist install smokes from /tmp → pytest → all examples. No upload, no credentials, no tagging.
+## Documentation
 
-## Colab smoke
+Release notes and detailed version history live outside the README:
 
-See [`docs/COLAB_SMOKE_V010.md`](docs/COLAB_SMOKE_V010.md) for copy-pasteable Colab cells to validate `pip install jaxfne==0.1.0` from TestPyPI or real PyPI.
+- `CHANGELOG.md`
+- `docs/`
+- `examples/`
+- `scripts/benchmark_scan_backends.py`
 
-## Truth status
+## License
 
-```text
-truth_mode:                    truth_safe_unverified
-claim_level:                   computational_scaffold
-source_calibration_status:     uncalibrated_izhikevich_native_current
-source_projection_mode:        proxy_no_field_solve
-field_solver_status:           laminar_proxy_no_pde
-field_claim_level:             proxy_readout_only
-physical_amplitude_claim_allowed: false
-empirical_validation_status:   not_empirically_validated
-mechanism_claim_status:        not_claimed
-```
-
-No calibrated physical CSD/LFP/EEG/MEG amplitude claim is made.
-No biological mechanism is implied by gate pass/fail or tuning metadata.
-Optimizer success does not constitute empirical validation.
+MIT License.
