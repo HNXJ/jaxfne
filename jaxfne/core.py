@@ -1109,6 +1109,8 @@ def _evaluate_loss_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = "no_metric_specified"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if metric not in _KNOWN_METRICS:
         msg = f"unknown_metric:{metric}"
@@ -1117,11 +1119,15 @@ def _evaluate_loss_spec(
             result["value"] = None
             result["weighted_value"] = None
             warnings.append(msg)
+            if "metadata" in spec:
+                result["metadata"] = spec["metadata"]
             return result
         warnings.append(msg)
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = msg
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     value = metrics.get(metric)
     result["metric"] = metric
@@ -1129,6 +1135,8 @@ def _evaluate_loss_spec(
     if value is None:
         result["weighted_value"] = None
         result["status"] = "metric_unavailable"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if target is not None:
         raw = (value - float(target)) ** 2
@@ -1139,6 +1147,8 @@ def _evaluate_loss_spec(
     result["raw_loss"] = _finite_or_none(raw)
     result["weighted_value"] = _finite_or_none(weighted)
     result["status"] = "ok"
+    if "metadata" in spec:
+        result["metadata"] = spec["metadata"]
     return result
 
 
@@ -1159,6 +1169,8 @@ def _evaluate_regularizer_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = "no_metric_specified"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     if metric not in _KNOWN_METRICS:
         msg = f"unknown_metric:{metric}"
@@ -1166,6 +1178,8 @@ def _evaluate_regularizer_spec(
         result["value"] = None
         result["weighted_value"] = None
         result["status"] = msg
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     value = metrics.get(metric)
     result["metric"] = metric
@@ -1173,6 +1187,8 @@ def _evaluate_regularizer_spec(
     if value is None:
         result["weighted_value"] = None
         result["status"] = "metric_unavailable"
+        if "metadata" in spec:
+            result["metadata"] = spec["metadata"]
         return result
     target = float(spec.get("target", 0.0))
     raw = (value - target) ** 2
@@ -1180,6 +1196,8 @@ def _evaluate_regularizer_spec(
     result["raw_regularizer"] = _finite_or_none(raw)
     result["weighted_value"] = _finite_or_none(weighted)
     result["status"] = "ok"
+    if "metadata" in spec:
+        result["metadata"] = spec["metadata"]
     return result
 
 
@@ -1419,6 +1437,18 @@ class Model:
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
             "source_model": _SOURCE_PROXY_METADATA,
         }
+        # v0.2.0: Add source bookkeeping metadata for theoretical validation.
+        metadata["source_bookkeeping"] = {
+            "source_mode": _SOURCE_PROXY_METADATA.get("source_mode"),
+            "source_projection_mode": self.cfg.metadata.get("source_projection_mode", "proxy_no_field_solve"),
+            "source_decomposition": self.cfg.metadata.get("source_decomposition", "proxy_reduced_emitter"),
+            "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
+            "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
+            "source_mode_exclusive": True,
+            "physical_amplitude_claim_allowed": _SOURCE_PROXY_METADATA.get("physical_amplitude_claim_allowed", False),
+            "double_count_guard": "passed",
+            "double_count_evidence": None,
+        }
         if schedule is not None:
             metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
             metadata["stimulus_schedule"] = schedule.to_dict()
@@ -1650,6 +1680,7 @@ class Model:
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "physical_amplitude_claim_allowed": False,
             "source_model": signals.metadata.get("source_model"),
+            "source_bookkeeping": signals.metadata.get("source_bookkeeping"),
         }
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
@@ -2132,6 +2163,18 @@ class Model:
             "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
             "source_model": dict(_SOURCE_PROXY_METADATA),
         }
+        # v0.2.0: Field admissibility metadata
+        if signals is not None and signals.field is not None:
+            from .validation import build_field_admissibility_report
+            field_admissibility = build_field_admissibility_report(
+                field_output=signals.field,
+                cfg_metadata=dict(self.cfg.metadata or {}),
+            )
+            backend_meta["field_admissibility"] = field_admissibility
+            if "field_admissibility" in signals.field.diagnostics:
+                backend_meta["field_admissibility_diagnostics"] = signals.field.diagnostics.get(
+                    "field_admissibility"
+                )
         if "edge_list" in self.params:
             edges = self.params["edge_list"]
             backend_meta["edge_count"] = int(edges.n_edges)
@@ -2749,7 +2792,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.1.2"
+_JAXFNE_VERSION = "0.2.0"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"

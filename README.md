@@ -129,7 +129,7 @@ for result in readouts:
 - strict JSON-safe manifests;
 - CPU-first validation and optional accelerator execution through JAX.
 
-The standard v0.1.x field mode is a **laminar proxy readout**:
+The standard v0.2.0 field mode is a **laminar proxy readout**:
 
 ```text
 source_projection_mode = proxy_no_field_solve
@@ -187,23 +187,7 @@ Run examples:
 ```bash
 python examples/00_minimal_column.py
 python examples/01_source_field_manifest.py
-python examples/02_omission_scaffold.py
-python examples/03_objective_and_tune_smoke.py
-python examples/04_blackbox_tuning_loop.py
-python examples/05_dataset_bridge_manifest.py
-python examples/06_edge_list_recurrent_backend.py
-```
-
-Benchmark scan-backed recurrent paths:
-
-```bash
-python scripts/benchmark_scan_backends.py
-```
-
-Release rehearsal without publishing:
-
-```bash
-./scripts/release_rehearsal.sh
+python examples/02_spectrolaminar_oddball_scaffold.py
 ```
 
 ## Documentation
