@@ -112,9 +112,9 @@ for result in readouts:
     print(result.name, result.metric, result.value, result.status)
 ```
 
-## What it supports now
+## What it supports
 
-`jaxfne` currently supports compact TFNE-style computational workflows with:
+`jaxfne` supports compact TFNE-style computational workflows with:
 
 - Izhikevich emitter scaffolds;
 - dense and edge-list recurrent paths;
@@ -143,7 +143,7 @@ This is the intended basis for practical laminar spectrolaminar proxy simulation
 
 `jaxfne` is a computational-biophysics scaffold for constructing, testing, and reporting TFNE source-to-field/readout models under explicit assumptions.
 
-Current runs should report their status directly in receipts and manifests, including:
+All runs carry metadata describing execution status:
 
 ```text
 truth_mode: truth_safe_unverified
@@ -153,9 +153,9 @@ field_solver_status: laminar_proxy_no_pde
 physical_amplitude_claim_allowed: false
 ```
 
-Realistic use today: reproducible proxy simulations, source/readout bookkeeping, objective scaffolds, performance benchmarking, and manifest-driven model comparison.
+Practical use: reproducible proxy simulations, source/readout bookkeeping, objective scaffolds, performance benchmarking, and manifest-driven model comparison.
 
-Empirical calibration, physical-amplitude CSD/LFP claims, and mechanism-level interpretation require additional datasets, calibration gates, nulls, ablations, and validation evidence.
+Physical-amplitude CSD/LFP claims and mechanism-level interpretation are reserved for models with empirical calibration, validation datasets, nulls, and ablations.
 
 ## Package layout
 
