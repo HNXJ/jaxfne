@@ -342,6 +342,18 @@ json.dumps(report.to_dict(), allow_nan=False)
 Gate pass/fail is a computational diagnostic only.  No physical-amplitude claim,
 no empirical validation, and no mechanism claim is introduced.
 
+## Release rehearsal (no credentials required)
+
+```bash
+./scripts/release_rehearsal.sh
+```
+
+Runs the full pre-publish gate locally: clean build → twine check → fresh venv wheel+sdist install smokes from /tmp → pytest → all examples. No upload, no credentials, no tagging.
+
+## Colab smoke
+
+See [`docs/COLAB_SMOKE_V010.md`](docs/COLAB_SMOKE_V010.md) for copy-pasteable Colab cells to validate `pip install jaxfne==0.1.0` from TestPyPI or real PyPI.
+
 ## Truth status
 
 ```text
