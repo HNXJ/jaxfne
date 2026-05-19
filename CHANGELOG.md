@@ -1,24 +1,24 @@
-## v0.1.0
-
-- Declared the practical OOP core freeze for the compact JAX-native TFNE scaffold.
-- Preserved the canonical workflow around `run_receipt`, `compute_readout`, and `evaluate_report`.
-- Validated wheel and sdist install smoke (0.0.23 rebuild from final dev state) before release-candidate rehearsal.
-- Added MIT LICENSE; normalized examples to 00-06 naming convention.
-- Preserved truth status at `truth_safe_unverified`.
-- Preserved field status as `laminar_proxy_no_pde`.
-- Preserved source calibration as `uncalibrated_izhikevich_native_current`.
-- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
-
 ## v0.0.23
 
-- Validated wheel and sdist build via `python -m build`.
-- Confirmed `twine check dist/*` passes for both artifacts.
-- Confirmed wheel artifact contains no unwanted inclusions (.git, venv, __pycache__).
-- Confirmed fresh venv wheel install + import path is site-packages (not repo).
-- Confirmed wheel install smoke: simulate → manifest → truth_mode=truth_safe_unverified.
-- Confirmed sdist install smoke.
-- Bumped package version 0.0.22 → 0.0.23.
-- Preserved truth status at truth_safe_unverified.
+- **Fixed `Model.manifest()` readout compatibility:** `manifest(signals, readouts)` now
+  accepts any of: `None`, `dict` (legacy), `list[ReadoutResult]` (canonical v0.1 output
+  of `compute_readout()`), `tuple[ReadoutResult]`, `list[dict]`, or a single
+  `ReadoutResult`. Previously raised `AttributeError: 'list' object has no attribute 'get'`
+  when passed the canonical `compute_readout()` return value.
+- Added `_normalize_manifest_readout()` normaliser; surfaces readout results under
+  `readout_results` key in manifest with `n_results`, `requested_metrics`, and frozen
+  `physical_amplitude_claim_allowed=False` guard.
+- Added 8 tests in `tests/test_manifest_readout_compat.py` covering all argument forms,
+  JSON strictness, and truth-gate non-escalation.
+- Added MIT LICENSE file.
+- Normalized examples directory to 00-06 naming convention.
+- Validated wheel and sdist build via `python -m build`; `twine check dist/*` passes.
+- Confirmed fresh venv wheel and sdist install smokes from `/tmp`; import path confirmed
+  as `site-packages` (not repo).
+- Confirmed canonical workflow from installed wheel:
+  `compute_readout(...)` → `manifest(signals, readouts)` → `json.dumps(allow_nan=False)`.
+- Preserved truth status at `truth_safe_unverified`.
+- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
 
 ## v0.0.22
 - Added packaging, release, and Colab installation documentation.

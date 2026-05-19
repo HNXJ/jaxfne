@@ -28,7 +28,7 @@ from .emitters import (
 
 _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
-from .io import config_hash, load_json, manifest as build_manifest
+from .io import config_hash, json_safe, load_json, manifest as build_manifest
 
 
 def _default_operator_status() -> dict[str, str]:
@@ -1203,6 +1203,57 @@ def _evaluate_gate_spec(
     return result
 
 
+def _normalize_manifest_readout(
+    readout: Any,
+) -> Optional[dict[str, Any]]:
+    """Normalize any supported readout argument shape for :meth:`Model.manifest`.
+
+    Accepted input forms:
+
+    * ``None``                    → returns ``None``
+    * ``dict``                    → returned unchanged (legacy shape)
+    * :class:`ReadoutResult`      → wrapped in list, then converted
+    * ``list/tuple`` of :class:`ReadoutResult` → converted to summary dict
+    * ``list/tuple`` of ``dict``  → converted to summary dict
+
+    The returned dict (when non-None) always contains:
+
+    * ``readout_results``    – list of JSON-safe readout result dicts
+    * ``requested_metrics``  – list of metric name strings
+    * ``n_results``          – integer count
+    * ``physical_amplitude_claim_allowed`` – always False
+    """
+    if readout is None:
+        return None
+    if isinstance(readout, dict):
+        return readout
+    # Normalize single ReadoutResult to a one-element list.
+    if isinstance(readout, ReadoutResult):
+        readout = [readout]
+    if isinstance(readout, (list, tuple)):
+        items: list[dict[str, Any]] = []
+        metrics: list[str] = []
+        for item in readout:
+            if isinstance(item, ReadoutResult):
+                items.append(item.to_dict())
+                metrics.append(item.metric)
+            elif isinstance(item, dict):
+                items.append(json_safe(item))
+                metrics.append(str(item.get("metric", "unknown")))
+            else:
+                items.append(json_safe({"raw": str(item)}))
+                metrics.append("unknown")
+        return {
+            "readout_results": items,
+            "requested_metrics": metrics,
+            "n_results": len(items),
+            "physical_amplitude_claim_allowed": False,
+        }
+    # Fallback: stringify unknown types rather than crash.
+    return {"readout_results": [json_safe({"raw": str(readout)})], "n_results": 1,
+            "physical_amplitude_claim_allowed": False}
+
+
 @dataclass(frozen=True)
 class Model:
     cfg: Configuration
@@ -1997,7 +2048,7 @@ class Model:
     def manifest(
         self,
         signals: Optional[Signals] = None,
-        readout: Optional[dict[str, Any]] = None,
+        readout: Optional[Any] = None,
         paradigm: Optional[dict[str, Any]] = None,
         objective: Optional[dict[str, Any]] = None,
         evaluation: Optional[dict[str, Any]] = None,
@@ -2012,14 +2063,25 @@ class Model:
         deterministic receipt ID) and :meth:`evaluate_report` (typed objective
         evaluation).  This method remains supported and is not scheduled for
         removal.
+
+        The ``readout`` argument accepts any of:
+
+        * ``None`` — no readout section included.
+        * ``dict`` — passed through to the manifest as-is (legacy shape).
+        * ``list`` or ``tuple`` of :class:`ReadoutResult` objects — the canonical
+          output of :meth:`compute_readout`.  Converted to a JSON-safe readout
+          summary dict with ``readout_results`` and ``requested_metrics`` keys.
+        * ``list`` or ``tuple`` of ``dict`` — same conversion applied to each element.
+        * Single :class:`ReadoutResult` — wrapped in a list and handled as above.
         """
+        readout_normalized = _normalize_manifest_readout(readout)
         runtime_cfg = None
         if signals is not None and "runtime" in signals.metadata:
             runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
         res = build_manifest(
             self.cfg,
             signals=signals,
-            readout=readout,
+            readout=readout_normalized,
             runtime_config=runtime_cfg,
             paradigm=paradigm,
             objective=objective,
@@ -2029,6 +2091,13 @@ class Model:
         )
         if trials is not None:
             res["trials"] = trials
+        # If readout was provided as ReadoutResult list (canonical v0.1 workflow),
+        # surface the normalized readout summary in the manifest under "readout_results".
+        # Dict-shaped readouts are already surfaced via build_manifest's field_diagnostics
+        # logic; non-dict shapes are added here only.
+        if readout_normalized is not None and isinstance(readout_normalized, dict):
+            if "readout_results" in readout_normalized:
+                res["readout_results"] = readout_normalized
         # Backend metadata: distinguish executed backend from available infrastructure.
         used_backend = "dense"
         used_kernel = "exponential"
@@ -2661,7 +2730,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.0.22"
+_JAXFNE_VERSION = "0.0.23"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
