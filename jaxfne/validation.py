@@ -341,3 +341,391 @@ def build_field_admissibility_report(
     }
 
     return report
+
+
+# ─── v0.2.5 Calibration Specification and Reporting ──────────────────────────────
+
+
+class CalibrationSpec:
+    """Calibration specification contract for v0.2.5.
+
+    Allows users to declare calibration state without upgrading physical amplitude claims.
+    All proxy readouts remain computational proxies unless a workflow supplies full
+    calibration, geometry, and validation evidence.
+    """
+
+    ALLOWED_MODES = {
+        "uncalibrated_native",
+        "toy_scale",
+        "relative_normalized",
+        "empirical_gain_candidate",
+        "physical_units_candidate",
+        "calibrated_empirical",
+    }
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        target: str,
+        mode: str = "uncalibrated_native",
+        scale: float | None = None,
+        units: str | None = None,
+        reference: str | None = None,
+        description: str | None = None,
+    ):
+        """Initialize a calibration specification.
+
+        Parameters
+        ----------
+        name : str
+            Name of the calibration spec.
+        target : str
+            Target: 'source', 'field', 'probe', 'readout', or 'objective'.
+        mode : str, optional
+            Calibration mode. Default 'uncalibrated_native'.
+        scale : float, optional
+            Scale factor if applicable.
+        units : str, optional
+            Physical or proxy units.
+        reference : str, optional
+            Reference dataset, method, or publication.
+        description : str, optional
+            Human-readable description.
+
+        Raises
+        ------
+        ValueError
+            If mode is not in ALLOWED_MODES or target is empty.
+        """
+        if mode not in self.ALLOWED_MODES:
+            raise ValueError(
+                f"Invalid mode '{mode}'. Allowed: {self.ALLOWED_MODES}"
+            )
+        if not target:
+            raise ValueError("target must be a non-empty string")
+
+        self.name = str(name)
+        self.target = str(target)
+        self.mode = str(mode)
+        self.scale = float(scale) if scale is not None else None
+        self.units = str(units) if units is not None else None
+        self.reference = str(reference) if reference is not None else None
+        self.description = str(description) if description is not None else None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe representation of the calibration spec."""
+        return {
+            "name": self.name,
+            "target": self.target,
+            "mode": self.mode,
+            "scale": self.scale,
+            "units": self.units,
+            "reference": self.reference,
+            "description": self.description,
+        }
+
+
+def make_calibration_report(
+    spec: CalibrationSpec | dict,
+    *,
+    readout_kind: str | None = None,
+) -> dict[str, Any]:
+    """Create a calibration status report from a CalibrationSpec.
+
+    Parameters
+    ----------
+    spec : CalibrationSpec or dict
+        Calibration specification.
+    readout_kind : str, optional
+        Type of readout (e.g., 'lfp_proxy', 'spk', 'vm').
+
+    Returns
+    -------
+    dict
+        JSON-safe calibration report with status, claim levels, and warnings.
+    """
+    # Convert dict to CalibrationSpec if needed
+    if isinstance(spec, dict):
+        spec = CalibrationSpec(**spec)
+
+    mode = spec.mode
+    target = spec.target
+    has_scale = spec.scale is not None
+    has_units = spec.units is not None
+    has_reference = spec.reference is not None
+
+    # v0.2.5: Always keep physical_amplitude_claim_allowed false
+    # Empirical calibration is declared metadata only, not validated.
+    physical_amplitude_claim_allowed = False
+    calibration_claim_level = "computational_proxy_with_declared_metadata"
+
+    # Generate warnings for incomplete high-claim modes
+    warnings: list[str] = []
+    if mode == "calibrated_empirical":
+        if not (has_reference and has_units and has_scale and target):
+            warnings.append(
+                "calibrated_empirical mode requires reference, units, scale, and target; treating as metadata_declared_not_validated"
+            )
+        if not has_units:
+            warnings.append("calibrated_empirical missing units")
+        if not has_reference:
+            warnings.append("calibrated_empirical missing reference")
+        if not has_scale:
+            warnings.append("calibrated_empirical missing scale")
+
+    if mode in {"physical_units_candidate", "empirical_gain_candidate"}:
+        warnings.append(f"mode {mode} is candidate status, not validated")
+
+    return {
+        "calibration_name": spec.name,
+        "target": target,
+        "mode": mode,
+        "status": "metadata_declared",
+        "units": spec.units,
+        "scale": spec.scale,
+        "reference": spec.reference,
+        "description": spec.description,
+        "readout_kind": readout_kind,
+        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "calibration_claim_level": calibration_claim_level,
+        "empirical_reference_declared": has_reference,
+        "empirical_units_declared": has_units,
+        "empirical_scale_declared": has_scale,
+        "assumptions": [
+            "proxy readouts remain computational proxies in v0.2.5",
+            "empirical calibration metadata is declared but not validated",
+            "physical amplitude claims require separate calibration, geometry, and validation evidence",
+        ],
+        "warnings": warnings,
+    }
+
+
+# ─── v0.2.6 Field/Proxy Diagnostic Scaffolding ────────────────────────────────
+
+
+def make_source_balance_diagnostic(
+    sources: Any | None = None,
+    *,
+    operator_path: str = "proxy",
+    residual: float | None = None,
+) -> dict[str, Any]:
+    """Field/proxy source-balance diagnostic report.
+
+    In proxy mode, source balance is not applicable (no PDE solve).
+    In physical_candidate mode, users can supply an observed residual.
+
+    Parameters
+    ----------
+    sources : array-like, optional
+        Source array for future physical path integration.
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    residual : float, optional
+        Observed source balance residual (for candidate mode).
+
+    Returns
+    -------
+    dict
+        JSON-safe source-balance diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "not_applicable_proxy_mode"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "candidate_only" if residual is None else "checked"
+        residual_value = float(residual) if residual is not None else None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "source_balance",
+        "operator_path": operator_path,
+        "status": status,
+        "residual": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: source balance is not applicable",
+            "physical_candidate mode: residual is declared metadata only, not validated",
+        ],
+    }
+
+
+def make_gauge_diagnostic(
+    field_array: Any | None = None,
+    *,
+    operator_path: str = "proxy",
+    gauge_mode: str = "mean_zero",
+) -> dict[str, Any]:
+    """Field/proxy gauge diagnostic report.
+
+    In proxy mode, gauge is declared metadata only.
+    In physical_candidate mode, users can supply a field array to check.
+
+    Parameters
+    ----------
+    field_array : array-like, optional
+        Field array (phi_e or similar) for gauge checking.
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    gauge_mode : str
+        Declared gauge mode: 'mean_zero' (default) or other.
+
+    Returns
+    -------
+    dict
+        JSON-safe gauge diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "declared_metadata_only"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "not_tested"
+        if field_array is not None:
+            arr = _to_numpy(field_array)
+            residual_value = float(jnp.mean(arr))
+            status = "checked"
+        else:
+            residual_value = None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "gauge",
+        "operator_path": operator_path,
+        "gauge_mode": gauge_mode,
+        "status": status,
+        "residual": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: gauge is declared metadata only",
+            "physical_candidate mode: residual is diagnostic scaffold, not validation",
+        ],
+    }
+
+
+def make_boundary_diagnostic(
+    operator_path: str = "proxy",
+) -> dict[str, Any]:
+    """Field/proxy boundary-condition diagnostic report.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+
+    Returns
+    -------
+    dict
+        JSON-safe boundary diagnostic report.
+    """
+    if operator_path not in {"proxy", "physical_candidate"}:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    status = "declared_metadata_only" if operator_path == "proxy" else "candidate_only"
+
+    return {
+        "diagnostic_kind": "boundary",
+        "operator_path": operator_path,
+        "status": status,
+        "boundary_condition_status": status,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: boundary condition is declared metadata only",
+            "physical_candidate mode: boundary condition is candidate, not validated",
+        ],
+    }
+
+
+def make_manufactured_residual_diagnostic(
+    *,
+    operator_path: str = "proxy",
+    residual_l2_relative: float | None = None,
+) -> dict[str, Any]:
+    """Field/proxy manufactured-residual diagnostic report.
+
+    Manufactured residual is a diagnostic scaffold for future PDE solver validation.
+    In v0.2.6, it remains scaffolding only.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    residual_l2_relative : float, optional
+        L2 relative residual (for physical_candidate mode).
+
+    Returns
+    -------
+    dict
+        JSON-safe manufactured-residual diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "not_applicable_proxy_mode"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "candidate_only" if residual_l2_relative is None else "checked"
+        residual_value = float(residual_l2_relative) if residual_l2_relative is not None else None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "manufactured_residual",
+        "operator_path": operator_path,
+        "status": status,
+        "residual_l2_relative": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: manufactured residual is not applicable",
+            "physical_candidate mode: residual is diagnostic scaffold, not validation",
+            "v0.2.6: no full PDE solver exists yet",
+        ],
+    }
+
+
+def make_field_operator_status(
+    *,
+    operator_path: str,
+) -> dict[str, Any]:
+    """Field operator path and status crosswalk for proxy vs physical.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' or 'physical_candidate'.
+
+    Returns
+    -------
+    dict
+        JSON-safe operator status report.
+
+    Raises
+    ------
+    ValueError
+        If operator_path is invalid.
+    """
+    if operator_path not in {"proxy", "physical_candidate"}:
+        raise ValueError(
+            f"Invalid operator_path: {operator_path}. "
+            "Allowed: 'proxy', 'physical_candidate'"
+        )
+
+    if operator_path == "proxy":
+        field_solver_status = "laminar_proxy_no_pde"
+        field_solver_selected = False
+    else:  # physical_candidate
+        field_solver_status = "physical_field_solver_candidate"
+        field_solver_selected = False  # Still candidate in v0.2.6
+
+    return {
+        "diagnostic_kind": "field_operator_status",
+        "operator_path": operator_path,
+        "field_solver_selected": field_solver_selected,
+        "field_solver_status": field_solver_status,
+        "physical_field_solver_status": "not_selected",
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy path: laminar proxy projection, no PDE solve",
+            "physical_candidate path: designated for future PDE integration, not yet implemented",
+            "v0.2.6: no full PDE solver exists; all physical claims remain false",
+        ],
+    }

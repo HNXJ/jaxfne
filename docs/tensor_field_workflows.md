@@ -82,6 +82,48 @@ readouts = model.compute_readout(signals, [
 manifest = model.manifest(signals, readouts)
 ```
 
+## Field/proxy diagnostics (v0.2.6+)
+
+jaxfne distinguishes between proxy readout paths and future physical solver paths using field diagnostics:
+
+### Proxy readout path (v0.2.3–present)
+
+Laminar proxy operators project source tensors directly to contacts without solving a PDE:
+
+- **Source-balance:** Not applicable (no PDE solve)
+- **Gauge:** Declared metadata only
+- **Boundary condition:** Declared metadata only
+- **Physical amplitude claims:** False by default
+
+### Physical solver path (planned v0.3+)
+
+Future versions will support full PDE solvers with these diagnostics:
+
+- **Source-balance:** Integrated source vs boundary flux residual
+- **Gauge:** Mean-zero residual checking
+- **Boundary condition:** Flux residual validation
+- **Manufactured residual:** PDE solver convergence metric
+
+### Using diagnostics
+
+```python
+from jaxfne.validation import (
+    make_field_operator_status,
+    make_source_balance_diagnostic,
+    make_gauge_diagnostic,
+)
+
+# Declare proxy path
+operator = make_field_operator_status(operator_path="proxy")
+# → field_solver_status: "laminar_proxy_no_pde"
+
+# Declare physical_candidate path (for future integration)
+operator = make_field_operator_status(operator_path="physical_candidate")
+# → field_solver_status: "physical_field_solver_candidate"
+```
+
+All diagnostics keep `physical_amplitude_claim_allowed: false` in v0.2.6. Physical amplitude claims require separate calibration and validation evidence.
+
 ## Local and global summaries
 
 For circuit-level workflows, tensor-field operations can produce:
