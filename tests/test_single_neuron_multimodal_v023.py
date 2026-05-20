@@ -10,7 +10,7 @@ Tests verify:
 6. CSD-proxy includes sign convention.
 7. EEG/MEG-proxy metadata present.
 8. Generated outputs not committed.
-9. Version remains 0.2.1.
+9. Version is bumped to 0.2.3.
 """
 
 import json
@@ -217,10 +217,10 @@ def test_output_not_tracked():
     assert len(tracked_outputs) == 0, f"outputs/ should not be tracked in git, found: {tracked_outputs}"
 
 
-def test_version_remains_021():
-    """Test that version remains 0.2.1 (no bump)."""
+def test_version_bumped_to_023():
+    """Test that version is bumped to 0.2.3."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.1", f"Version should be 0.2.1, got {jaxfne.__version__}"
+    assert jaxfne.__version__ == "0.2.3", f"Version should be 0.2.3, got {jaxfne.__version__}"
 
 
 def test_operator_status_simulated_proxy():
