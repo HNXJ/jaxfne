@@ -2,6 +2,29 @@
 
 Learn jaxfne by working through progressively detailed examples. Each tutorial builds on the previous one.
 
+## Notebook standard
+
+All tutorials follow the **[Colab notebook standard](notebook_standard.md)**. This standard ensures tutorials are:
+
+- Reproducible in fresh Colab environments (no local paths or dependencies)
+- CPU-safe (no GPU requirement)
+- Portable across platforms (nbconvert-compatible)
+- Properly cleared and version-verified before commit
+
+Start with the [notebook standard](notebook_standard.md) to understand the structure and validation guidelines used in all tutorials.
+
+## Tutorial stack
+
+The five-notebook tutorial progression teaches the source-to-field/readout workflow, from single-neuron models to multi-area laminar circuits:
+
+| Notebook | Topic | Focus | Version |
+|----------|-------|-------|---------|
+| **01** | Single neuron, multimodal | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
+| **02** | Two-neuron E/I | Coupling, recurrent dynamics | v0.2.9+ |
+| **03** | 100-neuron network | Population dynamics, stability | v0.2.10+ |
+| **04** | V1 six-layer column | Laminar anatomy, depth-specific readouts | v0.2.11+ |
+| **05** | V1-PFC dual column | Cross-area interaction, traveling waves | v0.2.14+ |
+
 ## Beginner tutorials
 
 **[Single-neuron multimodal](01_single_neuron_multimodal.md)**

@@ -40,6 +40,7 @@ nav:
 
   - Tutorials:
       - Overview: tutorials/index.md
+      - Notebook standard: tutorials/notebook_standard.md
       - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
       - Two-neuron E/I: tutorials/02_two_neuron_ei.md
       - 100-neuron E/I network: tutorials/03_network_100_ei.md
