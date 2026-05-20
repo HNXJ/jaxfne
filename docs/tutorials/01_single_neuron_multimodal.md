@@ -1,6 +1,15 @@
 # Single-neuron multimodal
 
-Build, simulate, and inspect a single Izhikevich neuron. Extract spikes, voltage, and readout metrics.
+Build, simulate, and inspect a single Izhikevich neuron with all eight proxy readouts.
+Extract spikes, voltage, field readouts, and reproducible output bundles.
+
+## Open as Colab notebook
+
+**Recommended:** Open the full interactive tutorial in Colab:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/notebooks/01_single_neuron_multimodal.ipynb)
+
+Or download and run locally: `notebooks/01_single_neuron_multimodal.ipynb`
 
 ## Setup
 
