@@ -17,9 +17,9 @@ theme:
     - search.highlight
     - content.code.copy
   palette:
-    - scheme: default
-      primary: teal
-      accent: teal
+    - scheme: slate
+      primary: amber
+      accent: gray
 
 markdown_extensions:
   - admonition
