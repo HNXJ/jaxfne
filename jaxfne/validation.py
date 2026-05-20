@@ -341,3 +341,161 @@ def build_field_admissibility_report(
     }
 
     return report
+
+
+# ─── v0.2.5 Calibration Specification and Reporting ──────────────────────────────
+
+
+class CalibrationSpec:
+    """Calibration specification contract for v0.2.5.
+
+    Allows users to declare calibration state without upgrading physical amplitude claims.
+    All proxy readouts remain computational proxies unless a workflow supplies full
+    calibration, geometry, and validation evidence.
+    """
+
+    ALLOWED_MODES = {
+        "uncalibrated_native",
+        "toy_scale",
+        "relative_normalized",
+        "empirical_gain_candidate",
+        "physical_units_candidate",
+        "calibrated_empirical",
+    }
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        target: str,
+        mode: str = "uncalibrated_native",
+        scale: float | None = None,
+        units: str | None = None,
+        reference: str | None = None,
+        description: str | None = None,
+    ):
+        """Initialize a calibration specification.
+
+        Parameters
+        ----------
+        name : str
+            Name of the calibration spec.
+        target : str
+            Target: 'source', 'field', 'probe', 'readout', or 'objective'.
+        mode : str, optional
+            Calibration mode. Default 'uncalibrated_native'.
+        scale : float, optional
+            Scale factor if applicable.
+        units : str, optional
+            Physical or proxy units.
+        reference : str, optional
+            Reference dataset, method, or publication.
+        description : str, optional
+            Human-readable description.
+
+        Raises
+        ------
+        ValueError
+            If mode is not in ALLOWED_MODES or target is empty.
+        """
+        if mode not in self.ALLOWED_MODES:
+            raise ValueError(
+                f"Invalid mode '{mode}'. Allowed: {self.ALLOWED_MODES}"
+            )
+        if not target:
+            raise ValueError("target must be a non-empty string")
+
+        self.name = str(name)
+        self.target = str(target)
+        self.mode = str(mode)
+        self.scale = float(scale) if scale is not None else None
+        self.units = str(units) if units is not None else None
+        self.reference = str(reference) if reference is not None else None
+        self.description = str(description) if description is not None else None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe representation of the calibration spec."""
+        return {
+            "name": self.name,
+            "target": self.target,
+            "mode": self.mode,
+            "scale": self.scale,
+            "units": self.units,
+            "reference": self.reference,
+            "description": self.description,
+        }
+
+
+def make_calibration_report(
+    spec: CalibrationSpec | dict,
+    *,
+    readout_kind: str | None = None,
+) -> dict[str, Any]:
+    """Create a calibration status report from a CalibrationSpec.
+
+    Parameters
+    ----------
+    spec : CalibrationSpec or dict
+        Calibration specification.
+    readout_kind : str, optional
+        Type of readout (e.g., 'lfp_proxy', 'spk', 'vm').
+
+    Returns
+    -------
+    dict
+        JSON-safe calibration report with status, claim levels, and warnings.
+    """
+    # Convert dict to CalibrationSpec if needed
+    if isinstance(spec, dict):
+        spec = CalibrationSpec(**spec)
+
+    mode = spec.mode
+    target = spec.target
+    has_scale = spec.scale is not None
+    has_units = spec.units is not None
+    has_reference = spec.reference is not None
+
+    # v0.2.5: Always keep physical_amplitude_claim_allowed false
+    # Empirical calibration is declared metadata only, not validated.
+    physical_amplitude_claim_allowed = False
+    calibration_claim_level = "computational_proxy_with_declared_metadata"
+
+    # Generate warnings for incomplete high-claim modes
+    warnings: list[str] = []
+    if mode == "calibrated_empirical":
+        if not (has_reference and has_units and has_scale and target):
+            warnings.append(
+                "calibrated_empirical mode requires reference, units, scale, and target; treating as metadata_declared_not_validated"
+            )
+        if not has_units:
+            warnings.append("calibrated_empirical missing units")
+        if not has_reference:
+            warnings.append("calibrated_empirical missing reference")
+        if not has_scale:
+            warnings.append("calibrated_empirical missing scale")
+
+    if mode in {"physical_units_candidate", "empirical_gain_candidate"}:
+        warnings.append(f"mode {mode} is candidate status, not validated")
+
+    return {
+        "calibration_name": spec.name,
+        "target": target,
+        "mode": mode,
+        "status": "metadata_declared",
+        "units": spec.units,
+        "scale": spec.scale,
+        "reference": spec.reference,
+        "description": spec.description,
+        "readout_kind": readout_kind,
+        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "calibration_claim_level": calibration_claim_level,
+        "empirical_reference_declared": has_reference,
+        "empirical_units_declared": has_units,
+        "empirical_scale_declared": has_scale,
+        "assumptions": [
+            "proxy readouts remain computational proxies in v0.2.5",
+            "empirical calibration metadata is declared but not validated",
+            "physical amplitude claims require separate calibration, geometry, and validation evidence",
+        ],
+        "warnings": warnings,
+    }

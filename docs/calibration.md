@@ -20,11 +20,81 @@ To prepare a workflow for calibration:
 3. **Collect reference data:** Identify empirical EEG/MEG/LFP/CSD for comparison
 4. **Validate:** Compare proxy readouts to empirical data; compute residuals and alignment metrics
 
-## Current status (v0.2.3)
+## Calibration Specification and Reporting (v0.2.5)
+
+jaxfne v0.2.5 introduces calibration specification and reporting contracts. These allow workflows to declare calibration state without changing the default proxy readout behavior.
+
+### CalibrationSpec
+
+Declare calibration intent with `CalibrationSpec`:
+
+```python
+from jaxfne.validation import CalibrationSpec, make_calibration_report
+
+# Declare uncalibrated proxy (default)
+spec = CalibrationSpec(
+    name="default_proxy",
+    target="readout"
+)
+
+# Declare toy calibration (illustrative, not validated)
+spec = CalibrationSpec(
+    name="toy_eeg_proxy",
+    target="readout",
+    mode="toy_scale",
+    scale=1.0,
+    units="proxy_V",
+    reference="toy_leadfield"
+)
+
+# Declare empirical calibration candidate (metadata declared, not validated in v0.2.5)
+spec = CalibrationSpec(
+    name="eeg_candidate",
+    target="readout",
+    mode="empirical_gain_candidate",
+    scale=2.5,
+    units="mV",
+    reference="pilot_recording_2024"
+)
+```
+
+### Supported Modes
+
+- `uncalibrated_native` — Proxy readout, no calibration (default)
+- `toy_scale` — Illustrative calibration, not validated
+- `relative_normalized` — Normalized relative to proxy baseline
+- `empirical_gain_candidate` — Candidate gain estimate, not validated
+- `physical_units_candidate` — Candidate physical units, not validated
+- `calibrated_empirical` — Calibration metadata declared (not validated in v0.2.5)
+
+### Calibration Reports
+
+Generate a calibration status report:
+
+```python
+report = make_calibration_report(spec, readout_kind="lfp_proxy")
+
+# report contains:
+# - calibration_name, target, mode, status
+# - units, scale, reference, description
+# - physical_amplitude_claim_allowed: false (always in v0.2.5)
+# - calibration_claim_level: computational_proxy_with_declared_metadata
+# - assumptions and warnings
+```
+
+### Important: v0.2.5 Behavior
+
+- **All proxy readouts remain computational proxies** by default
+- `physical_amplitude_claim_allowed` stays `false` for all modes in v0.2.5
+- Calibration metadata is declared for future validation, not validated now
+- Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
+
+## Current status (v0.2.3–v0.2.5)
 
 - ✓ Metadata fields support future calibration annotations
 - ✓ JSON output bundles preserve geometry and source information
-- ◐ Calibration example workflows: planned in v0.2.4–v0.2.5
+- ✓ Calibration specification contracts: v0.2.5 (metadata only, no physical amplitude upgrade)
+- ◐ Empirically validated calibration examples: v0.2.6–v0.2.7
 - ◐ Empirically calibrated readouts: v0.3.x and beyond
 
 ## Example: Declaring a calibration-ready workflow
