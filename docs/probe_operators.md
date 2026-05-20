@@ -8,7 +8,7 @@ The probe layer is a first-class component of the TFNE pipeline:
 Emitter → Source → Field → Probe → Objective → Optimizer
 ```
 
-Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration, truth gates, and assumptions.
+Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration, claim-status metadata, and assumptions.
 
 ## Operator Kinds
 
@@ -239,18 +239,18 @@ normalization: string_or_null
 
 ---
 
-## Truth Gates (Frozen in v0.2.x)
+## Claim-Status Metadata (Frozen in v0.2.x)
 
-All probe operators preserve these immutable gates:
+All probe operators preserve these immutable validation/claim-status fields:
 
-| Gate | Value |
-|------|-------|
+| Field | Value |
+|-------|-------|
 | `truth_mode` | `truth_safe_unverified` |
 | `claim_level` | `computational_scaffold` |
 | `field_claim_level` | `proxy_readout_only` |
 | `physical_amplitude_claim_allowed` | `False` |
 
-These gates mean:
+These fields declare:
 - **No biological mechanism validation.** The pipeline is a computational scaffold, not a model of real physiology.
 - **No calibrated amplitude claims.** Sources, fields, and readouts are proxy operators unless explicitly calibrated.
 - **No whole-brain simulation.** The field solver is a laminar proxy, not a full-brain PDE solution.

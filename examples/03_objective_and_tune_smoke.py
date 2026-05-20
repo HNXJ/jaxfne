@@ -113,7 +113,7 @@ def main():
         tuning=tune_report,
     )
 
-    print("\n=== Full manifest (truth gates) ===")
+    print("\n=== Full manifest (validation metadata) ===")
     print(f"  manifest_schema_version: {full_manifest['manifest_schema_version']!r}")
     print(f"  truth_mode: {full_manifest['truth_mode']!r}")
     print(f"  field_claim_level: {full_manifest['source_field_status']['field_claim_level']!r}")

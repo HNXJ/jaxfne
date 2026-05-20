@@ -16,7 +16,7 @@ Generates:
     ├── manifest.json                (model/field metadata)
     ├── metrics.json                 (windowed spectrolaminar metrics)
     ├── objective_report.json        (objective evaluation)
-    ├── validation_report.json       (truth gate audit)
+    ├── validation_report.json       (validation metadata audit)
     └── asset_hashes.json            (file integrity)
 """
 
@@ -191,6 +191,42 @@ def main():
 
     objective_report = model.evaluate(signals, obj)
 
+    # === 7.5. Multimodal probe operators (v0.2.1 contract) ===
+    # Apply all eight v0.2.1 proxy operators to generate standardized probe_report
+    from jaxfne.fields import (
+        spk_probe, vm_probe, source_probe,
+        csd_proxy_probe, lfp_proxy_probe,
+        eeg_proxy_probe, meg_proxy_probe, emm_proxy_probe
+    )
+
+    # Call all eight operators
+    spk_readout = spk_probe(signals.spikes)
+    vm_readout = vm_probe(signals.V_m)
+    source_readout = source_probe(signals.sources) if signals.sources is not None else None
+    lfp_readout = lfp_proxy_probe(signals.field.lfp) if signals.field is not None else None
+    csd_readout = csd_proxy_probe(signals.field.csd) if signals.field is not None else None
+    eeg_readout = eeg_proxy_probe(signals.field.lfp) if signals.field is not None else None
+    meg_readout = meg_proxy_probe(signals.field.lfp) if signals.field is not None else None
+    emm_readout = emm_proxy_probe(signals.field.lfp) if signals.field is not None else None
+
+    # Construct probe_report from all operators (include only successful readouts)
+    probe_report = {
+        "spk": spk_readout.report,
+        "vm": vm_readout.report,
+    }
+    if source_readout is not None:
+        probe_report["source"] = source_readout.report
+    if lfp_readout is not None:
+        probe_report["lfp_proxy"] = lfp_readout.report
+    if csd_readout is not None:
+        probe_report["csd_proxy"] = csd_readout.report
+    if eeg_readout is not None:
+        probe_report["eeg_proxy"] = eeg_readout.report
+    if meg_readout is not None:
+        probe_report["meg_proxy"] = meg_readout.report
+    if emm_readout is not None:
+        probe_report["emm_proxy"] = emm_readout.report
+
     # === 8. Manifest: full pipeline metadata ===
     manifest = model.manifest(signals=signals)
 
@@ -239,6 +275,7 @@ def main():
         "metrics.json": metrics,
         "objective_report.json": objective_report,
         "validation_report.json": validation_report,
+        "probe_report.json": probe_report,
     }
 
     # Asset hashes for integrity
