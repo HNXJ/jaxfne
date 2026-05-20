@@ -127,3 +127,6 @@ Thumbs.db
 .LSOverride
 *.localized
 .local_project_sources/
+
+# MkDocs
+site/

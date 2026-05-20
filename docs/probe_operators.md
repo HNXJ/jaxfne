@@ -279,7 +279,7 @@ Planned areas include:
 - **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they do not assert reproduction of the referenced datasets.
 - **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
 
-For the complete roadmap, see [docs/ROADMAP.md](docs/ROADMAP.md).
+For the complete roadmap, see [docs/ROADMAP.md](ROADMAP.md).
 
 **Beyond v0.2.x (v0.3.x and later):**
 - Receptor-level synaptic dynamics (synaptic current vs. native emitter state)
