@@ -287,7 +287,7 @@ def test_f_physical_amplitude_claim_false():
 
 
 def test_f_truth_gates_frozen():
-    """All operators preserve frozen truth gates."""
+    """All operators preserve frozen report metadata (no truth_mode in public reports)."""
     operators = [
         spk_probe(jnp.ones((10, 8))),
         vm_probe(jnp.ones((10, 8))),
@@ -300,8 +300,8 @@ def test_f_truth_gates_frozen():
     ]
     for readout in operators:
         report = readout.report
-        assert report.get("truth_mode") == "truth_safe_unverified"
-        assert report.get("claim_level") == "computational_scaffold"
+        # v0.2.12: truth_mode is internal only, not in public reports
+        assert "truth_mode" not in report, f"truth_mode should not be in public report: {report.keys()}"
         assert report.get("field_claim_level") == "proxy_readout_only"
         assert report.get("physical_amplitude_claim_allowed") is False
 

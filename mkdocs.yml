@@ -55,6 +55,11 @@ nav:
       - Calibration: calibration.md
       - Output bundles: output_bundles.md
 
+  - Developer skills:
+      - Overview: skills/README.md
+      - Repo orientation: skills/skill_repo_orientation.md
+      - Probe reports: skills/skill_probe_reports.md
+
   - API reference:
       - Overview: api/index.md
       - Core: api/core.md
