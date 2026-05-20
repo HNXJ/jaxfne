@@ -230,7 +230,7 @@ def main():
     # === 8. Manifest: full pipeline metadata ===
     manifest = model.manifest(signals=signals)
 
-    # === 9. Truth gate audit ===
+    # === 9. Validation metadata audit ===
     truth_gates = {
         "truth_mode": manifest.get("truth_mode"),
         "claim_level": manifest.get("claim_level"),
