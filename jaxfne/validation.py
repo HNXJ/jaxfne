@@ -729,3 +729,300 @@ def make_field_operator_status(
             "v0.2.6: no full PDE solver exists; all physical claims remain false",
         ],
     }
+
+
+# ─── v0.2.15 Poisson Admissibility Specification ────────────────────────────────
+
+
+def validate_poisson_spd_conductivity(
+    conductivity: Any,
+    tolerance: float = 1e-8,
+) -> tuple[bool, str]:
+    """Validate that conductivity tensor is Symmetric Positive Definite (SPD).
+
+    For future Poisson solver: conductivity must be SPD to ensure well-posedness
+    and unique solution existence.
+
+    Parameters
+    ----------
+    conductivity : Any
+        Conductivity tensor or matrix (any shape).
+    tolerance : float, optional
+        Tolerance for negative eigenvalues (default 1e-8).
+
+    Returns
+    -------
+    tuple[bool, str]
+        (is_spd, diagnostic_message)
+    """
+    try:
+        cond_np = _to_numpy(conductivity)
+        if cond_np.ndim == 0:
+            return False, "conductivity is scalar; requires matrix/tensor"
+
+        # Check symmetry (for square matrices)
+        if cond_np.ndim >= 2 and cond_np.shape[-2] == cond_np.shape[-1]:
+            sym_err = np.linalg.norm(cond_np - cond_np.T) / (
+                np.linalg.norm(cond_np) + 1e-16
+            )
+            if sym_err > tolerance:
+                return False, f"conductivity not symmetric; relative error {sym_err:.2e}"
+
+        # Check positive definiteness (compute eigenvalues)
+        evals = np.linalg.eigvalsh(cond_np)
+        min_eval = float(np.min(evals))
+        if min_eval < -tolerance:
+            return False, f"conductivity not positive definite; min eigenvalue {min_eval:.2e}"
+
+        return True, f"SPD verified; min eigenvalue {min_eval:.2e}"
+    except Exception as e:
+        return False, f"SPD check failed: {str(e)}"
+
+
+def validate_poisson_source_conservation(
+    integrated_source: Optional[float],
+    integrated_boundary_flux: Optional[float],
+    tolerance: float = 1e-6,
+) -> tuple[bool, str, Optional[float]]:
+    """Validate source conservation: source integral + boundary flux integral ≈ 0.
+
+    For future Poisson solver: integrated source must equal negative integrated
+    boundary flux (within tolerance) for charge/current conservation.
+
+    Mathematical form: ∫ I_src = -∫ σ ∇φ_e · n̂ (by divergence theorem)
+    Or equivalently: ∫ I_src + ∫ σ ∇φ_e · n̂ = 0
+
+    Parameters
+    ----------
+    integrated_source : float or None
+        Integral of source/sink over domain.
+    integrated_boundary_flux : float or None
+        Integral of normal flux over boundary (≈ ∫ σ ∇φ_e · n̂).
+    tolerance : float, optional
+        Absolute tolerance for residual (default 1e-6).
+
+    Returns
+    -------
+    tuple[bool, str, float or None]
+        (is_conserved, diagnostic_message, residual)
+    """
+    if integrated_source is None or integrated_boundary_flux is None:
+        return True, "source conservation: not tested (data not available)", None
+
+    try:
+        src_val = float(integrated_source)
+        flux_val = float(integrated_boundary_flux)
+        # Conservation: source + flux = 0 (flux already includes the negative)
+        residual = abs(src_val + flux_val)
+
+        if residual > tolerance:
+            return (
+                False,
+                f"source not conserved; residual {residual:.2e} > tol {tolerance:.2e}",
+                residual,
+            )
+
+        return True, f"source conserved; residual {residual:.2e}", residual
+    except Exception as e:
+        return False, f"conservation check failed: {str(e)}", None
+
+
+def validate_poisson_gauge_condition(
+    mean_potential: Optional[float],
+    gauge: str = "mean_zero",
+    tolerance: float = 1e-6,
+) -> tuple[bool, str]:
+    """Validate gauge condition (e.g., mean-zero potential).
+
+    For future Poisson solver with mean-zero gauge: mean(phi_e) should be ≈ 0.
+
+    Parameters
+    ----------
+    mean_potential : float or None
+        Mean of potential field over domain.
+    gauge : str, optional
+        Gauge type ('mean_zero', 'other'). Default 'mean_zero'.
+    tolerance : float, optional
+        Tolerance for mean potential (default 1e-6).
+
+    Returns
+    -------
+    tuple[bool, str]
+        (gauge_satisfied, diagnostic_message)
+    """
+    if mean_potential is None:
+        return True, f"gauge ({gauge}): not tested (data not available)"
+
+    try:
+        mean_val = float(mean_potential)
+
+        if gauge == "mean_zero":
+            if abs(mean_val) > tolerance:
+                return False, f"gauge {gauge} violated; |mean(phi_e)| {abs(mean_val):.2e} > tol"
+            return True, f"gauge {gauge} satisfied; |mean(phi_e)| {abs(mean_val):.2e}"
+        else:
+            return True, f"gauge {gauge}: validation not implemented yet"
+    except Exception as e:
+        return False, f"gauge check failed: {str(e)}"
+
+
+def validate_poisson_field_arrays(
+    phi_e: Optional[Any] = None,
+    J_e: Optional[Any] = None,
+    CSD: Optional[Any] = None,
+) -> dict[str, bool]:
+    """Validate finiteness of Poisson field solution arrays.
+
+    All outputs must be finite (no NaN, no Inf) for valid solver output.
+
+    Parameters
+    ----------
+    phi_e : Any, optional
+        Extracellular potential field.
+    J_e : Any, optional
+        Extracellular current density.
+    CSD : Any, optional
+        Current source density.
+
+    Returns
+    -------
+    dict[str, bool]
+        Finiteness status for each array.
+    """
+    results = {}
+
+    if phi_e is not None:
+        phi_np = _to_numpy(phi_e)
+        results["finite_phi_e"] = bool(np.all(np.isfinite(phi_np)))
+    else:
+        results["finite_phi_e"] = True  # Not provided
+
+    if J_e is not None:
+        J_np = _to_numpy(J_e)
+        results["finite_J_e"] = bool(np.all(np.isfinite(J_np)))
+    else:
+        results["finite_J_e"] = True  # Not provided
+
+    if CSD is not None:
+        csd_np = _to_numpy(CSD)
+        results["finite_CSD"] = bool(np.all(np.isfinite(csd_np)))
+    else:
+        results["finite_CSD"] = True  # Not provided
+
+    return results
+
+
+def build_poisson_admissibility_report(
+    *,
+    conductivity: Optional[Any] = None,
+    integrated_source: Optional[float] = None,
+    integrated_boundary_flux: Optional[float] = None,
+    mean_potential: Optional[float] = None,
+    phi_e: Optional[Any] = None,
+    J_e: Optional[Any] = None,
+    CSD: Optional[Any] = None,
+    solver_residual_l2: Optional[float] = None,
+    n_iterations: Optional[int] = None,
+    converged: bool = False,
+    gauge: str = "mean_zero",
+    boundary_condition: str = "dirichlet",
+    csd_sign_convention: str = "positive_equals_extracellular_source",
+) -> dict[str, Any]:
+    """Build comprehensive Poisson solver admissibility report for v0.2.15+.
+
+    This report contract specifies what a Poisson solver must output to be
+    admissible. Used for validating solver implementations before integration.
+
+    Parameters
+    ----------
+    conductivity : Any, optional
+        Conductivity tensor/matrix.
+    integrated_source : float, optional
+        Integral of source over domain.
+    integrated_boundary_flux : float, optional
+        Integral of boundary flux.
+    mean_potential : float, optional
+        Mean of potential field.
+    phi_e : Any, optional
+        Extracellular potential field.
+    J_e : Any, optional
+        Extracellular current density.
+    CSD : Any, optional
+        Current source density.
+    solver_residual_l2 : float, optional
+        Relative L2 residual of solution.
+    n_iterations : int, optional
+        Number of solver iterations.
+    converged : bool, optional
+        Whether solver converged (default False).
+    gauge : str, optional
+        Gauge condition applied (default 'mean_zero').
+    boundary_condition : str, optional
+        Boundary condition type (default 'dirichlet').
+    csd_sign_convention : str, optional
+        CSD sign convention (default 'positive_equals_extracellular_source').
+
+    Returns
+    -------
+    dict
+        JSON-safe Poisson admissibility report with validation results.
+    """
+    # Check SPD conductivity
+    cond_spd, cond_msg = validate_poisson_spd_conductivity(conductivity)
+
+    # Check source conservation
+    cons_ok, cons_msg, cons_residual = validate_poisson_source_conservation(
+        integrated_source, integrated_boundary_flux
+    )
+
+    # Check gauge
+    gauge_ok, gauge_msg = validate_poisson_gauge_condition(
+        mean_potential, gauge=gauge
+    )
+
+    # Check field arrays finiteness
+    field_finite = validate_poisson_field_arrays(phi_e=phi_e, J_e=J_e, CSD=CSD)
+
+    # All gates passed?
+    all_gates_pass = cond_spd and cons_ok and gauge_ok and all(field_finite.values())
+
+    return {
+        "diagnostic_kind": "poisson_admissibility",
+        "admissibility_status": "admissible" if all_gates_pass else "not_admissible",
+        "gates": {
+            "conductivity_spd": {
+                "passed": cond_spd,
+                "message": cond_msg,
+            },
+            "source_conservation": {
+                "passed": cons_ok,
+                "message": cons_msg,
+                "residual": cons_residual,
+            },
+            "gauge_condition": {
+                "passed": gauge_ok,
+                "message": gauge_msg,
+                "gauge": gauge,
+            },
+            "field_finiteness": {
+                "passed": all(field_finite.values()),
+                "phi_e_finite": field_finite.get("finite_phi_e", True),
+                "J_e_finite": field_finite.get("finite_J_e", True),
+                "CSD_finite": field_finite.get("finite_CSD", True),
+            },
+        },
+        "solver_metadata": {
+            "solver_residual_l2_relative": solver_residual_l2,
+            "n_iterations": n_iterations,
+            "converged": converged,
+            "boundary_condition": boundary_condition,
+            "gauge": gauge,
+            "csd_sign_convention": csd_sign_convention,
+        },
+        "physical_amplitude_claim_allowed": all_gates_pass,  # Only if all gates pass
+        "v0215_note": (
+            "Admissibility report for Poisson solver specification. "
+            "All gates must pass for solver output to be admitted to physical field modeling. "
+            "v0.2.16+: Poisson solver implementation will use this report contract."
+        ),
+    }
