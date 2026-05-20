@@ -1,0 +1,74 @@
+site_name: jaxfne
+site_description: JAX-native TFNE scaffold for multimodal source-to-field/readout workflows
+site_url: https://jaxfne.readthedocs.io/
+
+repo_url: https://github.com/HNXJ/jaxfne
+repo_name: HNXJ/jaxfne
+
+docs_dir: docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: slate
+      primary: orange
+      accent: gray
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Getting started:
+      - Welcome: index.md
+      - Installation: install.md
+      - Quickstart: quickstart.md
+      - FAQ: faq.md
+
+  - Tutorials:
+      - Overview: tutorials/index.md
+      - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
+      - Two-neuron E/I: tutorials/02_two_neuron_ei.md
+      - 100-neuron E/I network: tutorials/03_network_100_ei.md
+      - V1 six-layer column: tutorials/04_v1_column.md
+      - V1-PFC dual column: tutorials/05_v1_pfc_dual_column.md
+
+  - Guides:
+      - Overview: guides/index.md
+      - Probe operators: probe_operators.md
+      - Tensor-field workflows: tensor_field_workflows.md
+      - Jaxley interoperability: jaxley_interop.md
+      - Calibration: calibration.md
+      - Output bundles: output_bundles.md
+
+  - API reference:
+      - Overview: api/index.md
+      - Core: api/core.md
+      - Emitters: api/emitters.md
+      - Fields: api/fields.md
+      - Probes: api/probes.md
+      - Objectives: api/objectives.md
+      - Validation: api/validation.md
+
+  - About jaxfne:
+      - Scope and limitations: scope_and_limitations.md
+      - Changelog: changelog.md
+      - Citation: citation.md
+      - Contributing: contributing.md
+      - Releases:
+          - v0.2.3: releases/v0.2.3.md
+          - v0.2.1: releases/v0.2.1.md
+          - v0.2.0: releases/v0.2.0.md

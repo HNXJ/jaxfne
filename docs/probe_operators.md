@@ -128,10 +128,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**Forbidden in v0.2.1 docs/reports unless backed by real model evidence:**
-- `real EEG`
-- `validated EEG`
-- `sensor-level EEG amplitude`
+**v0.2.1 scope:** All EEG readouts are computational proxies. Claims of empirical equivalence to physical measurements require separate calibration, validation datasets, and explicit evidence.
 
 **v0.2.1 status:** Simulated EEG-proxy readout; not validated against real data.
 
@@ -157,10 +154,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**Forbidden in v0.2.1 docs/reports unless backed by real model evidence:**
-- `real MEG`
-- `validated MEG`
-- `sensor-level MEG field strength`
+**v0.2.1 scope:** All MEG readouts are computational proxies. Claims of empirical equivalence to physical measurements require separate calibration, validation datasets, and explicit evidence.
 
 **v0.2.1 status:** Simulated MEG-proxy readout; not validated against real data.
 
@@ -203,60 +197,6 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 ---
 
-## Common Report Contract
-
-Every probe operator returns a JSON-safe report with these fields:
-
-```yaml
-name: string (operator name)
-kind: string (spk | vm | source | lfp_proxy | csd_proxy | eeg_proxy | meg_proxy | emm_proxy)
-operator_status: simulated_proxy | physical_forward_model | calibrated_empirical
-method: string
-data_shape: string (shape of output data)
-units_or_status: string
-calibration_status: string
-truth_mode: truth_safe_unverified
-claim_level: computational_scaffold
-source_calibration_status: string
-source_projection_mode: string
-source_decomposition: string
-field_solver_status: string
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
-assumptions: list[string]
-```
-
-Optional fields (when applicable):
-
-```yaml
-leadfield_status: toy_or_declared_proxy | physical_forward_model | not_applicable
-sensor_geometry_status: simulated_minimal | declared_geometry | not_applicable
-orientation_convention: string_or_null
-CSD_sign_convention: string_or_null
-contact_depths_or_layers: list_or_null
-normalization: string_or_null
-```
-
----
-
-## Claim-Status Metadata (Frozen in v0.2.x)
-
-All probe operators preserve these immutable validation/claim-status fields:
-
-| Field | Value |
-|-------|-------|
-| `truth_mode` | `truth_safe_unverified` |
-| `claim_level` | `computational_scaffold` |
-| `field_claim_level` | `proxy_readout_only` |
-| `physical_amplitude_claim_allowed` | `False` |
-
-These fields declare:
-- **No biological mechanism validation.** The pipeline is a computational scaffold, not a model of real physiology.
-- **No calibrated amplitude claims.** Sources, fields, and readouts are proxy operators unless explicitly calibrated.
-- **No whole-brain simulation.** The field solver is a laminar proxy, not a full-brain PDE solution.
-
----
-
 ## Current Status: v0.2.1 Simulated / Proxy
 
 All eight operators in v0.2.1 are simulated or proxy readouts:
@@ -268,22 +208,31 @@ All eight operators in v0.2.1 are simulated or proxy readouts:
 | source | Simulated source proxy | From emitter native state or declared mode |
 | LFP-proxy | Laminar proxy readout | Point sample or contact average; no PDE |
 | CSD-proxy | Laminar proxy readout | Second derivative or divergence proxy; no PDE |
-| EEG-proxy | Simulated linear projection | Toy leadfield; not validated against real EEG |
-| MEG-proxy | Simulated linear projection | Toy leadfield; not validated against real MEG |
+| EEG-proxy | Simulated linear projection | Proxy implementation; validation against empirical data pending |
+| MEG-proxy | Simulated linear projection | Proxy implementation; validation against empirical data pending |
 | EMM-proxy | Normalized cost proxy | Relative metric for optimization; not biological metabolism |
 
 ---
 
-## Future Path to Calibrated/Physical Operators
+## Future Path
 
-**v0.2.x → v0.3.x:**
+The v0.2.x line preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.
+
+Planned areas include:
+- **v0.2.4–v0.2.6:** field/proxy mathematics and admissibility diagnostics
+- **v0.2.5 and v0.2.17:** calibration specification and reporting workflows
+- **v0.2.7–v0.2.15:** Colab-ready tutorial stack and tutorial smoke tests
+- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they do not assert reproduction of the referenced datasets.
+- **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
+
+Calibration workflows and advanced tutorials are developed in the docs and examples.
+
+**Beyond v0.2.x (v0.3.x and later):**
 - Receptor-level synaptic dynamics (synaptic current vs. native emitter state)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
 - Optional full-PDE field solver (resistive/impedance forward model)
-
-**v0.3.x → v0.4.x+ (longer term):**
-- Empirically calibrated LFP/CSD read out with validated sign conventions
+- Empirically calibrated LFP/CSD readouts with validated sign conventions
 - Real MEG/EEG leadfields from head model (not toy projection)
 - Whole-brain connectivity integrated with laminar columns
 - Plasticity and learning rules with evidence-backed parameters
@@ -316,13 +265,12 @@ print(emm_readout.report)
 
 ## Terminology Notes
 
-- Use `*-proxy` to denote declared computational operators, not `*-like` informal analogy.
-- `LFP-proxy`, `CSD-proxy`, `EEG-proxy`, `MEG-proxy` are the canonical public labels in v0.2.1+.
-- Avoid `real EEG`, `real MEG`, `validated EEG`, `validated MEG`, `biological metabolism` unless backed by empirical evidence.
-- All operators are "simulated" or "proxy" in v0.2.x, making the computational intent clear.
+- Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels in v0.2.1+.
+- This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
+- All operators are "simulated" or "proxy" in v0.2.x. Claims of physical equivalence require separate calibration and validation evidence.
+- EMM-proxy is valid for relative within-run comparisons; it does not represent biological metabolism in v0.2.x.
 
 ---
 
 **Document version:** v0.2.1  
-**Truth mode:** truth_safe_unverified  
-**Last updated:** 2026-05-19
+**Last updated:** 2026-05-20

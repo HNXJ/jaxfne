@@ -139,23 +139,27 @@ field_claim_level = proxy_readout_only
 
 This is the intended basis for practical laminar spectrolaminar proxy simulations.
 
-## Scientific scope
+## Scope and capabilities
 
-`jaxfne` is a computational-biophysics scaffold for constructing, testing, and reporting TFNE source-to-field/readout models under explicit assumptions.
+`jaxfne` is designed for building and testing source-to-field/readout workflows on CPU-first infrastructure.
 
-All runs carry metadata describing execution status:
+Typical uses:
 
-```text
-truth_mode: truth_safe_unverified
-claim_level: computational_scaffold
-source_calibration_status: uncalibrated_izhikevich_native_current
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
-```
+- Reproducible proxy simulations with local-global organization
+- Source/readout bookkeeping and JSON-safe output bundles
+- Objective scaffolds and optimization experiments
+- Performance benchmarking with deterministic PRNG
+- Integration with Jaxley-style models and other JAX workflows
 
-Practical use: reproducible proxy simulations, source/readout bookkeeping, objective scaffolds, performance benchmarking, and manifest-driven model comparison.
+**Default readouts are computational proxies.** Physical-unit EEG/MEG/LFP/CSD workflows require appropriate geometry, calibration, and validation for the intended use. See [Scope and limitations](docs/scope_and_limitations.md) for details.
 
-Physical-amplitude CSD/LFP claims and mechanism-level interpretation are reserved for models with empirical calibration, validation datasets, nulls, and ablations.
+## Documentation
+
+Full documentation, tutorials, guides, and API reference are available at:
+
+**[jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/)**
+
+Or in the `docs/` directory of the repository.
 
 ## Package layout
 
