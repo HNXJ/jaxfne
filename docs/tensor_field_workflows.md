@@ -82,6 +82,46 @@ readouts = model.compute_readout(signals, [
 manifest = model.manifest(signals, readouts)
 ```
 
+## Mathematical notation
+
+The source-to-field-to-probe pipeline uses standardized operator notation:
+
+### Source tensor construction
+
+$$\mathbf{S}(t) \in \mathbb{R}^{T \times N} \quad \text{or} \quad \mathbf{S}(t,\ell) \in \mathbb{R}^{T \times N \times L}$$
+
+Source tensor from emitter: $T$ time steps, $N$ neurons, optional $L$ layers/depths.
+
+### Source-to-field proxy projection
+
+$$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
+
+Potential at contact $c$ via row-normalized kernel $W$:
+
+$$\sum_{n=1}^{N} W_{cn} = 1 \quad \forall c$$
+
+No PDE solve; purely declarative projection matrix.
+
+### Row-normalized Gaussian kernel (example)
+
+$$W_{cn} = \frac{\exp\left(-\frac{\|z_c - z_n\|^2}{2\sigma^2}\right)}{\sum_{k=1}^{N} \exp\left(-\frac{\|z_c - z_k\|^2}{2\sigma^2}\right)}$$
+
+Kernel centered at contact depth $z_c$, localized by $\sigma$. Normalization enforces row sum = 1.
+
+### Field-to-probe readout (generic operator form)
+
+$$Y_j(t) = \mathcal{O}_j[\phi_{\mathrm{proxy}}, \mathbf{S}, \ldots](t)$$
+
+Generic probe operator $\mathcal{O}_j$ applies to field potential, source, or both.
+
+### JSON-safe report sidecar
+
+$$\mathcal{R} = \{\mathrm{field\_solver\_status}, \mathrm{gauge}, \mathrm{boundary\_condition}, \mathrm{csd\_sign\_convention}, \ldots\}$$
+
+Report declares solver path (proxy vs. physical), convergence status, and claim constraints.
+
+---
+
 ## Field/proxy diagnostics (v0.2.6+)
 
 jaxfne distinguishes between proxy readout paths and future physical solver paths using field diagnostics:
