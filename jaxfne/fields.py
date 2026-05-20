@@ -67,6 +67,23 @@ def _row_normalize(kernel: jax.Array, eps: float = 1e-8) -> jax.Array:
     return kernel / (jnp.sum(kernel, axis=1, keepdims=True) + eps)
 
 
+def _test_kernel_row_normalization(kernel: jax.Array, tol: float = 1e-6) -> dict[str, bool | float]:
+    """Test that kernel is row-stochastic (rows sum to 1.0).
+
+    Returns diagnostics dict with row normalization validation results.
+    """
+    row_sums = jnp.sum(kernel, axis=1)
+    max_abs_error = float(jnp.max(jnp.abs(row_sums - 1.0)))
+    is_valid = max_abs_error < tol
+
+    return {
+        "kernel_row_normalization_valid": is_valid,
+        "kernel_row_sum_max_abs_error": max_abs_error,
+        "kernel_row_sum_tolerance": tol,
+        "kernel_row_stochastic_valid": is_valid,
+    }
+
+
 def project_laminar_sources(
     sources: jax.Array,
     positions: jax.Array,
@@ -128,12 +145,15 @@ def project_laminar_sources(
         {
             "field_solver_status": "laminar_proxy_no_pde",
             "field_solver": "laminar_proxy_no_pde",
+            "source_projection_status": "contact_row_normalized_proxy",
             "source_projection_mode": "proxy_no_field_solve",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_decomposition": "proxy_reduced_emitter",
             "CSD_sign_convention": "proxy_positive_equals_extracellular_source_like",
             "physical_amplitude_claim_allowed": False,
             "field_claim_level": "proxy_readout_only",
+            "source_conservation_tested": False,
+            "source_conservation_claim_allowed": False,
         }
     )
     return FieldOutput(
@@ -172,10 +192,13 @@ def validate_projection_invariants(
     """Return source/probe invariant diagnostics for the laminar proxy layer.
 
     v0.2.0: Includes field admissibility checks (finiteness, kernel normalization).
+    v0.2.4: Explicit source conservation and projection status diagnostics.
     """
 
-    kernel_row_sums = jnp.sum(kernel, axis=1)
-    kernel_row_sum_max_abs_error = jnp.max(jnp.abs(kernel_row_sums - 1.0))
+    # v0.2.4: Test kernel row normalization explicitly
+    kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)
+    kernel_row_sum_max_abs_error = kernel_norm_tests["kernel_row_sum_max_abs_error"]
+
     t_steps = int(sources.shape[0])
     n_emitters = int(sources.shape[1])
     n_contacts = int(kernel.shape[0])
@@ -209,7 +232,7 @@ def validate_projection_invariants(
         # Compatibility keys for old status code.
         "finite_phi_e": _finite_bool(phi_e_proxy),
         "finite_CSD": _finite_bool(csd_proxy),
-        # v0.2.0/v0.2.2: Field admissibility and proxy status
+        # v0.2.0/v0.2.2/v0.2.4: Field admissibility and proxy status
         "field_admissibility": {
             "field_arrays_finite": {
                 "phi_e_finite": _finite_bool(phi_e_proxy),
@@ -223,8 +246,13 @@ def validate_projection_invariants(
             "kernel_row_stochastic_valid": float(kernel_row_sum_max_abs_error) < 1e-6,
             "kernel_normalization_definition": "contact_rows_sum_to_one_proxy",
             "source_current_conservation_status": "not_applicable_proxy_mode",
+            "source_current_conservation_test": "not_applicable_proxy_mode",
             "boundary_condition_status": "declared_metadata_only",
             "gauge_status": "declared_metadata_only",
+            # v0.2.4: Explicit kernel normalization diagnostics
+            "kernel_row_normalization_valid": kernel_norm_tests["kernel_row_normalization_valid"],
+            "kernel_row_sum_max_abs_error_v024": kernel_norm_tests["kernel_row_sum_max_abs_error"],
+            "kernel_row_sum_tolerance_v024": kernel_norm_tests["kernel_row_sum_tolerance"],
         },
         "warnings": warnings,
     }
