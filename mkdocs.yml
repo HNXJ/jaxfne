@@ -58,6 +58,7 @@ nav:
   - API reference:
       - Overview: api/index.md
       - Core: api/core.md
+      - Runtime: api/runtime.md
       - Emitters: api/emitters.md
       - Fields: api/fields.md
       - Probes: api/probes.md
