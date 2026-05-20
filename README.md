@@ -157,6 +157,20 @@ Practical use: reproducible proxy simulations, source/readout bookkeeping, objec
 
 Physical-amplitude CSD/LFP claims and mechanism-level interpretation are reserved for models with empirical calibration, validation datasets, nulls, and ablations.
 
+## Roadmap
+
+**Current release:** v0.2.3
+
+The v0.2.x line develops jaxfne as a compact JAX-native TFNE scaffold for multimodal source-to-field/readout workflows. The next phases focus on:
+
+1. **Field/proxy mathematics and admissibility diagnostics** — clearer source-field contracts, source-conservation diagnostics, and field-solver metadata.
+2. **Calibration specification and reporting** — explicit calibration specifications and reports for future empirical or physical-unit workflows.
+3. **Colab-ready multimodal tutorials** — single-neuron, two-neuron E/I, 100-neuron E/I network, V1 six-layer column, and V1-PFC dual-column tutorials.
+
+For the detailed public roadmap, see [docs/ROADMAP.md](docs/ROADMAP.md).
+
+Default v0.2.x readouts are proxy readouts unless a run supplies calibration, source-conservation, geometry, and solver evidence sufficient for stronger physical claims.
+
 ## Package layout
 
 ```text
