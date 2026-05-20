@@ -193,7 +193,6 @@ def test_validation_metadata_frozen():
         validation = json.load(f)
 
     expected_fields = {
-        "claim_level": "computational_scaffold",
         "field_claim_level": "proxy_readout_only",
         "field_solver_status": "laminar_proxy_no_pde",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -254,7 +253,6 @@ def test_probe_report_structure():
         "units_or_status",
         "method",
         "assumptions",
-        "claim_level",
         "physical_amplitude_claim_allowed",
     ]
 

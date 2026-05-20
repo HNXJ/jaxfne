@@ -149,7 +149,7 @@ def project_laminar_sources(
             "source_projection_mode": "proxy_no_field_solve",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_decomposition": "proxy_reduced_emitter",
-            "CSD_sign_convention": "proxy_positive_equals_extracellular_source_like",
+            "CSD_sign_convention": "positive_equals_extracellular_source",
             "physical_amplitude_claim_allowed": False,
             "field_claim_level": "proxy_readout_only",
             "source_conservation_tested": False,
@@ -319,7 +319,7 @@ def validate_source_field_status(
         "boundary_condition": metadata.get("boundary_condition", "mean_zero_neumann"),
         "gauge": metadata.get("gauge", "mean_zero"),
         "csd_sign_convention": metadata.get(
-            "csd_sign_convention", "proxy_positive_equals_extracellular_source_like"
+            "csd_sign_convention", "positive_equals_extracellular_source"
         ),
         "field_solver_status": field_solver_status,
         "field_claim_level": field_claim_level,
@@ -422,8 +422,6 @@ def _make_probe_report(
         "data_shape": str(data_shape) if data_shape is not None else "unknown",
         "units_or_status": units_or_status,
         "calibration_status": calibration_status,
-        "truth_mode": "truth_safe_unverified",
-        "claim_level": "computational_scaffold",
         "source_calibration_status": source_calibration_status,
         "source_projection_mode": source_projection_mode,
         "source_decomposition": source_decomposition,
