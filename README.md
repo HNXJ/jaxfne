@@ -122,7 +122,7 @@ for result in readouts:
 - native stimulus / drive schedules;
 - laminar source geometry metadata;
 - source proxy traces;
-- LFP-like and CSD-like laminar proxy readouts;
+- LFP-proxy and CSD-proxy laminar readouts;
 - readout specifications;
 - objective reports;
 - run receipts;
