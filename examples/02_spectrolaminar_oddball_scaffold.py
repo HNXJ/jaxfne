@@ -16,7 +16,7 @@ Generates:
     ├── manifest.json                (model/field metadata)
     ├── metrics.json                 (windowed spectrolaminar metrics)
     ├── objective_report.json        (objective evaluation)
-    ├── validation_report.json       (truth gate audit)
+    ├── validation_report.json       (validation metadata audit)
     └── asset_hashes.json            (file integrity)
 """
 
