@@ -197,60 +197,6 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 ---
 
-## Common Report Contract
-
-Every probe operator returns a JSON-safe report with these fields:
-
-```yaml
-name: string (operator name)
-kind: string (spk | vm | source | lfp_proxy | csd_proxy | eeg_proxy | meg_proxy | emm_proxy)
-operator_status: simulated_proxy | physical_forward_model | calibrated_empirical
-method: string
-data_shape: string (shape of output data)
-units_or_status: string
-calibration_status: string
-truth_mode: truth_safe_unverified
-claim_level: computational_scaffold
-source_calibration_status: string
-source_projection_mode: string
-source_decomposition: string
-field_solver_status: string
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
-assumptions: list[string]
-```
-
-Optional fields (when applicable):
-
-```yaml
-leadfield_status: toy_or_declared_proxy | physical_forward_model | not_applicable
-sensor_geometry_status: simulated_minimal | declared_geometry | not_applicable
-orientation_convention: string_or_null
-CSD_sign_convention: string_or_null
-contact_depths_or_layers: list_or_null
-normalization: string_or_null
-```
-
----
-
-## Claim-Status Metadata (Frozen in v0.2.x)
-
-All probe operators preserve these immutable validation/claim-status fields:
-
-| Field | Value |
-|-------|-------|
-| `truth_mode` | `truth_safe_unverified` |
-| `claim_level` | `computational_scaffold` |
-| `field_claim_level` | `proxy_readout_only` |
-| `physical_amplitude_claim_allowed` | `False` |
-
-These fields declare:
-- **No biological mechanism validation.** The pipeline is a computational scaffold, not a model of real physiology.
-- **No calibrated amplitude claims.** Sources, fields, and readouts are proxy operators unless explicitly calibrated.
-- **No whole-brain simulation.** The field solver is a laminar proxy, not a full-brain PDE solution.
-
----
-
 ## Current Status: v0.2.1 Simulated / Proxy
 
 All eight operators in v0.2.1 are simulated or proxy readouts:
@@ -279,7 +225,7 @@ Planned areas include:
 - **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they do not assert reproduction of the referenced datasets.
 - **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
 
-For the complete roadmap, see [docs/ROADMAP.md](ROADMAP.md).
+Calibration workflows and advanced tutorials are developed in the docs and examples.
 
 **Beyond v0.2.x (v0.3.x and later):**
 - Receptor-level synaptic dynamics (synaptic current vs. native emitter state)
@@ -327,5 +273,4 @@ print(emm_readout.report)
 ---
 
 **Document version:** v0.2.1  
-**Truth mode:** truth_safe_unverified  
-**Last updated:** 2026-05-19
+**Last updated:** 2026-05-20

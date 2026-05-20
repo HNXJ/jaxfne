@@ -50,7 +50,7 @@ All outputs declare their scope: **proxy readouts with conservative claim-status
 ## Next steps
 
 - See [Probe Operators](probe_operators.md) for all available readout channels
-- Read [Roadmap](ROADMAP.md) for v0.2.4–v0.2.21 phases
+- Explore [Guides](guides/index.md) for advanced workflows and calibration
 - Explore `examples/` in the repository for complete tutorials
 
 ## Validation

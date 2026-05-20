@@ -139,37 +139,27 @@ field_claim_level = proxy_readout_only
 
 This is the intended basis for practical laminar spectrolaminar proxy simulations.
 
-## Scientific scope
+## Scope and capabilities
 
-`jaxfne` is a computational-biophysics scaffold for constructing, testing, and reporting TFNE source-to-field/readout models under explicit assumptions.
+`jaxfne` is designed for building and testing source-to-field/readout workflows on CPU-first infrastructure.
 
-All runs carry metadata describing execution status:
+Typical uses:
 
-```text
-truth_mode: truth_safe_unverified
-claim_level: computational_scaffold
-source_calibration_status: uncalibrated_izhikevich_native_current
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
-```
+- Reproducible proxy simulations with local-global organization
+- Source/readout bookkeeping and JSON-safe output bundles
+- Objective scaffolds and optimization experiments
+- Performance benchmarking with deterministic PRNG
+- Integration with Jaxley-style models and other JAX workflows
 
-Practical use: reproducible proxy simulations, source/readout bookkeeping, objective scaffolds, performance benchmarking, and manifest-driven model comparison.
+**Default readouts are computational proxies.** Physical-unit EEG/MEG/LFP/CSD workflows require appropriate geometry, calibration, and validation for the intended use. See [Scope and limitations](docs/scope_and_limitations.md) for details.
 
-Physical-amplitude CSD/LFP claims and mechanism-level interpretation are reserved for models with empirical calibration, validation datasets, nulls, and ablations.
+## Documentation
 
-## Roadmap
+Full documentation, tutorials, guides, and API reference are available at:
 
-**Current release:** v0.2.3
+**[jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/)**
 
-The v0.2.x line develops jaxfne as a compact JAX-native TFNE scaffold for multimodal source-to-field/readout workflows. The next phases focus on:
-
-1. **Field/proxy mathematics and admissibility diagnostics** — clearer source-field contracts, source-conservation diagnostics, and field-solver metadata.
-2. **Calibration specification and reporting** — explicit calibration specifications and reports for future empirical or physical-unit workflows.
-3. **Colab-ready multimodal tutorials** — single-neuron, two-neuron E/I, 100-neuron E/I network, V1 six-layer column, and V1-PFC dual-column tutorials.
-
-For the detailed public roadmap, see [docs/ROADMAP.md](docs/ROADMAP.md).
-
-Default v0.2.x readouts are proxy readouts unless a run supplies calibration, source-conservation, geometry, and solver evidence sufficient for stronger physical claims.
+Or in the `docs/` directory of the repository.
 
 ## Package layout
 
