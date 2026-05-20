@@ -57,6 +57,7 @@ nav:
       - Probe operators: probe_operators.md
       - Tensor-field workflows: tensor_field_workflows.md
       - Plotly visualization: plotly_visualization.md
+      - Poisson admissibility: poisson_admissibility.md
       - Jaxley interoperability: jaxley_interop.md
       - Calibration: calibration.md
       - Output bundles: output_bundles.md
@@ -66,6 +67,7 @@ nav:
       - Repo orientation: skills/skill_repo_orientation.md
       - Probe reports: skills/skill_probe_reports.md
       - Field solution metadata: skills/skill_field_solution_metadata.md
+      - Physical field admissibility: skills/skill_physical_field_admissibility.md
       - Visual outputs: skills/skill_visual_outputs.md
 
   - API reference:
