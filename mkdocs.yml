@@ -18,7 +18,7 @@ theme:
     - content.code.copy
   palette:
     - scheme: slate
-      primary: amber
+      primary: orange
       accent: gray
 
 markdown_extensions:
