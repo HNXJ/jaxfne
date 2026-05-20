@@ -37,5 +37,5 @@ manifest = model.manifest(signals)
 
 print("=== Report ===")
 print(report)
-print("\n=== Manifest (truth gates) ===")
+print("\n=== Manifest (validation metadata) ===")
 print(manifest)

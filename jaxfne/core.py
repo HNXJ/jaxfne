@@ -773,6 +773,16 @@ class ReadoutResult:
             "metadata": self.metadata,
         })
 
+    @property
+    def name(self) -> str:
+        """Compatibility alias for spec_name used by public examples.
+
+        Allows usage like:
+            for result in results:
+                print(result.name, result.metric, result.value, result.status)
+        """
+        return self.spec_name
+
 
 
 @dataclass(frozen=True)
@@ -2792,7 +2802,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.2.1"
+_JAXFNE_VERSION = "0.2.3"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
