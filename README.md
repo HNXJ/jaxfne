@@ -5,7 +5,6 @@
 [![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/)
 [![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/)
 [![Python](https://img.shields.io/pypi/pyversions/jaxfne.svg)](https://pypi.org/project/jaxfne/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Links:** [Documentation](https://jaxfne.readthedocs.io/en/latest/) · [PyPI](https://pypi.org/project/jaxfne/) · [GitHub Releases](https://github.com/HNXJ/jaxfne/releases) · [Tutorials](https://jaxfne.readthedocs.io/en/latest/tutorials/) · [Issues](https://github.com/HNXJ/jaxfne/issues)
 
