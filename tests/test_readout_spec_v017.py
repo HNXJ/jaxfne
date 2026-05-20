@@ -204,3 +204,34 @@ def test_m_known_readout_metrics_exported():
     assert "csd_abs_mean" in _KNOWN_READOUT_METRICS
     assert "lfp_abs_mean" in _KNOWN_READOUT_METRICS
     assert "source_abs_mean" in _KNOWN_READOUT_METRICS
+
+
+def test_n_readout_result_name_compatibility_alias():
+    """Test ReadoutResult.name as compatibility alias for spec_name.
+
+    Allows public README examples to use:
+        for result in results:
+            print(result.name, result.metric, result.value, result.status)
+    """
+    result = jtfne.ReadoutResult(
+        spec_name="rate", metric="spike_rate_hz", value=10.5, status="computed"
+    )
+    # Test alias works
+    assert result.name == "rate"
+    assert result.name == result.spec_name
+
+    # Test in iteration pattern (as used in public examples)
+    results = [
+        jtfne.ReadoutResult(spec_name="s1", metric="m1", value=1.0),
+        jtfne.ReadoutResult(spec_name="s2", metric="m2", value=2.0),
+    ]
+    for res in results:
+        # This should not raise AttributeError
+        name = res.name
+        metric = res.metric
+        value = res.value
+        status = res.status
+        assert isinstance(name, str)
+        assert isinstance(metric, str)
+        assert isinstance(value, float)
+        assert isinstance(status, str)

@@ -209,15 +209,22 @@ def validate_projection_invariants(
         # Compatibility keys for old status code.
         "finite_phi_e": _finite_bool(phi_e_proxy),
         "finite_CSD": _finite_bool(csd_proxy),
-        # v0.2.0: Field admissibility fields
+        # v0.2.0/v0.2.2: Field admissibility and proxy status
         "field_admissibility": {
             "field_arrays_finite": {
                 "phi_e_finite": _finite_bool(phi_e_proxy),
                 "csd_finite": _finite_bool(csd_proxy),
                 "lfp_finite": _finite_bool(lfp_proxy),
             },
+            # Backwards compatibility
             "kernel_normalization_valid": float(kernel_row_sum_max_abs_error) < 1e-6,
             "source_conservation_status": "proxy_not_solved",
+            # v0.2.2: Explicit proxy metadata for clarity
+            "kernel_row_stochastic_valid": float(kernel_row_sum_max_abs_error) < 1e-6,
+            "kernel_normalization_definition": "contact_rows_sum_to_one_proxy",
+            "source_current_conservation_status": "not_applicable_proxy_mode",
+            "boundary_condition_status": "declared_metadata_only",
+            "gauge_status": "declared_metadata_only",
         },
         "warnings": warnings,
     }

@@ -773,6 +773,16 @@ class ReadoutResult:
             "metadata": self.metadata,
         })
 
+    @property
+    def name(self) -> str:
+        """Compatibility alias for spec_name used by public examples.
+
+        Allows usage like:
+            for result in results:
+                print(result.name, result.metric, result.value, result.status)
+        """
+        return self.spec_name
+
 
 
 @dataclass(frozen=True)
