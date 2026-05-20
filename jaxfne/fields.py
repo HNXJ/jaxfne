@@ -44,13 +44,13 @@ class FieldOutput:
 
     @property
     def csd(self) -> jax.Array:
-        """Compatibility alias for the proxy CSD-like readout."""
+        """Compatibility alias for the proxy CSD-proxy readout."""
 
         return self.csd_proxy
 
     @property
     def lfp(self) -> jax.Array:
-        """Compatibility alias for the proxy LFP-like readout."""
+        """Compatibility alias for the proxy LFP-proxy readout."""
 
         return self.lfp_proxy
 
@@ -109,7 +109,7 @@ def project_laminar_sources(
     lfp_proxy = source_proxy
     phi_e_proxy = lfp_proxy
 
-    # Proxy CSD-like readout from a laminar second derivative.  This is not a
+    # Proxy CSD-proxy readout from a laminar second derivative.  This is not a
     # PDE solution and is deliberately diagnosed as laminar_proxy_no_pde.
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
     first_depth_derivative = jnp.gradient(phi_e_proxy, dz, axis=1)
@@ -529,7 +529,7 @@ def csd_proxy_probe(
     csd: jax.Array,
     csd_sign_convention: str = "positive_equals_extracellular_source",
 ) -> ProbeReadout:
-    """CSD-proxy probe operator: estimate CSD-like source profile.
+    """CSD-proxy probe operator: estimate source-profile-like CSD-proxy readout.
 
     Parameters
     ----------
@@ -566,7 +566,7 @@ def eeg_proxy_probe(
     leadfield_status: str = "toy_or_declared_proxy",
     n_sensors: int = None,
 ) -> ProbeReadout:
-    """EEG-proxy probe operator: simulated scalp-channel-like readout.
+    """EEG-proxy probe operator: simulated scalp-channel EEG-proxy readout.
 
     Parameters
     ----------
@@ -610,7 +610,7 @@ def meg_proxy_probe(
     orientation_convention: str = "declared",
     n_sensors: int = None,
 ) -> ProbeReadout:
-    """MEG-proxy probe operator: simulated magnetometer-like readout.
+    """MEG-proxy probe operator: simulated magnetometer MEG-proxy readout.
 
     Parameters
     ----------
