@@ -45,7 +45,6 @@ from .core import (
     objective,
     operator_status,
     paradigm,
-    runtime,
     runtime_report,
     _JAXFNE_VERSION,
     _KNOWN_READOUT_METRICS,
@@ -196,3 +195,47 @@ __all__ = [
 ]
 
 __version__ = _JAXFNE_VERSION
+
+
+import sys
+from types import ModuleType as _ModuleType
+
+
+class _RuntimeModuleWrapper(_ModuleType):
+    """Custom module wrapper to handle jaxfne.runtime() function / module collision.
+
+    Problem: Python doesn't allow having both a function called 'runtime' and a
+    module called 'runtime' in the same package. When 'import jaxfne.runtime' is
+    executed, it replaces jaxfne.runtime (the function) with jaxfne.runtime (the
+    module), breaking code that calls jaxfne.runtime().
+
+    Solution: Override __setattr__ to prevent Python from storing the jaxfne.runtime
+    module in this module's __dict__. Override __getattr__ to return the function
+    instead when runtime is accessed.
+    """
+
+    def __setattr__(self, name, value):
+        """Prevent 'runtime' module from being stored in __dict__."""
+        if name == "runtime" and isinstance(value, _ModuleType):
+            # Python is trying to add the jaxfne.runtime module to __dict__.
+            # We ignore this to prevent the collision.
+            return
+        # For all other attributes, use normal assignment
+        super().__setattr__(name, value)
+
+    def __getattr__(self, name):
+        """Dynamically resolve attributes to handle the runtime name collision."""
+        if name == "runtime":
+            # Return the runtime function from core, not the module
+            from .core import runtime as _runtime_fn
+            return _runtime_fn
+        # Delegate to the original module's __dict__ for other attributes
+        raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
+
+
+# Replace jaxfne module in sys.modules with the wrapper to handle attribute access
+_current_module = sys.modules[__name__]
+_wrapper = _RuntimeModuleWrapper(__name__)
+_wrapper.__dict__.update(_current_module.__dict__)
+_wrapper.__file__ = __file__
+sys.modules[__name__] = _wrapper
