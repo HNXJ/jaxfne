@@ -6,6 +6,7 @@ This directory contains operational guides for agents and developers working wit
 
 1. **[Repo Orientation](skill_repo_orientation.md)** — Start here to understand the package structure, pipeline, and where code lives
 2. **[Probe Reports](skill_probe_reports.md)** — Learn how to validate probe report contracts and common mistakes
+3. **[Field Solution Metadata](skill_field_solution_metadata.md)** — Learn how to validate field solution report contracts and proxy vs. solved field differences
 
 ## Skill Types
 

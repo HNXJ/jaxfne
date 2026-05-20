@@ -59,6 +59,7 @@ nav:
       - Overview: skills/README.md
       - Repo orientation: skills/skill_repo_orientation.md
       - Probe reports: skills/skill_probe_reports.md
+      - Field solution metadata: skills/skill_field_solution_metadata.md
 
   - API reference:
       - Overview: api/index.md

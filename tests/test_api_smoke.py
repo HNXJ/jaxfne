@@ -59,7 +59,7 @@ def test_metadata_gates_defaults():
     assert meta["source_projection_mode"] == "proxy_no_field_solve"
     assert meta["boundary_condition"] == "mean_zero_neumann"
     assert meta["gauge"] == "mean_zero"
-    assert meta["csd_sign_convention"] == "proxy_positive_equals_extracellular_source_like"
+    assert meta["csd_sign_convention"] == "positive_equals_extracellular_source"
     assert meta["field_solver_status"] == "laminar_proxy_no_pde"
     assert meta["manifest_schema_version"] == "0.0.4"
     assert isinstance(meta["operator_status"], dict)

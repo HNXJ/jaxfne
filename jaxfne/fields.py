@@ -141,19 +141,37 @@ def project_laminar_sources(
         csd_proxy=csd_proxy,
         lfp_proxy=lfp_proxy,
     )
+
+    # Build field solution report using hardened contract
+    field_solution_report = _make_field_solution_report(
+        field_solver_status="laminar_proxy_no_pde",
+        solver_name="laminar_proxy",
+        boundary_condition="mean_zero_neumann",
+        gauge="mean_zero",
+        csd_sign_convention="positive_equals_extracellular_source",
+        current_density_layout="not_applicable",
+        solver_residual_l2_relative=None,
+        n_iterations=None,
+        converged=None,
+        finite_phi_e=_finite_bool(phi_e_proxy),
+        finite_J_e=False,  # Not computed in proxy mode
+        finite_CSD=_finite_bool(csd_proxy),
+        field_claim_level="proxy_readout_only",
+        physical_amplitude_claim_allowed=False,
+        source_projection_mode="proxy_no_field_solve",
+        source_current_conservation_status="not_applicable_proxy_mode",
+        source_conservation_tested=False,
+        source_conservation_claim_allowed=False,
+    )
+
+    # Merge field solution report into diagnostics
+    diagnostics.update(field_solution_report)
     diagnostics.update(
         {
-            "field_solver_status": "laminar_proxy_no_pde",
             "field_solver": "laminar_proxy_no_pde",
             "source_projection_status": "contact_row_normalized_proxy",
-            "source_projection_mode": "proxy_no_field_solve",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_decomposition": "proxy_reduced_emitter",
-            "CSD_sign_convention": "positive_equals_extracellular_source",
-            "physical_amplitude_claim_allowed": False,
-            "field_claim_level": "proxy_readout_only",
-            "source_conservation_tested": False,
-            "source_conservation_claim_allowed": False,
         }
     )
     return FieldOutput(
@@ -433,6 +451,96 @@ def _make_probe_report(
 
     if extra_fields:
         report.update(extra_fields)
+
+    return report
+
+
+def _make_field_solution_report(
+    field_solver_status: str = "laminar_proxy_no_pde",
+    solver_name: str = "laminar_proxy",
+    boundary_condition: str = "declared_metadata_only",
+    gauge: str = "declared_metadata_only",
+    csd_sign_convention: str = "positive_equals_extracellular_source",
+    current_density_layout: str = "not_applicable",
+    solver_residual_l2_relative: float | None = None,
+    n_iterations: int | None = None,
+    converged: bool | None = None,
+    finite_phi_e: bool = True,
+    finite_J_e: bool = True,
+    finite_CSD: bool = True,
+    field_claim_level: str = "proxy_readout_only",
+    physical_amplitude_claim_allowed: bool = False,
+    source_projection_mode: str = "proxy_no_field_solve",
+    source_current_conservation_status: str = "not_applicable_proxy_mode",
+    source_conservation_tested: bool = False,
+    source_conservation_claim_allowed: bool = False,
+) -> dict:
+    """Build a JSON-safe field solution report.
+
+    Parameters
+    ----------
+    field_solver_status : str
+        Field solver status: laminar_proxy_no_pde, solved_resistive_poisson, solved_bidomain, or specified_future_module.
+    solver_name : str
+        Human-readable solver name.
+    boundary_condition : str
+        Boundary condition declaration.
+    gauge : str
+        Gauge convention declaration.
+    csd_sign_convention : str
+        CSD sign convention: positive_equals_extracellular_source.
+    current_density_layout : str
+        Current density layout status.
+    solver_residual_l2_relative : float or None
+        Relative L2 residual of solver (None for proxy).
+    n_iterations : int or None
+        Number of solver iterations (None for proxy).
+    converged : bool or None
+        Whether solver converged (None for proxy).
+    finite_phi_e : bool
+        Whether phi_e values are finite.
+    finite_J_e : bool
+        Whether J_e values are finite.
+    finite_CSD : bool
+        Whether CSD values are finite.
+    field_claim_level : str
+        Field claim level: proxy_readout_only, physical_admissible_candidate, or empirical_candidate.
+    physical_amplitude_claim_allowed : bool
+        Whether physical amplitude claims are allowed (False for proxy).
+    source_projection_mode : str
+        Source projection mode declaration.
+    source_current_conservation_status : str
+        Source conservation status.
+    source_conservation_tested : bool
+        Whether conservation was tested.
+    source_conservation_claim_allowed : bool
+        Whether conservation claims are allowed.
+
+    Returns
+    -------
+    dict
+        JSON-safe field solution report with 18+ required fields.
+    """
+    report = {
+        "field_solver_status": field_solver_status,
+        "solver_name": solver_name,
+        "boundary_condition": boundary_condition,
+        "gauge": gauge,
+        "csd_sign_convention": csd_sign_convention,
+        "current_density_layout": current_density_layout,
+        "solver_residual_l2_relative": solver_residual_l2_relative,
+        "n_iterations": n_iterations,
+        "converged": converged,
+        "finite_phi_e": finite_phi_e,
+        "finite_J_e": finite_J_e,
+        "finite_CSD": finite_CSD,
+        "field_claim_level": field_claim_level,
+        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "source_projection_mode": source_projection_mode,
+        "source_current_conservation_status": source_current_conservation_status,
+        "source_conservation_tested": source_conservation_tested,
+        "source_conservation_claim_allowed": source_conservation_claim_allowed,
+    }
 
     return report
 

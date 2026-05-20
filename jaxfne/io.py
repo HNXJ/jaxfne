@@ -96,7 +96,7 @@ def manifest(
         "boundary_condition": cfg_metadata.get("boundary_condition", "mean_zero_neumann"),
         "gauge": cfg_metadata.get("gauge", "mean_zero"),
         "csd_sign_convention": cfg_metadata.get(
-            "csd_sign_convention", "proxy_positive_equals_extracellular_source_like"
+            "csd_sign_convention", "positive_equals_extracellular_source"
         ),
         "field_solver_status": cfg_metadata.get("field_solver_status", "laminar_proxy_no_pde"),
         "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout_only"),

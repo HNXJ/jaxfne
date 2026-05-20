@@ -54,7 +54,7 @@ def _default_metadata() -> dict[str, Any]:
         "source_decomposition": "proxy_reduced_emitter",
         "boundary_condition": "mean_zero_neumann",
         "gauge": "mean_zero",
-        "csd_sign_convention": "proxy_positive_equals_extracellular_source_like",
+        "csd_sign_convention": "positive_equals_extracellular_source",
         "field_solver_status": "laminar_proxy_no_pde",
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
