@@ -126,3 +126,4 @@ Thumbs.db
 .AppleDouble
 .LSOverride
 *.localized
+.local_project_sources/
