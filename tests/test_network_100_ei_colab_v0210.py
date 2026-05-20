@@ -1,34 +1,38 @@
-"""Single-neuron multimodal Colab notebook validation tests for v0.2.8.
+"""100-neuron E/I multimodal Colab notebook validation tests for v0.2.10.
 
 Tests that:
 1. Notebook exists and is valid JSON
 2. First code cell contains !pip install jaxfne
-3. Second code cell contains version verification
+3. Second code cell verifies version
 4. Outputs are cleared (no committed outputs)
-5. No private/absolute paths in notebook cells
-6. Notebook includes all eight readout operator names
-7. Notebook mentions jaxfne.__version__
-8. Tutorial documentation links to the notebook
-9. Notebook follows v0.2.7 standard structure
-10. Version remains 0.2.3
+5. No private/absolute paths
+6. Includes all eight readout operator names
+7. Includes 100-neuron / 75E / 25I terminology
+8. Mentions jaxfne.__version__
+9. Tutorial documentation links to notebook
+10. Example script exists and runs
+11. Example metrics include n_neurons=100, n_excitatory=75, n_inhibitory=25
+12. Vocabulary clean (no forbidden terms)
+13. Version remains 0.2.3
 """
 
 from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 
-class TestSingleNeuronNotebook:
-    """Tests for single-neuron multimodal Colab notebook (v0.2.8)."""
+class TestNetwork100EINotebook:
+    """Tests for 100-neuron E/I multimodal Colab notebook (v0.2.10)."""
 
     def test_notebook_exists(self):
-        """Test that notebooks/01_single_neuron_multimodal.ipynb exists."""
+        """Test that notebooks/03_network_100_ei_multimodal.ipynb exists."""
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
 
@@ -37,7 +41,7 @@ class TestSingleNeuronNotebook:
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         content = notebook_path.read_text(encoding="utf-8")
         try:
@@ -52,15 +56,12 @@ class TestSingleNeuronNotebook:
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
         code_cells = [c for c in nb_json["cells"] if c["cell_type"] == "code"]
-        assert (
-            len(code_cells) > 0
-        ), "Notebook must contain at least one code cell"
+        assert len(code_cells) > 0, "Notebook must contain at least one code cell"
 
-        # First code cell (may be after markdown cells)
         first_code_cell = code_cells[0]
         source = "".join(first_code_cell["source"])
         assert (
@@ -72,15 +73,12 @@ class TestSingleNeuronNotebook:
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
         code_cells = [c for c in nb_json["cells"] if c["cell_type"] == "code"]
-        assert (
-            len(code_cells) >= 2
-        ), "Notebook must contain at least two code cells"
+        assert len(code_cells) >= 2, "Notebook must contain at least two code cells"
 
-        # Second code cell
         second_code_cell = code_cells[1]
         source = "".join(second_code_cell["source"])
         assert (
@@ -88,11 +86,11 @@ class TestSingleNeuronNotebook:
         ), "Second code cell must verify jaxfne version"
 
     def test_outputs_are_cleared(self):
-        """Test that all code cell outputs are empty (cleared before commit)."""
+        """Test that all code cell outputs are empty."""
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -101,14 +99,14 @@ class TestSingleNeuronNotebook:
             outputs = cell.get("outputs", [])
             assert (
                 len(outputs) == 0
-            ), f"Code cell {i} should have empty outputs (outputs cleared before commit)"
+            ), f"Code cell {i} should have empty outputs"
 
     def test_no_private_paths(self):
         """Test that notebook contains no absolute private paths."""
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -132,16 +130,14 @@ class TestSingleNeuronNotebook:
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
-        # Combine all cell sources into one string
         full_source = ""
         for cell in nb_json["cells"]:
             full_source += "".join(cell.get("source", []))
 
-        # Check for all eight readouts
         readouts = [
             "spk_probe",
             "vm_probe",
@@ -158,12 +154,33 @@ class TestSingleNeuronNotebook:
                 readout in full_source
             ), f"Notebook must reference '{readout}' operator"
 
+    def test_includes_100_neuron_terminology(self):
+        """Test that notebook includes 100-neuron, 75E/25I terminology."""
+        notebook_path = (
+            Path(__file__).parent.parent
+            / "notebooks"
+            / "03_network_100_ei_multimodal.ipynb"
+        )
+        nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
+
+        full_source = ""
+        for cell in nb_json["cells"]:
+            full_source += "".join(cell.get("source", []))
+
+        required_terms = ["100", "75", "25", "excitatory", "inhibitory"]
+        found_terms = [
+            term for term in required_terms if term in full_source
+        ]
+        assert (
+            len(found_terms) >= 4
+        ), "Notebook must reference 100-neuron and 75E/25I terminology"
+
     def test_mentions_version(self):
         """Test that notebook mentions jaxfne.__version__."""
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -181,40 +198,67 @@ class TestSingleNeuronNotebook:
             Path(__file__).parent.parent
             / "docs"
             / "tutorials"
-            / "01_single_neuron_multimodal.md"
+            / "03_network_100_ei.md"
         )
         content = doc_path.read_text(encoding="utf-8")
         assert (
-            "01_single_neuron_multimodal.ipynb" in content
+            "03_network_100_ei_multimodal.ipynb" in content
         ), "Tutorial documentation must link to the notebook"
 
-    def test_notebook_follows_standard_structure(self):
-        """Test that notebook follows v0.2.7 standard structure."""
-        notebook_path = (
-            Path(__file__).parent.parent
-            / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+    def test_example_script_exists(self):
+        """Test that examples/05_network_100_ei_multimodal.py exists."""
+        script_path = (
+            Path(__file__).parent.parent / "examples" / "05_network_100_ei_multimodal.py"
         )
-        nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
+        assert script_path.exists(), f"Example script not found at {script_path}"
 
-        full_source = ""
-        for cell in nb_json["cells"]:
-            full_source += "".join(cell.get("source", []))
+    def test_example_script_runs(self):
+        """Test that example script runs successfully."""
+        script_path = (
+            Path(__file__).parent.parent / "examples" / "05_network_100_ei_multimodal.py"
+        )
+        try:
+            result = subprocess.run(
+                ["python", str(script_path)],
+                cwd=Path(__file__).parent.parent,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+            assert result.returncode == 0, f"Script failed: {result.stderr}"
+            assert "✓" in result.stdout, "Script should print success indicator"
+        except subprocess.TimeoutExpired:
+            raise AssertionError("Example script timed out (>120s)")
 
-        # Check for standard sections
-        required_sections = [
-            "Imports",
-            "Configuration",
-            "Simulation",
-            "Readout",
-            "Output Bundle",
-            "Next steps",
+    def test_example_script_generates_outputs(self):
+        """Test that example script generates JSON output files."""
+        output_dir = Path("outputs/v0210_network_100_ei_multimodal")
+        expected_files = [
+            "manifest.json",
+            "probe_report.json",
+            "metrics.json",
+            "validation_report.json",
+            "asset_hashes.json",
         ]
 
-        for section in required_sections:
-            assert (
-                section in full_source
-            ), f"Notebook must include '{section}' section"
+        for filename in expected_files:
+            filepath = output_dir / filename
+            assert filepath.exists(), f"Expected output file not found: {filepath}"
+            # Verify JSON validity
+            try:
+                json.load(open(filepath))
+            except json.JSONDecodeError as e:
+                raise AssertionError(f"Invalid JSON in {filepath}: {e}")
+
+    def test_example_metrics_include_population_counts(self):
+        """Test that metrics.json includes n_neurons=100, n_excitatory=75, n_inhibitory=25."""
+        metrics_path = Path("outputs/v0210_network_100_ei_multimodal/metrics.json")
+        assert metrics_path.exists(), "metrics.json not found"
+
+        metrics = json.load(open(metrics_path))
+        assert metrics.get("n_neurons") == 100, "n_neurons must be 100"
+        assert metrics.get("n_excitatory") == 75, "n_excitatory must be 75"
+        assert metrics.get("n_inhibitory") == 25, "n_inhibitory must be 25"
 
     def test_version_unchanged(self):
         """Test that jaxfne version is 0.2.10."""
@@ -224,27 +268,12 @@ class TestSingleNeuronNotebook:
             jaxfne.__version__ == "0.2.10"
         ), f"Version should be 0.2.10, got {jaxfne.__version__}"
 
-
-class TestDocumentationConsistency:
-    """Tests for documentation consistency with v0.2.8 notebook."""
-
-    def test_tutorial_index_mentions_single_neuron(self):
-        """Test that tutorials/index.md mentions single-neuron tutorial."""
-        index_path = (
-            Path(__file__).parent.parent / "docs" / "tutorials" / "index.md"
-        )
-        content = index_path.read_text(encoding="utf-8")
-        assert (
-            "single-neuron" in content.lower()
-            or "single neuron" in content.lower()
-        ), "tutorials/index.md must reference single-neuron tutorial"
-
-    def test_no_forbidden_vocabulary_in_notebook(self):
+    def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""
         notebook_path = (
             Path(__file__).parent.parent
             / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
+            / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -259,25 +288,11 @@ class TestDocumentationConsistency:
             r"inner doctrine",
             r"worker prompt",
             r"biological proof",
+            r"claim-status metadata",
         ]
 
         for pattern in forbidden_patterns:
             matches = re.findall(pattern, full_source, re.IGNORECASE)
             assert (
                 len(matches) == 0
-            ), f"Forbidden term pattern '{pattern}' found in notebook: {matches}"
-
-    def test_colab_notebook_has_metadata(self):
-        """Test that notebook includes Colab metadata."""
-        notebook_path = (
-            Path(__file__).parent.parent
-            / "notebooks"
-            / "01_single_neuron_multimodal.ipynb"
-        )
-        nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
-
-        metadata = nb_json.get("metadata", {})
-        # Colab-ready notebooks should have colab metadata
-        assert (
-            "colab" in metadata
-        ), "Notebook should include Colab metadata for Colab-ready setup"
+            ), f"Forbidden term pattern '{pattern}' found: {matches}"
