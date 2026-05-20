@@ -13,7 +13,7 @@ jaxfne is a JAX-native source-to-field/readout layer for building and testing mu
 ## What jaxfne is not
 
 - **A whole-brain simulator** — focuses on local/laminar circuits
-- **A biological proof** — computational scaffold, not validated neuroscience
+- **A substitute for empirical validation** — computational scaffold requiring external calibration
 - **A complete physical-unit model** — default readouts are computational proxies
 
 ## Output scope
