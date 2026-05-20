@@ -1,6 +1,15 @@
 # Two-neuron E/I
 
-Build a minimal recurrent network: one excitatory and one inhibitory neuron. Observe coupling and dynamics.
+Build a minimal recurrent network: one excitatory and one inhibitory neuron.
+Observe coupling, dynamics, and multimodal readouts on a small network.
+
+## Open as Colab notebook
+
+**Recommended:** Open the full interactive tutorial in Colab:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/notebooks/02_two_neuron_ei_multimodal.ipynb)
+
+Or download and run locally: `notebooks/02_two_neuron_ei_multimodal.ipynb`
 
 ## Network configuration
 
