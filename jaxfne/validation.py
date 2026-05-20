@@ -499,3 +499,233 @@ def make_calibration_report(
         ],
         "warnings": warnings,
     }
+
+
+# ─── v0.2.6 Field/Proxy Diagnostic Scaffolding ────────────────────────────────
+
+
+def make_source_balance_diagnostic(
+    sources: Any | None = None,
+    *,
+    operator_path: str = "proxy",
+    residual: float | None = None,
+) -> dict[str, Any]:
+    """Field/proxy source-balance diagnostic report.
+
+    In proxy mode, source balance is not applicable (no PDE solve).
+    In physical_candidate mode, users can supply an observed residual.
+
+    Parameters
+    ----------
+    sources : array-like, optional
+        Source array for future physical path integration.
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    residual : float, optional
+        Observed source balance residual (for candidate mode).
+
+    Returns
+    -------
+    dict
+        JSON-safe source-balance diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "not_applicable_proxy_mode"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "candidate_only" if residual is None else "checked"
+        residual_value = float(residual) if residual is not None else None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "source_balance",
+        "operator_path": operator_path,
+        "status": status,
+        "residual": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: source balance is not applicable",
+            "physical_candidate mode: residual is declared metadata only, not validated",
+        ],
+    }
+
+
+def make_gauge_diagnostic(
+    field_array: Any | None = None,
+    *,
+    operator_path: str = "proxy",
+    gauge_mode: str = "mean_zero",
+) -> dict[str, Any]:
+    """Field/proxy gauge diagnostic report.
+
+    In proxy mode, gauge is declared metadata only.
+    In physical_candidate mode, users can supply a field array to check.
+
+    Parameters
+    ----------
+    field_array : array-like, optional
+        Field array (phi_e or similar) for gauge checking.
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    gauge_mode : str
+        Declared gauge mode: 'mean_zero' (default) or other.
+
+    Returns
+    -------
+    dict
+        JSON-safe gauge diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "declared_metadata_only"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "not_tested"
+        if field_array is not None:
+            arr = _to_numpy(field_array)
+            residual_value = float(jnp.mean(arr))
+            status = "checked"
+        else:
+            residual_value = None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "gauge",
+        "operator_path": operator_path,
+        "gauge_mode": gauge_mode,
+        "status": status,
+        "residual": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: gauge is declared metadata only",
+            "physical_candidate mode: residual is diagnostic scaffold, not validation",
+        ],
+    }
+
+
+def make_boundary_diagnostic(
+    operator_path: str = "proxy",
+) -> dict[str, Any]:
+    """Field/proxy boundary-condition diagnostic report.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+
+    Returns
+    -------
+    dict
+        JSON-safe boundary diagnostic report.
+    """
+    if operator_path not in {"proxy", "physical_candidate"}:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    status = "declared_metadata_only" if operator_path == "proxy" else "candidate_only"
+
+    return {
+        "diagnostic_kind": "boundary",
+        "operator_path": operator_path,
+        "status": status,
+        "boundary_condition_status": status,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: boundary condition is declared metadata only",
+            "physical_candidate mode: boundary condition is candidate, not validated",
+        ],
+    }
+
+
+def make_manufactured_residual_diagnostic(
+    *,
+    operator_path: str = "proxy",
+    residual_l2_relative: float | None = None,
+) -> dict[str, Any]:
+    """Field/proxy manufactured-residual diagnostic report.
+
+    Manufactured residual is a diagnostic scaffold for future PDE solver validation.
+    In v0.2.6, it remains scaffolding only.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' (default) or 'physical_candidate'.
+    residual_l2_relative : float, optional
+        L2 relative residual (for physical_candidate mode).
+
+    Returns
+    -------
+    dict
+        JSON-safe manufactured-residual diagnostic report.
+    """
+    if operator_path == "proxy":
+        status = "not_applicable_proxy_mode"
+        residual_value = None
+    elif operator_path == "physical_candidate":
+        status = "candidate_only" if residual_l2_relative is None else "checked"
+        residual_value = float(residual_l2_relative) if residual_l2_relative is not None else None
+    else:
+        raise ValueError(f"Invalid operator_path: {operator_path}")
+
+    return {
+        "diagnostic_kind": "manufactured_residual",
+        "operator_path": operator_path,
+        "status": status,
+        "residual_l2_relative": residual_value,
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy mode: manufactured residual is not applicable",
+            "physical_candidate mode: residual is diagnostic scaffold, not validation",
+            "v0.2.6: no full PDE solver exists yet",
+        ],
+    }
+
+
+def make_field_operator_status(
+    *,
+    operator_path: str,
+) -> dict[str, Any]:
+    """Field operator path and status crosswalk for proxy vs physical.
+
+    Parameters
+    ----------
+    operator_path : str
+        Path designation: 'proxy' or 'physical_candidate'.
+
+    Returns
+    -------
+    dict
+        JSON-safe operator status report.
+
+    Raises
+    ------
+    ValueError
+        If operator_path is invalid.
+    """
+    if operator_path not in {"proxy", "physical_candidate"}:
+        raise ValueError(
+            f"Invalid operator_path: {operator_path}. "
+            "Allowed: 'proxy', 'physical_candidate'"
+        )
+
+    if operator_path == "proxy":
+        field_solver_status = "laminar_proxy_no_pde"
+        field_solver_selected = False
+    else:  # physical_candidate
+        field_solver_status = "physical_field_solver_candidate"
+        field_solver_selected = False  # Still candidate in v0.2.6
+
+    return {
+        "diagnostic_kind": "field_operator_status",
+        "operator_path": operator_path,
+        "field_solver_selected": field_solver_selected,
+        "field_solver_status": field_solver_status,
+        "physical_field_solver_status": "not_selected",
+        "physical_amplitude_claim_allowed": False,
+        "assumptions": [
+            "proxy path: laminar proxy projection, no PDE solve",
+            "physical_candidate path: designated for future PDE integration, not yet implemented",
+            "v0.2.6: no full PDE solver exists; all physical claims remain false",
+        ],
+    }
