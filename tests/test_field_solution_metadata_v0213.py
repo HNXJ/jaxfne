@@ -8,7 +8,7 @@ Tests the FieldSolution/FieldOutput contract hardening:
 - Canonical CSD sign convention
 - Proxy field constraints
 - Examples validate with hardened field metadata
-- Version remains 0.2.10 (no bump)
+- Version bumped to 0.2.18 (no bump)
 """
 
 import json
@@ -320,7 +320,7 @@ def test_field_output_finite_j_e_false_for_proxy():
 def test_version_remains_0210():
     """jaxfne version remains 0.2.10 (no bump for v0.2.13 field hardening)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.10"
+    assert jaxfne.__version__ == "0.2.18"
 
 
 # ─── JSON Serialization Strictness ────────────────────────────────────────────
