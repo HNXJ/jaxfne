@@ -341,11 +341,42 @@ def main():
             "bytes": raster_path.stat().st_size,
         }
 
-        # Re-write asset_hashes with figure
-        hashes_file.write_text(json.dumps(asset_hashes, indent=2, sort_keys=True))
-
     except ImportError:
         pass
+
+    # === 10.6. Save spectrolaminar profile source data for interactive visualization ===
+    # Extract spectrolaminar profile data from metrics windows
+    windows = list(metrics.keys())
+    alpha_profile = [metrics[w].get('alpha_beta_proxy_power', 0.0) for w in windows]
+    gamma_profile = [metrics[w].get('gamma_proxy_power', 0.0) for w in windows]
+
+    source_data = {
+        "source_data_kind": "spectrolaminar_profile",
+        "tutorial_id": "02_spectrolaminar_oddball_scaffold",
+        "figure_id": "spectrolaminar_profile",
+        "layers_or_depths": windows,
+        "alpha_beta_profile": alpha_profile,
+        "gamma_profile": gamma_profile,
+        "units_or_status": "relative_proxy_units",
+        "operator_kind": "spectrolaminar_profile",
+        "claim_level": manifest.get("claim_level"),
+        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed"),
+    }
+
+    figures_dir = outdir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    source_data_path = figures_dir / "source_data.json"
+    with open(source_data_path, "w") as f:
+        json.dump(source_data, f, allow_nan=False, indent=2)
+
+    # === 10.7. Update asset hashes with source data ===
+    asset_hashes["figures/source_data.json"] = {
+        "sha256": _sha256(source_data_path.read_bytes()),
+        "bytes": source_data_path.stat().st_size,
+    }
+
+    # Re-write asset_hashes with figure and source data
+    hashes_file.write_text(json.dumps(asset_hashes, indent=2, sort_keys=True))
 
     # === 11. Print summary ===
     print(f"\n=== Phase F: Spectrolaminar Oddball Scaffold ===")
@@ -357,12 +388,16 @@ def main():
             size = filepath.stat().st_size
             print(f"  {filename:30} {size:8} bytes")
 
-    # Show figures if generated
+    # Show figures and source data if generated
     figures_dir = outdir / "figures"
     if figures_dir.exists():
         for fig_file in sorted(figures_dir.glob("*.png")):
             size = fig_file.stat().st_size
             print(f"  figures/{fig_file.name:22} {size:8} bytes")
+
+        if source_data_path.exists():
+            size = source_data_path.stat().st_size
+            print(f"  figures/source_data.json{'':<14} {size:8} bytes")
 
     print(f"\nTruth gates (frozen):")
     for key, value in sorted(truth_gates.items()):
