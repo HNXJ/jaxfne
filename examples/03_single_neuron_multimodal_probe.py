@@ -191,13 +191,45 @@ def main():
     with open(validation_path, "w") as f:
         json.dump(validation_report, f, allow_nan=False, indent=2)
 
-    # === 10. Asset hashes ===
+    # === 10. Generate spike raster figure ===
+    raster_path = None
+    try:
+        import matplotlib
+        matplotlib.use('Agg')  # Non-interactive backend
+        import matplotlib.pyplot as plt
+
+        figures_dir = output_dir / "figures"
+        figures_dir.mkdir(parents=True, exist_ok=True)
+
+        # Spike raster figure
+        fig, ax = plt.subplots(figsize=(12, 4))
+        spikes = signals.spikes
+        timesteps = jnp.arange(spikes.shape[1])
+        for neuron_idx in range(spikes.shape[0]):
+            spike_times = timesteps[spikes[neuron_idx] > 0.5]
+            ax.vlines(spike_times, neuron_idx - 0.4, neuron_idx + 0.4, colors='black', linewidth=0.5)
+        ax.set_xlabel("Timestep")
+        ax.set_ylabel("Neuron")
+        ax.set_title("Single-neuron spike activity")
+        ax.set_ylim(-0.5, spikes.shape[0] - 0.5)
+
+        raster_path = figures_dir / "raster.png"
+        fig.savefig(raster_path, dpi=100, bbox_inches='tight')
+        plt.close(fig)
+
+    except ImportError:
+        pass
+
+    # === 10.5. Asset hashes (including figures) ===
     asset_hashes = {
         "manifest.json": file_hash_sha256(manifest_path),
         "probe_report.json": file_hash_sha256(probe_report_path),
         "metrics.json": file_hash_sha256(metrics_path),
         "validation_report.json": file_hash_sha256(validation_path),
     }
+    if raster_path and raster_path.exists():
+        asset_hashes["figures/raster.png"] = file_hash_sha256(raster_path)
+
     hashes_path = output_dir / "asset_hashes.json"
     with open(hashes_path, "w") as f:
         json.dump(asset_hashes, f, allow_nan=False, indent=2)
@@ -211,6 +243,10 @@ def main():
         if fpath.exists():
             size = fpath.stat().st_size
             print(f"  {fpath.name:<30} {size:>6} bytes")
+
+    if raster_path and raster_path.exists():
+        size = raster_path.stat().st_size
+        print(f"  figures/raster.png{'':<20} {size:>6} bytes")
 
     print("\nProbe operators (all eight):")
     for op_name, op_report in probe_report.items():

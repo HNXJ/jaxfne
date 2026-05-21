@@ -302,6 +302,51 @@ def main():
     hashes_json = json.dumps(asset_hashes, indent=2, sort_keys=True)
     hashes_file.write_text(hashes_json)
 
+    # === 10.5. Generate spectrolaminar profile figure ===
+    raster_path = None
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        figures_dir = outdir / "figures"
+        figures_dir.mkdir(parents=True, exist_ok=True)
+
+        # Spectrolaminar profile: alpha/beta and gamma power across windows
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+        # Alpha/beta power
+        windows = list(metrics.keys())
+        alpha_vals = [metrics[w].get('alpha_beta_proxy_power', 0) for w in windows]
+        ax1.bar(windows, alpha_vals, color='steelblue', alpha=0.7)
+        ax1.set_ylabel("Alpha/Beta proxy power")
+        ax1.set_title("Spectrolaminar profile: Alpha/Beta")
+        ax1.tick_params(axis='x', rotation=45)
+
+        # Gamma power
+        gamma_vals = [metrics[w].get('gamma_proxy_power', 0) for w in windows]
+        ax2.bar(windows, gamma_vals, color='coral', alpha=0.7)
+        ax2.set_ylabel("Gamma proxy power")
+        ax2.set_title("Spectrolaminar profile: Gamma")
+        ax2.tick_params(axis='x', rotation=45)
+
+        fig.tight_layout()
+        raster_path = figures_dir / "spectrolaminar_profile.png"
+        fig.savefig(raster_path, dpi=100, bbox_inches='tight')
+        plt.close(fig)
+
+        # Add to asset hashes
+        asset_hashes["figures/spectrolaminar_profile.png"] = {
+            "sha256": _sha256(raster_path.read_bytes()),
+            "bytes": raster_path.stat().st_size,
+        }
+
+        # Re-write asset_hashes with figure
+        hashes_file.write_text(json.dumps(asset_hashes, indent=2, sort_keys=True))
+
+    except ImportError:
+        pass
+
     # === 11. Print summary ===
     print(f"\n=== Phase F: Spectrolaminar Oddball Scaffold ===")
     print(f"\nOutputs written to: {outdir.resolve()}")
@@ -311,6 +356,13 @@ def main():
         if filepath.exists():
             size = filepath.stat().st_size
             print(f"  {filename:30} {size:8} bytes")
+
+    # Show figures if generated
+    figures_dir = outdir / "figures"
+    if figures_dir.exists():
+        for fig_file in sorted(figures_dir.glob("*.png")):
+            size = fig_file.stat().st_size
+            print(f"  figures/{fig_file.name:22} {size:8} bytes")
 
     print(f"\nTruth gates (frozen):")
     for key, value in sorted(truth_gates.items()):
