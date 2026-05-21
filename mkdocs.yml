@@ -21,6 +21,9 @@ theme:
       primary: orange
       accent: gray
 
+extra_css:
+  - _theme_override.css
+
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
