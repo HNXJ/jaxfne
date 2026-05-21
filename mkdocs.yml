@@ -65,6 +65,7 @@ nav:
   - Developer skills:
       - Overview: skills/README.md
       - Repo orientation: skills/skill_repo_orientation.md
+      - Tutorial smoke runner: skills/skill_tutorial_smoke.md
       - Probe reports: skills/skill_probe_reports.md
       - Field solution metadata: skills/skill_field_solution_metadata.md
       - Physical field admissibility: skills/skill_physical_field_admissibility.md
