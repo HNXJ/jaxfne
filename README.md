@@ -135,7 +135,7 @@ for result in readouts:
 - strict JSON-safe manifests;
 - CPU-first validation and optional accelerator execution through JAX.
 
-The standard v0.2.0 field mode is a **laminar proxy readout**:
+The standard v0.2.x field mode is a **laminar proxy readout**:
 
 ```text
 source_projection_mode = proxy_no_field_solve
