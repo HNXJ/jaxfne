@@ -203,7 +203,7 @@ def main():
 
         # Spike raster figure
         fig, ax = plt.subplots(figsize=(12, 4))
-        spikes = signals.spikes
+        spikes = signals.spikes.T  # Transpose to (neurons, timesteps)
         timesteps = jnp.arange(spikes.shape[1])
         for neuron_idx in range(spikes.shape[0]):
             spike_times = timesteps[spikes[neuron_idx] > 0.5]
@@ -224,7 +224,7 @@ def main():
     # Extract spike events (times and neuron indices) from signals.spikes array
     spike_times = []
     unit_ids = []
-    spikes = signals.spikes
+    spikes = signals.spikes.T  # Transpose to (neurons, timesteps)
     timesteps = jnp.arange(spikes.shape[1])
     for neuron_idx in range(spikes.shape[0]):
         spike_t = timesteps[spikes[neuron_idx] > 0.5]

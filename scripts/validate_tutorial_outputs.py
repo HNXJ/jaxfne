@@ -74,6 +74,7 @@ def validate_tutorial_output(
         "tutorial_name": tutorial_info["name"],
         "path": str(output_dir),
         "contract_files": {},
+        "source_data": {},
         "figures": {},
         "interactive": {},
         "claim_gates": {},
@@ -173,6 +174,66 @@ def validate_tutorial_output(
             raise ValueError(f"Invalid JSON in {contract_file}: {e}")
         except Exception as e:
             raise ValueError(f"Error parsing {contract_file}: {e}")
+
+    # === Source data validation ===
+    source_data_path = output_dir / "figures" / "source_data.json"
+    if not source_data_path.exists():
+        raise ValueError(f"Missing source_data.json in figures/ directory: {output_dir}")
+
+    try:
+        source_data_str = source_data_path.read_text()
+        if "NaN" in source_data_str or "Infinity" in source_data_str:
+            raise ValueError("source_data.json contains non-safe values (NaN/Inf)")
+        source_data = json.loads(source_data_str)
+
+        # Validate claim gates in source data
+        if source_data.get("claim_level") != "computational_scaffold":
+            raise ValueError(f"source_data.json claim_level must be computational_scaffold, got {source_data.get('claim_level')}")
+        if source_data.get("physical_amplitude_claim_allowed") is not False:
+            raise ValueError(f"source_data.json physical_amplitude_claim_allowed must be False")
+
+        # Validate source data kind and arrays
+        source_data_kind = source_data.get("source_data_kind")
+        if source_data_kind == "spike_events":
+            time_ms = source_data.get("time_ms", [])
+            unit_id = source_data.get("unit_id", [])
+            if not isinstance(time_ms, list) or not isinstance(unit_id, list):
+                raise ValueError("source_data.json spike_events: time_ms and unit_id must be lists")
+            if len(time_ms) == 0 or len(unit_id) == 0:
+                raise ValueError("source_data.json spike_events: arrays must be non-empty")
+            if len(time_ms) != len(unit_id):
+                raise ValueError(f"source_data.json spike_events: time_ms and unit_id length mismatch ({len(time_ms)} vs {len(unit_id)})")
+            # Verify finite values
+            if not all(isinstance(t, (int, float)) and -1e10 < float(t) < 1e10 for t in time_ms):
+                raise ValueError("source_data.json spike_events: time_ms contains non-finite values")
+            if not all(isinstance(u, (int, float)) for u in unit_id):
+                raise ValueError("source_data.json spike_events: unit_id contains non-numeric values")
+            result["source_data"] = {
+                "kind": "spike_events",
+                "event_count": len(time_ms),
+                "unique_units": len(set(int(u) for u in unit_id)),
+            }
+        elif source_data_kind == "spectrolaminar_profile":
+            alpha_beta = source_data.get("alpha_beta_profile", [])
+            gamma = source_data.get("gamma_profile", [])
+            layers = source_data.get("layers_or_depths", [])
+            if not all(isinstance(p, list) for p in [alpha_beta, gamma, layers]):
+                raise ValueError("source_data.json spectrolaminar_profile: profiles must be lists")
+            if len(alpha_beta) == 0 or len(gamma) == 0 or len(layers) == 0:
+                raise ValueError("source_data.json spectrolaminar_profile: arrays must be non-empty")
+            if not (len(alpha_beta) == len(gamma) == len(layers)):
+                raise ValueError(f"source_data.json spectrolaminar_profile: profile length mismatch")
+            # Verify finite values
+            if not all(isinstance(v, (int, float)) and -1e10 < float(v) < 1e10 for v in alpha_beta + gamma):
+                raise ValueError("source_data.json spectrolaminar_profile: non-finite values")
+            result["source_data"] = {
+                "kind": "spectrolaminar_profile",
+                "profile_length": len(alpha_beta),
+                "alpha_dynamic_range": float(max(alpha_beta)) - float(min(alpha_beta)) if alpha_beta else 0,
+                "gamma_dynamic_range": float(max(gamma)) - float(min(gamma)) if gamma else 0,
+            }
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in source_data.json: {e}")
 
     # === Figure validation ===
     figures_dir = output_dir / "figures"
