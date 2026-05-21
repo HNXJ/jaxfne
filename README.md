@@ -1,14 +1,20 @@
 # jaxfne
 
-**JAX Field Neural Equations** (`jaxfne`) is a compact JAX-native source-to-field/readout engine for Tensor-Field Neural Equations (TFNE).
+**JAX-native tensor-field source-to-field/readout workflows for multimodal neural simulations.**
 
-It provides a practical object-oriented API for building reproducible computational neurophysiology workflows:
+[![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/)
+[![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/)
+[![Python](https://img.shields.io/pypi/pyversions/jaxfne.svg)](https://pypi.org/project/jaxfne/)
+
+**Links:** [Documentation](https://jaxfne.readthedocs.io/en/latest/) · [PyPI](https://pypi.org/project/jaxfne/) · [GitHub Releases](https://github.com/HNXJ/jaxfne/releases) · [Tutorials](https://jaxfne.readthedocs.io/en/latest/tutorials/) · [Issues](https://github.com/HNXJ/jaxfne/issues)
+
+`jaxfne` provides a practical object-oriented API for building reproducible computational neurophysiology workflows:
 
 ```text
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 ```
 
-`jaxfne` is designed for laminar proxy simulations, source-field metadata, readouts, objective reports, receipts, manifests, and benchmarkable JAX execution paths.
+Designed for JAX-native source tensors, field/proxy operators, multimodal probe readouts, JSON-safe output bundles, and CPU-first reproducible examples.
 
 ## Installation
 

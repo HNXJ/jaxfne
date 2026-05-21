@@ -197,6 +197,66 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 ---
 
+## Mathematical Forms
+
+This section formalizes the eight operators in operator-form notation. These are computational forms; no claim of physical correspondence is made.
+
+### SPK (Spike Detection)
+
+$$\mathrm{SPK}_n(t)=\mathbb{1}[V_n(t)\geq \theta_n]$$
+
+Spike indicator for neuron $n$ at time $t$: 1 if membrane voltage exceeds threshold $\theta_n$, 0 otherwise.
+
+### Vm (Membrane Voltage)
+
+$$\mathrm{Vm}_n(t)=V_n(t)$$
+
+Direct readout of native state voltage from emitter $n$. Not physical unless separately calibrated.
+
+### Source
+
+$$S_n(t)=f_{\mathrm{source}}(x_n(t),\theta_n)$$
+
+Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: uncalibrated to physical current units in v0.2.x.
+
+### LFP-proxy
+
+$$\phi_{\mathrm{proxy}}(t,c)=\sum_{n=1}^{N}W_{cn}S_n(t), \quad \sum_{n=1}^{N}W_{cn}=1$$
+
+Row-normalized kernel projection: potential at contact $c$ is a weighted sum of sources, with row sums equal to one. Status: laminar proxy without PDE solve.
+
+### CSD-proxy
+
+$$\mathrm{CSD}_{\mathrm{proxy}}(t,c) \approx \frac{\phi_{\mathrm{proxy}}(t,c+1)-2\phi_{\mathrm{proxy}}(t,c)+\phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
+
+Second spatial derivative (Laplacian) of laminar potential proxy. Sign convention: `positive_equals_extracellular_source`.
+
+### EEG-proxy
+
+$$Y_{\mathrm{EEG\text{-}proxy}}(t,s) = \sum_{c=1}^{C} L^{\mathrm{EEG}}_{sc} \phi_{\mathrm{proxy}}(t,c)$$
+
+Linear leadfield projection: each scalp electrode $s$ is a weighted combination of laminar potentials. $L^{\mathrm{EEG}}$ is a declared proxy leadfield, not from physical head model.
+
+### MEG-proxy
+
+$$Y_{\mathrm{MEG\text{-}proxy}}(t,s) = \sum_{n=1}^{N} L^{\mathrm{MEG}}_{sn} o_n S_n(t)$$
+
+Magnetometer readout: each sensor $s$ sums orientation-weighted source projections. $o_n$ is source orientation; $L^{\mathrm{MEG}}$ is a proxy leadfield.
+
+### EMM-proxy (Activity/Cost Proxy)
+
+$$\mathrm{EMM}_{\mathrm{proxy}}(t) = \alpha \|S(t,\cdot)\|_1 + \beta \|\phi_{\mathrm{proxy}}(t,\cdot)\|_1$$
+
+Normalized electrophysiological activity cost proxy combining source and field energy norms. Not biological metabolism; valid for relative within-run comparisons.
+
+### Probe Report Sidecar
+
+$$R_k = \{\mathrm{kind}, \mathrm{method}, \mathrm{units\_or\_status}, \mathrm{operator\_status}, \mathrm{physical\_amplitude\_claim\_allowed}, \ldots\}$$
+
+Each operator returns a JSON-safe report $R_k$ declaring operator type, computation method, status (proxy/simulated), and claim constraints.
+
+---
+
 ## Current Status: v0.2.1 Simulated / Proxy
 
 All eight operators in v0.2.1 are simulated or proxy readouts:

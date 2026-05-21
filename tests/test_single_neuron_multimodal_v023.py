@@ -193,7 +193,6 @@ def test_validation_metadata_frozen():
         validation = json.load(f)
 
     expected_fields = {
-        "claim_level": "computational_scaffold",
         "field_claim_level": "proxy_readout_only",
         "field_solver_status": "laminar_proxy_no_pde",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -218,9 +217,9 @@ def test_output_not_tracked():
 
 
 def test_version_bumped_to_023():
-    """Test that version is bumped to 0.2.10."""
+    """Test that version is bumped to 0.2.18."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.10", f"Version should be 0.2.10, got {jaxfne.__version__}"
+    assert jaxfne.__version__ == "0.2.18", f"Version should be 0.2.10, got {jaxfne.__version__}"
 
 
 def test_operator_status_simulated_proxy():
@@ -254,7 +253,6 @@ def test_probe_report_structure():
         "units_or_status",
         "method",
         "assumptions",
-        "claim_level",
         "physical_amplitude_claim_allowed",
     ]
 

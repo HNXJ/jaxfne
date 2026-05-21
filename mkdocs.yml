@@ -21,10 +21,15 @@ theme:
       primary: orange
       accent: gray
 
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
 markdown_extensions:
   - admonition
   - toc:
       permalink: true
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.details
@@ -51,13 +56,25 @@ nav:
       - Overview: guides/index.md
       - Probe operators: probe_operators.md
       - Tensor-field workflows: tensor_field_workflows.md
+      - Plotly visualization: plotly_visualization.md
+      - Poisson admissibility: poisson_admissibility.md
       - Jaxley interoperability: jaxley_interop.md
       - Calibration: calibration.md
       - Output bundles: output_bundles.md
 
+  - Developer skills:
+      - Overview: skills/README.md
+      - Repo orientation: skills/skill_repo_orientation.md
+      - Tutorial smoke runner: skills/skill_tutorial_smoke.md
+      - Probe reports: skills/skill_probe_reports.md
+      - Field solution metadata: skills/skill_field_solution_metadata.md
+      - Physical field admissibility: skills/skill_physical_field_admissibility.md
+      - Visual outputs: skills/skill_visual_outputs.md
+
   - API reference:
       - Overview: api/index.md
       - Core: api/core.md
+      - Runtime: api/runtime.md
       - Emitters: api/emitters.md
       - Fields: api/fields.md
       - Probes: api/probes.md

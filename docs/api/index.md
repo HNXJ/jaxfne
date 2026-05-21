@@ -14,6 +14,12 @@ Main classes for configuration, model construction, simulation, and readouts.
 - **[Signals](core.md)** — Output signals container
 - **[Readout](core.md)** — Readout specifications and results
 
+### Runtime (`jaxfne.runtime`)
+
+Runtime configuration and execution helpers.
+
+- **[RuntimeConfig](runtime.md)** — Execution backend and device options
+
 ### Emitters (`jaxfne.emitters`)
 
 Neuron models and emitter implementations.
