@@ -216,7 +216,7 @@ class TestPoissonAdmissibilityReport:
     """Full admissibility report building and structure."""
 
     def test_report_all_gates_pass(self):
-        """All gates pass → admissible."""
+        """All gates pass → admissible, but v0.2.15 never allows physical amplitude claims."""
         sigma = jnp.eye(3)
         report = build_poisson_admissibility_report(
             conductivity=sigma,
@@ -231,7 +231,10 @@ class TestPoissonAdmissibilityReport:
             converged=True,
         )
         assert report["admissibility_status"] == "admissible"
-        assert report["physical_amplitude_claim_allowed"] is True
+        # v0.2.15 invariant: physical_amplitude_claim_allowed is ALWAYS false (specification-only)
+        assert report["physical_amplitude_claim_allowed"] is False
+        # Verify the v0215_note explains specification-only status
+        assert "specification-only" in report.get("v0215_note", "").lower()
 
     def test_report_one_gate_fails(self):
         """One gate fails → not admissible."""
@@ -306,24 +309,15 @@ class TestPoissonAdmissibilityReport:
         assert "v0215_note" in report
         assert "specification" in report["v0215_note"]
 
-    def test_report_claim_only_when_all_pass(self):
-        """physical_amplitude_claim_allowed is False if any gate fails."""
-        # SPD fails
-        report1 = build_poisson_admissibility_report(
-            conductivity=jnp.array([[1.0, 0.0], [0.0, -0.1]]),
-        )
-        assert not report1["physical_amplitude_claim_allowed"]
+    def test_report_physical_amplitude_always_false_v0215(self):
+        """v0.2.15 INVARIANT: physical_amplitude_claim_allowed is ALWAYS false.
 
-        # Conservation fails
-        report2 = build_poisson_admissibility_report(
-            conductivity=jnp.eye(2),
-            integrated_source=1.0,
-            integrated_boundary_flux=0.0,  # Mismatch
-        )
-        assert not report2["physical_amplitude_claim_allowed"]
-
-        # All pass
-        report3 = build_poisson_admissibility_report(
+        v0.2.15 is specification-only (no solver implemented). Even if all gates
+        pass synthetically, physical amplitude claims must remain false.
+        Only v0.2.16+ (with actual solver + calibration) may allow this.
+        """
+        # Even with perfect gates, still false
+        report_perfect = build_poisson_admissibility_report(
             conductivity=jnp.eye(2),
             integrated_source=1.0,
             integrated_boundary_flux=-1.0,
@@ -333,7 +327,20 @@ class TestPoissonAdmissibilityReport:
             CSD=jnp.ones((5, 5)),
             converged=True,
         )
-        assert report3["physical_amplitude_claim_allowed"]
+        assert report_perfect["admissibility_status"] == "admissible"
+        assert not report_perfect["physical_amplitude_claim_allowed"], \
+            "v0.2.15: must never allow physical amplitude claims (no solver yet)"
+
+        # With failed gates, also false
+        report_failed = build_poisson_admissibility_report(
+            conductivity=jnp.array([[1.0, 0.0], [0.0, -0.1]]),
+        )
+        assert report_failed["admissibility_status"] == "not_admissible"
+        assert not report_failed["physical_amplitude_claim_allowed"]
+
+        # v0215_note must reference specification-only status
+        assert "v0.2.15" in report_perfect["v0215_note"]
+        assert "specification-only" in report_perfect["v0215_note"]
 
 
 class TestPoissonIntegration:

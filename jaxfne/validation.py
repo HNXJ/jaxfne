@@ -933,6 +933,11 @@ def build_poisson_admissibility_report(
     This report contract specifies what a Poisson solver must output to be
     admissible. Used for validating solver implementations before integration.
 
+    **v0.2.15 invariant:** physical_amplitude_claim_allowed is ALWAYS false
+    because v0.2.15 is specification-only (no solver implemented yet).
+    All gates may pass on synthetic data, but no physical amplitude claims
+    are allowed until a solver exists and calibration/units are validated.
+
     Parameters
     ----------
     conductivity : Any, optional
@@ -1019,10 +1024,11 @@ def build_poisson_admissibility_report(
             "gauge": gauge,
             "csd_sign_convention": csd_sign_convention,
         },
-        "physical_amplitude_claim_allowed": all_gates_pass,  # Only if all gates pass
+        "physical_amplitude_claim_allowed": False,  # v0.2.15: specification-only, no solver yet
         "v0215_note": (
-            "Admissibility report for Poisson solver specification. "
-            "All gates must pass for solver output to be admitted to physical field modeling. "
-            "v0.2.16+: Poisson solver implementation will use this report contract."
+            "Admissibility report for Poisson solver specification (v0.2.15). "
+            "v0.2.15 is specification-only: no solver implemented, physical amplitude claims remain false. "
+            "v0.2.16+: Poisson solver implementation will validate all gates and optionally allow "
+            "physical amplitude claims only after: (1) solver exists, (2) all gates pass, (3) calibration/units validated."
         ),
     }

@@ -6,6 +6,11 @@ This document specifies the mathematical contract for future Poisson field solve
 
 **Status:** Specification only (v0.2.15). No Poisson solver is implemented yet. v0.2.16 will implement a concrete solver and validate against this contract.
 
+⚠️ **v0.2.15 Critical Invariant:**
+- **No physical amplitude claims are allowed in v0.2.15**, even if all admissibility gates pass synthetically on test data.
+- `physical_amplitude_claim_allowed` is **always false** in v0.2.15 reports.
+- Only v0.2.16+ (after solver implementation and calibration/units validation) may allow physical amplitude claims.
+
 ## Mathematical Problem
 
 A resistive forward-field problem seeks extracellular potential $\phi_e$ and current density $\mathbf{J}_e$ satisfying:
@@ -167,9 +172,11 @@ report = build_poisson_admissibility_report(
     csd_sign_convention="positive_equals_extracellular_source"
 )
 
-# Example report structure
+# Example report structure (v0.2.15)
 assert report["admissibility_status"] == "admissible"
-assert report["physical_amplitude_claim_allowed"] is True  # Only if all gates pass
+# v0.2.15 specification-only: physical_amplitude_claim_allowed is ALWAYS false
+assert report["physical_amplitude_claim_allowed"] is False
+assert "specification-only" in report.get("v0215_note", "").lower()
 ```
 
 **Report structure:**
@@ -208,7 +215,8 @@ assert report["physical_amplitude_claim_allowed"] is True  # Only if all gates p
     "gauge": "mean_zero",
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
-  "physical_amplitude_claim_allowed": true
+  "physical_amplitude_claim_allowed": false,
+  "v0215_note": "v0.2.15 is specification-only (no solver yet). physical_amplitude_claim_allowed is ALWAYS false. v0.2.16+ will enable claims after solver implementation and calibration/units validation."
 }
 ```
 
