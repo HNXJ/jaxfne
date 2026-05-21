@@ -61,7 +61,7 @@ def compute_sha256(file_path: pathlib.Path) -> str:
 
 
 def validate_tutorial_output(
-    output_dir: pathlib.Path, tutorial_key: str, tutorial_info: dict
+    output_dir: pathlib.Path, tutorial_key: str, tutorial_info: dict, require_interactive: bool = False
 ) -> dict:
     """
     Validate a single tutorial output directory.
@@ -75,6 +75,7 @@ def validate_tutorial_output(
         "path": str(output_dir),
         "contract_files": {},
         "figures": {},
+        "interactive": {},
         "claim_gates": {},
         "metrics": {},
         "probe_report": {},
@@ -241,6 +242,69 @@ def validate_tutorial_output(
 
         result["figures"][figure_name]["hash_match"] = True
 
+    # === Interactive artifact validation (if required) ===
+    if require_interactive:
+        # Determine expected HTML filename based on tutorial
+        html_filename = None
+        if "spike_events" in str(result):  # Spike raster tutorials
+            html_filename = "raster.html"
+        else:
+            # Could be spectrolaminar profile or other
+            potential_html_files = list(figures_dir.glob("*.html")) if figures_dir.exists() else []
+            if potential_html_files:
+                html_filename = potential_html_files[0].name
+            else:
+                # Try to infer from tutorial name
+                if "spectrolaminar" in tutorial_info.get("name", "").lower():
+                    html_filename = "spectrolaminar_profile.html"
+                else:
+                    html_filename = "raster.html"
+
+        if html_filename:
+            html_path = figures_dir / html_filename
+            result["interactive"]["expected_html"] = html_filename
+
+            if not html_path.exists():
+                raise ValueError(f"Interactive HTML missing: {html_filename}")
+
+            result["interactive"]["exists"] = True
+
+            # Check file size
+            html_size = html_path.stat().st_size
+            result["interactive"]["size"] = html_size
+
+            if html_size == 0:
+                raise ValueError(f"Interactive HTML is zero-size: {html_filename}")
+
+            # Compute and compare hash
+            computed_hash = compute_sha256(html_path)
+            result["interactive"]["hash_computed"] = computed_hash
+
+            # Find recorded hash in asset_hashes.json
+            recorded_hash = None
+            for hash_key in [html_filename, f"figures/{html_filename}"]:
+                if hash_key in asset_hashes:
+                    hash_entry = asset_hashes[hash_key]
+                    if isinstance(hash_entry, str):
+                        recorded_hash = hash_entry
+                    elif isinstance(hash_entry, dict) and "sha256" in hash_entry:
+                        recorded_hash = hash_entry["sha256"]
+                    break
+
+            if recorded_hash is None:
+                raise ValueError(f"Interactive HTML hash missing from asset_hashes.json: {html_filename}")
+
+            result["interactive"]["hash_recorded"] = recorded_hash
+
+            # Compare hashes
+            if computed_hash != recorded_hash:
+                raise ValueError(
+                    f"Interactive HTML hash mismatch for {html_filename}: "
+                    f"computed={computed_hash} vs recorded={recorded_hash}"
+                )
+
+            result["interactive"]["hash_match"] = True
+
     return result
 
 
@@ -252,6 +316,12 @@ def main():
         "output_root",
         type=str,
         help="Root directory containing tutorial outputs (e.g., outputs/tutorials_v020)",
+    )
+    parser.add_argument(
+        "--require-interactive",
+        action="store_true",
+        default=False,
+        help="Require and validate interactive HTML artifacts (default: False)",
     )
 
     args = parser.parse_args()
@@ -268,7 +338,12 @@ def main():
     for tutorial_key, tutorial_info in TUTORIAL_OUTPUTS.items():
         tutorial_output_dir = output_root / tutorial_key
         try:
-            result = validate_tutorial_output(tutorial_output_dir, tutorial_key, tutorial_info)
+            result = validate_tutorial_output(
+                tutorial_output_dir,
+                tutorial_key,
+                tutorial_info,
+                require_interactive=args.require_interactive,
+            )
             all_results["tutorials"].append(result)
         except ValueError as e:
             all_results["errors"].append(str(e))

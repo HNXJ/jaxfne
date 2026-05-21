@@ -180,10 +180,138 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str) -> 
     return results
 
 
+def _generate_plotly_html(
+    tutorial_dir: pathlib.Path,
+    tutorial_name: str,
+) -> dict:
+    """
+    Generate interactive Plotly HTML from source_data.json in tutorial output directory.
+
+    Returns dict with HTML artifact info (path, size, hash).
+    Returns empty dict if Plotly unavailable or source_data missing.
+    """
+    result = {
+        "html_path": None,
+        "html_size": 0,
+        "html_sha256": None,
+        "status": "skipped",
+        "reason": None,
+    }
+
+    # Check if source_data.json exists
+    source_data_path = tutorial_dir / "figures" / "source_data.json"
+    if not source_data_path.exists():
+        result["reason"] = "source_data.json not found"
+        return result
+
+    try:
+        import json
+        import hashlib
+
+        # Load source data
+        with open(source_data_path, "r") as f:
+            source_data = json.load(f)
+
+        # Try to import Plotly
+        try:
+            import plotly.graph_objects as go
+            import plotly.io as pio
+        except ImportError:
+            result["reason"] = "Plotly not installed (optional dependency)"
+            return result
+
+        # Generate HTML based on source data kind
+        html_figure = None
+        figures_dir = tutorial_dir / "figures"
+
+        if source_data.get("source_data_kind") == "spike_events":
+            # Spike raster: scatter plot of time vs unit_id
+            time_ms = source_data.get("time_ms", [])
+            unit_id = source_data.get("unit_id", [])
+
+            html_figure = go.Figure(data=go.Scatter(
+                x=time_ms,
+                y=unit_id,
+                mode='markers',
+                marker=dict(size=3, color='black', opacity=0.6),
+                name='spikes',
+            ))
+            html_figure.update_layout(
+                title=f"Spike Raster: {source_data.get('tutorial_id', 'unknown')}",
+                xaxis_title="Time (timestep)",
+                yaxis_title="Unit ID",
+                height=500,
+                width=1200,
+                hovermode='closest',
+            )
+            html_filename = "raster.html"
+
+        elif source_data.get("source_data_kind") == "spectrolaminar_profile":
+            # Spectrolaminar profile: grouped bars for alpha/beta and gamma
+            layers = source_data.get("layers_or_depths", [])
+            alpha_profile = source_data.get("alpha_beta_profile", [])
+            gamma_profile = source_data.get("gamma_profile", [])
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=layers,
+                y=alpha_profile,
+                name='Alpha/Beta power',
+                marker_color='steelblue',
+                opacity=0.7,
+            ))
+            fig.add_trace(go.Bar(
+                x=layers,
+                y=gamma_profile,
+                name='Gamma power',
+                marker_color='coral',
+                opacity=0.7,
+            ))
+            fig.update_layout(
+                title=f"Spectrolaminar Profile: {source_data.get('tutorial_id', 'unknown')}",
+                xaxis_title="Window",
+                yaxis_title="Power (relative units)",
+                barmode='group',
+                height=500,
+                width=1200,
+                hovermode='x unified',
+            )
+            html_figure = fig
+            html_filename = "spectrolaminar_profile.html"
+
+        else:
+            result["reason"] = f"Unknown source_data_kind: {source_data.get('source_data_kind')}"
+            return result
+
+        if html_figure is None:
+            result["reason"] = "Failed to generate Plotly figure"
+            return result
+
+        # Write HTML file
+        html_path = figures_dir / html_filename
+        html_str = pio.to_html(html_figure, include_plotlyjs='cdn')
+        html_path.write_text(html_str)
+
+        # Compute hash
+        html_sha256 = hashlib.sha256(html_path.read_bytes()).hexdigest()
+
+        result["html_path"] = str(html_path)
+        result["html_size"] = html_path.stat().st_size
+        result["html_sha256"] = html_sha256
+        result["status"] = "success"
+        return result
+
+    except Exception as e:
+        result["reason"] = f"Exception: {str(e)}"
+        result["status"] = "error"
+        return result
+
+
 def run_tutorial(
     tutorial: dict,
     out_root: pathlib.Path,
     write_figures: bool,
+    write_interactive: bool = False,
 ) -> dict:
     """
     Execute a single tutorial script and validate output.
@@ -198,6 +326,7 @@ def run_tutorial(
         "script": tutorial["script"],
         "exit_code": None,
         "validation": {},
+        "interactive": {},
         "error": None,
     }
 
@@ -242,6 +371,32 @@ def run_tutorial(
     except ValueError as e:
         raise ValueError(f"Tutorial validation failed: {e}")
 
+    # Generate interactive HTML if requested
+    if write_interactive:
+        interactive_result = _generate_plotly_html(tutorial_output_dir, tutorial["name"])
+        result["interactive"] = interactive_result
+
+        # If HTML was generated successfully, update asset_hashes.json
+        if interactive_result["status"] == "success" and interactive_result["html_sha256"]:
+            asset_hashes_path = tutorial_output_dir / "asset_hashes.json"
+            if asset_hashes_path.exists():
+                try:
+                    import json
+
+                    with open(asset_hashes_path, "r") as f:
+                        asset_hashes = json.load(f)
+
+                    # Add HTML hash
+                    html_filename = pathlib.Path(interactive_result["html_path"]).name
+                    asset_hashes[f"figures/{html_filename}"] = interactive_result["html_sha256"]
+
+                    # Write back
+                    with open(asset_hashes_path, "w") as f:
+                        json.dump(asset_hashes, f, indent=2)
+
+                except Exception as e:
+                    result["interactive"]["update_asset_hashes_error"] = str(e)
+
     return result
 
 
@@ -266,6 +421,12 @@ def main():
         default=True,
         help="Generate figures (default: True)",
     )
+    parser.add_argument(
+        "--write-interactive",
+        action="store_true",
+        default=False,
+        help="Generate interactive Plotly HTML from source data (default: False, requires matplotlib optional deps)",
+    )
 
     args = parser.parse_args()
 
@@ -280,7 +441,12 @@ def main():
 
     for tutorial in TUTORIALS:
         try:
-            result = run_tutorial(tutorial, out_root, args.write_figures)
+            result = run_tutorial(
+                tutorial,
+                out_root,
+                args.write_figures,
+                args.write_interactive,
+            )
             all_results["tutorials"].append(result)
         except ValueError as e:
             all_results["errors"].append(str(e))

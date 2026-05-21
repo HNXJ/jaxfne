@@ -220,7 +220,36 @@ def main():
     except ImportError:
         pass
 
-    # === 10.5. Asset hashes (including figures) ===
+    # === 10.5. Save spike event source data for interactive visualization ===
+    # Extract spike events (times and neuron indices) from signals.spikes array
+    spike_times = []
+    unit_ids = []
+    spikes = signals.spikes
+    timesteps = jnp.arange(spikes.shape[1])
+    for neuron_idx in range(spikes.shape[0]):
+        spike_t = timesteps[spikes[neuron_idx] > 0.5]
+        spike_times.extend([int(t) for t in spike_t])
+        unit_ids.extend([int(neuron_idx)] * len(spike_t))
+
+    source_data = {
+        "source_data_kind": "spike_events",
+        "tutorial_id": "03_single_neuron_multimodal_probe",
+        "figure_id": "raster",
+        "time_ms": spike_times,
+        "unit_id": unit_ids,
+        "units_or_status": "binary_spike_event_proxy",
+        "operator_kind": "spk",
+        "claim_level": manifest.get("claim_level"),
+        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed"),
+    }
+
+    figures_dir = output_dir / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    source_data_path = figures_dir / "source_data.json"
+    with open(source_data_path, "w") as f:
+        json.dump(source_data, f, allow_nan=False, indent=2)
+
+    # === 10.6. Asset hashes (including figures and source data) ===
     asset_hashes = {
         "manifest.json": file_hash_sha256(manifest_path),
         "probe_report.json": file_hash_sha256(probe_report_path),
@@ -229,6 +258,8 @@ def main():
     }
     if raster_path and raster_path.exists():
         asset_hashes["figures/raster.png"] = file_hash_sha256(raster_path)
+    if source_data_path and source_data_path.exists():
+        asset_hashes["figures/source_data.json"] = file_hash_sha256(source_data_path)
 
     hashes_path = output_dir / "asset_hashes.json"
     with open(hashes_path, "w") as f:
@@ -247,6 +278,10 @@ def main():
     if raster_path and raster_path.exists():
         size = raster_path.stat().st_size
         print(f"  figures/raster.png{'':<20} {size:>6} bytes")
+
+    if source_data_path and source_data_path.exists():
+        size = source_data_path.stat().st_size
+        print(f"  figures/source_data.json{'':<16} {size:>6} bytes")
 
     print("\nProbe operators (all eight):")
     for op_name, op_report in probe_report.items():
