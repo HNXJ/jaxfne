@@ -118,6 +118,21 @@ for result in readouts:
     print(result.name, result.metric, result.value, result.status)
 ```
 
+## Quick API Reference
+
+| Category | Main Entry | Purpose | Docs |
+|----------|------------|---------|------|
+| **Configuration** | `configuration()` | Define network, emitter, field, probe | [docs/](docs/) |
+| **Simulation** | `simulation()` | Configure runtime, duration, seed | [docs/](docs/) |
+| **Emitters** | `IzhikevichParams`, `make_eig_network()` | Neuron models, spiking dynamics | [docs/emitters.md](docs/) |
+| **Fields & Probes** | `laminar_source_geometry()`, `probe_laminar_modes()` | Source/field/probe operations | [docs/fields.md](docs/) |
+| **Readouts** | `readout_spec()`, `compute_readout()` | Output metrics (spike rate, LFP, CSD) | [docs/probe_operators.md](docs/) |
+| **Bridges** | `jaxley_trace_to_signals()` | Interop with Jaxley voltage traces | [docs/jaxley_interop.md](docs/jaxley_interop.md) |
+| **Optimization** | `gsdr()`, `agsdr()` | Custom and optional Optax optimizers | [docs/](docs/) |
+| **I/O & Validation** | `manifest()`, `json_safe()` | Serialization, integrity checks | [docs/output_bundles.md](docs/output_bundles.md) |
+
+For full API reference, see [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/).
+
 ## What it supports
 
 `jaxfne` supports compact TFNE-style computational workflows with:
@@ -185,20 +200,30 @@ jaxfne/
 
 ## Validation
 
-Core local checks:
+### Core validation (fast, every commit)
+
+Run these locally before pushing:
 
 ```bash
-python -m compileall -q jaxfne tests examples
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short
+python -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=line
 ```
 
-Run examples:
+This runs:
+- Unit tests (804 passed, 5 skipped)
+- Fast examples (00-06, ~1 min total)
+- Build validation (wheel + sdist)
+
+### Extended validation (manual, ~5-10 minutes)
+
+For release validation and tutorial verification:
 
 ```bash
-python examples/00_minimal_column.py
-python examples/01_source_field_manifest.py
-python examples/02_spectrolaminar_oddball_scaffold.py
+python scripts/run_all_tutorials.py --smoke --write-figures
+python scripts/validate_tutorial_outputs.py outputs/
 ```
+
+This includes large examples (02_spectrolaminar_oddball_scaffold, 03_single_neuron_multimodal_probe, 04_two_neuron_ei_multimodal, 05_network_100_ei_multimodal, 07_jaxley_trace_bridge) that are excluded from the fast gate to keep development iteration quick. See [CI policy](docs/ci_policy.md) for details.
 
 ## Documentation
 

@@ -1,3 +1,24 @@
+## v0.2.23
+
+- **Package cleanup and docs polish release.**
+- **Added quick API reference table:** README now includes organized table of main API categories 
+  (Configuration, Simulation, Emitters, Fields/Probes, Readouts, Bridges, Optimization, I/O).
+- **Clarified validation documentation:** Split validation into core (fast, every commit) and extended 
+  (manual, release validation). Large examples (02-05, 07) now documented as manual-validation tests 
+  with expected exclusion from fast CI.
+- **Added CI policy documentation:** New `docs/ci_policy.md` explains smoke-safe CI gate, large tutorial 
+  exclusion rationale, and release validation procedures.
+- **Improved docs/index.md:** Reorganized to highlight current best practices; added reference to CI policy 
+  in "Development & CI" section.
+- **Terminology consistency:** User-facing docs use "programmatically generated" instead of "human-readable"; 
+  removed casual language ('we' → 'jaxfne', 'you can' → 'workflows can').
+- **Preserved all features:** No code changes, no new dependencies, no feature expansion. v0.2.23 is pure 
+  documentation and packaging polish.
+- **Preserved truth status:** All claim gates remain frozen (`truth_safe_unverified`, `computational_scaffold`, 
+  `physical_amplitude_claim_allowed=False`).
+- **Known issue documented:** Subprocess tests (test_example_script_runs) excluded from fast CI; documented as 
+  release-validation only. Infrastructure issue, not regression.
+
 ## v0.2.22
 
 - **Added Jaxley array-first trace bridge:** Minimal optional bridge for converting Jaxley-style voltage 

@@ -56,11 +56,14 @@ Or explore the interactive Colab tutorial:
 - [Objectives](api/objectives.md) — Objective functions and evaluation scaffolds
 - [Validation](api/validation.md) — Invariant and diagnostic checks
 
+**Development & CI:**
+- **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation
+- **[Contributing](contributing.md)** — Contributing code and feedback
+
 **About:**
 - **[Scope and limitations](scope_and_limitations.md)** — Design goals and boundaries
 - **[Changelog](changelog.md)** — Release history
 - **[Citation](citation.md)** — How to cite jaxfne
-- **[Contributing](contributing.md)** — Contributing code and feedback
 
 ## Installation
 
