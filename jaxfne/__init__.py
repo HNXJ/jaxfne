@@ -5,6 +5,8 @@ Equations (TFNE).  Public API is object-oriented; numerical kernels are JAX-firs
 """
 
 from .core import (
+    AxisSpec,
+    BasisSpec,
     Configuration,
     ConfigValidationResult,
     DatasetSpec,
@@ -58,6 +60,7 @@ from .core import (
     trial_batch,
     validate_config,
     _KNOWN_METRICS,
+    default_basis_spec,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley
 from .emitters import (
@@ -100,9 +103,12 @@ from .optim import (
 )
 
 __all__ = [
+    "AxisSpec",
+    "BasisSpec",
     "BridgeSpec",
     "ConfigValidationResult",
     "Configuration",
+    "default_basis_spec",
     "DatasetSpec",
     "JaxFNEConfig",
     "JaxleyEmitterBridge",

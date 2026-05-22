@@ -1250,6 +1250,245 @@ def _evaluate_gate_spec(
     return result
 
 
+# ──────────────────────────────────────────────────────────────
+# v0.2.26 computation-basis contracts
+# ──────────────────────────────────────────────────────────────
+
+#: Allowed values for AxisSpec.status
+_AXIS_STATUS_VALUES: frozenset[str] = frozenset({"active", "collapsed", "indexed"})
+
+#: Allowed values for BasisSpec.space_basis
+_SPACE_BASIS_VALUES: frozenset[str] = frozenset(
+    {"collapsed", "xy", "xyz", "laminar_depth", "graph"}
+)
+
+#: Allowed values for BasisSpec.time_basis
+_TIME_BASIS_VALUES: frozenset[str] = frozenset(
+    {"continuous_ms", "discrete_steps", "slow_proxy"}
+)
+
+#: Allowed values for BasisSpec.field_regime
+_FIELD_REGIME_VALUES: frozenset[str] = frozenset(
+    {
+        "laminar_proxy",
+        "quasi_static_resistive",
+        "solved_poisson",
+        "future_admittive",
+        "future_maxwell",
+    }
+)
+
+#: Regimes that are declared future — never claim implemented=True for these
+_FUTURE_FIELD_REGIMES: frozenset[str] = frozenset({"future_admittive", "future_maxwell"})
+
+#: Allowed values for BasisSpec.source_mode
+_SOURCE_MODE_BASIS_VALUES: frozenset[str] = frozenset(
+    {"total_membrane_current", "decomposed_cap_ion_syn", "proxy_no_field_solve"}
+)
+
+#: Allowed values for BasisSpec.probe_basis
+_PROBE_BASIS_VALUES: frozenset[str] = frozenset(
+    {
+        "none",
+        "spike_only",
+        "field_proxy",
+        "multimodal_proxy",
+        "physical_forward_model",
+    }
+)
+
+
+@dataclass(frozen=True)
+class AxisSpec:
+    """Typed descriptor for one tensor axis in the TFNE scaffold.
+
+    Describes whether a spatial/feature dimension is actively computed
+    (``active``), collapsed to a scalar or removed (``collapsed``), or
+    indexed by an explicit label set (``indexed``).
+
+    These are documentation/contract objects — they do not affect JAX
+    execution. They appear in manifest output to make axis semantics
+    explicit and auditable.
+
+    Attributes
+    ----------
+    name : str
+        Canonical dimension name (e.g. ``"x"``, ``"y"``, ``"z"``, ``"t"``).
+    status : str
+        One of ``"active"``, ``"collapsed"``, ``"indexed"``.
+    size : int or None
+        Known static size, if any. ``None`` if dynamic or not applicable.
+    units_or_status : str
+        Physical units (``"mm"``, ``"ms"``) or proxy status
+        (``"declared"``, ``"proxy"``). Default ``"declared"``.
+    """
+
+    name: str
+    status: str = "active"
+    size: Optional[int] = None
+    units_or_status: str = "declared"
+
+    def validate(self) -> dict[str, Any]:
+        """Return a JSON-safe validation dict."""
+        issues: list[str] = []
+        if not self.name:
+            issues.append("name_empty")
+        if self.status not in _AXIS_STATUS_VALUES:
+            issues.append(f"invalid_status:{self.status!r}")
+        if self.size is not None and self.size <= 0:
+            issues.append(f"size_must_be_positive_got:{self.size}")
+        return {
+            "valid": not issues,
+            "issues": issues,
+            "name": self.name,
+            "status": self.status,
+            "size": self.size,
+            "units_or_status": self.units_or_status,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return JSON-safe dict representation."""
+        return {
+            "name": self.name,
+            "status": self.status,
+            "size": self.size,
+            "units_or_status": self.units_or_status,
+        }
+
+
+@dataclass(frozen=True)
+class BasisSpec:
+    """Typed descriptor for the computation basis of a TFNE run.
+
+    Declares the spatial, temporal, and field regime without claiming
+    physical amplitude or biological validity. Future electrodynamic
+    regimes (``future_maxwell``, ``future_admittive``) are recorded as
+    declared-future modules: ``implemented=False``,
+    ``claim_allowed=False``.
+
+    The default matches the current v0.2.25 laminar-proxy scaffold.
+
+    Attributes
+    ----------
+    space_basis : str
+        Spatial computation domain. Default ``"laminar_depth"``.
+    time_basis : str
+        Temporal basis. Default ``"continuous_ms"``.
+    field_regime : str
+        Field computation regime. Default ``"laminar_proxy"``.
+    source_mode : str
+        Source model. Default ``"proxy_no_field_solve"``.
+    probe_basis : str
+        Probe operator class. Default ``"multimodal_proxy"``.
+    axes : tuple of AxisSpec
+        Explicit axis descriptors. Default: x/y collapsed, z active.
+    """
+
+    space_basis: str = "laminar_depth"
+    time_basis: str = "continuous_ms"
+    field_regime: str = "laminar_proxy"
+    source_mode: str = "proxy_no_field_solve"
+    probe_basis: str = "multimodal_proxy"
+    axes: tuple[Any, ...] = field(
+        default_factory=lambda: (
+            AxisSpec(name="x", status="collapsed"),
+            AxisSpec(name="y", status="collapsed"),
+            AxisSpec(name="z", status="active", units_or_status="proxy"),
+        )
+    )
+
+    @property
+    def implemented(self) -> bool:
+        """True if this regime has a runtime implementation in the current package."""
+        # Future regimes are always unimplemented by doctrine
+        if self.field_regime in _FUTURE_FIELD_REGIMES:
+            return False
+        # solved_poisson is specified but not solved in v0.2.x
+        if self.field_regime == "solved_poisson":
+            return False
+        return True
+
+    @property
+    def claim_allowed(self) -> bool:
+        """Physical amplitude claims are always False in proxy/scaffold regimes."""
+        # Claims require solved field with calibrated conductivity — not in v0.2.x
+        return False
+
+    def validate(self) -> dict[str, Any]:
+        """Return a JSON-safe validation dict. Raises ValueError on invalid enum."""
+        issues: list[str] = []
+        if self.space_basis not in _SPACE_BASIS_VALUES:
+            issues.append(f"invalid_space_basis:{self.space_basis!r}")
+        if self.time_basis not in _TIME_BASIS_VALUES:
+            issues.append(f"invalid_time_basis:{self.time_basis!r}")
+        if self.field_regime not in _FIELD_REGIME_VALUES:
+            issues.append(f"invalid_field_regime:{self.field_regime!r}")
+        if self.source_mode not in _SOURCE_MODE_BASIS_VALUES:
+            issues.append(f"invalid_source_mode:{self.source_mode!r}")
+        if self.probe_basis not in _PROBE_BASIS_VALUES:
+            issues.append(f"invalid_probe_basis:{self.probe_basis!r}")
+        # Axis-space consistency checks
+        active_axes = {a.name for a in self.axes if a.status == "active"}
+        for ax in self.axes:
+            v = ax.validate()
+            if not v["valid"]:
+                issues.extend([f"axis_{ax.name}:{i}" for i in v["issues"]])
+        if self.space_basis == "collapsed" and active_axes:
+            issues.append(f"collapsed_basis_must_not_have_active_axes:{sorted(active_axes)}")
+        if self.space_basis == "xy" and "z" in active_axes:
+            issues.append("xy_basis:z_must_not_be_active_unless_indexed")
+        if self.space_basis == "xyz":
+            missing = {"x", "y", "z"} - active_axes - {
+                a.name for a in self.axes if a.status in ("active", "indexed")
+            }
+            if missing:
+                issues.append(f"xyz_basis:missing_active_or_indexed_axes:{sorted(missing)}")
+        if self.space_basis == "laminar_depth":
+            z_ok = any(
+                a.name == "z" and a.status in ("active", "indexed") for a in self.axes
+            )
+            if not z_ok:
+                issues.append("laminar_depth_basis:z_must_be_active_or_indexed")
+        return {
+            "valid": not issues,
+            "issues": issues,
+            "space_basis": self.space_basis,
+            "time_basis": self.time_basis,
+            "field_regime": self.field_regime,
+            "source_mode": self.source_mode,
+            "probe_basis": self.probe_basis,
+            "implemented": self.implemented,
+            "future_regime": self.field_regime in _FUTURE_FIELD_REGIMES,
+            "claim_allowed": self.claim_allowed,
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a JSON-safe dict including axis dimension_status."""
+        dim_status = {a.name: a.status for a in self.axes}
+        return {
+            "space_basis": self.space_basis,
+            "time_basis": self.time_basis,
+            "field_regime": self.field_regime,
+            "source_mode": self.source_mode,
+            "probe_basis": self.probe_basis,
+            "dimension_status": dim_status,
+            "implemented": self.implemented,
+            "future_regime": self.field_regime in _FUTURE_FIELD_REGIMES,
+            "claim_allowed": self.claim_allowed,
+        }
+
+
+def default_basis_spec() -> BasisSpec:
+    """Return the default BasisSpec matching the current laminar-proxy scaffold."""
+    return BasisSpec()
+
+
+def _default_basis_dict() -> dict[str, Any]:
+    """Return JSON-safe basis metadata dict for manifest embedding."""
+    return default_basis_spec().to_dict()
+
+
+# ──────────────────────────────────────────────────────────────
 def _normalize_manifest_readout(
     readout: Any,
 ) -> Optional[dict[str, Any]]:
@@ -2222,6 +2461,8 @@ class Model:
         res["backend_metadata"] = backend_meta
         if "geometry" in self.static:
             res["source_geometry"] = self.static["geometry"]
+        # v0.2.26: computation-basis block
+        res["basis"] = _default_basis_dict()
         return res
 
 

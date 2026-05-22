@@ -1032,3 +1032,136 @@ def build_poisson_admissibility_report(
             "physical amplitude claims only after: (1) solver exists, (2) all gates pass, (3) calibration/units validated."
         ),
     }
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.2.26 computation-basis validation
+# ──────────────────────────────────────────────────────────────
+
+
+def validate_basis_spec(spec: Any) -> dict[str, Any]:
+    """Validate a BasisSpec or basis dict against computation-basis contracts.
+
+    Parameters
+    ----------
+    spec : BasisSpec or dict
+        A BasisSpec dataclass (preferred) or dict with equivalent fields.
+
+    Returns
+    -------
+    dict
+        JSON-safe report with keys: valid, issues, warnings, field_by_field.
+        Never raises; invalid inputs produce ``valid: False``.
+    """
+    # Import here to avoid circular import; core imports validation, not vice versa
+    try:
+        from .core import (
+            BasisSpec,
+            _AXIS_STATUS_VALUES,
+            _SPACE_BASIS_VALUES,
+            _TIME_BASIS_VALUES,
+            _FIELD_REGIME_VALUES,
+            _SOURCE_MODE_BASIS_VALUES,
+            _PROBE_BASIS_VALUES,
+            _FUTURE_FIELD_REGIMES,
+        )
+    except ImportError:
+        return {"valid": False, "issues": ["import_error_core_unavailable"], "warnings": []}
+
+    # Normalize dict to BasisSpec for uniform validation
+    if isinstance(spec, dict):
+        try:
+            spec = BasisSpec(
+                space_basis=spec.get("space_basis", "laminar_depth"),
+                time_basis=spec.get("time_basis", "continuous_ms"),
+                field_regime=spec.get("field_regime", "laminar_proxy"),
+                source_mode=spec.get("source_mode", "proxy_no_field_solve"),
+                probe_basis=spec.get("probe_basis", "multimodal_proxy"),
+            )
+        except Exception as e:
+            return {"valid": False, "issues": [f"dict_normalization_error:{e}"], "warnings": []}
+
+    if not isinstance(spec, BasisSpec):
+        return {"valid": False, "issues": ["not_a_BasisSpec_instance"], "warnings": []}
+
+    validation = spec.validate()
+    warnings: list[str] = []
+
+    # Extra warnings (non-fatal)
+    if spec.field_regime in _FUTURE_FIELD_REGIMES:
+        warnings.append(
+            f"future_regime_{spec.field_regime}:implemented=False,claim_allowed=False"
+        )
+    if spec.field_regime == "solved_poisson":
+        warnings.append(
+            "solved_poisson:not_implemented_in_v0.2.x:treated_as_future_specification"
+        )
+    if spec.source_mode != "proxy_no_field_solve":
+        warnings.append(
+            f"source_mode_{spec.source_mode}:not_active_in_v0.2.x:proxy_no_field_solve_only"
+        )
+
+    validation["warnings"] = warnings
+    # Guarantee physical_amplitude_claim_allowed is never escalated
+    validation["physical_amplitude_claim_allowed"] = False
+    return validation
+
+
+def basis_claim_gate(
+    spec: Any,
+    *,
+    source_calibration_status: str,
+    field_solver_status: str,
+) -> dict[str, Any]:
+    """Evaluate claim eligibility given a BasisSpec and current runtime status.
+
+    Parameters
+    ----------
+    spec : BasisSpec or dict
+        Computation basis specification.
+    source_calibration_status : str
+        From manifest (e.g. ``"uncalibrated_izhikevich_native_current"``).
+    field_solver_status : str
+        From manifest (e.g. ``"laminar_proxy_no_pde"``).
+
+    Returns
+    -------
+    dict
+        JSON-safe gate result. ``physical_amplitude_claim_allowed`` is always
+        ``False`` in v0.2.x.
+    """
+    validation = validate_basis_spec(spec)
+    issues = list(validation.get("issues", []))
+    warnings = list(validation.get("warnings", []))
+
+    # Physical claim gate: requires solved field AND calibrated source
+    proxy_solver = field_solver_status in (
+        "laminar_proxy_no_pde",
+        "not_computed",
+        None,
+        "",
+    )
+    uncalibrated_source = source_calibration_status.startswith("uncalibrated") if isinstance(
+        source_calibration_status, str
+    ) else True
+
+    if proxy_solver:
+        warnings.append("claim_gate:field_not_solved:laminar_proxy")
+    if uncalibrated_source:
+        warnings.append(f"claim_gate:source_uncalibrated:{source_calibration_status}")
+
+    return {
+        "valid": validation.get("valid", False),
+        "issues": issues,
+        "warnings": warnings,
+        "physical_amplitude_claim_allowed": False,
+        "claim_rationale": (
+            "proxy_scaffold_no_physical_claim_allowed"
+            if (proxy_solver or uncalibrated_source)
+            else "calibration_required_for_future_claim"
+        ),
+        "source_calibration_status": source_calibration_status,
+        "field_solver_status": field_solver_status,
+        "basis_implemented": validation.get("implemented", False),
+        "basis_future_regime": validation.get("future_regime", False),
+    }

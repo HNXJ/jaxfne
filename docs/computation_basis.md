@@ -333,6 +333,35 @@ for seed in range(10):
 
 ---
 
+---
+
+## Implemented in v0.2.26
+
+The following computation-basis contract objects are implemented in jaxfne v0.2.26:
+
+| Object / Function | Location | Purpose |
+|-------------------|----------|---------|
+| `AxisSpec` | `jaxfne.core` | Typed descriptor for one tensor axis (name, status, size, units) |
+| `BasisSpec` | `jaxfne.core` | Typed descriptor for the full computation basis (space, time, field regime, source mode, probe basis) |
+| `default_basis_spec()` | `jaxfne.core` | Returns the default BasisSpec matching the current laminar-proxy scaffold |
+| `validate_basis_spec()` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis contracts |
+| `basis_claim_gate()` | `jaxfne.validation` | Evaluates physical-amplitude claim eligibility given basis + runtime status |
+| `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest |
+
+**Allowed `BasisSpec.field_regime` values and their status:**
+
+| Regime | Status | Implemented | Claim Allowed |
+|--------|--------|-------------|---------------|
+| `laminar_proxy` | Active (default) | True | False |
+| `quasi_static_resistive` | Reserved | False | False |
+| `solved_poisson` | Declared future (v0.2.27) | False | False |
+| `future_admittive` | Declared future (v0.3.x) | **False** | **False** |
+| `future_maxwell` | Declared future (v0.3.x) | **False** | **False** |
+
+`future_maxwell` and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `claim_allowed=False` are structurally enforced and cannot be escalated.
+
+---
+
 ## See Also
 
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
