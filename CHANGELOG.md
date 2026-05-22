@@ -9,6 +9,7 @@
 - **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
 - **No code changes, no feature expansion.** v0.2.25 is pure documentation: mathematical grounding, forbidden patterns, equation-to-code mapping, and clear roadmap.
 - **Purpose:** Establish solid mathematical and conceptual foundation for v0.2.26–v0.3.x extensibility, diagnostics, and physical-field work.
+- **BETA patch:** Bumped package version to `0.2.25` and patched the source-projection glossary to define `a_k` (state-to-source scalar) and `b_k` (input-to-source scalar), resolving the documentation completeness gap identified in BETA review.
 
 ## v0.2.24
 

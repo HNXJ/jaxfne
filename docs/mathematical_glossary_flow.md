@@ -73,7 +73,9 @@ where $\alpha$ indexes spatial contact points, $k$ indexes neurons, and $w$ are 
 - $z(t)$: neural state (from emitter)
 - $I(t)$: input/drive current
 - $\chi(x)$: spatial contact basis (probe geometry, source locations)
-- $w(x)$: projection weights (anatomical distances, contact coupling)
+- $w_{k\alpha}(x)$: spatial projection weight from neuron $k$ to contact $\alpha$ (anatomical distance, contact coupling)
+- $a_k$: state-to-source projection scalar for unit $k$ (scales how much of the emitter state contributes to the source; proxy coefficient, not a calibrated physical constant)
+- $b_k$: input-to-source projection scalar for unit $k$ (scales how much of the drive/input current contributes to the source; proxy coefficient, not a calibrated physical constant)
 
 **Worded-equation:**
 
