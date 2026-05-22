@@ -828,6 +828,207 @@ def emm_proxy_probe(
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
+def compute_conservation_proxy_diagnostics(
+    *,
+    source: "jax.Array | None" = None,
+    phi_e: "jax.Array | None" = None,
+    csd: "jax.Array | None" = None,
+    lfp: "jax.Array | None" = None,
+    field_solution: "FieldOutput | None" = None,
+    source_calibration_status: str = "uncalibrated_izhikevich_native_current",
+    field_solver_status: str = "laminar_proxy_no_pde",
+    field_claim_level: str = "proxy_readout_only",
+) -> dict[str, Any]:
+    """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
+
+    v0.2.27 proxy diagnostics — no Poisson solver, no Maxwell solver, no physical
+    amplitude claims.  All values are derived from the existing laminar-proxy arrays
+    (source_proxy, phi_e_proxy, csd_proxy, lfp_proxy) already produced by the
+    pipeline.  Nothing is fabricated; missing arrays yield ``None``.
+
+    Parameters
+    ----------
+    source:
+        Source proxy array [T, N] or [T, X].  Optional.
+    phi_e:
+        Potential-like proxy array [T, X].  Optional.
+    csd:
+        CSD proxy array [T, X].  Optional.
+    lfp:
+        LFP proxy array [T, X].  Optional.
+    field_solution:
+        ``FieldOutput`` object.  If provided, arrays are extracted from it unless
+        the explicit keyword arguments override.
+    source_calibration_status:
+        Calibration status string; passed through to output.
+    field_solver_status:
+        Solver status string; must not claim solved state for proxy runs.
+    field_claim_level:
+        Claim level; must be ``"proxy_readout_only"`` for v0.2.x.
+
+    Returns
+    -------
+    dict
+        JSON-safe dict with proxy diagnostic scalars and explicit non-implementation
+        markers for Poisson, Maxwell, Poynting, and stress-energy machinery.
+
+    Notes
+    -----
+    Claim boundaries:
+
+    * ``physical_amplitude_claim_allowed``: always ``False``.
+    * ``biological_metabolism_claim_allowed``: always ``False``.
+    * ``j_dot_e_proxy``: ``None`` — J_e is not computed in proxy mode.
+    * ``poynting_flux_proxy``: ``None`` — not implemented.
+    * ``poisson_solver_status``: ``"not_implemented"`` — no solver in v0.2.27.
+    * ``maxwell_solver_status``: ``"not_implemented"`` — no solver in v0.2.x.
+    * ``stress_energy_tensor_status``: ``"not_implemented"`` — no solver in v0.2.x.
+    """
+
+    def _safe_float(v: "jax.Array") -> float:
+        """Return finite float or raise."""
+        f = float(v)
+        if not (f == f) or abs(f) == float("inf"):
+            raise ValueError(f"non-finite diagnostic value: {f}")
+        return f
+
+    def _norm_l1(arr: "jax.Array") -> "float | None":
+        try:
+            return _safe_float(jnp.mean(jnp.abs(arr)))
+        except Exception:
+            return None
+
+    def _norm_l2(arr: "jax.Array") -> "float | None":
+        try:
+            return _safe_float(jnp.sqrt(jnp.mean(arr ** 2)))
+        except Exception:
+            return None
+
+    def _abs_mean(arr: "jax.Array") -> "float | None":
+        try:
+            return _safe_float(jnp.mean(jnp.abs(arr)))
+        except Exception:
+            return None
+
+    # Resolve arrays: explicit kwargs override field_solution
+    _src = source
+    _phi = phi_e
+    _csd = csd
+    _lfp = lfp
+
+    if field_solution is not None:
+        if _src is None:
+            _src = field_solution.source_proxy
+        if _phi is None:
+            _phi = field_solution.phi_e_proxy
+        if _csd is None:
+            _csd = field_solution.csd_proxy
+        if _lfp is None:
+            _lfp = field_solution.lfp_proxy
+
+    # Convert non-None arrays to JAX arrays, reject nonfinite
+    def _coerce(arr: Any) -> "jax.Array | None":
+        if arr is None:
+            return None
+        a = jnp.asarray(arr)
+        if not _finite_bool(a):
+            return None  # nonfinite — diagnostics are not available
+        return a
+
+    _src = _coerce(_src)
+    _phi = _coerce(_phi)
+    _csd = _coerce(_csd)
+    _lfp = _coerce(_lfp)
+
+    # ── Source diagnostics ────────────────────────────────────────────────────
+    source_norm_l1: "float | None" = _norm_l1(_src) if _src is not None else None
+    source_norm_l2: "float | None" = _norm_l2(_src) if _src is not None else None
+    source_abs_mean: "float | None" = _abs_mean(_src) if _src is not None else None
+
+    # Source conservation proxy residual: proxy for ∫q dV ≈ 0.
+    # Computed as mean(|mean_space(q)(t)|) — measures how far the spatial mean
+    # departs from zero at each timestep, then averages over time.
+    # This is a proxy only; the true conservation integral requires a solved field.
+    source_conservation_proxy_residual: "float | None" = None
+    if _src is not None:
+        try:
+            spatial_mean = jnp.mean(_src, axis=-1)          # [T]
+            source_conservation_proxy_residual = _safe_float(jnp.mean(jnp.abs(spatial_mean)))
+        except Exception:
+            source_conservation_proxy_residual = None
+
+    # ── Potential-field diagnostics ───────────────────────────────────────────
+    phi_abs_mean: "float | None" = _abs_mean(_phi) if _phi is not None else None
+
+    # phi_gradient_proxy_norm2: proxy for |∇φ_e|² — derived from existing phi_e_proxy
+    # via finite differences along the spatial axis (axis=1).
+    # Only computed when phi_e has a spatial axis (ndim >= 2).
+    phi_gradient_proxy_norm2: "float | None" = None
+    if _phi is not None and _phi.ndim >= 2 and _phi.shape[1] > 1:
+        try:
+            grad = jnp.gradient(_phi, axis=1)
+            phi_gradient_proxy_norm2 = _safe_float(jnp.mean(grad ** 2))
+        except Exception:
+            phi_gradient_proxy_norm2 = None
+
+    # ── CSD diagnostics ───────────────────────────────────────────────────────
+    csd_abs_mean: "float | None" = _abs_mean(_csd) if _csd is not None else None
+    csd_norm_l2: "float | None" = _norm_l2(_csd) if _csd is not None else None
+
+    # ── LFP diagnostics ───────────────────────────────────────────────────────
+    lfp_abs_mean: "float | None" = _abs_mean(_lfp) if _lfp is not None else None
+    lfp_norm_l2: "float | None" = _norm_l2(_lfp) if _lfp is not None else None
+
+    # ── Field-energy-like proxy ───────────────────────────────────────────────
+    # Proxy for ∫|∇φ_e|² dV — combines phi gradient norm with volume proxy.
+    # This is NOT a physical field energy; no calibrated conductivity exists.
+    field_energy_like_proxy: "float | None" = phi_gradient_proxy_norm2  # same quantity
+
+    return {
+        "diagnostic_status": "proxy",
+        "diagnostic_version": "v0.2.27",
+        "claim_level": "computational_scaffold",
+        "field_solver_status": str(field_solver_status),
+        "field_claim_level": str(field_claim_level),
+        "source_calibration_status": str(source_calibration_status),
+        "physical_amplitude_claim_allowed": False,
+        "biological_metabolism_claim_allowed": False,
+        # ── Source diagnostics ────────────────────────────────────────────────
+        "source_norm_l1": source_norm_l1,
+        "source_norm_l2": source_norm_l2,
+        "source_abs_mean": source_abs_mean,
+        "source_conservation_proxy_residual": source_conservation_proxy_residual,
+        # ── Potential-field diagnostics ───────────────────────────────────────
+        "phi_abs_mean": phi_abs_mean,
+        "phi_gradient_proxy_norm2": phi_gradient_proxy_norm2,
+        # ── CSD diagnostics ───────────────────────────────────────────────────
+        "csd_abs_mean": csd_abs_mean,
+        "csd_norm_l2": csd_norm_l2,
+        # ── LFP diagnostics ───────────────────────────────────────────────────
+        "lfp_abs_mean": lfp_abs_mean,
+        "lfp_norm_l2": lfp_norm_l2,
+        # ── Field-energy-like proxy ───────────────────────────────────────────
+        "field_energy_like_proxy": field_energy_like_proxy,
+        # ── Explicitly not-implemented gates ─────────────────────────────────
+        # J·E is not computed: J_e is not produced in proxy mode.
+        "j_dot_e_proxy": None,
+        # Poynting flux: future doctrine only; not computed in v0.2.27.
+        "poynting_flux_proxy": None,
+        # All solver/dynamics machinery remains gated.
+        "stress_energy_tensor_status": "not_implemented",
+        "poisson_solver_status": "not_implemented",
+        "maxwell_solver_status": "not_implemented",
+        "notes": [
+            "proxy diagnostics only — no physical amplitude claim",
+            "no biological metabolism claim",
+            "no Poisson solver in v0.2.27",
+            "no Maxwell/Poynting/stress-energy implementation",
+            "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
+            "source_conservation_proxy_residual is a spatial-mean proxy, not PDE-enforced",
+        ],
+    }
+
+
 def probe_laminar_modes(
     field_output: FieldOutput,
     modes: Sequence[str],

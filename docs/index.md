@@ -40,10 +40,11 @@ Or explore the interactive Colab tutorial:
 
 ## Learn more
 
-**Core mathematics & equations (v0.2.25):**
+**Core mathematics & equations (v0.2.25–v0.2.27):**
 - **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with formal definitions, term glossaries, worded-equations, bridge terms, claim boundaries, and implementation locations
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping modes, forbidden double-counting pattern, field metadata, calibration labels, code examples
 - **[Computation Basis](computation_basis.md)** — TFNE as collapsible tensor-field scaffold; extensibility doctrine; declared-future regimes
+- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — v0.2.27 proxy diagnostics: source norms, field-gradient proxy, CSD/LFP norms; no solver; claim boundaries
 
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits

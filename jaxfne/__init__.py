@@ -84,6 +84,7 @@ from .presets import (
 )
 from .fields import (
     FieldOutput,
+    compute_conservation_proxy_diagnostics,
     project_laminar_sources,
     project_sources_to_laminar_field,
     probe_laminar_modes,
@@ -179,6 +180,7 @@ __all__ = [
     "CELL_TYPE_PRESETS",
     "DEFAULT_SPIKE_IMPULSE_GAIN",
     "RECEPTOR_KINETICS",
+    "compute_conservation_proxy_diagnostics",
     "FieldOutput",
     "project_laminar_sources",
     "project_sources_to_laminar_field",

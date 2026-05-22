@@ -1,3 +1,17 @@
+## v0.2.27
+
+- **Conservation-inspired proxy diagnostics.**
+- **Added `compute_conservation_proxy_diagnostics()`:** New function in `jaxfne.fields` (exported from `jaxfne`) that computes JSON-safe scalar proxy diagnostics over existing source/field proxy arrays. Accepts `source`, `phi_e`, `csd`, `lfp` arrays or a `FieldOutput` object. Returns `None` for any metric that cannot be computed from available arrays.
+- **Diagnostics computed:** `source_norm_l1`, `source_norm_l2`, `source_abs_mean`, `source_conservation_proxy_residual` (spatial-mean proxy for ∫q≈0), `phi_abs_mean`, `phi_gradient_proxy_norm2` (mean squared spatial gradient of phi_e proxy), `csd_abs_mean`, `csd_norm_l2`, `lfp_abs_mean`, `lfp_norm_l2`, `field_energy_like_proxy`.
+- **Explicitly not-implemented gates:** `j_dot_e_proxy=None` (J_e not computed in proxy mode), `poynting_flux_proxy=None`, `poisson_solver_status="not_implemented"`, `maxwell_solver_status="not_implemented"`, `stress_energy_tensor_status="not_implemented"`.
+- **Manifest integration:** `Model.manifest()` now includes `conservation_proxy_diagnostics` block when `signals.field` is available.
+- **42 new tests:** `tests/test_conservation_proxy_diagnostics_v027.py` covering: JSON safety, zero/nonzero array norms, missing-array None returns, physical/biological claim gates, j_dot_e/Poynting/solver/Maxwell/stress-energy invariants, manifest integration, language audit, no double-counting regression.
+- **Patched stale `docs/poisson_admissibility.md`:** Updated status from "v0.2.16 will implement a Poisson solver" to correct v0.2.27 doctrine (specification-only; no solver; requires separate approval).
+- **Added `docs/conservation_proxy_diagnostics.md`:** New doc with mathematical basis (source norms, conservation residual, phi-gradient proxy, J·E boundary, Poynting future doctrine), output contract table, API examples, and explicit not-implemented table.
+- **Updated `docs/index.md`:** Added link to conservation proxy diagnostics doc.
+- **No new solver, no Maxwell dynamics, no physical amplitude claims.** v0.2.27 is proxy diagnostics only.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status=laminar_proxy_no_pde`.
+
 ## v0.2.26
 
 - **Computation-basis contracts release.**

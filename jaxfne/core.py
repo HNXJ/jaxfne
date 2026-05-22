@@ -2463,6 +2463,19 @@ class Model:
             res["source_geometry"] = self.static["geometry"]
         # v0.2.26: computation-basis block
         res["basis"] = _default_basis_dict()
+        # v0.2.27: conservation-inspired proxy diagnostics
+        if signals is not None and signals.field is not None:
+            from .fields import compute_conservation_proxy_diagnostics
+            _src_cal = (
+                signals.metadata.get("source_calibration_status",
+                                     "uncalibrated_izhikevich_native_current")
+            )
+            res["conservation_proxy_diagnostics"] = compute_conservation_proxy_diagnostics(
+                field_solution=signals.field,
+                source_calibration_status=_src_cal,
+                field_solver_status="laminar_proxy_no_pde",
+                field_claim_level="proxy_readout_only",
+            )
         return res
 
 
