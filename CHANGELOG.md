@@ -1,3 +1,30 @@
+## v0.2.22
+
+- **Added Jaxley array-first trace bridge:** Minimal optional bridge for converting Jaxley-style voltage 
+  trace arrays to jaxfne Signals without Jaxley installation.
+- **New API:** `JaxleyTraceSpec` (frozen dataclass with immutable claim gates) and `jaxley_trace_to_signals()` 
+  (main conversion function).
+- **Layout normalization:** Supports three input layouts: `time_by_unit` [T,N], `unit_by_time` [N,T], 
+  `recording_by_time` [R,T]. All normalize to canonical [T,N] internally.
+- **Spike proxy derivation:** Configurable voltage threshold (default 0.0 mV) for deriving binary spike proxy 
+  from voltage trace.
+- **Conservative source handling:** Voltage-proxy source fallback; no ionic current mapping (deferred to v0.2.23).
+- **25 new unit tests:** Comprehensive test suite covering spec validation, layout conversion, spike thresholding, 
+  source handling, metadata gates, NumPy/JAX conversion, and no-Jaxley-required import.
+- **Synthetic example:** `examples/07_jaxley_trace_bridge.py` demonstrates bridge usage with synthetic voltage 
+  traces (CPU-only, <10 seconds runtime).
+- **Immutable claim gates (frozen):**
+  - `claim_level: "computational_scaffold"`
+  - `physical_amplitude_claim_allowed: False`
+  - `field_solver_status: "not_computed"`
+  - `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"`
+- **Field computation deferred:** All Signals have `field=None`; field computation reserved for downstream 
+  probe/field layer.
+- **Scope discipline:** No multi-compartment support, sparse spike format, ionic current mapping, field computation, 
+  or simulator wrapper in v0.2.22 (all deferred to later phases).
+- **Full test validation:** 806 tests passed, 5 skipped; no regressions from v0.2.21.
+- **Preserved truth status:** `truth_safe_unverified`, `computational_scaffold`, no biological claims.
+
 ## v0.1.2
 
 - **Documented scan-backed recurrent execution:** Both dense and edge-list paths use `jax.lax.scan` for 
