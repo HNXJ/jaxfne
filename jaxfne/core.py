@@ -1366,7 +1366,7 @@ class BasisSpec:
     declared-future modules: ``implemented=False``,
     ``claim_allowed=False``.
 
-    The default matches the current v0.2.26 laminar-proxy scaffold.
+    The default matches the current v0.2.27 laminar-proxy scaffold.
 
     Attributes
     ----------
@@ -3056,7 +3056,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.2.26"
+_JAXFNE_VERSION = "0.2.27"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"

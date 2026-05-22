@@ -11,6 +11,7 @@
 - **Updated `docs/index.md`:** Added link to conservation proxy diagnostics doc.
 - **No new solver, no Maxwell dynamics, no physical amplitude claims.** v0.2.27 is proxy diagnostics only.
 - **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status=laminar_proxy_no_pde`.
+- **BETA finalization:** Bumped package version to `0.2.27` after BETA passed with no blockers.
 
 ## v0.2.26
 

@@ -252,7 +252,7 @@ class TestTwoNeuronEINotebook:
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.26"
+            jaxfne.__version__ == "0.2.27"
         ), f"Version should be 0.2.23, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):
