@@ -240,4 +240,4 @@ class TestTutorialSmokeRunner:
         )
         assert result.returncode == 0
         version = result.stdout.strip()
-        assert version == "0.2.22", f"Version is {version}, expected 0.2.18"
+        assert version == "0.2.23", f"Version is {version}, expected 0.2.23"

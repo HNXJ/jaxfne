@@ -276,7 +276,7 @@ def test_mkdocs_nav_includes_visual_outputs_skill():
 def test_version_remains_0210():
     """jaxfne version must remain 0.2.10 (no bump for v0.2.14)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.22", \
+    assert jaxfne.__version__ == "0.2.23", \
         f"Expected version 0.2.10, got {jaxfne.__version__}"
 
 
