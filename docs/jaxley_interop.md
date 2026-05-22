@@ -42,6 +42,48 @@ signals = model.simulate_external(source_input, ...)
 readouts = model.compute_readout(signals, [...])
 ```
 
+### Array-first trace bridge
+
+jaxfne provides a minimal array-first bridge for converting Jaxley-style voltage traces to jaxfne Signals without running a full simulation:
+
+```python
+import jaxfne as jtfne
+import numpy as np
+
+# Jaxley-style voltage trace: [time, neurons] in mV
+trace = np.random.randn(1000, 16) * 10 - 70  # 1000 timesteps, 16 neurons
+
+# Convert via bridge
+spec = jtfne.JaxleyTraceSpec(dt_ms=0.1)  # 0.1 ms timestep
+signals = jtfne.jaxley_trace_to_signals(trace, spec=spec)
+
+# Result: jaxfne.core.Signals with time_ms, V_m, spikes, metadata
+print(f"V_m shape: {signals.V_m.shape}")  # (1000, 16)
+print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffold
+```
+
+**Key features:**
+- No Jaxley installation required (optional dependency)
+- Accepts NumPy or JAX arrays
+- Flexible layout support: `time_by_unit` [T,N], `unit_by_time` [N,T], `recording_by_time` [R,T]
+- Spike proxy derivation via voltage threshold (default 0.0 mV, configurable)
+- Conservative voltage-proxy source (no ionic current mapping)
+- Immutable claim gates: `computational_scaffold`, `physical_amplitude_claim_allowed=False`
+
+**Claim gate enforcement:**
+The bridge enforces strict claim gates to prevent overclaiming. All outputs are marked as:
+- `claim_level: "computational_scaffold"` — Not validated against biological data
+- `physical_amplitude_claim_allowed: False` — Voltage is treated as a proxy readout, not a physical claim
+- `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — No calibration to physical units
+- `field_solver_status: "not_computed"` — Field/LFP computation is optional downstream work
+
+**Important:** The voltage trace is treated as a proxy external readout. No biological mechanism claims, no field computation, no ionic current modeling. Field computation is deferred to the jaxfne probe/field layer if needed.
+
+**See also:**
+- `examples/07_jaxley_trace_bridge.py` — Full tutorial with layout conversion and threshold variation
+- `JaxleyTraceSpec` — Configuration for trace metadata, dt, spike threshold
+- `jaxley_trace_to_signals()` — Main conversion function
+
 ### Bridging: array layout conventions
 
 Jaxley outputs spike times or voltage traces. jaxfne expects:
