@@ -164,27 +164,38 @@ Claim: Computational scaffold; no physical conductivity claim
 - Conductivity validation: no SPD check, no physical unit assignment
 - Boundary/gauge enforcement: metadata only
 
-### v0.2.27 (Declared Future): Diagnostics & Gauge
+### v0.2.27 (Declared Future): Conservation-Inspired Proxy Diagnostics
+
+> **Approved scope:** conservation-inspired proxy diagnostics only.
+> No Poisson solver is introduced in v0.2.27.
+> `solved_poisson` remains `implemented=False` and `claim_allowed=False`.
+> A Poisson solver remains gated future work and requires separate approval before any implementation begins.
 
 ```
 Field solver status: poisson_admissibility_diagnostic (planned, not implemented)
-Regime: Solve Poisson with diagnostics
-Equation: ∇²φ_e = -∇·q / σ_e  [SOLVED with source diagnostic]
-Implementation: Direct/iterative Poisson solver with CG/MINRES
+Regime: Conservation-inspired proxy diagnostics
+Equation: ∇·q ≈ 0 [source conservation proxy check, NOT solved]
+Implementation: Proxy diagnostics over existing field/source outputs; no Poisson solver in v0.2.27
 Conductivity: Proxy (still scalar, no calibration)
-Boundary: Neumann enforced (zero-flux)
-Gauge: Mean-zero enforced (∫φ_e dx = 0)
-Diagnostic: Source conservation (∫∫q dA = 0 up to boundary error)
-Claim: Field is computed but conductivity still proxy; conservation/gauge validated
+Boundary: Metadata-only (future use)
+Gauge: Metadata-only (future use)
+Diagnostic: Source conservation proxy (∫∫q dA ≈ 0 checked as proxy, not PDE-enforced)
+Claim: Proxy conservation check; no field solve; conductivity still uncalibrated
 ```
 
-**Motivation:** Validate that source declaration satisfies conservation laws without claiming physical conductivity. Useful for debugging source projection and validating model consistency.
+**Motivation:** Validate that source declarations satisfy approximate conservation laws at the proxy level, without claiming physical conductivity or solving a PDE. Useful for debugging source projection and testing model consistency.
 
-**New outputs:**
-- Potential field: $\phi_e[T, X]$ (solved, not proxy)
-- Current density: $\mathbf{J}_e = -\sigma_e \nabla \phi_e[T, X]$
-- CSD: $\mathrm{CSD}_\mathrm{solved} = \nabla \cdot \mathbf{J}_e$ (derived from solved field)
-- Diagnostics: source_integral_check, gauge_residual, boundary_residual
+**Planned diagnostic outputs (proxy-only, no field solve):**
+- Source conservation proxy check: `source_integral_proxy` (scalar, proxy)
+- Gradient proxy: `∇·q` approximation over existing source array
+- Diagnostics: source_integral_check, proxy_conservation_residual
+
+**What is NOT in v0.2.27:**
+- No Poisson solve: $\phi_e$, $\mathbf{J}_e$ are not computed
+- No CG/MINRES or iterative solver
+- No boundary/gauge enforcement (metadata only)
+- No calibrated conductivity
+- No physical-amplitude claim
 
 ### v0.3.x (Declared Future): Calibrated Physical Field
 
@@ -354,11 +365,11 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 |--------|--------|-------------|---------------|
 | `laminar_proxy` | Active (default) | True | False |
 | `quasi_static_resistive` | Reserved | False | False |
-| `solved_poisson` | Declared future (v0.2.27) | False | False |
+| `solved_poisson` | Gated future (no solver in v0.2.x) | **False** | **False** |
 | `future_admittive` | Declared future (v0.3.x) | **False** | **False** |
 | `future_maxwell` | Declared future (v0.3.x) | **False** | **False** |
 
-`future_maxwell` and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `claim_allowed=False` are structurally enforced and cannot be escalated.
+`solved_poisson`, `future_maxwell`, and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `claim_allowed=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
 
 ---
 

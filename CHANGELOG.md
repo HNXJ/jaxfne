@@ -2,7 +2,7 @@
 
 - **Computation-basis contracts release.**
 - **Added `AxisSpec` and `BasisSpec` dataclasses:** Typed, frozen contract objects in `jaxfne/core.py` describing the spatial basis (`laminar_depth`, `xy`, `xyz`, `collapsed`, `graph`), time basis (`continuous_ms`, `discrete_steps`, `slow_proxy`), field regime (`laminar_proxy`, `quasi_static_resistive`, `solved_poisson`, `future_admittive`, `future_maxwell`), source mode, and probe basis for each TFNE run. Default matches current laminar-proxy scaffold.
-- **Added `default_basis_spec()` factory:** Returns the default `BasisSpec` for v0.2.25 laminar-proxy behavior.
+- **Added `default_basis_spec()` factory:** Returns the default `BasisSpec` for v0.2.26 laminar-proxy behavior.
 - **Added basis validation:** `validate_basis_spec()` and `basis_claim_gate()` in `jaxfne/validation.py`. Validates enum values, axis-space consistency (xy/xyz/laminar_depth/collapsed rules), future-regime gating, and source mode eligibility. Returns JSON-safe dicts. `physical_amplitude_claim_allowed` is always `False`.
 - **Future regimes are doctrine-only:** `future_maxwell` and `future_admittive` serialize as `implemented=False, claim_allowed=False`. Cannot be escalated. Structural enforcement tested.
 - **Added manifest `basis` block:** `Model.manifest()` now includes a nested `basis` field with space/time/field/source/probe basis metadata and dimension status (x/y collapsed, z active by default).
@@ -11,6 +11,7 @@
 - **Updated `docs/computation_basis.md`:** Added "Implemented in v0.2.26" section listing contracts, allowed field regimes, and status table.
 - **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
 - **No new solver, no conservation diagnostics, no Maxwell/stress-energy implementation.** v0.2.26 is contracts-only.
+- **BETA patch:** Corrected v0.2.27 roadmap language in `docs/computation_basis.md`. v0.2.27 is approved for conservation-inspired proxy diagnostics only. No Poisson solver is introduced in v0.2.27. `solved_poisson` remains `implemented=False`, `claim_allowed=False`. Poisson/Maxwell/admittive solvers remain gated future work requiring separate approval.
 
 ## v0.2.25
 
