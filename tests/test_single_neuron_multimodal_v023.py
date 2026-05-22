@@ -219,7 +219,7 @@ def test_output_not_tracked():
 def test_version_bumped_to_023():
     """Test that version is bumped to 0.2.18."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.18", f"Version should be 0.2.10, got {jaxfne.__version__}"
+    assert jaxfne.__version__ == "0.2.22", f"Version should be 0.2.10, got {jaxfne.__version__}"
 
 
 def test_operator_status_simulated_proxy():
