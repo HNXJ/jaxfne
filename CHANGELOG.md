@@ -1,3 +1,15 @@
+## v0.2.24
+
+- **Foundation audit checkpoint release.**
+- **Verified v0.2.23 release baseline:** Confirmed tag, version consistency, and clean repo state after v0.2.23 release.
+- **Audited calibration/source/field/report contracts:** Verified all required fields present and correct; no double-counting of synaptic current.
+- **Confirmed solver status:** Field solver remains `laminar_proxy_no_pde`; field readouts remain proxy-only; boundary/gauge conditions remain metadata-only.
+- **Confirmed public language:** Verified no forbidden phrases (real EEG, real MEG, biological metabolism claims, mechanism proof). All public language uses approved proxy/scaffold terminology.
+- **Updated version assertions in tests:** Fixed 11 test files with outdated version checks; validation baseline: 806 passed, 5 skipped.
+- **Preserved truth status:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`.
+- **No new science features, no code rewrites, no biological claims.**
+- **Purpose:** Establish stable foundation for v0.2.25–v0.2.28 late-0.2.x bridge block (mathematical glossary, computation-basis contracts, conservation diagnostics, 0.3 bridge hardening).
+
 ## v0.2.23
 
 - **Package cleanup and docs polish release.**
