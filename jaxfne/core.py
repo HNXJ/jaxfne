@@ -2802,7 +2802,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.2.22"
+_JAXFNE_VERSION = "0.2.23"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
