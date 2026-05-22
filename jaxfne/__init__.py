@@ -59,7 +59,7 @@ from .core import (
     validate_config,
     _KNOWN_METRICS,
 )
-from .bridges import BridgeSpec, JaxleyEmitterBridge, require_jaxley
+from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley
 from .emitters import (
     EdgeList,
     EIGNetwork,
@@ -106,6 +106,7 @@ __all__ = [
     "DatasetSpec",
     "JaxFNEConfig",
     "JaxleyEmitterBridge",
+    "JaxleyTraceSpec",
     "LaminarPopulation",
     "LaminarSourceGeometry",
     "Model",
@@ -145,6 +146,7 @@ __all__ = [
     "paradigm",
     "readout_spec",
     "require_jaxley",
+    "jaxley_trace_to_signals",
     "run_receipt",
     "runtime",
     "runtime_report",

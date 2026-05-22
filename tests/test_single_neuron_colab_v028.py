@@ -221,7 +221,7 @@ class TestSingleNeuronNotebook:
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.18"
+            jaxfne.__version__ == "0.2.22"
         ), f"Version should be 0.2.10, got {jaxfne.__version__}"
 
 
