@@ -1,3 +1,15 @@
+## v0.2.25
+
+- **Mathematical glossary flow and docs-first upgrade.**
+- **Added mathematical glossary flow doctrine:** New `docs/mathematical_glossary_flow.md` documents seven core TFNE equations (emitter dynamics, source projection, ohmic current, field compatibility, CSD, probe operator, EMM-proxy) with formal definitions, complete term glossaries, worded-equations, critical bridge terms, claim boundaries, and implementation locations. Includes conservation-law doctrine (Poynting's theorem) as future reference.
+- **Added source/field bookkeeping guide:** New `docs/source_field_equations.md` specifies source modes (total_membrane_current, decomposed_cap_ion_syn, proxy_no_field_solve), one-source-per-run requirement, **forbidden synaptic double-counting pattern** with audit examples, field metadata (boundary/gauge/CSD convention), calibration labels, and code-to-manifest mappings. Minimal examples tying equations to implementation.
+- **Added computation basis doctrine:** New `docs/computation_basis.md` describes TFNE as collapsible tensor-field scaffold with canonical dimensions (time, units, space, features, readout), collapse rules, basis-change philosophy, declared-future field regimes (v0.2.27 diagnostics, v0.3.x physical), extensibility doctrine for new domains, and PRNG/finiteness contracts.
+- **Rewrote README.md for compactness:** Reorganized with sections: identity, installation, minimal example, pipeline (4 stages + operators table), readout meanings, validation (fast vs extended), documentation map, roadmap (v0.2.24–v0.3.0), claim status. Explicit "not a biological simulator" statement with guidance on when/when-not to use.
+- **Updated docs/index.md:** Added new "Core mathematics & equations" section highlighting glossary flow, source/field equations, and computation basis. Reorganized "Learn more" to prioritize equation documentation.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
+- **No code changes, no feature expansion.** v0.2.25 is pure documentation: mathematical grounding, forbidden patterns, equation-to-code mapping, and clear roadmap.
+- **Purpose:** Establish solid mathematical and conceptual foundation for v0.2.26–v0.3.x extensibility, diagnostics, and physical-field work.
+
 ## v0.2.24
 
 - **Foundation audit checkpoint release.**

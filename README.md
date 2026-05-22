@@ -1,239 +1,228 @@
 # jaxfne
 
-**JAX-native tensor-field source-to-field/readout workflows for multimodal neural simulations.**
+**JAX-native TFNE (Tensor-Field Neural Emitter) workflows for reproducible computational neurophysiology.**
 
-[![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/)
-[![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/)
-[![Python](https://img.shields.io/pypi/pyversions/jaxfne.svg)](https://pypi.org/project/jaxfne/)
+[![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/) ·
+[![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/) ·
+[![GitHub](https://img.shields.io/badge/github-HNXJ%2Fjaxfne-blue)](https://github.com/HNXJ/jaxfne) ·
+[![Issues](https://img.shields.io/github/issues/HNXJ/jaxfne)](https://github.com/HNXJ/jaxfne/issues)
 
-**Links:** [Documentation](https://jaxfne.readthedocs.io/en/latest/) · [PyPI](https://pypi.org/project/jaxfne/) · [GitHub Releases](https://github.com/HNXJ/jaxfne/releases) · [Tutorials](https://jaxfne.readthedocs.io/en/latest/tutorials/) · [Issues](https://github.com/HNXJ/jaxfne/issues)
+---
 
-`jaxfne` provides a practical object-oriented API for building reproducible computational neurophysiology workflows:
+## What is jaxfne?
 
-```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
+jaxfne is a compact JAX-native framework for composing neural simulations from modular operators:
+
+```
+Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) → Probe (readout) → Objective
 ```
 
-Designed for JAX-native source tensors, field/proxy operators, multimodal probe readouts, JSON-safe output bundles, and CPU-first reproducible examples.
+**Primary use:** Build reproducible laminar-field proxy simulations with deterministic PRNG, JSON-safe outputs, and clear claim boundaries.
 
-## Installation
+**Not a biological simulator.** jaxfne is a computational-scaffold framework for teaching, prototyping, and experimenting with neural-field source models. All outputs are proxies unless explicitly validated against empirical data.
 
-From PyPI:
+---
+
+## Quick Start
+
+### Install
 
 ```bash
 pip install jaxfne
 ```
 
-In Colab:
+Optional JAX acceleration:
+```bash
+pip install -e '.[jax]'
+```
+
+Optional development/visualization:
+```bash
+pip install -e '.[dev,viz]'
+```
+
+### Minimal Example
 
 ```python
-%pip install jaxfne
-```
-
-From a local checkout:
-
-```bash
-git clone https://github.com/HNXJ/jaxfne.git
-cd jaxfne
-pip install -e .
-```
-
-Optional development tools:
-
-```bash
-pip install -e .[dev]
-```
-
-Optional optimizer / bridge extras are installed only when needed:
-
-```bash
-pip install -e .[opt]
-pip install -e .[jaxley]
-```
-
-## Minimal example
-
-```python
-import json
 import jaxfne as jtfne
 
 cfg = (
     jtfne.configuration()
-    .network(
-        name="V1_proxy",
-        kind="cortical_column",
-        n=100,
-        layers=["L2/3", "L4", "L5", "L6"],
-        cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
-    )
+    .network(name="V1", kind="cortical_column", n=100)
     .emitter(family="izhikevich", preset="cortical_eig")
-    .field(
-        domain="laminar_column",
-        conductivity="proxy",
-        boundary="mean_zero_neumann",
-        gauge="mean_zero",
-    )
-    .probe(
-        name="laminar_probe",
-        modes=["spikes", "V_m", "source", "CSD", "LFP"],
-        n_contacts=16,
-    )
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    .probe(name="laminar_16ch", modes=["spikes", "V_m", "source", "CSD"], n_contacts=16)
 )
 
 model = jtfne.construct(cfg)
-
-sim = jtfne.simulation(
-    duration_ms=300.0,
-    dt_ms=0.1,
-    seed=0,
-    record_sources=True,
-    record_fields=True,
-)
-
-signals = model.simulate(sim)
-receipt = model.run_receipt(signals)
-
-readouts = model.compute_readout(
-    signals,
-    [
-        jtfne.readout_spec("rate", "spike_rate_hz"),
-        jtfne.readout_spec("source", "source_abs_mean"),
-        jtfne.readout_spec("csd", "csd_abs_mean"),
-        jtfne.readout_spec("lfp", "lfp_abs_mean"),
-    ],
-)
+signals = model.simulate(jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0))
+readouts = model.compute_readout(signals, [
+    jtfne.readout_spec("rate", "spike_rate_hz"),
+    jtfne.readout_spec("csd", "csd_abs_mean"),
+])
 
 manifest = model.manifest(signals, readouts)
-json.dumps(manifest, allow_nan=False)
-
-print("jaxfne", jtfne.__version__)
-print("spikes:", signals.spikes.shape)
-print("Vm:", signals.V_m.shape)
-print("source:", None if signals.sources is None else signals.sources.shape)
-if signals.field is not None:
-    print("LFP:", signals.field.lfp.shape)
-    print("CSD:", signals.field.csd.shape)
-print("receipt_id:", receipt.receipt_id)
-for result in readouts:
-    print(result.name, result.metric, result.value, result.status)
+print(f"Simulation complete: {signals.V_m.shape[0]} timesteps, {signals.V_m.shape[1]} neurons")
+print(f"Source status: {manifest['source_calibration_status']}")
+print(f"Field status: {manifest['field_solver_status']}")
 ```
 
-## Quick API Reference
+---
 
-| Category | Main Entry | Purpose | Docs |
-|----------|------------|---------|------|
-| **Configuration** | `configuration()` | Define network, emitter, field, probe | [docs/](docs/) |
-| **Simulation** | `simulation()` | Configure runtime, duration, seed | [docs/](docs/) |
-| **Emitters** | `IzhikevichParams`, `make_eig_network()` | Neuron models, spiking dynamics | [docs/emitters.md](docs/) |
-| **Fields & Probes** | `laminar_source_geometry()`, `probe_laminar_modes()` | Source/field/probe operations | [docs/fields.md](docs/) |
-| **Readouts** | `readout_spec()`, `compute_readout()` | Output metrics (spike rate, LFP, CSD) | [docs/probe_operators.md](docs/) |
-| **Bridges** | `jaxley_trace_to_signals()` | Interop with Jaxley voltage traces | [docs/jaxley_interop.md](docs/jaxley_interop.md) |
-| **Optimization** | `gsdr()`, `agsdr()` | Custom and optional Optax optimizers | [docs/](docs/) |
-| **I/O & Validation** | `manifest()`, `json_safe()` | Serialization, integrity checks | [docs/output_bundles.md](docs/output_bundles.md) |
+## The Pipeline
 
-For full API reference, see [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/).
+### 1. Emitter: Neural Dynamics
 
-## What it supports
+Declare neuron model (Izhikevich or custom) and recurrent connectivity:
 
-`jaxfne` supports compact TFNE-style computational workflows with:
-
-- Izhikevich emitter scaffolds;
-- dense and edge-list recurrent paths;
-- scan-backed JAX simulation kernels;
-- native stimulus / drive schedules;
-- laminar source geometry metadata;
-- source proxy traces;
-- LFP-proxy and CSD-proxy laminar readouts;
-- readout specifications;
-- objective reports;
-- run receipts;
-- strict JSON-safe manifests;
-- CPU-first validation and optional accelerator execution through JAX.
-
-The standard v0.2.x field mode is a **laminar proxy readout**:
-
-```text
-source_projection_mode = proxy_no_field_solve
-field_solver_status = laminar_proxy_no_pde
-field_claim_level = proxy_readout_only
+```python
+.emitter(family="izhikevich", preset="cortical_eig")
 ```
 
-This is the intended basis for practical laminar spectrolaminar proxy simulations.
+**Output:** State vector $z(t)$ and native membrane current $I(t)$ [time, neurons]
 
-## Scope and capabilities
+**Status:** Izhikevich presets are provided; no biological calibration claimed (computational scaffold)
 
-`jaxfne` is designed for building and testing source-to-field/readout workflows on CPU-first infrastructure.
+### 2. Source: Spatial Projection
 
-Typical uses:
+Project neural current into space (laminar probe contacts or voxels):
 
-- Reproducible proxy simulations with local-global organization
-- Source/readout bookkeeping and JSON-safe output bundles
-- Objective scaffolds and optimization experiments
-- Performance benchmarking with deterministic PRNG
-- Integration with Jaxley-style models and other JAX workflows
-
-**Default readouts are computational proxies.** Physical-unit EEG/MEG/LFP/CSD workflows require appropriate geometry, calibration, and validation for the intended use. See [Scope and limitations](docs/scope_and_limitations.md) for details.
-
-## Documentation
-
-Full documentation, tutorials, guides, and API reference are available at:
-
-**[jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/)**
-
-Or in the `docs/` directory of the repository.
-
-## Package layout
-
-```text
-jaxfne/
-  __init__.py     public API exports
-  core.py         configuration, model, simulation, signals, receipts, readouts
-  emitters.py     Izhikevich and recurrent emitter kernels
-  fields.py       laminar proxy source/field/readout logic
-  objectives.py   objective and evaluation scaffolds
-  optim.py        optimizer specs and optional Optax guard
-  runtime.py      JAX runtime, dtype, device, and reproducibility reports
-  io.py           JSON-safe manifests, hashes, save/load helpers
-  validation.py   invariant and claim-gate checks
-  bridges.py      optional external backend guards
+```python
+.field(domain="laminar_column", conductivity="proxy", ...)
 ```
+
+**Output:** Source density $q(x,t)$ [time, contacts]
+
+**Status:** Proxy projection using anatomical position and Izhikevich native current; no empirical validation
+
+### 3. Field: Field Approximation
+
+Current default: **proxy CSD** (no PDE solve).
+
+```
+field_solver_status = "laminar_proxy_no_pde"
+```
+
+CSD and LFP are computed from source without solving the Poisson equation. Conductivity is metadata-only.
+
+**Future (v0.2.27+):** Optional field diagnostics; physical conductivity (v0.3.x)
+
+### 4. Probe: Multimodal Readouts
+
+Extract metrics from emitter state and field:
+
+| Operator | Output | Meaning |
+|----------|--------|---------|
+| **Spikes (SPK)** | Binary spike raster [T, N] | Action potentials (thresholded state) |
+| **Voltage (V_m)** | Membrane voltage [T, N] | Membrane potential state |
+| **Source** | Transmembrane current [T, X] | Spatial source density |
+| **LFP-proxy** | Local field potential [T, X] | Proxy; not physical units |
+| **CSD-proxy** | Current-source density [T, X] | Proxy; spatial divergence of source |
+| **EEG-proxy** | Electroencephalogram [T, N_channels] | Proxy; not physical units |
+| **MEG-proxy** | Magnetoencephalogram [T, N_channels] | Proxy; not physical units |
+| **EMM-proxy** | Metabolic-like cost [T] | Relative activity intensity (NOT biological metabolism) |
+
+All readouts are proxies unless explicitly solved and validated.
+
+### 5. Objective & Optimization
+
+Declare optimization targets and run GSDR/AGSDR (custom optimizers; Optax optional):
+
+```python
+objectives = [
+    jtfne.objective(name="spike_rate", target=10.0, metric="spike_rate_hz"),
+    jtfne.objective(name="mean_voltage", target=-50.0, metric="mean_V_m"),
+]
+```
+
+---
 
 ## Validation
 
-### Core validation (fast, every commit)
-
-Run these locally before pushing:
+### Fast validation (every commit, ~1 minute)
 
 ```bash
 python -m compileall -q jaxfne tests examples scripts
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=line
 ```
 
-This runs:
-- Unit tests (804 passed, 5 skipped)
-- Fast examples (00-06, ~1 min total)
-- Build validation (wheel + sdist)
+**Results:** 806 tests passed, 5 skipped. Examples 00–06 run. Build validation passes.
 
-### Extended validation (manual, ~5-10 minutes)
-
-For release validation and tutorial verification:
+### Extended validation (release, ~5–10 minutes)
 
 ```bash
 python scripts/run_all_tutorials.py --smoke --write-figures
 python scripts/validate_tutorial_outputs.py outputs/
 ```
 
-This includes large examples (02_spectrolaminar_oddball_scaffold, 03_single_neuron_multimodal_probe, 04_two_neuron_ei_multimodal, 05_network_100_ei_multimodal, 07_jaxley_trace_bridge) that are excluded from the fast gate to keep development iteration quick. See [CI policy](docs/ci_policy.md) for details.
+Runs large tutorials (examples 02–07) with deterministic figures and asset hashing. See [CI policy](docs/ci_policy.md).
 
-## Documentation
+---
 
-Release notes and detailed version history live outside the README:
+## Documentation Map
 
-- `CHANGELOG.md`
-- `docs/`
-- `examples/`
-- `scripts/benchmark_scan_backends.py`
+| Topic | Document | Purpose |
+|-------|----------|---------|
+| **Equations & Math** | [Mathematical Glossary Flow](docs/mathematical_glossary_flow.md) | TFNE equations (emitter, source, field, probe) with term glossaries and claim boundaries |
+| **Source Detail** | [Source/Field Equations](docs/source_field_equations.md) | Source modes, forbidden double-counting pattern, field metadata, code examples |
+| **Architecture** | [Computation Basis](docs/computation_basis.md) | TFNE as collapsible tensor-field scaffold; extensibility doctrine |
+| **Probe Operators** | [Probe Operators](docs/probe_operators.md) | Eight multimodal operators, claim boundaries per operator |
+| **I/O & Manifests** | [Output Bundles](docs/output_bundles.md) | Signals, Manifest, ReadoutResult schema and JSON-safe contracts |
+| **Bridges & Interop** | [Jaxley Interop](docs/jaxley_interop.md) | Convert Jaxley voltage traces to jaxfne Signals |
+| **Scope & Limits** | [Scope and Limitations](docs/scope_and_limitations.md) | What jaxfne claims and does not claim |
+| **Full Docs** | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) | API reference, tutorials, changelog |
+
+---
+
+## Roadmap
+
+| Version | Phase | Content | Status |
+|---------|-------|---------|--------|
+| **v0.2.24** | Foundation Audit | Audited contracts, verified solver status, updated language | ✓ Released |
+| **v0.2.25** | Docs-First | Mathematical glossary, source/field doctrine, computation basis | 🔄 In Progress |
+| **v0.2.26** | Extensibility | Documented future bases (layer projection, spectral), multi-area scaffolds | 📋 Planned |
+| **v0.2.27** | Diagnostics | Optional Poisson-admissibility solver with conservation validation (no physical conductivity yet) | 📋 Planned |
+| **v0.3.0** | Physical Field | Calibrated conductivity, solved field with empirical geometry, EEG/MEG/field calibration | 📋 Planned |
+
+**Current phase:** v0.2.25 docs-first. No new solvers or diagnostics in v0.2.x; conservation material documented as future.
+
+---
+
+## Claim Status
+
+**truth_mode:** `truth_safe_unverified`  
+**claim_level:** `computational_scaffold`  
+**physical_amplitude_claim_allowed:** `False`  
+
+jaxfne is **not a biological simulator.** All outputs are computational proxies:
+
+- **Izhikevich native current** is a mathematical dynamics model, not empirically calibrated membrane current
+- **Source projection** uses declared anatomy but is not validated against measured sources
+- **Field (proxy)** is NOT a solved Poisson equation; CSD/LFP are kernel-based approximations
+- **Readout proxies** (LFP, CSD, EEG, MEG, EMM) are relative metrics, not physical units
+- **Optimization** is mathematical fitness; success ≠ biological plausibility
+
+**When to use jaxfne:**
+- Teaching neural-field concepts
+- Prototyping source-field models
+- Benchmarking optimization strategies
+- Validating model consistency (future: conservation diagnostics)
+
+**When NOT to use jaxfne:**
+- Making biological claims without separate empirical validation
+- Publishing simulation results as if they are real neural data
+- Claiming physical conductivity without calibration
+- Interpreting metabolic cost (EMM-proxy) as biological metabolism
+
+---
 
 ## License
 
 MIT License.
+
+---
+
+## Contributing
+
+Issues, feature requests, and pull requests welcome. See [CONTRIBUTING](docs/contributing.md).
+

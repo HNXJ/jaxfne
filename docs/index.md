@@ -40,11 +40,16 @@ Or explore the interactive Colab tutorial:
 
 ## Learn more
 
+**Core mathematics & equations (v0.2.25):**
+- **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with formal definitions, term glossaries, worded-equations, bridge terms, claim boundaries, and implementation locations
+- **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping modes, forbidden double-counting pattern, field metadata, calibration labels, code examples
+- **[Computation Basis](computation_basis.md)** — TFNE as collapsible tensor-field scaffold; extensibility doctrine; declared-future regimes
+
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits
-- **[Probe operators](probe_operators.md)** — Reference for the eight readout operators
+- **[Probe operators](probe_operators.md)** — Reference for the eight readout operators: spikes, voltage, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
 - **[Tensor-field workflows](tensor_field_workflows.md)** — How to organize sources and fields
-- **[Jaxley interoperability](jaxley_interop.md)** — Using jaxfne with Jaxley models
+- **[Jaxley interoperability](jaxley_interop.md)** — Using jaxfne with Jaxley models; array-first trace bridge
 - **[Calibration](calibration.md)** — Preparing workflows for future empirical validation
 - **[Output bundles](output_bundles.md)** — Understanding JSON manifests and metadata
 
