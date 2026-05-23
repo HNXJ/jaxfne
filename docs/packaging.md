@@ -1,9 +1,9 @@
-# Packaging and Distribution (v0.2.27)
+# Packaging and Distribution (v0.2.30)
 
 **How to build, test, and distribute jaxfne.**
 
-**Version:** v0.2.27  
-**Last updated:** 2026-05-22  
+**Version:** v0.2.30  
+**Last updated:** 2026-05-23  
 **truth_mode:** truth_safe_unverified
 
 ---
@@ -11,8 +11,8 @@
 ## Overview
 
 jaxfne is distributed as:
-- **Wheel** (`jaxfne-0.2.27-py3-none-any.whl`) — binary distribution (recommended for most users)
-- **Source tarball** (`jaxfne-0.2.27.tar.gz`) — source distribution (for custom builds)
+- **Wheel** (`jaxfne-0.2.30-py3-none-any.whl`) — binary distribution (recommended for most users)
+- **Source tarball** (`jaxfne-0.2.30.tar.gz`) — source distribution (for custom builds)
 - **PyPI package** — published at https://pypi.org/project/jaxfne/
 
 **Requirements:**
@@ -103,14 +103,14 @@ python -m build
 # Check build artifacts
 ls -lh dist/
 # Expected:
-# -rw-r--r--  jaxfne-0.2.27-py3-none-any.whl  (typical: ~50KB)
-# -rw-r--r--  jaxfne-0.2.27.tar.gz             (typical: ~100KB)
+# -rw-r--r--  jaxfne-0.2.30-py3-none-any.whl  (typical: ~50KB)
+# -rw-r--r--  jaxfne-0.2.30.tar.gz             (typical: ~100KB)
 ```
 
 ### 4. Verify Wheel Contents
 
 ```bash
-python -m zipfile -l dist/jaxfne-0.2.27-py3-none-any.whl | head -30
+python -m zipfile -l dist/jaxfne-0.2.30-py3-none-any.whl | head -30
 ```
 
 **Expected files in wheel:**
@@ -122,23 +122,23 @@ python -m zipfile -l dist/jaxfne-0.2.27-py3-none-any.whl | head -30
 - `jaxfne/probes.py`
 - `jaxfne/objectives.py`
 - `jaxfne/validation.py`
-- `jaxfne-0.2.27.dist-info/METADATA`
-- `jaxfne-0.2.27.dist-info/WHEEL`
-- `jaxfne-0.2.27.dist-info/RECORD`
+- `jaxfne-0.2.30.dist-info/METADATA`
+- `jaxfne-0.2.30.dist-info/WHEEL`
+- `jaxfne-0.2.30.dist-info/RECORD`
 
 ### 5. Verify Source Distribution
 
 ```bash
-tar -tzf dist/jaxfne-0.2.27.tar.gz | head -20
+tar -tzf dist/jaxfne-0.2.30.tar.gz | head -20
 ```
 
 **Expected files in tarball:**
-- `jaxfne-0.2.27/pyproject.toml`
-- `jaxfne-0.2.27/README.md`
-- `jaxfne-0.2.27/jaxfne/__init__.py`
-- `jaxfne-0.2.27/tests/` (all test files)
-- `jaxfne-0.2.27/examples/` (all example scripts)
-- `jaxfne-0.2.27/docs/` (all documentation)
+- `jaxfne-0.2.30/pyproject.toml`
+- `jaxfne-0.2.30/README.md`
+- `jaxfne-0.2.30/jaxfne/__init__.py`
+- `jaxfne-0.2.30/tests/` (all test files)
+- `jaxfne-0.2.30/examples/` (all example scripts)
+- `jaxfne-0.2.30/docs/` (all documentation)
 
 ---
 
@@ -152,7 +152,7 @@ python -m venv /tmp/test_wheel
 
 # Activate and install wheel
 source /tmp/test_wheel/bin/activate
-pip install dist/jaxfne-0.2.27-py3-none-any.whl
+pip install dist/jaxfne-0.2.30-py3-none-any.whl
 
 # Test import and version
 python -c "
@@ -188,7 +188,7 @@ python -m venv /tmp/test_sdist
 
 # Activate and install from source tarball
 source /tmp/test_sdist/bin/activate
-pip install dist/jaxfne-0.2.27.tar.gz
+pip install dist/jaxfne-0.2.30.tar.gz
 
 # Test import
 python -c "import jaxfne; print('Version:', jaxfne.__version__)"
@@ -202,7 +202,7 @@ rm -rf /tmp/test_sdist
 
 ```bash
 # Unpack tarball and scan for secrets
-tar -xzf dist/jaxfne-0.2.27.tar.gz
+tar -xzf dist/jaxfne-0.2.30.tar.gz
 cd jaxfne-0.2.27
 
 grep -RInE 'api[_-]?key|secret|token|password|private[_-]?key|bearer' \
@@ -261,16 +261,16 @@ python -m twine upload dist/jaxfne-0.2.27*
 
 **Expected output:**
 ```
-Uploading jaxfne-0.2.27-py3-none-any.whl
+Uploading jaxfne-0.2.30-py3-none-any.whl
 100% |████████████████████████████| 50KB/0.5s
-Uploading jaxfne-0.2.27.tar.gz
+Uploading jaxfne-0.2.30.tar.gz
 100% |████████████████████████████| 100KB/0.3s
 ```
 
 ### 3. Verify on PyPI
 
-Open https://pypi.org/project/jaxfne/0.2.27/ and verify:
-- ✓ Version 0.2.27 is listed
+Open https://pypi.org/project/jaxfne/0.2.30/ and verify:
+- ✓ Version 0.2.30 is listed
 - ✓ Upload timestamp is current
 - ✓ Wheel and source distributions are available for download
 - ✓ README renders correctly (no broken markup)
@@ -280,11 +280,11 @@ Open https://pypi.org/project/jaxfne/0.2.27/ and verify:
 
 ```bash
 # Fresh install from PyPI
-pip install jaxfne==0.2.27
+pip install jaxfne==0.2.30
 
 # Verify
 python -c "import jaxfne; print(jaxfne.__version__)"
-# Expected: 0.2.27
+# Expected: 0.2.30
 ```
 
 ---
@@ -324,7 +324,7 @@ python -m build
 Verify the build completed successfully:
 ```bash
 ls -lh dist/
-python -m zipfile -l dist/jaxfne-0.2.27-py3-none-any.whl | head -5
+python -m zipfile -l dist/jaxfne-0.2.30-py3-none-any.whl | head -5
 ```
 
 ### Upload Fails: "401 Unauthorized"

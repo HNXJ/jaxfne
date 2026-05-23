@@ -1,26 +1,31 @@
-# v0.3 Readiness Bridge (v0.2.27)
+# v0.3 Readiness Bridge (v0.2.30)
 
-**Preparing jaxfne for the v0.3 major release: planned changes, locked APIs, and future regimes.**
+**Preparing jaxfne for the v0.3 tutorial-scenario line: locked APIs, doctrine constraints, and future regimes.**
 
-**Version:** v0.2.27  
-**Last updated:** 2026-05-22  
+**Version:** v0.2.30  
+**Last updated:** 2026-05-23  
 **truth_mode:** truth_safe_unverified
 
 ---
 
 ## Overview
 
-v0.2 series is now feature-frozen with locked APIs. v0.3 is the planned major release for:
+The v0.2 series is feature-frozen with locked APIs. v0.2.30 is the stable toolbox for the
+v0.3 tutorial-scenario line. **v0.3.x phases are primarily tutorial, documentation, and
+scenario work** — not a constant package-mutation line. The package version only bumps
+if a tutorial reveals a real bug or missing required public API.
+
+Future technical work deferred to separate approved phases:
 - Poisson solver integration (with approval)
 - Maxwell/admittive solvers (future doctrine)
 - Stress-energy tensor computation (future doctrine)
 - Poynting flux analysis (future doctrine)
 
-This document describes what is locked in v0.2.27 and what will change in v0.3+.
+This document describes what is locked in v0.2.30 and what will change in v0.3+.
 
 ---
 
-## Locked APIs (v0.2.27 → v0.3+)
+## Locked APIs (v0.2.30 → v0.3+)
 
 ### Emitters (LOCKED)
 
@@ -118,7 +123,7 @@ biological_metabolism_claim_allowed: False
 
 ### Poisson Solver (Declared Future)
 
-**Current status (v0.2.27):**
+**Current status (v0.2.30):**
 ```python
 # compute_conservation_proxy_diagnostics() returns:
 {
@@ -147,7 +152,7 @@ biological_metabolism_claim_allowed: False
 
 ### Maxwell Solver (Future Doctrine)
 
-**Current status (v0.2.27):**
+**Current status (v0.2.30):**
 ```python
 {
     "maxwell_solver_status": "not_implemented",
@@ -165,7 +170,7 @@ biological_metabolism_claim_allowed: False
 
 ### Admittive Field Solver (Future Doctrine)
 
-**Current status (v0.2.27):**
+**Current status (v0.2.30):**
 ```python
 {
     "admittive_solver_status": "not_implemented",
@@ -182,7 +187,7 @@ biological_metabolism_claim_allowed: False
 
 ### Stress-Energy Tensor (Future Doctrine)
 
-**Current status (v0.2.27):**
+**Current status (v0.2.30):**
 ```python
 {
     "stress_energy_tensor_status": "not_implemented",
@@ -199,7 +204,7 @@ biological_metabolism_claim_allowed: False
 
 ### Poynting Flux (Future Doctrine)
 
-**Current status (v0.2.27):**
+**Current status (v0.2.30):**
 ```python
 {
     "poynting_flux_proxy": None,
@@ -215,18 +220,18 @@ biological_metabolism_claim_allowed: False
 
 ---
 
-## Migration Path: v0.2.27 → v0.3
+## Migration Path: v0.2.30 → v0.3
 
 ### For Users
 
 **Installation:**
 ```bash
-# v0.2.27 (current)
-pip install jaxfne==0.2.27
+# v0.2.30 (current stable toolbox for v0.3 tutorials)
+pip install jaxfne==0.2.30
 
-# v0.3 (future, when released)
+# v0.3 (future package release, when and if required)
 pip install jaxfne==0.3.0
-# or (to get latest v0.3)
+# or (to get latest)
 pip install --upgrade jaxfne
 ```
 
@@ -236,7 +241,7 @@ pip install --upgrade jaxfne
 - ? New manifest blocks (if new solvers added)
 
 **Deprecations (unlikely):**
-- Do not expect removal of any v0.2.27 APIs in v0.3
+- Do not expect removal of any v0.2.30 APIs in v0.3
 
 ---
 
@@ -255,7 +260,7 @@ pip install --upgrade jaxfne
 
 3. **Documentation**
    - Update `docs/index.md` with v0.3 new features
-   - Preserve all v0.2.27 documentation (backward compatibility)
+   - Preserve all v0.2.30 documentation (backward compatibility)
    - Add v0.3 migration guide if any changes affect users
 
 ---

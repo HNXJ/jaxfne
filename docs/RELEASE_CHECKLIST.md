@@ -1,11 +1,15 @@
-# Release Checklist (v0.2.27) — CURRENT DOCUMENT
+# Release Checklist (v0.2.30+) — CURRENT DOCUMENT
 
-> This is the **current release checklist** for jaxfne v0.2.27 and beyond.  
+> This is the **current release checklist** for jaxfne v0.2.30 and beyond.  
 > For legacy v0.1.0 release process, see [RELEASE_CHECKLIST_LEGACY.md](RELEASE_CHECKLIST_LEGACY.md).
 
-**Version:** v0.2.27  
-**Last updated:** 2026-05-22  
+**Version:** v0.2.30  
+**Last updated:** 2026-05-23  
 **truth_mode:** truth_safe_unverified
+
+> **Note:** Code examples in this checklist use `v0.2.27` as a placeholder. Substitute the
+> actual target version (e.g., `0.2.30`, `0.2.31`) when following these steps.
+> The current released version is **v0.2.30** (PyPI: https://pypi.org/project/jaxfne/0.2.30/).
 
 ---
 
@@ -311,7 +315,7 @@ curl -s https://jaxfne.readthedocs.io/en/latest/ | grep -c "Conservation Proxy D
 
 On https://jaxfne.readthedocs.io:
 - Check version dropdown
-- Confirm v0.2.27 is listed and set as "latest"
+- Confirm v0.2.30 is listed and set as "latest"
 
 ---
 

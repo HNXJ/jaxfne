@@ -9,7 +9,7 @@ pip install jaxfne
 For an exact release:
 
 ```bash
-pip install jaxfne==0.2.3
+pip install jaxfne==0.2.30
 ```
 
 ## From GitHub
@@ -17,7 +17,7 @@ pip install jaxfne==0.2.3
 Install the GitHub release tag:
 
 ```bash
-pip install git+https://github.com/HNXJ/jaxfne.git@v0.2.3
+pip install git+https://github.com/HNXJ/jaxfne.git@v0.2.30
 ```
 
 Or the latest development version from `main`:
@@ -47,4 +47,4 @@ import jaxfne
 print(jaxfne.__version__)
 ```
 
-Expected output: `0.2.3`
+Expected output: `0.2.30`

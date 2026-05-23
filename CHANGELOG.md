@@ -1,3 +1,13 @@
+## v0.3 planning / post-v0.2.30
+
+- **Adds v0.3 tutorial-scenario doctrine.** Defines the 32-phase scenario spine (v0.3.0–v0.3.31) built on stable `jaxfne==0.2.30`.
+- **Establishes canonical `import jaxfne as jtfne` usage.** Forbids aliases `jtnfe`, `jtFNE`, and mixed spellings in all v0.3 tutorials.
+- **Defines package mutation policy:** Use v0.2.30 as installed toolbox unless a real bug or missing required public tool blocks tutorials. No version bump for docs-only phases.
+- **Adds tutorial template** (`docs/tutorial_template_v030.md`): 13-section required structure for all v0.3 Colab/docs scenarios, including non-claim section and manifest receipt block.
+- **Patches stale version references:** `docs/install.md`, `docs/packaging.md`, `docs/RELEASE_CHECKLIST.md`, `docs/v03_bridge.md`, `README.md` roadmap table, `docs/index.md` release section header all updated to reflect v0.2.30 as current release.
+- **No code changes.** This is a doctrine/docs-only commit.
+- **Claim gates unchanged:** `computational_scaffold`, `truth_safe_unverified`, `physical_amplitude_claim_allowed=False`.
+
 ## v0.2.30-pre (test cleanup / pre-release)
 
 - **Reconciled legacy tutorial figure artifact contract with canonical v0.2.28 figure system.**
