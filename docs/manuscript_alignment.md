@@ -339,6 +339,7 @@ If manuscript was finalized before v0.2.27:
 ## See Also
 
 - [docs/computation_basis.md](computation_basis.md) — Computation contract details
+- [docs/tensor_network_ancestry.md](tensor_network_ancestry.md) — v0.2.29 basis-transform doctrine and historical context
 - [docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md) — Diagnostics reference
 - [docs/poisson_admissibility.md](poisson_admissibility.md) — Poisson solver future doctrine
 - [CHANGELOG.md](../CHANGELOG.md) — Version history

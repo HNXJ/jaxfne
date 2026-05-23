@@ -310,6 +310,7 @@ When v0.3 is ready:
 ## See Also
 
 - [docs/computation_basis.md](computation_basis.md) — Locked computation contract
+- [docs/tensor_network_ancestry.md](tensor_network_ancestry.md) — v0.2.29 basis-transform doctrine and extensibility philosophy
 - [docs/poisson_admissibility.md](poisson_admissibility.md) — Poisson solver spec (future)
 - [docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md) — Current diagnostics
 - [CHANGELOG.md](../CHANGELOG.md) — Version history

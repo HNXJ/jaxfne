@@ -1,3 +1,19 @@
+## v0.2.29
+
+- **Tensor-network ancestry and basis-transform doctrine (conceptual documentation only).**
+
+### Tensor-network ancestry documentation (v0.2.29 scope)
+- **Added `docs/tensor_network_ancestry.md`:** Conceptual note distinguishing Pellionisz/Llinás neuroscience meaning of "tensor network" (sensorimotor coordinate transforms, metric-tensor learning) from modern ML/physics meaning (tensor-train, MPS, PEPS factorization). Connects TFNE basis-transform architecture (emitter basis → source basis → field basis → readout basis) to classical computational neuroscience while clarifying non-claims.
+- **Basis-transform doctrine:** Formalizes TFNE's modular coordinate-projection pipeline, explains why each stage is independent, and documents how BasisSpec contracts operationalize basis transforms. Links tensor-coordinate operations to jaxfne's architecture.
+- **Explicit non-claims:** Clearly states that jaxfne does NOT implement cerebellar metric-tensor learning, tensor-train compression, electromagnetic field solvers, or sensorimotor proof. Defers cerebellar/sensorimotor tutorials to future (with separate validation).
+- **Updated cross-references:** Added `tensor_network_ancestry.md` links in `docs/index.md` (Core mathematics section), `docs/computation_basis.md` (See Also), `docs/manuscript_alignment.md` (See Also), and `docs/v03_bridge.md` (See Also).
+
+### Summary
+- **Purpose:** Provide conceptual context and historical grounding for TFNE's basis-transform architecture without claiming Pellionisz/Llinás implementation.
+- **No code changes:** v0.2.29 documentation only.
+- **Truth status:** truth_safe_unverified (unchanged).
+- **Claim gates:** All frozen (unchanged from v0.2.28).
+
 ## v0.2.28
 
 - **Tutorial figure regeneration and release-docs cleanup.**
