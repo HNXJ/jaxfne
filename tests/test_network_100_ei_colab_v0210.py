@@ -265,7 +265,7 @@ class TestNetwork100EINotebook:
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.29"
+            jaxfne.__version__ == "0.2.30"
         ), f"Version should be 0.2.29, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):

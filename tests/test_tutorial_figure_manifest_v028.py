@@ -221,7 +221,7 @@ class TestClaimGates:
     def test_jaxfne_version_current(self, manifest):
         """jaxfne_version should be 0.2.29."""
         version = manifest.get("jaxfne_version", "")
-        assert version == "0.2.29", f"jaxfne_version: {version} (expected 0.2.29)"
+        assert version == "0.2.30", f"jaxfne_version: {version} (expected 0.2.30)"
 
 
 class TestDataIntegrity:
