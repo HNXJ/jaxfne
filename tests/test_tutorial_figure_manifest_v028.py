@@ -219,9 +219,9 @@ class TestClaimGates:
                 f"Gate '{gate_name}' has unexpected value: {actual} (expected {gate_value})"
 
     def test_jaxfne_version_current(self, manifest):
-        """jaxfne_version should be 0.2.27."""
+        """jaxfne_version should be 0.2.28."""
         version = manifest.get("jaxfne_version", "")
-        assert version == "0.2.27", f"jaxfne_version: {version} (expected 0.2.27)"
+        assert version == "0.2.28", f"jaxfne_version: {version} (expected 0.2.28)"
 
 
 class TestDataIntegrity:

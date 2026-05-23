@@ -56,5 +56,5 @@ class TestRuntimeModule:
         assert 'RuntimeConfig' in runtime_module.__all__
 
     def test_version_unchanged(self):
-        """Test that jaxfne version remains 0.2.10."""
-        assert jaxfne.__version__ == "0.2.27"
+        """Test that jaxfne version remains 0.2.28."""
+        assert jaxfne.__version__ == "0.2.28"

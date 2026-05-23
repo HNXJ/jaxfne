@@ -2,7 +2,7 @@
   "figure_count": 12,
   "real_data_figure_count": 11,
   "min_required": 10,
-  "jaxfne_version": "0.2.27",
+  "jaxfne_version": "0.2.28",
   "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
   "field_solver_status": "laminar_proxy_no_pde",
