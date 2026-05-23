@@ -73,6 +73,7 @@ Or explore the interactive Colab tutorial:
 **v0.3 Tutorial-Scenario Line:**
 - **[v0.3 Tutorial-Scenario Plan](v030_tutorial_scenario_plan.md)** — 32-phase scenario spine, package mutation policy, canonical import doctrine
 - **[Tutorial Template (v0.3)](tutorial_template_v030.md)** — Required 13-section structure for all v0.3 notebooks
+- **[v0.3 Tutorial Atlas Scaffold](tutorials_v030/README.md)** — 15-scenario learning spine, acceptance gates, artifact system, Plotly policy
 
 **Development & CI:**
 - **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation

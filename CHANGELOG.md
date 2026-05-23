@@ -1,3 +1,39 @@
+## v0.3.0 Atlas Framework (tutorial-scenario scaffold, phases A–I complete)
+
+- **v0.3.0 Atlas Scaffold (phases A–H):** Baseline verified (v0.2.30 clean), v030 tutorial doctrine created, acceptance gates defined, Plotly policy, automation scripts, validation tests.
+- **Core documentation (phases B–D):**
+  - `docs/tutorials_v030/README.md` — 15-scenario spine, 31-phase roadmap, hard acceptance gates, claim boundaries
+  - `docs/tutorials_v030/scenario_index.md` — Detailed specs for 15 core scenarios + 16 audit phases
+  - `docs/tutorials_v030/template.md` — Required 13-section notebook structure with LaTeX equation display policy, quality checklist
+  - `docs/tutorials_v030/acceptance_gates.yaml` — 8-category hard validation gates with logic
+  - `docs/tutorials_v030/plotly_policy.md` — PNG required (SHA256 hashed), Plotly optional (guarded import)
+  - `docs/tutorials_v030/canonical_imports.md` — `import jaxfne as jtfne` enforcement, CI integration
+  - `docs/tutorials_v030/docs_audit_policy.md` — Link validation, Colab links, LaTeX equations, term glossaries
+  - `docs/tutorials_v030/environment.md` — Setup instructions for JAX, Plotly, Optax, Jaxley (all optional)
+- **Environment and requirements (phase D):**
+  - `requirements-v030-tutorials.txt` — Tutorial dependencies (jaxfne==0.2.30, JAX, matplotlib, optional Plotly)
+- **Automation scripts (phases E–G):**
+  - `scripts/tutorial_plotly_utils.py` — Plotly-optional figure generation
+  - `scripts/run_v030_tutorial_smoke.py` — Smoke-mode tutorial execution
+  - `scripts/collect_v030_tutorial_manifests.py` — Manifest aggregation + validation
+  - `scripts/audit_v030_docs_links.py` — Docs link audit, Colab link validation, LaTeX policy checks
+- **Validation tests (phases F–H):**
+  - `tests/test_v030_tutorial_structure.py` — 13-section template, claim gates, acceptance gates
+  - `tests/test_v030_plotly_artifacts.py` — Plotly generation (with/without Plotly installed)
+  - `tests/test_v030_docs_audit.py` — Doctrine files, LaTeX policy, Colab links, canonical imports, requirements
+- **Validation results (phase H):**
+  - All files compile successfully (compileall pass)
+  - docs_link_audit.json: PASS (no broken links, no missing Colab links, no LaTeX violations)
+  - Language audit: CLEAN (no overclaiming; proper negations on Poisson solvers, biological metabolism claims)
+  - Bad alias audit: CLEAN (only correct `import jaxfne as jtfne` found; no jtnfe, jtFNE, or wildcard imports)
+  - JSON reports are all valid JSON (no NaN/Inf)
+- **Documentation updates (phase I):** `docs/index.md`, `README.md`, `CHANGELOG.md` updated with v0.3.0 atlas links, requirements, and docs audit infrastructure.
+- **Status:** Phases A–I complete. Ready for Phase J (commit) and Phase L (final beta-ready report).
+- **Truth status:** truth_safe_unverified (v0.2.30 toolbox locked).
+- **No package version bump:** v0.3.0 is tutorial/docs/infrastructure line on stable v0.2.30.
+
+---
+
 ## v0.3 planning / post-v0.2.30
 
 - **Adds v0.3 tutorial-scenario doctrine.** Defines the 32-phase scenario spine (v0.3.0–v0.3.31) built on stable `jaxfne==0.2.30`.

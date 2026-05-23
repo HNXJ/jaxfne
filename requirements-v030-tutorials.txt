@@ -1,0 +1,39 @@
+# v0.3 Tutorial Environment Requirements
+#
+# This file specifies dependencies for running v0.3 tutorials.
+# Install with: pip install -r requirements-v030-tutorials.txt
+#
+# truth_mode: truth_safe_unverified
+# These requirements are for exploratory/teaching tutorials, not production.
+
+# Core jaxfne package (stable v0.2.30 toolbox)
+jaxfne==0.2.30
+
+# JAX ecosystem (required for jaxfne simulation)
+jax>=0.4.0
+jaxlib>=0.4.0
+numpy>=1.24.0
+
+# Scientific computing
+scipy>=1.9.0
+pandas>=1.5.0
+PyYAML>=6.0
+
+# Visualization (required for figure generation)
+matplotlib>=3.7.0
+
+# Optional: Interactive Plotly visualizations
+# Comment out if Plotly not available
+plotly>=5.0.0
+
+# Optional: Optax optimization (for future optimization tutorials)
+# Uncomment when optimization work is added to v0.3
+# optax>=0.2.0
+
+# Optional: Jaxley bridge (only if using Jaxley emitter models)
+# Uncomment when starting Jaxley bridge tutorials (v0.3.20+)
+# jaxley>=0.0.10
+
+# Testing and development (optional)
+pytest>=7.0.0
+pytest-cov>=4.0.0

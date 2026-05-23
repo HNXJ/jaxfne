@@ -189,6 +189,16 @@ Runs large tutorials (examples 02–07) with deterministic figures and asset has
 
 **Current phase:** v0.3 tutorial-scenario line (built on `jaxfne==0.2.30`). The v0.3 line is primarily docs, notebooks, equations, and figures. The v0.3 line uses `import jaxfne as jtfne` on the stable v0.2.30 toolbox unless a package bug requires a patch release.
 
+**v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
+- **15-scenario learning spine** (single neurons → optimization)
+- **13-section notebook template** (learning objectives, mathematics, claims, figures) with LaTeX equation display policy
+- **Hard acceptance gates** (firing rate 2–25 Hz, finite values, JSON-safe, JAX-native)
+- **PNG + Plotly artifact system** (reproducible figures with SHA256 integrity)
+- **Canonical imports** (`import jaxfne as jtfne` enforced)
+- **Docs audit policy** (link validation, Colab links, LaTeX equations, term glossaries)
+- **Environment setup** ([`requirements-v030-tutorials.txt`](requirements-v030-tutorials.txt), [`docs/tutorials_v030/environment.md`](docs/tutorials_v030/environment.md))
+- **Automated audit script** ([`scripts/audit_v030_docs_links.py`](scripts/audit_v030_docs_links.py))
+
 ---
 
 ## Claim Status
