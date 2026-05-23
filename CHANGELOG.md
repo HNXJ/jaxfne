@@ -1,3 +1,10 @@
+## v0.2.30-pre (test cleanup / pre-release)
+
+- **Reconciled legacy tutorial figure artifact contract with canonical v0.2.28 figure system.**
+  - **Deprecated `test_tutorial_figure_contract_v0219.py::test_figure_hash_in_assets`:** Legacy test for v0.2.19 runtime output artifacts in `outputs/` directories. Superseded by canonical tutorial figure manifest validation in `test_tutorial_figure_manifest_v028.py`.
+  - **Canonical figure system established (v0.2.28+):** `docs/_static/tutorial_figures/figure_manifest.json` is the authoritative artifact index. Runtime `outputs/` directories are ephemeral and no longer part of release contract.
+  - **Test suite cleanliness restored:** 918 passed, 12 skipped (4 legacy tests marked skip with deprecation notice), 0 failed.
+
 ## v0.2.29
 
 - **Tensor-network ancestry and basis-transform doctrine (conceptual documentation only).**
