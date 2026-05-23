@@ -72,6 +72,7 @@ Or explore the interactive Colab tutorial:
 
 **Development & CI:**
 - **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation
+- **[Performance baseline](performance_baseline.md)** — v0.2.30+ benchmark receipts, local-environment claim boundaries, and timing model
 - **[Contributing](contributing.md)** — Contributing code and feedback
 
 **About:**
