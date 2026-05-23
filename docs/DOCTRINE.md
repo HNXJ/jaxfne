@@ -1,9 +1,15 @@
-# jaxfne doctrine
+# jaxfne Doctrine — LEGACY (v0.0.21)
 
-**Version:** 0.0.21  
-**Status:** Design scaffold / computational framework, not biological validation.
+> **⚠ This is legacy documentation for jaxfne v0.0.21.**  
+> **→ For current v0.2.27 doctrine and design, see:**
+> - **[docs/index.md](index.md)** — Documentation index
+> - **[docs/computation_basis.md](computation_basis.md)** — Current computation contract
+> - **[docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md)** — Current diagnostics framework
+> - **[README.md](../README.md)** — Current installation and quick start
 
-## Identity
+---
+
+## Legacy Identity (v0.0.21)
 
 `jaxfne` = **JAX Field Neural Equations**.
 

@@ -48,6 +48,7 @@ Or explore the interactive Colab tutorial:
 
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits
+- **[Google Colab Quick Start](colab.md)** — Run jaxfne examples in Colab without local setup
 - **[Probe operators](probe_operators.md)** — Reference for the eight readout operators: spikes, voltage, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
 - **[Tensor-field workflows](tensor_field_workflows.md)** — How to organize sources and fields
 - **[Jaxley interoperability](jaxley_interop.md)** — Using jaxfne with Jaxley models; array-first trace bridge
@@ -62,12 +63,18 @@ Or explore the interactive Colab tutorial:
 - [Objectives](api/objectives.md) — Objective functions and evaluation scaffolds
 - [Validation](api/validation.md) — Invariant and diagnostic checks
 
+**Release & distribution (v0.2.27):**
+- **[Release Checklist](release_checklist.md)** — Step-by-step release process for jaxfne
+- **[Packaging](packaging.md)** — Build, test, and distribute jaxfne wheels and source tarballs
+- **[v0.3 Readiness Bridge](v03_bridge.md)** — Locked APIs, future solvers, migration path for v0.3
+
 **Development & CI:**
 - **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation
 - **[Contributing](contributing.md)** — Contributing code and feedback
 
 **About:**
 - **[Scope and limitations](scope_and_limitations.md)** — Design goals and boundaries
+- **[Manuscript Alignment](manuscript_alignment.md)** — How the codebase maps to the manuscript draft
 - **[Changelog](changelog.md)** — Release history
 - **[Citation](citation.md)** — How to cite jaxfne
 

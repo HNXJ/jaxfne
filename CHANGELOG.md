@@ -1,3 +1,16 @@
+## v0.2.28
+
+- **Bridge hardening and release-docs cleanup.**
+- **Added release/distribution documentation:** New `docs/release_checklist.md` (modern v0.2.27-aligned release process with validation gates), `docs/packaging.md` (build, test, distribute wheels and tarballs), and `docs/colab.md` (Google Colab quick start with current API examples).
+- **Added manuscript alignment documentation:** New `docs/manuscript_alignment.md` maps codebase sections to manuscript content, clarifies Poisson solver deferral (v0.2.27 has diagnostics, not solver), and documents computation-basis contract changes (v0.2.26–v0.2.27).
+- **Added v0.3 readiness bridge:** New `docs/v03_bridge.md` documents locked APIs (emitters, core pipeline, 8 probe operators, claim gates), future regimes (Poisson solver, Maxwell, admittive, stress-energy, Poynting — all gated), and migration path for v0.3.
+- **Updated legacy docs:** Converted `docs/RELEASE_CHECKLIST.md`, `docs/COLAB_SMOKE_V010.md`, and `docs/DOCTRINE.md` to legacy pointers with links to current documentation.
+- **Updated docs/index.md:** Added new doc links in "Release & distribution" section (release_checklist, packaging, v03_bridge), "Tutorials & guides" section (colab.md), and "About" section (manuscript_alignment).
+- **Updated docs/ci_policy.md:** Fixed test count from 804 to 903 (cumulative baseline after v0.2.27 conservation diagnostics).
+- **No code changes, no feature expansion.** v0.2.28 is release-docs cleanup and bridge hardening for v0.3+ readiness.
+- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
+- **Purpose:** Document release process, clarify version alignment with manuscript, and prepare locked APIs for v0.3 future regimes.
+
 ## v0.2.27
 
 - **Conservation-inspired proxy diagnostics.**

@@ -15,7 +15,7 @@ This keeps development fast while ensuring comprehensive testing before release.
 
 - Python 3.10, 3.11, 3.12 matrix
 - Compilation check: `python -m compileall -q jaxfne tests examples`
-- Core tests: 804 pytest tests (5 skipped, expected)
+- Core tests: 903 pytest tests (5 skipped, expected)
 - Fast examples only: `examples/00-06` (smoke tests, ~1 min)
 - Build: wheel + sdist
 - Smoke test: fresh venv wheel install + minimal workflow
