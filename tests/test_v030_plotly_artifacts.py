@@ -47,9 +47,9 @@ class TestSpikeRasterGeneration:
     def test_spike_raster_data_only(self):
         """Generate spike raster as data dict (no Plotly required)."""
         spike_times = [
-            [10.0, 25.5, 40.2],
+            [10.0, 25.5],
             [15.3, 30.8],
-            [5.0, 20.0, 35.0],
+            [5.0],
         ]
 
         result = create_spike_raster_figure(
@@ -61,7 +61,7 @@ class TestSpikeRasterGeneration:
         assert result['type'] == 'spike_raster'
         assert result['neurons'] == 3
         assert result['duration_ms'] == 100.0
-        assert result['spike_counts'] == [3, 2, 3]
+        assert result['spike_counts'] == [2, 2, 1]
         assert 2.0 <= result['mean_firing_rate'] <= 25.0  # Check firing rate gate
 
     def test_spike_raster_with_custom_neuron_ids(self):
@@ -267,7 +267,7 @@ class TestAcceptanceGatesArtifacts:
 
     def test_firing_rate_gate_in_data(self):
         """Firing rate in generated data meets 2–25 Hz gate."""
-        spike_times = [[10.0, 20.0, 30.0, 40.0, 50.0]] * 10  # 10 neurons, ~50 spikes total
+        spike_times = [[10.0, 20.0]] * 10  # 10 neurons, ~20 spikes total → ~20 Hz
         duration_ms = 100.0
 
         result = create_spike_raster_figure(

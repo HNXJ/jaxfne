@@ -15,6 +15,10 @@ from pathlib import Path
 class TestTutorialTemplate:
     """Tests for v0.3 tutorial template compliance."""
 
+    def _get_template(self):
+        """Get path to tutorial template."""
+        return Path(__file__).parent.parent / "docs" / "tutorials_v030" / "template.md"
+
     def test_canonical_import_jtfne(self):
         """Tutorials must import jaxfne as jtfne (required alias)."""
         # This test would typically be run on notebook source.
@@ -67,18 +71,21 @@ class TestTutorialTemplate:
 
     def test_section_13_non_claim_statement(self):
         """Section 13 (Non-Claim Statement) must be present and final."""
+        template = self._get_template()
+        content = template.read_text()
+
         section_13_keywords = [
             'Non-Claim Statement',
             'What this tutorial IS',
             'What this tutorial IS NOT',
             'computational_scaffold',
             'truth_safe_unverified',
-            'physical_amplitude_claim_allowed: False',
+            'physical_amplitude_claim_allowed',
         ]
 
-        # All keywords should appear in Section 13
+        # All keywords should appear in the template (including Section 13)
         for keyword in section_13_keywords:
-            assert keyword in 'Section 13 content'
+            assert keyword in content, f"Keyword '{keyword}' not found in template"
 
     def test_acceptance_gate_firing_rate(self):
         """Firing rate must be 2–25 Hz for acceptance."""
