@@ -12,6 +12,7 @@ import pathlib
 import pytest
 
 
+@pytest.mark.skip(reason="v0.2.19 legacy output artifact contract tests require large tutorials to be run locally. Fast CI excludes large examples. For manual validation, run: python scripts/run_all_tutorials.py && python scripts/validate_tutorial_outputs.py. Validation is now delegated to test_tutorial_figure_manifest_v028.py which validates the canonical docs/_static/tutorial_figures/figure_manifest.json artifact.")
 class TestTutorialFigureContract:
     """Test suite for tutorial output contract with figures."""
 
