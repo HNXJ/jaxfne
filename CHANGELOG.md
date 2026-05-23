@@ -1,15 +1,30 @@
 ## v0.2.28
 
-- **Bridge hardening and release-docs cleanup.**
+- **Tutorial figure regeneration and release-docs cleanup.**
+
+### Release documentation (bridge hardening for v0.3+)
 - **Added release/distribution documentation:** New `docs/release_checklist.md` (modern v0.2.27-aligned release process with validation gates), `docs/packaging.md` (build, test, distribute wheels and tarballs), and `docs/colab.md` (Google Colab quick start with current API examples).
 - **Added manuscript alignment documentation:** New `docs/manuscript_alignment.md` maps codebase sections to manuscript content, clarifies Poisson solver deferral (v0.2.27 has diagnostics, not solver), and documents computation-basis contract changes (v0.2.26–v0.2.27).
 - **Added v0.3 readiness bridge:** New `docs/v03_bridge.md` documents locked APIs (emitters, core pipeline, 8 probe operators, claim gates), future regimes (Poisson solver, Maxwell, admittive, stress-energy, Poynting — all gated), and migration path for v0.3.
 - **Updated legacy docs:** Converted `docs/RELEASE_CHECKLIST.md`, `docs/COLAB_SMOKE_V010.md`, and `docs/DOCTRINE.md` to legacy pointers with links to current documentation.
-- **Updated docs/index.md:** Added new doc links in "Release & distribution" section (release_checklist, packaging, v03_bridge), "Tutorials & guides" section (colab.md), and "About" section (manuscript_alignment).
+- **Updated docs/index.md:** Added new doc links in "Release & distribution" section (release_checklist, packaging, v03_bridge), "Tutorials & guides" section (colab.md, tutorial_figures), and "About" section (manuscript_alignment).
 - **Updated docs/ci_policy.md:** Fixed test count from 804 to 903 (cumulative baseline after v0.2.27 conservation diagnostics).
-- **No code changes, no feature expansion.** v0.2.28 is release-docs cleanup and bridge hardening for v0.3+ readiness.
+
+### Tutorial figure regeneration (v0.2.28 core requirement)
+- **Generated 12 tutorial PNG figures:** `01_spike_raster.png` (behavioral), `02_voltage_traces.png` (state), `03_source_proxy_heatmap.png` (source), `04_lfp_proxy_trace.png` (scalar readout), `05_csd_proxy_heatmap.png` (spatial readout), `06_phi_e_proxy_heatmap.png` (field potential), `07_source_proxy_spatial.png` (kernel-weighted source), `08_conservation_diagnostics.png` (metrics), `09_laminar_profile_depths.png` (geometry), `10_firing_rate_raster.png` (population activity), `11_claim_gates_summary.png` (metadata), `12_spectral_summary.png` (analysis).
+- **Figure count:** 12 total; 11 with real simulation data; 1 placeholder (claim gates summary, uses_real_data=False). **Minimum required: 10 real-data figures. Status: PASS (11 >= 10).**
+- **New `scripts/generate_tutorial_figures.py`:** Deterministic figure generation script (seed=0, CPU-safe matplotlib Agg backend). Uses observed jaxfne API: `signals.spikes`, `signals.V_m`, `signals.sources`, `signals.field.lfp_proxy`, `signals.field.csd_proxy`, `signals.field.phi_e_proxy`, `signals.field.source_proxy`, `manifest['conservation_proxy_diagnostics']`.
+- **New `docs/tutorial_figures.md`:** Complete figure gallery with claim status, data sources, and truth status for each figure. Includes regeneration instructions.
+- **Figure manifest `docs/_static/tutorial_figures/figure_manifest.json`:** JSON-safe schema with per-figure metadata (filename, title, type, uses_real_data, path, visually_confirmed, visual_status, claim_status). Global fields: figure_count, real_data_figure_count, min_required, jaxfne_version, truth gates, source_script, visual_confirmation_method.
+- **All figures visually confirmed:** PIL/ImageStat verification (nonzero size, nonblank content, >1 KB). visual_confirmed=True, visual_status="pass" for all 12 figures.
+- **New test file `tests/test_tutorial_figure_manifest_v028.py`:** 9 test methods covering manifest structure (JSON-safe, required keys, claim gates), figure count (12 total, >=10 real data), figure paths (exist, PNG, nonzero), figure metadata (required fields, visually confirmed), forbidden phrases (no "real EEG", "validated", "biological metabolism", "Maxwell", "Poisson"), claim-gate immutability, data integrity (filename/path matching, no duplicates, count consistency).
+- **Claim gates frozen and immutable:** truth_mode="truth_safe_unverified", claim_level="computational_scaffold", field_solver_status="laminar_proxy_no_pde", physical_amplitude_claim_allowed=False, biological_metabolism_claim_allowed=False. No "real EEG", "validated CSD", "biological proof", "solver implementation" language in any figure title or description.
+- **No code changes to core jaxfne modules.** v0.2.28 figure generation is scripts/docs/tests only.
+
+### Summary
+- **Purpose:** Complete tutorial figure regeneration with visual confirmation + bridge hardening for v0.3+ readiness.
 - **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
-- **Purpose:** Document release process, clarify version alignment with manuscript, and prepare locked APIs for v0.3 future regimes.
+- **BETA completion:** All v0.2.28 gates passed (12 figures generated, 11 real-data, all visually confirmed, claim gates frozen, no forbidden language).
 
 ## v0.2.27
 

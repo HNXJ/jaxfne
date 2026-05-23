@@ -48,6 +48,7 @@ Or explore the interactive Colab tutorial:
 
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits
+- **[Tutorial Figures](tutorial_figures.md)** — v0.2.28 regenerated PNG figures with visual confirmation and claim gates
 - **[Google Colab Quick Start](colab.md)** — Run jaxfne examples in Colab without local setup
 - **[Probe operators](probe_operators.md)** — Reference for the eight readout operators: spikes, voltage, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
 - **[Tensor-field workflows](tensor_field_workflows.md)** — How to organize sources and fields
