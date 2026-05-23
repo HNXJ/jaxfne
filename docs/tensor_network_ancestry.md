@@ -149,7 +149,7 @@ $$\text{LFP\_proxy}(t) = \sum_{contacts} w_{contact} \, \phi_e(contact, t)$$
 
 ✗ **No cerebellar metric-tensor learning:** jaxfne does not implement Pellionisz/Llinás sensorimotor transforms or learned basis-transform coefficients  
 ✗ **No tensor-train/MPS compression:** jaxfne is not a tensor-network factorization library (no tensor-train states, MPS, PEPS, etc.)  
-✗ **No electromagnetic field solver:** jaxfne's "field" is currently a proxy spatial projection (no Maxwell, no Poisson PDE, no boundary conditions)  
+✗ **No Maxwell/Poisson/stress-energy solver implementation from tensor-network ancestry:** jaxfne's source-field framework is a proxy spatial projection in the default v0.2.x path (no PDE solvers, no boundary-condition enforcement). TFNE's source and field basis transforms are fundamental to the electromagnetic observable framework; they are not absent from it.  
 ✗ **No biological validation:** Proxy readouts (LFP, CSD, EEG, MEG) are named *proxy* because they are not validated against empirical measurements  
 ✗ **No sensorimotor proof:** Using basis transforms does not demonstrate that neural circuits implement metric-tensor learning  
 ✗ **No condensed-matter quantum analogy:** jaxfne tensors are not quantum states and do not use variational tensor-network algorithms
