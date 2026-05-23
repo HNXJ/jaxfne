@@ -274,10 +274,10 @@ def test_mkdocs_nav_includes_visual_outputs_skill():
 # ─── Version and Dependency Tests ────────────────────────────────────────────
 
 def test_version_remains_0210():
-    """jaxfne version must remain 0.2.28 (after v0.2.28 release)."""
+    """jaxfne version must remain 0.2.29 (after v0.2.29 release)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.28", \
-        f"Expected version 0.2.28, got {jaxfne.__version__}"
+    assert jaxfne.__version__ == "0.2.29", \
+        f"Expected version 0.2.29, got {jaxfne.__version__}"
 
 
 def test_pyproject_toml_not_modified_for_plotly():

@@ -229,6 +229,6 @@ def test_contract_meg_specific_fields():
 # ─── Version Bumped to 0.2.18 ────────────────────────────────────────────────────
 
 def test_contract_version_unchanged():
-    """jaxfne version remains 0.2.28 (after v0.2.28 tutorial figures)."""
+    """jaxfne version remains 0.2.29 (after v0.2.29 tutorial figures)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.28"
+    assert jaxfne.__version__ == "0.2.29"

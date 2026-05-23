@@ -1,5 +1,5 @@
 """
-v0.2.28 Tutorial Figure Manifest Tests
+v0.2.29 Tutorial Figure Manifest Tests
 
 Validates:
 1. Manifest exists and is JSON-safe
@@ -219,9 +219,9 @@ class TestClaimGates:
                 f"Gate '{gate_name}' has unexpected value: {actual} (expected {gate_value})"
 
     def test_jaxfne_version_current(self, manifest):
-        """jaxfne_version should be 0.2.28."""
+        """jaxfne_version should be 0.2.29."""
         version = manifest.get("jaxfne_version", "")
-        assert version == "0.2.28", f"jaxfne_version: {version} (expected 0.2.28)"
+        assert version == "0.2.29", f"jaxfne_version: {version} (expected 0.2.29)"
 
 
 class TestDataIntegrity:

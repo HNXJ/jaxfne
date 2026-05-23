@@ -265,8 +265,8 @@ class TestNetwork100EINotebook:
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.28"
-        ), f"Version should be 0.2.28, got {jaxfne.__version__}"
+            jaxfne.__version__ == "0.2.29"
+        ), f"Version should be 0.2.29, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""

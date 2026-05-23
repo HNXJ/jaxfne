@@ -318,9 +318,9 @@ def test_field_output_finite_j_e_false_for_proxy():
 # ─── Version Constraint ────────────────────────────────────────────────────────
 
 def test_version_remains_0210():
-    """jaxfne version remains 0.2.28 (after v0.2.28 tutorial figures)."""
+    """jaxfne version remains 0.2.29 (after v0.2.29 tutorial figures)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.28"
+    assert jaxfne.__version__ == "0.2.29"
 
 
 # ─── JSON Serialization Strictness ────────────────────────────────────────────
