@@ -2352,46 +2352,113 @@ class Model:
         c: "float | None" = None,
         d: "float | None" = None,
         drive_scale: "float | None" = None,
+        # New per-neuron overrides (v0.3.3)
+        a_per_neuron: "jax.Array | None" = None,
+        b_per_neuron: "jax.Array | None" = None,
+        c_per_neuron: "jax.Array | None" = None,
+        d_per_neuron: "jax.Array | None" = None,
+        drive_per_neuron: "jax.Array | None" = None,
     ) -> "Model":
-        """Return a new Model with scalar Izhikevich parameter overrides.
+        """Return a new Model with Izhikevich parameter overrides.
 
-        Tutorial-safe public helper for parameter sweeps.  All overrides are
-        applied uniformly to all neurons in the model.  Unspecified parameters
-        are copied unchanged from the original emitter.
-
-        Claim gates are preserved: the returned Model carries the same
-        ``truth_mode``, ``claim_level``, and ``physical_amplitude_claim_allowed``
-        values as the original.  ``drive_scale`` is a multiplicative gain on the
-        native emitter drive; it does not calibrate units to physical amperes.
+        Supports both scalar (uniform) and per-neuron (array) overrides.
+        Per-neuron arrays take priority over scalar values.
+        Explicit None checks are used to handle zero-valued arrays correctly.
 
         Args:
-            a: Recovery time scale (s⁻¹). Larger values → faster recovery.
-            b: Voltage sensitivity of recovery (dimensionless).
-            c: Post-spike voltage-like reset value.
-            d: Post-spike recovery increment (dimensionless).
-            drive_scale: Multiplicative gain on native drive current.  Use
-                ``None`` or ``1.0`` to leave drive unchanged.
+            a: Scalar recovery time scale override (uniform to all neurons).
+            b: Scalar voltage-sensitivity override (uniform).
+            c: Scalar post-spike reset override (uniform).
+            d: Scalar post-spike increment override (uniform).
+            drive_scale: Multiplicative gain on native drive.
+            a_per_neuron: Per-neuron recovery time scale (shape: [n_neurons]).
+            b_per_neuron: Per-neuron voltage sensitivity (shape: [n_neurons]).
+            c_per_neuron: Per-neuron reset voltage (shape: [n_neurons]).
+            d_per_neuron: Per-neuron recovery increment (shape: [n_neurons]).
+            drive_per_neuron: Per-neuron absolute drive (shape: [n_neurons]).
+                Overrides both scalar drive_scale and emitter.drive.
 
         Returns:
-            A new :class:`Model` with updated emitter parameters. The original
-            Model is not mutated (frozen dataclass).
+            New Model — original is not mutated.
         """
         emitter: IzhikevichParams = self.params["emitter"]
         updates: dict[str, Any] = {}
-        if a is not None:
+
+        # a: per-neuron takes priority over scalar
+        if a_per_neuron is not None:
+            updates["a"] = jnp.asarray(a_per_neuron, dtype=emitter.a.dtype)
+        elif a is not None:
             updates["a"] = jnp.ones_like(emitter.a) * float(a)
-        if b is not None:
+
+        # b: per-neuron takes priority over scalar
+        if b_per_neuron is not None:
+            updates["b"] = jnp.asarray(b_per_neuron, dtype=emitter.b.dtype)
+        elif b is not None:
             updates["b"] = jnp.ones_like(emitter.b) * float(b)
-        if c is not None:
+
+        # c: per-neuron takes priority over scalar
+        if c_per_neuron is not None:
+            updates["c"] = jnp.asarray(c_per_neuron, dtype=emitter.c.dtype)
+        elif c is not None:
             updates["c"] = jnp.ones_like(emitter.c) * float(c)
-        if d is not None:
+
+        # d: per-neuron takes priority over scalar
+        if d_per_neuron is not None:
+            updates["d"] = jnp.asarray(d_per_neuron, dtype=emitter.d.dtype)
+        elif d is not None:
             updates["d"] = jnp.ones_like(emitter.d) * float(d)
-        if drive_scale is not None:
+
+        # drive: per-neuron absolute takes priority; scalar applies multiplicative scale
+        if drive_per_neuron is not None:
+            updates["drive"] = jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype)
+        elif drive_scale is not None:
             updates["drive"] = emitter.drive * float(drive_scale)
+
         new_emitter = replace(emitter, **updates)
         new_params = dict(self.params)
         new_params["emitter"] = new_emitter
         return replace(self, params=new_params)
+
+    def with_recurrent_coupling(
+        self,
+        *,
+        g_ei: float = 5.0,
+        g_ie: float = 3.0,
+        tau_syn_e_ms: float = 5.0,
+        tau_syn_i_ms: float = 10.0,
+    ) -> "Model":
+        """Return a new Model with recurrent E/I coupling parameters stored.
+
+        Stores coupling parameters in model.static["recurrent_coupling"] for
+        use with simulate_dynamic_ei_coupling(). The original model is not mutated
+        (frozen dataclass contract is preserved via replace()).
+
+        Coupling is stored as metadata; it does not modify the emitter's W matrix.
+        Use with simulate_dynamic_ei_coupling() to apply dynamic coupling at runtime.
+
+        Args:
+            g_ei: E→I excitatory coupling conductance (model units).
+            g_ie: I→E inhibitory coupling magnitude (model units).
+            tau_syn_e_ms: Excitatory synaptic time constant (ms).
+            tau_syn_i_ms: Inhibitory synaptic time constant (ms).
+
+        Returns:
+            New Model with coupling parameters in static["recurrent_coupling"].
+            Original model is not mutated.
+        """
+        coupling_params = {
+            "g_ei": float(g_ei),
+            "g_ie": float(g_ie),
+            "tau_syn_e_ms": float(tau_syn_e_ms),
+            "tau_syn_i_ms": float(tau_syn_i_ms),
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "physical_amplitude_claim_allowed": False,
+            "claim_level": "computational_scaffold",
+        }
+        return replace(
+            self,
+            static={**self.static, "recurrent_coupling": coupling_params}
+        )
 
     def manifest(
         self,
@@ -2569,35 +2636,26 @@ def with_emitter_parameters(
     c: "float | None" = None,
     d: "float | None" = None,
     drive_scale: "float | None" = None,
+    a_per_neuron: "jax.Array | None" = None,
+    b_per_neuron: "jax.Array | None" = None,
+    c_per_neuron: "jax.Array | None" = None,
+    d_per_neuron: "jax.Array | None" = None,
+    drive_per_neuron: "jax.Array | None" = None,
 ) -> Model:
     """Functional wrapper for :meth:`Model.with_emitter_parameters`.
 
-    Returns a new Model with scalar Izhikevich parameter overrides applied
-    uniformly to all neurons.  Unspecified parameters are unchanged.  Claim
-    gates (``truth_mode``, ``claim_level``, ``physical_amplitude_claim_allowed``)
-    are preserved from the source model.
-
-    Example::
-
-        import jaxfne as jtfne
-
-        base = jtfne.construct(cfg)
-        faster = jtfne.with_emitter_parameters(base, a=0.05)
-        stronger = jtfne.with_emitter_parameters(base, drive_scale=1.2)
-
-    Args:
-        model: Source :class:`Model` to copy parameters from.
-        a: Recovery time scale override (s⁻¹).
-        b: Voltage-sensitivity-of-recovery override (dimensionless).
-        c: Post-spike voltage-like reset override.
-        d: Post-spike recovery increment override (dimensionless).
-        drive_scale: Multiplicative gain on native drive. ``None`` leaves
-            drive unchanged.  Does not calibrate units to physical amperes.
-
-    Returns:
-        New :class:`Model` — original is not mutated.
+    Supports both scalar (uniform) and per-neuron (array) overrides.
+    Per-neuron arrays take priority over scalars.
+    Explicit None checks used — zero-valued JAX arrays handled correctly.
     """
-    return model.with_emitter_parameters(a=a, b=b, c=c, d=d, drive_scale=drive_scale)
+    return model.with_emitter_parameters(
+        a=a, b=b, c=c, d=d, drive_scale=drive_scale,
+        a_per_neuron=a_per_neuron,
+        b_per_neuron=b_per_neuron,
+        c_per_neuron=c_per_neuron,
+        d_per_neuron=d_per_neuron,
+        drive_per_neuron=drive_per_neuron,
+    )
 
 
 def configuration() -> Configuration:
@@ -3184,7 +3242,7 @@ _KNOWN_READOUT_METRICS = frozenset({
 
 # ──────────────────────────────────────────────────────────────
 # v0.0.15 config foundation
-# ──────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────��──────────────
 
 _JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.15"
 
