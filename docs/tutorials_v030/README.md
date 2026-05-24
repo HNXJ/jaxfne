@@ -17,6 +17,8 @@ The v0.3 tutorial-scenario line is a comprehensive set of 15 executable Jupyter 
 ## Quick Links
 
 - **[Scenario Index](scenario_index.md)** — 15 scenarios, learning path, prerequisites
+- **[v0.3.3–v0.3.31 Planning Handoff](v0303_to_v0331_planning_handoff.md)** — Complete roadmap, scenario definitions, audit phases, PyPI strategy, open questions
+- **[Visualization Doctrine](visualization_doctrine.md)** — PNG mandatory, Plotly optional, figure panels, manifest contracts
 - **[Tutorial Template](template.md)** — Required 13-section structure for all v0.3 notebooks
 - **[Acceptance Gates](acceptance_gates.yaml)** — Hard validation criteria (firing rate, finite values, JSON-safe, JAX-native)
 - **[Plotly Artifact Policy](plotly_policy.md)** — PNG figures required; Plotly optional

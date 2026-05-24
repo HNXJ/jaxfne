@@ -617,6 +617,8 @@
 ## See Also
 
 - [README](README.md) — Overview and acceptance gates
+- [Visualization Doctrine](visualization_doctrine.md) — PNG/Plotly policy, figure panels, manifest contract
 - [Template](template.md) — 13-section required structure
+- [Plotly Policy](plotly_policy.md) — Interactive figure guidelines
 - [Canonical Imports](canonical_imports.md) — Import conventions
 - [v0.3 Tutorial-Scenario Plan](../v030_tutorial_scenario_plan.md) — Doctrine
