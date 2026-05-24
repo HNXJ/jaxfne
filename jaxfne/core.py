@@ -2344,6 +2344,55 @@ class Model:
         }
         return best_model, json_safe(report)
 
+    def with_emitter_parameters(
+        self,
+        *,
+        a: "float | None" = None,
+        b: "float | None" = None,
+        c: "float | None" = None,
+        d: "float | None" = None,
+        drive_scale: "float | None" = None,
+    ) -> "Model":
+        """Return a new Model with scalar Izhikevich parameter overrides.
+
+        Tutorial-safe public helper for parameter sweeps.  All overrides are
+        applied uniformly to all neurons in the model.  Unspecified parameters
+        are copied unchanged from the original emitter.
+
+        Claim gates are preserved: the returned Model carries the same
+        ``truth_mode``, ``claim_level``, and ``physical_amplitude_claim_allowed``
+        values as the original.  ``drive_scale`` is a multiplicative gain on the
+        native emitter drive; it does not calibrate units to physical amperes.
+
+        Args:
+            a: Recovery time scale (s⁻¹). Larger values → faster recovery.
+            b: Voltage sensitivity of recovery (dimensionless).
+            c: Post-spike voltage-like reset value.
+            d: Post-spike recovery increment (dimensionless).
+            drive_scale: Multiplicative gain on native drive current.  Use
+                ``None`` or ``1.0`` to leave drive unchanged.
+
+        Returns:
+            A new :class:`Model` with updated emitter parameters. The original
+            Model is not mutated (frozen dataclass).
+        """
+        emitter: IzhikevichParams = self.params["emitter"]
+        updates: dict[str, Any] = {}
+        if a is not None:
+            updates["a"] = jnp.ones_like(emitter.a) * float(a)
+        if b is not None:
+            updates["b"] = jnp.ones_like(emitter.b) * float(b)
+        if c is not None:
+            updates["c"] = jnp.ones_like(emitter.c) * float(c)
+        if d is not None:
+            updates["d"] = jnp.ones_like(emitter.d) * float(d)
+        if drive_scale is not None:
+            updates["drive"] = emitter.drive * float(drive_scale)
+        new_emitter = replace(emitter, **updates)
+        new_params = dict(self.params)
+        new_params["emitter"] = new_emitter
+        return replace(self, params=new_params)
+
     def manifest(
         self,
         signals: Optional[Signals] = None,
@@ -2510,6 +2559,45 @@ def _mean_pairwise_corr_proxy(spikes: jax.Array) -> jax.Array:
     n = corr.shape[0]
     mask = 1.0 - jnp.eye(n)
     return jnp.sum(jnp.abs(corr) * mask) / jnp.maximum(1.0, jnp.sum(mask))
+
+
+def with_emitter_parameters(
+    model: Model,
+    *,
+    a: "float | None" = None,
+    b: "float | None" = None,
+    c: "float | None" = None,
+    d: "float | None" = None,
+    drive_scale: "float | None" = None,
+) -> Model:
+    """Functional wrapper for :meth:`Model.with_emitter_parameters`.
+
+    Returns a new Model with scalar Izhikevich parameter overrides applied
+    uniformly to all neurons.  Unspecified parameters are unchanged.  Claim
+    gates (``truth_mode``, ``claim_level``, ``physical_amplitude_claim_allowed``)
+    are preserved from the source model.
+
+    Example::
+
+        import jaxfne as jtfne
+
+        base = jtfne.construct(cfg)
+        faster = jtfne.with_emitter_parameters(base, a=0.05)
+        stronger = jtfne.with_emitter_parameters(base, drive_scale=1.2)
+
+    Args:
+        model: Source :class:`Model` to copy parameters from.
+        a: Recovery time scale override (s⁻¹).
+        b: Voltage-sensitivity-of-recovery override (dimensionless).
+        c: Post-spike voltage-like reset override.
+        d: Post-spike recovery increment override (dimensionless).
+        drive_scale: Multiplicative gain on native drive. ``None`` leaves
+            drive unchanged.  Does not calibrate units to physical amperes.
+
+    Returns:
+        New :class:`Model` — original is not mutated.
+    """
+    return model.with_emitter_parameters(a=a, b=b, c=c, d=d, drive_scale=drive_scale)
 
 
 def configuration() -> Configuration:
