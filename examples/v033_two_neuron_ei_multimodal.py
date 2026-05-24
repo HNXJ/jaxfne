@@ -227,9 +227,15 @@ def plot_circuit_schematic(g_ei, g_ie, firing_rate_e, firing_rate_i):
 def main():
     """Main tutorial execution."""
 
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        HAS_MATPLOTLIB = True
+    except ImportError:
+        HAS_MATPLOTLIB = False
+        print("WARNING: matplotlib not installed; skipping figure generation")
+        print()
 
     print("=" * 80)
     print("v0.3.3 Two-Neuron E/I Multimodal Tutorial (Dynamic Coupling)")
@@ -579,383 +585,388 @@ def main():
     # SECTION 7: Figures
     # ============================================================================
 
-    print("Generating figures...")
-    OUT.mkdir(parents=True, exist_ok=True)
-    STATIC_FIGS.mkdir(parents=True, exist_ok=True)
+    if HAS_MATPLOTLIB:
+        print("Generating figures...")
+        OUT.mkdir(parents=True, exist_ok=True)
+        STATIC_FIGS.mkdir(parents=True, exist_ok=True)
 
-    figures_dir = OUT / "figures"
-    figures_dir.mkdir(exist_ok=True)
+        figures_dir = OUT / "figures"
+        figures_dir.mkdir(exist_ok=True)
 
-    e_spike_times = t[e_spike_indices]
-    i_spike_times = t[i_spike_indices]
+        e_spike_times = t[e_spike_indices]
+        i_spike_times = t[i_spike_indices]
 
-    # Figure 1: Voltage traces for E and PV neurons (two-row panel)
-    fig, axes = plt.subplots(2, 1, figsize=(14, 6), sharex=True)
+        # Figure 1: Voltage traces for E and PV neurons (two-row panel)
+        fig, axes = plt.subplots(2, 1, figsize=(14, 6), sharex=True)
 
-    axes[0].plot(t, V_m[:, E_INDEX], linewidth=0.6, color='blue', label='E neuron')
-    axes[0].set_ylabel('Voltage (mV)')
-    axes[0].set_title(
-        f'v0.3.3: Excitatory Neuron Voltage Trace\n'
-        f'(Firing rate: {e_firing_rate_hz:.2f} Hz, Proxy readout)'
-    )
-    axes[0].grid(True, alpha=0.3)
-    axes[0].legend(loc='upper right')
+        axes[0].plot(t, V_m[:, E_INDEX], linewidth=0.6, color='blue', label='E neuron')
+        axes[0].set_ylabel('Voltage (mV)')
+        axes[0].set_title(
+            f'v0.3.3: Excitatory Neuron Voltage Trace\n'
+            f'(Firing rate: {e_firing_rate_hz:.2f} Hz, Proxy readout)'
+        )
+        axes[0].grid(True, alpha=0.3)
+        axes[0].legend(loc='upper right')
 
-    axes[1].plot(t, V_m[:, I_INDEX], linewidth=0.6, color='red', label='PV neuron')
-    axes[1].set_xlabel('Time (ms)')
-    axes[1].set_ylabel('Voltage (mV)')
-    axes[1].set_title(
-        f'v0.3.3: PV (Inhibitory) Neuron Voltage Trace\n'
-        f'(Firing rate: {i_firing_rate_hz:.2f} Hz, Proxy readout)'
-    )
-    axes[1].grid(True, alpha=0.3)
-    axes[1].legend(loc='upper right')
+        axes[1].plot(t, V_m[:, I_INDEX], linewidth=0.6, color='red', label='PV neuron')
+        axes[1].set_xlabel('Time (ms)')
+        axes[1].set_ylabel('Voltage (mV)')
+        axes[1].set_title(
+            f'v0.3.3: PV (Inhibitory) Neuron Voltage Trace\n'
+            f'(Firing rate: {i_firing_rate_hz:.2f} Hz, Proxy readout)'
+        )
+        axes[1].grid(True, alpha=0.3)
+        axes[1].legend(loc='upper right')
 
-    plt.tight_layout()
-    voltage_fig_path = figures_dir / "v0303_two_neuron_ei_voltage.png"
-    plt.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        voltage_fig_path = figures_dir / "v0303_two_neuron_ei_voltage.png"
+        plt.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 2: Spike raster (two neurons)
-    fig, ax = plt.subplots(figsize=(14, 4))
+        # Figure 2: Spike raster (two neurons)
+        fig, ax = plt.subplots(figsize=(14, 4))
 
-    ax.scatter(e_spike_times, [0] * len(e_spike_times), marker='|', s=500, color='blue',
-               linewidth=2, label=f'E spikes (n={e_n_spikes})')
-    ax.scatter(i_spike_times, [1] * len(i_spike_times), marker='|', s=500, color='red',
-               linewidth=2, label=f'PV spikes (n={i_n_spikes})')
+        ax.scatter(e_spike_times, [0] * len(e_spike_times), marker='|', s=500, color='blue',
+                   linewidth=2, label=f'E spikes (n={e_n_spikes})')
+        ax.scatter(i_spike_times, [1] * len(i_spike_times), marker='|', s=500, color='red',
+                   linewidth=2, label=f'PV spikes (n={i_n_spikes})')
 
-    ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('Neuron')
-    ax.set_yticks([0, 1])
-    ax.set_yticklabels(['E (blue)', 'PV (red)'])
-    ax.set_title(
-        f'v0.3.3: Two-Neuron E/PV Spike Raster\n'
-        f'(Dynamic coupling: E→PV g={G_EI}, PV→E g={G_IE})'
-    )
-    ax.set_ylim(-0.5, 1.5)
-    ax.grid(True, alpha=0.3, axis='x')
-    ax.legend(loc='upper right')
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Neuron')
+        ax.set_yticks([0, 1])
+        ax.set_yticklabels(['E (blue)', 'PV (red)'])
+        ax.set_title(
+            f'v0.3.3: Two-Neuron E/PV Spike Raster\n'
+            f'(Dynamic coupling: E→PV g={G_EI}, PV→E g={G_IE})'
+        )
+        ax.set_ylim(-0.5, 1.5)
+        ax.grid(True, alpha=0.3, axis='x')
+        ax.legend(loc='upper right')
 
-    plt.tight_layout()
-    raster_fig_path = figures_dir / "v0303_two_neuron_ei_raster.png"
-    plt.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        raster_fig_path = figures_dir / "v0303_two_neuron_ei_raster.png"
+        plt.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 3: Dynamic synaptic coupling currents (from lax.scan carry, NOT post-hoc)
-    fig, ax = plt.subplots(figsize=(14, 4))
-    ax.plot(t, syn_currents[:, E_INDEX], linewidth=0.8, color='orange',
-            label=f'I→E inhibitory current (g={G_IE})', alpha=0.8)
-    ax.plot(t, syn_currents[:, I_INDEX], linewidth=0.8, color='green',
-            label=f'E→PV excitatory current (g={G_EI})', alpha=0.8)
-    ax.axhline(0, color='black', linestyle='--', linewidth=0.5, alpha=0.5)
-    ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('Synaptic current (proxy units)')
-    ax.set_title(
-        'v0.3.3: Dynamic E/PV Synaptic Currents (lax.scan carry state)\n'
-        '(Dynamic injection during simulation, not post-hoc, computational scaffold)'
-    )
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc='upper right')
+        # Figure 3: Dynamic synaptic coupling currents (from lax.scan carry, NOT post-hoc)
+        fig, ax = plt.subplots(figsize=(14, 4))
+        ax.plot(t, syn_currents[:, E_INDEX], linewidth=0.8, color='orange',
+                label=f'I→E inhibitory current (g={G_IE})', alpha=0.8)
+        ax.plot(t, syn_currents[:, I_INDEX], linewidth=0.8, color='green',
+                label=f'E→PV excitatory current (g={G_EI})', alpha=0.8)
+        ax.axhline(0, color='black', linestyle='--', linewidth=0.5, alpha=0.5)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Synaptic current (proxy units)')
+        ax.set_title(
+            'v0.3.3: Dynamic E/PV Synaptic Currents (lax.scan carry state)\n'
+            '(Dynamic injection during simulation, not post-hoc, computational scaffold)'
+        )
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='upper right')
 
-    plt.tight_layout()
-    coupling_fig_path = figures_dir / "v0303_two_neuron_ei_coupling_currents.png"
-    plt.savefig(coupling_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        coupling_fig_path = figures_dir / "v0303_two_neuron_ei_coupling_currents.png"
+        plt.savefig(coupling_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 4: Source aggregation (E vs PV contribution)
-    e_source_ts = sources[:, E_INDEX]
-    i_source_ts = sources[:, I_INDEX]
+        # Figure 4: Source aggregation (E vs PV contribution)
+        e_source_ts = sources[:, E_INDEX]
+        i_source_ts = sources[:, I_INDEX]
 
-    fig, ax = plt.subplots(figsize=(14, 4))
-    ax.plot(t, e_source_ts, linewidth=0.6, color='blue', label='E source (aggregated)', alpha=0.7)
-    ax.plot(t, i_source_ts, linewidth=0.6, color='red', label='PV source (aggregated)', alpha=0.7)
-    ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('Source (proxy units)')
-    ax.set_title(
-        'v0.3.3: E/PV Source Aggregation\n'
-        '(Proxy readout, uncalibrated Izhikevich native current)'
-    )
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc='upper right')
+        fig, ax = plt.subplots(figsize=(14, 4))
+        ax.plot(t, e_source_ts, linewidth=0.6, color='blue', label='E source (aggregated)', alpha=0.7)
+        ax.plot(t, i_source_ts, linewidth=0.6, color='red', label='PV source (aggregated)', alpha=0.7)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('Source (proxy units)')
+        ax.set_title(
+            'v0.3.3: E/PV Source Aggregation\n'
+            '(Proxy readout, uncalibrated Izhikevich native current)'
+        )
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='upper right')
 
-    plt.tight_layout()
-    source_fig_path = figures_dir / "v0303_two_neuron_ei_source.png"
-    plt.savefig(source_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        source_fig_path = figures_dir / "v0303_two_neuron_ei_source.png"
+        plt.savefig(source_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 5: LFP-like proxy
-    fig, ax = plt.subplots(figsize=(14, 4))
-    for contact_idx in range(min(4, lfp_proxy.shape[1])):
-        ax.plot(t, lfp_proxy[:, contact_idx], linewidth=0.5,
-                label=f'Contact {contact_idx}', alpha=0.7)
-    ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('LFP-like proxy')
-    ax.set_title(
-        'v0.3.3: Simulated LFP-like Proxy (first 4 contacts)\n'
-        '(Proxy readout, no physical amplitude claim)'
-    )
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc='upper right', fontsize=8)
+        # Figure 5: LFP-like proxy
+        fig, ax = plt.subplots(figsize=(14, 4))
+        for contact_idx in range(min(4, lfp_proxy.shape[1])):
+            ax.plot(t, lfp_proxy[:, contact_idx], linewidth=0.5,
+                    label=f'Contact {contact_idx}', alpha=0.7)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('LFP-like proxy')
+        ax.set_title(
+            'v0.3.3: Simulated LFP-like Proxy (first 4 contacts)\n'
+            '(Proxy readout, no physical amplitude claim)'
+        )
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='upper right', fontsize=8)
 
-    plt.tight_layout()
-    lfp_fig_path = figures_dir / "v0303_two_neuron_ei_lfp_proxy.png"
-    plt.savefig(lfp_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        lfp_fig_path = figures_dir / "v0303_two_neuron_ei_lfp_proxy.png"
+        plt.savefig(lfp_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 6: CSD-like proxy
-    fig, ax = plt.subplots(figsize=(14, 4))
-    for contact_idx in range(min(4, csd_proxy.shape[1])):
-        ax.plot(t, csd_proxy[:, contact_idx], linewidth=0.5,
-                label=f'Layer {contact_idx}', alpha=0.7)
-    ax.set_xlabel('Time (ms)')
-    ax.set_ylabel('CSD-like proxy')
-    ax.set_title(
-        'v0.3.3: Simulated CSD-like Proxy (first 4 layers)\n'
-        '(Proxy readout, no PDE solve)'
-    )
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc='upper right', fontsize=8)
+        # Figure 6: CSD-like proxy
+        fig, ax = plt.subplots(figsize=(14, 4))
+        for contact_idx in range(min(4, csd_proxy.shape[1])):
+            ax.plot(t, csd_proxy[:, contact_idx], linewidth=0.5,
+                    label=f'Layer {contact_idx}', alpha=0.7)
+        ax.set_xlabel('Time (ms)')
+        ax.set_ylabel('CSD-like proxy')
+        ax.set_title(
+            'v0.3.3: Simulated CSD-like Proxy (first 4 layers)\n'
+            '(Proxy readout, no PDE solve)'
+        )
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc='upper right', fontsize=8)
 
-    plt.tight_layout()
-    csd_fig_path = figures_dir / "v0303_two_neuron_ei_csd_proxy.png"
-    plt.savefig(csd_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+        plt.tight_layout()
+        csd_fig_path = figures_dir / "v0303_two_neuron_ei_csd_proxy.png"
+        plt.savefig(csd_fig_path, dpi=150, bbox_inches='tight')
+        plt.close()
 
-    # Figure 7: Coupled vs. uncoupled comparison (ablation figure)
-    fig_cvu = plot_coupled_vs_uncoupled(
-        time_ms=t,
-        spikes_coupled=spikes_arr,
-        spikes_uncoupled=spikes_arr_unc,
-        v_m_coupled=V_m,
-        v_m_uncoupled=V_m_unc,
-    )
-    coupled_vs_uncoupled_fig_path = figures_dir / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
-    fig_cvu.savefig(coupled_vs_uncoupled_fig_path, dpi=150, bbox_inches='tight')
-    plt.close(fig_cvu)
+        # Figure 7: Coupled vs. uncoupled comparison (ablation figure)
+        fig_cvu = plot_coupled_vs_uncoupled(
+            time_ms=t,
+            spikes_coupled=spikes_arr,
+            spikes_uncoupled=spikes_arr_unc,
+            v_m_coupled=V_m,
+            v_m_uncoupled=V_m_unc,
+        )
+        coupled_vs_uncoupled_fig_path = figures_dir / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
+        fig_cvu.savefig(coupled_vs_uncoupled_fig_path, dpi=150, bbox_inches='tight')
+        plt.close(fig_cvu)
 
-    # Figure 8: Circuit schematic (connectivity diagram)
-    fig_cs = plot_circuit_schematic(
-        g_ei=G_EI,
-        g_ie=G_IE,
-        firing_rate_e=e_firing_rate_hz,
-        firing_rate_i=i_firing_rate_hz,
-    )
-    circuit_schematic_fig_path = figures_dir / "v0303_two_neuron_ei_circuit_schematic.png"
-    fig_cs.savefig(circuit_schematic_fig_path, dpi=150, bbox_inches='tight')
-    plt.close(fig_cs)
+        # Figure 8: Circuit schematic (connectivity diagram)
+        fig_cs = plot_circuit_schematic(
+            g_ei=G_EI,
+            g_ie=G_IE,
+            firing_rate_e=e_firing_rate_hz,
+            firing_rate_i=i_firing_rate_hz,
+        )
+        circuit_schematic_fig_path = figures_dir / "v0303_two_neuron_ei_circuit_schematic.png"
+        fig_cs.savefig(circuit_schematic_fig_path, dpi=150, bbox_inches='tight')
+        plt.close(fig_cs)
 
-    print(f"  Saved: {voltage_fig_path}")
-    print(f"  Saved: {raster_fig_path}")
-    print(f"  Saved: {coupling_fig_path}")
-    print(f"  Saved: {source_fig_path}")
-    print(f"  Saved: {lfp_fig_path}")
-    print(f"  Saved: {csd_fig_path}")
-    print(f"  Saved: {coupled_vs_uncoupled_fig_path}")
-    print(f"  Saved: {circuit_schematic_fig_path}")
+        print(f"  Saved: {voltage_fig_path}")
+        print(f"  Saved: {raster_fig_path}")
+        print(f"  Saved: {coupling_fig_path}")
+        print(f"  Saved: {source_fig_path}")
+        print(f"  Saved: {lfp_fig_path}")
+        print(f"  Saved: {csd_fig_path}")
+        print(f"  Saved: {coupled_vs_uncoupled_fig_path}")
+        print(f"  Saved: {circuit_schematic_fig_path}")
 
-    # Copy to docs-stable _static/figures (committed paths referenced in docs)
-    static_voltage = STATIC_FIGS / "v0303_two_neuron_ei_voltage.png"
-    static_raster = STATIC_FIGS / "v0303_two_neuron_ei_raster.png"
-    static_coupling = STATIC_FIGS / "v0303_two_neuron_ei_coupling_currents.png"
-    static_source = STATIC_FIGS / "v0303_two_neuron_ei_source.png"
-    static_lfp = STATIC_FIGS / "v0303_two_neuron_ei_lfp_proxy.png"
-    static_csd = STATIC_FIGS / "v0303_two_neuron_ei_csd_proxy.png"
-    static_coupled_vs_uncoupled = STATIC_FIGS / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
-    static_circuit_schematic = STATIC_FIGS / "v0303_two_neuron_ei_circuit_schematic.png"
+        # Copy to docs-stable _static/figures (committed paths referenced in docs)
+        static_voltage = STATIC_FIGS / "v0303_two_neuron_ei_voltage.png"
+        static_raster = STATIC_FIGS / "v0303_two_neuron_ei_raster.png"
+        static_coupling = STATIC_FIGS / "v0303_two_neuron_ei_coupling_currents.png"
+        static_source = STATIC_FIGS / "v0303_two_neuron_ei_source.png"
+        static_lfp = STATIC_FIGS / "v0303_two_neuron_ei_lfp_proxy.png"
+        static_csd = STATIC_FIGS / "v0303_two_neuron_ei_csd_proxy.png"
+        static_coupled_vs_uncoupled = STATIC_FIGS / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
+        static_circuit_schematic = STATIC_FIGS / "v0303_two_neuron_ei_circuit_schematic.png"
 
-    shutil.copy2(voltage_fig_path, static_voltage)
-    shutil.copy2(raster_fig_path, static_raster)
-    shutil.copy2(coupling_fig_path, static_coupling)
-    shutil.copy2(source_fig_path, static_source)
-    shutil.copy2(lfp_fig_path, static_lfp)
-    shutil.copy2(csd_fig_path, static_csd)
-    shutil.copy2(coupled_vs_uncoupled_fig_path, static_coupled_vs_uncoupled)
-    shutil.copy2(circuit_schematic_fig_path, static_circuit_schematic)
+        shutil.copy2(voltage_fig_path, static_voltage)
+        shutil.copy2(raster_fig_path, static_raster)
+        shutil.copy2(coupling_fig_path, static_coupling)
+        shutil.copy2(source_fig_path, static_source)
+        shutil.copy2(lfp_fig_path, static_lfp)
+        shutil.copy2(csd_fig_path, static_csd)
+        shutil.copy2(coupled_vs_uncoupled_fig_path, static_coupled_vs_uncoupled)
+        shutil.copy2(circuit_schematic_fig_path, static_circuit_schematic)
 
-    print(f"  Copied to _static: {static_voltage}")
-    print(f"  Copied to _static: {static_raster}")
-    print(f"  Copied to _static: {static_coupling}")
-    print(f"  Copied to _static: {static_source}")
-    print(f"  Copied to _static: {static_lfp}")
-    print(f"  Copied to _static: {static_csd}")
-    print(f"  Copied to _static: {static_coupled_vs_uncoupled}")
-    print(f"  Copied to _static: {static_circuit_schematic}")
+        print(f"  Copied to _static: {static_voltage}")
+        print(f"  Copied to _static: {static_raster}")
+        print(f"  Copied to _static: {static_coupling}")
+        print(f"  Copied to _static: {static_source}")
+        print(f"  Copied to _static: {static_lfp}")
+        print(f"  Copied to _static: {static_csd}")
+        print(f"  Copied to _static: {static_coupled_vs_uncoupled}")
+        print(f"  Copied to _static: {static_circuit_schematic}")
 
-    # SHA256 hashes from docs-stable paths (canonical tracked paths)
-    voltage_hash = sha256_file(static_voltage)
-    raster_hash = sha256_file(static_raster)
-    coupling_hash = sha256_file(static_coupling)
-    source_hash = sha256_file(static_source)
-    lfp_hash = sha256_file(static_lfp)
-    csd_hash = sha256_file(static_csd)
-    coupled_vs_uncoupled_hash = sha256_file(static_coupled_vs_uncoupled)
-    circuit_schematic_hash = sha256_file(static_circuit_schematic)
+        # SHA256 hashes from docs-stable paths (canonical tracked paths)
+        voltage_hash = sha256_file(static_voltage)
+        raster_hash = sha256_file(static_raster)
+        coupling_hash = sha256_file(static_coupling)
+        source_hash = sha256_file(static_source)
+        lfp_hash = sha256_file(static_lfp)
+        csd_hash = sha256_file(static_csd)
+        coupled_vs_uncoupled_hash = sha256_file(static_coupled_vs_uncoupled)
+        circuit_schematic_hash = sha256_file(static_circuit_schematic)
 
-    atlas_manifest["figures"] = {
-        "voltage_traces": {
-            "docs_stable_path": str(static_voltage),
-            "runtime_path": str(voltage_fig_path),
-            "sha256": voltage_hash,
-            "dpi": 150,
-            "description": "E and PV neuron voltage traces (two-panel)",
-        },
-        "spike_raster": {
-            "docs_stable_path": str(static_raster),
-            "runtime_path": str(raster_fig_path),
-            "sha256": raster_hash,
-            "dpi": 150,
-            "description": "E (blue) and PV (red) spike raster",
-        },
-        "coupling_currents": {
-            "docs_stable_path": str(static_coupling),
-            "runtime_path": str(coupling_fig_path),
-            "sha256": coupling_hash,
-            "dpi": 150,
-            "description": "Dynamic E/PV synaptic currents (from lax.scan carry state)",
-        },
-        "source_aggregation": {
-            "docs_stable_path": str(static_source),
-            "runtime_path": str(source_fig_path),
-            "sha256": source_hash,
-            "dpi": 150,
-            "description": "E/PV source aggregation (proxy units)",
-        },
-        "lfp_proxy": {
-            "docs_stable_path": str(static_lfp),
-            "runtime_path": str(lfp_fig_path),
-            "sha256": lfp_hash,
-            "dpi": 150,
-            "description": "LFP-like proxy (first 4 contacts)",
-        },
-        "csd_proxy": {
-            "docs_stable_path": str(static_csd),
-            "runtime_path": str(csd_fig_path),
-            "sha256": csd_hash,
-            "dpi": 150,
-            "description": "CSD-like proxy (first 4 layers)",
-        },
-        "coupled_vs_uncoupled": {
-            "docs_stable_path": str(static_coupled_vs_uncoupled),
-            "runtime_path": str(coupled_vs_uncoupled_fig_path),
-            "sha256": coupled_vs_uncoupled_hash,
-            "dpi": 150,
-            "description": "Coupling ablation: coupled vs. uncoupled E/I dynamics (4-panel)",
-        },
-        "circuit_schematic": {
-            "docs_stable_path": str(static_circuit_schematic),
-            "runtime_path": str(circuit_schematic_fig_path),
-            "sha256": circuit_schematic_hash,
-            "dpi": 150,
-            "description": "Recurrent E/I circuit schematic with conductance labels",
-        },
-    }
+        atlas_manifest["figures"] = {
+            "voltage_traces": {
+                "docs_stable_path": str(static_voltage),
+                "runtime_path": str(voltage_fig_path),
+                "sha256": voltage_hash,
+                "dpi": 150,
+                "description": "E and PV neuron voltage traces (two-panel)",
+            },
+            "spike_raster": {
+                "docs_stable_path": str(static_raster),
+                "runtime_path": str(raster_fig_path),
+                "sha256": raster_hash,
+                "dpi": 150,
+                "description": "E (blue) and PV (red) spike raster",
+            },
+            "coupling_currents": {
+                "docs_stable_path": str(static_coupling),
+                "runtime_path": str(coupling_fig_path),
+                "sha256": coupling_hash,
+                "dpi": 150,
+                "description": "Dynamic E/PV synaptic currents (from lax.scan carry state)",
+            },
+            "source_aggregation": {
+                "docs_stable_path": str(static_source),
+                "runtime_path": str(source_fig_path),
+                "sha256": source_hash,
+                "dpi": 150,
+                "description": "E/PV source aggregation (proxy units)",
+            },
+            "lfp_proxy": {
+                "docs_stable_path": str(static_lfp),
+                "runtime_path": str(lfp_fig_path),
+                "sha256": lfp_hash,
+                "dpi": 150,
+                "description": "LFP-like proxy (first 4 contacts)",
+            },
+            "csd_proxy": {
+                "docs_stable_path": str(static_csd),
+                "runtime_path": str(csd_fig_path),
+                "sha256": csd_hash,
+                "dpi": 150,
+                "description": "CSD-like proxy (first 4 layers)",
+            },
+            "coupled_vs_uncoupled": {
+                "docs_stable_path": str(static_coupled_vs_uncoupled),
+                "runtime_path": str(coupled_vs_uncoupled_fig_path),
+                "sha256": coupled_vs_uncoupled_hash,
+                "dpi": 150,
+                "description": "Coupling ablation: coupled vs. uncoupled E/I dynamics (4-panel)",
+            },
+            "circuit_schematic": {
+                "docs_stable_path": str(static_circuit_schematic),
+                "runtime_path": str(circuit_schematic_fig_path),
+                "sha256": circuit_schematic_hash,
+                "dpi": 150,
+                "description": "Recurrent E/I circuit schematic with conductance labels",
+            },
+        }
 
-    # ============================================================================
-    # Save atlas manifest and reports
-    # ============================================================================
+        # ============================================================================
+        # Save atlas manifest and reports
+        # ============================================================================
 
-    manifest_path = OUT / "manifest.json"
-    write_json(manifest_path, atlas_manifest)
-    print(f"\nAtlas manifest saved: {manifest_path}")
+        manifest_path = OUT / "manifest.json"
+        write_json(manifest_path, atlas_manifest)
+        print(f"\nAtlas manifest saved: {manifest_path}")
 
-    # Verify JSON round-trip
-    with open(manifest_path) as f:
-        loaded = json.load(f)
-    assert loaded["basis"]["physical_amplitude_claim_allowed"] is False
-    assert loaded["basis"]["claim_level"] == "computational_scaffold"
-    assert set(loaded["probe_report"].keys()) == {
-        "spikes", "V_m", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy"
-    }
-    print("  Manifest round-trip check: PASS")
+        # Verify JSON round-trip
+        with open(manifest_path) as f:
+            loaded = json.load(f)
+        assert loaded["basis"]["physical_amplitude_claim_allowed"] is False
+        assert loaded["basis"]["claim_level"] == "computational_scaffold"
+        assert set(loaded["probe_report"].keys()) == {
+            "spikes", "V_m", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy"
+        }
+        print("  Manifest round-trip check: PASS")
 
-    # Write probe_report.json as a separate file for reference
-    write_json(OUT / "probe_report.json", probe_report)
+        # Write probe_report.json as a separate file for reference
+        write_json(OUT / "probe_report.json", probe_report)
 
-    # Write separate validation_report for reference
-    write_json(OUT / "validation_report.json", atlas_manifest["validation_report"])
+        # Write separate validation_report for reference
+        write_json(OUT / "validation_report.json", atlas_manifest["validation_report"])
 
-    # Metrics file
-    write_json(OUT / "metrics.json", {
-        "duration_ms": DURATION_MS,
-        "dt_ms": DT_MS,
-        "seed": SEED,
-        "dtype": str(V_m.dtype),
-        "n_steps": n_steps,
-        "n_neurons": N_NEURONS,
-        "e_firing_rate_hz": e_firing_rate_hz,
-        "i_firing_rate_hz": i_firing_rate_hz,
-        "e_n_spikes": int(e_n_spikes),
-        "i_n_spikes": int(i_n_spikes),
-        "e_Vm_mean": e_v_mean,
-        "e_Vm_min": e_v_min,
-        "e_Vm_max": e_v_max,
-        "i_Vm_mean": i_v_mean,
-        "i_Vm_min": i_v_min,
-        "i_Vm_max": i_v_max,
-        "e_voltage_finite": e_voltage_finite,
-        "i_voltage_finite": i_voltage_finite,
-        "syn_currents_finite": syn_currents_finite,
-        "coupling_mode": "dynamic_injection",
-    })
+        # Metrics file
+        write_json(OUT / "metrics.json", {
+            "duration_ms": DURATION_MS,
+            "dt_ms": DT_MS,
+            "seed": SEED,
+            "dtype": str(V_m.dtype),
+            "n_steps": n_steps,
+            "n_neurons": N_NEURONS,
+            "e_firing_rate_hz": e_firing_rate_hz,
+            "i_firing_rate_hz": i_firing_rate_hz,
+            "e_n_spikes": int(e_n_spikes),
+            "i_n_spikes": int(i_n_spikes),
+            "e_Vm_mean": e_v_mean,
+            "e_Vm_min": e_v_min,
+            "e_Vm_max": e_v_max,
+            "i_Vm_mean": i_v_mean,
+            "i_Vm_min": i_v_min,
+            "i_Vm_max": i_v_max,
+            "e_voltage_finite": e_voltage_finite,
+            "i_voltage_finite": i_voltage_finite,
+            "syn_currents_finite": syn_currents_finite,
+            "coupling_mode": "dynamic_injection",
+        })
 
-    # Asset hashes
-    json_files = [manifest_path, OUT / "probe_report.json",
-                  OUT / "validation_report.json", OUT / "metrics.json"]
-    hashes = {p.name: sha256_file(p) for p in json_files}
-    hashes["figures/v0303_two_neuron_ei_voltage.png"] = voltage_hash
-    hashes["figures/v0303_two_neuron_ei_raster.png"] = raster_hash
-    hashes["figures/v0303_two_neuron_ei_coupling_currents.png"] = coupling_hash
-    hashes["figures/v0303_two_neuron_ei_source.png"] = source_hash
-    hashes["figures/v0303_two_neuron_ei_lfp_proxy.png"] = lfp_hash
-    hashes["figures/v0303_two_neuron_ei_csd_proxy.png"] = csd_hash
-    hashes["figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png"] = coupled_vs_uncoupled_hash
-    hashes["figures/v0303_two_neuron_ei_circuit_schematic.png"] = circuit_schematic_hash
-    write_json(OUT / "asset_hashes.json", hashes)
+        # Asset hashes
+        json_files = [manifest_path, OUT / "probe_report.json",
+                      OUT / "validation_report.json", OUT / "metrics.json"]
+        hashes = {p.name: sha256_file(p) for p in json_files}
+        hashes["figures/v0303_two_neuron_ei_voltage.png"] = voltage_hash
+        hashes["figures/v0303_two_neuron_ei_raster.png"] = raster_hash
+        hashes["figures/v0303_two_neuron_ei_coupling_currents.png"] = coupling_hash
+        hashes["figures/v0303_two_neuron_ei_source.png"] = source_hash
+        hashes["figures/v0303_two_neuron_ei_lfp_proxy.png"] = lfp_hash
+        hashes["figures/v0303_two_neuron_ei_csd_proxy.png"] = csd_hash
+        hashes["figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png"] = coupled_vs_uncoupled_hash
+        hashes["figures/v0303_two_neuron_ei_circuit_schematic.png"] = circuit_schematic_hash
+        write_json(OUT / "asset_hashes.json", hashes)
 
-    # Also update canonical docs manifest (for v0303 naming)
-    canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
-    canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-    write_json(canonical_manifest_path, atlas_manifest)
+        # Also update canonical docs manifest (for v0303 naming)
+        canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
+        canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        write_json(canonical_manifest_path, atlas_manifest)
 
-    canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
-    canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
-    write_json(canonical_report_path, atlas_manifest["validation_report"])
+        canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
+        canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
+        write_json(canonical_report_path, atlas_manifest["validation_report"])
 
-    print(f"Canonical manifest: {canonical_manifest_path}")
-    print(f"Canonical report: {canonical_report_path}")
+        print(f"Canonical manifest: {canonical_manifest_path}")
+        print(f"Canonical report: {canonical_report_path}")
 
-    # ============================================================================
-    # Summary
-    # ============================================================================
+        # ============================================================================
+        # Summary
+        # ============================================================================
 
-    print()
-    print("=" * 80)
-    print("TUTORIAL EXECUTION SUMMARY")
-    print("=" * 80)
-    print(f"✓ Simulation: {n_steps} steps over {DURATION_MS} ms (dynamic coupling)")
-    print()
-    print(f"✓ E neuron (idx={E_INDEX}):")
-    print(f"  - Firing rate: {e_firing_rate_hz:.2f} Hz ({e_n_spikes} spikes)")
-    print(f"  - Gate (2-25 Hz): {'PASS' if e_firing_rate_gate_pass else 'FAIL'}")
-    print(f"  - Voltage range: [{e_v_min:.1f}, {e_v_max:.1f}] mV")
-    print(f"  - All finite: {e_voltage_finite}")
-    print()
-    print(f"✓ PV neuron (idx={I_INDEX}):")
-    print(f"  - Firing rate: {i_firing_rate_hz:.2f} Hz ({i_n_spikes} spikes)")
-    print(f"  - Gate (2-25 Hz): {'PASS' if i_firing_rate_gate_pass else 'FAIL'}")
-    print(f"  - Voltage range: [{i_v_min:.1f}, {i_v_max:.1f}] mV")
-    print(f"  - All finite: {i_voltage_finite}")
-    print()
-    print(f"✓ Dynamic coupling: E→PV g={G_EI}, PV→E g={G_IE}, syn_currents finite={syn_currents_finite}")
-    print(f"✓ Source finite: {sources_finite}")
-    print(f"✓ Manifest (collector-visible): {manifest_path}")
-    print(f"✓ Figures: {len(atlas_manifest['figures'])} generated and hashed")
-    print(f"✓ Plotly available: {plotly_available}")
-    print()
-    print("Truth status: computational_scaffold, proxy_readout_only")
-    print("Physical amplitude claim allowed: False")
-    print("Coupling mode: dynamic_synaptic_current_injection (not post-hoc)")
-    print("=" * 80)
+        print()
+        print("=" * 80)
+        print("TUTORIAL EXECUTION SUMMARY")
+        print("=" * 80)
+        print(f"✓ Simulation: {n_steps} steps over {DURATION_MS} ms (dynamic coupling)")
+        print()
+        print(f"✓ E neuron (idx={E_INDEX}):")
+        print(f"  - Firing rate: {e_firing_rate_hz:.2f} Hz ({e_n_spikes} spikes)")
+        print(f"  - Gate (2-25 Hz): {'PASS' if e_firing_rate_gate_pass else 'FAIL'}")
+        print(f"  - Voltage range: [{e_v_min:.1f}, {e_v_max:.1f}] mV")
+        print(f"  - All finite: {e_voltage_finite}")
+        print()
+        print(f"✓ PV neuron (idx={I_INDEX}):")
+        print(f"  - Firing rate: {i_firing_rate_hz:.2f} Hz ({i_n_spikes} spikes)")
+        print(f"  - Gate (2-25 Hz): {'PASS' if i_firing_rate_gate_pass else 'FAIL'}")
+        print(f"  - Voltage range: [{i_v_min:.1f}, {i_v_max:.1f}] mV")
+        print(f"  - All finite: {i_voltage_finite}")
+        print()
+        print(f"✓ Dynamic coupling: E→PV g={G_EI}, PV→E g={G_IE}, syn_currents finite={syn_currents_finite}")
+        print(f"✓ Source finite: {sources_finite}")
+        print(f"✓ Manifest (collector-visible): {manifest_path}")
+        print(f"✓ Figures: {len(atlas_manifest['figures'])} generated and hashed")
+        print(f"✓ Plotly available: {plotly_available}")
+        print()
+        print("Truth status: computational_scaffold, proxy_readout_only")
+        print("Physical amplitude claim allowed: False")
+        print("Coupling mode: dynamic_synaptic_current_injection (not post-hoc)")
+        print("=" * 80)
+    else:
+        # matplotlib not available; provide empty figures dict
+        atlas_manifest["figures"] = {}
+        print("(Figures skipped - matplotlib not installed)")
 
     return {
         "atlas_manifest": atlas_manifest,

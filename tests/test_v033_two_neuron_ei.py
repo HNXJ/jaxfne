@@ -35,6 +35,9 @@ def test_v033_tutorial_import():
 
 def test_v033_tutorial_runs():
     """Test that the v0.3.3 tutorial runs without exceptions."""
+    # Skip if matplotlib is not available (optional for [viz] extra)
+    pytest.importorskip("matplotlib")
+
     examples_path = pathlib.Path(__file__).parent.parent / "examples"
     sys.path.insert(0, str(examples_path))
     try:
