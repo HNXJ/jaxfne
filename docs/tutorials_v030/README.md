@@ -12,6 +12,18 @@ The v0.3 tutorial-scenario line is a comprehensive set of 15 executable Jupyter 
 
 **Key principle:** v0.3 is tutorial/documentation work on a stable v0.2.30 toolbox. Scientific claims are explicitly bounded as computational scaffolds (no biological validation, no Maxwell/Poisson solvers, no proof-of-mechanism).
 
+### Lessons from v0.3.1–v0.3.2
+
+Early scenario development has established key practices for all v0.3 tutorials:
+- Collector PASS is necessary but not sufficient (visual/narrative review also required)
+- Figures are first-class evidence artifacts, not decoration
+- Out-of-target regimes must be explicitly labelled in metadata
+- Atlas manifests wrap raw package manifests (two-level structure)
+- Single-purpose PRs (one scenario per PR) simplify review and rollback
+- Release checkpoints (v0.3.11, v0.3.21, v0.3.31) are capability milestones, not scenario counts
+
+See [Lessons from v0.3.1–v0.3.2](v0303_to_v0331_planning_handoff.md) for full details (section 1.5).
+
 ---
 
 ## Quick Links
@@ -213,6 +225,24 @@ except ImportError:
 **Status:** [IN PROGRESS — Phases A–L]
 
 Expected completion of full 15-scenario atlas: Q3 2026 (dependent on phase sequencing and approval gates).
+
+### PyPI Release Checkpoints
+
+Three capability-based release checkpoints have been formally defined with explicit validation commands and decision gates:
+
+1. **v0.3.11 Release Checkpoint** — Two-column visual networks + spectrolaminar baseline (v0.3.3–v0.3.11)
+   - Decision label: `V0311_RELEASE_CANDIDATE_READY`
+   - See [v0.3.11 Checkpoint Doctrine](v0303_to_v0331_planning_handoff.md) (section 6.5–7)
+
+2. **v0.3.21 Release Checkpoint** — Multi-area proxy suite with audit phases (v0.3.12–v0.3.20)
+   - Decision label: `V0321_RELEASE_CANDIDATE_READY`
+   - See [v0.3.21 Checkpoint Doctrine](v0303_to_v0331_planning_handoff.md) (section 6.5–7)
+
+3. **v0.3.31 Release Checkpoint** — Complete atlas with optimization and final postmortem (v0.3.21–v0.3.31)
+   - Decision label: `V0331_RELEASE_CANDIDATE_READY`
+   - See [v0.3.31 Checkpoint Doctrine](v0303_to_v0331_planning_handoff.md) (section 6.5–7)
+
+**Default:** No PyPI releases until explicit checkpoint approval. See [Release Checkpoint Summary](v0303_to_v0331_planning_handoff.md) (section 7).
 
 ---
 
