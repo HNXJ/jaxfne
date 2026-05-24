@@ -256,7 +256,7 @@
       "units_or_status": "binary_spike_indicator"
     }
   },
-  "run_id": "v031_single_izhikevich_1779584243",
+  "run_id": "v031_single_izhikevich_1779633494",
   "scenario_id": "v030_01_single_neuron_izhikevich",
   "schema_version": "v0.3.1",
   "simulation": {
@@ -272,7 +272,7 @@
     "source_projection_mode": "proxy_no_field_solve",
     "source_proxy_status": "generated_proxy"
   },
-  "timestamp": "2026-05-23T19:57:23.055354",
+  "timestamp": "2026-05-24T09:38:14.938752",
   "tutorial_id": "v0301_single_izhikevich_neuron",
   "validation_report": {
     "all_gates_pass": true,
