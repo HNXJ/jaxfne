@@ -1,0 +1,13 @@
+{
+  "all_gates_pass": false,
+  "dt_gate": true,
+  "dtype_gate": true,
+  "duration_gate": true,
+  "e_firing_rate_gate_2_25_hz": true,
+  "e_voltage_finite": true,
+  "i_firing_rate_gate_2_25_hz": false,
+  "i_voltage_finite": true,
+  "json_safe": true,
+  "source_finite": true,
+  "status": "FAIL"
+}
