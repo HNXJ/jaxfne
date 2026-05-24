@@ -1,12 +1,13 @@
 """
 Test suite for v0.3.3 Two-Neuron E/I Multimodal Tutorial.
 
-24 tests organized across 4 groups:
+26 tests organized across 5 groups:
   Group 0: Existing 7 tests (tutorial import, run, manifest, JSON, figures, claims, metrics, network)
   Group A: Dynamic coupling function tests (5 new tests)
   Group B: Tutorial output validation tests (6 new tests)
   Group C: Claim gate immutability tests (3 new tests)
   Group D: Asset integrity tests (3 new tests)
+  Group E: 8-figure completeness tests (2 new tests)
 """
 
 import json
@@ -425,6 +426,46 @@ def test_v033_syntax_check():
     )
     assert result.returncode == 0, \
         f"py_compile failed:\n{result.stderr}"
+
+
+# ============================================================================
+# Group E: 8-figure completeness tests (2 new tests)
+# ============================================================================
+
+def test_v033_all_8_figures_exist_in_static():
+    """All 8 required figures must exist in docs-stable _static/figures."""
+    figures_dir = pathlib.Path("docs/tutorials_v030/_static/figures")
+    required_figures = [
+        "v0303_two_neuron_ei_voltage.png",
+        "v0303_two_neuron_ei_raster.png",
+        "v0303_two_neuron_ei_coupling_currents.png",
+        "v0303_two_neuron_ei_source.png",
+        "v0303_two_neuron_ei_lfp_proxy.png",
+        "v0303_two_neuron_ei_csd_proxy.png",
+        "v0303_two_neuron_ei_coupled_vs_uncoupled.png",
+        "v0303_two_neuron_ei_circuit_schematic.png",
+    ]
+    for fig_name in required_figures:
+        fig_path = figures_dir / fig_name
+        if not fig_path.exists():
+            pytest.skip(f"Figure not found (tutorial not run): {fig_name}")
+        assert fig_path.stat().st_size > 0, f"Figure is empty: {fig_name}"
+
+
+def test_v033_manifest_has_8_figure_entries():
+    """atlas_manifest figures dict must contain all 8 figure keys."""
+    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
+    if not manifest_path.exists():
+        pytest.skip("Manifest not generated")
+    with open(manifest_path) as f:
+        manifest = json.load(f)
+    figures = manifest.get("figures", {})
+    required_keys = {
+        "voltage_traces", "spike_raster", "coupling_currents", "source_aggregation",
+        "lfp_proxy", "csd_proxy", "coupled_vs_uncoupled", "circuit_schematic",
+    }
+    missing = required_keys - set(figures.keys())
+    assert not missing, f"Missing figure keys in manifest: {missing}"
 
 
 if __name__ == "__main__":

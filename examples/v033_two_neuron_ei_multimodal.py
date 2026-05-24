@@ -106,6 +106,124 @@ def classify_neuron_regime(firing_rate_hz: float, finite: bool) -> str:
     return "target_regime"
 
 
+def plot_coupled_vs_uncoupled(time_ms, spikes_coupled, spikes_uncoupled,
+                               v_m_coupled, v_m_uncoupled):
+    """Plot effect of coupling: coupled vs. uncoupled comparison (4-panel)."""
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 6), sharex=True)
+
+    ax_spk_c = axes[0, 0]
+    ax_vm_c = axes[0, 1]
+
+    spike_times_e_c = time_ms[spikes_coupled[:, 0] > 0.5]
+    spike_times_i_c = time_ms[spikes_coupled[:, 1] > 0.5]
+
+    ax_spk_c.scatter(spike_times_e_c, [0] * len(spike_times_e_c),
+                     color='blue', s=15, alpha=0.7, label='E')
+    ax_spk_c.scatter(spike_times_i_c, [1] * len(spike_times_i_c),
+                     color='red', s=15, alpha=0.7, label='I')
+    ax_spk_c.set_ylabel("Neuron (Coupled)")
+    ax_spk_c.set_yticks([0, 1])
+    ax_spk_c.set_yticklabels(['E', 'I'])
+    ax_spk_c.set_title("With Coupling — Spikes")
+    ax_spk_c.grid(True, alpha=0.3)
+
+    ax_vm_c.plot(time_ms, v_m_coupled[:, 0], label='E', color='blue', linewidth=0.8)
+    ax_vm_c.plot(time_ms, v_m_coupled[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_c.set_ylabel("V_m (mV)")
+    ax_vm_c.set_ylim([-80, 40])
+    ax_vm_c.set_title("With Coupling — Voltage")
+    ax_vm_c.legend(fontsize=8)
+    ax_vm_c.grid(True, alpha=0.3)
+
+    ax_spk_u = axes[1, 0]
+    ax_vm_u = axes[1, 1]
+
+    spike_times_e_u = time_ms[spikes_uncoupled[:, 0] > 0.5]
+    spike_times_i_u = time_ms[spikes_uncoupled[:, 1] > 0.5]
+
+    ax_spk_u.scatter(spike_times_e_u, [0] * len(spike_times_e_u),
+                     color='blue', s=15, alpha=0.7, label='E')
+    ax_spk_u.scatter(spike_times_i_u, [1] * len(spike_times_i_u),
+                     color='red', s=15, alpha=0.7, label='I')
+    ax_spk_u.set_xlabel("Time (ms)")
+    ax_spk_u.set_ylabel("Neuron (Uncoupled)")
+    ax_spk_u.set_yticks([0, 1])
+    ax_spk_u.set_yticklabels(['E', 'I'])
+    ax_spk_u.set_title("Without Coupling — Spikes")
+    ax_spk_u.grid(True, alpha=0.3)
+
+    ax_vm_u.plot(time_ms, v_m_uncoupled[:, 0], label='E', color='blue', linewidth=0.8)
+    ax_vm_u.plot(time_ms, v_m_uncoupled[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_u.set_xlabel("Time (ms)")
+    ax_vm_u.set_ylabel("V_m (mV)")
+    ax_vm_u.set_ylim([-80, 40])
+    ax_vm_u.set_title("Without Coupling — Voltage")
+    ax_vm_u.legend(fontsize=8)
+    ax_vm_u.grid(True, alpha=0.3)
+
+    fig.suptitle("Coupling Effect Comparison (Coupled vs. Uncoupled)", fontsize=13)
+    fig.tight_layout()
+    return fig
+
+
+def plot_circuit_schematic(g_ei, g_ie, firing_rate_e, firing_rate_i):
+    """Plot E/I circuit schematic with coupling conductance labels."""
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    x_e, y_e = 0.3, 0.5
+    x_i, y_i = 0.7, 0.5
+    radius = 0.08
+
+    e_circle = patches.Circle((x_e, y_e), radius, color='blue', alpha=0.7)
+    ax.add_patch(e_circle)
+    ax.text(x_e, y_e, 'E', ha='center', va='center',
+            color='white', fontsize=14, fontweight='bold')
+    ax.text(x_e, y_e - 0.14, f'{firing_rate_e:.1f} Hz',
+            ha='center', va='center', fontsize=10, color='blue')
+
+    i_circle = patches.Circle((x_i, y_i), radius, color='red', alpha=0.7)
+    ax.add_patch(i_circle)
+    ax.text(x_i, y_i, 'I', ha='center', va='center',
+            color='white', fontsize=14, fontweight='bold')
+    ax.text(x_i, y_i - 0.14, f'{firing_rate_i:.1f} Hz',
+            ha='center', va='center', fontsize=10, color='red')
+
+    arrow_ie = patches.FancyArrowPatch(
+        (x_e + radius, y_e), (x_i - radius, y_i),
+        arrowstyle='->', mutation_scale=25,
+        color='green', linewidth=2.0, alpha=0.8,
+        connectionstyle="arc3,rad=0.25"
+    )
+    ax.add_patch(arrow_ie)
+    ax.text(0.5, y_e + 0.10, f'g_EtoI={g_ei:.1f}' + chr(10) + '(excitatory)',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+    arrow_ei = patches.FancyArrowPatch(
+        (x_i - radius, y_i), (x_e + radius, y_e),
+        arrowstyle='->', mutation_scale=25,
+        color='darkred', linewidth=2.0, alpha=0.8,
+        connectionstyle="arc3,rad=0.25"
+    )
+    ax.add_patch(arrow_ei)
+    ax.text(0.5, y_e - 0.10, f'g_ItoE={g_ie:.1f}' + chr(10) + '(inhibitory)',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+
+    ax.set_xlim(0.1, 0.9)
+    ax.set_ylim(0.25, 0.75)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title("Recurrent E/I Circuit (Coupling Conductances Shown)", fontsize=13)
+    fig.tight_layout()
+    return fig
+
+
 def main():
     """Main tutorial execution."""
 
@@ -163,6 +281,20 @@ def main():
     spikes_arr = np.array(spikes_arr_jax)  # (n_steps, 2)
     syn_currents = np.array(syn_currents_jax)  # (n_steps, 2) — dynamic injection
     sources = np.array(sources_jax)        # (n_steps, 2)
+
+    # Run uncoupled simulation (g_ei=0, g_ie=0) for coupled_vs_uncoupled comparison figure
+    voltages_unc, spikes_arr_unc_jax, _, _ = simulate_dynamic_ei_coupling(
+        params,
+        n_steps=n_steps,
+        dt_ms=DT_MS,
+        key=key,
+        g_ei=0.0,
+        g_ie=0.0,
+        tau_syn_e_ms=TAU_SYN_E_MS,
+        tau_syn_i_ms=TAU_SYN_I_MS,
+    )
+    V_m_unc = np.array(voltages_unc)           # (n_steps, 2) — no coupling
+    spikes_arr_unc = np.array(spikes_arr_unc_jax)  # (n_steps, 2)
 
     print(f"  V_m shape: {V_m.shape}")
     print(f"  spikes shape: {spikes_arr.shape}")
@@ -589,12 +721,37 @@ def main():
     plt.savefig(csd_fig_path, dpi=150, bbox_inches='tight')
     plt.close()
 
+    # Figure 7: Coupled vs. uncoupled comparison (ablation figure)
+    fig_cvu = plot_coupled_vs_uncoupled(
+        time_ms=t,
+        spikes_coupled=spikes_arr,
+        spikes_uncoupled=spikes_arr_unc,
+        v_m_coupled=V_m,
+        v_m_uncoupled=V_m_unc,
+    )
+    coupled_vs_uncoupled_fig_path = figures_dir / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
+    fig_cvu.savefig(coupled_vs_uncoupled_fig_path, dpi=150, bbox_inches='tight')
+    plt.close(fig_cvu)
+
+    # Figure 8: Circuit schematic (connectivity diagram)
+    fig_cs = plot_circuit_schematic(
+        g_ei=G_EI,
+        g_ie=G_IE,
+        firing_rate_e=e_firing_rate_hz,
+        firing_rate_i=i_firing_rate_hz,
+    )
+    circuit_schematic_fig_path = figures_dir / "v0303_two_neuron_ei_circuit_schematic.png"
+    fig_cs.savefig(circuit_schematic_fig_path, dpi=150, bbox_inches='tight')
+    plt.close(fig_cs)
+
     print(f"  Saved: {voltage_fig_path}")
     print(f"  Saved: {raster_fig_path}")
     print(f"  Saved: {coupling_fig_path}")
     print(f"  Saved: {source_fig_path}")
     print(f"  Saved: {lfp_fig_path}")
     print(f"  Saved: {csd_fig_path}")
+    print(f"  Saved: {coupled_vs_uncoupled_fig_path}")
+    print(f"  Saved: {circuit_schematic_fig_path}")
 
     # Copy to docs-stable _static/figures (committed paths referenced in docs)
     static_voltage = STATIC_FIGS / "v0303_two_neuron_ei_voltage.png"
@@ -603,6 +760,8 @@ def main():
     static_source = STATIC_FIGS / "v0303_two_neuron_ei_source.png"
     static_lfp = STATIC_FIGS / "v0303_two_neuron_ei_lfp_proxy.png"
     static_csd = STATIC_FIGS / "v0303_two_neuron_ei_csd_proxy.png"
+    static_coupled_vs_uncoupled = STATIC_FIGS / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
+    static_circuit_schematic = STATIC_FIGS / "v0303_two_neuron_ei_circuit_schematic.png"
 
     shutil.copy2(voltage_fig_path, static_voltage)
     shutil.copy2(raster_fig_path, static_raster)
@@ -610,6 +769,8 @@ def main():
     shutil.copy2(source_fig_path, static_source)
     shutil.copy2(lfp_fig_path, static_lfp)
     shutil.copy2(csd_fig_path, static_csd)
+    shutil.copy2(coupled_vs_uncoupled_fig_path, static_coupled_vs_uncoupled)
+    shutil.copy2(circuit_schematic_fig_path, static_circuit_schematic)
 
     print(f"  Copied to _static: {static_voltage}")
     print(f"  Copied to _static: {static_raster}")
@@ -617,6 +778,8 @@ def main():
     print(f"  Copied to _static: {static_source}")
     print(f"  Copied to _static: {static_lfp}")
     print(f"  Copied to _static: {static_csd}")
+    print(f"  Copied to _static: {static_coupled_vs_uncoupled}")
+    print(f"  Copied to _static: {static_circuit_schematic}")
 
     # SHA256 hashes from docs-stable paths (canonical tracked paths)
     voltage_hash = sha256_file(static_voltage)
@@ -625,6 +788,8 @@ def main():
     source_hash = sha256_file(static_source)
     lfp_hash = sha256_file(static_lfp)
     csd_hash = sha256_file(static_csd)
+    coupled_vs_uncoupled_hash = sha256_file(static_coupled_vs_uncoupled)
+    circuit_schematic_hash = sha256_file(static_circuit_schematic)
 
     atlas_manifest["figures"] = {
         "voltage_traces": {
@@ -668,6 +833,20 @@ def main():
             "sha256": csd_hash,
             "dpi": 150,
             "description": "CSD-like proxy (first 4 layers)",
+        },
+        "coupled_vs_uncoupled": {
+            "docs_stable_path": str(static_coupled_vs_uncoupled),
+            "runtime_path": str(coupled_vs_uncoupled_fig_path),
+            "sha256": coupled_vs_uncoupled_hash,
+            "dpi": 150,
+            "description": "Coupling ablation: coupled vs. uncoupled E/I dynamics (4-panel)",
+        },
+        "circuit_schematic": {
+            "docs_stable_path": str(static_circuit_schematic),
+            "runtime_path": str(circuit_schematic_fig_path),
+            "sha256": circuit_schematic_hash,
+            "dpi": 150,
+            "description": "Recurrent E/I circuit schematic with conductance labels",
         },
     }
 
@@ -729,6 +908,8 @@ def main():
     hashes["figures/v0303_two_neuron_ei_source.png"] = source_hash
     hashes["figures/v0303_two_neuron_ei_lfp_proxy.png"] = lfp_hash
     hashes["figures/v0303_two_neuron_ei_csd_proxy.png"] = csd_hash
+    hashes["figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png"] = coupled_vs_uncoupled_hash
+    hashes["figures/v0303_two_neuron_ei_circuit_schematic.png"] = circuit_schematic_hash
     write_json(OUT / "asset_hashes.json", hashes)
 
     # Also update canonical docs manifest (for v0303 naming)

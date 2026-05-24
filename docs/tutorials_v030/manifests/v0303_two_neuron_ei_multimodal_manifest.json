@@ -47,6 +47,20 @@
     }
   },
   "figures": {
+    "circuit_schematic": {
+      "description": "Recurrent E/I circuit schematic with conductance labels",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_circuit_schematic.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_circuit_schematic.png",
+      "sha256": "1f52a98570e738e32c6cb5be489e4ad9d5dba0b4dfae09760571182495edba11"
+    },
+    "coupled_vs_uncoupled": {
+      "description": "Coupling ablation: coupled vs. uncoupled E/I dynamics (4-panel)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png",
+      "sha256": "83a4135fba2490a02546396b603c5ae11335a95c39b8a8a616b2e5e366cadeed"
+    },
     "coupling_currents": {
       "description": "Dynamic E/PV synaptic currents (from lax.scan carry state)",
       "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupling_currents.png",
@@ -136,7 +150,7 @@
     "This tutorial validates the jaxfne API for multi-neuron dynamic coupling."
   ],
   "plotly": {
-    "plotly_available": false,
+    "plotly_available": true,
     "plotly_html_generated": false,
     "plotly_status_reason": "static_png_baseline_for_v0303"
   },
@@ -309,7 +323,7 @@
       "units_or_status": "binary_spike_indicator"
     }
   },
-  "run_id": "v033_two_neuron_ei_1779662477",
+  "run_id": "v033_two_neuron_ei_1779662918",
   "scenario_id": "v030_03_two_neuron_ei_multimodal",
   "schema_version": "v0.3.3",
   "simulation": {
@@ -325,7 +339,7 @@
     "source_projection_mode": "proxy_no_field_solve",
     "source_proxy_status": "generated_proxy"
   },
-  "timestamp": "2026-05-24T17:41:17.005740",
+  "timestamp": "2026-05-24T17:48:38.329374",
   "tutorial_id": "v0303_two_neuron_ei_multimodal",
   "validation_report": {
     "all_gates_pass": true,
