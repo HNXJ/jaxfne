@@ -1,0 +1,13 @@
+{
+  "all_gates_pass": true,
+  "any_sweep_point_in_gate": true,
+  "baseline_firing_rate_hz": 12.0,
+  "dt_gate": true,
+  "duration_gate": true,
+  "firing_rate_gate_2_25_hz": true,
+  "json_safe": true,
+  "status": "PASS",
+  "sweep_rate_max_hz": 44.0,
+  "sweep_rate_min_hz": 10.0,
+  "voltage_finite": true
+}
