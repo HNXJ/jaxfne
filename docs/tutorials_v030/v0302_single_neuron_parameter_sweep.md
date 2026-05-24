@@ -113,7 +113,7 @@ base_model = jtfne.construct(cfg)
 `with_emitter_parameters` returns a new, immutable model with overridden parameters. The original is not mutated:
 
 ```python
-sim_spec = jtfne.simulation(duration_ms=500.0, dt_ms=0.1, seed=42, runtime=run)
+sim_spec = jtfne.simulation(duration_ms=1000.0, dt_ms=0.1, seed=42, runtime=run)
 
 A_VALUES = [0.02, 0.05, 0.10]
 D_VALUES = [2.0, 6.0, 8.0, 12.0]
@@ -125,11 +125,32 @@ for a_val in A_VALUES:
         signals = model.simulate(sim_spec)
         spikes = np.array(signals.spikes)
         n_spikes = len(np.where(spikes[:, 0] > 0.5)[0])
-        firing_rate_hz = (n_spikes / 500.0) * 1000.0
-        sweep_results.append({"a": a_val, "d": d_val, "firing_rate_hz": firing_rate_hz})
+        firing_rate_hz = (n_spikes / 1000.0) * 1000.0
+        # Classify each condition explicitly
+        if firing_rate_hz > 25.0:
+            regime_label = "high_rate_out_of_target_regime"
+        elif firing_rate_hz < 2.0:
+            regime_label = "low_or_silent_out_of_target_regime"
+        else:
+            regime_label = "target_regime"
+        sweep_results.append({"a": a_val, "d": d_val,
+                               "firing_rate_hz": firing_rate_hz,
+                               "regime_label": regime_label})
 ```
 
-12 points × 500 ms each. All V_m values finite ✓
+12 points × 1000 ms each (hard gate: `duration_ms >= 1000.0`). All V_m values finite ✓
+
+### Target regime vs. out-of-target sweep regimes
+
+The sweep deliberately spans conditions both inside and outside the 2–25 Hz acceptance gate. This is pedagogically intentional: it shows how `a` and `d` push the proxy firing rate across a wide range. The validation grammar distinguishes:
+
+| Regime label | Definition | Count (validated run) |
+|---|---|---|
+| `target_regime` | 2–25 Hz, finite | 7/12 |
+| `high_rate_out_of_target_regime` | >25 Hz, finite (contrast only) | 5/12 |
+| `nonfinite_failure` | any nonfinite output | 0/12 |
+
+**Tutorial acceptance rule:** The `baseline` condition (a=0.02, d=8, cortical_eig default) must be `target_regime`. All out-of-target conditions must carry an explicit label. The tutorial `status = PASS` is not based on all 12 conditions being in-gate — it is based on the baseline passing and all out-of-target conditions being honestly labelled.
 
 ---
 
@@ -180,27 +201,29 @@ manifest: JSON-safe ✓
 
 ![ v0302 heatmap](./_static/figures/v0302_sweep_heatmap.png)
 
-*Proxy firing rate (Hz) across the 3×4 sweep grid. Rows = `a` values (recovery speed); columns = `d` values (adaptation strength). Larger `a` → higher rate; larger `d` → lower rate. Amplitudes are proxy units. No physical-amplitude or biological-mechanism claim.*
+*Proxy firing rate (Hz) across the 3×4 sweep grid. ★ = target regime (2–25 Hz). ✗ = high-rate out-of-target regime (>25 Hz, labelled contrast). Rows = `a` values; columns = `d` values. Proxy units only. No physical-amplitude or biological-mechanism claim.*
 
 ### Firing Rate vs. d (per a value)
 
 ![ v0302 regime lines](./_static/figures/v0302_regime_lines.png)
 
-*Firing rate as a function of `d` for each `a` value. The grey dashed lines mark the 2–25 Hz acceptance gate. The baseline `cortical_eig` point (a=0.02, d=8) is within the gate at 12 Hz. Proxy readout only.*
+*Firing rate as a function of `d` for each `a` value. Green band = 2–25 Hz target regime. Conditions above the band are explicitly labelled `high_rate_out_of_target_regime` — they are contrast examples, not accepted baseline regimes. The baseline `cortical_eig` point (a=0.02, d=8) is within the gate at 11 Hz. Proxy readout only.*
 
-**Sweep results (from validated run):**
+**Sweep results (from validated 1000 ms run):**
 
 | a | d=2.0 | d=6.0 | d=8.0 | d=12.0 |
 |---|-------|-------|-------|--------|
-| 0.02 | 20 Hz | 12 Hz | 12 Hz | 10 Hz |
-| 0.05 | 32 Hz | 24 Hz | 22 Hz | 20 Hz |
-| 0.10 | 44 Hz | 36 Hz | 34 Hz | 32 Hz |
+| 0.02 | 19 Hz ★ | 12 Hz ★ | 11 Hz ★ | 10 Hz ★ |
+| 0.05 | **32 Hz ✗** | 24 Hz ★ | 22 Hz ★ | 20 Hz ★ |
+| 0.10 | **45 Hz ✗** | **37 Hz ✗** | **35 Hz ✗** | **32 Hz ✗** |
+
+★ = target regime (2–25 Hz)  ✗ = high-rate out-of-target regime (explicitly labelled, not accepted baseline)
 
 ---
 
 ## Section 10: Interpretation
 
-The sweep shows that proxy firing rate increases with `a` and decreases with `d`, consistent with the Izhikevich model's mathematical structure. Larger `a` accelerates the recovery variable, shortening the effective refractory period and allowing faster spiking. Larger `d` increases the post-spike recovery increment, strengthening adaptation and reducing rate. These trends emerge deterministically from the model equations — they are not fitted to neural data. The baseline `cortical_eig` point (a=0.02, d=8, 12 Hz) is within the 2–25 Hz acceptance gate used by the v0.3 atlas collector.
+The sweep shows that proxy firing rate increases with `a` and decreases with `d`, consistent with the Izhikevich model's mathematical structure. Larger `a` accelerates the recovery variable, shortening the effective refractory period. Larger `d` increases the post-spike recovery increment, strengthening adaptation. The baseline `cortical_eig` point (a=0.02, d=8) produces 11 Hz — inside the 2–25 Hz acceptance gate. The five high-rate conditions (a=0.05/d=2 and all a=0.10 rows) are labelled `high_rate_out_of_target_regime` in the manifest: they illustrate the model's high-excitability range but are not accepted as baseline cortical activity. All 12 conditions produce finite outputs.
 
 ---
 
@@ -220,7 +243,7 @@ The sweep shows that proxy firing rate increases with `a` and decreases with `d`
 
 1. Add `c` to the sweep: try `c` in `[-65, -55, -50]`. How does the reset voltage affect firing pattern?
 2. Add `drive_scale` to the sweep: try `drive_scale` in `[0.8, 1.0, 1.5]`. How does input gain interact with `d`?
-3. Increase `duration_ms` to 1000 ms. Does the heatmap change significantly?
+3. Extend the `a` grid to `[0.02, 0.04, 0.06, 0.08, 0.10]`. How does the transition to out-of-target regimes change?
 4. Set `seed=1` and re-run. Are results reproducible (same gate outcomes)?
 5. Extend to a 5×5 grid. How does computation time scale?
 
@@ -241,6 +264,7 @@ Specifically, this tutorial does **not** claim:
 - Any regime boundary in this sweep maps to a validated biological transition
 - The network dynamics have been validated against any empirical dataset
 - Any anatomical or physiological parameter has been calibrated
+- **High-rate conditions (>25 Hz) are biologically validated or acceptable baseline cortical regimes.** They are explicitly labelled `high_rate_out_of_target_regime` in the manifest and are present for parameter-contrast purposes only.
 
 **To make physical-amplitude, biological, or mechanistic claims, you must supply:**
 - Calibration evidence (empirical recordings with known units)
@@ -260,7 +284,7 @@ claim_level:                      computational_scaffold
 field_solver_status:              laminar_proxy_no_pde
 physical_amplitude_claim_allowed: False
 biological_metabolism_claim_allowed: False
-baseline_firing_rate_hz:          12.0
+baseline_firing_rate_hz:          11.0
 collector_gate:                   PASS
 ```
 

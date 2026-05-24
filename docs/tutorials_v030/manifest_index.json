@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-24T02:05:02.546756Z",
+  "timestamp": "2026-05-24T14:38:20.853573Z",
   "total_scenarios": 2,
   "scenarios": {
     "v030_01_single_neuron_izhikevich": {
@@ -260,7 +260,7 @@
           "units_or_status": "binary_spike_indicator"
         }
       },
-      "run_id": "v031_single_izhikevich_1779584243",
+      "run_id": "v031_single_izhikevich_1779633494",
       "scenario_id": "v030_01_single_neuron_izhikevich",
       "schema_version": "v0.3.1",
       "simulation": {
@@ -276,7 +276,7 @@
         "source_projection_mode": "proxy_no_field_solve",
         "source_proxy_status": "generated_proxy"
       },
-      "timestamp": "2026-05-23T19:57:23.055354",
+      "timestamp": "2026-05-24T09:38:14.938752",
       "tutorial_id": "v0301_single_izhikevich_neuron",
       "validation_report": {
         "all_gates_pass": true,
@@ -310,18 +310,18 @@
       "conservation_proxy_diagnostics": {
         "biological_metabolism_claim_allowed": false,
         "claim_level": "computational_scaffold",
-        "csd_abs_mean": 55.34023666381836,
-        "csd_norm_l2": 109.85299682617188,
+        "csd_abs_mean": 55.33937454223633,
+        "csd_norm_l2": 109.77338409423828,
         "diagnostic_status": "proxy",
         "diagnostic_version": "v0.2.27",
         "field_claim_level": "proxy_readout_only",
-        "field_energy_like_proxy": 0.5880995988845825,
+        "field_energy_like_proxy": 0.5872474908828735,
         "field_solver_status": "laminar_proxy_no_pde",
         "j_dot_e_proxy": null,
-        "lfp_abs_mean": 3.0172834396362305,
-        "lfp_norm_l2": 3.8920648097991943,
+        "lfp_abs_mean": 3.0172362327575684,
+        "lfp_norm_l2": 3.8892440795898438,
         "maxwell_solver_status": "not_implemented",
-        "mean_firing_rate_hz": 12.0,
+        "mean_firing_rate_hz": 11.0,
         "notes": [
           "proxy diagnostics only \u2014 no physical amplitude claim",
           "no biological metabolism claim",
@@ -330,16 +330,16 @@
           "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
           "source_conservation_proxy_residual is a spatial-mean proxy, not PDE-enforced"
         ],
-        "phi_abs_mean": 3.0172834396362305,
-        "phi_gradient_proxy_norm2": 0.5880995988845825,
+        "phi_abs_mean": 3.0172362327575684,
+        "phi_gradient_proxy_norm2": 0.5872474908828735,
         "physical_amplitude_claim_allowed": false,
         "poisson_solver_status": "not_implemented",
         "poynting_flux_proxy": null,
-        "source_abs_mean": 3.0172834396362305,
+        "source_abs_mean": 3.0172362327575684,
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
-        "source_conservation_proxy_residual": 3.0172836780548096,
-        "source_norm_l1": 3.0172834396362305,
-        "source_norm_l2": 3.8920648097991943,
+        "source_conservation_proxy_residual": 3.0172367095947266,
+        "source_norm_l1": 3.0172362327575684,
+        "source_norm_l2": 3.8892440795898438,
         "stress_energy_tensor_status": "not_implemented"
       },
       "figures": {
@@ -347,13 +347,13 @@
           "docs_stable_path": "docs/tutorials_v030/_static/figures/v0302_regime_lines.png",
           "dpi": 150,
           "runtime_path": "outputs/v030_02_single_neuron_parameter_sweep/figures/v0302_regime_lines.png",
-          "sha256": "36f25cd670bbc5081c06467fc88277c877594fc463ef8cfe0fa9089186b8b5d4"
+          "sha256": "8dbfd49daaffff34feb0fdb1b6d809b0bc691079c42d2e3b8b9ef9423199b696"
         },
         "sweep_heatmap": {
           "docs_stable_path": "docs/tutorials_v030/_static/figures/v0302_sweep_heatmap.png",
           "dpi": 150,
           "runtime_path": "outputs/v030_02_single_neuron_parameter_sweep/figures/v0302_sweep_heatmap.png",
-          "sha256": "60e9bbdbf5db55841e7f5a725fc079332dcd9b98237e31ce43ca5485cd46390e"
+          "sha256": "37152571a6a1f54bb36be14d6c3d02931e70eea3ed3c18770e64a19de530fadc"
         }
       },
       "jaxfne_version": "0.2.30",
@@ -365,7 +365,8 @@
       "non_claims": [
         "This tutorial is a computational scaffold, not a biological validation.",
         "Parameter regimes are proxy computational ranges, not calibrated biophysical ranges.",
-        "Firing rate changes across the sweep reflect model dynamics, not measured neuron behavior.",
+        "High-rate conditions (>25 Hz) are explicitly labelled out-of-target regimes for contrast; they are not accepted as baseline cortical activity.",
+        "Firing rate changes reflect model dynamics, not measured neuron behavior.",
         "No field PDE is solved in laminar_proxy_no_pde mode.",
         "No biological mechanism is proven by this tutorial alone."
       ],
@@ -381,7 +382,7 @@
             "not_physical_membrane_voltage_unless_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 1)",
+          "data_shape": "(10000, 1)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "vm",
@@ -402,7 +403,7 @@
             "not_empirically_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 16)",
+          "data_shape": "(10000, 16)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "csd_proxy",
@@ -423,7 +424,7 @@
             "not_empirically_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 16)",
+          "data_shape": "(10000, 16)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "eeg_proxy",
@@ -446,7 +447,7 @@
             "proxy_electrophysiological_field_activity_cost"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000,)",
+          "data_shape": "(10000,)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "emm_proxy",
@@ -466,7 +467,7 @@
             "not_empirically_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 16)",
+          "data_shape": "(10000, 16)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "lfp_proxy",
@@ -488,7 +489,7 @@
             "not_empirically_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 16)",
+          "data_shape": "(10000, 16)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "meg_proxy",
@@ -510,7 +511,7 @@
             "not_physical_membrane_current_unless_calibrated"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 1)",
+          "data_shape": "(10000, 1)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "source",
@@ -529,7 +530,7 @@
             "binary_or_threshold_values"
           ],
           "calibration_status": "uncalibrated_proxy",
-          "data_shape": "(5000, 1)",
+          "data_shape": "(10000, 1)",
           "field_claim_level": "proxy_readout_only",
           "field_solver_status": "laminar_proxy_no_pde",
           "kind": "spk",
@@ -543,13 +544,13 @@
           "units_or_status": "binary_spike_indicator"
         }
       },
-      "run_id": "v032_parameter_sweep_1779588076",
+      "run_id": "v032_parameter_sweep_1779633311",
       "scenario_id": "v030_02_single_neuron_parameter_sweep",
       "schema_version": "v0.3.2",
       "simulation": {
         "dt_ms": 0.1,
         "dtype": "float32",
-        "duration_ms": 500.0,
+        "duration_ms": 1000.0,
         "seed": 42
       },
       "sweep": {
@@ -565,12 +566,12 @@
           12.0
         ],
         "dt_ms": 0.1,
-        "duration_ms": 500.0,
+        "duration_ms": 1000.0,
         "firing_grid": [
           [
-            20.0,
+            19.0,
             12.0,
-            12.0,
+            11.0,
             10.0
           ],
           [
@@ -580,152 +581,364 @@
             20.0
           ],
           [
-            44.0,
-            36.0,
-            34.0,
+            45.0,
+            37.0,
+            35.0,
             32.0
           ]
         ],
         "n_points": 12,
         "results": [
           {
-            "V_max": 27.897798538208008,
-            "V_mean": -63.26237487792969,
-            "V_min": -68.680419921875,
+            "V_max": 28.44873809814453,
+            "V_min": -68.68668365478516,
             "a": 0.02,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 2.0,
-            "firing_rate_hz": 20.0,
-            "n_spikes": 10
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
+            "firing_rate_hz": 19.0,
+            "n_spikes": 19,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
-            "V_max": 26.732343673706055,
-            "V_mean": -66.42620086669922,
-            "V_min": -73.90971374511719,
+            "V_max": 29.29174041748047,
+            "V_min": -73.91539764404297,
             "a": 0.02,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 6.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 12.0,
-            "n_spikes": 6
+            "n_spikes": 12,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
             "V_max": 25.6466007232666,
-            "V_mean": -67.37483215332031,
-            "V_min": -75.9025650024414,
+            "V_min": -76.02818298339844,
             "a": 0.02,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 8.0,
-            "firing_rate_hz": 12.0,
-            "n_spikes": 6
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
+            "firing_rate_hz": 11.0,
+            "n_spikes": 11,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
-            "V_max": 22.486934661865234,
-            "V_mean": -69.07755279541016,
+            "V_max": 27.867725372314453,
             "V_min": -79.24261474609375,
             "a": 0.02,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 12.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 10.0,
-            "n_spikes": 5
+            "n_spikes": 10,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
-            "V_max": 29.67616081237793,
-            "V_mean": -61.890586853027344,
-            "V_min": -68.45498657226562,
+            "V_max": 29.873432159423828,
+            "V_min": -68.59503173828125,
             "a": 0.05,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 2.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 32.0,
-            "n_spikes": 16
+            "n_spikes": 32,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime",
+            "regime_status": "out_of_target"
           },
           {
-            "V_max": 22.292274475097656,
-            "V_mean": -64.8519515991211,
-            "V_min": -73.33026885986328,
+            "V_max": 29.819982528686523,
+            "V_min": -73.42332458496094,
             "a": 0.05,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 6.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 24.0,
-            "n_spikes": 12
+            "n_spikes": 24,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
-            "V_max": 27.62718391418457,
-            "V_mean": -65.67709350585938,
+            "V_max": 29.07048988342285,
             "V_min": -75.36805725097656,
             "a": 0.05,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 8.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 22.0,
-            "n_spikes": 11
+            "n_spikes": 22,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
-            "V_max": 26.55567169189453,
-            "V_mean": -67.14226531982422,
+            "V_max": 28.146406173706055,
             "V_min": -78.4996566772461,
             "a": 0.05,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 12.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 20.0,
-            "n_spikes": 10
+            "n_spikes": 20,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime",
+            "regime_status": "target"
           },
           {
             "V_max": 29.962797164916992,
-            "V_mean": -60.74492645263672,
             "V_min": -68.52914428710938,
             "a": 0.1,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 2.0,
-            "firing_rate_hz": 44.0,
-            "n_spikes": 22
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
+            "firing_rate_hz": 45.0,
+            "n_spikes": 45,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime",
+            "regime_status": "out_of_target"
           },
           {
-            "V_max": 28.52677345275879,
-            "V_mean": -63.04103088378906,
-            "V_min": -72.87360382080078,
+            "V_max": 28.660078048706055,
+            "V_min": -72.99063873291016,
             "a": 0.1,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 6.0,
-            "firing_rate_hz": 36.0,
-            "n_spikes": 18
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
+            "firing_rate_hz": 37.0,
+            "n_spikes": 37,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime",
+            "regime_status": "out_of_target"
           },
           {
-            "V_max": 26.404443740844727,
-            "V_mean": -63.918338775634766,
-            "V_min": -74.64157104492188,
+            "V_max": 28.463367462158203,
+            "V_min": -74.681396484375,
             "a": 0.1,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 8.0,
-            "firing_rate_hz": 34.0,
-            "n_spikes": 17
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
+            "firing_rate_hz": 35.0,
+            "n_spikes": 35,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime",
+            "regime_status": "out_of_target"
           },
           {
-            "V_max": 26.911191940307617,
-            "V_mean": -65.3372802734375,
-            "V_min": -77.71766662597656,
+            "V_max": 29.922571182250977,
+            "V_min": -77.78746795654297,
             "a": 0.1,
-            "all_finite": true,
+            "b": 0.20000000298023224,
+            "c": -65.0,
             "d": 12.0,
+            "drive": 5.0,
+            "dt_ms": 0.1,
+            "duration_ms": 1000.0,
+            "finite_spikes": true,
+            "finite_voltage": true,
             "firing_rate_hz": 32.0,
-            "n_spikes": 16
+            "n_spikes": 32,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime",
+            "regime_status": "out_of_target"
           }
         ],
         "seed": 42,
+        "sweep_rate_max_hz": 45.0,
+        "sweep_rate_min_hz": 10.0,
         "tool_used": "jtfne.with_emitter_parameters"
       },
-      "timestamp": "2026-05-23T21:01:16.909593",
+      "timestamp": "2026-05-24T09:35:11.858778",
       "tutorial_id": "v0302_single_neuron_parameter_sweep",
       "validation_report": {
-        "all_gates_pass": true,
-        "any_sweep_point_in_gate": true,
-        "baseline_firing_rate_hz": 12.0,
-        "dt_gate": true,
-        "duration_gate": true,
+        "all_conditions_finite": true,
+        "all_out_of_target_conditions_labelled": true,
+        "baseline_firing_rate_hz": 11.0,
+        "baseline_rate_gate_pass": true,
+        "dt_gate_pass": true,
+        "dt_ms": 0.1,
+        "dtype_gate_pass": true,
+        "duration_gate_pass": true,
+        "duration_ms": 1000.0,
         "firing_rate_gate_2_25_hz": true,
         "json_safe": true,
+        "n_conditions_total": 12,
+        "n_high_rate_out_of_target_regime": 5,
+        "n_low_or_silent_out_of_target_regime": 0,
+        "n_nonfinite_failure": 0,
+        "n_target_regime": 7,
+        "out_of_target_regime_note": "Conditions with firing_rate_hz > 25 are labelled high_rate_out_of_target_regime and are used as parameter-contrast examples. They are NOT accepted as baseline cortical regimes.",
+        "per_condition_gate": [
+          {
+            "a": 0.02,
+            "condition_id": "a0.02_d2.0",
+            "d": 2.0,
+            "firing_rate_hz": 19.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.02,
+            "condition_id": "a0.02_d6.0",
+            "d": 6.0,
+            "firing_rate_hz": 12.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.02,
+            "condition_id": "a0.02_d8.0",
+            "d": 8.0,
+            "firing_rate_hz": 11.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.02,
+            "condition_id": "a0.02_d12.0",
+            "d": 12.0,
+            "firing_rate_hz": 10.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.05,
+            "condition_id": "a0.05_d2.0",
+            "d": 2.0,
+            "firing_rate_hz": 32.0,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime"
+          },
+          {
+            "a": 0.05,
+            "condition_id": "a0.05_d6.0",
+            "d": 6.0,
+            "firing_rate_hz": 24.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.05,
+            "condition_id": "a0.05_d8.0",
+            "d": 8.0,
+            "firing_rate_hz": 22.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.05,
+            "condition_id": "a0.05_d12.0",
+            "d": 12.0,
+            "firing_rate_hz": 20.0,
+            "rate_gate_pass_2_25_hz": true,
+            "regime_label": "target_regime"
+          },
+          {
+            "a": 0.1,
+            "condition_id": "a0.10_d2.0",
+            "d": 2.0,
+            "firing_rate_hz": 45.0,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime"
+          },
+          {
+            "a": 0.1,
+            "condition_id": "a0.10_d6.0",
+            "d": 6.0,
+            "firing_rate_hz": 37.0,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime"
+          },
+          {
+            "a": 0.1,
+            "condition_id": "a0.10_d8.0",
+            "d": 8.0,
+            "firing_rate_hz": 35.0,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime"
+          },
+          {
+            "a": 0.1,
+            "condition_id": "a0.10_d12.0",
+            "d": 12.0,
+            "firing_rate_hz": 32.0,
+            "rate_gate_pass_2_25_hz": false,
+            "regime_label": "high_rate_out_of_target_regime"
+          }
+        ],
         "status": "PASS",
-        "sweep_rate_max_hz": 44.0,
-        "sweep_rate_min_hz": 10.0,
-        "voltage_finite": true
+        "tutorial_acceptance_criteria": {
+          "all_conditions_finite": true,
+          "all_out_of_target_conditions_labelled": true,
+          "baseline_gate_pass": true,
+          "dt_gate_pass": true,
+          "dtype_gate_pass": true,
+          "duration_gate_pass": true
+        },
+        "tutorial_acceptance_status": "PASS"
       }
     }
   }
