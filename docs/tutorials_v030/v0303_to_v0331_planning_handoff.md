@@ -37,6 +37,53 @@
 
 ---
 
+## 1.5. Lessons from v0.3.1–v0.3.2
+
+The first two scenarios (single-neuron Izhikevich and parameter sweep) have provided critical insights for planning the remainder of v0.3:
+
+### Key Lesson 1: Collector Pass is Necessary but Not Sufficient
+- Running the collector validates manifest structure, SHA256 hashes, and JSON safety
+- However, collector PASS does not guarantee:
+  - Figure visual quality or clarity
+  - Truth claims are not overclaimed in figure captions
+  - Narrative coherence across all 15 tutorials
+- **Action:** Always add a human visual review step after collector PASS
+
+### Key Lesson 2: Visualizations are First-Class Evidence Artifacts
+- PNG figures are not decorative; they are primary validation evidence
+- Figures must encode manifest metadata (SHA256, DPI, file size, dimensions)
+- Figure panels should align with computational concepts being taught (e.g., voltage trace + phase plane, not just raster)
+- **Action:** Allocate 2–3 figures per scenario; include multi-panel layouts
+
+### Key Lesson 3: Out-of-Target Sweep/Null/Ablation Regimes Must be Explicitly Labelled
+- v0.3.2 showed that parameter sweep heatmaps can reveal regimes where neurons do NOT fire 2–25 Hz
+- These regimes (below or above target firing rate) are still valuable as negative controls
+- They must be explicitly marked in metadata as "out-of-target" or "null condition"
+- **Action:** Tag figure metadata with regime_status: "in_target" vs. "null_control"
+
+### Key Lesson 4: Atlas Manifests May Wrap Raw Package Manifests into Tutorial-Facing Evidence Manifests
+- v0.3.1 and v0.3.2 generate manifests at two levels:
+  1. **Raw package manifest:** Direct output from example script, contains simulation state
+  2. **Tutorial-facing manifest:** Wraps raw manifest with narrative context, figure references, gate status
+- Both are valuable; both should be committed and versioned
+- **Action:** Store both manifest_raw.json and manifest.json (tutorial wrapper)
+
+### Key Lesson 5: PRs Should Stay Single-Purpose
+- v0.3.1 and v0.3.2 were clean, single-scenario PRs with focused commits
+- This made review, testing, and rollback simple
+- Mixing scenarios (e.g., v0.3.3 + v0.3.4 in one PR) creates merge/test complexity
+- **Action:** One PR per scenario, merge to main after THETA validation passes
+
+### Key Lesson 6: Mid-Release Checkpoints Are Capability Milestones, Not Scenario-Count Milestones
+- v0.3.11, v0.3.21, v0.3.31 are proposed as PyPI release checkpoints
+- They are defined not by "complete N scenarios" but by "capability X is validated and ready"
+- v0.3.11: Two-column visual networks (v0.3.3 through v0.3.8 complete)
+- v0.3.21: Multi-area proxy suite with spectrolaminar diagnostics (v0.3.9 through v0.3.15 + audits)
+- v0.3.31: Full atlas with optimization suite (all scenarios + all audits)
+- **Action:** Define checkpoint decision labels (V0311_RELEASE_CANDIDATE_READY, etc.) and decision gates
+
+---
+
 ## 2. Standard Workflow for All Future Tutorials
 
 Every tutorial **MUST** follow this workflow:
@@ -446,29 +493,323 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 
 ---
 
-## 7. Proposed PyPI Release Checkpoints
+## 6.5 Release Checkpoint Doctrine — Capability-Based PyPI Milestones
 
-**Important:** Do NOT execute these checkpoints without explicit approval. Decision gates:
+The following three checkpoints define explicit capability gates and decision labels for PyPI releases. These are **not automatic** — each checkpoint requires human review and explicit approval before package publication.
 
-### Checkpoint A: v0.3.11 (First phase-1 content checkpoint)
-- **Triggers after:** v0.3.3 through v0.3.11 all PASS + manifests valid + collector validates
-- **Label suggestion:** `jaxfne==0.3.11` with PyPI tag "v0.3.11-tutorial-atlas-phase-1"
-- **Rationale:** First stable multi-scenario tutorial block with spectrolaminar baseline
-- **Decision required:** Include or skip?
+---
 
-### Checkpoint B: v0.3.21 (After audit phase-2)
-- **Triggers after:** v0.3.20 audit PASS + performance benchmarks PASS
-- **Label suggestion:** `jaxfne==0.3.21` with PyPI tag "v0.3.21-tutorial-atlas-phase-2-audited"
-- **Rationale:** Consolidated audit ensures quality and consistency
-- **Decision required:** Include or skip? Skip v0.3.11 and release here instead?
+## v0.3.11 Release Checkpoint — Two-Column Visual Network + Spectrolaminar Baseline
 
-### Checkpoint C: v0.3.31 (Final atlas completion)
-- **Triggers after:** v0.3.30 final atlas bundle PASS + v0.3.31 postmortem PASS
-- **Label suggestion:** `jaxfne==0.3.31` with PyPI tag "v0.3.31-complete-tutorial-atlas" OR release as `jaxfne==0.3` (if moving to stable minor version)
-- **Rationale:** Complete v0.3 tutorial atlas with full validation
-- **Decision required:** Release v0.3 or v0.3.31? Single release or three-phase (v0.3.11, v0.3.21, v0.3.31)?
+**Trigger condition:** All of the following must be TRUE:
 
-**Default:** No releases without explicit user approval. v0.3 remains docs/tutorial engineering on top of v0.2.30 until decision.
+1. Scenarios v0.3.3 through v0.3.11 have been implemented and merged to main
+2. Collector PASS: All 9 scenarios (v0.3.1 through v0.3.11) validate manifest structure, SHA256, and JSON
+3. Figure audit PASS: All PNG figures exist, are readable, match SHA256 hashes, ≥150 dpi
+4. Docs link audit PASS: No missing or broken cross-references in rendered documentation
+5. Full pytest PASS: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q` returns 0 failures
+6. Notebook/Colab execution audit: All notebooks run without error; outputs regenerate; figures display
+7. Truth-claim audit PASS: No biological realism claims, no "calibrated" language, no mechanism-proof statements
+   - Review all figure captions and narrative text for overclaiming
+   - Confirm all scenarios marked as "computational_scaffold" with physical_amplitude_claim_allowed=False
+8. Rendered docs website builds and displays all figures correctly (manual visual confirmation required)
+
+**Validation commands (execute before checkpoint approval):**
+
+```bash
+# 1. Code compilation and tests
+python -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+
+# 2. Tutorial smoke tests
+python scripts/run_v030_tutorial_smoke.py
+
+# 3. Manifest collection and validation
+PYTHONPATH=. python scripts/collect_v030_tutorial_manifests.py outputs \
+  --validate \
+  --save-collection docs/tutorials_v030/manifest_index.json \
+  --save-validation docs/tutorials_v030/manifest_validation_report.json \
+  --list-failures
+
+# 4. Docs audit
+python scripts/audit_v030_docs_links.py
+python -m json.tool docs/tutorials_v030/docs_link_audit.json >/dev/null
+
+# 5. JSON validity checks
+python -m json.tool docs/tutorials_v030/manifest_index.json >/dev/null
+python -m json.tool docs/tutorials_v030/manifest_validation_report.json >/dev/null
+```
+
+**Manual gate:** Rendered docs visual confirmation PASS (human review of figures in rendered website)
+
+**Decision labels for GitHub Project gamma:**
+- `V0311_RELEASE_CANDIDATE_READY` — All checks pass; ready for release
+- `V0311_BLOCKED_VISUAL_NETWORK` — Blocker: v0.3.3 through v0.3.11 scenarios missing or incomplete
+- `V0311_BLOCKED_DOCS_FIGURES` — Blocker: figures missing, corrupted, or link audit fails
+- `V0311_BLOCKED_VALIDATION` — Blocker: tests fail, overclaiming detected, or truth audit fails
+
+**If approved for release:**
+- Bump package version to v0.3.11 (or increment minor: v0.2.31 if bundling with bug fixes)
+- Tag commit: `v0.3.11-tutorial-atlas-phase-1`
+- Publish to PyPI with label: "v0.3.11-tutorial-atlas-phase-1 — Two-column visual networks and spectrolaminar baseline"
+
+---
+
+## v0.3.21 Release Checkpoint — Multi-Area Cortical Column Multimodal Proxy Suite
+
+**Trigger condition:** All of the following must be TRUE:
+
+1. Scenarios v0.3.12 through v0.3.20 have been implemented and merged to main
+2. All 20 scenarios (v0.3.1 through v0.3.20) PASS collector validation
+3. All 20 figure sets exist, are readable, match SHA256, ≥150 dpi
+4. Docs link audit PASS for all 20 scenarios
+5. Full pytest PASS (including new tests for v0.3.12–v0.3.20)
+6. Manifest/schema audit PASS:
+   - All 20 manifests conform to declared schema version
+   - No schema drift between scenarios
+   - All required fields populated (no nulls in critical metadata)
+7. Equation glossary audit PASS:
+   - All equations have unique identifiers (EQ_nnn_description)
+   - All variables defined with units and biological interpretation (if applicable)
+   - No undefined symbols in equations
+   - LaTeX macros consistent
+8. Performance audit PASS:
+   - Each scenario completes in <5 min (v0.3.1–v0.3.2) to <30 min (v0.3.15)
+   - Peak memory <2 GB on single CPU machine
+   - JAX compilation overhead <10% of runtime
+9. Notebook/Colab execution audit: All 20 notebooks run without error
+10. Truth-claim audit PASS: Multi-area and optimization claims reviewed for overclaiming
+11. Rendered docs website builds and displays all 60+ figures correctly (manual confirmation)
+
+**Validation commands:**
+
+```bash
+# 1. Code compilation and tests
+python -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+
+# 2. Manifest collection and validation for all 20 scenarios
+PYTHONPATH=. python scripts/collect_v030_tutorial_manifests.py outputs \
+  --validate \
+  --save-collection docs/tutorials_v030/manifest_index.json \
+  --save-validation docs/tutorials_v030/manifest_validation_report.json \
+  --list-failures
+
+# 3. Docs audit (comprehensive)
+python scripts/audit_v030_docs_links.py
+python -m json.tool docs/tutorials_v030/docs_link_audit.json >/dev/null
+
+# 4. Performance profiling (benchmark script)
+python scripts/benchmark_v030_scenarios.py --output docs/tutorials_v030/performance_report.json
+
+# 5. Schema validation
+python scripts/validate_manifest_schema.py docs/tutorials_v030/manifests/ \
+  --schema docs/tutorials_v030/manifest_schema.json
+
+# 6. Equation glossary generation
+python scripts/extract_equations_v030.py docs/tutorials_v030/ \
+  --output docs/tutorials_v030/equation_glossary.md
+```
+
+**Manual gate:** Rendered docs visual confirmation PASS + performance benchmarks reviewed
+
+**Decision labels for GitHub Project gamma:**
+- `V0321_RELEASE_CANDIDATE_READY` — All checks pass; ready for release
+- `V0321_BLOCKED_MULTI_AREA_PROXY_SUITE` — Blocker: v0.3.12–v0.3.20 scenarios incomplete
+- `V0321_BLOCKED_DOCS_FIGURES` — Blocker: figures missing or validation fails
+- `V0321_BLOCKED_VALIDATION` — Blocker: tests fail, schema audit fails, overclaiming detected
+
+**If approved for release:**
+- Bump package version to v0.3.21 (or continue from v0.3.11 if released)
+- Tag commit: `v0.3.21-tutorial-atlas-phase-2-audited`
+- Publish to PyPI with label: "v0.3.21-tutorial-atlas-phase-2 — Multi-area multimodal proxy suite with performance audit"
+
+---
+
+## v0.3.31 Release Checkpoint — Final Optimization and Spectrolaminar Atlas
+
+**Trigger condition:** All of the following must be TRUE:
+
+1. Scenarios v0.3.21 through v0.3.31 have been implemented and merged to main (all 31 scenarios complete)
+2. All 31 scenarios PASS collector validation
+3. All 93+ figures exist, are readable, match SHA256, ≥150 dpi
+4. All docs audits PASS (link, schema, equation glossary)
+5. Full pytest PASS with 0 failures, 0 errors
+6. Performance audit PASS: all scenarios meet timing budgets
+7. Notebook/Colab execution audit PASS: all notebooks run, Colab smoke test PASS
+8. Truth-claim adversarial audit PASS:
+   - No biological calibration claims without validation receipts
+   - No mechanism-proof claims (e.g., "this proves X causes Y in biology")
+   - All "exploratory" or "illustrative" markers present in narrative
+   - Figure captions use cautious language (proxy, simulated, declared, diagnostic)
+9. Colab final smoke test PASS: all notebooks execute in Google Colab environment without manual intervention
+10. Final atlas bundle generated: all 31 tutorials + manifests + figures + docs packaged and checksummed
+11. Rendered docs website builds and displays full 93+ figure atlas correctly (manual confirmation)
+
+**Validation commands:**
+
+```bash
+# 1. Full test suite
+python -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+
+# 2. All scenario validation
+PYTHONPATH=. python scripts/collect_v030_tutorial_manifests.py outputs \
+  --validate \
+  --save-collection docs/tutorials_v030/manifest_index.json \
+  --save-validation docs/tutorials_v030/manifest_validation_report.json \
+  --list-failures
+
+# 3. Comprehensive audits
+python scripts/audit_v030_docs_links.py
+python scripts/validate_manifest_schema.py docs/tutorials_v030/manifests/
+python scripts/extract_equations_v030.py docs/tutorials_v030/
+python scripts/benchmark_v030_scenarios.py --output docs/tutorials_v030/performance_report.json
+
+# 4. Truth-claim adversarial audit (manual + script)
+python scripts/audit_truth_claims_v030.py docs/tutorials_v030/ \
+  --output docs/tutorials_v030/truth_claim_audit.json
+
+# 5. Colab smoke test
+python scripts/colab_smoke_test_v030.py --list-failures
+
+# 6. Final atlas bundle generation
+python scripts/create_v030_atlas_bundle.py \
+  --output docs/tutorials_v030/v0030-atlas.tar.gz \
+  --manifest docs/tutorials_v030/v0030-atlas-manifest.json \
+  --validate
+```
+
+**Manual gates:**
+- Rendered docs visual confirmation PASS
+- Postmortem review (lessons learned, blockers, future roadmap)
+- Final packaging decision (v0.3.31 vs. v0.3 bump; single release vs. three-phase)
+
+**Decision labels for GitHub Project gamma:**
+- `V0331_RELEASE_CANDIDATE_READY` — All checks pass; ready for final release
+- `V0331_BLOCKED_OPTIMIZATION_SUITE` — Blocker: optimization scenarios incomplete
+- `V0331_BLOCKED_LONG_SIMULATION` — Blocker: long-duration scenarios fail or exceed memory budgets
+- `V0331_BLOCKED_DOCS_FIGURES` — Blocker: figure audit fails
+- `V0331_BLOCKED_VALIDATION` — Blocker: tests fail, overclaiming detected, truth audit fails
+- `V0331_BLOCKED_TRUTH_AUDIT` — Blocker: truth-claim adversarial audit reveals unacceptable overclaiming
+
+**If approved for release:**
+- Decide final version label:
+  - Option A: v0.3.31 (micro bump, all phases release together)
+  - Option B: v0.3 (minor bump; if moving to stable release)
+  - Option C: Release three separate versions at v0.3.11, v0.3.21, v0.3.31 (phased release strategy)
+- Tag commit with selected label
+- Publish to PyPI with release notes:
+  - List all 15 core + 16 audit scenarios
+  - Link to complete rendered atlas
+  - Summarize truth boundaries and extensions
+  - Credit contributors and acknowledge limitations
+
+---
+
+## 7. Release Checkpoint Summary and Decision Gates
+
+**CRITICAL:** Do NOT execute these checkpoints without explicit human approval.
+
+Three capability-based PyPI release checkpoints have been formally defined in sections 6.5 above, with explicit validation commands, manual gates, and decision labels for GitHub Project gamma:
+
+### Summary Table
+
+| Checkpoint | Trigger Scenarios | Validation Target | Decision Label | Release Label (if approved) |
+|------------|-------------------|-------------------|----------------|-----------------------------|
+| **v0.3.11** | v0.3.3–v0.3.11 (9 total) | Two-column visual networks, basic spectrolaminar | V0311_RELEASE_CANDIDATE_READY | jaxfne==0.3.11 or 0.2.31 |
+| **v0.3.21** | v0.3.12–v0.3.20 (20 total) | Multi-area proxy suite, full audit phases | V0321_RELEASE_CANDIDATE_READY | jaxfne==0.3.21 |
+| **v0.3.31** | v0.3.21–v0.3.31 (31 total) | Complete atlas with optimization, final postmortem | V0331_RELEASE_CANDIDATE_READY | jaxfne==0.3.31 or 0.3 |
+
+### Decision Questions for Human Review
+
+1. **PyPI release strategy:**
+   - Option A: Release all three checkpoints (v0.3.11, v0.3.21, v0.3.31) on PyPI
+   - Option B: Skip v0.3.11, release only v0.3.21 and v0.3.31
+   - Option C: Release only final v0.3.31 (or v0.3) after all audits
+
+2. **Version numbering:**
+   - Should checkpoints use full v0.3.11/v0.3.21/v0.3.31 versioning?
+   - Or bump to stable minor version (v0.3) only at v0.3.31?
+   - Or keep as v0.2.31, v0.2.32, v0.2.33 if staying in v0.2.x line?
+
+3. **Release timing:**
+   - Can checkpoints be released independently, or only together?
+   - Should there be minimum time between releases for community feedback?
+
+**Default policy:** No releases without explicit decision labels applied in GitHub Project gamma. v0.3.x remains documentation/tutorial engineering on top of v0.2.30 until human approval gates are satisfied.
+
+---
+
+## 7.5 Release Checkpoint Validation Command Template
+
+For every checkpoint release candidate (v0.3.11, v0.3.21, v0.3.31), execute this validation sequence BEFORE approval:
+
+```bash
+# Standard validation for all checkpoints
+cd /Users/hamednejat/workspace/main/jaxfne
+
+# 1. Code compilation (syntax check)
+python -m compileall -q jaxfne tests examples scripts
+echo "✓ Compileall passed"
+
+# 2. Full test suite (JAX-native paths, gate validation)
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+echo "✓ Pytest passed"
+
+# 3. Validate JSON files (manifests, audit reports)
+python scripts/validate_json_safe.py
+echo "✓ JSON validation passed"
+
+# 4. Tutorial smoke test (run all scenarios without error)
+python scripts/run_v030_tutorial_smoke.py
+echo "✓ Tutorial smoke test passed"
+
+# 5. Manifest collection and validation (collect all scenario outputs)
+PYTHONPATH=. python scripts/collect_v030_tutorial_manifests.py outputs \
+  --validate \
+  --save-collection docs/tutorials_v030/manifest_index.json \
+  --save-validation docs/tutorials_v030/manifest_validation_report.json \
+  --list-failures
+echo "✓ Manifest collection and validation passed"
+
+# 6. Docs link audit (check for broken references)
+python scripts/audit_v030_docs_links.py
+python -m json.tool docs/tutorials_v030/docs_link_audit.json >/dev/null
+echo "✓ Docs link audit passed"
+
+# 7. Manifest JSON validity (final check)
+python -m json.tool docs/tutorials_v030/manifest_index.json >/dev/null
+python -m json.tool docs/tutorials_v030/manifest_validation_report.json >/dev/null
+echo "✓ Manifest JSON validity passed"
+
+# 8. (Checkpoint-specific) Performance profiling
+# python scripts/benchmark_v030_scenarios.py --output docs/tutorials_v030/performance_report.json
+# echo "✓ Performance benchmarks passed"
+
+# 9. (Checkpoint-specific) Schema validation
+# python scripts/validate_manifest_schema.py docs/tutorials_v030/manifests/
+# echo "✓ Manifest schema validation passed"
+
+# 10. (Checkpoint-specific) Truth-claim audit
+# python scripts/audit_truth_claims_v030.py docs/tutorials_v030/
+# echo "✓ Truth-claim audit passed"
+
+echo ""
+echo "=========================================="
+echo "Checkpoint validation complete. Ready for manual review and approval."
+echo "=========================================="
+```
+
+**Manual steps (required for approval):**
+1. Build and render docs website locally or via CI
+2. Open rendered docs in browser
+3. Visually confirm all figures display correctly
+4. Read all scenario narratives for overclaiming
+5. Review all truth-claim audit reports
+6. Check GitHub Project gamma for blocker issues
+7. Apply decision label (V0311_RELEASE_CANDIDATE_READY, etc.)
+8. Approve for release
 
 ---
 

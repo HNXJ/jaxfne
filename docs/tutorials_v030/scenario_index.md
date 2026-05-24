@@ -1,8 +1,26 @@
 # v0.3 Scenario Index and Learning Spine
 
 **Version:** v0.3.0+  
-**Last updated:** 2026-05-23  
+**Last updated:** 2026-05-24
 **truth_mode:** truth_safe_unverified  
+
+---
+
+## Lessons from v0.3.1–v0.3.2 (Applied to All Future Scenarios)
+
+The first two tutorial scenarios have generated critical insights that all subsequent scenarios must respect:
+
+1. **Collector PASS validates structure, not truth.** Manifest validation ensures JSON/SHA256 integrity but does NOT guarantee figure clarity, narrative coherence, or absence of overclaiming.
+
+2. **Visualizations are evidence, not decoration.** Every figure is a first-class validation artifact. Figures must encode manifest metadata and align with computational concepts being taught.
+
+3. **Out-of-target regimes must be explicitly labelled.** Parameter sweeps reveal null/negative controls; these must be tagged as "out-of-target" or "null_condition" in manifest metadata.
+
+4. **Atlas manifests wrap package manifests.** Two-level manifest structure: raw simulation output (package level) + tutorial narrative wrapper (atlas level).
+
+5. **Keep PRs single-purpose.** One scenario per PR simplifies review, testing, and rollback.
+
+6. **Checkpoints are capability milestones, not scenario counts.** v0.3.11, v0.3.21, v0.3.31 release checkpoints are defined by validated capabilities, not by "complete N scenarios."
 
 ---
 
