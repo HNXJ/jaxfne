@@ -516,17 +516,86 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 
 ---
 
-## 10. Next Safe Actions
+## 10. Reference Visual Notebook and Audit Bundle Notes
+
+**Date reviewed:** 2026-05-24  
+**Sources inspected:**
+1. `/Users/hamednejat/Downloads/jaxfne_jbiophysic_deep_audit_bundle.zip` — deep critical audit of jaxfne/jbiophysic alignment
+2. `/Users/hamednejat/Downloads/tfne_jaxfne_11_figures_executed.ipynb` — eleven-figure visual reference notebook
+
+### Audit Bundle Summary
+
+The `jaxfne_jbiophysic_deep_audit_bundle.md` (36.5 KB) contains:
+- **Executive decision:** jaxfne is closer to a stable toolbox; jbiophysic should refactor into a user-repo/scientific atlas rather than becoming a second TFNE engine.
+- **Key findings:** 6 P0 cross-repo conflicts (probe vocabulary, namespace collisions, optional test safety, bytecode artifacts, units/prose mismatches, overclaim language).
+- **jaxfne strengths:** Strong identity, truth gates embedded, tutorials execute, optional dependency posture, compact package, manifests first-class.
+- **jaxfne weaknesses:** `core.py` too large (3,715 lines), runtime/module collision workaround, probe readout API incomplete, tutorial template violates hard gate, docs expansion outpacing API stability.
+- **jbiophysic strengths:** Pedagogical ambition, targeted tests pass, HH implementation sound, scientific guardrails present, integration bridge exists.
+- **jbiophysic weaknesses:** Structurally overgrown (211 Python files, overlapping namespaces), `jtfne.py` monolith with wrong namespace, optional dependency tests not optional-safe.
+
+**Doctrine alignment:** All audit P0 findings are compatible with v0.3 accepted gates (truth_safe_unverified, computational_scaffold, laminar_proxy_no_pde, physical_amplitude_claim_allowed=False). No conflicts detected.
+
+### Notebook Figure Analysis
+
+The `tfne_jaxfne_11_figures_executed.ipynb` contains **11 figures** covering the full TFNE manuscript-level pipeline:
+
+1. **Fig 1: TFNE architecture flow chart** — operator pipeline with metadata gates; uses Sankey diagram + schematic flow
+2. **Fig 2: Source-to-field mathematical contract** — physics contract diagram + heatmap of laminar LFP-like output
+3. **Fig 3: jaxfne computational backend** — public objects + pure JAX kernel graph; user-facing orchestration
+4. **Fig 4: Single-neuron multimodal readout** — voltage-like, spike raster, source proxy, LFP/CSD/EEG/MEG/EMM traces
+5. **Fig 5: Parameter sweep evidence** — native drive to firing-rate gate; includes target band (2–25 Hz) and finite gates
+6. **Fig 6: Two-neuron E/I scaffold** — voltage, spikes, sources, laminar field proxies for minimal circuit
+7. **Fig 7: Small E/I network (24 neurons)** — raster, rate histogram, population rate, laminar proxies, synchrony diagnostic
+8. **Fig 8: 100-neuron population** — raster, rate histogram, mean source, LFP-like heatmap; standard tutorial size
+9. **Fig 9: Laminar-column scaffold** — declared geometry, contact-depth kernel, spectral profiles; no PDE solver claim
+10. **Fig 10: Spectrolaminar motif** — synthetic laminar signal with alpha/beta/gamma bands; internal profile diagnostic
+11. **Fig 11: Omission/null/multi-area summary** — condition × area heatmap, EEG/MEG/EMM proxies, null ablation controls
+
+**Figure type diversity:**
+- **3D / Dark anatomy:** None in this notebook (future candidate for v0.3.6+)
+- **Raster/spike plots:** Figs 4, 6, 7, 8 (standard for network visualization)
+- **Voltage traces:** Figs 4, 6 (single-cell and circuit context)
+- **Heatmap/spectrogram:** Figs 2, 8, 9, 10 (laminar depth × time or frequency views)
+- **Parameter sweep:** Fig 5 (gate validation, regime boundaries)
+- **Spectral profiles:** Fig 10 (laminar band-power organization)
+- **Multi-area/condition matrices:** Fig 11 (task/hierarchical structure)
+
+### Influence on v0.3.3–v0.3.31 Tutorial Visualization
+
+**Recommended adopters (small tutorials):**
+- **v0.3.3–v0.3.5:** Include trace + raster + basic spectral panel (not just one view). Reference Fig 4 single-cell multi-readout pattern.
+- **v0.3.6 (laminar column):** Adopt Fig 9 geometry + kernel + profile design; use heatmap for LFP/CSD time-depth view.
+- **v0.3.8 (LFP/CSD):** Mirror Fig 8 four-panel layout (raster, histogram, source, heatmap).
+
+**Deferred to later audit phases (v0.3.11+):**
+- 3D circuit/anatomy visualization (dark mode, node positions, connection arcs) — desirable but requires additional plotting infrastructure beyond PNG/Plotly
+- Spectrolaminar suite with full alpha/beta/gamma decomposition + null distribution (Fig 10 style) — advanced, requires spectral tooling
+- Multi-area task conditions with empirical nulls (Fig 11 style) — scaffold-stage; parametric swaps sufficient for v0.3.3–v0.3.5
+
+**Overclaim audit:** No figure title or caption claims biological validation, real EEG, or calibrated data. All use language: "proxy," "simulated," "mock," "declared," "internal diagnostic," "no PDE claim," or "no null normalization." Language aligns with v0.3 gates. Safe for reference.
+
+### Design Principles Extracted
+
+1. **Truth gates visible in figures:** Include legend or title note of computational_scaffold, laminar_proxy, no physical amplitude claim status.
+2. **Multi-modal readout as standard:** Single scalar output (e.g., only voltage) is insufficient; show spike, source, field, and at least one derived readout (LFP/CSD/EEG).
+3. **Laminar projection kernel as first-class:** Once column scenarios begin (v0.3.6+), always show contact-geometry and kernel weights as diagnostic.
+4. **Finite-array gates in report metadata:** Export JSON summary with `all_finite`, `target_rate_gate_2_25_hz`, and optionally `duration_ms`, `dt_ms`, `seed` for every figure artifact.
+5. **PNG + optional Plotly:** Matplotlib PNG for publication-stable reference; Plotly HTML for interactive exploration. Do not require Plotly for core validation.
+
+---
+
+## 12. Next Safe Actions
 
 1. **Immediate (human review):**
-   - Read this handoff
+   - Read this handoff (sections 1–11)
    - Decide on PyPI checkpoint strategy (sections 7–8)
-   - Address open questions (section 8)
+   - Address open questions (section 9)
 
 2. **After approval:**
    - Create v0.3.3 implementation prompt based on section 4 (v0.3.3 template)
    - Kick off v0.3.3 two-neuron E/I pair scenario
    - Follow standard workflow (section 2) for every subsequent tutorial
+   - Reference section 10 design principles for visualization choices
 
 3. **Ongoing:**
    - Reference this handoff throughout v0.3.3–v0.3.31 for consistency
@@ -536,5 +605,6 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 ---
 
 **Document prepared:** 2026-05-24  
+**Reference artifacts inspected:** 2026-05-24  
 **Baseline validation:** All prior phases (v0.3.1, v0.3.2, visualization doctrine) confirmed
 **Status:** Ready for v0.3.3 kick-off pending human review and decision responses
