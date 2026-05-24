@@ -1,0 +1,59 @@
+{
+  "tutorial_id": "v0301_single_izhikevich_neuron",
+  "run_id": "v031_single_izhikevich_1779582059",
+  "timestamp": "2026-05-23T19:20:59.190652",
+  "validation_gates": {
+    "firing_rate_2_25_hz": {
+      "status": "PASS",
+      "firing_rate_hz": 11.0,
+      "lower_bound": 2.0,
+      "upper_bound": 25.0
+    },
+    "voltage_finite": {
+      "status": "PASS",
+      "all_finite": true
+    },
+    "source_finite": {
+      "status": "PASS",
+      "all_finite": true
+    },
+    "json_safe": {
+      "status": "PASS",
+      "manifest_json_valid": true
+    },
+    "duration_gate": {
+      "status": "PASS",
+      "duration_ms": 1000.0,
+      "minimum_ms": 1000.0
+    },
+    "dt_gate": {
+      "status": "PASS",
+      "dt_ms": 0.1,
+      "required_ms": 0.1
+    },
+    "dtype_float32": {
+      "status": "PASS",
+      "dtype": "float32"
+    }
+  },
+  "claim_gates": {
+    "truth_mode": "truth_safe_unverified",
+    "claim_level": "computational_scaffold",
+    "physical_amplitude_claim_allowed": false,
+    "field_solver_status": "laminar_proxy_no_pde"
+  },
+  "figures": {
+    "voltage_trace": {
+      "path": "outputs/v031_single_neuron/figures/v0301_single_neuron_voltage.png",
+      "sha256": "38d291b56ec8b060ee368040b4c40cce605a9089b58448e271265c7f6973cef2"
+    },
+    "spike_raster": {
+      "path": "outputs/v031_single_neuron/figures/v0301_single_neuron_raster.png",
+      "sha256": "4d018270f225c0635df122e21cbf04bdcc6ed12440105b88c000621982bf43c0"
+    }
+  },
+  "summary": {
+    "all_gates_pass": true,
+    "status": "PASS"
+  }
+}

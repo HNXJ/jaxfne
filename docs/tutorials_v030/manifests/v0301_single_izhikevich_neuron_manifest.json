@@ -1,0 +1,93 @@
+{
+  "run_id": "v031_single_izhikevich_1779582059",
+  "tutorial_id": "v0301_single_izhikevich_neuron",
+  "jaxfne_version": "0.2.30",
+  "schema_version": "v0.3.1",
+  "timestamp": "2026-05-23T19:20:59.012674",
+  "truth_mode": "truth_safe_unverified",
+  "claim_level": "computational_scaffold",
+  "field_solver_status": "laminar_proxy_no_pde",
+  "field_claim_level": "proxy_readout_only",
+  "physical_amplitude_claim_allowed": false,
+  "biological_metabolism_claim_allowed": false,
+  "simulation": {
+    "duration_ms": 1000.0,
+    "dt_ms": 0.1,
+    "n_steps": 10000,
+    "seed": 42,
+    "dtype": "float32"
+  },
+  "neuron": {
+    "model": "izhikevich",
+    "preset": "cortical_eig",
+    "n_neurons": 1
+  },
+  "input_current_source": "network_configured_drive_and_recurrent",
+  "firing_rate": {
+    "firing_rate_hz": 11.0,
+    "n_spikes": 11,
+    "gate_2_25_hz": true
+  },
+  "voltage": {
+    "V_min_mV": -76.02818298339844,
+    "V_max_mV": 25.6466007232666,
+    "V_mean_mV": -67.43077850341797,
+    "all_finite": true
+  },
+  "geometry_metadata": {
+    "dx_mm": 0.01,
+    "dy_mm": 0.01,
+    "dz_mm": 0.01,
+    "note": "Declared tutorial geometry metadata; laminar_proxy_no_pde mode does not solve 3D PDE"
+  },
+  "source": {
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_projection_mode": "proxy_no_field_solve",
+    "source_decomposition": "proxy_reduced_emitter",
+    "all_finite": false
+  },
+  "field": {
+    "field_solver_status": "laminar_proxy_no_pde",
+    "CSD_sign_convention": "positive_equals_extracellular_source",
+    "boundary_condition": "mean_zero_neumann",
+    "gauge": "mean_zero"
+  },
+  "json_safety": {
+    "nan_free": true,
+    "inf_free": true,
+    "json_serializable": true
+  },
+  "numerical_gates": {
+    "dtype_float32": true,
+    "jax_native": true,
+    "cpu_runnable": true,
+    "deterministic_seed": true
+  },
+  "validation": {
+    "firing_rate_gate_pass": true,
+    "voltage_finite": true,
+    "source_finite": true,
+    "json_safe": true,
+    "duration_gate_pass": true,
+    "dt_gate_pass": true
+  },
+  "non_claims": [
+    "This tutorial is a computational scaffold, not a biological validation.",
+    "The Izhikevich native current is not empirically calibrated membrane current.",
+    "No field PDE is solved in laminar_proxy_no_pde mode.",
+    "Output CSD/LFP are proxy readouts without physical amplitude claims.",
+    "No biological mechanism is proven by this tutorial alone."
+  ],
+  "figures": {
+    "voltage_trace": {
+      "path": "outputs/v031_single_neuron/figures/v0301_single_neuron_voltage.png",
+      "sha256": "38d291b56ec8b060ee368040b4c40cce605a9089b58448e271265c7f6973cef2",
+      "dpi": 150
+    },
+    "spike_raster": {
+      "path": "outputs/v031_single_neuron/figures/v0301_single_neuron_raster.png",
+      "sha256": "4d018270f225c0635df122e21cbf04bdcc6ed12440105b88c000621982bf43c0",
+      "dpi": 150
+    }
+  }
+}
