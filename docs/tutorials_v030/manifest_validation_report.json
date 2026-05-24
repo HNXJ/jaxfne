@@ -23,10 +23,34 @@
         "firing_rate_range": true
       },
       "errors": []
+    },
+    "v030_02_single_neuron_parameter_sweep": {
+      "scenario": "v030_02_single_neuron_parameter_sweep",
+      "status": "PASS",
+      "checks": {
+        "structure_basis": true,
+        "structure_probe_report": true,
+        "structure_validation_report": true,
+        "structure_conservation_proxy_diagnostics": true,
+        "claim_physical_amplitude": true,
+        "claim_biological_metabolism": true,
+        "claim_level": true,
+        "probe_spikes": true,
+        "probe_V_m": true,
+        "probe_source": true,
+        "probe_lfp_proxy": true,
+        "probe_csd_proxy": true,
+        "probe_eeg_proxy": true,
+        "probe_meg_proxy": true,
+        "probe_emm_proxy": true,
+        "json_safe": true,
+        "firing_rate_range": true
+      },
+      "errors": []
     }
   },
   "summary": {
-    "passed": 1,
+    "passed": 2,
     "failed": 0,
     "errors": []
   }
