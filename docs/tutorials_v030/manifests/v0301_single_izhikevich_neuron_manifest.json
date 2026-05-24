@@ -1,0 +1,294 @@
+{
+  "basis": {
+    "biological_metabolism_claim_allowed": false,
+    "claim_level": "computational_scaffold",
+    "field_claim_level": "proxy_readout_only",
+    "field_solver_status": "laminar_proxy_no_pde",
+    "physical_amplitude_claim_allowed": false,
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_projection_mode": "proxy_no_field_solve",
+    "truth_mode": "truth_safe_unverified"
+  },
+  "conservation_proxy_diagnostics": {
+    "biological_metabolism_claim_allowed": false,
+    "claim_level": "computational_scaffold",
+    "csd_abs_mean": 55.33937454223633,
+    "csd_norm_l2": 109.77338409423828,
+    "diagnostic_status": "proxy",
+    "diagnostic_version": "v0.2.27",
+    "field_claim_level": "proxy_readout_only",
+    "field_energy_like_proxy": 0.5872474908828735,
+    "field_solver_status": "laminar_proxy_no_pde",
+    "j_dot_e_proxy": null,
+    "lfp_abs_mean": 3.0172362327575684,
+    "lfp_norm_l2": 3.8892440795898438,
+    "maxwell_solver_status": "not_implemented",
+    "mean_firing_rate_hz": 11.0,
+    "notes": [
+      "proxy diagnostics only \u2014 no physical amplitude claim",
+      "no biological metabolism claim",
+      "no Poisson solver in v0.2.27",
+      "no Maxwell/Poynting/stress-energy implementation",
+      "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
+      "source_conservation_proxy_residual is a spatial-mean proxy, not PDE-enforced"
+    ],
+    "phi_abs_mean": 3.0172362327575684,
+    "phi_gradient_proxy_norm2": 0.5872474908828735,
+    "physical_amplitude_claim_allowed": false,
+    "poisson_solver_status": "not_implemented",
+    "poynting_flux_proxy": null,
+    "source_abs_mean": 3.0172362327575684,
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_conservation_proxy_residual": 3.0172367095947266,
+    "source_norm_l1": 3.0172362327575684,
+    "source_norm_l2": 3.8892440795898438,
+    "stress_energy_tensor_status": "not_implemented"
+  },
+  "figures": {
+    "spike_raster": {
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0301_single_neuron_raster.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_01_single_neuron_izhikevich/figures/v0301_single_neuron_raster.png",
+      "sha256": "4d018270f225c0635df122e21cbf04bdcc6ed12440105b88c000621982bf43c0"
+    },
+    "voltage_trace": {
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0301_single_neuron_voltage.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_01_single_neuron_izhikevich/figures/v0301_single_neuron_voltage.png",
+      "sha256": "38d291b56ec8b060ee368040b4c40cce605a9089b58448e271265c7f6973cef2"
+    }
+  },
+  "firing_rate": {
+    "firing_rate_hz": 11.0,
+    "gate_2_25_hz": true,
+    "n_spikes": 11
+  },
+  "geometry_metadata": {
+    "dx_mm": 0.01,
+    "dy_mm": 0.01,
+    "dz_mm": 0.01,
+    "note": "Declared tutorial geometry; laminar_proxy_no_pde mode does not solve 3D PDE"
+  },
+  "jaxfne_version": "0.2.30",
+  "neuron": {
+    "model": "izhikevich",
+    "n_neurons": 1,
+    "preset": "cortical_eig"
+  },
+  "non_claims": [
+    "This tutorial is a computational scaffold, not a biological validation.",
+    "The Izhikevich native current is not empirically calibrated membrane current.",
+    "No field PDE is solved in laminar_proxy_no_pde mode.",
+    "Output CSD/LFP are proxy readouts without physical amplitude claims.",
+    "No biological mechanism is proven by this tutorial alone."
+  ],
+  "plotly": {
+    "plotly_available": false,
+    "plotly_html_generated": false,
+    "plotly_status_reason": "static_png_baseline_for_v0301"
+  },
+  "probe_report": {
+    "V_m": {
+      "assumptions": [
+        "voltage_from_emitter_native_state",
+        "not_physical_membrane_voltage_unless_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 1)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "vm",
+      "method": "emitter_state_voltage_trace",
+      "name": "vm",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "mV_or_native_model_voltage"
+    },
+    "csd_proxy": {
+      "CSD_sign_convention": "positive_equals_extracellular_source",
+      "assumptions": [
+        "laminar_proxy_field_no_pde",
+        "second_derivative_or_divergence_proxy",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "csd_proxy",
+      "method": "divergence_proxy_or_second_derivative_laminar",
+      "name": "csd_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "proxy_A_m^-3_or_proxy_units"
+    },
+    "eeg_proxy": {
+      "assumptions": [
+        "simulated_eeg_proxy_readout",
+        "toy_or_declared_leadfield",
+        "not_validated_against_real_eeg",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "eeg_proxy",
+      "leadfield_status": "toy_or_declared_proxy",
+      "method": "linear_leadfield_proxy",
+      "name": "eeg_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "sensor_geometry_status": "simulated_minimal",
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "arbitrary_proxy_units"
+    },
+    "emm_proxy": {
+      "assumptions": [
+        "emm_proxy_normalized_activity_cost",
+        "not_biological_metabolism",
+        "relative_within_run_comparison_only",
+        "proxy_electrophysiological_field_activity_cost"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000,)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "emm_proxy",
+      "method": "normalized_activity_field_source_cost_proxy",
+      "name": "emm_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "normalized_proxy_units"
+    },
+    "lfp_proxy": {
+      "assumptions": [
+        "laminar_proxy_field_no_pde",
+        "contact_sample_from_phi_e_proxy",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "lfp_proxy",
+      "method": "point_or_finite_contact_phi_proxy",
+      "name": "lfp_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "proxy_voltage_units_or_V_if_calibrated"
+    },
+    "meg_proxy": {
+      "assumptions": [
+        "simulated_meg_proxy_readout",
+        "toy_or_declared_leadfield",
+        "current_orientation_proxy",
+        "not_validated_against_real_meg",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "meg_proxy",
+      "leadfield_status": "toy_or_declared_proxy",
+      "method": "linear_current_orientation_proxy",
+      "name": "meg_proxy",
+      "operator_status": "simulated_proxy",
+      "orientation_convention": "declared",
+      "physical_amplitude_claim_allowed": false,
+      "sensor_geometry_status": "simulated_minimal",
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "arbitrary_proxy_units"
+    },
+    "source": {
+      "assumptions": [
+        "source_from_emitter_native_state",
+        "not_physical_membrane_current_unless_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 1)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "source",
+      "method": "declared_source_projection_or_proxy",
+      "name": "source",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "native_current_units_or_proxy"
+    },
+    "spikes": {
+      "assumptions": [
+        "spike_array_from_emitter_or_threshold",
+        "binary_or_threshold_values"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 1)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "spk",
+      "method": "threshold_or_emitter_spike_array",
+      "name": "spk",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "binary_spike_indicator"
+    }
+  },
+  "run_id": "v031_single_izhikevich_1779584243",
+  "scenario_id": "v030_01_single_neuron_izhikevich",
+  "schema_version": "v0.3.1",
+  "simulation": {
+    "dt_ms": 0.1,
+    "dtype": "float32",
+    "duration_ms": 1000.0,
+    "n_steps": 10000,
+    "seed": 42
+  },
+  "source": {
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_finite": true,
+    "source_projection_mode": "proxy_no_field_solve",
+    "source_proxy_status": "generated_proxy"
+  },
+  "timestamp": "2026-05-23T19:57:23.055354",
+  "tutorial_id": "v0301_single_izhikevich_neuron",
+  "validation_report": {
+    "all_gates_pass": true,
+    "dt_gate": true,
+    "dtype_gate": true,
+    "duration_gate": true,
+    "firing_rate_gate_2_25_hz": true,
+    "json_safe": true,
+    "source_finite": true,
+    "status": "PASS",
+    "voltage_finite": true
+  },
+  "voltage": {
+    "V_max_mV": 25.6466007232666,
+    "V_mean_mV": -67.43077850341797,
+    "V_min_mV": -76.02818298339844,
+    "all_finite": true
+  }
+}

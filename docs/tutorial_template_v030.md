@@ -105,7 +105,7 @@ cfg = (
     )
     .probe(
         name="laminar_probe",
-        modes=["spk", "vm", "source", "lfp_like", "csd_like"],
+        modes=["spikes", "V_m", "source", "LFP", "CSD"],
         n_contacts=16,
     )
 )
@@ -135,7 +135,7 @@ Include: `n_time`, `n_neurons`, time resolution (dt_ms).
 ### Section 7 — Probe/Readout Block (Code Cell)
 
 ```python
-readout = model.probe(signals, modes=["spk", "vm", "source", "lfp_like", "csd_like"])
+readout = model.probe(signals, modes=["spikes", "V_m", "source", "LFP", "CSD"])
 ```
 
 For tutorials that use specific readout operators, show the relevant arrays and shapes.

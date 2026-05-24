@@ -1,7 +1,7 @@
 {
   "schema_version": "v0.3.0",
   "status": "pass",
-  "checked_files": 15,
+  "checked_files": 16,
   "missing_links": [],
   "missing_colab_links": [],
   "latex_policy_violations": [],

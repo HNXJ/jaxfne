@@ -59,6 +59,7 @@ from .core import (
     surrogate_config,
     trial_batch,
     validate_config,
+    with_emitter_parameters,
     _KNOWN_METRICS,
     default_basis_spec,
 )
@@ -164,6 +165,7 @@ __all__ = [
     "surrogate_config",
     "trial_batch",
     "validate_config",
+    "with_emitter_parameters",
     "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",

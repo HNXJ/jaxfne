@@ -1,6 +1,6 @@
 # jaxfne
 
-**JAX-native TFNE (Tensor-Field Neural Emitter) workflows for reproducible computational neurophysiology.**
+**JAX-native TFNE (Tensor-Field Neural Equations) workflows for reproducible computational neurophysiology.**
 
 [![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/) ·
 [![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/) ·
@@ -31,14 +31,9 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 pip install jaxfne
 ```
 
-Optional JAX acceleration:
+Optional development, visualization, and optimizer extras:
 ```bash
-pip install -e '.[jax]'
-```
-
-Optional development/visualization:
-```bash
-pip install -e '.[dev,viz]'
+pip install -e '.[dev,viz,opt]'
 ```
 
 ### Minimal Example
@@ -146,7 +141,7 @@ python -m compileall -q jaxfne tests examples scripts
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=line
 ```
 
-**Results:** 806 tests passed, 5 skipped. Examples 00–06 run. Build validation passes.
+Run the commands above and report the resulting counts from your local environment (include Python version, platform, and git SHA for reproducibility).
 
 ### Extended validation (release, ~5–10 minutes)
 

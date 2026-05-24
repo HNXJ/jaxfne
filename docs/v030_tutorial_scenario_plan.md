@@ -50,11 +50,12 @@ cfg = (
         boundary="mean_zero_neumann",
         gauge="mean_zero",
     )
-    .probe(name="laminar_probe", modes=["spk", "vm", "source", "lfp_like", "csd_like"], n_contacts=16)
+    .probe(name="laminar_probe", modes=["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
 )
 
+run = jtfne.runtime(device_type="auto", dtype="float32", x64_enabled=False, seed=0)
 model = jtfne.construct(cfg)
-sim = jtfne.simulation(duration_ms=<ms>, dt_ms=0.1, seed=0)
+sim = jtfne.simulation(duration_ms=<ms>, dt_ms=0.1, seed=0, runtime=run)
 signals = model.simulate(sim)
 manifest = model.manifest(signals)
 ```

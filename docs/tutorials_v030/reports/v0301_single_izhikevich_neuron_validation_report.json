@@ -1,0 +1,11 @@
+{
+  "all_gates_pass": true,
+  "dt_gate": true,
+  "dtype_gate": true,
+  "duration_gate": true,
+  "firing_rate_gate_2_25_hz": true,
+  "json_safe": true,
+  "source_finite": true,
+  "status": "PASS",
+  "voltage_finite": true
+}
