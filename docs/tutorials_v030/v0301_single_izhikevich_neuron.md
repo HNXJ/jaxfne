@@ -227,12 +227,12 @@ These gates are **immutable** and define the scope of the tutorial. No biologica
 ## Section 9: Figures and Artifacts
 
 ### Voltage Trace
-![v0301_single_neuron_voltage](../../outputs/v031_single_neuron/figures/v0301_single_neuron_voltage.png)
+![v0301_single_neuron_voltage](./_static/figures/v0301_single_neuron_voltage.png)
 
 **Figure description:** Membrane voltage over 1 second. The neuron exhibits spontaneous spiking driven by internal dynamics and network currents. No external stimulus is applied; the spike pattern emerges from the configuration parameters.
 
 ### Spike Raster
-![v0301_single_neuron_raster](../../outputs/v031_single_neuron/figures/v0301_single_neuron_raster.png)
+![v0301_single_neuron_raster](./_static/figures/v0301_single_neuron_raster.png)
 
 **Figure description:** Spike times across the 1-second simulation. 11 spikes were detected, corresponding to an 11 Hz mean firing rate. The spike pattern is irregular, consistent with the Izhikevich model's built-in adaptation.
 
