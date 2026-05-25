@@ -25,7 +25,7 @@ def require_matplotlib() -> None:
 
 
 def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
-    """Generate a gorgeous, high-fidelity, 3-panel spectrolaminar profile figure.
+    """Generate a publication-ready, 3-panel spectrolaminar profile figure.
 
     Computes multi-contact Power Spectral Density (PSD) using `scipy.signal.welch`
     and renders space-time and frequency-depth laminar heatmaps.
@@ -137,7 +137,7 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
     # Visual branding and positive-scope disclaimer
     fig.suptitle(
         "jaxfne Spectrolaminar Profile  |  "
-        "Status: Simulated Laminar Proxy Readout (Not Empirically Calibrated)",
+        "Status: Simulated Laminar Proxy Readout",
         fontsize=11,
         color="#495057",
         fontstyle="italic",
