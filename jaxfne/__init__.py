@@ -53,6 +53,7 @@ from .core import (
     readout_spec,
     run_receipt,
     run_trials,
+    simulate,
     simulation,
     standard_visual_omission,
     stimulus_schedule,
@@ -64,6 +65,7 @@ from .core import (
     default_basis_spec,
 )
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley
+from . import vis
 from .emitters import (
     EdgeList,
     EIGNetwork,
@@ -159,12 +161,14 @@ __all__ = [
     "runtime",
     "runtime_report",
     "run_trials",
+    "simulate",
     "simulation",
     "standard_visual_omission",
     "stimulus_schedule",
     "surrogate_config",
     "trial_batch",
     "validate_config",
+    "vis",
     "with_emitter_parameters",
     "_KNOWN_METRICS",
     "EdgeList",
