@@ -1,6 +1,6 @@
 # jaxfne
 
-**JAX-native TFNE (Tensor-Field Neural Emitter) workflows for reproducible computational neurophysiology.**
+**JAX-native TFNE (Tensor-Field Neural Equations) workflows for reproducible computational neurophysiology.**
 
 [![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/) ·
 [![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/) ·
@@ -31,14 +31,9 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 pip install jaxfne
 ```
 
-Optional JAX acceleration:
+Optional development, visualization, and optimizer extras:
 ```bash
-pip install -e '.[jax]'
-```
-
-Optional development/visualization:
-```bash
-pip install -e '.[dev,viz]'
+pip install -e '.[dev,viz,opt]'
 ```
 
 ### Minimal Example
@@ -105,7 +100,7 @@ field_solver_status = "laminar_proxy_no_pde"
 
 CSD and LFP are computed from source without solving the Poisson equation. Conductivity is metadata-only.
 
-**Future (v0.2.27+):** Optional field diagnostics; physical conductivity (v0.3.x)
+**Available (v0.2.27+):** Conservation-inspired proxy diagnostics. Physical conductivity remains gated future work (v0.3.x).
 
 ### 4. Probe: Multimodal Readouts
 
@@ -146,7 +141,7 @@ python -m compileall -q jaxfne tests examples scripts
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=line
 ```
 
-**Results:** 806 tests passed, 5 skipped. Examples 00–06 run. Build validation passes.
+Run the commands above and report the resulting counts from your local environment (include Python version, platform, and git SHA for reproducibility).
 
 ### Extended validation (release, ~5–10 minutes)
 
@@ -179,12 +174,25 @@ Runs large tutorials (examples 02–07) with deterministic figures and asset has
 | Version | Phase | Content | Status |
 |---------|-------|---------|--------|
 | **v0.2.24** | Foundation Audit | Audited contracts, verified solver status, updated language | ✓ Released |
-| **v0.2.25** | Docs-First | Mathematical glossary, source/field doctrine, computation basis | 🔄 In Progress |
-| **v0.2.26** | Extensibility | Documented future bases (layer projection, spectral), multi-area scaffolds | 📋 Planned |
-| **v0.2.27** | Diagnostics | Optional Poisson-admissibility solver with conservation validation (no physical conductivity yet) | 📋 Planned |
-| **v0.3.0** | Physical Field | Calibrated conductivity, solved field with empirical geometry, EEG/MEG/field calibration | 📋 Planned |
+| **v0.2.25** | Docs-First | Mathematical glossary, source/field doctrine, computation basis | ✓ Released |
+| **v0.2.26** | Extensibility | Documented future bases, multi-area scaffolds, BasisSpec | ✓ Released |
+| **v0.2.27** | Diagnostics | Conservation-inspired proxy diagnostics, source norms, field-gradient proxy | ✓ Released |
+| **v0.2.28** | Tutorial Figures | Canonical tutorial figure manifest, static PNGs, Jaxley bridge hardening | ✓ Released |
+| **v0.2.29** | Tensor-Network Ancestry | Pellionisz/Llinás context, basis-transform doctrine | ✓ Released |
+| **v0.2.30** | Performance Hardening | Benchmark receipts, JSON safety validation, CI policy | ✓ Released |
+| **v0.3.x** | Tutorial-Scenario Line | 32-phase tutorial spine on stable v0.2.30 toolbox; no automatic package bumps | 🔄 In Progress |
 
-**Current phase:** v0.2.25 docs-first. No new solvers or diagnostics in v0.2.x; conservation material documented as future.
+**Current phase:** v0.3 tutorial-scenario line (built on `jaxfne==0.2.30`). The v0.3 line is primarily docs, notebooks, equations, and figures. The v0.3 line uses `import jaxfne as jtfne` on the stable v0.2.30 toolbox unless a package bug requires a patch release.
+
+**v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
+- **15-scenario learning spine** (single neurons → optimization)
+- **13-section notebook template** (learning objectives, mathematics, claims, figures) with LaTeX equation display policy
+- **Hard acceptance gates** (firing rate 2–25 Hz, finite values, JSON-safe, JAX-native)
+- **PNG + Plotly artifact system** (reproducible figures with SHA256 integrity)
+- **Canonical imports** (`import jaxfne as jtfne` enforced)
+- **Docs audit policy** (link validation, Colab links, LaTeX equations, term glossaries)
+- **Environment setup** ([`requirements-v030-tutorials.txt`](requirements-v030-tutorials.txt), [`docs/tutorials_v030/environment.md`](docs/tutorials_v030/environment.md))
+- **Automated audit script** ([`scripts/audit_v030_docs_links.py`](scripts/audit_v030_docs_links.py))
 
 ---
 

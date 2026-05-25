@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document describes the computation basis of TFNE (Tensor-Field Neural Emitter): a principled framework for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
+This document describes the computation basis of TFNE (Tensor-Field Neural Equations): a principled framework for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
 
 The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape contract. When not computed or not claimed, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
 

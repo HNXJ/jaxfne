@@ -1,0 +1,294 @@
+---
+# v0.3 Tutorial Acceptance Gates — Hard Validation Criteria
+# version: 0.3.0
+# last_updated: 2026-05-23
+# truth_mode: truth_safe_unverified
+
+description: |
+  All v0.3 tutorial scenarios must pass these hard acceptance gates.
+  Gates are grouped by category (Firing Rate, Numerical, JSON, JAX, Geometry, Figures, Claims).
+  Each gate includes a human-readable check, acceptance criterion, and failure action.
+
+gates:
+
+  # GATE CATEGORY 1: FIRING RATE
+  firing_rate:
+    check: "Population mean firing rate (Hz)"
+    criterion: "2.0 <= mean_firing_rate <= 25.0"
+    description: |
+      Each neural population must fire within the physiological range of 2–25 Hz.
+      This ensures the model is not trivial (flat, < 2 Hz) or pathological (explosive, > 25 Hz).
+    acceptance_logic: |
+      firing_rates = [len(spike_times) / duration_sec for spike_times in all_neurons]
+      mean_fr = mean(firing_rates)
+      assert 2.0 <= mean_fr <= 25.0, f"Firing rate {mean_fr} Hz outside [2, 25] range"
+    failure_action: "REJECT scenario; fix parameters and re-run"
+
+  firing_rate_per_population:
+    check: "Per-population firing rate (multi-population networks)"
+    criterion: "2.0 <= per_pop_firing_rate <= 25.0 for each population"
+    description: |
+      If the scenario has multiple populations (excitatory, inhibitory, or layered),
+      each must independently satisfy 2–25 Hz firing.
+    acceptance_logic: |
+      for pop_name, neurons in populations.items():
+          firing_rates = [len(spike_times) / duration_sec for spike_times in neurons]
+          assert all(2.0 <= fr <= 25.0 for fr in firing_rates), \
+              f"Population {pop_name} fails firing rate gate"
+    failure_action: "REJECT scenario; rebalance connectivity or input"
+
+  # GATE CATEGORY 2: NUMERICAL STABILITY
+  finiteness:
+    check: "No NaN or Inf in simulation outputs"
+    criterion: "isfinite(V_m) && isfinite(spikes) && isfinite(field_proxies) == True for all timesteps"
+    description: |
+      All numerical values in the simulation must be finite (not NaN, not Inf).
+      This validates that the JAX-native numerical path is stable.
+    acceptance_logic: |
+      assert jnp.all(jnp.isfinite(signals.V_m)), "V_m contains NaN or Inf"
+      assert jnp.all(jnp.isfinite(signals.spikes)), "Spikes contains NaN or Inf"
+      if signals.field is not None:
+          assert jnp.all(jnp.isfinite(signals.field.phi_e)), "Field phi_e contains NaN or Inf"
+    failure_action: "REJECT scenario; check dt_ms, parameters, and initial conditions"
+
+  voltage_bounds:
+    check: "Membrane voltage within plausible physiological range"
+    criterion: "-120 mV <= V_m <= +50 mV (absolute bounds, most values -100 to +40 mV)"
+    description: |
+      Voltage traces should stay within the physiological range of real neurons.
+      Extreme values (< -120 or > +50) may indicate numerical instability.
+    acceptance_logic: |
+      v_min, v_max = jnp.min(signals.V_m), jnp.max(signals.V_m)
+      assert v_min >= -120.0, f"V_m min {v_min} mV below -120 mV"
+      assert v_max <= +50.0, f"V_m max {v_max} mV above +50 mV"
+    failure_action: "REJECT scenario; check ion channel parameters and driving forces"
+
+  current_bounds:
+    check: "Synaptic/stimulus currents within plausible range"
+    criterion: "|I| <= 1000 pA (typical range 0–500 pA)"
+    description: |
+      Input currents and synaptic conductances should match the physiological scale
+      of typical electrophysiology experiments.
+    acceptance_logic: |
+      if signals.source is not None:
+          source_max = jnp.max(jnp.abs(signals.source))
+          assert source_max <= 1000.0, f"Source current {source_max} pA exceeds 1000 pA"
+    failure_action: "REJECT scenario; rescale input current or conductance"
+
+  # GATE CATEGORY 3: JSON SAFETY
+  json_serializable:
+    check: "Manifest and outputs are JSON-serializable without NaN/Inf"
+    criterion: "json.dumps(manifest) succeeds; no NaN or Infinity strings in JSON"
+    description: |
+      All outputs (manifest, metrics, spike times) must be serializable to JSON
+      and must not contain the JSON literals NaN, Infinity, or -Infinity.
+    acceptance_logic: |
+      import json
+      manifest_json = jtfne.json_safe(manifest)
+      json_str = json.dumps(manifest_json)
+      assert "NaN" not in json_str and "Infinity" not in json_str, "JSON contains NaN/Infinity"
+    failure_action: "REJECT scenario; check for non-finite values in metrics"
+
+  metrics_json_safe:
+    check: "Metrics (rates, power, etc.) are JSON-safe"
+    criterion: "All metric values are finite; no NaN/Inf/string mismatch"
+    description: |
+      Post-hoc analysis metrics (firing rates, spectral power, correlation) must be
+      JSON-safe floats or integers, not NaN or Inf.
+    acceptance_logic: |
+      for metric_name, metric_value in manifest['conservation_proxy_diagnostics'].items():
+          if isinstance(metric_value, (int, float)):
+              assert jnp.isfinite(metric_value), \
+                  f"Metric {metric_name} = {metric_value} is not finite"
+    failure_action: "REJECT scenario; check metrics computation for division by zero, etc."
+
+  # GATE CATEGORY 4: JAX NATIVE
+  jittable_simulation:
+    check: "Simulation loop is JAX-jittable (no Python I/O, print, etc.)"
+    criterion: "No Python-only operations in hot loop; jit-compatible path exists"
+    description: |
+      The core simulation (scan/vmap over neurons) must be JAX-native and jittable.
+      Plotting, file I/O, and serialization are NOT part of the hot path.
+    acceptance_logic: |
+      # Code review check: verify no print(), open(), non-JAX ops in scan loop
+      # Test by attempting jit compilation
+      try:
+          jitted_sim = jax.jit(simulation_function)
+          _ = jitted_sim(key, initial_state)
+          print("✓ Simulation path is jittable")
+      except Exception as e:
+          raise AssertionError(f"Simulation not jittable: {e}")
+    failure_action: "REJECT scenario; move I/O outside simulation loop"
+
+  no_python_loops_in_hot_path:
+    check: "No Python for-loops in JAX simulation hot path"
+    criterion: "JAX scan/vmap used for time/neuron loops; no Python iteration"
+    description: |
+      JAX scan or vmap must be used for temporal and batch dimensions,
+      not Python for-loops. This ensures JIT compilation and GPU compatibility.
+    acceptance_logic: |
+      # Code review check: grep simulation function for "for i in range", "while", etc.
+      # All must be outside JAX operations
+      assert "for " not in simulation_source_code or \
+             "jax.lax.scan" in simulation_source_code, \
+             "Python loop detected in hot path; use jax.lax.scan instead"
+    failure_action: "REJECT scenario; refactor to use jax.lax.scan"
+
+  # GATE CATEGORY 5: GEOMETRY METADATA
+  geometry_declared:
+    check: "Spatial geometry metadata present and consistent"
+    criterion: "dx, dy, dz all declared; consistent with laminar_proxy_no_pde mode"
+    description: |
+      Tutorials must explicitly declare spatial grid spacing (dx=dy=dz=0.010 mm)
+      to avoid false claims of 3D PDE computation. This is metadata only in proxy mode.
+    acceptance_logic: |
+      assert 'geometry' in manifest or 'metadata' in manifest, "Geometry not declared"
+      geom = manifest.get('geometry') or manifest.get('metadata', {})
+      assert 'dx_mm' in geom and 'dy_mm' in geom and 'dz_mm' in geom, \
+             "Spatial resolution (dx, dy, dz) not declared"
+      assert geom['dx_mm'] == geom['dy_mm'] == geom['dz_mm'], \
+             "Isotropic geometry required for laminar_proxy_no_pde"
+    failure_action: "REJECT scenario; add explicit geometry metadata"
+
+  no_false_pde_claims:
+    check: "Geometry does not imply 3D PDE solution in laminar_proxy_no_pde mode"
+    criterion: "field_solver_status = 'laminar_proxy_no_pde' (no Maxwell/Poisson)"
+    description: |
+      Even though geometry is declared, the field is computed via kernel projection,
+      not by solving Poisson/Maxwell PDEs. The metadata must reflect this.
+    acceptance_logic: |
+      basis = manifest['basis']
+      assert basis['field_solver_status'] == 'laminar_proxy_no_pde', \
+             "field_solver_status must be 'laminar_proxy_no_pde'"
+      assert basis['physical_amplitude_claim_allowed'] == False, \
+             "physical_amplitude_claim_allowed must be False"
+    failure_action: "REJECT scenario; correct field_solver_status claim"
+
+  # GATE CATEGORY 6: FIGURE ARTIFACTS
+  png_figures_present:
+    check: "All required PNG figures exist and are non-zero"
+    criterion: ">= 2 PNG figures per scenario; file size > 1 KB; format valid"
+    description: |
+      Tutorials must generate at least 2 PNG figures (spike raster, voltage trace, etc.).
+      Figures validate reproducibility and provide visual evidence.
+    acceptance_logic: |
+      import os
+      fig_dir = "outputs/v030_XX/"
+      png_files = [f for f in os.listdir(fig_dir) if f.endswith('.png')]
+      assert len(png_files) >= 2, f"Only {len(png_files)} PNG files found (need >= 2)"
+      for png_file in png_files:
+          file_size = os.path.getsize(os.path.join(fig_dir, png_file))
+          assert file_size > 1000, f"PNG {png_file} is {file_size} bytes (< 1 KB, too small)"
+    failure_action: "REJECT scenario; regenerate figures with adequate resolution"
+
+  figure_hashes_present:
+    check: "All PNG figures have SHA256 hashes recorded"
+    criterion: "artifacts.json contains filename → sha256 mapping for all PNGs"
+    description: |
+      Figure integrity validation requires SHA256 hashes. These must be computed
+      and stored in an artifacts metadata JSON file.
+    acceptance_logic: |
+      import json, hashlib
+      with open("outputs/v030_XX/artifacts.json") as f:
+          artifacts = json.load(f)
+      for png_file in png_files:
+          assert png_file in artifacts, f"PNG {png_file} missing from artifacts.json"
+          recorded_hash = artifacts[png_file]['sha256']
+          with open(os.path.join("outputs/v030_XX", png_file), 'rb') as f:
+              computed_hash = hashlib.sha256(f.read()).hexdigest()
+          assert recorded_hash == computed_hash, \
+              f"PNG {png_file} hash mismatch: {recorded_hash} != {computed_hash}"
+    failure_action: "REJECT scenario; recompute and record SHA256 hashes"
+
+  plotly_optional:
+    check: "Interactive Plotly figures (optional enhancement)"
+    criterion: "If Plotly available: >= 1 HTML figure; guarded import used"
+    description: |
+      Plotly is optional. If used, figures must be generated from source data
+      (not PNG conversion) and stored with hashes like PNG.
+    acceptance_logic: |
+      if PLOTLY_AVAILABLE:
+          html_files = [f for f in os.listdir(fig_dir) if f.endswith('.html')]
+          assert len(html_files) >= 1, "Plotly available but no HTML figures generated"
+          # Each HTML should also be in artifacts.json with hash
+    failure_action: "OPTIONAL gate (skip if Plotly unavailable); if used, ensure hashing"
+
+  # GATE CATEGORY 7: CLAIM GATES
+  claim_gates_frozen:
+    check: "All claim gates are frozen and immutable"
+    criterion: |
+      physical_amplitude_claim_allowed = False
+      biological_metabolism_claim_allowed = False
+      claim_level = 'computational_scaffold'
+      field_solver_status = 'laminar_proxy_no_pde'
+      truth_mode = 'truth_safe_unverified'
+    description: |
+      These claim gates are hardcoded in v0.2.30 and cannot change in v0.3.
+      They enforce truthful, bounded framing of all results.
+    acceptance_logic: |
+      basis = manifest['basis']
+      assert basis['physical_amplitude_claim_allowed'] == False, \
+             "physical_amplitude_claim_allowed must be False"
+      assert basis['biological_metabolism_claim_allowed'] == False, \
+             "biological_metabolism_claim_allowed must be False"
+      assert basis['claim_level'] == 'computational_scaffold', \
+             "claim_level must be 'computational_scaffold'"
+      assert basis['field_solver_status'] == 'laminar_proxy_no_pde', \
+             "field_solver_status must be 'laminar_proxy_no_pde'"
+    failure_action: "CRITICAL: REJECT scenario; cannot modify claim gates"
+
+  no_overclaiming_language:
+    check: "Tutorial text does not overclaim biological status"
+    criterion: "No phrases like 'proves', 'demonstrates mechanism', 'validates' without qualification"
+    description: |
+      Prose and figure captions must avoid language that implies biological proof
+      or validation. Permitted: "shows", "illustrates", "demonstrates a model".
+      Forbidden: "proves", "validates against biology", "demonstrates a neural mechanism".
+    acceptance_logic: |
+      # Manual language audit: grep tutorial notebook for overclaim keywords
+      overclaim_words = ['proves', 'validates', 'biological mechanism', 'real neurons']
+      for word in overclaim_words:
+          if word.lower() in notebook_source.lower():
+              # Flag for human review; context-dependent
+              print(f"WARNING: '{word}' found in notebook; verify context is appropriate")
+    failure_action: "REJECT scenario if overclaiming detected; fix language"
+
+  section_13_present:
+    check: "Non-claim statement (Section 13) present and complete"
+    criterion: "Section 13 as final cell; includes 'What this IS/IS NOT', claim gates, citation"
+    description: |
+      Every tutorial must end with an explicit non-claim statement clarifying
+      computational vs. biological scope, with immutable claim gates listed.
+    acceptance_logic: |
+      assert notebook_cells[-1]['metadata'].get('section') == 13 or \
+             "Non-Claim Statement" in notebook_cells[-1]['source'], \
+             "Section 13 (non-claim statement) not found or not final cell"
+    failure_action: "CRITICAL: REJECT scenario; Section 13 mandatory in every tutorial"
+
+  # GATE CATEGORY 8: INTEGRATION
+  all_8_probes_present:
+    check: "All 8 multimodal readout operators present in manifest"
+    criterion: "probe_report includes: spikes, V_m, source, lfp_proxy, csd_proxy, eeg_proxy, meg_proxy, emm_proxy"
+    description: |
+      The TFNE framework defines 8 probe operators. All must be present in the
+      final manifest, even if some are trivial proxies (for consistency).
+    acceptance_logic: |
+      probe_ops = ['spikes', 'V_m', 'source', 'lfp_proxy', 'csd_proxy', 'eeg_proxy', 'meg_proxy', 'emm_proxy']
+      for op in probe_ops:
+          assert op in manifest['probe_report'], f"Probe operator {op} missing"
+    failure_action: "REJECT scenario; ensure all 8 probes computed and reported"
+
+  manifest_complete:
+    check: "Manifest structure complete"
+    criterion: "manifest contains: basis, probe_report, validation_report, conservation_proxy_diagnostics, metadata"
+    description: |
+      The manifest JSON must have all required top-level blocks for consistency.
+    acceptance_logic: |
+      required_blocks = ['basis', 'probe_report', 'validation_report', 'conservation_proxy_diagnostics']
+      for block in required_blocks:
+          assert block in manifest, f"Manifest missing required block: {block}"
+    failure_action: "REJECT scenario; regenerate manifest with all blocks"
+
+---
+
+# End of acceptance_gates.yaml

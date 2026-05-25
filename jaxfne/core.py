@@ -2344,6 +2344,122 @@ class Model:
         }
         return best_model, json_safe(report)
 
+    def with_emitter_parameters(
+        self,
+        *,
+        a: "float | None" = None,
+        b: "float | None" = None,
+        c: "float | None" = None,
+        d: "float | None" = None,
+        drive_scale: "float | None" = None,
+        # New per-neuron overrides (v0.3.3)
+        a_per_neuron: "jax.Array | None" = None,
+        b_per_neuron: "jax.Array | None" = None,
+        c_per_neuron: "jax.Array | None" = None,
+        d_per_neuron: "jax.Array | None" = None,
+        drive_per_neuron: "jax.Array | None" = None,
+    ) -> "Model":
+        """Return a new Model with Izhikevich parameter overrides.
+
+        Supports both scalar (uniform) and per-neuron (array) overrides.
+        Per-neuron arrays take priority over scalar values.
+        Explicit None checks are used to handle zero-valued arrays correctly.
+
+        Args:
+            a: Scalar recovery time scale override (uniform to all neurons).
+            b: Scalar voltage-sensitivity override (uniform).
+            c: Scalar post-spike reset override (uniform).
+            d: Scalar post-spike increment override (uniform).
+            drive_scale: Multiplicative gain on native drive.
+            a_per_neuron: Per-neuron recovery time scale (shape: [n_neurons]).
+            b_per_neuron: Per-neuron voltage sensitivity (shape: [n_neurons]).
+            c_per_neuron: Per-neuron reset voltage (shape: [n_neurons]).
+            d_per_neuron: Per-neuron recovery increment (shape: [n_neurons]).
+            drive_per_neuron: Per-neuron absolute drive (shape: [n_neurons]).
+                Overrides both scalar drive_scale and emitter.drive.
+
+        Returns:
+            New Model — original is not mutated.
+        """
+        emitter: IzhikevichParams = self.params["emitter"]
+        updates: dict[str, Any] = {}
+
+        # a: per-neuron takes priority over scalar
+        if a_per_neuron is not None:
+            updates["a"] = jnp.asarray(a_per_neuron, dtype=emitter.a.dtype)
+        elif a is not None:
+            updates["a"] = jnp.ones_like(emitter.a) * float(a)
+
+        # b: per-neuron takes priority over scalar
+        if b_per_neuron is not None:
+            updates["b"] = jnp.asarray(b_per_neuron, dtype=emitter.b.dtype)
+        elif b is not None:
+            updates["b"] = jnp.ones_like(emitter.b) * float(b)
+
+        # c: per-neuron takes priority over scalar
+        if c_per_neuron is not None:
+            updates["c"] = jnp.asarray(c_per_neuron, dtype=emitter.c.dtype)
+        elif c is not None:
+            updates["c"] = jnp.ones_like(emitter.c) * float(c)
+
+        # d: per-neuron takes priority over scalar
+        if d_per_neuron is not None:
+            updates["d"] = jnp.asarray(d_per_neuron, dtype=emitter.d.dtype)
+        elif d is not None:
+            updates["d"] = jnp.ones_like(emitter.d) * float(d)
+
+        # drive: per-neuron absolute takes priority; scalar applies multiplicative scale
+        if drive_per_neuron is not None:
+            updates["drive"] = jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype)
+        elif drive_scale is not None:
+            updates["drive"] = emitter.drive * float(drive_scale)
+
+        new_emitter = replace(emitter, **updates)
+        new_params = dict(self.params)
+        new_params["emitter"] = new_emitter
+        return replace(self, params=new_params)
+
+    def with_recurrent_coupling(
+        self,
+        *,
+        g_ei: float = 5.0,
+        g_ie: float = 3.0,
+        tau_syn_e_ms: float = 5.0,
+        tau_syn_i_ms: float = 10.0,
+    ) -> "Model":
+        """Return a new Model with recurrent E/I coupling parameters stored.
+
+        Stores coupling parameters in model.static["recurrent_coupling"] for
+        use with simulate_dynamic_ei_coupling(). The original model is not mutated
+        (frozen dataclass contract is preserved via replace()).
+
+        Coupling is stored as metadata; it does not modify the emitter's W matrix.
+        Use with simulate_dynamic_ei_coupling() to apply dynamic coupling at runtime.
+
+        Args:
+            g_ei: E→I excitatory coupling conductance (model units).
+            g_ie: I→E inhibitory coupling magnitude (model units).
+            tau_syn_e_ms: Excitatory synaptic time constant (ms).
+            tau_syn_i_ms: Inhibitory synaptic time constant (ms).
+
+        Returns:
+            New Model with coupling parameters in static["recurrent_coupling"].
+            Original model is not mutated.
+        """
+        coupling_params = {
+            "g_ei": float(g_ei),
+            "g_ie": float(g_ie),
+            "tau_syn_e_ms": float(tau_syn_e_ms),
+            "tau_syn_i_ms": float(tau_syn_i_ms),
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "physical_amplitude_claim_allowed": False,
+            "claim_level": "computational_scaffold",
+        }
+        return replace(
+            self,
+            static={**self.static, "recurrent_coupling": coupling_params}
+        )
+
     def manifest(
         self,
         signals: Optional[Signals] = None,
@@ -2510,6 +2626,36 @@ def _mean_pairwise_corr_proxy(spikes: jax.Array) -> jax.Array:
     n = corr.shape[0]
     mask = 1.0 - jnp.eye(n)
     return jnp.sum(jnp.abs(corr) * mask) / jnp.maximum(1.0, jnp.sum(mask))
+
+
+def with_emitter_parameters(
+    model: Model,
+    *,
+    a: "float | None" = None,
+    b: "float | None" = None,
+    c: "float | None" = None,
+    d: "float | None" = None,
+    drive_scale: "float | None" = None,
+    a_per_neuron: "jax.Array | None" = None,
+    b_per_neuron: "jax.Array | None" = None,
+    c_per_neuron: "jax.Array | None" = None,
+    d_per_neuron: "jax.Array | None" = None,
+    drive_per_neuron: "jax.Array | None" = None,
+) -> Model:
+    """Functional wrapper for :meth:`Model.with_emitter_parameters`.
+
+    Supports both scalar (uniform) and per-neuron (array) overrides.
+    Per-neuron arrays take priority over scalars.
+    Explicit None checks used — zero-valued JAX arrays handled correctly.
+    """
+    return model.with_emitter_parameters(
+        a=a, b=b, c=c, d=d, drive_scale=drive_scale,
+        a_per_neuron=a_per_neuron,
+        b_per_neuron=b_per_neuron,
+        c_per_neuron=c_per_neuron,
+        d_per_neuron=d_per_neuron,
+        drive_per_neuron=drive_per_neuron,
+    )
 
 
 def configuration() -> Configuration:
@@ -3096,7 +3242,7 @@ _KNOWN_READOUT_METRICS = frozenset({
 
 # ──────────────────────────────────────────────────────────────
 # v0.0.15 config foundation
-# ──────────────────────────────────────────────────────────────
+# ───────────────────────────────────────────────��──────────────
 
 _JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.15"
 
