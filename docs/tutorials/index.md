@@ -19,11 +19,28 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 
 | Number | Topic | Type | Focus | Version |
 |--------|-------|------|-------|---------|
+| **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
 | **01** | Single neuron, multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
 | **03** | 100-neuron network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
 | **04** | V1 six-layer column | Documentation guide | Laminar anatomy, depth-specific readouts | v0.2.11+ |
 | **05** | V1-PFC dual column | Documentation guide | Cross-area interaction, traveling waves | v0.2.14+ |
+
+## Featured: jaxfne Suite No. 1
+
+**[Computational Biophysics](06_jaxfne_suite_no_1_computational_biophysics.md)** (interactive Colab)
+
+A comprehensive 4-part course covering:
+- Part 1: Single-neuron models and biophysics
+- Part 2: Vectorized circuits and connectivity
+- Part 3: Laminar cortical columns with readout operators (LFP-proxy, CSD-proxy, spectral analysis)
+- Part 4: Hypothesis tuning via optimization
+
+**22 figures**, export metrics, and immutable claim gates throughout. CPU-safe, runs in 2–3 minutes on Colab.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb)
+
+---
 
 ## Beginner tutorials
 

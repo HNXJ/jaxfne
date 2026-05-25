@@ -1,0 +1,358 @@
+{
+  "basis": {
+    "biological_metabolism_claim_allowed": false,
+    "claim_level": "computational_scaffold",
+    "field_claim_level": "proxy_readout_only",
+    "field_solver_status": "laminar_proxy_no_pde",
+    "physical_amplitude_claim_allowed": false,
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_projection_mode": "proxy_no_field_solve",
+    "truth_mode": "truth_safe_unverified"
+  },
+  "conservation_proxy_diagnostics": {
+    "coupling_mode": "dynamic_injection_simulate_dynamic_ei_coupling",
+    "e_mean_firing_rate_hz": 11.0,
+    "i_mean_firing_rate_hz": 11.0,
+    "source_finite": true,
+    "source_sum": 80461.3125,
+    "syn_currents_finite": true,
+    "v_finite_e": true,
+    "v_finite_i": true
+  },
+  "coupling": {
+    "coupling_documented": true,
+    "dynamic_carry_state": true,
+    "e_to_i_conductance_model_units": 4.0,
+    "i_to_e_conductance_model_units": 2.0,
+    "implementation_method": "dynamic_synaptic_current_injection",
+    "implementation_note": "Synaptic currents are computed DYNAMICALLY during lax.scan via exponential synaptic traces in the carry state (simulate_dynamic_ei_coupling). This is genuine real-time coupling injection, not post-hoc computation.",
+    "post_hoc_coupling_only": false,
+    "scenario_kind": "coupled_e_to_i_excitatory_and_i_to_e_inhibitory",
+    "synaptic_current_traces_available": true,
+    "tau_syn_excitatory_ms": 5.0,
+    "tau_syn_inhibitory_ms": 10.0
+  },
+  "e_neuron": {
+    "cell_type": "excitatory",
+    "firing_rate_hz": 11.0,
+    "gate_2_25_hz": true,
+    "index": 0,
+    "n_spikes": 11,
+    "regime": "target_regime",
+    "voltage": {
+      "V_max_mV": 25.465490341186523,
+      "V_mean_mV": -67.64973449707031,
+      "V_min_mV": -76.86956024169922,
+      "all_finite": true
+    }
+  },
+  "figures": {
+    "circuit_schematic": {
+      "description": "Recurrent E/I circuit schematic with conductance labels",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_circuit_schematic.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_circuit_schematic.png",
+      "sha256": "1f52a98570e738e32c6cb5be489e4ad9d5dba0b4dfae09760571182495edba11"
+    },
+    "coupled_vs_uncoupled": {
+      "description": "Coupling ablation: coupled vs. uncoupled E/I dynamics (4-panel)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_coupled_vs_uncoupled.png",
+      "sha256": "83a4135fba2490a02546396b603c5ae11335a95c39b8a8a616b2e5e366cadeed"
+    },
+    "coupling_currents": {
+      "description": "Dynamic E/PV synaptic currents (from lax.scan carry state)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_coupling_currents.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_coupling_currents.png",
+      "sha256": "d00e5f5036d89e72c672c43f2752224b51a1fbbeafa0a198fbfad92572391c35"
+    },
+    "csd_proxy": {
+      "description": "CSD-like proxy (first 4 layers)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_csd_proxy.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_csd_proxy.png",
+      "sha256": "c9c39e0b8385590a170e635e0ae48cc1a54cf70e35e26ae837c123a1019cb9bb"
+    },
+    "lfp_proxy": {
+      "description": "LFP-like proxy (first 4 contacts)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_lfp_proxy.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_lfp_proxy.png",
+      "sha256": "686ec6fe513c01c37a81a177cdec77aea7c7a18313d4ca84b538eda13473cf7a"
+    },
+    "source_aggregation": {
+      "description": "E/PV source aggregation (proxy units)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_source.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_source.png",
+      "sha256": "39c0f3d054273054a3e4860b52a49a4eff2b4e679441e68ccf67d9c8004cc98c"
+    },
+    "spike_raster": {
+      "description": "E (blue) and PV (red) spike raster",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_raster.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_raster.png",
+      "sha256": "af0697c2212a499daddf1f1d73231966bf49557636773ba9738e2bade14095ac"
+    },
+    "voltage_traces": {
+      "description": "E and PV neuron voltage traces (two-panel)",
+      "docs_stable_path": "docs/tutorials_v030/_static/figures/v0303_two_neuron_ei_voltage.png",
+      "dpi": 150,
+      "runtime_path": "outputs/v030_03_two_neuron_ei_multimodal/figures/v0303_two_neuron_ei_voltage.png",
+      "sha256": "4eff243224304f23c2c43a2266ec6eac0f5898c326d33120aea287a43386256e"
+    }
+  },
+  "geometry_metadata": {
+    "dx_mm": 0.01,
+    "dy_mm": 0.01,
+    "dz_mm": 0.01,
+    "note": "Declared tutorial geometry; laminar_proxy_no_pde mode does not solve 3D PDE"
+  },
+  "i_neuron": {
+    "cell_type": "inhibitory_pv",
+    "firing_rate_hz": 11.0,
+    "gate_2_25_hz": true,
+    "index": 1,
+    "n_spikes": 11,
+    "regime": "target_regime",
+    "voltage": {
+      "V_max_mV": 29.1038875579834,
+      "V_mean_mV": -64.64354705810547,
+      "V_min_mV": -69.64610290527344,
+      "all_finite": true
+    }
+  },
+  "jaxfne_version": "0.2.30",
+  "network": {
+    "e_fraction": 0.5,
+    "e_index": 0,
+    "i_fraction": 0.5,
+    "i_index": 1,
+    "n_neurons": 2
+  },
+  "neuron": {
+    "e_cell_type": "regular_spiking_E",
+    "i_cell_type": "fast_spiking_PV",
+    "model": "izhikevich",
+    "n_neurons": 2,
+    "preset": "eig_e_plus_pv"
+  },
+  "non_claims": [
+    "This tutorial is a computational scaffold, not a biological validation.",
+    "The Izhikevich native current is not empirically calibrated membrane current.",
+    "No field PDE is solved in laminar_proxy_no_pde mode.",
+    "Output CSD/LFP are proxy readouts without physical amplitude claims.",
+    "Dynamic coupling is implemented via exponential synaptic traces in lax.scan carry state.",
+    "Each neuron's dynamics reflect the Izhikevich E+PV preset with adjusted drives.",
+    "No mechanism of E/I balance or cortical function is proven by this tutorial.",
+    "This tutorial validates the jaxfne API for multi-neuron dynamic coupling."
+  ],
+  "plotly": {
+    "plotly_available": true,
+    "plotly_html_generated": false,
+    "plotly_status_reason": "static_png_baseline_for_v0303"
+  },
+  "probe_report": {
+    "V_m": {
+      "assumptions": [
+        "voltage_from_emitter_native_state",
+        "not_physical_membrane_voltage_unless_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 2)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "vm",
+      "method": "emitter_state_voltage_trace",
+      "name": "vm",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "mV_or_native_model_voltage"
+    },
+    "csd_proxy": {
+      "CSD_sign_convention": "positive_equals_extracellular_source",
+      "assumptions": [
+        "laminar_proxy_field_no_pde",
+        "second_derivative_or_divergence_proxy",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 15)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "csd_proxy",
+      "method": "divergence_proxy_or_second_derivative_laminar",
+      "name": "csd_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "proxy_A_m^-3_or_proxy_units"
+    },
+    "eeg_proxy": {
+      "assumptions": [
+        "simulated_eeg_proxy_readout",
+        "toy_or_declared_leadfield",
+        "not_validated_against_real_eeg",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "eeg_proxy",
+      "leadfield_status": "toy_or_declared_proxy",
+      "method": "linear_leadfield_proxy",
+      "name": "eeg_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "sensor_geometry_status": "simulated_minimal",
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "arbitrary_proxy_units"
+    },
+    "emm_proxy": {
+      "assumptions": [
+        "emm_proxy_normalized_activity_cost",
+        "not_biological_metabolism",
+        "relative_within_run_comparison_only",
+        "proxy_electrophysiological_field_activity_cost"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000,)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "emm_proxy",
+      "method": "normalized_activity_field_source_cost_proxy",
+      "name": "emm_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "normalized_proxy_units"
+    },
+    "lfp_proxy": {
+      "assumptions": [
+        "laminar_proxy_field_no_pde",
+        "contact_sample_from_phi_e_proxy",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "lfp_proxy",
+      "method": "point_or_finite_contact_phi_proxy",
+      "name": "lfp_proxy",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "proxy_voltage_units_or_V_if_calibrated"
+    },
+    "meg_proxy": {
+      "assumptions": [
+        "simulated_meg_proxy_readout",
+        "toy_or_declared_leadfield",
+        "current_orientation_proxy",
+        "not_validated_against_real_meg",
+        "not_empirically_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 16)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "meg_proxy",
+      "leadfield_status": "toy_or_declared_proxy",
+      "method": "linear_current_orientation_proxy",
+      "name": "meg_proxy",
+      "operator_status": "simulated_proxy",
+      "orientation_convention": "declared",
+      "physical_amplitude_claim_allowed": false,
+      "sensor_geometry_status": "simulated_minimal",
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "arbitrary_proxy_units"
+    },
+    "source": {
+      "assumptions": [
+        "source_from_emitter_native_state",
+        "not_physical_membrane_current_unless_calibrated"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 2)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "source",
+      "method": "declared_source_projection_or_proxy",
+      "name": "source",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "native_current_units_or_proxy"
+    },
+    "spikes": {
+      "assumptions": [
+        "spike_array_from_emitter_or_threshold",
+        "binary_or_threshold_values"
+      ],
+      "calibration_status": "uncalibrated_proxy",
+      "data_shape": "(10000, 2)",
+      "field_claim_level": "proxy_readout_only",
+      "field_solver_status": "laminar_proxy_no_pde",
+      "kind": "spk",
+      "method": "threshold_or_emitter_spike_array",
+      "name": "spk",
+      "operator_status": "simulated_proxy",
+      "physical_amplitude_claim_allowed": false,
+      "source_calibration_status": "uncalibrated_izhikevich_native_current",
+      "source_decomposition": "proxy_reduced_emitter",
+      "source_projection_mode": "proxy_no_field_solve",
+      "units_or_status": "binary_spike_indicator"
+    }
+  },
+  "run_id": "v033_two_neuron_ei_1779662918",
+  "scenario_id": "v030_03_two_neuron_ei_multimodal",
+  "schema_version": "v0.3.3",
+  "simulation": {
+    "dt_ms": 0.1,
+    "dtype": "float32",
+    "duration_ms": 1000.0,
+    "n_steps": 10000,
+    "seed": 42
+  },
+  "source": {
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_finite": true,
+    "source_projection_mode": "proxy_no_field_solve",
+    "source_proxy_status": "generated_proxy"
+  },
+  "timestamp": "2026-05-24T17:48:38.329374",
+  "tutorial_id": "v0303_two_neuron_ei_multimodal",
+  "validation_report": {
+    "all_gates_pass": true,
+    "coupling_dynamic_injection": true,
+    "dt_gate": true,
+    "dtype_gate": true,
+    "duration_gate": true,
+    "e_firing_rate_gate_2_25_hz": true,
+    "e_voltage_finite": true,
+    "i_firing_rate_gate_2_25_hz": true,
+    "i_voltage_finite": true,
+    "json_safe": true,
+    "source_finite": true,
+    "status": "PASS"
+  }
+}

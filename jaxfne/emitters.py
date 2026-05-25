@@ -606,5 +606,111 @@ def simulate_receptor_exponential_izhikevich(
     return voltages, spikes, sources, final_state
 
 
+def simulate_dynamic_ei_coupling(
+    params: IzhikevichParams,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    g_ei: float = 5.0,
+    g_ie: float = 3.0,
+    tau_syn_e_ms: float = 5.0,
+    tau_syn_i_ms: float = 10.0,
+    dtype: str = "float32",
+) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array]:
+    """Simulate two-neuron E/I with dynamic synaptic coupling via lax.scan.
+
+    Uses first-order exponential synaptic traces with per-neuron decay.
+    syn_traces is included in the carry tuple so it evolves across timesteps.
+
+    Args:
+        params: IzhikevichParams for the network (expects n_neurons=2,
+            neurons[0]=E, neurons[1]=I).
+        n_steps: Number of simulation timesteps.
+        dt_ms: Timestep in milliseconds.
+        key: JAX PRNG key.
+        g_ei: E→I coupling conductance (excitatory, model units).
+        g_ie: I→E coupling conductance (inhibitory, magnitude, model units).
+        tau_syn_e_ms: Excitatory synaptic time constant (ms).
+        tau_syn_i_ms: Inhibitory synaptic time constant (ms).
+        dtype: Float dtype policy.
+
+    Returns:
+        Tuple of (voltages, spikes, syn_currents, sources), each shape
+        (n_steps, n_neurons). syn_currents is the dynamic synaptic current
+        injected into each neuron at each timestep.
+
+    Note: source_calibration_status = uncalibrated_izhikevich_native_current.
+    No physical amplitude claim is made.
+    """
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+
+    # Per-synapse exponential decay constants
+    # syn_traces[0] = E neuron trace (used to compute E→I current)
+    # syn_traces[1] = I neuron trace (used to compute I→E current)
+    tau_syn = jnp.asarray([tau_syn_e_ms, tau_syn_i_ms], dtype=jdtype)
+    decay = jnp.exp(-dt / jnp.maximum(tau_syn, jnp.asarray(1e-6, dtype=jdtype)))
+
+    # Coupling gain vector: syn_traces @ gain_matrix gives per-neuron syn current
+    # E→I: g_ei * syn_traces[0] injected into neuron 1 (I)
+    # I→E: -g_ie * syn_traces[1] injected into neuron 0 (E)
+    g_ei_scalar = jnp.asarray(g_ei, dtype=jdtype)
+    g_ie_scalar = jnp.asarray(g_ie, dtype=jdtype)
+
+    syn_traces_init = jnp.zeros(2, dtype=jdtype)
+
+    init = (
+        params.v0.astype(jdtype),
+        params.u0.astype(jdtype),
+        jnp.zeros_like(params.v0, dtype=jdtype),
+        syn_traces_init,  # syn_traces in carry
+        key,
+    )
+
+    def step(carry, _):
+        v, u, prev_spikes, syn_traces, rng = carry
+        rng, noise_key = jax.random.split(rng)
+        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(
+            noise_key, shape=v.shape
+        ).astype(jdtype)
+
+        # Dynamic synaptic current from traces
+        # E→I: positive current into neuron 1
+        # I→E: negative current into neuron 0
+        syn_current_ei = g_ei_scalar * syn_traces[0]   # excitatory to I
+        syn_current_ie = -g_ie_scalar * syn_traces[1]  # inhibitory to E
+        syn_currents = jnp.asarray([syn_current_ie, syn_current_ei], dtype=jdtype)
+
+        current_native = drive + syn_currents + noise
+        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+        du = a * (b * v - u)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        spikes_bool = v_next >= 30.0
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+
+        # Update synaptic traces (exponential decay + spike injection)
+        syn_traces_next = syn_traces * decay + spikes
+
+        source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+        return (v_reset, u_reset, spikes, syn_traces_next, rng), (
+            v_reset, spikes, syn_currents, source_proxy
+        )
+
+    _, (voltages, spikes, syn_currents, sources) = jax.lax.scan(
+        step, init, xs=None, length=int(n_steps)
+    )
+    return voltages, spikes, syn_currents, sources
+
+
 # Backwards-compatible name from v0.0.3.
 simulate_izhikevich_eig = simulate_eig_izhikevich
