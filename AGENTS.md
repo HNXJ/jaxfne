@@ -54,6 +54,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `gemini-cli` | v0.3.5: Suite No. 1 docs positive style repair | `659668e` | Refined Suite No. 1 docs, notebook cells, and index files to conform to positive-scope guidelines. 1037/1037 tests pass; MkDocs build passes cleanly. |
 | `gemini-cli` | v0.3.4: Suite No. 2 spectrolaminar motif and explicit facade | `a2e231b` | Completed tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb, docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md, 13 publication-ready figures, and implemented the explicit chainable Configuration facade method suite. 1037/1037 tests pass. |
 | `gemini-cli` | v0.2.31: Suite No. 2 compact API facade (simulate & vis.spectrolaminar) | `5851dde` | Implemented functional jtfne.simulate and high-fidelity jtfne.vis.spectrolaminar; 1036/1036 tests passing; clean working tree. |
 | `claude-sonnet` | v0.1.0 post-RC hardening: CI workflow, release scripts, Colab docs, RELEASE_CHECKLIST | (pending commit) | scripts/release_rehearsal.sh, upload_testpypi.sh, upload_pypi.sh; .github/workflows/ci.yml; docs/COLAB_SMOKE_V010.md; docs/RELEASE_CHECKLIST.md; README patches; no code change; PyPI blocked by missing credentials |
