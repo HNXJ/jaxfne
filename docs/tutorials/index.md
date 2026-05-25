@@ -37,7 +37,7 @@ A comprehensive 4-part course covering:
 - Part 3: Laminar cortical columns with readout operators (LFP-proxy, CSD-proxy, spectral analysis)
 - Part 4: Hypothesis tuning via optimization
 
-**22 figures**, export metrics, and immutable claim gates throughout. CPU-safe, runs in 2–3 minutes on Colab.
+**22 figures**, export metrics, and immutable scope fields throughout. CPU-safe, runs in 2–3 minutes on Colab.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb)
 
