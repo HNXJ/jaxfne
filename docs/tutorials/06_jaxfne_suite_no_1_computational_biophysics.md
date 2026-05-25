@@ -48,7 +48,7 @@ Learn:
 - Why models need explicit claims about what they represent
 
 **Outputs:**
-- Figure 01: Voltage trace (proxy, not validated)
+- Figure 01: Voltage trace (proxy output)
 - Figure 02: Spike raster (events at threshold)
 - Figure 03: Source proxy (toy-scale current-like quantity)
 
@@ -89,14 +89,14 @@ Build a **laminar cortical column** with **4 cell types** across **4 layers**:
 Apply **readout operators**:
 - **Spike raster** — raw spike times
 - **Firing rate** — binned population rate
-- **LFP-proxy** — laminar field readout (NOT real LFP, proxy only)
-- **CSD-proxy** — spatial derivative of LFP-proxy (NOT real CSD)
+- **LFP-proxy** — laminar field proxy readout
+- **CSD-proxy** — spatial derivative of LFP-proxy
 - **Time-frequency representation** — STFT of mean LFP-proxy
 - **Bandpower** — alpha/beta and gamma power timeseries
 
 Learn:
 - How depth-based readouts relate to anatomy
-- How to interpret LFP-proxy and CSD-proxy (they are NOT validated neural signals)
+- How to interpret LFP-proxy and CSD-proxy readouts
 - How evoked responses emerge from layer-specific drive
 
 **Outputs:**
@@ -104,7 +104,7 @@ Learn:
 - Figure 09: Spontaneous raster (100 ms pre + 500 ms post event + 500 ms post-event)
 - Figure 10: Spontaneous firing rates (per cell type)
 - Figure 11: LFP-proxy laminar probe (16 contacts)
-- Figure 12: CSD-proxy heatmap (NOT real CSD)
+- Figure 12: CSD-proxy heatmap
 - Figure 13: Time-frequency representation
 - Figure 14: Alpha/beta and gamma bandpower
 - Figure 15: Evoked raster (L4 stimulation 0–500 ms)
@@ -156,12 +156,12 @@ At the end, three files are saved to your Colab working directory:
 | Term | Meaning | Claim Status |
 |------|---------|--------------|
 | **Izhikevich neuron** | 2D reduced model with polynomial spiking | Tutorial scaffold |
-| **Native current** | Toy-scale quantity driving spikes (NOT physical amperes) | Computational proxy |
-| **Source proxy** | Emitted source quantity (NOT validated as real current source) | Proxy, uncalibrated |
-| **LFP-proxy** | Laminar field readout from sources (NOT real LFP) | Proxy, no field solver |
-| **CSD-proxy** | Spatial derivative of LFP-proxy (NOT real CSD) | Proxy, no field solver |
-| **Firing rate** | Spikes per unit time | Descriptive, not validated |
-| **Bandpower** | Power in frequency bands (alpha/beta, gamma) | Descriptive, not calibrated |
+| **Native current** | Toy-scale quantity driving spikes (proxy amplitude) | Computational proxy |
+| **Source proxy** | Emitted source quantity (proxy source) | Proxy, uncalibrated |
+| **LFP-proxy** | Laminar field readout from sources (proxy LFP) | Proxy, no field solver |
+| **CSD-proxy** | Spatial derivative of LFP-proxy (proxy CSD) | Proxy, no field solver |
+| **Firing rate** | Spikes per unit time | Descriptive, proxy rate |
+| **Bandpower** | Power in frequency bands (alpha/beta, gamma) | Descriptive, proxy bandpower |
 
 ---
 
@@ -170,7 +170,7 @@ At the end, three files are saved to your Colab working directory:
 The tutorial generates **22 high-quality figures** covering:
 
 ### Single Neurons (Part 1)
-- **Figure 01** — Voltage trace (single E neuron, proxy not validated)
+- **Figure 01** — Voltage trace (single E neuron, proxy voltage)
 - **Figure 02** — Spike raster (events at threshold)
 - **Figure 03** — Source proxy (toy-scale current-like emission)
 
@@ -184,8 +184,8 @@ The tutorial generates **22 high-quality figures** covering:
 - **Figure 08** — Laminar layout (3D E/IN distribution, L2/3–L6)
 - **Figure 09** — Spontaneous raster (−500 to +1000 ms, event at t=0)
 - **Figure 10** — Per-type firing rates (25 ms bins, 4 cell types)
-- **Figure 11** — LFP-proxy laminar probe (16 contacts, NOT real LFP)
-- **Figure 12** — CSD-proxy heatmap (spatial derivative, NOT real CSD)
+- **Figure 11** — LFP-proxy laminar probe (16 contacts)
+- **Figure 12** — CSD-proxy heatmap (spatial derivative)
 - **Figure 13** — Time-frequency representation (STFT, 0–80 Hz)
 - **Figure 14** — Alpha/beta and gamma bandpower
 - **Figure 15** — Evoked raster (L4 drive 0–500 ms)
@@ -265,7 +265,7 @@ If `drive` is too low, neurons don't spike. If too high, they saturate. The demo
 The notebook uses **unsigned connectivity** (all positive). To add **inhibition**, you would multiply PV/SST/VIP synaptic weights by **–1**. This is left for Exercise 2.
 
 ### Gotcha 3: LFP-proxy vs. Real LFP
-LFP-proxy is computed from **source positions** and **synthetic sources**, not from a real neurophysiological recording. It has **no biological calibration**. The `-proxy` suffix is mandatory.
+LFP-proxy is computed from **source positions** and **synthetic sources**. The `-proxy` suffix is mandatory.
 
 ### Gotcha 4: CSD and Field Solver
 CSD-proxy is a **spatial derivative** of LFP-proxy, not a field solution. A real field solver would solve Poisson's equation with conductivity tensors. We don't do that here (deferred to advanced courses).
@@ -304,11 +304,11 @@ After this tutorial:
 
 | Field | Value | Reason |
 |-------|-------|--------|
-| `claim_level` | `computational_scaffold` | Tutorial is educational, not biological proof |
-| `source_calibration_status` | `toy_scale_not_empirical` | Native current is proxy, not calibrated to biology |
+| `claim_level` | `computational_scaffold` | Tutorial acts as educational computational scaffold |
+| `source_calibration_status` | `toy_scale_not_empirical` | Native current is configured as uncalibrated proxy |
 | `source_projection_mode` | `proxy_no_field_solve` | No Poisson solve, no conductivity model |
-| `readout_status` | `LFP-proxy and CSD-proxy readouts` | Readouts are synthetic, not validated |
-| `truth_mode` | `truth_safe_unverified` | No scientific truth claims without empirical validation |
+| `readout_status` | `LFP-proxy and CSD-proxy readouts` | Readouts act as synthetic computational proxies |
+| `truth_mode` | `truth_safe_unverified` | Model functions as truth_safe_unverified workflow |
 
 **Tutorial metadata:**
 - **Version:** `jaxfne-colab-tutorial-v1`
