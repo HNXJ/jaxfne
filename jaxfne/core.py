@@ -61,6 +61,7 @@ def _default_metadata() -> dict[str, Any]:
         # Suite No. 2 truth gates — always present so validation passes regardless
         # of which subset of chainable methods the caller uses.
         "connectivity_status": "declared_metadata_proxy",
+        "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
     }
 
 

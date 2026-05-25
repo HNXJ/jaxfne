@@ -301,6 +301,15 @@ def main():
         path = figdir / filename
         asset_hashes[f"figures/{filename}"] = sha256_file(path)
 
+    claim_gate_summary = {
+        "truth_mode": "truth_safe_unverified",
+        "claim_level": "computational_scaffold",
+        "field_solver_status": "laminar_proxy_no_pde",
+        "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
+        "physical_amplitude_claim_allowed": False,
+        "connectivity_status": "declared_metadata_proxy"
+    }
+
     # Write files strictly
     with open(outdir / "manifest.json", "w") as f:
         json.dump(manifest, f, indent=2, sort_keys=True)
@@ -310,6 +319,8 @@ def main():
         json.dump(metrics, f, indent=2, sort_keys=True)
     with open(outdir / "asset_hashes.json", "w") as f:
         json.dump(asset_hashes, f, indent=2, sort_keys=True)
+    with open(outdir / "claim_gate_summary.json", "w") as f:
+        json.dump(claim_gate_summary, f, indent=2, sort_keys=True)
 
     print("generate_suite_no_2=PASS")
 
