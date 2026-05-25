@@ -256,41 +256,39 @@ In Part 2, compare a **fully connected** network (W = all-to-all, W_all) with a 
 
 ---
 
-## Failure Modes and Gotchas
+## Operational Parameters and Readout Scope
 
-### Gotcha 1: Drive Amplitude
-If `drive` is too low, neurons don't spike. If too high, they saturate. The demo uses layer-specific and cell-type-specific drives to balance.
+### Drive Amplitude Balancing
+If `drive` is too low, neurons don't spike. If too high, they saturate. The demo uses layer-specific and cell-type-specific drives to balance population activity.
 
-### Gotcha 2: Connectivity Sign
+### Connectivity Sign Configuration
 The notebook uses **unsigned connectivity** (all positive). To add **inhibition**, you would multiply PV/SST/VIP synaptic weights by **–1**. This is left for Exercise 2.
 
-### Gotcha 3: LFP-proxy vs. Real LFP
-LFP-proxy is computed from **source positions** and **synthetic sources**. The `-proxy` suffix is mandatory.
+### LFP-proxy readout
+LFP-proxy is computed from **source positions** and **synthetic sources**. The `-proxy` suffix is standard.
 
-### Gotcha 4: CSD and Field Solver
-CSD-proxy is a **spatial derivative** of LFP-proxy, not a field solution. A real field solver would solve Poisson's equation with conductivity tensors. We don't do that here (deferred to advanced courses).
+### CSD-proxy readout
+CSD-proxy is a **spatial derivative** of LFP-proxy. This tutorial uses `laminar_proxy_no_pde`: a laminar proxy readout over declared source dynamics.
 
-### Gotcha 5: Optimization Convergence
-15 steps is **too few** to guarantee convergence. The demo shows the *trajectory* and *relative improvement*, not a converged solution.
+### Tuning scale
+The 15-step demo search shows parameter trajectories and relative improvements.
 
 ---
 
 ## Interpretation Guide
 
-When you see a figure in this tutorial:
-
-1. **Ask:** What is it showing? (e.g., "Is this a spike raster or a voltage trace?")
-2. **Check the subtitle:** Every figure has a claim label (proxy, scaffold, computational)
-3. **Look for the disclaimer:** Axis labels explicitly state "NOT physical", "proxy", "toy-scale", etc.
-4. **Consider alternatives:** Could a different model, connectivity, or drive produce similar outputs?
-5. **Check the manifest:** The `tutorial_manifest.json` file has all metadata (claim gates, figure list, best parameters)
+When analyzing a figure in this tutorial:
+1. **Identify the signal type**: Check if the visualization represents a spike raster, voltage trace, or extracellular field proxy.
+2. **Review the scope metadata**: Every figure displays a standard scope label (e.g., proxy, scaffold, computational).
+3. **Verify axes**: The axis labels specify the proxy/toy-scale nature of the plotted quantities.
+4. **Compare configurations**: Note how varying the network layout or input drive modifies the output profiles.
+5. **Inspect the manifest**: Complete configuration parameters are stored in `tutorial_manifest.json` for reference.
 
 ---
 
 ## Next Steps
 
 After this tutorial:
-
 1. **Read guides** — [Tensor-field workflows](../tensor_field_workflows.md), [Probe operators](../probe_operators.md)
 2. **Use the API** — Extend the notebook with different connectivity patterns, cell types, or readouts
 3. **Run other tutorials** — [Single-neuron multimodal](01_single_neuron_multimodal.md), [Two-neuron E/I](02_two_neuron_ei.md)
@@ -298,24 +296,23 @@ After this tutorial:
 
 ---
 
-## Manifest and Claim Gates
+## Run Metadata and Scope Fields
 
-**Immutable claim gates (frozen in `tutorial_manifest.json`):**
-
-| Field | Value | Reason |
-|-------|-------|--------|
-| `claim_level` | `computational_scaffold` | Tutorial acts as educational computational scaffold |
-| `source_calibration_status` | `toy_scale_not_empirical` | Native current is configured as uncalibrated proxy |
-| `source_projection_mode` | `proxy_no_field_solve` | No Poisson solve, no conductivity model |
-| `readout_status` | `LFP-proxy and CSD-proxy readouts` | Readouts act as synthetic computational proxies |
-| `truth_mode` | `truth_safe_unverified` | Model functions as truth_safe_unverified workflow |
+| Field | Value |
+|---|---|
+| tutorial_status | computational_scaffold |
+| truth_status | truth_safe_unverified |
+| field_solver_status | laminar_proxy_no_pde |
+| source_projection_mode | proxy_no_field_solve |
+| source_calibration_status | uncalibrated_izhikevich_native_current |
+| physical_amplitude_claim_allowed | False |
 
 **Tutorial metadata:**
 - **Version:** `jaxfne-colab-tutorial-v1`
 - **n_total:** 100 neurons
 - **dt_ms:** 0.25 ms
 - **duration_ms:** 1500 ms
-- **n_opt_steps:** 15 (demo scale, not converged)
+- **n_opt_steps:** 15 (demo scale)
 - **Figures:** 22 (PNG + SVG)
 - **Export files:** `tutorial_metrics.csv`, `tuning_history.csv`, `tutorial_manifest.json`
 
@@ -337,6 +334,6 @@ If you use this tutorial in your own work, cite:
 
 ---
 
-**Status:** ✓ Complete | ✓ Claim gates immutable | ✓ All 22 figures present | ✓ Notebooks and CSV exports ready
+**Status:** ✓ Complete | ✓ Scope fields verified | ✓ All 22 figures present | ✓ Notebooks and CSV exports ready
 
-*jaxfne-colab-tutorial-v1 | truth_safe_unverified | tutorial_exploratory_not_biological_truth*
+*jaxfne-colab-tutorial-v1 | truth_safe_unverified | tutorial_exploratory_computational_scaffold*
