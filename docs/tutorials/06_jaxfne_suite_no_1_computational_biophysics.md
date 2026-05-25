@@ -271,17 +271,6 @@ CSD-proxy is a **spatial derivative** of LFP-proxy, not a field solution. A real
 
 ---
 
-## What This Tutorial Does NOT Claim
-
-- ❌ **Real LFP:** LFP-proxy is a toy-scale synthetic readout. Real LFP requires empirical recording and calibration.
-- ❌ **Real CSD:** CSD-proxy is a spatial derivative of LFP-proxy. Real CSD requires field reconstruction with conductivity models.
-- ❌ **Biological calibration:** Izhikevich parameters are not fit to any biological neuron. The native current is toy-scale.
-- ❌ **Proof of mechanism:** This tutorial demonstrates *whether a model can generate plausible-looking signals*, not *how biology works*.
-- ❌ **EEG or MEG:** Those require scaling to whole-brain networks and source localization (not covered).
-- ❌ **Optimization convergence:** 15 steps do not guarantee the optimizer found a good solution.
-
----
-
 ## Interpretation Guide
 
 When you see a figure in this tutorial:
