@@ -10,11 +10,15 @@
 
 After completing this tutorial, you will understand:
 
-1. **What computational models are** — how Izhikevich neurons emit voltage and spikes
-2. **Vectorized simulation** — scaling from single neurons to populations with connectivity matrices
-3. **Laminar cortical structure** — how cell types and connectivity create layered circuits
-4. **Readout operators** — extracting LFP-proxy, CSD-proxy, spectral features from source dynamics
-5. **Hypothesis tuning** — formulating loss functions and running optimization over circuit parameters
+1. **Source-generating neuron equations** — how Izhikevich-style reduced neuronal models emit voltage, spikes, and source-driving activity.
+
+2. **Vectorized simulation** — how to scale from a single neuron to populations using JAX arrays, connectivity matrices, and batched circuit operations.
+
+3. **Laminar cortical columns** — how to construct a cortical column with specified layers, cell types, connectivity structure, and 3D geometry.
+
+4. **Multimodal proxy readouts** — how to extract MUA-proxy, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy, and spectral features from simulated source dynamics.
+
+5. **Hypothesis tuning** — how to formulate loss functions and optimize circuit parameters against rate, spectral, and laminar-profile targets.
 
 ---
 
