@@ -93,6 +93,55 @@ class Configuration:
         metadata.update(kwargs)
         return replace(self, metadata=metadata)
 
+    def set_runtime(self, **kwargs: Any) -> "Configuration":
+        """Chainable config method to set runtime/metadata parameters."""
+        return self.update_metadata(**kwargs)
+
+    def add_column(self, name: str, layers: list[str], n: int) -> "Configuration":
+        """Chainable config method to declare a cortical column."""
+        metadata = dict(self.metadata)
+        if "columns" not in metadata:
+            metadata["columns"] = []
+        metadata["columns"].append({"name": name, "layers": layers, "n": n})
+        total_n = sum(int(col["n"]) for col in metadata["columns"])
+        cell_types = metadata.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
+        networks = [{"name": "V1_PFC_motif", "kind": "multi_column", "n": total_n, "cell_types": cell_types}]
+        return replace(self, metadata=metadata, networks=networks)
+
+    def set_cell_types(self, fractions: dict[str, float]) -> "Configuration":
+        """Chainable config method to set cell type fractions."""
+        metadata = dict(self.metadata)
+        metadata["cell_types"] = fractions
+        networks = list(self.networks)
+        if networks:
+            networks[0] = dict(networks[0], cell_types=fractions)
+        else:
+            total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) if "columns" in metadata else 100
+            networks = [{"name": "V1_PFC_motif", "kind": "multi_column", "n": total_n, "cell_types": fractions}]
+        return replace(self, metadata=metadata, networks=networks)
+
+    def set_connectivity(self, **kwargs: Any) -> "Configuration":
+        """Chainable config method to set network connectivity patterns."""
+        metadata = dict(self.metadata)
+        if "connectivity" not in metadata:
+            metadata["connectivity"] = {}
+        metadata["connectivity"].update(kwargs)
+        return replace(self, metadata=metadata)
+
+    def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
+        """Chainable config method to set/wrap emitter family and presets."""
+        return self.emitter(family=family, preset=preset)
+
+    def set_probes(self, modes: list[str]) -> "Configuration":
+        """Chainable config method to set visual readout modalities."""
+        cfg = self
+        if not cfg.emitters:
+            cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+        if not cfg.fields:
+            cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        return cfg.probe(name="multimodal_probe", modes=modes)
+
+
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.networks:

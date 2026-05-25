@@ -50,6 +50,7 @@ nav:
       - Overview: tutorials/index.md
       - Notebook standard: tutorials/notebook_standard.md
       - jaxfne Suite No. 1 - Computational Biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+      - jaxfne Suite No. 2 - Spectrolaminar Motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
       - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
       - Two-neuron E/I: tutorials/02_two_neuron_ei.md
       - 100-neuron E/I network: tutorials/03_network_100_ei.md
