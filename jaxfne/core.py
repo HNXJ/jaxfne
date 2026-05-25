@@ -58,7 +58,66 @@ def _default_metadata() -> dict[str, Any]:
         "field_solver_status": "laminar_proxy_no_pde",
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
+        # Suite No. 2 truth gates — always present so validation passes regardless
+        # of which subset of chainable methods the caller uses.
+        "connectivity_status": "declared_metadata_proxy",
     }
+
+
+class _ProbeDeclarations(list):
+    """List-like probe declaration container that also supports ``cfg.probes(...)``.
+
+    ``Configuration`` historically exposes ``cfg.probes`` as a list of probe
+    declaration dictionaries.  Suite No. 2 needs the more compact grammar
+    ``cfg = cfg.probes([...])``.  A callable list preserves the old read path
+    while adding the verb-like write path without renaming the public field.
+    """
+
+    def __init__(self, values: Sequence[Mapping[str, Any]] | None = None, owner: "Configuration | None" = None):
+        super().__init__(dict(v) for v in (values or ()))
+        self._owner = owner
+
+    def bind(self, owner: "Configuration") -> "_ProbeDeclarations":
+        return _ProbeDeclarations(self, owner=owner)
+
+    def __call__(
+        self,
+        modes: Sequence[str],
+        *,
+        name: str = "multimodal_probe",
+        n_contacts: int | None = None,
+        ensure_defaults: bool = True,
+        **kwargs: Any,
+    ) -> "Configuration":
+        """Declare multimodal proxy probe modes through the Suite No. 2 DSL.
+
+        Parameters
+        ----------
+        modes:
+            Probe/readout mode labels.  They remain declarative labels and are
+            not upgraded to physical sensor claims.
+        name:
+            Probe declaration name.
+        n_contacts:
+            Optional number of laminar contacts.  When omitted, the existing
+            construct-time default is preserved.
+        ensure_defaults:
+            If true, add the canonical Izhikevich emitter and laminar proxy
+            field declarations when they are absent.
+        **kwargs:
+            Additional probe metadata, for example ``contact_depths`` or
+            ``claim_level``.
+        """
+        cfg = self._owner
+        if cfg is None:
+            raise TypeError("Detached probe declarations cannot be called as a Configuration facade.")
+        return cfg._with_probe_modes(
+            modes=modes,
+            name=name,
+            n_contacts=n_contacts,
+            ensure_defaults=ensure_defaults,
+            **kwargs,
+        )
 
 
 @dataclass(frozen=True)
@@ -73,8 +132,25 @@ class Configuration:
     networks: list[dict[str, Any]] = field(default_factory=list)
     emitters: list[dict[str, Any]] = field(default_factory=list)
     fields: list[dict[str, Any]] = field(default_factory=list)
-    probes: list[dict[str, Any]] = field(default_factory=list)
+    probes: list[dict[str, Any]] = field(default_factory=_ProbeDeclarations)
     metadata: dict[str, Any] = field(default_factory=_default_metadata)
+
+    def __post_init__(self) -> None:
+        """Normalize mutable containers after dataclass construction.
+
+        The public object is frozen, but the fields are list/dict shaped for
+        backwards compatibility.  We defensively copy declarations so method
+        chaining does not leak mutable state across configurations, and we bind
+        the probe list proxy so ``cfg.probes([...])`` works while
+        ``len(cfg.probes)`` and ``cfg.probes[0]`` continue to work.
+        """
+        object.__setattr__(self, "networks", [dict(v) for v in self.networks])
+        object.__setattr__(self, "emitters", [dict(v) for v in self.emitters])
+        object.__setattr__(self, "fields", [dict(v) for v in self.fields])
+        object.__setattr__(self, "metadata", dict(self.metadata))
+        probe_decls = self.probes
+        if not isinstance(probe_decls, _ProbeDeclarations) or probe_decls._owner is not self:
+            object.__setattr__(self, "probes", _ProbeDeclarations(probe_decls, owner=self))
 
     def network(self, **kwargs: Any) -> "Configuration":
         return replace(self, networks=[*self.networks, dict(kwargs)])
@@ -93,54 +169,186 @@ class Configuration:
         metadata.update(kwargs)
         return replace(self, metadata=metadata)
 
-    def set_runtime(self, **kwargs: Any) -> "Configuration":
-        """Chainable config method to set runtime/metadata parameters."""
+    # ------------------------------------------------------------------
+    # Suite No. 2 compact DSL facade.
+    # These methods are thin, public, backwards-compatible wrappers over the
+    # existing explicit declaration grammar.  They do not introduce stronger
+    # biological or physical claims; they only make common tutorial declarations
+    # more legible.
+    # ------------------------------------------------------------------
+
+    def runtime(self, **kwargs: Any) -> "Configuration":
+        """Set runtime/simulation metadata in chainable configuration form.
+
+        This intentionally maps to :meth:`update_metadata` rather than creating
+        a compiled :class:`RuntimeConfig`; the compiled runtime remains a
+        simulation-time object.  Typical keys include ``seed``, ``dtype``,
+        ``duration_ms``, and ``dt_ms``.
+        """
         return self.update_metadata(**kwargs)
 
-    def add_column(self, name: str, layers: list[str], n: int) -> "Configuration":
-        """Chainable config method to declare a cortical column."""
+    def set_runtime(self, **kwargs: Any) -> "Configuration":
+        """Backward-compatible alias for :meth:`runtime`."""
+        return self.runtime(**kwargs)
+
+    def column(self, name: str, layers: Sequence[str], n: int) -> "Configuration":
+        """Declare one cortical column and update the unified constructable network.
+
+        Multiple column declarations are accumulated in ``metadata["columns"]``.
+        For the current jaxfne construct path, the columns are represented as one
+        unified ``multi_column`` network with explicit offsets.  This preserves
+        compatibility with the existing source-to-field core while keeping V1/PFC
+        bookkeeping available in manifests and tutorial diagnostics.
+        """
+        if not isinstance(name, str) or not name.strip():
+            raise ValueError("column name must be a non-empty string")
+        layers_list = [str(layer) for layer in layers]
+        if not layers_list:
+            raise ValueError("column layers must contain at least one layer label")
+        n_int = int(n)
+        if n_int <= 0:
+            raise ValueError(f"column n must be positive; got {n!r}")
+
         metadata = dict(self.metadata)
-        if "columns" not in metadata:
-            metadata["columns"] = []
-        metadata["columns"].append({"name": name, "layers": layers, "n": n})
-        total_n = sum(int(col["n"]) for col in metadata["columns"])
-        cell_types = metadata.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
-        networks = [{"name": "V1_PFC_motif", "kind": "multi_column", "n": total_n, "cell_types": cell_types}]
+        columns = [dict(col) for col in metadata.get("columns", [])]
+        if any(col.get("name") == name for col in columns):
+            raise ValueError(f"duplicate column name: {name!r}")
+
+        start_index = sum(int(col["n"]) for col in columns)
+        column_decl = {
+            "name": name,
+            "layers": layers_list,
+            "n": n_int,
+            "start_index": start_index,
+            "stop_index": start_index + n_int,
+        }
+        columns.append(column_decl)
+        total_n = sum(int(col["n"]) for col in columns)
+        metadata["columns"] = columns
+        metadata["column_names"] = [col["name"] for col in columns]
+        metadata["column_count"] = len(columns)
+        metadata.setdefault("layout_mode", "unified_multi_column_vertical_slice")
+        metadata.setdefault("dx_mm", 0.010)
+        metadata.setdefault("dy_mm", 0.010)
+        metadata.setdefault("dz_mm", 0.010)
+        metadata.setdefault("geometry_mode", "declared_metadata_not_solved_3d_pde_grid")
+        metadata.setdefault("physical_amplitude_claim_allowed", False)
+
+        cell_type_fractions = metadata.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
+        networks = [
+            {
+                "name": "_".join(col["name"] for col in columns) + "_motif",
+                "kind": "multi_column",
+                "n": total_n,
+                "columns": columns,
+                "layers": sorted({layer for col in columns for layer in col["layers"]}),
+                "cell_types": dict(cell_type_fractions),
+            }
+        ]
         return replace(self, metadata=metadata, networks=networks)
 
-    def set_cell_types(self, fractions: dict[str, float]) -> "Configuration":
-        """Chainable config method to set cell type fractions."""
+    def add_column(self, name: str, layers: Sequence[str], n: int) -> "Configuration":
+        """Backward-compatible alias for :meth:`column`."""
+        return self.column(name=name, layers=layers, n=n)
+
+    def cell_types(self, fractions: Mapping[str, float]) -> "Configuration":
+        """Set cell-type fractions for the current configuration.
+
+        Fractions are copied into metadata and into the constructable unified
+        network.  The method rejects negative, non-finite, or zero-total maps but
+        does not silently normalize values; the manifest should preserve exactly
+        what the user declared.
+        """
+        if not fractions:
+            raise ValueError("cell type fractions must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in fractions.items():
+            f = float(value)
+            if not math.isfinite(f) or f < 0.0:
+                raise ValueError(f"cell type fraction for {key!r} must be finite and non-negative; got {value!r}")
+            clean[str(key)] = f
+        if sum(clean.values()) <= 0.0:
+            raise ValueError("cell type fractions must have positive total mass")
+
         metadata = dict(self.metadata)
-        metadata["cell_types"] = fractions
-        networks = list(self.networks)
+        metadata["cell_types"] = clean
+        networks = [dict(net) for net in self.networks]
         if networks:
-            networks[0] = dict(networks[0], cell_types=fractions)
+            networks[0] = dict(networks[0], cell_types=clean)
         else:
-            total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) if "columns" in metadata else 100
-            networks = [{"name": "V1_PFC_motif", "kind": "multi_column", "n": total_n, "cell_types": fractions}]
+            total_n = sum(int(col["n"]) for col in metadata.get("columns", [])) or 100
+            networks = [{"name": "configured_network", "kind": "configured", "n": total_n, "cell_types": clean}]
+        return replace(self, metadata=metadata, networks=networks)
+
+    def set_cell_types(self, fractions: Mapping[str, float]) -> "Configuration":
+        """Backward-compatible alias for :meth:`cell_types`."""
+        return self.cell_types(fractions)
+
+    def connectivity(self, **kwargs: Any) -> "Configuration":
+        """Attach declared connectivity metadata without overclaiming dynamics.
+
+        Current construct-time dynamics still use the package's existing network
+        generator.  These declarations are exported so tutorials and future
+        kernels can distinguish feedforward/feedback bookkeeping from the actual
+        proxy simulation path.
+        """
+        metadata = dict(self.metadata)
+        connectivity = dict(metadata.get("connectivity", {}))
+        connectivity.update(kwargs)
+        metadata["connectivity"] = connectivity
+        metadata.setdefault("connectivity_status", "declared_metadata_proxy")
+        networks = [dict(net) for net in self.networks]
+        if networks:
+            networks[0] = dict(networks[0], connectivity=connectivity)
         return replace(self, metadata=metadata, networks=networks)
 
     def set_connectivity(self, **kwargs: Any) -> "Configuration":
-        """Chainable config method to set network connectivity patterns."""
-        metadata = dict(self.metadata)
-        if "connectivity" not in metadata:
-            metadata["connectivity"] = {}
-        metadata["connectivity"].update(kwargs)
-        return replace(self, metadata=metadata)
+        """Backward-compatible alias for :meth:`connectivity`."""
+        return self.connectivity(**kwargs)
 
     def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
         """Chainable config method to set/wrap emitter family and presets."""
         return self.emitter(family=family, preset=preset)
 
-    def set_probes(self, modes: list[str]) -> "Configuration":
-        """Chainable config method to set visual readout modalities."""
-        cfg = self
-        if not cfg.emitters:
-            cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-        if not cfg.fields:
-            cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
-        return cfg.probe(name="multimodal_probe", modes=modes)
+    def _with_probe_modes(
+        self,
+        modes: Sequence[str],
+        *,
+        name: str = "multimodal_probe",
+        n_contacts: int | None = None,
+        ensure_defaults: bool = True,
+        **kwargs: Any,
+    ) -> "Configuration":
+        mode_list = [str(mode) for mode in modes]
+        if not mode_list:
+            raise ValueError("probe modes must contain at least one mode label")
 
+        cfg = self
+        if ensure_defaults and not cfg.emitters:
+            cfg = cfg.emitter(family="izhikevich", preset="cortical_eig")
+        if ensure_defaults and not cfg.fields:
+            cfg = cfg.field(
+                domain="laminar_column",
+                conductivity="proxy",
+                boundary="mean_zero_neumann",
+                gauge="mean_zero",
+            )
+
+        probe_kwargs: dict[str, Any] = {
+            "name": name,
+            "modes": mode_list,
+            "operator_status": "simulated_proxy",
+            "field_solver_status": "laminar_proxy_no_pde",
+            "physical_amplitude_claim_allowed": False,
+        }
+        if n_contacts is not None:
+            probe_kwargs["n_contacts"] = int(n_contacts)
+        probe_kwargs.update(kwargs)
+        return cfg.probe(**probe_kwargs)
+
+    def set_probes(self, modes: Sequence[str], **kwargs: Any) -> "Configuration":
+        """Backward-compatible alias for the callable ``cfg.probes(...)`` facade."""
+        return self._with_probe_modes(modes=modes, **kwargs)
 
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
