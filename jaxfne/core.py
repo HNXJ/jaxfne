@@ -2709,6 +2709,29 @@ def paradigm(name: str = "none") -> Paradigm:
     return Paradigm(name=name)
 
 
+def simulate(
+    model: Model,
+    sim: Optional[Simulation] = None,
+    paradigm: Optional[Any] = None,
+    **kwargs: Any,
+) -> Signals:
+    """Run a simulation with the given model.
+
+    Allows passing either an explicit :class:`Simulation` object, or passing
+    simulation parameters (such as ``duration_ms``, ``dt_ms``, ``seed``,
+    `record_sources`, `record_fields`, `runtime`) as direct keyword
+    arguments.
+    """
+    if sim is None:
+        sim = Simulation(**kwargs)
+    elif kwargs:
+        raise ValueError(
+            "Cannot specify both a Simulation object and individual simulation parameters as keyword arguments."
+        )
+    return model.simulate(sim, paradigm=paradigm)
+
+
+
 def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
     validation = cfg.validate()
     if not validation["valid"]:

@@ -54,6 +54,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `gemini-cli` | v0.2.31: Suite No. 2 compact API facade (simulate & vis.spectrolaminar) | `5851dde` | Implemented functional jtfne.simulate and high-fidelity jtfne.vis.spectrolaminar; 1036/1036 tests passing; clean working tree. |
 | `claude-sonnet` | v0.1.0 post-RC hardening: CI workflow, release scripts, Colab docs, RELEASE_CHECKLIST | (pending commit) | scripts/release_rehearsal.sh, upload_testpypi.sh, upload_pypi.sh; .github/workflows/ci.yml; docs/COLAB_SMOKE_V010.md; docs/RELEASE_CHECKLIST.md; README patches; no code change; PyPI blocked by missing credentials |
 | `claude-sonnet` | v0.0.23 package hardening (LICENSE, example naming 00-06, pytest reliability) | `77485e7` | MIT LICENSE added; examples renamed; 236 tests pass in 36s; 7/7 examples pass; per external audit |
 | `claude-sonnet` | v0.0.23 packaging validation smoke (wheel/sdist build, twine check, fresh venv install, version bump) | `e45e93b` | 236 tests pass, 7/7 examples pass; pushed to origin/dev; awaiting hardening per audit |
