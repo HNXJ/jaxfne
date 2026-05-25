@@ -95,10 +95,9 @@ def create_spike_raster_figure(
                 fig.add_vline(
                     x=spike_time,
                     line_dash="dash",
-                    line_color="black",
-                    opacity=0.5,
+                    line_color="gray",
                     annotation_text=f"Neuron {neuron_id}",
-                    hovertext=f"Neuron {neuron_id}, spike at {spike_time:.2f} ms",
+                    annotation_position="top",
                 )
 
         fig.update_layout(
