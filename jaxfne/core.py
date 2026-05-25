@@ -58,6 +58,9 @@ def _default_metadata() -> dict[str, Any]:
         "field_solver_status": "laminar_proxy_no_pde",
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
+        # Suite No. 2 truth gates — always present so validation passes regardless
+        # of which subset of chainable methods the caller uses.
+        "connectivity_status": "declared_metadata_proxy",
     }
 
 
