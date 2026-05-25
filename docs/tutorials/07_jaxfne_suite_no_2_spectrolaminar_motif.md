@@ -28,26 +28,26 @@ This tutorial walks through constructing this multi-column model and inspecting 
 
 ## 1. Setup and Chainable Configuration
 
-We define our cortical columns using the package-native explicit verb methods:
+We define our cortical columns using the package-native compact chainable facade methods:
 
 ```python
 import jaxfne as jtfne
 
 # 1. Initialize configuration and set runtime parameters
 cfg = jtfne.Configuration()
-cfg = cfg.set_runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
 
 # 2. Add columns with different layers and sizes
-cfg = cfg.add_column("V1", layers=["L2/3", "L4", "L5", "L6"], n=80)
-cfg = cfg.add_column("PFC", layers=["L2/3", "L5", "L6"], n=80)
+cfg = cfg.column("V1", layers=["L2/3", "L4", "L5", "L6"], n=80)
+cfg = cfg.column("PFC", layers=["L2/3", "L5", "L6"], n=80)
 
 # 3. Specify cell type fractions, loop connectivity, and emitters
-cfg = cfg.set_cell_types({"E": 0.75, "PV": 0.12, "SST": 0.08, "VIP": 0.05})
-cfg = cfg.set_connectivity(feedforward=("V1", "PFC"), feedback=("PFC", "V1"))
+cfg = cfg.cell_types({"E": 0.75, "PV": 0.12, "SST": 0.08, "VIP": 0.05})
+cfg = cfg.connectivity(feedforward=("V1", "PFC"), feedback=("PFC", "V1"))
 cfg = cfg.set_emitter("izhikevich", "cortical_eig")
 
 # 4. Declare multimodal proxy probes
-cfg = cfg.set_probes(["MUA-proxy", "LFP-proxy", "CSD-proxy", "EEG-proxy", "MEG-proxy", "EMM-proxy"])
+cfg = cfg.probes(["MUA-proxy", "LFP-proxy", "CSD-proxy", "EEG-proxy", "MEG-proxy", "EMM-proxy"])
 ```
 
 ---
@@ -135,4 +135,4 @@ We run a small parameter search to fit connection weights against target spectra
 
 ## Summary of Truth-Safe Readout Status
 
-All generated signals are calculated under `truth_safe_unverified` guidelines and represents uncalibrated laminar proxy readouts (`laminar_proxy_no_pde`). No physical amplitude or biological mechanism claims are introduced.
+All generated signals are calculated under `truth_safe_unverified` guidelines and represent uncalibrated laminar proxy readouts (`laminar_proxy_no_pde`). No physical amplitude or biological mechanism claims are introduced.
