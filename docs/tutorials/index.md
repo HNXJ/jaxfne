@@ -20,6 +20,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | Number | Topic | Type | Focus | Version |
 |--------|-------|------|-------|---------|
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
+| **Suite 2** | Spectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
 | **01** | Single neuron, multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
 | **03** | 100-neuron network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
@@ -39,6 +40,25 @@ A comprehensive 4-part course covering:
 **22 figures**, export metrics, and immutable claim gates throughout. CPU-safe, runs in 2–3 minutes on Colab.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb)
+
+---
+
+## Featured: jaxfne Suite No. 2
+
+**[Spectrolaminar Motif](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** (interactive notebook)
+
+A comprehensive tutorial covering:
+- Part 1: Declaring cortical column anatomy and multi-column loops
+- Part 2: Vectorized JAX-first population simulations
+- Part 3: Sampling multimodal sensor proxies (MUA, LFP, CSD, EEG, MEG, EMM)
+- Part 4: High-fidelity publication-ready spectrolaminar visualizations
+- Part 5: Evoked responses and baseline spectrolaminar heatmaps
+- Part 6: CPU-safe parameter search and tuning trajectories
+
+**13 publication-ready figures**, strict JSON evidence manifests, and JAX-native vis tools.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
+
 
 ---
 

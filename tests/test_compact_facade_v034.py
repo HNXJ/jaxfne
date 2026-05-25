@@ -63,3 +63,26 @@ def test_matplotlib_import_guard():
     with patch.dict(sys.modules, {"matplotlib": None}):
         with pytest.raises(ImportError, match="The visualization features require the optional dependency 'matplotlib'"):
             jtfne.vis.require_matplotlib()
+
+
+def test_chainable_dsl_facade():
+    """Verify that the chainable DSL configuration facade works exactly as requested."""
+    cfg = jtfne.Configuration()
+    cfg2 = cfg.set_runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+    cfg3 = cfg2.add_column("V1", layers=["L2/3", "L4", "L5", "L6"], n=80)
+    cfg4 = cfg3.set_probes(["MUA-proxy", "LFP-proxy", "CSD-proxy"])
+
+    # Assertions
+    assert cfg.metadata.get("seed") is None  # original is not corrupted
+    assert cfg4.metadata["seed"] == 7
+    assert cfg4.metadata["dtype"] == "float32"
+    assert len(cfg4.networks) == 1
+    assert cfg4.networks[0]["n"] == 80
+    assert len(cfg4.probes) == 1
+    assert cfg4.probes[0]["modes"] == ["MUA-proxy", "LFP-proxy", "CSD-proxy"]
+
+    # Test complete construct/simulate path
+    model = jtfne.construct(cfg4)
+    signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1, seed=7)
+    assert signals.V_m.shape[1] == 80
+
