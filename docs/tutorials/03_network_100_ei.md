@@ -1,4 +1,5 @@
-# 100-neuron E/I network
+# 100-neuron Network
+
 
 Build, simulate, and inspect a 100-neuron balanced excitatory/inhibitory (75E / 25I) network.
 Extract all eight proxy readouts from population activity.

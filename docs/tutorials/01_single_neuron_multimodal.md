@@ -1,4 +1,5 @@
-# Single-neuron multimodal
+# Single-neuron Multimodal
+
 
 Build, simulate, and inspect a single Izhikevich neuron with all eight proxy readouts.
 Extract spikes, voltage, field readouts, and reproducible output bundles.

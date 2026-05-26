@@ -21,11 +21,12 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 |--------|-------|------|-------|---------|
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
-| **01** | Single neuron, multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
+| **01** | Single-neuron Multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
-| **03** | 100-neuron network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
-| **04** | V1 six-layer column | Documentation guide | Laminar anatomy, depth-specific readouts | v0.2.11+ |
-| **05** | V1-PFC dual column | Documentation guide | Cross-area interaction, traveling waves | v0.2.14+ |
+| **03** | 100-neuron Network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
+| **04** | V1 Six-layer Column | Documentation guide | Laminar anatomy, depth-specific readouts | v0.2.11+ |
+| **05** | V1-PFC Dual Column | Documentation guide | Cross-area interaction, traveling waves | v0.2.14+ |
+
 
 ## Featured: jaxfne Suite No. 1
 
@@ -64,7 +65,7 @@ A comprehensive tutorial covering:
 
 ## Beginner tutorials
 
-**[Single-neuron multimodal](01_single_neuron_multimodal.md)**
+**[Single-neuron Multimodal](01_single_neuron_multimodal.md)**
 
 Start here. Build, simulate, and inspect a single Izhikevich neuron with spikes, voltage, and readout operators.
 
@@ -74,19 +75,20 @@ Excitatory and inhibitory neurons connected. Observe recurrent dynamics and coup
 
 ## Intermediate tutorials
 
-**[100-neuron E/I network](03_network_100_ei.md)**
+**[100-neuron Network](03_network_100_ei.md)**
 
 A balanced network of excitatory and inhibitory neurons. Explore local population activity and stability.
 
-**[V1 six-layer column](04_v1_column.md)**
+**[V1 Six-layer Column](04_v1_column.md)**
 
 A laminar model inspired by primate V1 with six layers (L1, L2/3, L4, L5, L6) and depth-specific readouts.
 
 ## Advanced tutorial
 
-**[V1-PFC dual column](05_v1_pfc_dual_column.md)**
+**[V1-PFC Dual Column](05_v1_pfc_dual_column.md)**
 
 Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area interaction and traveling-wave dynamics.
+
 
 ## Running tutorials
 
