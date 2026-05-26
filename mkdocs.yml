@@ -94,3 +94,6 @@ nav:
           - v0.2.3: releases/v0.2.3.md
           - v0.2.1: releases/v0.2.1.md
           - v0.2.0: releases/v0.2.0.md
+
+extra:
+  jaxfne_version: "0.3.5"
