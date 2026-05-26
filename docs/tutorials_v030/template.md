@@ -459,7 +459,7 @@ print("Manifest keys:", list(manifest.keys()))
 
 # Extract claim gates
 basis = manifest['basis']
-print("\nClaim gates (frozen in v0.2.30):")
+print("\nClaim gates:")
 print(f"  physical_amplitude_claim_allowed: {basis['physical_amplitude_claim_allowed']}")
 print(f"  biological_metabolism_claim_allowed: {basis['biological_metabolism_claim_allowed']}")
 print(f"  claim_level: {basis['claim_level']}")
@@ -779,15 +779,15 @@ Implement synaptic plasticity (STDP or homeostatic scaling) and rerun. How does 
 ❌ Evidence for or against any specific neural computation  
 ❌ A whole-brain simulator or large-scale network model  
 
-### Scientific boundaries (immutable as of v0.2.30)
+### Scientific boundaries
 
 - **truth_mode:** truth_safe_unverified
-- **claim_level:** computational_scaffold
+- **scope:** computational_scaffold
 - **physical_amplitude_claim_allowed:** False
-- **field_solver_status:** laminar_proxy_no_pde (no Maxwell/Poisson PDE solvers)
-- **source_calibration_status:** uncalibrated (teaching proxy)
+- **field_solver_status:** laminar_proxy_no_pde
+- **source_calibration_status:** uncalibrated
 
-This tutorial uses v0.2.30 of jaxfne, a stable baseline for v0.3 tutorial work. The package version will not be bumped unless a tutorial reveals a real bug in the core library or a genuinely missing public API.
+This tutorial uses v0.3.4 of jaxfne. The package version will not be bumped unless a tutorial reveals a real bug in the core library or a genuinely missing public API.
 
 ### Invitation to contribute
 
@@ -802,7 +802,7 @@ Please reach out via GitHub Issues or Discussions. This is a living, community-d
 
 If you use this tutorial in research or teaching, please cite:
 
-> jaxfne v0.2.30 Tutorial Atlas. Hamed Nejat and contributors. https://github.com/HNXJ/jaxfne/docs/tutorials_v030/
+> jaxfne v0.3.4 Tutorial Atlas. Hamed Nejat and contributors. https://github.com/HNXJ/jaxfne/docs/tutorials_v030/
 
 (Exact citation format may be updated as v0.3 stabilizes.)
 

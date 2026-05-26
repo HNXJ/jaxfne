@@ -1,15 +1,15 @@
-# Release Checklist (v0.2.30+) — CURRENT DOCUMENT
+# Release Checklist (v0.3.4+) — CURRENT DOCUMENT
 
-> This is the **current release checklist** for jaxfne v0.2.30 and beyond.  
+> This is the **current release checklist** for jaxfne v0.3.4 and beyond.  
 > For legacy v0.1.0 release process, see [RELEASE_CHECKLIST_LEGACY.md](RELEASE_CHECKLIST_LEGACY.md).
 
-**Version:** v0.2.30  
-**Last updated:** 2026-05-23  
+**Version:** v0.3.4  
+**Last updated:** 2026-05-26  
 **truth_mode:** truth_safe_unverified
 
-> **Note:** Code examples in this checklist use `v0.2.27` as a placeholder. Substitute the
-> actual target version (e.g., `0.2.30`, `0.2.31`) when following these steps.
-> The current released version is **v0.2.30** (PyPI: https://pypi.org/project/jaxfne/0.2.30/).
+> **Note:** Code examples in this checklist use `v0.3.4` as a placeholder. Substitute the
+> actual target version (e.g., `0.3.4`, `0.3.5`) when following these steps.
+> The current released version is **v0.3.4** (PyPI: https://pypi.org/project/jaxfne/0.3.4/).
 
 ---
 

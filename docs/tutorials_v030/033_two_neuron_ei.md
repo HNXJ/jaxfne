@@ -1,5 +1,7 @@
 # jaxfne v0.3.3: Two-Neuron E/I Dynamics Tutorial
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials_v030/033_two_neuron_ei.md)
+
 **How excitatory and inhibitory coupling shapes spike timing, voltage, and neural readouts.**
 
 ## Learning Objectives
