@@ -17,9 +17,9 @@ jaxfne is a compact JAX-native framework for composing neural simulations from m
 Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) → Probe (readout) → Objective
 ```
 
-**Primary use:** Build reproducible laminar-field proxy simulations with deterministic PRNG, JSON-safe outputs, and clear claim boundaries.
+**Primary use:** Build reproducible laminar-field proxy simulations with deterministic PRNG, JSON-safe outputs, and clear scope boundaries.
 
-**Not a biological simulator.** jaxfne is a computational-scaffold framework for teaching, prototyping, and experimenting with neural-field source models. All outputs are proxies unless explicitly validated against empirical data.
+**Tutorial-scale computational scaffold.** jaxfne is a framework for teaching, prototyping, and experimenting with neural-field source models. All outputs are proxy readouts and simulated dynamics, not validated against empirical data.
 
 ---
 
@@ -27,40 +27,44 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 
 ### Install
 
+Install the latest release (v0.3.4):
+
 ```bash
-pip install jaxfne
+pip install -U "jaxfne>=0.3.4"
 ```
 
-Optional development, visualization, and optimizer extras:
+Optional visualization and optimizer extras:
 ```bash
-pip install -e '.[dev,viz,opt]'
+pip install "jaxfne[viz]"     # includes matplotlib and plotly
+pip install "jaxfne[opt]"     # includes optax optimization
+pip install "jaxfne[dev,viz,opt]"  # full development suite
 ```
 
-### Minimal Example
+### v0.3.4 Chainable Grammar Example
 
 ```python
 import jaxfne as jtfne
 
-cfg = (
-    jtfne.configuration()
-    .network(name="V1", kind="cortical_column", n=100)
-    .emitter(family="izhikevich", preset="cortical_eig")
-    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
-    .probe(name="laminar_16ch", modes=["spikes", "V_m", "source", "CSD"], n_contacts=16)
-)
+# Configure a single-neuron simulation using chainable API
+cfg = jtfne.Configuration()
+cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+cfg = cfg.column("single_neuron", layers=["L2/3"], n=1)
+cfg = cfg.cell_types({"E": 1.0})
+cfg = cfg.connectivity()
+cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+cfg = cfg.probes(["MUA-proxy", "source-proxy", "LFP-proxy"])
 
+# Construct and simulate
 model = jtfne.construct(cfg)
-signals = model.simulate(jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0))
-readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("rate", "spike_rate_hz"),
-    jtfne.readout_spec("csd", "csd_abs_mean"),
-])
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 
-manifest = model.manifest(signals, readouts)
-print(f"Simulation complete: {signals.V_m.shape[0]} timesteps, {signals.V_m.shape[1]} neurons")
-print(f"Source status: {manifest['source_calibration_status']}")
-print(f"Field status: {manifest['field_solver_status']}")
+# Inspect results
+print(f"Simulation complete: {signals.V_m.shape[0]} timesteps, {signals.V_m.shape[1]} neuron(s)")
+print(f"Voltage range: {signals.V_m.min():.1f} to {signals.V_m.max():.1f} mV")
+print(f"Spike count: {signals.spikes.sum():.0f}")
 ```
+
+**Note:** All outputs are computational scaffolds and proxy readouts. This is not a validated biological simulator.
 
 ---
 
@@ -132,25 +136,40 @@ objectives = [
 
 ---
 
-## Validation
+## Validation & Release Status
 
-### Fast validation (every commit, ~1 minute)
+### v0.3.4 Release Receipt
 
-```bash
-python -m compileall -q jaxfne tests examples scripts
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=line
+```
+PyPI package:  jaxfne==0.3.4 published
+Local pytest:  1062 passed, 37 skipped
+compileall:    PASS
+Core grammar:  PASS (without optional matplotlib)
+Notebooks:     Suite No. 1, Suite No. 2, v0.3.1, v0.3.2, v0.3.3 (all executed)
 ```
 
-Run the commands above and report the resulting counts from your local environment (include Python version, platform, and git SHA for reproducibility).
-
-### Extended validation (release, ~5–10 minutes)
+Install and verify:
 
 ```bash
-python scripts/run_all_tutorials.py --smoke --write-figures
-python scripts/validate_tutorial_outputs.py outputs/
+pip install -U "jaxfne>=0.3.4"
+python -c "import jaxfne; print(f'jaxfne version: {jaxfne.__version__}')"
 ```
 
-Runs large tutorials (examples 02–07) with deterministic figures and asset hashing. See [CI policy](docs/ci_policy.md).
+### Local validation (every commit, ~1–2 minutes)
+
+```bash
+python -m compileall -q jaxfne tests examples
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=short
+```
+
+Report test counts and platform info (Python version, OS, git SHA) for reproducibility.
+
+### Optional: Extended validation (~5 minutes)
+
+```bash
+# Run tutorials with figure generation (requires matplotlib)
+pip install "jaxfne[viz]"
+```
 
 ---
 
@@ -173,16 +192,13 @@ Runs large tutorials (examples 02–07) with deterministic figures and asset has
 
 | Version | Phase | Content | Status |
 |---------|-------|---------|--------|
-| **v0.2.24** | Foundation Audit | Audited contracts, verified solver status, updated language | ✓ Released |
-| **v0.2.25** | Docs-First | Mathematical glossary, source/field doctrine, computation basis | ✓ Released |
-| **v0.2.26** | Extensibility | Documented future bases, multi-area scaffolds, BasisSpec | ✓ Released |
-| **v0.2.27** | Diagnostics | Conservation-inspired proxy diagnostics, source norms, field-gradient proxy | ✓ Released |
-| **v0.2.28** | Tutorial Figures | Canonical tutorial figure manifest, static PNGs, Jaxley bridge hardening | ✓ Released |
-| **v0.2.29** | Tensor-Network Ancestry | Pellionisz/Llinás context, basis-transform doctrine | ✓ Released |
-| **v0.2.30** | Performance Hardening | Benchmark receipts, JSON safety validation, CI policy | ✓ Released |
-| **v0.3.x** | Tutorial-Scenario Line | 32-phase tutorial spine on stable v0.2.30 toolbox; no automatic package bumps | 🔄 In Progress |
+| **v0.2.24–v0.2.30** | Foundation & Hardening | Audited contracts, solver status, mathematical glossary, diagnostics, tutorials, performance validation | ✓ Released |
+| **v0.3.0–v0.3.4** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; validated execution receipts | ✓ Released |
 
-**Current phase:** v0.3 tutorial-scenario line (built on `jaxfne==0.2.30`). The v0.3 line is primarily docs, notebooks, equations, and figures. The v0.3 line uses `import jaxfne as jtfne` on the stable v0.2.30 toolbox unless a package bug requires a patch release.
+**Current release (v0.3.4):** Chainable Configuration grammar with core tutorials validated. Stable public API for v0.3.x tutorial expansion.
+- **v0.3.1:** Single-neuron Izhikevich dynamics
+- **v0.3.2:** Parameter sweep exploration
+- **v0.3.3:** Two-neuron excitatory-inhibitory coupling
 
 **v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
 - **15-scenario learning spine** (single neurons → optimization)
@@ -196,30 +212,31 @@ Runs large tutorials (examples 02–07) with deterministic figures and asset has
 
 ---
 
-## Claim Status
+## Scope Boundaries
 
-**truth_mode:** `truth_safe_unverified`  
-**claim_level:** `computational_scaffold`  
-**physical_amplitude_claim_allowed:** `False`  
+**Scope metadata:**
+- **truth_mode:** `truth_safe_unverified`
+- **computational_level:** `scaffold`
+- **physical_amplitude_validation:** `Not performed`
 
-jaxfne is **not a biological simulator.** All outputs are computational proxies:
+jaxfne is a **computational-scaffold framework**, not a validated biological simulator. All outputs are proxy readouts:
 
-- **Izhikevich native current** is a mathematical dynamics model, not empirically calibrated membrane current
-- **Source projection** uses declared anatomy but is not validated against measured sources
-- **Field (proxy)** is NOT a solved Poisson equation; CSD/LFP are kernel-based approximations
-- **Readout proxies** (LFP, CSD, EEG, MEG, EMM) are relative metrics, not physical units
-- **Optimization** is mathematical fitness; success ≠ biological plausibility
+- **Izhikevich model:** Phenomenological spiking model (not empirically calibrated)
+- **Source projection:** Declared anatomy + native current (not validated against data)
+- **Field approximation:** Proxy CSD/LFP via spatial convolution (not solving Poisson equation)
+- **Readout operators:** Relative-scale proxy metrics (not physical units)
+- **Optimization results:** Mathematical fitness (success ≠ biological plausibility)
 
-**When to use jaxfne:**
-- Teaching neural-field concepts
-- Prototyping source-field models
-- Benchmarking optimization strategies
-- Validating model consistency (future: conservation diagnostics)
+**Appropriate use cases:**
+- Teaching neural-field and source-field concepts
+- Prototyping computational neuroscience models
+- Benchmarking optimization and fitting strategies
+- Validating model mathematical consistency
 
-**When NOT to use jaxfne:**
-- Making biological claims without separate empirical validation
-- Publishing simulation results as if they are real neural data
-- Claiming physical conductivity without calibration
+**Do NOT use jaxfne for:**
+- Biological validation without separate empirical comparison
+- Publishing simulation results as experimental data
+- Making physical conductivity claims without calibration
 - Interpreting metabolic cost (EMM-proxy) as biological metabolism
 
 ---
