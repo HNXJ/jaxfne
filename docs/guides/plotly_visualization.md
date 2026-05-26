@@ -2,7 +2,7 @@
 
 ## Overview
 
-Plotly is **optional** and not a core jaxfne dependency. Install it only when creating interactive HTML visualizations:
+Plotly is **optional** — a jaxfne addition for creating interactive HTML visualizations. Install it when needed for this feature:
 
 ```bash
 pip install plotly
@@ -89,7 +89,7 @@ out = Path("outputs/myrun/figures")
 out.mkdir(parents=True, exist_ok=True)
 fig.write_html(
     out / "lfp_proxy_trace.html",
-    include_plotlyjs="cdn",  # Use CDN, not embedded
+    include_plotlyjs="cdn",  # Use CDN for optimal file size
     full_html=True
 )
 ```
@@ -195,7 +195,7 @@ fig.write_html(
 
 ## Best practices
 
-### 1. Use CDN, not embedded
+### 1. Use CDN for optimal file size
 
 Always use `include_plotlyjs="cdn"`:
 
@@ -207,7 +207,7 @@ fig.write_html(
 )
 ```
 
-Embedded Plotly library makes files 3–5 MB each. CDN-linked files are ~10–100 KB and load the library once.
+Embedded Plotly library inflates files to 3–5 MB each. CDN-linked files stay ~10–100 KB and load the library once.
 
 ### 2. File size and performance
 
@@ -244,7 +244,7 @@ with open(Path("outputs/myrun") / "asset_hashes.json", "w") as fp:
 
 ## Artifact hygiene
 
-### Do not commit generated HTML
+### Exclude generated HTML from version control
 
 Add to `.gitignore`:
 
@@ -304,34 +304,34 @@ fig.write_html(figs_dir / "lfp_proxy_trace.html", include_plotlyjs="cdn", full_h
 
 ### 1. Embedded Plotly library
 
-❌ **WRONG:**
+❌ **INEFFICIENT:**
 ```python
-fig.write_html("figure.html", include_plotlyjs=True)  # ~3 MB file!
+fig.write_html("figure.html", include_plotlyjs=True)  # ~3 MB file
 ```
 
-✅ **CORRECT:**
+✅ **RECOMMENDED:**
 ```python
 fig.write_html("figure.html", include_plotlyjs="cdn")  # ~100 KB
 ```
 
-### 2. Claiming physical amplitude without calibration
+### 2. Correctly labeling proxy-scale readouts
 
-❌ **WRONG:**
+❌ **INCORRECT:**
 ```python
-# Don't do this:
-fig.update_layout(title="Real LFP recorded from V1 cortex")  # Proxy, not real!
+# Avoid claiming physical amplitude:
+fig.update_layout(title="Real LFP recorded from V1 cortex")  # Use proxy-scale label
 ```
 
 ✅ **CORRECT:**
 ```python
-fig.update_layout(title="LFP-proxy from proxy field operator (not calibrated)")
+fig.update_layout(title="LFP-proxy from proxy field operator (proxy-scale units)")
 ```
 
-### 3. Forgetting outputs/ is not tracked
+### 3. Version control for outputs/
 
-❌ **WRONG:**
+❌ **AVOID:**
 ```bash
-git add outputs/myrun/figures/*.html  # Don't commit generated figures
+git add outputs/myrun/figures/*.html  # Exclude generated figures
 git push
 ```
 
@@ -341,11 +341,11 @@ git add outputs/myrun/manifest.json outputs/myrun/asset_hashes.json  # Metadata 
 git push
 ```
 
-### 4. Missing directory creation
+### 4. Ensure directories exist
 
-❌ **WRONG:**
+❌ **INCOMPLETE:**
 ```python
-fig.write_html("outputs/myrun/figures/trace.html")  # Directory may not exist!
+fig.write_html("outputs/myrun/figures/trace.html")  # Missing directory check
 ```
 
 ✅ **CORRECT:**
@@ -363,4 +363,4 @@ fig.write_html("outputs/myrun/figures/trace.html")
 
 **Status:** v0.2.14  
 **Last updated:** 2026-05-20  
-**Plotly:** Optional, not a core dependency
+**Plotly:** Optional jaxfne addition for interactive visualizations
