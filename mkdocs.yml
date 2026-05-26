@@ -1,5 +1,5 @@
 site_name: jaxfne
-site_description: JAX-native TFNE scaffold for multimodal source-to-field/readout workflows
+site_description: JAX-based TFNE scaffold for multimodal source-to-field/readout workflows
 site_url: https://jaxfne.readthedocs.io/
 
 repo_url: https://github.com/HNXJ/jaxfne
@@ -66,15 +66,6 @@ nav:
       - Jaxley interoperability: jaxley_interop.md
       - Calibration: calibration.md
       - Output bundles: output_bundles.md
-
-  - Developer skills:
-      - Overview: skills/README.md
-      - Repo orientation: skills/skill_repo_orientation.md
-      - Tutorial smoke runner: skills/skill_tutorial_smoke.md
-      - Probe reports: skills/skill_probe_reports.md
-      - Field solution metadata: skills/skill_field_solution_metadata.md
-      - Physical field admissibility: skills/skill_physical_field_admissibility.md
-      - Visual outputs: skills/skill_visual_outputs.md
 
   - API reference:
       - Overview: api/index.md

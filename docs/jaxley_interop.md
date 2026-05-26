@@ -68,10 +68,10 @@ print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffo
 - Flexible layout support: `time_by_unit` [T,N], `unit_by_time` [N,T], `recording_by_time` [R,T]
 - Spike proxy derivation via voltage threshold (default 0.0 mV, configurable)
 - Conservative voltage-proxy source (no ionic current mapping)
-- Immutable claim gates: `computational_scaffold`, `physical_amplitude_claim_allowed=False`
+- Scope declaration: `computational_scaffold`, `physical_amplitude_claim_allowed=False`
 
-**Claim gate enforcement:**
-The bridge enforces strict claim gates to prevent overclaiming. All outputs are marked as:
+**Scope specification:**
+All outputs are marked as:
 - `claim_level: "computational_scaffold"` — Not validated against biological data
 - `physical_amplitude_claim_allowed: False` — Voltage is treated as a proxy readout, not a physical claim
 - `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — No calibration to physical units

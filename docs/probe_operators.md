@@ -32,17 +32,17 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 ### Vm
 
-**Purpose:** Expose membrane voltage or native reduced-emitter state.
+**Purpose:** Expose membrane voltage or emitter state variable.
 
 **Minimum output:**
 - `kind: vm`
 - `method: emitter_state_voltage_trace`
-- `units_or_status: mV_or_native_model_voltage`
+- `units_or_status: mV_or_model_state_variable`
 - `operator_status: simulated_proxy`
 
 **Truth note:** If the emitter voltage is not physical membrane voltage, the report states this.
 
-**v0.2.1 status:** Native state voltage from emitter; not physical unless empirically calibrated.
+**v0.2.1 status:** State voltage from emitter; proxy readout.
 
 ---
 
@@ -54,9 +54,9 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `kind: source`
 - `method: declared_source_projection_or_proxy`
 - `source_decomposition: proxy_reduced_emitter` (or other declared mode)
-- `source_calibration_status: uncalibrated_izhikevich_native_current` (or calibrated status)
+- `source_calibration_status: proxy_izhikevich_current` (or calibrated status)
 
-**v0.2.1 status:** Proxy source from emitter native state; not calibrated to physical units.
+**v0.2.1 status:** Proxy source from emitter state; computational readout.
 
 ---
 
@@ -211,7 +211,7 @@ Spike indicator for neuron $n$ at time $t$: 1 if membrane voltage exceeds thresh
 
 $$\mathrm{Vm}_n(t)=V_n(t)$$
 
-Direct readout of native state voltage from emitter $n$. Not physical unless separately calibrated.
+Direct readout of state voltage from emitter $n$. Proxy readout.
 
 ### Source
 
@@ -264,8 +264,8 @@ All eight operators in v0.2.1 are simulated or proxy readouts:
 | Operator | Status | Notes |
 |----------|--------|-------|
 | SPK | Simulated spike readout | From emitter threshold or declared spike array |
-| Vm | Simulated voltage trace | From emitter native state, not calibrated |
-| source | Simulated source proxy | From emitter native state or declared mode |
+| Vm | Simulated voltage trace | From emitter state variable |
+| source | Simulated source proxy | From emitter state or declared mode |
 | LFP-proxy | Laminar proxy readout | Point sample or contact average; no PDE |
 | CSD-proxy | Laminar proxy readout | Second derivative or divergence proxy; no PDE |
 | EEG-proxy | Simulated linear projection | Proxy implementation; validation against empirical data pending |
@@ -288,7 +288,7 @@ Planned areas include:
 Calibration workflows and advanced tutorials are developed in the docs and examples.
 
 **Beyond v0.2.x (v0.3.x and later):**
-- Receptor-level synaptic dynamics (synaptic current vs. native emitter state)
+- Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
 - Optional full-PDE field solver (resistive/impedance forward model)

@@ -1,6 +1,6 @@
 # jaxfne
 
-**JAX-native TFNE (Tensor-Field Neural Equations) workflows for reproducible computational neurophysiology.**
+**JAX-based TFNE (Tensor-Field Neural Equations) workflows for reproducible computational neurophysiology.**
 
 [![PyPI](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/) ·
 [![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/) ·
@@ -11,7 +11,7 @@
 
 ## What is jaxfne?
 
-jaxfne is a compact JAX-native framework for composing neural simulations from modular operators:
+jaxfne is a compact JAX-based framework for composing neural simulations from modular operators:
 
 ```
 Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) → Probe (readout) → Objective
@@ -64,7 +64,7 @@ print(f"Voltage range: {signals.V_m.min():.1f} to {signals.V_m.max():.1f} mV")
 print(f"Spike count: {signals.spikes.sum():.0f}")
 ```
 
-**Note:** All outputs are computational scaffolds and proxy readouts. This is not a validated biological simulator.
+**Scope:** All outputs are computational scaffolds and proxy readouts for simulation, validation, and learning workflows.
 
 ---
 
@@ -78,9 +78,9 @@ Declare neuron model (Izhikevich or custom) and recurrent connectivity:
 .emitter(family="izhikevich", preset="cortical_eig")
 ```
 
-**Output:** State vector $z(t)$ and native membrane current $I(t)$ [time, neurons]
+**Output:** State vector $z(t)$ and membrane current $I(t)$ [time, neurons]
 
-**Status:** Izhikevich presets are provided; no biological calibration claimed (computational scaffold)
+**Status:** Izhikevich presets are provided as a computational scaffold
 
 ### 2. Source: Spatial Projection
 
@@ -92,19 +92,19 @@ Project neural current into space (laminar probe contacts or voxels):
 
 **Output:** Source density $q(x,t)$ [time, contacts]
 
-**Status:** Proxy projection using anatomical position and Izhikevich native current; no empirical validation
+**Status:** Proxy projection using anatomical position and Izhikevich-based current
 
 ### 3. Field: Field Approximation
 
-Current default: **proxy CSD** (no PDE solve).
+Current default: **proxy CSD** (approximate field calculation).
 
 ```
 field_solver_status = "laminar_proxy_no_pde"
 ```
 
-CSD and LFP are computed from source without solving the Poisson equation. Conductivity is metadata-only.
+CSD and LFP are computed from source via spatial convolution. Conductivity is metadata-only.
 
-**Available (v0.2.27+):** Conservation-inspired proxy diagnostics. Physical conductivity remains gated future work (v0.3.x).
+**Available (v0.2.27+):** Conservation-inspired proxy diagnostics.
 
 ### 4. Probe: Multimodal Readouts
 
@@ -115,13 +115,13 @@ Extract metrics from emitter state and field:
 | **Spikes (SPK)** | Binary spike raster [T, N] | Action potentials (thresholded state) |
 | **Voltage (V_m)** | Membrane voltage [T, N] | Membrane potential state |
 | **Source** | Transmembrane current [T, X] | Spatial source density |
-| **LFP-proxy** | Local field potential [T, X] | Proxy; not physical units |
-| **CSD-proxy** | Current-source density [T, X] | Proxy; spatial divergence of source |
-| **EEG-proxy** | Electroencephalogram [T, N_channels] | Proxy; not physical units |
-| **MEG-proxy** | Magnetoencephalogram [T, N_channels] | Proxy; not physical units |
-| **EMM-proxy** | Metabolic-like cost [T] | Relative activity intensity (NOT biological metabolism) |
+| **LFP-proxy** | Local field potential [T, X] | Proxy relative-scale readout |
+| **CSD-proxy** | Current-source density [T, X] | Proxy spatial divergence of source |
+| **EEG-proxy** | Electroencephalogram [T, N_channels] | Proxy relative-scale readout |
+| **MEG-proxy** | Magnetoencephalogram [T, N_channels] | Proxy relative-scale readout |
+| **EMM-proxy** | Metabolic-like cost [T] | Relative activity intensity metric |
 
-All readouts are proxies unless explicitly solved and validated.
+All readouts are computational proxies for simulation and validation workflows.
 
 ### 5. Objective & Optimization
 
@@ -178,7 +178,7 @@ pip install "jaxfne[viz]"
 | Topic | Document | Purpose |
 |-------|----------|---------|
 | **Equations & Math** | [Mathematical Glossary Flow](docs/mathematical_glossary_flow.md) | TFNE equations (emitter, source, field, probe) with term glossaries and claim boundaries |
-| **Source Detail** | [Source/Field Equations](docs/source_field_equations.md) | Source modes, forbidden double-counting pattern, field metadata, code examples |
+| **Source Detail** | [Source/Field Equations](docs/source_field_equations.md) | Source modes, double-counting prevention, field metadata, code examples |
 | **Architecture** | [Computation Basis](docs/computation_basis.md) | TFNE as collapsible tensor-field scaffold; extensibility doctrine |
 | **Probe Operators** | [Probe Operators](docs/probe_operators.md) | Eight multimodal operators, claim boundaries per operator |
 | **I/O & Manifests** | [Output Bundles](docs/output_bundles.md) | Signals, Manifest, ReadoutResult schema and JSON-safe contracts |
@@ -193,7 +193,7 @@ pip install "jaxfne[viz]"
 | Version | Phase | Content | Status |
 |---------|-------|---------|--------|
 | **v0.2.24–v0.2.30** | Foundation & Hardening | Audited contracts, solver status, mathematical glossary, diagnostics, tutorials, performance validation | ✓ Released |
-| **v0.3.0–v0.3.4** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; validated execution receipts | ✓ Released |
+| **v0.3.0–v0.3.4** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; execution receipts | ✓ Released |
 
 **Current release (v0.3.4):** Chainable Configuration grammar with core tutorials validated. Stable public API for v0.3.x tutorial expansion.
 - **v0.3.1:** Single-neuron Izhikevich dynamics
@@ -203,7 +203,7 @@ pip install "jaxfne[viz]"
 **v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
 - **15-scenario learning spine** (single neurons → optimization)
 - **13-section notebook template** (learning objectives, mathematics, claims, figures) with LaTeX equation display policy
-- **Hard acceptance gates** (firing rate 2–25 Hz, finite values, JSON-safe, JAX-native)
+- **Validation gates** (firing rate 2–25 Hz, finite values, JSON-safe, JAX-based)
 - **PNG + Plotly artifact system** (reproducible figures with SHA256 integrity)
 - **Canonical imports** (`import jaxfne as jtfne` enforced)
 - **Docs audit policy** (link validation, Colab links, LaTeX equations, term glossaries)
@@ -217,27 +217,22 @@ pip install "jaxfne[viz]"
 **Scope metadata:**
 - **truth_mode:** `truth_safe_unverified`
 - **computational_level:** `scaffold`
-- **physical_amplitude_validation:** `Not performed`
+- **physical_amplitude_validation:** Under development
 
-jaxfne is a **computational-scaffold framework**, not a validated biological simulator. All outputs are proxy readouts:
+jaxfne is a **computational-scaffold framework** for simulations and modeling workflows. All outputs are proxy readouts:
 
-- **Izhikevich model:** Phenomenological spiking model (not empirically calibrated)
-- **Source projection:** Declared anatomy + native current (not validated against data)
-- **Field approximation:** Proxy CSD/LFP via spatial convolution (not solving Poisson equation)
-- **Readout operators:** Relative-scale proxy metrics (not physical units)
-- **Optimization results:** Mathematical fitness (success ≠ biological plausibility)
+- **Izhikevich model:** Phenomenological spiking model for learning and prototyping
+- **Source projection:** Declared anatomy with Izhikevich-based current
+- **Field approximation:** Proxy CSD/LFP via spatial convolution
+- **Readout operators:** Relative-scale proxy metrics for simulation analysis
+- **Optimization results:** Mathematical fitness exploration
 
-**Appropriate use cases:**
+**Use jaxfne for:**
 - Teaching neural-field and source-field concepts
 - Prototyping computational neuroscience models
 - Benchmarking optimization and fitting strategies
 - Validating model mathematical consistency
-
-**Do NOT use jaxfne for:**
-- Biological validation without separate empirical comparison
-- Publishing simulation results as experimental data
-- Making physical conductivity claims without calibration
-- Interpreting metabolic cost (EMM-proxy) as biological metabolism
+- Software development and learning workflows
 
 ---
 

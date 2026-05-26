@@ -12,7 +12,7 @@ Emitter/Network → Source tensors → Field operators → Probe readouts → Ou
 
 Start with spike or voltage outputs from:
 
-- jaxfne-native Izhikevich emitters
+- jaxfne Izhikevich emitters
 - Jaxley-style neuron/network models
 - Custom JAX arrays (organized as [time, neurons] or [time, neurons, features])
 
@@ -38,7 +38,7 @@ Extract multimodal outputs:
 
 - **SPK:** Spike times or spike matrix
 - **Vm:** Membrane voltage or emitter state
-- **Source:** Source tensor (projection or native)
+- **Source:** Source tensor (projection or base)
 - **LFP-proxy, CSD-proxy:** Field quantities
 - **EEG-proxy, MEG-proxy:** Linear projections (toy or declared)
 - **EMM-proxy:** Normalized activity cost

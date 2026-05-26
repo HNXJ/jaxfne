@@ -1,10 +1,10 @@
 # Scope and limitations
 
-jaxfne is a JAX-native source-to-field/readout layer for building and testing multimodal tensor-field workflows.
+jaxfne is a JAX-based source-to-field/readout layer for building and testing multimodal tensor-field workflows.
 
 ## What jaxfne is designed for
 
-- **Reproducible proxy simulations** — deterministic, JAX-native, CPU-safe by default
+- **Reproducible proxy simulations** — deterministic, JAX-based, CPU-safe by default
 - **Source-to-field organization** — structure emitter outputs into field/readout workflows
 - **Multimodal readouts** — eight probe operators for spikes, voltage, LFP, CSD, EEG, MEG, EMM
 - **JSON-safe output bundles** — strict serialization with metadata and validation tracking

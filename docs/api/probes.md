@@ -22,7 +22,7 @@ class ProbeReport:
 | Operator | Status | Math Form | Use Case |
 |----------|--------|-----------|----------|
 | **SPK** | Spike detection | $\mathrm{SPK}_n = \mathbb{1}[V_n \geq \theta_n]$ | Event-based readout |
-| **Vm** | Voltage trace | $\mathrm{Vm}_n = V_n(t)$ | Native state readout |
+| **Vm** | Voltage trace | $\mathrm{Vm}_n = V_n(t)$ | State readout |
 | **source** | Source proxy | $S_n = f_{\mathrm{source}}(x_n, \theta_n)$ | Emitter-to-field mapping |
 | **LFP-proxy** | Potential sampling | $\phi_{\mathrm{proxy}} = \sum W_{cn} S_n$ | Contact depth average |
 | **CSD-proxy** | 2nd derivative | $\mathrm{CSD} \approx \nabla^2 \phi_{\mathrm{proxy}}$ | Laminar current profile |
@@ -64,5 +64,5 @@ json.dumps(json_safe(report), allow_nan=False)
 ## See also
 
 - [Probe operators guide](../probe_operators.md) — Detailed operator descriptions and mathematical forms
-- [Probe reports skill](../skills/skill_probe_reports.md) — Contract validation and testing
+- Developer documentation — Contract validation and testing
 - [API reference](index.md)
