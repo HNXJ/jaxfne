@@ -219,10 +219,15 @@ class TestSingleNeuronNotebook:
     def test_version_unchanged(self):
         """Test that jaxfne version matches pyproject.toml (active version alignment)."""
         import jaxfne
-        import tomllib
+        import re
+
         from pathlib import Path
 
-        pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+        content = Path("pyproject.toml").read_text()
+
+        project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
+
+        pyproject_version = re.search(r'version\s*=\s*"([^"]+)"', project_section.group(1)).group(1)
         assert (
             jaxfne.__version__ == pyproject_version
         ), f"Version should be {pyproject_version}, got {jaxfne.__version__}"
