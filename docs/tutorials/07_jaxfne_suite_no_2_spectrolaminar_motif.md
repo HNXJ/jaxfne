@@ -45,7 +45,7 @@ Here, we outline the foundational operators and equations defining the emitters,
 * **Implementation location:**
   [emitters.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/emitters.py)
 * **Boundary:**
-  Reduced emitter dynamics (phenomenological spiking model), not full conductance-based biophysical reconstruction.
+  Reduced emitter dynamics (phenomenological spiking model); conductance-based biophysical reconstruction is future work.
 
 ---
 
@@ -63,7 +63,7 @@ Here, we outline the foundational operators and equations defining the emitters,
 * **Implementation location:**
   [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
 * **Boundary:**
-  Proxy readout operator representing a computational mapping scaffold, not calibrated physical sensor measurement.
+  Proxy readout operator representing a computational mapping scaffold for tutorial workflows; physical calibration is future work.
 
 ---
 
@@ -82,7 +82,7 @@ Here, we outline the foundational operators and equations defining the emitters,
 * **Implementation location:**
   [vis.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/vis.py)
 * **Boundary:**
-  Tutorial motif visualization for structural scaffolds, not empirical biological validation.
+  Tutorial motif visualization for structural scaffolds; empirical biological validation is future work.
 
 ---
 
@@ -154,11 +154,11 @@ csd_proxy = signals.field.csd_proxy
 
 | Metadata Key | Value / Status | Description |
 |---|---|---|
-| `truth_mode` | `truth_safe_unverified` | No assumptions of empirical truth or biological accuracy are introduced. |
-| `scope_status` | `computational_scaffold` | The package acts as a programmatic scaffold, not a physical simulator. |
-| `field_solver_status` | `laminar_proxy_no_pde` | laminar extracellular readouts are computed as weighted proxies, not PDEs. |
-| `geometry_mode` | `declared_metadata_not_solved_3d_pde_grid` | 3D coordinate layout is declarative metadata only. |
-| `physical_amplitude_allowed` | `false` | Readouts do not map to physical volt or ampere units. |
+| `truth_mode` | `truth_safe_unverified` | Designed for exploratory modeling; empirical truth and biological accuracy validation pending. |
+| `scope_status` | `computational_scaffold` | The package acts as a programmatic scaffold for exploratory learning; physical simulation is future work. |
+| `field_solver_status` | `laminar_proxy_no_pde` | laminar extracellular readouts are computed as weighted proxies; PDE solvers are future work. |
+| `geometry_mode` | `declared_metadata_not_solved_3d_pde_grid` | 3D coordinate layout is declarative metadata; PDE-based geometry solving is future work. |
+| `physical_amplitude_allowed` | `false` | Readouts use proxy-scale units for exploratory workflows; physical amplitude calibration pending. |
 | `connectivity_status` | `declared_metadata_proxy` | Multi-column connectivity is a declarative structural skeleton. |
 
 ---
@@ -206,6 +206,6 @@ The multi-column spontaneous activity simulation demonstrates how structural fee
 
 ## Scope Boundaries
 
-* **Scope:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) are not calibrated to physical measurements.
+* **Scope:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) are scope-bounded for exploratory workflows; calibration to physical measurements is future work.
 * **Scope:** The generated oscillations are products of a simplified Izhikevich system.
-* **Scope:** No PDE field solves; readouts are projection proxies based on laminar depth metadata.
+* **Scope:** Field computation via proxy operators; PDE-based field solving is future work.

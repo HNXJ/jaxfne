@@ -130,3 +130,14 @@ Thumbs.db
 
 # MkDocs
 site/
+
+# Agent/tool context (machine-local and ephemeral)
+.claude/
+.local_project_sources/
+.pytest_cache/
+
+# Generated artifacts and temporary files
+scratch/
+notebooks/
+*.tmp
+tmp/

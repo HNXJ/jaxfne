@@ -244,9 +244,9 @@ with open(Path("outputs/myrun") / "asset_hashes.json", "w") as fp:
 
 ## Artifact hygiene
 
-### Do not commit generated HTML
+### Excluding generated artifacts
 
-Add to `.gitignore`:
+Add to `.gitignore` to keep generated files out of version control:
 
 ```
 outputs/

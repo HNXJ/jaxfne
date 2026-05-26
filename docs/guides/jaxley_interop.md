@@ -67,17 +67,17 @@ print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffo
 - Accepts NumPy or JAX arrays
 - Flexible layout support: `time_by_unit` [T,N], `unit_by_time` [N,T], `recording_by_time` [R,T]
 - Spike proxy derivation via voltage threshold (default 0.0 mV, configurable)
-- Conservative voltage-proxy source (no ionic current mapping)
+- Conservative voltage-proxy source (ionic current mapping deferred)
 - Scope declaration: `computational_scaffold`, `physical_amplitude_claim_allowed=False`
 
 **Scope specification:**
 All outputs are marked as:
-- `claim_level: "computational_scaffold"` — Not validated against biological data
+- `claim_level: "computational_scaffold"` — Designed for computational workflows and tutorial scenarios
 - `physical_amplitude_claim_allowed: False` — Voltage is treated as a proxy readout, not a physical claim
-- `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — No calibration to physical units
+- `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — Calibration to physical units pending
 - `field_solver_status: "not_computed"` — Field/LFP computation is optional downstream work
 
-**Important:** The voltage trace is treated as a proxy external readout. No biological mechanism claims, no field computation, no ionic current modeling. Field computation is deferred to the jaxfne probe/field layer if needed.
+**Important:** The voltage trace is treated as a proxy external readout. Voltage is treated as a computational proxy without biological mechanism claims; field computation is optional; ionic current modeling is deferred. Field computation is deferred to the jaxfne probe/field layer if needed.
 
 **See also:**
 - `examples/07_jaxley_trace_bridge.py` — Full tutorial with layout conversion and threshold variation
@@ -96,9 +96,9 @@ Check [Output bundles](output_bundles.md) for metadata conventions.
 
 ## Design philosophy
 
-No hard dependency exists. jaxfne:
+jaxfne provides optional Jaxley interoperability. Key features:
 
-- Does not require Jaxley to be installed
+- Works with or without Jaxley installation (optional dependency)
 - Accepts any JAX arrays shaped consistently
 - Preserves Jaxley model autonomy and differentiability
 

@@ -228,7 +228,12 @@ def test_contract_meg_specific_fields():
 
 # ─── Version Bumped to 0.2.18 ────────────────────────────────────────────────────
 
+@pytest.mark.xfail(
+    reason="Historical release fixture test: pins v0.3.4 release stability. "
+    "Marked xfail because v0.3.5 cleanup release intentionally bumps version. "
+    "This test verifies v0.3.4 stability after tutorial figures; no longer applicable."
+)
 def test_contract_version_unchanged():
-    """jaxfne version remains 0.3.4 (after v0.3.4 tutorial figures)."""
+    """jaxfne version remains 0.3.4 (after v0.3.4 tutorial figures) — HISTORICAL FIXTURE."""
     import jaxfne
     assert jaxfne.__version__ == "0.3.4"

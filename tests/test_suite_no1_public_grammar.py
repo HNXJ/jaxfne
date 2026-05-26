@@ -181,7 +181,7 @@ class TestSuiteNo1JSONSafety:
 
     def test_notebook_parses_valid_json(self):
         """Notebook file itself must be valid JSON."""
-        notebook_path = Path("tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb")
+        notebook_path = Path("tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb")
         try:
             notebook = json.loads(notebook_path.read_text())
             assert notebook is not None

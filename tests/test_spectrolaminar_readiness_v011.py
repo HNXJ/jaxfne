@@ -257,8 +257,12 @@ def test_d_presets_are_json_safe():
 
 
 def test_e_jaxfne_version_is_028():
-    """Version must be 0.3.4."""
-    assert _JAXFNE_VERSION == "0.3.4"
+    """Version must match pyproject.toml (active version alignment)."""
+    import tomllib
+    from pathlib import Path
+    pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+    assert _JAXFNE_VERSION == pyproject_version, \
+        f"Version should be {pyproject_version}, got {_JAXFNE_VERSION}"
 
 
 # ─── F. Truth gate preservation ───────────────────────────────────────────

@@ -306,7 +306,5 @@ Indicates a simulation issue (e.g., numerical instability). Check:
 
 ## See Also
 
-- [README.md](../README.md) — Installation and quick start
-- [Examples](../examples/) — Full example scripts (can be adapted for Colab)
-- [docs/computation_basis.md](computation_basis.md) — Detailed computation contract
-- [docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md) — Diagnostics reference
+- [Computation Basis](computation_basis.md) — Detailed computation contract
+- [Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md) — Diagnostics reference

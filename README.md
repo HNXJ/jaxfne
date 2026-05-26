@@ -19,7 +19,7 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 
 **Primary use:** Build reproducible laminar-field proxy simulations with deterministic PRNG, JSON-safe outputs, and clear scope boundaries.
 
-**Tutorial-scale computational scaffold.** jaxfne is a framework for teaching, prototyping, and experimenting with neural-field source models. All outputs are proxy readouts and simulated dynamics, not validated against empirical data.
+**Tutorial-scale computational scaffold.** jaxfne is a framework for teaching, prototyping, and experimenting with neural-field source models. All outputs are proxy readouts and simulated dynamics for exploratory learning and model development.
 
 ---
 
@@ -27,7 +27,7 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 
 ### Install
 
-**Option 1: Latest PyPI release (v0.3.4, stable)**
+**Option 1: Latest PyPI release (v0.3.4, stable from May 2026)**
 
 ```bash
 pip install -U jaxfne
@@ -208,7 +208,7 @@ pip install "jaxfne[viz]"
 | **Probe Operators** | [Probe Operators](docs/probe_operators.md) | Eight multimodal operators, claim boundaries per operator |
 | **I/O & Manifests** | [Output Bundles](docs/output_bundles.md) | Signals, Manifest, ReadoutResult schema and JSON-safe contracts |
 | **Bridges & Interop** | [Jaxley Interop](docs/jaxley_interop.md) | Convert Jaxley voltage traces to jaxfne Signals |
-| **Scope & Limits** | [Scope and Limitations](docs/scope_and_limitations.md) | What jaxfne claims and does not claim |
+| **Scope & Limits** | [Scope and Limitations](docs/scope_and_limitations.md) | Scope, capabilities, and design boundaries |
 | **Full Docs** | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) | API reference, tutorials, changelog |
 
 ---
@@ -218,7 +218,7 @@ pip install "jaxfne[viz]"
 | Version | Phase | Content | Status |
 |---------|-------|---------|--------|
 | **v0.2.24–v0.2.30** | Foundation & Hardening | Audited contracts, solver status, mathematical glossary, diagnostics, tutorials, performance validation | ✓ Released to PyPI |
-| **v0.3.0–v0.3.4** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; execution receipts | ✓ Released to PyPI |
+| **v0.3.0–v0.3.5** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; v0.3.4 release with tutorial portfolio; v0.3.5 cleanup/public-surface stabilization | ✓ v0.3.0–0.3.4 on PyPI; 0.3.5 pending |
 | **v0.3.5+** | Expanded Tutorials | Additional network scenarios and optimization examples | ⧉ Development (repository source) |
 
 **Current stable (v0.3.4):** Chainable Configuration grammar with core tutorial portfolio on PyPI.
@@ -226,7 +226,9 @@ pip install "jaxfne[viz]"
 - **v0.3.2:** Parameter sweep exploration
 - **v0.3.3:** Two-neuron excitatory-inhibitory coupling
 
-**Next (v0.3.5+):** Expanded tutorials including small recurrent E/I networks and optimization workflows.
+**In development (v0.3.5):** Public-surface stabilization and hard-rule cleanup for release readiness.
+
+**Upcoming (v0.3.6+):** Expanded tutorials including small recurrent E/I networks and optimization workflows.
 
 **v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
 - **15-scenario learning spine** (single neurons → optimization)
@@ -235,7 +237,7 @@ pip install "jaxfne[viz]"
 - **PNG + Plotly artifact system** (reproducible figures with SHA256 integrity)
 - **Canonical imports** (`import jaxfne as jtfne` enforced)
 - **Docs audit policy** (link validation, Colab links, LaTeX equations, term glossaries)
-- **Environment setup** ([`requirements-v030-tutorials.txt`](requirements-v030-tutorials.txt), [`docs/tutorials_v030/environment.md`](docs/tutorials_v030/environment.md))
+- **Environment setup** ([`requirements/tutorials-v030.txt`](requirements/tutorials-v030.txt), [`docs/tutorials_v030/environment.md`](docs/tutorials_v030/environment.md))
 - **Automated audit script** ([`scripts/audit_v030_docs_links.py`](scripts/audit_v030_docs_links.py))
 
 ---

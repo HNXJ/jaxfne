@@ -217,9 +217,14 @@ def test_output_not_tracked():
 
 
 def test_version_bumped_to_023():
-    """Test that version is bumped to 0.3.4."""
+    """Test that version matches pyproject.toml (active version alignment)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.3.4", f"Version should be 0.3.4, got {jaxfne.__version__}"
+    import tomllib
+    from pathlib import Path
+
+    pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+    assert jaxfne.__version__ == pyproject_version, \
+        f"Version should be {pyproject_version}, got {jaxfne.__version__}"
 
 
 def test_operator_status_simulated_proxy():

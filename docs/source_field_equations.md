@@ -37,15 +37,15 @@ In v0.2.24–v0.2.27, the active mode is:
 
 ```
 source_projection_mode = "proxy_no_field_solve"
-source_calibration_status = "uncalibrated_izhikevich_native_current"
+source_calibration_status = "uncalibrated_izhikevich_model_current"
 ```
 
 **What this means:**
-- $q$ is computed as: emitter native current (Izhikevich $I_k$) + spike impulse proxy (20× gain)
-- $q$ is NOT validated against empirical synaptic or ionic current
+- $q$ is computed as: emitter model current (Izhikevich $I_k$) + spike impulse proxy (20× gain)
+- $q$ lacks validation against empirical synaptic or ionic current (calibration status: uncalibrated)
 - $q$ is spatial proxy: neuron position (in laminar_source_geometry) → spatial contact coupling
-- Field computation is **not performed** (field_solver_status = "laminar_proxy_no_pde")
-- CSD is **computed from source**, not solved: $\mathrm{CSD} \propto \nabla \cdot q$ (proxy)
+- Field computation is deferred (field_solver_status = "laminar_proxy_no_pde")
+- CSD is derived from source via differentiation: $\mathrm{CSD} \propto \nabla \cdot q$ (proxy)
 
 **Code example:**
 ```python
@@ -60,7 +60,7 @@ cfg = jtfne.configuration()
 
 # In the Manifest:
 manifest = model.manifest(signals, readouts)
-print(manifest["source_calibration_status"])  # → "uncalibrated_izhikevich_native_current"
+print(manifest["source_calibration_status"])  # → "uncalibrated_izhikevich_model_current"
 print(manifest["source_projection_mode"])  # → "proxy_no_field_solve"
 print(manifest["field_solver_status"])  # → "laminar_proxy_no_pde"
 ```
@@ -69,7 +69,7 @@ print(manifest["field_solver_status"])  # → "laminar_proxy_no_pde"
 
 ## Forbidden Pattern: Synaptic Double-Counting
 
-**Critical rule: A source declaration must NOT count synaptic current twice.**
+**Critical rule: A source declaration must count synaptic current exactly once.**
 
 ### The Pattern (FORBIDDEN)
 
@@ -109,10 +109,10 @@ q_syn(x,t) = χ(x) · I_syn(t)
 ```
 ALLOWED (active):
 q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
-              ↑ Native Izhikevich current (NOT decomposed)
+              ↑ Izhikevich model current (preserved as-is)
               ↑ Spike impulse proxy (20× gain, derived)
 → Single proxy source, no decomposition
-→ source_calibration_status: "uncalibrated_izhikevich_native_current"
+→ source_calibration_status: "uncalibrated_izhikevich_model_current"
 ```
 
 ### How to Audit Your Code
@@ -128,8 +128,8 @@ source_decomp = manifest.get("source_decomposition", "unknown")
 
 # Assertion:
 assert source_cal in [
-    "uncalibrated_izhikevich_native_current",
-    "uncalibrated_hh_native_current",
+    "uncalibrated_izhikevich_model_current",
+    "uncalibrated_hh_model_current",
     "uncalibrated_jaxley_voltage_proxy",
     None,  # no source declared
 ], f"Unexpected source_calibration_status: {source_cal}"
@@ -159,9 +159,9 @@ field_solver_status = "laminar_proxy_no_pde"
 ```
 
 **What it means:**
-- The field equation $\nabla \cdot (-\sigma_e \nabla \phi_e) = q$ is **declared but NOT solved**
-- $\phi_e$, $\mathbf{J}_e$, and $\mathrm{CSD}$ are computed from $q$ using laminar-proxy kernels (no PDE solve, no conductivity calibration)
-- Boundary conditions and gauge are metadata-only (do not affect computation)
+- The field equation $\nabla \cdot (-\sigma_e \nabla \phi_e) = q$ is **declared for reference; forward-field computation uses laminar-proxy approximation**
+- $\phi_e$, $\mathbf{J}_e$, and $\mathrm{CSD}$ are computed from $q$ using laminar-proxy kernels (proxy approximation, not full PDE solve, no conductivity calibration)
+- Boundary conditions and gauge are metadata-only (informational, separate from proxy computation)
 - CSD sign convention is declared: positive = extracellular source (current flowing outward)
 
 ### Boundary Conditions and Gauge (Metadata-Only in v0.2.24)
@@ -227,8 +227,8 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 | Status | Meaning | Biological Claim | Allowed? |
 |--------|---------|------------------|----------|
-| `uncalibrated_izhikevich_native_current` | Izhikevich native current, no empirical validation | None; computational scaffold | ✓ v0.2.24+ default |
-| `uncalibrated_hh_native_current` | Hodgkin-Huxley native current, no empirical validation | None; computational scaffold | ✓ Reserved |
+| `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ v0.2.24+ default |
+| `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
 | `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ v0.2.22+ bridge |
 | `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ v0.2.24–v0.2.26; future |
 
@@ -266,25 +266,25 @@ $$z(t) \xrightarrow{\text{Emitter}} \text{state} \xrightarrow{\text{Native curre
 
 **Source declaration:**
 ```python
-manifest["source_calibration_status"]    # E.g. "uncalibrated_izhikevich_native_current"
+manifest["source_calibration_status"]    # E.g. "uncalibrated_izhikevich_model_current"
 manifest["source_projection_mode"]       # E.g. "proxy_no_field_solve"
 manifest["source_decomposition"]         # E.g. "proxy_voltage_trace_not_current" (if applicable)
-manifest["source_model"]                 # Struct: {"izhikevich_native_current_plus_spike_impulse_proxy": {...}}
+manifest["source_model"]                 # Struct: {"izhikevich_model_current_plus_spike_impulse_proxy": {...}}
 ```
 
 **Field declaration:**
 ```python
 manifest["field_solver_status"]          # E.g. "laminar_proxy_no_pde"
-manifest["field_claim_level"]            # E.g. "proxy_readout_only"
+manifest["field_scope_level"]            # E.g. "proxy_readout_only"
 manifest["boundary_condition"]           # E.g. "mean_zero_neumann"
 manifest["gauge"]                        # E.g. "mean_zero"
 manifest["conductivity_status"]          # E.g. "proxy" (not "calibrated_physical")
 ```
 
-**Claim gates (immutable):**
+**Validation gates (immutable):**
 ```python
 manifest["physical_amplitude_claim_allowed"]  # Always False in v0.2.24
-manifest["claim_level"]                       # Always "computational_scaffold" in v0.2.24
+manifest["scope_status"]                      # Always "computational_scaffold" in v0.2.24
 manifest["truth_mode"]                        # Always "truth_safe_unverified" in v0.2.24
 ```
 
@@ -345,7 +345,7 @@ signals = model.simulate(sim)
 # Check source declaration
 manifest = model.manifest(signals, [])
 print(f"Source calibration: {manifest['source_calibration_status']}")
-# → "uncalibrated_izhikevich_native_current"
+# → "uncalibrated_izhikevich_model_current"
 
 print(f"Field solver: {manifest['field_solver_status']}")
 # → "laminar_proxy_no_pde"
@@ -353,8 +353,8 @@ print(f"Field solver: {manifest['field_solver_status']}")
 print(f"CSD sign convention: {manifest['csd_sign_convention']}")
 # → "positive_equals_extracellular_source"
 
-# Signals.sources [T, N] = Izhikevich native current + spike impulse
-# Signals.field.csd [T, N] = ∇·q (proxy, not solved)
+# Signals.sources [T, N] = Izhikevich model current + spike impulse
+# Signals.field.csd [T, N] = ∇·q (proxy)
 ```
 
 ### Example 2: Jaxley Voltage Proxy → Source → LFP
@@ -397,7 +397,7 @@ print(f"Physical amplitude allowed: {signals.metadata.get('physical_amplitude_cl
 
 Before releasing a model, verify:
 
-- [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_native_current, uncalibrated_hh_native_current, uncalibrated_jaxley_voltage_proxy, or None
+- [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
 - [ ] Source projection mode is declared (if source_calibration_status is not None)
 - [ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a future solver name
 - [ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)

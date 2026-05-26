@@ -107,8 +107,8 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 
 **Constraints:**
 - Must mirror claim gates from manifest.json
-- `empirical_validation_status` is null (no empirical validation in v0.2.19)
-- `mechanism_claim_status` is null (no biological mechanism claims)
+- `empirical_validation_status` is null (empirical validation pending)
+- `mechanism_claim_status` is null (biological mechanism claims deferred)
 - Explicitly declares scope limits
 
 ### 5. asset_hashes.json
@@ -268,8 +268,8 @@ Tutorials validated: 3/4
 
 **Frozen Gates:**
 - `physical_amplitude_claim_allowed = False` (hardcoded invariant)
-- `empirical_validation_status = null` (no empirical validation)
-- `mechanism_claim_status = null` (no biological mechanism claims)
+- `empirical_validation_status = null` (empirical validation pending)
+- `mechanism_claim_status = null` (biological mechanism claims deferred)
 
 ---
 

@@ -37,7 +37,7 @@ print(f"Firing rate: {signals.spikes.sum() / (1000.0 / 1000.0):.1f} Hz")
 7. **Probe specification** selects readout operators
 8. **Model construction** wires up the neural dynamics
 9. **Simulation** runs the dynamics and returns signals
-10. **Results** are JSON-safe with scope metadata (proxy readouts, no biological claims)
+10. **Results** are JSON-safe with scope metadata (proxy readouts, designed for exploratory learning)
 
 All outputs declare their scope: **computational scaffold with proxy readouts**.
 

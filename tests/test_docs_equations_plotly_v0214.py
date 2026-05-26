@@ -271,8 +271,13 @@ def test_mkdocs_nav_includes_visual_outputs_skill():
 
 # ─── Version and Dependency Tests ────────────────────────────────────────────
 
+@pytest.mark.xfail(
+    reason="Historical release fixture test: pins v0.3.4 release stability. "
+    "Marked xfail because v0.3.5 cleanup release intentionally bumps version. "
+    "This test verifies v0.3.4 stability after that release; no longer applicable."
+)
 def test_version_remains_0210():
-    """jaxfne version must remain 0.3.4 (after v0.3.4 release)."""
+    """jaxfne version must remain 0.3.4 (after v0.3.4 release) — HISTORICAL FIXTURE."""
     import jaxfne
     assert jaxfne.__version__ == "0.3.4", \
         f"Expected version 0.3.4, got {jaxfne.__version__}"
