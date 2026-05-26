@@ -213,14 +213,14 @@ def test_plotly_guide_documents_write_html():
 # ─── Visual Outputs Skill Tests ──────────────────────────────────────────────
 
 def test_visual_outputs_skill_exists():
-    """docs/skills/skill_visual_outputs.md must exist."""
-    doc_path = Path("docs/skills/skill_visual_outputs.md")
-    assert doc_path.exists(), "skill_visual_outputs.md not found"
+    """visual_outputs_skill now in internal_docs (moved for hard-rule cleanup)."""
+    doc_path = Path("internal_docs/skills/skill_visual_outputs.md")
+    assert doc_path.exists(), "skill_visual_outputs.md not found in internal_docs/"
 
 
 def test_visual_outputs_skill_has_code_examples():
-    """Visual outputs skill must include code examples for each operator."""
-    doc_path = Path("docs/skills/skill_visual_outputs.md")
+    """Visual outputs skill must include code examples for each operator (now in internal_docs)."""
+    doc_path = Path("internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r") as f:
         content = f.read()
 
@@ -232,7 +232,7 @@ def test_visual_outputs_skill_has_code_examples():
 
 def test_visual_outputs_skill_documents_naming_conventions():
     """Visual outputs skill must document file naming conventions."""
-    doc_path = Path("docs/skills/skill_visual_outputs.md")
+    doc_path = Path("internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r") as f:
         content = f.read()
 
@@ -242,7 +242,7 @@ def test_visual_outputs_skill_documents_naming_conventions():
 
 def test_visual_outputs_skill_has_validation_commands():
     """Visual outputs skill must include validation commands."""
-    doc_path = Path("docs/skills/skill_visual_outputs.md")
+    doc_path = Path("internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r") as f:
         content = f.read()
 
@@ -263,12 +263,10 @@ def test_mkdocs_nav_includes_plotly_guide():
 
 
 def test_mkdocs_nav_includes_visual_outputs_skill():
-    """mkdocs.yml navigation must include visual outputs skill."""
-    mkdocs_path = Path("mkdocs.yml")
-    with open(mkdocs_path, "r") as f:
-        content = f.read()
-
-    assert "skill_visual_outputs" in content, "Visual outputs skill not in navigation"
+    """Visual outputs skill is internal, not in public mkdocs.yml navigation (moved to internal_docs)."""
+    # Skills moved to internal_docs/ for hard-rule cleanup
+    skill_path = Path("internal_docs/skills/skill_visual_outputs.md")
+    assert skill_path.exists(), "Visual outputs skill not found in internal_docs/"
 
 
 # ─── Version and Dependency Tests ────────────────────────────────────────────

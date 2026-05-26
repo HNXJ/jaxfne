@@ -238,8 +238,7 @@ This validates static PNG without interactive generation overhead. Full interact
 ## Related Documentation
 
 - [tutorial_outputs.md](tutorials/tutorial_outputs.md) — Output contract, static figure patterns
-- [probe_operators.md](../probe_operators.md) — 8-operator specification
-- [jax_compatibility.md](jax_compatibility.md) — JAX baseline and dependencies
+- [probe_operators.md](probe_operators.md) — 8-operator specification
 - [tutorials/index.md](tutorials/index.md) — Tutorial progression
 
 ---

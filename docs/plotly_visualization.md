@@ -356,7 +356,6 @@ fig.write_html("outputs/myrun/figures/trace.html")
 
 ## See also
 
-- [Visual outputs developer skill](skills/skill_visual_outputs.md) — Best practices and validation
 - [Probe operators](probe_operators.md) — Operator descriptions with equations
 - [Tensor-field workflows](tensor_field_workflows.md) — Full pipeline overview
 
