@@ -141,3 +141,11 @@ scratch/
 notebooks/
 *.tmp
 tmp/
+
+# Local agent state
+.claude/
+
+# Transient scratch & temp
+scratch/
+tmp/
+*.tmp
