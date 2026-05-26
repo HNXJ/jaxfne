@@ -26,9 +26,11 @@ def test_compact_grammar_execution():
     assert signals.V_m.shape[1] == 8
     assert signals.field is not None
 
-    fig = jtfne.vis.spectrolaminar(signals)
+    # Visualization is optional (requires matplotlib)
+    pytest.importorskip("matplotlib")
     import matplotlib.pyplot as plt
 
+    fig = jtfne.vis.spectrolaminar(signals)
     assert isinstance(fig, plt.Figure)
     plt.close(fig)
 
