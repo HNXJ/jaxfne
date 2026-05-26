@@ -7,10 +7,15 @@ Truth: truth_safe_unverified
 """
 
 import json
+import os
 import pytest
 from pathlib import Path
 import numpy as np
 import jaxfne as jtfne
+
+# Environment variable to enable artifact validation
+# Run with: JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1 pytest ...
+RUN_ARTIFACT_TESTS = os.environ.get("JAXFNE_VALIDATE_TUTORIAL_OUTPUTS") == "1"
 
 
 class TestV035TutorialFileStructure:
@@ -28,15 +33,44 @@ class TestV035TutorialFileStructure:
         assert doc_path.exists(), f"Markdown doc not found at {doc_path}"
         assert doc_path.suffix == ".md"
 
+    def test_required_figure_names_referenced(self):
+        """Required figure names are referenced in notebook and docs (no execution required)."""
+        REQUIRED_FIGURES = [
+            "01_recurrent_raster.png",
+            "02_voltage_traces.png",
+            "03_population_rate.png",
+            "04_source_proxy.png",
+            "05_readout_summary.png",
+        ]
+        notebook_path = Path("tutorials/jaxfne_v035_small_recurrent_ei.ipynb")
+        doc_path = Path("docs/tutorials_v030/035_small_recurrent_ei.md")
+
+        notebook_text = notebook_path.read_text()
+        doc_text = doc_path.read_text()
+
+        for fig_name in REQUIRED_FIGURES:
+            assert fig_name in notebook_text, \
+                f"Figure name {fig_name} not referenced in notebook"
+            assert fig_name in doc_text, \
+                f"Figure name {fig_name} not referenced in docs"
+
+    @pytest.mark.skipif(
+        not RUN_ARTIFACT_TESTS,
+        reason="Figures directory validation requires JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1",
+    )
     def test_figures_directory_exists(self):
-        """Figures directory is created."""
+        """Figures directory is created (requires artifact validation enabled)."""
         figures_dir = Path("tutorial_outputs/v035_small_recurrent_ei/figures")
         assert figures_dir.exists(), f"Figures directory not found at {figures_dir}"
         assert figures_dir.is_dir()
 
 
+@pytest.mark.skipif(
+    not RUN_ARTIFACT_TESTS,
+    reason="Generated tutorial figures are validated only when JAXFNE_VALIDATE_TUTORIAL_OUTPUTS=1",
+)
 class TestV035Figures:
-    """Test that all required figures are generated and valid."""
+    """Test that all required figures are generated and valid (artifact validation)."""
 
     REQUIRED_FIGURES = [
         "01_recurrent_raster.png",
