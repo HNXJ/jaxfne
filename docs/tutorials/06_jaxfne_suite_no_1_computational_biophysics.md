@@ -11,176 +11,165 @@
 After completing this tutorial, you will understand:
 
 1. **Source-generating neuron equations** — how Izhikevich-style reduced neuronal models emit voltage, spikes, and source-driving activity.
-
 2. **Vectorized simulation** — how to scale from a single neuron to populations using JAX arrays, connectivity matrices, and batched circuit operations.
-
 3. **Laminar cortical columns** — how to construct a cortical column with specified layers, cell types, connectivity structure, and 3D geometry.
-
 4. **Multimodal proxy readouts** — how to extract MUA-proxy, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy, and spectral features from simulated source dynamics.
-
 5. **Hypothesis tuning** — how to formulate loss functions and optimize circuit parameters against rate, spectral, and laminar-profile targets.
 
 ---
 
-## The Big Question
+## Biological/Computational Question
 
-**Can a simple computational model, when properly tuned, generate population signals with recognizable structure (layering, spectral content, evoked responses)?**
+Can a simplified, phenomenological multi-layer spiking network, when stimulated with local sensory-like drive, produce depth-resolved field potential proxies (LFP-proxy, CSD-proxy) and spectral features (alpha, beta, gamma oscillations) that match predefined population rate and oscillatory targets?
 
-This tutorial answers "yes" in a controlled, educational setting. It does **not** prove anything about biology — that requires empirical validation.
-
----
-
-## Course Structure
-
-### Part 1: Computational Models and Biophysics
-
-Start with a **single Izhikevich neuron**:
-
-$$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{native}}$$
-
-$$\frac{du}{dt} = a(bv - u)$$
-
-**with reset when** $v \geq 30 \text{ mV}$ **then** $v \leftarrow c, u \leftarrow u + d$.
-
-Learn:
-- How native current (not physical amperes) drives spiking
-- How source proxy converts voltage dynamics to a field-like quantity
-- Why models need explicit claims about what they represent
-
-**Outputs:**
-- Figure 01: Voltage trace (proxy output)
-- Figure 02: Spike raster (events at threshold)
-- Figure 03: Source proxy (toy-scale current-like quantity)
+We address this question by walking through a 4-part biophysical tutorial scaling from a single neuron up to a laminar column, followed by a randomized parameter search to optimize and fit circuit dynamics against the targets.
 
 ---
 
-### Part 2: Parallelization and Linear Algebra
+## Mathematical Glossary Flow
 
-Scale to **N neurons** with a **connectivity matrix** $\mathbf{W} \in \mathbb{R}^{N \times N}$:
+Here, we outline the foundational operators and equations defining the emitters, projections, and optimization targets:
 
-$$\frac{dv_i}{dt} = 0.04v_i^2 + 5v_i + 140 - u_i + I_{i,\text{native}} + \sum_{j} W_{ij} s_j(t)$$
+### 1. Izhikevich Emitter (Part 1)
 
-where $s_j(t)$ is the spike output of neuron $j$.
-
-Learn:
-- How $\mathbf{W}$ encodes circuit hypotheses
-- How to simulate vectorized populations
-- How sparse vs. dense connectivity affects dynamics
-
-**Outputs:**
-- Figure 04: All-to-all connectivity matrix
-- Figure 05: Sparse connectivity (p=0.1)
-- Figure 06: Population raster (E/PV neurons)
-- Figure 07: Firing rate timeseries
-
----
-
-### Part 3: Cortex — Building and Testing Readouts
-
-Build a **laminar cortical column** with **4 cell types** across **4 layers**:
-
-| Layer | E (n=50) | PV (n=25) | SST (n=15) | VIP (n=10) | Total |
-|-------|----------|-----------|-----------|-----------|-------|
-| L2/3 | ✓ | ✓ | ✓ | ✓ | ~29 |
-| L4 | ✓ | ✓ | — | — | ~23 |
-| L5 | ✓ | ✓ | — | — | ~31 |
-| L6 | ✓ | ✓ | ✓ | ✓ | ~17 |
-
-Apply **readout operators**:
-- **Spike raster** — raw spike times
-- **Firing rate** — binned population rate
-- **LFP-proxy** — laminar field proxy readout
-- **CSD-proxy** — spatial derivative of LFP-proxy
-- **Time-frequency representation** — STFT of mean LFP-proxy
-- **Bandpower** — alpha/beta and gamma power timeseries
-
-Learn:
-- How depth-based readouts relate to anatomy
-- How to interpret LFP-proxy and CSD-proxy readouts
-- How evoked responses emerge from layer-specific drive
-
-**Outputs:**
-- Figure 08: Laminar column layout (3D projection)
-- Figure 09: Spontaneous raster (100 ms pre + 500 ms post event + 500 ms post-event)
-- Figure 10: Spontaneous firing rates (per cell type)
-- Figure 11: LFP-proxy laminar probe (16 contacts)
-- Figure 12: CSD-proxy heatmap
-- Figure 13: Time-frequency representation
-- Figure 14: Alpha/beta and gamma bandpower
-- Figure 15: Evoked raster (L4 stimulation 0–500 ms)
-- Figure 16: Evoked LFP-proxy
-- Figure 17: Evoked vs. spontaneous bandpower
+* **Boundary definition:**
+  $$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{native}}$$
+  $$\frac{du}{dt} = a(bv - u)$$
+  with reset when $v \geq 30\text{ mV}$, then $v \leftarrow c, u \leftarrow u + d$.
+* **Definition of terms:**
+  * $v$: Membrane potential (mV).
+  * $u$: Membrane recovery variable.
+  * $a, b, c, d$: Time scale, sensitivity, reset value, and recovery reset parameters.
+  * $I_{\text{native}}$: Background driving current (unsigned relative value).
+* **Worded equation:**
+  The change in membrane potential over time is the sum of quadratic voltage activation, linear voltage scaling, offset current, recovery feedback, and background current inputs. The change in the recovery variable is scaled by the difference between scaled membrane potential and the recovery variable itself.
+* **Implementation location:**
+  [emitters.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/emitters.py)
+* **Boundary:**
+  Reduced emitter dynamics (phenomenological spiking model), not full conductance-based biophysical reconstruction.
 
 ---
 
-### Part 4: Fine-Tuning for Hypothesis Tests
+### 2. Source/Readout Bridge (Part 3)
 
-Formulate a **tuning objective** and run a **GSDR-style random search** (15 steps):
-
-**Hypothesis:** Can we tune $\{l4\_drive, e\_gain, pv\_gain, sst\_gain, vip\_gain\}$ to bring rates and spectral content closer to targets?
-
-**Loss function:**
-$$\text{loss} = w_{\text{rate}} \cdot \text{rate\_error} + w_{\text{bandpower}} \cdot \text{bandpower\_error} + w_{\text{sync}} \cdot \text{sync\_penalty}$$
-
-**Parameter bounds:**
-- $l4\_drive \in [2, 12]$ — evoked drive amplitude
-- $e\_gain, pv\_gain, sst\_gain, vip\_gain \in [0.5, 2]$ — per-type gain multipliers
-
-Learn:
-- How to specify circuit constraints as optimization objectives
-- Why finite random search is appropriate for demos (NOT convergence)
-- How to track parameter and loss trajectories
-- How to compare pre/post tuning behavior
-
-**Outputs:**
-- Figure 18: Loss curve (15 steps)
-- Figure 19: Parameter trajectory (5 parameters, 15 steps)
-- Figure 20: Pre vs. post raster comparison
-- Figure 21: Pre vs. post TFR
-- Figure 22: Pre vs. post bandpower
+* **Boundary definition:**
+  $$Y_c(t) = P_c[\text{signals}, \text{source\_proxy}, \text{field\_proxy}](t)$$
+* **Definition of terms:**
+  * $Y_c(t)$: Multimodal proxy readout (LFP-proxy, CSD-proxy, etc.) at channel $c$ at time $t$.
+  * $P_c$: Readout projection operator mapping raw source states to proxy readouts.
+  * $\text{signals}$: Active cell state arrays (voltage, spikes).
+  * $\text{source\_proxy}, \text{field\_proxy}$: Laminar metadata templates.
+* **Worded equation:**
+  The multimodal proxy readout is the evaluation of a declarative projection operator mapping raw vectorized emitter variables onto a spatial-depth profile of contacts without solving physical Maxwell PDEs.
+* **Implementation location:**
+  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+* **Boundary:**
+  Proxy readout operator representing a computational mapping scaffold, not calibrated physical sensor measurement.
 
 ---
 
-## Export Artifacts
+### 3. Optimization Search (Part 4)
 
-At the end, three files are saved to your Colab working directory:
-
-1. **`tutorial_metrics.csv`** — Per-neuron firing rates, voltage stats, layer assignment, cell type
-2. **`tuning_history.csv`** — Optimization step, loss, parameters, rates, spectral metrics
-3. **`tutorial_manifest.json`** — Claim gates, metadata, figure list, best tuning parameters
-
----
-
-## Mathematical Glossary
-
-| Term | Meaning | Claim Status |
-|------|---------|--------------|
-| **Izhikevich neuron** | 2D reduced model with polynomial spiking | Tutorial scaffold |
-| **Native current** | Toy-scale quantity driving spikes (proxy amplitude) | Computational proxy |
-| **Source proxy** | Emitted source quantity (proxy source) | Proxy, uncalibrated |
-| **LFP-proxy** | Laminar field readout from sources (proxy LFP) | Proxy, no field solver |
-| **CSD-proxy** | Spatial derivative of LFP-proxy (proxy CSD) | Proxy, no field solver |
-| **Firing rate** | Spikes per unit time | Descriptive, proxy rate |
-| **Bandpower** | Power in frequency bands (alpha/beta, gamma) | Descriptive, proxy bandpower |
+* **Boundary definition:**
+  $$\text{loss} = w_{\text{rate}} \cdot \text{rate\_error} + w_{\text{bandpower}} \cdot \text{bandpower\_error} + w_{\text{sync}} \cdot \text{sync\_penalty}$$
+* **Definition of terms:**
+  * $\text{loss}$: Total objective mismatch.
+  * $w_{\text{rate}}, w_{\text{bandpower}}, w_{\text{sync}}$: Predefined importance weights.
+  * $\text{rate\_error}, \text{bandpower\_error}, \text{sync\_penalty}$: Multi-objective distance functions.
+* **Worded equation:**
+  The total network loss is the weighted sum of target rate discrepancies across E, PV, SST, and VIP cell types, the discrepancy between target and simulated alpha/beta and gamma power ratios, and a penalty on excessive network synchronization.
+* **Implementation location:**
+  [vis.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/vis.py) (visual comparison and metrics calculations)
+* **Boundary:**
+  Tutorial motif tuning for structural scaffolds, not empirical biological validation.
 
 ---
 
-## Visualization Gallery
+## Canonical Import
+
+Every notebook script and library call standardizes to the canonical import:
+
+```python
+import jaxfne as jtfne
+```
+
+All public APIs are called through the unified `jtfne` namespace.
+
+---
+
+## Configuration Block (Compact Grammar)
+
+We define our cortical column layout using the package-native compact configuration facade:
+
+```python
+import jaxfne as jtfne
+
+# 1. Initialize configuration and set runtime parameters
+cfg = jtfne.Configuration()
+cfg = cfg.runtime(seed=42, dtype="float32", duration_ms=1500.0, dt_ms=0.25)
+
+# 2. Add columns with specified layers and sizes
+cfg = cfg.column("V1", layers=["L2/3", "L4", "L5", "L6"], n=100)
+
+# 3. Specify cell type fractions, loop connectivity, and emitters
+cfg = cfg.cell_types({"E": 0.50, "PV": 0.25, "SST": 0.15, "VIP": 0.10})
+cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+
+# 4. Declare multimodal proxy probes
+cfg = cfg.probes(["MUA-proxy", "LFP-proxy", "CSD-proxy", "EEG-proxy", "MEG-proxy", "EMM-proxy"])
+```
+
+---
+
+## Simulation Block
+
+We run our spontaneous or evoked activity simulation with deterministic parameters:
+
+```python
+# Construct model
+model = jtfne.construct(cfg)
+
+# Simulate vectorized emitter states
+signals = jtfne.simulate(model, duration_ms=1500.0, dt_ms=0.25, seed=42)
+```
+
+---
+
+## Probe/Readout Block
+
+Sampling the simulated dynamics through our declared proxy readouts allows depth-resolved and macro-scale analysis.
+
+```python
+# Sample LFP-proxy and CSD-proxy
+lfp_proxy = signals.field.lfp_proxy
+csd_proxy = signals.field.csd_proxy
+```
+
+---
+
+## Run Metadata and Scope Fields
+
+| Metadata Key | Value / Status | Description |
+|---|---|---|
+| `truth_mode` | `truth_safe_unverified` | No assumptions of empirical truth or biological accuracy are introduced. |
+| `scope_status` | `computational_scaffold` | The package acts as a programmatic scaffold, not a physical simulator. |
+| `field_solver_status` | `laminar_proxy_no_pde` | laminar extracellular readouts are computed as weighted proxies, not PDEs. |
+| `geometry_mode` | `declared_metadata_not_solved_3d_pde_grid` | 3D coordinate layout is declarative metadata only. |
+| `physical_amplitude_allowed` | `false` | Readouts do not map to physical volt or ampere units. |
+| `connectivity_status` | `declared_metadata_proxy` | Multi-column connectivity is a declarative structural skeleton. |
+
+---
+
+## Figures
 
 The tutorial generates **22 high-quality figures** covering:
-
-### Single Neurons (Part 1)
 - **Figure 01** — Voltage trace (single E neuron, proxy voltage)
 - **Figure 02** — Spike raster (events at threshold)
 - **Figure 03** — Source proxy (toy-scale current-like emission)
-
-### Population Connectivity (Part 2)
 - **Figure 04** — All-to-all connectivity matrix
 - **Figure 05** — Sparse connectivity (p=0.1)
 - **Figure 06** — Population spike raster (E vs PV)
 - **Figure 07** — Population firing rate timeseries
-
-### Laminar Column (Part 3)
 - **Figure 08** — Laminar layout (3D E/IN distribution, L2/3–L6)
 - **Figure 09** — Spontaneous raster (−500 to +1000 ms, event at t=0)
 - **Figure 10** — Per-type firing rates (25 ms bins, 4 cell types)
@@ -191,39 +180,25 @@ The tutorial generates **22 high-quality figures** covering:
 - **Figure 15** — Evoked raster (L4 drive 0–500 ms)
 - **Figure 16** — Evoked LFP-proxy laminar response
 - **Figure 17** — Evoked vs. spontaneous bandpower (PSD comparison)
-
-### Tuning (Part 4)
 - **Figure 18** — Loss curve (15-step optimization, demo scale)
 - **Figure 19** — Parameter trajectory (5 tuning parameters)
 - **Figure 20** — Pre vs. post raster (before/after tuning)
 - **Figure 21** — Pre vs. post TFR (time-frequency comparison)
 - **Figure 22** — Pre vs. post bandpower (spectral comparison)
 
-All figures are **PNG + SVG** and saved to the Colab working directory. Open the notebook to see rendered outputs.
+---
+
+## Interpretation
+
+The Suite No. 1 biophysical tutorial demonstrates how simple phenomenological spiking dynamics (quadratic Izhikevich system) can be parallelized and projected through spatial depth metadata. By formulating structured objective functions (mismatch on rates, spectral band ratios, and synchronization), we show that a randomized parameter search can move the network dynamics towards target rates, producing distinct spectral changes and localized LFP/CSD profiles.
 
 ---
 
-## Configuration and Execution
+## Failure Modes
 
-**Environment:** Colab (CPU-safe, no GPU required)
-
-**Installation:** The notebook auto-installs jaxfne and dependencies with:
-
-```python
-subprocess.run([sys.executable, '-m', 'pip', 'install', '-q',
-    'jaxfne', 'numpy', 'scipy', 'pandas', 'matplotlib', 'scikit-learn'], check=True)
-```
-
-**Runtime:** ~2–3 minutes on Colab (100 neurons, 1500 ms duration, 15 optimization steps)
-
-**API used (all existing jaxfne):**
-- `jaxfne.emitters.izhikevich_eig_params()` — parameter initialization
-- `jaxfne.emitters.simulate_eig_izhikevich()` — simulation
-- `jaxfne.fields.project_laminar_sources()` — field projection
-- `IzhikevichParams` — parameter dataclass
-- Standard JAX operations (`jax.random`, `jax.numpy`, `vmap`, etc.)
-
-No new package-level functions. All helper utilities (savefig, compute_metrics, etc.) are tutorial-local.
+1. **Emitter Saturation:** Re-tuning connection weights too high causes network-wide depolarization block (runaway excitation).
+2. **Frequency Locking:** Weak feedback weights can decouple population layers, leading to isolated, single-frequency oscillations that fail to display the bi-band crossing motif.
+3. **Contact Misalignment:** Choosing an arbitrary layout geometry metadata (e.g. negative dz step sizes) shifts the crossing point away from Layer 4.
 
 ---
 
@@ -256,84 +231,8 @@ In Part 2, compare a **fully connected** network (W = all-to-all, W_all) with a 
 
 ---
 
-## Operational Parameters and Readout Scope
+## Scope Boundaries
 
-### Drive Amplitude Balancing
-If `drive` is too low, neurons don't spike. If too high, they saturate. The demo uses layer-specific and cell-type-specific drives to balance population activity.
-
-### Connectivity Sign Configuration
-The notebook uses **unsigned connectivity** (all positive). To add **inhibition**, you would multiply PV/SST/VIP synaptic weights by **–1**. This is left for Exercise 2.
-
-### LFP-proxy readout
-LFP-proxy is computed from **source positions** and **synthetic sources**. The `-proxy` suffix is standard.
-
-### CSD-proxy readout
-CSD-proxy is a **spatial derivative** of LFP-proxy. This tutorial uses `laminar_proxy_no_pde`: a laminar proxy readout over declared source dynamics.
-
-### Tuning scale
-The 15-step demo search shows parameter trajectories and relative improvements.
-
----
-
-## Interpretation Guide
-
-When analyzing a figure in this tutorial:
-1. **Identify the signal type**: Check if the visualization represents a spike raster, voltage trace, or extracellular field proxy.
-2. **Review the scope metadata**: Every figure displays a standard scope label (e.g., proxy, scaffold, computational).
-3. **Verify axes**: The axis labels specify the proxy/toy-scale nature of the plotted quantities.
-4. **Compare configurations**: Note how varying the network layout or input drive modifies the output profiles.
-5. **Inspect the manifest**: Complete configuration parameters are stored in `tutorial_manifest.json` for reference.
-
----
-
-## Next Steps
-
-After this tutorial:
-1. **Read guides** — [Tensor-field workflows](../tensor_field_workflows.md), [Probe operators](../probe_operators.md)
-2. **Use the API** — Extend the notebook with different connectivity patterns, cell types, or readouts
-3. **Run other tutorials** — [Single-neuron multimodal](01_single_neuron_multimodal.md), [Two-neuron E/I](02_two_neuron_ei.md)
-4. **Explore optimization** — Formulate your own circuit hypothesis and tune it
-
----
-
-## Run Metadata and Scope Fields
-
-| Field | Value |
-|---|---|
-| tutorial_status | computational_scaffold |
-| truth_status | truth_safe_unverified |
-| field_solver_status | laminar_proxy_no_pde |
-| source_projection_mode | proxy_no_field_solve |
-| source_calibration_status | uncalibrated_izhikevich_native_current |
-| physical_amplitude_claim_allowed | False |
-
-**Tutorial metadata:**
-- **Version:** `jaxfne-colab-tutorial-v1`
-- **n_total:** 100 neurons
-- **dt_ms:** 0.25 ms
-- **duration_ms:** 1500 ms
-- **n_opt_steps:** 15 (demo scale)
-- **Figures:** 22 (PNG + SVG)
-- **Export files:** `tutorial_metrics.csv`, `tuning_history.csv`, `tutorial_manifest.json`
-
----
-
-## Citation
-
-If you use this tutorial in your own work, cite:
-
-```bibtex
-@misc{jaxfne_suite_1,
-  title={jaxfne Suite No. 1: Computational Biophysics},
-  author={HNXJ},
-  year={2026},
-  note={Interactive Colab tutorial on neural modeling and laminar circuits},
-  url={https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb}
-}
-```
-
----
-
-**Status:** ✓ Complete | ✓ Scope fields verified | ✓ All 22 figures present | ✓ Notebooks and CSV exports ready
-
-*jaxfne-colab-tutorial-v1 | truth_safe_unverified | tutorial_exploratory_computational_scaffold*
+* **No biophysical calibration:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) represent arbitrary numerical matrices; they are not calibrated to physical microvolts or microamperes.
+* **No biological mechanism proof:** The generated oscillations are products of a simplified, phenomenological Izhikevich system and do not prove any specific biological mechanism.
+* **No PDE field solve:** No physical Maxwell equations are solved in 3D grid layouts; readouts are projection proxies based on laminar depth metadata.
