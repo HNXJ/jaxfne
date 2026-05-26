@@ -100,7 +100,7 @@ Potential at contact $c$ via row-normalized kernel $W$:
 
 $$\sum_{n=1}^{N} W_{cn} = 1 \quad \forall c$$
 
-No PDE solve; purely declarative projection matrix.
+Declarative projection-based computation; PDE solving deferred to physical solver path.
 
 ### Row-normalized Gaussian kernel (example)
 
@@ -130,7 +130,7 @@ jaxfne distinguishes between proxy readout paths and future physical solver path
 
 Laminar proxy operators project source tensors directly to contacts without solving a PDE:
 
-- **Source-balance:** Not applicable (no PDE solve)
+- **Source-balance:** Deferred to physical solver path (proxy mode omits PDE validation)
 - **Gauge:** Declared metadata only
 - **Boundary condition:** Declared metadata only
 - **Physical amplitude claims:** False by default

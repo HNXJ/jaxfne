@@ -37,7 +37,7 @@ spec = CalibrationSpec(
     target="readout"
 )
 
-# Declare toy calibration (illustrative, not validated)
+# Declare toy calibration (illustrative, pending validation)
 spec = CalibrationSpec(
     name="toy_eeg_proxy",
     target="readout",
@@ -47,7 +47,7 @@ spec = CalibrationSpec(
     reference="toy_leadfield"
 )
 
-# Declare empirical calibration candidate (metadata declared, not validated in v0.2.5)
+# Declare empirical calibration candidate (metadata declared, pending validation in v0.2.5)
 spec = CalibrationSpec(
     name="eeg_candidate",
     target="readout",
@@ -61,11 +61,11 @@ spec = CalibrationSpec(
 ### Supported Modes
 
 - `uncalibrated_native` — Proxy readout, no calibration (default)
-- `toy_scale` — Illustrative calibration, not validated
+- `toy_scale` — Illustrative calibration, pending validation
 - `relative_normalized` — Normalized relative to proxy baseline
-- `empirical_gain_candidate` — Candidate gain estimate, not validated
-- `physical_units_candidate` — Candidate physical units, not validated
-- `calibrated_empirical` — Calibration metadata declared (not validated in v0.2.5)
+- `empirical_gain_candidate` — Candidate gain estimate, pending validation
+- `physical_units_candidate` — Candidate physical units, pending validation
+- `calibrated_empirical` — Calibration metadata declared (pending validation in v0.2.5)
 
 ### Calibration Reports
 
@@ -86,7 +86,7 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 
 - **All proxy readouts remain computational proxies** by default
 - `physical_amplitude_claim_allowed` stays `false` for all modes in v0.2.5
-- Calibration metadata is declared for future validation, not validated now
+- Calibration metadata is declared for future validation, validation pending
 - Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
 
 ## Current status (v0.2.3–v0.2.5)
