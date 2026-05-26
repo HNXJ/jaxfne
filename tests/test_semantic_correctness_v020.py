@@ -354,4 +354,9 @@ def test_w_receipt_schema_version_contains_version():
 
 
 def test_v_jaxfne_version_is_028():
-    assert _JAXFNE_VERSION == "0.3.4"
+    """jaxfne runtime version must match pyproject.toml version (active version check)."""
+    import tomllib
+    from pathlib import Path
+    pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+    assert _JAXFNE_VERSION == pyproject_version, \
+        f"Module version {_JAXFNE_VERSION} does not match pyproject.toml {pyproject_version}"

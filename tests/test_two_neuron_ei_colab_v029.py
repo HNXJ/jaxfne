@@ -248,12 +248,15 @@ class TestTwoNeuronEINotebook:
                 raise AssertionError(f"Invalid JSON in {filepath}: {e}")
 
     def test_version_unchanged(self):
-        """Test that jaxfne version is 0.3.4 (v0.3.4 release)."""
+        """Test that jaxfne version matches pyproject.toml (active version alignment)."""
         import jaxfne
+        import tomllib
+        from pathlib import Path
 
+        pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
         assert (
-            jaxfne.__version__ == "0.3.4"
-        ), f"Version should be 0.3.4, got {jaxfne.__version__}"
+            jaxfne.__version__ == pyproject_version
+        ), f"Version should be {pyproject_version}, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""

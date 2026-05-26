@@ -240,4 +240,8 @@ class TestTutorialSmokeRunner:
         )
         assert result.returncode == 0
         version = result.stdout.strip()
-        assert version == "0.3.4", f"Version is {version}, expected 0.3.4"
+
+        # Get expected version from pyproject.toml
+        import tomllib
+        pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+        assert version == pyproject_version, f"Version is {version}, expected {pyproject_version}"

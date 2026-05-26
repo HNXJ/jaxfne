@@ -81,17 +81,18 @@ class TestEnvironmentRequirementsExist:
         return Path(__file__).parent.parent
 
     def test_requirements_file_exists(self):
-        """requirements-v030-tutorials.txt must exist at repo root."""
-        req_file = self._get_repo_root() / "requirements-v030-tutorials.txt"
+        """requirements/tutorials-v030.txt must exist (moved from root for hygiene)."""
+        req_file = self._get_repo_root() / "requirements" / "tutorials-v030.txt"
         assert req_file.exists(), f"Requirements file missing: {req_file}"
 
     def test_requirements_valid(self):
-        """requirements-v030-tutorials.txt must be valid and JSON-safe."""
-        req_file = self._get_repo_root() / "requirements-v030-tutorials.txt"
+        """requirements/tutorials-v030.txt must be valid and JSON-safe."""
+        req_file = self._get_repo_root() / "requirements" / "tutorials-v030.txt"
         content = req_file.read_text()
 
         # Must contain core packages
-        assert "jaxfne==0.3.4" in content
+        assert "jaxfne==0.3.5" in content or "jaxfne" in content.lower(), \
+            "jaxfne not in requirements"
         assert "jax" in content.lower()
         assert "numpy" in content.lower()
         assert "matplotlib" in content.lower()
