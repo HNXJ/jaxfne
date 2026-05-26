@@ -1,5 +1,7 @@
 # Suite No. 1: Computational Biophysics Tutorial
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md)
+
 This tutorial teaches the standard jaxfne workflow:
 
 ```python
@@ -43,7 +45,7 @@ Canonical tutorial settings:
 
 ## Scope metadata
 
-All outputs are simulated/proxy readouts from a computational scaffold. The tutorial does not provide calibrated physical amplitudes, subject-specific sensor geometry, empirical validation, detailed compartmental morphology, or mechanistic proof of a biological circuit.
+All outputs are simulated proxy readouts from a computational scaffold.
 
 ## Generated figures
 

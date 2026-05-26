@@ -1,5 +1,7 @@
 # jaxfne v0.3.2: Single-Neuron Parameter Sweep Tutorial
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials_v030/032_parameter_sweep.md)
+
 **How native drive and parameters shape single-neuron firing rate and dynamics.**
 
 ## Learning Objectives

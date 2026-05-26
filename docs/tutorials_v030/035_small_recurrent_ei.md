@@ -1,5 +1,7 @@
 # v0.3.5: Small Recurrent E/I Network
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials_v030/035_small_recurrent_ei.md)
+
 **Scope:** Educational tutorial demonstrating recurrent excitatory/inhibitory (E/I) coupling in a 12-neuron network using the public jaxfne Configuration grammar.
 
 **Truth status:** `truth_safe_unverified`, `computational_scaffold`
@@ -14,7 +16,7 @@ The simulation demonstrates:
 1. How neuron-type signatures in the Izhikevich emitter determine recurrent coupling strength and polarity
 2. How recurrent feedback shapes voltage dynamics and spike timing
 3. How to extract multimodal proxy readouts from a single simulation
-4. The scope boundaries of computational scaffolds: simulation is relative, not biophysically calibrated
+4. The scope boundaries of computational scaffolds: results are relative, not calibrated
 
 ---
 
@@ -75,7 +77,7 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=42)
 ```
 
-**No local simulator code or hand-written dynamics loops required.** All recurrent E/I coupling is implemented in the native `simulate_eig_izhikevich()` function.
+**No local simulator code or hand-written dynamics loops required.** All recurrent E/I coupling is implemented in the native `jtfne.simulate()` function.
 
 ---
 

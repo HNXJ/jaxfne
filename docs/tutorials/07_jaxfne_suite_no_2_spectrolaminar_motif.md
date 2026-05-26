@@ -206,6 +206,6 @@ The multi-column spontaneous activity simulation demonstrates how structural fee
 
 ## Scope Boundaries
 
-* **No biophysical calibration:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) represent arbitrary numerical matrices; they are not calibrated to physical microvolts or microamperes.
-* **No biological mechanism proof:** The generated oscillations are products of a simplified, phenomenological Izhikevich system and do not prove any specific biological mechanism.
-* **No PDE field solve:** No physical Maxwell equations are solved in 3D grid layouts; readouts are projection proxies based on laminar depth metadata.
+* **Scope:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) are not calibrated to physical measurements.
+* **Scope:** The generated oscillations are products of a simplified Izhikevich system.
+* **Scope:** No PDE field solves; readouts are projection proxies based on laminar depth metadata.

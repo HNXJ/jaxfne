@@ -1,0 +1,94 @@
+{
+  "claim_level": "computational_scaffold",
+  "source_calibration_status": "uncalibrated_izhikevich_native_current",
+  "source_projection_mode": "proxy_no_field_solve",
+  "readout_status": "LFP-proxy and CSD-proxy readouts",
+  "n_total": 100,
+  "dt_ms": 0.25,
+  "duration_ms": 1500.0,
+  "windows_ms": {
+    "baseline": [
+      -500,
+      0
+    ],
+    "event": [
+      0,
+      500
+    ],
+    "post": [
+      500,
+      1000
+    ]
+  },
+  "cell_type_counts": {
+    "E": 50,
+    "PV": 25,
+    "SST": 15,
+    "VIP": 10
+  },
+  "connectivity": {
+    "sparsity": 0.1,
+    "signed_ei": true
+  },
+  "readout_operators": [
+    "spk",
+    "rate",
+    "source_proxy",
+    "lfp_proxy",
+    "csd_proxy",
+    "tfr",
+    "bandpower"
+  ],
+  "objective_weights": {
+    "rate": 1.0,
+    "bandpower": 0.5,
+    "sync_penalty": 2.0
+  },
+  "n_opt_steps": 15,
+  "best_loss": 2.563516,
+  "best_metrics": {
+    "rates_hz": {
+      "E": 15.8,
+      "PV": 37.92,
+      "SST": 24.533333,
+      "VIP": 0.0
+    },
+    "ab_db": -35.194152,
+    "gm_db": -37.966307,
+    "sync": 0.469667
+  },
+  "best_parameters": {
+    "l4_drive": 2.037486,
+    "e_gain": 1.327542,
+    "pv_gain": 1.472119,
+    "sst_gain": 0.600768,
+    "vip_gain": 1.191176
+  },
+  "figure_list": [
+    "01_single_neuron_voltage",
+    "02_single_neuron_spikes",
+    "03_single_neuron_source_proxy",
+    "04_all_to_all",
+    "05_sparse_mask",
+    "06_pop_raster",
+    "07_pop_rate",
+    "08_layout",
+    "09_spont_raster",
+    "10_spont_rate",
+    "11_lfp_proxy",
+    "12_csd_proxy",
+    "13_tfr",
+    "14_bandpower",
+    "15_evoked_raster",
+    "16_evoked_lfp",
+    "17_evoked_vs_spont_bandpower",
+    "18_loss_curve",
+    "19_param_trajectory",
+    "20_pre_vs_post_raster",
+    "21_pre_vs_post_tfr",
+    "22_pre_vs_post_bandpower"
+  ],
+  "version": "jaxfne-colab-tutorial-v1",
+  "truth_mode": "truth_safe_unverified",
+  "tutorial_purpose": "tutorial_exploratory_computational_scaffold"
+}
