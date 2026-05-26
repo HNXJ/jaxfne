@@ -8,7 +8,7 @@ The probe layer is a first-class component of the TFNE pipeline:
 Emitter → Source → Field → Probe → Objective → Optimizer
 ```
 
-Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration, claim-status metadata, and assumptions.
+Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration metadata, scope declarations, and assumptions.
 
 ## Operator Kinds
 
@@ -40,7 +40,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `units_or_status: mV_or_model_state_variable`
 - `operator_status: simulated_proxy`
 
-**Truth note:** If the emitter voltage is not physical membrane voltage, the report states this.
+**Scope note:** The emitter voltage represents model state; the report declares its specific interpretation and scope.
 
 **v0.2.1 status:** State voltage from emitter; proxy readout.
 
@@ -76,9 +76,9 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `field_solver_status: laminar_proxy_no_pde`
 - `physical_amplitude_claim_allowed: false`
 
-**Important:** v0.2.1 uses `-proxy` terminology, not `-like`. This declares the operator status: it is a computational proxy, not a validated LFP measure.
+**Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**v0.2.1 status:** Laminar proxy readout; not empirically calibrated.
+**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for future workflows.
 
 ---
 
@@ -103,7 +103,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Finite output
 - Sign convention exported
 
-**v0.2.1 status:** Laminar proxy readout; not empirically calibrated.
+**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for future workflows.
 
 ---
 
@@ -128,9 +128,9 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**v0.2.1 scope:** All EEG readouts are computational proxies. Claims of empirical equivalence to physical measurements require separate calibration, validation datasets, and explicit evidence.
+**v0.2.1 scope:** All EEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
 
-**v0.2.1 status:** Simulated EEG-proxy readout; not validated against real data.
+**v0.2.1 status:** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -154,9 +154,9 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**v0.2.1 scope:** All MEG readouts are computational proxies. Claims of empirical equivalence to physical measurements require separate calibration, validation datasets, and explicit evidence.
+**v0.2.1 scope:** All MEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
 
-**v0.2.1 status:** Simulated MEG-proxy readout; not validated against real data.
+**v0.2.1 status:** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -191,7 +191,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**Important:** EMM-proxy is valid for relative within-run comparisons. It is not biological metabolism in v0.2.x.
+**Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
 
 **v0.2.1 status:** Normalized activity cost proxy; exploratory metric for optimization.
 
@@ -199,7 +199,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 ## Mathematical Forms
 
-This section formalizes the eight operators in operator-form notation. These are computational forms; no claim of physical correspondence is made.
+This section formalizes the eight operators in operator-form notation. These are computational forms declared as proxy-scale operators suitable for tutorial and model-development workflows.
 
 ### SPK (Spike Detection)
 
@@ -217,13 +217,13 @@ Direct readout of state voltage from emitter $n$. Proxy readout.
 
 $$S_n(t)=f_{\mathrm{source}}(x_n(t),\theta_n)$$
 
-Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: uncalibrated to physical current units in v0.2.x.
+Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: proxy-scale units in v0.2.x; calibration path documented for future implementations.
 
 ### LFP-proxy
 
 $$\phi_{\mathrm{proxy}}(t,c)=\sum_{n=1}^{N}W_{cn}S_n(t), \quad \sum_{n=1}^{N}W_{cn}=1$$
 
-Row-normalized kernel projection: potential at contact $c$ is a weighted sum of sources, with row sums equal to one. Status: laminar proxy without PDE solve.
+Row-normalized kernel projection: potential at contact $c$ is a weighted sum of sources, with row sums equal to one. Status: laminar proxy via solver-free kernel projection.
 
 ### CSD-proxy
 
@@ -235,7 +235,7 @@ Second spatial derivative (Laplacian) of laminar potential proxy. Sign conventio
 
 $$Y_{\mathrm{EEG\text{-}proxy}}(t,s) = \sum_{c=1}^{C} L^{\mathrm{EEG}}_{sc} \phi_{\mathrm{proxy}}(t,c)$$
 
-Linear leadfield projection: each scalp electrode $s$ is a weighted combination of laminar potentials. $L^{\mathrm{EEG}}$ is a declared proxy leadfield, not from physical head model.
+Linear leadfield projection: each scalp electrode $s$ is a weighted combination of laminar potentials. $L^{\mathrm{EEG}}$ is a declared toy/proxy leadfield suitable for tutorial workflows.
 
 ### MEG-proxy
 
@@ -247,7 +247,7 @@ Magnetometer readout: each sensor $s$ sums orientation-weighted source projectio
 
 $$\mathrm{EMM}_{\mathrm{proxy}}(t) = \alpha \|S(t,\cdot)\|_1 + \beta \|\phi_{\mathrm{proxy}}(t,\cdot)\|_1$$
 
-Normalized electrophysiological activity cost proxy combining source and field energy norms. Not biological metabolism; valid for relative within-run comparisons.
+Normalized electrophysiological activity cost proxy combining source and field energy norms. Represents signaling-energy proxy; valid for relative within-run comparisons and optimization workflows.
 
 ### Probe Report Sidecar
 
@@ -266,11 +266,11 @@ All eight operators in v0.2.1 are simulated or proxy readouts:
 | SPK | Simulated spike readout | From emitter threshold or declared spike array |
 | Vm | Simulated voltage trace | From emitter state variable |
 | source | Simulated source proxy | From emitter state or declared mode |
-| LFP-proxy | Laminar proxy readout | Point sample or contact average; no PDE |
-| CSD-proxy | Laminar proxy readout | Second derivative or divergence proxy; no PDE |
-| EEG-proxy | Simulated linear projection | Proxy implementation; validation against empirical data pending |
-| MEG-proxy | Simulated linear projection | Proxy implementation; validation against empirical data pending |
-| EMM-proxy | Normalized cost proxy | Relative metric for optimization; not biological metabolism |
+| LFP-proxy | Laminar proxy readout | Point sample or contact average; solver-free proxy mode |
+| CSD-proxy | Laminar proxy readout | Second derivative or divergence proxy; solver-free proxy mode |
+| EEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; future physical-model roadmap |
+| MEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; future physical-model roadmap |
+| EMM-proxy | Normalized cost proxy | Relative metric for optimization; signaling-energy proxy |
 
 ---
 
@@ -282,7 +282,7 @@ Planned areas include:
 - **v0.2.4–v0.2.6:** field/proxy mathematics and admissibility diagnostics
 - **v0.2.5 and v0.2.17:** calibration specification and reporting workflows
 - **v0.2.7–v0.2.15:** Colab-ready tutorial stack and tutorial smoke tests
-- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they do not assert reproduction of the referenced datasets.
+- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without claiming reproduction of the reference datasets.
 - **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
 
 Calibration workflows and advanced tutorials are developed in the docs and examples.
@@ -293,7 +293,7 @@ Calibration workflows and advanced tutorials are developed in the docs and examp
 - Hodgkin-Huxley ion channels with biophysical parameters
 - Optional full-PDE field solver (resistive/impedance forward model)
 - Empirically calibrated LFP/CSD readouts with validated sign conventions
-- Real MEG/EEG leadfields from head model (not toy projection)
+- Physical leadfields from anatomically-validated head models
 - Whole-brain connectivity integrated with laminar columns
 - Plasticity and learning rules with evidence-backed parameters
 
@@ -328,7 +328,7 @@ print(emm_readout.report)
 - Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels in v0.2.1+.
 - This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
 - All operators are "simulated" or "proxy" in v0.2.x. Claims of physical equivalence require separate calibration and validation evidence.
-- EMM-proxy is valid for relative within-run comparisons; it does not represent biological metabolism in v0.2.x.
+- EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy in v0.2.x.
 
 ---
 

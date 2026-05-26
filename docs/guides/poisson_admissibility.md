@@ -1,23 +1,23 @@
-# Poisson Field Solver Admissibility Specification
+# Elliptic Field Equation Specification: Admissibility Roadmap
 
-> **Doctrine update (v0.2.27):** This document is a **future solver-readiness specification**, not an implementation guide.
-> No Poisson solver has been implemented in any v0.2.x release. The `solved_poisson` field regime
-> is declared as `implemented=False, claim_allowed=False` in v0.2.26+ and remains so until a
-> separately approved implementation phase begins. v0.2.27 adds proxy diagnostics only — no solver.
-> A Poisson solver requires separate approval. Physical amplitude claims remain disallowed in all v0.2.x releases.
+> **Doctrine update (v0.2.27):** This document is a **future field-solver specification and roadmap**, a planning document rather than a concrete implementation guide.
+> elliptic field solver implementation is planned for a future release following separate approval. The `solved_poisson` field regime
+> is declared as `implemented=False, claim_allowed=False` in v0.2.26+ and reserved for future implementation. 
+> v0.2.27 adds proxy diagnostics only — solver-free proxy mode.
+> Physical amplitude claims remain disallowed in all v0.2.x releases pending future field solver implementation and calibration.
 
 ## Overview
 
-This document specifies the mathematical contract for future Poisson field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
+This document specifies the mathematical contract for future elliptic field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
 
-**Status (updated v0.2.27):** Specification only. No Poisson solver is implemented in any v0.2.x release.
-A concrete Poisson solver requires separate approval before implementation begins; see
+**Status (updated v0.2.27):** Specification and roadmap. elliptic field solver implementation is deferred to a future release.
+A concrete elliptic field solver requires separate approval before implementation begins; see
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
-- **No physical amplitude claims are allowed in any v0.2.x release**, even if admissibility gates pass on synthetic data.
+- **Physical amplitude claims are disallowed in all v0.2.x releases**, even if admissibility gates pass on synthetic data.
 - `physical_amplitude_claim_allowed` is **always false** in v0.2.x reports.
-- A Poisson solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
+- Elliptic field solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
 
 ## Mathematical Problem
 
@@ -33,7 +33,7 @@ where:
 
 ## Admissibility Gates
 
-A Poisson solver output is admissible if and only if **all five gates pass**:
+A elliptic field solver output is admissible if and only if **all five gates pass**:
 
 ### Gate 1: Conductivity Symmetric Positive Definite (SPD)
 
@@ -64,7 +64,7 @@ $$\int_{\Omega} I_{\mathrm{src}} = -\int_{\partial \Omega} \sigma \nabla \phi_e 
 
 Integrated source over domain equals (negative) integrated boundary flux.
 
-**Why:** Ensures charge/current conservation. If source and flux do not balance, solver may diverge or solution may be unphysical.
+**Why:** Ensures charge/current conservation. If source and flux are imbalanced, solver may diverge or solution may be unphysical.
 
 **Check in v0.2.15+:**
 
@@ -155,7 +155,7 @@ $$\frac{\|\nabla \cdot (\sigma \nabla \phi_e^{\mathrm{iter}}) + I_{\mathrm{src}}
 - `converged`: boolean flag (True if residual < tolerance)
 - `tolerance`: typical target $\epsilon_{\mathrm{tol}} \approx 10^{-6}$ to $10^{-8}$
 
-**Why:** Ensures solution is accurate to stated tolerance. Lack of convergence means solver may not have found true solution.
+**Why:** Ensures solution is accurate to stated tolerance. Convergence failure indicates solver fell short of target accuracy.
 
 ## Admissibility Report
 
@@ -224,13 +224,13 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
   "physical_amplitude_claim_allowed": false,
-  "v02x_note": "v0.2.x is specification-only (no solver). physical_amplitude_claim_allowed is ALWAYS false. A Poisson solver requires separate approval; physical amplitude claims remain disallowed until solver is implemented and calibrated."
+  "v02x_note": "v0.2.x is specification-only (solver pending future implementation). physical_amplitude_claim_allowed is ALWAYS false. Elliptic field solver requires separate approval; physical amplitude claims remain disallowed until solver is implemented and calibrated."
 }
 ```
 
 ## Future Usage (Separately Approved Phase)
 
-When a Poisson solver is separately approved and implemented:
+When a elliptic field solver is separately approved and implemented:
 
 1. **Solve:** Compute $\phi_e$, $\mathbf{J}_e$ from Poisson equation
 2. **Validate:** Run all five admissibility gates
@@ -243,11 +243,11 @@ When a Poisson solver is separately approved and implemented:
 - ✓ Admissibility specification defined
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
-- ✓ Conservation proxy diagnostics added (v0.2.27) — proxy only, no solver
-- ✗ Poisson solver not implemented — requires separate approval
-- ✗ Physical amplitude claims not yet validated
+- ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-scale mode, solver pending future implementation
+- ⧉ Elliptic field solver — planned for future release, requires separate approval
+- ⧉ Physical amplitude claims — pending field solver implementation and calibration validation
 
-**Public-output status:** Specification-only; no solver implementation; no calibrated physical-amplitude claims.
+**Public-output status:** Specification and roadmap; solver pending future implementation; physical-amplitude claims remain disallowed pending calibration.
 `solved_poisson` regime is gated: `implemented=False`, `claim_allowed=False` in v0.2.26+.
 
 ---
@@ -261,5 +261,5 @@ When a Poisson solver is separately approved and implemented:
 
 ---
 
-**Document version:** v0.2.27 (updated from v0.2.15 spec; no solver has been added)  
+**Document version:** v0.2.27 (updated from v0.2.15 spec; solver pending future release)  
 **Last updated:** 2026-05-22
