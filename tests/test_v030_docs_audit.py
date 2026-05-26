@@ -91,7 +91,7 @@ class TestEnvironmentRequirementsExist:
         content = req_file.read_text()
 
         # Must contain core packages
-        assert "jaxfne==0.2.30" in content
+        assert "jaxfne==0.3.4" in content
         assert "jax" in content.lower()
         assert "numpy" in content.lower()
         assert "matplotlib" in content.lower()

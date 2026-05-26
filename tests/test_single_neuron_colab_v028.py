@@ -1,4 +1,4 @@
-"""Single-neuron multimodal Colab notebook validation tests for v0.2.8.
+"""Single-neuron multimodal Colab notebook validation tests for v0.3.4.
 
 Tests that:
 1. Notebook exists and is valid JSON
@@ -21,7 +21,7 @@ from pathlib import Path
 
 
 class TestSingleNeuronNotebook:
-    """Tests for single-neuron multimodal Colab notebook (v0.2.8)."""
+    """Tests for single-neuron multimodal Colab notebook (v0.3.4)."""
 
     def test_notebook_exists(self):
         """Test that notebooks/01_single_neuron_multimodal.ipynb exists."""
@@ -217,16 +217,16 @@ class TestSingleNeuronNotebook:
             ), f"Notebook must include '{section}' section"
 
     def test_version_unchanged(self):
-        """Test that jaxfne version is 0.2.10."""
+        """Test that jaxfne version is 0.3.4."""
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.30"
-        ), f"Version should be 0.2.29, got {jaxfne.__version__}"
+            jaxfne.__version__ == "0.3.4"
+        ), f"Version should be 0.3.4, got {jaxfne.__version__}"
 
 
 class TestDocumentationConsistency:
-    """Tests for documentation consistency with v0.2.8 notebook."""
+    """Tests for documentation consistency with v0.3.4 notebook."""
 
     def test_tutorial_index_mentions_single_neuron(self):
         """Test that tutorials/index.md mentions single-neuron tutorial."""

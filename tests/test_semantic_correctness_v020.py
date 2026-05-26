@@ -354,4 +354,4 @@ def test_w_receipt_schema_version_contains_version():
 
 
 def test_v_jaxfne_version_is_028():
-    assert _JAXFNE_VERSION == "0.2.30"
+    assert _JAXFNE_VERSION == "0.3.4"

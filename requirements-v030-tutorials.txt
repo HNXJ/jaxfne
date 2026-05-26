@@ -6,8 +6,8 @@
 # truth_mode: truth_safe_unverified
 # These requirements are for exploratory/teaching tutorials, not production.
 
-# Core jaxfne package (stable v0.2.30 toolbox)
-jaxfne==0.2.30
+# Core jaxfne package (stable v0.3.4 toolbox)
+jaxfne==0.3.4
 
 # JAX ecosystem (required for jaxfne simulation)
 jax>=0.4.0

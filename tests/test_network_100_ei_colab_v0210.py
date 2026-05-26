@@ -1,4 +1,4 @@
-"""100-neuron E/I multimodal Colab notebook validation tests for v0.2.10.
+"""100-neuron E/I multimodal Colab notebook validation tests for v0.3.4.
 
 Tests that:
 1. Notebook exists and is valid JSON
@@ -25,7 +25,7 @@ from pathlib import Path
 
 
 class TestNetwork100EINotebook:
-    """Tests for 100-neuron E/I multimodal Colab notebook (v0.2.10)."""
+    """Tests for 100-neuron E/I multimodal Colab notebook (v0.3.4)."""
 
     def test_notebook_exists(self):
         """Test that notebooks/03_network_100_ei_multimodal.ipynb exists."""
@@ -261,12 +261,12 @@ class TestNetwork100EINotebook:
         assert metrics.get("n_inhibitory") == 25, "n_inhibitory must be 25"
 
     def test_version_unchanged(self):
-        """Test that jaxfne version is 0.2.10."""
+        """Test that jaxfne version is 0.3.4."""
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.30"
-        ), f"Version should be 0.2.29, got {jaxfne.__version__}"
+            jaxfne.__version__ == "0.3.4"
+        ), f"Version should be 0.3.4, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""
