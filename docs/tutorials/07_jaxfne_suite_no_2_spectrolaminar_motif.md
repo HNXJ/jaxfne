@@ -22,7 +22,7 @@ After completing this tutorial, you will understand:
 
 Can separate sensory (V1) and associative (PFC) cortical columns, connected in a feedforward-feedback loop, generate stable laminar and spectral patterns that map onto distinct proxy-level biophysical sensors?
 
-We address this question by simulating a multi-column model and monitoring how spontaneous activity reflects laminar-depth spectrolaminar patterns across superficial and deep layers.
+This tutorial walks through constructing this multi-column model and inspecting its laminar proxy readouts.
 
 ---
 
@@ -32,7 +32,7 @@ Here, we outline the foundational operators and equations defining the emitters,
 
 ### 1. Izhikevich Emitter
 
-* **Formal equation:**
+* **Boundary definition:**
   $$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{native}}$$
   $$\frac{du}{dt} = a(bv - u)$$
 * **Definition of terms:**
@@ -44,14 +44,14 @@ Here, we outline the foundational operators and equations defining the emitters,
   The change in membrane potential over time is the sum of a quadratic voltage activation term, linear scale, offset constant, recovery feedback, and internal driving currents. The change in the recovery variable is scaled by the difference between scaled potential and the recovery variable itself.
 * **Implementation location:**
   [emitters.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/emitters.py)
-* **Claim boundary:**
+* **Boundary:**
   Reduced emitter dynamics (phenomenological spiking model), not full conductance-based biophysical reconstruction.
 
 ---
 
 ### 2. Source/Readout Bridge
 
-* **Formal equation:**
+* **Boundary definition:**
   $$Y_c(t) = P_c[\text{signals}, \text{source\_proxy}, \text{field\_proxy}](t)$$
 * **Definition of terms:**
   * $Y_c(t)$: Multimodal proxy readout at contact or sensor channel $c$ at time $t$.
@@ -62,14 +62,14 @@ Here, we outline the foundational operators and equations defining the emitters,
   The multimodal proxy readout is the evaluation of a declarative projection operator mapping raw vectorized emitter variables onto a spatial-depth profile of contacts without solving physical Maxwell PDEs.
 * **Implementation location:**
   [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
-* **Claim boundary:**
+* **Boundary:**
   Proxy readout operator representing a computational mapping scaffold, not calibrated physical sensor measurement.
 
 ---
 
 ### 3. Spectrolaminar Motif Target
 
-* **Formal equation:**
+* **Boundary definition:**
   $$\text{relative alpha/beta: deeper-biased profile}$$
   $$\text{relative gamma: superficial-biased profile}$$
   $$\text{crossing: near L4 reference depth}$$
@@ -81,12 +81,24 @@ Here, we outline the foundational operators and equations defining the emitters,
   The spectral-depth distribution exhibits a superficial bias for gamma band power, a deep bias for alpha/beta band power, and a reference inversion near mid-column layers.
 * **Implementation location:**
   [vis.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/vis.py)
-* **Claim boundary:**
+* **Boundary:**
   Tutorial motif visualization for structural scaffolds, not empirical biological validation.
 
 ---
 
-## 1. Setup and Chainable Configuration
+## Canonical Import
+
+Every notebook script and library call standardizes to the canonical import:
+
+```python
+import jaxfne as jtfne
+```
+
+All public APIs are called through the unified `jtfne` namespace.
+
+---
+
+## Configuration Block (Compact Grammar)
 
 We define our cortical columns using the package-native compact chainable facade methods:
 
@@ -112,84 +124,29 @@ cfg = cfg.probes(["MUA-proxy", "LFP-proxy", "CSD-proxy", "EEG-proxy", "MEG-proxy
 
 ---
 
-## 2. Model Construction & Geometry
-
-We compile the model, placing the units along a 3D laminar layout:
-
-```python
-model = jtfne.construct(cfg)
-```
-
-### Figure 01: V1/PFC 3D Layout
-![V1/PFC 3D Layout](../../outputs/suite_no_2_spectrolaminar_motif/figures/01_v1_pfc_3d_layout.png)
-
----
-
-## 3. Vectorized Simulation
+## Simulation Block
 
 We run a spontaneous activity simulation with deterministic parameters:
 
 ```python
+# Construct model
+model = jtfne.construct(cfg)
+
+# Simulate vectorized emitter states
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 ```
 
-### Figure 02: Baseline Raster
-![Baseline Raster](../../outputs/suite_no_2_spectrolaminar_motif/figures/02_baseline_raster.png)
-
-### Figure 03: Population Rates
-![Population Rates](../../outputs/suite_no_2_spectrolaminar_motif/figures/03_population_rates.png)
-
-### Figure 04: Voltage Traces
-![Voltage Traces](../../outputs/suite_no_2_spectrolaminar_motif/figures/04_voltage_traces.png)
-
 ---
 
-## 4. Multimodal Readout Analysis
+## Probe/Readout Block
 
 Sampling the simulated dynamics through our declared proxy readouts allows depth-resolved and macro-scale analysis.
 
-### Figure 05: MUA-Proxy
-![MUA-Proxy](../../outputs/suite_no_2_spectrolaminar_motif/figures/05_mua_proxy.png)
-
-### Figure 06: LFP-Proxy
-![LFP-Proxy](../../outputs/suite_no_2_spectrolaminar_motif/figures/06_lfp_proxy.png)
-
-### Figure 07: CSD-Proxy
-![CSD-Proxy](../../outputs/suite_no_2_spectrolaminar_motif/figures/07_csd_proxy.png)
-
-### Figure 08: EEG/MEG/EMM Proxy Summary
-![EEG/MEG/EMM Proxy](../../outputs/suite_no_2_spectrolaminar_motif/figures/08_eeg_meg_emm_proxy.png)
-
----
-
-## 5. Spectrolaminar Motif Visualization
-
-Calling the standard visual API generates a 3-panel publication-ready figure:
-
 ```python
-jtfne.vis.spectrolaminar(signals)
+# Sample LFP-proxy and CSD-proxy
+lfp_proxy = signals.field.lfp_proxy
+csd_proxy = signals.field.csd_proxy
 ```
-
-### Figure 09: Spectrolaminar Heatmap
-![Spectrolaminar Heatmap](../../outputs/suite_no_2_spectrolaminar_motif/figures/09_spectrolaminar_heatmap.png)
-
-### Figure 10: Layer-Band Profiles
-![Layer-Band Profiles](../../outputs/suite_no_2_spectrolaminar_motif/figures/10_layer_band_profiles.png)
-
----
-
-## 6. Fine-Tuning Optimization Search
-
-We run a small parameter search to fit connection weights against target spectral dynamics:
-
-### Figure 11: Tuning Loss
-![Tuning Loss](../../outputs/suite_no_2_spectrolaminar_motif/figures/11_tuning_loss.png)
-
-### Figure 12: Pre/Post Spectrolaminar Comparison
-![Pre/Post Spectrolaminar](../../outputs/suite_no_2_spectrolaminar_motif/figures/12_pre_post_spectrolaminar.png)
-
-### Figure 13: Parameter Trajectory
-![Parameter Trajectory](../../outputs/suite_no_2_spectrolaminar_motif/figures/13_parameter_trajectory.png)
 
 ---
 
@@ -197,12 +154,31 @@ We run a small parameter search to fit connection weights against target spectra
 
 | Metadata Key | Value / Status | Description |
 |---|---|---|
-| `truth_mode` | `truth_safe_unverified` | No claims of empirical truth or biophysical accuracy are made. |
-| `claim_level` | `computational_scaffold` | The package acts as a programmatic scaffold, not a physical simulator. |
+| `truth_mode` | `truth_safe_unverified` | No assumptions of empirical truth or biological accuracy are introduced. |
+| `scope_status` | `computational_scaffold` | The package acts as a programmatic scaffold, not a physical simulator. |
 | `field_solver_status` | `laminar_proxy_no_pde` | laminar extracellular readouts are computed as weighted proxies, not PDEs. |
 | `geometry_mode` | `declared_metadata_not_solved_3d_pde_grid` | 3D coordinate layout is declarative metadata only. |
-| `physical_amplitude_claim_allowed` | `false` | Readouts do not map to physical volt or ampere units. |
+| `physical_amplitude_allowed` | `false` | Readouts do not map to physical volt or ampere units. |
 | `connectivity_status` | `declared_metadata_proxy` | Multi-column connectivity is a declarative structural skeleton. |
+
+---
+
+## Figures
+
+The generated assets represent the standard visual bundle:
+- **Figure 01** — V1/PFC 3D Layout
+- **Figure 02** — Baseline Raster
+- **Figure 03** — Population Rates
+- **Figure 04** — Voltage Traces
+- **Figure 05** — MUA-Proxy
+- **Figure 06** — LFP-Proxy
+- **Figure 07** — CSD-Proxy
+- **Figure 08** — EEG/MEG/EMM Proxy Summary
+- **Figure 09** — Spectrolaminar Heatmap
+- **Figure 10** — Layer-Band Profiles
+- **Figure 11** — Tuning Loss
+- **Figure 12** — Pre/Post Spectrolaminar Comparison
+- **Figure 13** — Parameter Trajectory
 
 ---
 
@@ -228,7 +204,7 @@ The multi-column spontaneous activity simulation demonstrates how structural fee
 
 ---
 
-## What this tutorial does NOT claim
+## Scope Boundaries
 
 * **No biophysical calibration:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) represent arbitrary numerical matrices; they are not calibrated to physical microvolts or microamperes.
 * **No biological mechanism proof:** The generated oscillations are products of a simplified, phenomenological Izhikevich system and do not prove any specific biological mechanism.

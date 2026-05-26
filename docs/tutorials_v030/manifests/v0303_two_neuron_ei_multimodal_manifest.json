@@ -323,7 +323,7 @@
       "units_or_status": "binary_spike_indicator"
     }
   },
-  "run_id": "v033_two_neuron_ei_1779737423",
+  "run_id": "v033_two_neuron_ei_1779792449",
   "scenario_id": "v030_03_two_neuron_ei_multimodal",
   "schema_version": "v0.3.3",
   "simulation": {
@@ -339,7 +339,7 @@
     "source_projection_mode": "proxy_no_field_solve",
     "source_proxy_status": "generated_proxy"
   },
-  "timestamp": "2026-05-25T14:30:23.901906",
+  "timestamp": "2026-05-26T05:47:29.060375",
   "tutorial_id": "v0303_two_neuron_ei_multimodal",
   "validation_report": {
     "all_gates_pass": true,
