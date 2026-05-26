@@ -55,7 +55,7 @@ A comprehensive tutorial covering:
 - Part 5: Evoked responses and baseline spectrolaminar heatmaps
 - Part 6: CPU-safe parameter search and tuning trajectories
 
-**13 publication-ready figures**, strict JSON evidence manifests, and JAX-native vis tools.
+**13 publication-ready figures**, strict JSON evidence manifests, and JAX-based vis tools.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
 

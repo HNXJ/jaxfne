@@ -27,7 +27,7 @@ This confirms successful installation and documents the version used.
 
 ### 3. No Private Paths
 
-Notebooks **must not** contain:
+Notebooks should avoid:
 - Absolute paths like `/Users/your-name/...`
 - Local-only data paths
 - Private credentials or API keys
@@ -36,7 +36,7 @@ Use relative paths or public example data only.
 
 ### 4. CPU-Safe
 
-Notebooks **must** run on CPU without GPU requirement. jaxfne is CPU-safe by default; do not force GPU acceleration.
+Notebooks should run on CPU without GPU requirement. jaxfne is CPU-safe by default; CPU acceleration is recommended.
 
 ### 5. Outputs Cleared Before Commit
 

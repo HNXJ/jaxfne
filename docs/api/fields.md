@@ -52,7 +52,7 @@ $$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\ph
 
 - Proxy fields: `field_solver_status = "laminar_proxy_no_pde"`, all solver metrics `null`
 - Physical fields (future): Will have non-null metrics and higher claim levels
-- See [Field solution metadata skill](../skills/skill_field_solution_metadata.md) for full validation guide
+- See developer documentation for field solution metadata validation
 
 ## JSON serialization
 
@@ -69,6 +69,6 @@ Outputs with NaN or Inf values will fail serialization and must be diagnosed.
 
 ## See also
 
-- [Field solution metadata skill](../skills/skill_field_solution_metadata.md) — Contract validation and common mistakes
+- Developer documentation — Contract validation and common mistakes
 - [Tensor-field workflows](../tensor_field_workflows.md) — Pipeline overview
 - [API reference](index.md)

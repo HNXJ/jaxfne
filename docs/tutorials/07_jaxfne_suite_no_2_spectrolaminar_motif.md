@@ -13,7 +13,7 @@ After completing this tutorial, you will understand:
 1. **Chainable configuration facade** — how to declare model anatomy, runtime dynamics, cell types, connectivity, and readout modalities using an immutable verb-based Configuration API.
 2. **Multi-column layouts** — how to declare separate V1 and PFC cortical column populations and define feedforward and feedback connections between them.
 3. **Multimodal readouts** — how to sample simulated source dynamics using various proxy sensors, including MUA-proxy, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, and EMM-proxy.
-4. **Spectrolaminar power profiling** — how to extract frequency-depth profiles from laminar extracellular potential signals using JAX-native vis tools.
+4. **Spectrolaminar power profiling** — how to extract frequency-depth profiles from laminar extracellular potential signals using JAX-based vis tools.
 5. **Optimization search** — how to perform CPU-safe parameter tuning against evocation or spectral objectives.
 
 ---
@@ -33,13 +33,13 @@ Here, we outline the foundational operators and equations defining the emitters,
 ### 1. Izhikevich Emitter
 
 * **Boundary definition:**
-  $$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{native}}$$
+  $$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{drive}}$$
   $$\frac{du}{dt} = a(bv - u)$$
 * **Definition of terms:**
   * $v$: Membrane potential (mV).
   * $u$: Membrane recovery variable.
   * $a, b$: Time scale and sensitivity parameters of the recovery variable.
-  * $I_{\text{native}}$: Native current drive representing default background inputs.
+  * $I_{\text{drive}}$: Current drive representing default background inputs.
 * **Worded equation:**
   The change in membrane potential over time is the sum of a quadratic voltage activation term, linear scale, offset constant, recovery feedback, and internal driving currents. The change in the recovery variable is scaled by the difference between scaled potential and the recovery variable itself.
 * **Implementation location:**
@@ -100,7 +100,7 @@ All public APIs are called through the unified `jtfne` namespace.
 
 ## Configuration Block (Compact Grammar)
 
-We define our cortical columns using the package-native compact chainable facade methods:
+We define our cortical columns using the package compact chainable facade methods:
 
 ```python
 import jaxfne as jtfne

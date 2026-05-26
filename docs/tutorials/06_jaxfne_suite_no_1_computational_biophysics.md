@@ -26,7 +26,7 @@ The notebook is organized as a four-part journey:
 1. configured single neuron;
 2. configured E/PV population;
 3. configured laminar column and package visualizer;
-4. package-native objective and tuning metadata.
+4. package objective and tuning metadata.
 
 ## Tutorial scope
 
