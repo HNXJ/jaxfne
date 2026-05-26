@@ -1,4 +1,5 @@
-# V1-PFC dual column
+# V1-PFC Dual Column
+
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/05_v1_pfc_dual_column.md)
 

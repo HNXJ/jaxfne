@@ -45,11 +45,14 @@ print(f"Spike count: {signals.spikes.sum():.0f}")
 ```
 
 Explore tutorials:
-- **Suite No. 1:** Computational biophysics foundations
-- **Suite No. 2:** Corticospectrolaminar network motifs
-- **v0.3.1:** Single-neuron Izhikevich dynamics
-- **v0.3.2:** Parameter sweep and sensitivity analysis
-- **v0.3.3:** Two-neuron excitatory-inhibitory coupling
+- **Suite No. 1:** Computational Biophysics
+- **Suite No. 2:** Corticospectrolaminar Motif
+- **01:** Single-neuron Multimodal
+- **02:** Two-neuron E/I
+- **03:** 100-neuron Network
+- **04:** V1 Six-layer Column
+- **05:** V1-PFC Dual Column
+
 
 ## Learn more
 
