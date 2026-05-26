@@ -7,7 +7,7 @@ Tests the ProbeReport/ProbeReadout contract after hardening:
 - JSON-safe serialization with allow_nan=False
 - Operator-specific fields (CSD, EEG, MEG)
 - Examples generate valid probe_report.json
-- Version remains 0.2.10
+- Version remains 0.3.4
 """
 
 import json
@@ -229,6 +229,6 @@ def test_contract_meg_specific_fields():
 # ─── Version Bumped to 0.2.18 ────────────────────────────────────────────────────
 
 def test_contract_version_unchanged():
-    """jaxfne version remains 0.2.29 (after v0.2.29 tutorial figures)."""
+    """jaxfne version remains 0.3.4 (after v0.3.4 tutorial figures)."""
     import jaxfne
-    assert jaxfne.__version__ == "0.2.30"
+    assert jaxfne.__version__ == "0.3.4"
