@@ -1,10 +1,9 @@
 # v0.3.3: Two-Neuron Excitatory/Inhibitory Multimodal Tutorial
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials_v030/v0303_two_neuron_ei_multimodal.md)
+
 **Tutorial ID:** `v0303_two_neuron_ei_multimodal`  
-**Status:** Computational scaffold, proxy readout only  
-**Truth claim level:** NOT biological validation  
-**Physical amplitude claim:** FALSE  
-**Field solver status:** `laminar_proxy_no_pde` (no PDE solved)
+**Status:** Computational scaffold, proxy readout only
 
 ---
 
@@ -16,7 +15,7 @@ By the end of this tutorial, you will understand:
 2. **Izhikevich emitter models** applied to both excitatory and inhibitory neuron types
 3. **Multimodal probe readout** infrastructure: all eight operators (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 4. **Source aggregation** and field proxy construction in a coupled network scenario
-5. **Manifest generation** and claim-gate documentation for computational scaffolds
+5. **Manifest generation** and documentation for computational scaffolds
 6. **Future extension points** for real E/I feedback mechanisms
 
 ---

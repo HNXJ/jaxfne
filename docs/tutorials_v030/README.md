@@ -10,7 +10,7 @@
 
 The v0.3 tutorial-scenario line is a comprehensive set of 15 executable Jupyter notebooks (scenarios) designed to teach TFNE (Tensor-Field Neural Equations) from first principles through complete multi-area cortical simulations. The v0.3 line is **not a constant package-mutation line** — the package version `jaxfne` only bumps when a tutorial reveals a real bug or missing required public API.
 
-**Key principle:** v0.3 is tutorial/documentation work on a stable v0.2.30 toolbox. Scientific claims are explicitly bounded as computational scaffolds (no biological validation, no Maxwell/Poisson solvers, no proof-of-mechanism).
+**Key principle:** v0.3 is tutorial/documentation work. Scientific claims are explicitly bounded as computational scaffolds.
 
 ### Lessons from v0.3.1–v0.3.2
 
@@ -143,8 +143,8 @@ except ImportError:
 
 **Default:** v0.3 does NOT bump package version.
 
-**Trigger for version bump (v0.2.30 → v0.2.31 or v0.3.0):**
-1. Tutorial execution reveals a real **bug** in v0.2.30 (not tutorial error)
+**Trigger for version bump (v0.3.x → v0.3.y):**
+1. Tutorial execution reveals a real **bug** (not tutorial error)
 2. Tutorial requires a **missing required public API** (not workaround-able)
 3. **Core gate violation** that cannot be worked around (e.g., claim gate false positive)
 

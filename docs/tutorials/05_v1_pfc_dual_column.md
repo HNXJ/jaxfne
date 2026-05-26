@@ -1,5 +1,7 @@
 # V1-PFC dual column
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/05_v1_pfc_dual_column.md)
+
 Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area dynamics.
 
 ## Configuration
