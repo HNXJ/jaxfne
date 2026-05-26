@@ -17,7 +17,7 @@ class TestSuiteNo1GrammarRegression:
     @staticmethod
     def load_notebook_code():
         """Load and extract all code from the Suite No. 1 notebook."""
-        notebook_path = Path("tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb")
+        notebook_path = Path("tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb")
         assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
 
         notebook = json.loads(notebook_path.read_text())
