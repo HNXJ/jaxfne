@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.3.4"
+version = "0.3.5"
 description = "JAX Field Neural Equations: a source-to-field neurophysiology engine for TFNE models."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,6 +27,19 @@ all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.hatch.build.targets.wheel]
+only-packages = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/.venv",
+  "/.pytest_cache",
+  "/docs/tutorials_v030",
+  "/internal_docs",
+  "/.claude",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -58,7 +58,7 @@ Explore tutorials:
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping modes, forbidden double-counting pattern, field metadata, calibration labels, code examples
 - **[Computation Basis](computation_basis.md)** — TFNE as collapsible tensor-field scaffold; extensibility doctrine; declared-future regimes
 - **[Tensor-Network Ancestry](tensor_network_ancestry.md)** — v0.2.29 conceptual note: Pellionisz/Llinás historical context, basis-transform doctrine, distinction from modern ML tensor-network factorization
-- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — v0.2.27 proxy diagnostics: source norms, field-gradient proxy, CSD/LFP norms; no solver; claim boundaries
+- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — v0.2.27 proxy diagnostics: source norms, field-gradient proxy, CSD/LFP norms; solver-free proxy mode; claim boundaries
 
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits
@@ -77,16 +77,6 @@ Explore tutorials:
 - [Probes](api/probes.md) — Eight probe readout operators
 - [Objectives](api/objectives.md) — Objective functions and evaluation scaffolds
 - [Validation](api/validation.md) — Invariant and diagnostic checks
-
-**Release & distribution (v0.2.30):**
-- **[Release Checklist](release_checklist.md)** — Step-by-step release process for jaxfne
-- **[Packaging](packaging.md)** — Build, test, and distribute jaxfne wheels and source tarballs
-- **[v0.3 Readiness Bridge](v03_bridge.md)** — Locked APIs, future solvers, migration path for v0.3
-
-**v0.3 Tutorial-Scenario Line:**
-- **[v0.3 Tutorial-Scenario Plan](v030_tutorial_scenario_plan.md)** — 32-phase scenario spine, package mutation policy, canonical import doctrine
-- **[Tutorial Template (v0.3)](tutorial_template_v030.md)** — Required 13-section structure for all v0.3 notebooks
-- **[v0.3 Tutorial Atlas Scaffold](tutorials_v030/README.md)** — 15-scenario learning spine, validation system, artifact system, Plotly policy
 
 **Development & CI:**
 - **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation

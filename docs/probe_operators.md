@@ -191,7 +191,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 - `operator_status: simulated_proxy`
 - `physical_amplitude_claim_allowed: false`
 
-**Important:** EMM-proxy is valid for relative within-run comparisons. It is not biological metabolism in v0.2.x.
+**Important:** EMM-proxy is valid for relative within-run comparisons. It is a computational cost proxy, not a biophysical metric in v0.2.x.
 
 **v0.2.1 status:** Normalized activity cost proxy; exploratory metric for optimization.
 

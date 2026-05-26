@@ -33,6 +33,9 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+      smart_dollar: false
+      tex_inline_wrap: ["\\(", "\\)"]
+      tex_block_wrap: ["\\[", "\\]"]
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.details
@@ -47,25 +50,20 @@ nav:
       - FAQ: faq.md
 
   - Tutorials:
-      - Overview: tutorials/index.md
-      - Notebook standard: tutorials/notebook_standard.md
-      - jaxfne Suite No. 1 - Computational Biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-      - jaxfne Suite No. 2 - Spectrolaminar Motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
-      - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
-      - Two-neuron E/I: tutorials/02_two_neuron_ei.md
-      - 100-neuron E/I network: tutorials/03_network_100_ei.md
-      - V1 six-layer column: tutorials/04_v1_column.md
-      - V1-PFC dual column: tutorials/05_v1_pfc_dual_column.md
+      - Atlas Overview: tutorials/index.md
+      - Notebook Standard: tutorials/notebook_standard.md
+      - Legacy Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+      - Legacy Suite No. 2 (Spectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
 
   - Guides:
       - Overview: guides/index.md
-      - Probe operators: probe_operators.md
-      - Tensor-field workflows: tensor_field_workflows.md
-      - Plotly visualization: plotly_visualization.md
-      - Poisson admissibility: poisson_admissibility.md
-      - Jaxley interoperability: jaxley_interop.md
-      - Calibration: calibration.md
-      - Output bundles: output_bundles.md
+      - Probe Operators: guides/probe_operators.md
+      - Tensor-Field Workflows: guides/tensor_field_workflows.md
+      - Plotly Visualization: guides/plotly_visualization.md
+      - Poisson Admissibility: guides/poisson_admissibility.md
+      - Jaxley Interoperability: guides/jaxley_interop.md
+      - Calibration: guides/calibration.md
+      - Output Bundles: guides/output_bundles.md
 
   - API reference:
       - Overview: api/index.md

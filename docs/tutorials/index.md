@@ -6,8 +6,8 @@ Learn jaxfne by working through progressively detailed examples. Each tutorial b
 
 All tutorials follow the **[Colab notebook standard](notebook_standard.md)**. This standard ensures tutorials are:
 
-- Reproducible in fresh Colab environments (no local paths or dependencies)
-- CPU-safe (no GPU requirement)
+- Reproducible in fresh Colab environments with minimal dependencies
+- CPU-safe with optional GPU acceleration
 - Portable across platforms (nbconvert-compatible)
 - Properly cleared and version-verified before commit
 

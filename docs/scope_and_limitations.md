@@ -10,11 +10,13 @@ jaxfne is a JAX-based source-to-field/readout layer for building and testing mul
 - **JSON-safe output bundles** — strict serialization with metadata and validation tracking
 - **Calibration-ready workflows** — framework supports future empirical validation
 
-## What jaxfne is not
+## Design scope and boundaries
 
-- **A whole-brain simulator** — focuses on local/laminar circuits
-- **A substitute for empirical validation** — computational scaffold requiring external calibration
-- **A complete physical-unit model** — default readouts are computational proxies
+jaxfne is designed for local/laminar circuit simulation and proxy readouts:
+
+- **Scope:** Focused on local/laminar circuits; whole-brain simulation is future work
+- **Calibration:** Computational scaffold designed with empirical validation workflows in mind; calibration requires external reference data
+- **Physical units:** Default readouts are proxy-scale; physical-unit calibration is future work
 
 ## Output scope
 

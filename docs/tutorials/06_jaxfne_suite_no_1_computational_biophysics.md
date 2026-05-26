@@ -1,6 +1,6 @@
 # Suite No. 1: Computational Biophysics Tutorial
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
 
 This tutorial teaches the standard jaxfne workflow:
 

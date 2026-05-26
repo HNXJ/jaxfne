@@ -1,23 +1,23 @@
 # Poisson Field Solver Admissibility Specification
 
 > **Doctrine update (v0.2.27):** This document is a **future solver-readiness specification**, not an implementation guide.
-> No Poisson solver has been implemented in any v0.2.x release. The `solved_poisson` field regime
+> Poisson solver implementation is planned for future phases. The `solved_poisson` field regime
 > is declared as `implemented=False, claim_allowed=False` in v0.2.26+ and remains so until a
-> separately approved implementation phase begins. v0.2.27 adds proxy diagnostics only — no solver.
-> A Poisson solver requires separate approval. Physical amplitude claims remain disallowed in all v0.2.x releases.
+> separately approved implementation phase begins. v0.2.27 adds proxy diagnostics for verification — full solver deferred.
+> Physical amplitude claims remain disallowed in all v0.2.x releases until solver validation is complete.
 
 ## Overview
 
 This document specifies the mathematical contract for future Poisson field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
 
-**Status (updated v0.2.27):** Specification only. No Poisson solver is implemented in any v0.2.x release.
+**Status (updated v0.2.27):** Specification only. Poisson solver implementation is planned for future releases beyond v0.2.x.
 A concrete Poisson solver requires separate approval before implementation begins; see
 [computation_basis.md](computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
 - **No physical amplitude claims are allowed in any v0.2.x release**, even if admissibility gates pass on synthetic data.
 - `physical_amplitude_claim_allowed` is **always false** in v0.2.x reports.
-- A Poisson solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
+- Poisson solver implementation requires separate approval and is planned for future phases. The `solved_poisson` regime remains `implemented=False` until approval and completion.
 
 ## Mathematical Problem
 
@@ -243,9 +243,9 @@ When a Poisson solver is separately approved and implemented:
 - ✓ Admissibility specification defined
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
-- ✓ Conservation proxy diagnostics added (v0.2.27) — proxy only, no solver
-- ✗ Poisson solver not implemented — requires separate approval
-- ✗ Physical amplitude claims not yet validated
+- ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-based verification, full solver planned
+- ◐ Poisson solver implementation planned for future phases — requires separate approval
+- ◐ Physical amplitude claims validation planned for future calibration phases
 
 **Public-output status:** Specification-only; no solver implementation; no calibrated physical-amplitude claims.
 `solved_poisson` regime is gated: `implemented=False`, `claim_allowed=False` in v0.2.26+.
