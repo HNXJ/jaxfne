@@ -1,4 +1,4 @@
-# jaxfne Suite No. 2: Spectrolaminar Motif
+# jaxfne Suite No. 2: Corticospectrolaminar Motif
 
 **A compact tutorial demonstrating multi-column cortical column layout declarations, vectorized spontaneous activity simulation, and publication-ready spectrolaminar visualizations.**
 

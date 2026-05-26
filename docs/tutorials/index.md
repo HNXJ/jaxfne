@@ -20,7 +20,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | Number | Topic | Type | Focus | Version |
 |--------|-------|------|-------|---------|
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
-| **Suite 2** | Spectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
+| **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
 | **01** | Single neuron, multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
 | **03** | 100-neuron network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
@@ -45,7 +45,7 @@ A comprehensive 4-part course covering:
 
 ## Featured: jaxfne Suite No. 2
 
-**[Spectrolaminar Motif](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** (interactive notebook)
+**[Corticospectrolaminar Motif](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** (interactive notebook)
 
 A comprehensive tutorial covering:
 - Part 1: Declaring cortical column anatomy and multi-column loops

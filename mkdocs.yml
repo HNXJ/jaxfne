@@ -52,8 +52,8 @@ nav:
   - Tutorials:
       - Atlas Overview: tutorials/index.md
       - Notebook Standard: tutorials/notebook_standard.md
-      - Legacy Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-      - Legacy Suite No. 2 (Spectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+      - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+      - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
 
   - Guides:
       - Overview: guides/index.md
