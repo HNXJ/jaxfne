@@ -258,9 +258,15 @@ def test_d_presets_are_json_safe():
 
 def test_e_jaxfne_version_is_028():
     """Version must match pyproject.toml (active version alignment)."""
-    import tomllib
+    import re
+
     from pathlib import Path
-    pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+
+    content = Path("pyproject.toml").read_text()
+
+    project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
+
+    pyproject_version = re.search(r'version\s*=\s*"([^"]+)"', project_section.group(1)).group(1)
     assert _JAXFNE_VERSION == pyproject_version, \
         f"Version should be {pyproject_version}, got {_JAXFNE_VERSION}"
 
