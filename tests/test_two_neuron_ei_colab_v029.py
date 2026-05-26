@@ -248,12 +248,12 @@ class TestTwoNeuronEINotebook:
                 raise AssertionError(f"Invalid JSON in {filepath}: {e}")
 
     def test_version_unchanged(self):
-        """Test that jaxfne version is 0.2.10."""
+        """Test that jaxfne version is 0.3.4 (v0.3.4 release)."""
         import jaxfne
 
         assert (
-            jaxfne.__version__ == "0.2.30"
-        ), f"Version should be 0.2.30, got {jaxfne.__version__}"
+            jaxfne.__version__ == "0.3.4"
+        ), f"Version should be 0.3.4, got {jaxfne.__version__}"
 
     def test_no_forbidden_vocabulary(self):
         """Test that notebook avoids forbidden internal terminology."""
