@@ -11,11 +11,11 @@
 
 ## Overview
 
-The jaxfne codebase evolved from the v0.2.24-aligned manuscript draft. The following sections map code sections, claim gates, and key features to manuscript content.
+The jaxfne codebase evolved from the v0.2.24-aligned manuscript draft. The following sections map code sections, scope contracts, and key features to manuscript content.
 
 **Key changes since manuscript draft:**
 - v0.2.25: Added AxisSpec / BasisSpec computation-basis contracts
-- v0.2.26: Froze computation-basis with immutable claim gates
+- v0.2.26: Froze computation-basis with immutable scope contracts
 - v0.2.27: Added conservation-inspired proxy diagnostics
 
 ---
@@ -50,9 +50,9 @@ signals = simulate(model, duration_ms=100, dt_ms=0.1)
 obj = Objective(...)  # Custom fitness function
 ```
 
-**Claim gates (immutable):**
-- physical_amplitude_claim_allowed: False
-- biological_metabolism_claim_allowed: False
+**Scope contracts (immutable):**
+- physical_amplitude_allowed: False
+- biological_mechanism_claimed: False
 - computational_scaffold: True
 
 ---
@@ -110,8 +110,8 @@ diag = compute_conservation_proxy_diagnostics(
 
 # Claim gates (hardcoded, immutable):
 # - field_solver_status: "laminar_proxy_no_pde"
-# - no Poisson solver (declared future)
-# - no Maxwell solver (declared future)
+# - Poisson solver: planned for future release
+# - Maxwell solver: planned for future release
 # - j_dot_e_proxy: None
 # - poynting_flux_proxy: None
 ```
@@ -119,8 +119,8 @@ diag = compute_conservation_proxy_diagnostics(
 **Manuscript alignment:**
 - ✓ Forward-field framing preserved (source → phi_e → CSD/LFP chain)
 - ✓ Laminar projection operator intact
-- ✗ Poisson solver **not implemented** (v0.2.27 diagnostic-only)
-- ✗ Maxwell solver **not implemented** (future doctrine)
+- ◐ Poisson solver: v0.2.27 uses proxy diagnostics, full solver implementation planned for future release
+- ◐ Maxwell solver: planned for future release with separate approval
 - ✓ Proxy terminology enforced (all outputs labeled "proxy")
 
 **Important divergence:**
@@ -171,14 +171,14 @@ probe_report = manifest["probe_report"]  # Contains all 8 operator results
 from jaxfne.core import default_basis_spec
 
 basis = default_basis_spec()
-# Returns frozen BasisSpec with:
-# - claim_level: "computational_scaffold"
-# - physical_amplitude_claim_allowed: False
-# - biological_metabolism_claim_allowed: False
+# Returns frozen BasisSpec with scope properties:
+# - scope_level: "computational_scaffold"
+# - physical_amplitude_allowed: False
+# - biological_mechanism_claimed: False
 # - field_solver_status: "laminar_proxy_no_pde"
-# - future_maxwell: computed property returning "not_implemented"
-# - future_admittive: computed property returning "not_implemented"
-# - solved_poisson: computed property returning "not_implemented"
+# - maxwell_solver_status: "planned_future_module"
+# - admittance_solver_status: "planned_future_module"
+# - poisson_solver_status: "planned_future_module"
 
 # Manifest integration (v0.2.26)
 manifest["basis"] = _default_basis_dict()
@@ -318,7 +318,7 @@ If manuscript was finalized before v0.2.27:
 1. **Add "v0.2.26–v0.2.27 Updates" section:**
    - ✓ Computation-basis contract (v0.2.26)
    - ✓ Conservation proxy diagnostics (v0.2.27)
-   - ✓ Hardened claim gates
+   - ✓ Hardened scope contracts
 
 2. **Clarify Poisson solver status:**
    - Change: "v0.2.27 implements Poisson solver"
@@ -338,8 +338,7 @@ If manuscript was finalized before v0.2.27:
 
 ## See Also
 
-- [docs/computation_basis.md](computation_basis.md) — Computation contract details
-- [docs/tensor_network_ancestry.md](tensor_network_ancestry.md) — v0.2.29 basis-transform doctrine and historical context
-- [docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md) — Diagnostics reference
-- [docs/poisson_admissibility.md](poisson_admissibility.md) — Poisson solver future doctrine
-- [CHANGELOG.md](../CHANGELOG.md) — Version history
+- [Computation Basis](computation_basis.md) — Computation contract details
+- [Tensor Network Ancestry](tensor_network_ancestry.md) — v0.2.29 basis-transform doctrine and historical context
+- [Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md) — Diagnostics reference
+- [Poisson Admissibility](poisson_admissibility.md) — Poisson solver future doctrine

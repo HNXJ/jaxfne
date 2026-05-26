@@ -78,16 +78,6 @@ Explore tutorials:
 - [Objectives](api/objectives.md) — Objective functions and evaluation scaffolds
 - [Validation](api/validation.md) — Invariant and diagnostic checks
 
-**Release & distribution (v0.2.30):**
-- **[Release Checklist](release_checklist.md)** — Step-by-step release process for jaxfne
-- **[Packaging](packaging.md)** — Build, test, and distribute jaxfne wheels and source tarballs
-- **[v0.3 Readiness Bridge](v03_bridge.md)** — Locked APIs, future solvers, migration path for v0.3
-
-**v0.3 Tutorial-Scenario Line:**
-- **[v0.3 Tutorial-Scenario Plan](v030_tutorial_scenario_plan.md)** — 32-phase scenario spine, package mutation policy, canonical import doctrine
-- **[Tutorial Template (v0.3)](tutorial_template_v030.md)** — Required 13-section structure for all v0.3 notebooks
-- **[v0.3 Tutorial Atlas Scaffold](tutorials_v030/README.md)** — 15-scenario learning spine, validation system, artifact system, Plotly policy
-
 **Development & CI:**
 - **[CI policy](ci_policy.md)** — Fast smoke-test CI vs. extended release validation
 - **[Performance baseline](performance_baseline.md)** — v0.2.30+ benchmark receipts, local-environment claim boundaries, and timing model

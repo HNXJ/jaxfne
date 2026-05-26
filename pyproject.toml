@@ -28,5 +28,18 @@ all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 [tool.ruff]
 line-length = 100
 
+[tool.hatch.build.targets.wheel]
+only-packages = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/.venv",
+  "/.pytest_cache",
+  "/docs/tutorials_v030",
+  "/internal_docs",
+  "/.claude",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

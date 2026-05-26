@@ -61,7 +61,7 @@ This:
 - Executes all large examples (02-07)
 - Generates static PNG figures and metadata
 - Validates output contracts (manifest.json, metrics.json, etc.)
-- Checks claim gates (computational_scaffold, physical_amplitude_claim_allowed=False)
+- Checks validation gates (computational_scaffold, physical_amplitude_claim_allowed=False)
 - Regenerates artifact hashes
 
 Expected runtime: 5-10 minutes (CPU-only, JAX on CPU).
@@ -79,7 +79,7 @@ Before tagging a release:
 
 ## Truth Status and Claim Gates
 
-All outputs maintain strict claim gates:
+All outputs maintain strict validation gates:
 
 ```yaml
 truth_mode: truth_safe_unverified
@@ -132,7 +132,7 @@ CI policy documentation:
 - `README.md` links users to this page
 - Large examples are documented as manual-validation in README
 
-See [README validation section](../README.md#validation) for user-facing commands.
+See the "Extended Validation (Manual/Release)" section above for manual validation commands.
 
 ## Future Improvements
 

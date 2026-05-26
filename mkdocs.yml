@@ -52,10 +52,6 @@ nav:
   - Tutorials:
       - Atlas Overview: tutorials/index.md
       - Notebook Standard: tutorials/notebook_standard.md
-      - "v0.3.1: Single-Neuron Core": tutorials_v030/031_single_neuron.md
-      - "v0.3.2: Parameter Sweep": tutorials_v030/032_parameter_sweep.md
-      - "v0.3.3: Two-Neuron E/I": tutorials_v030/033_two_neuron_ei.md
-      - "v0.3.5: Small Recurrent E/I": tutorials_v030/035_small_recurrent_ei.md
       - Legacy Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
       - Legacy Suite No. 2 (Spectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
 

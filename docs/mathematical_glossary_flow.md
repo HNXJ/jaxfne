@@ -89,8 +89,8 @@ $P_s$ is the **Source → Field** bridge. It transforms time-domain neural curre
 
 - **Physical only** when `source_calibration_status` includes calibrated or empirical current evidence
 - **Proxy** in default laminar_proxy_no_pde path (no physical current units claimed)
-- **Native current** (Izhikevich native current + spike impulse proxy) by default
-- **No double-counting** of synaptic current; see [Forbidden Pattern](#forbidden-pattern-synaptic-double-counting)
+- **Model current** (Izhikevich model current + spike impulse proxy) by default
+- **No double-counting** of synaptic current (forbidden pattern: using both synaptic conductance-based current and spike-based source in the same field computation)
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — source projection kernel
@@ -267,9 +267,9 @@ EMM-proxy is a **relative within-run cost/activity index**, not biological metab
 **Claim boundary:**
 
 - **Proxy-only** in v0.2.24–v0.2.27
-- **NOT biological metabolism** — does not represent ATP consumption or metabolic rate
+- **Computational cost metric** — combines source and field norms, not ATP consumption or metabolic rate
 - **Valid for relative within-run comparison** (e.g., which timestep is most active)
-- **Not valid for biological claims** without calibration to empirical metabolism
+- **Requires empirical calibration** for any biological interpretation claims
 
 **Implementation:**
 - `jaxfne.fields.probe_laminar_modes()` → EMM-proxy operator

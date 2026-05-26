@@ -217,7 +217,7 @@ Global manifest fields:
 
 All figures are:
 - **Exploratory:** Teaching artifacts, not biological validation
-- **Proxy-only:** No Poisson solver, no Maxwell solver, no field PDE solution
+- **Proxy-only:** Proxy-based field projection; physical-field solvers (Poisson, volumetric) and PDE solutions are planned for future modules
 - **Izhikevich native:** Phenomenological neuron model (uncalibrated current units)
 - **Laminar proxy:** Forward-field model for demonstrating source-to-field mapping
 - **No overclaims:** No "real EEG", "validated CSD", "biological metabolism", or solver status assertions
@@ -226,10 +226,9 @@ All figures are:
 
 ## Related Documentation
 
-- **[docs/index.md](index.md)** — Documentation index
-- **[docs/computation_basis.md](computation_basis.md)** — Computation contract (v0.2.27 basis)
-- **[docs/conservation_proxy_diagnostics.md](conservation_proxy_diagnostics.md)** — Conservation diagnostic framework
-- **[README.md](../README.md)** — Quick start and installation
+- **[Index](index.md)** — Documentation index
+- **[Computation Basis](computation_basis.md)** — Computation contract (v0.2.27 basis)
+- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — Conservation diagnostic framework
 
 ---
 

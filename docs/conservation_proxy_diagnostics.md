@@ -8,7 +8,7 @@ laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp
 and produce JSON-safe scalar summaries for source/field validation.
 
 **Claim boundary (v0.2.27):**
-- Proxy diagnostics only — no Poisson solver, no Maxwell solver, no physical amplitude claim.
+- Proxy diagnostics only — proxy-based computation; physical-field solvers (Poisson, Maxwell) are planned for future modules. Physical amplitude claims are deferred to calibration phases.
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - `physical_amplitude_claim_allowed: false` (immutable).
 - `biological_metabolism_claim_allowed: false` (immutable).
@@ -81,7 +81,7 @@ This product is the local Ohmic power density. In TFNE v0.2.27:
 - `j_dot_e_proxy` is always `null`.
 - Computing J·E as a physical power density would require a solved field and calibrated σ.
 
-**Future doctrine:** J·E may be added when an approved Poisson solver path produces an honest J-like
+**Future doctrine:** J·E may be added when physical-field solver modules (Poisson-based) are approved and produce current-density arrays from field equations. Current proxy mode uses voltage-like
 array. Until then, it remains `null`.
 
 ### Poynting Theorem (Declared Future, Not Computed)
@@ -91,7 +91,7 @@ $$\frac{\partial u_{em}}{\partial t} + \nabla \cdot \mathbf{S} + \mathbf{J} \cdo
 where $\mathbf{S} = \mathbf{E} \times \mathbf{H}$ is the Poynting vector.
 
 **Claim boundary:**
-v0.2.27 does **not** compute Poynting flux, stress-energy tensor, or Maxwell dynamics.
+v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric field dynamics. These are planned for future physical-field module implementations.
 `poynting_flux_proxy: null`. This equation is documented here as future doctrine only.
 
 ---
@@ -177,8 +177,8 @@ print(cpd["physical_amplitude_claim_allowed"])  # False
 
 | Capability | Status |
 |---|---|
-| Poisson solver (CG/MINRES) | Not implemented — requires separate approval |
-| Maxwell solver | Not implemented — declared future (v0.3.x+) |
+| Elliptic field solver (Poisson) | Planned for future module — requires separate approval |
+| Volumetric field solver (Maxwell) | Planned for future module (v0.3.x+) |
 | Admittive field solver | Not implemented — declared future (v0.3.x+) |
 | Poynting flux computation | Not implemented — future doctrine only |
 | Stress-energy tensor | Not implemented — future doctrine only |
@@ -196,5 +196,5 @@ print(cpd["physical_amplitude_claim_allowed"])  # False
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Source/field equations
 - [Source/Field Equations](source_field_equations.md) — Source modes and bookkeeping
 - [Probe Operators](probe_operators.md) — Readout operator claim boundaries
-- [Poisson Admissibility](poisson_admissibility.md) — Future solver-readiness spec (not implemented)
+- [Elliptic Field Equation Specification](poisson_admissibility.md) — Roadmap for future field-solver implementation
 - [Scope and Limitations](scope_and_limitations.md) — What TFNE claims and does not claim
