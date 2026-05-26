@@ -27,13 +27,13 @@ Emitter (neuron state) → Source (membrane current) → Field (proxy/solved) �
 
 ### Install
 
-**Option 1: Latest PyPI release (v0.2.1, stable)**
+**Option 1: Latest PyPI release (v0.3.4, stable)**
 
 ```bash
 pip install -U jaxfne
 ```
 
-**Option 2: Current development source (v0.3.5, with v0.3.x tutorials)**
+**Option 2: Current development source (v0.3.5, with latest tutorials and experimental features)**
 
 ```bash
 git clone https://github.com/HNXJ/jaxfne.git
@@ -41,7 +41,7 @@ cd jaxfne
 pip install -e .
 ```
 
-The v0.3.x tutorials (single-neuron, parameter-sweep, two-neuron E/I, small recurrent networks) are available only in the development source. For access to these tutorials, use Option 2 (repository install).
+Both options now include the v0.3.x tutorials (single-neuron, parameter-sweep, two-neuron E/I, small recurrent networks). For the latest development features and tutorials, use Option 2 (repository install).
 
 Optional visualization and optimizer extras:
 ```bash
@@ -148,23 +148,23 @@ objectives = [
 
 ## Validation & Release Status
 
-### PyPI Latest (v0.2.1, stable)
+### PyPI Latest (v0.3.4, stable)
 
 ```
-PyPI package:  jaxfne==0.2.1 (latest published)
-Tests:         Validated in v0.2.x baseline
-Status:        Stable release; v0.3.x development in progress
-```
-
-### Development Source (v0.3.5, current)
-
-```
-Repository branch:  main
-pytest:  1062 passed, 37 skipped
-compileall:  PASS
+PyPI package:  jaxfne==0.3.4 (latest published)
+Tests:         1062 passed, 37 skipped
+compileall:    PASS
 Core grammar:  PASS (without optional matplotlib)
-Tutorials:  Suite No. 1, Suite No. 2, v0.3.1, v0.3.2, v0.3.3, v0.3.5 (all executed)
-Status:  Development; not yet published to PyPI
+Tutorials:     Suite No. 1, Suite No. 2, v0.3.1, v0.3.2, v0.3.3 (all executed)
+Status:        Stable release with chainable Configuration grammar
+```
+
+### Development Source (v0.3.5, next)
+
+```
+Repository branch:  main (post-v0.3.4)
+Status:  Development features and expanded tutorials
+Features: v0.3.5 small recurrent E/I tutorial, improved docs
 ```
 
 Install and verify:
@@ -218,13 +218,15 @@ pip install "jaxfne[viz]"
 | Version | Phase | Content | Status |
 |---------|-------|---------|--------|
 | **v0.2.24–v0.2.30** | Foundation & Hardening | Audited contracts, solver status, mathematical glossary, diagnostics, tutorials, performance validation | ✓ Released to PyPI |
-| **v0.3.0–v0.3.5** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I, v0.3.5 small recurrent E/I tutorials; execution receipts | ⧉ Development (repository source) |
+| **v0.3.0–v0.3.4** | Tutorial-Scenario Spine | Chainable Configuration grammar; v0.3.1 single-neuron, v0.3.2 parameter-sweep, v0.3.3 two-neuron E/I tutorials; execution receipts | ✓ Released to PyPI |
+| **v0.3.5+** | Expanded Tutorials | Additional network scenarios and optimization examples | ⧉ Development (repository source) |
 
-**Current development (v0.3.5):** Chainable Configuration grammar with expanded tutorial portfolio. Available in repository source only (not yet on PyPI).
+**Current stable (v0.3.4):** Chainable Configuration grammar with core tutorial portfolio on PyPI.
 - **v0.3.1:** Single-neuron Izhikevich dynamics
 - **v0.3.2:** Parameter sweep exploration
 - **v0.3.3:** Two-neuron excitatory-inhibitory coupling
-- **v0.3.5:** Small recurrent E/I network
+
+**Next (v0.3.5+):** Expanded tutorials including small recurrent E/I networks and optimization workflows.
 
 **v0.3.0 tutorial atlas scaffold** now available in [`docs/tutorials_v030/`](docs/tutorials_v030/) with full audit infrastructure:
 - **15-scenario learning spine** (single neurons → optimization)
