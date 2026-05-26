@@ -328,7 +328,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 
 ## Related Documentation
 
-- [output_bundles.md](output_bundles.md) — General output bundle structure
+- [../guides/output_bundles.md](../guides/output_bundles.md) — General output bundle structure
 - [probe_operators.md](../probe_operators.md) — 8-operator contract and specifications
 - [tutorials/index.md](index.md) — Tutorial progression and links
 - [GitHub jaxfne releases](https://github.com/HNXJ/jaxfne/releases) — Version history and downloads
