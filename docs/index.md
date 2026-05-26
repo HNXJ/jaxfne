@@ -58,7 +58,7 @@ Explore tutorials:
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping modes, forbidden double-counting pattern, field metadata, calibration labels, code examples
 - **[Computation Basis](computation_basis.md)** — TFNE as collapsible tensor-field scaffold; extensibility doctrine; declared-future regimes
 - **[Tensor-Network Ancestry](tensor_network_ancestry.md)** — v0.2.29 conceptual note: Pellionisz/Llinás historical context, basis-transform doctrine, distinction from modern ML tensor-network factorization
-- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — v0.2.27 proxy diagnostics: source norms, field-gradient proxy, CSD/LFP norms; no solver; claim boundaries
+- **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — v0.2.27 proxy diagnostics: source norms, field-gradient proxy, CSD/LFP norms; solver-free proxy mode; claim boundaries
 
 **Tutorials & guides:**
 - **[Tutorials](tutorials/index.md)** — Five progressively detailed notebooks from single neurons to multi-area cortical circuits
