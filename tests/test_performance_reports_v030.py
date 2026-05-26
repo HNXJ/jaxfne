@@ -1,4 +1,4 @@
-"""Tests for v0.2.30 performance reporting schema.
+"""Tests for v0.3.4 performance reporting schema.
 
 Validates benchmark report structure, JSON safety, and claim gate integrity.
 Does NOT run heavy benchmarks (those are scripts/benchmark_jaxfne.py).
@@ -19,7 +19,7 @@ class TestPerformanceReportSchema:
     def test_benchmark_report_structure_mock(self):
         """Mock benchmark report passes schema validation."""
         mock_report = {
-            "benchmark_series": "v0.2.30_performance_baseline",
+            "benchmark_series": "v0.3.4_performance_baseline",
             "results": [
                 {
                     "case_name": "small_50n_100ms",
@@ -40,7 +40,7 @@ class TestPerformanceReportSchema:
                         "devices": [{"device_type": "cpu", "device_id": 0}],
                         "device_count": 1,
                     },
-                    "jaxfne_version": "0.2.30",
+                    "jaxfne_version": "0.3.4",
                     "claim_level": "computational_scaffold",
                     "truth_mode": "truth_safe_unverified",
                     "local_environment_receipt_only": True,
@@ -75,14 +75,14 @@ class TestPerformanceReportSchema:
     def test_benchmark_report_json_safe(self):
         """Benchmark report is JSON-serializable without NaN/Inf."""
         mock_report = {
-            "benchmark_series": "v0.2.30_performance_baseline",
+            "benchmark_series": "v0.3.4_performance_baseline",
             "results": [
                 {
                     "case_name": "test_case",
                     "timings": [{"phase": "phase1", "elapsed_ms": 10.5}],
                     "total_ms": 10.5,
                     "hardware_info": {"devices": 1},
-                    "jaxfne_version": "0.2.30",
+                    "jaxfne_version": "0.3.4",
                     "claim_level": "computational_scaffold",
                     "truth_mode": "truth_safe_unverified",
                     "local_environment_receipt_only": True,
@@ -106,7 +106,7 @@ class TestPerformanceReportSchema:
             "timings": [],
             "total_ms": 100.0,
             "hardware_info": {},
-            "jaxfne_version": "0.2.30",
+            "jaxfne_version": "0.3.4",
             "claim_level": "computational_scaffold",
             "truth_mode": "truth_safe_unverified",
             "local_environment_receipt_only": True,
@@ -156,7 +156,7 @@ class TestPerformanceReportSchema:
             ],
             "total_ms": sum([10.0] * len(expected_phases)),
             "hardware_info": {},
-            "jaxfne_version": "0.2.30",
+            "jaxfne_version": "0.3.4",
             "claim_level": "computational_scaffold",
             "truth_mode": "truth_safe_unverified",
             "local_environment_receipt_only": True,
@@ -195,7 +195,7 @@ class TestPerformanceReportSchema:
     def test_validation_report_json_safe(self):
         """JSON validation report structure is JSON-safe."""
         mock_validation = {
-            "validation_target": "jaxfne_json_safety_v0.2.30",
+            "validation_target": "jaxfne_json_safety_v0.3.4",
             "scans": [
                 {
                     "directory": "outputs",

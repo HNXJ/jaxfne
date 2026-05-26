@@ -73,7 +73,7 @@
         "dz_mm": 0.01,
         "note": "Declared tutorial geometry; laminar_proxy_no_pde mode does not solve 3D PDE"
       },
-      "jaxfne_version": "0.2.30",
+      "jaxfne_version": "0.3.4",
       "neuron": {
         "model": "izhikevich",
         "n_neurons": 1,
@@ -356,7 +356,7 @@
           "sha256": "37152571a6a1f54bb36be14d6c3d02931e70eea3ed3c18770e64a19de530fadc"
         }
       },
-      "jaxfne_version": "0.2.30",
+      "jaxfne_version": "0.3.4",
       "neuron": {
         "model": "izhikevich",
         "n_neurons": 1,

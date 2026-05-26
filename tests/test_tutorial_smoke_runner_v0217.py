@@ -231,7 +231,7 @@ class TestTutorialSmokeRunner:
                 f"{nb_file}: contains private paths"
 
     def test_version_remains_0_2_10(self, repo_root):
-        """jaxfne version remains 0.2.10."""
+        """jaxfne version is 0.3.4 (v0.3.4 release)."""
         result = subprocess.run(
             [sys.executable, "-c", "import jaxfne; print(jaxfne.__version__)"],
             capture_output=True,
@@ -240,4 +240,4 @@ class TestTutorialSmokeRunner:
         )
         assert result.returncode == 0
         version = result.stdout.strip()
-        assert version == "0.2.30", f"Version is {version}, expected 0.2.30"
+        assert version == "0.3.4", f"Version is {version}, expected 0.3.4"
