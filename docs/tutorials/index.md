@@ -21,6 +21,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 |--------|-------|------|-------|---------|
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
+| **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
 | **01** | Single-neuron Multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
 | **03** | 100-neuron Network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
@@ -60,6 +61,35 @@ A comprehensive tutorial covering:
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
 
+---
+
+## Featured: jaxfne v0.3.6 Chainable Configuration API
+
+**[100-Neuron Excitatory-Inhibitory Population](06_v036_100_neuron_ei_population.md)** (interactive notebook)
+
+Introduces the **new fluent Configuration API** (method chaining) for streamlined model composition:
+
+```python
+cfg = (jtfne.Configuration()
+    .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+    .column(name="L2/3_column", layers=["L2/3"], n=100)
+    .cell_types({"E": 0.75, "I": 0.25})
+    .connectivity()
+    .set_emitter(family="izhikevich", preset="cortical_eig")
+    .probes(["SPK", "Vm", "source", "LFP-proxy", "CSD-proxy"]))
+```
+
+A comprehensive tutorial covering:
+- Part 1: Biological question (balanced E/I coupling)
+- Part 2: Configuration via method chaining
+- Part 3: Simulation and population readouts
+- Part 4: Manifest with scope metadata
+- Part 5: Five publication-ready figures
+- Part 6: Scope boundaries and limitations
+
+**Intermediate difficulty**, CPU-safe, runs in ~1–2 minutes on Colab.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
 
 ---
 

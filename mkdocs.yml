@@ -59,6 +59,7 @@ nav:
       - "03: 100-neuron Network": tutorials/03_network_100_ei.md
       - "04: V1 Six-layer Column": tutorials/04_v1_column.md
       - "05: V1-PFC Dual Column": tutorials/05_v1_pfc_dual_column.md
+      - "06: v0.3.6 Chainable Config": tutorials/06_v036_100_neuron_ei_population.md
 
 
 
