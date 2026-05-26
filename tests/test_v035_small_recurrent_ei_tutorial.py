@@ -173,9 +173,9 @@ class TestV035Simulation:
         assert np.isfinite(signals.spikes).all(), "spikes contains NaN or Inf"
 
     def test_firing_rate_in_reasonable_range(self):
-        """Mean firing rate is in expected range (0–100 Hz for this small network)."""
+        """Mean firing rate is in active tutorial gate: 2–25 Hz (not silence/null tutorial)."""
         cfg = jtfne.Configuration()
-        cfg = cfg.runtime(seed=42, dtype="float32", duration_ms=500.0, dt_ms=0.1)
+        cfg = cfg.runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
         cfg = cfg.column("test_ei", layers=["L2/3"], n=12)
         cfg = cfg.cell_types({"E": 0.75, "PV": 0.25})
         cfg = cfg.connectivity()
@@ -183,10 +183,14 @@ class TestV035Simulation:
         cfg = cfg.probes(["MUA-proxy"])
 
         model = jtfne.construct(cfg)
-        signals = jtfne.simulate(model, duration_ms=500.0, dt_ms=0.1, seed=42)
+        signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=42)
 
-        mean_fr = float(signals.spikes.mean() * 1000.0 / 500.0)  # Hz
-        assert 0.0 <= mean_fr <= 100.0, f"Firing rate {mean_fr} Hz out of range"
+        # Correct calculation: total spikes / (n_neurons * duration_seconds)
+        n_neurons = 12
+        duration_ms = 1000.0
+        total_spikes = float(signals.spikes.sum())
+        mean_fr = total_spikes / (n_neurons * duration_ms / 1000.0)  # Hz
+        assert 2.0 <= mean_fr <= 25.0, f"Firing rate {mean_fr} Hz outside active tutorial gate [2, 25] Hz"
 
 
 class TestV035ScopeMetadata:
