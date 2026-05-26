@@ -242,6 +242,13 @@ class TestTutorialSmokeRunner:
         version = result.stdout.strip()
 
         # Get expected version from pyproject.toml
-        import tomllib
-        pyproject_version = tomllib.loads(Path("pyproject.toml").read_text())["project"]["version"]
+        import re
+
+        from pathlib import Path
+
+        content = Path("pyproject.toml").read_text()
+
+        project_section = re.search(r"\[project\](.*?)(?:\[|\Z)", content, re.DOTALL)
+
+        pyproject_version = re.search(r'version\s*=\s*"([^"]+)"', project_section.group(1)).group(1)
         assert version == pyproject_version, f"Version is {version}, expected {pyproject_version}"
