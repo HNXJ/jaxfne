@@ -18,11 +18,71 @@ After completing this tutorial, you will understand:
 
 ---
 
-## The Big Question
+## Biological/Computational Question
 
-**Can separate sensory and associative cortical columns, connected in a feedforward-feedback loop, generate stable laminar and spectral patterns that map onto distinct proxy-level biophysical sensors?**
+Can separate sensory (V1) and associative (PFC) cortical columns, connected in a feedforward-feedback loop, generate stable laminar and spectral patterns that map onto distinct proxy-level biophysical sensors?
 
-This tutorial walks through constructing this multi-column model and inspecting its laminar proxy readouts.
+We address this question by simulating a multi-column model and monitoring how spontaneous activity reflects laminar-depth spectrolaminar patterns across superficial and deep layers.
+
+---
+
+## Mathematical Glossary Flow
+
+Here, we outline the foundational operators and equations defining the emitters, projections, and vis targets:
+
+### 1. Izhikevich Emitter
+
+* **Formal equation:**
+  $$\frac{dv}{dt} = 0.04v^2 + 5v + 140 - u + I_{\text{native}}$$
+  $$\frac{du}{dt} = a(bv - u)$$
+* **Definition of terms:**
+  * $v$: Membrane potential (mV).
+  * $u$: Membrane recovery variable.
+  * $a, b$: Time scale and sensitivity parameters of the recovery variable.
+  * $I_{\text{native}}$: Native current drive representing default background inputs.
+* **Worded equation:**
+  The change in membrane potential over time is the sum of a quadratic voltage activation term, linear scale, offset constant, recovery feedback, and internal driving currents. The change in the recovery variable is scaled by the difference between scaled potential and the recovery variable itself.
+* **Implementation location:**
+  [emitters.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/emitters.py)
+* **Claim boundary:**
+  Reduced emitter dynamics (phenomenological spiking model), not full conductance-based biophysical reconstruction.
+
+---
+
+### 2. Source/Readout Bridge
+
+* **Formal equation:**
+  $$Y_c(t) = P_c[\text{signals}, \text{source\_proxy}, \text{field\_proxy}](t)$$
+* **Definition of terms:**
+  * $Y_c(t)$: Multimodal proxy readout at contact or sensor channel $c$ at time $t$.
+  * $P_c$: Readout projection operator mapping raw source states to proxy readouts.
+  * $\text{signals}$: Active cell state arrays (voltage, spikes).
+  * $\text{source\_proxy}, \text{field\_proxy}$: Laminar metadata templates.
+* **Worded equation:**
+  The multimodal proxy readout is the evaluation of a declarative projection operator mapping raw vectorized emitter variables onto a spatial-depth profile of contacts without solving physical Maxwell PDEs.
+* **Implementation location:**
+  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+* **Claim boundary:**
+  Proxy readout operator representing a computational mapping scaffold, not calibrated physical sensor measurement.
+
+---
+
+### 3. Spectrolaminar Motif Target
+
+* **Formal equation:**
+  $$\text{relative alpha/beta: deeper-biased profile}$$
+  $$\text{relative gamma: superficial-biased profile}$$
+  $$\text{crossing: near L4 reference depth}$$
+* **Definition of terms:**
+  * $\text{relative alpha/beta}$: Power distribution focused in deep layers (L5, L6).
+  * $\text{relative gamma}$: Power distribution focused in superficial layers (L2/3).
+  * $\text{crossing}$: Point of inversion near layer L4.
+* **Worded equation:**
+  The spectral-depth distribution exhibits a superficial bias for gamma band power, a deep bias for alpha/beta band power, and a reference inversion near mid-column layers.
+* **Implementation location:**
+  [vis.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/vis.py)
+* **Claim boundary:**
+  Tutorial motif visualization for structural scaffolds, not empirical biological validation.
 
 ---
 
@@ -133,6 +193,43 @@ We run a small parameter search to fit connection weights against target spectra
 
 ---
 
-## Summary of Truth-Safe Readout Status
+## Run Metadata and Scope Fields
 
-All generated signals are calculated under `truth_safe_unverified` guidelines and represent uncalibrated laminar proxy readouts (`laminar_proxy_no_pde`). No physical amplitude or biological mechanism claims are introduced.
+| Metadata Key | Value / Status | Description |
+|---|---|---|
+| `truth_mode` | `truth_safe_unverified` | No claims of empirical truth or biophysical accuracy are made. |
+| `claim_level` | `computational_scaffold` | The package acts as a programmatic scaffold, not a physical simulator. |
+| `field_solver_status` | `laminar_proxy_no_pde` | laminar extracellular readouts are computed as weighted proxies, not PDEs. |
+| `geometry_mode` | `declared_metadata_not_solved_3d_pde_grid` | 3D coordinate layout is declarative metadata only. |
+| `physical_amplitude_claim_allowed` | `false` | Readouts do not map to physical volt or ampere units. |
+| `connectivity_status` | `declared_metadata_proxy` | Multi-column connectivity is a declarative structural skeleton. |
+
+---
+
+## Interpretation
+
+The multi-column spontaneous activity simulation demonstrates how structural feedforward/feedback loops generate localized oscillatory rhythms. By projecting these active patterns through the laminar proxy operator, we recover a spectrolaminar profile where high-frequency (gamma) power peaks in superficial layers (L2/3) and lower-frequency (alpha/beta) power is prominent in deep layers (L5/L6), capturing a classical spectrolaminar motif entirely within a phenomenological computational scaffold.
+
+---
+
+## Failure Modes
+
+1. **Emitter Saturation:** Re-tuning connection weights too high causes network-wide depolarization block (runaway excitation).
+2. **Frequency Locking:** Weak feedback weights can decouple V1 and PFC, leading to isolated, single-frequency oscillations that fail to display the bi-band crossing motif.
+3. **Contact Misalignment:** Choosing an arbitrary layout geometry metadata (e.g. negative dz step sizes) shifts the crossing point away from Layer 4.
+
+---
+
+## Exercises
+
+1. **Tuning Feedback:** Adjust the PFC feedback weight in `cfg.connectivity` and plot how the deep alpha/beta power changes.
+2. **Modified Emitter Presets:** Swap the `cortical_eig` emitter preset for an custom drive array to examine baseline firing rates.
+3. **Layer Expansion:** Add a `L1` layer to both V1 and PFC, and examine the MUA-proxy readout at the upper contact boundary.
+
+---
+
+## What this tutorial does NOT claim
+
+* **No biophysical calibration:** The proxy readouts (LFP-proxy, CSD-proxy, etc.) represent arbitrary numerical matrices; they are not calibrated to physical microvolts or microamperes.
+* **No biological mechanism proof:** The generated oscillations are products of a simplified, phenomenological Izhikevich system and do not prove any specific biological mechanism.
+* **No PDE field solve:** No physical Maxwell equations are solved in 3D grid layouts; readouts are projection proxies based on laminar depth metadata.
