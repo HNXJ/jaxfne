@@ -3,49 +3,43 @@
 ## Minimal example
 
 ```python
-import json
 import jaxfne as jtfne
 
-# Create configuration
-cfg = (
-    jtfne.configuration()
-    .network(n=100)
-    .emitter(family="izhikevich", preset="cortical_eig")
-    .field(domain="laminar_column", conductivity="proxy",
-           boundary="mean_zero_neumann", gauge="mean_zero")
-    .probe(name="probe", n_contacts=16)
-)
+# Configure a single-neuron simulation
+cfg = jtfne.Configuration()
+cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+cfg = cfg.column("single_neuron", layers=["L2/3"], n=1)
+cfg = cfg.cell_types({"E": 1.0})
+cfg = cfg.connectivity()
+cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+cfg = cfg.probes(["MUA-proxy", "source-proxy", "LFP-proxy"])
 
-# Construct model
+# Construct and simulate
 model = jtfne.construct(cfg)
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 
-# Run simulation
-sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1)
-signals = model.simulate(sim)
-
-# Compute readouts
-readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("rate", "spike_rate_hz"),
-    jtfne.readout_spec("lfp", "lfp_abs_mean"),
-])
-
-# Print results
+# Inspect results
 print(f"jaxfne {jtfne.__version__}")
-print(f"Spikes shape: {signals.spikes.shape}")
-print(f"Voltage shape: {signals.V_m.shape}")
-for result in readouts:
-    print(f"{result.name}: {result.metric} = {result.value} [{result.status}]")
+print(f"Simulation: {signals.V_m.shape[0]} timesteps, {signals.V_m.shape[1]} neuron(s)")
+print(f"Voltage range: {signals.V_m.min():.1f} to {signals.V_m.max():.1f} mV")
+print(f"Spike count: {signals.spikes.sum():.0f}")
+print(f"Firing rate: {signals.spikes.sum() / (1000.0 / 1000.0):.1f} Hz")
 ```
 
 ## What happens
 
-1. **Configuration** builds a 100-neuron network with Izhikevich emitters
-2. **Model construction** wires up the source-to-field pipeline
-3. **Simulation** runs 100 ms of neural dynamics at 0.1 ms timestep
-4. **Readouts** compute proxy metrics (spike rate, LFP)
-5. **Results** are JSON-safe with claim-status metadata
+1. **Configuration** builds a chainable configuration object
+2. **Runtime setup** specifies seed, dtype, duration, and timestep
+3. **Column definition** declares neurons and their positions
+4. **Cell types** assigns neuron types (E, inhibitory, etc.)
+5. **Connectivity** defines recurrent connections
+6. **Emitter selection** picks the spiking neuron model (Izhikevich)
+7. **Probe specification** selects readout operators
+8. **Model construction** wires up the neural dynamics
+9. **Simulation** runs the dynamics and returns signals
+10. **Results** are JSON-safe with scope metadata (proxy readouts, no biological claims)
 
-All outputs declare their scope: **proxy readouts with conservative claim-status metadata**.
+All outputs declare their scope: **computational scaffold with proxy readouts**.
 
 ## Next steps
 
@@ -59,7 +53,7 @@ Run the test suite to verify your installation:
 
 ```bash
 pip install -e .[dev]
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=short
 ```
 
-Expected: ~61 tests pass
+Expected: 1062 passed, 37 skipped

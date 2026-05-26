@@ -3,13 +3,19 @@
 ## From PyPI
 
 ```bash
-pip install jaxfne
+pip install -U "jaxfne>=0.3.4"
 ```
 
 For an exact release:
 
 ```bash
-pip install jaxfne==0.2.30
+pip install jaxfne==0.3.4
+```
+
+For visualization support (matplotlib, plotly):
+
+```bash
+pip install "jaxfne[viz]"
 ```
 
 ## From GitHub
@@ -17,7 +23,7 @@ pip install jaxfne==0.2.30
 Install the GitHub release tag:
 
 ```bash
-pip install git+https://github.com/HNXJ/jaxfne.git@v0.2.30
+pip install git+https://github.com/HNXJ/jaxfne.git@v0.3.4
 ```
 
 Or the latest development version from `main`:
@@ -47,4 +53,4 @@ import jaxfne
 print(jaxfne.__version__)
 ```
 
-Expected output: `0.2.30`
+Expected output: `0.3.4`
