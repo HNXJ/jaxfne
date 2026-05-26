@@ -1,6 +1,6 @@
 # Suite No. 1: Computational Biophysics Tutorial
 
-This grammar-corrected Suite No. 1 tutorial teaches the public jaxfne workflow:
+This tutorial teaches the standard jaxfne workflow:
 
 ```python
 import jaxfne as jtfne
@@ -26,9 +26,9 @@ The notebook is organized as a four-part journey:
 3. configured laminar column and package visualizer;
 4. package-native objective and tuning metadata.
 
-## Public grammar boundary
+## Tutorial scope
 
-The tutorial intentionally avoids low-level direct emitter-kernel calls in the public path. It does not define local simulator functions, local source operators, local objective engines, or local optimizer loops.
+This tutorial teaches the jaxfne public API: Configuration, construct, simulate, probes, and visualization. All readouts are simulated outputs for learning and validation purposes.
 
 ## Runtime metadata
 
@@ -50,7 +50,7 @@ All outputs are simulated/proxy readouts from a computational scaffold. The tuto
 The notebook writes PNG figures under:
 
 ```text
-figures/suite_no1_grammar_corrected/
+figures/suite_no1/
 ```
 
 Core figures include:

@@ -151,6 +151,30 @@ class TestSuiteNo1GrammarRegression:
         assert 'simulate' in docs_text, "Docs must reference simulate"
         assert 'probes' in docs_text, "Docs must reference probes"
 
+    def test_no_internal_qa_language(self):
+        """Public prose must not expose internal QA/compliance language."""
+        code, _ = self.load_notebook_code()
+        docs_path = Path("docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md")
+        docs_text = docs_path.read_text()
+
+        internal_qa_phrases = [
+            "grammar-corrected",
+            "public grammar boundary",
+            "grammar boundary",
+            "intentionally avoids low-level",
+            "direct emitter-kernel",
+            "local simulator functions",
+            "local source operators",
+            "local objective engines",
+            "local optimizer loops",
+        ]
+
+        for phrase in internal_qa_phrases:
+            assert phrase not in code, \
+                f"Notebook must not use internal QA language: '{phrase}'"
+            assert phrase not in docs_text, \
+                f"Docs must not use internal QA language: '{phrase}'"
+
 
 class TestSuiteNo1JSONSafety:
     """Test that Suite No. 1 outputs are JSON-safe."""
