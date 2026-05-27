@@ -23,6 +23,8 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
 | **Suite 3** | Low-Frequency Scaling | Runnable Notebook | Scale-dependent low-frequency proxy readouts and boundary validation | v0.3.9+ |
 | **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
+| **07** | v0.3.7 Source Bookkeeping | Interactive HTML | 3D visualization of source/field/probe workflow | v0.3.7+ |
+| **08** | v0.3.8 LFP/CSD Readout | Runnable notebook | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
 | **01** | Single-neuron Multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
 | **03** | 100-neuron Network | Runnable notebook | Population dynamics, stability | v0.2.10+ |

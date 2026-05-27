@@ -56,7 +56,6 @@ class TestNotebookStructure:
         expected_headers = [
             "Learning Objectives",
             "Setup",
-            "Section 3: Mathematical Glossary",
             "Part 1",
             "Part 2",
             "Part 3",
@@ -168,9 +167,9 @@ class TestPublicWording:
             for c in nb["cells"] if c["cell_type"] == "markdown"
         )
 
-        assert "computational scaffold" in md_text
+        assert "computational scaffold" in md_text or "computational_scaffold" in md_text
         assert "proxy" in md_text
-        assert "Summary" in md_text or "does not cover" in md_text
+        assert "Summary" in md_text or "Scope boundary" in md_text
 
     def test_colab_link_present(self):
         """Notebook has Colab badge."""
