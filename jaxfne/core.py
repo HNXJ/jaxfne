@@ -2642,7 +2642,7 @@ class Model:
 
     def tune(
         self,
-        objective: "Objective",
+        objective: Optional["Objective"] = None,
         optimizer: Any = None,
         steps: int = 0,
         seed: int = 0,
@@ -2655,7 +2655,9 @@ class Model:
         parameters: Optional[dict[str, tuple[float, float]]] = None,
         generations: Optional[int] = None,
         population_size: Optional[int] = None,
-    ) -> tuple["Model", dict[str, Any]]:
+        # New plural form for public API
+        objectives: Optional["Objective"] = None,
+    ) -> dict[str, Any]:
         """Run a small black-box tuning loop or guarded differentiable-path check.
 
         v0.0.6 adds a bounded metadata-safe black-box candidate loop for
@@ -2663,9 +2665,18 @@ class Model:
         Model.evaluate() as the scoring function.  This remains a computational
         scaffold: no biological calibration, no field-solver upgrade, and no
         optimizer-selected mechanism claim are made.
+
+        Public API: tune(objectives=objectives, optimizer=optimizer, simulation=simulation)
+        Legacy: tune(objective=objective, ...) for backward compatibility
         """
         from .io import json_safe
         from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
+
+        # Normalize objectives vs objective
+        if objectives is not None:
+            objective = objectives
+        elif objective is None:
+            raise ValueError("Either 'objective' (legacy) or 'objectives' (public) must be provided")
 
         cfg_meta = self.cfg.metadata
         spec = _resolve_optimizer(optimizer)
@@ -2738,7 +2749,12 @@ class Model:
                         "spiking_reset_not_differentiable_without_surrogate",
                     ],
                 }
-                return self, json_safe(report)
+                return TuneResult(
+                    best_parameters={},
+                    best_score=float("inf"),
+                    history=[],
+                    summary=json_safe(report),
+                )
             try:
                 require_optax()
                 optax_status = "available"
@@ -2754,7 +2770,12 @@ class Model:
                 "same_model_unchanged": True,
                 "warnings": ["differentiable_loop_not_enabled_for_spiking_reset_without_explicit_surrogate_kernel"],
             }
-            return self, json_safe(report)
+            return TuneResult(
+                best_parameters={},
+                best_score=float("inf"),
+                history=[],
+                summary=json_safe(report),
+            )
 
         if n_steps <= 0:
             report = {
@@ -2764,7 +2785,12 @@ class Model:
                 "candidate_history": [],
                 "warnings": ["no_blackbox_steps_requested"],
             }
-            return self, json_safe(report)
+            return TuneResult(
+                best_parameters={},
+                best_score=float("inf"),
+                history=[],
+                summary=json_safe(report),
+            )
 
         candidates = propose_blackbox_candidates(
             optimizer=spec,
@@ -2832,7 +2858,15 @@ class Model:
                 "optimizer_selected_candidate_is_not_biological_truth",
             ],
         }
-        return best_model, json_safe(report)
+        # Return TuneResult (new public API)
+        # Note: model not included in summary (would not be JSON-safe)
+        # Access tuned model separately: model_result = model.tune(...); print(model_result.summary)
+        return TuneResult(
+            best_parameters={"best_value": best_value} if best_value is not None else {},
+            best_score=float(best_loss) if best_loss is not None else float("inf"),
+            history=history,
+            summary=json_safe(report),
+        )
 
     def _tune_multiparameter(
         self,
@@ -2845,7 +2879,7 @@ class Model:
         seed: int,
         strict: bool,
         simulation: "Simulation",
-    ) -> tuple["Model", dict[str, Any]]:
+    ) -> "TuneResult":
         """Run multi-parameter AGSDR optimization loop.
 
         This is an internal helper called by tune() when the multi-parameter
@@ -2931,7 +2965,12 @@ class Model:
                 ],
             }
 
-            return best_model, json_safe(report)
+            return TuneResult(
+                best_parameters=best_parameters,
+                best_score=float(best_score) if math.isfinite(best_score) else float("inf"),
+                history=generation_records,
+                summary=json_safe(report),
+            )
 
         except Exception as e:
             report = {
@@ -2941,7 +2980,12 @@ class Model:
                 "error": str(e),
                 "warnings": ["multiparameter_optimization_failed"],
             }
-            return self, json_safe(report)
+            return TuneResult(
+                best_parameters={},
+                best_score=float("inf"),
+                history=[],
+                summary=json_safe(report),
+            )
 
     def with_emitter_parameters(
         self,
