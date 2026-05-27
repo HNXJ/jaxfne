@@ -33,6 +33,7 @@ from .core import (
     TrialBatchResult,
     TrialResult,
     TrialSpec,
+    TuneResult,
     config_to_configuration,
     config_to_geometry,
     config_to_simulation,
@@ -101,6 +102,7 @@ from .fields import (
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
 from .optim import (
     AGSDR,
+    AGSDROptimizerSpec,
     AGSDRState,
     GSDRState,
     OptimizerSpec,
@@ -113,7 +115,6 @@ from .optim import (
     optax_sgd,
     random_search,
     require_optax,
-    run_agsdr_optimization_loop,
     sdr_transform,
 )
 
@@ -150,6 +151,7 @@ __all__ = [
     "TrialBatchResult",
     "TrialResult",
     "TrialSpec",
+    "TuneResult",
 
     "config_to_configuration",
     "config_to_geometry",
@@ -216,6 +218,7 @@ __all__ = [
     "sha256_file",
     "sha256_text",
     "AGSDR",
+    "AGSDROptimizerSpec",
     "AGSDRState",
     "GSDRState",
     "OptimizerSpec",
@@ -228,7 +231,6 @@ __all__ = [
     "optax_sgd",
     "random_search",
     "require_optax",
-    "run_agsdr_optimization_loop",
     "sdr_transform",
 ]
 

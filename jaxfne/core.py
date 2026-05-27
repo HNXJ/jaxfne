@@ -31,6 +31,42 @@ from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
 
 
+@dataclass(frozen=True)
+class TuneResult:
+    """Result object returned by Model.tune() with multi-parameter optimization.
+
+    This is a typed container for tuning results, with JSON-safe serialization
+    via to_dict() method for reporting and logging.
+
+    Attributes
+    ----------
+    best_parameters : dict[str, float]
+        Optimized parameter values.
+    best_score : float
+        Best (lowest) objective score achieved.
+    history : list[dict[str, Any]]
+        Per-generation records with scores and parameter values.
+    summary : dict[str, Any]
+        High-level tuning summary (targets vs achieved, initial vs final scores, etc).
+    """
+
+    best_parameters: dict[str, float]
+    best_score: float
+    history: list[dict[str, Any]]
+    summary: dict[str, Any]
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-safe dictionary for serialization."""
+        from .io import json_safe
+
+        return json_safe({
+            "best_parameters": self.best_parameters,
+            "best_score": self.best_score,
+            "history": self.history,
+            "summary": self.summary,
+        })
+
+
 def _default_operator_status() -> dict[str, str]:
     return {
         "E_theta": "prototype_api",

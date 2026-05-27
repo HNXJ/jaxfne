@@ -109,13 +109,92 @@ def gsdr(
     )
 
 
+@dataclass(frozen=True)
+class AGSDROptimizerSpec:
+    """Multi-parameter AGSDR optimizer specification with execution parameters.
+
+    This spec defines both the AGSDR algorithm parameters (alpha, exploration)
+    and the execution context (parameters, generations, population_size, seed).
+    When passed to Model.tune(), it triggers multi-parameter optimization.
+    """
+
+    parameters: dict[str, tuple[float, float]]  # {"param_name": (lower, upper), ...}
+    generations: int = 8
+    population_size: int = 6
+    alpha: float = 0.65
+    exploration: float = 0.18
+    deselect_factor: float = 2.0
+    seed: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-safe dictionary."""
+        return {
+            "optimizer": "AGSDR",
+            "optimizer_class": "multiparameter_blackbox",
+            "parameters": {k: [float(v[0]), float(v[1])] for k, v in self.parameters.items()},
+            "generations": int(self.generations),
+            "population_size": int(self.population_size),
+            "alpha": float(self.alpha),
+            "exploration": float(self.exploration),
+            "deselect_factor": float(self.deselect_factor),
+            "seed": int(self.seed),
+        }
+
+
 def agsdr(
     alpha: float = 0.7,
     exploration: float = 0.05,
     deselect_factor: float = 2.0,
     metadata: Optional[dict[str, Any]] = None,
-) -> OptimizerSpec:
-    """Return an OptimizerSpec for the AGSDR (Adaptive GSDR) optimizer."""
+    # Multi-parameter path (new)
+    parameters: Optional[dict[str, tuple[float, float]]] = None,
+    generations: Optional[int] = None,
+    population_size: Optional[int] = None,
+    seed: int = 0,
+) -> Any:
+    """Return an optimizer spec for AGSDR.
+
+    Two paths:
+    1. Single-parameter (legacy): returns OptimizerSpec for scalar parameter tuning
+    2. Multi-parameter (new): returns AGSDROptimizerSpec for multi-param optimization
+
+    Parameters
+    ----------
+    alpha : float
+        Step size for delta-rule center update (default 0.7 for legacy, 0.65 for multi-param).
+    exploration : float
+        Standard deviation scale for proposal distribution (default 0.05 for legacy, 0.18 for multi-param).
+    deselect_factor : float
+        Deselection factor for genetic algorithm (default 2.0).
+    metadata : dict, optional
+        Custom metadata (legacy path only).
+    parameters : dict, optional
+        Multi-parameter bounds: {"param_name": (lower, upper), ...}. If provided, returns AGSDROptimizerSpec.
+    generations : int, optional
+        Number of generations for multi-parameter optimization (default 8).
+    population_size : int, optional
+        Population per generation for multi-parameter optimization (default 6).
+    seed : int
+        Random seed (default 0).
+
+    Returns
+    -------
+    OptimizerSpec or AGSDROptimizerSpec
+        OptimizerSpec for single-parameter path, AGSDROptimizerSpec for multi-parameter path.
+    """
+    # Multi-parameter path
+    if parameters is not None:
+        return AGSDROptimizerSpec(
+            parameters=parameters,
+            generations=int(generations) if generations is not None else 8,
+            population_size=int(population_size) if population_size is not None else 6,
+            alpha=float(alpha) if alpha != 0.7 else 0.65,  # Use 0.65 default for multi-param
+            exploration=float(exploration) if exploration != 0.05 else 0.18,  # Use 0.18 default for multi-param
+            deselect_factor=float(deselect_factor),
+            seed=int(seed),
+        )
+
+    # Single-parameter path (legacy)
     return OptimizerSpec(
         optimizer="AGSDR",
         optimizer_class="blackbox",
@@ -326,7 +405,7 @@ def propose_blackbox_candidates(
     return out
 
 
-def run_agsdr_optimization_loop(
+def _run_agsdr_optimization_loop(
     evaluate_fn: Callable[[dict[str, float]], float],
     parameter_bounds: dict[str, tuple[float, float]],
     n_generations: int,
