@@ -2860,6 +2860,8 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
     elif parameter == "drive_gain":
         new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
+    elif parameter == "synaptic_gain":
+        new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
     else:
         raise ValueError(f"Unsupported tunable parameter: {parameter}")
     params = dict(model.params)
