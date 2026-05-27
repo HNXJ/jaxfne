@@ -653,6 +653,7 @@ class Objective:
     """
 
     name: str = "anonymous"
+    kind: str = "generic"  # "generic", "group_rate_targets", or custom
     losses: list[dict[str, Any]] = field(default_factory=list)
     regularizers: list[dict[str, Any]] = field(default_factory=list)
     gates: list[dict[str, Any]] = field(default_factory=list)
@@ -2393,6 +2394,10 @@ class Model:
         cfg_meta = self.cfg.metadata
         warnings: list[str] = []
 
+        # Special dispatch for group-rate targets objective
+        if objective.kind == "group_rate_targets":
+            return self._evaluate_group_rate_targets(signals, objective, warnings, cfg_meta)
+
         computed_metrics = _compute_all_metrics(signals, readout)
 
         loss_results = []
@@ -2496,6 +2501,145 @@ class Model:
             warnings=tuple(eval_dict.get("warnings", [])),
         )
 
+    def _evaluate_group_rate_targets(
+        self,
+        signals: Signals,
+        objective: "Objective",
+        warnings: list[str],
+        cfg_meta: dict[str, Any],
+    ) -> dict[str, Any]:
+        """Evaluate group-wise firing rate targets objective.
+
+        Extracts group definitions and target rates from objective metadata,
+        computes group-wise firing rates, and returns squared relative error loss.
+        """
+        from .io import json_safe
+
+        # Extract metadata from gates (set by rate_targets())
+        groups_dict: Optional[dict[str, Any]] = None
+        targets_hz_dict: Optional[dict[str, float]] = None
+        weights_dict: Optional[dict[str, float]] = None
+
+        for gate_spec in objective.gates:
+            if "metadata" in gate_spec:
+                meta = gate_spec["metadata"]
+                if "groups" in meta:
+                    groups_dict = meta.get("groups")
+                    targets_hz_dict = meta.get("targets_hz", {})
+                    weights_dict = meta.get("weights", {})
+                    break
+
+        if groups_dict is None or targets_hz_dict is None:
+            warnings.append("group_rate_targets_missing_metadata")
+            return json_safe({
+                "evaluation_status": "objective_evaluate_group_rate_targets_v0.0.1",
+                "objective_name": objective.name,
+                "total_loss": None,
+                "losses": [],
+                "regularizers": [],
+                "gates": [],
+                "all_gates_pass": False,
+                "acceptance_decision": "gates_fail",
+                "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
+                "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+                "field_claim_level": "proxy_readout_only",
+                "physical_amplitude_claim_allowed": False,
+                "warnings": warnings,
+            })
+
+        if weights_dict is None:
+            weights_dict = {name: 1.0 for name in groups_dict.keys()}
+
+        # Compute dt from time axis
+        dt_ms = float(signals.time_ms[1] - signals.time_ms[0]) if signals.time_ms.shape[0] > 1 else 0.05
+        if dt_ms <= 0:
+            dt_ms = 0.05
+
+        # Compute group-wise firing rates and loss
+        total_loss = 0.0
+        loss_details = []
+        all_gates_pass = True
+
+        for group_name in sorted(groups_dict.keys()):
+            group_indices = groups_dict[group_name]
+            target_hz = float(targets_hz_dict.get(group_name, 10.0))
+            weight = float(weights_dict.get(group_name, 1.0))
+
+            # Convert group indices to list of ints
+            if isinstance(group_indices, list):
+                idx_list = [int(i) for i in group_indices]
+            else:
+                idx_list = list(group_indices)
+
+            if not idx_list:
+                warnings.append(f"group_{group_name}_empty")
+                continue
+
+            try:
+                # Extract spikes for this group
+                group_spikes = signals.spikes[:, idx_list]  # Shape: [n_steps, n_neurons_in_group]
+
+                # Compute mean spike rate over time and neurons in group
+                group_rate_hz = float(jnp.mean(group_spikes) * (1000.0 / dt_ms))
+
+                # Compute squared relative error: ((rate - target) / target)^2
+                if target_hz == 0:
+                    if group_rate_hz == 0:
+                        raw_loss = 0.0
+                    else:
+                        raw_loss = float("inf")
+                else:
+                    raw_loss = ((group_rate_hz - target_hz) / target_hz) ** 2
+
+                weighted_loss = weight * raw_loss
+                total_loss += weighted_loss
+
+                loss_details.append({
+                    "group": group_name,
+                    "target_hz": float(target_hz),
+                    "achieved_hz": _finite_or_none(group_rate_hz),
+                    "weight": float(weight),
+                    "raw_loss": _finite_or_none(raw_loss),
+                    "weighted_loss": _finite_or_none(weighted_loss),
+                    "status": "ok",
+                })
+            except Exception as e:
+                warnings.append(f"group_{group_name}_evaluation_error: {str(e)}")
+                loss_details.append({
+                    "group": group_name,
+                    "target_hz": float(target_hz),
+                    "achieved_hz": None,
+                    "weight": float(weight),
+                    "raw_loss": None,
+                    "weighted_loss": None,
+                    "status": str(e),
+                })
+                all_gates_pass = False
+
+        # Check if loss is finite
+        has_loss_value = math.isfinite(total_loss)
+        if not has_loss_value:
+            all_gates_pass = False
+
+        acceptance = "gates_pass" if (all_gates_pass and has_loss_value) else "gates_fail"
+
+        return json_safe({
+            "evaluation_status": "objective_evaluate_group_rate_targets_v0.0.1",
+            "objective_name": objective.name,
+            "total_loss": _finite_or_none(total_loss) if has_loss_value else None,
+            "group_rate_losses": loss_details,
+            "losses": [],
+            "regularizers": [],
+            "gates": [],
+            "all_gates_pass": all_gates_pass,
+            "acceptance_decision": acceptance,
+            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
+            "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+            "warnings": warnings,
+        })
+
     def tune(
         self,
         objective: "Objective",
@@ -2521,11 +2665,21 @@ class Model:
         optimizer-selected mechanism claim are made.
         """
         from .io import json_safe
-        from .optim import _resolve_optimizer, propose_blackbox_candidates, run_agsdr_optimization_loop, require_optax
+        from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
 
         cfg_meta = self.cfg.metadata
         spec = _resolve_optimizer(optimizer)
         sim = simulation or Simulation(duration_ms=10.0, dt_ms=0.1, seed=seed)
+
+        # Detect multi-parameter path: either explicit parameters dict, or AGSDROptimizerSpec
+        # If optimizer is an AGSDROptimizerSpec, extract parameters from it
+        if parameters is None and hasattr(optimizer, "parameters"):
+            # optimizer is likely an AGSDROptimizerSpec
+            parameters = optimizer.parameters
+            if generations is None and hasattr(optimizer, "generations"):
+                generations = optimizer.generations
+            if population_size is None and hasattr(optimizer, "population_size"):
+                population_size = optimizer.population_size
 
         # Detect multi-parameter path
         if parameters is not None:
@@ -2698,7 +2852,7 @@ class Model:
         path is requested (parameters dict provided).
         """
         from .io import json_safe
-        from .optim import run_agsdr_optimization_loop
+        from .optim import _run_agsdr_optimization_loop
 
         cfg_meta = self.cfg.metadata
 
@@ -2742,7 +2896,7 @@ class Model:
 
         # Run AGSDR optimization
         try:
-            agsdr_result = run_agsdr_optimization_loop(
+            agsdr_result = _run_agsdr_optimization_loop(
                 evaluate_fn=evaluate_fn,
                 parameter_bounds=parameters,
                 n_generations=int(generations),
@@ -3214,127 +3368,75 @@ def rate_targets(
 ) -> Objective:
     """Create a multi-group firing-rate objective.
 
-    This factory creates an Objective that measures group-wise firing rates
-    and penalizes deviation from target rates. Each group is a set of neuron
-    indices, and each group has an independent target firing rate.
+    This factory creates an Objective with kind="group_rate_targets" that
+    encodes group-wise firing-rate targets. When passed to Model.tune(),
+    the optimization loop computes group-wise rates and minimizes
+    squared-relative-error loss.
 
     Parameters
     ----------
     groups : dict[str, Any]
         Mapping from group names to neuron indices.
-        E.g., {"first_half": np.arange(0, 24), "second_half": np.arange(24, 48)}
-        or {"first_half": [0,1,2,...], "second_half": [24,25,26,...]}.
+        E.g., {"first_half": np.arange(0, 24), "second_half": np.arange(24, 48)}.
     targets_hz : dict[str, float]
         Mapping from group names to target firing rates in Hz.
         E.g., {"first_half": 5.0, "second_half": 10.0}.
     weights : Optional[dict[str, float]]
-        Mapping from group names to loss weights (default: equal weight).
-        If omitted, each group receives weight 1.0.
+        Mapping from group names to loss weights (default: 1.0 each).
 
     Returns
     -------
     Objective
-        An Objective that encodes group-wise rate targets.
-        During Model.evaluate(), the objective computes:
-            loss = sum_{group} weight[group] * ((achieved_rate[group] - target[group]) / target[group])^2
-        where achieved_rate[group] is the mean firing rate of neurons in that group.
-
-    Notes
-    -----
-    The loss computation is deferred to Model.evaluate(). The Objective stores
-    group definitions and targets in its metadata. When evaluate() processes
-    this objective, it extracts group indices, computes group-wise firing rates,
-    and accumulates the squared-relative-error loss.
+        Objective with kind="group_rate_targets", storing groups and targets
+        in metadata for use by optimization loops.
 
     Example
     -------
     >>> import numpy as np
     >>> import jaxfne as jtfne
     >>> objectives = jtfne.rate_targets(
-    ...     groups={
-    ...         "first_half": np.arange(0, 24),
-    ...         "second_half": np.arange(24, 48),
-    ...     },
-    ...     targets_hz={
-    ...         "first_half": 5.0,
-    ...         "second_half": 10.0,
-    ...     },
+    ...     groups={"first": np.arange(0, 24), "second": np.arange(24, 48)},
+    ...     targets_hz={"first": 5.0, "second": 10.0},
     ... )
-    >>> # Pass to model.tune() for optimization
-    >>> result = model.tune(objectives=objectives, optimizer=optimizer)
+    >>> optimizer = jtfne.agsdr(parameters={"param_a": (0.3, 2.0)}, generations=8)
+    >>> model_tuned, result = model.tune(objectives=objectives, optimizer=optimizer)
     """
     import numpy as np
 
-    # Validate inputs
+    # Validate
     if not groups or not targets_hz:
         raise ValueError("groups and targets_hz must be non-empty")
+    if set(groups.keys()) != set(targets_hz.keys()):
+        raise ValueError("Group names must match between groups and targets_hz")
 
-    group_names = set(groups.keys())
-    target_names = set(targets_hz.keys())
-    if group_names != target_names:
-        raise ValueError(
-            f"Group names mismatch: groups.keys()={group_names} != targets_hz.keys()={target_names}"
-        )
-
-    # Default weights: 1.0 for each group
     if weights is None:
-        weights = {name: 1.0 for name in group_names}
+        weights = {name: 1.0 for name in groups.keys()}
 
-    # Validate weights
-    for name in group_names:
-        if name not in weights:
-            weights[name] = 1.0
-
-    # Convert group indices to numpy arrays if needed
-    groups_np = {}
+    # Convert to JSON-safe lists
+    groups_lists = {}
     for name, indices in groups.items():
-        if not isinstance(indices, np.ndarray):
-            groups_np[name] = np.asarray(indices, dtype=np.int32)
-        else:
-            groups_np[name] = indices.astype(np.int32)
-
-    # Validate that all indices are non-negative integers
-    for name, indices in groups_np.items():
-        if indices.ndim != 1:
-            raise ValueError(f"Group '{name}' indices must be 1D array")
-        if indices.dtype not in [np.int32, np.int64, np.int_, np.intp]:
-            raise ValueError(f"Group '{name}' indices must be integer type")
-        if np.any(indices < 0):
-            raise ValueError(f"Group '{name}' contains negative indices")
+        arr = np.asarray(indices, dtype=np.int32)
+        if arr.ndim != 1:
+            raise ValueError(f"Group '{name}' indices must be 1D")
+        groups_lists[name] = arr.tolist()
 
     # Create objective with group metadata
-    obj = Objective(name="rate_targets")
-
-    # Store group definitions in metadata
-    metadata: dict[str, Any] = {
-        "rate_targets_mode": "true",
-        "groups": {name: indices.tolist() for name, indices in groups_np.items()},
-        "targets_hz": {name: float(targets_hz[name]) for name in group_names},
-        "weights": {name: float(weights[name]) for name in group_names},
-    }
-
-    # Add a loss spec for each group
-    for group_name in sorted(group_names):
-        obj = obj.loss(
-            name=f"rate_target_{group_name}",
-            target=float(targets_hz[group_name]),
-            weight=float(weights[group_name]),
-            metric=f"group_firing_rate:{group_name}",
-            metadata={
-                "group_name": group_name,
-                "group_indices": groups_np[group_name].tolist(),
-                "target_hz": float(targets_hz[group_name]),
-                "weight": float(weights[group_name]),
-            },
-        )
-
-    # Store overall metadata
-    obj = replace(obj, losses=[
-        {**loss_spec, "metadata": {**(loss_spec.get("metadata") or {}), **metadata}}
-        for loss_spec in obj.losses
-    ])
-
-    return obj
+    return Objective(
+        name="rate_targets",
+        kind="group_rate_targets",
+        losses=[],
+        regularizers=[],
+        gates=[],
+    ).gate(
+        name="rate_targets_metadata",
+        threshold=0,  # Dummy; actual computation in optimize loops
+        criterion="below",
+        metadata={
+            "groups": groups_lists,
+            "targets_hz": {k: float(v) for k, v in targets_hz.items()},
+            "weights": {k: float(weights.get(k, 1.0)) for k in groups.keys()},
+        },
+    )
 
 
 def paradigm(name: str = "none") -> Paradigm:
