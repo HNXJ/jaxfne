@@ -55,6 +55,7 @@ nav:
       - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
       - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
       - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+      - "09: EEG/MEG/EMM Proxy Bundle": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
       - "01: Single-neuron Multimodal": tutorials/01_single_neuron_multimodal.md
       - "02: Two-neuron E/I": tutorials/02_two_neuron_ei.md
       - "03: 100-neuron Network": tutorials/03_network_100_ei.md

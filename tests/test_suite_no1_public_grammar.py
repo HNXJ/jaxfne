@@ -60,7 +60,7 @@ class TestNotebookStructure:
             "Part 2",
             "Part 3",
             "Part 4",
-            "Summary",
+            "Interpretation",
         ]
 
         for header in expected_headers:
