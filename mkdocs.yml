@@ -60,6 +60,7 @@ nav:
       - "04: V1 Six-layer Column": tutorials/04_v1_column.md
       - "05: V1-PFC Dual Column": tutorials/05_v1_pfc_dual_column.md
       - "06: v0.3.6 Chainable Config": tutorials/06_v036_100_neuron_ei_population.md
+      - "07: v0.3.7 Source Bookkeeping": tutorials/07_v037_source_bookkeeping.md
 
 
 
