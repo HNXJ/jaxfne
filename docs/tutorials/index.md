@@ -21,6 +21,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 |--------|-------|------|-------|---------|
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
+| **Suite 3** | Low-Frequency Scaling | Runnable Notebook | Scale-dependent low-frequency proxy readouts and boundary validation | v0.3.9+ |
 | **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
 | **01** | Single-neuron Multimodal | Runnable notebook | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
 | **02** | Two-neuron E/I | Runnable notebook | Coupling, recurrent dynamics | v0.2.9+ |
@@ -60,6 +61,23 @@ A comprehensive tutorial covering:
 **13 publication-ready figures**, strict JSON evidence manifests, and JAX-based vis tools.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
+
+---
+
+## Featured: jaxfne Suite No. 3
+
+**[Scale-Dependent Low-Frequency Structure in Proxy Field Readouts](08_jaxfne_suite_no_3_low_frequency_scaling.md)** (interactive notebook)
+
+A comprehensive tutorial covering:
+- Part 1: Declaring scale-dependent proxy configurations
+- Part 2: Vectorized population simulations across varied sizes
+- Part 3: Computing relative power spectral densities (PSD) and bandpower metrics
+- Part 4: Investigating synchrony and Fano proxies by scale
+- Part 5: Exporting strict validation JSON manifests and reports
+
+**Five publication-ready figures**, strict verification constraints, and low-frequency scaling diagnostics.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
 ---
 

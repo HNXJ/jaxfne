@@ -59,6 +59,7 @@ class TestPublicDocsHardRules:
     PUBLIC_ACTIVE_NOTEBOOKS = [
         "tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb",
         "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
         "tutorials/jaxfne_v031_single_neuron.ipynb",
         "tutorials/jaxfne_v032_parameter_sweep.ipynb",
         "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
@@ -381,11 +382,13 @@ class TestColabLinkCoverage:
         "docs/tutorials/05_v1_pfc_dual_column.md",
         "docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md",
         "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md",
     ]
 
     ACTIVE_NOTEBOOKS = [
         "tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb",
         "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
         "tutorials/jaxfne_v031_single_neuron.ipynb",
         "tutorials/jaxfne_v032_parameter_sweep.ipynb",
         "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
@@ -461,6 +464,7 @@ class TestNotebookJSONValidity:
     ACTIVE_NOTEBOOKS = [
         "tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb",
         "tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb",
         "tutorials/jaxfne_v031_single_neuron.ipynb",
         "tutorials/jaxfne_v032_parameter_sweep.ipynb",
         "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
