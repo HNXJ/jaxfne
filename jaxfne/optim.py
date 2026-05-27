@@ -326,6 +326,191 @@ def propose_blackbox_candidates(
     return out
 
 
+def run_agsdr_optimization_loop(
+    evaluate_fn: Callable[[dict[str, float]], float],
+    parameter_bounds: dict[str, tuple[float, float]],
+    n_generations: int,
+    n_population: int,
+    alpha: float = 0.65,
+    exploration: float = 0.18,
+    seed: int = 0,
+) -> dict[str, Any]:
+    """Run a stateful multi-parameter AGSDR (Adaptive Genetic Stochastic Delta Rule) loop.
+
+    This function encapsulates the full AGSDR optimization workflow for black-box
+    tuning of multiple scalar parameters. It is designed for notebook-style usage
+    where you have a callable that evaluates candidate parameter dicts and returns
+    a scalar loss/score. The function manages PRNG, parameter center tracking, and
+    best-result history internally.
+
+    Parameters
+    ----------
+    evaluate_fn : Callable[[dict[str, float]], float]
+        User-supplied scoring function. Takes a dict mapping parameter names to
+        float values and returns a scalar loss (lower is better).
+    parameter_bounds : dict[str, tuple[float, float]]
+        Bounds for each parameter: {"param_name": (lower, upper), ...}.
+        All parameters are scalar floats.
+    n_generations : int
+        Number of optimization generations to run.
+    n_population : int
+        Number of candidates to evaluate per generation.
+    alpha : float
+        Step size for delta-rule center update (default 0.65).
+        After each generation, theta_center is updated as:
+            theta_center += alpha * (best_theta - theta_center)
+    exploration : float
+        Standard deviation scale for normal-distribution proposals (default 0.18).
+        Candidates are sampled from normal(theta_center, exploration * span) and clipped.
+    seed : int
+        Random seed for reproducibility (default 0).
+
+    Returns
+    -------
+    dict[str, Any]
+        A dict with keys:
+        - "best_parameters": dict mapping parameter names to optimal float values
+        - "best_score": best (lowest) score achieved
+        - "generation_records": list of dicts, one per generation:
+            {"generation": int, "best_score": float, "best_parameters": dict}
+        - "all_scores": list of all scores evaluated, in order
+        - "all_candidates": list of all candidate dicts evaluated, in order
+
+    Notes
+    -----
+    The AGSDR strategy is two-phase:
+      - Phase 1 (0 to n_population//5): Propose from bounds center with high variance
+      - Phase 2 (remaining): Propose from evolving center with decaying variance
+
+    The function uses a simple Numpy random.Random() generator and does not
+    require JAX. It is suitable for integration into Jupyter notebooks and
+    Model.tune() as the "multi-parameter" optimization path.
+
+    Example
+    -------
+    >>> def score_model(params):
+    ...     m = model.with_parameters(params)
+    ...     signals = m.simulate(...)
+    ...     return model.evaluate(signals, objective)
+    >>> bounds = {"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)}
+    >>> result = run_agsdr_optimization_loop(
+    ...     evaluate_fn=score_model,
+    ...     parameter_bounds=bounds,
+    ...     n_generations=8,
+    ...     n_population=6,
+    ...     alpha=0.65,
+    ...     exploration=0.18,
+    ...     seed=42,
+    ... )
+    >>> print(f"Best score: {result['best_score']}")
+    >>> print(f"Best params: {result['best_parameters']}")
+    """
+    import random
+
+    # Validate inputs
+    if not parameter_bounds:
+        raise ValueError("parameter_bounds must be non-empty dict")
+    if n_generations < 1 or n_population < 1:
+        raise ValueError("n_generations and n_population must be >= 1")
+
+    # Initialize RNG
+    rng = random.Random(int(seed))
+
+    # Extract parameter names and bounds
+    param_names = sorted(parameter_bounds.keys())
+    bounds_list = [parameter_bounds[name] for name in param_names]
+
+    # Validate and normalize bounds
+    for name, (lo, hi) in zip(param_names, bounds_list):
+        if hi < lo:
+            bounds_list[param_names.index(name)] = (hi, lo)
+
+    # Initialize center: start at midpoint of each parameter's bounds
+    theta_center = {
+        name: 0.5 * (bounds_list[i][0] + bounds_list[i][1])
+        for i, name in enumerate(param_names)
+    }
+
+    # Track best result
+    best_score = float("inf")
+    best_parameters: dict[str, float] = {}
+
+    # Track history
+    generation_records: list[dict[str, Any]] = []
+    all_scores: list[float] = []
+    all_candidates: list[dict[str, float]] = []
+
+    # Main AGSDR loop
+    for gen in range(int(n_generations)):
+        gen_best_score = float("inf")
+        gen_best_params: dict[str, float] = {}
+
+        # Evaluate population for this generation
+        for candidate_idx in range(int(n_population)):
+            # Propose candidate from normal distribution around theta_center
+            candidate: dict[str, float] = {}
+
+            for param_idx, param_name in enumerate(param_names):
+                lo, hi = bounds_list[param_idx]
+                span = hi - lo
+
+                if gen == 0 and candidate_idx == 0:
+                    # First candidate: use center
+                    proposal = theta_center[param_name]
+                else:
+                    # Other candidates: sample from normal around center
+                    center_val = theta_center[param_name]
+                    sigma = exploration * span
+                    proposal = rng.gauss(center_val, sigma)
+
+                # Clip to bounds
+                candidate[param_name] = min(hi, max(lo, proposal))
+
+            # Evaluate candidate
+            score = float(evaluate_fn(candidate))
+
+            # Track all scores and candidates
+            all_scores.append(score)
+            all_candidates.append(dict(candidate))
+
+            # Update generation best
+            if score < gen_best_score:
+                gen_best_score = score
+                gen_best_params = dict(candidate)
+
+            # Update global best
+            if score < best_score:
+                best_score = score
+                best_parameters = dict(candidate)
+
+        # Delta-rule update: move center toward best candidate of this generation
+        for param_name in param_names:
+            if gen_best_params:
+                delta = gen_best_params[param_name] - theta_center[param_name]
+                theta_center[param_name] += alpha * delta
+
+                # Clip center to bounds
+                param_idx = param_names.index(param_name)
+                lo, hi = bounds_list[param_idx]
+                theta_center[param_name] = min(hi, max(lo, theta_center[param_name]))
+
+        # Record this generation
+        generation_records.append({
+            "generation": gen,
+            "best_score": gen_best_score,
+            "best_parameters": dict(gen_best_params),
+        })
+
+    # Return results
+    return {
+        "best_parameters": best_parameters,
+        "best_score": best_score,
+        "generation_records": generation_records,
+        "all_scores": all_scores,
+        "all_candidates": all_candidates,
+    }
+
+
 # Transform state dataclasses for Optax-compatible gradient optimization paths.
 # These are PyTree-compatible (frozen=True, all JAX arrays) and hold no hidden
 # global random state. Explicit PRNG keys required for stochasticity.

@@ -47,6 +47,7 @@ from .core import (
     objective,
     operator_status,
     paradigm,
+    rate_targets,
     runtime_report,
     _JAXFNE_VERSION,
     _KNOWN_READOUT_METRICS,
@@ -112,6 +113,7 @@ from .optim import (
     optax_sgd,
     random_search,
     require_optax,
+    run_agsdr_optimization_loop,
     sdr_transform,
 )
 
@@ -163,6 +165,7 @@ __all__ = [
     "objective",
     "operator_status",
     "paradigm",
+    "rate_targets",
     "readout_spec",
     "require_jaxley",
     "jaxley_trace_to_signals",
@@ -225,6 +228,7 @@ __all__ = [
     "optax_sgd",
     "random_search",
     "require_optax",
+    "run_agsdr_optimization_loop",
     "sdr_transform",
 ]
 

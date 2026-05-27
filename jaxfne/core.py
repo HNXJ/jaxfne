@@ -2469,8 +2469,12 @@ class Model:
         strategy: Optional[str] = None,
         strict: bool = False,
         simulation: Optional[Simulation] = None,
-        parameter: str = "source_scale",
-        bounds: tuple[float, float] = (0.25, 4.0),
+        parameter: Optional[str] = None,
+        bounds: Optional[tuple[float, float]] = None,
+        # Multi-parameter optimization path
+        parameters: Optional[dict[str, tuple[float, float]]] = None,
+        generations: Optional[int] = None,
+        population_size: Optional[int] = None,
     ) -> tuple["Model", dict[str, Any]]:
         """Run a small black-box tuning loop or guarded differentiable-path check.
 
@@ -2481,11 +2485,32 @@ class Model:
         optimizer-selected mechanism claim are made.
         """
         from .io import json_safe
-        from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
+        from .optim import _resolve_optimizer, propose_blackbox_candidates, run_agsdr_optimization_loop, require_optax
 
         cfg_meta = self.cfg.metadata
         spec = _resolve_optimizer(optimizer)
         sim = simulation or Simulation(duration_ms=10.0, dt_ms=0.1, seed=seed)
+
+        # Detect multi-parameter path
+        if parameters is not None:
+            return self._tune_multiparameter(
+                objective=objective,
+                optimizer=optimizer,
+                spec=spec,
+                parameters=parameters,
+                generations=generations or 8,
+                population_size=population_size or 6,
+                seed=int(seed),
+                strict=strict,
+                simulation=sim,
+            )
+
+        # Single-parameter path (backward compat)
+        if parameter is None:
+            parameter = "source_scale"
+        if bounds is None:
+            bounds = (0.25, 4.0)
+
         n_steps = max(0, int(steps))
         base_report: dict[str, Any] = {
             "same_model_unchanged": True,
@@ -2618,6 +2643,115 @@ class Model:
             ],
         }
         return best_model, json_safe(report)
+
+    def _tune_multiparameter(
+        self,
+        objective: "Objective",
+        optimizer: Any,
+        spec: "OptimizerSpec",
+        parameters: dict[str, tuple[float, float]],
+        generations: int,
+        population_size: int,
+        seed: int,
+        strict: bool,
+        simulation: "Simulation",
+    ) -> tuple["Model", dict[str, Any]]:
+        """Run multi-parameter AGSDR optimization loop.
+
+        This is an internal helper called by tune() when the multi-parameter
+        path is requested (parameters dict provided).
+        """
+        from .io import json_safe
+        from .optim import run_agsdr_optimization_loop
+
+        cfg_meta = self.cfg.metadata
+
+        # Build base report
+        base_report: dict[str, Any] = {
+            "same_model_unchanged": True,
+            "seed": int(seed),
+            "strategy": "agsdr_multiparameter",
+            "parameters": {k: [float(v[0]), float(v[1])] for k, v in parameters.items()},
+            "generations": int(generations),
+            "population_size": int(population_size),
+            "optimizer": spec.to_dict(),
+            "objective_name": objective.name if not isinstance(objective, str) else objective,
+            "losses_declared": len(objective.losses) if not isinstance(objective, str) else 0,
+            "regularizers_declared": len(objective.regularizers) if not isinstance(objective, str) else 0,
+            "gates_declared": len(objective.gates) if not isinstance(objective, str) else 0,
+            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
+            "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
+            "source_calibration_status": cfg_meta.get(
+                "source_calibration_status", "uncalibrated_izhikevich_native_current"
+            ),
+            "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
+            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
+            "field_claim_level": "proxy_readout_only",
+            "physical_amplitude_claim_allowed": False,
+            "empirical_validation_status": "not_empirically_validated",
+            "mechanism_claim_status": "not_claimed",
+        }
+
+        # Define scoring function for AGSDR loop
+        def evaluate_fn(candidate_params: dict[str, float]) -> float:
+            """Evaluate a candidate parameter dict and return loss."""
+            candidate_model = _model_with_parameters(self, candidate_params)
+            candidate_signals = candidate_model.simulate(replace(simulation, seed=int(seed)))
+            candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
+            score = candidate_report.get("total_loss")
+            gates_pass = bool(candidate_report.get("all_gates_pass", False))
+            if score is None:
+                score = 0.0 if gates_pass else float("inf")
+            return float(score)
+
+        # Run AGSDR optimization
+        try:
+            agsdr_result = run_agsdr_optimization_loop(
+                evaluate_fn=evaluate_fn,
+                parameter_bounds=parameters,
+                n_generations=int(generations),
+                n_population=int(population_size),
+                alpha=float(spec.alpha),
+                exploration=float(spec.exploration),
+                seed=int(seed),
+            )
+
+            best_parameters = agsdr_result["best_parameters"]
+            best_score = agsdr_result["best_score"]
+            generation_records = agsdr_result["generation_records"]
+
+            # Apply best parameters to model
+            best_model = _model_with_parameters(self, best_parameters)
+
+            # Build detailed report
+            report = {
+                **base_report,
+                "same_model_unchanged": False,
+                "tuning_status": "multiparameter_agsdr_v0.0.7",
+                "acceptance_decision": "ACCEPT_CANDIDATE" if math.isfinite(best_score) else "REVISE",
+                "best_parameters": best_parameters,
+                "best_score": _finite_or_none(best_score),
+                "generation_records": generation_records,
+                "all_scores": agsdr_result["all_scores"],
+                "n_candidates_evaluated": len(agsdr_result["all_scores"]),
+                "tuning_path": "multiparameter_black_box",
+                "warnings": [
+                    "blackbox_loop_is_computational_scaffold_only",
+                    "optimizer_selected_candidate_is_not_biological_truth",
+                ],
+            }
+
+            return best_model, json_safe(report)
+
+        except Exception as e:
+            report = {
+                **base_report,
+                "tuning_status": "multiparameter_agsdr_error",
+                "acceptance_decision": "REVISE",
+                "error": str(e),
+                "warnings": ["multiparameter_optimization_failed"],
+            }
+            return self, json_safe(report)
 
     def with_emitter_parameters(
         self,
@@ -2873,17 +3007,41 @@ class Model:
 def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> Model:
     """Return a Model copy with one safe scalar emitter parameter changed.
 
-    Supported parameters: source_scale, drive_gain, synaptic_gain
+    Supported parameters:
+    - source_scale: multiplicative gain on all source signals
+    - drive_gain: multiplicative gain on all drive signals
+    - synaptic_gain: multiplicative gain on all synaptic weights
+    - drive_scale_a: multiplicative gain on first-half neuron drive signals
+    - drive_scale_b: multiplicative gain on second-half neuron drive signals
     """
+    import numpy as np
+
     emitter = model.params["emitter"]
+    value = float(value)
+
     if parameter == "source_scale":
         new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
     elif parameter == "drive_gain":
         new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
     elif parameter == "synaptic_gain":
         new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
+    elif parameter in ("drive_scale_a", "drive_scale_b"):
+        # Per-population drive scaling (Suite No. 1 multi-objective case)
+        # drive_scale_a: first half, drive_scale_b: second half
+        base_drive = np.asarray(emitter.drive, dtype=float).reshape(-1)
+        n_units = base_drive.shape[0]
+        split = n_units // 2
+
+        drive_scale = np.ones(n_units, dtype=float)
+        if parameter == "drive_scale_a":
+            drive_scale[:split] = value
+        else:  # drive_scale_b
+            drive_scale[split:] = value
+
+        drive_per_neuron = base_drive * drive_scale
+        new_emitter = replace(emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype))
     else:
-        supported = ["source_scale", "drive_gain", "synaptic_gain"]
+        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b"]
         raise ValueError(
             f"Unsupported tunable parameter: {parameter!r}. "
             f"Supported parameters: {supported}"
@@ -2891,6 +3049,30 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     params = dict(model.params)
     params["emitter"] = new_emitter
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
+
+
+def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
+    """Return a Model copy with multiple safe scalar emitter parameters changed.
+
+    Applies all parameter updates in sequence. Supported parameters: source_scale,
+    drive_gain, synaptic_gain.
+
+    Parameters
+    ----------
+    model : Model
+        Original model (not mutated).
+    parameters : dict[str, float]
+        Mapping from parameter names to float values.
+
+    Returns
+    -------
+    Model
+        New model with all parameters updated.
+    """
+    result = model
+    for param_name, param_value in parameters.items():
+        result = _model_with_scalar_parameter(result, param_name, float(param_value))
+    return result
 
 
 @dataclass(frozen=True)
@@ -2987,6 +3169,136 @@ def simulation(**kwargs: Any) -> Simulation:
 
 def objective() -> Objective:
     return Objective()
+
+
+def rate_targets(
+    groups: dict[str, Any],
+    targets_hz: dict[str, float],
+    weights: Optional[dict[str, float]] = None,
+) -> Objective:
+    """Create a multi-group firing-rate objective.
+
+    This factory creates an Objective that measures group-wise firing rates
+    and penalizes deviation from target rates. Each group is a set of neuron
+    indices, and each group has an independent target firing rate.
+
+    Parameters
+    ----------
+    groups : dict[str, Any]
+        Mapping from group names to neuron indices.
+        E.g., {"first_half": np.arange(0, 24), "second_half": np.arange(24, 48)}
+        or {"first_half": [0,1,2,...], "second_half": [24,25,26,...]}.
+    targets_hz : dict[str, float]
+        Mapping from group names to target firing rates in Hz.
+        E.g., {"first_half": 5.0, "second_half": 10.0}.
+    weights : Optional[dict[str, float]]
+        Mapping from group names to loss weights (default: equal weight).
+        If omitted, each group receives weight 1.0.
+
+    Returns
+    -------
+    Objective
+        An Objective that encodes group-wise rate targets.
+        During Model.evaluate(), the objective computes:
+            loss = sum_{group} weight[group] * ((achieved_rate[group] - target[group]) / target[group])^2
+        where achieved_rate[group] is the mean firing rate of neurons in that group.
+
+    Notes
+    -----
+    The loss computation is deferred to Model.evaluate(). The Objective stores
+    group definitions and targets in its metadata. When evaluate() processes
+    this objective, it extracts group indices, computes group-wise firing rates,
+    and accumulates the squared-relative-error loss.
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> import jaxfne as jtfne
+    >>> objectives = jtfne.rate_targets(
+    ...     groups={
+    ...         "first_half": np.arange(0, 24),
+    ...         "second_half": np.arange(24, 48),
+    ...     },
+    ...     targets_hz={
+    ...         "first_half": 5.0,
+    ...         "second_half": 10.0,
+    ...     },
+    ... )
+    >>> # Pass to model.tune() for optimization
+    >>> result = model.tune(objectives=objectives, optimizer=optimizer)
+    """
+    import numpy as np
+
+    # Validate inputs
+    if not groups or not targets_hz:
+        raise ValueError("groups and targets_hz must be non-empty")
+
+    group_names = set(groups.keys())
+    target_names = set(targets_hz.keys())
+    if group_names != target_names:
+        raise ValueError(
+            f"Group names mismatch: groups.keys()={group_names} != targets_hz.keys()={target_names}"
+        )
+
+    # Default weights: 1.0 for each group
+    if weights is None:
+        weights = {name: 1.0 for name in group_names}
+
+    # Validate weights
+    for name in group_names:
+        if name not in weights:
+            weights[name] = 1.0
+
+    # Convert group indices to numpy arrays if needed
+    groups_np = {}
+    for name, indices in groups.items():
+        if not isinstance(indices, np.ndarray):
+            groups_np[name] = np.asarray(indices, dtype=np.int32)
+        else:
+            groups_np[name] = indices.astype(np.int32)
+
+    # Validate that all indices are non-negative integers
+    for name, indices in groups_np.items():
+        if indices.ndim != 1:
+            raise ValueError(f"Group '{name}' indices must be 1D array")
+        if indices.dtype not in [np.int32, np.int64, np.int_, np.intp]:
+            raise ValueError(f"Group '{name}' indices must be integer type")
+        if np.any(indices < 0):
+            raise ValueError(f"Group '{name}' contains negative indices")
+
+    # Create objective with group metadata
+    obj = Objective(name="rate_targets")
+
+    # Store group definitions in metadata
+    metadata: dict[str, Any] = {
+        "rate_targets_mode": "true",
+        "groups": {name: indices.tolist() for name, indices in groups_np.items()},
+        "targets_hz": {name: float(targets_hz[name]) for name in group_names},
+        "weights": {name: float(weights[name]) for name in group_names},
+    }
+
+    # Add a loss spec for each group
+    for group_name in sorted(group_names):
+        obj = obj.loss(
+            name=f"rate_target_{group_name}",
+            target=float(targets_hz[group_name]),
+            weight=float(weights[group_name]),
+            metric=f"group_firing_rate:{group_name}",
+            metadata={
+                "group_name": group_name,
+                "group_indices": groups_np[group_name].tolist(),
+                "target_hz": float(targets_hz[group_name]),
+                "weight": float(weights[group_name]),
+            },
+        )
+
+    # Store overall metadata
+    obj = replace(obj, losses=[
+        {**loss_spec, "metadata": {**(loss_spec.get("metadata") or {}), **metadata}}
+        for loss_spec in obj.losses
+    ])
+
+    return obj
 
 
 def paradigm(name: str = "none") -> Paradigm:
