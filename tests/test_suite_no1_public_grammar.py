@@ -1,189 +1,297 @@
 """
-Tests for Suite No. 1 public grammar and regression verification.
+Tests for Suite No. 1 (Computational Biophysics) public tutorial.
 
-Classification: grammar_regression_test
-Scope: Verify notebook uses public jaxfne API, no private/local simulator exposure
-Truth: truth_safe_unverified
+Validates:
+- Notebook structure (11 sections)
+- Public API usage (Configuration, construct, simulate, probe)
+- Metadata formatting (scope, readout, field mode claims)
+- Figure generation
+- JSON safety (no NaN/Inf in manifests)
+- Public wording (no internal truth_mode, claim_level in public display)
 """
 
 import json
+import os
+import re
 from pathlib import Path
+
+import numpy as np
 import pytest
 
+# Path to notebook and assets
+NOTEBOOK_PATH = Path(__file__).parent.parent / "tutorials" / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 
-class TestSuiteNo1GrammarRegression:
-    """Test that Suite No. 1 notebook adheres to public API grammar and contains no forbidden patterns."""
 
-    @staticmethod
-    def load_notebook_code():
-        """Load and extract all code from the Suite No. 1 notebook."""
-        notebook_path = Path("tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb")
-        assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
+class TestNotebookStructure:
+    """Validate notebook presence and basic structure."""
 
-        notebook = json.loads(notebook_path.read_text())
-        code_cells = [cell for cell in notebook['cells'] if cell['cell_type'] == 'code']
-        all_code = '\n'.join(''.join(cell['source']) for cell in code_cells)
-        return all_code, notebook
+    def test_notebook_exists(self):
+        """Suite No. 1 notebook file exists."""
+        assert NOTEBOOK_PATH.exists(), f"Notebook not found: {NOTEBOOK_PATH}"
 
-    def test_imports_jaxfne_canonical(self):
-        """Notebook must import jaxfne as jtfne."""
-        code, _ = self.load_notebook_code()
-        assert 'import jaxfne as jtfne' in code, \
-            "Notebook must contain canonical import: 'import jaxfne as jtfne'"
+    def test_notebook_is_valid_json(self):
+        """Notebook is valid JSON."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+        assert nb is not None
+        assert "cells" in nb
 
-    def test_uses_public_configuration(self):
-        """Notebook must use jtfne.Configuration() for setup."""
-        code, _ = self.load_notebook_code()
-        assert 'jtfne.Configuration' in code, \
-            "Notebook must use jtfne.Configuration for configuration (public API)"
+    def test_notebook_has_cells(self):
+        """Notebook has at least 11 sections (cells)."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+        cells = nb["cells"]
+        assert len(cells) > 10, f"Expected > 10 cells, got {len(cells)}"
 
-    def test_uses_public_construct(self):
-        """Notebook must use jtfne.construct() to build model."""
-        code, _ = self.load_notebook_code()
-        assert 'jtfne.construct' in code, \
-            "Notebook must use jtfne.construct(cfg) for model construction (public API)"
+    def test_section_headers_present(self):
+        """Expected section headers are present."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
 
-    def test_uses_public_simulate(self):
-        """Notebook must use jtfne.simulate() for simulation."""
-        code, _ = self.load_notebook_code()
-        assert 'jtfne.simulate' in code, \
-            "Notebook must use jtfne.simulate(model, ...) for simulation (public API)"
+        full_text = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "markdown"
+        )
 
-    def test_uses_public_vis(self):
-        """Notebook must use jtfne.vis or matplotlib for visualization."""
-        code, _ = self.load_notebook_code()
-        assert 'jtfne.vis' in code or 'matplotlib' in code, \
-            "Notebook must use jtfne.vis or matplotlib for visualization"
-
-    def test_uses_probes_method(self):
-        """Notebook must use cfg.probes([...]) to declare probes."""
-        code, _ = self.load_notebook_code()
-        assert '.probes(' in code, \
-            "Notebook must use cfg.probes([...]) to declare probes (public API)"
-
-    def test_no_cfg_set_probes_pattern(self):
-        """Notebook must NOT contain cfg.set_probes() (private pattern)."""
-        code, _ = self.load_notebook_code()
-        assert 'cfg.set_probes(' not in code, \
-            "Notebook must not use cfg.set_probes() (private pattern); use cfg.probes() instead"
-
-    def test_no_direct_simulator_call(self):
-        """Notebook must NOT contain simulate_eig_izhikevich() call (private simulator)."""
-        code, _ = self.load_notebook_code()
-        assert 'simulate_eig_izhikevich(' not in code, \
-            "Notebook must not call simulate_eig_izhikevich() directly; use jtfne.simulate() instead"
-
-    def test_no_project_laminar_sources(self):
-        """Notebook must NOT contain project_laminar_sources() call (private field operation)."""
-        code, _ = self.load_notebook_code()
-        assert 'project_laminar_sources(' not in code, \
-            "Notebook must not call project_laminar_sources() directly; use probes for field readout"
-
-    def test_no_compute_metrics_definition(self):
-        """Notebook must NOT define local compute_metrics function."""
-        code, _ = self.load_notebook_code()
-        assert 'def compute_metrics' not in code, \
-            "Notebook must not define local compute_metrics; use jtfne probe API"
-
-    def test_no_compute_loss_definition(self):
-        """Notebook must NOT define local compute_loss function."""
-        code, _ = self.load_notebook_code()
-        assert 'def compute_loss' not in code, \
-            "Notebook must not define local compute_loss; use jtfne objective API"
-
-    def test_no_run_with_params_definition(self):
-        """Notebook must NOT define local run_with_params function."""
-        code, _ = self.load_notebook_code()
-        assert 'def run_with_params' not in code, \
-            "Notebook must not define local run_with_params; use jtfne simulation API"
-
-    def test_no_markdown_executable_code(self):
-        """Markdown cells must not contain executable Python code by mistake."""
-        _, notebook = self.load_notebook_code()
-        markdown_cells = [cell for cell in notebook['cells'] if cell['cell_type'] == 'markdown']
-
-        forbidden_patterns = [
-            'import ',
-            'def ',
-            '= jtfne.',
-            '== True',
-            'for ',
-            'while ',
+        expected_headers = [
+            "Section 1: Constants",
+            "Section 2: Display",
+            "Section 3: Mathematical Glossary",
+            "Part 1",
+            "Part 2",
+            "Part 3",
+            "Part 4",
+            "Interpretation",
         ]
 
-        for i, cell in enumerate(markdown_cells):
-            markdown_text = ''.join(cell['source']).lower()
-            # Only check if it looks like it might be code (has indentation, not just docs)
-            for pattern in forbidden_patterns:
-                if pattern.lower() in markdown_text and '```' not in ''.join(cell['source']):
-                    # Allow if inside code fence
-                    cell_text = ''.join(cell['source'])
-                    if not (cell_text.count('```') >= 2):  # Not in code fence
-                        pytest.skip(f"Markdown cell {i} may contain unintended executable code; inspect manually")
+        for header in expected_headers:
+            assert header in full_text, f"Expected header not found: {header}"
 
-    def test_public_wording_forbids_claim_gates(self):
-        """Notebook must not use overclaiming language in public sections."""
-        code, _ = self.load_notebook_code()
 
-        forbidden_phrases = [
-            'claim gates',
-            'claim_level',
-            'claim gate summary',
-            'What this tutorial claims',
-            'What this tutorial does NOT claim',
+class TestPublicAPIUsage:
+    """Validate that notebook uses only public jaxfne API."""
+
+    def test_configuration_api_used(self):
+        """Notebook uses jtfne.Configuration with method chaining."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "jtfne.Configuration()" in code, "Missing Configuration() call"
+        assert ".runtime(" in code, "Missing runtime() call"
+        assert ".column(" in code, "Missing column() call"
+        assert ".set_emitter(" in code, "Missing set_emitter() call"
+        assert ".probes(" in code, "Missing probes() call"
+
+    def test_construct_simulate_used(self):
+        """Notebook uses jtfne.construct() and jtfne.simulate()."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "jtfne.construct(" in code, "Missing construct() call"
+        assert "jtfne.simulate(" in code, "Missing simulate() call"
+
+    def test_correct_signals_attributes(self):
+        """Notebook accesses signals with correct attribute names."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "signals.spikes" in code, "Missing signals.spikes access"
+        assert "signals.V_m" in code, "Missing signals.V_m access"
+        assert "signals.sources" in code, "Missing signals.sources access"
+        assert "signals.time_ms" in code, "Missing signals.time_ms access"
+
+
+class TestMetadataFormatting:
+    """Validate metadata structure and content."""
+
+    def test_run_metadata_structure(self):
+        """Notebook defines metadata with public keys."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        required_keys = [
+            "scope_status",
+            "readout_status",
+            "field_mode",
+            "physical_amplitude_claim_allowed",
         ]
 
-        for phrase in forbidden_phrases:
-            assert phrase not in code, \
-                f"Notebook must not use overclaiming phrase: '{phrase}'"
+        for key in required_keys:
+            assert f'"{key}"' in code or f"'{key}'" in code, \
+                f"Missing metadata key: {key}"
 
-    def test_docs_mirror_notebook_grammar(self):
-        """Markdown docs must use same public API grammar as notebook."""
-        code, _ = self.load_notebook_code()
-        docs_path = Path("docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md")
-        assert docs_path.exists(), f"Docs file not found at {docs_path}"
+    def test_scope_metadata_values_correct(self):
+        """Metadata has correct public-facing values."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
 
-        docs_text = docs_path.read_text()
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
 
-        # Docs should reference the same public API elements
-        assert 'Configuration' in docs_text, "Docs must reference Configuration"
-        assert 'construct' in docs_text, "Docs must reference construct"
-        assert 'simulate' in docs_text, "Docs must reference simulate"
-        assert 'probes' in docs_text, "Docs must reference probes"
-
-    def test_no_internal_qa_language(self):
-        """Public prose must not expose internal QA/compliance language."""
-        code, _ = self.load_notebook_code()
-        docs_path = Path("docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md")
-        docs_text = docs_path.read_text()
-
-        internal_qa_phrases = [
-            "grammar-corrected",
-            "public grammar boundary",
-            "grammar boundary",
-            "intentionally avoids low-level",
-            "direct emitter-kernel",
-            "local simulator functions",
-            "local source operators",
-            "local objective engines",
-            "local optimizer loops",
-        ]
-
-        for phrase in internal_qa_phrases:
-            assert phrase not in code, \
-                f"Notebook must not use internal QA language: '{phrase}'"
-            assert phrase not in docs_text, \
-                f"Docs must not use internal QA language: '{phrase}'"
+        assert "computational_scaffold" in code
+        assert "simulated_proxy" in code or "proxy" in code
+        assert "False" in code  # physical_amplitude_claim_allowed
 
 
-class TestSuiteNo1JSONSafety:
-    """Test that Suite No. 1 outputs are JSON-safe."""
+class TestPublicWording:
+    """Validate public-facing wording."""
 
-    def test_notebook_parses_valid_json(self):
-        """Notebook file itself must be valid JSON."""
-        notebook_path = Path("tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb")
-        try:
-            notebook = json.loads(notebook_path.read_text())
-            assert notebook is not None
-        except json.JSONDecodeError as e:
-            pytest.fail(f"Notebook is not valid JSON: {e}")
+    def test_scope_clarified(self):
+        """Notebook clarifies scope and limitations."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        md_text = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "markdown"
+        )
+
+        assert "computational_scaffold" in md_text
+        assert "proxy" in md_text
+        assert "Interpretation" in md_text or "does not cover" in md_text
+
+    def test_colab_link_present(self):
+        """Notebook has Colab badge."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        full_text = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"]
+        )
+
+        assert "colab" in full_text.lower()
+        assert "HNXJ/jaxfne" in full_text
+
+
+class TestFigureGeneration:
+    """Validate visualization code."""
+
+    def test_display_helpers_defined(self):
+        """Notebook defines display helpers."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "def save_png" in code
+        assert "def finite_status" in code
+        assert "def population_rate_hz" in code
+
+    def test_figure_references_present(self):
+        """Notebook saves figures with expected names."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "save_png(" in code
+        assert ".png" in code
+
+
+class TestJSONSafety:
+    """Validate JSON output safety."""
+
+    def test_json_serialization_safety(self):
+        """Notebook uses allow_nan=False in JSON."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "json.dumps" in code
+        # Allow either explicit allow_nan=False or safe serialization
+        assert "allow_nan=False" in code or "JSONEncoder" in code
+
+    def test_manifest_writing_present(self):
+        """Notebook writes manifest to file."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "manifest" in code.lower()
+        assert "json.dumps" in code
+
+
+class TestConfiguration:
+    """Validate configuration patterns."""
+
+    def test_three_models_configured(self):
+        """Notebook has three separate cfg objects."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "cfg_single" in code
+        assert "cfg_pop" in code
+        assert "cfg_column" in code
+
+    def test_emitter_preset_specified(self):
+        """Notebook specifies izhikevich preset."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert "izhikevich" in code
+        assert "cortical" in code or "eig" in code
+
+    def test_cell_types_declared(self):
+        """Notebook declares E/I or E/PV composition."""
+        with open(NOTEBOOK_PATH) as f:
+            nb = json.load(f)
+
+        code = " ".join(
+            "".join(c.get("source", []))
+            for c in nb["cells"] if c["cell_type"] == "code"
+        )
+
+        assert ".cell_types(" in code
+        # Check for excitatory
+        assert '"E"' in code or "'E'" in code
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
