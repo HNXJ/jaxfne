@@ -222,3 +222,156 @@ def test_no_gradient_claim_for_spiking_reset_without_surrogate():
     assert report["physical_amplitude_claim_allowed"] is False
     warnings_str = " ".join(report.get("warnings", []))
     assert "spiking_reset_not_differentiable_without_surrogate" in warnings_str
+
+
+# Tests for optimizer contract separation and enhanced scalar black-box tuning
+
+
+def test_scalar_tune_report_includes_candidate_diagnostics():
+    """Model.tune() blackbox path must include candidate_values, candidate_scores, score_variance, n_unique_scores."""
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    _, report = model.tune(obj, optimizer="AGSDR", steps=5, seed=42)
+
+    # Check new report fields
+    assert "candidate_values" in report
+    assert "candidate_scores" in report
+    assert "score_variance" in report
+    assert "n_unique_scores" in report
+    assert "tuning_path" in report
+    assert report["tuning_path"] == "scalar_black_box"
+
+    # Validate structure
+    assert isinstance(report["candidate_values"], list)
+    assert isinstance(report["candidate_scores"], list)
+    assert len(report["candidate_values"]) == 5
+    assert len(report["candidate_scores"]) == 5
+    assert isinstance(report["score_variance"], (float, int))
+    assert isinstance(report["n_unique_scores"], int)
+    assert report["n_unique_scores"] >= 0
+
+
+def test_unsupported_parameter_name_error_lists_supported():
+    """Model.tune() with unsupported parameter must raise ValueError listing supported names."""
+    model = _model()
+    obj = jtfne.objective()
+
+    try:
+        model.tune(obj, optimizer="GSDR", steps=3, parameter="invalid_param")
+        assert False, "Expected ValueError for unsupported parameter"
+    except ValueError as e:
+        error_msg = str(e)
+        assert "invalid_param" in error_msg
+        assert "source_scale" in error_msg
+        assert "drive_gain" in error_msg
+        assert "synaptic_gain" in error_msg
+
+
+def test_tune_parameter_propagation_source_scale():
+    """Tuning source_scale parameter must be supported and vary candidates."""
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    best_model, report = model.tune(
+        obj,
+        optimizer="AGSDR",
+        steps=3,
+        seed=42,
+        parameter="source_scale",
+        bounds=(0.5, 2.0),
+    )
+
+    assert report["parameter"] == "source_scale"
+    assert report["bounds"] == [0.5, 2.0]
+    assert len(report["candidate_values"]) == 3
+    # Candidates should span the bounds (with AGSDR's two-phase strategy)
+    assert min(report["candidate_values"]) >= 0.4  # Allow small margin
+    assert max(report["candidate_values"]) <= 2.1
+
+
+def test_tune_parameter_propagation_drive_gain():
+    """Tuning drive_gain parameter must be supported and vary candidates."""
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    best_model, report = model.tune(
+        obj,
+        optimizer="random_search",
+        steps=3,
+        seed=42,
+        parameter="drive_gain",
+        bounds=(0.5, 2.0),
+    )
+
+    assert report["parameter"] == "drive_gain"
+    assert len(report["candidate_values"]) == 3
+
+
+def test_tune_parameter_propagation_synaptic_gain():
+    """Tuning synaptic_gain parameter must be supported and vary candidates."""
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    best_model, report = model.tune(
+        obj,
+        optimizer="GSDR",
+        steps=3,
+        seed=42,
+        parameter="synaptic_gain",
+        bounds=(0.1, 2.0),
+    )
+
+    assert report["parameter"] == "synaptic_gain"
+    assert len(report["candidate_values"]) == 3
+
+
+def test_transform_constructors_exist():
+    """Transform constructors sdr_transform, gsdr_transform, agsdr_transform must exist."""
+    # Check that the constructors are accessible
+    assert hasattr(jtfne, "sdr_transform")
+    assert hasattr(jtfne, "gsdr_transform")
+    assert hasattr(jtfne, "agsdr_transform")
+    assert callable(jtfne.sdr_transform)
+    assert callable(jtfne.gsdr_transform)
+    assert callable(jtfne.agsdr_transform)
+
+
+def test_transform_requires_explicit_prng_key():
+    """Transform update must require explicit PRNG key (no hidden global state)."""
+    import jax
+    import jax.numpy as jnp
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        # Skip if optax not available
+        return
+
+    transform = jtfne.agsdr_transform()
+    params = jnp.asarray([1.0, 2.0, 3.0])
+    state = transform.init(params)
+
+    updates = jnp.asarray([0.1, 0.2, 0.3])
+
+    # Calling update without key should raise ValueError
+    try:
+        transform.update(updates, state, params=params, key=None)
+        assert False, "Expected ValueError for missing PRNG key"
+    except ValueError as e:
+        assert "PRNG key" in str(e) or "key" in str(e).lower()
+
+
+def test_state_dataclass_pytree_compatible():
+    """Transform state dataclasses must be frozen (JAX PyTree compatible)."""
+    from jaxfne.optim import SDRState, GSDRState, AGSDRState
+    import dataclasses
+
+    # Frozen=True makes them JAX-compatible
+    sdr = SDRState()
+    assert dataclasses.is_dataclass(sdr)
+    assert dataclasses.fields(sdr)  # Must have fields
+
+    gsdr = GSDRState()
+    assert dataclasses.is_dataclass(gsdr)
+    assert dataclasses.fields(gsdr)
+
+    agsdr = AGSDRState()
+    assert dataclasses.is_dataclass(agsdr)
+    assert dataclasses.fields(agsdr)

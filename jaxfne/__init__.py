@@ -97,13 +97,19 @@ from .fields import (
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
 from .optim import (
     AGSDR,
+    AGSDRState,
+    GSDRState,
     OptimizerSpec,
+    SDRState,
     agsdr,
+    agsdr_transform,
     gsdr,
+    gsdr_transform,
     optax_adam,
     optax_sgd,
     random_search,
     require_optax,
+    sdr_transform,
 )
 
 __all__ = [
@@ -201,13 +207,19 @@ __all__ = [
     "sha256_file",
     "sha256_text",
     "AGSDR",
+    "AGSDRState",
+    "GSDRState",
     "OptimizerSpec",
+    "SDRState",
     "agsdr",
+    "agsdr_transform",
     "gsdr",
+    "gsdr_transform",
     "optax_adam",
     "optax_sgd",
     "random_search",
     "require_optax",
+    "sdr_transform",
 ]
 
 __version__ = _JAXFNE_VERSION
