@@ -178,7 +178,7 @@ class TestTuneMultiparameterAGSDR:
     """Test Model.tune() multi-parameter optimization path."""
 
     def test_tune_multiparameter_returns_tuple(self):
-        """tune() with parameters dict returns (model, report)."""
+        """tune() with parameters dict returns TuneResult."""
         cfg = (
             jtfne.configuration()
             .network(name="test", kind="cortical_column", n=8)
@@ -201,11 +201,9 @@ class TestTuneMultiparameterAGSDR:
             seed=42,
         )
 
-        assert isinstance(result, tuple)
-        assert len(result) == 2
-        tuned_model, report = result
-        assert isinstance(tuned_model, jtfne.Model)
-        assert isinstance(report, dict)
+        assert isinstance(result, jtfne.TuneResult)
+        assert isinstance(result.best_parameters, dict)
+        assert isinstance(result.summary, dict)
 
     def test_tune_multiparameter_report_structure(self):
         """tune() multi-param report contains expected fields."""
@@ -223,7 +221,7 @@ class TestTuneMultiparameterAGSDR:
             targets_hz={"all": 5.0},
         )
 
-        _, report = model.tune(
+        result = model.tune(
             objective=obj,
             parameters={"source_scale": (0.25, 4.0)},
             generations=2,
@@ -231,10 +229,10 @@ class TestTuneMultiparameterAGSDR:
             seed=42,
         )
 
-        assert "best_parameters" in report
-        assert "best_score" in report
-        assert "generation_records" in report
-        assert "tuning_status" in report
+        assert "best_parameters" in result.summary
+        assert "best_score" in result.summary
+        assert "generation_records" in result.summary
+        assert "tuning_status" in result.summary
 
     def test_tune_multiparameter_best_score_improves(self):
         """tune() AGSDR loop finds better scores (best-so-far non-increasing)."""
@@ -252,7 +250,7 @@ class TestTuneMultiparameterAGSDR:
             targets_hz={"all": 5.0},
         )
 
-        _, report = model.tune(
+        result = model.tune(
             objective=obj,
             parameters={"source_scale": (0.25, 4.0)},
             generations=3,
@@ -261,7 +259,7 @@ class TestTuneMultiparameterAGSDR:
         )
 
         # Extract all scores from generation records
-        gen_records = report.get("generation_records", [])
+        gen_records = result.summary.get("generation_records", [])
         if len(gen_records) >= 2:
             scores = [r.get("best_score") for r in gen_records]
             finite_scores = [s for s in scores if s is not None and np.isfinite(s)]
@@ -340,17 +338,17 @@ class TestSuiteNo1Part4PublicGrammar:
         )
 
         # Run optimization using public grammar
-        tuned_model, result = model.tune(
-            objective=objectives,
+        result = model.tune(
+            objectives=objectives,
             optimizer=optimizer,
             seed=42,
         )
 
         # Verify result structure
-        assert isinstance(tuned_model, jtfne.Model)
-        assert isinstance(result, dict)
-        assert "best_parameters" in result
-        assert "best_score" in result
+        assert isinstance(result, jtfne.TuneResult)
+        assert isinstance(result.best_parameters, dict)
+        assert "best_parameters" in result.summary
+        assert "best_score" in result.summary
 
 
 if __name__ == "__main__":
