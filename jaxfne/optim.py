@@ -284,13 +284,34 @@ def propose_blackbox_candidates(
     if optimizer.optimizer == "random_search":
         return [lo + (hi - lo) * rng.random() for _ in range(n)]
     if optimizer.optimizer == "AGSDR":
+        # Adaptive Genetic-Stochastic Delta Rule (improved two-phase strategy).
+        # Phase 1: Broad exploration across full bounds.
+        # Phase 2: Focused exploitation around promising regions.
         center = 0.5 * (lo + hi)
         span = max(0.0, hi - lo)
+
+        # Two-phase allocation: exploration_fraction for phase 1, rest for phase 2
+        exploration_fraction = max(0.3, min(0.7, float(optimizer.alpha)))
+        phase_1_steps = max(1, int(n * exploration_fraction))
+        phase_2_steps = n - phase_1_steps
+
         out: list[float] = []
-        for step in range(n):
-            radius = span * (optimizer.exploration / (1.0 + step / max(1.0, optimizer.deselect_factor)))
+
+        # Phase 1: Broad exploration across full span
+        for step in range(phase_1_steps):
+            # Uniform random across entire range (high exploration)
+            proposal = lo + span * rng.random()
+            out.append(proposal)
+
+        # Phase 2: Adaptive refinement around center with shrinking radius
+        for step in range(phase_2_steps):
+            # Radius shrinks over phase 2 iterations
+            step_in_phase = step / max(1.0, phase_2_steps - 1)
+            radius_scale = (1.0 - step_in_phase) * (1.0 - optimizer.exploration) + optimizer.exploration
+            radius = span * radius_scale * (1.0 / (1.0 + step / max(1.0, optimizer.deselect_factor)))
             proposal = center + rng.uniform(-radius, radius)
             out.append(min(hi, max(lo, proposal)))
+
         return out
     # GSDR and unknown black-box specs use a deterministic sweep with small jitter.
     if n == 1:
