@@ -2657,17 +2657,17 @@ class Model:
         population_size: Optional[int] = None,
         # New plural form for public API
         objectives: Optional["Objective"] = None,
-    ) -> dict[str, Any]:
-        """Run a small black-box tuning loop or guarded differentiable-path check.
-
-        v0.0.6 adds a bounded metadata-safe black-box candidate loop for
-        optimizers.  The loop searches one declared scalar parameter and uses
-        Model.evaluate() as the scoring function.  This remains a computational
-        scaffold: no biological calibration, no field-solver upgrade, and no
-        optimizer-selected mechanism claim are made.
+    ) -> "TuneResult":
+        """Run black-box tuning loop (single or multi-parameter).
 
         Public API: tune(objectives=objectives, optimizer=optimizer, simulation=simulation)
-        Legacy: tune(objective=objective, ...) for backward compatibility
+        Returns TuneResult with best_parameters, best_score, history, and summary.
+
+        Legacy API: tune(objective=objective, parameter=..., bounds=...) for backward compatibility.
+        Also returns TuneResult (not tuple).
+
+        This is a computational scaffold: no biological calibration, no field-solver upgrade,
+        and no optimizer-selected mechanism claim are made.
         """
         from .io import json_safe
         from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
