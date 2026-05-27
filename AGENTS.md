@@ -32,13 +32,13 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `c1e89f9` | v0.0.23 hardening complete |
-| `dev` | `cced014` (pushed) | v0.1.0 practical OOP core freeze; hardening pass complete; CI workflow added; release scripts added |
+| `main` | `175b75b` | Suite No. 3 noisy absolute-power scaling correction merged; 1318/1318 tests pass |
+| `dev` | `ec7c1f0` (pushed) | Suite No. 3 correction merged + AGSDR naming in Suite No. 1 objectives; 1318/1318 tests pass |
 
-**Version:** `0.1.0`  
-**Tests:** 244 passed, 0 failed (verify with pytest before release)  
-**Working tree:** clean after hardening commit; PyPI blocked — no account/token access  
-**Next safe action:** Create `~/.pypirc` with TestPyPI token, then run `./scripts/upload_testpypi.sh`
+**Version:** `0.3.10`  
+**Tests:** 1318 passed, 63 skipped, 4 xfailed  
+**Working tree:** clean  
+**Next safe action:** Continue v0.3.10 EEG/MEG/EMM proxy bundle on feat/v0310-eeg-meg-emm-proxy-bundle
 
 ---
 
@@ -54,7 +54,8 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
-| `gemini-cli` | v0.3.10: Suite No. 3 noisy absolute-power scaling correction | `548a918` | Revised Suite No. 3 scale-dependent low-frequency scaling tutorial to use a noisy asynchronous-irregular regime and whole-window absolute power-law spectra under preserved spatiotemporal density. 1318/1318 tests pass; MkDocs build strict checks pass. |
+| `claude-sonnet` | v0.3.10: dev→main merge (Suite No. 3 correction + Suite No. 1 AGSDR naming) | `175b75b` | Merged dev into main after full validation: 1318/1318 tests pass, docs hygiene 210/210, mkdocs strict pass. main SHA: 175b75b. |
+| `gemini-cli` | v0.3.10: Suite No. 3 noisy absolute-power scaling correction | `3a28bc1` | Revised Suite No. 3 to noisy AI regime, aggregate vs density-normalized proxy power, control verification table. 1318/1318 tests pass; MkDocs strict pass. |
 | `gemini-cli` | v0.3.9: Suite No. 3 low-frequency scaling proxy-readout tutorial | `b0cf731` | Implemented and integrated tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb, docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md, 5 publication-ready figures, targeted test suite, and doc hygiene check alignment. 1276/1276 tests pass. |
 | `gemini-cli` | v0.3.5: Suite No. 1 docs positive style repair | `659668e` | Refined Suite No. 1 docs, notebook cells, and index files to conform to positive-scope guidelines. 1037/1037 tests pass; MkDocs build passes cleanly. |
 | `gemini-cli` | v0.3.4: Suite No. 2 spectrolaminar motif and explicit facade | `a2e231b` | Completed tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb, docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md, 13 publication-ready figures, and implemented the explicit chainable Configuration facade method suite. 1037/1037 tests pass. |
