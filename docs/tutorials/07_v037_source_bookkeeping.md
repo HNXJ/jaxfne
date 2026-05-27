@@ -311,9 +311,10 @@ json.dump(signals.metadata, fp, allow_nan=False)
 ## References
 
 - **v0.3.6 Tutorial:** [Configuration API & E/I Networks](./06_v036_100_neuron_ei_population.md)
-- **API Reference:** [Signals Object](../api/signals.md) | [Probes & Readouts](../api/probes.md)
-- **Interactive Visualization:** [3D Source/Field/Probe Column](../../assets/interactive/v037_source_column_3d.html)
-- **GitHub Issue (Roadmap):** [Kernel Customization (v0.3.8)](https://github.com/HNXJ/jaxfne/issues/TODO)
+- **API Reference:** [API Overview](../api/index.md)
+- **Guides:** [Probe Operators](../guides/probe_operators.md) | [Tensor-Field Workflows](../guides/tensor_field_workflows.md)
+- **Interactive Visualization:** The 3D source/field/probe column is embedded above via Plotly (interactive HTML)
+- **GitHub:** [jaxfne Issues](https://github.com/HNXJ/jaxfne/issues)
 
 ---
 
