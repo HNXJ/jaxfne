@@ -1,6 +1,6 @@
 # jaxfne Suite No. 3: Scale-Dependent Low-Frequency Structure in Proxy Field Readouts
 
-**A compact tutorial demonstrating population scaling, proxy source-to-sensor projection, and validation of low-frequency structure in simulated field readouts.**
+**A compact tutorial demonstrating population scaling, spatiotemporal density preservation, and validation of 1/f^alpha absolute power-law structure in simulated field readouts.**
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
@@ -10,19 +10,20 @@
 
 After completing this tutorial, you will understand:
 
-1. **Low-Frequency Sensitivity** — why low-frequency proxy readouts are more sensitive to spatial scale and source coherence than local spike statistics.
-2. **Emitter vs. Projection** — how to distinguish nonlinear emitter/network generation from linear source-to-probe projection.
-3. **Scaling Experimentation** — how to run a package-native scaling experiment across multiple population sizes.
-4. **Spectral Metrics** — how to compute bandpower ratios and synchrony proxies from simulated/proxy readouts.
-5. **Validation Scaffolds** — how to export figures, manifest metadata, and validation summaries without making calibrated physical amplitude claims.
+1. **Noisy Asynchronous Spiking** — how drive heterogeneity and randomized states establish stable asynchronous-irregular dynamics.
+2. **Density Preservation** — how to scale population size N while holding spatiotemporal density constant by expanding declared spatial extent.
+3. **Absolute Power Spectrum** — how to estimate whole-window absolute power spectral density from proxy readouts.
+4. **Log-Log Power-Law Fit** — how to fit 1/f^alpha slope exponents across population scales in the 1-80 Hz band.
+5. **Scale Curves** — how to validate slope exponents, low-frequency absolute power, and synchrony metrics across sizes.
 
 ---
 
 ## Biological/Computational Question
 
-**Question:** How does increasing the modeled neural population or declared spatial extent alter low-frequency structure in simulated/proxy field readouts?
+**Question:** How does scaling the population size N while preserving constant spatiotemporal density alter the absolute power-law exponent in aggregate field readouts?
 
-**Working hypothesis:** Larger modeled support can preserve slow coherent source modes in aggregate readouts, while faster local fluctuations are more likely to average out under projection. This does not identify a biological mechanism by itself; it gives a controlled computational diagnostic for scale-sensitive readout behavior.
+**Context:** 
+In a noisy asynchronous-irregular regime, independent fluctuations average out under projection, leaving low-frequency modes to scale with population size. Ensuring constant density prevents confounding local packaging density with population scale.
 
 ---
 
@@ -32,7 +33,7 @@ Here, we outline the foundational equations defining the readout projection:
 
 ### 1. Readout Projection Equation
 
-* **Boundary definition:**
+* **Formal definition:**
   $$Y_c(t) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 * **Definition of terms:**
   * $Y_c(t)$: Simulated/proxy readout at channel/contact $c$ and time $t$.
@@ -46,6 +47,20 @@ Here, we outline the foundational equations defining the readout projection:
   [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
 * **Scope boundary:**
   This is a proxy source-to-readout projection unless a run supplies physical geometry, calibrated source units, conductivity, boundary conditions, gauge handling, a physical field solver, and validation evidence.
+
+### 2. Whole-Window Absolute Power Spectrum
+
+* **Formal definition:**
+  $$P(f) = \frac{|Y(f)|^2}{\text{normalization}}$$
+* **Worded description:**
+  Absolute power at frequency f is the squared magnitude of the windowed, detrended Fourier transform.
+
+### 3. Log-Log Power-Law Fit
+
+* **Formal definition:**
+  $$\log_{10}(P(f)) = \beta_0 - \alpha \log_{10}(f)$$
+* **Worded description:**
+  The scaling exponent alpha is the negative slope of absolute power fit on log-log axes in the 1-80 Hz frequency band.
 
 ---
 
@@ -66,11 +81,11 @@ All public APIs are called through the unified `jtfne` namespace.
 The tutorial walks through the standard `jaxfne` workflow:
 
 ```text
-Configuration -> construct -> simulate -> probe/readout -> metrics/figures
+Configuration -> construct -> simulate -> whole-window absolute power -> log-log polyfit -> scale curves
 ```
 
 1. **Configuration:** Set up a scale-dependent configuration using `jtfne.Configuration()`.
 2. **Construction:** Build the model with `jtfne.construct(cfg)`.
 3. **Simulation:** Run the vectorized dynamics with `jtfne.simulate(model, sim)`.
-4. **Probing:** Extract proxy readout traces using `model.probe(signals)` or similar.
-5. **Analysis:** Compute relative PSD, bandpower metrics, and synchrony proxies, then export manifest and validation reports.
+4. **Spectral Estimation:** Compute whole-window absolute power spectrum P(f) on log-log axes.
+5. **Scale Curves:** Fit exponent alpha and plot slope, low-frequency absolute power, and synchrony versus scale.

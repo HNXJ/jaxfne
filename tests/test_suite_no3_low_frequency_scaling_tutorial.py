@@ -132,10 +132,11 @@ class TestFigureReferences:
 
         expected_figs = [
             "01_suite03_raster_by_scale.png",
-            "02_suite03_proxy_readout_traces.png",
-            "03_suite03_psd_by_scale.png",
-            "04_suite03_low_high_ratio_vs_scale.png",
-            "05_suite03_synchrony_proxy_vs_scale.png",
+            "02_suite03_absolute_power_spectrum.png",
+            "03_suite03_log_log_power_law_fit.png",
+            "04_suite03_alpha_vs_scale.png",
+            "05_suite03_low_frequency_absolute_power_vs_scale.png",
+            "06_suite03_synchrony_proxy_vs_scale.png",
         ]
 
         for fig in expected_figs:
