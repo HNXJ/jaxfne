@@ -54,6 +54,8 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `gemini-cli` | v0.3.10: Suite No. 3 noisy absolute-power scaling correction | `548a918` | Revised Suite No. 3 scale-dependent low-frequency scaling tutorial to use a noisy asynchronous-irregular regime and whole-window absolute power-law spectra under preserved spatiotemporal density. 1318/1318 tests pass; MkDocs build strict checks pass. |
+| `gemini-cli` | v0.3.9: Suite No. 3 low-frequency scaling proxy-readout tutorial | `b0cf731` | Implemented and integrated tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb, docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md, 5 publication-ready figures, targeted test suite, and doc hygiene check alignment. 1276/1276 tests pass. |
 | `gemini-cli` | v0.3.5: Suite No. 1 docs positive style repair | `659668e` | Refined Suite No. 1 docs, notebook cells, and index files to conform to positive-scope guidelines. 1037/1037 tests pass; MkDocs build passes cleanly. |
 | `gemini-cli` | v0.3.4: Suite No. 2 spectrolaminar motif and explicit facade | `a2e231b` | Completed tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb, docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md, 13 publication-ready figures, and implemented the explicit chainable Configuration facade method suite. 1037/1037 tests pass. |
 | `gemini-cli` | v0.2.31: Suite No. 2 compact API facade (simulate & vis.spectrolaminar) | `5851dde` | Implemented functional jtfne.simulate and high-fidelity jtfne.vis.spectrolaminar; 1036/1036 tests passing; clean working tree. |

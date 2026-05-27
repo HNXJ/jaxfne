@@ -149,3 +149,8 @@ tmp/
 scratch/
 tmp/
 *.tmp
+
+# Generated tutorial artifacts
+tutorial_outputs/
+figures/
+suite_no1_theta_execution_receipt.json
