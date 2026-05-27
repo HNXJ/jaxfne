@@ -22,6 +22,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | **Suite 1** | Computational Biophysics | Interactive Colab | 4-part course: models → circuits → readouts → optimization | v0.3.3+ |
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
 | **Suite 3** | Low-Frequency Scaling | Runnable Notebook | Scale-dependent low-frequency proxy readouts and boundary validation | v0.3.9+ |
+| **09** | EEG/MEG/EMM Proxy Bundle | Runnable Notebook | Separate sensor pathways for scalp potential, magnetic field, and metabolic proxy | v0.3.10+ |
 | **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
 | **07** | v0.3.7 Source Bookkeeping | Interactive HTML | 3D visualization of source/field/probe workflow | v0.3.7+ |
 | **08** | v0.3.8 LFP/CSD Readout | Runnable notebook | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
@@ -80,6 +81,23 @@ A comprehensive tutorial covering:
 **Five publication-ready figures**, strict verification constraints, and low-frequency scaling diagnostics.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
+
+---
+
+## Featured: jaxfne v0.3.10 EEG/MEG/EMM Proxy Bundle
+
+**[Multimodal Sensor Projections and EEG/MEG/EMM Proxy Bundle](09_v0310_eeg_meg_emm_proxy_bundle.md)** (interactive notebook)
+
+A comprehensive tutorial covering:
+- Part 1: Declarative setup and population simulation (100 neurons)
+- Part 2: Scalp potential projections via EEG-proxy operators
+- Part 3: Oriented magnetic field projections via MEG-proxy operators
+- Part 4: Energy cost timeline projections via metabolic EMM-proxy operators
+- Part 5: Validation receipt and independent panel figures
+
+**Three publication-ready panel figures** and structured validation manifest exports.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
 
 ---
 

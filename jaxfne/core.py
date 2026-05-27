@@ -2587,6 +2587,18 @@ class Model:
         if best_loss is None:
             warnings.append("no_finite_candidate_score")
             best_model = self
+
+        # Compute candidate statistics for enhanced report
+        candidate_values = [float(h["candidate_value"]) for h in history]
+        candidate_scores = [h.get("score") for h in history]
+        finite_scores = [s for s in candidate_scores if s is not None and math.isfinite(s)]
+
+        score_variance = 0.0
+        n_unique_scores = 0
+        if len(finite_scores) > 1:
+            score_variance = float(jnp.var(jnp.asarray(finite_scores)))
+            n_unique_scores = len(set(finite_scores))
+
         report = {
             **base_report,
             "same_model_unchanged": best_model is self,
@@ -2594,6 +2606,11 @@ class Model:
             "acceptance_decision": "ACCEPT_CANDIDATE" if best_loss is not None else "REVISE",
             "best_parameter_value": best_value,
             "best_score": _finite_or_none(best_loss) if best_loss is not None else None,
+            "candidate_values": candidate_values,
+            "candidate_scores": candidate_scores,
+            "score_variance": score_variance,
+            "n_unique_scores": n_unique_scores,
+            "tuning_path": "scalar_black_box",
             "candidate_history": history,
             "warnings": warnings + [
                 "blackbox_loop_is_computational_scaffold_only",
@@ -2854,14 +2871,23 @@ class Model:
 
 
 def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> Model:
-    """Return a Model copy with one safe scalar emitter parameter changed."""
+    """Return a Model copy with one safe scalar emitter parameter changed.
+
+    Supported parameters: source_scale, drive_gain, synaptic_gain
+    """
     emitter = model.params["emitter"]
     if parameter == "source_scale":
         new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
     elif parameter == "drive_gain":
         new_emitter = replace(emitter, drive=emitter.drive * jnp.asarray(value, dtype=emitter.drive.dtype))
+    elif parameter == "synaptic_gain":
+        new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
     else:
-        raise ValueError(f"Unsupported tunable parameter: {parameter}")
+        supported = ["source_scale", "drive_gain", "synaptic_gain"]
+        raise ValueError(
+            f"Unsupported tunable parameter: {parameter!r}. "
+            f"Supported parameters: {supported}"
+        )
     params = dict(model.params)
     params["emitter"] = new_emitter
     return Model(cfg=model.cfg, params=params, static=dict(model.static))

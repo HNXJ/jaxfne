@@ -828,6 +828,209 @@ def emm_proxy_probe(
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
+# Real proxy operator implementations
+# ====================================
+
+def eeg_proxy_transform(
+    source: jax.Array,
+    leadfield: jax.Array,
+) -> jax.Array:
+    """Compute EEG-proxy readout via linear leadfield projection.
+
+    Mathematical model:
+        Y_eeg[c,t] = sum_k L_eeg[c,k] * S[t,k]
+
+    where:
+    - Y_eeg[C, T]: EEG-proxy readout (C sensors, T timesteps)
+    - L_eeg[C, K]: Leadfield matrix (C sensors, K sources)
+    - S[T, K]: Source proxy array (T timesteps, K sources)
+
+    Parameters
+    ----------
+    source : jax.Array
+        Source proxy array with shape [T, K].
+    leadfield : jax.Array
+        EEG leadfield matrix with shape [C, K].
+
+    Returns
+    -------
+    jax.Array
+        EEG-proxy readout with shape [T, C].
+
+    Raises
+    ------
+    ValueError
+        If shapes are incompatible.
+    """
+    source = jnp.asarray(source)
+    leadfield = jnp.asarray(leadfield)
+
+    if source.ndim != 2:
+        raise ValueError(f"source must be 2D [T, K], got shape {source.shape}")
+    if leadfield.ndim != 2:
+        raise ValueError(f"leadfield must be 2D [C, K], got shape {leadfield.shape}")
+
+    T, K = source.shape
+    C, K_lead = leadfield.shape
+
+    if K != K_lead:
+        raise ValueError(
+            f"source and leadfield K dimension mismatch: {K} vs {K_lead}"
+        )
+
+    # Y_eeg[T, C] = S[T, K] @ L[C, K].T
+    y_eeg = source @ leadfield.T  # [T, K] @ [K, C] = [T, C]
+    return y_eeg
+
+
+def meg_proxy_transform(
+    source_oriented: jax.Array,
+    leadfield: jax.Array,
+) -> jax.Array:
+    """Compute MEG-proxy readout via linear leadfield projection.
+
+    Mathematical model:
+        Y_meg[c,t] = sum_k L_meg[c,k] * J_oriented[t,k]
+
+    where:
+    - Y_meg[C, T]: MEG-proxy readout (C sensors, T timesteps)
+    - L_meg[C, K]: MEG leadfield matrix (C sensors, K sources)
+    - J_oriented[T, K]: Oriented source activity (T timesteps, K sources)
+
+    Parameters
+    ----------
+    source_oriented : jax.Array
+        Oriented source/activity array with shape [T, K].
+    leadfield : jax.Array
+        MEG leadfield matrix with shape [C, K].
+
+    Returns
+    -------
+    jax.Array
+        MEG-proxy readout with shape [T, C].
+
+    Raises
+    ------
+    ValueError
+        If shapes are incompatible.
+    """
+    source_oriented = jnp.asarray(source_oriented)
+    leadfield = jnp.asarray(leadfield)
+
+    if source_oriented.ndim != 2:
+        raise ValueError(f"source_oriented must be 2D [T, K], got shape {source_oriented.shape}")
+    if leadfield.ndim != 2:
+        raise ValueError(f"leadfield must be 2D [C, K], got shape {leadfield.shape}")
+
+    T, K = source_oriented.shape
+    C, K_lead = leadfield.shape
+
+    if K != K_lead:
+        raise ValueError(
+            f"source_oriented and leadfield K dimension mismatch: {K} vs {K_lead}"
+        )
+
+    # Y_meg[T, C] = J_oriented[T, K] @ L[C, K].T
+    y_meg = source_oriented @ leadfield.T  # [T, K] @ [K, C] = [T, C]
+    return y_meg
+
+
+def emm_proxy_transform(
+    spike_rate: jax.Array,
+    source: jax.Array,
+    field_potential: jax.Array,
+    lambda_spk: float = 1.0,
+    lambda_src: float = 1.0,
+    lambda_field: float = 1.0,
+) -> jax.Array:
+    """Compute EMM-proxy (normalized activity/source/field cost) readout.
+
+    Mathematical model:
+        E_proxy[t] = (lambda_spk * R_spk[t] + lambda_src * ||S[t]||_1
+                      + lambda_field * ||Phi[t]||_2^2) / normalization
+
+    where:
+    - E_proxy[T]: Normalized cost trace (T timesteps)
+    - R_spk[T]: Spike rate or activity trace
+    - S[T, K]: Source proxy array
+    - Phi[T, X]: Field potential proxy array
+    - lambda_*: Weighting factors (default 1.0)
+
+    Parameters
+    ----------
+    spike_rate : jax.Array
+        Spike rate or activity array with shape [T] or [T, 1].
+    source : jax.Array
+        Source proxy array with shape [T, K].
+    field_potential : jax.Array
+        Field potential proxy array with shape [T, X].
+    lambda_spk : float
+        Weight for spike-rate term (default 1.0).
+    lambda_src : float
+        Weight for source L1-norm term (default 1.0).
+    lambda_field : float
+        Weight for field L2-norm term (default 1.0).
+
+    Returns
+    -------
+    jax.Array
+        EMM-proxy cost trace with shape [T] or [T, 1].
+
+    Raises
+    ------
+    ValueError
+        If array shapes are incompatible.
+    """
+    spike_rate = jnp.asarray(spike_rate)
+    source = jnp.asarray(source)
+    field_potential = jnp.asarray(field_potential)
+
+    # Normalize input shapes
+    if spike_rate.ndim == 1:
+        spike_rate = spike_rate[:, None]  # [T] -> [T, 1]
+    elif spike_rate.ndim != 2:
+        raise ValueError(f"spike_rate must be 1D or 2D, got shape {spike_rate.shape}")
+
+    if source.ndim != 2:
+        raise ValueError(f"source must be 2D [T, K], got shape {source.shape}")
+
+    if field_potential.ndim != 2:
+        raise ValueError(f"field_potential must be 2D [T, X], got shape {field_potential.shape}")
+
+    T_spk = spike_rate.shape[0]
+    T_src = source.shape[0]
+    T_field = field_potential.shape[0]
+
+    if not (T_spk == T_src == T_field):
+        raise ValueError(
+            f"Time dimension mismatch: spike_rate={T_spk}, source={T_src}, field={T_field}"
+        )
+
+    # Compute weighted cost terms
+    # Term 1: Spike rate (already shape [T, 1])
+    term_spk = lambda_spk * spike_rate
+
+    # Term 2: Source L1-norm per timestep [T, K] -> [T, 1]
+    source_l1 = jnp.sum(jnp.abs(source), axis=1, keepdims=True)
+    term_src = lambda_src * source_l1
+
+    # Term 3: Field L2-norm (Frobenius norm) per timestep [T, X] -> [T, 1]
+    field_l2_sq = jnp.sum(jnp.square(field_potential), axis=1, keepdims=True)
+    term_field = lambda_field * field_l2_sq
+
+    # Total cost [T, 1]
+    total_cost = term_spk + term_src + term_field
+
+    # Normalize by sum of weights (for relative comparison)
+    total_weight = lambda_spk + lambda_src + lambda_field
+    if total_weight > 0:
+        emm_proxy = total_cost / total_weight
+    else:
+        emm_proxy = total_cost
+
+    return emm_proxy
+
+
 def compute_conservation_proxy_diagnostics(
     *,
     source: "jax.Array | None" = None,

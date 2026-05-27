@@ -35,6 +35,7 @@ class TestPublicDocsHardRules:
         "docs/tutorials/05_v1_pfc_dual_column.md",
         "docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md",
         "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+        "docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md",
         "docs/guides/index.md",
         "docs/probe_operators.md",
         "docs/tensor_field_workflows.md",
@@ -64,6 +65,7 @@ class TestPublicDocsHardRules:
         "tutorials/jaxfne_v032_parameter_sweep.ipynb",
         "tutorials/jaxfne_v033_two_neuron_ei.ipynb",
         "tutorials/jaxfne_v035_small_recurrent_ei.ipynb",
+        "tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
     ]
 
     # Hard-rule forbidden terms

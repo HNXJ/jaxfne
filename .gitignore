@@ -63,6 +63,8 @@ coverage.xml
 .ipynb_checkpoints
 *.ipynb_checkpoints
 *.ipynb~
+*.html
+*suite_no4_*
 
 # Data & artifacts
 *.pkl
