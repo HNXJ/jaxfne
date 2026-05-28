@@ -129,9 +129,13 @@ def test_suite_no1_part4_parameter_names():
 
 
 def test_model_tune_supports_gampa_parameters():
-    """Verify _model_with_scalar_parameter supports gAMPA_first_half and gAMPA_second_half."""
+    """Verify global gAMPA and matrix gAMPA_w parameter are supported.
+
+    gAMPA_first_half and gAMPA_second_half are deprecated in favor of the unified
+    gAMPA scalar and gAMPA_w matrix parameter (Suite No. 4).
+    """
     import jaxfne as jtfne
-    from jaxfne.core import _model_with_scalar_parameter
+    from jaxfne.core import _model_with_scalar_parameter, _model_with_matrix_parameter
 
     cfg = (
         jtfne.configuration()
@@ -142,18 +146,28 @@ def test_model_tune_supports_gampa_parameters():
     )
     model = jtfne.construct(cfg)
 
-    model_a = _model_with_scalar_parameter(model, "gAMPA_first_half", 1.5)
-    model_b = _model_with_scalar_parameter(model, "gAMPA_second_half", 0.8)
-
+    # gAMPA scalar (global excitatory gain) must still work
+    model_gampa = _model_with_scalar_parameter(model, "gAMPA", 1.5)
     import jax.numpy as jnp
-    assert model_a is not model
-    assert model_b is not model
-    # W should differ from original
-    orig_W = model.params["emitter"].W
-    new_W_a = model_a.params["emitter"].W
-    new_W_b = model_b.params["emitter"].W
-    assert not jnp.allclose(orig_W, new_W_a), "gAMPA_first_half must change W"
-    assert not jnp.allclose(orig_W, new_W_b), "gAMPA_second_half must change W"
+    assert model_gampa is not model
+
+    # gAMPA_w matrix parameter must work
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.1, 5.0))
+    model_w = _model_with_matrix_parameter(model, "gAMPA_w", spec, 1.5)
+    assert model_w is not model
+
+    # Old split parameters must raise ValueError (removed)
+    try:
+        _model_with_scalar_parameter(model, "gAMPA_first_half", 1.5)
+        assert False, "gAMPA_first_half should raise ValueError"
+    except ValueError:
+        pass  # Expected
+
+    try:
+        _model_with_scalar_parameter(model, "gAMPA_second_half", 0.8)
+        assert False, "gAMPA_second_half should raise ValueError"
+    except ValueError:
+        pass  # Expected
 
 
 def test_suite_no1_optimizes_gampa_not_drive_scale():

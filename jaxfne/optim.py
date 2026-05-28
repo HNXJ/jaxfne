@@ -172,26 +172,60 @@ class AGSDROptimizerSpec:
     When passed to Model.tune(), it triggers multi-parameter optimization.
     """
 
-    parameters: dict[str, tuple[float, float]]  # {"param_name": (lower, upper), ...}
+    parameters: dict  # {"param_name": (lower, upper) or MatrixParameterSpec, ...}
     generations: int = 8
     population_size: int = 6
     alpha: float = 0.65
     exploration: float = 0.18
     deselect_factor: float = 2.0
     seed: int = 0
+    # Two-level optimization extensions (Suite No. 4)
+    inner_optimizer: Any = None
+    inner_steps: int = 0
+    inner_objective: Optional[str] = None
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to JSON-safe dictionary."""
+        """Convert to JSON-safe dictionary.
+
+        Optax objects in inner_optimizer are replaced with metadata strings
+        so the result is always JSON-safe.
+        """
+        # Serialize parameters: MatrixParameterSpec -> metadata dict, tuples -> lists
+        params_serial: dict[str, Any] = {}
+        for k, v in self.parameters.items():
+            try:
+                # Check if it is a MatrixParameterSpec-like object
+                if hasattr(v, "mask") and hasattr(v, "bounds"):
+                    params_serial[k] = {
+                        "type": "MatrixParameterSpec",
+                        "mask": str(v.mask),
+                        "bounds": [float(v.bounds[0]), float(v.bounds[1])],
+                        "init": str(v.init),
+                        "trainable": bool(v.trainable),
+                    }
+                else:
+                    params_serial[k] = [float(v[0]), float(v[1])]
+            except Exception:
+                params_serial[k] = str(v)
+
+        # Serialize inner_optimizer: only store metadata, never the Optax object
+        inner_opt_meta: Any = None
+        if self.inner_optimizer is not None:
+            inner_opt_meta = "optax_optimizer_object_not_serialized"
+
         return {
             "optimizer": "AGSDR",
             "optimizer_class": "multiparameter_blackbox",
-            "parameters": {k: [float(v[0]), float(v[1])] for k, v in self.parameters.items()},
+            "parameters": params_serial,
             "generations": int(self.generations),
             "population_size": int(self.population_size),
             "alpha": float(self.alpha),
             "exploration": float(self.exploration),
             "deselect_factor": float(self.deselect_factor),
             "seed": int(self.seed),
+            "inner_optimizer": inner_opt_meta,
+            "inner_steps": int(self.inner_steps),
+            "inner_objective": self.inner_objective,
         }
 
 
@@ -200,11 +234,15 @@ def agsdr(
     exploration: float = 0.05,
     deselect_factor: float = 2.0,
     metadata: Optional[dict[str, Any]] = None,
-    # Multi-parameter path (new)
-    parameters: Optional[dict[str, tuple[float, float]]] = None,
+    # Multi-parameter path
+    parameters: Optional[dict] = None,
     generations: Optional[int] = None,
     population_size: Optional[int] = None,
     seed: int = 0,
+    # Two-level optimization: inner Adam refinement (Suite No. 4)
+    inner_optimizer: Any = None,
+    inner_steps: int = 0,
+    inner_objective: Optional[str] = None,
 ) -> Any:
     """Return an optimizer spec for AGSDR.
 
@@ -223,13 +261,22 @@ def agsdr(
     metadata : dict, optional
         Custom metadata (legacy path only).
     parameters : dict, optional
-        Multi-parameter bounds: {"param_name": (lower, upper), ...}. If provided, returns AGSDROptimizerSpec.
+        Multi-parameter bounds: {"param_name": (lower, upper) or MatrixParameterSpec, ...}.
+        If provided, returns AGSDROptimizerSpec.
     generations : int, optional
         Number of generations for multi-parameter optimization (default 8).
     population_size : int, optional
         Population per generation for multi-parameter optimization (default 6).
     seed : int
         Random seed (default 0).
+    inner_optimizer : Any, optional
+        Optax optimizer instance for the inner Adam refinement loop
+        (e.g. optax.adam(learning_rate=1e-2)).  Requires Optax installed.
+        Only used when parameters contains :class: entries.
+    inner_steps : int
+        Number of gradient steps in the inner Adam loop per AGSDR candidate.
+    inner_objective : str, optional
+        Name of the inner surrogate objective; None uses soft-rate MSE.
 
     Returns
     -------
@@ -246,6 +293,9 @@ def agsdr(
             exploration=float(exploration) if exploration != 0.05 else 0.18,  # Use 0.18 default for multi-param
             deselect_factor=float(deselect_factor),
             seed=int(seed),
+            inner_optimizer=inner_optimizer,
+            inner_steps=int(inner_steps),
+            inner_objective=inner_objective,
         )
 
     # Single-parameter path (legacy)
@@ -329,7 +379,10 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
             exploration=float(optimizer.exploration),
             deselect_factor=float(optimizer.deselect_factor),
             metadata={
-                "parameters": {k: [float(v[0]), float(v[1])] for k, v in optimizer.parameters.items()},
+                "parameters": {
+                    k: ([float(v[0]), float(v[1])] if not hasattr(v, "mask") else {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)})
+                    for k, v in optimizer.parameters.items()
+                },
                 "generations": int(optimizer.generations),
                 "population_size": int(optimizer.population_size),
                 "seed": int(optimizer.seed),
@@ -1101,3 +1154,328 @@ def agsdr_transform(
         update: Callable[[Any, Any], Any]
 
     return GradientTransformation(init=init, update=update)
+
+
+def _tune_matrix_agsdr_optax(
+    model: Any,
+    objective: Any,
+    parameters: Any,
+    param_specs: Any,
+    scalar_bounds: Any,
+    inner_optimizer: Any,
+    inner_steps: int,
+    inner_objective: Any,
+    spec: Any,
+    generations: int,
+    population_size: int,
+    seed: int,
+    strict: bool,
+    simulation: Any,
+    base_report: Any,
+) -> Any:
+    """Two-level matrix AGSDR + optax.adam optimization.
+
+    OUTER LOOP: AGSDR proposes candidate scale values (one per matrix parameter).
+    INNER LOOP: Adam refines each candidate on a soft-rate surrogate loss using
+                jax.value_and_grad (differentiable sigmoid spike approximation).
+    FINAL SCORING: Real objective (group_rate_targets) evaluates the refined candidate.
+    BEST-STATE MEMORY: Tracks best parameters and loss across all generations.
+
+    Parameters
+    ----------
+    model : Model
+        Starting model.
+    objective : Objective
+        Real scoring objective (used for final selection).
+    parameters : dict
+        Full parameters dict (may contain MatrixParameterSpec values).
+    param_specs : dict
+        Only the MatrixParameterSpec entries.
+    scalar_bounds : dict
+        Bounds dict for AGSDR proposal (extracted from param_specs).
+    inner_optimizer : Any
+        Optax optimizer instance (e.g. optax.adam(1e-2)).
+    inner_steps : int
+        Gradient steps per candidate in the inner loop.
+    inner_objective : str or None
+        Inner surrogate objective name; None = soft_rate_mse.
+    spec : OptimizerSpec
+        Resolved AGSDR spec (for alpha/exploration).
+    generations, population_size, seed, strict, simulation : ...
+        Standard AGSDR parameters.
+    base_report : dict
+        Pre-built base report dict for the TuneResult summary.
+
+    Returns
+    -------
+    TuneResult
+    """
+    import math as _math
+    from dataclasses import replace as _replace
+
+    # Guard: require Optax for inner loop
+    optax = require_optax()
+
+    try:
+        from jaxfne.core import (
+            TuneResult,
+            _evaluate_soft_rate_targets,
+            _model_with_parameters,
+            Simulation,
+        )
+        from jaxfne.io import json_safe
+    except ImportError:
+        # Fallback: lazy import from current package context
+        import importlib
+        _core = importlib.import_module("jaxfne.core")
+        TuneResult = _core.TuneResult
+        _evaluate_soft_rate_targets = _core._evaluate_soft_rate_targets
+        _model_with_parameters = _core._model_with_parameters
+        Simulation = _core.Simulation
+        _io = importlib.import_module("jaxfne.io")
+        json_safe = _io.json_safe
+
+    import jax
+    import jax.numpy as jnp
+    import numpy as np
+
+    # Extract group rate targets for inner soft-rate surrogate
+    # Try to parse groups and target rates from the objective
+    groups_for_inner: dict = {}
+    targets_hz_for_inner: dict = {}
+    if hasattr(objective, "gates"):
+        for gate_spec in objective.gates:
+            if isinstance(gate_spec, dict) and "metadata" in gate_spec:
+                meta = gate_spec["metadata"]
+                if "groups" in meta:
+                    groups_for_inner = dict(meta.get("groups", {}))
+                    targets_hz_for_inner = dict(meta.get("targets_hz", {}))
+                    break
+
+    def _inner_loss_fn(W_flat: jax.Array, candidate_model: Any) -> jax.Array:
+        """Differentiable inner-loop loss using soft rate surrogate.
+
+        Runs a forward pass by extracting V_m from the emitter and computing
+        soft-spike approximation.  We approximate V_m by running the model
+        and reading the V_m output.
+        """
+        # We cannot JIT over the full simulation easily, so use V_m from
+        # a fast forward pass (no JIT, no spike reset in loss path).
+        try:
+            fast_sim = _replace(simulation, duration_ms=min(float(simulation.duration_ms), 50.0))
+            sigs = candidate_model.simulate(fast_sim)
+            if groups_for_inner:
+                loss = _evaluate_soft_rate_targets(
+                    V_m=sigs.V_m,
+                    groups=groups_for_inner,
+                    targets_hz=targets_hz_for_inner,
+                    duration_ms=float(fast_sim.duration_ms),
+                    dt_ms=float(fast_sim.dt_ms),
+                )
+            else:
+                # Fallback: mean V_m should be near threshold
+                loss = jnp.mean(jnp.abs(sigs.V_m - (-45.0)))
+        except Exception:
+            loss = jnp.asarray(float("inf"), dtype=jnp.float32)
+        return loss
+
+    # AGSDR outer loop setup
+    param_names = sorted(scalar_bounds.keys())
+    bounds_list = [(float(scalar_bounds[n][0]), float(scalar_bounds[n][1])) for n in param_names]
+    lows = jnp.asarray([b[0] for b in bounds_list], dtype=jnp.float32)
+    highs = jnp.asarray([b[1] for b in bounds_list], dtype=jnp.float32)
+    center_arr = 0.5 * (lows + highs)
+
+    best_score = float("inf")
+    best_parameters: dict = {}
+    best_model = model
+    generation_records = []
+    all_scores = []
+
+    base_key = jax.random.PRNGKey(int(seed))
+
+    for gen in range(int(generations)):
+        gen_best_score = float("inf")
+        gen_best_params: dict = {}
+
+        # Propose AGSDR candidates
+        key = jax.random.fold_in(base_key, int(gen))
+        noise = jax.random.normal(
+            key,
+            shape=(int(population_size), len(param_names)),
+            dtype=jnp.float32,
+        )
+        candidate_matrix = _agsdr_candidates_from_noise(
+            center_arr,
+            lows,
+            highs,
+            float(spec.exploration),
+            noise,
+        )
+
+        for row in range(int(population_size)):
+            raw_values = candidate_matrix[row]
+            candidate_scalars = {
+                name: float(raw_values[idx])
+                for idx, name in enumerate(param_names)
+            }
+
+            # Build candidate model (outer AGSDR scale)
+            candidate_model = _model_with_parameters(model, candidate_scalars, param_specs)
+
+            # INNER LOOP: Adam refinement on soft-rate surrogate
+            if inner_steps > 0 and groups_for_inner:
+                try:
+                    emitter = candidate_model.params["emitter"]
+                    W_init = jnp.asarray(emitter.W, dtype=jnp.float32).reshape(-1)
+
+                    opt_state = inner_optimizer.init(W_init)
+                    current_W = W_init
+
+                    for inner_step in range(int(inner_steps)):
+                        def loss_and_grad_fn(W_flat: jax.Array) -> tuple:
+                            # Rebuild emitter with updated W
+                            new_W = W_flat.reshape(emitter.W.shape)
+                            new_emitter = _replace(emitter, W=new_W)
+                            new_params = dict(candidate_model.params)
+                            new_params["emitter"] = new_emitter
+                            from dataclasses import replace as _r
+                            updated_model = _r(candidate_model, params=new_params)
+                            return _inner_loss_fn(W_flat, updated_model), W_flat
+
+                        try:
+                            # Compute gradient via jax.grad on the soft-rate loss
+                            def inner_loss_only(W_flat: jax.Array) -> jax.Array:
+                                new_W = W_flat.reshape(emitter.W.shape)
+                                new_emitter = _replace(emitter, W=new_W)
+                                new_params = dict(candidate_model.params)
+                                new_params["emitter"] = new_emitter
+                                from dataclasses import replace as _r2
+                                updated_model = _r2(candidate_model, params=new_params)
+                                return _inner_loss_fn(W_flat, updated_model)
+
+                            loss_val, grads = jax.value_and_grad(inner_loss_only)(current_W)
+                            updates, opt_state = inner_optimizer.update(grads, opt_state)
+                            current_W = optax.apply_updates(current_W, updates)
+                            # Clip to declared parameter bounds
+                            # For gAMPA_w, use the bounds from MatrixParameterSpec
+                            param_lower = float(param_specs.get("gAMPA_w").bounds[0]) if "gAMPA_w" in param_specs else -1000.0
+                            param_upper = float(param_specs.get("gAMPA_w").bounds[1]) if "gAMPA_w" in param_specs else 1000.0
+                            current_W = jnp.clip(current_W, param_lower, param_upper)
+                        except Exception:
+                            break  # Inner loop failed; use AGSDR candidate as-is
+
+                    # Apply refined W to model
+                    refined_W = current_W.reshape(emitter.W.shape)
+                    new_emitter = _replace(emitter, W=refined_W)
+                    new_params = dict(candidate_model.params)
+                    new_params["emitter"] = new_emitter
+                    from dataclasses import replace as _r3
+                    candidate_model = _r3(candidate_model, params=new_params)
+                except Exception:
+                    pass  # Fall back to unrefined AGSDR candidate
+
+            # FINAL SCORING: real objective
+            try:
+                candidate_signals = candidate_model.simulate(
+                    _replace(simulation, seed=int(seed) + gen * population_size + row)
+                )
+                candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
+                score = candidate_report.get("total_loss")
+                gates_pass = bool(candidate_report.get("all_gates_pass", False))
+                if score is None:
+                    score = 0.0 if gates_pass else float("inf")
+                score = float(score)
+            except Exception as e:
+                score = float("inf")
+
+            all_scores.append(score)
+
+            if score < gen_best_score:
+                gen_best_score = score
+                gen_best_params = dict(candidate_scalars)
+
+            if score < best_score:
+                best_score = score
+                # Preserve both scalar proposal values AND matrix parameters
+                best_parameters = dict(candidate_scalars)
+                # Extract tuned matrices from the refined model
+                for matrix_name in param_specs.keys():
+                    if matrix_name == "gAMPA_w":
+                        try:
+                            tuned_W = np.asarray(candidate_model.params["emitter"].W, dtype=np.float32)
+                            # Convert to JSON-safe nested list
+                            best_parameters[matrix_name] = tuned_W.tolist()
+                        except Exception:
+                            # If extraction fails, keep scalar as placeholder
+                            pass
+                best_model = candidate_model
+
+        # Delta-rule center update
+        if gen_best_params:
+            gen_best_arr = jnp.asarray(
+                [gen_best_params[n] for n in param_names],
+                dtype=jnp.float32,
+            )
+            center_arr = jnp.clip(
+                center_arr + float(spec.alpha) * (gen_best_arr - center_arr),
+                lows,
+                highs,
+            )
+
+        generation_records.append({
+            "generation": int(gen),
+            "generation_best_score": gen_best_score,
+            "generation_best_parameters": dict(gen_best_params),
+            "best_score": best_score,
+            "best_parameters": dict(best_parameters),
+        })
+
+    inner_meta = "optax_optimizer_object_not_serialized" if inner_optimizer is not None else None
+
+    # Build matrix parameters metadata (compact, no huge arrays in summary)
+    matrix_parameters_meta = {}
+    for matrix_name in param_specs.keys():
+        if matrix_name == "gAMPA_w" and matrix_name in best_parameters:
+            try:
+                W_values = best_parameters[matrix_name]
+                W_array = np.asarray(W_values, dtype=np.float32)
+                matrix_parameters_meta[matrix_name] = {
+                    "shape": list(W_array.shape),
+                    "mask": param_specs[matrix_name].mask,
+                    "bounds": list(param_specs[matrix_name].bounds),
+                    "finite": bool(np.isfinite(W_array).all()),
+                    "min": float(np.min(W_array)) if np.isfinite(W_array).all() else None,
+                    "max": float(np.max(W_array)) if np.isfinite(W_array).all() else None,
+                    "mean": float(np.mean(W_array)) if np.isfinite(W_array).all() else None,
+                    "nonzero": int(np.count_nonzero(W_array)),
+                }
+            except Exception:
+                pass
+
+    report = {
+        **base_report,
+        "same_model_unchanged": False,
+        "tuning_status": "matrix_agsdr_optax_v0.0.1",
+        "acceptance_decision": "ACCEPT_CANDIDATE" if _math.isfinite(best_score) else "REVISE",
+        "best_score": best_score if _math.isfinite(best_score) else None,
+        "generation_records": generation_records,
+        "all_scores": all_scores,
+        "n_candidates_evaluated": len(all_scores),
+        "tuning_path": "matrix_two_level_agsdr_adam",
+        "inner_optimizer": inner_meta,
+        "inner_steps": int(inner_steps),
+        "matrix_parameters": matrix_parameters_meta,
+        "warnings": [
+            "two_level_agsdr_adam_is_computational_scaffold_only",
+            "inner_soft_rate_surrogate_is_not_biological_truth",
+        ],
+    }
+
+    return TuneResult(
+        best_parameters=best_parameters,
+        best_score=float(best_score) if _math.isfinite(best_score) else float("inf"),
+        history=generation_records,
+        summary=json_safe(report),
+        model=best_model,
+    )

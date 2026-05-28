@@ -113,6 +113,23 @@ class TestSuiteNo1RuntimeStaticGuards:
             "this decouples synaptic mechanism from objective groups"
         )
 
+    def test_rejects_drive_scale_group_parameters(self):
+        """Rejects old drive_scale_a and drive_scale_b group-specific parameter names.
+
+        These parameter names are forbidden in Suite No. 1 notebooks; the
+        unified gAMPA parameter must be used instead.
+        """
+        code = _load_code()
+        assert "drive_scale_a" not in code, (
+            "Old parameter name drive_scale_a found in Suite No. 1 notebook — "
+            "should use unified gAMPA or gAMPA_w parameter instead"
+        )
+        assert "drive_scale_b" not in code, (
+            "Old parameter name drive_scale_b found in Suite No. 1 notebook — "
+            "should use unified gAMPA or gAMPA_w parameter instead"
+        )
+
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

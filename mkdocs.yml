@@ -100,4 +100,4 @@ nav:
           - v0.2.0: releases/v0.2.0.md
 
 extra:
-  jaxfne_version: "0.3.5"
+  jaxfne_version: "0.3.11"

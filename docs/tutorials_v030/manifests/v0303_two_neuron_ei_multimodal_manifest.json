@@ -124,7 +124,7 @@
       "all_finite": true
     }
   },
-  "jaxfne_version": "0.3.5",
+  "jaxfne_version": "0.3.11",
   "network": {
     "e_fraction": 0.5,
     "e_index": 0,
@@ -323,7 +323,7 @@
       "units_or_status": "binary_spike_indicator"
     }
   },
-  "run_id": "v033_two_neuron_ei_1779897788",
+  "run_id": "v033_two_neuron_ei_1779981311",
   "scenario_id": "v030_03_two_neuron_ei_multimodal",
   "schema_version": "v0.3.3",
   "simulation": {
@@ -339,7 +339,7 @@
     "source_projection_mode": "proxy_no_field_solve",
     "source_proxy_status": "generated_proxy"
   },
-  "timestamp": "2026-05-27T11:03:08.691069",
+  "timestamp": "2026-05-28T10:15:11.754601",
   "tutorial_id": "v0303_two_neuron_ei_multimodal",
   "validation_report": {
     "all_gates_pass": true,

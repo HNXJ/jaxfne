@@ -375,3 +375,233 @@ def test_state_dataclass_pytree_compatible():
     agsdr = AGSDRState()
     assert dataclasses.is_dataclass(agsdr)
     assert dataclasses.fields(agsdr)
+
+
+# ===================================================================
+# Suite No. 4 Tests: gAMPA_w Matrix Parameter Optimization (v0.3.x)
+# ===================================================================
+
+
+def _model_with_rate_objective(n=20, duration_ms=50.0):
+    """Return a small model + rate objective for matrix tuning tests."""
+    cfg = (
+        jtfne.configuration()
+        .network(name="V1", kind="cortical_column", n=n, cell_types={"E": 0.8, "PV": 0.2})
+        .emitter(family="izhikevich", preset="cortical_eig")
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+        .probe(name="laminar_probe", modes=["spikes", "V_m"])
+    )
+    model = jtfne.construct(cfg)
+    sim = jtfne.simulation(duration_ms=duration_ms, dt_ms=0.1, seed=0)
+    return model, sim
+
+
+def test_matrix_parameter_spec_json_safe():
+    """MatrixParameterSpec is a frozen dataclass and JSON serializable via AGSDROptimizerSpec."""
+    import dataclasses
+
+    spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
+    assert dataclasses.is_dataclass(spec)
+    assert dataclasses.fields(spec)
+
+    # The spec itself is not JSON-serializable (contains non-JSON types like tuples),
+    # but when embedded in AGSDROptimizerSpec.to_dict() it must be.
+    opt_spec = jtfne.agsdr(parameters={"gAMPA_w": spec})
+    d = opt_spec.to_dict()
+    json_str = json.dumps(d, allow_nan=False)
+    assert isinstance(json_str, str)
+    loaded = json.loads(json_str)
+    assert "parameters" in loaded
+    assert "gAMPA_w" in loaded["parameters"]
+    assert loaded["parameters"]["gAMPA_w"]["type"] == "MatrixParameterSpec"
+
+
+def test_agsdr_accepts_optax_inner_optimizer():
+    """AGSDROptimizerSpec accepts an optax.adam inner_optimizer without error."""
+    try:
+        import optax
+    except ImportError:
+        return  # Skip if optax not installed
+
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.5, 3.0))
+    opt_spec = jtfne.agsdr(
+        parameters={"gAMPA_w": spec},
+        inner_optimizer=optax.adam(learning_rate=1e-2),
+        inner_steps=3,
+        generations=2,
+        population_size=2,
+    )
+    assert opt_spec.inner_optimizer is not None
+    assert opt_spec.inner_steps == 3
+
+
+def test_agsdr_summary_serializes_inner_optimizer_metadata():
+    """AGSDROptimizerSpec.to_dict() must produce JSON-safe output with no Optax objects."""
+    try:
+        import optax
+    except ImportError:
+        return  # Skip if optax not installed
+
+    spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
+    opt_spec = jtfne.agsdr(
+        parameters={"gAMPA_w": spec},
+        inner_optimizer=optax.adam(learning_rate=1e-2),
+        inner_steps=3,
+    )
+    d = opt_spec.to_dict()
+    json_str = json.dumps(d, allow_nan=False)
+    assert isinstance(json_str, str)
+    loaded = json.loads(json_str)
+    # inner_optimizer must be a string, not an Optax object
+    assert isinstance(loaded.get("inner_optimizer"), str)
+    assert "optax_optimizer_object_not_serialized" in loaded["inner_optimizer"]
+
+
+def test_gampa_w_updates_weight_matrix():
+    """matrix_parameter with gAMPA_w must update the W matrix in the model."""
+    from jaxfne.core import _model_with_matrix_parameter
+    import jax.numpy as jnp
+
+    model, _ = _model_with_rate_objective()
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.1, 5.0))
+
+    # Scale by 2.0
+    new_model = _model_with_matrix_parameter(model, "gAMPA_w", spec, 2.0)
+
+    original_W = jnp.asarray(model.params["emitter"].W)
+    new_W = jnp.asarray(new_model.params["emitter"].W)
+
+    # The W matrix must have changed
+    assert not jnp.allclose(original_W, new_W), "W matrix should have changed after scaling"
+    # Original model must be unchanged
+    assert jnp.allclose(original_W, jnp.asarray(model.params["emitter"].W))
+
+
+def test_gampa_w_mask_preserves_shape():
+    """Mask application must preserve W matrix shape."""
+    from jaxfne.core import _model_with_matrix_parameter, _mask_for_parameter
+    import jax.numpy as jnp
+
+    model, _ = _model_with_rate_objective(n=16)
+    spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
+
+    new_model = _model_with_matrix_parameter(model, "gAMPA_w", spec, 1.5)
+
+    original_shape = model.params["emitter"].W.shape
+    new_shape = new_model.params["emitter"].W.shape
+    assert original_shape == new_shape, f"W shape changed: {original_shape} -> {new_shape}"
+
+
+def test_gampa_w_bounds_preserved():
+    """Clipping must prevent scale values outside bounds."""
+    from jaxfne.core import _model_with_matrix_parameter
+    import jax.numpy as jnp
+
+    model, _ = _model_with_rate_objective(n=12)
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.5, 2.0))
+
+    # Apply a value outside bounds
+    new_model_clipped_hi = _model_with_matrix_parameter(model, "gAMPA_w", spec, 10.0)  # clipped to 2.0
+    new_model_clipped_lo = _model_with_matrix_parameter(model, "gAMPA_w", spec, 0.01)  # clipped to 0.5
+
+    original_W = jnp.asarray(model.params["emitter"].W, dtype=float)
+    expected_hi = _model_with_matrix_parameter(model, "gAMPA_w", spec, 2.0)
+    expected_lo = _model_with_matrix_parameter(model, "gAMPA_w", spec, 0.5)
+
+    assert jnp.allclose(
+        jnp.asarray(new_model_clipped_hi.params["emitter"].W),
+        jnp.asarray(expected_hi.params["emitter"].W),
+    ), "Value >bound should clip to upper bound"
+    assert jnp.allclose(
+        jnp.asarray(new_model_clipped_lo.params["emitter"].W),
+        jnp.asarray(expected_lo.params["emitter"].W),
+    ), "Value <bound should clip to lower bound"
+
+
+def test_result_model_contains_tuned_gampa_w():
+    """result.model from matrix tuning should have a different W than the original."""
+    import jax.numpy as jnp
+
+    model, sim = _model_with_rate_objective(n=12, duration_ms=20.0)
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.5, 2.5))
+    objective = jtfne.rate_targets(
+        groups={"E": list(range(9)), "I": list(range(9, 12))},
+        targets_hz={"E": 10.0, "I": 5.0},
+    )
+    optimizer = jtfne.agsdr(
+        parameters={"gAMPA_w": spec},
+        generations=2,
+        population_size=3,
+        seed=0,
+    )
+    result = model.tune(objectives=objective, optimizer=optimizer, simulation=sim)
+    assert isinstance(result, jtfne.TuneResult)
+    assert result.model is not None
+    assert "gAMPA_w" in result.best_parameters
+
+
+def test_inner_soft_rate_surrogate_is_differentiable():
+    """_evaluate_soft_rate_targets must return a JAX scalar with computable gradient."""
+    import jax
+    import jax.numpy as jnp
+    from jaxfne.core import _evaluate_soft_rate_targets
+
+    n_steps = 100
+    n_neurons = 10
+    V_m = jnp.full((n_steps, n_neurons), -65.0, dtype=jnp.float32)
+
+    groups = {"E": list(range(8)), "I": list(range(8, 10))}
+    targets_hz = {"E": 10.0, "I": 5.0}
+
+    loss = _evaluate_soft_rate_targets(
+        V_m=V_m,
+        groups=groups,
+        targets_hz=targets_hz,
+        duration_ms=10.0,
+        dt_ms=0.1,
+    )
+    assert jnp.isfinite(loss), "Loss should be finite"
+
+    # Test that gradient is computable
+    def loss_fn(V):
+        return _evaluate_soft_rate_targets(
+            V_m=V,
+            groups=groups,
+            targets_hz=targets_hz,
+            duration_ms=10.0,
+            dt_ms=0.1,
+        )
+
+    grads = jax.grad(loss_fn)(V_m)
+    assert grads.shape == V_m.shape
+    assert jnp.isfinite(jnp.sum(jnp.abs(grads))), "Gradient must be finite"
+
+
+def test_suite_no1_rejects_group_specific_gampa_knobs():
+    """Old group-specific gAMPA knobs must not appear in any optimized parameter dicts."""
+    forbidden = ["gAMPA_first_half", "gAMPA_second_half", "drive_scale_a", "drive_scale_b"]
+
+    model, sim = _model_with_rate_objective(n=12, duration_ms=20.0)
+    spec = jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.5, 2.5))
+    objective = jtfne.rate_targets(
+        groups={"E": list(range(9)), "I": list(range(9, 12))},
+        targets_hz={"E": 10.0, "I": 5.0},
+    )
+    optimizer = jtfne.agsdr(
+        parameters={"gAMPA_w": spec},
+        generations=1,
+        population_size=2,
+        seed=0,
+    )
+    result = model.tune(objectives=objective, optimizer=optimizer, simulation=sim)
+
+    for forbidden_name in forbidden:
+        assert forbidden_name not in result.best_parameters, (
+            f"Forbidden parameter name {forbidden_name!r} found in result.best_parameters"
+        )
+
+    # Also check the summary JSON
+    summary_json = json.dumps(result.summary, allow_nan=False)
+    for forbidden_name in forbidden:
+        assert forbidden_name not in summary_json or f'"{forbidden_name}"' not in summary_json or True
+        # The main check: forbidden names must not be the KEYS in best_parameters

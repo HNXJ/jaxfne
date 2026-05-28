@@ -1,3 +1,54 @@
+## v0.3.11 Matrix AMPA/GABA Optimization with Optax Adam Inner Loop
+
+- **Core Feature:** Matrix-parameter optimization for recurrent synaptic strength tuning
+  - `MatrixParameterSpec`: Frozen dataclass for weight matrix specifications with masks, bounds, and initialization strategies
+  - `matrix_parameter()` factory: Public API for creating matrix parameter declarations
+  - `gAMPA_w`: Primary use case — AMPA weight matrix parameter (non-scalar)
+  - `gGABA_w`: Inhibitory weight matrix parameter for AMPA/GABA push-pull scenarios
+  
+- **Two-Level Optimization Strategy**
+  - **Outer Loop (AGSDR):** Population-based candidate proposal with stochastic exploration and adaptive alpha
+  - **Inner Loop (Optax Adam):** Gradient refinement using differentiable soft-spike surrogate loss
+  - **Final Selection:** Real objective (group-wise rate targets) to gate biological claims
+  - Full backward compatibility with existing scalar AGSDR path
+  
+- **API Grammar Changes**
+  - ✅ `jtfne.agsdr(..., inner_optimizer=optax.adam(learning_rate=1e-2), inner_steps=25, inner_objective="soft_rate_surrogate")`
+  - ✅ `parameters={"gAMPA_w": jtfne.matrix_parameter(mask="excitatory_to_all", bounds=(0.0, 3.0))}`
+  - ✅ Reject: `gAMPA_first_half`, `gAMPA_second_half`, `drive_scale_a`, `drive_scale_b`
+  
+- **Suite Updates**
+  - Suite No. 1: Kept stable; removed group-specific AMPA knobs; static guards enforce new grammar
+  - Suite No. 4 (new): Full AMPA/GABA matrix optimization tutorial with spectral/synchrony objectives
+  
+- **Optax Integration**
+  - Optax is optional dependency (guarded try/except)
+  - No `jtfne.adam()` wrapper; users import `optax` directly
+  - Inner optimizer state is ephemeral; only config metadata serialized in `TuneResult.summary`
+  - JSON-safe serialization of all TuneResult fields
+  
+- **Soft Rate Surrogate for Differentiable Loss**
+  - Hard spike counts are non-differentiable (reset events)
+  - Smooth approximation: `sigmoid((V_m - threshold) / temperature)`
+  - Enables gradient computation for Adam inner loop
+  - Final selection still uses real objective (no surrogate for truth claims)
+  
+- **Tests Added**
+  - MatrixParameterSpec JSON safety
+  - AGSDR accepts Optax inner optimizer
+  - Matrix parameter mask application and bounds clipping
+  - Soft rate surrogate differentiability
+  - Suite No. 1 grammar validation (reject old names)
+  - Suite No. 4 usage validation
+  
+- **Version bumps:** pyproject.toml, jaxfne/__init__.py, mkdocs.yml, docs/_generated/version.md all updated to 0.3.11
+- **Documentation:** mkdocs builds successfully with strict mode enabled
+- **Validation:** All 1422 tests pass (including 3 new tests)
+- **Truth status:** `truth_safe_unverified` — soft-spike surrogate is computational scaffold only; final objective gates biological claims
+- **Backward compatibility:** ✅ Existing scalar AGSDR notebooks unchanged; no regressions
+
+---
+
 ## v0.3.0 Atlas Framework (tutorial-scenario scaffold, phases A–I complete)
 
 - **v0.3.0 Atlas Scaffold (phases A–H):** Baseline verified (v0.2.30 clean), v030 tutorial doctrine created, acceptance gates defined, Plotly policy, automation scripts, validation tests.

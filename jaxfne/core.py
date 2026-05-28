@@ -32,6 +32,73 @@ from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
 
 
+@dataclass(frozen=True)
+class MatrixParameterSpec:
+    """Declarative specification for a tunable weight matrix parameter.
+
+    Used in multi-parameter optimization to specify that a named parameter
+    maps to a matrix (e.g., the synaptic weight matrix W) rather than a scalar.
+    The mask field selects which matrix entries are subject to scaling:
+    E_to_E, E_to_I, excitatory_to_all, or all.
+
+    The name is always the dict key in the parameters argument to
+    :func:; do **not** add a name field here.
+
+    Attributes
+    ----------
+    mask : str
+        Which matrix entries to scale: "E_to_E", "E_to_I",
+        "excitatory_to_all", or "all".
+    bounds : tuple[float, float]
+        (lower, upper) multiplicative scaling bounds.
+    init : str
+        Initialization strategy; "current" means start from the
+        model's existing weight values.
+    trainable : bool
+        Whether this parameter participates in optimization.
+    """
+
+    mask: str
+    bounds: tuple
+    init: str = "current"
+    trainable: bool = True
+
+
+def matrix_parameter(
+    *,
+    mask: str,
+    bounds: tuple,
+    init: str = "current",
+    trainable: bool = True,
+) -> MatrixParameterSpec:
+    """Create a matrix parameter specification for tuning weight matrices.
+
+    Parameters
+    ----------
+    mask : str
+        Which matrix entries to scale: "E_to_E", "E_to_I",
+        "excitatory_to_all", or "all".
+    bounds : tuple[float, float]
+        (lower, upper) multiplicative scaling bounds.
+    init : str
+        Initialization; "current" uses existing weight values.
+    trainable : bool
+        Whether this parameter participates in optimization.
+
+    Returns
+    -------
+    MatrixParameterSpec
+        Frozen specification object.
+
+    Examples
+    --------
+    >>> import jaxfne as jtfne
+    >>> spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
+    """
+    return MatrixParameterSpec(mask=mask, bounds=bounds, init=init, trainable=trainable)
+
+
+
 @dataclass
 class TuneResult:
     """Result object returned by Model.tune() with multi-parameter optimization.
@@ -2990,7 +3057,7 @@ class Model:
         objective: "Objective",
         optimizer: Any,
         spec: "OptimizerSpec",
-        parameters: dict[str, tuple[float, float]],
+        parameters: Any,
         generations: int,
         population_size: int,
         seed: int,
@@ -3001,9 +3068,16 @@ class Model:
 
         This is an internal helper called by tune() when the multi-parameter
         path is requested (parameters dict provided).
+
+        If any parameter values are :class: objects and the
+        optimizer has an inner_optimizer, routes to the two-level AGSDR+Adam path.
+        Otherwise uses the scalar AGSDR black-box path.
         """
         from .io import json_safe
-        from .optim import _run_agsdr_optimization_loop
+        from .optim import (
+            _run_agsdr_optimization_loop,
+            _tune_matrix_agsdr_optax,
+        )
 
         cfg_meta = self.cfg.metadata
 
@@ -3012,7 +3086,14 @@ class Model:
             "same_model_unchanged": True,
             "seed": int(seed),
             "strategy": "agsdr_multiparameter",
-            "parameters": {k: [float(v[0]), float(v[1])] for k, v in parameters.items()},
+            "parameters": {
+                k: (
+                    {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)}
+                    if isinstance(v, MatrixParameterSpec)
+                    else [float(v[0]), float(v[1])]
+                )
+                for k, v in parameters.items()
+            },
             "generations": int(generations),
             "population_size": int(population_size),
             "optimizer": spec.to_dict(),
@@ -3033,10 +3114,45 @@ class Model:
             "mechanism_claim_status": "not_claimed",
         }
 
+        # Separate scalar bounds from MatrixParameterSpec entries
+        param_specs: dict[str, Any] = {}
+        scalar_bounds: dict[str, tuple] = {}
+        for k, v in parameters.items():
+            if isinstance(v, MatrixParameterSpec):
+                param_specs[k] = v
+                scalar_bounds[k] = v.bounds
+            else:
+                scalar_bounds[k] = tuple(v)
+
+        # Two-level dispatch: matrix + inner_optimizer => AGSDR+Adam path
+        inner_optimizer = getattr(optimizer, "inner_optimizer", None)
+        inner_steps = getattr(optimizer, "inner_steps", 0)
+        inner_objective = getattr(optimizer, "inner_objective", None)
+        has_matrix = bool(param_specs)
+
+        if has_matrix and inner_optimizer is not None:
+            return _tune_matrix_agsdr_optax(
+                model=self,
+                objective=objective,
+                parameters=parameters,
+                param_specs=param_specs,
+                scalar_bounds=scalar_bounds,
+                inner_optimizer=inner_optimizer,
+                inner_steps=inner_steps,
+                inner_objective=inner_objective,
+                spec=spec,
+                generations=generations,
+                population_size=population_size,
+                seed=seed,
+                strict=strict,
+                simulation=simulation,
+                base_report=base_report,
+            )
+
         # Define scoring function for AGSDR loop
         def evaluate_fn(candidate_params: dict[str, float]) -> float:
             """Evaluate a candidate parameter dict and return loss."""
-            candidate_model = _model_with_parameters(self, candidate_params)
+            candidate_model = _model_with_parameters(self, candidate_params, param_specs if param_specs else None)
             candidate_signals = candidate_model.simulate(replace(simulation, seed=int(seed)))
             candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
             score = candidate_report.get("total_loss")
@@ -3045,11 +3161,11 @@ class Model:
                 score = 0.0 if gates_pass else float("inf")
             return float(score)
 
-        # Run AGSDR optimization
+        # Run AGSDR optimization (scalar_bounds only, not MatrixParameterSpec objects)
         try:
             agsdr_result = _run_agsdr_optimization_loop(
                 evaluate_fn=evaluate_fn,
-                parameter_bounds=parameters,
+                parameter_bounds=scalar_bounds,
                 n_generations=int(generations),
                 n_population=int(population_size),
                 alpha=float(spec.alpha),
@@ -3062,7 +3178,7 @@ class Model:
             generation_records = agsdr_result["generation_records"]
 
             # Apply best parameters to model
-            best_model = _model_with_parameters(self, best_parameters)
+            best_model = _model_with_parameters(self, best_parameters, param_specs if param_specs else None)
 
             # Build detailed report
             report = {
@@ -3409,12 +3525,116 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
-def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
-    """Return a Model copy with multiple safe scalar emitter parameters changed.
+def _mask_for_parameter(model: "Model", parameter_name: str, mask_type: str) -> "jax.Array":
+    """Return a boolean mask over the W matrix for the given mask type.
 
-    Applies all parameter updates in sequence. Supported parameters: source_scale,
-    drive_gain, synaptic_gain, drive_scale_a, drive_scale_b, gAMPA_first_half,
-    and gAMPA_second_half.
+    Parameters
+    ----------
+    model : Model
+        Model whose W matrix determines the mask shape.
+    parameter_name : str
+        Name of the parameter (used only for error messages).
+    mask_type : str
+        One of: "E_to_E", "E_to_I", "excitatory_to_all", "all".
+
+    Returns
+    -------
+    jax.Array
+        Boolean mask of shape (n, n) where True marks entries to scale.
+    """
+    import numpy as _np_mask
+    emitter = model.params["emitter"]
+    W = _np_mask.asarray(emitter.W, dtype=float)
+    n = W.shape[0]
+
+    if mask_type == "all":
+        return jnp.ones((n, n), dtype=bool)
+
+    if mask_type == "excitatory_to_all":
+        # Scale entries in rows corresponding to excitatory neurons (positive out-degree).
+        # We identify E neurons by their sign label or by majority positive outgoing weights.
+        row_mask = _np_mask.zeros(n, dtype=bool)
+        for i in range(n):
+            # E neurons: positive outgoing (sign > 0) or labeled E
+            label = emitter.labels[i] if i < len(emitter.labels) else ""
+            if label.startswith("E") or _np_mask.sum(W[i, :] > 0) > _np_mask.sum(W[i, :] < 0):
+                row_mask[i] = True
+        return jnp.asarray(_np_mask.outer(row_mask, _np_mask.ones(n, dtype=bool)), dtype=bool)
+
+    # E_to_E and E_to_I: identify E vs I neurons by labels
+    e_mask = _np_mask.zeros(n, dtype=bool)
+    i_mask = _np_mask.zeros(n, dtype=bool)
+    for idx in range(n):
+        label = emitter.labels[idx] if idx < len(emitter.labels) else ""
+        if label.startswith("E"):
+            e_mask[idx] = True
+        else:
+            i_mask[idx] = True
+
+    if mask_type == "E_to_E":
+        return jnp.asarray(_np_mask.outer(e_mask, e_mask), dtype=bool)
+    if mask_type == "E_to_I":
+        return jnp.asarray(_np_mask.outer(e_mask, i_mask), dtype=bool)
+
+    raise ValueError(
+        f"Unknown mask type for parameter {parameter_name!r}: {mask_type!r}. "
+        "Supported: E_to_E, E_to_I, excitatory_to_all, all"
+    )
+
+
+def _model_with_matrix_parameter(
+    model: "Model",
+    parameter_name: str,
+    spec: "MatrixParameterSpec",
+    value: float,
+) -> "Model":
+    """Return a Model copy with a matrix parameter scaled by value.
+
+    The value is treated as a multiplicative scale factor applied to
+    the subset of W entries selected by spec.mask.  The result is then
+    clipped to spec.bounds.
+
+    Parameters
+    ----------
+    model : Model
+        Original model (not mutated).
+    parameter_name : str
+        Name of the parameter (for diagnostics).
+    spec : MatrixParameterSpec
+        Matrix parameter specification.
+    value : float
+        Multiplicative scale factor (clipped to spec.bounds).
+
+    Returns
+    -------
+    Model
+        New model with scaled matrix entries.
+    """
+    import numpy as _np_matrix
+    lo, hi = float(spec.bounds[0]), float(spec.bounds[1])
+    value = float(_np_matrix.clip(value, lo, hi))
+
+    emitter = model.params["emitter"]
+    W = _np_matrix.asarray(emitter.W, dtype=float)
+    mask = _np_matrix.asarray(_mask_for_parameter(model, parameter_name, spec.mask), dtype=bool)
+
+    new_W = W.copy()
+    new_W[mask] = W[mask] * value
+    new_emitter = replace(emitter, W=jnp.asarray(new_W, dtype=emitter.W.dtype))
+    params = dict(model.params)
+    params["emitter"] = new_emitter
+    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+
+
+def _model_with_parameters(
+    model: "Model",
+    parameters: Any,
+    param_specs: Optional[Any] = None,
+) -> "Model":
+    """Return a Model copy with multiple emitter parameters changed.
+
+    Dispatches each parameter to the scalar or matrix path depending on
+    whether param_specs contains a :class: for that name.
 
     Parameters
     ----------
@@ -3422,6 +3642,9 @@ def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
         Original model (not mutated).
     parameters : dict[str, float]
         Mapping from parameter names to float values.
+    param_specs : dict[str, Any], optional
+        Mapping from parameter names to spec objects (e.g. MatrixParameterSpec).
+        When None, all parameters are treated as scalars.
 
     Returns
     -------
@@ -3430,8 +3653,75 @@ def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
     """
     result = model
     for param_name, param_value in parameters.items():
+        if param_specs is not None and param_name in param_specs:
+            spec = param_specs[param_name]
+            if isinstance(spec, MatrixParameterSpec):
+                result = _model_with_matrix_parameter(result, param_name, spec, float(param_value))
+                continue
         result = _model_with_scalar_parameter(result, param_name, float(param_value))
     return result
+
+
+def _evaluate_soft_rate_targets(
+    V_m: "jax.Array",
+    groups: dict,
+    targets_hz: dict,
+    duration_ms: float,
+    dt_ms: float,
+    threshold: float = -45.0,
+    temperature: float = 5.0,
+) -> "jax.Array":
+    """Compute a differentiable soft firing-rate MSE loss using a sigmoid spike surrogate.
+
+    This function is used in the Adam inner loop for matrix parameter optimization.
+    It provides smooth gradients through the spike threshold by approximating
+    spike probability with a sigmoid function, making the loss differentiable
+    with respect to V_m (and thus to the weight matrix W).
+
+    Parameters
+    ----------
+    V_m : jax.Array
+        Membrane voltages, shape (n_steps, n_neurons).
+    groups : dict
+        Mapping from group name to list of neuron indices.
+    targets_hz : dict
+        Mapping from group name to target firing rate in Hz.
+    duration_ms : float
+        Simulation duration in milliseconds.
+    dt_ms : float
+        Simulation time step in milliseconds.
+    threshold : float
+        Spike threshold in mV (default -45 mV for Izhikevich scaffold).
+    temperature : float
+        Sigmoid sharpness (lower = sharper threshold, default 5.0).
+
+    Returns
+    -------
+    jax.Array
+        Scalar MSE loss (differentiable).
+    """
+    duration_s = duration_ms / 1000.0
+
+    # Soft spike approximation: sigmoid((V_m - threshold) / temperature)
+    soft_spikes = jax.nn.sigmoid((V_m - threshold) / temperature)
+
+    total_loss = jnp.zeros((), dtype=jnp.float32)
+    for group_name, idx_list in groups.items():
+        if not idx_list:
+            continue
+        idx_arr = jnp.asarray(idx_list, dtype=jnp.int32)
+        group_soft = soft_spikes[:, idx_arr]  # (n_steps, n_group)
+        n_neurons = group_soft.shape[1]
+        # Soft rate in Hz: sum over steps / (duration_s * n_neurons)
+        soft_rate_hz = jnp.sum(group_soft) / (duration_s * n_neurons)
+        target_hz = float(targets_hz.get(group_name, 10.0))
+        target_arr = jnp.asarray(target_hz, dtype=jnp.float32)
+        # Normalized MSE
+        denom = jnp.maximum(jnp.abs(target_arr), jnp.asarray(1.0, dtype=jnp.float32))
+        loss_i = ((soft_rate_hz - target_arr) / denom) ** 2
+        total_loss = total_loss + loss_i
+
+    return total_loss
 
 
 @dataclass(frozen=True)
@@ -4140,7 +4430,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.10"
+_JAXFNE_VERSION = "0.3.11"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
