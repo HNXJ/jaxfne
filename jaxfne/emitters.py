@@ -134,7 +134,7 @@ def izhikevich_eig_params(
     - ``E``: regular-spiking-like excitatory emitter.
     - ``PV`` or ``Inl``: fast-spiking local inhibitory emitter.
     - ``SST`` or ``Ing``: low-threshold/dendrite-related inhibitory emitter.
-    - ``VIP``: placeholder inhibitory/disinhibitory class.
+    - ``VIP``: VIP-like inhibitory/disinhibitory emitter class.
     """
 
     jdtype = _dtype_from_policy(dtype)

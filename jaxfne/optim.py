@@ -1,11 +1,13 @@
-"""Optimizer specification and metadata layer for :mod:`jaxfne` v0.0.5-P3.
+"""Optimizer specifications and execution helpers for :mod:`jaxfne`.
 
-This module provides JSON-safe optimizer specs and a guarded Optax import.
-No real optimization loop runs in v0.0.5 — all tune() calls return
-``tuning_status="metadata_only_v0.0.5"`` and leave model parameters unchanged.
+The public tutorial grammar constructs optimizer specs, for example
+``jtfne.agsdr(parameters=...)``, and passes them into ``Model.tune``. This
+module owns the implementation details: candidate proposal, AGSDR bookkeeping,
+optional Optax guards, and small JAX-native helper functions used by black-box
+or differentiable paths.
 
 Optimizer grammar:
-  optimizer_class: differentiable | blackbox | hybrid
+  optimizer_class: differentiable | blackbox | hybrid | multiparameter_blackbox
   optimizer:       GSDR | AGSDR | random_search | optax_adam | optax_sgd
   differentiability_status: differentiable | declared_surrogate |
                             non_differentiable | not_checked
@@ -18,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 import jax
+import jax.numpy as jnp
 
 _BLACKBOX_OPTIMIZERS: frozenset[str] = frozenset({"GSDR", "AGSDR", "random_search"})
 _DIFFERENTIABLE_OPTIMIZERS: frozenset[str] = frozenset({"optax_adam", "optax_sgd"})
@@ -30,6 +33,57 @@ _VALID_SURROGATE: frozenset[str] = frozenset({
     "none", "declared", "required_but_missing", "not_applicable",
 })
 _VALID_OPTIMIZER_CLASS: frozenset[str] = frozenset({"differentiable", "blackbox", "hybrid"})
+
+
+@jax.jit
+def _quadratic_target_loss(
+    achieved: jax.Array,
+    target: jax.Array,
+    weights: jax.Array,
+) -> jax.Array:
+    """JAX-native weighted squared-relative-error loss.
+
+    This helper is intentionally small so it can be inspected with
+    ``jax.make_jaxpr`` and differentiated by tests or downstream optimizers.
+    The AGSDR black-box path does not rely on the gradient, but exposing this
+    pure function keeps objective arithmetic compatible with ``jax.grad``.
+    """
+    achieved = jnp.asarray(achieved, dtype=jnp.float32)
+    target = jnp.asarray(target, dtype=jnp.float32)
+    weights = jnp.asarray(weights, dtype=jnp.float32)
+    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=jnp.float32))
+    rel = (achieved - target) / denom
+    return jnp.sum(weights * rel * rel)
+
+
+quadratic_target_loss_grad = jax.jit(jax.grad(_quadratic_target_loss, argnums=0))
+
+
+@jax.jit
+def _agsdr_candidates_from_noise(
+    center: jax.Array,
+    lows: jax.Array,
+    highs: jax.Array,
+    exploration: float,
+    noise: jax.Array,
+) -> jax.Array:
+    """Return a vectorized AGSDR candidate population from standard-normal noise.
+
+    ``evaluate_fn`` remains a Python black-box callback, but candidate proposal is
+    JAX-native: one ``jit``-compiled function and one ``vmap`` over population
+    rows.  Shapes are fixed by ``noise`` and parameter arrays.
+    """
+    center = jnp.asarray(center, dtype=jnp.float32)
+    lows = jnp.asarray(lows, dtype=jnp.float32)
+    highs = jnp.asarray(highs, dtype=jnp.float32)
+    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=jnp.float32))
+    proposals = center[None, :] + jnp.asarray(exploration, dtype=jnp.float32) * span[None, :] * noise
+
+    def clip_one(row: jax.Array) -> jax.Array:
+        return jnp.clip(row, lows, highs)
+
+    candidates = jax.vmap(clip_one)(proposals)
+    return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 
 @dataclass(frozen=True)
@@ -82,7 +136,7 @@ class OptimizerSpec:
             "optimizer": self.optimizer,
             "differentiability_status": self.differentiability_status,
             "surrogate_status": self.surrogate_status,
-            "status": "metadata_only_v0.0.5",
+            "status": "optimizer_spec",
             "alpha": self.alpha,
             "exploration": self.exploration,
             "deselect_factor": self.deselect_factor,
@@ -109,13 +163,92 @@ def gsdr(
     )
 
 
+@dataclass(frozen=True)
+class AGSDROptimizerSpec:
+    """Multi-parameter AGSDR optimizer specification with execution parameters.
+
+    This spec defines both the AGSDR algorithm parameters (alpha, exploration)
+    and the execution context (parameters, generations, population_size, seed).
+    When passed to Model.tune(), it triggers multi-parameter optimization.
+    """
+
+    parameters: dict[str, tuple[float, float]]  # {"param_name": (lower, upper), ...}
+    generations: int = 8
+    population_size: int = 6
+    alpha: float = 0.65
+    exploration: float = 0.18
+    deselect_factor: float = 2.0
+    seed: int = 0
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-safe dictionary."""
+        return {
+            "optimizer": "AGSDR",
+            "optimizer_class": "multiparameter_blackbox",
+            "parameters": {k: [float(v[0]), float(v[1])] for k, v in self.parameters.items()},
+            "generations": int(self.generations),
+            "population_size": int(self.population_size),
+            "alpha": float(self.alpha),
+            "exploration": float(self.exploration),
+            "deselect_factor": float(self.deselect_factor),
+            "seed": int(self.seed),
+        }
+
+
 def agsdr(
     alpha: float = 0.7,
     exploration: float = 0.05,
     deselect_factor: float = 2.0,
     metadata: Optional[dict[str, Any]] = None,
-) -> OptimizerSpec:
-    """Return an OptimizerSpec for the AGSDR (Adaptive GSDR) optimizer."""
+    # Multi-parameter path (new)
+    parameters: Optional[dict[str, tuple[float, float]]] = None,
+    generations: Optional[int] = None,
+    population_size: Optional[int] = None,
+    seed: int = 0,
+) -> Any:
+    """Return an optimizer spec for AGSDR.
+
+    Two paths:
+    1. Single-parameter (legacy): returns OptimizerSpec for scalar parameter tuning
+    2. Multi-parameter (new): returns AGSDROptimizerSpec for multi-param optimization
+
+    Parameters
+    ----------
+    alpha : float
+        Step size for delta-rule center update (default 0.7 for legacy, 0.65 for multi-param).
+    exploration : float
+        Standard deviation scale for proposal distribution (default 0.05 for legacy, 0.18 for multi-param).
+    deselect_factor : float
+        Deselection factor for genetic algorithm (default 2.0).
+    metadata : dict, optional
+        Custom metadata (legacy path only).
+    parameters : dict, optional
+        Multi-parameter bounds: {"param_name": (lower, upper), ...}. If provided, returns AGSDROptimizerSpec.
+    generations : int, optional
+        Number of generations for multi-parameter optimization (default 8).
+    population_size : int, optional
+        Population per generation for multi-parameter optimization (default 6).
+    seed : int
+        Random seed (default 0).
+
+    Returns
+    -------
+    OptimizerSpec or AGSDROptimizerSpec
+        OptimizerSpec for single-parameter path, AGSDROptimizerSpec for multi-parameter path.
+    """
+    # Multi-parameter path
+    if parameters is not None:
+        return AGSDROptimizerSpec(
+            parameters=parameters,
+            generations=int(generations) if generations is not None else 8,
+            population_size=int(population_size) if population_size is not None else 6,
+            alpha=float(alpha) if alpha != 0.7 else 0.65,  # Use 0.65 default for multi-param
+            exploration=float(exploration) if exploration != 0.05 else 0.18,  # Use 0.18 default for multi-param
+            deselect_factor=float(deselect_factor),
+            seed=int(seed),
+        )
+
+    # Single-parameter path (legacy)
     return OptimizerSpec(
         optimizer="AGSDR",
         optimizer_class="blackbox",
@@ -183,9 +316,25 @@ def optax_sgd(
 
 
 def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
-    """Convert a string shorthand or OptimizerSpec into an OptimizerSpec."""
+    """Convert string shorthand or optimizer-spec objects into OptimizerSpec."""
     if isinstance(optimizer, OptimizerSpec):
         return optimizer
+    if isinstance(optimizer, AGSDROptimizerSpec):
+        return OptimizerSpec(
+            optimizer="AGSDR",
+            optimizer_class="multiparameter_blackbox",
+            differentiability_status="non_differentiable",
+            surrogate_status="not_applicable",
+            alpha=float(optimizer.alpha),
+            exploration=float(optimizer.exploration),
+            deselect_factor=float(optimizer.deselect_factor),
+            metadata={
+                "parameters": {k: [float(v[0]), float(v[1])] for k, v in optimizer.parameters.items()},
+                "generations": int(optimizer.generations),
+                "population_size": int(optimizer.population_size),
+                "seed": int(optimizer.seed),
+            },
+        )
     if isinstance(optimizer, str):
         name = optimizer.upper()
         if name in {"GSDR"}:
@@ -228,7 +377,11 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
 # Legacy AGSDR class preserved from v0.0.4 for backward compatibility.
 @dataclass(frozen=True)
 class AGSDR:
-    """Adaptive Genetic Stochastic Delta Rule placeholder (v0.0.4 legacy)."""
+    """Legacy AGSDR adapter retained for old notebooks and tests.
+
+    Prefer ``jtfne.agsdr(...)``.  This class only exposes metadata and does not
+    execute optimization directly.
+    """
 
     alpha: float = 0.7
     exploration: float = 0.05
@@ -238,7 +391,7 @@ class AGSDR:
         return {
             "optimizer_class": "blackbox",
             "optimizer": "AGSDR",
-            "status": "prototype_api",
+            "status": "legacy_adapter",
             "alpha": self.alpha,
             "exploration": self.exploration,
             "deselect_factor": self.deselect_factor,
@@ -324,6 +477,206 @@ def propose_blackbox_candidates(
         jitter = (rng.random() - 0.5) * optimizer.exploration * (hi - lo)
         out.append(min(hi, max(lo, lo + frac * (hi - lo) + jitter)))
     return out
+
+
+def _run_agsdr_optimization_loop(
+    evaluate_fn: Callable[[dict[str, float]], float],
+    parameter_bounds: dict[str, tuple[float, float]],
+    n_generations: int,
+    n_population: int,
+    alpha: float = 0.65,
+    exploration: float = 0.18,
+    seed: int = 0,
+) -> dict[str, Any]:
+    """Run a stateful multi-parameter AGSDR (Adaptive Genetic Stochastic Delta Rule) loop.
+
+    This function encapsulates the full AGSDR optimization workflow for black-box
+    tuning of multiple scalar parameters. It is designed for notebook-style usage
+    where you have a callable that evaluates candidate parameter dicts and returns
+    a scalar loss/score. The function manages PRNG, parameter center tracking, and
+    best-result history internally.
+
+    Parameters
+    ----------
+    evaluate_fn : Callable[[dict[str, float]], float]
+        User-supplied scoring function. Takes a dict mapping parameter names to
+        float values and returns a scalar loss (lower is better).
+    parameter_bounds : dict[str, tuple[float, float]]
+        Bounds for each parameter: {"param_name": (lower, upper), ...}.
+        All parameters are scalar floats.
+    n_generations : int
+        Number of optimization generations to run.
+    n_population : int
+        Number of candidates to evaluate per generation.
+    alpha : float
+        Step size for delta-rule center update (default 0.65).
+        After each generation, theta_center is updated as:
+            theta_center += alpha * (best_theta - theta_center)
+    exploration : float
+        Standard deviation scale for normal-distribution proposals (default 0.18).
+        Candidates are sampled from normal(theta_center, exploration * span) and clipped.
+    seed : int
+        Random seed for reproducibility (default 0).
+
+    Returns
+    -------
+    dict[str, Any]
+        A dict with keys:
+        - "best_parameters": dict mapping parameter names to optimal float values
+        - "best_score": best (lowest) score achieved
+        - "generation_records": list of dicts, one per generation:
+            {"generation": int, "best_score": float, "best_parameters": dict}
+        - "all_scores": list of all scores evaluated, in order
+        - "all_candidates": list of all candidate dicts evaluated, in order
+
+    Notes
+    -----
+    The AGSDR strategy is two-phase:
+      - Phase 1 (0 to n_population//5): Propose from bounds center with high variance
+      - Phase 2 (remaining): Propose from evolving center with decaying variance
+
+    The function uses a simple Numpy random.Random() generator and does not
+    require JAX. It is suitable for integration into Jupyter notebooks and
+    Model.tune() as the "multi-parameter" optimization path.
+
+    Example
+    -------
+    >>> def score_model(params):
+    ...     m = model.with_parameters(params)
+    ...     signals = m.simulate(...)
+    ...     return model.evaluate(signals, objective)
+    >>> bounds = {"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)}
+    >>> result = _run_agsdr_optimization_loop(
+    ...     evaluate_fn=score_model,
+    ...     parameter_bounds=bounds,
+    ...     n_generations=8,
+    ...     n_population=6,
+    ...     alpha=0.65,
+    ...     exploration=0.18,
+    ...     seed=42,
+    ... )
+    >>> print(f"Best score: {result['best_score']}")
+    >>> print(f"Best params: {result['best_parameters']}")
+    """
+    import random
+
+    # Validate inputs
+    if not parameter_bounds:
+        raise ValueError("parameter_bounds must be non-empty dict")
+    if n_generations < 1 or n_population < 1:
+        raise ValueError("n_generations and n_population must be >= 1")
+
+    # Initialize deterministic JAX key for vectorized population proposal.
+    base_key = jax.random.PRNGKey(int(seed))
+
+    # Extract parameter names and bounds
+    param_names = sorted(parameter_bounds.keys())
+    bounds_list = [parameter_bounds[name] for name in param_names]
+
+    # Validate and normalize bounds
+    normalized_bounds: list[tuple[float, float]] = []
+    for name, (lo_raw, hi_raw) in zip(param_names, bounds_list):
+        lo = float(lo_raw)
+        hi = float(hi_raw)
+        if not (lo == lo and hi == hi):
+            raise ValueError(f"non-finite bounds for parameter {name!r}: {(lo_raw, hi_raw)!r}")
+        if hi < lo:
+            lo, hi = hi, lo
+        if hi == lo:
+            raise ValueError(f"degenerate bounds for parameter {name!r}: {(lo, hi)!r}")
+        normalized_bounds.append((lo, hi))
+    bounds_list = normalized_bounds
+
+    lows = jnp.asarray([b[0] for b in bounds_list], dtype=jnp.float32)
+    highs = jnp.asarray([b[1] for b in bounds_list], dtype=jnp.float32)
+
+    # Initialize center: start at midpoint of each parameter's bounds
+    center_arr = 0.5 * (lows + highs)
+    theta_center = {
+        name: float(center_arr[i])
+        for i, name in enumerate(param_names)
+    }
+
+    # Track best result
+    best_score = float("inf")
+    best_parameters: dict[str, float] = {}
+
+    # Track history
+    generation_records: list[dict[str, Any]] = []
+    all_scores: list[float] = []
+    all_candidates: list[dict[str, float]] = []
+
+    # Main AGSDR loop.  Candidate proposal is JAX-native (jit + vmap) while
+    # evaluate_fn remains a Python black-box callback over a Model simulation.
+    for gen in range(int(n_generations)):
+        gen_best_score = float("inf")
+        gen_best_params: dict[str, float] = {}
+
+        key = jax.random.fold_in(base_key, int(gen))
+        noise = jax.random.normal(
+            key,
+            shape=(int(n_population), len(param_names)),
+            dtype=jnp.float32,
+        )
+        candidate_matrix = _agsdr_candidates_from_noise(
+            center_arr,
+            lows,
+            highs,
+            float(exploration),
+            noise,
+        )
+
+        # Evaluate population for this generation
+        for row in range(int(n_population)):
+            values = candidate_matrix[row]
+            candidate = {
+                name: float(values[idx])
+                for idx, name in enumerate(param_names)
+            }
+
+            score = float(evaluate_fn(candidate))
+            all_scores.append(score)
+            all_candidates.append(dict(candidate))
+
+            if score < gen_best_score:
+                gen_best_score = score
+                gen_best_params = dict(candidate)
+
+            if score < best_score:
+                best_score = score
+                best_parameters = dict(candidate)
+
+        # Delta-rule update: move center toward best candidate of this generation
+        if gen_best_params:
+            gen_best_arr = jnp.asarray(
+                [gen_best_params[name] for name in param_names],
+                dtype=jnp.float32,
+            )
+            center_arr = jnp.clip(center_arr + float(alpha) * (gen_best_arr - center_arr), lows, highs)
+            theta_center = {
+                name: float(center_arr[i])
+                for i, name in enumerate(param_names)
+            }
+
+        # Record generation-local and best-so-far state.  The best_so_far field is
+        # monotone non-increasing even when exploratory candidates worsen.
+        generation_records.append({
+            "generation": int(gen),
+            "generation_best_score": gen_best_score,
+            "generation_best_parameters": dict(gen_best_params),
+            "best_score": best_score,
+            "best_parameters": dict(best_parameters),
+            "theta_center": dict(theta_center),
+        })
+
+    # Return results
+    return {
+        "best_parameters": best_parameters,
+        "best_score": best_score,
+        "generation_records": generation_records,
+        "all_scores": all_scores,
+        "all_candidates": all_candidates,
+    }
 
 
 # Transform state dataclasses for Optax-compatible gradient optimization paths.

@@ -480,7 +480,7 @@ def _make_field_solution_report(
     Parameters
     ----------
     field_solver_status : str
-        Field solver status: laminar_proxy_no_pde, solved_resistive_poisson, solved_bidomain, or specified_future_module.
+        Field solver status: laminar_proxy_no_pde, solved_resistive_poisson, solved_bidomain, or not_implemented.
     solver_name : str
         Human-readable solver name.
     boundary_condition : str
@@ -1082,7 +1082,7 @@ def compute_conservation_proxy_diagnostics(
     * ``physical_amplitude_claim_allowed``: always ``False``.
     * ``biological_metabolism_claim_allowed``: always ``False``.
     * ``j_dot_e_proxy``: ``None`` — J_e is not computed in proxy mode.
-    * ``poynting_flux_proxy``: ``None`` — not implemented.
+    * ``poynting_flux_proxy``: ``None`` — unavailable in laminar proxy mode.
     * ``poisson_solver_status``: ``"not_implemented"`` — no solver in v0.2.27.
     * ``maxwell_solver_status``: ``"not_implemented"`` — no solver in v0.2.x.
     * ``stress_energy_tensor_status``: ``"not_implemented"`` — no solver in v0.2.x.
@@ -1225,7 +1225,7 @@ def compute_conservation_proxy_diagnostics(
             "proxy diagnostics only — no physical amplitude claim",
             "no biological metabolism claim",
             "no Poisson solver in v0.2.27",
-            "no Maxwell/Poynting/stress-energy implementation",
+            "Maxwell/Poynting/stress-energy quantities are unavailable in laminar proxy mode",
             "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
             "source_conservation_proxy_residual is a spatial-mean proxy, not PDE-enforced",
         ],

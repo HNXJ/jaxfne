@@ -109,10 +109,11 @@ class TestPublicAPIUsage:
             for c in nb["cells"] if c["cell_type"] == "code"
         )
 
-        assert "signals.spikes" in code, "Missing signals.spikes access"
-        assert "signals.V_m" in code, "Missing signals.V_m access"
-        assert "signals.sources" in code, "Missing signals.sources access"
-        assert "signals.time_ms" in code, "Missing signals.time_ms access"
+        # Signals are accessed via variable names like signals_single, signals_pop, etc.
+        assert ".spikes" in code, "Missing .spikes access"
+        assert ".V_m" in code, "Missing .V_m access"
+        assert ".sources" in code, "Missing .sources access"
+        assert ".time_ms" in code, "Missing .time_ms access"
 
 
 class TestMetadataFormatting:
@@ -189,7 +190,7 @@ class TestFigureGeneration:
     """Validate visualization code."""
 
     def test_display_helpers_defined(self):
-        """Notebook defines display helpers."""
+        """Notebook imports display helpers from tutorial_utils."""
         with open(NOTEBOOK_PATH) as f:
             nb = json.load(f)
 
@@ -198,9 +199,11 @@ class TestFigureGeneration:
             for c in nb["cells"] if c["cell_type"] == "code"
         )
 
-        assert "def save_png" in code
-        assert "def finite_status" in code
-        assert "def population_rate_hz" in code
+        # Helpers are imported from tutorial_utils, not defined inline
+        assert "from jaxfne.tutorial_utils import" in code
+        assert "save_png" in code
+        assert "finite_status" in code
+        assert "population_rate_hz" in code
 
     def test_figure_references_present(self):
         """Notebook saves figures with expected names."""

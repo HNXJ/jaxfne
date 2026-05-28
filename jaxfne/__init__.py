@@ -33,6 +33,7 @@ from .core import (
     TrialBatchResult,
     TrialResult,
     TrialSpec,
+    TuneResult,
     config_to_configuration,
     config_to_geometry,
     config_to_simulation,
@@ -47,6 +48,7 @@ from .core import (
     objective,
     operator_status,
     paradigm,
+    rate_targets,
     runtime_report,
     _JAXFNE_VERSION,
     _KNOWN_READOUT_METRICS,
@@ -100,6 +102,7 @@ from .fields import (
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
 from .optim import (
     AGSDR,
+    AGSDROptimizerSpec,
     AGSDRState,
     GSDRState,
     OptimizerSpec,
@@ -148,6 +151,7 @@ __all__ = [
     "TrialBatchResult",
     "TrialResult",
     "TrialSpec",
+    "TuneResult",
 
     "config_to_configuration",
     "config_to_geometry",
@@ -163,6 +167,7 @@ __all__ = [
     "objective",
     "operator_status",
     "paradigm",
+    "rate_targets",
     "readout_spec",
     "require_jaxley",
     "jaxley_trace_to_signals",
@@ -213,6 +218,7 @@ __all__ = [
     "sha256_file",
     "sha256_text",
     "AGSDR",
+    "AGSDROptimizerSpec",
     "AGSDRState",
     "GSDRState",
     "OptimizerSpec",
