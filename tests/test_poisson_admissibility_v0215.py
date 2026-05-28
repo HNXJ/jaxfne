@@ -161,12 +161,11 @@ class TestPoissonGaugeCondition:
         assert "not tested" in msg or "not available" in msg
 
     def test_gauge_other_type(self):
-        """Other gauge types are noted as not implemented."""
-        is_satisfied, msg = validate_poisson_gauge_condition(
-            0.5, gauge="other_gauge"
-        )
-        assert is_satisfied  # Not rejected, just not validated
-        assert "not implemented" in msg
+        """Unsupported gauge types raise until an implementation exists."""
+        import pytest
+
+        with pytest.raises(NotImplementedError):
+            validate_poisson_gauge_condition(0.5, gauge="other_gauge")
 
 
 class TestPoissonFieldArrays:

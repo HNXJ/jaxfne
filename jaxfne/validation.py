@@ -861,7 +861,12 @@ def validate_poisson_gauge_condition(
                 return False, f"gauge {gauge} violated; |mean(phi_e)| {abs(mean_val):.2e} > tol"
             return True, f"gauge {gauge} satisfied; |mean(phi_e)| {abs(mean_val):.2e}"
         else:
-            return True, f"gauge {gauge}: validation not implemented yet"
+            raise NotImplementedError(
+                f"Unsupported Poisson gauge validation: {gauge!r}. "
+                "Only gauge='mean_zero' is implemented."
+            )
+    except NotImplementedError:
+        raise
     except Exception as e:
         return False, f"gauge check failed: {str(e)}"
 

@@ -1,11 +1,13 @@
-"""Optimizer specification and metadata layer for :mod:`jaxfne` v0.0.5-P3.
+"""Optimizer specifications and execution helpers for :mod:`jaxfne`.
 
-This module provides JSON-safe optimizer specs and a guarded Optax import.
-No real optimization loop runs in v0.0.5 — all tune() calls return
-``tuning_status="metadata_only_v0.0.5"`` and leave model parameters unchanged.
+The public tutorial grammar constructs optimizer specs, for example
+``jtfne.agsdr(parameters=...)``, and passes them into ``Model.tune``. This
+module owns the implementation details: candidate proposal, AGSDR bookkeeping,
+optional Optax guards, and small JAX-native helper functions used by black-box
+or differentiable paths.
 
 Optimizer grammar:
-  optimizer_class: differentiable | blackbox | hybrid
+  optimizer_class: differentiable | blackbox | hybrid | multiparameter_blackbox
   optimizer:       GSDR | AGSDR | random_search | optax_adam | optax_sgd
   differentiability_status: differentiable | declared_surrogate |
                             non_differentiable | not_checked
@@ -18,6 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
 import jax
+import jax.numpy as jnp
 
 _BLACKBOX_OPTIMIZERS: frozenset[str] = frozenset({"GSDR", "AGSDR", "random_search"})
 _DIFFERENTIABLE_OPTIMIZERS: frozenset[str] = frozenset({"optax_adam", "optax_sgd"})
@@ -30,6 +33,57 @@ _VALID_SURROGATE: frozenset[str] = frozenset({
     "none", "declared", "required_but_missing", "not_applicable",
 })
 _VALID_OPTIMIZER_CLASS: frozenset[str] = frozenset({"differentiable", "blackbox", "hybrid"})
+
+
+@jax.jit
+def _quadratic_target_loss(
+    achieved: jax.Array,
+    target: jax.Array,
+    weights: jax.Array,
+) -> jax.Array:
+    """JAX-native weighted squared-relative-error loss.
+
+    This helper is intentionally small so it can be inspected with
+    ``jax.make_jaxpr`` and differentiated by tests or downstream optimizers.
+    The AGSDR black-box path does not rely on the gradient, but exposing this
+    pure function keeps objective arithmetic compatible with ``jax.grad``.
+    """
+    achieved = jnp.asarray(achieved, dtype=jnp.float32)
+    target = jnp.asarray(target, dtype=jnp.float32)
+    weights = jnp.asarray(weights, dtype=jnp.float32)
+    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=jnp.float32))
+    rel = (achieved - target) / denom
+    return jnp.sum(weights * rel * rel)
+
+
+quadratic_target_loss_grad = jax.jit(jax.grad(_quadratic_target_loss, argnums=0))
+
+
+@jax.jit
+def _agsdr_candidates_from_noise(
+    center: jax.Array,
+    lows: jax.Array,
+    highs: jax.Array,
+    exploration: float,
+    noise: jax.Array,
+) -> jax.Array:
+    """Return a vectorized AGSDR candidate population from standard-normal noise.
+
+    ``evaluate_fn`` remains a Python black-box callback, but candidate proposal is
+    JAX-native: one ``jit``-compiled function and one ``vmap`` over population
+    rows.  Shapes are fixed by ``noise`` and parameter arrays.
+    """
+    center = jnp.asarray(center, dtype=jnp.float32)
+    lows = jnp.asarray(lows, dtype=jnp.float32)
+    highs = jnp.asarray(highs, dtype=jnp.float32)
+    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=jnp.float32))
+    proposals = center[None, :] + jnp.asarray(exploration, dtype=jnp.float32) * span[None, :] * noise
+
+    def clip_one(row: jax.Array) -> jax.Array:
+        return jnp.clip(row, lows, highs)
+
+    candidates = jax.vmap(clip_one)(proposals)
+    return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 
 @dataclass(frozen=True)
@@ -82,7 +136,7 @@ class OptimizerSpec:
             "optimizer": self.optimizer,
             "differentiability_status": self.differentiability_status,
             "surrogate_status": self.surrogate_status,
-            "status": "metadata_only_v0.0.5",
+            "status": "optimizer_spec",
             "alpha": self.alpha,
             "exploration": self.exploration,
             "deselect_factor": self.deselect_factor,
@@ -262,9 +316,25 @@ def optax_sgd(
 
 
 def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
-    """Convert a string shorthand or OptimizerSpec into an OptimizerSpec."""
+    """Convert string shorthand or optimizer-spec objects into OptimizerSpec."""
     if isinstance(optimizer, OptimizerSpec):
         return optimizer
+    if isinstance(optimizer, AGSDROptimizerSpec):
+        return OptimizerSpec(
+            optimizer="AGSDR",
+            optimizer_class="multiparameter_blackbox",
+            differentiability_status="non_differentiable",
+            surrogate_status="not_applicable",
+            alpha=float(optimizer.alpha),
+            exploration=float(optimizer.exploration),
+            deselect_factor=float(optimizer.deselect_factor),
+            metadata={
+                "parameters": {k: [float(v[0]), float(v[1])] for k, v in optimizer.parameters.items()},
+                "generations": int(optimizer.generations),
+                "population_size": int(optimizer.population_size),
+                "seed": int(optimizer.seed),
+            },
+        )
     if isinstance(optimizer, str):
         name = optimizer.upper()
         if name in {"GSDR"}:
@@ -307,7 +377,11 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
 # Legacy AGSDR class preserved from v0.0.4 for backward compatibility.
 @dataclass(frozen=True)
 class AGSDR:
-    """Adaptive Genetic Stochastic Delta Rule placeholder (v0.0.4 legacy)."""
+    """Legacy AGSDR adapter retained for old notebooks and tests.
+
+    Prefer ``jtfne.agsdr(...)``.  This class only exposes metadata and does not
+    execute optimization directly.
+    """
 
     alpha: float = 0.7
     exploration: float = 0.05
@@ -317,7 +391,7 @@ class AGSDR:
         return {
             "optimizer_class": "blackbox",
             "optimizer": "AGSDR",
-            "status": "prototype_api",
+            "status": "legacy_adapter",
             "alpha": self.alpha,
             "exploration": self.exploration,
             "deselect_factor": self.deselect_factor,
@@ -472,7 +546,7 @@ def _run_agsdr_optimization_loop(
     ...     signals = m.simulate(...)
     ...     return model.evaluate(signals, objective)
     >>> bounds = {"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)}
-    >>> result = run_agsdr_optimization_loop(
+    >>> result = _run_agsdr_optimization_loop(
     ...     evaluate_fn=score_model,
     ...     parameter_bounds=bounds,
     ...     n_generations=8,
@@ -492,21 +566,34 @@ def _run_agsdr_optimization_loop(
     if n_generations < 1 or n_population < 1:
         raise ValueError("n_generations and n_population must be >= 1")
 
-    # Initialize RNG
-    rng = random.Random(int(seed))
+    # Initialize deterministic JAX key for vectorized population proposal.
+    base_key = jax.random.PRNGKey(int(seed))
 
     # Extract parameter names and bounds
     param_names = sorted(parameter_bounds.keys())
     bounds_list = [parameter_bounds[name] for name in param_names]
 
     # Validate and normalize bounds
-    for name, (lo, hi) in zip(param_names, bounds_list):
+    normalized_bounds: list[tuple[float, float]] = []
+    for name, (lo_raw, hi_raw) in zip(param_names, bounds_list):
+        lo = float(lo_raw)
+        hi = float(hi_raw)
+        if not (lo == lo and hi == hi):
+            raise ValueError(f"non-finite bounds for parameter {name!r}: {(lo_raw, hi_raw)!r}")
         if hi < lo:
-            bounds_list[param_names.index(name)] = (hi, lo)
+            lo, hi = hi, lo
+        if hi == lo:
+            raise ValueError(f"degenerate bounds for parameter {name!r}: {(lo, hi)!r}")
+        normalized_bounds.append((lo, hi))
+    bounds_list = normalized_bounds
+
+    lows = jnp.asarray([b[0] for b in bounds_list], dtype=jnp.float32)
+    highs = jnp.asarray([b[1] for b in bounds_list], dtype=jnp.float32)
 
     # Initialize center: start at midpoint of each parameter's bounds
+    center_arr = 0.5 * (lows + highs)
     theta_center = {
-        name: 0.5 * (bounds_list[i][0] + bounds_list[i][1])
+        name: float(center_arr[i])
         for i, name in enumerate(param_names)
     }
 
@@ -519,65 +606,67 @@ def _run_agsdr_optimization_loop(
     all_scores: list[float] = []
     all_candidates: list[dict[str, float]] = []
 
-    # Main AGSDR loop
+    # Main AGSDR loop.  Candidate proposal is JAX-native (jit + vmap) while
+    # evaluate_fn remains a Python black-box callback over a Model simulation.
     for gen in range(int(n_generations)):
         gen_best_score = float("inf")
         gen_best_params: dict[str, float] = {}
 
+        key = jax.random.fold_in(base_key, int(gen))
+        noise = jax.random.normal(
+            key,
+            shape=(int(n_population), len(param_names)),
+            dtype=jnp.float32,
+        )
+        candidate_matrix = _agsdr_candidates_from_noise(
+            center_arr,
+            lows,
+            highs,
+            float(exploration),
+            noise,
+        )
+
         # Evaluate population for this generation
-        for candidate_idx in range(int(n_population)):
-            # Propose candidate from normal distribution around theta_center
-            candidate: dict[str, float] = {}
+        for row in range(int(n_population)):
+            values = candidate_matrix[row]
+            candidate = {
+                name: float(values[idx])
+                for idx, name in enumerate(param_names)
+            }
 
-            for param_idx, param_name in enumerate(param_names):
-                lo, hi = bounds_list[param_idx]
-                span = hi - lo
-
-                if gen == 0 and candidate_idx == 0:
-                    # First candidate: use center
-                    proposal = theta_center[param_name]
-                else:
-                    # Other candidates: sample from normal around center
-                    center_val = theta_center[param_name]
-                    sigma = exploration * span
-                    proposal = rng.gauss(center_val, sigma)
-
-                # Clip to bounds
-                candidate[param_name] = min(hi, max(lo, proposal))
-
-            # Evaluate candidate
             score = float(evaluate_fn(candidate))
-
-            # Track all scores and candidates
             all_scores.append(score)
             all_candidates.append(dict(candidate))
 
-            # Update generation best
             if score < gen_best_score:
                 gen_best_score = score
                 gen_best_params = dict(candidate)
 
-            # Update global best
             if score < best_score:
                 best_score = score
                 best_parameters = dict(candidate)
 
         # Delta-rule update: move center toward best candidate of this generation
-        for param_name in param_names:
-            if gen_best_params:
-                delta = gen_best_params[param_name] - theta_center[param_name]
-                theta_center[param_name] += alpha * delta
+        if gen_best_params:
+            gen_best_arr = jnp.asarray(
+                [gen_best_params[name] for name in param_names],
+                dtype=jnp.float32,
+            )
+            center_arr = jnp.clip(center_arr + float(alpha) * (gen_best_arr - center_arr), lows, highs)
+            theta_center = {
+                name: float(center_arr[i])
+                for i, name in enumerate(param_names)
+            }
 
-                # Clip center to bounds
-                param_idx = param_names.index(param_name)
-                lo, hi = bounds_list[param_idx]
-                theta_center[param_name] = min(hi, max(lo, theta_center[param_name]))
-
-        # Record this generation
+        # Record generation-local and best-so-far state.  The best_so_far field is
+        # monotone non-increasing even when exploratory candidates worsen.
         generation_records.append({
-            "generation": gen,
-            "best_score": gen_best_score,
-            "best_parameters": dict(gen_best_params),
+            "generation": int(gen),
+            "generation_best_score": gen_best_score,
+            "generation_best_parameters": dict(gen_best_params),
+            "best_score": best_score,
+            "best_parameters": dict(best_parameters),
+            "theta_center": dict(theta_center),
         })
 
     # Return results

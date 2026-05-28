@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import warnings
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Optional, Sequence
 
@@ -70,27 +71,31 @@ class TuneResult:
         })
 
     def __iter__(self):
-        """Support backward-compatible tuple unpacking: model, result = tune(...)
+        """Support legacy tuple unpacking: ``model, report = tune(...)``.
 
-        This yields the model (if present) and then the summary dict.
-
-        DEPRECATED: Use direct attribute access instead.
+        New code should use ``result.model`` and ``result.summary``.  The iterator
+        remains to preserve existing notebooks and tests while surfacing a
+        deprecation warning.
         """
-        # For backward compatibility with old API that returned (model, report)
-        yield self.model  # Yields the model (may be None)
-        yield self.summary  # Yields the summary dict for backward compatibility
+        warnings.warn(
+            "Tuple-unpacking TuneResult is deprecated; use result.model and result.summary.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        yield self.model
+        yield self.summary
 
 
 def _default_operator_status() -> dict[str, str]:
     return {
         "E_theta": "prototype_api",
         "S_WDR": "prototype_api",
-        "C_mu_nu": "specified_future_module",
+        "C_mu_nu": "not_implemented",
         "Q_eta_alpha": "prototype_api",
         "F_field": "prototype_api",
         "P_probe": "prototype_api",
         "A_objective": "prototype_api",
-        "O_optimizer": "specified_future_module",
+        "O_optimizer": "prototype_api",
         "C_constraints": "prototype_api",
     }
 
@@ -2988,7 +2993,7 @@ class Model:
                 best_score=float(best_score) if math.isfinite(best_score) else float("inf"),
                 history=generation_records,
                 summary=json_safe(report),
-                model=self,
+                model=best_model,
             )
 
         except Exception as e:
@@ -3309,7 +3314,7 @@ def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
     """Return a Model copy with multiple safe scalar emitter parameters changed.
 
     Applies all parameter updates in sequence. Supported parameters: source_scale,
-    drive_gain, synaptic_gain.
+    drive_gain, synaptic_gain, drive_scale_a, and drive_scale_b.
 
     Parameters
     ----------
@@ -3462,8 +3467,9 @@ def rate_targets(
     ...     groups={"first": np.arange(0, 24), "second": np.arange(24, 48)},
     ...     targets_hz={"first": 5.0, "second": 10.0},
     ... )
-    >>> optimizer = jtfne.agsdr(parameters={"param_a": (0.3, 2.0)}, generations=8)
-    >>> model_tuned, result = model.tune(objectives=objectives, optimizer=optimizer)
+    >>> optimizer = jtfne.agsdr(parameters={"drive_scale_a": (0.3, 2.0)}, generations=8)
+    >>> result = model.tune(objectives=objectives, optimizer=optimizer)
+    >>> result.best_score
     """
     import numpy as np
 
@@ -3617,7 +3623,7 @@ def standard_visual_omission() -> Paradigm:
     # Standard stimulus identifiers.
     std_A = "stimulus_A"
     std_B = "stimulus_B"
-    std_X = "omitted_placeholder"
+    std_X = "stimulus_omitted"
     std_R = "random_stimulus"
 
     # Define conditions with condition numbers and omission metadata.
