@@ -43,3 +43,6 @@ exclude = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+  "slow: marks tests as slow (notebook execution, full simulation runs)",
+]
