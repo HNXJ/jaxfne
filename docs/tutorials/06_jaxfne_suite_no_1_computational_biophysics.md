@@ -1,6 +1,6 @@
 # Suite No. 1: Computational Biophysics
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/tutorials/jaxfne_colab_tutorial_computational_biophysics.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
 
 This notebook teaches the public jaxfne grammar.
 
