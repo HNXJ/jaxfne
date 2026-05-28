@@ -1,11 +1,10 @@
 # Quickstart
 
-## Minimal example
+## Configure, construct, simulate
 
 ```python
 import jaxfne as jtfne
 
-# Configure a single-neuron simulation
 cfg = jtfne.Configuration()
 cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
 cfg = cfg.column("single_neuron", layers=["L2/3"], n=1)
@@ -14,46 +13,31 @@ cfg = cfg.connectivity()
 cfg = cfg.set_emitter("izhikevich", "cortical_eig")
 cfg = cfg.probes(["MUA-proxy", "source-proxy", "LFP-proxy"])
 
-# Construct and simulate
 model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
-
-# Inspect results
-print(f"jaxfne {jtfne.__version__}")
-print(f"Simulation: {signals.V_m.shape[0]} timesteps, {signals.V_m.shape[1]} neuron(s)")
-print(f"Voltage range: {signals.V_m.min():.1f} to {signals.V_m.max():.1f} mV")
-print(f"Spike count: {signals.spikes.sum():.0f}")
-print(f"Firing rate: {signals.spikes.sum() / (1000.0 / 1000.0):.1f} Hz")
+print(signals.V_m.shape, signals.spikes.sum())
 ```
 
-## What happens
+## Tune
 
-1. **Configuration** builds a chainable configuration object
-2. **Runtime setup** specifies seed, dtype, duration, and timestep
-3. **Column definition** declares neurons and their positions
-4. **Cell types** assigns neuron types (E, inhibitory, etc.)
-5. **Connectivity** defines recurrent connections
-6. **Emitter selection** picks the spiking neuron model (Izhikevich)
-7. **Probe specification** selects readout operators
-8. **Model construction** wires up the neural dynamics
-9. **Simulation** runs the dynamics and returns signals
-10. **Results** are JSON-safe with scope metadata (proxy readouts, designed for exploratory learning)
+```python
+objectives = jtfne.rate_targets(
+    groups={"first_half": range(24), "second_half": range(24, 48)},
+    targets_hz={"first_half": 5.0, "second_half": 10.0},
+)
+optimizer = jtfne.agsdr(
+    parameters={"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)},
+    generations=8,
+    population_size=6,
+    seed=42,
+)
+result = model.tune(objectives=objectives, optimizer=optimizer)
+print(result.summary)
+```
 
-All outputs declare their scope: **computational scaffold with proxy readouts**.
-
-## Next steps
-
-- See [Probe Operators](probe_operators.md) for all available readout channels
-- Explore [Guides](guides/index.md) for advanced workflows and calibration
-- Explore `examples/` in the repository for complete tutorials
-
-## Validation
-
-Run the test suite to verify your installation:
+## Validate
 
 ```bash
-pip install -e .[dev]
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=short
+python -m compileall -q jaxfne tests examples
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
 ```
-
-Expected: 1062 passed, 37 skipped

@@ -1,38 +1,40 @@
-"""Tutorial utility functions for Suite No. 1 and other examples.
-
-This module provides reusable helper functions for notebook-based tutorials,
-including simulation summary displays, visualization utilities, and data
-processing helpers.
-"""
+"""Small plotting and summary helpers for tutorial notebooks."""
 
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Dict, Optional, Tuple
+from typing import Sequence, Mapping, Tuple
 
 
-@dataclass
+@dataclass(frozen=True)
 class ConfigSummary:
     """Summary of configured model."""
     name: str
     n_neurons: int
-    layers: List[str]
-    cell_types: Dict[str, float]
+    layers: Sequence[str]
+    cell_types: Mapping[str, float]
     connectivity: str
     emitter_family: str
     emitter_preset: str
-    probes: List[str]
+    probes: Sequence[str]
 
 
-def save_png(fig, name: str, fig_dir: Path, show: bool = False) -> str:
-    """Save figure to PNG and return path."""
-    path = fig_dir / f"{name}.png"
-    fig.savefig(path, dpi=150, bbox_inches="tight")
+def _finish_figure(fig, show: bool):
+    """Display or close a Matplotlib figure."""
     if show:
         plt.show()
     else:
         plt.close(fig)
+    return fig
+
+
+def save_png(fig, name: str, fig_dir: Path, show: bool = False) -> str:
+    """Save a figure and optionally display it."""
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    path = fig_dir / f"{name}.png"
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    _finish_figure(fig, show)
     print(f"saved: {path} ({path.stat().st_size / 1024:.1f} KB)")
     return str(path)
 
@@ -44,34 +46,39 @@ def finite_status(*arrays) -> bool:
 
 def population_rate_hz(spikes: np.ndarray, dt_ms: float) -> float:
     """Compute mean population firing rate in Hz."""
+    if dt_ms <= 0:
+        raise ValueError("dt_ms must be positive")
     spikes = np.asarray(spikes)
-    return float(spikes.mean() * (1000.0 / dt_ms)) if spikes.size > 0 else 0.0
+    return float(spikes.mean() * (1000.0 / dt_ms)) if spikes.size else 0.0
 
 
 def display_run_summary(label: str, spikes: np.ndarray, V_m: np.ndarray,
                        dt_ms: float, finite: bool) -> None:
-    """Display simulation summary as a clean table."""
+    """Print a compact simulation summary."""
     rate_hz = population_rate_hz(spikes, dt_ms)
+    voltage = np.asarray(V_m)
+    v_min = float(voltage.min()) if voltage.size else float("nan")
+    v_max = float(voltage.max()) if voltage.size else float("nan")
     print(f"\n{label}:")
-    print(f"  Spikes: {int(spikes.sum())} | Shape: {spikes.shape} | Rate: {rate_hz:.2f} Hz")
-    print(f"  Voltage: [{V_m.min():.1f}, {V_m.max():.1f}] mV | Finite: {finite}")
+    spike_array = np.asarray(spikes)
+    print(
+        f"  Spikes: {int(spike_array.sum())} | "
+        f"Shape: {spike_array.shape} | Rate: {rate_hz:.2f} Hz"
+    )
+    print(f"  Voltage: [{v_min:.1f}, {v_max:.1f}] mV | Finite: {finite}")
 
 
 def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
                title="Population Raster", show: bool = True):
     """Plot spike raster from list of spike times per neuron."""
     fig, ax = plt.subplots(figsize=figsize)
-    for neuron_id, (times, ids) in enumerate(zip(spike_times_list, spike_neuron_ids_list)):
+    for times, ids in zip(spike_times_list, spike_neuron_ids_list):
         ax.scatter(times, ids, s=2, alpha=0.6)
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Neuron index")
     ax.set_title(title)
     ax.set_xlim(t.min(), t.max())
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
-    return fig
+    return _finish_figure(fig, show)
 
 
 def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
@@ -85,10 +92,7 @@ def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Mean rate (Hz)")
     ax.set_title(title)
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
+    _finish_figure(fig, show)
     return fig, rates
 
 
@@ -101,26 +105,21 @@ def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("V-like state (mV)")
     ax.set_title(title)
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
-    return fig
+    return _finish_figure(fig, show)
 
 
 def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5), show: bool = True):
     """Plot connectivity weight matrix."""
     fig, ax = plt.subplots(figsize=figsize)
-    im = ax.imshow(W, aspect="auto", cmap="RdBu", vmin=-W.max(), vmax=W.max())
+    W = np.asarray(W)
+    scale = float(np.max(np.abs(W))) if W.size else 1.0
+    scale = scale if scale > 0 else 1.0
+    im = ax.imshow(W, aspect="auto", cmap="RdBu", vmin=-scale, vmax=scale)
     ax.set_xlabel("Sending neuron")
     ax.set_ylabel("Receiving neuron")
     ax.set_title(title)
     fig.colorbar(im, ax=ax, fraction=0.046)
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
-    return fig
+    return _finish_figure(fig, show)
 
 
 def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
@@ -143,8 +142,4 @@ def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
         ax.set_xlabel("Time (ms)")
         ax.set_ylabel("Proxy units")
     fig.suptitle(title)
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
-    return fig
+    return _finish_figure(fig, show)
