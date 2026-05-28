@@ -1,0 +1,37 @@
+{
+  "scope_status": "computational_scaffold",
+  "readout_status": "simulated_proxy",
+  "field_mode": "proxy_convolution_no_pde",
+  "physical_amplitude_claim_allowed": false,
+  "duration_ms": 5000.0,
+  "dt_ms": 0.1,
+  "dtype": "float32",
+  "seed": 42,
+  "models_configured": [
+    "single_neuron",
+    "e_pv_population",
+    "laminar_column"
+  ],
+  "n_figures": 9,
+  "figures": [
+    "outputs/suite_no1/figures/00_hh_reference.png",
+    "outputs/suite_no1/figures/01_single_voltage_trajectory.png",
+    "outputs/suite_no1/figures/02_single_source_proxy.png",
+    "outputs/suite_no1/figures/03_epv_population_raster.png",
+    "outputs/suite_no1/figures/04_epv_population_rate.png",
+    "outputs/suite_no1/figures/05_epv_connectivity_matrix.png",
+    "outputs/suite_no1/figures/06_laminar_population_raster.png",
+    "outputs/suite_no1/figures/07_spectrolaminar_visualization.png",
+    "outputs/suite_no1/figures/08_spectrolaminar_highres_psd.png"
+  ],
+  "outputs_finite": {
+    "single_neuron": true,
+    "e_pv_population": true,
+    "laminar_column": true
+  },
+  "population_rates_hz": {
+    "single_neuron": 10.8,
+    "e_pv_population": 8.05,
+    "laminar_column": 10.55
+  }
+}
