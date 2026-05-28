@@ -197,9 +197,54 @@ def plot_spectrolaminar_power(
     return _finish_figure(fig, show)
 
 
+def hh_reference_trace_jaxley(duration_ms: float = 500.0, dt_ms: float = 0.1,
+                              current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Hodgkin-Huxley reference trace via optional Jaxley bridge.
+
+    **Scope:** HH emitter reference generated through the optional Jaxley bridge.
+    **Evidence:** Simulated voltage trace for tutorial comparison.
+    **Interpretation:** Emitter-level reference before TFNE source/readout projection.
+
+    Falls back to teaching implementation if Jaxley is not available.
+
+    Parameters
+    ----------
+    duration_ms : float
+        Simulation duration in milliseconds.
+    dt_ms : float
+        Time step in milliseconds.
+    current_amplitude : float
+        Injected current amplitude in μA/cm².
+
+    Returns
+    -------
+    t : ndarray (n_steps,)
+        Time in ms.
+    V : ndarray (n_steps,)
+        Membrane potential in mV.
+    I_inj : ndarray (n_steps,)
+        Injected current in μA/cm².
+    """
+    try:
+        from .bridges import hh_jaxley_reference_trace
+        # Attempt to use Jaxley bridge
+        return hh_jaxley_reference_trace(
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            current_amplitude=current_amplitude,
+        )
+    except (ImportError, NotImplementedError):
+        # Fall back to teaching implementation if Jaxley is unavailable or bridge not ready
+        return hh_reference_trace(
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            current_amplitude=current_amplitude,
+        )
+
+
 def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
                        current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Hodgkin-Huxley reference trace with gating variables and ionic currents.
+    """Hodgkin-Huxley teaching model with gating variables and ionic currents.
 
     Implements classical HH membrane equation with sodium, potassium, and leak currents.
 
