@@ -3499,7 +3499,7 @@ def rate_targets(
         gates=[],
     ).gate(
         name="rate_targets_metadata",
-        threshold=0,  # Dummy; actual computation in optimize loops
+        threshold=0,  # Threshold unused for optimizer-computed score
         criterion="below",
         metadata={
             "groups": groups_lists,
