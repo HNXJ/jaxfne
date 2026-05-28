@@ -523,6 +523,93 @@ class Configuration:
         """Backward-compatible alias for the callable ``cfg.probes(...)`` facade."""
         return self._with_probe_modes(modes=modes, **kwargs)
 
+    # ------------------------------------------------------------------
+    # Multi-area laminar configuration (Suite No. 5).
+    # These methods support declaring V1/V4/PFC circuits with explicit
+    # laminar structure (L1–L6) and layer-specific cell-type distributions.
+    # ------------------------------------------------------------------
+
+    def areas(self, area_names: Sequence[str]) -> "Configuration":
+        """Declare areas for a multi-area circuit (e.g., ['V1', 'V4', 'PFC']).
+
+        Area declarations are stored in metadata and later used by
+        layer_fractions() to generate multi-area neuron populations.
+
+        Parameters
+        ----------
+        area_names : Sequence[str]
+            Names of cortical areas (e.g., ['V1', 'V4', 'PFC']).
+
+        Returns
+        -------
+        Configuration
+            Updated configuration with areas recorded in metadata.
+        """
+        if not area_names:
+            raise ValueError("area_names must not be empty")
+        area_list = [str(a) for a in area_names]
+        if len(area_list) != len(set(area_list)):
+            raise ValueError("duplicate area names detected")
+
+        metadata = dict(self.metadata)
+        metadata["areas"] = area_list
+        return replace(self, metadata=metadata)
+
+    def layer_fractions(
+        self,
+        layer_fractions: Mapping[str, tuple[float, float]] | None = None,
+        layer_cell_types: Mapping[str, Mapping[str, float]] | None = None,
+    ) -> "Configuration":
+        """Declare laminar structure and layer-specific cell-type distributions.
+
+        Parameters
+        ----------
+        layer_fractions : Mapping[str, tuple[float, float]], optional
+            Map of layer name to (z_min_rel, z_max_rel) relative depth.
+            Example: {'L1': (0.0, 0.1), 'L2': (0.1, 0.25), ...}
+            If None, uses standard L1–L6 fractions.
+        layer_cell_types : Mapping[str, Mapping[str, float]], optional
+            Map of layer name to cell-type fractions within that layer.
+            Example: {'L1': {'E': 0.75, 'PV': 0.0, ...}, ...}
+            If None, uses default distributions per layer.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration with laminar structure recorded.
+        """
+        # Use standard L1-L6 fractions if not provided
+        if layer_fractions is None:
+            layer_fractions = {
+                "L1": (0.00, 0.10),
+                "L2": (0.10, 0.25),
+                "L3": (0.25, 0.45),
+                "L4": (0.45, 0.55),
+                "L5": (0.55, 0.85),
+                "L6": (0.85, 1.00),
+            }
+
+        # Validate layer fractions
+        for layer, (z_min, z_max) in layer_fractions.items():
+            if not (0.0 <= z_min < z_max <= 1.0):
+                raise ValueError(f"layer {layer!r} has invalid fraction range: ({z_min}, {z_max})")
+
+        # Use default layer cell-type distributions if not provided
+        if layer_cell_types is None:
+            layer_cell_types = {
+                "L1": {"E": 0.75, "PV": 0.0, "SST": 0.0, "VIP": 0.25},
+                "L2": {"E": 0.75, "PV": 0.05, "SST": 0.05, "VIP": 0.15},
+                "L3": {"E": 0.75, "PV": 0.10, "SST": 0.10, "VIP": 0.05},
+                "L4": {"E": 0.25, "PV": 0.45, "SST": 0.15, "VIP": 0.15},
+                "L5": {"E": 0.15, "PV": 0.25, "SST": 0.30, "VIP": 0.30},
+                "L6": {"E": 0.10, "PV": 0.20, "SST": 0.20, "VIP": 0.50},
+            }
+
+        metadata = dict(self.metadata)
+        metadata["layer_fractions"] = {k: list(v) for k, v in layer_fractions.items()}
+        metadata["layer_cell_types"] = layer_cell_types
+        return replace(self, metadata=metadata)
+
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.networks:
