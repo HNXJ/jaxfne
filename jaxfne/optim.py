@@ -1031,26 +1031,33 @@ def gsdr_transform(
 def agsdr_transform(
     inner_optimizer: Optional[Any] = None,
     stochastic_scale: float = 0.1,
+    global_scale: float = 1.0,
     checkpoint_n_steps: int = 50,
     deselection_threshold: int = 10,
+    epsilon: float = 1e-6,
     alpha_min: float = 0.0,
     alpha_max: float = 1.0,
 ) -> Any:
     """Return an Optax-compatible GradientTransformation for Adaptive GSDR.
 
-    Extends GSDR with adaptive alpha: the ratio of supervised vs unsupervised
-    variance determines exploration/exploitation balance.
+    Mathematically implements:
+    U_{t+1} = U_t + λ * [ α_t * (σ * R_t) + (1 - α_t) * D_t ]
+    where α_t = (Var(R_t) + ε) / (Var(R_t) + Var(D_t) + 2ε)
 
     Parameters
     ----------
     inner_optimizer : Optional[Any]
         Inner gradient optimizer (default: optax.adam).
     stochastic_scale : float
-        Scale of stochastic perturbation.
+        Scale σ of stochastic perturbation.
+    global_scale : float
+        Global scale λ applied to combined updates.
     checkpoint_n_steps : int
         Checkpoint interval.
     deselection_threshold : int
         Steps without improvement before genetic reset.
+    epsilon : float
+        Numerical stability term ε.
     alpha_min, alpha_max : float
         Bounds for adaptive alpha.
 
@@ -1074,9 +1081,17 @@ def agsdr_transform(
             var_sup_ema=0.0,
             var_unsup_ema=0.0,
             ema_decay=0.99,
-            alpha_adaptive=0.7,
+            alpha_adaptive=0.5,  # Start neutral
         )
         return agsdr_state, inner_state
+
+    def _calc_tree_variance(tree: Any) -> jax.Array:
+        """Compute true L2 variance of a PyTree."""
+        leaves = [jnp.ravel(l) for l in jax.tree_util.tree_leaves(tree) if hasattr(l, "shape")]
+        if not leaves:
+            return jnp.asarray(0.0, dtype=jnp.float32)
+        flat_concat = jnp.concatenate(leaves)
+        return jnp.var(flat_concat)
 
     def update(
         updates: Any,
@@ -1091,19 +1106,32 @@ def agsdr_transform(
         agsdr_state, inner_state = state
         import jax.numpy as jnp
 
+        # 1. Compute D_t (Supervised Update Vector from Inner Optimizer)
         inner_updates, inner_state = inner_optimizer.update(updates, inner_state, params)
 
+        # 2. Compute R_t (Stochastic Base Representation Vector)
         key_delta = jax.random.fold_in(key, agsdr_state.step)
-        stochastic_delta = jax.tree_util.tree_map(
-            lambda u: agsdr_state.alpha_adaptive * jax.random.normal(key_delta, u.shape, dtype=u.dtype)
+        base_representation = jax.tree_util.tree_map(
+            lambda u: jax.random.normal(key_delta, u.shape, dtype=u.dtype)
             if hasattr(u, "shape")
             else u,
             inner_updates,
         )
+
+        # 3. Calculate True Mathematical Variances
+        var_d = _calc_tree_variance(inner_updates)
+        var_r = _calc_tree_variance(base_representation) * (stochastic_scale ** 2)
+
+        # 4. Synthesize Combined Updates via Damped Convex Combination
+        # U_{t+1} = U_t + λ * [ α_t * (σ * R_t) + (1 - α_t) * D_t ]
+        alpha = agsdr_state.alpha_adaptive
         combined_updates = jax.tree_util.tree_map(
-            lambda u, d: u + d if hasattr(u, "dtype") else u,
+            lambda d, r: jnp.asarray(global_scale, dtype=d.dtype) * (
+                alpha * (jnp.asarray(stochastic_scale, dtype=r.dtype) * r) +
+                (jnp.asarray(1.0, dtype=d.dtype) - alpha) * d
+            ) if hasattr(d, "dtype") else d,
             inner_updates,
-            stochastic_delta,
+            base_representation
         )
 
         new_agsdr_state = agsdr_state
@@ -1114,20 +1142,14 @@ def agsdr_transform(
 
             new_desel_counter = 0 if is_improvement else agsdr_state.deselection_counter + 1
             should_reset = new_desel_counter >= deselection_threshold
-            params_to_use = new_best_param if should_reset else params
 
-            var_sup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(u)) for u in jax.tree_util.tree_leaves(inner_updates)]))
-            var_unsup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(d)) for d in jax.tree_util.tree_leaves(stochastic_delta)]))
-            new_var_sup_ema = agsdr_state.ema_decay * agsdr_state.var_sup_ema + (1.0 - agsdr_state.ema_decay) * var_sup
-            new_var_unsup_ema = agsdr_state.ema_decay * agsdr_state.var_unsup_ema + (1.0 - agsdr_state.ema_decay) * var_unsup
+            # Apply Exponential Moving Average (EMA) to tracked variances
+            new_var_sup_ema = agsdr_state.ema_decay * agsdr_state.var_sup_ema + (1.0 - agsdr_state.ema_decay) * var_d
+            new_var_unsup_ema = agsdr_state.ema_decay * agsdr_state.var_unsup_ema + (1.0 - agsdr_state.ema_decay) * var_r
 
-            # Adaptive alpha: variance ratio
-            var_total = new_var_sup_ema + new_var_unsup_ema + 1e-6
-            new_alpha_adaptive = jnp.clip(
-                new_var_sup_ema / var_total,
-                alpha_min,
-                alpha_max,
-            )
+            # Mathematical Formula: α_t = (Var(R_t) + ε) / (Var(R_t) + Var(D_t) + 2ε)
+            var_total_stable = new_var_unsup_ema + new_var_sup_ema + 2.0 * epsilon
+            alpha_next = (new_var_unsup_ema + epsilon) / var_total_stable
 
             new_agsdr_state = AGSDRState(
                 step=agsdr_state.step + 1,
@@ -1138,7 +1160,7 @@ def agsdr_transform(
                 var_sup_ema=float(new_var_sup_ema),
                 var_unsup_ema=float(new_var_unsup_ema),
                 ema_decay=agsdr_state.ema_decay,
-                alpha_adaptive=float(new_alpha_adaptive),
+                alpha_adaptive=float(jnp.clip(alpha_next, alpha_min, alpha_max)),
             )
 
         @dataclass(frozen=True)
@@ -1173,11 +1195,18 @@ def _tune_matrix_agsdr_optax(
     simulation: Any,
     base_report: Any,
 ) -> Any:
-    """Two-level matrix AGSDR + optax.adam optimization.
+    """Two-level matrix AGSDR + optax.adam optimization (proxy-scale calibration scaffold).
+
+    Scope: Simulated/proxy readouts for a computational optimization scaffold.
+    The inner-loop surrogate gradients use differentiable sigmoid approximations and
+    do NOT represent biological learning mechanisms. Final scoring uses the real
+    declared objective for selection.
 
     OUTER LOOP: AGSDR proposes candidate scale values (one per matrix parameter).
     INNER LOOP: Adam refines each candidate on a soft-rate surrogate loss using
                 jax.value_and_grad (differentiable sigmoid spike approximation).
+                NOTE: Hard spike resets in simulate() create zero-gradient artifacts;
+                fallback stochastic steps are injected when gradients flatten.
     FINAL SCORING: Real objective (group_rate_targets) evaluates the refined candidate.
     BEST-STATE MEMORY: Tracks best parameters and loss across all generations.
 
@@ -1357,7 +1386,24 @@ def _tune_matrix_agsdr_optax(
                                 return _inner_loss_fn(W_flat, updated_model)
 
                             loss_val, grads = jax.value_and_grad(inner_loss_only)(current_W)
-                            updates, opt_state = inner_optimizer.update(grads, opt_state)
+
+                            # GRADIENT FLATLINE HARDENING: Detect and mitigate zero-gradient artifacts
+                            # from hard spike resets that block differentiable path
+                            grads_flat = jnp.ravel(grads)
+                            is_flatline = jnp.all(jnp.abs(grads_flat) < 1e-7)
+
+                            # Adaptive fallback: inject stochastic step when gradient is flat
+                            key_fallback = jax.random.fold_in(base_key, int(gen) * 1000 + int(row) * 100 + int(inner_step))
+                            fallback_grads = jax.tree_util.tree_map(
+                                lambda g: jnp.where(
+                                    is_flatline,
+                                    jax.random.uniform(key_fallback, g.shape, minval=-0.01, maxval=0.01, dtype=g.dtype),
+                                    g
+                                ) if hasattr(g, "shape") else g,
+                                grads
+                            )
+
+                            updates, opt_state = inner_optimizer.update(fallback_grads, opt_state)
                             current_W = optax.apply_updates(current_W, updates)
                             # Clip to declared parameter bounds
                             # For gAMPA_w, use the bounds from MatrixParameterSpec
