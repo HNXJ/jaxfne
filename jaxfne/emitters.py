@@ -772,3 +772,238 @@ def simulate_dynamic_ei_coupling(
 
 # Backwards-compatible name from v0.0.3.
 simulate_izhikevich_eig = simulate_eig_izhikevich
+
+
+@dataclass(frozen=True)
+class EmitterState:
+    """JAX PyTree compatible emitter state container."""
+    v: jax.Array
+    u: jax.Array
+    spikes: jax.Array
+    rng: jax.Array
+    step_count: int
+
+
+@dataclass(frozen=True)
+class EmitterOutput:
+    """Emitter step output specification."""
+    spikes: jax.Array
+    voltage: jax.Array
+    native_current: jax.Array
+    state_variables: dict[str, jax.Array]
+    finite: Any
+    dtype: str
+
+
+def _emitter_state_flatten(state):
+    children = (state.v, state.u, state.spikes, state.rng, state.step_count)
+    aux_data = {}
+    return children, aux_data
+
+
+def _emitter_state_unflatten(aux_data, children):
+    return EmitterState(
+        v=children[0],
+        u=children[1],
+        spikes=children[2],
+        rng=children[3],
+        step_count=children[4]
+    )
+
+
+def _emitter_output_flatten(out):
+    children = (out.spikes, out.voltage, out.native_current, out.state_variables)
+    aux_data = {"finite": out.finite, "dtype": out.dtype}
+    return children, aux_data
+
+
+def _emitter_output_unflatten(aux_data, children):
+    return EmitterOutput(
+        spikes=children[0],
+        voltage=children[1],
+        native_current=children[2],
+        state_variables=children[3],
+        finite=aux_data["finite"],
+        dtype=aux_data["dtype"]
+    )
+
+
+try:
+    jax.tree_util.register_pytree_node(
+        EmitterState,
+        _emitter_state_flatten,
+        _emitter_state_unflatten,
+    )
+    jax.tree_util.register_pytree_node(
+        EmitterOutput,
+        _emitter_output_flatten,
+        _emitter_output_unflatten,
+    )
+except ValueError:
+    pass
+
+
+class Emitter:
+    """Abstract Base Emitter interface."""
+    def initial_state(self, seed: int) -> EmitterState:
+        raise NotImplementedError("initial_state must be implemented")
+
+    def step(self, state: EmitterState, input_t: jax.Array, dt_ms: float) -> tuple[EmitterState, EmitterOutput]:
+        raise NotImplementedError("step must be implemented")
+
+    def output(self, state: EmitterState) -> EmitterOutput:
+        raise NotImplementedError("output must be implemented")
+
+    def report(self) -> dict:
+        raise NotImplementedError("report must be implemented")
+
+
+class IzhikevichEmitter(Emitter):
+    """JAX-native generalized Izhikevich population emitter."""
+    def __init__(self, n: int, params: IzhikevichParams | None = None, dtype: str = "float32"):
+        self.n = n
+        self.dtype = dtype
+        if params is None:
+            params = izhikevich_eig_params(n, {"E": 0.8, "PV": 0.2}, dtype=dtype)
+        self.params = params
+
+    def initial_state(self, seed: int) -> EmitterState:
+        jdtype = _dtype_from_policy(self.dtype)
+        key = jax.random.PRNGKey(seed)
+        v = self.params.v0.astype(jdtype)
+        u = self.params.u0.astype(jdtype)
+        spikes = jnp.zeros_like(v, dtype=jdtype)
+        return EmitterState(v=v, u=u, spikes=spikes, rng=key, step_count=0)
+
+    def step(self, state: EmitterState, input_t: jax.Array, dt_ms: float) -> tuple[EmitterState, EmitterOutput]:
+        jdtype = _dtype_from_policy(self.dtype)
+        a = self.params.a.astype(jdtype)
+        b = self.params.b.astype(jdtype)
+        c = self.params.c.astype(jdtype)
+        d = self.params.d.astype(jdtype)
+        drive = self.params.drive.astype(jdtype)
+        dt = jnp.asarray(dt_ms, dtype=jdtype)
+
+        v, u, _, rng, step_count = state.v, state.u, state.spikes, state.rng, state.step_count
+        rng, noise_key = jax.random.split(rng)
+        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
+        
+        current_native = drive + input_t + noise
+        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+        du = a * (b * v - u)
+        
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        spikes_bool = v_next >= 30.0
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        
+        next_state = EmitterState(v=v_reset, u=u_reset, spikes=spikes, rng=rng, step_count=step_count + 1)
+        output = EmitterOutput(
+            spikes=spikes,
+            voltage=v_reset,
+            native_current=current_native,
+            state_variables={"v": v_reset, "u": u_reset},
+            finite=jnp.all(jnp.isfinite(v_reset)),
+            dtype=self.dtype
+        )
+        return next_state, output
+
+    def output(self, state: EmitterState) -> EmitterOutput:
+        return EmitterOutput(
+            spikes=state.spikes,
+            voltage=state.v,
+            native_current=self.params.drive,
+            state_variables={"v": state.v, "u": state.u},
+            finite=jnp.all(jnp.isfinite(state.v)),
+            dtype=self.dtype
+        )
+
+    def report(self) -> dict:
+        return {
+            "emitter_family": "izhikevich",
+            "n_neurons": self.n,
+            "dtype": self.dtype,
+            "source_calibration_status": self.params.source_calibration_status,
+            "physical_amplitude_claim_allowed": False
+        }
+
+
+class GLIFEmitter(Emitter):
+    """Generalized GLIF emitter (Galván Fraile / Allen model)."""
+    def __init__(self, n: int, params=None, dtype: str = "float32"):
+        raise NotImplementedError("TODO: implement GLIFEmitter")
+
+
+class LIFEmitter(Emitter):
+    """Generalized LIF emitter population."""
+    def __init__(self, n: int, params=None, dtype: str = "float32"):
+        raise NotImplementedError("TODO: implement LIFEmitter")
+
+
+@dataclass(frozen=True)
+class SynapseState:
+    """JAX PyTree compatible synapse layer state."""
+    s: jax.Array
+
+
+def _synapse_state_flatten(state):
+    return (state.s,), {}
+
+
+def _synapse_state_unflatten(aux_data, children):
+    return SynapseState(s=children[0])
+
+
+try:
+    jax.tree_util.register_pytree_node(
+        SynapseState,
+        _synapse_state_flatten,
+        _synapse_state_unflatten,
+    )
+except ValueError:
+    pass
+
+
+class SynapseLayer:
+    """Generalized Synapse/Connectivity layer mapping presynaptic spikes to postsynaptic currents."""
+    def __init__(self, n: int, W: jax.Array, tau_ms: float = 5.0, kernel: str = "exponential", dtype: str = "float32"):
+        self.n = n
+        self.W = W
+        self.tau_ms = tau_ms
+        self.kernel = kernel
+        self.dtype = dtype
+
+    def initial_state(self) -> SynapseState:
+        jdtype = _dtype_from_policy(self.dtype)
+        s = jnp.zeros((self.n,), dtype=jdtype)
+        return SynapseState(s=s)
+
+    def step(self, state: SynapseState, spikes: jax.Array, dt_ms: float) -> tuple[SynapseState, jax.Array]:
+        jdtype = _dtype_from_policy(self.dtype)
+        s = state.s
+        dt = jnp.asarray(dt_ms, dtype=jdtype)
+        tau = jnp.asarray(self.tau_ms, dtype=jdtype)
+        
+        if self.kernel == "exponential":
+            decay = jnp.exp(-dt / jnp.maximum(tau, jnp.asarray(1e-6, dtype=jdtype)))
+            s_next = s * decay + spikes
+            I_syn = jnp.dot(self.W, s_next)
+            return SynapseState(s=s_next), I_syn
+        elif self.kernel == "alpha":
+            raise NotImplementedError("TODO: implement alpha synapse")
+        elif self.kernel == "double_exponential":
+            raise NotImplementedError("TODO: implement double_exponential synapse")
+        else:
+            raise ValueError(f"Unknown synapse kernel: {self.kernel}")
+
+    def report(self) -> dict:
+        return {
+            "synapse_kernel": self.kernel,
+            "normalization": "unnormalized_declared",
+            "tau_ms": float(self.tau_ms),
+            "weight_sign_convention": "presynaptic_cell_type"
+        }
+
+

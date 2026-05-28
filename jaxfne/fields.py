@@ -1256,3 +1256,91 @@ def probe_laminar_modes(
             field_output, requested_modes=modes
         )
     return out
+
+
+def construct_source_tensor(
+    mode: str,
+    total_membrane_current: jax.Array,
+    decomposed_cap_ion: jax.Array | None = None,
+    synaptic_current: jax.Array | None = None,
+) -> tuple[jax.Array, dict[str, Any]]:
+    """Construct source tensor S[t, n] under strict double-counting guards.
+
+    Modes:
+    - "total_membrane_current_proxy" (Mode A)
+    - "decomposed_cap_ion_plus_synaptic_proxy" (Mode B)
+    """
+    import jax.numpy as jnp
+
+    if mode == "total_membrane_current_proxy":
+        if synaptic_current is not None:
+            raise ValueError(
+                "Double-counting detected: Mode A uses total_membrane_current_proxy directly. "
+                "Do not supply synaptic_current separately as that would double count."
+            )
+        source = total_membrane_current
+        evidence = None
+        guard = "passed"
+    elif mode == "decomposed_cap_ion_plus_synaptic_proxy":
+        if decomposed_cap_ion is None or synaptic_current is None:
+            raise ValueError(
+                "Mode B requires both decomposed_cap_ion and synaptic_current to be supplied."
+            )
+        source = decomposed_cap_ion + synaptic_current
+        evidence = None
+        guard = "passed"
+    elif mode == "invalid_double_count_mode":
+        raise ValueError(
+            "Double-counting detected: total_membrane_current_proxy + synaptic_current_proxy is prohibited."
+        )
+    else:
+        raise ValueError(f"Unknown source construction mode: {mode}")
+
+    report = {
+        "source_mode": mode,
+        "source_decomposition": "proxy_reduced_emitter" if mode == "total_membrane_current_proxy" else "decomposed_cap_ion_synaptic_proxy",
+        "synaptic_current_counting": "single_proxy_expression_no_extra_synaptic_source" if mode == "total_membrane_current_proxy" else "decomposed_plus_synaptic",
+        "double_count_guard": guard,
+        "double_count_evidence": evidence
+    }
+    return source, report
+
+
+class LinearReadout:
+    """Generalized linear projection readout operator representing field or probe maps."""
+    def __init__(
+        self,
+        name: str,
+        W: jax.Array,
+        input_key: str = "source",
+        units_or_status: str = "proxy_units",
+        leadfield_status: str = "toy_or_declared_proxy",
+        sensor_geometry_status: str = "simulated_minimal",
+    ):
+        self.name = name
+        self.W = W
+        self.input_key = input_key
+        self.units_or_status = units_or_status
+        self.leadfield_status = leadfield_status
+        self.sensor_geometry_status = sensor_geometry_status
+
+    def apply(self, source: jax.Array) -> jax.Array:
+        """Apply the linear projection map to source array."""
+        import jax.numpy as jnp
+        if source.ndim == 2:
+            return jnp.dot(source, self.W.T)
+        return jnp.dot(self.W, source)
+
+    def report(self) -> dict:
+        """Return standardized metadata report for the linear readout."""
+        return {
+            "name": self.name,
+            "input_key": self.input_key,
+            "units_or_status": self.units_or_status,
+            "leadfield_status": self.leadfield_status,
+            "sensor_geometry_status": self.sensor_geometry_status,
+            "physical_amplitude_claim_allowed": False,
+            "operator_status": "simulated_proxy"
+        }
+
+
