@@ -1,6 +1,6 @@
 # jaxfne
 
-JAX-native tools for TFNE source, field, probe, objective, and optimizer workflows.
+JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.
 
 ```text
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
