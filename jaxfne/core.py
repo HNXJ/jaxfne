@@ -4427,14 +4427,6 @@ def config_to_simulation(cfg: JaxFNEConfig) -> Simulation:
     if cfg.runtime_spec:
         rt, rt_warnings = _runtime_from_spec(cfg.runtime_spec, default_seed=kwargs["seed"])
         kwargs["runtime"] = rt
-        if rt_warnings:
-            # Stash warnings on the Simulation via a sentinel attribute on runtime
-            # (RuntimeConfig is frozen, so we record in metadata at simulate-time).
-            # We attach via a module-level registry keyed by id(rt) — but the
-            # simplest path is to surface them through Configuration.metadata
-            # at construct-time. Here we store them as a tuple attribute on the
-            # spec dict so config_to_configuration can pick them up.
-            pass  # warnings are surfaced via _CONFIG_RUNTIME_WARNINGS (see below)
         _CONFIG_RUNTIME_WARNINGS[cfg.config_hash] = rt_warnings
     return Simulation(**kwargs)
 

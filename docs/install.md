@@ -1,56 +1,36 @@
 # Install
 
-## From PyPI
+## PyPI
 
 ```bash
-pip install -U "jaxfne>=0.3.4"
+pip install -U jaxfne
 ```
 
-For an exact release:
+For the current release line used by the repository tutorials:
 
 ```bash
-pip install jaxfne==0.3.4
+pip install "jaxfne>=0.3.5"
 ```
 
-For visualization support (matplotlib, plotly):
+Optional extras:
 
 ```bash
-pip install "jaxfne[viz]"
+pip install "jaxfne[viz]"      # plotting
+pip install "jaxfne[opt]"      # Optax adapters
+pip install "jaxfne[dev]"      # tests and lint helpers
 ```
 
-## From GitHub
-
-Install the GitHub release tag:
-
-```bash
-pip install git+https://github.com/HNXJ/jaxfne.git@v0.3.4
-```
-
-Or the latest development version from `main`:
-
-```bash
-pip install git+https://github.com/HNXJ/jaxfne.git@main
-```
-
-## From a local checkout
+## Source checkout
 
 ```bash
 git clone https://github.com/HNXJ/jaxfne.git
 cd jaxfne
-pip install -e .
+pip install -e .[dev,viz,opt]
 ```
 
-For development tools:
-
-```bash
-pip install -e .[dev]
-```
-
-## Verify installation
+## Verify
 
 ```python
-import jaxfne
-print(jaxfne.__version__)
+import jaxfne as jtfne
+print(jtfne.__version__)
 ```
-
-Expected output: `0.3.4`
