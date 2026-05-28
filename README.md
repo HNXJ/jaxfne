@@ -1,12 +1,12 @@
 # jaxfne
 
-JAX-native tools for TFNE source, field, probe, objective, and optimizer workflows.
+JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.
 
 ```text
 Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 ```
 
-`jaxfne` is built for compact computational biophysics tutorials and package-native experiments. Current tutorial readouts use simulated/proxy scales with JSON-safe reports and deterministic seeds.
+`jaxfne` is built for compact computational biophysics tutorials and package-level experiments. Current tutorial readouts use simulated/proxy scales with JSON-safe reports and deterministic seeds.
 
 ## Install
 

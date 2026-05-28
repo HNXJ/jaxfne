@@ -19,7 +19,19 @@ Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
 | MEG-proxy | linear magnetic-channel projection | `[time, channel]` |
 | EMM-proxy | normalized activity-cost proxy | `[time]` |
 
-## Minimal report fields
+## Mathematical Forms
+
+Computational scaffolds define the following proxy readout operations:
+
+- SPK: $y_{spk}[t, k] = \sum_i \delta(t - t_{i,k})$
+- Vm: $y_{vm}[t, k] = V_k[t]$
+- Source: $y_{src}[t, k] = J_k[t]$
+- LFP-proxy: $y_{lfp}[t, k] = \sum_i \alpha_{ik} V_i[t]$
+- CSD-proxy: $y_{csd}[t, k] = \nabla^2 y_{lfp}[t, k]$
+- EEG-proxy: $y_{eeg}[t, k] = \sum_i \beta_{ik} y_{lfp}[t, i]$
+- MEG-proxy: $y_{meg}[t, k] = \sum_i \gamma_{ik} y_{src}[t, i]$
+- EMM-proxy: $y_{emm}[t] = \frac{1}{N} \sum_k |y_{src}[t, k]|
+
 
 ```yaml
 name: string

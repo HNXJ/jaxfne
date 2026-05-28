@@ -143,3 +143,55 @@ def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
         ax.set_ylabel("Proxy units")
     fig.suptitle(title)
     return _finish_figure(fig, show)
+
+def plot_spectrolaminar_power(
+    t: np.ndarray,
+    signal: np.ndarray,
+    freq_min: float = 1.0,
+    freq_max: float = 120.0,
+    n_freqs: int = 96,
+    title: str = "Spectrolaminar Power",
+    figsize: tuple = (10, 5),
+    show: bool = True,
+) -> object:
+    """Plot spectrolaminar PSD heatmap with configurable frequency resolution.
+
+    Parameters
+    ----------
+    t : array of shape (n_steps,)
+        Time axis in ms.
+    signal : array of shape (n_steps, n_contacts) or (n_steps,)
+        Signal to analyze.
+    freq_min, freq_max : float
+        Frequency axis bounds in Hz.
+    n_freqs : int
+        Number of frequency bins (minimum 64).
+    show : bool
+        If True, call plt.show(); if False, close figure after save.
+    """
+    n_freqs = max(64, int(n_freqs))
+    freqs = np.linspace(float(freq_min), float(freq_max), n_freqs)
+    dt_ms = float(t[1] - t[0]) if len(t) > 1 else 0.1
+    fs = 1000.0 / dt_ms
+    sig = np.asarray(signal)
+    if sig.ndim == 1:
+        sig = sig[:, None]
+    n_contacts = sig.shape[1]
+    psd = np.zeros((n_freqs, n_contacts))
+    for ci in range(n_contacts):
+        x = sig[:, ci]
+        for fi, freq in enumerate(freqs):
+            n = len(x)
+            k = freq / fs
+            phase = 2.0 * np.pi * k * np.arange(n)
+            psd[fi, ci] = np.abs(np.dot(x, np.exp(-1j * phase))) / max(n, 1)
+    fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(
+        psd, aspect="auto", origin="lower", cmap="viridis",
+        extent=[0, n_contacts, float(freq_min), float(freq_max)],
+    )
+    ax.set_xlabel("Contact index")
+    ax.set_ylabel("Frequency (Hz)")
+    ax.set_title(title)
+    fig.colorbar(im, ax=ax, fraction=0.046, label="Power proxy")
+    return _finish_figure(fig, show)

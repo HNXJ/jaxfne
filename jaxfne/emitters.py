@@ -82,6 +82,64 @@ class IzhikevichParams:
         return int(self.v0.shape[0])
 
 
+def _izhikevich_params_flatten(params):
+    children = (
+        params.a,
+        params.b,
+        params.c,
+        params.d,
+        params.drive,
+        params.sign,
+        params.W,
+        params.v0,
+        params.u0,
+        params.source_scale,
+    )
+    aux_data = {
+        "labels": params.labels,
+        "layer_labels": params.layer_labels,
+        "source_calibration_status": params.source_calibration_status,
+    }
+    return children, aux_data
+
+
+def _izhikevich_params_unflatten(aux_data, children):
+    return IzhikevichParams(
+        a=children[0],
+        b=children[1],
+        c=children[2],
+        d=children[3],
+        drive=children[4],
+        sign=children[5],
+        W=children[6],
+        v0=children[7],
+        u0=children[8],
+        source_scale=children[9],
+        labels=aux_data["labels"],
+        layer_labels=aux_data["layer_labels"],
+        source_calibration_status=aux_data["source_calibration_status"],
+    )
+
+
+try:
+    try:
+        jax.tree_util.register_pytree_node(
+            IzhikevichParams,
+            _izhikevich_params_flatten,
+            _izhikevich_params_unflatten,
+        )
+    except ValueError:
+        pass
+
+except ValueError:
+    pass # Already registered
+
+
+def _segment_sum(data, segment_ids, num_segments):
+    """Compatibility wrapper for segment_sum across JAX versions."""
+    return jax.ops.segment_sum(data, segment_ids, num_segments=num_segments)
+
+
 @dataclass(frozen=True)
 class EIGNetwork:
     """Lightweight description of an E/PV/SST/VIP-like reduced network."""
@@ -416,7 +474,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state, rng = carry
             rng, noise_key = jax.random.split(rng)
             edge_current = weight * syn_state
-            syn = jax.ops.segment_sum(edge_current, post, n_neurons)
+            syn = _segment_sum(edge_current, post, n_neurons)
             noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
             current_native = drive + syn + noise
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
@@ -439,7 +497,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state, rng = carry
             rng, noise_key = jax.random.split(rng)
             edge_current = weight * syn_state
-            syn = jax.ops.segment_sum(edge_current, post, n_neurons)
+            syn = _segment_sum(edge_current, post, n_neurons)
             noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
             current_native = drive + sched_t + syn + noise
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
@@ -556,7 +614,7 @@ def simulate_receptor_exponential_izhikevich(
             v, u, prev_spikes, syn_state, rng = carry
             rng, noise_key = jax.random.split(rng)
             edge_drive = weight * syn_state
-            syn = jax.ops.segment_sum(edge_drive, post, n_neurons)
+            syn = _segment_sum(edge_drive, post, n_neurons)
             noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
             current_native = drive + syn + noise
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
@@ -579,7 +637,7 @@ def simulate_receptor_exponential_izhikevich(
             v, u, prev_spikes, syn_state, rng = carry
             rng, noise_key = jax.random.split(rng)
             edge_drive = weight * syn_state
-            syn = jax.ops.segment_sum(edge_drive, post, n_neurons)
+            syn = _segment_sum(edge_drive, post, n_neurons)
             noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
             current_native = drive + sched_t + syn + noise
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native

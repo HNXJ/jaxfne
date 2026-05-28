@@ -8,7 +8,7 @@ jaxfne provides compact TFNE source, field, probe, objective, and optimizer work
 - laminar and population proxy readouts
 - JSON-safe reports
 - deterministic seeds
-- package-native optimization examples
+- package-level optimization examples
 
 ## Calibration path
 
