@@ -209,18 +209,68 @@ class Configuration:
             object.__setattr__(self, "probes", _ProbeDeclarations(probe_decls, owner=self))
 
     def network(self, **kwargs: Any) -> "Configuration":
+        """Attach network metadata to the configuration.
+
+        Parameters are stored as JSON-safe metadata and consumed by public
+        construction helpers when supported.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+        """
         return replace(self, networks=[*self.networks, dict(kwargs)])
 
     def emitter(self, **kwargs: Any) -> "Configuration":
+        """Attach emitter metadata to the configuration.
+
+        Keyword arguments describe the emitter family and parameters.
+        The ``family`` key selects the emitter kernel at build time.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+        """
         return replace(self, emitters=[*self.emitters, dict(kwargs)])
 
     def field(self, **kwargs: Any) -> "Configuration":
+        """Attach field metadata to the configuration.
+
+        Describes source-to-field projection settings. Current implementation
+        is a laminar proxy; no PDE field solver is invoked.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+        """
         return replace(self, fields=[*self.fields, dict(kwargs)])
 
     def probe(self, **kwargs: Any) -> "Configuration":
+        """Attach probe metadata to the configuration.
+
+        The ``n_contacts`` key sets the number of recording contacts.
+        Minimum is 2; default is 16.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+        """
         return replace(self, probes=[*self.probes, dict(kwargs)])
 
     def update_metadata(self, **kwargs: Any) -> "Configuration":
+        """Merge keyword arguments into configuration metadata.
+
+        Use for truth-mode, claim-level, and other administrative tags.
+        Existing keys are overwritten; unspecified keys are preserved.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+        """
         metadata = dict(self.metadata)
         metadata.update(kwargs)
         return replace(self, metadata=metadata)
@@ -2932,7 +2982,7 @@ class Model:
             best_score=float(best_loss) if best_loss is not None else float("inf"),
             history=history,
             summary=json_safe(report),
-            model=self,
+            model=best_model,
         )
 
     def _tune_multiparameter(
@@ -3641,6 +3691,17 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
 
 
 def operator_status() -> dict[str, str]:
+    """Return the current operator status registry for all declared operators.
+
+    Returns a dict mapping operator symbol names to their readiness strings
+    (e.g., ``"prototype_api"``, ``"not_implemented"``). This is a scaffold
+    declaration; no operator has been empirically validated.
+
+    Returns
+    -------
+    dict[str, str]
+        Operator name to status string mapping.
+    """
     return _default_operator_status()
 
 
@@ -4489,10 +4550,12 @@ def config_to_simulation(cfg: JaxFNEConfig) -> Simulation:
     return Simulation(**kwargs)
 
 
-# Module-level registry: maps a JaxFNEConfig.config_hash → runtime_spec warnings.
-# Populated by config_to_simulation; consumed by config_to_configuration so the
-# warnings flow into Configuration.metadata without mutating the frozen
-# RuntimeConfig. Cleared lazily; size-bounded by the number of unique configs.
+# Module-level registry: maps JaxFNEConfig.config_hash → runtime_spec warnings.
+# Populated by config_to_simulation; consumed (and cleared) by config_to_configuration
+# so warnings flow into Configuration.metadata without mutating the frozen RuntimeConfig.
+# This couples config_to_simulation and config_to_configuration implicitly; a future
+# refactor should pass warnings as a return value or context object instead.
+# Size-bounded by unique configs in a session; not thread-safe.
 _CONFIG_RUNTIME_WARNINGS: dict[str, tuple[str, ...]] = {}
 
 
