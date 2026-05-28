@@ -195,3 +195,83 @@ def plot_spectrolaminar_power(
     ax.set_title(title)
     fig.colorbar(im, ax=ax, fraction=0.046, label="Power proxy")
     return _finish_figure(fig, show)
+
+
+def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
+                       current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Hodgkin-Huxley reference trace with gating variables and ionic currents.
+
+    Implements classical HH membrane equation with sodium, potassium, and leak currents.
+
+    Parameters
+    ----------
+    duration_ms : float
+        Simulation duration in milliseconds.
+    dt_ms : float
+        Time step in milliseconds.
+    current_amplitude : float
+        Injected current amplitude in μA/cm².
+
+    Returns
+    -------
+    t : ndarray (n_steps,)
+        Time in ms.
+    V : ndarray (n_steps,)
+        Membrane potential in mV.
+    I_inj : ndarray (n_steps,)
+        Injected current in μA/cm².
+    """
+    # HH parameters (squid axon, Hodgkin & Huxley 1952)
+    C_m = 1.0  # membrane capacitance μF/cm²
+    g_Na = 120.0  # sodium conductance mS/cm²
+    g_K = 36.0  # potassium conductance mS/cm²
+    g_L = 0.3  # leak conductance mS/cm²
+    E_Na = 50.0  # sodium reversal mV
+    E_K = -77.0  # potassium reversal mV
+    E_L = -54.4  # leak reversal mV
+
+    n_steps = int(duration_ms / dt_ms) + 1
+    t = np.linspace(0, duration_ms, n_steps, dtype=np.float32)
+    V = np.zeros(n_steps, dtype=np.float32)
+    m = np.zeros(n_steps, dtype=np.float32)
+    h = np.zeros(n_steps, dtype=np.float32)
+    n = np.zeros(n_steps, dtype=np.float32)
+
+    # Initial values (rest)
+    V[0] = -65.0
+    m[0] = 0.05
+    h[0] = 0.6
+    n[0] = 0.32
+
+    dt = dt_ms / 1000.0  # convert to seconds
+
+    for i in range(1, n_steps):
+        # Rate constants (voltage-dependent)
+        alpha_m = 0.1 * (V[i-1] + 40.0) / (1.0 - np.exp(-(V[i-1] + 40.0) / 10.0))
+        beta_m = 4.0 * np.exp(-(V[i-1] + 65.0) / 18.0)
+        alpha_h = 0.07 * np.exp(-(V[i-1] + 65.0) / 20.0)
+        beta_h = 1.0 / (1.0 + np.exp(-(V[i-1] + 35.0) / 10.0))
+        alpha_n = 0.01 * (V[i-1] + 55.0) / (1.0 - np.exp(-(V[i-1] + 55.0) / 10.0))
+        beta_n = 0.125 * np.exp(-(V[i-1] + 65.0) / 80.0)
+
+        # Update gating variables
+        m[i] = m[i-1] + (alpha_m * (1.0 - m[i-1]) - beta_m * m[i-1]) * dt
+        h[i] = h[i-1] + (alpha_h * (1.0 - h[i-1]) - beta_h * h[i-1]) * dt
+        n[i] = n[i-1] + (alpha_n * (1.0 - n[i-1]) - beta_n * n[i-1]) * dt
+
+        # Clamp gating variables to [0, 1]
+        m[i] = np.clip(m[i], 0.0, 1.0)
+        h[i] = np.clip(h[i], 0.0, 1.0)
+        n[i] = np.clip(n[i], 0.0, 1.0)
+
+        # Ionic currents
+        I_Na = g_Na * (m[i] ** 3) * h[i] * (V[i-1] - E_Na)
+        I_K = g_K * (n[i] ** 4) * (V[i-1] - E_K)
+        I_L = g_L * (V[i-1] - E_L)
+
+        # Membrane voltage equation: C_m dV/dt = I_inj - I_Na - I_K - I_L
+        dV = (current_amplitude - I_Na - I_K - I_L) / C_m
+        V[i] = V[i-1] + dV * dt
+
+    I_inj = np.full(n_steps, current_amplitude, dtype=np.float32)
+    return t, V, I_inj
