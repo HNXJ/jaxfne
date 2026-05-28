@@ -64,7 +64,7 @@ def test_suite_no1_notebook_executes(tmp_path):
     client = NotebookClient(
         nb,
         timeout=900,
-        kernel_name="python3",
+        kernel_name="jaxfne-venv",
         resources={"metadata": {"path": str(tmp_path)}},
     )
     client.execute()
