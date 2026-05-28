@@ -3366,8 +3366,7 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     - synaptic_gain: multiplicative gain on all synaptic weights
     - drive_scale_a: multiplicative gain on first-half neuron drive signals
     - drive_scale_b: multiplicative gain on second-half neuron drive signals
-    - gAMPA_first_half: multiplicative gain on W rows for first-half neurons
-    - gAMPA_second_half: multiplicative gain on W rows for second-half neurons
+    - gAMPA: multiplicative gain on all excitatory (positive) synaptic weights
     """
     import numpy as np
 
@@ -3392,22 +3391,15 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
             drive_scale[split:] = value
         drive_per_neuron = base_drive * drive_scale
         new_emitter = replace(emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype))
-    elif parameter in ("gAMPA_first_half", "gAMPA_second_half"):
+    elif parameter == "gAMPA":
         import numpy as np
         W = np.asarray(emitter.W, dtype=float)
-        n_units = W.shape[0]
-        split = n_units // 2
         new_W = W.copy()
-        if parameter == "gAMPA_first_half":
-            rows = slice(0, split)
-        else:
-            rows = slice(split, n_units)
-        # Scale excitatory incoming rows (where sign > 0, rows correspond to postsynaptic neurons)
-        # W is (n_post, n_pre). Scale rows belonging to the target group.
-        new_W[rows, :] = W[rows, :] * value
+        # Scale only excitatory (positive) weights
+        new_W[W > 0] = W[W > 0] * value
         new_emitter = replace(emitter, W=jnp.asarray(new_W, dtype=emitter.W.dtype))
     else:
-        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA_first_half", "gAMPA_second_half"]
+        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA"]
         raise ValueError(
             f"Unsupported tunable parameter: {parameter!r}. "
             f"Supported parameters: {supported}"

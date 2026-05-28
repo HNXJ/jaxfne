@@ -93,6 +93,26 @@ class TestSuiteNo1RuntimeStaticGuards:
             "optimizer may be running with too few generations"
         )
 
+    def test_rejects_split_ampa_parameters(self):
+        """Rejects old gAMPA_first_half and gAMPA_second_half parameter names."""
+        code = _load_code()
+        assert "gAMPA_first_half" not in code, (
+            "Old parameter name gAMPA_first_half found — "
+            "should use global gAMPA parameter instead"
+        )
+        assert "gAMPA_second_half" not in code, (
+            "Old parameter name gAMPA_second_half found — "
+            "should use global gAMPA parameter instead"
+        )
+
+    def test_requires_global_gampa_parameter(self):
+        """Requires global gAMPA parameter (not split per-group)."""
+        code = _load_code()
+        assert '"gAMPA"' in code or "'gAMPA'" in code, (
+            "Expected global gAMPA parameter in optimizer configuration — "
+            "this decouples synaptic mechanism from objective groups"
+        )
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
