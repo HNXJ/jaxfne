@@ -290,6 +290,11 @@ def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
 
     dt = dt_ms / 1000.0  # convert to seconds
 
+    # Create injected current array with pulse between 200-300ms
+    I_inj = np.full(n_steps, current_amplitude, dtype=np.float32)
+    pulse_mask = (t >= 200.0) & (t < 300.0)
+    I_inj[pulse_mask] += 50.0  # Add +50 μA/cm² pulse
+
     for i in range(1, n_steps):
         # Rate constants (voltage-dependent)
         alpha_m = 0.1 * (V[i-1] + 40.0) / (1.0 - np.exp(-(V[i-1] + 40.0) / 10.0))
@@ -315,8 +320,7 @@ def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
         I_L = g_L * (V[i-1] - E_L)
 
         # Membrane voltage equation: C_m dV/dt = I_inj - I_Na - I_K - I_L
-        dV = (current_amplitude - I_Na - I_K - I_L) / C_m
+        dV = (I_inj[i] - I_Na - I_K - I_L) / C_m
         V[i] = V[i-1] + dV * dt
 
-    I_inj = np.full(n_steps, current_amplitude, dtype=np.float32)
     return t, V, I_inj
