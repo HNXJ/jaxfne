@@ -590,6 +590,7 @@ class Simulation:
     seed: int = 0
     record_sources: bool = True
     record_fields: bool = True
+    poisson_drive: Optional[dict] = None
     runtime: RuntimeConfig | None = None
 
     def __post_init__(self) -> None:
@@ -1180,6 +1181,28 @@ class RunReceipt:
         })
 
 import numpy as _np  # used only in StimulusSchedule.to_array; no JAX tracing
+
+
+def _make_poisson_drive(
+    n_steps: int,
+    n_neurons: int,
+    rate_hz: float,
+    amplitude: float,
+    dt_ms: float,
+    seed: int,
+    target: str = "all",
+) -> jax.Array:
+    """Generate a Poisson stochastic drive array.
+    
+    Returns (n_steps, n_neurons) float32 array. Each timestep, each neuron
+    has an independent Poisson event with probability rate_hz * dt_ms / 1000.
+    Events inject `amplitude` native current units. Output is finite and bounded.
+    """
+    prob = float(rate_hz) * float(dt_ms) / 1000.0
+    prob = min(max(prob, 0.0), 1.0)
+    key = jax.random.PRNGKey(int(seed))
+    noise = jax.random.bernoulli(key, p=prob, shape=(int(n_steps), int(n_neurons)))
+    return (jnp.asarray(noise, dtype=jnp.float32) * float(amplitude))
 
 
 @dataclass(frozen=True)
@@ -1963,6 +1986,19 @@ class Model:
         drive_array: Optional[Any] = None
         if schedule is not None:
             drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+        if sim.poisson_drive is not None:
+            _emitter: IzhikevichParams = self.params["emitter"]
+            _pd = sim.poisson_drive
+            _poisson_arr = _make_poisson_drive(
+                n_steps=sim.n_steps,
+                n_neurons=_emitter.n_neurons,
+                rate_hz=float(_pd.get("rate_hz", 2.0)),
+                amplitude=float(_pd.get("amplitude", 0.5)),
+                dt_ms=sim.dt_ms,
+                seed=int(_pd.get("seed", sim.seed + 7919)),
+                target=str(_pd.get("target", "all")),
+            )
+            drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
 
         voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
@@ -2018,6 +2054,14 @@ class Model:
             if isinstance(paradigm, ParadigmCondition):
                 metadata["condition_name"] = paradigm.name
                 metadata["has_omission"] = paradigm.has_omission()
+        if sim.poisson_drive is not None:
+            metadata["poisson_drive"] = {
+                "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
+                "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
+                "target": str(sim.poisson_drive.get("target", "all")),
+                "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
+                "status": "stochastic_drive_applied",
+            }
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -3272,6 +3316,8 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     - synaptic_gain: multiplicative gain on all synaptic weights
     - drive_scale_a: multiplicative gain on first-half neuron drive signals
     - drive_scale_b: multiplicative gain on second-half neuron drive signals
+    - gAMPA_first_half: multiplicative gain on W rows for first-half neurons
+    - gAMPA_second_half: multiplicative gain on W rows for second-half neurons
     """
     import numpy as np
 
@@ -3285,22 +3331,33 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     elif parameter == "synaptic_gain":
         new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
     elif parameter in ("drive_scale_a", "drive_scale_b"):
-        # Per-population drive scaling (Suite No. 1 multi-objective case)
-        # drive_scale_a: first half, drive_scale_b: second half
-        base_drive = np.asarray(emitter.drive, dtype=float).reshape(-1)
+        import numpy as _np_dsa
+        base_drive = _np_dsa.asarray(emitter.drive, dtype=float).reshape(-1)
         n_units = base_drive.shape[0]
         split = n_units // 2
-
-        drive_scale = np.ones(n_units, dtype=float)
+        drive_scale = _np_dsa.ones(n_units, dtype=float)
         if parameter == "drive_scale_a":
             drive_scale[:split] = value
-        else:  # drive_scale_b
+        else:
             drive_scale[split:] = value
-
         drive_per_neuron = base_drive * drive_scale
         new_emitter = replace(emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype))
+    elif parameter in ("gAMPA_first_half", "gAMPA_second_half"):
+        import numpy as np
+        W = np.asarray(emitter.W, dtype=float)
+        n_units = W.shape[0]
+        split = n_units // 2
+        new_W = W.copy()
+        if parameter == "gAMPA_first_half":
+            rows = slice(0, split)
+        else:
+            rows = slice(split, n_units)
+        # Scale excitatory incoming rows (where sign > 0, rows correspond to postsynaptic neurons)
+        # W is (n_post, n_pre). Scale rows belonging to the target group.
+        new_W[rows, :] = W[rows, :] * value
+        new_emitter = replace(emitter, W=jnp.asarray(new_W, dtype=emitter.W.dtype))
     else:
-        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b"]
+        supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA_first_half", "gAMPA_second_half"]
         raise ValueError(
             f"Unsupported tunable parameter: {parameter!r}. "
             f"Supported parameters: {supported}"
@@ -3314,7 +3371,8 @@ def _model_with_parameters(model: Model, parameters: dict[str, float]) -> Model:
     """Return a Model copy with multiple safe scalar emitter parameters changed.
 
     Applies all parameter updates in sequence. Supported parameters: source_scale,
-    drive_gain, synaptic_gain, drive_scale_a, and drive_scale_b.
+    drive_gain, synaptic_gain, drive_scale_a, drive_scale_b, gAMPA_first_half,
+    and gAMPA_second_half.
 
     Parameters
     ----------
