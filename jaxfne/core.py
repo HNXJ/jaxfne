@@ -31,7 +31,7 @@ from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
 
 
-@dataclass(frozen=True)
+@dataclass
 class TuneResult:
     """Result object returned by Model.tune() with multi-parameter optimization.
 
@@ -48,12 +48,15 @@ class TuneResult:
         Per-generation records with scores and parameter values.
     summary : dict[str, Any]
         High-level tuning summary (targets vs achieved, initial vs final scores, etc).
+    model : Optional[Any]
+        The model object (if returned by tuning; may be None for metadata-only runs).
     """
 
     best_parameters: dict[str, float]
     best_score: float
     history: list[dict[str, Any]]
     summary: dict[str, Any]
+    model: Any = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-safe dictionary for serialization."""
@@ -65,6 +68,17 @@ class TuneResult:
             "history": self.history,
             "summary": self.summary,
         })
+
+    def __iter__(self):
+        """Support backward-compatible tuple unpacking: model, result = tune(...)
+
+        This yields the model (if present) and then the summary dict.
+
+        DEPRECATED: Use direct attribute access instead.
+        """
+        # For backward compatibility with old API that returned (model, report)
+        yield self.model  # Yields the model (may be None)
+        yield self.summary  # Yields the summary dict for backward compatibility
 
 
 def _default_operator_status() -> dict[str, str]:
@@ -2754,6 +2768,7 @@ class Model:
                     best_score=float("inf"),
                     history=[],
                     summary=json_safe(report),
+                    model=self,
                 )
             try:
                 require_optax()
@@ -2775,6 +2790,7 @@ class Model:
                 best_score=float("inf"),
                 history=[],
                 summary=json_safe(report),
+                model=self,
             )
 
         if n_steps <= 0:
@@ -2790,6 +2806,7 @@ class Model:
                 best_score=float("inf"),
                 history=[],
                 summary=json_safe(report),
+                model=self,
             )
 
         candidates = propose_blackbox_candidates(
@@ -2866,6 +2883,7 @@ class Model:
             best_score=float(best_loss) if best_loss is not None else float("inf"),
             history=history,
             summary=json_safe(report),
+            model=self,
         )
 
     def _tune_multiparameter(
@@ -2970,6 +2988,7 @@ class Model:
                 best_score=float(best_score) if math.isfinite(best_score) else float("inf"),
                 history=generation_records,
                 summary=json_safe(report),
+                model=self,
             )
 
         except Exception as e:
@@ -2985,6 +3004,7 @@ class Model:
                 best_score=float("inf"),
                 history=[],
                 summary=json_safe(report),
+                model=self,
             )
 
     def with_emitter_parameters(
