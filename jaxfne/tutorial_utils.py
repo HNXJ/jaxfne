@@ -25,11 +25,14 @@ class ConfigSummary:
     probes: List[str]
 
 
-def save_png(fig, name: str, fig_dir: Path) -> str:
+def save_png(fig, name: str, fig_dir: Path, show: bool = False) -> str:
     """Save figure to PNG and return path."""
     path = fig_dir / f"{name}.png"
     fig.savefig(path, dpi=150, bbox_inches="tight")
-    plt.close(fig)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     print(f"saved: {path} ({path.stat().st_size / 1024:.1f} KB)")
     return str(path)
 
@@ -55,7 +58,7 @@ def display_run_summary(label: str, spikes: np.ndarray, V_m: np.ndarray,
 
 
 def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
-               title="Population Raster"):
+               title="Population Raster", show: bool = True):
     """Plot spike raster from list of spike times per neuron."""
     fig, ax = plt.subplots(figsize=figsize)
     for neuron_id, (times, ids) in enumerate(zip(spike_times_list, spike_neuron_ids_list)):
@@ -64,11 +67,15 @@ def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
     ax.set_ylabel("Neuron index")
     ax.set_title(title)
     ax.set_xlim(t.min(), t.max())
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig
 
 
 def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
-                        title="Population Rate") -> Tuple:
+                        title="Population Rate", show: bool = True) -> Tuple:
     """Plot time-binned population firing rate."""
     bin_edges = np.arange(0, t.max() + bin_ms, bin_ms)
     rates = [float(spikes[(t >= lo) & (t < hi)].mean() * (1000.0 / dt_ms))
@@ -78,11 +85,15 @@ def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Mean rate (Hz)")
     ax.set_title(title)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig, rates
 
 
 def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
-                        max_neurons=10):
+                        max_neurons=10, show: bool = True):
     """Plot voltage time series from first N neurons."""
     fig, ax = plt.subplots(figsize=figsize)
     for i in range(min(max_neurons, V_m.shape[1])):
@@ -90,10 +101,14 @@ def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("V-like state (mV)")
     ax.set_title(title)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig
 
 
-def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5)):
+def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5), show: bool = True):
     """Plot connectivity weight matrix."""
     fig, ax = plt.subplots(figsize=figsize)
     im = ax.imshow(W, aspect="auto", cmap="RdBu", vmin=-W.max(), vmax=W.max())
@@ -101,11 +116,15 @@ def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5)):
     ax.set_ylabel("Receiving neuron")
     ax.set_title(title)
     fig.colorbar(im, ax=ax, fraction=0.046)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig
 
 
 def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
-                        title="Laminar Readout"):
+                        title="Laminar Readout", show: bool = True):
     """Plot LFP-proxy and optionally CSD-proxy."""
     if csd_proxy is not None:
         fig, axes = plt.subplots(1, 2, figsize=figsize)
@@ -124,4 +143,8 @@ def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
         ax.set_xlabel("Time (ms)")
         ax.set_ylabel("Proxy units")
     fig.suptitle(title)
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
     return fig
