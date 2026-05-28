@@ -1219,6 +1219,7 @@ def _tune_matrix_agsdr_optax(
     try:
         from jaxfne.core import (
             TuneResult,
+            MatrixParameterSpec,
             _evaluate_soft_rate_targets,
             _model_with_parameters,
             Simulation,
@@ -1229,6 +1230,7 @@ def _tune_matrix_agsdr_optax(
         import importlib
         _core = importlib.import_module("jaxfne.core")
         TuneResult = _core.TuneResult
+        MatrixParameterSpec = _core.MatrixParameterSpec
         _evaluate_soft_rate_targets = _core._evaluate_soft_rate_targets
         _model_with_parameters = _core._model_with_parameters
         Simulation = _core.Simulation
@@ -1399,9 +1401,10 @@ def _tune_matrix_agsdr_optax(
                 best_score = score
                 # Preserve both scalar proposal values AND matrix parameters
                 best_parameters = dict(candidate_scalars)
-                # Extract tuned matrices from the refined model
+                # Extract tuned matrices from the refined model for ALL matrix parameters
                 for matrix_name in param_specs.keys():
-                    if matrix_name == "gAMPA_w":
+                    param_spec = param_specs[matrix_name]
+                    if isinstance(param_spec, MatrixParameterSpec):
                         try:
                             tuned_W = np.asarray(candidate_model.params["emitter"].W, dtype=np.float32)
                             # Convert to JSON-safe nested list
@@ -1436,7 +1439,8 @@ def _tune_matrix_agsdr_optax(
     # Build matrix parameters metadata (compact, no huge arrays in summary)
     matrix_parameters_meta = {}
     for matrix_name in param_specs.keys():
-        if matrix_name == "gAMPA_w" and matrix_name in best_parameters:
+        param_spec = param_specs[matrix_name]
+        if isinstance(param_spec, MatrixParameterSpec) and matrix_name in best_parameters:
             try:
                 W_values = best_parameters[matrix_name]
                 W_array = np.asarray(W_values, dtype=np.float32)
