@@ -7,7 +7,9 @@ Ensures Suite No. 4 uses the correct parameter grammar:
 """
 import pytest
 import jaxfne as jtfne
-import optax
+
+# Gate optional Optax dependency at module level
+optax = pytest.importorskip("optax")
 
 
 def test_suite_no4_uses_gampa_w_not_gampa_scalar():

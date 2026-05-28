@@ -87,3 +87,48 @@ def test_suite_no4_notebook_content_validation():
     )
     assert "gGABA_w_spec" in code_sources, "gGABA_w_spec must be defined in code cell"
     assert "gGABA_w_spec = jtfne.matrix_parameter" in code_sources
+
+
+@pytest.mark.slow
+def test_suite_no4_notebook_execution():
+    """Execute Suite No. 4 notebook using nbclient.
+
+    Skipped if optax is not installed, since Suite No. 4 requires it.
+    """
+    # Gate on optax since the notebook imports it
+    try:
+        import optax as _  # noqa: F401
+    except ImportError:
+        pytest.skip("Optax not installed; skipping Suite No. 4 notebook execution")
+
+    notebook_path = "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
+
+    # Read notebook
+    with open(notebook_path, "r") as f:
+        nb = nbformat.read(f, as_version=4)
+
+    # Execute notebook with a reasonable timeout
+    client = NotebookClient(
+        nb,
+        timeout=1200,  # 20 minutes for full execution
+        kernel_name="python3",
+    )
+
+    try:
+        # Run all cells
+        client.execute()
+
+        # Verify notebook executed without errors
+        # If we get here without exception, execution succeeded
+        assert len(nb.cells) > 0, "Notebook should have cells after execution"
+
+        # Verify output was generated (at least some cells have output)
+        code_cells = [c for c in nb.cells if c.cell_type == "code"]
+        cells_with_output = [c for c in code_cells if len(c.get("outputs", [])) > 0]
+        assert len(cells_with_output) > 0, "Notebook should have generated output"
+
+    except Exception as e:
+        # If optax is missing in the kernel, skip gracefully
+        if "No module named 'optax'" in str(e):
+            pytest.skip("Optax not available in kernel; skipping Suite No. 4 notebook execution")
+        raise
