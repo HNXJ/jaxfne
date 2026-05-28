@@ -234,3 +234,18 @@ def hh_reference_trace_jaxley(duration_ms: float = 500.0, dt_ms: float = 0.1,
         dt_ms=dt_ms,
         current_amplitude=current_amplitude,
     )
+
+
+def hh_numpy_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
+                             current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Standalone tutorial/reference Hodgkin-Huxley single-compartment trace.
+
+    **Scope:** Standalone NumPy Hodgkin-Huxley trace, NOT Jaxley bridge validation,
+    and NOT evidence that JaxleyBridge executed.
+    """
+    from .bridges import hh_numpy_reference_trace
+    return hh_numpy_reference_trace(
+        duration_ms=duration_ms,
+        dt_ms=dt_ms,
+        current_amplitude=current_amplitude,
+    )

@@ -54,6 +54,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
+| `gemini-cli` | v0.3.11: Stage B Visualizations, Jaxley Bridge, and Biophysical Alignment | `b06a14c` | Implemented jtfne.vis namespace, FigureResult, JaxleyBridge, E2E smoke tests, and arkhipov_allen_tfne_alignment.md. All tests passed. |
 | `claude-sonnet` | v0.3.10: dev→main merge (Suite No. 3 correction + Suite No. 1 AGSDR naming) | `175b75b` | Merged dev into main after full validation: 1318/1318 tests pass, docs hygiene 210/210, mkdocs strict pass. main SHA: 175b75b. |
 | `gemini-cli` | v0.3.10: Suite No. 3 noisy absolute-power scaling correction | `3a28bc1` | Revised Suite No. 3 to noisy AI regime, aggregate vs density-normalized proxy power, control verification table. 1318/1318 tests pass; MkDocs strict pass. |
 | `gemini-cli` | v0.3.10: EEG/MEG/EMM proxy bundle tutorial | `b89e516` | Implemented tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb, docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md, targeted test suite, and doc hygiene check alignment. 1284/1284 tests pass. |

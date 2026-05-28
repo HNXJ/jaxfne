@@ -73,6 +73,7 @@ nav:
       - Plotly Visualization: guides/plotly_visualization.md
       - Poisson Admissibility: guides/poisson_admissibility.md
       - Jaxley Interoperability: guides/jaxley_interop.md
+      - Biophysical Alignment: notes/arkhipov_allen_tfne_alignment.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
 
