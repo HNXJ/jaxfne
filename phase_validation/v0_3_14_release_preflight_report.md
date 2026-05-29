@@ -49,11 +49,20 @@ This phase implements the final stabilization and release preflight gates for `v
 - Package version bumped to `"0.3.14"` in `pyproject.toml` and `jaxfne/core.py` (`_JAXFNE_VERSION`).
 - Completed preflight reports and merged validated workspace across branches.
 
+### Architectural Separation: paradigm.py Migration
+
+**Status**: ✅ COMPLETE
+
+- Extracted `ParadigmEvent`, `ParadigmCondition`, and `Paradigm` classes, along with `paradigm()`, `evoked_l4_drive_paradigm()`, and `omission_oddball_paradigm()` functions, from `jaxfne/core.py` into a dedicated `jaxfne/paradigm.py` module.
+- Retained seamless backward-compatibility by importing all paradigm classes and creator functions back into `jaxfne/core.py` from `.paradigm`.
+- Verified 100% green status on all 29 targeted paradigm, evoked-drive, and omission test suites.
+
 ---
 
 ## Quality Gates
 
 * ✅ **Package-Native API**: Ablation features are implemented natively inside the core simulation loops.
+* ✅ **Architectural Decoupling**: Large task-script and paradigm containers have been clean-decoupled out of `jaxfne/core.py` into `jaxfne/paradigm.py`.
 * ✅ **Proxy-Safe Wording**: Maintained uncalibrated, unphysical status defaults throughout. Wording avoids any biological active inference, real EEG/MEG, or biophysical metabolism claims.
 * ✅ **JSON Safety**: All reports/manifests are strictly serializable with `allow_nan=False`.
 * ✅ **Finite Outputs**: Simulation outputs contain no `NaN` or `Inf` values under all ablation controls.
@@ -61,6 +70,7 @@ This phase implements the final stabilization and release preflight gates for `v
 ## Files Modified
 
 **New Files**:
+- `jaxfne/paradigm.py`
 - `tests/test_v0314_ablation_controls.py`
 - `phase_validation/v0_3_14_release_preflight_report.md`
 - `phase_validation/v0_3_14_release_preflight_report.json`

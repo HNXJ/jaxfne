@@ -34,8 +34,9 @@
     "no_local_simulator": "pass"
   },
   "files_changed": {
-    "total": 6,
+    "total": 7,
     "new_files": [
+      "jaxfne/paradigm.py",
       "tests/test_v0314_ablation_controls.py",
       "phase_validation/v0_3_14_release_preflight_report.md",
       "phase_validation/v0_3_14_release_preflight_report.json"
