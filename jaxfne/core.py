@@ -22,6 +22,7 @@ from .emitters import (
     IzhikevichParams,
     make_edge_list_from_dense,
     make_eig_network,
+    izhikevich_params_from_labels,
     simulate_edge_recurrent_izhikevich,
     simulate_eig_izhikevich,
     simulate_receptor_exponential_izhikevich,
@@ -185,6 +186,220 @@ def _default_metadata() -> dict[str, Any]:
         "connectivity_status": "declared_metadata_proxy",
         "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
     }
+
+
+
+
+_SUITE2_LAYER_FRACTIONS = {
+    "L1": (0.00, 0.10),
+    "L2": (0.10, 0.25),
+    "L3": (0.25, 0.45),
+    "L4": (0.45, 0.55),
+    "L5": (0.55, 0.85),
+    "L6": (0.85, 1.00),
+}
+
+_SUITE2_LAYER_CELL_TYPES_V1 = {
+    "L1": {"E": 0.75, "PV": 0.00, "SST": 0.00, "VIP": 0.25},
+    "L2": {"E": 0.75, "PV": 0.05, "SST": 0.05, "VIP": 0.15},
+    "L3": {"E": 0.75, "PV": 0.10, "SST": 0.10, "VIP": 0.05},
+    "L4": {"E": 0.25, "PV": 0.45, "SST": 0.15, "VIP": 0.15},
+    "L5": {"E": 0.15, "PV": 0.25, "SST": 0.30, "VIP": 0.30},
+    "L6": {"E": 0.10, "PV": 0.20, "SST": 0.20, "VIP": 0.50},
+}
+
+_SUITE2_LAYER_CELL_TYPES_V4 = {
+    "L1": {"E": 0.70, "PV": 0.00, "SST": 0.00, "VIP": 0.30},
+    "L2": {"E": 0.70, "PV": 0.08, "SST": 0.06, "VIP": 0.16},
+    "L3": {"E": 0.70, "PV": 0.12, "SST": 0.12, "VIP": 0.06},
+    "L4": {"E": 0.30, "PV": 0.40, "SST": 0.15, "VIP": 0.15},
+    "L5": {"E": 0.20, "PV": 0.25, "SST": 0.30, "VIP": 0.25},
+    "L6": {"E": 0.15, "PV": 0.20, "SST": 0.25, "VIP": 0.40},
+}
+
+_SUITE2_PROXY_MODES = (
+    "spikes", "V_m", "source", "LFP", "CSD", "EEG-proxy", "MEG-proxy", "EMM-proxy"
+)
+
+
+def _suite2_default_layer_cell_types() -> dict[str, dict[str, float]]:
+    return {k: dict(v) for k, v in _SUITE2_LAYER_CELL_TYPES_V1.items()}
+
+
+def _counts_from_fractions(total: int, fractions: Mapping[str, float]) -> dict[str, int]:
+    total = int(total)
+    if total < 0:
+        raise ValueError("total must be non-negative")
+    if total == 0:
+        return {str(k): 0 for k in fractions.keys()}
+    items = [(str(k), float(v)) for k, v in fractions.items()]
+    if not items:
+        raise ValueError("fractions must not be empty")
+    if any((not math.isfinite(v)) or v < 0.0 for _, v in items):
+        raise ValueError("fractions must be finite and non-negative")
+    mass = sum(v for _, v in items)
+    if mass <= 0.0:
+        raise ValueError("fractions must have positive mass")
+    normalized = [(k, v / mass) for k, v in items]
+    counts: dict[str, int] = {}
+    remaining = total
+    for idx, (key, frac) in enumerate(normalized):
+        if idx == len(normalized) - 1:
+            count = remaining
+        else:
+            count = int(round(total * frac))
+            count = max(0, min(count, remaining))
+        counts[key] = count
+        remaining -= count
+    return counts
+
+
+def _layer_ranges_for(layers: Sequence[str], metadata: Mapping[str, Any]) -> dict[str, tuple[float, float]]:
+    declared = metadata.get("layer_fractions") or _SUITE2_LAYER_FRACTIONS
+    out: dict[str, tuple[float, float]] = {}
+    missing = [str(layer) for layer in layers if str(layer) not in declared]
+    if missing:
+        n = len(layers)
+        for idx, layer in enumerate(layers):
+            out[str(layer)] = (idx / max(n, 1), (idx + 1) / max(n, 1))
+        return out
+    for layer in layers:
+        z0, z1 = declared[str(layer)]
+        out[str(layer)] = (float(z0), float(z1))
+    return out
+
+
+def _area_layer_cell_type_map(metadata: Mapping[str, Any], area: str) -> dict[str, dict[str, float]]:
+    per_area = metadata.get("area_layer_cell_types", {}) or {}
+    if area in per_area:
+        return {str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in per_area[area].items()}
+    base = metadata.get("layer_cell_types", None)
+    if base:
+        return {str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in base.items()}
+    return _suite2_default_layer_cell_types()
+
+
+def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
+    """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
+
+    metadata = cfg.metadata
+    net = cfg.networks[0]
+    columns = [dict(c) for c in metadata.get("columns", [])]
+    if not columns:
+        columns = [{"name": str(net.get("name", "net1")), "layers": ["uniform_3d"], "n": int(net.get("n", 100)), "start_index": 0, "stop_index": int(net.get("n", 100))}]
+    seed = int(metadata.get("seed", 0))
+    uniform_3d = bool(metadata.get("uniform_3d", False))
+    global_cell_types = {str(k): float(v) for k, v in net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}).items()}
+
+    labels: list[str] = []
+    layer_labels: list[str] = []
+    area_labels: list[str] = []
+    neuron_rows: list[dict[str, Any]] = []
+    position_chunks: list[jax.Array] = []
+    jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
+    neuron_id = 0
+
+    for area_idx, column in enumerate(columns):
+        area = str(column.get("name", f"area_{area_idx}"))
+        n_col = int(column.get("n", 0))
+        if n_col <= 0:
+            continue
+        layers = [str(x) for x in column.get("layers", ["uniform_3d"])] or ["uniform_3d"]
+        key = jax.random.PRNGKey(seed + 1009 * (area_idx + 1))
+
+        if uniform_3d or layers == ["uniform_3d"]:
+            counts_by_type = _counts_from_fractions(n_col, global_cell_types)
+            col_labels: list[str] = []
+            for cell_type, count in counts_by_type.items():
+                col_labels.extend([cell_type] * count)
+            col_labels = col_labels[:n_col] + ["E"] * max(0, n_col - len(col_labels))
+            x_key, y_key, z_key = jax.random.split(key, 3)
+            radius = float(metadata.get("column_radius_mm", 0.25))
+            height = float(metadata.get("column_height_mm", 1.60))
+            x = jax.random.uniform(x_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            y = jax.random.uniform(y_key, (n_col,), minval=-radius, maxval=radius, dtype=jdtype)
+            z = jax.random.uniform(z_key, (n_col,), minval=0.0, maxval=height, dtype=jdtype)
+            position_chunks.append(jnp.stack([x, y, z], axis=1))
+            for local_idx, cell_type in enumerate(col_labels[:n_col]):
+                labels.append(cell_type)
+                layer_labels.append("uniform_3d")
+                area_labels.append(area)
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": "uniform_3d", "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_id += 1
+            continue
+
+        layer_ranges = _layer_ranges_for(layers, metadata)
+        thickness = {layer: max(0.0, layer_ranges[layer][1] - layer_ranges[layer][0]) for layer in layers}
+        layer_counts = _counts_from_fractions(n_col, thickness)
+        area_layer_map = _area_layer_cell_type_map(metadata, area)
+        for layer_idx, layer in enumerate(layers):
+            n_layer = int(layer_counts.get(layer, 0))
+            if n_layer <= 0:
+                continue
+            z0, z1 = layer_ranges[layer]
+            type_fracs = area_layer_map.get(layer, global_cell_types)
+            type_counts = _counts_from_fractions(n_layer, type_fracs)
+            layer_cell_labels: list[str] = []
+            for cell_type, count in type_counts.items():
+                layer_cell_labels.extend([cell_type] * count)
+            layer_cell_labels = layer_cell_labels[:n_layer] + ["E"] * max(0, n_layer - len(layer_cell_labels))
+            x_key, y_key, z_key = jax.random.split(jax.random.fold_in(key, layer_idx), 3)
+            radius = float(metadata.get("column_radius_mm", 0.25))
+            x = jax.random.uniform(x_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype) + jnp.asarray(area_idx * 2.0, dtype=jdtype)
+            y = jax.random.uniform(y_key, (n_layer,), minval=-radius, maxval=radius, dtype=jdtype)
+            z = jax.random.uniform(z_key, (n_layer,), minval=float(z0), maxval=float(z1), dtype=jdtype)
+            position_chunks.append(jnp.stack([x, y, z], axis=1))
+            for local_idx, cell_type in enumerate(layer_cell_labels[:n_layer]):
+                labels.append(cell_type)
+                layer_labels.append(layer)
+                area_labels.append(area)
+                neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
+                neuron_id += 1
+
+    params = izhikevich_params_from_labels(
+        labels,
+        layer_labels=layer_labels,
+        dtype=dtype,
+        drive_overrides=metadata.get("cell_type_drives"),
+    )
+    positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
+    params = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
+    geometry_meta = {
+        "neuron_rows": neuron_rows,
+        "area_labels": area_labels,
+        "layer_labels": layer_labels,
+        "cell_type_labels": labels,
+        "geometry_mode": metadata.get("geometry_mode", "declared_metadata_not_solved_3d_pde_grid"),
+        "position_units": "mm_declared_metadata",
+        "uniform_3d": bool(uniform_3d),
+    }
+    return params, positions, geometry_meta
+
+
+def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str) -> IzhikevichParams:
+    n = len(cell_labels)
+    if n == 0:
+        return params
+    jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
+    key = jax.random.PRNGKey(seed + 4242)
+    rnd = jax.random.uniform(key, (n, n), minval=0.25, maxval=1.0, dtype=jdtype)
+    sign = params.sign.astype(jdtype)
+    same_area = jnp.asarray([[1.0 if area_labels[i] == area_labels[j] else 0.0 for j in range(n)] for i in range(n)], dtype=jdtype)
+    eye = jnp.eye(n, dtype=jdtype)
+    base_gain = float((metadata.get("connectivity", {}) or {}).get("within_gain", 0.45))
+    W = base_gain * rnd * sign[None, :] * same_area * (1.0 - eye) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
+
+    if bool(metadata.get("suite2_interarea", False)):
+        pre_v1_l23 = jnp.asarray([area_labels[j] == "V1" and layer_labels[j] in {"L2", "L3", "L2/3"} and cell_labels[j] == "E" for j in range(n)], dtype=jdtype)
+        post_v4_l4 = jnp.asarray([area_labels[i] == "V4" and layer_labels[i] == "L4" and cell_labels[i] == "E" for i in range(n)], dtype=jdtype)
+        pre_v4_l23 = jnp.asarray([area_labels[j] == "V4" and layer_labels[j] in {"L2", "L3", "L2/3"} and cell_labels[j] == "E" for j in range(n)], dtype=jdtype)
+        post_v1_deep_l1 = jnp.asarray([area_labels[i] == "V1" and layer_labels[i] in {"L1", "L5", "L6"} and cell_labels[i] == "E" for i in range(n)], dtype=jdtype)
+        ff_gain = float((metadata.get("connectivity", {}) or {}).get("feedforward_gain", 0.65)) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
+        fb_gain = float((metadata.get("connectivity", {}) or {}).get("feedback_gain", 0.50)) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
+        W = W + ff_gain * (post_v4_l4[:, None] * pre_v1_l23[None, :])
+        W = W + fb_gain * (post_v1_deep_l1[:, None] * pre_v4_l23[None, :])
+
+    return replace(params, W=W)
 
 
 class _ProbeDeclarations(list):
@@ -609,6 +824,52 @@ class Configuration:
         metadata["layer_fractions"] = {k: list(v) for k, v in layer_fractions.items()}
         metadata["layer_cell_types"] = layer_cell_types
         return replace(self, metadata=metadata)
+
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
 
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
@@ -1108,6 +1369,52 @@ class DatasetSpec:
         gates[str(name)] = value
         return replace(self, quality_gates=gates)
 
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
+
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.name:
@@ -1482,6 +1789,52 @@ class LaminarPopulation:
     physical_amplitude_claim_allowed: bool = False
     claim_level: str = "computational_scaffold"
 
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
+
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.name:
@@ -1534,6 +1887,52 @@ class LaminarSourceGeometry:
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
     physical_amplitude_claim_allowed: bool = False
     claim_level: str = "computational_scaffold"
+
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
 
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
@@ -1869,6 +2268,52 @@ class AxisSpec:
     size: Optional[int] = None
     units_or_status: str = "declared"
 
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
+
     def validate(self) -> dict[str, Any]:
         """Return a JSON-safe validation dict."""
         issues: list[str] = []
@@ -1954,6 +2399,52 @@ class BasisSpec:
         """Physical amplitude claims are always False in proxy/scaffold regimes."""
         # Claims require solved field with calibrated conductivity — not in v0.2.x
         return False
+
+
+    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
+        """Set layer-specific cell-type fractions for one declared area."""
+        if not area:
+            raise ValueError("area must be a non-empty string")
+        clean: dict[str, dict[str, float]] = {}
+        for layer, fracs in layer_cell_types.items():
+            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
+            _counts_from_fractions(1, clean[str(layer)])
+        metadata = dict(self.metadata)
+        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
+        per_area[str(area)] = clean
+        metadata["area_layer_cell_types"] = per_area
+        return replace(self, metadata=metadata)
+
+    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
+        """Mark the current column geometry as a uniformly sampled 3D column."""
+        if radius_mm <= 0.0 or height_mm <= 0.0:
+            raise ValueError("radius_mm and height_mm must be positive")
+        return self.update_metadata(
+            uniform_3d=True,
+            column_radius_mm=float(radius_mm),
+            column_height_mm=float(height_mm),
+            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
+            dx_mm=0.010,
+            dy_mm=0.010,
+            dz_mm=0.010,
+            physical_amplitude_claim_allowed=False,
+        )
+
+    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
+        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
+        if not drives:
+            raise ValueError("drives must not be empty")
+        clean: dict[str, float] = {}
+        for key, value in drives.items():
+            v = float(value)
+            if not math.isfinite(v):
+                raise ValueError(f"drive for {key!r} must be finite")
+            clean[str(key)] = v
+        return self.update_metadata(cell_type_drives=clean)
+
+    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
+        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
+        return self.update_metadata(suite2_interarea=bool(enabled))
 
     def validate(self) -> dict[str, Any]:
         """Return a JSON-safe validation dict. Raises ValueError on invalid enum."""
@@ -2105,6 +2596,31 @@ class Model:
             "physical_amplitude_claim_allowed": False,
         })
 
+
+    def neuron_table(self) -> list[dict[str, Any]]:
+        """Return declared neuron metadata rows for area/layer/cell-type grouping."""
+        rows = self.static.get("neuron_metadata")
+        if rows is not None:
+            return [dict(row) for row in rows]
+        emitter: IzhikevichParams = self.params["emitter"]
+        layers = emitter.layer_labels or tuple("unspecified" for _ in emitter.labels)
+        positions = self.params.get("positions")
+        rows_out: list[dict[str, Any]] = []
+        for idx, label in enumerate(emitter.labels):
+            z_value = None
+            try:
+                z_value = float(positions[idx, 2]) if positions is not None else None
+            except Exception:
+                z_value = None
+            rows_out.append({
+                "neuron_id": int(idx),
+                "area": "network",
+                "layer": str(layers[idx]),
+                "cell_type": str(label),
+                "z": z_value,
+            })
+        return rows_out
+
     def _simulate_arrays(
         self,
         sim: Simulation,
@@ -2239,6 +2755,8 @@ class Model:
             "recurrent_backend": runtime_cfg.recurrent_backend,
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
             "source_model": _SOURCE_PROXY_METADATA,
+            "neuron_metadata": self.static.get("neuron_metadata"),
+            "neuron_metadata_summary": self.static.get("neuron_metadata_summary"),
         }
         # v0.2.0: Add source bookkeeping metadata for theoretical validation.
         metadata["source_bookkeeping"] = {
@@ -3986,6 +4504,225 @@ def rate_targets(
     )
 
 
+
+
+def suite2_celltype_presets() -> dict[str, dict[str, float | str]]:
+    """Return compact E/PV/SST/VIP reduced-emitter preset metadata."""
+    return {
+        "E": {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0, "drive": 5.0, "role": "excitatory_pyramidal_like"},
+        "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 3.0, "role": "fast_inhibitory_like"},
+        "SST": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0, "drive": 3.5, "role": "somatostatin_like"},
+        "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "role": "disinhibitory_like"},
+    }
+
+
+def suite2_single_neuron_config(*, seed: int = 7, duration_ms: float = 1000.0, dt_ms: float = 0.1, cell_type: str = "E") -> Configuration:
+    """Build the Suite No. 2 one-emitter configuration."""
+    fractions = {"E": 0.0, "PV": 0.0, "SST": 0.0, "VIP": 0.0}
+    if cell_type not in fractions:
+        raise ValueError(f"cell_type must be one of {tuple(fractions)}")
+    fractions[cell_type] = 1.0
+    return (
+        Configuration()
+        .runtime(seed=seed, dtype="float32", duration_ms=duration_ms, dt_ms=dt_ms)
+        .column("single", layers=["uniform_3d"], n=1)
+        .cell_types(fractions)
+        .uniform3d(radius_mm=0.010, height_mm=0.010)
+        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .probes(_SUITE2_PROXY_MODES, n_contacts=4)
+    )
+
+
+def suite2_four_celltype_config(*, seed: int = 7, duration_ms: float = 1000.0, dt_ms: float = 0.1) -> Configuration:
+    """Build the Suite No. 2 four-emitter E/PV/SST/VIP configuration."""
+    return (
+        Configuration()
+        .runtime(seed=seed, dtype="float32", duration_ms=duration_ms, dt_ms=dt_ms)
+        .column("celltype_panel", layers=["uniform_3d"], n=4)
+        .cell_types({"E": 0.25, "PV": 0.25, "SST": 0.25, "VIP": 0.25})
+        .uniform3d(radius_mm=0.030, height_mm=0.10)
+        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .probes(_SUITE2_PROXY_MODES, n_contacts=4)
+    )
+
+
+def suite2_net1_config(
+    *,
+    seed: int = 7,
+    n: int = 100,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    drives: Mapping[str, float] | None = None,
+) -> Configuration:
+    """Build net1: a uniformly sampled 3D E/PV/SST/VIP column."""
+    cfg = (
+        Configuration()
+        .runtime(seed=seed, dtype="float32", duration_ms=duration_ms, dt_ms=dt_ms)
+        .column("net1", layers=["uniform_3d"], n=int(n))
+        .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
+        .uniform3d(radius_mm=0.25, height_mm=1.60)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45)
+        .probes(_SUITE2_PROXY_MODES, n_contacts=16)
+    )
+    cfg = cfg.cell_type_drives(drives or {"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+    return cfg
+
+
+def suite2_v1_v4_config(
+    *,
+    seed: int = 7,
+    n_per_area: int = 400,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    v1_layer_cell_types: Mapping[str, Mapping[str, float]] | None = None,
+    v4_layer_cell_types: Mapping[str, Mapping[str, float]] | None = None,
+) -> Configuration:
+    """Build the Suite No. 2 V1-V4 laminar scaffold with six layers per area."""
+    layers = ["L1", "L2", "L3", "L4", "L5", "L6"]
+    cfg = (
+        Configuration()
+        .runtime(seed=seed, dtype="float32", duration_ms=duration_ms, dt_ms=dt_ms)
+        .column("V1", layers=layers, n=int(n_per_area))
+        .column("V4", layers=layers, n=int(n_per_area))
+        .cell_types({"E": 0.50, "PV": 0.20, "SST": 0.15, "VIP": 0.15})
+        .layer_fractions(_SUITE2_LAYER_FRACTIONS, _suite2_default_layer_cell_types())
+        .area_layer_cell_types("V1", v1_layer_cell_types or _SUITE2_LAYER_CELL_TYPES_V1)
+        .area_layer_cell_types("V4", v4_layer_cell_types or _SUITE2_LAYER_CELL_TYPES_V4)
+        .connectivity(
+            within_area="all_to_all_uniform_random",
+            within_gain=0.35,
+            feedforward="V1_L2L3_E_to_V4_L4_E",
+            feedback="V4_L2L3_E_to_V1_L5L6_L1_E",
+            feedforward_gain=0.65,
+            feedback_gain=0.50,
+        )
+        .suite2_interarea(True)
+        .cell_type_drives({"E": 4.0, "PV": 2.0, "SST": 2.2, "VIP": 2.0})
+        .probes(_SUITE2_PROXY_MODES, n_contacts=24)
+    )
+    return cfg
+
+
+def suite2_simulation(
+    *,
+    seed: int = 7,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    noise_amplitude: float | None = None,
+    noise_rate_hz: float = 2.0,
+    target: str = "all",
+    jit: bool = False,
+    recurrent_backend: str = "dense",
+) -> Simulation:
+    """Create a Suite No. 2 simulation with deterministic runtime metadata."""
+    runtime_cfg = RuntimeConfig(dtype="float32", seed=seed, jit=jit, recurrent_backend=recurrent_backend)
+    poisson = None
+    if noise_amplitude is not None:
+        poisson = {"rate_hz": float(noise_rate_hz), "amplitude": float(noise_amplitude), "target": target, "seed": int(seed) + 7919}
+    return Simulation(
+        duration_ms=float(duration_ms),
+        dt_ms=float(dt_ms),
+        seed=int(seed),
+        record_sources=True,
+        record_fields=True,
+        runtime=runtime_cfg,
+        poisson_drive=poisson,
+    )
+
+
+def suite2_tune_noise_agsdr_adam(
+    model: Model,
+    *,
+    simulation: Simulation | None = None,
+    target_rate_hz: tuple[float, float] = (5.0, 10.0),
+    amplitudes: Sequence[float] = (0.0, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0),
+    poisson_rate_hz: float = 2.0,
+    adam_steps: int = 2,
+    learning_rate: float = 0.20,
+    finite_difference_eps: float = 0.05,
+    seed: int = 7,
+) -> TuneResult:
+    """Tune Poisson-drive amplitude toward a target mean firing-rate range.\n\n    The outer stage evaluates an AGSDR-style candidate population.  The inner\n    stage applies finite-difference Adam updates to the scalar noise amplitude.\n    This path tunes a reduced native-drive parameter and preserves relative\n    proxy-unit metadata.\n    """
+    sim0 = simulation or suite2_simulation(seed=seed, duration_ms=1000.0, dt_ms=0.1)
+    lo, hi = float(target_rate_hz[0]), float(target_rate_hz[1])
+    if lo <= 0.0 or hi < lo:
+        raise ValueError("target_rate_hz must be a positive (low, high) tuple")
+    target_mid = 0.5 * (lo + hi)
+
+    def run_amp(amp: float, run_seed: int) -> tuple[float, float, Signals]:
+        sim = replace(
+            sim0,
+            seed=int(run_seed),
+            poisson_drive={"rate_hz": float(poisson_rate_hz), "amplitude": float(max(0.0, amp)), "target": "all", "seed": int(run_seed) + 7919},
+        )
+        sig = model.simulate(sim)
+        rate = float(sig.summary()["spike_rate_hz_mean"] or 0.0)
+        if lo <= rate <= hi:
+            loss = 0.0
+        else:
+            loss = (rate - target_mid) * (rate - target_mid)
+        return loss, rate, sig
+
+    history: list[dict[str, Any]] = []
+    best_amp = float(amplitudes[0])
+    best_loss, best_rate, best_sig = run_amp(best_amp, seed)
+    history.append({"stage": "agsdr_population", "amplitude": best_amp, "rate_hz": best_rate, "loss": best_loss})
+    for idx, amp in enumerate(amplitudes[1:], start=1):
+        loss, rate, sig = run_amp(float(amp), seed + idx)
+        history.append({"stage": "agsdr_population", "amplitude": float(amp), "rate_hz": rate, "loss": loss})
+        if loss < best_loss:
+            best_amp, best_loss, best_rate, best_sig = float(amp), loss, rate, sig
+
+    m = 0.0
+    v = 0.0
+    beta1 = 0.9
+    beta2 = 0.999
+    eps = 1e-8
+    amp = best_amp
+    for step in range(1, int(adam_steps) + 1):
+        loss0, rate0, _ = run_amp(amp, seed + 100 + step * 2)
+        loss1, _, _ = run_amp(amp + finite_difference_eps, seed + 101 + step * 2)
+        grad = (loss1 - loss0) / max(float(finite_difference_eps), 1e-6)
+        m = beta1 * m + (1.0 - beta1) * grad
+        v = beta2 * v + (1.0 - beta2) * grad * grad
+        m_hat = m / (1.0 - beta1 ** step)
+        v_hat = v / (1.0 - beta2 ** step)
+        amp = max(0.0, amp - float(learning_rate) * m_hat / (math.sqrt(v_hat) + eps))
+        loss_new, rate_new, sig_new = run_amp(amp, seed + 200 + step)
+        history.append({"stage": "finite_difference_adam", "step": step, "amplitude": amp, "rate_hz": rate_new, "loss": loss_new, "gradient_estimate": grad})
+        if loss_new < best_loss:
+            best_amp, best_loss, best_rate, best_sig = amp, loss_new, rate_new, sig_new
+
+    summary = json_safe({
+        "optimizer": "AGSDR_outer_finite_difference_Adam_inner",
+        "target_rate_hz": [lo, hi],
+        "best_noise_amplitude": best_amp,
+        "best_rate_hz": best_rate,
+        "best_loss": best_loss,
+        "history_length": len(history),
+        "tuned_parameter": "simulation.poisson_drive.amplitude",
+        "units_or_status": "reduced_native_drive_units_relative_proxy",
+        "field_solver_status": model.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
+        "physical_amplitude_claim_allowed": False,
+    })
+    return TuneResult(
+        best_parameters={"noise_amplitude": float(best_amp), "poisson_rate_hz": float(poisson_rate_hz)},
+        best_score=float(best_loss),
+        history=json_safe(history),
+        summary=summary,
+        model=model,
+    )
+
+
+def suite2_run_bundle(model: Model, *, seed: int = 7, duration_ms: float = 1000.0, dt_ms: float = 0.1, noise_amplitude: float | None = None) -> dict[str, Any]:
+    """Run simulation, readouts, manifest, and receipt for Suite No. 2 notebooks."""
+    sim = suite2_simulation(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, noise_amplitude=noise_amplitude)
+    signals = model.simulate(sim)
+    readout = model.probe(signals, modes=list(_SUITE2_PROXY_MODES))
+    manifest = model.manifest(signals=signals, readout=readout)
+    return {"simulation": sim, "signals": signals, "readout": readout, "manifest": manifest, "neuron_table": model.neuron_table()}
+
+
 def paradigm(name: str = "none") -> Paradigm:
     return Paradigm(name=name)
 
@@ -4019,8 +4756,25 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
     net = cfg.networks[0]
     n = int(net.get("n", 100))
-    cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
-    network: EIGNetwork = make_eig_network(n=n, cell_type_fractions=cell_types)
+    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
+    if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
+        params, positions, geometry_meta = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
+        network = EIGNetwork(
+            params=params,
+            positions=positions,
+            metadata={
+                "emitter_family": "izhikevich",
+                "source_calibration_status": params.source_calibration_status,
+                "position_units": geometry_meta.get("position_units", "mm_declared_metadata"),
+            },
+        )
+        n = int(params.n_neurons)
+    else:
+        cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
+        network = make_eig_network(n=n, cell_type_fractions=cell_types)
+        positions = network.positions
+        geometry_meta = None
+
     edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
 
     if geometry is not None:
@@ -4029,12 +4783,8 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
                 f"geometry_n_units_total_mismatch: "
                 f"geometry.n_units_total={geometry.n_units_total} but cfg network n={n}"
             )
-        dtype_name = network.params.v0.dtype.name
-        positions = geometry.positions_array(dtype=dtype_name)
-        geometry_meta: Optional[dict[str, Any]] = geometry.to_dict()
-    else:
-        positions = network.positions
-        geometry_meta = None
+        positions = geometry.positions_array(dtype=network.params.v0.dtype.name)
+        geometry_meta = geometry.to_dict()
 
     n_contacts: int = 16
     if cfg.probes:
@@ -4051,6 +4801,14 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
     static: dict[str, Any] = {"n_contacts": n_contacts, "operator_status": operator_status()}
     if geometry_meta is not None:
         static["geometry"] = geometry_meta
+        if "neuron_rows" in geometry_meta:
+            static["neuron_metadata"] = list(geometry_meta["neuron_rows"])
+            static["neuron_metadata_summary"] = {
+                "n_rows": len(geometry_meta["neuron_rows"]),
+                "areas": sorted(set(geometry_meta.get("area_labels", []))),
+                "layers": sorted(set(geometry_meta.get("layer_labels", []))),
+                "cell_types": sorted(set(geometry_meta.get("cell_type_labels", []))),
+            }
 
     return Model(
         cfg=cfg,

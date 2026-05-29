@@ -1874,3 +1874,112 @@ def multi_area_spectrolaminar_readout(
 
     return readouts
 
+
+# -----------------------------------------------------------------------------
+# Generalized source/readout helpers used by public tutorial grammar.
+# -----------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class LinearReadout:
+    """Apply a fixed linear readout matrix to source arrays."""
+
+    name: str
+    W: jax.Array
+    leadfield_status: str = "toy_or_declared_proxy"
+    operator_status: str = "simulated_proxy"
+    units_or_status: str = "relative_proxy_units"
+
+    def apply(self, source: jax.Array) -> jax.Array:
+        src = jnp.asarray(source)
+        W = jnp.asarray(self.W)
+        if W.ndim != 2:
+            raise ValueError(f"W must be 2D [C, N], got {W.shape}")
+        if src.ndim == 1:
+            if src.shape[0] != W.shape[1]:
+                raise ValueError(f"source length {src.shape[0]} does not match W width {W.shape[1]}")
+            return W @ src
+        if src.ndim == 2:
+            if src.shape[1] != W.shape[1]:
+                raise ValueError(f"source width {src.shape[1]} does not match W width {W.shape[1]}")
+            return src @ W.T
+        raise ValueError(f"source must be 1D or 2D, got {src.shape}")
+
+    def report(self) -> dict[str, Any]:
+        return {
+            "name": self.name,
+            "operator_status": self.operator_status,
+            "leadfield_status": self.leadfield_status,
+            "units_or_status": self.units_or_status,
+            "physical_amplitude_claim_allowed": False,
+        }
+
+
+def construct_source_tensor(
+    *,
+    mode: str,
+    total_membrane_current: jax.Array | None = None,
+    decomposed_cap_ion: jax.Array | None = None,
+    synaptic_current: jax.Array | None = None,
+    spike_proxy: jax.Array | None = None,
+    scale: float = 1.0,
+) -> tuple[jax.Array, dict[str, Any]]:
+    """Construct a source tensor with source bookkeeping validation."""
+    if mode == "total_membrane_current_proxy":
+        if total_membrane_current is None:
+            raise ValueError(
+                "total_membrane_current is required for total_membrane_current_proxy"
+            )
+        if synaptic_current is not None:
+            raise ValueError(
+                "Double-counting detected: total_membrane_current_proxy already includes synaptic_current"
+            )
+        source = jnp.asarray(total_membrane_current) * jnp.asarray(
+            scale, dtype=jnp.asarray(total_membrane_current).dtype
+        )
+        source_mode = "total_membrane_current_proxy"
+    elif mode == "decomposed_cap_ion_plus_synaptic_proxy":
+        if decomposed_cap_ion is None or synaptic_current is None:
+            raise ValueError(
+                "decomposed_cap_ion_plus_synaptic_proxy requires both decomposed_cap_ion and synaptic_current"
+            )
+        cap_ion = jnp.asarray(decomposed_cap_ion)
+        syn = jnp.asarray(synaptic_current)
+        source = (cap_ion + syn) * jnp.asarray(scale, dtype=cap_ion.dtype)
+        source_mode = "decomposed_cap_ion_plus_synaptic_proxy"
+    elif mode == "spike_proxy":
+        if spike_proxy is None:
+            raise ValueError("spike_proxy is required for spike_proxy")
+        source = jnp.asarray(spike_proxy) * jnp.asarray(
+            scale, dtype=jnp.asarray(spike_proxy).dtype
+        )
+        source_mode = "spike_proxy"
+    elif mode == "invalid_double_count_mode":
+        raise ValueError(
+            "Double-counting detected: total_membrane_current_proxy + synaptic_current_proxy"
+        )
+    else:
+        raise NotImplementedError(f"TODO: implement construct_source_tensor mode {mode!r}")
+
+    # Compute finite check in a JIT-compatible way and convert to JSON-serializable value
+    finite_flag = jnp.all(jnp.isfinite(source))
+    # Convert JAX array to Python bool for JSON serialization
+    try:
+        finite_bool = bool(finite_flag)  # Works when not inside JIT
+    except (TypeError, ValueError):
+        # Inside JIT, keep as array - caller must handle serialization
+        finite_bool = finite_flag
+
+    report = {
+        "source_mode": source_mode,
+        "mode": source_mode,
+        "source_shape": list(source.shape),
+        "source_calibration_status": "uncalibrated_spike_only"
+        if source_mode == "spike_proxy"
+        else "toy_scale_A_per_reduced_not_empirical",
+        "source_projection_mode": "proxy_no_field_solve",
+        "source_decomposition": source_mode,
+        "double_count_guard": "passed",
+        "physical_amplitude_claim_allowed": False,
+        "finite": finite_bool,
+    }
+    return source, report
