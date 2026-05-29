@@ -352,6 +352,7 @@ def simulate_eig_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
@@ -371,53 +372,65 @@ def simulate_eig_izhikevich(
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+
     init = (
         params.v0.astype(jdtype),
         params.u0.astype(jdtype),
         jnp.zeros_like(params.v0, dtype=jdtype),
-        key,
     )
 
     if drive_schedule is None:
-        def step(carry, _):
-            v, u, prev_spikes, rng = carry
-            rng, noise_key = jax.random.split(rng)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
+        def step(carry, noise_t):
+            v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + syn + noise
+            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
-        _, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
+        _, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
     else:
         sched = drive_schedule.astype(jdtype)
 
-        def step_sched(carry, sched_t):
-            v, u, prev_spikes, rng = carry
-            rng, noise_key = jax.random.split(rng)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
+        def step_sched(carry, xs_t):
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + sched_t + syn + noise
+            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
-        _, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=sched)
+        _, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
 
     return voltages, spikes, sources
 
@@ -503,6 +516,7 @@ def simulate_edge_recurrent_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -530,58 +544,70 @@ def simulate_edge_recurrent_izhikevich(
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+
     init = (
         params.v0.astype(jdtype),
         params.u0.astype(jdtype),
         jnp.zeros_like(params.v0, dtype=jdtype),
         jnp.zeros((edges.n_edges,), dtype=jdtype),
-        key,
     )
 
     if drive_schedule is None:
-        def step(carry, _):
-            v, u, prev_spikes, syn_state, rng = carry
-            rng, noise_key = jax.random.split(rng)
+        def step(carry, noise_t):
+            v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
-            current_native = drive + syn + noise
+            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
-        final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
+        final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
     else:
         sched = drive_schedule.astype(jdtype)
 
-        def step_sched(carry, sched_t):
-            v, u, prev_spikes, syn_state, rng = carry
-            rng, noise_key = jax.random.split(rng)
+        def step_sched(carry, xs_t):
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
-            current_native = drive + sched_t + syn + noise
+            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
-        final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=sched)
+        final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
 
     final_state = {
         "v": final[0],
@@ -630,6 +656,7 @@ def simulate_receptor_exponential_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """v0.0.11 receptor-indexed exponential recurrent kernel.
 
@@ -670,58 +697,70 @@ def simulate_receptor_exponential_izhikevich(
     decay = jnp.exp(-dt / tau_per_edge)
     n_neurons = params.v0.shape[0]
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+
     init = (
         params.v0.astype(jdtype),
         params.u0.astype(jdtype),
         jnp.zeros_like(params.v0, dtype=jdtype),
         jnp.zeros((edges.n_edges,), dtype=jdtype),
-        key,
     )
 
     if drive_schedule is None:
-        def step(carry, _):
-            v, u, prev_spikes, syn_state, rng = carry
-            rng, noise_key = jax.random.split(rng)
+        def step(carry, noise_t):
+            v, u, prev_spikes, syn_state = carry
             edge_drive = weight * syn_state
             syn = _segment_sum(edge_drive, post, n_neurons)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
-            current_native = drive + syn + noise
+            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
-        final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=None, length=int(n_steps))
+        final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
     else:
         sched = drive_schedule.astype(jdtype)
 
-        def step_sched(carry, sched_t):
-            v, u, prev_spikes, syn_state, rng = carry
-            rng, noise_key = jax.random.split(rng)
+        def step_sched(carry, xs_t):
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state = carry
             edge_drive = weight * syn_state
             syn = _segment_sum(edge_drive, post, n_neurons)
-            noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=v.shape).astype(jdtype)
-            current_native = drive + sched_t + syn + noise
+            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
-            return (v_reset, u_reset, spikes, syn_next, rng), (v_reset, spikes, source_proxy)
+            return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
-        final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=sched)
+        final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
 
     final_state = {
         "v": final[0],

@@ -79,10 +79,7 @@ def _agsdr_candidates_from_noise(
     span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=jnp.float32))
     proposals = center[None, :] + jnp.asarray(exploration, dtype=jnp.float32) * span[None, :] * noise
 
-    def clip_one(row: jax.Array) -> jax.Array:
-        return jnp.clip(row, lows, highs)
-
-    candidates = jax.vmap(clip_one)(proposals)
+    candidates = jnp.clip(proposals, lows[None, :], highs[None, :])
     return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 

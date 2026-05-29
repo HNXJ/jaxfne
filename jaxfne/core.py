@@ -1057,6 +1057,7 @@ class Simulation:
     record_fields: bool = True
     poisson_drive: Optional[dict] = None
     runtime: RuntimeConfig | None = None
+    ablation: Optional[str] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -2403,10 +2404,34 @@ class Model:
         runtime_cfg: RuntimeConfig,
         drive_schedule: Optional[Any] = None,
     ):
+        from .emitters import _dtype_from_policy
         emitter: IzhikevichParams = self.params["emitter"]
         sched = drive_schedule  # None or (n_steps, n_neurons) array
+        
+        # Build silence_mask if E_silence or I_silence is requested
+        n_neurons = emitter.v0.shape[0]
+        jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
+        silence_mask = jnp.ones((n_neurons,), dtype=jdtype)
+        ablation_mode = getattr(sim, "ablation", None)
+        
+        if ablation_mode == "E_silence":
+            mask_list = [0.0 if lbl.startswith("E") else 1.0 for lbl in emitter.labels]
+            silence_mask = jnp.array(mask_list, dtype=jdtype)
+        elif ablation_mode == "I_silence":
+            mask_list = [1.0 if lbl.startswith("E") else 0.0 for lbl in emitter.labels]
+            silence_mask = jnp.array(mask_list, dtype=jdtype)
+            
+        if ablation_mode == "disconnected_null":
+            if runtime_cfg.recurrent_backend == "edge_list":
+                edges: EdgeList = self.params["edge_list"]
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            else:
+                emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
+
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
+            if ablation_mode == "disconnected_null":
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
             kernel_fn = (
                 simulate_receptor_exponential_izhikevich
                 if runtime_cfg.synaptic_kernel == "receptor_exponential"
@@ -2417,24 +2442,28 @@ class Model:
                     lambda k, s: kernel_fn(
                         emitter, edges, sim.n_steps, sim.dt_ms, k,
                         dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                        silence_mask=silence_mask,
                     )[:3]
                 )
                 return run(key, sched)
             return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key,
                 dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+                silence_mask=silence_mask,
             )[:3]
         if runtime_cfg.jit:
             run = jax.jit(
                 lambda k, s: simulate_eig_izhikevich(
                     emitter, sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                    silence_mask=silence_mask,
                 )
             )
             return run(key, sched)
         return simulate_eig_izhikevich(
             emitter, sim.n_steps, sim.dt_ms, key,
             dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+            silence_mask=silence_mask,
         )
 
     def _resolve_stimulus_schedule(
@@ -2495,6 +2524,16 @@ class Model:
             )
             drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
 
+        # shuffled_timing ablation: shuffle drive_array along time axis (axis 0) independently for each neuron
+        ablation_mode = getattr(sim, "ablation", None)
+        if ablation_mode == "shuffled_timing" and drive_array is not None:
+            shuffle_key = jax.random.PRNGKey(sim.seed + 12345)
+            n_neurons = drive_array.shape[1]
+            keys = jax.random.split(shuffle_key, n_neurons)
+            # Use vmap to shuffle each neuron's temporal drive independently
+            shuffled = jax.vmap(lambda arr, k: jax.random.permutation(k, arr))(drive_array.T, keys)
+            drive_array = shuffled.T
+
         voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
             sim.dt_ms, dtype=runtime_cfg.jnp_dtype
@@ -2532,6 +2571,7 @@ class Model:
             "source_model": _SOURCE_PROXY_METADATA,
             "neuron_metadata": self.static.get("neuron_metadata"),
             "neuron_metadata_summary": self.static.get("neuron_metadata_summary"),
+            "ablation": ablation_mode,
         }
         # v0.2.0: Add source bookkeeping metadata for theoretical validation.
         metadata["source_bookkeeping"] = {
@@ -5059,7 +5099,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.11"
+_JAXFNE_VERSION = "0.3.14"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
@@ -5622,3 +5662,183 @@ def config_to_trial_batch(
         seed=base_seed,
         seed_policy=seed_policy,
     )
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.3.12 Evoked L4 Drive API
+# ──────────────────────────────────────────────────────────────
+
+def evoked_l4_drive_paradigm(
+    l4_onset_ms: float = 100.0,
+    l4_duration_ms: float = 200.0,
+    l4_amplitude: float = 1.0,
+    pre_stimulus_buffer_ms: float = 200.0,
+    post_stimulus_buffer_ms: float = 500.0,
+    name: str = "evoked_l4_drive",
+) -> Paradigm:
+    """Create a simple baseline-vs-evoked L4 drive paradigm.
+
+    Parameters
+    ----------
+    l4_onset_ms : float
+        Stimulus onset (ms after trial start).
+    l4_duration_ms : float
+        Stimulus duration (ms).
+    l4_amplitude : float
+        L4 drive amplitude (relative units).
+    pre_stimulus_buffer_ms : float
+        Pre-stimulus baseline window (ms).
+    post_stimulus_buffer_ms : float
+        Post-stimulus window (ms).
+    name : str
+        Paradigm name.
+
+    Returns
+    -------
+    Paradigm
+        A Paradigm with baseline and evoked conditions.
+
+    Notes
+    -----
+    This is a minimal proxy paradigm scaffold. All outputs are simulated.
+    No empirical validation against real data.
+    """
+    from dataclasses import dataclass
+
+    # Baseline condition: no L4 drive
+    baseline_condition = ParadigmCondition(
+        name="baseline",
+        sequence=("pre", "stim", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="stim_absent", onset_ms=pre_stimulus_buffer_ms, duration_ms=l4_duration_ms),
+            ParadigmEvent(label="post_stim", onset_ms=pre_stimulus_buffer_ms + l4_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.5,
+    )
+
+    # Evoked condition: with L4 drive
+    evoked_condition = ParadigmCondition(
+        name="evoked",
+        sequence=("pre", "stim", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="l4_drive", onset_ms=pre_stimulus_buffer_ms, duration_ms=l4_duration_ms, stimulus="l4_evoked"),
+            ParadigmEvent(label="post_stim", onset_ms=pre_stimulus_buffer_ms + l4_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.5,
+    )
+
+    paradigm = Paradigm(
+        name=name,
+        conditions=(baseline_condition, evoked_condition),
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={
+            "baseline": (0.0, pre_stimulus_buffer_ms),
+            "evoked": (pre_stimulus_buffer_ms, pre_stimulus_buffer_ms + l4_duration_ms),
+            "post_evoked": (pre_stimulus_buffer_ms + l4_duration_ms, pre_stimulus_buffer_ms + l4_duration_ms + post_stimulus_buffer_ms),
+        },
+    )
+    return paradigm
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.3.13 Omission/Oddball Paradigm API
+# ──────────────────────────────────────────────────────────────
+
+def omission_oddball_paradigm(
+    standard_onset_ms: float = 500.0,
+    standard_duration_ms: float = 100.0,
+    deviant_onset_ms: Optional[float] = None,
+    deviant_duration_ms: float = 100.0,
+    deviant_label: str = "deviant",
+    omission_position: str = "standard",
+    pre_stimulus_buffer_ms: float = 200.0,
+    post_stimulus_buffer_ms: float = 500.0,
+    name: str = "omission_oddball",
+) -> Paradigm:
+    """Create a omission/oddball detection paradigm.
+
+    Parameters
+    ----------
+    standard_onset_ms : float
+        Standard stimulus onset (ms after trial start).
+    standard_duration_ms : float
+        Standard stimulus duration (ms).
+    deviant_onset_ms : Optional[float]
+        Deviant stimulus onset. If None, use standard_onset_ms.
+    deviant_duration_ms : float
+        Deviant stimulus duration (ms).
+    deviant_label : str
+        Label for deviant condition (e.g., "deviant", "unexpected").
+    omission_position : str
+        Position of omitted stimulus: "standard" or "deviant".
+    pre_stimulus_buffer_ms : float
+        Pre-stimulus baseline window (ms).
+    post_stimulus_buffer_ms : float
+        Post-stimulus window (ms).
+    name : str
+        Paradigm name.
+
+    Returns
+    -------
+    Paradigm
+        A Paradigm with expected, unexpected, omitted, and post-omission conditions.
+
+    Notes
+    -----
+    This is a minimal omission/oddball scaffold. All outputs are simulated.
+    No empirical validation against real data. Event windows are declarative.
+    """
+    if deviant_onset_ms is None:
+        deviant_onset_ms = standard_onset_ms
+
+    # Expected condition: standard stimulus
+    expected_condition = ParadigmCondition(
+        name="expected",
+        sequence=("pre", "standard", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="standard", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, stimulus="standard_tone"),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.8,
+    )
+
+    # Unexpected condition: deviant stimulus
+    unexpected_condition = ParadigmCondition(
+        name="unexpected",
+        sequence=("pre", "deviant", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label=deviant_label, onset_ms=pre_stimulus_buffer_ms, duration_ms=deviant_duration_ms, stimulus="deviant_tone"),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + deviant_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.1,
+        omission_position=None,
+    )
+
+    # Omitted condition: stimulus silent
+    omitted_condition = ParadigmCondition(
+        name="omitted",
+        sequence=("pre", "silence", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="omission", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, is_omission=True),
+            ParadigmEvent(label="post_omission", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.1,
+        omission_position=omission_position,
+    )
+
+    paradigm = Paradigm(
+        name=name,
+        conditions=(expected_condition, unexpected_condition, omitted_condition),
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={
+            "baseline": (0.0, pre_stimulus_buffer_ms),
+            "stimulus": (pre_stimulus_buffer_ms, pre_stimulus_buffer_ms + standard_duration_ms),
+            "post_stimulus": (pre_stimulus_buffer_ms + standard_duration_ms, pre_stimulus_buffer_ms + standard_duration_ms + post_stimulus_buffer_ms),
+        },
+    )
+    return paradigm

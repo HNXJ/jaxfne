@@ -1,0 +1,50 @@
+{
+  "checkpoint": "v0.3.14",
+  "decision_label": "jaxfne_v0_3_14_release_ready_after_three_branch_validation",
+  "timestamp": "2026-05-29T14:18:00Z",
+  "branch": "agy",
+  "phase_objectives": {
+    "ablation_configurations": {
+      "status": "complete",
+      "modes": [
+        "E_silence",
+        "I_silence",
+        "disconnected_null",
+        "shuffled_timing"
+      ]
+    },
+    "packaging_validation": {
+      "status": "complete",
+      "sdist_built": true,
+      "wheel_built": true,
+      "twine_check": "passed"
+    },
+    "validation_tests": {
+      "status": "complete",
+      "compilation": "pass",
+      "focused_suite": "4/4 pass",
+      "full_suite": "1635/1635 pass"
+    }
+  },
+  "quality_gates": {
+    "package_native_api": "pass",
+    "proxy_safe_wording": "pass",
+    "json_safe_manifests": "pass",
+    "finite_outputs": "pass",
+    "no_local_simulator": "pass"
+  },
+  "files_changed": {
+    "total": 6,
+    "new_files": [
+      "tests/test_v0314_ablation_controls.py",
+      "phase_validation/v0_3_14_release_preflight_report.md",
+      "phase_validation/v0_3_14_release_preflight_report.json"
+    ],
+    "modified_files": [
+      "pyproject.toml",
+      "jaxfne/core.py",
+      "jaxfne/emitters.py"
+    ]
+  },
+  "release_version": "0.3.14"
+}
