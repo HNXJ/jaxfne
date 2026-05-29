@@ -23,6 +23,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | **Suite 2** | Corticospectrolaminar Motif | Runnable Notebook | Compact V1/PFC spectrolaminar motif and visual analysis | v0.3.4+ |
 | **Suite 3** | Low-Frequency Scaling | Runnable Notebook | Scale-dependent low-frequency proxy readouts and boundary validation | v0.3.9+ |
 | **09** | EEG/MEG/EMM Proxy Bundle | Runnable Notebook | Separate sensor pathways for scalp potential, magnetic field, and metabolic proxy | v0.3.10+ |
+| **10** | Sensory Omission & Oddball | Runnable Notebook | Expected sensory stimuli, unexpected deviants, and sensory omissions | v0.3.13+ |
 | **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
 | **07** | v0.3.7 Source Bookkeeping | Interactive HTML | 3D visualization of source/field/probe workflow | v0.3.7+ |
 | **08** | v0.3.8 LFP/CSD Readout | Runnable notebook | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
@@ -98,6 +99,23 @@ A comprehensive tutorial covering:
 **Three publication-ready panel figures** and structured validation manifest exports.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
+
+---
+
+## Featured: jaxfne v0.3.13 Sensory Omission & Oddball Detection
+
+**[Sensory Omission & Oddball Detection Paradigm](10_v0313_omission_oddball.md)** (interactive notebook)
+
+A comprehensive tutorial covering:
+- Part 1: Declarative expected sensory stimuli and unexpected deviant tone setups
+- Part 2: Configuring sensory omission conditions (expected silence)
+- Part 3: Running stimulus-locked trials with windowed time segmentation
+- Part 4: Comparing expected vs deviant vs omission population activity and LFP/CSD proxy readouts
+- Part 5: Exporting JSON-safe paradigm reports and validation manifests
+
+**Five publication-ready plots** and structured validation manifests.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0313_omission_oddball.ipynb)
 
 ---
 

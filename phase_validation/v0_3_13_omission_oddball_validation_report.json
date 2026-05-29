@@ -1,0 +1,48 @@
+{
+  "checkpoint": "v0.3.13",
+  "decision_label": "v0_3_13_omission_oddball_scaffold_validated",
+  "timestamp": "2026-05-29T13:40:00Z",
+  "branch": "agy",
+  "phase_objectives": {
+    "scaffold_paradigm": {
+      "status": "complete",
+      "conditions": [
+        "expected",
+        "unexpected",
+        "omitted"
+      ]
+    },
+    "documentation": {
+      "status": "complete",
+      "notebook_exists": true,
+      "docs_exists": true,
+      "index_updated": true
+    },
+    "validation_tests": {
+      "status": "complete",
+      "compilation": "pass",
+      "focused_suite": "4/4 pass",
+      "full_suite": "1631/1631 pass"
+    }
+  },
+  "quality_gates": {
+    "package_native_api": "pass",
+    "proxy_safe_wording": "pass",
+    "json_safe_manifests": "pass",
+    "finite_outputs": "pass",
+    "no_local_simulator": "pass"
+  },
+  "files_changed": {
+    "total": 5,
+    "new_files": [
+      "docs/tutorials/10_v0313_omission_oddball.md",
+      "tutorials/jaxfne_v0313_omission_oddball.ipynb",
+      "tests/test_v0313_omission_oddball_tutorial.py",
+      "phase_validation/v0_3_13_omission_oddball_validation_report.md",
+      "phase_validation/v0_3_13_omission_oddball_validation_report.json"
+    ]
+  },
+  "next_phase": "v0.3.14",
+  "next_phase_target": "release_preflight",
+  "release_target": "v0.3.14"
+}
