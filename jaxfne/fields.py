@@ -1387,3 +1387,204 @@ def synaptic_current(
     """Compute synaptic current from spikes and connectivity matrix."""
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
     return jnp.dot(trace, W.T)
+
+
+# ============================================================================
+# Patch D: Multi-Area Source Projector (Corrected)
+# ============================================================================
+# This section implements source projection for multi-area laminar circuits.
+# 
+# CRITICAL: Two paths are provided:
+# 1. filtered_spike_source() — DYNAMICS-DERIVED (default evidence path)
+# 2. teaching_control_spectrolaminar_resonance_source() — TEACHING/CONTROL ONLY
+#    (explicitly excluded from default evidence path)
+
+
+def filtered_spike_source(
+    spikes: jax.Array,
+    neurons: "Mapping[str, Any]",
+    tau_ms: float = 5.0,
+    cell_signs: "Mapping[str, int] | None" = None,
+) -> tuple[jax.Array, dict[str, Any]]:
+    """Filter spikes through exponential decay per cell type.
+
+    Dynamics-derived source proxy. Used for default evidence path.
+
+    Parameters
+    ----------
+    spikes : jax.Array
+        Spike raster [T, N].
+    neurons : Mapping[str, Any]
+        Neuron metadata with cell_type key.
+    tau_ms : float
+        Decay time constant (ms).
+    cell_signs : Mapping[str, int], optional
+        Sign per cell type (E=+1, I=-1). Default: auto-detect.
+
+    Returns
+    -------
+    source : jax.Array
+        Filtered source [T, N].
+    metadata : dict
+        Metadata including source_mode, dynamics_derived, etc.
+    """
+    if cell_signs is None:
+        cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
+
+    cell_types = neurons.get("cell_type", ["E"] * spikes.shape[1])
+    dt_ms = 0.1  # Assume standard timestep; TODO: parametrize
+    trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
+
+    # Apply signs per cell type
+    import numpy as np
+    signs = jnp.array([cell_signs.get(ct, 1) for ct in cell_types], dtype=jnp.float32)
+    source = trace * signs[None, :]
+
+    # Metadata for evidence tracking
+    metadata = {
+        "source_mode": "dynamics_derived_filtered_spike_source",
+        "dynamics_derived": True,
+        "spectrolaminar_profile_injected": False,
+        "default_evidence_path": True,
+        "source_calibration_status": "uncalibrated_spike_only_toy_scale_a",
+        "field_solver_status": "laminar_proxy_no_pde",
+        "physical_amplitude_claim_allowed": False,
+        "truth_mode": "truth_safe_unverified",
+        "tau_ms": float(tau_ms),
+        "n_neurons": int(spikes.shape[1]),
+        "n_steps": int(spikes.shape[0]),
+        "dt_ms": float(dt_ms),
+    }
+
+    return jnp.asarray(source, dtype=jnp.float32), metadata
+
+
+def teaching_control_spectrolaminar_resonance_source(
+    neurons: "Mapping[str, Any]",
+    n_steps: int,
+    dt_ms: float = 0.1,
+    control_params: "Mapping[str, float] | None" = None,
+) -> tuple[jax.Array, dict[str, Any]]:
+    """Generate oscillatory teaching/control source with layer specificity.
+
+    ⚠ WARNING: This source directly injects hard-coded spectrolaminar profiles
+    (alpha/beta 15 Hz, gamma 90 Hz) and is EXCLUDED from default evidence path.
+
+    Use only for:
+    - Pedagogical demonstrations
+    - Control/null conditions
+    - Visualization debugging
+
+    NOT for:
+    - Evidence of dynamics-derived spectrolaminar features
+    - Optimizer objectives (without explicit allow_teaching_control=True)
+    - Default evidence path claims
+
+    Parameters
+    ----------
+    neurons : Mapping[str, Any]
+        Neuron metadata with area, layer, cell_type keys.
+    n_steps : int
+        Number of timesteps.
+    dt_ms : float
+        Timestep in ms (default 0.1).
+    control_params : Mapping[str, float], optional
+        Control parameters including:
+        - alpha_beta_gain: amplitude for 10-25 Hz (default 1.0)
+        - gamma_gain: amplitude for 70-120 Hz (default 1.0)
+        - resonance_scale: global scaling (default 1.0)
+
+    Returns
+    -------
+    resonance : jax.Array
+        Oscillatory source [T, N].
+    metadata : dict
+        Metadata including teaching_control markers.
+    """
+    import numpy as np
+
+    if control_params is None:
+        control_params = {
+            "alpha_beta_gain": 1.0,
+            "gamma_gain": 1.0,
+            "resonance_scale": 1.0,
+        }
+
+    n = len(neurons.get("area", []))
+    if n == 0:
+        return (
+            jnp.zeros((n_steps, 1), dtype=jnp.float32),
+            {
+                "source_mode": "teaching_control_resonance_source",
+                "dynamics_derived": False,
+                "spectrolaminar_profile_injected": True,
+                "default_evidence_path": False,
+                "n_steps": int(n_steps),
+                "warning": "empty neuron population",
+            },
+        )
+
+    areas = np.array(neurons.get("area", ["V1"] * n))
+    layers = np.array(neurons.get("layer", ["L4"] * n))
+
+    # Time vector
+    t = np.arange(n_steps) * dt_ms / 1000.0  # Convert to seconds
+
+    # Hard-coded frequencies (teaching/control only)
+    alpha_beta_freq = 15.0  # Hz
+    gamma_freq = 90.0  # Hz
+
+    resonance = np.zeros((n_steps, n), dtype=np.float32)
+
+    for i in range(n):
+        layer = layers[i]
+
+        # Layer-specific alpha/beta amplitude
+        if layer in ("L1", "L2", "L3"):
+            alpha_beta_amp = 0.5
+        elif layer == "L4":
+            alpha_beta_amp = 0.3
+        else:  # L5, L6
+            alpha_beta_amp = 0.6
+
+        # Gamma stronger in superficial layers
+        if layer in ("L1", "L2", "L3"):
+            gamma_amp = 0.8
+        else:
+            gamma_amp = 0.2
+
+        # Generate oscillations
+        alpha_beta_sig = alpha_beta_amp * np.sin(2.0 * np.pi * alpha_beta_freq * t)
+        gamma_sig = gamma_amp * np.sin(2.0 * np.pi * gamma_freq * t)
+
+        # Combine with control gains
+        resonance[:, i] = (
+            control_params.get("alpha_beta_gain", 1.0) * alpha_beta_sig
+            + control_params.get("gamma_gain", 1.0) * gamma_sig
+        ) * control_params.get("resonance_scale", 1.0)
+
+    # Metadata for teaching/control tracking
+    metadata = {
+        "source_mode": "teaching_control_resonance_source",
+        "dynamics_derived": False,
+        "spectrolaminar_profile_injected": True,
+        "default_evidence_path": False,
+        "teaching_control_source": True,
+        "source_calibration_status": "toy_scale_a_per_native_not_empirical",
+        "field_solver_status": "laminar_proxy_no_pde",
+        "physical_amplitude_claim_allowed": False,
+        "truth_mode": "truth_safe_unverified",
+        "alpha_beta_freq_hz": float(alpha_beta_freq),
+        "gamma_freq_hz": float(gamma_freq),
+        "n_neurons": int(n),
+        "n_steps": int(n_steps),
+        "dt_ms": float(dt_ms),
+        "warning": (
+            "This source directly injects hard-coded spectrolaminar profiles. "
+            "Use for teaching/control/visualization only. "
+            "Not for evidence path or default objectives."
+        ),
+    }
+
+    return jnp.asarray(resonance, dtype=jnp.float32), metadata
+
