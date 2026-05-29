@@ -45,6 +45,7 @@ from .core import (
     construct,
     dataset_spec,
     enable_x64,
+    evoked_l4_drive_paradigm,
     laminar_source_geometry,
     load_config,
     objective,

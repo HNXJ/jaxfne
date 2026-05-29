@@ -5622,3 +5622,81 @@ def config_to_trial_batch(
         seed=base_seed,
         seed_policy=seed_policy,
     )
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.3.12 Evoked L4 Drive API
+# ──────────────────────────────────────────────────────────────
+
+def evoked_l4_drive_paradigm(
+    l4_onset_ms: float = 100.0,
+    l4_duration_ms: float = 200.0,
+    l4_amplitude: float = 1.0,
+    pre_stimulus_buffer_ms: float = 200.0,
+    post_stimulus_buffer_ms: float = 500.0,
+    name: str = "evoked_l4_drive",
+) -> Paradigm:
+    """Create a simple baseline-vs-evoked L4 drive paradigm.
+
+    Parameters
+    ----------
+    l4_onset_ms : float
+        Stimulus onset (ms after trial start).
+    l4_duration_ms : float
+        Stimulus duration (ms).
+    l4_amplitude : float
+        L4 drive amplitude (relative units).
+    pre_stimulus_buffer_ms : float
+        Pre-stimulus baseline window (ms).
+    post_stimulus_buffer_ms : float
+        Post-stimulus window (ms).
+    name : str
+        Paradigm name.
+
+    Returns
+    -------
+    Paradigm
+        A Paradigm with baseline and evoked conditions.
+
+    Notes
+    -----
+    This is a minimal proxy paradigm scaffold. All outputs are simulated.
+    No empirical validation against real data.
+    """
+    from dataclasses import dataclass
+
+    # Baseline condition: no L4 drive
+    baseline_condition = ParadigmCondition(
+        name="baseline",
+        sequence=("pre", "stim", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="stim_absent", onset_ms=pre_stimulus_buffer_ms, duration_ms=l4_duration_ms),
+            ParadigmEvent(label="post_stim", onset_ms=pre_stimulus_buffer_ms + l4_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.5,
+    )
+
+    # Evoked condition: with L4 drive
+    evoked_condition = ParadigmCondition(
+        name="evoked",
+        sequence=("pre", "stim", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="l4_drive", onset_ms=pre_stimulus_buffer_ms, duration_ms=l4_duration_ms, stimulus="l4_evoked"),
+            ParadigmEvent(label="post_stim", onset_ms=pre_stimulus_buffer_ms + l4_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.5,
+    )
+
+    paradigm = Paradigm(
+        name=name,
+        conditions=(baseline_condition, evoked_condition),
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={
+            "baseline": (0.0, pre_stimulus_buffer_ms),
+            "evoked": (pre_stimulus_buffer_ms, pre_stimulus_buffer_ms + l4_duration_ms),
+            "post_evoked": (pre_stimulus_buffer_ms + l4_duration_ms, pre_stimulus_buffer_ms + l4_duration_ms + post_stimulus_buffer_ms),
+        },
+    )
+    return paradigm
