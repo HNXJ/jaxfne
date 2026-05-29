@@ -31,11 +31,11 @@ jobs:
 
       - name: Run fast tests (skip slow notebook execution)
         if: github.ref != 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -n auto -m "not slow"
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not slow"
 
       - name: Run all tests (including slow)
         if: github.ref == 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -n auto
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short
 
       - name: Run examples
         run: |
