@@ -83,6 +83,12 @@ from .emitters import (
     simulate_receptor_exponential_izhikevich,
     standard_receptor_specs,
     standard_receptor_tau_table,
+    Emitter,
+    IzhikevichEmitter,
+    GLIFEmitter,
+    LIFEmitter,
+    SynapseState,
+    SynapseLayer,
 )
 from .presets import (
     CELL_TYPE_PRESETS,
@@ -100,6 +106,8 @@ from .fields import (
     probe_laminar_modes,
     validate_projection_invariants,
     validate_source_field_status,
+    construct_source_tensor,
+    LinearReadout,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
 from .optim import (
@@ -194,6 +202,12 @@ __all__ = [
     "IzhikevichParams",
     "ReceptorSpec",
     "SynapseSpec",
+    "Emitter",
+    "IzhikevichEmitter",
+    "GLIFEmitter",
+    "LIFEmitter",
+    "SynapseState",
+    "SynapseLayer",
     "make_edge_list_from_dense",
     "make_eig_network",
     "simulate_edge_recurrent_izhikevich",
@@ -214,6 +228,8 @@ __all__ = [
     "probe_laminar_modes",
     "validate_projection_invariants",
     "validate_source_field_status",
+    "construct_source_tensor",
+    "LinearReadout",
     "config_hash",
     "json_safe",
     "manifest",
