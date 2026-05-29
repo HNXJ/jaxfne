@@ -11,7 +11,7 @@ Pipeline: `Emitter -> Source -> Field -> Probe -> Objective -> Optimizer`.
 3. Build `net1`, a 100-emitter uniformly sampled 3D column.
 4. Generate raster, LFP-like, CSD-like, EEG-proxy, MEG-proxy, and EMM-proxy figures without tutorial-local plotting functions.
 5. Configure a V1-V4 six-layer scaffold with feedforward and feedback metadata.
-6. Tune native noise amplitude toward a firing-rate target with the Suite No. 2 AGSDR-Adam utility.
+6. Tune solver-tuned noise amplitude toward a firing-rate target with the Suite No. 2 AGSDR-Adam utility.
 
 ## Question
 
@@ -47,7 +47,7 @@ Worded equation: each readout channel is a weighted sum of source activity.
 
 Implementation: `jaxfne.fields.LinearReadout`, `jaxfne.fields.project_laminar_sources`, and `jaxfne.vis.*` figure functions.
 
-## Package-native workflow
+## Package-level workflow
 
 The notebook uses only package-level helpers:
 
