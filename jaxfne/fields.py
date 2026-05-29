@@ -1256,3 +1256,134 @@ def probe_laminar_modes(
             field_output, requested_modes=modes
         )
     return out
+
+
+# =============================================================================
+# Patch B: Connectivity and Synapse Operators
+# =============================================================================
+
+def make_laminar_connectivity(
+    neurons_df: Any,
+    positions_m: jax.Array,
+    control_params: Mapping[str, float] | None = None,
+    seed: int = 0,
+    local_decay_m: float = 0.001,
+    p_local_e: float = 0.18,
+    p_local_i: float = 0.30,
+    p_feedforward: float = 0.060,
+    p_feedback: float = 0.055,
+    w_e_range: tuple[float, float] = (0.012, 0.055),
+    w_i_range: tuple[float, float] = (-0.145, -0.055),
+    w_ff_range: tuple[float, float] = (0.007, 0.030),
+    w_fb_range: tuple[float, float] = (0.006, 0.026),
+) -> dict[str, Any]:
+    """Construct laminar connectivity matrix with control-dependent gains."""
+    import numpy as np
+
+    if control_params is None:
+        control_params = {
+            "local_exc_gain": 1.0,
+            "local_inh_gain": 1.0,
+            "feedforward_gain": 1.0,
+            "feedback_gain": 1.0,
+        }
+
+    n = len(neurons_df)
+    area = np.array(neurons_df.get("area", [""]*n))
+    layer = np.array(neurons_df.get("layer", [""]*n))
+    cell_type = np.array(neurons_df.get("cell_type", [""]*n))
+
+    W_local_exc = np.zeros((n, n), dtype=np.float32)
+    W_local_inh = np.zeros((n, n), dtype=np.float32)
+    W_ff = np.zeros((n, n), dtype=np.float32)
+    W_fb = np.zeros((n, n), dtype=np.float32)
+
+    rng = np.random.default_rng(seed)
+    area_order = sorted(set(area[area != ""]))
+    area_rank = {a: i for i, a in enumerate(area_order)}
+
+    for pre in range(n):
+        for post in range(n):
+            if pre == post:
+                continue
+
+            same_area = area[pre] == area[post]
+            dxy = np.linalg.norm(positions_m[post, :2] - positions_m[pre, :2])
+            local_gain = np.exp(-((dxy / local_decay_m) ** 2))
+
+            if same_area:
+                if cell_type[pre] == "E" and rng.random() < p_local_e:
+                    W_local_exc[post, pre] = rng.uniform(*w_e_range) * local_gain
+                elif cell_type[pre] != "E" and rng.random() < p_local_i:
+                    W_local_inh[post, pre] = rng.uniform(*w_i_range) * (0.65 + 0.35 * local_gain)
+            elif cell_type[pre] == "E":
+                delta = area_rank.get(area[post], 0) - area_rank.get(area[pre], 0)
+                if delta == 1 and layer[pre] in ("L2", "L3") and layer[post] == "L4" and rng.random() < p_feedforward:
+                    W_ff[post, pre] = rng.uniform(*w_ff_range)
+                if delta == -1 and layer[pre] in ("L2", "L3", "L6") and layer[post] in ("L5", "L6") and rng.random() < p_feedback:
+                    W_fb[post, pre] = rng.uniform(*w_fb_range)
+
+    W = (
+        control_params.get("local_exc_gain", 1.0) * W_local_exc
+        + control_params.get("local_inh_gain", 1.0) * W_local_inh
+        + control_params.get("feedforward_gain", 1.0) * W_ff
+        + control_params.get("feedback_gain", 1.0) * W_fb
+    )
+
+    E_mask = np.array([cell_type[i] == "E" for i in range(n)])
+    I_mask = ~E_mask
+
+    audit = {
+        "total_neurons": n,
+        "excitatory_neurons": int(np.sum(E_mask)),
+        "inhibitory_neurons": int(np.sum(I_mask)),
+        "nonzero_edges": int(np.count_nonzero(W)),
+        "sum_abs_weight": float(np.sum(np.abs(W))),
+        "control_gains": dict(control_params),
+    }
+
+    return {
+        "W": jnp.asarray(W),
+        "E_mask": jnp.asarray(E_mask),
+        "I_mask": jnp.asarray(I_mask),
+        "audit": audit,
+    }
+
+
+def exponential_synaptic_trace(
+    spikes: jax.Array,
+    tau_ms: float,
+    dt_ms: float,
+) -> jax.Array:
+    """Compute exponential synaptic trace from spike times."""
+    import math
+
+    alpha = math.exp(-dt_ms / tau_ms)
+    spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
+
+    if spikes_arr.ndim == 1:
+        state = jnp.zeros(1, dtype=jnp.float32)
+        trace = []
+        for spike in spikes_arr:
+            state = alpha * state + spike
+            trace.append(state)
+        return jnp.array(trace)
+    else:
+        T, N = spikes_arr.shape
+        state = jnp.zeros(N, dtype=jnp.float32)
+        trace = []
+        for t in range(T):
+            state = alpha * state + spikes_arr[t]
+            trace.append(state)
+        return jnp.stack(trace)
+
+
+def synaptic_current(
+    spikes: jax.Array,
+    W: jax.Array,
+    tau_ms: float,
+    dt_ms: float,
+) -> jax.Array:
+    """Compute synaptic current from spikes and connectivity matrix."""
+    trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
+    return jnp.dot(trace, W.T)
