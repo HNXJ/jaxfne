@@ -115,7 +115,6 @@ from .fields import (
     probe_laminar_modes,
     validate_projection_invariants,
     validate_source_field_status,
-    construct_source_tensor,
     LinearReadout,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
