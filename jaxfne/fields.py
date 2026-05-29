@@ -68,21 +68,31 @@ def _row_normalize(kernel: jax.Array, eps: float = 1e-8) -> jax.Array:
     return kernel / (jnp.sum(kernel, axis=1, keepdims=True) + eps)
 
 
-def _test_kernel_row_normalization(kernel: jax.Array, tol: float = 1e-6) -> dict[str, bool | float]:
+def _test_kernel_row_normalization(kernel: jax.Array, tol: float = 1e-6) -> dict[str, Any]:
     """Test that kernel is row-stochastic (rows sum to 1.0).
 
     Returns diagnostics dict with row normalization validation results.
     """
     row_sums = jnp.sum(kernel, axis=1)
-    max_abs_error = float(jnp.max(jnp.abs(row_sums - 1.0)))
-    is_valid = max_abs_error < tol
+    max_abs_error_arr = jnp.max(jnp.abs(row_sums - 1.0))
 
-    return {
-        "kernel_row_normalization_valid": is_valid,
-        "kernel_row_sum_max_abs_error": max_abs_error,
-        "kernel_row_sum_tolerance": tol,
-        "kernel_row_stochastic_valid": is_valid,
-    }
+    if isinstance(max_abs_error_arr, jax.core.Tracer):
+        is_valid = max_abs_error_arr < tol
+        return {
+            "kernel_row_normalization_valid": is_valid,
+            "kernel_row_sum_max_abs_error": max_abs_error_arr,
+            "kernel_row_sum_tolerance": tol,
+            "kernel_row_stochastic_valid": is_valid,
+        }
+    else:
+        max_abs_error = float(max_abs_error_arr)
+        is_valid = max_abs_error < tol
+        return {
+            "kernel_row_normalization_valid": is_valid,
+            "kernel_row_sum_max_abs_error": max_abs_error,
+            "kernel_row_sum_tolerance": tol,
+            "kernel_row_stochastic_valid": is_valid,
+        }
 
 
 def project_laminar_sources(
@@ -130,8 +140,14 @@ def project_laminar_sources(
     # Proxy CSD-proxy readout from a laminar second derivative.  This is not a
     # PDE solution and is deliberately diagnosed as laminar_proxy_no_pde.
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
-    first_depth_derivative = jnp.gradient(phi_e_proxy, dz, axis=1)
-    csd_proxy = -jnp.gradient(first_depth_derivative, dz, axis=1)
+    
+    if n_contacts > 2:
+        interior = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:-1] + phi_e_proxy[:, :-2]) / (dz * dz)
+        left_boundary = (2.0 * phi_e_proxy[:, 0:1] - 5.0 * phi_e_proxy[:, 1:2] + 4.0 * phi_e_proxy[:, 2:3] - phi_e_proxy[:, 3:4]) / (dz * dz)
+        right_boundary = (2.0 * phi_e_proxy[:, -1:] - 5.0 * phi_e_proxy[:, -2:-1] + 4.0 * phi_e_proxy[:, -3:-2] - phi_e_proxy[:, -4:-3]) / (dz * dz)
+        csd_proxy = -jnp.concatenate([left_boundary, interior, right_boundary], axis=1)
+    else:
+        csd_proxy = jnp.zeros_like(phi_e_proxy)
 
     diagnostics = validate_projection_invariants(
         sources=sources,
@@ -218,6 +234,13 @@ def validate_projection_invariants(
     kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)
     kernel_row_sum_max_abs_error = kernel_norm_tests["kernel_row_sum_max_abs_error"]
 
+    if isinstance(kernel_row_sum_max_abs_error, jax.core.Tracer):
+        kernel_row_sum_max_abs_error_val = kernel_row_sum_max_abs_error
+        normalization_valid = kernel_row_sum_max_abs_error < 1e-6
+    else:
+        kernel_row_sum_max_abs_error_val = float(kernel_row_sum_max_abs_error)
+        normalization_valid = kernel_row_sum_max_abs_error_val < 1e-6
+
     t_steps = int(sources.shape[0])
     n_emitters = int(sources.shape[1])
     n_contacts = int(kernel.shape[0])
@@ -240,7 +263,7 @@ def validate_projection_invariants(
         "csd_proxy_shape": tuple(int(x) for x in csd_proxy.shape),
         "lfp_proxy_shape": tuple(int(x) for x in lfp_proxy.shape),
         "dtype": _dtype_name(sources),
-        "kernel_row_sum_max_abs_error": float(kernel_row_sum_max_abs_error),
+        "kernel_row_sum_max_abs_error": kernel_row_sum_max_abs_error_val,
         "finite_sources": _finite_bool(sources),
         "finite_positions": _finite_bool(positions),
         "finite_kernel": _finite_bool(kernel),
@@ -259,10 +282,10 @@ def validate_projection_invariants(
                 "lfp_finite": _finite_bool(lfp_proxy),
             },
             # Backwards compatibility
-            "kernel_normalization_valid": float(kernel_row_sum_max_abs_error) < 1e-6,
+            "kernel_normalization_valid": normalization_valid,
             "source_conservation_status": "proxy_not_solved",
             # v0.2.2: Explicit proxy metadata for clarity
-            "kernel_row_stochastic_valid": float(kernel_row_sum_max_abs_error) < 1e-6,
+            "kernel_row_stochastic_valid": normalization_valid,
             "kernel_normalization_definition": "contact_rows_sum_to_one_proxy",
             "source_current_conservation_status": "not_applicable_proxy_mode",
             "source_current_conservation_test": "not_applicable_proxy_mode",
