@@ -68,7 +68,7 @@ from .core import (
     _KNOWN_METRICS,
     default_basis_spec,
 )
-from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley
+from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import vis
 from .emitters import (
     EdgeList,
@@ -138,7 +138,9 @@ __all__ = [
     "DatasetSpec",
     "JaxFNEConfig",
     "JaxleyEmitterBridge",
+    "JaxleyBridge",
     "JaxleyTraceSpec",
+    "hh_numpy_reference_trace",
     "LaminarPopulation",
     "LaminarSourceGeometry",
     "MatrixParameterSpec",

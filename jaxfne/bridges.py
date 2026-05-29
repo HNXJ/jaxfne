@@ -360,26 +360,132 @@ def hh_jaxley_reference_trace(
     NotImplementedError
         If Jaxley is not installed. Install with: pip install jaxley
     """
-    try:
-        jaxley = require_jaxley()
-    except ImportError as exc:
-        raise NotImplementedError(
-            "TODO: implement HH reference through the optional Jaxley bridge. "
-            "Required: install jaxley and expose a Jaxley HH emitter trace path. "
-            "Install with: pip install jaxley"
-        ) from exc
-
-    # TODO: Implement Jaxley HH emitter instantiation and simulation.
-    # This requires:
-    # 1. Create a Jaxley compartment with HH channels
-    # 2. Set up stimulus injection
-    # 3. Simulate and extract voltage trace
-    # For now, raise with clear instructions
+    require_jaxley()
     raise NotImplementedError(
         "TODO: implement HH reference through the optional Jaxley bridge. "
-        "Required: "
-        "(1) Jaxley compartment creation with HH mechanisms, "
-        "(2) stimulus setup, "
-        "(3) voltage trace extraction. "
-        "See: https://github.com/jaxley-org/jaxley"
+        "Required: expose a Jaxley HH emitter trace path."
     )
+
+
+def hh_numpy_reference_trace(
+    duration_ms: float = 500.0,
+    dt_ms: float = 0.1,
+    current_amplitude: float = 10.0,
+) -> tuple[Any, Any, Any]:
+    """Standalone tutorial/reference Hodgkin-Huxley single-compartment trace.
+
+    This is a standalone tutorial/reference HH utility, NOT Jaxley bridge validation,
+    and NOT evidence that JaxleyBridge executed.
+    """
+    import numpy as np
+
+    # NumPy high-fidelity Hodgkin-Huxley single-compartment solver
+    C_m = 1.0  # uF/cm^2
+    g_Na = 120.0  # mS/cm^2
+    g_K = 36.0  # mS/cm^2
+    g_L = 0.3  # mS/cm^2
+    E_Na = 50.0  # mV
+    E_K = -77.0  # mV
+    E_L = -54.387  # mV
+
+    def alpha_m(V):
+        return 0.1 * (V + 40.0) / (1.0 - np.exp(-(V + 40.0) / 10.0)) if abs(V + 40.0) > 1e-6 else 1.0
+
+    def beta_m(V):
+        return 4.0 * np.exp(-(V + 65.0) / 18.0)
+
+    def alpha_h(V):
+        return 0.07 * np.exp(-(V + 65.0) / 20.0)
+
+    def beta_h(V):
+        return 1.0 / (1.0 + np.exp(-(V + 35.0) / 10.0))
+
+    def alpha_n(V):
+        return 0.01 * (V + 55.0) / (1.0 - np.exp(-(V + 55.0) / 10.0)) if abs(V + 55.0) > 1e-6 else 0.1
+
+    def beta_n(V):
+        return 0.125 * np.exp(-(V + 65.0) / 80.0)
+
+    t = np.arange(0, duration_ms, dt_ms)
+    n_steps = len(t)
+    V = np.zeros(n_steps)
+    I_inj = np.zeros(n_steps)
+    I_inj[t >= 50.0] = current_amplitude
+
+    V[0] = -65.0
+    m = alpha_m(V[0]) / (alpha_m(V[0]) + beta_m(V[0]))
+    h = alpha_h(V[0]) / (alpha_h(V[0]) + beta_h(V[0]))
+    n = alpha_n(V[0]) / (alpha_n(V[0]) + beta_n(V[0]))
+
+    for i in range(1, n_steps):
+        v = V[i-1]
+        dm = (alpha_m(v) * (1.0 - m) - beta_m(v) * m) * dt_ms
+        dh = (alpha_h(v) * (1.0 - h) - beta_h(v) * h) * dt_ms
+        dn = (alpha_n(v) * (1.0 - n) - beta_n(v) * n) * dt_ms
+        m += dm
+        h += dh
+        n += dn
+        I_Na = g_Na * (m**3) * h * (v - E_Na)
+        I_K = g_K * (n**4) * (v - E_K)
+        I_L = g_L * (v - E_L)
+        dv = ((I_inj[i-1] - I_Na - I_K - I_L) / C_m) * dt_ms
+        V[i] = v + dv
+
+    return t, V, I_inj
+
+
+class JaxleyBridge:
+    """Jaxley-focused biophysical emitter bridge."""
+    def __init__(self, model: Any, source_mode: str = "transmembrane_current", compartment_axis: str = "last"):
+        self.model = model
+        self.source_mode = source_mode
+        self.compartment_axis = compartment_axis
+
+    def simulate(self, *args: Any, **kwargs: Any) -> Any:
+        require_jaxley()
+        raise NotImplementedError(
+            "TODO: implement JaxleyBridge.simulate for detailed compartment simulation rollout"
+        )
+
+    def extract_sources(self, signals: Any) -> Any:
+        """Extract source tensor from Jaxley bridge signals."""
+        import jax.numpy as jnp
+        if hasattr(signals, "sources") and signals.sources is not None:
+            return jnp.asarray(signals.sources)
+        if hasattr(signals, "V_m") and signals.V_m is not None:
+            return jnp.asarray(signals.V_m)
+        if hasattr(signals, "i_membrane") and signals.i_membrane is not None:
+            val = jnp.asarray(signals.i_membrane)
+            if val.ndim == 3:
+                val = val.reshape(val.shape[0], -1)
+            return val
+        if hasattr(signals, "v") and signals.v is not None:
+            val = jnp.asarray(signals.v)
+            if val.ndim == 3:
+                val = val.reshape(val.shape[0], -1)
+            return val
+        if isinstance(signals, dict):
+            if "sources" in signals and signals["sources"] is not None:
+                return jnp.asarray(signals["sources"])
+            if "V_m" in signals and signals["V_m"] is not None:
+                return jnp.asarray(signals["V_m"])
+            if "i_membrane" in signals and signals["i_membrane"] is not None:
+                val = jnp.asarray(signals["i_membrane"])
+                if val.ndim == 3:
+                    val = val.reshape(val.shape[0], -1)
+                return val
+            if "v" in signals and signals["v"] is not None:
+                val = jnp.asarray(signals["v"])
+                if val.ndim == 3:
+                    val = val.reshape(val.shape[0], -1)
+                return val
+        return jnp.asarray(signals)
+
+    def report(self) -> dict:
+        return {
+            "bridge_name": "jaxley_bridge",
+            "source_mode": self.source_mode,
+            "source_calibration_status": "uncalibrated_jaxley_bridge",
+            "physical_amplitude_claim_allowed": False
+        }
+

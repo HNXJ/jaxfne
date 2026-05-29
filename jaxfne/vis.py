@@ -145,3 +145,425 @@ def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
     )
 
     return fig
+
+
+from dataclasses import dataclass
+
+@dataclass(frozen=True)
+class FigureResult:
+    """Rich container holding a matplotlib figure and JSON-safe metadata."""
+    fig: Any
+    metadata: dict[str, Any]
+
+
+def raster(signals: Any, **kwargs: Any) -> Any:
+    """Plot spike raster from signals."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    # Extract spikes array [T, N] or similar
+    if hasattr(signals, "spikes"):
+        spikes = np.asarray(signals.spikes)
+        time_ms = np.asarray(signals.time_ms)
+    elif isinstance(signals, dict) and "spikes" in signals:
+        spikes = np.asarray(signals["spikes"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(spikes.shape[0])))
+    else:
+        spikes = np.asarray(signals)
+        time_ms = np.arange(spikes.shape[0])
+        
+    t_idx, n_idx = np.where(spikes > 0)
+    ax.scatter(time_ms[t_idx], n_idx, s=2, c="#228be6", marker="|")
+    ax.set_title("Simulated Spike Raster Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Neuron Index")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def raster_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = raster(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "raster", "proxy_safe": True})
+
+
+def vm(signals: Any, **kwargs: Any) -> Any:
+    """Plot voltage traces over time."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "V_m"):
+        v = np.asarray(signals.V_m)
+        time_ms = np.asarray(signals.time_ms)
+    elif isinstance(signals, dict) and "V_m" in signals:
+        v = np.asarray(signals["V_m"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(v.shape[0])))
+    else:
+        v = np.asarray(signals)
+        time_ms = np.arange(v.shape[0])
+        
+    # Plot up to 5 neurons
+    n_plot = min(5, v.shape[1] if v.ndim > 1 else 1)
+    if v.ndim > 1:
+        for i in range(n_plot):
+            ax.plot(time_ms, v[:, i], label=f"Neuron {i}", alpha=0.8)
+        ax.legend()
+    else:
+        ax.plot(time_ms, v)
+        
+    ax.set_title("Simulated Membrane Potential (Vm) Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Potential (proxy mV)")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def vm_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = vm(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "vm", "proxy_safe": True})
+
+
+def rate(signals: Any, **kwargs: Any) -> Any:
+    """Plot population firing rate."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "spikes"):
+        spikes = np.asarray(signals.spikes)
+        time_ms = np.asarray(signals.time_ms)
+        if dt_ms is None:
+            dt_ms = float(signals.metadata.get("dt_ms", 0.1))
+    elif isinstance(signals, dict) and "spikes" in signals:
+        spikes = np.asarray(signals["spikes"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(spikes.shape[0])))
+        if dt_ms is None:
+            dt_ms = float(signals.get("metadata", {}).get("dt_ms", 0.1)) if isinstance(signals.get("metadata"), dict) else 0.1
+    else:
+        spikes = np.asarray(signals)
+        time_ms = np.arange(spikes.shape[0])
+        if dt_ms is None:
+            dt_ms = 0.1
+        
+    # Population mean rate in Hz
+    mean_rate = np.mean(spikes, axis=1) * (1000.0 / dt_ms)
+    ax.plot(time_ms, mean_rate, c="#f03e3e", lw=1.5)
+    ax.set_title("Simulated Population Mean Rate Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Firing Rate (Hz)")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def rate_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = rate(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "rate", "proxy_safe": True})
+
+
+def source(signals: Any, **kwargs: Any) -> Any:
+    """Plot source current traces."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "sources"):
+        s = np.asarray(signals.sources)
+        time_ms = np.asarray(signals.time_ms)
+    elif isinstance(signals, dict) and "sources" in signals:
+        s = np.asarray(signals["sources"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(s.shape[0])))
+    else:
+        s = np.asarray(signals)
+        time_ms = np.arange(s.shape[0])
+        
+    n_plot = min(5, s.shape[1] if s.ndim > 1 else 1)
+    if s.ndim > 1:
+        for i in range(n_plot):
+            ax.plot(time_ms, s[:, i], label=f"Source {i}", alpha=0.8)
+        ax.legend()
+    else:
+        ax.plot(time_ms, s)
+        
+    ax.set_title("Simulated Source Current Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Current (proxy units)")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def source_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = source(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "source", "proxy_safe": True})
+
+
+def lfp(signals: Any, **kwargs: Any) -> Any:
+    """Plot LFP heatmap."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "field") and signals.field is not None:
+        lfp_data = np.asarray(signals.field.lfp_proxy)
+        time_ms = np.asarray(signals.time_ms)
+    elif isinstance(signals, dict) and "lfp_proxy" in signals:
+        lfp_data = np.asarray(signals["lfp_proxy"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(lfp_data.shape[0])))
+    elif hasattr(signals, "lfp_proxy"):
+        lfp_data = np.asarray(signals.lfp_proxy)
+        time_ms = np.arange(lfp_data.shape[0])
+    else:
+        lfp_data = np.asarray(signals)
+        time_ms = np.arange(lfp_data.shape[0])
+        
+    im = ax.imshow(lfp_data.T, cmap="viridis", aspect="auto", extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0])
+    ax.set_title("Simulated Extracellular Potential (LFP-like) Heatmap", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Contact Index")
+    fig.colorbar(im, ax=ax, label="Potential (proxy units)")
+    return fig
+
+
+def lfp_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = lfp(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "lfp", "proxy_safe": True})
+
+
+def csd(signals: Any, **kwargs: Any) -> Any:
+    """Plot CSD heatmap."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "field") and signals.field is not None:
+        csd_data = np.asarray(signals.field.csd_proxy)
+        time_ms = np.asarray(signals.time_ms)
+    elif isinstance(signals, dict) and "csd_proxy" in signals:
+        csd_data = np.asarray(signals["csd_proxy"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(csd_data.shape[0])))
+    elif hasattr(signals, "csd_proxy"):
+        csd_data = np.asarray(signals.csd_proxy)
+        time_ms = np.arange(csd_data.shape[0])
+    else:
+        csd_data = np.asarray(signals)
+        time_ms = np.arange(csd_data.shape[0])
+        
+    csd_max = float(np.max(np.abs(csd_data)))
+    vmin = -csd_max if csd_max > 0 else -1.0
+    vmax = csd_max if csd_max > 0 else 1.0
+    
+    im = ax.imshow(csd_data.T, cmap="RdBu_r", aspect="auto", extent=[time_ms[0], time_ms[-1], csd_data.shape[1], 0], vmin=vmin, vmax=vmax)
+    ax.set_title("Simulated Current Source Density (CSD-like) Heatmap", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Contact Index")
+    fig.colorbar(im, ax=ax, label="CSD (proxy units)")
+    return fig
+
+
+def csd_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = csd(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "csd", "proxy_safe": True})
+
+
+def psd(signals: Any, **kwargs: Any) -> Any:
+    """Plot Power Spectral Density."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "field") and signals.field is not None:
+        data = np.asarray(signals.field.lfp_proxy)
+        if dt_ms is None:
+            dt_ms = float(signals.metadata.get("dt_ms", 0.1))
+    elif isinstance(signals, dict) and "lfp_proxy" in signals:
+        data = np.asarray(signals["lfp_proxy"])
+        if dt_ms is None:
+            dt_ms = float(signals.get("metadata", {}).get("dt_ms", 0.1)) if isinstance(signals.get("metadata"), dict) else 0.1
+    elif hasattr(signals, "lfp_proxy"):
+        data = np.asarray(signals.lfp_proxy)
+        if dt_ms is None:
+            dt_ms = 0.1
+    else:
+        data = np.asarray(signals)
+        if dt_ms is None:
+            dt_ms = 0.1
+        
+    fs = 1000.0 / dt_ms
+    nperseg = min(256, data.shape[0])
+    freqs, psds = signal.welch(data, fs=fs, axis=0, nperseg=nperseg)
+    
+    # Average across contacts if multidimensional
+    if psds.ndim > 1:
+        mean_psd = np.mean(psds, axis=1)
+    else:
+        mean_psd = psds
+        
+    ax.loglog(freqs, mean_psd, c="#7048e8", lw=1.5)
+    ax.set_title("Simulated LFP Power Spectral Density Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Frequency (Hz)")
+    ax.set_ylabel("Power (dB-proxy)")
+    ax.grid(True, which="both", linestyle="--", alpha=0.3)
+    return fig
+
+
+def psd_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = psd(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "psd", "proxy_safe": True})
+
+
+def spectrogram(signals: Any, **kwargs: Any) -> Any:
+    """Plot Spectrogram heatmap."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    
+    if hasattr(signals, "field") and signals.field is not None:
+        data = np.asarray(signals.field.lfp_proxy)
+        if dt_ms is None:
+            dt_ms = float(signals.metadata.get("dt_ms", 0.1))
+    elif isinstance(signals, dict) and "lfp_proxy" in signals:
+        data = np.asarray(signals["lfp_proxy"])
+        if dt_ms is None:
+            dt_ms = float(signals.get("metadata", {}).get("dt_ms", 0.1)) if isinstance(signals.get("metadata"), dict) else 0.1
+    elif hasattr(signals, "lfp_proxy"):
+        data = np.asarray(signals.lfp_proxy)
+        if dt_ms is None:
+            dt_ms = 0.1
+    else:
+        data = np.asarray(signals)
+        if dt_ms is None:
+            dt_ms = 0.1
+        
+    fs = 1000.0 / dt_ms
+    # Pick first channel
+    x = data[:, 0] if data.ndim > 1 else data
+    nperseg = min(128, x.shape[0])
+    f, t_spec, Sxx = signal.spectrogram(x, fs=fs, nperseg=nperseg)
+    
+    im = ax.pcolormesh(t_spec * 1000.0, f, 10 * np.log10(Sxx + 1e-10), cmap="magma", shading="gouraud")
+    ax.set_title("Simulated Spectrogram Time-Frequency Proxy", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Frequency (Hz)")
+    fig.colorbar(im, ax=ax, label="Power (dB)")
+    return fig
+
+
+def spectrogram_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = spectrogram(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "spectrogram", "proxy_safe": True})
+
+
+def summary(signals: Any, **kwargs: Any) -> Any:
+    """Generate a multi-panel summary figure."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    
+    dt_ms = kwargs.pop("dt_ms", None)
+    fig = plt.figure(figsize=(12, 8), **kwargs)
+    
+    # 3 Panels
+    ax1 = fig.add_subplot(311)
+    ax2 = fig.add_subplot(312)
+    ax3 = fig.add_subplot(313)
+    
+    # Plot raster
+    if hasattr(signals, "spikes"):
+        spikes = np.asarray(signals.spikes)
+        time_ms = np.asarray(signals.time_ms)
+        if dt_ms is None:
+            dt_ms = float(signals.metadata.get("dt_ms", 0.1))
+    elif isinstance(signals, dict) and "spikes" in signals:
+        spikes = np.asarray(signals["spikes"])
+        time_ms = np.asarray(signals.get("time_ms", np.arange(spikes.shape[0])))
+        if dt_ms is None:
+            dt_ms = float(signals.get("metadata", {}).get("dt_ms", 0.1)) if isinstance(signals.get("metadata"), dict) else 0.1
+    else:
+        spikes = np.asarray(signals)
+        time_ms = np.arange(spikes.shape[0])
+        if dt_ms is None:
+            dt_ms = 0.1
+        
+    t_idx, n_idx = np.where(spikes > 0)
+    ax1.scatter(time_ms[t_idx], n_idx, s=1, c="#228be6", marker="|")
+    ax1.set_title("Raster")
+    ax1.grid(True, alpha=0.3)
+    
+    # Plot LFP-like
+    if hasattr(signals, "field") and signals.field is not None:
+        lfp_data = np.asarray(signals.field.lfp_proxy)
+        ax2.imshow(lfp_data.T, cmap="viridis", aspect="auto", extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0])
+        ax2.set_title("LFP Heatmap")
+    elif isinstance(signals, dict) and "lfp_proxy" in signals:
+        lfp_data = np.asarray(signals["lfp_proxy"])
+        ax2.imshow(lfp_data.T, cmap="viridis", aspect="auto", extent=[time_ms[0], time_ms[-1], lfp_data.shape[1], 0])
+        ax2.set_title("LFP Heatmap")
+    else:
+        ax2.text(0.5, 0.5, "LFP field not available", ha="center")
+        
+    # Plot population mean rate
+    mean_rate = np.mean(spikes, axis=1) * (1000.0 / dt_ms)
+    ax3.plot(time_ms, mean_rate, c="#f03e3e")
+    ax3.set_title("Population Mean Rate (Hz)")
+    ax3.grid(True, alpha=0.3)
+        
+    fig.suptitle("Simulated Proxy Summary Report", fontsize=14, fontweight="bold")
+    plt.tight_layout()
+    return fig
+
+
+def summary_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
+    fig = summary(signals, **kwargs)
+    return FigureResult(fig, {"plot_type": "summary", "proxy_safe": True})
+
+
+def bandpower(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.bandpower")
+
+
+def laminar_profile(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.laminar_profile")
+
+
+def connectivity(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.connectivity")
+
+
+def geometry3d(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.geometry3d")
+
+
+def eeg(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.eeg")
+
+
+def meg(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.meg")
+
+
+def emm(signals: Any, **kwargs: Any) -> Any:
+    raise NotImplementedError("TODO: implement jtfne.vis.emm")
+
