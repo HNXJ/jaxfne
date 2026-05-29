@@ -772,3 +772,119 @@ def simulate_dynamic_ei_coupling(
 
 # Backwards-compatible name from v0.0.3.
 simulate_izhikevich_eig = simulate_eig_izhikevich
+
+
+# =============================================================================
+# Patch C: Multi-Area Emitter Runtime
+# =============================================================================
+
+def simulate_multi_area_izhikevich(
+    neurons_df: "Mapping[str, any]",
+    positions_m: "jax.Array",
+    W: "jax.Array",
+    source_tensor: "jax.Array | None" = None,
+    control_params: "Mapping[str, float] | None" = None,
+    cfg: "any" = None,
+    n_steps: "int | None" = None,
+    dt_ms: float = 0.1,
+    seed: int = 0,
+    dtype: str = "float32",
+) -> tuple["jax.Array", "jax.Array"]:
+    """Simulate multi-area Izhikevich network with laminar connectivity.
+
+    Parameters
+    ----------
+    neurons_df : Mapping[str, Any]
+        Neuron dataframe with keys: area, layer, cell_type, and positional data.
+    positions_m : jax.Array
+        Neuron positions [N, 3].
+    W : jax.Array
+        Connectivity matrix [N, N].
+    source_tensor : jax.Array, optional
+        Driving source tensor [T, N]. If provided, used as drive_schedule.
+    control_params : Mapping[str, float], optional
+        Control parameters including noise_scale (default 1.0).
+    cfg : Any, optional
+        Configuration object (used for metadata only).
+    n_steps : int, optional
+        Number of simulation steps. If None, inferred from source_tensor or cfg.
+    dt_ms : float
+        Time step in milliseconds (default 0.1).
+    seed : int
+        PRNG seed (default 0).
+    dtype : str
+        Data type (default "float32").
+
+    Returns
+    -------
+    spikes : jax.Array
+        Spike raster [T, N].
+    voltages : jax.Array
+        Membrane potentials [T, N].
+    """
+    import jax
+    import jax.numpy as jnp
+
+    if control_params is None:
+        control_params = {"noise_scale": 1.0}
+
+    n = len(neurons_df.get("area", [""]))
+    if n == 0:
+        raise ValueError("neurons_df is empty")
+
+    # Infer number of steps
+    if n_steps is None:
+        if source_tensor is not None:
+            n_steps = source_tensor.shape[0]
+        elif cfg is not None and hasattr(cfg, "metadata") and "duration_ms" in cfg.metadata:
+            duration_ms = cfg.metadata["duration_ms"]
+            n_steps = int(duration_ms / dt_ms)
+        else:
+            n_steps = 1000  # Default fallback
+
+    # Create Izhikevich parameters from neuron metadata
+    cell_types = neurons_df.get("cell_type", ["E"] * n)
+    cell_type_fractions = {}
+    for ct in set(cell_types):
+        count = sum(1 for c in cell_types if c == ct)
+        cell_type_fractions[ct] = count / max(1, n)
+
+    params = izhikevich_eig_params(
+        n=n,
+        cell_type_fractions=cell_type_fractions,
+        dtype=dtype,
+    )
+
+    # Rescale connectivity matrix to be compatible with emitter gains
+    W_compat = jnp.asarray(W, dtype=_dtype_from_policy(dtype)) * 0.1
+
+    # Update params with custom connectivity
+    params = IzhikevichParams(
+        a=params.a,
+        b=params.b,
+        c=params.c,
+        d=params.d,
+        drive=params.drive * control_params.get("drive_scale", 1.0),
+        sign=params.sign,
+        W=W_compat,
+        v0=params.v0,
+        u0=params.u0,
+        source_scale=params.source_scale,
+        labels=params.labels,
+        layer_labels=tuple(neurons_df.get("layer", ["unknown"] * n)),
+    )
+
+    # Create PRNG key
+    key = jax.random.PRNGKey(seed)
+
+    # Simulate with optional source drive schedule
+    voltages, spikes, _ = simulate_eig_izhikevich(
+        params,
+        n_steps=n_steps,
+        dt_ms=dt_ms,
+        key=key,
+        dtype=dtype,
+        drive_schedule=source_tensor,
+    )
+
+    return spikes, voltages
