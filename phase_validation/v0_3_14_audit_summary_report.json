@@ -1,0 +1,110 @@
+{
+  "notebook_structure_audit": {
+    "valid": true,
+    "reports": [
+      {
+        "file": "jaxfne_v033_two_neuron_ei.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_v032_parameter_sweep.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 15
+      },
+      {
+        "file": "jaxfne_suite_no_1_computational_biophysics.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 58
+      },
+      {
+        "file": "jaxfne_v031_single_neuron.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_v035_small_recurrent_ei.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 35
+      },
+      {
+        "file": "jaxfne_v036_100_neuron_ei_population.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_v0313_omission_oddball.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 16
+      },
+      {
+        "file": "jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 5
+      },
+      {
+        "file": "jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 33
+      },
+      {
+        "file": "jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 20
+      },
+      {
+        "file": "jaxfne_v038_lfp_csd_like_readout.ipynb",
+        "valid": true,
+        "violations": [],
+        "total_cells": 25
+      }
+    ]
+  },
+  "figure_audit": {
+    "status": "complete",
+    "found_figures_count": 12,
+    "figures": [
+      "docs/_static/tutorial_figures/03_source_proxy_heatmap.png",
+      "docs/_static/tutorial_figures/07_source_proxy_spatial.png",
+      "docs/_static/tutorial_figures/12_spectral_summary.png",
+      "docs/_static/tutorial_figures/11_claim_gates_summary.png",
+      "docs/_static/tutorial_figures/08_conservation_diagnostics.png",
+      "docs/_static/tutorial_figures/06_phi_e_proxy_heatmap.png",
+      "docs/_static/tutorial_figures/09_laminar_profile_depths.png",
+      "docs/_static/tutorial_figures/02_voltage_traces.png",
+      "docs/_static/tutorial_figures/04_lfp_proxy_trace.png",
+      "docs/_static/tutorial_figures/10_firing_rate_raster.png",
+      "docs/_static/tutorial_figures/01_spike_raster.png",
+      "docs/_static/tutorial_figures/05_csd_proxy_heatmap.png"
+    ]
+  },
+  "jaxley_bridge_audit": {
+    "status": "green",
+    "details": [
+      "jaxfne.bridges imported successfully.",
+      "require_jaxley found."
+    ]
+  }
+}
