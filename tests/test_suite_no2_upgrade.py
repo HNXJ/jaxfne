@@ -17,7 +17,10 @@ def test_suite2_notebook_uses_short_code_cells_and_no_local_functions():
     code_cells = [cell for cell in nb["cells"] if cell["cell_type"] == "code"]
     assert code_cells
     for cell in code_cells:
-        lines = [line for line in cell["source"].splitlines() if line.strip()]
+        source = cell["source"]
+        if isinstance(source, list):
+            source = "".join(source)
+        lines = [line for line in source.splitlines() if line.strip()]
         assert len(lines) <= 10
         assert not any(line.lstrip().startswith("def ") for line in lines)
         assert not any("class " in line for line in lines)
