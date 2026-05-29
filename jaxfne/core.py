@@ -4421,9 +4421,9 @@ def suite2_tune_noise_agsdr_adam(
 
     Multi-stage approach: outer stage evaluates an AGSDR-style candidate population
     (black-box sweep over noise amplitudes). Inner stage applies finite-difference
-    Adam updates for local refinement. This is a black-box + local-search hybrid,
-    NOT a variance-balanced adaptive self-supervision implementation. Future work
-    will implement true AGSDR with adaptive alpha/learning-rate schedules.
+    Adam updates for local refinement. Current implementation: finite-difference Adam
+    with black-box candidate sweep. Variance-balanced adaptive self-supervision is
+    reserved for a future optimizer path with adaptive alpha/learning-rate schedules.
     This path tunes a solver-tuned drive parameter and preserves relative
     proxy-unit metadata.
     """
