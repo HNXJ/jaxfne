@@ -1387,3 +1387,185 @@ def synaptic_current(
     """Compute synaptic current from spikes and connectivity matrix."""
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
     return jnp.dot(trace, W.T)
+
+
+# =============================================================================
+# Patch D: Multi-Area Source Projector
+# =============================================================================
+
+def filtered_spike_source(
+    spikes: jax.Array,
+    neurons: "Mapping[str, Any]",
+    tau_ms: float = 5.0,
+    cell_signs: "Mapping[str, int] | None" = None,
+) -> jax.Array:
+    """Filter spikes through exponential decay per cell type.
+
+    Parameters
+    ----------
+    spikes : jax.Array
+        Spike raster [T, N].
+    neurons : Mapping[str, Any]
+        Neuron metadata with cell_type key.
+    tau_ms : float
+        Decay time constant (ms).
+    cell_signs : Mapping[str, int], optional
+        Sign per cell type (E=+1, I=-1). Default: auto-detect.
+
+    Returns
+    -------
+    source : jax.Array
+        Filtered source [T, N].
+    """
+    if cell_signs is None:
+        cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
+
+    cell_types = neurons.get("cell_type", ["E"] * spikes.shape[1])
+    dt_ms = 0.1  # Assume standard timestep; TODO: parametrize
+    trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
+
+    # Apply signs per cell type
+    signs = jnp.array([cell_signs.get(ct, 1) for ct in cell_types], dtype=jnp.float32)
+    return trace * signs[None, :]
+
+
+def synaptic_resonance_source(
+    neurons: "Mapping[str, Any]",
+    n_steps: int,
+    dt_ms: float = 0.1,
+    control_params: "Mapping[str, float] | None" = None,
+) -> jax.Array:
+    """Generate oscillatory source with layer and area specificity.
+
+    Parameters
+    ----------
+    neurons : Mapping[str, Any]
+        Neuron metadata with area, layer, cell_type keys.
+    n_steps : int
+        Number of timesteps.
+    dt_ms : float
+        Timestep in ms (default 0.1).
+    control_params : Mapping[str, float], optional
+        Control parameters including:
+        - alpha_beta_gain: amplitude for 10-25 Hz (default 1.0)
+        - gamma_gain: amplitude for 70-120 Hz (default 1.0)
+        - resonance_scale: global scaling (default 1.0)
+
+    Returns
+    -------
+    resonance : jax.Array
+        Oscillatory source [T, N].
+    """
+    import numpy as np
+
+    if control_params is None:
+        control_params = {
+            "alpha_beta_gain": 1.0,
+            "gamma_gain": 1.0,
+            "resonance_scale": 1.0,
+        }
+
+    n = len(neurons.get("area", []))
+    if n == 0:
+        return jnp.zeros((n_steps, 1), dtype=jnp.float32)
+
+    areas = np.array(neurons.get("area", ["V1"] * n))
+    layers = np.array(neurons.get("layer", ["L4"] * n))
+
+    # Time vector
+    t = np.arange(n_steps) * dt_ms / 1000.0  # Convert to seconds
+
+    # Default frequencies
+    alpha_beta_freq = 15.0  # Hz
+    gamma_freq = 90.0  # Hz
+
+    resonance = np.zeros((n_steps, n), dtype=np.float32)
+
+    for i in range(n):
+        area = areas[i]
+        layer = layers[i]
+
+        # Layer-specific alpha/beta amplitude
+        if layer in ("L1", "L2", "L3"):
+            alpha_beta_amp = 0.5
+        elif layer == "L4":
+            alpha_beta_amp = 0.3
+        else:  # L5, L6
+            alpha_beta_amp = 0.6
+
+        # Gamma stronger in superficial layers
+        if layer in ("L1", "L2", "L3"):
+            gamma_amp = 0.8
+        else:
+            gamma_amp = 0.2
+
+        # Generate oscillations
+        alpha_beta_sig = alpha_beta_amp * np.sin(2.0 * np.pi * alpha_beta_freq * t)
+        gamma_sig = gamma_amp * np.sin(2.0 * np.pi * gamma_freq * t)
+
+        # Combine with control gains
+        resonance[:, i] = (
+            control_params.get("alpha_beta_gain", 1.0) * alpha_beta_sig
+            + control_params.get("gamma_gain", 1.0) * gamma_sig
+        ) * control_params.get("resonance_scale", 1.0)
+
+    return jnp.asarray(resonance, dtype=jnp.float32)
+
+
+def combined_multi_area_source(
+    spikes: jax.Array,
+    neurons: "Mapping[str, Any]",
+    n_steps: int,
+    dt_ms: float = 0.1,
+    control_params: "Mapping[str, float] | None" = None,
+    spike_tau_ms: float = 5.0,
+) -> jax.Array:
+    """Combine filtered spikes and resonance into single source tensor.
+
+    Parameters
+    ----------
+    spikes : jax.Array
+        Spike raster [T, N].
+    neurons : Mapping[str, Any]
+        Neuron metadata.
+    n_steps : int
+        Number of timesteps.
+    dt_ms : float
+        Timestep in ms.
+    control_params : Mapping[str, float], optional
+        Control parameters including:
+        - spike_source_scale: weighting on spike component (default 1.0)
+        - resonance_source_scale: weighting on resonance (default 1.0)
+    spike_tau_ms : float
+        Decay constant for spike filtering (default 5.0).
+
+    Returns
+    -------
+    source : jax.Array
+        Combined source [T, N].
+
+    Metadata
+    --------
+    Scope: simulated source tensor for relative spectrolaminar profiling.
+    Evidence: finite source arrays.
+    Interpretation: emitter activity mapped to laminar readout basis.
+    """
+    if control_params is None:
+        control_params = {
+            "spike_source_scale": 1.0,
+            "resonance_source_scale": 1.0,
+        }
+
+    # Filtered spike component
+    spike_src = filtered_spike_source(spikes, neurons, tau_ms=spike_tau_ms)
+
+    # Resonance component
+    resonance = synaptic_resonance_source(neurons, n_steps, dt_ms, control_params)
+
+    # Combine
+    source = (
+        control_params.get("spike_source_scale", 1.0) * spike_src
+        + control_params.get("resonance_source_scale", 1.0) * resonance
+    )
+
+    return jnp.asarray(source, dtype=jnp.float32)
