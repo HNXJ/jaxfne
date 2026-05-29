@@ -11,14 +11,21 @@ This keeps development fast while ensuring comprehensive testing before release.
 
 ## Fast CI Gate
 
-### What runs (`.github/workflows/ci.yml`)
+### What runs (`.github/workflows/ci.yml` - Fast PR/Dev CI)
 
-- Python 3.10, 3.11, 3.12 matrix
+- Python 3.10, 3.12 matrix (optimized routine development matrix)
 - Compilation check: `python -m compileall -q jaxfne tests examples`
 - Core tests: 903 pytest tests (5 skipped, expected)
 - Fast examples only: `examples/00-06` (smoke tests, ~1 min)
 - Build: wheel + sdist
 - Smoke test: fresh venv wheel install + minimal workflow
+
+### What runs (`.github/workflows/release_ci.yml` - Release & Scheduled CI)
+
+- Python 3.10, 3.11, 3.12 matrix (comprehensive version-compatibility verification)
+- Full core/slow test runs and build validations
+- Triggers on pushes/PRs to `main`, manual dispatch, and nightly scheduled cron
+
 
 ### What is excluded from fast CI
 

@@ -1,17 +1,20 @@
-name: CI (Fast)
+name: CI (Release & Scheduled)
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
   pull_request:
-    branches: [dev]
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *'  # Nightly at midnight
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4
