@@ -1,3 +1,22 @@
+## [0.3.14] - 2026-05-29
+
+### Added
+- Added null, ablation, and synchrony-control support for the v0.3.14 tutorial/release line.
+- Added release-facing validation coverage for numerical stability and boundary-sensitive scaffold behavior.
+
+### Changed
+- Updated Suite 3 noisy-power handling for cleaner finite proxy-output behavior.
+- Improved optional bridge guards so unavailable optional dependencies fail with explicit import guidance.
+
+### Validation
+- Local release-candidate validation: `1647 passed, 64 skipped, 4 xfailed`.
+- Import smoke passed for `jaxfne==0.3.14` on CPU with JAX `0.10.0`, x64 disabled, default float dtype `float32`.
+
+### Scope
+- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+
+---
+
 ## v0.3.11 Matrix AMPA/GABA Optimization with Optax Adam Inner Loop
 
 - **Core Feature:** Matrix-parameter optimization for recurrent synaptic strength tuning
