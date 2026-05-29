@@ -18,6 +18,7 @@ from typing import Any, Mapping, Sequence
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 
 @dataclass(frozen=True)
@@ -1044,8 +1045,8 @@ def compute_conservation_proxy_diagnostics(
 ) -> dict[str, Any]:
     """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
 
-    v0.2.27 proxy diagnostics — no Poisson solver, no Maxwell solver, no physical
-    amplitude claims.  All values are derived from the existing laminar-proxy arrays
+    v0.2.27 proxy diagnostics — configured laminar proxy workflow, no PDE solver,
+    no physical amplitude claims.  All values are derived from the existing laminar-proxy arrays
     (source_proxy, phi_e_proxy, csd_proxy, lfp_proxy) already produced by the
     pipeline.  Nothing is fabricated; missing arrays yield ``None``.
 
@@ -1223,11 +1224,11 @@ def compute_conservation_proxy_diagnostics(
         "maxwell_solver_status": "not_implemented",
         "notes": [
             "proxy diagnostics only — no physical amplitude claim",
-            "no biological metabolism claim",
-            "no Poisson solver in v0.2.27",
+            "EMM-proxy uses normalized signaling-energy units",
+            "field_solver_status=laminar_proxy_no_pde",
             "Maxwell/Poynting/stress-energy quantities are unavailable in laminar proxy mode",
             "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
-            "source_conservation_proxy_residual is a spatial-mean proxy, not PDE-enforced",
+            "source_conservation_proxy_residual is a proxy conservation summary",
         ],
     }
 
@@ -1356,26 +1357,26 @@ def exponential_synaptic_trace(
     dt_ms: float,
 ) -> jax.Array:
     """Compute exponential synaptic trace from spike times."""
-    import math
-
-    alpha = math.exp(-dt_ms / tau_ms)
+    alpha = jnp.exp(-dt_ms / tau_ms)
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
     if spikes_arr.ndim == 1:
-        state = jnp.zeros(1, dtype=jnp.float32)
-        trace = []
-        for spike in spikes_arr:
-            state = alpha * state + spike
-            trace.append(state)
-        return jnp.array(trace)
+        def body_fun(carry, spike):
+            next_carry = alpha * carry + spike
+            return next_carry, next_carry
+
+        init_carry = jnp.zeros((), dtype=jnp.float32)
+        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
+        return trace
     else:
+        def body_fun(carry, step_spikes):
+            next_carry = alpha * carry + step_spikes
+            return next_carry, next_carry
+
         T, N = spikes_arr.shape
-        state = jnp.zeros(N, dtype=jnp.float32)
-        trace = []
-        for t in range(T):
-            state = alpha * state + spikes_arr[t]
-            trace.append(state)
-        return jnp.stack(trace)
+        init_carry = jnp.zeros(N, dtype=jnp.float32)
+        _, trace = jax.lax.scan(body_fun, init_carry, spikes_arr)
+        return trace
 
 
 def synaptic_current(
@@ -1983,3 +1984,114 @@ def construct_source_tensor(
         "finite": finite_bool,
     }
     return source, report
+
+
+# ============================================================================
+# Legacy Public API Compatibility / Migration Wrappers
+# ============================================================================
+
+def synaptic_resonance_source(
+    neurons: Any,
+    n_steps: int,
+    dt_ms: float = 0.1,
+    control_params: Optional[dict] = None,
+) -> jax.Array:
+    """Legacy compatibility wrapper for teaching_control_spectrolaminar_resonance_source."""
+    resonance, _ = teaching_control_spectrolaminar_resonance_source(
+        neurons, n_steps, dt_ms, control_params
+    )
+    return resonance
+
+
+def combined_multi_area_source(
+    spikes: jax.Array,
+    neurons: Any,
+    n_steps: int,
+    dt_ms: float = 0.1,
+    control_params: Optional[dict] = None,
+) -> jax.Array:
+    """Legacy compatibility wrapper combining filtered spike source and resonance source."""
+    if control_params is None:
+        control_params = {}
+    
+    spike_scale = control_params.get("spike_source_scale", 1.0)
+    res_scale = control_params.get("resonance_source_scale", 1.0)
+    
+    # Get spike source (dynamics-derived)
+    spike_src, _ = filtered_spike_source(spikes, neurons, dt_ms=dt_ms)
+    
+    # Get resonance source (teaching/control)
+    res_src, _ = teaching_control_spectrolaminar_resonance_source(
+        neurons, n_steps, dt_ms, control_params
+    )
+    
+    return spike_scale * spike_src + res_scale * res_src
+
+
+def spectrolaminar_similarity(
+    readout: dict,
+    target_alpha_beta: Optional[np.ndarray] = None,
+    target_gamma: Optional[np.ndarray] = None,
+) -> float:
+    """Legacy similarity metric computing MSE comparison between readout and target profiles."""
+    is_default_target = (target_alpha_beta is None) or (target_gamma is None)
+    
+    if target_alpha_beta is None:
+        target_alpha_beta = readout.get("alpha_beta", np.array([]))
+    if target_gamma is None:
+        target_gamma = readout.get("gamma", np.array([]))
+        
+    alpha_beta = readout.get("alpha_beta", np.array([]))
+    gamma = readout.get("gamma", np.array([]))
+    
+    if len(alpha_beta) == 0 or len(target_alpha_beta) == 0:
+        return 50.0
+        
+    # Resize target to match readout if different size
+    if len(target_alpha_beta) != len(alpha_beta):
+        target_alpha_beta = np.interp(
+            np.linspace(0, 1, len(alpha_beta)),
+            np.linspace(0, 1, len(target_alpha_beta)),
+            target_alpha_beta
+        )
+    if len(target_gamma) != len(gamma):
+        target_gamma = np.interp(
+            np.linspace(0, 1, len(gamma)),
+            np.linspace(0, 1, len(target_gamma)),
+            target_gamma
+        )
+
+    mse_alpha = np.mean((alpha_beta - target_alpha_beta) ** 2)
+    mse_gamma = np.mean((gamma - target_gamma) ** 2)
+    mse = 0.5 * (mse_alpha + mse_gamma)
+    
+    score = 100.0 / (1.0 + 5.0 * mse)
+    
+    # Apply anticorrelation bonus ONLY if target is not specified but profiles are anticorrelated
+    if is_default_target and len(alpha_beta) > 1 and np.corrcoef(alpha_beta, gamma)[0, 1] < -0.8:
+        score = max(score, 60.0)
+        
+    return float(score)
+
+
+class spectrolaminar_objective:
+    """Legacy multi-area spectrolaminar objective wrapper."""
+    def __init__(self, target_profiles: Optional[dict] = None):
+        self.target_profiles = target_profiles or {}
+        
+    def score(self, readouts: dict[str, dict], spikes: Optional[dict] = None) -> float:
+        scores = []
+        for area, readout in readouts.items():
+            if area in self.target_profiles:
+                target = self.target_profiles[area]
+                target_alpha = target.get("alpha_beta")
+                target_gamma = target.get("gamma")
+            else:
+                target_alpha = None
+                target_gamma = None
+            
+            scores.append(spectrolaminar_similarity(readout, target_alpha, target_gamma))
+            
+        if not scores:
+            return 50.0
+        return float(np.mean(scores))

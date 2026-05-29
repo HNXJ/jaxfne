@@ -4417,7 +4417,16 @@ def suite2_tune_noise_agsdr_adam(
     finite_difference_eps: float = 0.05,
     seed: int = 7,
 ) -> TuneResult:
-    """Tune Poisson-drive amplitude toward a target mean firing-rate range.\n\n    The outer stage evaluates an AGSDR-style candidate population.  The inner\n    stage applies finite-difference Adam updates to the scalar noise amplitude.\n    This path tunes a reduced native-drive parameter and preserves relative\n    proxy-unit metadata.\n    """
+    """Tune Poisson-drive amplitude toward a target mean firing-rate range.
+
+    Multi-stage approach: outer stage evaluates an AGSDR-style candidate population
+    (black-box sweep over noise amplitudes). Inner stage applies finite-difference
+    Adam updates for local refinement. This is a black-box + local-search hybrid,
+    NOT a variance-balanced adaptive self-supervision implementation. Future work
+    will implement true AGSDR with adaptive alpha/learning-rate schedules.
+    This path tunes a solver-tuned drive parameter and preserves relative
+    proxy-unit metadata.
+    """
     sim0 = simulation or suite2_simulation(seed=seed, duration_ms=1000.0, dt_ms=0.1)
     lo, hi = float(target_rate_hz[0]), float(target_rate_hz[1])
     if lo <= 0.0 or hi < lo:
