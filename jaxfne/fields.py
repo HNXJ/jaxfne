@@ -1779,3 +1779,145 @@ def multi_area_spectrolaminar_readout(
         readouts[area] = spectrolaminar_readout(signal, neurons, area, dt_ms=dt_ms)
 
     return readouts
+
+
+# =============================================================================
+# Patch F: Spectrolaminar Objective and Optimizer
+# =============================================================================
+
+def spectrolaminar_similarity(
+    readout: dict[str, "Any"],
+    target_alpha_beta: "jax.Array | None" = None,
+    target_gamma: "jax.Array | None" = None,
+) -> float:
+    """Score spectrolaminar readout against target profiles.
+
+    Parameters
+    ----------
+    readout : dict[str, Any]
+        Spectrolaminar readout from spectrolaminar_readout().
+    target_alpha_beta : jax.Array, optional
+        Target alpha/beta profile [n_contacts]. If None, no target constraint.
+    target_gamma : jax.Array, optional
+        Target gamma profile [n_contacts]. If None, no target constraint.
+
+    Returns
+    -------
+    score : float
+        Similarity score [0, 100].
+    """
+    import numpy as np
+
+    score = 0.0  # Start from zero, build up with matching
+
+    # If no targets, return baseline
+    n_targets = 0
+
+    if target_alpha_beta is not None and len(readout["alpha_beta"]) > 0:
+        alpha_beta_error = np.mean(
+            (np.asarray(readout["alpha_beta"]) - np.asarray(target_alpha_beta)) ** 2
+        )
+        # Exp(-error) gives [0,1] with 1 being perfect match
+        alpha_beta_score = 50.0 * np.exp(-3.0 * alpha_beta_error)
+        score += float(alpha_beta_score)
+        n_targets += 1
+
+    if target_gamma is not None and len(readout["gamma"]) > 0:
+        gamma_error = np.mean(
+            (np.asarray(readout["gamma"]) - np.asarray(target_gamma)) ** 2
+        )
+        # Exp(-error) gives [0,1] with 1 being perfect match
+        gamma_score = 50.0 * np.exp(-3.0 * gamma_error)
+        score += float(gamma_score)
+        n_targets += 1
+
+    if n_targets == 0:
+        score = 50.0  # Baseline if no targets provided
+
+    # Anticorrelation penalty: superficial layers should have higher gamma
+    # and deeper layers should have higher alpha/beta
+    alpha_beta_arr = np.asarray(readout["alpha_beta"])
+    gamma_arr = np.asarray(readout["gamma"])
+    depth_from_l4 = np.asarray(readout.get("pos_from_l4", []))
+
+    if len(alpha_beta_arr) > 2 and len(depth_from_l4) > 2:
+        # Top-bottom correlation (should be negative for proper inversion)
+        correlation = np.corrcoef(
+            depth_from_l4, gamma_arr - alpha_beta_arr
+        )[0, 1]
+        if not np.isnan(correlation):
+            anticorr_bonus = 5.0 * max(0.0, -correlation)  # Reward anticorrelation
+            score += anticorr_bonus
+
+    # L4-crossing reward: profiles should cross near L4
+    l4_idx = np.argmin(np.abs(depth_from_l4)) if len(depth_from_l4) > 0 else 0
+    if 0 < l4_idx < len(alpha_beta_arr) - 1:
+        crossing_proximity = 1.0 - np.abs(
+            alpha_beta_arr[l4_idx] - gamma_arr[l4_idx]
+        )
+        score += 5.0 * max(0.0, crossing_proximity)
+
+    return float(np.clip(score, 0.0, 100.0))
+
+
+def spectrolaminar_objective(
+    target_profiles: "dict[str, dict[str, Any]] | None" = None,
+    similarity_func: "Callable | None" = None,
+) -> "Any":
+    """Create a spectrolaminar objective for optimization.
+
+    Parameters
+    ----------
+    target_profiles : dict[str, dict], optional
+        Target profiles per area. Each area has keys: alpha_beta, gamma.
+    similarity_func : Callable, optional
+        Custom similarity function. Default: spectrolaminar_similarity.
+
+    Returns
+    -------
+    objective : Objective-like object
+        Spectrolaminar similarity objective.
+
+    Example
+    -------
+    >>> obj = spectrolaminar_objective(
+    ...     target_profiles={
+    ...         "V1": {"alpha_beta": ..., "gamma": ...},
+    ...         "PFC": {"alpha_beta": ..., "gamma": ...},
+    ...     }
+    ... )
+    """
+    if similarity_func is None:
+        similarity_func = spectrolaminar_similarity
+
+    class SpectrolaminarObjective:
+        """Spectrolaminar objective wrapper."""
+
+        def __init__(self, target_profiles=None, sim_func=None):
+            self.target_profiles = target_profiles or {}
+            self.sim_func = sim_func
+
+        def score(self, readouts: "dict[str, dict[str, Any]]") -> float:
+            """Score multi-area readout."""
+            total_score = 0.0
+            n_areas = 0
+
+            for area, readout in readouts.items():
+                target = self.target_profiles.get(area, {})
+                target_alpha = target.get("alpha_beta")
+                target_gamma = target.get("gamma")
+
+                area_score = self.sim_func(
+                    readout,
+                    target_alpha_beta=target_alpha,
+                    target_gamma=target_gamma,
+                )
+                total_score += area_score
+                n_areas += 1
+
+            if n_areas == 0:
+                return 0.0
+
+            return float(total_score / n_areas)
+
+    return SpectrolaminarObjective(target_profiles, similarity_func)
