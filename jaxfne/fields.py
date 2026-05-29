@@ -1569,3 +1569,213 @@ def combined_multi_area_source(
     )
 
     return jnp.asarray(source, dtype=jnp.float32)
+
+
+# =============================================================================
+# Patch E: Spectrolaminar Probe and Readout
+# =============================================================================
+
+def spectrolaminar_psd(
+    signal: "jax.Array",
+    dt_ms: float = 0.1,
+    freq_min: float = 1.0,
+    freq_max: float = 150.0,
+    n_freqs: int = 128,
+) -> tuple["jax.Array", "jax.Array"]:
+    """Compute power spectral density along laminar profile.
+
+    Parameters
+    ----------
+    signal : jax.Array
+        LFP or source signal [T, N_contacts].
+    dt_ms : float
+        Sampling interval in ms (default 0.1).
+    freq_min, freq_max : float
+        Frequency bounds in Hz.
+    n_freqs : int
+        Number of frequency bins (default 128).
+
+    Returns
+    -------
+    freqs : jax.Array
+        Frequency axis [n_freqs].
+    psd : jax.Array
+        Power spectral density [n_freqs, N_contacts].
+    """
+    import numpy as np
+
+    freqs = np.linspace(float(freq_min), float(freq_max), int(n_freqs))
+    dt_s = float(dt_ms) / 1000.0
+    fs = 1.0 / dt_s
+
+    sig = np.asarray(signal, dtype=np.float32)
+    if sig.ndim == 1:
+        sig = sig[:, None]
+
+    T, n_contacts = sig.shape
+    psd = np.zeros((int(n_freqs), n_contacts), dtype=np.float32)
+
+    for ci in range(n_contacts):
+        x = sig[:, ci]
+        for fi, freq in enumerate(freqs):
+            k = freq / fs
+            phase = 2.0 * np.pi * k * np.arange(T)
+            psd[fi, ci] = np.abs(np.dot(x, np.exp(-1j * phase))) / max(T, 1)
+
+    return jnp.asarray(freqs, dtype=jnp.float32), jnp.asarray(psd, dtype=jnp.float32)
+
+
+def spectrolaminar_readout(
+    signal: "jax.Array",
+    neurons: "Mapping[str, Any]",
+    area: str,
+    dt_ms: float = 0.1,
+    freq_min: float = 1.0,
+    freq_max: float = 150.0,
+    n_freqs: int = 128,
+    n_contacts: "int | None" = None,
+) -> dict[str, "Any"]:
+    """Generate spectrolaminar readout for a given area.
+
+    Parameters
+    ----------
+    signal : jax.Array
+        Source or LFP signal [T, N].
+    neurons : Mapping[str, Any]
+        Neuron metadata with area, layer, positions.
+    area : str
+        Area label (e.g., "V1", "V4", "PFC").
+    dt_ms : float
+        Sampling interval in ms.
+    freq_min, freq_max : float
+        Frequency bounds in Hz.
+    n_freqs : int
+        Number of frequency bins.
+    n_contacts : int, optional
+        Number of contacts. If None, pool neurons by layer.
+
+    Returns
+    -------
+    readout : dict[str, Any]
+        Spectrolaminar readout with keys:
+        - freq_hz: frequency axis
+        - pos_from_l4: relative depth per contact
+        - relative_power: PSD [n_freqs, n_contacts]
+        - alpha_beta: power 10-25 Hz per contact
+        - gamma: power 40-150 Hz per contact
+        - contact_depths_m: absolute depth per contact
+        - n_contacts: number of contacts
+        - n_neurons: number of neurons in area
+        - area: area label
+    """
+    import numpy as np
+
+    # Extract neurons in this area
+    areas = np.array(neurons.get("area", ["V1"] * signal.shape[1]))
+    layers = np.array(neurons.get("layer", ["L4"] * signal.shape[1]))
+    layer_indices = np.where(areas == area)[0]
+
+    if len(layer_indices) == 0:
+        # Return empty readout for missing area
+        return {
+            "freq_hz": np.linspace(freq_min, freq_max, n_freqs),
+            "pos_from_l4": np.array([]),
+            "relative_power": np.zeros((n_freqs, 0), dtype=np.float32),
+            "alpha_beta": np.array([]),
+            "gamma": np.array([]),
+            "contact_depths_m": np.array([]),
+            "n_contacts": 0,
+            "n_neurons": 0,
+            "area": area,
+        }
+
+    # Use neurons as contacts if n_contacts not specified
+    if n_contacts is None:
+        n_contacts = len(layer_indices)
+    else:
+        n_contacts = min(int(n_contacts), len(layer_indices))
+
+    # Pool neurons by layer
+    layer_set = sorted(set(layers[layer_indices]))
+    contact_layers = layer_set[:n_contacts] if len(layer_set) > 0 else ["L4"]
+
+    # Create contact signal (average across neurons in each layer)
+    contact_signal = np.zeros((signal.shape[0], len(contact_layers)), dtype=np.float32)
+    for ci, layer_label in enumerate(contact_layers):
+        layer_neurons = layer_indices[np.where(layers[layer_indices] == layer_label)[0]]
+        if len(layer_neurons) > 0:
+            contact_signal[:, ci] = np.mean(
+                np.asarray(signal[:, layer_neurons]), axis=1
+            )
+
+    # Compute PSD
+    freqs, psd = spectrolaminar_psd(
+        contact_signal, dt_ms=dt_ms, freq_min=freq_min, freq_max=freq_max, n_freqs=n_freqs
+    )
+
+    # Extract band power
+    freqs_arr = np.asarray(freqs)
+    alpha_beta_idx = (freqs_arr >= 10.0) & (freqs_arr <= 25.0)
+    gamma_idx = (freqs_arr >= 40.0) & (freqs_arr <= 150.0)
+
+    alpha_beta_power = np.sum(psd[alpha_beta_idx, :], axis=0)
+    gamma_power = np.sum(psd[gamma_idx, :], axis=0)
+
+    # Normalize
+    total_power = np.sum(psd, axis=0) + 1e-10
+    alpha_beta_profile = alpha_beta_power / total_power
+    gamma_profile = gamma_power / total_power
+
+    # Depth from L4 (assume L1-L6 order)
+    layer_order = {"L1": 0, "L2": 1, "L3": 2, "L4": 3, "L5": 4, "L6": 5}
+    depth_from_l4 = np.array(
+        [layer_order.get(l, 3) - 3 for l in contact_layers], dtype=np.float32
+    )
+
+    # Absolute depth (simplified: 0.1 mm per layer)
+    contact_depths = np.abs(depth_from_l4) * 0.1
+
+    return {
+        "freq_hz": np.asarray(freqs, dtype=np.float32),
+        "pos_from_l4": depth_from_l4,
+        "relative_power": np.asarray(psd, dtype=np.float32),
+        "alpha_beta": np.asarray(alpha_beta_profile, dtype=np.float32),
+        "gamma": np.asarray(gamma_profile, dtype=np.float32),
+        "contact_depths_m": np.asarray(contact_depths, dtype=np.float32),
+        "n_contacts": int(len(contact_layers)),
+        "n_neurons": int(len(layer_indices)),
+        "area": str(area),
+    }
+
+
+def multi_area_spectrolaminar_readout(
+    signal: "jax.Array",
+    neurons: "Mapping[str, Any]",
+    dt_ms: float = 0.1,
+) -> dict[str, dict[str, "Any"]]:
+    """Compute spectrolaminar readout for all areas.
+
+    Parameters
+    ----------
+    signal : jax.Array
+        Source or LFP signal [T, N].
+    neurons : Mapping[str, Any]
+        Neuron metadata with area, layer, positions.
+    dt_ms : float
+        Sampling interval in ms.
+
+    Returns
+    -------
+    readouts : dict[str, dict]
+        Per-area spectrolaminar readouts.
+    """
+    import numpy as np
+
+    areas = np.array(neurons.get("area", ["V1"] * signal.shape[1]))
+    area_set = sorted(set(areas[areas != ""]))
+
+    readouts = {}
+    for area in area_set:
+        readouts[area] = spectrolaminar_readout(signal, neurons, area, dt_ms=dt_ms)
+
+    return readouts
