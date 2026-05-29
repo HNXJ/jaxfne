@@ -250,6 +250,75 @@ def izhikevich_eig_params(
     )
 
 
+
+def izhikevich_params_from_labels(
+    labels: tuple[str, ...] | list[str],
+    *,
+    layer_labels: tuple[str, ...] | list[str] | None = None,
+    dtype: str = "float32",
+    drive_overrides: Mapping[str, float] | None = None,
+    source_scale: float = 1.0,
+) -> IzhikevichParams:
+    """Create reduced Izhikevich parameters from explicit cell labels.
+
+    This is the package-native path used by Suite No. 2 when a notebook needs
+    deterministic E/PV/SST/VIP populations without local simulator code.  The
+    returned native drive values are reduced-model drive units.  They are suited
+    to relative proxy readouts unless a caller supplies an external calibration
+    bridge.
+    """
+
+    label_tuple = tuple(str(x) for x in labels)
+    if not label_tuple:
+        raise ValueError("labels must contain at least one emitter label")
+    if layer_labels is not None and len(layer_labels) != len(label_tuple):
+        raise ValueError("layer_labels length must match labels length")
+
+    overrides = {str(k): float(v) for k, v in (drive_overrides or {}).items()}
+    jdtype = _dtype_from_policy(dtype)
+    a: list[float] = []
+    b: list[float] = []
+    c: list[float] = []
+    d: list[float] = []
+    drive: list[float] = []
+    sign: list[float] = []
+
+    for name in label_tuple:
+        if name == "E":
+            aa, bb, cc, dd, drv, sg = 0.02, 0.20, -65.0, 8.0, 5.0, 1.0
+        elif name in {"PV", "Inl"}:
+            aa, bb, cc, dd, drv, sg = 0.10, 0.20, -65.0, 2.0, 3.0, -1.0
+        elif name in {"SST", "Ing"}:
+            aa, bb, cc, dd, drv, sg = 0.02, 0.25, -65.0, 2.0, 3.5, -1.0
+        elif name == "VIP":
+            aa, bb, cc, dd, drv, sg = 0.02, -0.10, -55.0, 6.0, 3.0, -1.0
+        else:
+            raise ValueError(f"unknown Suite No. 2 cell type label: {name!r}")
+        a.append(aa)
+        b.append(bb)
+        c.append(cc)
+        d.append(dd)
+        drive.append(overrides.get(name, drv))
+        sign.append(sg)
+
+    n = len(label_tuple)
+    sign_array = jnp.asarray(sign, dtype=jdtype)
+    return IzhikevichParams(
+        a=jnp.asarray(a, dtype=jdtype),
+        b=jnp.asarray(b, dtype=jdtype),
+        c=jnp.asarray(c, dtype=jdtype),
+        d=jnp.asarray(d, dtype=jdtype),
+        drive=jnp.asarray(drive, dtype=jdtype),
+        sign=sign_array,
+        W=_default_eig_connectivity(sign_array, jdtype),
+        v0=jnp.full((n,), -65.0, dtype=jdtype),
+        u0=jnp.asarray(b, dtype=jdtype) * jnp.asarray(-65.0, dtype=jdtype),
+        source_scale=jnp.asarray(source_scale, dtype=jdtype),
+        labels=label_tuple,
+        layer_labels=tuple(str(x) for x in layer_labels) if layer_labels is not None else None,
+        source_calibration_status="uncalibrated_izhikevich_native_current",
+    )
+
 def make_eig_network(
     n: int,
     cell_type_fractions: Mapping[str, float] | None = None,
@@ -888,3 +957,120 @@ def simulate_multi_area_izhikevich(
     )
 
     return spikes, voltages
+
+# -----------------------------------------------------------------------------
+# Generalized emitter facade classes used by tutorials and smoke tests.
+# -----------------------------------------------------------------------------
+from typing import NamedTuple as _NamedTuple
+
+
+class EmitterState(_NamedTuple):
+    v: jax.Array
+    u: jax.Array
+    spikes: jax.Array
+    key: jax.Array
+    step_count: jax.Array
+
+
+class EmitterOutput(_NamedTuple):
+    voltage: jax.Array
+    spikes: jax.Array
+    source: jax.Array
+    finite: jax.Array
+
+    @property
+    def dtype(self) -> str:
+        return str(self.voltage.dtype)
+
+
+class Emitter:
+    """Base class for package-native emitter facades."""
+
+    def initial_state(self, seed: int = 0) -> EmitterState:
+        raise NotImplementedError("TODO: implement Emitter.initial_state in a concrete emitter")
+
+    def step(self, state: EmitterState, input_t: jax.Array, *, dt_ms: float = 0.1) -> tuple[EmitterState, EmitterOutput]:
+        raise NotImplementedError("TODO: implement Emitter.step in a concrete emitter")
+
+
+class IzhikevichEmitter(Emitter):
+    """Reduced Izhikevich emitter facade with JAX-native step."""
+
+    def __init__(self, n: int | None = None, *, n_neurons: int | None = None, dtype: str = "float32", cell_type_fractions: Mapping[str, float] | None = None):
+        self.n = int(n if n is not None else (n_neurons if n_neurons is not None else 1))
+        if self.n <= 0:
+            raise ValueError("n must be positive")
+        self.dtype = dtype
+        self.params = izhikevich_eig_params(self.n, cell_type_fractions or {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}, dtype=dtype)
+
+    def initial_state(self, seed: int = 0) -> EmitterState:
+        jdtype = _dtype_from_policy(self.dtype)
+        return EmitterState(
+            v=self.params.v0.astype(jdtype),
+            u=self.params.u0.astype(jdtype),
+            spikes=jnp.zeros((self.n,), dtype=jdtype),
+            key=jax.random.PRNGKey(int(seed)),
+            step_count=jnp.asarray(0, dtype=jnp.int32),
+        )
+
+    def step(self, state: EmitterState, input_t: jax.Array, *, dt_ms: float = 0.1) -> tuple[EmitterState, EmitterOutput]:
+        jdtype = _dtype_from_policy(self.dtype)
+        rng, noise_key = jax.random.split(state.key)
+        input_t = jnp.asarray(input_t, dtype=jdtype)
+        noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(noise_key, shape=state.v.shape).astype(jdtype)
+        syn = self.params.W.astype(jdtype) @ state.spikes.astype(jdtype)
+        current_native = self.params.drive.astype(jdtype) + input_t + syn + noise
+        dt = jnp.asarray(dt_ms, dtype=jdtype)
+        dv = 0.04 * state.v * state.v + 5.0 * state.v + 140.0 - state.u + current_native
+        du = self.params.a.astype(jdtype) * (self.params.b.astype(jdtype) * state.v - state.u)
+        v_next = state.v + dt * dv
+        u_next = state.u + dt * du
+        spikes_bool = v_next >= 30.0
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, self.params.c.astype(jdtype), v_next)
+        u_reset = jnp.where(spikes_bool, u_next + self.params.d.astype(jdtype), u_next)
+        source = self.params.source_scale.astype(jdtype) * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+        next_state = EmitterState(v=v_reset, u=u_reset, spikes=spikes, key=rng, step_count=state.step_count + 1)
+        output = EmitterOutput(
+            voltage=v_reset,
+            spikes=spikes,
+            source=source,
+            finite=jnp.all(jnp.isfinite(v_reset)) & jnp.all(jnp.isfinite(source)),
+        )
+        return next_state, output
+
+
+class GLIFEmitter(Emitter):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError("TODO: implement GLIFEmitter dynamics before exposing this emitter")
+
+
+class LIFEmitter(Emitter):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError("TODO: implement LIFEmitter dynamics before exposing this emitter")
+
+
+class SynapseState(_NamedTuple):
+    trace: jax.Array
+
+
+class SynapseLayer:
+    """Exponential synapse layer returning recurrent input currents."""
+
+    def __init__(self, n: int, W: jax.Array, tau_ms: float = 5.0, dtype: str = "float32"):
+        self.n = int(n)
+        self.W = jnp.asarray(W, dtype=_dtype_from_policy(dtype))
+        if self.W.shape != (self.n, self.n):
+            raise ValueError(f"W must have shape {(self.n, self.n)}, got {self.W.shape}")
+        self.tau_ms = float(tau_ms)
+        self.dtype = dtype
+
+    def initial_state(self) -> SynapseState:
+        return SynapseState(trace=jnp.zeros((self.n,), dtype=_dtype_from_policy(self.dtype)))
+
+    def step(self, state: SynapseState, pre_spikes: jax.Array, *, dt_ms: float = 0.1) -> tuple[SynapseState, jax.Array]:
+        jdtype = _dtype_from_policy(self.dtype)
+        decay = jnp.exp(-jnp.asarray(dt_ms, dtype=jdtype) / jnp.asarray(self.tau_ms, dtype=jdtype))
+        trace_next = state.trace.astype(jdtype) * decay + jnp.asarray(pre_spikes, dtype=jdtype)
+        current = self.W.astype(jdtype) @ trace_next
+        return SynapseState(trace=trace_next), current

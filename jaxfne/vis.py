@@ -567,3 +567,287 @@ def meg(signals: Any, **kwargs: Any) -> Any:
 def emm(signals: Any, **kwargs: Any) -> Any:
     raise NotImplementedError("TODO: implement jtfne.vis.emm")
 
+
+# -----------------------------------------------------------------------------
+# Suite No. 2 generalized visualization facade.
+# These functions intentionally operate on the public Signals container and its
+# metadata so tutorials do not need to plot from raw arrays.
+# -----------------------------------------------------------------------------
+
+def _signals_time_ms(signals: Any, n: int | None = None) -> np.ndarray:
+    if hasattr(signals, "time_ms"):
+        return np.asarray(signals.time_ms)
+    if isinstance(signals, dict) and "time_ms" in signals:
+        return np.asarray(signals["time_ms"])
+    return np.arange(int(n or 0))
+
+
+def _signals_spikes(signals: Any) -> np.ndarray:
+    if hasattr(signals, "spikes"):
+        return np.asarray(signals.spikes)
+    if isinstance(signals, dict) and "spikes" in signals:
+        return np.asarray(signals["spikes"])
+    return np.asarray(signals)
+
+
+def _signals_sources(signals: Any) -> np.ndarray:
+    if hasattr(signals, "sources") and signals.sources is not None:
+        return np.asarray(signals.sources)
+    if isinstance(signals, dict) and "sources" in signals:
+        return np.asarray(signals["sources"])
+    raise ValueError("signals.sources is required for this proxy readout")
+
+
+def _signals_lfp(signals: Any) -> np.ndarray:
+    if hasattr(signals, "field") and signals.field is not None:
+        return np.asarray(signals.field.lfp_proxy)
+    if isinstance(signals, dict) and "lfp_proxy" in signals:
+        return np.asarray(signals["lfp_proxy"])
+    raise ValueError("signals.field.lfp_proxy is required for this figure")
+
+
+def _signals_csd(signals: Any) -> np.ndarray:
+    if hasattr(signals, "field") and signals.field is not None:
+        return np.asarray(signals.field.csd_proxy)
+    if isinstance(signals, dict) and "csd_proxy" in signals:
+        return np.asarray(signals["csd_proxy"])
+    raise ValueError("signals.field.csd_proxy is required for this figure")
+
+
+def _neuron_rows(signals: Any) -> list[dict[str, Any]]:
+    meta = getattr(signals, "metadata", {}) if not isinstance(signals, dict) else signals.get("metadata", {})
+    rows = meta.get("neuron_metadata") if isinstance(meta, dict) else None
+    return [dict(row) for row in rows] if rows else []
+
+
+def raster(signals: Any, **kwargs: Any) -> Any:  # type: ignore[override]
+    """Plot a spike raster, optionally sorted by declared z-depth."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    sort_by = kwargs.pop("sort_by", "z")
+    marker_size = float(kwargs.pop("marker_size", 2.0))
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    spikes = _signals_spikes(signals)
+    time_ms = _signals_time_ms(signals, spikes.shape[0])
+    t_idx, n_idx = np.where(spikes > 0)
+
+    rows = _neuron_rows(signals)
+    if sort_by == "z" and len(rows) == spikes.shape[1]:
+        order = np.argsort([float(row.get("z", row.get("neuron_id", i))) for i, row in enumerate(rows)])
+        rank = np.empty_like(order)
+        rank[order] = np.arange(order.shape[0])
+        y_idx = rank[n_idx]
+        ylabel = "Neuron rank sorted by z"
+    else:
+        y_idx = n_idx
+        ylabel = "Neuron index"
+
+    ax.scatter(time_ms[t_idx], y_idx, s=marker_size, marker="|")
+    ax.set_title("Spike raster proxy sorted by depth" if sort_by == "z" else "Spike raster proxy")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel(ylabel)
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def lfp_traces(signals: Any, **kwargs: Any) -> Any:
+    """Plot selected LFP-like contact traces."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    max_contacts = int(kwargs.pop("max_contacts", 6))
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    data = _signals_lfp(signals)
+    time_ms = _signals_time_ms(signals, data.shape[0])
+    n_contacts = min(max_contacts, data.shape[1] if data.ndim > 1 else 1)
+    arr = data if data.ndim > 1 else data[:, None]
+    scale = np.nanstd(arr[:, :n_contacts]) or 1.0
+    for contact in range(n_contacts):
+        ax.plot(time_ms, arr[:, contact] / scale + contact, label=f"contact {contact}")
+    ax.set_title("LFP-like contact traces")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Contact offset")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def csd_traces(signals: Any, **kwargs: Any) -> Any:
+    """Plot selected CSD-like contact traces."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    max_contacts = int(kwargs.pop("max_contacts", 6))
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    data = _signals_csd(signals)
+    time_ms = _signals_time_ms(signals, data.shape[0])
+    n_contacts = min(max_contacts, data.shape[1] if data.ndim > 1 else 1)
+    arr = data if data.ndim > 1 else data[:, None]
+    scale = np.nanstd(arr[:, :n_contacts]) or 1.0
+    for contact in range(n_contacts):
+        ax.plot(time_ms, arr[:, contact] / scale + contact, label=f"contact {contact}")
+    ax.set_title("CSD-like contact traces")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Contact offset")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def _linear_proxy_from_sources(signals: Any, *, n_channels: int, phase: float = 0.0) -> np.ndarray:
+    src = _signals_sources(signals)
+    n_src = src.shape[1]
+    idx = np.arange(n_src, dtype=float)
+    channels = []
+    for c in range(int(n_channels)):
+        channels.append(np.cos((c + 1.0) * (idx + 1.0) / max(n_src, 1) + phase))
+    lead = np.asarray(channels, dtype=float)
+    lead = lead / np.maximum(np.linalg.norm(lead, axis=1, keepdims=True), 1e-12)
+    return src @ lead.T
+
+
+def eeg(signals: Any, **kwargs: Any) -> Any:  # type: ignore[override]
+    """Plot EEG-proxy traces from deterministic linear source projections."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    n_channels = int(kwargs.pop("n_channels", 4))
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    y = _linear_proxy_from_sources(signals, n_channels=n_channels, phase=0.0)
+    time_ms = _signals_time_ms(signals, y.shape[0])
+    scale = np.nanstd(y) or 1.0
+    for ch in range(y.shape[1]):
+        ax.plot(time_ms, y[:, ch] / scale + ch, label=f"EEG-proxy {ch}")
+    ax.set_title("EEG-proxy linear readout")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Channel offset")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def meg(signals: Any, **kwargs: Any) -> Any:  # type: ignore[override]
+    """Plot MEG-proxy traces from deterministic oriented source projections."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    n_channels = int(kwargs.pop("n_channels", 4))
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    y = _linear_proxy_from_sources(signals, n_channels=n_channels, phase=np.pi / 4.0)
+    time_ms = _signals_time_ms(signals, y.shape[0])
+    scale = np.nanstd(y) or 1.0
+    for ch in range(y.shape[1]):
+        ax.plot(time_ms, y[:, ch] / scale + ch, label=f"MEG-proxy {ch}")
+    ax.set_title("MEG-proxy linear readout")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Channel offset")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def emm(signals: Any, **kwargs: Any) -> Any:  # type: ignore[override]
+    """Plot normalized EMM-proxy activity/source/field cost."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+    spikes = _signals_spikes(signals)
+    src = _signals_sources(signals)
+    lfp_arr = _signals_lfp(signals)
+    rate = np.mean(spikes, axis=1)
+    cost = rate + np.mean(np.abs(src), axis=1) + np.mean(lfp_arr * lfp_arr, axis=1)
+    cost = cost / max(float(np.nanmax(np.abs(cost))), 1e-12)
+    time_ms = _signals_time_ms(signals, cost.shape[0])
+    ax.plot(time_ms, cost)
+    ax.set_title("EMM-proxy normalized activity cost")
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel("Normalized proxy units")
+    ax.grid(True, linestyle="--", alpha=0.3)
+    return fig
+
+
+def circuit3d(signals: Any, **kwargs: Any) -> Any:
+    """Plot declared 3D neuron layout from signal metadata."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    rows = _neuron_rows(signals)
+    if not rows:
+        raise ValueError("neuron_metadata is required for circuit3d")
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111, projection="3d")
+    x = np.asarray([float(row.get("x", 0.0)) for row in rows])
+    y = np.asarray([float(row.get("y", 0.0)) for row in rows])
+    z = np.asarray([float(row.get("z", 0.0)) for row in rows])
+    ax.scatter(x, y, z, s=6)
+    ax.set_title("Declared 3D circuit layout")
+    ax.set_xlabel("x (mm)")
+    ax.set_ylabel("y (mm)")
+    ax.set_zlabel("z (mm or relative depth)")
+    return fig
+
+
+def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
+    """Render the core Suite No. 2 readout panel in one figure."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    max_freq_hz = float(kwargs.pop("max_freq_hz", 80.0))
+    fig = plt.figure(figsize=kwargs.pop("figsize", (12, 10)), **kwargs)
+    axes = [fig.add_subplot(3, 2, i + 1) for i in range(6)]
+    spikes = _signals_spikes(signals)
+    time_ms = _signals_time_ms(signals, spikes.shape[0])
+    rows = _neuron_rows(signals)
+    t_idx, n_idx = np.where(spikes > 0)
+    if len(rows) == spikes.shape[1]:
+        order = np.argsort([float(row.get("z", i)) for i, row in enumerate(rows)])
+        rank = np.empty_like(order)
+        rank[order] = np.arange(order.shape[0])
+        n_plot = rank[n_idx]
+    else:
+        n_plot = n_idx
+    axes[0].scatter(time_ms[t_idx], n_plot, s=1, marker="|")
+    axes[0].set_title("Raster proxy sorted by depth")
+    axes[0].set_xlabel("Time (ms)")
+
+    lfp_arr = _signals_lfp(signals)
+    im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
+    axes[1].set_title("LFP-like contacts")
+    fig.colorbar(im1, ax=axes[1], fraction=0.046)
+
+    csd_arr = _signals_csd(signals)
+    vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
+    im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
+    axes[2].set_title("CSD-like contacts")
+    fig.colorbar(im2, ax=axes[2], fraction=0.046)
+
+    dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
+    fs = 1000.0 / dt_ms
+    freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=min(512, lfp_arr.shape[0]))
+    mask = freqs <= max_freq_hz
+    axes[3].plot(freqs[mask], np.mean(pxx[mask], axis=1))
+    axes[3].set_title("Mean PSD")
+    axes[3].set_xlabel("Frequency (Hz)")
+
+    eeg_y = _linear_proxy_from_sources(signals, n_channels=3, phase=0.0)
+    scale = np.nanstd(eeg_y) or 1.0
+    for ch in range(eeg_y.shape[1]):
+        axes[4].plot(time_ms, eeg_y[:, ch] / scale + ch)
+    axes[4].set_title("EEG-proxy")
+
+    spikes_mean = np.mean(spikes, axis=1)
+    src = _signals_sources(signals)
+    emm_cost = spikes_mean + np.mean(np.abs(src), axis=1) + np.mean(lfp_arr * lfp_arr, axis=1)
+    emm_cost = emm_cost / max(float(np.nanmax(np.abs(emm_cost))), 1e-12)
+    axes[5].plot(time_ms, emm_cost)
+    axes[5].set_title("EMM-proxy")
+    axes[5].set_xlabel("Time (ms)")
+
+    for ax in axes:
+        ax.grid(True, linestyle="--", alpha=0.25)
+    fig.tight_layout()
+    return fig
