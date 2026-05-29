@@ -1057,6 +1057,7 @@ class Simulation:
     record_fields: bool = True
     poisson_drive: Optional[dict] = None
     runtime: RuntimeConfig | None = None
+    ablation: Optional[str] = None
 
     def __post_init__(self) -> None:
         if not (math.isfinite(self.duration_ms) and self.duration_ms > 0):
@@ -2403,10 +2404,34 @@ class Model:
         runtime_cfg: RuntimeConfig,
         drive_schedule: Optional[Any] = None,
     ):
+        from .emitters import _dtype_from_policy
         emitter: IzhikevichParams = self.params["emitter"]
         sched = drive_schedule  # None or (n_steps, n_neurons) array
+        
+        # Build silence_mask if E_silence or I_silence is requested
+        n_neurons = emitter.v0.shape[0]
+        jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
+        silence_mask = jnp.ones((n_neurons,), dtype=jdtype)
+        ablation_mode = getattr(sim, "ablation", None)
+        
+        if ablation_mode == "E_silence":
+            mask_list = [0.0 if lbl.startswith("E") else 1.0 for lbl in emitter.labels]
+            silence_mask = jnp.array(mask_list, dtype=jdtype)
+        elif ablation_mode == "I_silence":
+            mask_list = [1.0 if lbl.startswith("E") else 0.0 for lbl in emitter.labels]
+            silence_mask = jnp.array(mask_list, dtype=jdtype)
+            
+        if ablation_mode == "disconnected_null":
+            if runtime_cfg.recurrent_backend == "edge_list":
+                edges: EdgeList = self.params["edge_list"]
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            else:
+                emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
+
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
+            if ablation_mode == "disconnected_null":
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
             kernel_fn = (
                 simulate_receptor_exponential_izhikevich
                 if runtime_cfg.synaptic_kernel == "receptor_exponential"
@@ -2417,24 +2442,28 @@ class Model:
                     lambda k, s: kernel_fn(
                         emitter, edges, sim.n_steps, sim.dt_ms, k,
                         dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                        silence_mask=silence_mask,
                     )[:3]
                 )
                 return run(key, sched)
             return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key,
                 dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+                silence_mask=silence_mask,
             )[:3]
         if runtime_cfg.jit:
             run = jax.jit(
                 lambda k, s: simulate_eig_izhikevich(
                     emitter, sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                    silence_mask=silence_mask,
                 )
             )
             return run(key, sched)
         return simulate_eig_izhikevich(
             emitter, sim.n_steps, sim.dt_ms, key,
             dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+            silence_mask=silence_mask,
         )
 
     def _resolve_stimulus_schedule(
@@ -2495,6 +2524,16 @@ class Model:
             )
             drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
 
+        # shuffled_timing ablation: shuffle drive_array along time axis (axis 0) independently for each neuron
+        ablation_mode = getattr(sim, "ablation", None)
+        if ablation_mode == "shuffled_timing" and drive_array is not None:
+            shuffle_key = jax.random.PRNGKey(sim.seed + 12345)
+            n_neurons = drive_array.shape[1]
+            keys = jax.random.split(shuffle_key, n_neurons)
+            # Use vmap to shuffle each neuron's temporal drive independently
+            shuffled = jax.vmap(lambda arr, k: jax.random.permutation(k, arr))(drive_array.T, keys)
+            drive_array = shuffled.T
+
         voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
             sim.dt_ms, dtype=runtime_cfg.jnp_dtype
@@ -2532,6 +2571,7 @@ class Model:
             "source_model": _SOURCE_PROXY_METADATA,
             "neuron_metadata": self.static.get("neuron_metadata"),
             "neuron_metadata_summary": self.static.get("neuron_metadata_summary"),
+            "ablation": ablation_mode,
         }
         # v0.2.0: Add source bookkeeping metadata for theoretical validation.
         metadata["source_bookkeeping"] = {

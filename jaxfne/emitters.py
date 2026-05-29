@@ -352,6 +352,7 @@ def simulate_eig_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
@@ -371,6 +372,11 @@ def simulate_eig_izhikevich(
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
@@ -389,8 +395,12 @@ def simulate_eig_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
@@ -409,8 +419,12 @@ def simulate_eig_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
@@ -502,6 +516,7 @@ def simulate_edge_recurrent_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -529,6 +544,11 @@ def simulate_edge_recurrent_izhikevich(
     decay = jnp.exp(-dt / tau_ms)
     n_neurons = params.v0.shape[0]
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
@@ -549,8 +569,12 @@ def simulate_edge_recurrent_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
@@ -571,8 +595,12 @@ def simulate_edge_recurrent_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
@@ -628,6 +656,7 @@ def simulate_receptor_exponential_izhikevich(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """v0.0.11 receptor-indexed exponential recurrent kernel.
 
@@ -668,6 +697,11 @@ def simulate_receptor_exponential_izhikevich(
     decay = jnp.exp(-dt / tau_per_edge)
     n_neurons = params.v0.shape[0]
 
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
@@ -688,8 +722,12 @@ def simulate_receptor_exponential_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
@@ -710,8 +748,12 @@ def simulate_receptor_exponential_izhikevich(
             du = a * (b * v - u)
             v_next = v + dt * dv
             u_next = u + dt * du
-            spikes_bool = v_next >= 30.0
+            
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
             spikes = spikes_bool.astype(jdtype)
+            
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
