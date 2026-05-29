@@ -1960,6 +1960,8 @@ def construct_source_tensor(
     else:
         raise NotImplementedError(f"TODO: implement construct_source_tensor mode {mode!r}")
 
+    # Compute finite check in a JIT-compatible way
+    finite_flag = jnp.all(jnp.isfinite(source))
     report = {
         "source_mode": source_mode,
         "mode": source_mode,
@@ -1971,6 +1973,6 @@ def construct_source_tensor(
         "source_decomposition": source_mode,
         "double_count_guard": "passed",
         "physical_amplitude_claim_allowed": False,
-        "finite": bool(jnp.all(jnp.isfinite(source))),
+        "finite": finite_flag,  # JAX array, JIT-compatible
     }
     return source, report
