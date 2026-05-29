@@ -1,0 +1,68 @@
+{
+  "checkpoint": "v0.3.11",
+  "decision_label": "v0_3_11_checkpoint_validated",
+  "timestamp": "2026-05-29T12:15:00Z",
+  "branch": "main",
+  "commit": "d1ba5fb",
+  "phase_objectives": {
+    "branch_consolidation": {
+      "status": "complete",
+      "actions": [
+        "Merged dev into main (fast-forward)",
+        "Deleted 4 stale feature branches",
+        "Verified only main and dev remain"
+      ]
+    },
+    "docs_checkpoint": {
+      "status": "complete",
+      "notebooks": 11,
+      "markdown_docs": 65,
+      "figures": 15,
+      "package_native_api": "12/12",
+      "no_local_simulator": true
+    },
+    "manifest_checkpoint": {
+      "status": "complete",
+      "json_safe_manifests": 3,
+      "nan_inf_detected": false,
+      "volatile_fields_normalized": true
+    },
+    "validation_receipt": {
+      "status": "in_progress",
+      "compilation": "pass",
+      "smoke_test": "pass",
+      "focused_suite": "40/40 pass",
+      "docs_hygiene": "218/218 pass",
+      "full_suite": "pending"
+    }
+  },
+  "quality_gates": {
+    "class_contamination": "pass",
+    "function_shadowing": "pass",
+    "jax_compatibility": "pass",
+    "wording_hygiene": "pass",
+    "truth_integrity": "pass",
+    "documentation_complete": "pass",
+    "ci_configuration": "pass",
+    "manifest_json_safe": "pass",
+    "notebook_api_native": "pass"
+  },
+  "branch_state": {
+    "main": "d1ba5fb",
+    "dev": "d1ba5fb",
+    "remote_main": "d1ba5fb",
+    "remote_dev": "d1ba5fb",
+    "feature_branches_remaining": 0,
+    "working_tree_clean": true
+  },
+  "files_changed": {
+    "total": 60,
+    "insertions": 9859,
+    "deletions": 1192,
+    "new_tests": 15,
+    "updated_tutorials": 11
+  },
+  "next_phase": "v0.3.12",
+  "next_phase_target": "evoked_l4_drive",
+  "release_target": "v0.3.14"
+}
