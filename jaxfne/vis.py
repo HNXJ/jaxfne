@@ -156,33 +156,6 @@ class FigureResult:
     metadata: dict[str, Any]
 
 
-def raster(signals: Any, **kwargs: Any) -> Any:
-    """Plot spike raster from signals."""
-    require_matplotlib()
-    import matplotlib.pyplot as plt
-    
-    dt_ms = kwargs.pop("dt_ms", None)
-    fig = plt.figure(**kwargs)
-    ax = fig.add_subplot(111)
-    
-    # Extract spikes array [T, N] or similar
-    if hasattr(signals, "spikes"):
-        spikes = np.asarray(signals.spikes)
-        time_ms = np.asarray(signals.time_ms)
-    elif isinstance(signals, dict) and "spikes" in signals:
-        spikes = np.asarray(signals["spikes"])
-        time_ms = np.asarray(signals.get("time_ms", np.arange(spikes.shape[0])))
-    else:
-        spikes = np.asarray(signals)
-        time_ms = np.arange(spikes.shape[0])
-        
-    t_idx, n_idx = np.where(spikes > 0)
-    ax.scatter(time_ms[t_idx], n_idx, s=2, c="#228be6", marker="|")
-    ax.set_title("Simulated Spike Raster Proxy", fontsize=12, fontweight="bold")
-    ax.set_xlabel("Time (ms)")
-    ax.set_ylabel("Neuron Index")
-    ax.grid(True, linestyle="--", alpha=0.3)
-    return fig
 
 
 def raster_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
@@ -554,18 +527,6 @@ def connectivity(signals: Any, **kwargs: Any) -> Any:
 
 def geometry3d(signals: Any, **kwargs: Any) -> Any:
     raise NotImplementedError("TODO: implement jtfne.vis.geometry3d")
-
-
-def eeg(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.eeg")
-
-
-def meg(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.meg")
-
-
-def emm(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.emm")
 
 
 # -----------------------------------------------------------------------------
