@@ -38,7 +38,7 @@ def test_filtered_spike_source_shape():
     spikes = np.zeros((100, 20), dtype=np.float32)
     spikes[10:20, :] = 1.0
 
-    source = filtered_spike_source(spikes, neurons)
+    source, _ = filtered_spike_source(spikes, neurons)
 
     assert source.shape == (100, 20)
 
@@ -49,7 +49,7 @@ def test_filtered_spike_source_exponential_decay():
     spikes = np.zeros((50, 5), dtype=np.float32)
     spikes[0, :] = 1.0  # Single spike at t=0
 
-    source = filtered_spike_source(spikes, neurons, tau_ms=10.0)
+    source, _ = filtered_spike_source(spikes, neurons, tau_ms=10.0)
 
     # Source should decay monotonically (approximately)
     max_source = np.max(source)
@@ -67,7 +67,7 @@ def test_filtered_spike_source_e_i_signs():
     )
     spikes = np.ones((100, n_e + n_i), dtype=np.float32) * 0.5
 
-    source = filtered_spike_source(spikes, neurons)
+    source, _ = filtered_spike_source(spikes, neurons)
 
     # E neurons should produce positive source (sign=+1)
     assert np.mean(source[:, :n_e]) > 0.0, "E source should be positive"
@@ -80,7 +80,7 @@ def test_filtered_spike_source_zero_spikes():
     neurons = MockNeuronsDataFrame(n=20)
     spikes = np.zeros((100, 20), dtype=np.float32)
 
-    source = filtered_spike_source(spikes, neurons)
+    source, _ = filtered_spike_source(spikes, neurons)
 
     assert np.allclose(source, 0.0), "Zero spikes should produce zero source"
 
@@ -246,8 +246,8 @@ def test_filtered_spike_source_custom_tau():
     spikes = np.zeros((100, 10), dtype=np.float32)
     spikes[0, :] = 1.0
 
-    source_fast = filtered_spike_source(spikes, neurons, tau_ms=2.0)
-    source_slow = filtered_spike_source(spikes, neurons, tau_ms=20.0)
+    source_fast, _ = filtered_spike_source(spikes, neurons, tau_ms=2.0)
+    source_slow, _ = filtered_spike_source(spikes, neurons, tau_ms=20.0)
 
     # Slower decay (longer tau) should persist more at later times
     slow_decay_index = 30

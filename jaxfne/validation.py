@@ -493,9 +493,9 @@ def make_calibration_report(
         "empirical_units_declared": has_units,
         "empirical_scale_declared": has_scale,
         "assumptions": [
-            "proxy readouts remain computational proxies in v0.2.5",
-            "empirical calibration metadata is declared but not validated",
-            "physical amplitude claims require separate calibration, geometry, and validation evidence",
+            "proxy readouts are simulated computational mathematical proxies",
+            "empirical calibration parameters are metadata declarations",
+            "physical amplitude claims are excluded under proxy mode",
         ],
         "warnings": warnings,
     }

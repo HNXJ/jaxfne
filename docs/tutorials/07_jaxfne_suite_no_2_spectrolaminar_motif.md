@@ -193,7 +193,7 @@ Worded equation: EMM-proxy is a normalized weighted combination of spike rate, s
 
 Implementation location: `jaxfne.fields.emm_proxy_transform`, `jaxfne.vis.emm`
 
-Scope boundary: No biological metabolism. Relative proxy units only.
+Scope boundary: No biophysical metabolism. Relative proxy units only.
 
 ---
 

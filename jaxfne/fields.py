@@ -1652,7 +1652,7 @@ def spectrolaminar_psd(
     for ch in range(n_ch):
         try:
             from scipy.signal import welch
-            f, pxx = welch(signal[:, ch], fs=fs, nperseg=min(256, T // 4))
+            f, pxx = welch(signal[:, ch], fs=fs, nperseg=min(1024, T))
             # Interpolate to desired frequency bins
             pxx_interp = np.interp(freqs, f, pxx)
         except (ImportError, ValueError):
