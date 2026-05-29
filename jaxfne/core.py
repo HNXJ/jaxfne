@@ -1370,51 +1370,6 @@ class DatasetSpec:
         return replace(self, quality_gates=gates)
 
 
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
-        """Set layer-specific cell-type fractions for one declared area."""
-        if not area:
-            raise ValueError("area must be a non-empty string")
-        clean: dict[str, dict[str, float]] = {}
-        for layer, fracs in layer_cell_types.items():
-            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
-            _counts_from_fractions(1, clean[str(layer)])
-        metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
-        per_area[str(area)] = clean
-        metadata["area_layer_cell_types"] = per_area
-        return replace(self, metadata=metadata)
-
-    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
-        """Mark the current column geometry as a uniformly sampled 3D column."""
-        if radius_mm <= 0.0 or height_mm <= 0.0:
-            raise ValueError("radius_mm and height_mm must be positive")
-        return self.update_metadata(
-            uniform_3d=True,
-            column_radius_mm=float(radius_mm),
-            column_height_mm=float(height_mm),
-            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
-            dx_mm=0.010,
-            dy_mm=0.010,
-            dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
-        )
-
-    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
-
-    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
-        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
-        return self.update_metadata(suite2_interarea=bool(enabled))
-
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.name:
@@ -1790,51 +1745,6 @@ class LaminarPopulation:
     claim_level: str = "computational_scaffold"
 
 
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
-        """Set layer-specific cell-type fractions for one declared area."""
-        if not area:
-            raise ValueError("area must be a non-empty string")
-        clean: dict[str, dict[str, float]] = {}
-        for layer, fracs in layer_cell_types.items():
-            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
-            _counts_from_fractions(1, clean[str(layer)])
-        metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
-        per_area[str(area)] = clean
-        metadata["area_layer_cell_types"] = per_area
-        return replace(self, metadata=metadata)
-
-    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
-        """Mark the current column geometry as a uniformly sampled 3D column."""
-        if radius_mm <= 0.0 or height_mm <= 0.0:
-            raise ValueError("radius_mm and height_mm must be positive")
-        return self.update_metadata(
-            uniform_3d=True,
-            column_radius_mm=float(radius_mm),
-            column_height_mm=float(height_mm),
-            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
-            dx_mm=0.010,
-            dy_mm=0.010,
-            dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
-        )
-
-    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
-
-    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
-        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
-        return self.update_metadata(suite2_interarea=bool(enabled))
-
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.name:
@@ -1888,51 +1798,6 @@ class LaminarSourceGeometry:
     physical_amplitude_claim_allowed: bool = False
     claim_level: str = "computational_scaffold"
 
-
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
-        """Set layer-specific cell-type fractions for one declared area."""
-        if not area:
-            raise ValueError("area must be a non-empty string")
-        clean: dict[str, dict[str, float]] = {}
-        for layer, fracs in layer_cell_types.items():
-            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
-            _counts_from_fractions(1, clean[str(layer)])
-        metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
-        per_area[str(area)] = clean
-        metadata["area_layer_cell_types"] = per_area
-        return replace(self, metadata=metadata)
-
-    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
-        """Mark the current column geometry as a uniformly sampled 3D column."""
-        if radius_mm <= 0.0 or height_mm <= 0.0:
-            raise ValueError("radius_mm and height_mm must be positive")
-        return self.update_metadata(
-            uniform_3d=True,
-            column_radius_mm=float(radius_mm),
-            column_height_mm=float(height_mm),
-            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
-            dx_mm=0.010,
-            dy_mm=0.010,
-            dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
-        )
-
-    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
-
-    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
-        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
-        return self.update_metadata(suite2_interarea=bool(enabled))
 
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
@@ -2269,51 +2134,6 @@ class AxisSpec:
     units_or_status: str = "declared"
 
 
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
-        """Set layer-specific cell-type fractions for one declared area."""
-        if not area:
-            raise ValueError("area must be a non-empty string")
-        clean: dict[str, dict[str, float]] = {}
-        for layer, fracs in layer_cell_types.items():
-            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
-            _counts_from_fractions(1, clean[str(layer)])
-        metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
-        per_area[str(area)] = clean
-        metadata["area_layer_cell_types"] = per_area
-        return replace(self, metadata=metadata)
-
-    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
-        """Mark the current column geometry as a uniformly sampled 3D column."""
-        if radius_mm <= 0.0 or height_mm <= 0.0:
-            raise ValueError("radius_mm and height_mm must be positive")
-        return self.update_metadata(
-            uniform_3d=True,
-            column_radius_mm=float(radius_mm),
-            column_height_mm=float(height_mm),
-            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
-            dx_mm=0.010,
-            dy_mm=0.010,
-            dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
-        )
-
-    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
-
-    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
-        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
-        return self.update_metadata(suite2_interarea=bool(enabled))
-
     def validate(self) -> dict[str, Any]:
         """Return a JSON-safe validation dict."""
         issues: list[str] = []
@@ -2400,51 +2220,6 @@ class BasisSpec:
         # Claims require solved field with calibrated conductivity — not in v0.2.x
         return False
 
-
-    def area_layer_cell_types(self, area: str, layer_cell_types: Mapping[str, Mapping[str, float]]) -> "Configuration":
-        """Set layer-specific cell-type fractions for one declared area."""
-        if not area:
-            raise ValueError("area must be a non-empty string")
-        clean: dict[str, dict[str, float]] = {}
-        for layer, fracs in layer_cell_types.items():
-            clean[str(layer)] = {str(k): float(v) for k, v in fracs.items()}
-            _counts_from_fractions(1, clean[str(layer)])
-        metadata = dict(self.metadata)
-        per_area = {str(k): dict(v) for k, v in (metadata.get("area_layer_cell_types", {}) or {}).items()}
-        per_area[str(area)] = clean
-        metadata["area_layer_cell_types"] = per_area
-        return replace(self, metadata=metadata)
-
-    def uniform3d(self, *, radius_mm: float = 0.25, height_mm: float = 1.60) -> "Configuration":
-        """Mark the current column geometry as a uniformly sampled 3D column."""
-        if radius_mm <= 0.0 or height_mm <= 0.0:
-            raise ValueError("radius_mm and height_mm must be positive")
-        return self.update_metadata(
-            uniform_3d=True,
-            column_radius_mm=float(radius_mm),
-            column_height_mm=float(height_mm),
-            geometry_mode="declared_uniform_3d_metadata_not_solved_pde_grid",
-            dx_mm=0.010,
-            dy_mm=0.010,
-            dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
-        )
-
-    def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
-        """Override native reduced drive by cell type for Suite No. 2 sweeps."""
-        if not drives:
-            raise ValueError("drives must not be empty")
-        clean: dict[str, float] = {}
-        for key, value in drives.items():
-            v = float(value)
-            if not math.isfinite(v):
-                raise ValueError(f"drive for {key!r} must be finite")
-            clean[str(key)] = v
-        return self.update_metadata(cell_type_drives=clean)
-
-    def suite2_interarea(self, enabled: bool = True) -> "Configuration":
-        """Enable V1/V4 feedforward-feedback metadata in the construct path."""
-        return self.update_metadata(suite2_interarea=bool(enabled))
 
     def validate(self) -> dict[str, Any]:
         """Return a JSON-safe validation dict. Raises ValueError on invalid enum."""
@@ -4642,7 +4417,16 @@ def suite2_tune_noise_agsdr_adam(
     finite_difference_eps: float = 0.05,
     seed: int = 7,
 ) -> TuneResult:
-    """Tune Poisson-drive amplitude toward a target mean firing-rate range.\n\n    The outer stage evaluates an AGSDR-style candidate population.  The inner\n    stage applies finite-difference Adam updates to the scalar noise amplitude.\n    This path tunes a reduced native-drive parameter and preserves relative\n    proxy-unit metadata.\n    """
+    """Tune Poisson-drive amplitude toward a target mean firing-rate range.
+
+    Multi-stage approach: outer stage evaluates an AGSDR-style candidate population
+    (black-box sweep over noise amplitudes). Inner stage applies finite-difference
+    Adam updates for local refinement. Current implementation: finite-difference Adam
+    with black-box candidate sweep. Variance-balanced adaptive self-supervision is
+    reserved for a future optimizer path with adaptive alpha/learning-rate schedules.
+    This path tunes a solver-tuned drive parameter and preserves relative
+    proxy-unit metadata.
+    """
     sim0 = simulation or suite2_simulation(seed=seed, duration_ms=1000.0, dt_ms=0.1)
     lo, hi = float(target_rate_hz[0]), float(target_rate_hz[1])
     if lo <= 0.0 or hi < lo:

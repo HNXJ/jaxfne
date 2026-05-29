@@ -89,3 +89,163 @@ Exercises: lower PV drive, increase SST drive, compare `net1` before and after n
 ## Coverage boundary
 
 This tutorial covers reduced emitters, declared source projection, relative proxy readouts, and package-level figure generation. Solver-tuned amplitudes, subject-specific head geometry, and empirical parameter fitting belong to later workflows.
+
+---
+
+## Extended Mathematical Glossary
+
+### Source tensor construction
+
+Formal equation:
+
+$$S[t, n] = \begin{cases}
+R[t] & \text{(spike proxy mode)} \\
+I_{\text{decomposed}}[t, n] + I_{\text{synap}}[t, n] & \text{(decomposed mode)} \\
+I_{\text{total}}[t, n] & \text{(total current mode)}
+\end{cases}$$
+
+Terms:
+- $S[t, n]$: source proxy from emitter $n$ at timestep $t$
+- $R[t]$: population spike rate (relative units)
+- $I_{\text{decomposed}}$: capacitive + ionic current
+- $I_{\text{synap}}$: synaptic input current
+- $I_{\text{total}}$: membrane current (total of all sources)
+
+Worded equation: source proxy is selected from available current decompositions or spike rate, validated for finite values and single-source consistency.
+
+Implementation location: `jaxfne.fields.construct_source_tensor`
+
+Scope boundary: Proxy units only. No physical amplitude calibration.
+
+---
+
+### LFP-proxy linear projection
+
+Formal equation:
+
+$$\text{LFP}[t, c] = \sum_{n=1}^{N} K_{cn} \cdot S[t, n]$$
+
+Terms:
+- $\text{LFP}[t, c]$: LFP-like proxy at contact $c$
+- $K_{cn}$: row-normalized Gaussian kernel (contact $c$ to emitter $n$)
+- $S[t, n]$: source proxy from emitter $n$
+
+Worded equation: LFP-proxy is a weighted sum of source-proxy traces, with weights from a row-stochastic contact kernel.
+
+Implementation location: `jaxfne.fields.project_laminar_sources`
+
+Scope boundary: Laminar proxy only. No PDE solution. No physical calibration.
+
+---
+
+### CSD-proxy (second spatial derivative)
+
+Formal equation:
+
+$$\text{CSD}[t, c] = -\frac{\partial^2 \Phi_e}{\partial z_c^2}$$
+
+Terms:
+- $\text{CSD}[t, c]$: current-source-density proxy at contact $c$
+- $\Phi_e$: extracellular potential-proxy (LFP-proxy)
+- $z_c$: laminar depth coordinate
+
+Worded equation: CSD-proxy is the negative second spatial derivative of the potential-proxy along the contact axis, computed via finite differences.
+
+Implementation location: `jaxfne.fields.project_laminar_sources`, lines ~130–133
+
+Scope boundary: Proxy approximation only. Not a true CSD from resistive-field PDE.
+
+---
+
+### EEG/MEG linear proxy readout
+
+Formal equation:
+
+$$Y_{\text{EEG/MEG}}[t, c] = \sum_{n=1}^{N} L_c[n] \cdot S[t, n]$$
+
+Terms:
+- $Y_{\text{EEG/MEG}}$: EEG or MEG proxy trace
+- $L_c$: declared EEG/MEG leadfield for channel $c$ (toy deterministic basis)
+- $S[t, n]$: source proxy
+
+Worded equation: EEG and MEG proxies are linear projections of source activity through declared (not empirically measured) leadfields.
+
+Implementation location: `jaxfne.fields.eeg_proxy_transform`, `jaxfne.fields.meg_proxy_transform`, `jaxfne.vis.eeg`, `jaxfne.vis.meg`
+
+Scope boundary: No physical head geometry. No real sensors. Relative proxy units.
+
+---
+
+### EMM-proxy (signaling-energy summary)
+
+Formal equation:
+
+$$E_{\text{proxy}}[t] = \lambda_1 R[t] + \lambda_2 \|S[t]\|_1 + \lambda_3 \|\Phi_e[t]\|_2^2$$
+
+Terms:
+- $E_{\text{proxy}}$: relative signaling-energy proxy (normalized)
+- $R[t]$: spike rate proxy
+- $S[t]$: source-proxy vector
+- $\Phi_e[t]$: potential-proxy vector
+- $\lambda_1, \lambda_2, \lambda_3$: weighting factors
+
+Worded equation: EMM-proxy is a normalized weighted combination of spike rate, source L1-norm, and field L2-norm.
+
+Implementation location: `jaxfne.fields.emm_proxy_transform`, `jaxfne.vis.emm`
+
+Scope boundary: No biophysical metabolism. Relative proxy units only.
+
+---
+
+### Spectrolaminar band power summary
+
+Formal equation:
+
+$$P_{\text{band}}[c] = \frac{1}{|B|} \int_{f \in B} \text{PSD}[f, c] \, df$$
+
+where $B \in \{\text{alpha/beta} = [8, 25]\text{ Hz}, \text{gamma} = [40, 150]\text{ Hz}\}$
+
+Terms:
+- $P_{\text{band}}[c]$: mean power in frequency band for contact $c$
+- $\text{PSD}[f, c]$: power spectral density (Welch estimate)
+- $B$: frequency band (alpha/beta or gamma)
+
+Worded equation: Spectrolaminar profile is the mean PSD in each named frequency band, computed per contact.
+
+Implementation location: `jaxfne.fields.spectrolaminar_bandpower`
+
+Scope boundary: Relative power, proxy signal. No amplitude calibration.
+
+---
+
+### V1/V4 feedforward-feedback routing metadata
+
+Formal equation:
+
+$$W_{\text{ff/fb}}[i, j] = \begin{cases}
+> 0 & \text{if } \text{source} = V1, \text{target} = V4 \quad \text{(feedforward)} \\
+> 0 & \text{if } \text{source} = V4, \text{target} = V1 \quad \text{(feedback)} \\
+0 & \text{otherwise}
+\end{cases}$$
+
+Terms:
+- $W_{\text{ff/fb}}$: connectivity matrix mask (declarative)
+- source/target: area (V1 or V4) and layer assignment
+
+Worded equation: V1-to-V4 feedforward and V4-to-V1 feedback connectivity are declared as separate sparse weight matrices.
+
+Implementation location: `jaxfne.core.suite2_v1_v4_config`, connectiv ity metadata section
+
+Scope boundary: Declared metadata only. No fitted weights. No validation against real anatomy.
+
+---
+
+## Figure Placeholders
+
+The following figures are referenced in the notebook but not yet committed as PNG files. They will be generated by running the notebook:
+
+- **Figure placeholder: spectrolaminar_suite_panel** — Six-panel figure (raster, LFP-like, CSD-like, PSD, EEG-proxy, EMM-proxy). Generated by `jtfne.vis.spectrolaminar_suite()`. Available until generated by tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb.
+
+- **Figure placeholder: circuit3d_layout_scatter** — 3D scatter plot of V1-V4 emitter positions. Generated by `jtfne.vis.circuit3d()`. Available until generated by tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb.
+
+These placeholders mark where final PNG or PDF figures should be placed once the notebook is executed and validated.
