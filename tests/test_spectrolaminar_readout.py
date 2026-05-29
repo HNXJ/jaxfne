@@ -359,5 +359,74 @@ def test_readout_does_not_export_score():
     assert "motif_gate_percent" not in readout
 
 
+def test_readout_includes_metadata_dict():
+    """Test that readout includes explicit metadata sub-dict."""
+    neurons = MockNeuronsDataFrame(n=10)
+    signal = np.random.randn(200, 10).astype(np.float32)
+
+    readout = spectrolaminar_readout(signal, neurons, area="V1")
+
+    # Must have metadata sub-dict
+    assert "metadata" in readout
+    assert isinstance(readout["metadata"], dict)
+
+
+def test_readout_metadata_score_computed_false():
+    """Test that metadata says score_computed=false."""
+    neurons = MockNeuronsDataFrame(n=10)
+    signal = np.random.randn(200, 10).astype(np.float32)
+
+    readout = spectrolaminar_readout(signal, neurons, area="V1")
+
+    assert readout["metadata"]["score_computed"] is False
+
+
+def test_readout_metadata_proxy_safe():
+    """Test that metadata is proxy-safe."""
+    neurons = MockNeuronsDataFrame(n=10)
+    signal = np.random.randn(200, 10).astype(np.float32)
+
+    readout = spectrolaminar_readout(signal, neurons, area="V1")
+
+    meta = readout["metadata"]
+    assert meta["field_solver_status"] == "laminar_proxy_no_pde"
+    assert meta["physical_amplitude_claim_allowed"] is False
+    assert meta["units_or_status"] == "proxy_units"
+    assert meta["truth_mode"] == "truth_safe_unverified"
+
+
+def test_readout_metadata_json_serializable():
+    """Test that readout metadata is JSON-serializable."""
+    neurons = MockNeuronsDataFrame(n=10)
+    signal = np.random.randn(200, 10).astype(np.float32)
+
+    readout = spectrolaminar_readout(signal, neurons, area="V1")
+
+    # Convert readout to JSON-safe format
+    readout_json_safe = {
+        k: v.tolist() if hasattr(v, "tolist") else v
+        for k, v in readout.items()
+    }
+
+    try:
+        json_str = json.dumps(readout_json_safe, allow_nan=False)
+        assert isinstance(json_str, str)
+    except (TypeError, ValueError) as e:
+        pytest.fail(f"Readout with metadata not JSON-serializable: {e}")
+
+
+def test_readout_metadata_bands_defined():
+    """Test that metadata includes band definitions."""
+    neurons = MockNeuronsDataFrame(n=10)
+    signal = np.random.randn(200, 10).astype(np.float32)
+
+    readout = spectrolaminar_readout(signal, neurons, area="V1")
+
+    meta = readout["metadata"]
+    assert "bands" in meta
+    assert meta["bands"]["alpha_beta"] == [8.0, 25.0]
+    assert meta["bands"]["gamma"] == [40.0, 150.0]
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
