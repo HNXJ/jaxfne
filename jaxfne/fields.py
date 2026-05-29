@@ -1404,6 +1404,7 @@ def filtered_spike_source(
     spikes: jax.Array,
     neurons: "Mapping[str, Any]",
     tau_ms: float = 5.0,
+    dt_ms: float = 0.1,
     cell_signs: "Mapping[str, int] | None" = None,
 ) -> tuple[jax.Array, dict[str, Any]]:
     """Filter spikes through exponential decay per cell type.
@@ -1418,6 +1419,8 @@ def filtered_spike_source(
         Neuron metadata with cell_type key.
     tau_ms : float
         Decay time constant (ms).
+    dt_ms : float
+        Sampling interval (ms). Default 0.1 ms.
     cell_signs : Mapping[str, int], optional
         Sign per cell type (E=+1, I=-1). Default: auto-detect.
 
@@ -1432,7 +1435,6 @@ def filtered_spike_source(
         cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
 
     cell_types = neurons.get("cell_type", ["E"] * spikes.shape[1])
-    dt_ms = 0.1  # Assume standard timestep; TODO: parametrize
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
 
     # Apply signs per cell type
@@ -1766,6 +1768,19 @@ def spectrolaminar_readout(
             "gamma": np.array([], dtype=np.float32),
             "pos_from_l4": np.array([], dtype=np.float32),
             "contact_depths_m": np.array([], dtype=np.float32),
+            "metadata": {
+                "readout_kind": "spectrolaminar_profile",
+                "score_computed": False,
+                "input_signal": "source_proxy_or_lfp_like",
+                "field_solver_status": "laminar_proxy_no_pde",
+                "physical_amplitude_claim_allowed": False,
+                "units_or_status": "proxy_units",
+                "truth_mode": "truth_safe_unverified",
+                "bands": {
+                    "alpha_beta": [8.0, 25.0],
+                    "gamma": [40.0, 150.0],
+                },
+            },
         }
 
     # Extract signal for this area
@@ -1793,7 +1808,7 @@ def spectrolaminar_readout(
     # Compute bandpower
     bandpower = spectrolaminar_bandpower(psd_pooled, freqs)
 
-    # Metadata
+    # Readout with metadata
     readout = {
         "area": area,
         "n_neurons": int(len(area_indices)),
@@ -1804,6 +1819,19 @@ def spectrolaminar_readout(
         "gamma": np.asarray(bandpower.get("gamma", np.zeros(len(contact_indices))), dtype=np.float32),
         "pos_from_l4": np.asarray(pos_contacts, dtype=np.float32),
         "contact_depths_m": np.asarray(pos_contacts, dtype=np.float32) * 0.5,  # Proxy: 1mm cortex = L1 to L6
+        "metadata": {
+            "readout_kind": "spectrolaminar_profile",
+            "score_computed": False,
+            "input_signal": "source_proxy_or_lfp_like",
+            "field_solver_status": "laminar_proxy_no_pde",
+            "physical_amplitude_claim_allowed": False,
+            "units_or_status": "proxy_units",
+            "truth_mode": "truth_safe_unverified",
+            "bands": {
+                "alpha_beta": [8.0, 25.0],
+                "gamma": [40.0, 150.0],
+            },
+        },
     }
 
     return readout

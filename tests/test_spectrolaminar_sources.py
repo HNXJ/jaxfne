@@ -250,5 +250,31 @@ def test_source_path_distinction():
     assert np.all(np.isfinite(source_teach))
 
 
+def test_filtered_spike_source_dt_ms_parameter():
+    """Test that dt_ms parameter changes decay rate."""
+    spikes = np.random.randn(100, 3).astype(np.float32)
+    neurons = MockNeuronsDataFrame(n=3)
+
+    # Fast decay (small dt)
+    source_fast, _ = filtered_spike_source(spikes, neurons, tau_ms=5.0, dt_ms=0.05)
+
+    # Slow decay (large dt)
+    source_slow, _ = filtered_spike_source(spikes, neurons, tau_ms=5.0, dt_ms=0.2)
+
+    # Same input, different decay rates → different outputs
+    # The slow decay should have larger values (less decay per step)
+    assert not np.allclose(source_fast, source_slow), "Different dt_ms should produce different traces"
+
+
+def test_filtered_spike_source_dt_ms_metadata():
+    """Test that dt_ms is recorded in metadata."""
+    spikes = np.random.randn(50, 2).astype(np.float32)
+    neurons = MockNeuronsDataFrame(n=2)
+
+    _, metadata = filtered_spike_source(spikes, neurons, dt_ms=0.05)
+
+    assert metadata["dt_ms"] == 0.05
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
