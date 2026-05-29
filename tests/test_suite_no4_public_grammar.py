@@ -6,7 +6,9 @@ Validates the matrix parameter optimization API for AMPA/GABA tuning.
 import json
 import pytest
 import jaxfne as jtfne
-import optax
+
+# Gate optional Optax dependency at module level
+optax = pytest.importorskip("optax")
 
 
 def test_suite_no4_matrix_parameter_specs_are_created():

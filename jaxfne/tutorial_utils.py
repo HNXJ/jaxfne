@@ -197,9 +197,54 @@ def plot_spectrolaminar_power(
     return _finish_figure(fig, show)
 
 
+def hh_reference_trace_jaxley(duration_ms: float = 500.0, dt_ms: float = 0.1,
+                              current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Hodgkin-Huxley reference trace via optional Jaxley bridge.
+
+    **Scope:** HH emitter reference generated through the optional Jaxley bridge.
+    **Evidence:** Simulated voltage trace for tutorial comparison.
+    **Interpretation:** Emitter-level reference before TFNE source/readout projection.
+
+    Falls back to teaching implementation if Jaxley is not available.
+
+    Parameters
+    ----------
+    duration_ms : float
+        Simulation duration in milliseconds.
+    dt_ms : float
+        Time step in milliseconds.
+    current_amplitude : float
+        Injected current amplitude in μA/cm².
+
+    Returns
+    -------
+    t : ndarray (n_steps,)
+        Time in ms.
+    V : ndarray (n_steps,)
+        Membrane potential in mV.
+    I_inj : ndarray (n_steps,)
+        Injected current in μA/cm².
+    """
+    try:
+        from .bridges import hh_jaxley_reference_trace
+        # Attempt to use Jaxley bridge
+        return hh_jaxley_reference_trace(
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            current_amplitude=current_amplitude,
+        )
+    except (ImportError, NotImplementedError):
+        # Fall back to teaching implementation if Jaxley is unavailable or bridge not ready
+        return hh_reference_trace(
+            duration_ms=duration_ms,
+            dt_ms=dt_ms,
+            current_amplitude=current_amplitude,
+        )
+
+
 def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
                        current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Hodgkin-Huxley reference trace with gating variables and ionic currents.
+    """Hodgkin-Huxley teaching model with gating variables and ionic currents.
 
     Implements classical HH membrane equation with sodium, potassium, and leak currents.
 
@@ -245,6 +290,11 @@ def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
 
     dt = dt_ms / 1000.0  # convert to seconds
 
+    # Create injected current array with pulse between 200-300ms
+    I_inj = np.full(n_steps, current_amplitude, dtype=np.float32)
+    pulse_mask = (t >= 200.0) & (t < 300.0)
+    I_inj[pulse_mask] += 50.0  # Add +50 μA/cm² pulse
+
     for i in range(1, n_steps):
         # Rate constants (voltage-dependent)
         alpha_m = 0.1 * (V[i-1] + 40.0) / (1.0 - np.exp(-(V[i-1] + 40.0) / 10.0))
@@ -270,8 +320,7 @@ def hh_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
         I_L = g_L * (V[i-1] - E_L)
 
         # Membrane voltage equation: C_m dV/dt = I_inj - I_Na - I_K - I_L
-        dV = (current_amplitude - I_Na - I_K - I_L) / C_m
+        dV = (I_inj[i] - I_Na - I_K - I_L) / C_m
         V[i] = V[i-1] + dV * dt
 
-    I_inj = np.full(n_steps, current_amplitude, dtype=np.float32)
     return t, V, I_inj

@@ -321,3 +321,65 @@ def jaxley_trace_to_signals(
         field=None,
         metadata=metadata,
     )
+
+
+def hh_jaxley_reference_trace(
+    duration_ms: float = 500.0,
+    dt_ms: float = 0.1,
+    current_amplitude: float = 10.0,
+) -> tuple[Any, Any, Any]:
+    """Hodgkin-Huxley reference trace via optional Jaxley bridge.
+
+    Generates a reference HH voltage trace using Jaxley's HH channel model
+    (if available). Falls back to NotImplementedError if Jaxley is not installed.
+
+    **Scope:** Reference emitter model through optional bridge.
+    **Evidence:** Simulated voltage trace for tutorial comparison.
+    **Interpretation:** Emitter-level reference before TFNE source/readout projection.
+
+    Parameters
+    ----------
+    duration_ms : float
+        Simulation duration in milliseconds.
+    dt_ms : float
+        Time step in milliseconds.
+    current_amplitude : float
+        Injected current amplitude in μA/cm².
+
+    Returns
+    -------
+    t : ndarray (n_steps,)
+        Time in ms.
+    V : ndarray (n_steps,)
+        Membrane potential in mV.
+    I_inj : ndarray (n_steps,)
+        Injected current in μA/cm².
+
+    Raises
+    ------
+    NotImplementedError
+        If Jaxley is not installed. Install with: pip install jaxley
+    """
+    try:
+        jaxley = require_jaxley()
+    except ImportError as exc:
+        raise NotImplementedError(
+            "TODO: implement HH reference through the optional Jaxley bridge. "
+            "Required: install jaxley and expose a Jaxley HH emitter trace path. "
+            "Install with: pip install jaxley"
+        ) from exc
+
+    # TODO: Implement Jaxley HH emitter instantiation and simulation.
+    # This requires:
+    # 1. Create a Jaxley compartment with HH channels
+    # 2. Set up stimulus injection
+    # 3. Simulate and extract voltage trace
+    # For now, raise with clear instructions
+    raise NotImplementedError(
+        "TODO: implement HH reference through the optional Jaxley bridge. "
+        "Required: "
+        "(1) Jaxley compartment creation with HH mechanisms, "
+        "(2) stimulus setup, "
+        "(3) voltage trace extraction. "
+        "See: https://github.com/jaxley-org/jaxley"
+    )
