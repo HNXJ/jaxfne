@@ -157,6 +157,6 @@ This tutorial does **NOT** cover:
 - Real sensory encoding or psychophysics
 - Empirical parameter fitting
 - Biophysical validation against data
-- Mechanism proof (responses are proxy readouts only)
+- Mechanistic inference (responses are proxy readouts only)
 - Amplitude calibration
 - Non-reduced emitter models (use Jaxley for detailed HH)
