@@ -79,17 +79,15 @@ def test_vis_rich_metadata_result():
 def test_reserved_vis_functions_throw():
     """Verify that reserved/placeholder visualization functions throw NotImplementedError."""
     spikes = np.zeros((50, 2))
-    
+
+    # Note: eeg, meg, emm are now implemented via Suite No. 2; only these remain reserved
     reserved_funcs = [
         jtfne.vis.bandpower,
         jtfne.vis.laminar_profile,
         jtfne.vis.connectivity,
         jtfne.vis.geometry3d,
-        jtfne.vis.eeg,
-        jtfne.vis.meg,
-        jtfne.vis.emm
     ]
-    
+
     for func in reserved_funcs:
         with pytest.raises(NotImplementedError):
             func(spikes)
