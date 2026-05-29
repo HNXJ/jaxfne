@@ -5700,3 +5700,105 @@ def evoked_l4_drive_paradigm(
         },
     )
     return paradigm
+
+
+# ──────────────────────────────────────────────────────────────
+# v0.3.13 Omission/Oddball Paradigm API
+# ──────────────────────────────────────────────────────────────
+
+def omission_oddball_paradigm(
+    standard_onset_ms: float = 500.0,
+    standard_duration_ms: float = 100.0,
+    deviant_onset_ms: Optional[float] = None,
+    deviant_duration_ms: float = 100.0,
+    deviant_label: str = "deviant",
+    omission_position: str = "standard",
+    pre_stimulus_buffer_ms: float = 200.0,
+    post_stimulus_buffer_ms: float = 500.0,
+    name: str = "omission_oddball",
+) -> Paradigm:
+    """Create a omission/oddball detection paradigm.
+
+    Parameters
+    ----------
+    standard_onset_ms : float
+        Standard stimulus onset (ms after trial start).
+    standard_duration_ms : float
+        Standard stimulus duration (ms).
+    deviant_onset_ms : Optional[float]
+        Deviant stimulus onset. If None, use standard_onset_ms.
+    deviant_duration_ms : float
+        Deviant stimulus duration (ms).
+    deviant_label : str
+        Label for deviant condition (e.g., "deviant", "unexpected").
+    omission_position : str
+        Position of omitted stimulus: "standard" or "deviant".
+    pre_stimulus_buffer_ms : float
+        Pre-stimulus baseline window (ms).
+    post_stimulus_buffer_ms : float
+        Post-stimulus window (ms).
+    name : str
+        Paradigm name.
+
+    Returns
+    -------
+    Paradigm
+        A Paradigm with expected, unexpected, omitted, and post-omission conditions.
+
+    Notes
+    -----
+    This is a minimal omission/oddball scaffold. All outputs are simulated.
+    No empirical validation against real data. Event windows are declarative.
+    """
+    if deviant_onset_ms is None:
+        deviant_onset_ms = standard_onset_ms
+
+    # Expected condition: standard stimulus
+    expected_condition = ParadigmCondition(
+        name="expected",
+        sequence=("pre", "standard", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="standard", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, stimulus="standard_tone"),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.8,
+    )
+
+    # Unexpected condition: deviant stimulus
+    unexpected_condition = ParadigmCondition(
+        name="unexpected",
+        sequence=("pre", "deviant", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label=deviant_label, onset_ms=pre_stimulus_buffer_ms, duration_ms=deviant_duration_ms, stimulus="deviant_tone"),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + deviant_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.1,
+        omission_position=None,
+    )
+
+    # Omitted condition: stimulus silent
+    omitted_condition = ParadigmCondition(
+        name="omitted",
+        sequence=("pre", "silence", "post", "null"),
+        events=(
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="omission", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, is_omission=True),
+            ParadigmEvent(label="post_omission", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+        ),
+        probability=0.1,
+        omission_position=omission_position,
+    )
+
+    paradigm = Paradigm(
+        name=name,
+        conditions=(expected_condition, unexpected_condition, omitted_condition),
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={
+            "baseline": (0.0, pre_stimulus_buffer_ms),
+            "stimulus": (pre_stimulus_buffer_ms, pre_stimulus_buffer_ms + standard_duration_ms),
+            "post_stimulus": (pre_stimulus_buffer_ms + standard_duration_ms, pre_stimulus_buffer_ms + standard_duration_ms + post_stimulus_buffer_ms),
+        },
+    )
+    return paradigm

@@ -49,6 +49,7 @@ from .core import (
     laminar_source_geometry,
     load_config,
     objective,
+    omission_oddball_paradigm,
     operator_status,
     paradigm,
     rate_targets,
