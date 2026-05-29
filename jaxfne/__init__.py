@@ -107,6 +107,7 @@ from .presets import (
 from .fields import (
     FieldOutput,
     compute_conservation_proxy_diagnostics,
+    construct_source_tensor,
     eeg_proxy_transform,
     emm_proxy_transform,
     meg_proxy_transform,

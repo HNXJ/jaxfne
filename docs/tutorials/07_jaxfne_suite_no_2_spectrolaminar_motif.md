@@ -7,7 +7,7 @@ Pipeline: `Emitter -> Source -> Field -> Probe -> Objective -> Optimizer`.
 ## Learning objectives
 
 1. Configure one reduced Izhikevich emitter through `jaxfne`.
-2. Compare E/PV/SST/VIP reduced-emitter presets through package-native arrays.
+2. Compare E/PV/SST/VIP reduced-emitter presets through package-level arrays.
 3. Build `net1`, a 100-emitter uniformly sampled 3D column.
 4. Generate raster, LFP-like, CSD-like, EEG-proxy, MEG-proxy, and EMM-proxy figures without tutorial-local plotting functions.
 5. Configure a V1-V4 six-layer scaffold with feedforward and feedback metadata.
