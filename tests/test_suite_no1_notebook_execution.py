@@ -49,10 +49,11 @@ def test_suite_no1_notebook_executes(tmp_path):
 
     nb = nbformat.read(str(NOTEBOOK_PATH), as_version=4)
 
-    # Inject FIG_DIR override so figures go to tmp_path (avoids side effects).
+    # Inject FIG_DIR override and sys.path setup so notebook imports local jaxfne.
     import nbformat as _nbf
 
-    inject_source = f'FIG_DIR = "{tmp_path}"\n'
+    repo_root = Path(__file__).parent.parent.resolve()
+    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\nFIG_DIR = "{tmp_path}"\n'
     inject_cell = _nbf.v4.new_code_cell(source=inject_source)
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
 
@@ -60,14 +61,48 @@ def test_suite_no1_notebook_executes(tmp_path):
     nb.cells.insert(1, inject_cell)
 
     from nbclient import NotebookClient
+    from contextlib import contextmanager
+    import sys
+    import tempfile
+    import json
+    import shutil
+    from jupyter_client.kernelspec import KernelSpecManager
 
-    client = NotebookClient(
-        nb,
-        timeout=900,
-        kernel_name="jaxfne-venv",
-        resources={"metadata": {"path": str(tmp_path)}},
-    )
-    client.execute()
+    @contextmanager
+    def portable_kernel_context():
+        spec = {
+            "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
+            "display_name": "JAXFNE Portable Test Kernel",
+            "language": "python",
+        }
+        temp_dir = tempfile.mkdtemp()
+        try:
+            spec_path = Path(temp_dir) / "kernel.json"
+            with open(spec_path, "w") as f:
+                json.dump(spec, f)
+            ksm = KernelSpecManager()
+            kernel_name = "jaxfne_test_kernel"
+            ksm.install_kernel_spec(temp_dir, kernel_name, user=True, replace=True)
+            yield kernel_name
+        finally:
+            try:
+                ksm = KernelSpecManager()
+                ksm.remove_kernel_spec("jaxfne_test_kernel")
+            except Exception:
+                pass
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception:
+                pass
+
+    with portable_kernel_context() as kernel_name:
+        client = NotebookClient(
+            nb,
+            timeout=900,
+            kernel_name=kernel_name,
+            resources={"metadata": {"path": str(tmp_path)}},
+        )
+        client.execute()
 
     # Assert no cell produced a kernel error output.
     error_cells = []

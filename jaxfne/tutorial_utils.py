@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Sequence, Mapping, Tuple
@@ -23,6 +22,7 @@ class ConfigSummary:
 
 def _finish_figure(fig, show: bool):
     """Display or close a Matplotlib figure."""
+    import matplotlib.pyplot as plt
     if show:
         plt.show()
     else:
@@ -72,6 +72,7 @@ def display_run_summary(label: str, spikes: np.ndarray, V_m: np.ndarray,
 def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
                title="Population Raster", show: bool = True):
     """Plot spike raster from list of spike times per neuron."""
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=figsize)
     for times, ids in zip(spike_times_list, spike_neuron_ids_list):
         ax.scatter(times, ids, s=2, alpha=0.6)
@@ -83,8 +84,9 @@ def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
 
 
 def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
-                        title="Population Rate", show: bool = True) -> Tuple:
+                         title="Population Rate", show: bool = True) -> Tuple:
     """Plot time-binned population firing rate."""
+    import matplotlib.pyplot as plt
     bin_edges = np.arange(0, t.max() + bin_ms, bin_ms)
     rates = [float(spikes[(t >= lo) & (t < hi)].mean() * (1000.0 / dt_ms))
              for lo, hi in zip(bin_edges[:-1], bin_edges[1:])]
@@ -98,8 +100,9 @@ def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
 
 
 def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
-                        max_neurons=10, show: bool = True):
+                         max_neurons=10, show: bool = True):
     """Plot voltage time series from first N neurons."""
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=figsize)
     for i in range(min(max_neurons, V_m.shape[1])):
         ax.plot(t, V_m[:, i], lw=0.8, alpha=0.7)
@@ -111,6 +114,7 @@ def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
 
 def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5), show: bool = True):
     """Plot connectivity weight matrix."""
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=figsize)
     W = np.asarray(W)
     scale = float(np.max(np.abs(W))) if W.size else 1.0
@@ -124,8 +128,9 @@ def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5), sho
 
 
 def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
-                        title="Laminar Readout", show: bool = True):
+                         title="Laminar Readout", show: bool = True):
     """Plot LFP-proxy and optionally CSD-proxy."""
+    import matplotlib.pyplot as plt
     if csd_proxy is not None:
         fig, axes = plt.subplots(1, 2, figsize=figsize)
         axes[0].plot(t, lfp_proxy[:, :4], lw=0.8)
@@ -170,6 +175,7 @@ def plot_spectrolaminar_power(
     show : bool
         If True, call plt.show(); if False, close figure after save.
     """
+    import matplotlib.pyplot as plt
     n_freqs = max(64, int(n_freqs))
     freqs = np.linspace(float(freq_min), float(freq_max), n_freqs)
     dt_ms = float(t[1] - t[0]) if len(t) > 1 else 0.1
