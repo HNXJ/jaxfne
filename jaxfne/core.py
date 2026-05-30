@@ -1298,6 +1298,7 @@ class RuntimeConfig:
     n_steps: int = 0
     recurrent_backend: str = "dense"  # "dense" | "edge_list"
     synaptic_kernel: str = "exponential"  # "exponential" | "receptor_exponential"
+    recompilation_guard: str = "warning"  # "warning" | "exception" | "off"
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -1308,6 +1309,11 @@ class RuntimeConfig:
             raise ValueError(
                 f"synaptic_kernel must be one of {_ALLOWED_SYNAPTIC_KERNELS}; "
                 f"got {self.synaptic_kernel!r}"
+            )
+        if self.recompilation_guard not in {"warning", "exception", "off"}:
+            raise ValueError(
+                f"recompilation_guard must be one of {{'warning', 'exception', 'off'}}; "
+                f"got {self.recompilation_guard!r}"
             )
 
     @property
@@ -2702,13 +2708,30 @@ class Model:
                 else simulate_edge_recurrent_izhikevich
             )
             if runtime_cfg.jit:
-                run = jax.jit(
-                    lambda k, s: kernel_fn(
+                if not hasattr(self, "_compiled_cache"):
+                    object.__setattr__(self, "_compiled_cache", {})
+                from .validation import make_recompilation_guard
+                B = 1
+                Z = int(self.static.get("n_contacts", 16))
+                C = int(emitter.n_neurons)
+                T = int(sim.n_steps)
+                guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+
+                cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode)
+                if cache_key not in self._compiled_cache:
+                    target_fn = lambda k, s: kernel_fn(
                         emitter, edges, sim.n_steps, sim.dt_ms, k,
                         dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                         silence_mask=silence_mask,
                     )[:3]
-                )
+                    target_fn = make_recompilation_guard(
+                        target_fn,
+                        name="simulate",
+                        recompilation_guard=guard_mode,
+                        B=B, Z=Z, C=C, T=T
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(target_fn)
+                run = self._compiled_cache[cache_key]
                 return run(key, sched)
             return kernel_fn(
                 emitter, edges, sim.n_steps, sim.dt_ms, key,
@@ -2716,13 +2739,30 @@ class Model:
                 silence_mask=silence_mask,
             )[:3]
         if runtime_cfg.jit:
-            run = jax.jit(
-                lambda k, s: simulate_eig_izhikevich(
+            if not hasattr(self, "_compiled_cache"):
+                object.__setattr__(self, "_compiled_cache", {})
+            from .validation import make_recompilation_guard
+            B = 1
+            Z = int(self.static.get("n_contacts", 16))
+            C = int(emitter.n_neurons)
+            T = int(sim.n_steps)
+            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+
+            cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode)
+            if cache_key not in self._compiled_cache:
+                target_fn = lambda k, s: simulate_eig_izhikevich(
                     emitter, sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                     silence_mask=silence_mask,
                 )
-            )
+                target_fn = make_recompilation_guard(
+                    target_fn,
+                    name="simulate",
+                    recompilation_guard=guard_mode,
+                    B=B, Z=Z, C=C, T=T
+                )
+                self._compiled_cache[cache_key] = jax.jit(target_fn)
+            run = self._compiled_cache[cache_key]
             return run(key, sched)
         return simulate_eig_izhikevich(
             emitter, sim.n_steps, sim.dt_ms, key,
@@ -2934,9 +2974,28 @@ class Model:
         # vmap=True  → jax.vmap over keys (one compiled call, vectorized over batch).
         # vmap=False → Python-loop + jnp.stack (each key runs independently, no vmap).
         if runtime_cfg.vmap:
-            run = jax.vmap(one)
+            if not hasattr(self, "_compiled_cache"):
+                object.__setattr__(self, "_compiled_cache", {})
+            B = int(n_seeds)
+            Z = int(self.static.get("n_contacts", 16))
+            C = int(emitter.n_neurons)
+            T = int(sim.n_steps)
+            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend)
             if runtime_cfg.jit:
-                run = jax.jit(run)
+                if cache_key not in self._compiled_cache:
+                    from .validation import make_recompilation_guard
+                    guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+                    run_mapped = jax.vmap(one)
+                    run_mapped = make_recompilation_guard(
+                        run_mapped,
+                        name="simulate_batch",
+                        recompilation_guard=guard_mode,
+                        B=B, Z=Z, C=C, T=T
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(run_mapped)
+                run = self._compiled_cache[cache_key]
+            else:
+                run = jax.vmap(one)
             voltages, spikes, sources = run(keys)
             batch_execution_mode = "jax_vmap"
         else:
