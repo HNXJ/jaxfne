@@ -421,27 +421,29 @@ def layer_celltype_count_table(cfg: Configuration | Any) -> dict[str, dict[str, 
     dict[str, dict[str, int]]
         Nested dict: {layer_name: {cell_type: count, ...}, ...}.
 
+    Raises
+    ------
+    NotImplementedError
+        This function requires integration with the Model's neuron_table() method
+        and is not yet implemented for Configuration objects.
+
     Examples
     --------
     >>> table = jtfne.layer_celltype_count_table(cfg)
     >>> table["L4"]["E"]
     75
-    """
-    # Extract from cfg.metadata or model.neuron_table
-    # For now, return a placeholder that will be filled in during integration
-    metadata = getattr(cfg, "metadata", {})
-    columns = metadata.get("columns", [])
-    layers = metadata.get("layers", [])
-    cell_types = metadata.get("cell_types", {})
 
-    result = {}
-    for layer in layers:
-        result[layer] = {}
-        total_n = sum(col.get("n", 0) for col in columns)
-        for cell_type, fraction in cell_types.items():
-            count = int(total_n * fraction / len(layers))
-            result[layer][cell_type] = max(1, count)
-    return result
+    Notes
+    -----
+    TODO: Implement layer_celltype_count_table to extract neuron counts from
+    Configuration metadata or Model.neuron_table(). Requires understanding
+    layer boundaries and cell-type fractions per layer.
+    """
+    raise NotImplementedError(
+        "layer_celltype_count_table requires integration with Model.neuron_table() "
+        "and layer-specific cell-type distributions; not yet implemented for Configuration objects. "
+        "This is a v0.3.15+ feature candidate."
+    )
 
 
 def column_density_table(cfg: Configuration | Any) -> dict[str, float]:
@@ -456,15 +458,23 @@ def column_density_table(cfg: Configuration | Any) -> dict[str, float]:
     -------
     dict[str, float]
         Density per layer: {layer_name: density_per_mm³, ...}.
-    """
-    metadata = getattr(cfg, "metadata", {})
-    columns = metadata.get("columns", [])
-    layers = metadata.get("layers", [])
 
-    result = {}
-    for layer in layers:
-        result[layer] = 0.0  # Placeholder; will be filled in during integration
-    return result
+    Raises
+    ------
+    NotImplementedError
+        This function requires geometry integration and is not yet implemented.
+
+    Notes
+    -----
+    TODO: Implement column_density_table to compute neuronal density per layer
+    from Configuration geometry (x_size_mm, y_size_mm, z_size_mm, dz_mm, layer_boundaries)
+    and neuron counts. Requires layer-specific boundaries and total counts.
+    """
+    raise NotImplementedError(
+        "column_density_table requires geometry integration (3D volume calculation) "
+        "and layer-specific neuron counts; not yet implemented. "
+        "This is a v0.3.15+ feature candidate."
+    )
 
 
 def configuration_table(cfg: Configuration) -> dict[str, Any]:
