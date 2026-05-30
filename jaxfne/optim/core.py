@@ -1026,11 +1026,6 @@ def gsdr_transform(
                 ema_decay=gsdr_state.ema_decay,
             )
 
-        @dataclass(frozen=True)
-        class GradientTransformation:
-            init: Callable[[Any], Any]
-            update: Callable[[Any, Any], Any]
-
         return combined_updates, (new_gsdr_state, inner_state)
 
     @dataclass(frozen=True)
@@ -1175,11 +1170,6 @@ def agsdr_transform(
                 ema_decay=agsdr_state.ema_decay,
                 alpha_adaptive=float(jnp.clip(alpha_next, alpha_min, alpha_max)),
             )
-
-        @dataclass(frozen=True)
-        class GradientTransformation:
-            init: Callable[[Any], Any]
-            update: Callable[[Any, Any], Any]
 
         return combined_updates, (new_agsdr_state, inner_state)
 
@@ -1382,29 +1372,20 @@ def _tune_matrix_agsdr_optax(
                     opt_state = inner_optimizer.init(W_init)
                     current_W = W_init
 
+                    # Define and JIT compile the gradient function once per candidate to avoid retracing
+                    def inner_loss_only(W_flat: jax.Array) -> jax.Array:
+                        new_W = W_flat.reshape(emitter.W.shape)
+                        new_emitter = _replace(emitter, W=new_W)
+                        new_params = dict(candidate_model.params)
+                        new_params["emitter"] = new_emitter
+                        updated_model = _replace(candidate_model, params=new_params)
+                        return _inner_loss_fn(W_flat, updated_model)
+
+                    grad_fn = jax.jit(jax.value_and_grad(inner_loss_only))
+
                     for inner_step in range(int(inner_steps)):
-                        def loss_and_grad_fn(W_flat: jax.Array) -> tuple:
-                            # Rebuild emitter with updated W
-                            new_W = W_flat.reshape(emitter.W.shape)
-                            new_emitter = _replace(emitter, W=new_W)
-                            new_params = dict(candidate_model.params)
-                            new_params["emitter"] = new_emitter
-                            from dataclasses import replace as _r
-                            updated_model = _r(candidate_model, params=new_params)
-                            return _inner_loss_fn(W_flat, updated_model), W_flat
-
                         try:
-                            # Compute gradient via jax.grad on the soft-rate loss
-                            def inner_loss_only(W_flat: jax.Array) -> jax.Array:
-                                new_W = W_flat.reshape(emitter.W.shape)
-                                new_emitter = _replace(emitter, W=new_W)
-                                new_params = dict(candidate_model.params)
-                                new_params["emitter"] = new_emitter
-                                from dataclasses import replace as _r2
-                                updated_model = _r2(candidate_model, params=new_params)
-                                return _inner_loss_fn(W_flat, updated_model)
-
-                            loss_val, grads = jax.value_and_grad(inner_loss_only)(current_W)
+                            loss_val, grads = grad_fn(current_W)
 
                             # GRADIENT FLATLINE HARDENING: Detect and mitigate zero-gradient artifacts
                             # from hard spike resets that block differentiable path
@@ -1437,8 +1418,7 @@ def _tune_matrix_agsdr_optax(
                     new_emitter = _replace(emitter, W=refined_W)
                     new_params = dict(candidate_model.params)
                     new_params["emitter"] = new_emitter
-                    from dataclasses import replace as _r3
-                    candidate_model = _r3(candidate_model, params=new_params)
+                    candidate_model = _replace(candidate_model, params=new_params)
                 except Exception:
                     pass  # Fall back to unrefined AGSDR candidate
 
