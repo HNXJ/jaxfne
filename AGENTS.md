@@ -32,13 +32,23 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `156ec79` | dev merged (FF); 1743/1743 tests pass; v0.3.20, builders, release-control, Phase 4 docs landed |
-| `dev` | `156ec79` | Fully aligned with main |
+| `main` | `1ca6f1e` | Phase 5 vis API complete; 1772/1772 tests pass |
+| `dev` | `fd0ae98` | Phase 5b multi-laminar AGSDR complete; 1787/1787 tests pass |
 
-**Version:** `0.3.14` on PyPI (released); next release target: v0.3.15 (dev work in progress)  
-**Tests:** 1743 passed, 64 skipped, 4 xfailed  
+**Version:** `0.3.14` on PyPI (released); next release candidate: v0.3.21  
+**Tests:** 1787 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
-**Next safe action:** Phase 5 visualization API expansion on dev
+
+**All phases complete:**
+- Phase 0: Release-control scripts hardened
+- Phase 1: Public builders API
+- Phase 2: Configuration API (10 domains)
+- Phase 3: Test repairs
+- Phase 4: Suite No. 2 docs expansion
+- Phase 5: Visualization API (9 functions)
+- Phase 5b: Multi-laminar AGSDR (3 analysis functions + tutorial)
+
+**Next safe action:** Merge dev → main for v0.3.21 release
 
 ---
 
