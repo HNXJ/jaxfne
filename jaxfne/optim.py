@@ -48,10 +48,14 @@ def _quadratic_target_loss(
     The AGSDR black-box path does not rely on the gradient, but exposing this
     pure function keeps objective arithmetic compatible with ``jax.grad``.
     """
-    achieved = jnp.asarray(achieved, dtype=jnp.float32)
-    target = jnp.asarray(target, dtype=jnp.float32)
-    weights = jnp.asarray(weights, dtype=jnp.float32)
-    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=jnp.float32))
+    # Infer dtype from inputs; default to float32 if inputs are Python scalars
+    dtype = jnp.result_type(achieved, target, weights)
+    if not jnp.issubdtype(dtype, jnp.floating):
+        dtype = jnp.float32
+    achieved = jnp.asarray(achieved, dtype=dtype)
+    target = jnp.asarray(target, dtype=dtype)
+    weights = jnp.asarray(weights, dtype=dtype)
+    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=dtype))
     rel = (achieved - target) / denom
     return jnp.sum(weights * rel * rel)
 
@@ -73,11 +77,16 @@ def _agsdr_candidates_from_noise(
     JAX-native: one ``jit``-compiled function and one ``vmap`` over population
     rows.  Shapes are fixed by ``noise`` and parameter arrays.
     """
-    center = jnp.asarray(center, dtype=jnp.float32)
-    lows = jnp.asarray(lows, dtype=jnp.float32)
-    highs = jnp.asarray(highs, dtype=jnp.float32)
-    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=jnp.float32))
-    proposals = center[None, :] + jnp.asarray(exploration, dtype=jnp.float32) * span[None, :] * noise
+    # Infer dtype from inputs; default to float32 if inputs are Python scalars
+    dtype = jnp.result_type(center, lows, highs, noise)
+    if not jnp.issubdtype(dtype, jnp.floating):
+        dtype = jnp.float32
+    center = jnp.asarray(center, dtype=dtype)
+    lows = jnp.asarray(lows, dtype=dtype)
+    highs = jnp.asarray(highs, dtype=dtype)
+    exploration_val = jnp.asarray(exploration, dtype=dtype)
+    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=dtype))
+    proposals = center[None, :] + exploration_val * span[None, :] * noise.astype(dtype)
 
     candidates = jnp.clip(proposals, lows[None, :], highs[None, :])
     return candidates.at[0].set(jnp.clip(center, lows, highs))
