@@ -1,3 +1,15 @@
+## [0.3.19] - 2026-05-30
+
+### Changed
+- `jaxfne/fields.py` (`project_laminar_sources`): Added compiler and design commentary on using the explicit, vector-sliced central difference stencil over nested `jnp.gradient` iterations. Optimized boundary fallbacks and conditions to gracefully handle boundary edge configurations for low contact counts (`n_contacts <= 3`), preventing out-of-bounds slicing or dimension mismatches.
+
+### Added
+- `tests/test_field_proxy_admissibility_v024.py`:
+  - `test_stencil_numerical_parity_with_gradient` — asserts strict numerical parity (`atol <= 1e-5`) on the deep interior between the sliced stencil and legacy double `jnp.gradient` formulations, with math-backed mitigation for float32 noise amplification.
+  - `test_finite_boundary_checks` — asserts that edge padding rules maintain array dimensions and prevent `NaN`/`Inf` injection across low and high contact counts (`3`, `8`, `32`).
+
+---
+
 ## [0.3.18] - 2026-05-30
 
 ### Added

@@ -144,11 +144,14 @@ def project_laminar_sources(
     # reduces XLA memory allocations, and enables loop-fusion in the compiler tree.
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
     
-    if n_contacts > 2:
+    if n_contacts > 3:
         interior = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:-1] + phi_e_proxy[:, :-2]) / (dz * dz)
         left_boundary = (2.0 * phi_e_proxy[:, 0:1] - 5.0 * phi_e_proxy[:, 1:2] + 4.0 * phi_e_proxy[:, 2:3] - phi_e_proxy[:, 3:4]) / (dz * dz)
         right_boundary = (2.0 * phi_e_proxy[:, -1:] - 5.0 * phi_e_proxy[:, -2:-1] + 4.0 * phi_e_proxy[:, -3:-2] - phi_e_proxy[:, -4:-3]) / (dz * dz)
         csd_proxy = -jnp.concatenate([left_boundary, interior, right_boundary], axis=1)
+    elif n_contacts == 3:
+        interior = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:2] + phi_e_proxy[:, 0:1]) / (dz * dz)
+        csd_proxy = -jnp.concatenate([interior, interior, interior], axis=1)
     else:
         csd_proxy = jnp.zeros_like(phi_e_proxy)
 
