@@ -39,6 +39,9 @@ exclude = [
   "/docs/tutorials_v030",
   "/internal_docs",
   "/.claude",
+  "/.ipynb_checkpoints",
+  "/outputs",
+  "/test_execution_output",
 ]
 
 [tool.pytest.ini_options]

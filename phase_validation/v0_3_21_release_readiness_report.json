@@ -1,0 +1,133 @@
+{
+  "release": "0.3.21",
+  "artifact": "jaxfne-main-v0.3.21-release-prep.zip",
+  "python": "3.13.5",
+  "platform": "Linux-4.4.0-x86_64-with-glibc2.41",
+  "jaxfne_version": "0.3.21",
+  "truth_status": {
+    "truth_mode": "truth_safe_unverified",
+    "claim_level": "computational_scaffold",
+    "field_solver_status": "laminar_proxy_no_pde",
+    "field_claim_level": "proxy_readout_only",
+    "physical_amplitude_claim_allowed": false
+  },
+  "changed_files_or_paths": [
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "docs/RELEASE_CHECKLIST.md",
+    "docs/changelog.md",
+    "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+    "pyproject.toml",
+    "scripts/audit_notebooks_and_assets.py",
+    "scripts/release/print_tag_receipt.sh",
+    "scripts/release/reconcile_release_target.py",
+    "scripts/release/validate_release_artifacts.py",
+    "tests/test_release_scripts.py",
+    "tutorials/TUTORIAL_TEMPLATE_GUIDE.md",
+    "tutorials/etudes/ETUDE_NO_1_FINAL_EXECUTION_RECEIPT.md",
+    "tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb",
+    "tutorials/templates/jaxfne_notebook_template.ipynb",
+    "phase_validation/v0_3_21_release_readiness_report.md",
+    "phase_validation/v0_3_21_release_readiness_report.json",
+    "internal_docs/release_receipts/MAIN_ALIGNMENT_FINAL_RECEIPT.md",
+    "removed: stale root receipts, duplicate root Etude notebook, archived Etude draft, test_execution_output/"
+  ],
+  "commands_run": [
+    {
+      "cmd": "python -c \"import jaxfne as jtfne; print(jtfne.__version__)\"",
+      "result": "PASS: 0.3.21"
+    },
+    {
+      "cmd": "python -m compileall -q jaxfne tests examples scripts",
+      "result": "PASS"
+    },
+    {
+      "cmd": "python scripts/audit_notebooks_and_assets.py --check",
+      "result": "PASS"
+    },
+    {
+      "cmd": "custom Etude/template notebook hygiene audit",
+      "result": "PASS for active Etude and canonical template"
+    },
+    {
+      "cmd": "TFNE_SMOKE=1 nbclient execution of Etude with install cells skipped for local source-tree run",
+      "result": "PASS"
+    },
+    {
+      "cmd": "TFNE_SMOKE=0 nbclient execution of Etude with install cells skipped for local source-tree run",
+      "result": "PASS"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_package_version_alignment.py",
+      "result": "PASS: 1 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_docs_version_alignment.py",
+      "result": "PASS: 5 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_configuration_domains_complete.py",
+      "result": "PASS: 18 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_agsdr_multilaminar_api.py",
+      "result": "PASS: 16 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_spectrolaminar_readiness_v011.py",
+      "result": "PASS: 21 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_spectrolaminar_public_path_v020.py",
+      "result": "PASS: 27 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_notebook_standard_v027.py",
+      "result": "PASS: 17 passed"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_public_docs_hygiene.py",
+      "result": "PASS: 218 passed, 5 skipped"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_release_scripts.py::TestPrintTagReceipt",
+      "result": "PASS: 2 passed, 1 skipped outside git worktree"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_release_scripts.py::TestValidateReleaseArtifacts",
+      "result": "PASS: 5 passed"
+    },
+    {
+      "cmd": "python scripts/release/validate_release_artifacts.py --version 0.3.21 --allow-missing-dist",
+      "result": "PASS: dist absent, skipped by readiness mode"
+    },
+    {
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line",
+      "result": "INCOMPLETE: command exceeded available runtime window after initial passes; targeted release gates above were used"
+    },
+    {
+      "cmd": "mkdocs build --strict",
+      "result": "NOT RUN: mkdocs is not installed in this sandbox"
+    },
+    {
+      "cmd": "python -m build",
+      "result": "NOT RUN: build/hatchling are not installed in this sandbox"
+    }
+  ],
+  "summary": [
+    "Repository root minimized: stale root receipts, duplicate Etude notebook copies, and generated execution-output notebooks removed from active paths.",
+    "Retained main-alignment receipt lives in internal_docs/release_receipts.",
+    "Active Etude stays under tutorials/etudes and executes in smoke and full duration modes in local source-tree execution.",
+    "Canonical template stays under tutorials/templates and uses both install options plus backend/dtype setup and canonical import.",
+    "Template guide, release checklist, changelog, and agent status aligned with 0.3.21.",
+    "Release scripts hardened for source archives without .git metadata; tests skip remote tag lookup outside git worktrees.",
+    "Notebook audit script fixed to handle string/list notebook sources and recurse into tutorials/etudes and tutorials/templates."
+  ],
+  "known_limits": [
+    "Full pytest was not completed in the sandbox because it exceeded the runtime window.",
+    "MkDocs and package build were not executed because required build-time tools are absent in the sandbox.",
+    "No PyPI/TestPyPI upload was attempted."
+  ],
+  "release_decision": "release-candidate prepared; run full CI, mkdocs strict, python -m build, and twine check before tagging/uploading PyPI"
+}
