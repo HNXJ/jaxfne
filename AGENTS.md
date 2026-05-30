@@ -86,6 +86,107 @@ cat AGENTS.md               # read active locks before touching anything
 
 ---
 
+## Release-Control Doctrine
+
+This section is the authoritative release-control state machine for jaxfne.
+Scripts in `scripts/release/` implement these gates. Read before any release action.
+
+### Release Target Identity
+
+For every release, define exactly one `intended_release_sha` — the peeled commit SHA
+of the annotated tag (not the tag object SHA). The machine-readable current state
+is declared in the block below (only this block is parsed by scripts):
+
+<!-- RELEASE_STATE_BEGIN -->
+release_freeze: false
+intended_release_sha: none
+<!-- RELEASE_STATE_END -->
+
+Before tag repair, GitHub Release edits, TestPyPI, or PyPI upload, all of the
+following must be true:
+
+```
+origin/main == intended_release_sha
+ci_head_sha == intended_release_sha
+ci_conclusion == success
+working_tree_clean == true
+tag_peeled_sha == intended_release_sha  (once tag exists)
+```
+
+Run `python scripts/release/reconcile_release_target.py --version X.Y.Z --target-sha <SHA>`
+to verify. Do not rely on a clean working tree as a substitute for CI success.
+
+### Release Freeze Mode
+
+When release CI is running or has passed for a candidate SHA, set:
+
+```
+release_freeze: true
+intended_release_sha: <40-char commit SHA>
+```
+
+**During freeze, blocked:** root cleanup commits, docs formatting, receipt
+relocation, unrelated feature/bug commits, branch hygiene.
+
+**During freeze, allowed:** read-only diagnostics, CI status checks, tag repair
+after explicit authorization, TestPyPI/PyPI after explicit authorization.
+
+Freeze is lifted when: (a) release is published to PyPI, or (b) release is
+explicitly cancelled by the user, or (c) user explicitly changes the target SHA.
+
+Run `python scripts/release/assert_release_freeze.py` to verify freeze state.
+
+### Remote Mutation Protocol
+
+Classify every remote mutation before executing:
+
+| Class | Examples | Authorization required |
+|---|---|---|
+| Read-only | git status, ls-remote, gh run view | Always allowed |
+| Local-only | build, test, inspect dist/ | Allowed unless risky |
+| Remote branch | git push origin main | Explicit task scope |
+| Tag mutation | create, delete, recreate tag | Explicit authorization |
+| Distribution | TestPyPI/PyPI upload | Explicit authorization |
+| GitHub Release | create, edit, publish | Explicit authorization |
+
+Do not combine mutation classes in one step. Each is a separate authorization gate.
+
+### CI Monitoring Discipline
+
+For long CI jobs, emit **one terminal-state receipt** when CI reaches:
+`success`, `failure`, `cancelled`, or `timed_out`.
+
+Do NOT emit repeated "still running" or heartbeat messages. One notification
+on terminal state only.
+
+Terminal receipt must include: run URL, status + conclusion, headSha, job matrix,
+origin/main SHA, working tree status, no unauthorized mutations, next safe action.
+
+### Annotated Tag Audit
+
+For annotated tags, always report both:
+
+```bash
+git ls-remote origin refs/tags/vX.Y.Z          # tag object SHA
+git ls-remote origin "refs/tags/vX.Y.Z^{}"     # peeled tag commit SHA
+```
+
+Use the **peeled tag commit SHA** as the release identity. Never use the tag
+object SHA as the release commit target.
+
+Run `bash scripts/release/print_tag_receipt.sh vX.Y.Z` to verify.
+
+### Root Hygiene Preflight
+
+Root cleanup must happen **before** release freeze, not during it.
+
+Required before marking `release_freeze: true`:
+- `git ls-files . | wc -l` — confirm only tracked files
+- `find . -maxdepth 1 -type f` — confirm no root clutter
+- `git status --short` — confirm clean
+
+---
+
 ## Handoff protocol
 
 When finishing a scope:
