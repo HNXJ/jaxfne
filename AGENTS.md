@@ -221,12 +221,18 @@ If two agents edited the same file independently (diverged state):
 
 ---
 
-## Next planned work
+## v0.3.21 Release Gates (Current)
 
-| Item | Assigned | Branch | Notes |
-|---|---|---|---|
-| Create `~/.pypirc` with TestPyPI token | user | — | Obtain API token from https://test.pypi.org/manage/account/token/; mode 600 |
-| TestPyPI upload | `claude-sonnet` | `dev` | `./scripts/upload_testpypi.sh` — blocked until ~/.pypirc exists |
-| Colab smoke from TestPyPI | user / `claude-sonnet` | — | Follow `docs/COLAB_SMOKE_V010.md` Cell 1 + Cell 3 |
-| Merge dev → main (ff-only) | `claude-sonnet` | `main` | After TestPyPI + Colab smokes pass |
-| Tag v0.1.0 and PyPI upload | `claude-sonnet` | `main` | `JAXFNE_CONFIRM_REAL_PYPI=1 ./scripts/upload_pypi.sh` — blocked until above complete |
+| Item | Status | Command / Notes |
+|---|---|---|
+| Full pytest suite | ⏳ | `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/` |
+| MkDocs strict build | ⏳ | `mkdocs build --strict` |
+| Package build | ⏳ | `python -m build` — creates `dist/jaxfne-0.3.21.tar.gz` and wheel |
+| Twine check | ⏳ | `python -m twine check dist/*` |
+| TestPyPI upload | ⏳ | `python -m twine upload --repository testpypi dist/*` (requires ~/.pypirc) |
+| TestPyPI smoke | ⏳ | `pip install --index-url https://test.pypi.org/simple/ jaxfne==0.3.21 && python -c "import jaxfne; print(jaxfne.__version__)"` |
+| PyPI upload | ⏳ | `python -m twine upload dist/*` (production release) |
+| Tag v0.3.21 | ⏳ | `git tag -a v0.3.21 -m "Release v0.3.21: Etude No. 1, template, hygiene rules"` |
+| GitHub Release | ⏳ | Create release from tag on GitHub |
+
+All gates ready on `main` branch. No blockers from documentation or packaging.

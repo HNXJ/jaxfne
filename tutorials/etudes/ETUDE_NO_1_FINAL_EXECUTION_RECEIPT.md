@@ -1,4 +1,6 @@
-# Etude No. 1 — Final Execution Receipt (Superseded by MAIN_ALIGNMENT_FINAL_RECEIPT.md): Final Execution Receipt
+# Etude No. 1 — Final Execution Receipt
+
+**⚠️ Note:** This receipt is superseded by `MAIN_ALIGNMENT_FINAL_RECEIPT.md`. Kept for historical reference.
 
 **Status:** ✅ **FULLY EXECUTABLE AND VALIDATED**  
 **Date:** 2026-05-30
@@ -18,7 +20,7 @@ note:                       See MAIN_ALIGNMENT_FINAL_RECEIPT.md for authoritativ
 Repository:        https://github.com/HNXJ/jaxfne
 Branch:            main (immutable release branch)
 Commit:            3710a1ca7eb613bbb488c2650fe8e7b3a02df375
-jaxfne:            0.3.14+
+jaxfne:            0.3.21
 Platform:          macOS (universal)
 Status:            Accepted and ready for PyPI release
 ```
