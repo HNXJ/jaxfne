@@ -78,6 +78,12 @@ from .core import (
     _KNOWN_METRICS,
     default_basis_spec,
 )
+
+from .tutorial_utils import (
+    select_neurons,
+    kappa_synchrony,
+    rate_synchrony_targets,
+)
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import vis
 from .emitters import (
@@ -241,6 +247,10 @@ __all__ = [
     "validate_config",
     "vis",
     "with_emitter_parameters",
+    # Phase 5b: AGSDR tuning helpers
+    "select_neurons",
+    "kappa_synchrony",
+    "rate_synchrony_targets",
     "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",

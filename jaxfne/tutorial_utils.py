@@ -249,3 +249,138 @@ def hh_numpy_reference_trace(duration_ms: float = 500.0, dt_ms: float = 0.1,
         dt_ms=dt_ms,
         current_amplitude=current_amplitude,
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Suite No. 2 analysis helpers (Phase 5b: AGSDR tuning)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def select_neurons(model, area: str | None = None, layer: str | None = None,
+                  cell_type: str | None = None) -> np.ndarray:
+    """
+    Select neuron indices matching given criteria (area, layer, cell_type).
+
+    Args:
+        model: Model object with neuron_metadata
+        area: area name (e.g., "V1", "V4"); if None, all areas included
+        layer: layer name (e.g., "L4", "L5"); if None, all layers included
+        cell_type: cell type label (e.g., "E", "PV"); if None, all types included
+
+    Returns:
+        ndarray of neuron indices matching the criteria
+
+    Example:
+        >>> v1_l4_e_indices = select_neurons(model, area="V1", layer="L4", cell_type="E")
+        >>> len(v1_l4_e_indices)
+        75
+    """
+    # Access neuron metadata from model
+    if not hasattr(model, 'neuron_metadata') or model.neuron_metadata is None:
+        return np.array([], dtype=int)
+
+    metadata = model.neuron_metadata
+    if not isinstance(metadata, list):
+        return np.array([], dtype=int)
+
+    matches = []
+    for idx, neuron in enumerate(metadata):
+        if area is not None and str(neuron.get("area", "")) != area:
+            continue
+        if layer is not None and str(neuron.get("layer", "")) != layer:
+            continue
+        if cell_type is not None and str(neuron.get("cell_type", "")) != cell_type:
+            continue
+        matches.append(idx)
+
+    return np.array(matches, dtype=int)
+
+
+def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
+    """
+    Compute spike synchrony measure (kappa statistic) across neurons.
+
+    Args:
+        spikes: spike matrix [n_neurons, n_timesteps] with boolean values
+        dt_ms: timestep in milliseconds (default 0.1)
+
+    Returns:
+        float: kappa synchrony value in [-1, 1].
+        0 indicates asynchronous spiking.
+        1 indicates perfect synchrony.
+        -1 indicates perfect anti-synchrony.
+
+    Notes:
+        - Computes pairwise correlation of spike trains
+        - Returns mean pairwise spike-time correlation
+        - Proxy metric; not a biological invariant
+    """
+    spikes = np.asarray(spikes, dtype=float)
+    if spikes.shape[0] == 0 or spikes.shape[1] == 0:
+        return 0.0
+
+    # Compute average pairwise spike-time correlation
+    n_neurons = spikes.shape[0]
+    if n_neurons < 2:
+        return 0.0
+
+    # Compute correlation matrix
+    correlations = []
+    for i in range(n_neurons):
+        for j in range(i + 1, n_neurons):
+            spike_i = spikes[i, :]
+            spike_j = spikes[j, :]
+            if np.sum(spike_i) == 0 or np.sum(spike_j) == 0:
+                continue
+            # Pearson correlation of spike trains
+            mean_i = np.mean(spike_i)
+            mean_j = np.mean(spike_j)
+            std_i = np.std(spike_i)
+            std_j = np.std(spike_j)
+            if std_i > 0 and std_j > 0:
+                corr = np.mean((spike_i - mean_i) * (spike_j - mean_j)) / (std_i * std_j)
+                correlations.append(corr)
+
+    if not correlations:
+        return 0.0
+    return float(np.mean(correlations))
+
+
+def rate_synchrony_targets(
+    target_rate_hz: float,
+    target_kappa_synchrony: float,
+    rate_weight: float = 1.0,
+    synchrony_weight: float = 0.25,
+) -> dict:
+    """
+    Create an objective specification for AGSDR tuning toward rate and synchrony targets.
+
+    Args:
+        target_rate_hz: target population firing rate (Hz)
+        target_kappa_synchrony: target kappa synchrony value (typically 0.0 for asynchronous)
+        rate_weight: weight for rate term in objective
+        synchrony_weight: weight for synchrony term in objective
+
+    Returns:
+        dict with objective specification
+
+    Example:
+        >>> objective = rate_synchrony_targets(target_rate_hz=5.0, target_kappa_synchrony=0.0)
+        >>> print(objective["name"])
+        rate_synchrony_targets
+
+    Notes:
+        - Returned dict can be used with Model.evaluate() and Model.tune()
+        - Surrogate objective for inner-loop optimization only; not a biological claim gate
+        - Weights control relative importance of rate vs. synchrony targets
+    """
+    return {
+        "name": "rate_synchrony_targets",
+        "kind": "composite",
+        "target_rate_hz": float(target_rate_hz),
+        "target_kappa_synchrony": float(target_kappa_synchrony),
+        "rate_weight": float(rate_weight),
+        "synchrony_weight": float(synchrony_weight),
+        "truth_mode": "truth_safe_unverified",
+        "claim_level": "computational_scaffold",
+    }
