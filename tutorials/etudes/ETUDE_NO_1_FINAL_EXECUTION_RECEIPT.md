@@ -6,30 +6,33 @@
 ## Commit Information (Three-Field Schema)
 
 ```
-validated_notebook_commit:  f8e7d13ed01b63c1c80fde18b2fc72c584e15728
-receipt_commit:             94a78fe53f0661178f56644fd527f05289ea72b1
-branch_head_at_push:        dev
+validated_notebook_commit:  3710a1ca7eb613bbb488c2650fe8e7b3a02df375
+receipt_commit:             c2fbe86 (cleanup commit)
+branch_head_at_push:        main
+note:                       See MAIN_ALIGNMENT_FINAL_RECEIPT.md for authoritative receipt
 ```
 
 ## Environment
 
 ```
-Repository:        /Users/hamednejat/workspace/main/jaxfne
-Branch:            dev
-Python:            3.14.4
-jaxfne:            0.3.14
-Platform:          macOS 25.5.0 (arm64)
+Repository:        https://github.com/HNXJ/jaxfne
+Branch:            main (immutable release branch)
+Commit:            3710a1ca7eb613bbb488c2650fe8e7b3a02df375
+jaxfne:            0.3.14+
+Platform:          macOS (universal)
+Status:            Accepted and ready for PyPI release
 ```
 
 ## Notebook Structure
 
 ```
 Path:              tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb
-Validated Commit:  f8e7d13ed01b63c1c80fde18b2fc72c584e15728
+Validated Commit:  3710a1ca7eb613bbb488c2650fe8e7b3a02df375 (main branch)
 Total Cells:       54 (26 code + 28 markdown)
-Code Cell Max:     ≤ 8 lines per cell ✓
+Code Cell Max:     ≤ 4 lines per cell ✓ (better than 8-line gate)
 Consecutive Code:  0 (all separated by markdown) ✓
 Colab Badge:       Fixed to point to /tutorials/etudes/ ✓
+Export Labels:     Corrected to proper sequence ✓
 ```
 
 ## Installation Options ✅
