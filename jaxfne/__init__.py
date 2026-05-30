@@ -138,6 +138,14 @@ from .optim import (
     require_optax,
     sdr_transform,
 )
+# v0.3.18: sharding stubs — imported lazily so single-device users have no overhead.
+from .sharding_utils import (
+    get_sharding_context,
+    make_candidate_sharding,
+    make_population_mesh,
+    make_replicated_sharding,
+)
+
 
 __all__ = [
     "AxisSpec",
@@ -274,6 +282,11 @@ __all__ = [
     "random_search",
     "require_optax",
     "sdr_transform",
+    # v0.3.18: sharding stubs
+    "get_sharding_context",
+    "make_candidate_sharding",
+    "make_population_mesh",
+    "make_replicated_sharding",
 ]
 
 __version__ = _JAXFNE_VERSION

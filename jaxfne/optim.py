@@ -48,10 +48,14 @@ def _quadratic_target_loss(
     The AGSDR black-box path does not rely on the gradient, but exposing this
     pure function keeps objective arithmetic compatible with ``jax.grad``.
     """
-    achieved = jnp.asarray(achieved, dtype=jnp.float32)
-    target = jnp.asarray(target, dtype=jnp.float32)
-    weights = jnp.asarray(weights, dtype=jnp.float32)
-    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=jnp.float32))
+    # Infer dtype from inputs; default to float32 if inputs are Python scalars
+    dtype = jnp.result_type(achieved, target, weights)
+    if not jnp.issubdtype(dtype, jnp.floating):
+        dtype = jnp.float32
+    achieved = jnp.asarray(achieved, dtype=dtype)
+    target = jnp.asarray(target, dtype=dtype)
+    weights = jnp.asarray(weights, dtype=dtype)
+    denom = jnp.maximum(jnp.abs(target), jnp.asarray(1e-6, dtype=dtype))
     rel = (achieved - target) / denom
     return jnp.sum(weights * rel * rel)
 
@@ -73,13 +77,19 @@ def _agsdr_candidates_from_noise(
     JAX-native: one ``jit``-compiled function and one ``vmap`` over population
     rows.  Shapes are fixed by ``noise`` and parameter arrays.
     """
-    center = jnp.asarray(center, dtype=jnp.float32)
-    lows = jnp.asarray(lows, dtype=jnp.float32)
-    highs = jnp.asarray(highs, dtype=jnp.float32)
-    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=jnp.float32))
-    proposals = center[None, :] + jnp.asarray(exploration, dtype=jnp.float32) * span[None, :] * noise
+    # Infer dtype from inputs; default to float32 if inputs are Python scalars
+    dtype = jnp.result_type(center, lows, highs, noise)
+    if not jnp.issubdtype(dtype, jnp.floating):
+        dtype = jnp.float32
+    center = jnp.asarray(center, dtype=dtype)
+    lows = jnp.asarray(lows, dtype=dtype)
+    highs = jnp.asarray(highs, dtype=dtype)
+    exploration_val = jnp.asarray(exploration, dtype=dtype)
+    span = jnp.maximum(highs - lows, jnp.asarray(0.0, dtype=dtype))
+    proposals = center[None, :] + exploration_val * span[None, :] * noise.astype(dtype)
 
     candidates = jnp.clip(proposals, lows[None, :], highs[None, :])
+    # Fuse center boundary alignment: Candidate 0 remains locked exactly to the clipped center array
     return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 
@@ -637,8 +647,14 @@ def _run_agsdr_optimization_loop(
         normalized_bounds.append((lo, hi))
     bounds_list = normalized_bounds
 
-    lows = jnp.asarray([b[0] for b in bounds_list], dtype=jnp.float32)
-    highs = jnp.asarray([b[1] for b in bounds_list], dtype=jnp.float32)
+    # v0.3.17: derive working dtype from bounds values so float64 inputs are
+    # preserved end-to-end without silent downcasting to float32.
+    _raw_bounds = [b[0] for b in bounds_list] + [b[1] for b in bounds_list]
+    _inferred = jnp.result_type(*_raw_bounds)
+    _wdtype = _inferred if jnp.issubdtype(_inferred, jnp.floating) else jnp.float32
+
+    lows = jnp.asarray([b[0] for b in bounds_list], dtype=_wdtype)
+    highs = jnp.asarray([b[1] for b in bounds_list], dtype=_wdtype)
 
     # Initialize center: start at midpoint of each parameter's bounds
     center_arr = 0.5 * (lows + highs)
@@ -666,7 +682,7 @@ def _run_agsdr_optimization_loop(
         noise = jax.random.normal(
             key,
             shape=(int(n_population), len(param_names)),
-            dtype=jnp.float32,
+            dtype=_wdtype,
         )
         candidate_matrix = _agsdr_candidates_from_noise(
             center_arr,
@@ -700,7 +716,7 @@ def _run_agsdr_optimization_loop(
         if gen_best_params:
             gen_best_arr = jnp.asarray(
                 [gen_best_params[name] for name in param_names],
-                dtype=jnp.float32,
+                dtype=_wdtype,
             )
             center_arr = jnp.clip(center_arr + float(alpha) * (gen_best_arr - center_arr), lows, highs)
             theta_center = {
@@ -1304,14 +1320,20 @@ def _tune_matrix_agsdr_optax(
                 # Fallback: mean V_m should be near threshold
                 loss = jnp.mean(jnp.abs(sigs.V_m - (-45.0)))
         except Exception:
-            loss = jnp.asarray(float("inf"), dtype=jnp.float32)
+            loss = jnp.asarray(float("inf"), dtype=_wdtype_outer)
         return loss
 
     # AGSDR outer loop setup
     param_names = sorted(scalar_bounds.keys())
     bounds_list = [(float(scalar_bounds[n][0]), float(scalar_bounds[n][1])) for n in param_names]
-    lows = jnp.asarray([b[0] for b in bounds_list], dtype=jnp.float32)
-    highs = jnp.asarray([b[1] for b in bounds_list], dtype=jnp.float32)
+
+    # v0.3.17: derive working dtype from bounds to avoid silent float32 downcast.
+    _raw_outer = [b[0] for b in bounds_list] + [b[1] for b in bounds_list]
+    _inf_outer = jnp.result_type(*_raw_outer) if _raw_outer else jnp.float32
+    _wdtype_outer = _inf_outer if jnp.issubdtype(_inf_outer, jnp.floating) else jnp.float32
+
+    lows = jnp.asarray([b[0] for b in bounds_list], dtype=_wdtype_outer)
+    highs = jnp.asarray([b[1] for b in bounds_list], dtype=_wdtype_outer)
     center_arr = 0.5 * (lows + highs)
 
     best_score = float("inf")
@@ -1331,7 +1353,7 @@ def _tune_matrix_agsdr_optax(
         noise = jax.random.normal(
             key,
             shape=(int(population_size), len(param_names)),
-            dtype=jnp.float32,
+            dtype=_wdtype_outer,
         )
         candidate_matrix = _agsdr_candidates_from_noise(
             center_arr,
@@ -1355,7 +1377,7 @@ def _tune_matrix_agsdr_optax(
             if inner_steps > 0 and groups_for_inner:
                 try:
                     emitter = candidate_model.params["emitter"]
-                    W_init = jnp.asarray(emitter.W, dtype=jnp.float32).reshape(-1)
+                    W_init = jnp.asarray(emitter.W, dtype=emitter.W.dtype if hasattr(emitter.W, "dtype") else _wdtype_outer).reshape(-1)
 
                     opt_state = inner_optimizer.init(W_init)
                     current_W = W_init
@@ -1461,7 +1483,7 @@ def _tune_matrix_agsdr_optax(
         if gen_best_params:
             gen_best_arr = jnp.asarray(
                 [gen_best_params[n] for n in param_names],
-                dtype=jnp.float32,
+                dtype=_wdtype_outer,
             )
             center_arr = jnp.clip(
                 center_arr + float(spec.alpha) * (gen_best_arr - center_arr),
