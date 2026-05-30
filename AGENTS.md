@@ -48,11 +48,11 @@ cat AGENTS.md               # read active locks before touching anything
 |---|---|---|---|
 | (none) | v0.1.0 hardening pass complete; CI + release scripts + Colab docs added; awaiting PyPI credentials | 2026-05-18 | cleared — no active lock |
 
----
-
 ## Completed work log
 
 | Agent | Scope | Commit | Notes |
+|---|---|---|---|
+| `gemini-cli` | v0.3.20: JAX recompilation guards & cache checks | `current` | validation.py: added CompilationRegistry and make_recompilation_guard; core.py: wrapped jit compilation loops; added test_v0320_recompilation_guards.py; repaired sync_release_metadata, audit_notebooks_and_assets, projection row-norm tests, and strengthened dtype tests. |
 |---|---|---|---|
 | `gemini-cli` | v0.3.19: sliced finite-difference spatial stencils with boundary fallbacks | `dba883d` | fields.py: added compiler loop-fusion docs; implemented robust stencil fallbacks for n_contacts <= 3; added parity and boundary checks; 1681/1681 pass. |
 |---|---|---|---|
