@@ -115,25 +115,57 @@ def test_suite_no4_notebook_execution():
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
     nb.cells.insert(1, inject_cell)
 
-    # Execute notebook with a reasonable timeout
-    client = NotebookClient(
-        nb,
-        timeout=1200,  # 20 minutes for full execution
-        kernel_name="jaxfne-venv",
-    )
+    from contextlib import contextmanager
+    import sys
+    import tempfile
+    import json
+    import shutil
+    from jupyter_client.kernelspec import KernelSpecManager
+
+    @contextmanager
+    def portable_kernel_context():
+        spec = {
+            "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
+            "display_name": "JAXFNE Portable Test Kernel",
+            "language": "python",
+        }
+        temp_dir = tempfile.mkdtemp()
+        try:
+            spec_path = Path(temp_dir) / "kernel.json"
+            with open(spec_path, "w") as f:
+                json.dump(spec, f)
+            ksm = KernelSpecManager()
+            kernel_name = "jaxfne_test_kernel"
+            ksm.install_kernel_spec(temp_dir, kernel_name, user=True, replace=True)
+            yield kernel_name
+        finally:
+            try:
+                ksm = KernelSpecManager()
+                ksm.remove_kernel_spec("jaxfne_test_kernel")
+            except Exception:
+                pass
+            try:
+                shutil.rmtree(temp_dir)
+            except Exception:
+                pass
 
     try:
-        # Run all cells
-        client.execute()
+        with portable_kernel_context() as kernel_name:
+            client = NotebookClient(
+                nb,
+                timeout=1200,  # 20 minutes for full execution
+                kernel_name=kernel_name,
+            )
+            # Run all cells
+            client.execute()
 
-        # Verify notebook executed without errors
-        # If we get here without exception, execution succeeded
-        assert len(nb.cells) > 0, "Notebook should have cells after execution"
+            # Verify notebook executed without errors
+            assert len(nb.cells) > 0, "Notebook should have cells after execution"
 
-        # Verify output was generated (at least some cells have output)
-        code_cells = [c for c in nb.cells if c.cell_type == "code"]
-        cells_with_output = [c for c in code_cells if len(c.get("outputs", [])) > 0]
-        assert len(cells_with_output) > 0, "Notebook should have generated output"
+            # Verify output was generated
+            code_cells = [c for c in nb.cells if c.cell_type == "code"]
+            cells_with_output = [c for c in code_cells if len(c.get("outputs", [])) > 0]
+            assert len(cells_with_output) > 0, "Notebook should have generated output"
 
     except Exception as e:
         # If optax is missing in the kernel, skip gracefully
