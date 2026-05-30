@@ -33,12 +33,12 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `175b75b` | Suite No. 3 noisy absolute-power scaling correction merged; 1318/1318 tests pass |
-| `chore/v0.3.15-post-release-cleanup` | `b8c7fd3` | v0.3.18 sharding stubs committed; 1679/1679 tests pass |
+| `dev` | `dba883d` | v0.3.19 sliced CSD stencil committed; 1681/1681 tests pass |
 
-**Version:** `0.3.18` (on cleanup branch, not yet merged to main)  
-**Tests:** 1679 passed, 64 skipped, 4 xfailed  
+**Version:** `0.3.19` (on cleanup dev branch, not yet merged to main)  
+**Tests:** 1681 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
-**Next safe action:** Push branch, merge to main as v0.3.18, then proceed to v0.3.19
+**Next safe action:** Push branch, merge to main as v0.3.19, then proceed to v0.3.20
 
 ---
 
@@ -53,6 +53,8 @@ cat AGENTS.md               # read active locks before touching anything
 ## Completed work log
 
 | Agent | Scope | Commit | Notes |
+|---|---|---|---|
+| `gemini-cli` | v0.3.19: sliced finite-difference spatial stencils with boundary fallbacks | `dba883d` | fields.py: added compiler loop-fusion docs; implemented robust stencil fallbacks for n_contacts <= 3; added parity and boundary checks; 1681/1681 pass. |
 |---|---|---|---|
 | `gemini-cli` | v0.3.18: distributed sharding mesh stubs and replicated param fallbacks | `b8c7fd3` | sharding_utils.py: make_population_mesh / make_candidate_sharding / make_replicated_sharding / get_sharding_context; 14 new tests; 1679/1679 pass. |
 |---|---|---|---|
