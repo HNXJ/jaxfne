@@ -25,12 +25,31 @@ def test_projection_row_normalization():
     cfg = jtfne.suite2_net1_config(seed=42, n=8, duration_ms=10.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
     
-    # Get the projection kernel from the model internals
-    # For laminar proxy: row-normalization ensures conservation of source current
-    # Expected: each row sums close to 1.0 (within numerical tolerance)
-    
-    # This is a proxy-readout consistency check, not a physical conservation claim
-    assert model is not None  # Placeholder for kernel inspection
+    # 1. Verify kernel on simulated signals
+    sim = jtfne.suite2_simulation(seed=42, duration_ms=10.0, dt_ms=0.5)
+    signals = jtfne.simulate(model, sim)
+    assert signals.field is not None
+    assert hasattr(signals.field, "kernel")
+    kernel = signals.field.kernel
+    row_sums = jnp.sum(kernel, axis=1)
+
+    # Each row must sum exactly to 1.0 within tolerance <= 1e-6
+    assert jnp.all(jnp.isfinite(row_sums))
+    assert jnp.allclose(row_sums, 1.0, atol=1e-6)
+
+    # 2. Verify via direct function call
+    sources = jnp.ones((10, 8), dtype=jnp.float32)
+    positions = jnp.zeros((8, 3), dtype=jnp.float32)
+    # Give some random relative depths
+    positions = positions.at[:, 2].set(jnp.linspace(0.0, 1.0, 8))
+
+    field_out = project_laminar_sources(sources, positions, n_contacts=16)
+    kernel_direct = field_out.kernel
+    row_sums_direct = jnp.sum(kernel_direct, axis=1)
+
+    assert jnp.all(jnp.isfinite(row_sums_direct))
+    assert jnp.allclose(row_sums_direct, 1.0, atol=1e-6)
+
 
 
 def test_projection_shape_invariants():
