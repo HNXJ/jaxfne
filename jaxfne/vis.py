@@ -1322,12 +1322,36 @@ def circuit3d(signals: Any, **kwargs: Any) -> Any:
 
 
 def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
-    """Render the core Suite No. 2 readout panel in one figure."""
+    """Render the core Suite No. 2 readout panel in one figure.
+
+    Supports custom visualization parameters:
+    - freq_min_hz: minimum frequency for PSD plot (default 0 Hz)
+    - freq_max_hz: maximum frequency for PSD plot (default 80 Hz)
+    - freq_count: number of frequency bins (currently unused, for future expansion)
+    - psd_nperseg: Welch window length in samples (default auto)
+    - dpi: dots per inch for figure (handled by plt.figure)
+    - title: overall figure title
+    - figsize: figure size tuple (default (12, 10))
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    max_freq_hz = float(kwargs.pop("max_freq_hz", 80.0))
-    fig = plt.figure(figsize=kwargs.pop("figsize", (12, 10)), **kwargs)
+    # Pop custom kwargs before plt.figure to avoid passing unsupported args
+    freq_min_hz = float(kwargs.pop("freq_min_hz", 0.0))
+    freq_max_hz = float(kwargs.pop("freq_max_hz", 80.0))
+    freq_count = int(kwargs.pop("freq_count", 128))  # For future expansion
+    psd_nperseg = kwargs.pop("psd_nperseg", None)  # None means auto
+    figure_title = kwargs.pop("title", None)  # Figure-level title
+    figsize = kwargs.pop("figsize", (12, 10))
+    dpi = kwargs.pop("dpi", None)  # Will be passed to plt.figure
+
+    # Create figure with remaining kwargs (dpi, etc.)
+    fig_kwargs = {"figsize": figsize}
+    if dpi is not None:
+        fig_kwargs["dpi"] = int(dpi)
+    # Pass remaining kwargs (should be empty now, but be safe)
+    fig = plt.figure(**fig_kwargs)
+
     axes = [fig.add_subplot(3, 2, i + 1) for i in range(6)]
     spikes = _signals_spikes(signals)
     time_ms = _signals_time_ms(signals, spikes.shape[0])
@@ -1345,39 +1369,68 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
     axes[0].set_xlabel("Time (ms)")
 
     lfp_arr = _signals_lfp(signals)
-    im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
-    axes[1].set_title("LFP-like contacts")
-    fig.colorbar(im1, ax=axes[1], fraction=0.046)
+    if lfp_arr is not None and np.all(np.isfinite(lfp_arr)):
+        im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
+        axes[1].set_title("LFP-like contacts")
+        fig.colorbar(im1, ax=axes[1], fraction=0.046)
+    else:
+        axes[1].text(0.5, 0.5, "LFP data unavailable", ha="center", va="center", transform=axes[1].transAxes)
+        axes[1].set_title("LFP-like contacts")
 
     csd_arr = _signals_csd(signals)
-    vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
-    im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
-    axes[2].set_title("CSD-like contacts")
-    fig.colorbar(im2, ax=axes[2], fraction=0.046)
+    if csd_arr is not None and np.all(np.isfinite(csd_arr)):
+        vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
+        im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
+        axes[2].set_title("CSD-like contacts")
+        fig.colorbar(im2, ax=axes[2], fraction=0.046)
+    else:
+        axes[2].text(0.5, 0.5, "CSD data unavailable", ha="center", va="center", transform=axes[2].transAxes)
+        axes[2].set_title("CSD-like contacts")
 
-    dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
-    fs = 1000.0 / dt_ms
-    freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=min(512, lfp_arr.shape[0]))
-    mask = freqs <= max_freq_hz
-    axes[3].plot(freqs[mask], np.mean(pxx[mask], axis=1))
-    axes[3].set_title("Mean PSD")
-    axes[3].set_xlabel("Frequency (Hz)")
+    # PSD with custom frequency range and nperseg
+    if lfp_arr is not None and np.all(np.isfinite(lfp_arr)):
+        dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
+        fs = 1000.0 / dt_ms
+        nperseg = psd_nperseg if psd_nperseg is not None else min(512, lfp_arr.shape[0])
+        freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=int(nperseg))
+        mask = (freqs >= freq_min_hz) & (freqs <= freq_max_hz)
+        axes[3].plot(freqs[mask], np.mean(pxx[mask], axis=1))
+        axes[3].set_title("Mean PSD")
+        axes[3].set_xlabel("Frequency (Hz)")
+        axes[3].set_xlim(freq_min_hz, freq_max_hz)
+    else:
+        axes[3].text(0.5, 0.5, "PSD unavailable", ha="center", va="center", transform=axes[3].transAxes)
+        axes[3].set_title("Mean PSD")
 
     eeg_y = _linear_proxy_from_sources(signals, n_channels=3, phase=0.0)
-    scale = np.nanstd(eeg_y) or 1.0
-    for ch in range(eeg_y.shape[1]):
-        axes[4].plot(time_ms, eeg_y[:, ch] / scale + ch)
-    axes[4].set_title("EEG-proxy")
+    if eeg_y is not None and np.all(np.isfinite(eeg_y)):
+        scale = np.nanstd(eeg_y) or 1.0
+        for ch in range(eeg_y.shape[1]):
+            axes[4].plot(time_ms, eeg_y[:, ch] / scale + ch)
+        axes[4].set_title("EEG-proxy")
+    else:
+        axes[4].text(0.5, 0.5, "EEG proxy unavailable", ha="center", va="center", transform=axes[4].transAxes)
+        axes[4].set_title("EEG-proxy")
 
     spikes_mean = np.mean(spikes, axis=1)
     src = _signals_sources(signals)
-    emm_cost = spikes_mean + np.mean(np.abs(src), axis=1) + np.mean(lfp_arr * lfp_arr, axis=1)
-    emm_cost = emm_cost / max(float(np.nanmax(np.abs(emm_cost))), 1e-12)
-    axes[5].plot(time_ms, emm_cost)
-    axes[5].set_title("EMM-proxy")
+    if src is not None and np.all(np.isfinite(src)):
+        emm_cost = spikes_mean + np.mean(np.abs(src), axis=1) + np.mean(lfp_arr * lfp_arr, axis=1) if lfp_arr is not None else spikes_mean
+        emm_cost = emm_cost / max(float(np.nanmax(np.abs(emm_cost))), 1e-12)
+        axes[5].plot(time_ms, emm_cost)
+        axes[5].set_title("EMM-proxy")
+    else:
+        axes[5].plot(time_ms, spikes_mean / max(float(np.nanmax(spikes_mean)), 1e-12))
+        axes[5].set_title("EMM-proxy (fallback: spike rate)")
     axes[5].set_xlabel("Time (ms)")
 
     for ax in axes:
         ax.grid(True, linestyle="--", alpha=0.25)
     fig.tight_layout()
+
+    # Add figure-level title if provided
+    if figure_title is not None:
+        fig.suptitle(figure_title, fontsize=14, y=0.995)
+        fig.tight_layout(rect=[0, 0, 1, 0.99])
+
     return fig

@@ -1960,7 +1960,10 @@ class StimulusSchedule:
     claim_level: str = "computational_scaffold"
 
     def to_array(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> "jax.Array":
-        """Materialize a ``(n_steps, n_neurons)`` drive schedule array."""
+        """Materialize a ``(n_steps, n_neurons)`` drive schedule array.
+
+        Supports optional target_indices in event to apply amplitude only to selected neurons.
+        """
         schedule = _np.zeros((int(n_steps), int(self.n_neurons)), dtype=_np.float32)
         for ev in self.events:
             if not ev.get("is_drive_event", True):
@@ -1975,15 +1978,34 @@ class StimulusSchedule:
             start = max(0, min(start, int(n_steps)))
             end = max(0, min(end, int(n_steps)))
             if start < end:
-                schedule[start:end, :] += amp
+                # Check if this event has target_indices
+                target_indices = ev.get("target_indices", None)
+                if target_indices is not None:
+                    # Apply amplitude only to selected indices
+                    idx_array = _np.asarray(target_indices, dtype=int)
+                    # Validate bounds
+                    if len(idx_array) > 0:
+                        if idx_array.min() < 0 or idx_array.max() >= self.n_neurons:
+                            raise ValueError(
+                                f"target_indices out of bounds: "
+                                f"min={idx_array.min()}, max={idx_array.max()}, "
+                                f"n_neurons={self.n_neurons}"
+                            )
+                        schedule[start:end, idx_array] += amp
+                else:
+                    # Apply amplitude to all neurons
+                    schedule[start:end, :] += amp
         np_dtype = _np.float64 if dtype == "float64" else _np.float32
         return jnp.asarray(schedule.astype(np_dtype))
 
     def to_dict(self) -> dict[str, Any]:
         from .io import json_safe
+        # Count targeted vs non-targeted events
+        n_targeted = sum(1 for ev in self.events if ev.get("target_indices") is not None)
         return json_safe({
             "stimulus_injection_status": "native_drive_schedule_v0.0.12",
             "n_drive_events": len(self.events),
+            "n_targeted_events": n_targeted,
             "n_neurons": self.n_neurons,
             "events": list(self.events),
             "source_calibration_status": self.source_calibration_status,
