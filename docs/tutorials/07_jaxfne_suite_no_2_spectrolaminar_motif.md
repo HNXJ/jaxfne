@@ -119,6 +119,26 @@ Scope boundary: Proxy units only. No physical amplitude calibration.
 
 ---
 
+### Geometric projection tensor (laminar approximation)
+
+Formal equation:
+
+$$\mathbf{M}_{cn} = \frac{e^{-\frac{1}{2} \left( \frac{z_c - z_n}{\sigma} \right)^2}}{\sum_{m=1}^{N} e^{-\frac{1}{2} \left( \frac{z_c - z_m}{\sigma} \right)^2}}$$
+
+Terms:
+- $\mathbf{M}_{cn}$: entry of the row-normalized geometric projection tensor (mapping contact $c$ to emitter $n$)
+- $z_c$: relative laminar depth coordinate of contact $c$
+- $z_n$: relative laminar depth coordinate of emitter $n$
+- $\sigma$: declared standard deviation (width parameter) of the Gaussian profile
+
+Worded equation: the geometric projection operator is a row-normalized Gaussian weight matrix representing a homogeneous, isotropic infinite-medium proxy operator design note, not current calibrated field-solver evidence.
+
+Implementation location: `jaxfne.fields._row_normalize` and `jaxfne.fields.project_laminar_sources`
+
+Scope boundary: Homogeneous, isotropic infinite-medium approximation / proxy operator design note. Not current calibrated field-solver evidence. No physical field solver or calibration.
+
+---
+
 ### LFP-proxy linear projection
 
 Formal equation:
