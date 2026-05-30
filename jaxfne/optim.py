@@ -89,6 +89,7 @@ def _agsdr_candidates_from_noise(
     proposals = center[None, :] + exploration_val * span[None, :] * noise.astype(dtype)
 
     candidates = jnp.clip(proposals, lows[None, :], highs[None, :])
+    # Fuse center boundary alignment: Candidate 0 remains locked exactly to the clipped center array
     return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 
