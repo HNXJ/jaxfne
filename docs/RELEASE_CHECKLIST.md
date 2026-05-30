@@ -2,7 +2,20 @@
 
 This document tracks verification gates for jaxfne releases.
 
-## v0.3.14 Release Checklist
+## Release-Control State Machine (v0.3.15+)
+
+To prevent accidental release drift or tag/commit mutation, the following machine checks are enforced prior to tagging and PyPI upload:
+1. **Intended Release SHA Lock**: The file `CLAUDE.md` or `AGENTS.md` must declare `intended_release_sha: "<commit_sha>"` and `release_freeze: true`.
+2. **Release Freeze Enforcement**: Running `python scripts/release/assert_release_freeze.py` must verify that `HEAD` matches `intended_release_sha`.
+3. **Peeled vs Object Tag Audit**: Prior to PyPI upload, running `bash scripts/release/print_tag_receipt.sh` must verify that the peeled ref matches `intended_release_sha`.
+4. **Reconciled Target Report**: Running `python scripts/release/reconcile_release_target.py` must produce a validated target report JSON with `"release_target_reconciled": true`.
+5. **CI headSha == Release SHA Gate**: The head SHA compiled in CI must exactly match the `intended_release_sha`.
+6. **Noiseless CI Monitor**: No warnings or errors can exist in the CI pipeline run.
+7. **Root Hygiene Preflight**: The repository working tree must be completely clean without untracked files or clutter.
+
+---
+
+## v0.3.15 Release Checklist
 
 ### Pre-release Validation (Local)
 - [ ] `compileall`: `python -m compileall jaxfne/` passes without syntax errors
