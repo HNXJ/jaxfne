@@ -1,6 +1,6 @@
 # Multi-Laminar Cortical Modeling and Stable Fine-Tuning with AGSDR
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/tutorials/jaxfne_multi_laminar_cortical_agsdr.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/notebooks/jaxfne_multi_laminar_cortical_agsdr.ipynb)
 
 This tutorial demonstrates a package-native workflow for configuring a multi-laminar cortical scaffold, simulating baseline activity, stimulating a selected subpopulation, tuning with AGSDR, and rendering spectrolaminar proxy readouts.
 

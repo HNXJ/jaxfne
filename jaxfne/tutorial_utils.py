@@ -262,7 +262,7 @@ def select_neurons(model, area: str | None = None, layer: str | None = None,
     Select neuron indices matching given criteria (area, layer, cell_type).
 
     Args:
-        model: Model object with neuron_metadata
+        model: Model object with neuron_table()
         area: area name (e.g., "V1", "V4"); if None, all areas included
         layer: layer name (e.g., "L4", "L5"); if None, all layers included
         cell_type: cell type label (e.g., "E", "PV"); if None, all types included
@@ -275,23 +275,27 @@ def select_neurons(model, area: str | None = None, layer: str | None = None,
         >>> len(v1_l4_e_indices)
         75
     """
-    # Access neuron metadata from model
-    if not hasattr(model, 'neuron_metadata') or model.neuron_metadata is None:
+    # Access neuron table from model
+    if not hasattr(model, 'neuron_table') or not callable(model.neuron_table):
         return np.array([], dtype=int)
 
-    metadata = model.neuron_metadata
-    if not isinstance(metadata, list):
+    try:
+        rows = model.neuron_table()
+    except Exception:
+        return np.array([], dtype=int)
+
+    if not rows:
         return np.array([], dtype=int)
 
     matches = []
-    for idx, neuron in enumerate(metadata):
-        if area is not None and str(neuron.get("area", "")) != area:
+    for row in rows:
+        if area is not None and str(row.get("area", "")) != area:
             continue
-        if layer is not None and str(neuron.get("layer", "")) != layer:
+        if layer is not None and str(row.get("layer", "")) != layer:
             continue
-        if cell_type is not None and str(neuron.get("cell_type", "")) != cell_type:
+        if cell_type is not None and str(row.get("cell_type", "")) != cell_type:
             continue
-        matches.append(idx)
+        matches.append(int(row.get("neuron_id", 0)))
 
     return np.array(matches, dtype=int)
 
@@ -301,7 +305,7 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
     Compute spike synchrony measure (kappa statistic) across neurons.
 
     Args:
-        spikes: spike matrix [n_neurons, n_timesteps] with boolean values
+        spikes: spike matrix [n_timesteps, n_neurons] with boolean values
         dt_ms: timestep in milliseconds (default 0.1)
 
     Returns:
@@ -311,25 +315,33 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
         -1 indicates perfect anti-synchrony.
 
     Notes:
-        - Computes pairwise correlation of spike trains
+        - Computes pairwise correlation of spike trains across neurons (columns)
         - Returns mean pairwise spike-time correlation
         - Proxy metric; not a biological invariant
     """
     spikes = np.asarray(spikes, dtype=float)
-    if spikes.shape[0] == 0 or spikes.shape[1] == 0:
+    if spikes.size == 0:
         return 0.0
 
-    # Compute average pairwise spike-time correlation
-    n_neurons = spikes.shape[0]
-    if n_neurons < 2:
+    # Ensure shape is [T, N]
+    if spikes.ndim == 1:
+        return 0.0  # Single neuron or single timestep
+
+    if spikes.ndim != 2:
         return 0.0
 
-    # Compute correlation matrix
+    # Shape is [T, N] — n_neurons is the second dimension
+    n_timesteps, n_neurons = spikes.shape
+
+    if n_neurons < 2 or n_timesteps < 1:
+        return 0.0
+
+    # Compute average pairwise spike-time correlation across neurons (columns)
     correlations = []
     for i in range(n_neurons):
         for j in range(i + 1, n_neurons):
-            spike_i = spikes[i, :]
-            spike_j = spikes[j, :]
+            spike_i = spikes[:, i]  # Column i (neuron i across all timesteps)
+            spike_j = spikes[:, j]  # Column j (neuron j across all timesteps)
             if np.sum(spike_i) == 0 or np.sum(spike_j) == 0:
                 continue
             # Pearson correlation of spike trains
@@ -351,7 +363,7 @@ def rate_synchrony_targets(
     target_kappa_synchrony: float,
     rate_weight: float = 1.0,
     synchrony_weight: float = 0.25,
-) -> dict:
+):
     """
     Create an objective specification for AGSDR tuning toward rate and synchrony targets.
 
@@ -362,25 +374,62 @@ def rate_synchrony_targets(
         synchrony_weight: weight for synchrony term in objective
 
     Returns:
-        dict with objective specification
+        Objective instance with rate and synchrony loss terms
 
     Example:
         >>> objective = rate_synchrony_targets(target_rate_hz=5.0, target_kappa_synchrony=0.0)
-        >>> print(objective["name"])
+        >>> print(objective.name)
         rate_synchrony_targets
 
     Notes:
-        - Returned dict can be used with Model.evaluate() and Model.tune()
+        - Returned Objective can be used with Model.evaluate() and Model.tune()
         - Surrogate objective for inner-loop optimization only; not a biological claim gate
         - Weights control relative importance of rate vs. synchrony targets
+        - Truth gates preserved: truth_safe_unverified, computational_scaffold
     """
-    return {
-        "name": "rate_synchrony_targets",
-        "kind": "composite",
-        "target_rate_hz": float(target_rate_hz),
-        "target_kappa_synchrony": float(target_kappa_synchrony),
-        "rate_weight": float(rate_weight),
-        "synchrony_weight": float(synchrony_weight),
-        "truth_mode": "truth_safe_unverified",
-        "claim_level": "computational_scaffold",
-    }
+    # Import Objective here to avoid circular imports
+    import jaxfne as jtfne
+
+    obj = jtfne.Objective(
+        name="rate_synchrony_targets",
+        kind="rate_synchrony_targets",
+    )
+
+    # Add rate loss term
+    obj = obj.loss(
+        name="population_firing_rate",
+        target=float(target_rate_hz),
+        weight=float(rate_weight),
+        metric="mean_firing_rate_hz",
+        metadata={
+            "target_rate_hz": float(target_rate_hz),
+        }
+    )
+
+    # Add synchrony loss term
+    obj = obj.loss(
+        name="kappa_synchrony",
+        target=float(target_kappa_synchrony),
+        weight=float(synchrony_weight),
+        metric="kappa_synchrony",
+        metadata={
+            "target_kappa_synchrony": float(target_kappa_synchrony),
+        }
+    )
+
+    # Add truth gates
+    obj = obj.gate(
+        name="truth_mode",
+        threshold="truth_safe_unverified",
+        criterion="exact",
+        metric="truth_mode"
+    )
+
+    obj = obj.gate(
+        name="claim_level",
+        threshold="computational_scaffold",
+        criterion="exact",
+        metric="claim_level"
+    )
+
+    return obj

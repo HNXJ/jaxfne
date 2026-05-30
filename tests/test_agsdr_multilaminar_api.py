@@ -50,10 +50,10 @@ class TestKappaSynchrony:
 
     def test_kappa_synchrony_zero_for_independent(self):
         """Test that kappa ≈ 0 for independent spike trains."""
-        n_neurons = 10
         n_steps = 100
-        # Random independent spikes
-        spikes = np.random.rand(n_neurons, n_steps) > 0.9  # ~10% fire rate
+        n_neurons = 10
+        # Random independent spikes [T, N]
+        spikes = np.random.rand(n_steps, n_neurons) > 0.9  # ~10% fire rate
 
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
         assert isinstance(kappa, float)
@@ -62,20 +62,20 @@ class TestKappaSynchrony:
 
     def test_kappa_synchrony_high_for_synchronized(self):
         """Test that kappa is higher for synchronized spike trains."""
-        n_neurons = 10
         n_steps = 100
-        # Synchronized spikes
-        spikes = np.zeros((n_neurons, n_steps), dtype=bool)
+        n_neurons = 10
+        # Synchronized spikes [T, N]
+        spikes = np.zeros((n_steps, n_neurons), dtype=bool)
         # All neurons spike together at certain times
         for t in range(0, n_steps, 10):
-            spikes[:, t] = True
+            spikes[t, :] = True
 
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
         assert kappa > 0.5  # High synchrony
 
     def test_kappa_synchrony_single_neuron(self):
         """Test that kappa returns 0 for single neuron."""
-        spikes = np.ones((1, 100), dtype=bool)
+        spikes = np.ones((100, 1), dtype=bool)
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
         assert kappa == 0.0
 
@@ -87,7 +87,7 @@ class TestKappaSynchrony:
 
     def test_kappa_synchrony_silent_neurons(self):
         """Test that kappa handles completely silent neurons gracefully."""
-        spikes = np.zeros((5, 100), dtype=bool)
+        spikes = np.zeros((100, 5), dtype=bool)
         kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
         assert kappa == 0.0
 
@@ -95,17 +95,17 @@ class TestKappaSynchrony:
 class TestRateSynchronyTargets:
     """Tests for rate_synchrony_targets() function."""
 
-    def test_rate_synchrony_targets_returns_dict(self):
-        """Test that rate_synchrony_targets returns a dictionary."""
+    def test_rate_synchrony_targets_returns_objective(self):
+        """Test that rate_synchrony_targets returns an Objective."""
         objective = jtfne.rate_synchrony_targets(
             target_rate_hz=5.0,
             target_kappa_synchrony=0.0,
         )
 
-        assert isinstance(objective, dict)
+        assert isinstance(objective, jtfne.Objective)
 
-    def test_rate_synchrony_targets_required_keys(self):
-        """Test that returned dict contains all required keys."""
+    def test_rate_synchrony_targets_has_name_and_kind(self):
+        """Test that returned Objective has correct name and kind."""
         objective = jtfne.rate_synchrony_targets(
             target_rate_hz=8.0,
             target_kappa_synchrony=-0.1,
@@ -113,35 +113,54 @@ class TestRateSynchronyTargets:
             synchrony_weight=0.5,
         )
 
-        required_keys = [
-            "name", "kind", "target_rate_hz", "target_kappa_synchrony",
-            "rate_weight", "synchrony_weight", "truth_mode", "claim_level"
-        ]
-        for key in required_keys:
-            assert key in objective, f"Missing key: {key}"
+        assert objective.name == "rate_synchrony_targets"
+        assert objective.kind == "rate_synchrony_targets"
+
+    def test_rate_synchrony_targets_has_losses(self):
+        """Test that returned Objective has loss terms."""
+        objective = jtfne.rate_synchrony_targets(
+            target_rate_hz=5.0,
+            target_kappa_synchrony=0.0,
+        )
+
+        assert len(objective.losses) == 2
+        loss_names = {loss["name"] for loss in objective.losses}
+        assert "population_firing_rate" in loss_names
+        assert "kappa_synchrony" in loss_names
 
     def test_rate_synchrony_targets_truth_gates(self):
-        """Test that returned dict preserves truth gates."""
+        """Test that returned Objective includes truth gates."""
         objective = jtfne.rate_synchrony_targets(
             target_rate_hz=5.0,
             target_kappa_synchrony=0.0,
         )
 
-        assert objective["truth_mode"] == "truth_safe_unverified"
-        assert objective["claim_level"] == "computational_scaffold"
+        gate_names = {gate["name"] for gate in objective.gates}
+        assert "truth_mode" in gate_names
+        assert "claim_level" in gate_names
 
-    def test_rate_synchrony_targets_default_weights(self):
-        """Test default weights when not specified."""
+        # Find and verify gate values
+        for gate in objective.gates:
+            if gate["name"] == "truth_mode":
+                assert gate["threshold"] == "truth_safe_unverified"
+            elif gate["name"] == "claim_level":
+                assert gate["threshold"] == "computational_scaffold"
+
+    def test_rate_synchrony_targets_loss_targets(self):
+        """Test that loss targets are set correctly."""
         objective = jtfne.rate_synchrony_targets(
             target_rate_hz=5.0,
             target_kappa_synchrony=0.0,
         )
 
-        assert objective["rate_weight"] == 1.0
-        assert objective["synchrony_weight"] == 0.25
+        for loss in objective.losses:
+            if loss["name"] == "population_firing_rate":
+                assert loss["target"] == 5.0
+            elif loss["name"] == "kappa_synchrony":
+                assert loss["target"] == 0.0
 
     def test_rate_synchrony_targets_custom_weights(self):
-        """Test custom weights are preserved."""
+        """Test custom weights are preserved in losses."""
         objective = jtfne.rate_synchrony_targets(
             target_rate_hz=5.0,
             target_kappa_synchrony=0.0,
@@ -149,8 +168,11 @@ class TestRateSynchronyTargets:
             synchrony_weight=1.0,
         )
 
-        assert objective["rate_weight"] == 2.0
-        assert objective["synchrony_weight"] == 1.0
+        for loss in objective.losses:
+            if loss["name"] == "population_firing_rate":
+                assert loss["weight"] == 2.0
+            elif loss["name"] == "kappa_synchrony":
+                assert loss["weight"] == 1.0
 
 
 class TestIntegration:
@@ -171,7 +193,7 @@ class TestIntegration:
             target_rate_hz=5.0,
             target_kappa_synchrony=0.0,
         )
-        assert objective["name"] == "rate_synchrony_targets"
+        assert objective.name == "rate_synchrony_targets"
 
     def test_kappa_on_simulated_spikes(self):
         """Test kappa_synchrony on actual simulated spikes."""
