@@ -224,8 +224,17 @@ def plot_circuit_schematic(g_ei, g_ie, firing_rate_e, firing_rate_i):
     return fig
 
 
-def main():
-    """Main tutorial execution."""
+def main(update_canonical: bool = False):
+    """Main tutorial execution.
+
+    Parameters
+    ----------
+    update_canonical : bool, default False
+        When True, write the canonical docs manifest to
+        docs/tutorials_v030/manifests/ (only for intentional docs-build runs).
+        Tests should always call main() with update_canonical=False (the default)
+        to prevent tracked tutorial artifact drift.
+    """
 
     try:
         import matplotlib
@@ -919,17 +928,19 @@ def main():
         hashes["figures/v0303_two_neuron_ei_circuit_schematic.png"] = circuit_schematic_hash
         write_json(OUT / "asset_hashes.json", hashes)
 
-        # Also update canonical docs manifest (for v0303 naming)
-        canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
-        canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_manifest_path, atlas_manifest)
+        # Only update canonical docs manifests when explicitly requested
+        # (never during automated test runs — prevents tracked-file drift)
+        if update_canonical:
+            canonical_manifest_path = Path("docs/tutorials_v030/manifests/v0303_two_neuron_ei_multimodal_manifest.json")
+            canonical_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            write_json(canonical_manifest_path, atlas_manifest)
 
-        canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
-        canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
-        write_json(canonical_report_path, atlas_manifest["validation_report"])
+            canonical_report_path = Path("docs/tutorials_v030/reports/v0303_two_neuron_ei_multimodal_validation_report.json")
+            canonical_report_path.parent.mkdir(parents=True, exist_ok=True)
+            write_json(canonical_report_path, atlas_manifest["validation_report"])
 
-        print(f"Canonical manifest: {canonical_manifest_path}")
-        print(f"Canonical report: {canonical_report_path}")
+            print(f"Canonical manifest: {canonical_manifest_path}")
+            print(f"Canonical report: {canonical_report_path}")
 
         # ============================================================================
         # Summary
