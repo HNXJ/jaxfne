@@ -32,13 +32,13 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `175b75b` | Suite No. 3 noisy absolute-power scaling correction merged; 1318/1318 tests pass |
-| `dev` | `dba883d` | v0.3.19 sliced CSD stencil committed; 1681/1681 tests pass |
+| `main` | `156ec79` | dev merged (FF); 1743/1743 tests pass; v0.3.20, builders, release-control, Phase 4 docs landed |
+| `dev` | `156ec79` | Fully aligned with main |
 
-**Version:** `0.3.19` (on cleanup dev branch, not yet merged to main)  
-**Tests:** 1681 passed, 64 skipped, 4 xfailed  
+**Version:** `0.3.14` on PyPI (released); next release target: v0.3.15 (dev work in progress)  
+**Tests:** 1743 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
-**Next safe action:** Push branch, merge to main as v0.3.19, then proceed to v0.3.20
+**Next safe action:** Phase 5 visualization API expansion on dev
 
 ---
 
