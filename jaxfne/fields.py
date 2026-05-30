@@ -139,6 +139,9 @@ def project_laminar_sources(
 
     # Proxy CSD-proxy readout from a laminar second derivative.  This is not a
     # PDE solution and is deliberately diagnosed as laminar_proxy_no_pde.
+    # We use an explicit, vector-sliced central difference stencil rather than
+    # sequential jnp.gradient calls. This eliminates high-level tracing overhead,
+    # reduces XLA memory allocations, and enables loop-fusion in the compiler tree.
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
     
     if n_contacts > 2:

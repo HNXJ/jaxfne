@@ -871,6 +871,397 @@ class Configuration:
         """Enable V1/V4 feedforward-feedback metadata in the construct path."""
         return self.update_metadata(suite2_interarea=bool(enabled))
 
+    # ------------------------------------------------------------------
+    # Complete Configuration API: domains 6-10 (inter_column_connectivity,
+    # drive, objective, optimizer) as chainable methods.
+    # ------------------------------------------------------------------
+
+    def inter_column_connectivity(
+        self,
+        *,
+        source_area: Optional[str] = None,
+        target_area: Optional[str] = None,
+        layer_to_layer_map: Optional[Mapping[str, str]] = None,
+        cell_type_to_cell_type_map: Optional[Mapping[str, str]] = None,
+        mode: str = "sparse",
+        p_feedforward: Optional[float] = None,
+        p_feedback: Optional[float] = None,
+        feedforward_weight_range: Optional[tuple] = None,
+        feedback_weight_range: Optional[tuple] = None,
+        delay_ms_or_status: Optional[float | str] = None,
+        sign_policy: str = "intrinsic",
+        seed: Optional[int] = None,
+    ) -> "Configuration":
+        """Declare inter-column (inter-area) connectivity specification.
+
+        This method stores declarative connectivity metadata between two cortical
+        areas. No actual matrix construction or edge list generation occurs;
+        all parameters are metadata only.
+
+        Parameters
+        ----------
+        source_area : str, optional
+            Name of the source area (e.g., "V1"). Default: "V1".
+        target_area : str, optional
+            Name of the target area (e.g., "V4"). Default: "V4".
+        layer_to_layer_map : dict[str, str], optional
+            Mapping from source layers to target layers. Default: declarative
+            metadata with common layer pairs (e.g., "L2/3" → "L4").
+        cell_type_to_cell_type_map : dict[str, str], optional
+            Mapping from source cell types to target cell types. Default:
+            identity map (E→E, PV→PV, etc.).
+        mode : str
+            Connectivity mode: "sparse", "all_to_all", "block_dense",
+            or "distance_decay". Default: "sparse".
+        p_feedforward : float, optional
+            Probability of feedforward connections. Default: 0.3.
+        p_feedback : float, optional
+            Probability of feedback connections. Default: 0.2.
+        feedforward_weight_range : tuple[float, float], optional
+            Weight range for feedforward synapses. Default: (0.5, 2.0).
+        feedback_weight_range : tuple[float, float], optional
+            Weight range for feedback synapses. Default: (0.3, 1.5).
+        delay_ms_or_status : float or str, optional
+            Transmission delay in ms, or a status string (e.g.,
+            "no_delay_proxy_metadata"). Default: None.
+        sign_policy : str
+            "intrinsic" (signs determined by emitter cell types) or "declared".
+            Default: "intrinsic".
+        seed : int, optional
+            PRNG seed for stochastic connectivity generation. Default: None.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+
+        Notes
+        -----
+        - All parameters are metadata only; no matrix construction.
+        - Document explicitly: "Declarative inter-column metadata. Not solved.
+          Physical edge delays not modeled."
+        - Scope: proxy specification only; no PDE solution.
+        """
+        if source_area is None:
+            source_area = "V1"
+        if target_area is None:
+            target_area = "V4"
+        if p_feedforward is None:
+            p_feedforward = 0.3
+        if p_feedback is None:
+            p_feedback = 0.2
+        if feedforward_weight_range is None:
+            feedforward_weight_range = (0.5, 2.0)
+        if feedback_weight_range is None:
+            feedback_weight_range = (0.3, 1.5)
+        if layer_to_layer_map is None:
+            layer_to_layer_map = {
+                "L2/3": "L4",
+                "L5": "L1",
+                "L5": "L2/3",
+            }
+        if cell_type_to_cell_type_map is None:
+            cell_type_to_cell_type_map = {
+                "E": "E",
+                "PV": "PV",
+                "SST": "SST",
+                "VIP": "VIP",
+            }
+
+        inter_conn_spec = {
+            "source_area": str(source_area),
+            "target_area": str(target_area),
+            "layer_to_layer_map": dict(layer_to_layer_map),
+            "cell_type_to_cell_type_map": dict(cell_type_to_cell_type_map),
+            "mode": str(mode),
+            "p_feedforward": float(p_feedforward),
+            "p_feedback": float(p_feedback),
+            "feedforward_weight_range": tuple(feedforward_weight_range),
+            "feedback_weight_range": tuple(feedback_weight_range),
+            "delay_ms_or_status": delay_ms_or_status,
+            "sign_policy": str(sign_policy),
+            "seed": seed,
+        }
+        return self.update_metadata(inter_column_connectivity=inter_conn_spec)
+
+    def drive(
+        self,
+        *,
+        baseline_drive_by_cell_type: Optional[Mapping[str, float]] = None,
+        drive_by_layer: Optional[Mapping[str, float]] = None,
+        drive_by_area: Optional[Mapping[str, float]] = None,
+        time_schedule: Optional[str] = None,
+        evoked_windows: Optional[Sequence[tuple]] = None,
+        oddball_or_omission_schedule: Optional[Mapping[str, Sequence]] = None,
+        noise_policy: str = "additive_poisson",
+        trial_variability: bool = False,
+    ) -> "Configuration":
+        """Declare drive (stimulus and noise) specification.
+
+        This method stores declarative drive metadata: baseline external input,
+        evoked windows, noise policy, and trial variability settings.
+        No actual stimulus envelope generation occurs; all parameters are
+        metadata only.
+
+        Parameters
+        ----------
+        baseline_drive_by_cell_type : dict[str, float], optional
+            Baseline external drive per cell type. Default:
+            {"E": 5.0, "PV": 3.0, "SST": 3.5, "VIP": 3.0}.
+        drive_by_layer : dict[str, float], optional
+            Layer-specific drive overrides. Default: {} (no override).
+        drive_by_area : dict[str, float], optional
+            Area-specific drive overrides. Default: {} (no override).
+        time_schedule : str, optional
+            Drive schedule type: "constant", "ramp", "pulse", or a path.
+            Default: "constant".
+        evoked_windows : list[tuple], optional
+            List of (onset_ms, duration_ms) pairs for evoked responses.
+            Default: [] (no evoked drive).
+        oddball_or_omission_schedule : dict[str, list], optional
+            Oddball and omission event times. Default: empty dict.
+        noise_policy : str
+            Noise type: "additive_poisson", "additive_gaussian", or "none".
+            Default: "additive_poisson".
+        trial_variability : bool
+            Whether trial-to-trial variation is enabled. Default: False.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+
+        Notes
+        -----
+        - All parameters are metadata only; no runtime I(t) generation.
+        - Actual stimulus envelope is generated at simulate() time.
+        """
+        if baseline_drive_by_cell_type is None:
+            baseline_drive_by_cell_type = {
+                "E": 5.0,
+                "PV": 3.0,
+                "SST": 3.5,
+                "VIP": 3.0,
+            }
+        if drive_by_layer is None:
+            drive_by_layer = {}
+        if drive_by_area is None:
+            drive_by_area = {}
+        if time_schedule is None:
+            time_schedule = "constant"
+        if evoked_windows is None:
+            evoked_windows = []
+        if oddball_or_omission_schedule is None:
+            oddball_or_omission_schedule = {}
+
+        if noise_policy not in ("additive_poisson", "additive_gaussian", "none"):
+            raise ValueError(
+                f"noise_policy must be one of ('additive_poisson', 'additive_gaussian', 'none'); "
+                f"got {noise_policy!r}"
+            )
+
+        drive_spec = {
+            "baseline_drive_by_cell_type": dict(baseline_drive_by_cell_type),
+            "drive_by_layer": dict(drive_by_layer),
+            "drive_by_area": dict(drive_by_area),
+            "time_schedule": str(time_schedule),
+            "evoked_windows": list(evoked_windows),
+            "oddball_or_omission_schedule": dict(oddball_or_omission_schedule),
+            "noise_policy": str(noise_policy),
+            "trial_variability": bool(trial_variability),
+        }
+        return self.update_metadata(drive=drive_spec)
+
+    def objective(
+        self,
+        *,
+        firing_rate_target: Optional[Mapping[str, float]] = None,
+        spectrolaminar_profile_target: Optional[Mapping[str, tuple]] = None,
+        band_definitions: Optional[Mapping[str, tuple]] = None,
+        synchrony_metrics: Optional[Sequence[str]] = None,
+        null_controls: Optional[Mapping[str, str]] = None,
+        ablations: Optional[Mapping[str, bool]] = None,
+        rejection_gates: Optional[Mapping[str, tuple]] = None,
+    ) -> "Configuration":
+        """Declare objective specification for optimization and validation.
+
+        This method stores declarative objective metadata: firing-rate targets,
+        spectral band definitions, null controls, ablations, and rejection gates.
+        No actual loss computation occurs; all parameters are metadata only.
+
+        Parameters
+        ----------
+        firing_rate_target : dict[str, float], optional
+            Target firing rate (Hz) per cell type. Default:
+            {"E": 8.0, "PV": 15.0, "SST": 4.0, "VIP": 2.0}.
+        spectrolaminar_profile_target : dict[str, tuple], optional
+            Target power fraction per band. Default:
+            {"alpha_beta": (0.3, 0.5), "gamma": (0.1, 0.3)}.
+        band_definitions : dict[str, tuple], optional
+            Frequency band definitions (Hz). Default:
+            {"alpha_beta": (8.0, 25.0), "gamma": (40.0, 150.0)}.
+        synchrony_metrics : list[str], optional
+            Synchrony metrics to track. Default:
+            ["pairwise_spike_distance", "lfp_cross_correlation"].
+        null_controls : dict[str, str], optional
+            Null model specification. Default:
+            {"null_type": "shuffled_spike_times", "n_null_trials": 10}.
+        ablations : dict[str, bool], optional
+            Ablation flags (True = remove, False = keep). Default:
+            {"E_ablation": False, "PV_ablation": False}.
+        rejection_gates : dict[str, tuple], optional
+            Hard validation bounds. Default:
+            {"max_firing_rate": (0.0, 200.0), "min_synchrony": (-1.0, 1.0)}.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+
+        Notes
+        -----
+        - All parameters are metadata only; no loss computation.
+        - Use with model.tune() and optimizer configuration.
+        - truth_mode remains truth_safe_unverified; no physical claims.
+        """
+        if firing_rate_target is None:
+            firing_rate_target = {
+                "E": 8.0,
+                "PV": 15.0,
+                "SST": 4.0,
+                "VIP": 2.0,
+            }
+        if spectrolaminar_profile_target is None:
+            spectrolaminar_profile_target = {
+                "alpha_beta": (0.3, 0.5),
+                "gamma": (0.1, 0.3),
+            }
+        if band_definitions is None:
+            band_definitions = {
+                "alpha_beta": (8.0, 25.0),
+                "gamma": (40.0, 150.0),
+            }
+        if synchrony_metrics is None:
+            synchrony_metrics = [
+                "pairwise_spike_distance",
+                "lfp_cross_correlation",
+            ]
+        if null_controls is None:
+            null_controls = {
+                "null_type": "shuffled_spike_times",
+                "n_null_trials": 10,
+            }
+        if ablations is None:
+            ablations = {
+                "E_ablation": False,
+                "PV_ablation": False,
+                "SST_ablation": False,
+                "VIP_ablation": False,
+            }
+        if rejection_gates is None:
+            rejection_gates = {
+                "max_firing_rate": (0.0, 200.0),
+                "min_synchrony": (-1.0, 1.0),
+            }
+
+        objective_spec = {
+            "firing_rate_target": dict(firing_rate_target),
+            "spectrolaminar_profile_target": dict(spectrolaminar_profile_target),
+            "band_definitions": dict(band_definitions),
+            "synchrony_metrics": list(synchrony_metrics),
+            "null_controls": dict(null_controls),
+            "ablations": dict(ablations),
+            "rejection_gates": dict(rejection_gates),
+        }
+        return self.update_metadata(objective=objective_spec)
+
+    def optimizer(
+        self,
+        *,
+        optimizer_family: str = "AGSDR",
+        differentiability_status: str = "non_differentiable",
+        surrogate_status: str = "soft_rate_surrogate",
+        search_space: Optional[Mapping[str, tuple]] = None,
+        budget: Optional[int] = None,
+        seed: Optional[int] = None,
+        hard_gates: Optional[Mapping[str, str]] = None,
+    ) -> "Configuration":
+        """Declare optimizer specification.
+
+        This method stores declarative optimizer metadata: family,
+        differentiability status, search space, budget, and hard gates
+        (e.g., immutable claim_level). No actual optimization occurs;
+        all parameters are metadata only.
+
+        Parameters
+        ----------
+        optimizer_family : str
+            Optimizer family: "AGSDR", "GSDR", "random_search",
+            "optax_adam", or "optax_sgd". Default: "AGSDR".
+        differentiability_status : str
+            "non_differentiable", "differentiable_via_surrogate",
+            or "fully_differentiable". Default: "non_differentiable".
+        surrogate_status : str
+            Surrogate type: "soft_rate_surrogate", "quadratic_loss",
+            or "none". Default: "soft_rate_surrogate".
+        search_space : dict[str, tuple], optional
+            Parameter bounds: {param_name: (low, high), ...}.
+            Default: {} (empty; no search space).
+        budget : int, optional
+            Iteration budget (e.g., 50 for AGSDR). Default: 50.
+        seed : int, optional
+            PRNG seed for stochastic optimizer. Default: None.
+        hard_gates : dict[str, str], optional
+            Immutable constraints (e.g., {"claim_level":
+            "computational_scaffold"}). Default:
+            {"claim_level": "computational_scaffold"}.
+
+        Returns
+        -------
+        Configuration
+            Updated configuration.
+
+        Notes
+        -----
+        - All parameters are metadata only; no optimization execution.
+        - hard_gates enforce immutable truth constraints; cannot be overridden.
+        - Surrogate paths (differentiable_via_surrogate) are for inner loops
+          only; real objective gates biological/physical claims.
+        - truth_mode remains truth_safe_unverified.
+        """
+        if search_space is None:
+            search_space = {}
+        if budget is None:
+            budget = 50
+        if hard_gates is None:
+            hard_gates = {
+                "claim_level": "computational_scaffold",
+            }
+
+        allowed_families = (
+            "AGSDR",
+            "GSDR",
+            "random_search",
+            "optax_adam",
+            "optax_sgd",
+        )
+        if optimizer_family not in allowed_families:
+            raise ValueError(
+                f"optimizer_family must be one of {allowed_families}; "
+                f"got {optimizer_family!r}"
+            )
+
+        optimizer_spec = {
+            "optimizer_family": str(optimizer_family),
+            "differentiability_status": str(differentiability_status),
+            "surrogate_status": str(surrogate_status),
+            "search_space": dict(search_space),
+            "budget": int(budget),
+            "seed": seed,
+            "hard_gates": dict(hard_gates),
+        }
+        return self.update_metadata(optimizer=optimizer_spec)
+
     def validate(self) -> dict[str, Any]:
         issues: list[str] = []
         if not self.networks:

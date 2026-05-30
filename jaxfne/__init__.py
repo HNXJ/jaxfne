@@ -106,6 +106,19 @@ from .presets import (
     DEFAULT_SPIKE_IMPULSE_GAIN,
     RECEPTOR_KINETICS,
 )
+from .builders import (
+    default_cortical_column_config,
+    default_spectrolaminar_config,
+    build_laminar_column,
+    build_multi_area_columns,
+    connect_columns,
+    sparse_intercolumn_connectivity,
+    all_to_all_intercolumn_connectivity,
+    layer_celltype_count_table,
+    column_density_table,
+    configuration_table,
+    validate_configuration,
+)
 from .fields import (
     FieldOutput,
     compute_conservation_proxy_diagnostics,

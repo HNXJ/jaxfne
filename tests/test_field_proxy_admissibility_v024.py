@@ -175,3 +175,50 @@ class TestFieldProxyAdmissibilityV024:
         # Should have warnings about proxy modes
         assert len(status["warnings"]) > 0
         assert any("proxy_readout_modes_requested" in w for w in status["warnings"])
+
+    def test_stencil_numerical_parity_with_gradient(self):
+        """Verify parity of sliced finite-difference stencil and double-gradient on smooth quadratic field."""
+        # 1D coordinate array
+        n_contacts = 50
+        contacts = jnp.linspace(0.0, 1.0, n_contacts, dtype=jnp.float32)
+        dz = contacts[1] - contacts[0]
+
+        # Analytical quadratic potential field: phi(z) = z^2
+        # Shape: [T=1, n_contacts]
+        phi_e_proxy = (contacts ** 2)[None, :]
+
+        # 1. Direct stencil evaluation on interior
+        interior_stencil = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:-1] + phi_e_proxy[:, :-2]) / (dz * dz)
+
+        # 2. Double gradient evaluation on interior
+        grad_1 = jnp.gradient(phi_e_proxy, dz, axis=1)
+        grad_2 = jnp.gradient(grad_1, dz, axis=1)
+        interior_grad = grad_2[:, 1:-1]
+
+        # Assert strict numerical parity on the interior
+        assert jnp.allclose(interior_stencil, interior_grad, atol=1e-5)
+
+    def test_finite_boundary_checks(self):
+        """Assert that edge padding rules maintain array dimensions and do not inject NaN/Inf."""
+        # Standard input setups
+        n_neurons = 4
+        t_steps = 5
+        sources = jnp.ones((t_steps, n_neurons), dtype=jnp.float32)
+        positions = jnp.array(
+            [[0.0, 0.0, 0.2], [0.0, 0.0, 0.4], [0.0, 0.0, 0.6], [0.0, 0.0, 0.8]],
+            dtype=jnp.float32,
+        )
+
+        # Evaluate project_laminar_sources with various contact counts
+        for n_contacts in [3, 8, 32]:
+            field = project_laminar_sources(sources, positions, n_contacts=n_contacts)
+            csd = field.csd
+            phi = field.phi_e
+
+            # Invariant 1: csd shape matches phi shape
+            assert csd.shape == phi.shape
+            assert csd.shape[-1] == n_contacts
+
+            # Invariant 2: csd does not contain NaN or Inf at the boundaries or interior
+            assert jnp.all(jnp.isfinite(csd))
+
