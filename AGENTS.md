@@ -32,10 +32,10 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Branch | SHA | Status |
 |---|---|---|
-| `main` | `1ca6f1e` | Phase 5 vis API complete; 1772/1772 tests pass |
-| `dev` | `fd0ae98` | Phase 5b multi-laminar AGSDR complete; 1787/1787 tests pass |
+| `main` | `release-candidate` | v0.3.21 release candidate, Etude No. 1 and template aligned |
+| `dev` | `sync-source` | staging branch; merge to main only after validation |
 
-**Version:** `0.3.14` on PyPI (released); next release candidate: v0.3.21  
+**Version:** `0.3.21` release candidate; PyPI upload pending final release authorization  
 **Tests:** 1787 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
 
@@ -48,7 +48,7 @@ cat AGENTS.md               # read active locks before touching anything
 - Phase 5: Visualization API (9 functions)
 - Phase 5b: Multi-laminar AGSDR (3 analysis functions + tutorial)
 
-**Next safe action:** Merge dev → main for v0.3.21 release
+**Next safe action:** Run release validation gates, tag v0.3.21, and publish only after clean receipts
 
 ---
 

@@ -1,3 +1,24 @@
+## [0.3.21] - 2026-05-30
+
+### Added
+- Added Etude No. 1 as an advanced multi-laminar cortical AGSDR workflow under `tutorials/etudes/`.
+- Added a canonical notebook template under `tutorials/templates/` with unified setup, truth gates, and placeholder configuration.
+- Added a template guide for Suites and Etudes.
+
+### Changed
+- Cleaned duplicated Etude notebook artifacts into `internal_docs/archive/`.
+- Moved release/alignment receipts into `internal_docs/release_receipts/` to keep the repository root focused on package entry points.
+- Updated release checklist and agent status metadata for the v0.3.21 release candidate.
+
+### Validation status
+- Package import and compile gates pass in the release-prep workspace.
+- Etude and template notebooks pass structural hygiene checks: both install options, canonical `import jaxfne as jtfne`, no consecutive code cells, and JSON-safe metadata paths.
+
+### Scope
+- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+
+---
+
 ## [0.3.19] - 2026-05-30
 
 ### Changed

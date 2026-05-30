@@ -165,3 +165,7 @@ suite_no1_figures.zip
 suite_no1_public_manifest.json
 *_AUDIT*.md
 *_VALIDATION*.md
+
+# Runtime/tutorial execution outputs
+test_execution_output/
+.ipynb_checkpoints/
