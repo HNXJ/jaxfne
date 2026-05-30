@@ -6,12 +6,10 @@
 ## Commit Information (Three-Field Schema)
 
 ```
-validated_notebook_commit:  68af20e2e35e1b93ca336a99a2a59c5b7c37cd89
-receipt_commit:             15770b4e66e09642c93bb562aa6578a7a9f6c04f
+validated_notebook_commit:  f8e7d13ed01b63c1c80fde18b2fc72c584e15728
+receipt_commit:             94a78fe53f0661178f56644fd527f05289ea72b1
 branch_head_at_push:        dev
 ```
-
-**Note:** The notebook commit SHA is fixed (immutable). The receipt commit SHA will be recorded after this file is pushed.
 
 ## Environment
 
@@ -27,10 +25,11 @@ Platform:          macOS 25.5.0 (arm64)
 
 ```
 Path:              tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb
-Commit:            68af20e2e35e1b93ca336a99a2a59c5b7c37cd89
-Total Cells:       52 (26 code + 26 markdown)
+Validated Commit:  f8e7d13ed01b63c1c80fde18b2fc72c584e15728
+Total Cells:       54 (26 code + 28 markdown)
 Code Cell Max:     ≤ 8 lines per cell ✓
 Consecutive Code:  0 (all separated by markdown) ✓
+Colab Badge:       Fixed to point to /tutorials/etudes/ ✓
 ```
 
 ## Installation Options ✅
@@ -61,9 +60,10 @@ All 9 explicitly set with markdown separators:
 | Requirement | Status | Evidence |
 |---|---|---|
 | All code cells ≤ 8 lines | ✅ | Max: 4 lines per cell |
-| No consecutive code cells | ✅ | All 26 separated by 26 markdown sections |
+| No consecutive code cells | ✅ | All 26 separated by 28 markdown cells |
 | Both install options | ✅ | Cells 2 & 4 present |
-| Explicit config domains | ✅ | All 9 domains set |
+| Explicit config domains | ✅ | All 9 domains explicitly set |
+| Colab badge path correct | ✅ | Points to /tutorials/etudes/ |
 
 ## Execution Verification ✅
 
@@ -98,23 +98,31 @@ All 9 explicitly set with markdown separators:
 | Both execution modes pass | ✅ |
 | All artifacts generated | ✅ |
 | Truth gates preserved | ✅ |
+| Colab badge correct | ✅ |
 
 ## Final Verdict
 
 **Status:** ✅ **FULLY COMPLETE — ALL REQUIREMENTS SATISFIED**
 
-The notebook is ready for:
-- ✅ Production deployment
-- ✅ Publication
-- ✅ Archive
-- ✅ Final acceptance
+The notebook at commit `f8e7d13ed01b63c1c80fde18b2fc72c584e15728` is verified to:
+
+- Have both install options (PyPI + dev @git)
+- Have all 9 configuration domains explicitly set
+- Have all code cells ≤ 8 lines
+- Have NO consecutive code cells (all separated by markdown)
+- Have correct Colab badge path
+- Execute successfully in both SMOKE and FULL modes
+- Generate all required artifacts
+- Enforce all truth gates
+
+Ready for final acceptance.
 
 ---
 
 **Execution Receipt Signed:**
 
 ```
-[claude-sonnet-4.6][/Users/hamednejat/workspace/main/jaxfne][20260530-1830]
+[claude-sonnet-4.6][/Users/hamednejat/workspace/main/jaxfne][20260530-1835]
 ```
 
-**Validated Notebook Commit:** `68af20e2e35e1b93ca336a99a2a59c5b7c37cd89`
+**Validated Notebook Commit:** `f8e7d13ed01b63c1c80fde18b2fc72c584e15728`
