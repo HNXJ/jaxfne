@@ -1170,3 +1170,122 @@ def basis_claim_gate(
         "basis_implemented": validation.get("implemented", False),
         "basis_future_regime": validation.get("future_regime", False),
     }
+
+
+# ─── v0.3.20 JAX Re-compilation Detection Guards ──────────────────────────────
+
+
+class CompilationRegistry:
+    """Automated JAX tracing and compilation tracking registry for v0.3.20.
+
+    Monitors shape signatures (B, Z, C, T) during JAX compilation phases
+    and alerts or blocks execution if duplicate compilation or shape
+    mutations occur.
+    """
+
+    def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
+        """Reset the compilation counter, signature baselines, and modes."""
+        self.traced_signatures: dict[tuple[str, tuple[int, int, int, int]], int] = {}
+        self.baselines: dict[str, tuple[int, int, int, int]] = {}
+        self.mode = "warning"  # "warning" | "exception" | "off"
+
+    def set_mode(self, mode: str) -> None:
+        """Set the guard alert behavior mode.
+
+        Parameters
+        ----------
+        mode : str
+            Choose 'warning', 'exception', or 'off'.
+        """
+        if mode not in {"warning", "exception", "off"}:
+            raise ValueError(f"recompilation_guard mode must be 'warning', 'exception', or 'off'; got {mode!r}")
+        self.mode = mode
+
+    def track_trace(self, name: str, signature: tuple[int, int, int, int]) -> None:
+        """Track a tracer evaluation (compilation) for a function and check invariants.
+
+        Parameters
+        ----------
+        name : str
+            Name of the monitored execution path (e.g., 'simulate').
+        signature : tuple
+            Execution shape signature (B, Z, C, T).
+        """
+        if self.mode == "off":
+            return
+
+        key = (name, signature)
+        if key not in self.traced_signatures:
+            self.traced_signatures[key] = 0
+        self.traced_signatures[key] += 1
+
+        # 1. Establish/Validate Baseline Signature
+        if name not in self.baselines:
+            self.baselines[name] = signature
+        else:
+            baseline = self.baselines[name]
+            if signature != baseline:
+                msg = (
+                    f"Re-compilation guard alert: Function '{name}' underwent shape mutation compile loop! "
+                    f"Baseline signature: {baseline} (B, Z, C, T), New signature: {signature} (B, Z, C, T)."
+                )
+                if self.mode == "exception":
+                    raise ValueError(msg)
+                else:
+                    import warnings
+                    warnings.warn(msg, UserWarning)
+
+        # 2. Assert Compilation Invariant (N_compile <= 1 per signature)
+        if self.traced_signatures[key] > 1:
+            msg = (
+                f"Re-compilation guard alert: Function '{name}' with signature {signature} (B, Z, C, T) "
+                f"compiled {self.traced_signatures[key]} times! Invariant N_compile <= 1 violated."
+            )
+            if self.mode == "exception":
+                raise ValueError(msg)
+            else:
+                import warnings
+                warnings.warn(msg, UserWarning)
+
+
+# Global singleton instance of compilation registry
+compilation_registry = CompilationRegistry()
+
+
+def make_recompilation_guard(
+    fn: Any,
+    name: str,
+    recompilation_guard: str,
+    B: int,
+    Z: int,
+    C: int,
+    T: int,
+) -> Any:
+    """Wrap a Python function to track and guard compilation trace-time bounds.
+
+    Parameters
+    ----------
+    fn : Callable
+        Function to be compiled.
+    name : str
+        Diagnostics identifier (e.g. 'simulate').
+    recompilation_guard : str
+        Guard behavior mode ('warning', 'exception', or 'off').
+    B : int
+        Batch dimension or seed count.
+    Z : int
+        Layer contact count.
+    C : int
+        Neuron/compartment count.
+    T : int
+        Time simulation steps.
+    """
+    def wrapped(*args, **kwargs):
+        # This python code executes exactly once when JAX compiles/traces this block
+        compilation_registry.set_mode(recompilation_guard)
+        compilation_registry.track_trace(name, (B, Z, C, T))
+        return fn(*args, **kwargs)
+    return wrapped
