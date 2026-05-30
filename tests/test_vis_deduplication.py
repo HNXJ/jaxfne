@@ -11,7 +11,7 @@ def test_no_duplicate_vis_functions():
     import ast
     from pathlib import Path
 
-    vis_path = Path(__file__).parent.parent / "jaxfne" / "vis.py"
+    vis_path = Path(__file__).parent.parent / "jaxfne" / "vis" / "__init__.py"
     code = vis_path.read_text()
     tree = ast.parse(code)
 
