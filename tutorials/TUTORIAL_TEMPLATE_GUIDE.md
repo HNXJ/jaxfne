@@ -8,11 +8,12 @@ The **jaxfne Notebook Template** (`tutorials/templates/jaxfne_notebook_template.
 
 The template enforces:
 
-- ✅ **Hygiene gates:** All code cells ≤ 8 lines (except unified setup cell with 9 lines), no consecutive code cells
+- ✅ **Hygiene gates:** Normal workflow cells ≤ 8 lines; setup/configuration cells exempt
 - ✅ **Installation options:** Both PyPI and dev-branch installs in one unified setup cell
 - ✅ **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
 - ✅ **Canonical imports:** `import jaxfne as jtfne`
 - ✅ **Truth gates:** Scope gates explicitly documented
+- ✅ **No consecutive code cells:** Every code cell is preceded by markdown
 - ✅ **Reproducibility:** Deterministic seeding from the start
 
 ## How to Use
@@ -44,7 +45,7 @@ cp tutorials/templates/jaxfne_notebook_template.ipynb \
 - Keep the unified setup cell (Cell 2) with both install options
 - Keep truth gates documented at the top
 - Separate every code cell with markdown (no consecutive code cells)
-- Keep all code cells ≤ 8 lines (template setup cell is 9 lines by necessity)
+- Keep normal workflow cells ≤ 8 lines (setup/configuration cells exempt)
 
 **Recommended:**
 - Each major step (simulation, optimization, visualization) gets its own markdown section
@@ -81,13 +82,16 @@ The canonical template now uses a unified setup pattern to minimize code cells:
 |------|------|---------|
 | 1 | Markdown | Title & scope gates |
 | 2 | Markdown | Setup header |
-| 3 | Code | **Unified setup cell** (6 lines):<br>- Both PyPI and dev installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
+| 3 | Code | **Unified setup cell** (exempt from ≤8 line rule):<br>- Both PyPI and dev installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
 | 4 | Markdown | Outline & description |
 | 5 | Markdown | Configuration header |
-| 6 | Code | Placeholder configuration |
+| 6 | Code | Placeholder configuration (exempt from ≤8 line rule when declaring all domains) |
 | 7+ | Markdown/Code | Workflow steps (add your simulation, optimization, visualization) |
 
-**Note:** The setup cell is 6 lines and respects the ≤8 line hygiene gate. All other code cells should also respect this rule.
+**Line count exemptions:**
+- **Setup cell (Cell 3):** Exempt from ≤8 line rule. Owns installation, environment variables, backend policy, dtype policy, and imports. May span 8+ lines.
+- **Configuration cell (Cell 6):** Exempt from ≤8 line rule when explicitly declaring all input domains (runtime, areas, cell types, connectivity, drive, field, probes, objective, optimizer, etc.).
+- **Workflow cells:** Keep ≤ 8 lines preferred for readability and modularity.
 
 ## Scope Gates Template
 
