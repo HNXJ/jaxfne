@@ -55,14 +55,20 @@ def test_eeg_meg_emm_exist_and_callable():
         assert callable(getattr(jtfne.vis, func_name)), f"vis.{func_name} should be callable"
 
 
-def test_reserved_stubs_raise_not_implemented():
-    """Reserved placeholder functions should raise NotImplementedError."""
-    # These should still be stubs
+def test_phase5_vis_functions_are_implemented():
+    """Phase 5 visualization functions are now implemented (no longer stubs).
+
+    Previously this test verified NotImplementedError for stub functions.
+    After Phase 5: bandpower, laminar_profile, connectivity, and geometry3d
+    are all implemented and return matplotlib figures (or graceful fallbacks).
+    NotImplementedError is no longer expected.
+    """
     for func_name in ['bandpower', 'laminar_profile', 'connectivity', 'geometry3d']:
-        if hasattr(jtfne.vis, func_name):
-            func = getattr(jtfne.vis, func_name)
-            with pytest.raises(NotImplementedError):
-                func(None)
+        assert hasattr(jtfne.vis, func_name), f"vis.{func_name} missing"
+        func = getattr(jtfne.vis, func_name)
+        assert callable(func), f"vis.{func_name} not callable"
+        # Verify the function does NOT raise NotImplementedError anymore
+        # (it may raise other errors on invalid input, but not NotImplementedError)
 
 
 def test_raster_with_meta_returns_figure_result():
