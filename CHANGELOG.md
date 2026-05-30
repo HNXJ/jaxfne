@@ -1,4 +1,28 @@
+## [0.3.17] - 2026-05-30
+
+### Changed
+- `optim.py` (`_run_agsdr_optimization_loop`): Replaced hard-coded `dtype=jnp.float32`
+  with `_wdtype` derived from bounds via `jnp.result_type`. Noise tensor, `gen_best_arr`,
+  and delta-rule center updates now match this working dtype.
+- `optim.py` (matrix AGSDR path): Applied `_wdtype_outer` dtype-inheritance to `lows`,
+  `highs`, noise generation, inner-loss fallback, `W_init` extraction, and
+  delta-rule center update arrays.
+- `W_init` for inner-loop Adam now reads `emitter.W.dtype` instead of force-casting
+  to `float32`.
+
+### Added
+- `tests/test_v0317_dtype_invariants.py`: 12 targeted tests covering default float32
+  path, dtype inheritance, candidate clipping, row-0 center lock, and bounds
+  validation guards.
+
+### Scope
+- `truth_safe_unverified` / `field_solver_status=laminar_proxy_no_pde` unchanged.
+- No public API additions or removals.
+
+---
+
 ## [0.3.14] - 2026-05-29
+
 
 ### Added
 - Added null, ablation, and synchrony-control support for the v0.3.14 tutorial/release line.
