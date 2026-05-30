@@ -513,20 +513,589 @@ def summary_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
     return FigureResult(fig, {"plot_type": "summary", "proxy_safe": True})
 
 
-def bandpower(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.bandpower")
+def bandpower(
+    signals: Any,
+    *,
+    band_definitions: dict[str, tuple[float, float]] | None = None,
+    figsize: tuple[float, float] = (10, 5),
+    **kwargs: Any,
+) -> Any:
+    """Plot mean spectral band power per contact (alpha/beta and gamma bands).
+
+    Parameters
+    ----------
+    signals : Signals
+        Output from simulate() or suite2_run_bundle().
+    band_definitions : dict, optional
+        Band name → (low_hz, high_hz). Defaults to alpha_beta (8-25 Hz) and
+        gamma (40-150 Hz).
+    figsize : tuple, default (10, 5)
+        Figure size in inches.
+
+    Returns
+    -------
+    matplotlib Figure — proxy relative units, no amplitude calibration.
+
+    Notes
+    -----
+    Proxy relative units only. Amplitude calibration is outside scope.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    if band_definitions is None:
+        band_definitions = {
+            "alpha/beta\n(8-25 Hz)": (8.0, 25.0),
+            "gamma\n(40-150 Hz)": (40.0, 150.0),
+        }
+
+    lfp_arr = _signals_lfp(signals)
+    if not np.all(np.isfinite(lfp_arr)):
+        lfp_arr = np.nan_to_num(lfp_arr, nan=0.0, posinf=0.0, neginf=0.0)
+
+    dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
+    fs = 1000.0 / dt_ms
+    freqs, pxx = signal.welch(lfp_arr, fs=fs, axis=0, nperseg=min(512, lfp_arr.shape[0]))
+    # pxx shape: (n_freqs, n_contacts)
+
+    n_bands = len(band_definitions)
+    fig, axes = plt.subplots(1, n_bands, figsize=figsize, squeeze=False)
+    n_contacts = lfp_arr.shape[1] if lfp_arr.ndim > 1 else 1
+
+    for col, (band_name, (lo, hi)) in enumerate(band_definitions.items()):
+        ax = axes[0, col]
+        mask = (freqs >= lo) & (freqs <= hi)
+        if mask.sum() == 0:
+            ax.text(0.5, 0.5, f"Band {band_name}\nnot covered by\nsampling rate",
+                    ha="center", va="center", transform=ax.transAxes)
+            ax.set_title(band_name)
+            continue
+        if lfp_arr.ndim > 1:
+            band_power = np.mean(pxx[mask, :], axis=0)   # shape: (n_contacts,)
+        else:
+            band_power = np.array([np.mean(pxx[mask])])
+
+        contact_labels = [str(c) for c in range(len(band_power))]
+        ax.barh(contact_labels, band_power, color="steelblue", alpha=0.8)
+        ax.set_title(f"Band power\n{band_name}", fontsize=10)
+        ax.set_xlabel("Power (proxy a.u.)")
+        ax.set_ylabel("Contact")
+        ax.grid(True, axis="x", linestyle="--", alpha=0.3)
+
+    fig.suptitle("Spectrolaminar Band Power (proxy relative units)", fontsize=11)
+    fig.tight_layout()
+    return fig
 
 
-def laminar_profile(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.laminar_profile")
+def laminar_profile(
+    signals: Any,
+    *,
+    cell_types: list[str] | None = None,
+    figsize: tuple[float, float] = (8, 5),
+    **kwargs: Any,
+) -> Any:
+    """Plot laminar neuron count distribution by cell type.
+
+    Shows the fraction of neurons assigned to each depth bin (declared metadata).
+    Works from neuron_metadata z-coordinates stored in signals.
+
+    Parameters
+    ----------
+    signals : Signals
+        Output from simulate(). Neuron z-positions read from signals.neuron_metadata.
+    cell_types : list of str, optional
+        Cell-type labels to plot. Inferred from metadata if available.
+    figsize : tuple, default (8, 5)
+        Figure size.
+
+    Returns
+    -------
+    matplotlib Figure — declared geometry only.
+
+    Notes
+    -----
+    Declared proxy geometry only. Physical anatomy is outside scope.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    rows = _neuron_rows(signals)
+    if not rows:
+        # Fallback: draw a placeholder with explanation
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.text(0.5, 0.5, "neuron_metadata not available\nin this signals object.\nRun with n_contacts > 0.",
+                ha="center", va="center", transform=ax.transAxes, fontsize=11)
+        ax.set_title("Laminar profile (declared geometry proxy)")
+        return fig
+
+    z_vals = np.asarray([float(row.get("z", 0.0)) for row in rows])
+    ct_vals = [str(row.get("cell_type", "unknown")) for row in rows]
+
+    if cell_types is None:
+        cell_types = sorted(set(ct_vals))
+
+    # Bin z into 10 depth bins
+    z_min, z_max = float(z_vals.min()), float(z_vals.max())
+    if z_max == z_min:
+        z_max = z_min + 1.0
+    n_bins = 10
+    bin_edges = np.linspace(z_min, z_max, n_bins + 1)
+    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+
+    colors = plt.cm.Set2(np.linspace(0, 1, len(cell_types)))
+    fig, ax = plt.subplots(figsize=figsize)
+
+    bottom = np.zeros(n_bins)
+    for ct, color in zip(cell_types, colors):
+        ct_mask = np.asarray([v == ct for v in ct_vals])
+        ct_z = z_vals[ct_mask]
+        counts, _ = np.histogram(ct_z, bins=bin_edges)
+        ax.barh(bin_centers, counts, height=(z_max - z_min) / n_bins * 0.8,
+                left=bottom, color=color, alpha=0.85, label=ct)
+        bottom += counts
+
+    ax.set_title("Laminar neuron profile (declared geometry proxy)", fontsize=11)
+    ax.set_xlabel("Neuron count")
+    ax.set_ylabel("Depth z (mm or relative)")
+    ax.invert_yaxis()
+    ax.legend(title="Cell type", bbox_to_anchor=(1.01, 1), loc="upper left")
+    ax.grid(True, axis="x", linestyle="--", alpha=0.3)
+    fig.tight_layout()
+    return fig
 
 
-def connectivity(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.connectivity")
+# Alias: layer_celltype_counts → laminar_profile (THETA Phase 5 name)
+def layer_celltype_counts(signals: Any, **kwargs: Any) -> Any:
+    """Plot laminar neuron count distribution by cell type.
+
+    Alias for :func:`laminar_profile`. See that function for full documentation.
+    """
+    return laminar_profile(signals, **kwargs)
 
 
-def geometry3d(signals: Any, **kwargs: Any) -> Any:
-    raise NotImplementedError("TODO: implement jtfne.vis.geometry3d")
+def connectivity(
+    model_or_W: Any,
+    *,
+    cell_type_labels: list[str] | None = None,
+    colormap: str = "RdBu_r",
+    figsize: tuple[float, float] = (8, 7),
+    **kwargs: Any,
+) -> Any:
+    """Plot the recurrent connectivity weight matrix as a heatmap.
+
+    Parameters
+    ----------
+    model_or_W : Model or array-like
+        A jaxfne Model object (weight matrix extracted from model.params) or a
+        raw weight matrix of shape (N, N).
+    cell_type_labels : list of str, optional
+        Labels for each row/column (neuron cell types). Shown as tick labels.
+    colormap : str, default "RdBu_r"
+        Matplotlib colormap. Red = excitatory (+), blue = inhibitory (−).
+    figsize : tuple, default (8, 7)
+        Figure size.
+
+    Returns
+    -------
+    matplotlib Figure — proxy weight matrix, declared metadata.
+
+    Notes
+    -----
+    Shows the declared weight structure, not a physically calibrated connectivity.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    # Extract weight matrix
+    W = None
+    if hasattr(model_or_W, "params"):
+        # Model object — try to find the weight matrix
+        params = model_or_W.params
+        if hasattr(params, "get"):
+            W = params.get("W", params.get("weights", None))
+        elif hasattr(params, "W"):
+            W = params.W
+        elif hasattr(params, "weights"):
+            W = params.weights
+    if W is None and hasattr(model_or_W, "__array__"):
+        W = np.asarray(model_or_W)
+    if W is None and hasattr(model_or_W, "shape"):
+        W = np.asarray(model_or_W)
+
+    if W is None:
+        # No accessible weight matrix — return informative placeholder
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.text(0.5, 0.5,
+                "Weight matrix W not accessible\nfrom this model object.\n"
+                "Pass W directly: jtfne.vis.connectivity(model.params['W'])",
+                ha="center", va="center", transform=ax.transAxes, fontsize=10)
+        ax.set_title("Recurrent connectivity (proxy weight structure)")
+        return fig
+
+    W_np = np.asarray(W)
+    if not np.all(np.isfinite(W_np)):
+        W_np = np.nan_to_num(W_np, nan=0.0, posinf=0.0, neginf=0.0)
+
+    vmax = float(np.nanmax(np.abs(W_np))) or 1.0
+    fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(W_np, cmap=colormap, vmin=-vmax, vmax=vmax, aspect="auto")
+    fig.colorbar(im, ax=ax, label="Weight (proxy a.u.)")
+
+    if cell_type_labels is not None and len(cell_type_labels) == W_np.shape[0]:
+        # Show gridlines between cell types
+        ax.set_xticks(range(len(cell_type_labels)))
+        ax.set_yticks(range(len(cell_type_labels)))
+        ax.set_xticklabels(cell_type_labels, rotation=45, ha="right", fontsize=7)
+        ax.set_yticklabels(cell_type_labels, fontsize=7)
+
+    ax.set_title("Recurrent connectivity W (proxy weight structure)", fontsize=11)
+    ax.set_xlabel("Target neuron")
+    ax.set_ylabel("Source neuron")
+    fig.tight_layout()
+    return fig
+
+
+# Alias: connectivity_matrix → connectivity (THETA Phase 5 name)
+def connectivity_matrix(model_or_W: Any, **kwargs: Any) -> Any:
+    """Plot the recurrent connectivity weight matrix as a heatmap.
+
+    Alias for :func:`connectivity`. See that function for full documentation.
+    """
+    return connectivity(model_or_W, **kwargs)
+
+
+def geometry3d(
+    signals_or_cfg: Any,
+    *,
+    areas: list[str] | None = None,
+    cell_types: list[str] | None = None,
+    figsize: tuple[float, float] = (9, 7),
+    **kwargs: Any,
+) -> Any:
+    """Plot declared 3D neuron geometry (x, y, z positions by cell type).
+
+    Parameters
+    ----------
+    signals_or_cfg : Signals or Configuration
+        If Signals, reads neuron_metadata for x/y/z positions and cell_type labels.
+        If Configuration, reads columns and geometry metadata.
+    areas : list of str, optional
+        Area names to include. All areas shown if None.
+    cell_types : list of str, optional
+        Cell types to color. Defaults to all detected types.
+    figsize : tuple, default (9, 7)
+        Figure size.
+
+    Returns
+    -------
+    matplotlib Figure — declared proxy geometry only.
+
+    Notes
+    -----
+    Declared proxy geometry only. Physical anatomy and 3D PDE grids are outside scope.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    rows = _neuron_rows(signals_or_cfg)
+
+    if not rows:
+        # Try reading from Configuration metadata
+        if hasattr(signals_or_cfg, "metadata"):
+            meta = signals_or_cfg.metadata
+            columns = meta.get("columns", [])
+            if columns:
+                # Synthesize positions from declared geometry
+                fig = _geometry3d_from_config(signals_or_cfg, areas=areas, cell_types=cell_types,
+                                               figsize=figsize)
+                return fig
+        fig, ax = plt.subplots(figsize=figsize, subplot_kw={"projection": "3d"})
+        ax.text(0.5, 0.5, 0.5, "neuron_metadata required\nfor geometry3d",
+                ha="center", va="center")
+        ax.set_title("Declared 3D geometry (proxy)")
+        return fig
+
+    x_vals = np.asarray([float(row.get("x", 0.0)) for row in rows])
+    y_vals = np.asarray([float(row.get("y", 0.0)) for row in rows])
+    z_vals = np.asarray([float(row.get("z", 0.0)) for row in rows])
+    ct_vals = [str(row.get("cell_type", "unknown")) for row in rows]
+    area_vals = [str(row.get("area", "")) for row in rows]
+
+    if cell_types is None:
+        cell_types = sorted(set(ct_vals))
+    if areas is not None:
+        keep = np.asarray([a in areas for a in area_vals])
+        x_vals, y_vals, z_vals = x_vals[keep], y_vals[keep], z_vals[keep]
+        ct_vals = [ct for ct, k in zip(ct_vals, keep) if k]
+
+    colors_map = {ct: plt.cm.Set1(i / max(len(cell_types), 1))
+                  for i, ct in enumerate(cell_types)}
+
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111, projection="3d")
+    for ct in cell_types:
+        mask = np.asarray([v == ct for v in ct_vals])
+        if not mask.any():
+            continue
+        ax.scatter(x_vals[mask], y_vals[mask], z_vals[mask],
+                   s=8, alpha=0.6, label=ct, color=colors_map.get(ct, "gray"))
+
+    ax.set_title("Declared 3D circuit geometry (proxy)", fontsize=11)
+    ax.set_xlabel("x (mm)")
+    ax.set_ylabel("y (mm)")
+    ax.set_zlabel("z — laminar depth (mm or relative)")
+    ax.legend(title="Cell type", bbox_to_anchor=(1.05, 1), loc="upper left")
+    fig.tight_layout()
+    return fig
+
+
+# Alias: column_geometry → geometry3d (THETA Phase 5 name)
+def column_geometry(signals_or_cfg: Any, **kwargs: Any) -> Any:
+    """Plot declared 3D column geometry (x, y, z positions by cell type).
+
+    Alias for :func:`geometry3d`. See that function for full documentation.
+    """
+    return geometry3d(signals_or_cfg, **kwargs)
+
+
+def _geometry3d_from_config(cfg: Any, *, areas=None, cell_types=None, figsize=(9, 7)) -> Any:
+    """Internal: synthesise 3D geometry scatter from Configuration metadata."""
+    import matplotlib.pyplot as plt
+    meta = cfg.metadata
+    columns = meta.get("columns", [])
+    ct_fracs = meta.get("cell_types", {})
+    if isinstance(ct_fracs, dict) and not ct_fracs:
+        ct_fracs = {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07}
+    all_cell_types = list(ct_fracs.keys()) if isinstance(ct_fracs, dict) else ["E", "PV", "SST", "VIP"]
+    if cell_types is not None:
+        all_cell_types = [c for c in all_cell_types if c in cell_types]
+
+    rng = np.random.default_rng(42)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111, projection="3d")
+    colors_map = {ct: plt.cm.Set1(i / max(len(all_cell_types), 1)) for i, ct in enumerate(all_cell_types)}
+
+    for col_idx, col in enumerate(columns):
+        if areas is not None and col.get("name") not in areas:
+            continue
+        n = int(col.get("n", 50))
+        x_off = col_idx * 0.6  # offset columns laterally
+        for ct in all_cell_types:
+            frac = float((ct_fracs if isinstance(ct_fracs, dict) else {}).get(ct, 0.25))
+            n_ct = max(1, int(n * frac))
+            x = rng.uniform(0, 0.5, n_ct) + x_off
+            y = rng.uniform(0, 0.5, n_ct)
+            z = rng.uniform(0, 1.6, n_ct)
+            ax.scatter(x, y, z, s=6, alpha=0.55, label=ct if col_idx == 0 else "",
+                       color=colors_map.get(ct, "gray"))
+
+    handles = [plt.Line2D([0], [0], marker="o", color="w",
+                           markerfacecolor=colors_map.get(ct, "gray"), markersize=8, label=ct)
+               for ct in all_cell_types]
+    ax.legend(handles=handles, title="Cell type", bbox_to_anchor=(1.05, 1), loc="upper left")
+    ax.set_title("Declared 3D geometry (Configuration proxy)", fontsize=11)
+    ax.set_xlabel("x (mm)")
+    ax.set_ylabel("y (mm)")
+    ax.set_zlabel("z — laminar depth")
+    fig.tight_layout()
+    return fig
+
+
+def multi_area_layout(
+    signals_or_cfg: Any,
+    *,
+    areas: list[str] | None = None,
+    figsize: tuple[float, float] = (10, 5),
+    **kwargs: Any,
+) -> Any:
+    """Plot a 2D top-down layout showing multiple cortical areas side by side.
+
+    Each area is shown as a rectangle with neuron count annotations.
+    Inter-area connectivity (if declared in metadata) is shown as arrows.
+
+    Parameters
+    ----------
+    signals_or_cfg : Signals or Configuration
+        If Configuration, reads columns and inter_column_connectivity metadata.
+        If Signals, reads area labels from neuron_metadata.
+    areas : list of str, optional
+        Which areas to include. All areas shown if None.
+    figsize : tuple, default (10, 5)
+        Figure size.
+
+    Returns
+    -------
+    matplotlib Figure — declared metadata only.
+
+    Notes
+    -----
+    Declared connectivity metadata only. Fitted weights are outside scope.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
+    import matplotlib.patheffects as pe
+
+    # Extract column info from configuration or signals
+    columns = []
+    inter_conn = {}
+    if hasattr(signals_or_cfg, "metadata"):
+        meta = signals_or_cfg.metadata
+        columns = meta.get("columns", [])
+        inter_conn = meta.get("inter_column_connectivity", {})
+    elif hasattr(signals_or_cfg, "neuron_metadata"):
+        rows = _neuron_rows(signals_or_cfg)
+        area_counts = {}
+        for row in rows:
+            area = str(row.get("area", "unknown"))
+            area_counts[area] = area_counts.get(area, 0) + 1
+        columns = [{"name": a, "n": n} for a, n in area_counts.items()]
+
+    if not columns:
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.text(0.5, 0.5, "Column metadata required\nfor multi_area_layout.\n"
+                "Use a Configuration or signals with neuron_metadata.",
+                ha="center", va="center", transform=ax.transAxes, fontsize=11)
+        ax.set_title("Multi-area layout (declared metadata proxy)")
+        return fig
+
+    if areas is not None:
+        columns = [c for c in columns if c.get("name") in areas]
+
+    fig, ax = plt.subplots(figsize=figsize)
+    n_cols = len(columns)
+    col_width = 0.8 / max(n_cols, 1)
+    spacing = 1.0 / max(n_cols, 1)
+
+    col_centers = {}
+    for i, col in enumerate(columns):
+        cx = spacing * i + spacing / 2
+        cy = 0.5
+        col_centers[col.get("name", str(i))] = (cx, cy)
+        rect = mpatches.FancyBboxPatch(
+            (cx - col_width / 2, cy - 0.25), col_width, 0.5,
+            boxstyle="round,pad=0.02", linewidth=2,
+            edgecolor="steelblue", facecolor="lightsteelblue", alpha=0.7,
+        )
+        ax.add_patch(rect)
+        ax.text(cx, cy + 0.1, col.get("name", f"Area {i}"), ha="center", va="center",
+                fontsize=12, fontweight="bold", color="navy")
+        n_neurons = col.get("n", "?")
+        layers = col.get("layers", [])
+        layer_str = f"{len(layers)} layers" if layers else ""
+        ax.text(cx, cy - 0.1, f"N={n_neurons}\n{layer_str}", ha="center", va="center",
+                fontsize=9, color="darkblue")
+
+    # Draw inter-area connectivity arrows
+    if inter_conn:
+        src_area = inter_conn.get("source_area", "")
+        tgt_area = inter_conn.get("target_area", "")
+        if src_area in col_centers and tgt_area in col_centers:
+            sx, sy = col_centers[src_area]
+            tx, ty = col_centers[tgt_area]
+            # Feedforward arrow (top)
+            ax.annotate("", xy=(tx - col_width / 2, ty + 0.15),
+                         xytext=(sx + col_width / 2, sy + 0.15),
+                         arrowprops=dict(arrowstyle="->", color="darkorange", lw=2))
+            ax.text((sx + tx) / 2, sy + 0.22, "FF", ha="center", fontsize=9, color="darkorange")
+            # Feedback arrow (bottom)
+            ax.annotate("", xy=(sx + col_width / 2, sy - 0.15),
+                         xytext=(tx - col_width / 2, ty - 0.15),
+                         arrowprops=dict(arrowstyle="->", color="mediumpurple", lw=2))
+            ax.text((sx + tx) / 2, sy - 0.22, "FB", ha="center", fontsize=9, color="mediumpurple")
+
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.set_title("Multi-area layout (declared connectivity metadata proxy)", fontsize=11)
+    fig.tight_layout()
+    return fig
+
+
+def objective_report(
+    tune_result_or_history: Any,
+    *,
+    figsize: tuple[float, float] = (9, 4),
+    **kwargs: Any,
+) -> Any:
+    """Plot optimization objective value history.
+
+    Parameters
+    ----------
+    tune_result_or_history : TuneResult, dict, or array-like
+        - TuneResult from model.tune(): reads summary.score_history or similar.
+        - dict with 'score_history' or 'objective_history' key.
+        - array-like of objective values (one per iteration).
+    figsize : tuple, default (9, 4)
+        Figure size.
+
+    Returns
+    -------
+    matplotlib Figure — optimization proxy only, no biological claims.
+
+    Notes
+    -----
+    Shows surrogate-objective convergence only. Surrogate paths are for inner-loop
+    optimization; biological claim gates are independent of optimizer convergence.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    # Extract history
+    history = None
+    if hasattr(tune_result_or_history, "summary"):
+        summary = tune_result_or_history.summary
+        if isinstance(summary, dict):
+            history = (summary.get("score_history")
+                       or summary.get("objective_history")
+                       or summary.get("loss_history"))
+    elif isinstance(tune_result_or_history, dict):
+        history = (tune_result_or_history.get("score_history")
+                   or tune_result_or_history.get("objective_history")
+                   or tune_result_or_history.get("loss_history"))
+    if history is None:
+        # Try treating as direct array
+        try:
+            history = list(tune_result_or_history)
+        except (TypeError, ValueError):
+            history = None
+
+    fig, axes = plt.subplots(1, 2 if history is not None else 1, figsize=figsize, squeeze=False)
+
+    if history is not None:
+        history_arr = np.asarray(history, dtype=float)
+        if not np.all(np.isfinite(history_arr)):
+            history_arr = np.nan_to_num(history_arr, nan=np.nan)
+        iters = np.arange(len(history_arr))
+        ax = axes[0, 0]
+        ax.plot(iters, history_arr, "o-", color="steelblue", ms=4, lw=1.5)
+        ax.set_title("Objective history (surrogate proxy)", fontsize=11)
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Objective value (proxy a.u.)")
+        ax.grid(True, linestyle="--", alpha=0.4)
+
+        if len(history_arr) > 1:
+            ax2 = axes[0, 1] if axes.shape[1] > 1 else axes[0, 0]
+            delta = np.diff(history_arr)
+            ax2.bar(iters[1:], delta, color=np.where(delta < 0, "green", "red"), alpha=0.7)
+            ax2.axhline(0, color="black", lw=0.8)
+            ax2.set_title("Δ Objective per step", fontsize=11)
+            ax2.set_xlabel("Iteration")
+            ax2.set_ylabel("Δ value")
+            ax2.grid(True, linestyle="--", alpha=0.4)
+    else:
+        ax = axes[0, 0]
+        ax.text(0.5, 0.5,
+                "Objective history not found.\nPass TuneResult, dict with\n"
+                "'score_history' key, or list of scores.",
+                ha="center", va="center", transform=ax.transAxes, fontsize=10)
+        ax.set_title("Objective report (proxy)")
+
+    fig.suptitle("Optimization objective — surrogate proxy only; not a biological claim gate",
+                 fontsize=9, style="italic", color="gray")
+    fig.tight_layout()
+    return fig
 
 
 # -----------------------------------------------------------------------------
