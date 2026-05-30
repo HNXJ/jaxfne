@@ -91,11 +91,12 @@ def main():
 
     print("=== STARTING JAXFNE COMPLETE RELEASE AUDIT ===")
     
-    # 1. Notebook Audits
-    nb_files = list(Path("tutorials").glob("*.ipynb"))
+    # 1. Notebook Audits (recursive, excluding archive paths)
+    nb_files = [p for p in Path("tutorials").rglob("*.ipynb")
+                if "archive" not in str(p) and "test_execution" not in str(p)]
     nb_reports = []
     all_nb_valid = True
-    for nb in nb_files:
+    for nb in sorted(nb_files):
         rep = audit_notebook_structure(nb)
         nb_reports.append(rep)
         if not rep.get("valid", True):
@@ -127,7 +128,7 @@ def main():
         print(f"\nAudit Summary saved to: {report_path}")
     elif not args.check:
         # Default fallback to save the report when no flag is specified
-        report_path = Path("phase_validation/v0_3_14_audit_summary_report.json")
+        report_path = Path("phase_validation/v0_3_21_audit_summary_report.json")
         report_path.parent.mkdir(parents=True, exist_ok=True)
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2)
