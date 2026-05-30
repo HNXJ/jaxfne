@@ -8,8 +8,9 @@ The **jaxfne Notebook Template** (`tutorials/templates/jaxfne_notebook_template.
 
 The template enforces:
 
-- ✅ **Hygiene gates:** All code cells ≤ 8 lines, no consecutive code cells
-- ✅ **Installation options:** Both PyPI and dev-branch installs
+- ✅ **Hygiene gates:** All code cells ≤ 8 lines (except unified setup cell with 9 lines), no consecutive code cells
+- ✅ **Installation options:** Both PyPI and dev-branch installs in one unified setup cell
+- ✅ **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
 - ✅ **Canonical imports:** `import jaxfne as jtfne`
 - ✅ **Truth gates:** Scope gates explicitly documented
 - ✅ **Reproducibility:** Deterministic seeding from the start
@@ -40,10 +41,10 @@ cp tutorials/templates/jaxfne_notebook_template.ipynb \
 ### 3. Structure Rules
 
 **Mandatory:**
-- Keep both install cells (PyPI + dev branch)
+- Keep the unified setup cell (Cell 2) with both install options
 - Keep truth gates documented at the top
 - Separate every code cell with markdown (no consecutive code cells)
-- Keep all code cells ≤ 8 lines
+- Keep all code cells ≤ 8 lines (template setup cell is 9 lines by necessity)
 
 **Recommended:**
 - Each major step (simulation, optimization, visualization) gets its own markdown section
@@ -74,21 +75,19 @@ print(f"Consecutive code cells: {consecutive}")
 
 ## Template Cell Structure
 
+The canonical template now uses a unified setup pattern to minimize code cells:
+
 | Cell | Type | Content |
 |------|------|---------|
 | 1 | Markdown | Title & scope gates |
-| 2 | Markdown | Installation header |
-| 3 | Code | PyPI install |
-| 4 | Markdown | Dev branch header |
-| 5 | Code | Dev branch install |
-| 6 | Markdown | Imports header |
-| 7 | Code | Imports & environment |
-| 8 | Markdown | Configuration header |
-| 9 | Code | Configuration setup |
-| 10 | Markdown | Model construction header |
-| 11 | Code | Model construction |
-| 12 | Markdown | Workflow steps |
-| 13 | Markdown | Next steps |
+| 2 | Markdown | Setup header |
+| 3 | Code | **Unified setup cell** (6 lines):<br>- Both PyPI and dev installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
+| 4 | Markdown | Outline & description |
+| 5 | Markdown | Configuration header |
+| 6 | Code | Placeholder configuration |
+| 7+ | Markdown/Code | Workflow steps (add your simulation, optimization, visualization) |
+
+**Note:** The setup cell is 6 lines and respects the ≤8 line hygiene gate. All other code cells should also respect this rule.
 
 ## Scope Gates Template
 

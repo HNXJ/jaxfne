@@ -1,4 +1,4 @@
-# Etude No. 1: Final Execution Receipt
+# Etude No. 1 — Final Execution Receipt (Superseded by MAIN_ALIGNMENT_FINAL_RECEIPT.md): Final Execution Receipt
 
 **Status:** ✅ **FULLY EXECUTABLE AND VALIDATED**  
 **Date:** 2026-05-30
