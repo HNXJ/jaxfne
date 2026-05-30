@@ -158,9 +158,12 @@ from .sharding_utils import (
     make_population_mesh,
     make_replicated_sharding,
 )
+# v0.3.20: compilation registry
+from .validation import compilation_registry
 
 
 __all__ = [
+    "compilation_registry",
     "AxisSpec",
     "BasisSpec",
     "BridgeSpec",
