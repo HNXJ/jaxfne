@@ -1,3 +1,29 @@
+## [0.3.18] - 2026-05-30
+
+### Added
+- `jaxfne/sharding_utils.py`: New module with trace-safe, single-axis distributed
+  sharding mesh stubs for candidate-population parallelism.
+  - `make_population_mesh()` — 1-D `Mesh` across all JAX devices; returns `None`
+    on single-device environments (clean fallback, no caller branching required).
+  - `make_candidate_sharding(mesh)` — `NamedSharding` that slices the batch axis
+    across the `population_sweep` mesh axis.
+  - `make_replicated_sharding(mesh)` — `NamedSharding` that fully replicates arrays
+    (for model-parameter tensors that must not be partitioned).
+  - `get_sharding_context()` — convenience bundle returning `{mesh, candidate,
+    replicated}` or `None` on single-device.
+- `tests/test_v0318_sharding_stubs.py`: 14 tests covering import smoke, single-device
+  fallback, axis name, PartitionSpec correctness, and context bundle structure.
+- Public API exports added to `jaxfne/__init__.py` (`__all__`).
+
+### Scope
+- `truth_safe_unverified` / `field_solver_status=laminar_proxy_no_pde` unchanged.
+- Sharding stubs do not yet drive actual multi-device dispatch in the AGSDR loop
+  (planned for v0.3.20+).
+- `simulate_batch` unchanged — its `jax.vmap` seed-replicate path is a separate
+  concern from candidate-population sharding.
+
+---
+
 ## [0.3.17] - 2026-05-30
 
 ### Changed

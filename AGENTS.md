@@ -38,7 +38,7 @@ cat AGENTS.md               # read active locks before touching anything
 **Version:** `0.3.17` (on cleanup branch, not yet merged to main)  
 **Tests:** 1665 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
-**Next safe action:** Push branch, merge to main as v0.3.17, then proceed to v0.3.18
+**Next safe action:** Push branch, merge to main as v0.3.18, then proceed to v0.3.19
 
 ---
 
@@ -53,6 +53,8 @@ cat AGENTS.md               # read active locks before touching anything
 ## Completed work log
 
 | Agent | Scope | Commit | Notes |
+|---|---|---|---|
+| `gemini-cli` | v0.3.18: distributed sharding mesh stubs and replicated param fallbacks | `pending` | sharding_utils.py: make_population_mesh / make_candidate_sharding / make_replicated_sharding / get_sharding_context; 14 new tests; full suite pending |
 |---|---|---|---|
 | `gemini-cli` | v0.3.17: precision-matching dtype invariants for AGSDR loops | `5867e0f` | _wdtype / _wdtype_outer patch; 12 new dtype tests; 1665/1665 pass; blueprint with conflicting NamedTuple AGSDRState redefinition rejected. |
 |---|---|---|---|
