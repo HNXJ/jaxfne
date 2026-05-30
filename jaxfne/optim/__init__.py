@@ -1,24 +1,16 @@
-"""Public facade mapping for jaxfne.optim package.
+"""Optimization sub-package namespace for jaxfne.
 
-To preserve backward compatibility, this file routes all optimization and tuning API calls
-directly to the underlying modular package implementation.
+Exposes specialized Stochastic Delta Rule and stochastic gradient descent optimization steps.
 """
 from __future__ import annotations
 
-from .optim import (
-    step_agsdr_transform,
-    step_gsdr_transform,
-    step_sdr_transform,
-    step_gsgd_transform,
-    apply_parameter_constraints,
-    enforce_parameter_bounds,
-    serialize_optimization_manifest,
-    AGSDRState,
-    GSDRState,
-    SDRState,
-    GSGDState,
-)
-from .optim.core import (
+from .agsdr import AGSDRState, step_agsdr_transform
+from .bounds import apply_parameter_constraints, enforce_parameter_bounds
+from .gsdr import GSDRState, step_gsdr_transform
+from .gsgd import GSGDState, step_gsgd_transform
+from .manifests import serialize_optimization_manifest
+from .sdr import SDRState, step_sdr_transform
+from .core import (
     AGSDR,
     AGSDROptimizerSpec,
     OptimizerSpec,
@@ -31,15 +23,11 @@ from .optim.core import (
     random_search,
     require_optax,
     sdr_transform,
-    TuneResult,
-    ParameterSpec,
-    ScalarParameterSpec,
-    MatrixParameterSpec,
     _agsdr_candidates_from_noise,
+    propose_blackbox_candidates,
     _run_agsdr_optimization_loop,
     _quadratic_target_loss,
     quadratic_target_loss_grad,
-    propose_blackbox_candidates,
     _resolve_optimizer,
     _tune_matrix_agsdr_optax,
 )
@@ -68,15 +56,11 @@ __all__ = [
     "random_search",
     "require_optax",
     "sdr_transform",
-    "TuneResult",
-    "ParameterSpec",
-    "ScalarParameterSpec",
-    "MatrixParameterSpec",
     "_agsdr_candidates_from_noise",
+    "propose_blackbox_candidates",
     "_run_agsdr_optimization_loop",
     "_quadratic_target_loss",
     "quadratic_target_loss_grad",
-    "propose_blackbox_candidates",
     "_resolve_optimizer",
     "_tune_matrix_agsdr_optax",
 ]

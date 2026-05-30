@@ -49,10 +49,11 @@ def test_suite_no1_notebook_executes(tmp_path):
 
     nb = nbformat.read(str(NOTEBOOK_PATH), as_version=4)
 
-    # Inject FIG_DIR override so figures go to tmp_path (avoids side effects).
+    # Inject FIG_DIR override and sys.path setup so notebook imports local jaxfne.
     import nbformat as _nbf
 
-    inject_source = f'FIG_DIR = "{tmp_path}"\n'
+    repo_root = Path(__file__).parent.parent.resolve()
+    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\nFIG_DIR = "{tmp_path}"\n'
     inject_cell = _nbf.v4.new_code_cell(source=inject_source)
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
 

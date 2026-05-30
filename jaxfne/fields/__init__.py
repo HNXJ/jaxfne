@@ -1,11 +1,10 @@
-"""Public facade mapping for jaxfne.fields package.
+"""Fields subpackage for jaxfne.
 
-To preserve backward compatibility, this file routes all fields and probes API calls
-directly to the underlying modular package implementation.
+Isolates localized laminar projection computations from higher-level multimodal probe transformations.
 """
 from __future__ import annotations
 
-from .fields import (
+from .proxy import (
     FieldOutput,
     project_laminar_sources,
     project_sources_to_laminar_field,
@@ -29,6 +28,8 @@ from .fields import (
     spectrolaminar_similarity,
     spectrolaminar_objective,
     _make_field_solution_report,
+)
+from .probes import (
     ProbeReadout,
     spk_probe,
     vm_probe,

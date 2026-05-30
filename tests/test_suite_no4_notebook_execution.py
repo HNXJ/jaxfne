@@ -102,16 +102,24 @@ def test_suite_no4_notebook_execution():
         pytest.skip("Optax not installed; skipping Suite No. 4 notebook execution")
 
     notebook_path = "tutorials/jaxfne_suite_no_4_oscillatory_push_pull_laminar.ipynb"
-
     # Read notebook
     with open(notebook_path, "r") as f:
         nb = nbformat.read(f, as_version=4)
+
+    # Inject sys.path setup so notebook imports local jaxfne.
+    import nbformat as _nbf
+    from pathlib import Path
+    repo_root = Path(__file__).parent.parent.resolve()
+    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\n'
+    inject_cell = _nbf.v4.new_code_cell(source=inject_source)
+    inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
+    nb.cells.insert(1, inject_cell)
 
     # Execute notebook with a reasonable timeout
     client = NotebookClient(
         nb,
         timeout=1200,  # 20 minutes for full execution
-        kernel_name="python3",
+        kernel_name="jaxfne-venv",
     )
 
     try:
