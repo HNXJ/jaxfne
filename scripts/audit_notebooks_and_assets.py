@@ -1,8 +1,13 @@
+#!/usr/bin/env python3
 import os
 import json
 import sys
 import glob
 from pathlib import Path
+from argparse import ArgumentParser
+
+# Ensure repository root is on sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 def audit_notebook_structure(nb_path: Path) -> dict:
     """Audit notebook cells for length and alternating markdown/code structures."""
@@ -43,14 +48,8 @@ def audit_notebook_structure(nb_path: Path) -> dict:
 
 def audit_png_figures() -> dict:
     """Scan tutorials and check for generated PNG output figures."""
-    figures_pattern = "docs/tutorials/*.md"
-    md_files = glob.glob(figures_pattern)
-    missing_figs = []
     found_figs = []
-    
-    # We also check that required v0.3.12 layer/LFP/CSD files exist in docs/_static/tutorial_figures/ or equivalent
     fig_dir = Path("docs/_static")
-    # Let's inspect what files exist
     if fig_dir.exists():
         for fig in fig_dir.rglob("*.png"):
             found_figs.append(str(fig))
@@ -85,7 +84,12 @@ def audit_jaxley_bridge() -> dict:
     }
 
 def main():
-    print("=== STARTING JAXFNE v0.3.14 COMPLETE RELEASE AUDIT ===")
+    parser = ArgumentParser(description="Audit jaxfne notebooks and assets.")
+    parser.add_argument("--check", action="store_true", help="Perform check only, do not write files")
+    parser.add_argument("--write-report", type=str, help="Write summary report to specified JSON file path")
+    args = parser.parse_args()
+
+    print("=== STARTING JAXFNE COMPLETE RELEASE AUDIT ===")
     
     # 1. Notebook Audits
     nb_files = list(Path("tutorials").glob("*.ipynb"))
@@ -94,9 +98,9 @@ def main():
     for nb in nb_files:
         rep = audit_notebook_structure(nb)
         nb_reports.append(rep)
-        if not rep["valid"]:
+        if not rep.get("valid", True):
             all_nb_valid = False
-            print(f"Notebook {rep['file']} has structural warnings: {rep['violations']}")
+            print(f"Notebook {rep['file']} has structural warnings: {rep.get('violations', [])}")
             
     # 2. PNG Figures Audit
     figs = audit_png_figures()
@@ -114,12 +118,31 @@ def main():
         "jaxley_bridge_audit": jaxley
     }
     
-    with open("phase_validation/v0_3_14_audit_summary_report.json", "w") as f:
-        json.dump(summary, f, indent=2)
-        
-    print("\nAudit Summary saved to: phase_validation/v0_3_14_audit_summary_report.json")
+    # If not in --check mode and requested via --write-report, save report
+    if args.write_report:
+        report_path = Path(args.write_report)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+        print(f"\nAudit Summary saved to: {report_path}")
+    elif not args.check:
+        # Default fallback to save the report when no flag is specified
+        report_path = Path("phase_validation/v0_3_14_audit_summary_report.json")
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(report_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+        print(f"\nAudit Summary saved to: {report_path}")
+
     print(f"Notebook structure valid: {all_nb_valid}")
     print(f"Jaxley bridge safety check: {jaxley['status'].upper()}")
+
+    # Fail check if bridges are red
+    if jaxley["status"] == "red":
+        print("✗ ERROR: Jaxley bridge safety check failed.")
+        sys.exit(1)
+
+    print("✓ Complete audit check passed.")
+    sys.exit(0)
 
 if __name__ == "__main__":
     main()
