@@ -52,7 +52,7 @@ To prevent accidental release drift or tag/commit mutation, the following machin
 - [ ] pyproject.toml version: 0.3.21 ✅
 - [ ] docs/RELEASE_CHECKLIST.md created ✅
 - [ ] Version strings synchronized across:
-  - [ ] `pyproject.toml` → `version = "0.3.14"`
+  - [ ] `pyproject.toml` → `version = "0.3.21"` ✅
   - [ ] `jaxfne/__init__.py` → version constant
   - [ ] `mkdocs.yml` → version reference (if present)
   - [ ] `docs/_generated/version.md` (if auto-generated, verify post-build)
