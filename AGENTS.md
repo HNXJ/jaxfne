@@ -33,12 +33,12 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `175b75b` | Suite No. 3 noisy absolute-power scaling correction merged; 1318/1318 tests pass |
-| `dev` | `ec7c1f0` (pushed) | Suite No. 3 correction merged + AGSDR naming in Suite No. 1 objectives; 1318/1318 tests pass |
+| `chore/v0.3.15-post-release-cleanup` | `5867e0f` | v0.3.17 dtype-invariant patch committed; 1665/1665 tests pass |
 
-**Version:** `0.3.10`  
-**Tests:** 1318 passed, 63 skipped, 4 xfailed  
+**Version:** `0.3.17` (on cleanup branch, not yet merged to main)  
+**Tests:** 1665 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
-**Next safe action:** Continue v0.3.10 EEG/MEG/EMM proxy bundle on feat/v0310-eeg-meg-emm-proxy-bundle
+**Next safe action:** Push branch, merge to main as v0.3.17, then proceed to v0.3.18
 
 ---
 
@@ -53,6 +53,8 @@ cat AGENTS.md               # read active locks before touching anything
 ## Completed work log
 
 | Agent | Scope | Commit | Notes |
+|---|---|---|---|
+| `gemini-cli` | v0.3.17: precision-matching dtype invariants for AGSDR loops | `5867e0f` | _wdtype / _wdtype_outer patch; 12 new dtype tests; 1665/1665 pass; blueprint with conflicting NamedTuple AGSDRState redefinition rejected. |
 |---|---|---|---|
 | `gemini-cli` | v0.3.11: Stage B Visualizations, Jaxley Bridge, and Biophysical Alignment | `b06a14c` | Implemented jtfne.vis namespace, FigureResult, JaxleyBridge, E2E smoke tests, and arkhipov_allen_tfne_alignment.md. All tests passed. |
 | `claude-sonnet` | v0.3.10: dev→main merge (Suite No. 3 correction + Suite No. 1 AGSDR naming) | `175b75b` | Merged dev into main after full validation: 1318/1318 tests pass, docs hygiene 210/210, mkdocs strict pass. main SHA: 175b75b. |
