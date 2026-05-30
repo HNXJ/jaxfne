@@ -33,10 +33,10 @@ cat AGENTS.md               # read active locks before touching anything
 | Branch | SHA | Status |
 |---|---|---|
 | `main` | `175b75b` | Suite No. 3 noisy absolute-power scaling correction merged; 1318/1318 tests pass |
-| `chore/v0.3.15-post-release-cleanup` | `5867e0f` | v0.3.17 dtype-invariant patch committed; 1665/1665 tests pass |
+| `chore/v0.3.15-post-release-cleanup` | `b8c7fd3` | v0.3.18 sharding stubs committed; 1679/1679 tests pass |
 
-**Version:** `0.3.17` (on cleanup branch, not yet merged to main)  
-**Tests:** 1665 passed, 64 skipped, 4 xfailed  
+**Version:** `0.3.18` (on cleanup branch, not yet merged to main)  
+**Tests:** 1679 passed, 64 skipped, 4 xfailed  
 **Working tree:** clean  
 **Next safe action:** Push branch, merge to main as v0.3.18, then proceed to v0.3.19
 
@@ -54,7 +54,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Commit | Notes |
 |---|---|---|---|
-| `gemini-cli` | v0.3.18: distributed sharding mesh stubs and replicated param fallbacks | `pending` | sharding_utils.py: make_population_mesh / make_candidate_sharding / make_replicated_sharding / get_sharding_context; 14 new tests; full suite pending |
+| `gemini-cli` | v0.3.18: distributed sharding mesh stubs and replicated param fallbacks | `b8c7fd3` | sharding_utils.py: make_population_mesh / make_candidate_sharding / make_replicated_sharding / get_sharding_context; 14 new tests; 1679/1679 pass. |
 |---|---|---|---|
 | `gemini-cli` | v0.3.17: precision-matching dtype invariants for AGSDR loops | `5867e0f` | _wdtype / _wdtype_outer patch; 12 new dtype tests; 1665/1665 pass; blueprint with conflicting NamedTuple AGSDRState redefinition rejected. |
 |---|---|---|---|
