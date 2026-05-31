@@ -351,11 +351,34 @@ def plot_spectrolaminar_etude1(signals, mdl, label, cfg, fname_suffix=None):
 CIRCUIT_CALL_MD = """\
 ## 3D Cortical Circuit Visualization
 
-Proxy scaffold geometry: neuron positions colored by cell type. The `z` axis
-represents laminar depth. Positions are jaxfne-internal proxy coordinates, not
-calibrated anatomical millimetres."""
+Interactive Plotly HTML (`jtfne.vis.visualize_network_3d`) for exploration,
+then static matplotlib PNG for artifact storage. Both are displayed in the
+notebook. Positions are jaxfne-internal proxy coordinates — not calibrated
+anatomical millimetres (truth_safe_unverified; laminar_proxy_no_pde)."""
 
 CIRCUIT_CALL_CODE = """\
+try:
+    network_fig, network_rows = jtfne.vis.visualize_network_3d(
+        model,
+        output_html=config.PLOTLY_DIR / "cortical_circuit_network.html",
+        title="Etude No. 1 cortical scaffold - simulated proxy geometry",
+        coordinate_unit="m", display_unit="um",
+        show_layers=True, show_column_shells=True,
+        show_edges=False, max_edges=500,
+        seed=config.SEED, return_node_table=True,
+    )
+    network_fig.show()
+    print("OK interactive Plotly circuit HTML written.")
+except ImportError as _e:
+    print(f"Plotly unavailable ({_e}). Skipping interactive HTML.")
+    network_rows = []"""
+
+CIRCUIT_STATIC_MD = """\
+## 3D Circuit — Static PNG (matplotlib)
+
+Stable matplotlib fallback for artifact storage. Always saved as PNG."""
+
+CIRCUIT_STATIC_CODE = """\
 fig_circuit = visualize_circuit(model, config)
 plt.close(fig_circuit)"""
 
@@ -584,6 +607,8 @@ def build():
     new_cells.append(code(SPECTRO_HELPER_CODE))
     new_cells.append(md(CIRCUIT_CALL_MD))
     new_cells.append(code(CIRCUIT_CALL_CODE))
+    new_cells.append(md(CIRCUIT_STATIC_MD))
+    new_cells.append(code(CIRCUIT_STATIC_CODE))
 
     # 33-36: Sim Setup MD + code, Baseline MD + code
     for i in range(33, 37):
@@ -651,6 +676,7 @@ def build():
 artifact_files = [
     OUTPUT_DIR / 'manifest.json', OUTPUT_DIR / 'validation_report.json',
     OUTPUT_DIR / 'metrics.json',
+    config.PLOTLY_DIR / 'cortical_circuit_network.html',
     FIG_DIR / 'cortical_circuit_network.png',
     FIG_DIR / 'activity_suite_baseline.png',
     FIG_DIR / 'activity_suite_stimulus.png',

@@ -50,6 +50,7 @@ from .network3d import (
     circuit3d,
     geometry3d,
     column_geometry,
+    visualize_network_3d,
 )
 
 __all__ = [
@@ -95,4 +96,5 @@ __all__ = [
     "circuit3d",
     "geometry3d",
     "column_geometry",
+    "visualize_network_3d",
 ]
