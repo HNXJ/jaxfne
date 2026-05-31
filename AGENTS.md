@@ -56,7 +56,7 @@ cat AGENTS.md               # read active locks before touching anything
 
 | Agent | Scope | Since | Status |
 |---|---|---|---|
-| (none) | v0.1.0 hardening pass complete; CI + release scripts + Colab docs added; awaiting PyPI credentials | 2026-05-18 | cleared — no active lock |
+| (none) | — | — | No active locks |
 
 ## Completed work log
 

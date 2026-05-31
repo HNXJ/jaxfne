@@ -15,42 +15,44 @@ To prevent accidental release drift or tag/commit mutation, the following machin
 
 ---
 
-## v0.3.15 Release Checklist
+## v0.3.21 Release Checklist
 
 ### Pre-release Validation (Local)
 - [ ] `compileall`: `python -m compileall jaxfne/` passes without syntax errors
 - [ ] Full pytest: `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/` — all pass with expected counts
-- [ ] Import smoke: `python -c "import jaxfne; print(jaxfne.__version__)"` — confirms 0.3.14
+- [ ] Import smoke: `python -c "import jaxfne; print(jaxfne.__version__)"` — confirms 0.3.21
 - [ ] Runtime receipt: `python -c "import jax; print(jaxfne.__version__, jax.__version__, jax.devices(), jax.config.jax_enable_x64, jnp.array([1.0]).dtype)"` — confirms cpu, x64=False, float32
 - [ ] MkDocs strict build: `mkdocs build --strict` — no errors or warnings
-- [ ] Package build: `python -m build` — generates `dist/jaxfne-0.3.14.tar.gz` and `dist/jaxfne-0.3.14-py3-none-any.whl`
+- [ ] Package build: `python -m build` — generates `dist/jaxfne-0.3.21.tar.gz` and `dist/jaxfne-0.3.21-py3-none-any.whl`
 - [ ] Twine check: `python -m twine check dist/*` — no errors
 - [ ] CI run URL: GitHub Actions run captured for commit SHA
+- [ ] Notebook audit: `python scripts/audit_notebooks_and_assets.py` — produces v0_3_21 report, all notebooks pass
 
 ### Branch & Main Verification (Ownership-gated)
-- [ ] Verify `dev` branch state: `git status --short`, `git diff --stat`
-- [ ] Verify `main` branch exists and is reachable: `git fetch --dry-run`
-- [ ] Merge/fast-forward `dev` into `main` (owned task; pending authorization)
+- [ ] Verify `main` branch state: `git status --short`, `git diff --stat`
+- [ ] Verify `main` branch is clean: `git fetch --dry-run`
 - [ ] Verify remote `main` at release SHA: `git ls-remote origin main`
+- [ ] All test suites pass: `pytest tests/ --tb=short`
 
 ### Distribution & TestPyPI (Local + Remote)
 - [ ] TestPyPI upload: `python -m twine upload --repository testpypi dist/*` (if authorized)
-- [ ] TestPyPI install smoke: `pip install --index-url https://test.pypi.org/simple/ jaxfne==0.3.14 && python -c "import jaxfne; print(jaxfne.__version__)"`
+- [ ] TestPyPI install smoke: `pip install --index-url https://test.pypi.org/simple/ jaxfne==0.3.21 && python -c "import jaxfne; print(jaxfne.__version__)"`
 - [ ] PyPI upload: `python -m twine upload dist/*` (if authorized)
 - [ ] Post-release install smoke: `pip install --upgrade jaxfne && python -c "import jaxfne; print(jaxfne.__version__)"`
 
 ### Tag & Release (After all gates pass)
-- [ ] Tag provenance verified: `git cat-file -t v0.3.14`, `git branch --contains v0.3.14`, `git ls-remote --tags origin v0.3.14`
-- [ ] Delete local tag if invalid: `git tag -d v0.3.14` (only if instructed)
-- [ ] Create annotated release tag on `main`: `git tag -a v0.3.14 -m "Release v0.3.14: Nulls, ablations, synchrony controls; Suite 3 noisy-power fix; boundary testing"` (pending authorization)
-- [ ] Push tag to remote: `git push origin v0.3.14` (pending authorization)
-- [ ] GitHub release created from tag: Visit https://github.com/HNXJ/jaxfne/releases/new?tag=v0.3.14
+- [ ] Tag provenance verified: `git cat-file -t v0.3.21`, `git branch --contains v0.3.21`, `git ls-remote --tags origin v0.3.21`
+- [ ] Create annotated release tag on `main`: `git tag -a v0.3.21 -m "Release v0.3.21: Etude No. 1, template standardization, hygiene rule clarifications"` (pending authorization)
+- [ ] Push tag to remote: `git push origin v0.3.21` (pending authorization)
+- [ ] GitHub release created from tag: Visit https://github.com/HNXJ/jaxfne/releases/new?tag=v0.3.21
 
 ### Release Metadata
-- [ ] CHANGELOG.md updated with v0.3.14 entry ✅
+- [ ] CHANGELOG.md updated with v0.3.21 entry ✅
+- [ ] docs/changelog.md updated with v0.3.21 entry ✅
+- [ ] pyproject.toml version: 0.3.21 ✅
 - [ ] docs/RELEASE_CHECKLIST.md created ✅
 - [ ] Version strings synchronized across:
-  - [ ] `pyproject.toml` → `version = "0.3.14"`
+  - [ ] `pyproject.toml` → `version = "0.3.21"` ✅
   - [ ] `jaxfne/__init__.py` → version constant
   - [ ] `mkdocs.yml` → version reference (if present)
   - [ ] `docs/_generated/version.md` (if auto-generated, verify post-build)

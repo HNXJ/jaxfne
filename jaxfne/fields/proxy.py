@@ -581,26 +581,46 @@ def make_laminar_connectivity(
     area_order = sorted(set(area[area != ""]))
     area_rank = {a: i for i, a in enumerate(area_order)}
 
-    for pre in range(n):
-        for post in range(n):
-            if pre == post:
-                continue
+    pos_np = np.asarray(positions_m)
+    dxy = np.linalg.norm(pos_np[:, None, :2] - pos_np[None, :, :2], axis=-1)
+    local_gain = np.exp(-((dxy / local_decay_m) ** 2))
 
-            same_area = area[pre] == area[post]
-            dxy = np.linalg.norm(positions_m[post, :2] - positions_m[pre, :2])
-            local_gain = np.exp(-((dxy / local_decay_m) ** 2))
+    same_area = area[:, None] == area[None, :]
+    no_self = ~np.eye(n, dtype=bool)
 
-            if same_area:
-                if cell_type[pre] == "E" and rng.random() < p_local_e:
-                    W_local_exc[post, pre] = rng.uniform(*w_e_range) * local_gain
-                elif cell_type[pre] != "E" and rng.random() < p_local_i:
-                    W_local_inh[post, pre] = rng.uniform(*w_i_range) * (0.65 + 0.35 * local_gain)
-            elif cell_type[pre] == "E":
-                delta = area_rank.get(area[post], 0) - area_rank.get(area[pre], 0)
-                if delta == 1 and layer[pre] in ("L2", "L3") and layer[post] == "L4" and rng.random() < p_feedforward:
-                    W_ff[post, pre] = rng.uniform(*w_ff_range)
-                if delta == -1 and layer[pre] in ("L2", "L3", "L6") and layer[post] in ("L5", "L6") and rng.random() < p_feedback:
-                    W_fb[post, pre] = rng.uniform(*w_fb_range)
+    # 1. Local Exc
+    draw_p_local_e = rng.random((n, n))
+    draw_w_e = rng.uniform(*w_e_range, size=(n, n))
+    mask_local_e = same_area & (cell_type[None, :] == "E") & no_self & (draw_p_local_e < p_local_e)
+    W_local_exc = np.where(mask_local_e, draw_w_e * local_gain, 0.0).astype(np.float32)
+
+    # 2. Local Inh
+    draw_p_local_i = rng.random((n, n))
+    draw_w_i = rng.uniform(*w_i_range, size=(n, n))
+    mask_local_i = same_area & (cell_type[None, :] != "E") & no_self & (draw_p_local_i < p_local_i)
+    W_local_inh = np.where(mask_local_i, draw_w_i * (0.65 + 0.35 * local_gain), 0.0).astype(np.float32)
+
+    # 3. Feedforward and Feedback (delta area rank)
+    ranks = np.array([area_rank.get(a, 0) for a in area])
+    delta = ranks[:, None] - ranks[None, :]
+
+    # FF: delta == 1 and layer[pre] in ("L2", "L3") and layer[post] == "L4"
+    pre_ff_layer = np.isin(layer, ["L2", "L3"])
+    post_ff_layer = layer == "L4"
+    mask_ff_geom = (~same_area) & no_self & (delta == 1) & (cell_type[None, :] == "E") & pre_ff_layer[None, :] & post_ff_layer[:, None]
+    draw_p_ff = rng.random((n, n))
+    draw_w_ff = rng.uniform(*w_ff_range, size=(n, n))
+    mask_ff = mask_ff_geom & (draw_p_ff < p_feedforward)
+    W_ff = np.where(mask_ff, draw_w_ff, 0.0).astype(np.float32)
+
+    # FB: delta == -1 and layer[pre] in ("L2", "L3", "L6") and layer[post] in ("L5", "L6")
+    pre_fb_layer = np.isin(layer, ["L2", "L3", "L6"])
+    post_fb_layer = np.isin(layer, ["L5", "L6"])
+    mask_fb_geom = (~same_area) & no_self & (delta == -1) & (cell_type[None, :] == "E") & pre_fb_layer[None, :] & post_fb_layer[:, None]
+    draw_p_fb = rng.random((n, n))
+    draw_w_fb = rng.uniform(*w_fb_range, size=(n, n))
+    mask_fb = mask_fb_geom & (draw_p_fb < p_feedback)
+    W_fb = np.where(mask_fb, draw_w_fb, 0.0).astype(np.float32)
 
     W = (
         control_params.get("local_exc_gain", 1.0) * W_local_exc
@@ -609,7 +629,7 @@ def make_laminar_connectivity(
         + control_params.get("feedback_gain", 1.0) * W_fb
     )
 
-    E_mask = np.array([cell_type[i] == "E" for i in range(n)])
+    E_mask = cell_type == "E"
     I_mask = ~E_mask
 
     audit = {
@@ -739,30 +759,23 @@ def teaching_control_spectrolaminar_resonance_source(
     alpha_beta_freq = 15.0
     gamma_freq = 90.0
 
-    resonance = np.zeros((n_steps, n), dtype=np.float32)
+    in_l123 = np.isin(layers, ["L1", "L2", "L3"])
+    in_l4 = layers == "L4"
 
-    for i in range(n):
-        layer = layers[i]
+    alpha_beta_amp = np.where(in_l123, 0.5, np.where(in_l4, 0.3, 0.6))
+    gamma_amp = np.where(in_l123, 0.8, 0.2)
 
-        if layer in ("L1", "L2", "L3"):
-            alpha_beta_amp = 0.5
-        elif layer == "L4":
-            alpha_beta_amp = 0.3
-        else:
-            alpha_beta_amp = 0.6
+    sin_alpha_beta = np.sin(2.0 * np.pi * alpha_beta_freq * t)
+    sin_gamma = np.sin(2.0 * np.pi * gamma_freq * t)
 
-        if layer in ("L1", "L2", "L3"):
-            gamma_amp = 0.8
-        else:
-            gamma_amp = 0.2
+    alpha_beta_sig = sin_alpha_beta[:, None] * alpha_beta_amp[None, :]
+    gamma_sig = sin_gamma[:, None] * gamma_amp[None, :]
 
-        alpha_beta_sig = alpha_beta_amp * np.sin(2.0 * np.pi * alpha_beta_freq * t)
-        gamma_sig = gamma_amp * np.sin(2.0 * np.pi * gamma_freq * t)
-
-        resonance[:, i] = (
-            control_params.get("alpha_beta_gain", 1.0) * alpha_beta_sig
-            + control_params.get("gamma_gain", 1.0) * gamma_sig
-        ) * control_params.get("resonance_scale", 1.0)
+    resonance = (
+        control_params.get("alpha_beta_gain", 1.0) * alpha_beta_sig
+        + control_params.get("gamma_gain", 1.0) * gamma_sig
+    ) * control_params.get("resonance_scale", 1.0)
+    resonance = resonance.astype(np.float32)
 
     metadata = {
         "source_mode": "teaching_control_resonance_source",
@@ -866,10 +879,9 @@ def spectrolaminar_readout(
     area_arr = np.array(neurons.get("area", ["V1"] * N))
     pos_l4_arr = np.array(neurons.get("pos_from_l4", np.linspace(-0.5, 0.5, N)))
 
-    for i in range(N):
-        if area_arr[i] == area:
-            area_indices.append(i)
-            pos_from_l4_list.append(float(pos_l4_arr[i]))
+    mask = area_arr == area
+    area_indices = np.where(mask)[0].tolist()
+    pos_from_l4_list = pos_l4_arr[mask].astype(float).tolist()
 
     if len(area_indices) == 0:
         return {
