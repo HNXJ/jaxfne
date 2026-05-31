@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.22 (2026-05-31)
+
+**Patch release:** Fix `jtfne.vis.visualize_network_3d` missing from PyPI wheel.
+
+### Fixed
+- `jaxfne/vis/__init__.py` now exports `visualize_network_3d` in the published wheel.
+  The v0.3.21 PyPI wheel was built before `visualize_network_3d` was added to the
+  vis subpackage export list; v0.3.22 corrects this.
+- Etude No. 1 notebook: install cell updated to `--force-reinstall --no-cache-dir`
+  to prevent stale Colab runtime cache from shadowing the fix.
+- Etude No. 1 notebook: install verification cell raises `RuntimeError` with clear
+  path/version diagnostics if the installed `jtfne.vis` is still missing the function.
+- Network visualization cell now catches both `ImportError` and `AttributeError` and
+  falls back to a static `geometry3d` PNG so the notebook completes regardless.
+
+### Added
+- `tests/test_vis_network3d_public_api.py` — 5 regression tests that enforce the
+  `jtfne.vis.visualize_network_3d` export contract. CI now fails loudly if this
+  public API is ever dropped from the package.
+
 ## v0.3.21 (2026-05-30)
 
 **Release:** Etude No. 1 completion and notebook template standardization.
