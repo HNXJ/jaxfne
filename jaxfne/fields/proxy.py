@@ -609,7 +609,7 @@ def make_laminar_connectivity(
         + control_params.get("feedback_gain", 1.0) * W_fb
     )
 
-    E_mask = np.array([cell_type[i] == "E" for i in range(n)], dtype=bool)
+    E_mask = np.asarray(cell_type) == "E"
     I_mask = ~E_mask
 
     audit = {
