@@ -9,7 +9,7 @@ The **jaxfne Notebook Template** (`tutorials/templates/jaxfne_notebook_template.
 The template enforces:
 
 - ✅ **Hygiene gates:** Workflow code cells ≤ 8 lines by default; setup/configuration cells may be longer, no consecutive code cells
-- ✅ **Installation options:** Both PyPI and dev-branch installs in one unified setup cell
+- ✅ **Installation options:** Both PyPI (`jaxfne[viz]`) and `main` release-branch installs in one unified setup cell
 - ✅ **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
 - ✅ **Canonical imports:** `import jaxfne as jtfne`
 - ✅ **Truth gates:** Scope gates explicitly documented
@@ -41,7 +41,7 @@ cp tutorials/templates/jaxfne_notebook_template.ipynb \
 ### 3. Structure Rules
 
 **Mandatory:**
-- Keep the unified setup cell (Cell 2) with both install options
+- Keep the unified setup cell (Cell 2) with both install options (`jaxfne[viz]` from PyPI and `jaxfne[viz] @ git+...@main`)
 - Keep truth gates documented at the top
 - Separate every code cell with markdown (no consecutive code cells)
 - Keep normal workflow code cells ≤ 8 lines; setup/configuration cells may be longer when they hold required setup or explicit input domains
@@ -81,7 +81,7 @@ The canonical template now uses a unified setup pattern to minimize code cells:
 |------|------|---------|
 | 1 | Markdown | Title & scope gates |
 | 2 | Markdown | Setup header |
-| 3 | Code | **Unified setup cell** (8 lines):<br>- Both PyPI and dev installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
+| 3 | Code | **Unified setup cell** (8 lines):<br>- Both PyPI (`jaxfne[viz]`) and `main` release-branch installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
 | 4 | Markdown | Outline & description |
 | 5 | Markdown | Configuration header |
 | 6 | Code | Placeholder configuration |

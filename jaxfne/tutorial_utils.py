@@ -402,12 +402,14 @@ def rate_synchrony_targets(
         kind="rate_synchrony_targets",
     )
 
-    # Add rate loss term
+    # Add rate loss term.
+    # metric must match jaxfne.core._KNOWN_METRICS / _compute_all_metrics;
+    # the computed population-rate metric is "spike_rate_hz_mean".
     obj = obj.loss(
         name="population_firing_rate",
         target=float(target_rate_hz),
         weight=float(rate_weight),
-        metric="mean_firing_rate_hz",
+        metric="spike_rate_hz_mean",
         metadata={
             "target_rate_hz": float(target_rate_hz),
         }

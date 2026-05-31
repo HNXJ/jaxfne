@@ -2164,11 +2164,57 @@ _KNOWN_METRICS = frozenset({
     "source_proxy_abs_mean",
     "csd_proxy_abs_mean",
     "lfp_proxy_abs_mean",
+    "kappa_synchrony",
+})
+
+#: Config-metadata gate metrics — string-valued flags compared against
+#: ``cfg.metadata`` rather than computed readout metrics.  These let an
+#: Objective declare truth/scope gates (e.g. truth_mode, claim_level) that
+#: are evaluated against the configuration, not the signals.
+_KNOWN_CONFIG_GATE_METRICS = frozenset({
+    "truth_mode",
+    "claim_level",
+    "field_solver_status",
+    "field_claim_level",
+    "source_calibration_status",
+    "source_projection_mode",
+    "empirical_validation_status",
+    "mechanism_claim_status",
 })
 
 
 def _finite_or_none(value: float) -> Optional[float]:
     return value if math.isfinite(value) else None
+
+
+def _compute_kappa_synchrony_metric(spikes: Any) -> Optional[float]:
+    """Vectorized mean pairwise spike-train correlation (kappa synchrony).
+
+    Matches :func:`jaxfne.tutorial_utils.kappa_synchrony` semantics — mean
+    Pearson correlation over neuron pairs with non-zero temporal variance —
+    but computed as a single correlation matrix multiply for speed in the
+    per-candidate tuning loop.  Proxy diagnostic; not a biological invariant.
+    Expects ``spikes`` shaped ``[n_timesteps, n_neurons]``.
+    """
+    import numpy as _np
+
+    x = _np.asarray(spikes, dtype=float)
+    if x.ndim != 2:
+        return 0.0
+    n_timesteps, n_neurons = x.shape
+    if n_neurons < 2 or n_timesteps < 1:
+        return 0.0
+    std = x.std(axis=0)
+    valid = std > 0
+    n_valid = int(valid.sum())
+    if n_valid < 2:
+        return 0.0
+    xv = x[:, valid]
+    z = (xv - xv.mean(axis=0)) / xv.std(axis=0)
+    corr = (z.T @ z) / n_timesteps
+    off_diagonal_sum = float(corr.sum() - _np.trace(corr))
+    mean_pairwise = off_diagonal_sum / (n_valid * (n_valid - 1))
+    return _finite_or_none(float(mean_pairwise))
 
 
 def _compute_all_metrics(signals: "Signals", readout: Optional[dict[str, Any]] = None) -> dict[str, Optional[float]]:
@@ -2178,6 +2224,7 @@ def _compute_all_metrics(signals: "Signals", readout: Optional[dict[str, Any]] =
     m["spike_rate_hz_mean"] = _finite_or_none(float(jnp.mean(signals.spikes) * (1000.0 / dt_ms)))
     m["spike_count_total"] = _finite_or_none(float(jnp.sum(signals.spikes)))
     m["mean_V_m"] = _finite_or_none(float(jnp.mean(signals.V_m)))
+    m["kappa_synchrony"] = _compute_kappa_synchrony_metric(signals.spikes)
     if signals.field is not None:
         m["source_proxy_abs_mean"] = _finite_or_none(float(jnp.mean(jnp.abs(signals.field.source_proxy))))
         m["csd_proxy_abs_mean"] = _finite_or_none(float(jnp.mean(jnp.abs(signals.field.csd_proxy))))
@@ -2314,8 +2361,16 @@ def _evaluate_gate_spec(
     metrics: dict[str, Optional[float]],
     warnings: list[str],
     strict: bool,
+    cfg_meta: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
-    """Evaluate one gate spec; returns pass/fail."""
+    """Evaluate one gate spec; returns pass/fail.
+
+    Numeric gates are checked against computed readout ``metrics``.  Gates
+    whose metric is a configuration flag (see ``_KNOWN_CONFIG_GATE_METRICS``)
+    are checked against ``cfg_meta`` via exact string comparison — this lets
+    an Objective assert truth/scope gates (truth_mode, claim_level, …) that
+    describe the configuration rather than the signals.
+    """
     result: dict[str, Any] = {
         "name": spec["name"],
         "threshold": spec.get("threshold"),
@@ -2326,6 +2381,21 @@ def _evaluate_gate_spec(
         result["value"] = None
         result["pass"] = False
         result["status"] = "no_metric_specified"
+        return result
+    # Config-metadata gates: exact-match a configuration flag.
+    if metric in _KNOWN_CONFIG_GATE_METRICS:
+        cfg_meta = cfg_meta or {}
+        value = cfg_meta.get(metric, _CONSERVATIVE_TRUTH_DEFAULTS.get(metric))
+        result["metric"] = metric
+        result["value"] = value
+        threshold = spec.get("threshold")
+        criterion = spec.get("criterion", "exact")
+        if criterion == "exact":
+            passes = value == threshold
+        else:
+            passes = _check_gate_criterion(value, threshold, criterion) if value is not None else False
+        result["pass"] = bool(passes)
+        result["status"] = "pass" if passes else "fail"
         return result
     if metric not in _KNOWN_METRICS:
         msg = f"unknown_metric:{metric}"
@@ -3366,7 +3436,7 @@ class Model:
         gate_results = []
         all_gates_pass = True
         for spec in objective.gates:
-            r = _evaluate_gate_spec(spec, computed_metrics, warnings, strict)
+            r = _evaluate_gate_spec(spec, computed_metrics, warnings, strict, cfg_meta)
             gate_results.append(r)
             if not r.get("pass", True):
                 all_gates_pass = False

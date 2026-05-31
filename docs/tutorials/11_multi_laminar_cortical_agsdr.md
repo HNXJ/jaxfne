@@ -1,165 +1,212 @@
-# Multi-Laminar Cortical Modeling and Stable Fine-Tuning with AGSDR
+# Etude No. 1: Multi-Laminar Cortical AGSDR
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/notebooks/jaxfne_multi_laminar_cortical_agsdr.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 
-This tutorial demonstrates a package-native workflow for configuring a multi-laminar cortical scaffold, simulating baseline activity, stimulating a selected subpopulation, tuning with AGSDR, and rendering spectrolaminar proxy readouts.
+Artifact class: Etude. This is a full-detail, legacy-inspired, jaxfne-native workflow. It is not a Suite-numbered tutorial.
 
 ## Scope
 
-This tutorial uses simulated/proxy readouts and preserves the release gates:
-
 ```yaml
+artifact_class: etude
+artifact_id: etude_no_1
 truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
 physical_amplitude_claim_allowed: false
 ```
 
-It covers configuration, simulation, native-drive proxy stimulation, black-box AGSDR tuning, and visualization. It does not provide calibrated LFP/CSD amplitudes, real EEG/MEG forward modeling, biological metabolism, mechanism proof, or a solved PDE field model.
+The Etude demonstrates a package-native scaffold: configure -> construct -> simulate -> visualize -> optimize. It uses simulated/proxy readouts and does not report calibrated LFP/CSD/EEG/MEG amplitudes or solved PDE fields.
+
+## Install cells
+
+```python
+!pip install -q "jaxfne[viz]"
+```
+
+```python
+!pip install -q "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"
+```
 
 ## Learning objectives
 
-1. Create a multi-area spectrolaminar cortex configuration.
-2. Edit every major configuration domain explicitly.
-3. Construct and simulate a model from the edited configuration.
-4. Select a custom neuron subset using package-native metadata.
-5. Apply targeted native-drive proxy stimulation.
-6. Tune with AGSDR toward overall 5 Hz firing rate and kappa synchrony 0.0.
-7. Render a spectrolaminar suite with custom frequency limits and resolution.
-8. Export JSON-safe manifest and validation reports.
+1. Use a centralized full-detail config as the edit anchor.
+2. Run single-unit E/PV/SST/VIP warmup with package-native emitters.
+3. Construct a multi-area laminar scaffold.
+4. Simulate baseline, stimulus, and tuned conditions.
+5. Visualize declared/simulated geometry, activity, and spectrolaminar proxy readouts.
+6. Tune with AGSDR toward 3.5 Hz and kappa synchrony 0.0.
+7. Export JSON-safe manifest, validation, metrics, hashes, PNG figures, and optional Plotly HTML.
 
-## Colab installation cells
+## Required notebook structure
 
-The notebook includes both supported install paths:
-
-```python
-!pip install -q jaxfne
+```text
+setup
+centralized config
+single-unit warmup
+construct model
+3D network visualization
+baseline simulation
+stimulus simulation
+AGSDR tuning
+activity suites: baseline/stimulus/tuned
+spectrolaminar suites: baseline/stimulus/tuned
+artifact export
+validation summary
 ```
 
-```python
-!pip install -q "jaxfne @ git+https://github.com/HNXJ/jaxfne.git@dev"
+## Configuration domains
+
+Expose these as named values or dictionaries and export them under `manifest["editable_inputs"]`:
+
+```text
+runtime, geometry, areas, layers, cell_types, cell_colors, cell_signs,
+layer fractions, native drive, connectivity metadata, field/proxy metadata,
+probes, objective, optimizer, stimulus, visualization, artifact paths, truth gates
 ```
 
-The second cell intentionally overwrites the PyPI install when users want the development branch.
+Config cells may exceed normal line limits. Scientific calls should show important defaults explicitly.
 
-## Configuration domains exercised
-
-| Domain | Example API | Purpose |
-|---|---|---|
-| Runtime | `cfg.runtime(...)` | Seed, duration, time step, dtype, JIT metadata |
-| Columns | `default_spectrolaminar_config(...)` plus `.column(...)` metadata | V1/V4 multi-column scaffold |
-| Cell types | `.cell_types(...)` | E/PV/SST/VIP fractions |
-| Drive | `.drive(...)` | Baseline native-drive proxy and event metadata |
-| Inter-column connectivity | `.inter_column_connectivity(...)` | Sparse feedforward/feedback metadata |
-| Field/proxy | `.field(...)` | Laminar proxy status and boundary/gauge metadata |
-| Probes | `.probes(...)` | SPK, Vm, source, LFP-like, CSD-like, EEG-like, MEG-like, EMM-proxy labels |
-| Objective | `.objective(...)` and `rate_synchrony_targets(...)` | 5 Hz rate and kappa synchrony target |
-| Optimizer | `.optimizer(...)` and `agsdr(...)` | AGSDR search metadata and execution |
-
-## Main workflow
+## Package-native calls
 
 ```python
 import jaxfne as jtfne
-
-cfg = jtfne.default_spectrolaminar_config(
-    areas=["V1", "V4"],
-    n_per_area=80,
-    seed=20260530,
-    duration_ms=1000.0,
-    dt_ms=0.1,
-)
 ```
 
-The notebook then edits all major domains, constructs a model, simulates baseline activity, selects a V1/L4/E target subset, applies native-drive proxy stimulation, tunes with AGSDR, and exports manifest artifacts.
-
-## Custom subset stimulation
-
-The notebook uses package-native selection and targeted schedules:
+Warmup:
 
 ```python
-target_indices = jtfne.select_neurons(model, area="V1", layer="L4", cell_type="E")
-
-stim = jtfne.stimulus_schedule(
-    [{
-        "label": "custom_V1_L4_E_drive",
-        "onset_ms": 250.0,
-        "duration_ms": 150.0,
-        "amplitude": 1.25,
-        "target_indices": target_indices,
-    }],
-    n_neurons=model.summary()["n_units"],
-)
+jtfne.izhikevich_params_from_labels(...)
+jtfne.simulate_eig_izhikevich(...)
 ```
 
-The schedule report records selected-index targeting and remains JSON-safe.
+Model and simulation:
 
-## AGSDR fine tuning
+```python
+cfg = jtfne.default_spectrolaminar_config(...)
+model = jtfne.construct(cfg)
+sim = jtfne.Simulation(...)
+signals = model.simulate(sim)
+```
 
-The objective is explicit and proxy-scaffold bounded:
+Targeting and stimulus:
+
+```python
+target_indices = jtfne.select_neurons(model, area="V1", layer=None, cell_type="E")
+stim = jtfne.stimulus_schedule(events, n_neurons=model.summary()["n_units"])
+```
+
+Objective and optimizer:
 
 ```python
 objective = jtfne.rate_synchrony_targets(
-    target_rate_hz=5.0,
+    target_rate_hz=3.5,
     target_kappa_synchrony=0.0,
     rate_weight=1.0,
     synchrony_weight=0.25,
 )
-```
 
-The AGSDR tuning report includes best parameters, best score, achieved firing rate, achieved kappa synchrony, and `differentiability_status=nondifferentiable_spiking`.
-
-## Spectrolaminar suite visualization
-
-The notebook demonstrates custom frequency limits and resolution:
-
-```python
-fig = jtfne.vis.spectrolaminar_suite(
-    signals_tuned,
-    freq_min_hz=1.0,
-    freq_max_hz=150.0,
-    freq_count=128,
-    psd_nperseg=512,
-    figsize=(14, 10),
-    dpi=160,
-    title="Multi-laminar cortical AGSDR tuning - simulated proxy readouts",
+opt = jtfne.agsdr(
+    parameters={"drive_gain": (0.1, 1.5)},
+    generations=3,
+    population_size=2,
+    seed=SEED,
 )
 ```
 
-The title remains proxy-safe and the function checks finite LFP-like/CSD-like arrays before plotting.
+## Visualization requirements
 
-## Exported artifacts
+Visualization is part of the user-facing evidence. Each visualization cell must display the figure and save an artifact.
 
-The notebook writes outputs under:
+Required outputs:
 
 ```text
-outputs/multi_laminar_cortical_agsdr/
+figures/cortical_circuit_network.png
+plotly/cortical_circuit_network.html optional
+figures/activity_suite_baseline.png
+figures/activity_suite_stimulus.png
+figures/activity_suite_tuned.png
+figures/spectrolaminar_baseline.png
+figures/spectrolaminar_stimulus.png
+figures/spectrolaminar_tuned.png
 ```
 
-Expected artifacts:
+Network visualization should use a package-level API such as `jtfne.vis.visualize_network_3d(...)` for interactive HTML and a stable matplotlib path for PNG. Titles must say simulated/proxy/declared geometry.
+
+## Artifact outputs
+
+Output directory:
+
+```text
+outputs/etude_no_1/
+```
+
+Required files:
 
 ```text
 manifest.json
 validation_report.json
-figures/multi_laminar_spectrolaminar_suite.png
+metrics.json
+asset_hashes.json
+figures/*.png
+plotly/*.html optional
+```
+
+`metrics.json` must include:
+
+```yaml
+baseline_rate_hz: number
+stimulus_rate_hz: number
+tuned_rate_hz: number
+target_rate_hz: 3.5
+baseline_kappa_synchrony: number
+stimulus_kappa_synchrony: number
+tuned_kappa_synchrony: number
+target_kappa_synchrony: 0.0
+best_score: finite_number
+best_parameters: non_empty_object
+tuning_status: string
+same_model_unchanged: false
+rate_improvement_hz: positive_number
+kappa_improvement: number
 ```
 
 ## Failure modes
 
-| Failure mode | Likely cause | Action |
+| Failure mode | Cause | Action |
 |---|---|---|
-| Empty target subset | Compact scaffold metadata has sparse layer coverage | Select by area/cell type or increase `n_per_area` |
-| High kappa after tuning | Synchrony penalty too light | Increase `synchrony_weight` |
-| High rate after tuning | Drive bounds too high | Lower `drive_scale` / `noise_amplitude` bounds |
-| Silent run | Drive bounds too low or inhibition too strong | Raise drive or lower inhibitory gain |
-| Slow Colab run | Large `n_per_area`, long duration, or AGSDR budget | Reduce population or budget for smoke mode |
+| Tuning returns unchanged model | unsupported parameter or unscorable objective | use `drive_gain`; verify finite `best_score` and non-empty `best_parameters` |
+| AGSDR scores are null | metric names not backed by evaluator | use fixed `rate_synchrony_targets` path |
+| Figure cell fails in bare kernel | missing viz dependencies | install `jaxfne[viz]` |
+| Colab opens stale content | badge points to `dev` or old path | use `blob/main/tutorials/etudes/...` |
+| Warmup is silent/saturated | native drive too low/high | edit `WARMUP_DRIVE` |
+| No improvement | budget too small or bounds too narrow | increase AGSDR generations/population or widen `drive_gain` bounds |
 
-## Exercises
+## Acceptance checks
 
-1. Change the target subset from V1/L4/E to V4/L2/3/PV.
-2. Tune to 8 Hz instead of 5 Hz.
-3. Increase `synchrony_weight` to 1.0.
-4. Set `freq_max_hz=80.0` in the visualization.
-5. Add a second targeted event with another cell type.
-6. Compare feedforward-only and feedback-only metadata settings.
-7. Save two validation reports and compare their achieved rate and kappa values.
+```bash
+python -m compileall -q jaxfne tests examples scripts
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+python scripts/audit_notebooks_and_assets.py --check
+TFNE_SMOKE=1 nbclient tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb
+TFNE_SMOKE=0 nbclient tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb
+mkdocs build --strict
+```
+Binary files repo_orig/examples/__pycache__/00_generalized_izhikevich_3d_smoke.cpython-313.pyc and repo_final/examples/__pycache__/00_generalized_izhikevich_3d_smoke.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/00_minimal_column.cpython-313.pyc and repo_final/examples/__pycache__/00_minimal_column.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/01_generalized_readout_smoke.cpython-313.pyc and repo_final/examples/__pycache__/01_generalized_readout_smoke.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/01_source_field_manifest.cpython-313.pyc and repo_final/examples/__pycache__/01_source_field_manifest.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/02_generalized_vis_smoke.cpython-313.pyc and repo_final/examples/__pycache__/02_generalized_vis_smoke.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/02_omission_scaffold.cpython-313.pyc and repo_final/examples/__pycache__/02_omission_scaffold.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/02_spectrolaminar_oddball_scaffold.cpython-313.pyc and repo_final/examples/__pycache__/02_spectrolaminar_oddball_scaffold.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/03_jaxley_bridge_smoke.cpython-313.pyc and repo_final/examples/__pycache__/03_jaxley_bridge_smoke.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/03_objective_and_tune_smoke.cpython-313.pyc and repo_final/examples/__pycache__/03_objective_and_tune_smoke.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/03_single_neuron_multimodal_probe.cpython-313.pyc and repo_final/examples/__pycache__/03_single_neuron_multimodal_probe.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/04_blackbox_tuning_loop.cpython-313.pyc and repo_final/examples/__pycache__/04_blackbox_tuning_loop.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/04_two_neuron_ei_multimodal.cpython-313.pyc and repo_final/examples/__pycache__/04_two_neuron_ei_multimodal.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/05_dataset_bridge_manifest.cpython-313.pyc and repo_final/examples/__pycache__/05_dataset_bridge_manifest.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/05_network_100_ei_multimodal.cpython-313.pyc and repo_final/examples/__pycache__/05_network_100_ei_multimodal.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/06_edge_list_recurrent_backend.cpython-313.pyc and repo_final/examples/__pycache__/06_edge_list_recurrent_backend.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/07_jaxley_trace_bridge.cpython-313.pyc and repo_final/examples/__pycache__/07_jaxley_trace_bridge.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/v031_single_izhikevich_neuron.cpython-313.pyc and repo_final/examples/__pycache__/v031_single_izhikevich_neuron.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/v032_single_neuron_parameter_sweep.cpython-313.pyc and repo_final/examples/__pycache__/v032_single_neuron_parameter_sweep.cpython-313.pyc differ
+Binary files repo_orig/examples/__pycache__/v033_two_neuron_ei_multimodal.cpython-313.pyc and repo_final/examples/__pycache__/v033_two_neuron_ei_multimodal.cpython-313.pyc differ
