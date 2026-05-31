@@ -125,8 +125,10 @@ config = SimpleNamespace(
     AGSDR_ALPHA    = 0.7,
     AGSDR_EXPL     = 0.05,
     AGSDR_DESEL    = 2.0,
-    AGSDR_GEN      = 3,
-    AGSDR_POP      = 2,
+    AGSDR_GEN      = 25,       # full run: 25 generations
+    AGSDR_GEN_SMOKE = 3,       # smoke: 3 generations
+    AGSDR_POP      = 6,        # full run population
+    AGSDR_POP_SMOKE = 2,       # smoke population
     AGSDR_PARAM    = {"drive_gain": (0.1, 1.5)},
     # === Objective ===
     TARGET_RATE_HZ = 3.5,
@@ -215,10 +217,12 @@ probes    = {"types": ["spikes", "V_m", "source", "LFP", "CSD"],
              "n_contacts": config.N_CONTACTS}
 objective = {"rate_hz": config.TARGET_RATE_HZ, "kappa": config.TARGET_KAPPA,
              "rate_w": config.RATE_WEIGHT, "kappa_w": config.KAPPA_WEIGHT}
+_agsdr_gen = config.AGSDR_GEN_SMOKE if SMOKE else config.AGSDR_GEN
+_agsdr_pop = config.AGSDR_POP_SMOKE if SMOKE else config.AGSDR_POP
 optimizer = {"family": "AGSDR", "alpha": config.AGSDR_ALPHA,
              "exploration": config.AGSDR_EXPL, "deselect_factor": config.AGSDR_DESEL,
-             "parameters": config.AGSDR_PARAM, "gen": config.AGSDR_GEN,
-             "pop": config.AGSDR_POP, "seed": SEED}"""
+             "parameters": config.AGSDR_PARAM,
+             "gen": _agsdr_gen, "pop": _agsdr_pop, "seed": SEED}"""
 
 VIZ_HELPER_MD = """\
 ## Visualization Helpers
@@ -347,6 +351,197 @@ def plot_spectrolaminar_etude1(signals, mdl, label, cfg, fname_suffix=None):
     out = cfg.FIG_DIR / f"spectrolaminar_{suf}.png"
     fig.savefig(out, dpi=cfg.FIG_DPI, bbox_inches="tight"); plt.show()
     return fig"""
+
+# ─── Plotly interactive helpers ──────────────────────────────────────────────
+
+PLOTLY_ACT_HELPER_MD = """\
+## Plotly Activity Suite Helper
+
+`plot_activity_suite_plotly` produces the interactive HTML version of the
+activity suite (raster, firing rate, LFP proxy, CSD proxy). Requires Plotly
+(`jaxfne[viz]`); gracefully skipped if unavailable. Setup cell — may be long."""
+
+PLOTLY_ACT_HELPER_CODE = """\
+def plot_activity_suite_plotly(signals, label, cfg, fname_suffix=None):
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
+    spikes = np.asarray(signals.spikes); t_ms = np.asarray(signals.time_ms)
+    lfp = np.asarray(signals.field.lfp_proxy)
+    csd = np.asarray(signals.field.csd_proxy)
+    depths = np.asarray(signals.field.contact_depths)
+    rate_hz = 1000.0 * spikes.mean(axis=1) / cfg.DT_MS
+    si, ti = np.where(spikes.T)
+    fig = make_subplots(rows=2, cols=2, subplot_titles=[
+        "Spike Raster", "Mean Firing Rate", "LFP Proxy", "CSD Proxy"])
+    fig.add_trace(go.Scattergl(x=t_ms[ti], y=si, mode="markers",
+        marker=dict(size=2, color="black", opacity=0.4), showlegend=False), row=1, col=1)
+    fig.add_trace(go.Scatter(x=t_ms, y=rate_hz, mode="lines",
+        line=dict(color="#e69500", width=1.5), showlegend=False), row=1, col=2)
+    vmax_lfp = float(np.abs(lfp).max()) or 1.0
+    fig.add_trace(go.Heatmap(z=lfp.T, x=t_ms, y=depths, colorscale="RdBu_r",
+        zmid=0, zmin=-vmax_lfp, zmax=vmax_lfp, showscale=True,
+        colorbar=dict(x=0.45, len=0.45, title="LFP")), row=2, col=1)
+    vmax_csd = float(np.abs(csd).max()) or 1.0
+    fig.add_trace(go.Heatmap(z=csd.T, x=t_ms, y=depths, colorscale="RdBu_r",
+        zmid=0, zmin=-vmax_csd, zmax=vmax_csd, showscale=True,
+        colorbar=dict(x=1.0, len=0.45, title="CSD")), row=2, col=2)
+    fig.update_xaxes(title_text="Time (ms)")
+    fig.update_yaxes(title_text="Neuron", row=1, col=1)
+    fig.update_yaxes(title_text="Hz", row=1, col=2)
+    fig.update_yaxes(title_text="Depth", row=2, col=1)
+    fig.update_yaxes(title_text="Depth", row=2, col=2)
+    fig.update_layout(
+        title=f"Activity Suite — {label} (proxy · truth_safe_unverified)",
+        height=600, width=1050)
+    suf = fname_suffix or label.lower().replace(" ", "_")
+    fig.write_html(str(cfg.PLOTLY_DIR / f"activity_suite_{suf}.html"))
+    fig.show()
+    return fig"""
+
+PLOTLY_SPEC_HELPER_MD = """\
+## Plotly Spectrolaminar Suite Helper
+
+`plot_spectrolaminar_plotly` is the interactive Plotly version of the 3-panel
+spectrolaminar suite. Setup cell — may be long."""
+
+PLOTLY_SPEC_HELPER_CODE = """\
+def plot_spectrolaminar_plotly(signals, mdl, label, cfg, fname_suffix=None):
+    import pandas as pd
+    from scipy.signal import welch
+    from scipy.ndimage import gaussian_filter1d
+    from plotly.subplots import make_subplots
+    import plotly.graph_objects as go
+    neurons = pd.DataFrame(mdl.neuron_table())
+    lfp = np.asarray(signals.field.lfp_proxy)
+    depths = np.asarray(signals.field.contact_depths)
+    l4_c = (cfg.LAYER_FRACTIONS["L4"][0] + cfg.LAYER_FRACTIONS["L4"][1]) / 2.0
+    pos = depths - l4_c; fs = 1000.0 / cfg.DT_MS
+    fgrid = np.linspace(cfg.FREQ_MIN_HZ, cfg.FREQ_MAX_HZ, cfg.FREQ_COUNT)
+    psd = np.zeros((len(depths), len(fgrid)))
+    for ci in range(len(depths)):
+        f, px = welch(lfp[:, ci], fs=fs, nperseg=min(cfg.PSD_NPERSEG, lfp.shape[0]//2))
+        psd[ci] = np.interp(fgrid, f, px)
+    plog = np.log10(psd + 1e-12); vlo, vhi = np.percentile(plog, 5), np.percentile(plog, 95)
+    rel = np.clip((plog - vlo) / (vhi - vlo + 1e-12), 0, 1) * 0.5 + 0.5
+    ab_m = (fgrid >= cfg.ALPHA_BETA_HZ[0]) & (fgrid <= cfg.ALPHA_BETA_HZ[1])
+    gm_m = (fgrid >= cfg.GAMMA_HZ[0]) & (fgrid <= cfg.GAMMA_HZ[1])
+    ab_p = rel[:, ab_m].mean(axis=1); ab_p = (ab_p - ab_p.min()) / (ab_p.max() - ab_p.min() + 1e-12)
+    gm_p = rel[:, gm_m].mean(axis=1); gm_p = (gm_p - gm_p.min()) / (gm_p.max() - gm_p.min() + 1e-12)
+    z = neurons["z"].values; neurons = neurons.copy()
+    neurons["pos"] = (z - z.min()) / (z.max() - z.min() + 1e-12) - l4_c
+    bins = np.linspace(pos[0] - 0.02, pos[-1] + 0.02, 33); ctrs = 0.5*(bins[:-1]+bins[1:])
+    fig = make_subplots(rows=1, cols=3, column_widths=[0.25, 0.5, 0.25],
+        subplot_titles=["A Cell Density", "B Power Spectrum", "C Band Profiles"])
+    for ct in cfg.CELL_TYPES:
+        vals, _ = np.histogram(neurons.loc[neurons["cell_type"]==ct, "pos"], bins=bins)
+        vals = gaussian_filter1d(vals.astype(float), 1.2)
+        if vals.max() > 0: vals = vals / vals.max()
+        fig.add_trace(go.Scatter(x=vals, y=ctrs, mode="lines",
+            line=dict(color=cfg.CELL_COLORS[ct], width=2), name=ct), row=1, col=1)
+    fig.add_trace(go.Heatmap(z=rel, x=fgrid, y=pos, colorscale="Viridis",
+        zmin=0.5, zmax=1.0, colorbar=dict(title="Rel Pow", x=0.68, len=0.9)), row=1, col=2)
+    fig.add_trace(go.Scatter(x=ab_p, y=pos, mode="lines",
+        line=dict(color="blue", width=3), name="Alpha-beta"), row=1, col=3)
+    fig.add_trace(go.Scatter(x=gm_p, y=pos, mode="lines",
+        line=dict(color="red", width=3), name="Gamma"), row=1, col=3)
+    for col in [1, 2, 3]:
+        fig.add_hline(y=0, line_color="black", line_width=1.2, row=1, col=col)
+    fig.update_yaxes(autorange="reversed")
+    fig.update_yaxes(title_text="Position from L4", row=1, col=1)
+    fig.update_xaxes(title_text="Rel Count", row=1, col=1)
+    fig.update_xaxes(title_text="Frequency (Hz)", row=1, col=2)
+    fig.update_xaxes(title_text="Rel Power", row=1, col=3)
+    fig.update_layout(
+        title=f"{label} — Spectrolaminar Proxy (truth_safe_unverified · laminar_proxy_no_pde)",
+        height=520, width=1150)
+    suf = fname_suffix or label.lower().replace(" ", "_")
+    fig.write_html(str(cfg.PLOTLY_DIR / f"spectrolaminar_{suf}.html"))
+    fig.show()
+    return fig"""
+
+OPT_SUMMARY_HELPER_MD = """\
+## Optimization Summary Helper
+
+`plot_optimization_summary` plots the AGSDR convergence curve and all candidate
+scores. Saves both matplotlib PNG (always) and Plotly HTML (if Plotly available).
+Setup cell — may be long."""
+
+OPT_SUMMARY_HELPER_CODE = """\
+def plot_optimization_summary(tuned_result, cfg):
+    summ = dict(tuned_result.summary)
+    gen_records = summ.get("generation_records", [])
+    all_scores  = summ.get("all_scores", [])
+    best_score  = summ.get("best_score", float("nan"))
+    best_params = summ.get("best_parameters", {})
+    gen_nums  = [r["generation"] for r in gen_records]
+    gen_best  = [r["best_score"] for r in gen_records]
+    gen_curr  = [r["generation_best_score"] for r in gen_records]
+    # Matplotlib PNG (unconditional)
+    fig_m, axes = plt.subplots(1, 2, figsize=(13, 4), dpi=cfg.FIG_DPI)
+    axes[0].plot(gen_nums, gen_best, "b-o", lw=2.5, ms=6, label="Global best")
+    axes[0].plot(gen_nums, gen_curr, "o--", color="#e69500", lw=1.5, ms=4, label="Gen best")
+    axes[0].set_xlabel("Generation"); axes[0].set_ylabel("Loss score")
+    axes[0].set_title("AGSDR Convergence Curve"); axes[0].legend()
+    sc = axes[1].scatter(range(len(all_scores)), all_scores, s=35,
+                         c=all_scores, cmap="plasma_r", edgecolors="none")
+    plt.colorbar(sc, ax=axes[1], label="Score")
+    axes[1].set_xlabel("Candidate index"); axes[1].set_ylabel("Score")
+    axes[1].set_title("All Candidate Evaluations")
+    bp_str = ", ".join(f"{k}={v:.4f}" for k, v in best_params.items())
+    fig_m.suptitle(f"AGSDR Summary | best={best_score:.4f} | {bp_str}", fontsize=10)
+    fig_m.tight_layout()
+    png_out = cfg.FIG_DIR / "optimization_summary.png"
+    fig_m.savefig(png_out, dpi=cfg.FIG_DPI, bbox_inches="tight")
+    plt.show(); plt.close(fig_m)
+    # Plotly HTML (conditional)
+    try:
+        from plotly.subplots import make_subplots
+        import plotly.graph_objects as go
+        fig_p = make_subplots(rows=1, cols=2, subplot_titles=[
+            "AGSDR Convergence Curve", "All Candidate Evaluations"])
+        fig_p.add_trace(go.Scatter(x=gen_nums, y=gen_best, mode="lines+markers",
+            line=dict(color="blue", width=2.5), marker=dict(size=7),
+            name="Global best"), row=1, col=1)
+        fig_p.add_trace(go.Scatter(x=gen_nums, y=gen_curr, mode="lines+markers",
+            line=dict(color="#e69500", width=1.5, dash="dot"), marker=dict(size=5),
+            name="Gen best"), row=1, col=1)
+        fig_p.add_trace(go.Scatter(
+            x=list(range(len(all_scores))), y=all_scores, mode="markers",
+            marker=dict(size=6, color=all_scores, colorscale="Plasma_r",
+                        showscale=True, colorbar=dict(title="Score", x=1.0)),
+            name="Candidates", showlegend=True), row=1, col=2)
+        fig_p.update_xaxes(title_text="Generation", row=1, col=1)
+        fig_p.update_yaxes(title_text="Loss score", row=1, col=1)
+        fig_p.update_xaxes(title_text="Candidate index", row=1, col=2)
+        fig_p.update_yaxes(title_text="Score", row=1, col=2)
+        fig_p.update_layout(
+            title=f"AGSDR Summary | best={best_score:.4f} | {bp_str}",
+            height=430, width=1050, showlegend=True)
+        fig_p.write_html(str(cfg.PLOTLY_DIR / "optimization_summary.html"))
+        fig_p.show()
+    except ImportError:
+        print("Plotly unavailable — HTML optimization summary skipped.")"""
+
+PLOTLY_ACT_CALL_CODE_TMPL = """\
+try:
+    fig_act_{suf}_html = plot_activity_suite_plotly(signals_{suf}, "{label}", config)
+except ImportError as _e:
+    print(f"Plotly unavailable: {{_e}}. Skipping HTML activity suite.")"""
+
+PLOTLY_SPEC_CALL_CODE_TMPL = """\
+try:
+    fig_spec_{suf}_html = plot_spectrolaminar_plotly(signals_{suf}, {model}, "{label}", config)
+except ImportError as _e:
+    print(f"Plotly unavailable: {{_e}}. Skipping HTML spectrolaminar.")"""
+
+OPT_SUMMARY_CALL_MD = """\
+## Optimization Summary — Convergence + Candidate Evaluations
+
+Matplotlib PNG (unconditional) and Plotly HTML (when Plotly available).
+Shows AGSDR convergence over all {gen} generations and every candidate score."""
+
+OPT_SUMMARY_CALL_CODE = """\
+plot_optimization_summary(tuned, config)"""
 
 CIRCUIT_CALL_MD = """\
 ## 3D Cortical Circuit Visualization
@@ -598,6 +793,13 @@ def build():
     for i in range(29, 33):
         new_cells.append(get_old(i))
 
+    def _plotly_act(suf, label):
+        return code(PLOTLY_ACT_CALL_CODE_TMPL.format(suf=suf, label=label))
+
+    def _plotly_spec(suf, label, model_var="model"):
+        return code(PLOTLY_SPEC_CALL_CODE_TMPL.format(
+            suf=suf, label=label, model=model_var))
+
     # INSERTED after model construction: visualization helpers + circuit call
     new_cells.append(md(VIZ_HELPER_MD))
     new_cells.append(code(CIRCUIT_HELPER_CODE))
@@ -605,6 +807,12 @@ def build():
     new_cells.append(code(ACTIVITY_HELPER_CODE))
     new_cells.append(md(SPECTRO_HELPER_MD))
     new_cells.append(code(SPECTRO_HELPER_CODE))
+    new_cells.append(md(PLOTLY_ACT_HELPER_MD))
+    new_cells.append(code(PLOTLY_ACT_HELPER_CODE))
+    new_cells.append(md(PLOTLY_SPEC_HELPER_MD))
+    new_cells.append(code(PLOTLY_SPEC_HELPER_CODE))
+    new_cells.append(md(OPT_SUMMARY_HELPER_MD))
+    new_cells.append(code(OPT_SUMMARY_HELPER_CODE))
     new_cells.append(md(CIRCUIT_CALL_MD))
     new_cells.append(code(CIRCUIT_CALL_CODE))
     new_cells.append(md(CIRCUIT_STATIC_MD))
@@ -614,11 +822,15 @@ def build():
     for i in range(33, 37):
         new_cells.append(get_old(i))
 
-    # INSERTED after baseline: activity suite + spectrolaminar
+    # INSERTED after baseline: act (mpl) + act (plotly) + spec (mpl) + spec (plotly)
     new_cells.append(md(ACT_BASE_MD))
     new_cells.append(code(ACT_BASE_CODE))
+    new_cells.append(md("## Activity Suite — Baseline (Interactive Plotly)"))
+    new_cells.append(_plotly_act("baseline", "Baseline"))
     new_cells.append(md(SPEC_BASE_MD))
     new_cells.append(code(SPEC_BASE_CODE))
+    new_cells.append(md("## Spectrolaminar Suite — Baseline (Interactive Plotly)"))
+    new_cells.append(_plotly_spec("baseline", "Baseline"))
 
     # 37: Stimulus Target MD — REPLACE
     c37 = get_old(37)
@@ -634,19 +846,25 @@ def build():
     for i in range(39, 45):
         new_cells.append(get_old(i))
 
-    # INSERTED after stim: activity suite + spectrolaminar
+    # INSERTED after stim: act (mpl) + act (plotly) + spec (mpl) + spec (plotly)
     new_cells.append(md(ACT_STIM_MD))
     new_cells.append(code(ACT_STIM_CODE))
+    new_cells.append(md("## Activity Suite — Stimulus (Interactive Plotly)"))
+    new_cells.append(_plotly_act("stim", "Stimulus"))
     new_cells.append(md(SPEC_STIM_MD))
     new_cells.append(code(SPEC_STIM_CODE))
+    new_cells.append(md("## Spectrolaminar Suite — Stimulus (Interactive Plotly)"))
+    new_cells.append(_plotly_spec("stim", "Stimulus"))
 
     # 45-52: objective, optimizer, tune, tuned simulation
     for i in range(45, 53):
         new_cells.append(get_old(i))
 
-    # INSERTED after tuned simulation: activity suite
+    # INSERTED after tuned simulation: act (mpl) + act (plotly) + opt summary
     new_cells.append(md(ACT_TUNED_MD))
     new_cells.append(code(ACT_TUNED_CODE))
+    new_cells.append(md("## Activity Suite — Tuned (Interactive Plotly)"))
+    new_cells.append(_plotly_act("tuned", "Tuned"))
 
     # 53-54: Condition Comparison MD + code
     for i in range(53, 55):
@@ -667,16 +885,27 @@ def build():
     c57["source"] = _to_source_list(SPEC_TUNED_MD)
     new_cells.append(c57)
 
-    # 58: spectrolaminar code — REPLACE (save as spectrolaminar_tuned.png)
+    # 58: spectrolaminar (mpl) + plotly + optimization summary
     c58 = get_old(58)
     c58["source"] = _to_source_list(SPEC_TUNED_CODE)
     new_cells.append(c58)
+    new_cells.append(md("## Spectrolaminar Suite — Tuned (Interactive Plotly)"))
+    new_cells.append(_plotly_spec("tuned", "Tuned", model_var="tuned_model"))
+    new_cells.append(md(OPT_SUMMARY_CALL_MD.format(gen="config.AGSDR_GEN")))
+    new_cells.append(code(OPT_SUMMARY_CALL_CODE))
 
     ARTIFACT_FILES_CODE = """\
 artifact_files = [
     OUTPUT_DIR / 'manifest.json', OUTPUT_DIR / 'validation_report.json',
     OUTPUT_DIR / 'metrics.json',
     config.PLOTLY_DIR / 'cortical_circuit_network.html',
+    config.PLOTLY_DIR / 'activity_suite_baseline.html',
+    config.PLOTLY_DIR / 'activity_suite_stimulus.html',
+    config.PLOTLY_DIR / 'activity_suite_tuned.html',
+    config.PLOTLY_DIR / 'spectrolaminar_baseline.html',
+    config.PLOTLY_DIR / 'spectrolaminar_stimulus.html',
+    config.PLOTLY_DIR / 'spectrolaminar_tuned.html',
+    config.PLOTLY_DIR / 'optimization_summary.html',
     FIG_DIR / 'cortical_circuit_network.png',
     FIG_DIR / 'activity_suite_baseline.png',
     FIG_DIR / 'activity_suite_stimulus.png',
@@ -684,6 +913,7 @@ artifact_files = [
     FIG_DIR / 'spectrolaminar_baseline.png',
     FIG_DIR / 'spectrolaminar_stimulus.png',
     FIG_DIR / 'spectrolaminar_tuned.png',
+    FIG_DIR / 'optimization_summary.png',
 ]
 hashes = {f.name: hashlib.sha256(f.read_bytes()).hexdigest() for f in artifact_files if f.exists()}
 jtfne.save_json(hashes, OUTPUT_DIR / 'asset_hashes.json')"""
