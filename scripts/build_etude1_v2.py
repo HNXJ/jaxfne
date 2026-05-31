@@ -10,7 +10,8 @@ Run from the repo root:
 import json, uuid
 from pathlib import Path
 
-NB_PATH = Path("tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb")
+NB_PATH  = Path("tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb")
+BASE_PATH = Path("tutorials/etudes/jaxfne_etude_no_1_base.ipynb")  # 87-cell source of truth
 
 
 def _id():
@@ -116,7 +117,10 @@ config = SimpleNamespace(
     FREQ_MAX_HZ    = 150.0,
     FREQ_COUNT     = 128,
     PSD_NPERSEG    = 128,
-    SPECTRO_FIGSIZE = (12, 8),
+    SPECTRO_FIGSIZE = (14, 5),
+    SPECTRO_CMAP   = "viridis",
+    ALPHA_BETA_HZ  = (8.0, 25.0),
+    GAMMA_HZ       = (40.0, 150.0),
     # === AGSDR Optimizer ===
     AGSDR_ALPHA    = 0.7,
     AGSDR_EXPL     = 0.05,
@@ -276,6 +280,74 @@ def plot_activity_suite(signals, label, cfg, fname_suffix=None):
     plt.show()
     return fig"""
 
+SPECTRO_HELPER_MD = """\
+## Spectrolaminar Suite Helper (3-panel: cell density / power heatmap / band profiles)
+
+`plot_spectrolaminar_etude1` produces the 3-panel layout:
+- **A** Mean Relative Distribution of Cells (E/PV/SST/VIP vs cortical position from L4)
+- **B** Mean Relative Power Spectrum (frequency × depth heatmap)
+- **C** Alpha-beta / Gamma cross (band profiles vs depth)
+
+Y-axis convention: negative = superficial (above L4), positive = deep (below L4).
+This is a setup cell and may exceed the normal workflow-cell line preference."""
+
+SPECTRO_HELPER_CODE = """\
+def plot_spectrolaminar_etude1(signals, mdl, label, cfg, fname_suffix=None):
+    import pandas as pd
+    from scipy.signal import welch
+    from scipy.ndimage import gaussian_filter1d
+    neurons = pd.DataFrame(mdl.neuron_table())
+    lfp    = np.asarray(signals.field.lfp_proxy)         # (n_steps, n_contacts)
+    depths = np.asarray(signals.field.contact_depths)    # ∈ [0, 1]
+    l4_c   = (cfg.LAYER_FRACTIONS["L4"][0] + cfg.LAYER_FRACTIONS["L4"][1]) / 2.0
+    pos    = depths - l4_c                               # signed: superficial < 0
+    fs     = 1000.0 / cfg.DT_MS
+    fgrid  = np.linspace(cfg.FREQ_MIN_HZ, cfg.FREQ_MAX_HZ, cfg.FREQ_COUNT)
+    psd    = np.zeros((len(depths), len(fgrid)))
+    for ci in range(len(depths)):
+        f, px = welch(lfp[:, ci], fs=fs, nperseg=min(cfg.PSD_NPERSEG, lfp.shape[0] // 2))
+        psd[ci] = np.interp(fgrid, f, px)
+    plog  = np.log10(psd + 1e-12)
+    vlo, vhi = np.percentile(plog, 5), np.percentile(plog, 95)
+    rel   = np.clip((plog - vlo) / (vhi - vlo + 1e-12), 0, 1) * 0.5 + 0.5
+    ab_m  = (fgrid >= cfg.ALPHA_BETA_HZ[0]) & (fgrid <= cfg.ALPHA_BETA_HZ[1])
+    gm_m  = (fgrid >= cfg.GAMMA_HZ[0])      & (fgrid <= cfg.GAMMA_HZ[1])
+    ab_p  = rel[:, ab_m].mean(axis=1); ab_p = (ab_p - ab_p.min()) / (ab_p.max() - ab_p.min() + 1e-12)
+    gm_p  = rel[:, gm_m].mean(axis=1); gm_p = (gm_p - gm_p.min()) / (gm_p.max() - gm_p.min() + 1e-12)
+    z     = neurons["z"].values
+    neurons = neurons.copy()
+    neurons["pos"] = (z - z.min()) / (z.max() - z.min() + 1e-12) - l4_c
+    bins  = np.linspace(pos[0] - 0.02, pos[-1] + 0.02, 33)
+    ctrs  = 0.5 * (bins[:-1] + bins[1:])
+    fig, (ax0, ax1, ax2) = plt.subplots(
+        1, 3, figsize=cfg.SPECTRO_FIGSIZE, dpi=cfg.FIG_DPI,
+        gridspec_kw={"width_ratios": [0.85, 1.75, 0.85]}, sharey=True)
+    for ct in cfg.CELL_TYPES:
+        vals, _ = np.histogram(neurons.loc[neurons["cell_type"] == ct, "pos"], bins=bins)
+        vals    = gaussian_filter1d(vals.astype(float), 1.2)
+        if vals.max() > 0: vals = vals / vals.max()
+        ax0.plot(vals, ctrs, lw=2.0, color=cfg.CELL_COLORS[ct], label=ct)
+    ax0.axhline(0.0, color="k", lw=1.2)
+    ax0.set_title("A Mean Relative Dist of Cells")
+    ax0.set_xlabel("Relative Count"); ax0.set_ylabel("Cortical Position from L4")
+    ax0.legend(fontsize=7); ax0.set_ylim(pos[-1] + 0.05, pos[0] - 0.05)
+    im = ax1.imshow(rel, aspect="auto", origin="upper", cmap=cfg.SPECTRO_CMAP,
+                    extent=[fgrid[0], fgrid[-1], pos[-1], pos[0]], vmin=0.5, vmax=1.0)
+    ax1.axhline(0.0, color="k", lw=1.2)
+    ax1.set_title("B Mean Relative Power Spectrum"); ax1.set_xlabel("Frequency (Hz)")
+    fig.colorbar(im, ax=ax1, label="Rel Pow")
+    ax2.plot(ab_p, pos, color="blue", lw=3.0, label="Alpha-beta")
+    ax2.plot(gm_p, pos, color="red",  lw=3.0, label="Gamma")
+    ax2.axhline(0.0, color="k", lw=1.2)
+    ax2.set_title("C Alpha-beta / Gamma cross"); ax2.set_xlabel("Relative power")
+    ax2.legend(fontsize=8)
+    fig.suptitle(f"{label} — spectrolaminar proxy (truth_safe_unverified · laminar_proxy_no_pde)")
+    fig.tight_layout()
+    suf = fname_suffix or label.lower().replace(" ", "_")
+    out = cfg.FIG_DIR / f"spectrolaminar_{suf}.png"
+    fig.savefig(out, dpi=cfg.FIG_DPI, bbox_inches="tight"); plt.show()
+    return fig"""
+
 CIRCUIT_CALL_MD = """\
 ## 3D Cortical Circuit Visualization
 
@@ -300,20 +372,12 @@ plt.close(fig_act_base)"""
 SPEC_BASE_MD = """\
 ## Spectrolaminar Suite — Baseline
 
-Power spectral density and laminar profiles for the baseline condition.
-All readouts are proxy-scale (truth_safe_unverified; laminar_proxy_no_pde)."""
+Three-panel spectrolaminar readout (cell density / power heatmap / band profiles)
+for the baseline condition. Proxy-scale only (truth_safe_unverified; laminar_proxy_no_pde)."""
 
 SPEC_BASE_CODE = """\
-fig_spec_base = jtfne.vis.spectrolaminar_suite(
-    signals_baseline,
-    freq_min_hz=config.FREQ_MIN_HZ, freq_max_hz=config.FREQ_MAX_HZ,
-    freq_count=config.FREQ_COUNT,   psd_nperseg=config.PSD_NPERSEG,
-    figsize=config.SPECTRO_FIGSIZE, dpi=config.FIG_DPI,
-    title="Etude No. 1 Baseline — simulated proxy readouts",
-)
-fig_spec_base.savefig(FIG_DIR / "spectrolaminar_baseline.png", dpi=config.FIG_DPI,
-                      bbox_inches="tight")
-plt.show(); plt.close(fig_spec_base)"""
+fig_spec_base = plot_spectrolaminar_etude1(signals_baseline, model, "Baseline", config)
+plt.close(fig_spec_base)"""
 
 ACT_STIM_MD = """\
 ## Activity Suite — Stimulus
@@ -328,19 +392,11 @@ plt.close(fig_act_stim)"""
 SPEC_STIM_MD = """\
 ## Spectrolaminar Suite — Stimulus
 
-Power spectral density and laminar profiles for the stimulus condition."""
+Three-panel spectrolaminar readout for the stimulus condition."""
 
 SPEC_STIM_CODE = """\
-fig_spec_stim = jtfne.vis.spectrolaminar_suite(
-    signals_stim,
-    freq_min_hz=config.FREQ_MIN_HZ, freq_max_hz=config.FREQ_MAX_HZ,
-    freq_count=config.FREQ_COUNT,   psd_nperseg=config.PSD_NPERSEG,
-    figsize=config.SPECTRO_FIGSIZE, dpi=config.FIG_DPI,
-    title="Etude No. 1 Stimulus — simulated proxy readouts",
-)
-fig_spec_stim.savefig(FIG_DIR / "spectrolaminar_stimulus.png", dpi=config.FIG_DPI,
-                      bbox_inches="tight")
-plt.show(); plt.close(fig_spec_stim)"""
+fig_spec_stim = plot_spectrolaminar_etude1(signals_stim, model, "Stimulus", config)
+plt.close(fig_spec_stim)"""
 
 ACT_TUNED_MD = """\
 ## Activity Suite — Tuned
@@ -356,31 +412,29 @@ plt.close(fig_act_tuned)"""
 # MODIFIED EXISTING CELLS (replacement content)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Cell 56 (FIG dict) — derive from config
+# Cell 55 (Viz Arguments MD) — update description
 FIG_MOD_MD = """\
-## Visualization Arguments (derived from config)
+## Spectrolaminar Band Definitions (derived from config)
 
-All spectrolaminar visualization parameters come from the centralized `config`
-object. Edit `config.FREQ_MIN_HZ`, `config.FREQ_MAX_HZ`, etc. to adjust."""
+`config.ALPHA_BETA_HZ` and `config.GAMMA_HZ` define the band ranges used in
+panel C of the spectrolaminar suite. Edit these in the centralized config."""
 
 FIG_MOD_CODE = """\
-FIG = {"freq_min_hz": config.FREQ_MIN_HZ, "freq_max_hz": config.FREQ_MAX_HZ,
-       "freq_count": config.FREQ_COUNT, "psd_nperseg": config.PSD_NPERSEG,
-       "figsize": config.SPECTRO_FIGSIZE, "dpi": config.FIG_DPI,
-       "title": "Etude No. 1 Tuned — simulated proxy readouts"}"""
+ALPHA_BETA_HZ = config.ALPHA_BETA_HZ   # e.g. (8.0, 25.0)
+GAMMA_HZ      = config.GAMMA_HZ        # e.g. (40.0, 150.0)
+SPECTRO_CMAP  = config.SPECTRO_CMAP    # "viridis\""""
 
 # Cell 57 (spectrolaminar figure header) — rename to "Tuned"
 SPEC_TUNED_MD = """\
 ## Spectrolaminar Suite — Tuned
 
-Power spectral density and laminar profiles after AGSDR tuning."""
+Three-panel spectrolaminar readout after AGSDR tuning. Use panel C to confirm
+that the alpha-beta and gamma laminar profiles changed relative to baseline."""
 
-# Cell 58 (spectrolaminar save) — update to spectrolaminar_tuned.png
+# Cell 58 (spectrolaminar save) — use new helper
 SPEC_TUNED_CODE = """\
-fig_spec_tuned = jtfne.vis.spectrolaminar_suite(signals_tuned, **FIG)
-fig_spec_tuned.savefig(FIG_DIR / "spectrolaminar_tuned.png",
-                       dpi=FIG["dpi"], bbox_inches="tight")
-plt.show(); plt.close(fig_spec_tuned)"""
+fig_spec_tuned = plot_spectrolaminar_etude1(signals_tuned, tuned_model, "Tuned", config)
+plt.close(fig_spec_tuned)"""
 
 # STIM dict — derive from config
 STIM_MD_NEW = """\
@@ -401,10 +455,13 @@ STIM = {"target_area": config.STIM_AREA, "target_layer": config.STIM_LAYER,
 # ─────────────────────────────────────────────────────────────────────────────
 
 def build():
-    with open(NB_PATH) as f:
+    # Always read from the 87-cell base (source of truth); write to NB_PATH
+    src = BASE_PATH if BASE_PATH.exists() else NB_PATH
+    with open(src) as f:
         nb = json.load(f)
 
     old = nb["cells"]
+    assert len(old) == 87, f"Base notebook must have 87 cells, got {len(old)}"
 
     # Helper to normalize source to list-with-newlines (nbformat convention)
     def src_list(c):
@@ -523,6 +580,8 @@ def build():
     new_cells.append(code(CIRCUIT_HELPER_CODE))
     new_cells.append(md("## Activity Suite Helper"))
     new_cells.append(code(ACTIVITY_HELPER_CODE))
+    new_cells.append(md(SPECTRO_HELPER_MD))
+    new_cells.append(code(SPECTRO_HELPER_CODE))
     new_cells.append(md(CIRCUIT_CALL_MD))
     new_cells.append(code(CIRCUIT_CALL_CODE))
 
@@ -611,6 +670,18 @@ jtfne.save_json(hashes, OUTPUT_DIR / 'asset_hashes.json')"""
         if "spectrolaminar.png" in raw_src and "artifact_files" in raw_src:
             # Replace with updated artifact_files that includes all new figures
             c["source"] = _to_source_list(ARTIFACT_FILES_CODE)
+        elif "FIG" in raw_src and "visualization" in raw_src and "editable_inputs" in raw_src:
+            # Replace the visualization export: FIG no longer exists, use config
+            c["source"] = _to_source_list(
+                "manifest['editable_inputs']['stimulus'] = STIM\n"
+                "manifest['editable_inputs']['visualization'] = {\n"
+                "    'freq_min_hz': config.FREQ_MIN_HZ, 'freq_max_hz': config.FREQ_MAX_HZ,\n"
+                "    'freq_count': config.FREQ_COUNT, 'psd_nperseg': config.PSD_NPERSEG,\n"
+                "    'figsize': list(config.SPECTRO_FIGSIZE), 'dpi': config.FIG_DPI,\n"
+                "    'alpha_beta_hz': list(config.ALPHA_BETA_HZ),\n"
+                "    'gamma_hz': list(config.GAMMA_HZ), 'cmap': config.SPECTRO_CMAP,\n"
+                "}"
+            )
         new_cells.append(c)
 
     # Verify no consecutive code cells
