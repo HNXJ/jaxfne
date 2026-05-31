@@ -1,6 +1,6 @@
 # Multi-Laminar Cortical Modeling and Stable Fine-Tuning with AGSDR
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/notebooks/jaxfne_multi_laminar_cortical_agsdr.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 
 This tutorial demonstrates a package-native workflow for configuring a multi-laminar cortical scaffold, simulating baseline activity, stimulating a selected subpopulation, tuning with AGSDR, and rendering spectrolaminar proxy readouts.
 
@@ -34,14 +34,14 @@ It covers configuration, simulation, native-drive proxy stimulation, black-box A
 The notebook includes both supported install paths:
 
 ```python
-!pip install -q jaxfne
+!pip install -q "jaxfne[viz]"
 ```
 
 ```python
-!pip install -q "jaxfne @ git+https://github.com/HNXJ/jaxfne.git@dev"
+!pip install -q "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"
 ```
 
-The second cell intentionally overwrites the PyPI install when users want the development branch.
+The first cell is the stable PyPI install (with the `viz` extra for matplotlib-backed figures). The second cell installs the current `main` release candidate from GitHub before PyPI catches up.
 
 ## Configuration domains exercised
 
