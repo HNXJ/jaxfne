@@ -547,6 +547,7 @@ def _run_agsdr_optimization_loop(
     alpha: float = 0.65,
     exploration: float = 0.18,
     seed: int = 0,
+    rejections_map: Optional[dict] = None,
 ) -> dict[str, Any]:
     """Run a stateful multi-parameter AGSDR (Adaptive Genetic Stochastic Delta Rule) loop.
 
@@ -577,6 +578,8 @@ def _run_agsdr_optimization_loop(
         Candidates are sampled from normal(theta_center, exploration * span) and clipped.
     seed : int
         Random seed for reproducibility (default 0).
+    rejections_map : dict, optional
+        Thread-local or context dictionary mapping candidate tuple-keys to lists of rejection reasons.
 
     Returns
     -------
@@ -619,6 +622,7 @@ def _run_agsdr_optimization_loop(
     >>> print(f"Best params: {result['best_parameters']}")
     """
     import random
+    import math
 
     # Validate inputs
     if not parameter_bounds:
@@ -677,6 +681,7 @@ def _run_agsdr_optimization_loop(
     for gen in range(int(n_generations)):
         gen_best_score = float("inf")
         gen_best_params: dict[str, float] = {}
+        generation_candidates_history = []
 
         key = jax.random.fold_in(base_key, int(gen))
         noise = jax.random.normal(
@@ -704,6 +709,21 @@ def _run_agsdr_optimization_loop(
             all_scores.append(score)
             all_candidates.append(dict(candidate))
 
+            reasons = []
+            if rejections_map is not None:
+                if isinstance(rejections_map, list):
+                    reasons = rejections_map.pop(0) if rejections_map else []
+                else:
+                    key_tuple = tuple(sorted(candidate.items()))
+                    reasons = rejections_map.get(key_tuple, [])
+
+            generation_candidates_history.append({
+                "parameters": dict(candidate),
+                "score": score if math.isfinite(score) else None,
+                "rejection_reasons": reasons,
+                "gates_pass": "failed_objective_gates" not in reasons,
+            })
+
             if score < gen_best_score:
                 gen_best_score = score
                 gen_best_params = dict(candidate)
@@ -728,11 +748,12 @@ def _run_agsdr_optimization_loop(
         # monotone non-increasing even when exploratory candidates worsen.
         generation_records.append({
             "generation": int(gen),
-            "generation_best_score": gen_best_score,
+            "generation_best_score": gen_best_score if math.isfinite(gen_best_score) else None,
             "generation_best_parameters": dict(gen_best_params),
-            "best_score": best_score,
+            "best_score": best_score if math.isfinite(best_score) else None,
             "best_parameters": dict(best_parameters),
             "theta_center": dict(theta_center),
+            "evaluated_candidates": generation_candidates_history,
         })
 
     # Return results

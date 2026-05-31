@@ -3340,7 +3340,7 @@ class Model:
         warnings: list[str] = []
 
         # Special dispatch for group-rate targets objective
-        if objective.kind == "group_rate_targets":
+        if getattr(objective, "kind", "generic") == "group_rate_targets":
             return self._evaluate_group_rate_targets(signals, objective, warnings, cfg_meta)
 
         computed_metrics = _compute_all_metrics(signals, readout)
@@ -3348,7 +3348,7 @@ class Model:
         loss_results = []
         total_loss = 0.0
         has_loss_value = False
-        for spec in objective.losses:
+        for spec in getattr(objective, "losses", []):
             r = _evaluate_loss_spec(spec, computed_metrics, warnings, strict)
             loss_results.append(r)
             if r.get("weighted_value") is not None:
@@ -3356,7 +3356,7 @@ class Model:
                 has_loss_value = True
 
         reg_results = []
-        for spec in objective.regularizers:
+        for spec in getattr(objective, "regularizers", []):
             r = _evaluate_regularizer_spec(spec, computed_metrics, warnings, strict)
             reg_results.append(r)
             if r.get("weighted_value") is not None:
@@ -3365,7 +3365,7 @@ class Model:
 
         gate_results = []
         all_gates_pass = True
-        for spec in objective.gates:
+        for spec in getattr(objective, "gates", []):
             r = _evaluate_gate_spec(spec, computed_metrics, warnings, strict)
             gate_results.append(r)
             if not r.get("pass", True):
@@ -3375,7 +3375,7 @@ class Model:
 
         return json_safe({
             "evaluation_status": "objective_evaluate_v0.0.5",
-            "objective_name": objective.name,
+            "objective_name": getattr(objective, "name", "spectrolaminar_objective"),
             "total_loss": _finite_or_none(total_loss) if has_loss_value else None,
             "losses": loss_results,
             "regularizers": reg_results,
@@ -3478,7 +3478,7 @@ class Model:
             warnings.append("group_rate_targets_missing_metadata")
             return json_safe({
                 "evaluation_status": "objective_evaluate_group_rate_targets_v0.0.1",
-                "objective_name": objective.name,
+                "objective_name": getattr(objective, "name", "spectrolaminar_objective"),
                 "total_loss": None,
                 "losses": [],
                 "regularizers": [],
@@ -3570,7 +3570,7 @@ class Model:
 
         return json_safe({
             "evaluation_status": "objective_evaluate_group_rate_targets_v0.0.1",
-            "objective_name": objective.name,
+            "objective_name": getattr(objective, "name", "spectrolaminar_objective"),
             "total_loss": _finite_or_none(total_loss) if has_loss_value else None,
             "group_rate_losses": loss_details,
             "losses": [],
@@ -3639,6 +3639,9 @@ class Model:
 
         # Detect multi-parameter path
         if parameters is not None:
+            # Extract seed from optimizer if not explicitly overridden via model.tune(..., seed=nonzero)
+            opt_seed = getattr(optimizer, "seed", 0)
+            actual_seed = seed if seed != 0 else opt_seed
             return self._tune_multiparameter(
                 objective=objective,
                 optimizer=optimizer,
@@ -3646,7 +3649,7 @@ class Model:
                 parameters=parameters,
                 generations=generations or 8,
                 population_size=population_size or 6,
-                seed=int(seed),
+                seed=int(actual_seed),
                 strict=strict,
                 simulation=sim,
             )
@@ -3666,10 +3669,10 @@ class Model:
             "parameter": parameter,
             "bounds": [float(bounds[0]), float(bounds[1])],
             "optimizer": spec.to_dict(),
-            "objective_name": objective.name if not isinstance(objective, str) else objective,
-            "losses_declared": len(objective.losses) if not isinstance(objective, str) else 0,
-            "regularizers_declared": len(objective.regularizers) if not isinstance(objective, str) else 0,
-            "gates_declared": len(objective.gates) if not isinstance(objective, str) else 0,
+            "objective_name": getattr(objective, "name", "spectrolaminar_objective") if not isinstance(objective, str) else objective,
+            "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
+            "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
+            "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
             "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
@@ -3681,6 +3684,10 @@ class Model:
             "physical_amplitude_claim_allowed": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
+            "biological_learning_claim": False,
+            "amplitude_claim_allowed": False,
+            "surrogate_status": spec.surrogate_status,
+            "final_evaluation_basis": "total_loss",
         }
 
         if spec.is_differentiable_path():
@@ -3765,6 +3772,13 @@ class Model:
                 best_loss = score
                 best_value = float(candidate_value)
                 best_model = candidate_model
+
+            reasons = []
+            if not gates_pass:
+                reasons.append("failed_objective_gates")
+            if not math.isfinite(score):
+                reasons.append("non_finite_loss")
+
             history.append({
                 "step": idx,
                 "candidate_value": float(candidate_value),
@@ -3772,6 +3786,7 @@ class Model:
                 "all_gates_pass": gates_pass,
                 "accepted_as_best": bool(accepted),
                 "evaluation_status": candidate_report.get("evaluation_status"),
+                "rejection_reasons": reasons,
             })
         if best_loss is None:
             warnings.append("no_finite_candidate_score")
@@ -3862,10 +3877,10 @@ class Model:
             "generations": int(generations),
             "population_size": int(population_size),
             "optimizer": spec.to_dict(),
-            "objective_name": objective.name if not isinstance(objective, str) else objective,
-            "losses_declared": len(objective.losses) if not isinstance(objective, str) else 0,
-            "regularizers_declared": len(objective.regularizers) if not isinstance(objective, str) else 0,
-            "gates_declared": len(objective.gates) if not isinstance(objective, str) else 0,
+            "objective_name": getattr(objective, "name", "spectrolaminar_objective") if not isinstance(objective, str) else objective,
+            "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
+            "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
+            "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
             "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
@@ -3877,6 +3892,10 @@ class Model:
             "physical_amplitude_claim_allowed": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
+            "biological_learning_claim": False,
+            "amplitude_claim_allowed": False,
+            "surrogate_status": spec.surrogate_status,
+            "final_evaluation_basis": "total_loss",
         }
 
         # Separate scalar bounds from MatrixParameterSpec entries
@@ -3914,16 +3933,28 @@ class Model:
                 base_report=base_report,
             )
 
+        rejections_map = []
+
         # Define scoring function for AGSDR loop
         def evaluate_fn(candidate_params: dict[str, float]) -> float:
             """Evaluate a candidate parameter dict and return loss."""
+            reasons = []
             candidate_model = _model_with_parameters(self, candidate_params, param_specs if param_specs else None)
-            candidate_signals = candidate_model.simulate(replace(simulation, seed=int(seed)))
+            candidate_signals = candidate_model.simulate(simulation)
             candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
             score = candidate_report.get("total_loss")
             gates_pass = bool(candidate_report.get("all_gates_pass", False))
             if score is None:
                 score = 0.0 if gates_pass else float("inf")
+            score = float(score)
+
+            if not gates_pass:
+                reasons.append("failed_objective_gates")
+            if not math.isfinite(score):
+                reasons.append("non_finite_loss")
+
+            rejections_map.append(reasons)
+
             return float(score)
 
         # Run AGSDR optimization (scalar_bounds only, not MatrixParameterSpec objects)
@@ -3936,6 +3967,7 @@ class Model:
                 alpha=float(spec.alpha),
                 exploration=float(spec.exploration),
                 seed=int(seed),
+                rejections_map=rejections_map,
             )
 
             best_parameters = agsdr_result["best_parameters"]
