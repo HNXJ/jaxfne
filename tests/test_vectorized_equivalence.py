@@ -1,5 +1,6 @@
 import numpy as np
-import pandas as pd
+import pytest
+pd = pytest.importorskip("pandas")
 import jax
 import jax.numpy as jnp
 from jaxfne.fields.proxy import make_laminar_connectivity as new_make_laminar_connectivity
