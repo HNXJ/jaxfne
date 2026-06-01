@@ -96,8 +96,13 @@ import jaxfne as jtfne
 
 # Display helpers
 def _show_mpl(fig):
-    \"\"\"Always display matplotlib figure + optionally save.\"\"\"
-    _ipy_display(fig)
+    \"\"\"Render matplotlib figure to PNG buffer and display inline (Agg-safe).\"\"\"
+    import io
+    from IPython.display import Image as _Image
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+    buf.seek(0)
+    _ipy_display(_Image(buf.read()))
 
 def _show_plotly(fig):
     \"\"\"Display Plotly figure in notebook (gated by env var for headless).\"\"\"
