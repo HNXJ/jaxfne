@@ -22,7 +22,7 @@ opt = ["optax>=0.2"]
 jaxley = ["jaxley"]
 viz = ["matplotlib", "plotly", "pandas", "ipywidgets"]
 io = ["pyyaml", "zarr", "h5py"]
-dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "pandas", "ipywidgets", "nbformat", "nbclient"]
+dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
 all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]
