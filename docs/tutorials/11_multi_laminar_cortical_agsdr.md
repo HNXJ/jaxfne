@@ -61,7 +61,7 @@ Expose these as named values or dictionaries and export them under `manifest["ed
 ```text
 runtime, geometry, areas, layers, cell_types, cell_colors, cell_signs,
 layer fractions, native drive, connectivity metadata, field/proxy metadata,
-probes, objective, optimizer, stimulus, visualization, artifact paths, truth gates
+probes, objective, optimizer, stimulus, visualization, artifact paths, validation checks
 ```
 
 Config cells may exceed normal line limits. Scientific calls should show important defaults explicitly.

@@ -1311,7 +1311,7 @@ print(f"  best_score: {float(tuned.best_score):.6f}")
 print(f"  best_parameters: {tuned.summary.get('best_parameters', {})}")
 print(f"  PNGs: {len(list(FIGURE_DIR.glob('*.png')))} | HTMLs: {len(list(PLOTLY_DIR.glob('*.html')))}")
 print("=" * 60)
-print("Truth gates:")
+print("Validation checks:")
 for k, v in CONFIG["truth_gates"].items():
     print(f"  {k}: {v}")
 """
@@ -1391,31 +1391,31 @@ Change `CONFIG["spectrolaminar"]["normalization"]` and modify `plot_spectrolamin
 """
 
 CELL_54_MD = """\
-## What This Tutorial Does NOT Claim
+## Scope of This Run
 
-This section is a required scope gate. Read it before using these outputs in any scientific context.
+Read this section before using outputs in any scientific context.
 
-**This tutorial does NOT claim:**
+**Artifact status:**
 
-1. That the LFP or CSD proxy outputs correspond to physically measured extracellular potentials. These are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = laminar_proxy_no_pde`.
+1. LFP and CSD outputs are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = laminar_proxy_no_pde`.
 
-2. That the firing rates, synchrony values, or spectrolaminar patterns match any specific in-vivo or in-vitro experimental dataset.
+2. Firing rates, synchrony values, and spectrolaminar patterns are computational scaffold diagnostics, not matched to any experimental dataset.
 
-3. That AGSDR optimization in this scaffold constitutes model validation, parameter fitting, or inference about biological circuits.
+3. AGSDR optimization in this scaffold is a parameter search, not model validation or biological inference.
 
-4. That the Izhikevich reduced emitter used here accurately captures the biophysics of any specific cortical cell type. It is a computational scaffold with declared cell-type presets.
+4. The Izhikevich reduced emitter is a computational scaffold with declared cell-type presets.
 
-5. That the two-area (V1, V4) topology represents a calibrated model of visual cortex or any specific inter-areal projection system.
+5. The two-area (V1, V4) topology is a declarative layout, not a calibrated model of visual cortex.
 
-6. That the spectrolaminar power profiles (Panel B and C) are comparable to experimentally observed spectrolaminar profiles without additional calibration, forward modeling, and experimental alignment.
+6. Spectrolaminar power profiles require additional calibration, forward modeling, and experimental alignment before comparison to measured data.
 
-**What this tutorial DOES provide:**
-- A working end-to-end jaxfne workflow for learning the API.
-- A reproducible computational scaffold with documented scope gates.
+**Evidence produced by this run:**
+- A working end-to-end jaxfne workflow illustrating the API.
+- A reproducible computational scaffold with documented run status.
 - A starting point for building more biophysically detailed models with appropriate calibration.
-- Proxy diagnostic outputs that can guide qualitative exploration of parameter space.
+- Proxy diagnostic outputs for qualitative exploration of parameter space.
 
-**For scientific claims:** Consult `hnyxj/rules/` for TFNE claim language, Truth-plane receipt requirements, and the Gamma Labyrinth scientific omission doctrine.
+**For scientific claims:** Consult `hnyxj/rules/` for TFNE claim language and Truth-plane receipt requirements.
 
 ---
 
@@ -1524,7 +1524,7 @@ def build_notebook() -> nbformat.NotebookNode:
         md(CELL_51_MD),    # 51 Interpretation
         md(CELL_52_MD),    # 52 Failure Modes
         md(CELL_53_MD),    # 53 Exercises
-        md(CELL_54_MD),    # 54 What This Tutorial Does NOT Claim
+        md(CELL_54_MD),    # 54 Scope of This Run
     ]
 
     nb.metadata = {
