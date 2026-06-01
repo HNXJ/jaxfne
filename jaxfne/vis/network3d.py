@@ -178,6 +178,16 @@ _FALLBACK_COLORS = [
     "#59a14f", "#edc948", "#b07aa1", "#ff9da7",
 ]
 
+# Per-cell-type marker glyphs (Plotly Scatter3d supports a limited symbol set).
+# E = filled circle, PV = diamond, SST = square, VIP = open circle.
+_DEFAULT_CELL_SYMBOLS: dict[str, str] = {
+    "E":   "circle",
+    "PV":  "diamond",
+    "SST": "square",
+    "VIP": "circle-open",
+}
+_FALLBACK_SYMBOL = "circle"
+
 
 def _require_plotly():
     """Lazy-import Plotly; raise with a clear install message if missing."""
@@ -369,12 +379,15 @@ def visualize_network_3d(
     display_unit: str = "um",
     show_layers: bool = False,
     show_column_shells: bool = False,
+    column_shape: str = "cylinder",
+    column_segments: int = 48,
     show_edges: bool = False,
     max_edges: int = 500,
     seed: int = 0,
     output_html: str | Path | None = None,
     return_node_table: bool = False,
     cell_type_colors: dict[str, str] | None = None,
+    cell_type_symbols: dict[str, str] | None = None,
 ) -> Any:
     """Interactive Plotly 3D network visualization.
 
@@ -394,7 +407,13 @@ def visualize_network_3d(
     show_layers : bool
         Draw translucent horizontal planes at inferred layer z-boundaries.
     show_column_shells : bool
-        Draw bounding-box wireframes per area/column.
+        Draw wireframe shells per area/column. Shape set by ``column_shape``.
+    column_shape : str
+        ``"cylinder"`` (default) draws a vertical cylinder wireframe per area
+        (circular x-y cross-section, depth on z — the "cylindric rule").
+        ``"box"`` draws the legacy axis-aligned bounding box.
+    column_segments : int
+        Number of segments used to approximate each cylinder's circular rings.
     show_edges : bool
         Draw edges if data provides them (networkx graph only).
     max_edges : int
@@ -407,6 +426,9 @@ def visualize_network_3d(
         If True, return ``(fig, rows)`` instead of just ``fig``.
     cell_type_colors : dict | None
         Override default cell-type color map.
+    cell_type_symbols : dict | None
+        Override default cell-type marker-symbol map (E=circle, PV=diamond,
+        SST=square, VIP=circle-open).
 
     Returns
     -------
@@ -445,6 +467,10 @@ def visualize_network_3d(
     for i, ct in enumerate([c for c in cell_types_in_data if c not in colors]):
         colors[ct] = _FALLBACK_COLORS[i % len(_FALLBACK_COLORS)]
 
+    symbols = dict(_DEFAULT_CELL_SYMBOLS)
+    if cell_type_symbols:
+        symbols.update(cell_type_symbols)
+
     # ── Build traces ───────────────────────────────────────────────────────────
     traces: list[Any] = []
 
@@ -466,7 +492,12 @@ def visualize_network_3d(
         traces.append(go.Scatter3d(
             x=x_disp[mask], y=y_disp[mask], z=z_disp[mask],
             mode="markers",
-            marker=dict(size=3, color=colors.get(ct, "#888888"), opacity=0.75),
+            marker=dict(
+                size=3,
+                color=colors.get(ct, "#888888"),
+                symbol=symbols.get(ct, _FALLBACK_SYMBOL),
+                opacity=0.75,
+            ),
             name=ct,
             text=hover,
             hoverinfo="text",
@@ -514,7 +545,7 @@ def visualize_network_3d(
                 hoverinfo="skip",
             ))
 
-    # ── Optional: column shells (bounding box wireframes) ─────────────────────
+    # ── Optional: column shells (cylinder wireframe per area, "cylindric rule") ─
     if show_column_shells:
         for area in areas_in_data:
             if not area:
@@ -522,22 +553,53 @@ def visualize_network_3d(
             amask = area_arr == area
             if not amask.any():
                 continue
-            xlo, xhi = float(x_disp[amask].min()), float(x_disp[amask].max())
-            ylo, yhi = float(y_disp[amask].min()), float(y_disp[amask].max())
-            zlo, zhi = float(z_disp[amask].min()), float(z_disp[amask].max())
-            # 12-edge wireframe
-            vx = [xlo, xhi, xhi, xlo, xlo, None,
-                  xlo, xhi, None, xhi, xhi, None,
-                  xlo, xlo, None, xhi, xhi, None,
-                  xlo, xhi, None, xlo, xhi, None]
-            vy = [ylo, ylo, yhi, yhi, ylo, None,
-                  ylo, ylo, None, ylo, yhi, None,
-                  ylo, yhi, None, yhi, yhi, None,
-                  yhi, yhi, None, yhi, yhi, None]
-            vz = [zlo, zlo, zlo, zlo, zlo, None,
-                  zhi, zhi, None, zlo, zlo, None,
-                  zlo, zlo, None, zlo, zlo, None,
-                  zlo, zlo, None, zhi, zhi, None]
+            xa, ya, za = x_disp[amask], y_disp[amask], z_disp[amask]
+            zlo, zhi = float(za.min()), float(za.max())
+
+            if column_shape == "box":
+                xlo, xhi = float(xa.min()), float(xa.max())
+                ylo, yhi = float(ya.min()), float(ya.max())
+                vx = [xlo, xhi, xhi, xlo, xlo, None,
+                      xlo, xhi, None, xhi, xhi, None,
+                      xlo, xlo, None, xhi, xhi, None,
+                      xlo, xhi, None, xlo, xhi, None]
+                vy = [ylo, ylo, yhi, yhi, ylo, None,
+                      ylo, ylo, None, ylo, yhi, None,
+                      ylo, yhi, None, yhi, yhi, None,
+                      yhi, yhi, None, yhi, yhi, None]
+                vz = [zlo, zlo, zlo, zlo, zlo, None,
+                      zhi, zhi, None, zlo, zlo, None,
+                      zlo, zlo, None, zlo, zlo, None,
+                      zlo, zlo, None, zhi, zhi, None]
+            else:
+                # Cylinder: circular x-y cross-section, depth on z. Centre on the
+                # area's x-y centroid; radius covers the area's points.
+                cx = float(xa.mean())
+                cy = float(ya.mean())
+                rad = float(np.sqrt((xa - cx) ** 2 + (ya - cy) ** 2).max())
+                if rad <= 0.0:
+                    rad = 1e-9
+                seg = max(8, int(column_segments))
+                ang = np.linspace(0.0, 2.0 * np.pi, seg + 1)
+                ring_x = cx + rad * np.cos(ang)
+                ring_y = cy + rad * np.sin(ang)
+                vx: list = []
+                vy: list = []
+                vz: list = []
+                # bottom ring, then top ring
+                for zz in (zlo, zhi):
+                    vx += list(ring_x) + [None]
+                    vy += list(ring_y) + [None]
+                    vz += [zz] * len(ring_x) + [None]
+                # vertical struts connecting the rings
+                n_struts = min(seg, 8)
+                for k in range(n_struts):
+                    a = 2.0 * np.pi * k / n_struts
+                    px, py = cx + rad * np.cos(a), cy + rad * np.sin(a)
+                    vx += [px, px, None]
+                    vy += [py, py, None]
+                    vz += [zlo, zhi, None]
+
             traces.append(go.Scatter3d(
                 x=vx, y=vy, z=vz,
                 mode="lines",
@@ -545,6 +607,7 @@ def visualize_network_3d(
                 opacity=0.4,
                 name=f"{area} shell",
                 showlegend=True,
+                hoverinfo="skip",
             ))
 
     # ── Layout ─────────────────────────────────────────────────────────────────

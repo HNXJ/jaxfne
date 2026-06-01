@@ -1067,22 +1067,31 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
             cell_type_idx = (n // len(cfg.layers)) % len(cfg.cell_types)
             cell_type = cfg.cell_types[cell_type_idx]
 
-            # Spatial position
+            # Vertical-cylinder geometry: depth runs along z; the (x, y) base is a
+            # circular cross-section of radius ``radius_rel * cx_m`` centred on the
+            # area. This is the "cylindric rule" — each area is a slender vertical
+            # column, areas separated along x by ``area_x_rel``.
             layer_frac_min, layer_frac_max = next(
                 (f[1:] for f in cfg.layer_fractions if f[0] == layer),
                 (0.0, 1.0)
             )
-            z_rel = 0.5 * (layer_frac_min + layer_frac_max)
+            rng = np.random.RandomState(cfg.seed + neuron_id)
+
+            # Depth (z) sampled within this layer's depth band -> vertical axis.
+            z_rel = rng.uniform(layer_frac_min, layer_frac_max)
             z_m = z_rel * cfg.cz_m
 
-            # Position from L4 reference
+            # Position from L4 reference.
             l4_z = cfg.l4_ref_rel * cfg.cz_m
             pos_from_l4 = z_m - l4_z
 
-            # XY position
-            rng = np.random.RandomState(cfg.seed + neuron_id)
-            x_m = cfg.area_x_rel[area_idx] * cfg.cx_m + rng.uniform(-cfg.radius_rel * cfg.cx_m, cfg.radius_rel * cfg.cx_m)
-            y_m = cfg.cy_m * (n / cfg.n_neuron_per_column) + rng.uniform(-cfg.radius_rel * cfg.cy_m, cfg.radius_rel * cfg.cy_m)
+            # Circular base: uniform over a disk of radius ``radius_rel * cx_m``
+            # centred at (area_x, 0). sqrt(U) gives uniform area density.
+            radius_m = cfg.radius_rel * cfg.cx_m
+            theta = rng.uniform(0.0, 2.0 * np.pi)
+            r = radius_m * np.sqrt(rng.uniform(0.0, 1.0))
+            x_m = cfg.area_x_rel[area_idx] * cfg.cx_m + r * np.cos(theta)
+            y_m = r * np.sin(theta)
 
             neurons.append({
                 'neuron_id': neuron_id,
@@ -1327,6 +1336,7 @@ def spectrolaminar_from_trials(
     gamma_range_hz: Tuple[float, float] = (40.0, 150.0),
     area_index: int | None = None,
     area_name: str | None = None,
+    low_power_frac: float = 0.02,
 ) -> Tuple[np.ndarray, dict]:
     """Extract spectrolaminar profiles from trial data.
 
@@ -1387,9 +1397,20 @@ def spectrolaminar_from_trials(
             phase = 2.0 * np.pi * k * np.arange(n)
             psd[fi, ci] = np.abs(np.dot(x, np.exp(-1j * phase))) / max(n, 1)
 
-    # Normalize to relative power
+    # Normalize to relative power. Use a robust scale that IGNORES degenerate
+    # low-power channels (e.g. the top contact whose CSD is ~0 from the spatial
+    # derivative) — otherwise those channels drag the percentile floor down and
+    # collapse the relative-power contrast across depth.
     psd_log = np.log10(psd + 1e-12)
-    vmin, vmax = np.percentile(psd_log, [5, 95])
+    chan_power = psd.mean(axis=0)
+    pmax = float(chan_power.max())
+    if pmax > 0:
+        valid = chan_power >= (low_power_frac * pmax)
+    else:
+        valid = np.ones(n_contacts, dtype=bool)
+    if int(valid.sum()) < 2:
+        valid = np.ones(n_contacts, dtype=bool)
+    vmin, vmax = np.percentile(psd_log[:, valid], [5, 95])
     relative_power = np.clip((psd_log - vmin) / (vmax - vmin + 1e-12), 0, 1)
 
     # Extract band profiles
@@ -1489,6 +1510,9 @@ def summarize_spectrolaminar_similarity(
             'area': area,
             'similarity_percent': similarity_pct,
         })
+        # Tag the spec so downstream figures can title with the motif score.
+        spec['similarity_percent'] = similarity_pct
+        spec['n_trials'] = int(np.asarray(trials[signal_key]).shape[0])
         specs_dict[area] = spec
 
     scores_df = pd.DataFrame(scores)
