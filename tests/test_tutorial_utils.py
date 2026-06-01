@@ -24,6 +24,20 @@ from jaxfne.tutorial_utils import (
 )
 
 
+def make_test_config(**kwargs):
+    """Small deterministic config for fast unit tests."""
+    defaults = dict(
+        n_neuron_per_column=12,
+        duration_ms=20.0,
+        dt_ms=0.1,
+        n_trials=1,
+        n_contacts=4,
+        freq_count=8,
+    )
+    defaults.update(kwargs)
+    return make_laminar_column_config(**defaults)
+
+
 class TestMakeCellDist:
     """Test make_cell_dist helper."""
 
@@ -86,11 +100,11 @@ class TestLaminarColumnConfig:
 
     def test_creation(self):
         """Test config creation with defaults."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             areas=("V1", "V4", "PFC"),
             cell_types=("E", "PV"),
             layers=("L1", "L2", "L3", "L4", "L5", "L6"),
-            n_neuron_per_column=100,
+            n_neuron_per_column=12,
         )
         assert isinstance(cfg, LaminarColumnConfig)
         assert cfg.areas == ("V1", "V4", "PFC")
@@ -98,7 +112,7 @@ class TestLaminarColumnConfig:
 
     def test_cell_dist_frame(self):
         """Test cell_dist_frame property."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             cell_types=("E", "PV"),
             layers=("L1", "L2", "L3", "L4", "L5", "L6"),
         )
@@ -108,7 +122,7 @@ class TestLaminarColumnConfig:
 
     def test_truth_gates(self):
         """Test truth_gates property returns immutable dict."""
-        cfg = make_laminar_column_config()
+        cfg = make_test_config()
         gates = cfg.truth_gates
         assert gates['truth_mode'] == "truth_safe_unverified"
         assert gates['claim_level'] == "computational_scaffold"
@@ -117,25 +131,25 @@ class TestLaminarColumnConfig:
 
     def test_frozen_immutability(self):
         """Test that config is frozen (immutable)."""
-        cfg = make_laminar_column_config()
+        cfg = make_test_config()
         with pytest.raises((AttributeError, TypeError)):
             cfg.seed = 999
 
     def test_manifest_dict(self):
         """Test to_manifest_dict JSON safety."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             areas=("V1", "V4"),
-            n_neuron_per_column=200,
+            n_neuron_per_column=12,
         )
         manifest = cfg.to_manifest_dict()
         assert isinstance(manifest, dict)
         assert 'areas' in manifest
         assert 'total_neurons' in manifest
-        assert manifest['total_neurons'] == 400
+        assert manifest['total_neurons'] == len(cfg.areas) * cfg.n_neuron_per_column
 
     def test_config_summary(self):
         """Test config_summary_frame."""
-        cfg = make_laminar_column_config()
+        cfg = make_test_config()
         frame = config_summary_frame(cfg)
         assert isinstance(frame, pd.DataFrame)
         assert len(frame) > 0
@@ -147,7 +161,7 @@ class TestBuildLaminarColumn:
 
     def test_build_returns_dict(self):
         """Test build_laminar_column returns dict with required keys."""
-        cfg = make_laminar_column_config(n_neuron_per_column=50)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         assert isinstance(model, dict)
         assert 'neurons' in model
@@ -157,7 +171,7 @@ class TestBuildLaminarColumn:
 
     def test_neuron_table_columns(self):
         """Test neuron table has required columns."""
-        cfg = make_laminar_column_config(n_neuron_per_column=50)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         neurons = model['neurons']
         required_cols = {'neuron_id', 'area', 'layer', 'cell_type', 'x_m', 'y_m', 'z_m', 'pos_from_l4'}
@@ -174,7 +188,7 @@ class TestBuildLaminarColumn:
 
     def test_connection_matrices_finite(self):
         """Test connection matrices are finite."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         W_parts = model['W_parts']
         for name, W in W_parts.items():
@@ -194,7 +208,7 @@ class TestBuildLaminarColumn:
 
     def test_build_laminar_connections(self):
         """Test build_laminar_connections extraction."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         W_loc_e, W_loc_i, W_ff, W_fb = build_laminar_connections(model, cfg)
         assert W_loc_e.shape == W_loc_i.shape == W_ff.shape == W_fb.shape
@@ -216,14 +230,14 @@ class TestSelectCells:
 
     def test_select_by_layer(self):
         """Test selecting cells by layer."""
-        cfg = make_laminar_column_config(n_neuron_per_column=50)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         l4_cells = select_cells(model, layers=("L4",))
         assert len(l4_cells) > 0
 
     def test_select_fraction(self):
         """Test selecting a fraction of cells."""
-        cfg = make_laminar_column_config(n_neuron_per_column=100)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         cells_25pct = select_cells(model, fraction=0.25, seed=42)
         assert 0 < len(cells_25pct) <= len(model['neurons']) * 0.25
@@ -266,14 +280,14 @@ class TestSimulateTrials:
 
     def test_simulate_returns_dict(self):
         """Test simulate_laminar_trials returns dict."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg, n_trials=2)
         assert isinstance(trials, dict)
 
     def test_trials_keys(self):
         """Test trials dict has required keys."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg, n_trials=2)
         required_keys = {
@@ -284,7 +298,7 @@ class TestSimulateTrials:
 
     def test_tensor_contract_shapes(self):
         """Test trial tensors follow the (trials, [areas,] T, N/contacts) contract."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             areas=("V1", "V4", "PFC"),
             cell_types=("E", "PV"),
             n_neuron_per_column=12,
@@ -305,7 +319,7 @@ class TestSimulateTrials:
 
     def test_per_area_specs_distinct(self):
         """Test spectrolaminar specs differ across areas (no copy-same-spec)."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             areas=("V1", "V4", "PFC"), cell_types=("E", "PV"), n_neuron_per_column=12
         )
         model = build_laminar_column(cfg)
@@ -319,7 +333,7 @@ class TestSimulateTrials:
 
     def test_per_area_specs_are_area_tagged(self):
         """Test spectrolaminar specs carry their area name."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             areas=("V1", "V4", "PFC"), cell_types=("E", "PV"), n_neuron_per_column=12
         )
         model = build_laminar_column(cfg)
@@ -334,7 +348,7 @@ class TestSimulateTrials:
 
     def test_spikes_binary(self):
         """Test spikes are binary."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         spikes = trials['spikes']
@@ -342,7 +356,7 @@ class TestSimulateTrials:
 
     def test_voltage_range(self):
         """Test voltage is in reasonable range."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         voltage = trials['voltage_mV']
@@ -351,7 +365,7 @@ class TestSimulateTrials:
 
     def test_arrays_finite(self):
         """Test all arrays are finite."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         for key in ['voltage_mV', 'source_native', 'lfp_contacts', 'csd_contacts']:
@@ -363,7 +377,7 @@ class TestSpectrolaminar:
 
     def test_spectrolaminar_from_trials(self):
         """Test spectrolaminar_from_trials returns power and specs."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         power, specs = spectrolaminar_from_trials(trials, cfg)
@@ -372,7 +386,7 @@ class TestSpectrolaminar:
 
     def test_spectrolaminar_specs_keys(self):
         """Test spectrolaminar specs has required keys."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         power, specs = spectrolaminar_from_trials(trials, cfg)
@@ -381,7 +395,7 @@ class TestSpectrolaminar:
 
     def test_summarize_spectrolaminar_similarity(self):
         """Test summarize_spectrolaminar_similarity returns scores and specs."""
-        cfg = make_laminar_column_config(n_neuron_per_column=30)
+        cfg = make_test_config(n_neuron_per_column=12)
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg)
         scores, specs = summarize_spectrolaminar_similarity(trials, cfg)
@@ -396,9 +410,9 @@ class TestExportArtifacts:
 
     def test_export_writes_json(self, tmp_path):
         """Test export_tutorial_artifacts writes JSON files."""
-        cfg = make_laminar_column_config(
+        cfg = make_test_config(
             output_dir=tmp_path,
-            n_neuron_per_column=30,
+            n_neuron_per_column=12,
         )
         manifest = {'test': 'data'}
         paths = export_tutorial_artifacts(cfg, manifest_dict=manifest, output_dir=tmp_path)
@@ -407,7 +421,7 @@ class TestExportArtifacts:
 
     def test_export_json_strict(self, tmp_path):
         """Test exported JSON is strict (no NaN/Inf)."""
-        cfg = make_laminar_column_config(output_dir=tmp_path)
+        cfg = make_test_config(output_dir=tmp_path)
         manifest = cfg.to_manifest_dict()
         paths = export_tutorial_artifacts(cfg, manifest_dict=manifest, output_dir=tmp_path)
 

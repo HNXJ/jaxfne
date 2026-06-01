@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.3.24 (2026-06-01)
+
+**Release candidate:** Compact Etude No. 1 tutorial utilities and Colab-ready visualization flow.
+
+### Added
+- `jaxfne.tutorial_utils` helpers for laminar column configuration, adjustable model scale, cell-type distributions, stimuli, trial simulation, spectrolaminar summaries, and strict artifact export.
+- `jaxfne.vis` tutorial panels for 3D scaffold, activity traces, and three-panel spectrolaminar figures.
+- Thin Etude No. 1 notebook using `import jaxfne as jtfne` and package-level helper calls.
+
+### Fixed
+- Preserved root `build_laminar_column` while adding `build_tutorial_laminar_column` as an unambiguous tutorial alias.
+- Restored optional dependency isolation: core import does not require pandas, matplotlib, plotly, or ipywidgets.
+- Added per-area LFP/CSD tensor shape `(trials, areas, T, contacts)` and area-tagged spectrolaminar specs.
+
+### Scope
+- Outputs remain proxy readouts with `field_solver_status=laminar_proxy_no_pde` and `physical_amplitude_claim_allowed=false`.
+
+
 ## v0.3.22 (2026-05-31)
 
 **Patch release:** Fix `jtfne.vis.visualize_network_3d` missing from PyPI wheel.

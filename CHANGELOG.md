@@ -1,3 +1,20 @@
+## [0.3.24] - 2026-06-01
+
+### Added
+- Compact Etude No. 1 package-native tutorial utilities under `jaxfne.tutorial_utils`.
+- Tutorial visualization panels under `jaxfne.vis` for scaffold, activity, and spectrolaminar figures.
+- Thin Colab/local Etude No. 1 notebook using `import jaxfne as jtfne`.
+
+### Fixed
+- Lazy optional dependency behavior for pandas/matplotlib/Plotly/widget-related tutorial paths.
+- Per-area LFP/CSD tensor contract and area-tagged spectrolaminar summaries.
+- Suite No. 4 notebook metadata print bug.
+
+### Scope
+- Maintains `truth_safe_unverified`, `computational_scaffold`, and `laminar_proxy_no_pde` status.
+
+---
+
 ## [0.3.21] - 2026-05-30
 
 ### Added

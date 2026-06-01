@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.3.22"
+version = "0.3.24"
 description = "JAX Field Neural Equations: a source-to-field neurophysiology engine for TFNE models."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,9 +20,9 @@ dependencies = [
 [project.optional-dependencies]
 opt = ["optax>=0.2"]
 jaxley = ["jaxley"]
-viz = ["matplotlib", "plotly"]
+viz = ["matplotlib", "plotly", "pandas", "ipywidgets"]
 io = ["pyyaml", "zarr", "h5py"]
-dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly"]
+dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "pandas", "ipywidgets", "nbformat", "nbclient"]
 all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]

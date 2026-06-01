@@ -18,14 +18,29 @@ from jaxfne.vis.tutorial_panels import (
 )
 
 
+@pytest.fixture(autouse=True)
+def close_matplotlib_figures():
+    """Close figures after each test so pytest exits cleanly in CI."""
+    yield
+    try:
+        import matplotlib.pyplot as plt
+        plt.close("all")
+    except Exception:
+        pass
+
+
 @pytest.fixture
 def config():
     """Create test configuration."""
     return make_laminar_column_config(
         areas=("V1", "V4"),
         cell_types=("E", "PV"),
-        n_neuron_per_column=50,
-        n_contacts=16,
+        n_neuron_per_column=12,
+        duration_ms=20.0,
+        dt_ms=0.1,
+        n_trials=1,
+        n_contacts=4,
+        freq_count=8,
     )
 
 
@@ -38,7 +53,7 @@ def model(config):
 @pytest.fixture
 def trials(model, config):
     """Generate test trials."""
-    return simulate_laminar_trials(model, config, n_trials=2)
+    return simulate_laminar_trials(model, config, n_trials=1)
 
 
 class TestVisualizeLaminarColumn3D:
@@ -115,7 +130,7 @@ class TestActivityTraceSuite:
         """Test duration_window_ms parameter works."""
         fig = activity_trace_suite(
             trials, config,
-            duration_window_ms=(100.0, 500.0)
+            duration_window_ms=(0.0, 20.0)
         )
         assert fig is not None
 

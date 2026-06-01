@@ -1,14 +1,10 @@
 """Static-text thinness gate for Etude No. 1.
 
-Asserts the notebook delegates all reusable work to the jaxfne package
-(`jtfne.tutorial_utils.*` / `jtfne.vis.*`) and contains no local simulator,
-builder, readout, or legacy low-level scaffolding.
+This test intentionally uses only stdlib JSON so collection stays fast and does
+not require notebook dependencies in core/fast CI.
 """
+import json
 from pathlib import Path
-
-import pytest
-
-nbformat = pytest.importorskip("nbformat")
 
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
@@ -38,17 +34,17 @@ FORBIDDEN_TOKENS = (
 
 def _notebook_source() -> str:
     assert NOTEBOOK_PATH.exists(), f"Notebook not found: {NOTEBOOK_PATH}"
-    nb = nbformat.read(str(NOTEBOOK_PATH), as_version=4)
-    return "\n".join("".join(cell["source"]) for cell in nb.cells)
+    nb = json.loads(NOTEBOOK_PATH.read_text())
+    return "\n".join("".join(cell.get("source", [])) for cell in nb.get("cells", []))
 
 
 def test_notebook_contains_required_tokens():
     src = _notebook_source()
-    missing = [t for t in REQUIRED_TOKENS if t not in src]
+    missing = [token for token in REQUIRED_TOKENS if token not in src]
     assert not missing, f"Notebook missing required tokens: {missing}"
 
 
 def test_notebook_lacks_forbidden_tokens():
     src = _notebook_source()
-    present = [t for t in FORBIDDEN_TOKENS if t in src]
+    present = [token for token in FORBIDDEN_TOKENS if token in src]
     assert not present, f"Notebook contains forbidden tokens: {present}"
