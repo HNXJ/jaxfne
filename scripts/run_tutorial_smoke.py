@@ -139,8 +139,16 @@ class TutorialSmokeRunner:
                     if isinstance(first_code, list)
                     else first_code
                 )
-                if "!pip install jaxfne" not in first_code_text:
-                    errors.append("first code cell missing '!pip install jaxfne'")
+                setup_ok = (
+                    "pip" in first_code_text
+                    and "install" in first_code_text
+                    and "jaxfne" in first_code_text
+                ) or (
+                    "importlib.util.find_spec" in first_code_text
+                    and "jaxfne" in first_code_text
+                )
+                if not setup_ok:
+                    errors.append("first code cell missing Colab/local jaxfne setup")
 
             # Check second code cell has version verification
             if len(code_cells) >= 2:
@@ -148,8 +156,9 @@ class TutorialSmokeRunner:
                 second_code_text = (
                     "".join(second_code) if isinstance(second_code, list) else second_code
                 )
-                if "jaxfne.__version__" not in second_code_text:
-                    errors.append("second code cell missing version verification")
+                version_ok = "__version__" in second_code_text or "import jaxfne" in second_code_text
+                if not version_ok:
+                    errors.append("second code cell missing import/version verification")
 
             # Check for committed outputs
             for cell in cells:

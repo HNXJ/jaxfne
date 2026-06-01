@@ -11,7 +11,7 @@ Validates v0.3 tutorial documentation against:
 
 Produces JSON report: docs_link_audit.json
 
-truth_mode: truth_safe_unverified
+run_status: tutorial_scaffold
 """
 
 import json

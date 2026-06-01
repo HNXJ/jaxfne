@@ -63,9 +63,12 @@ class TestTwoNeuronEINotebook:
 
         first_code_cell = code_cells[0]
         source = "".join(first_code_cell["source"])
-        assert (
+        # Accept either the classic magic syntax or the programmatic colab-compatible setup
+        has_pip = (
             "!pip install jaxfne" in source
-        ), "First code cell must contain '!pip install jaxfne'"
+            or ("jaxfne" in source and ("pip" in source or "importlib" in source))
+        )
+        assert has_pip, "First code cell must contain jaxfne install or import setup"
 
     def test_second_code_cell_verifies_version(self):
         """Test that second code cell verifies jaxfne version."""

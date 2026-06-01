@@ -1,7 +1,7 @@
 # jaxfne Agent Coordination
 
 Protocol version: 2.0  
-truth_mode: truth_safe_unverified  
+run_status: tutorial_scaffold  
 active release line: v0.3.21+
 
 ## Required start checks
@@ -57,7 +57,7 @@ changed files
 commands run
 exact results
 runtime facts
-truth/evidence status
+run/evidence status
 blockers
 next safe action
 ```

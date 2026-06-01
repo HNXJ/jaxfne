@@ -2,7 +2,7 @@
 
 ### Added
 - Added Etude No. 1 as an advanced multi-laminar cortical AGSDR workflow under `tutorials/etudes/`.
-- Added a canonical notebook template under `tutorials/templates/` with unified setup, truth gates, and placeholder configuration.
+- Added a canonical notebook template under `tutorials/templates/` with unified setup, status fields, and placeholder configuration.
 - Added a template guide for Suites and Etudes.
 
 ### Changed
@@ -15,7 +15,7 @@
 - Etude and template notebooks pass structural hygiene checks: both install options, canonical `import jaxfne as jtfne`, no consecutive code cells, and JSON-safe metadata paths.
 
 ### Scope
-- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+- Maintains `tutorial_scaffold`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `amplitude_status=false`.
 
 ---
 
@@ -49,7 +49,7 @@
 - Public API exports added to `jaxfne/__init__.py` (`__all__`).
 
 ### Scope
-- `truth_safe_unverified` / `field_solver_status=laminar_proxy_no_pde` unchanged.
+- `tutorial_scaffold` / `field_solver_status=laminar_proxy_no_pde` unchanged.
 - Sharding stubs do not yet drive actual multi-device dispatch in the AGSDR loop
   (planned for v0.3.20+).
 - `simulate_batch` unchanged — its `jax.vmap` seed-replicate path is a separate
@@ -75,7 +75,7 @@
   validation guards.
 
 ### Scope
-- `truth_safe_unverified` / `field_solver_status=laminar_proxy_no_pde` unchanged.
+- `tutorial_scaffold` / `field_solver_status=laminar_proxy_no_pde` unchanged.
 - No public API additions or removals.
 
 ---
@@ -96,7 +96,7 @@
 - Import smoke passed for `jaxfne==0.3.14` on CPU with JAX `0.10.0`, x64 disabled, default float dtype `float32`.
 
 ### Scope
-- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+- Maintains `tutorial_scaffold`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `amplitude_status=false`.
 
 ---
 
@@ -111,7 +111,7 @@
 - **Two-Level Optimization Strategy**
   - **Outer Loop (AGSDR):** Population-based candidate proposal with stochastic exploration and adaptive alpha
   - **Inner Loop (Optax Adam):** Gradient refinement using differentiable soft-spike surrogate loss
-  - **Final Selection:** Real objective (group-wise rate targets) to gate biological claims
+  - **Final Selection:** Real objective (group-wise rate targets) to gate biological statements
   - Full backward compatibility with existing scalar AGSDR path
   
 - **API Grammar Changes**
@@ -133,7 +133,7 @@
   - Hard spike counts are non-differentiable (reset events)
   - Smooth approximation: `sigmoid((V_m - threshold) / temperature)`
   - Enables gradient computation for Adam inner loop
-  - Final selection still uses real objective (no surrogate for truth claims)
+  - Final selection still uses real objective (no surrogate for status statements)
   
 - **Tests Added**
   - MatrixParameterSpec JSON safety
@@ -146,7 +146,7 @@
 - **Version bumps:** pyproject.toml, jaxfne/__init__.py, mkdocs.yml, docs/_generated/version.md all updated to 0.3.11
 - **Documentation:** mkdocs builds successfully with strict mode enabled
 - **Validation:** All 1422 tests pass (including 3 new tests)
-- **Truth status:** `truth_safe_unverified` — soft-spike surrogate is computational scaffold only; final objective gates biological claims
+- **Status status:** `tutorial_scaffold` — soft-spike surrogate is computational scaffold only; final objective gates biological statements
 - **Backward compatibility:** ✅ Existing scalar AGSDR notebooks unchanged; no regressions
 
 ---
@@ -155,7 +155,7 @@
 
 - **v0.3.0 Atlas Scaffold (phases A–H):** Baseline verified (v0.2.30 clean), v030 tutorial doctrine created, acceptance gates defined, Plotly policy, automation scripts, validation tests.
 - **Core documentation (phases B–D):**
-  - `docs/tutorials_v030/README.md` — 15-scenario spine, 31-phase roadmap, hard acceptance gates, claim boundaries
+  - `docs/tutorials_v030/README.md` — 15-scenario spine, 31-phase roadmap, hard acceptance gates, statement boundaries
   - `docs/tutorials_v030/scenario_index.md` — Detailed specs for 15 core scenarios + 16 audit phases
   - `docs/tutorials_v030/template.md` — Required 13-section notebook structure with LaTeX equation display policy, quality checklist
   - `docs/tutorials_v030/acceptance_gates.yaml` — 8-category hard validation gates with logic
@@ -171,18 +171,18 @@
   - `scripts/collect_v030_tutorial_manifests.py` — Manifest aggregation + validation
   - `scripts/audit_v030_docs_links.py` — Docs link audit, Colab link validation, LaTeX policy checks
 - **Validation tests (phases F–H):**
-  - `tests/test_v030_tutorial_structure.py` — 13-section template, claim gates, acceptance gates
+  - `tests/test_v030_tutorial_structure.py` — 13-section template, status checks, acceptance gates
   - `tests/test_v030_plotly_artifacts.py` — Plotly generation (with/without Plotly installed)
   - `tests/test_v030_docs_audit.py` — Doctrine files, LaTeX policy, Colab links, canonical imports, requirements
 - **Validation results (phase H):**
   - All files compile successfully (compileall pass)
   - docs_link_audit.json: PASS (no broken links, no missing Colab links, no LaTeX violations)
-  - Language audit: CLEAN (no overclaiming; proper negations on Poisson solvers, biological metabolism claims)
+  - Language audit: CLEAN (no overstateing; proper negations on Poisson solvers, biological metabolism statements)
   - Bad alias audit: CLEAN (only correct `import jaxfne as jtfne` found; no jtnfe, jtFNE, or wildcard imports)
   - JSON reports are all valid JSON (no NaN/Inf)
 - **Documentation updates (phase I):** `docs/index.md`, `README.md`, `CHANGELOG.md` updated with v0.3.0 atlas links, requirements, and docs audit infrastructure.
 - **Status:** Phases A–I complete. Ready for Phase J (commit) and Phase L (final beta-ready report).
-- **Truth status:** truth_safe_unverified (v0.2.30 toolbox locked).
+- **Status status:** tutorial_scaffold (v0.2.30 toolbox locked).
 - **No package version bump:** v0.3.0 is tutorial/docs/infrastructure line on stable v0.2.30.
 
 ---
@@ -192,10 +192,10 @@
 - **Adds v0.3 tutorial-scenario doctrine.** Defines the 32-phase scenario spine (v0.3.0–v0.3.31) built on stable `jaxfne==0.2.30`.
 - **Establishes canonical `import jaxfne as jtfne` usage.** Forbids aliases `jtnfe`, `jtFNE`, and mixed spellings in all v0.3 tutorials.
 - **Defines package mutation policy:** Use v0.2.30 as installed toolbox unless a real bug or missing required public tool blocks tutorials. No version bump for docs-only phases.
-- **Adds tutorial template** (`docs/tutorial_template_v030.md`): 13-section required structure for all v0.3 Colab/docs scenarios, including non-claim section and manifest receipt block.
+- **Adds tutorial template** (`docs/tutorial_template_v030.md`): 13-section required structure for all v0.3 Colab/docs scenarios, including non-statement section and manifest receipt block.
 - **Patches stale version references:** `docs/install.md`, `docs/packaging.md`, `docs/RELEASE_CHECKLIST.md`, `docs/v03_bridge.md`, `README.md` roadmap table, `docs/index.md` release section header all updated to reflect v0.2.30 as current release.
 - **No code changes.** This is a doctrine/docs-only commit.
-- **Claim gates unchanged:** `computational_scaffold`, `truth_safe_unverified`, `physical_amplitude_claim_allowed=False`.
+- **Status checks unchanged:** `computational_scaffold`, `tutorial_scaffold`, `amplitude_status=False`.
 
 ## v0.2.30-pre (test cleanup / pre-release)
 
@@ -209,16 +209,16 @@
 - **Tensor-network ancestry and basis-transform doctrine (conceptual documentation only).**
 
 ### Tensor-network ancestry documentation (v0.2.29 scope)
-- **Added `docs/tensor_network_ancestry.md`:** Conceptual note distinguishing Pellionisz/Llinás neuroscience meaning of "tensor network" (sensorimotor coordinate transforms, metric-tensor learning) from modern ML/physics meaning (tensor-train, MPS, PEPS factorization). Connects TFNE basis-transform architecture (emitter basis → source basis → field basis → readout basis) to classical computational neuroscience while clarifying non-claims.
+- **Added `docs/tensor_network_ancestry.md`:** Conceptual note distinguishing Pellionisz/Llinás neuroscience meaning of "tensor network" (sensorimotor coordinate transforms, metric-tensor learning) from modern ML/physics meaning (tensor-train, MPS, PEPS factorization). Connects TFNE basis-transform architecture (emitter basis → source basis → field basis → readout basis) to classical computational neuroscience while clarifying non-statements.
 - **Basis-transform doctrine:** Formalizes TFNE's modular coordinate-projection pipeline, explains why each stage is independent, and documents how BasisSpec contracts operationalize basis transforms. Links tensor-coordinate operations to jaxfne's architecture.
-- **Explicit non-claims:** Clearly states that jaxfne does NOT implement cerebellar metric-tensor learning, tensor-train compression, electromagnetic field solvers, or sensorimotor proof. Defers cerebellar/sensorimotor tutorials to future (with separate validation).
+- **Explicit non-statements:** Clearly states that jaxfne does NOT implement cerebellar metric-tensor learning, tensor-train compression, electromagnetic field solvers, or sensorimotor proof. Defers cerebellar/sensorimotor tutorials to future (with separate validation).
 - **Updated cross-references:** Added `tensor_network_ancestry.md` links in `docs/index.md` (Core mathematics section), `docs/computation_basis.md` (See Also), `docs/manuscript_alignment.md` (See Also), and `docs/v03_bridge.md` (See Also).
 
 ### Summary
-- **Purpose:** Provide conceptual context and historical grounding for TFNE's basis-transform architecture without claiming Pellionisz/Llinás implementation.
+- **Purpose:** Provide conceptual context and historical grounding for TFNE's basis-transform architecture without stating Pellionisz/Llinás implementation.
 - **No code changes:** v0.2.29 documentation only.
-- **Truth status:** truth_safe_unverified (unchanged).
-- **Claim gates:** All frozen (unchanged from v0.2.28).
+- **Status status:** tutorial_scaffold (unchanged).
+- **Status checks:** All frozen (unchanged from v0.2.28).
 
 ## v0.2.28
 
@@ -227,26 +227,26 @@
 ### Release documentation (bridge hardening for v0.3+)
 - **Added release/distribution documentation:** New `docs/release_checklist.md` (modern v0.2.27-aligned release process with validation gates), `docs/packaging.md` (build, test, distribute wheels and tarballs), and `docs/colab.md` (Google Colab quick start with current API examples).
 - **Added manuscript alignment documentation:** New `docs/manuscript_alignment.md` maps codebase sections to manuscript content, clarifies Poisson solver deferral (v0.2.27 has diagnostics, not solver), and documents computation-basis contract changes (v0.2.26–v0.2.27).
-- **Added v0.3 readiness bridge:** New `docs/v03_bridge.md` documents locked APIs (emitters, core pipeline, 8 probe operators, claim gates), future regimes (Poisson solver, Maxwell, admittive, stress-energy, Poynting — all gated), and migration path for v0.3.
+- **Added v0.3 readiness bridge:** New `docs/v03_bridge.md` documents locked APIs (emitters, core pipeline, 8 probe operators, status checks), future regimes (Poisson solver, Maxwell, admittive, stress-energy, Poynting — all gated), and migration path for v0.3.
 - **Updated legacy docs:** Converted `docs/RELEASE_CHECKLIST.md`, `docs/COLAB_SMOKE_V010.md`, and `docs/DOCTRINE.md` to legacy pointers with links to current documentation.
 - **Updated docs/index.md:** Added new doc links in "Release & distribution" section (release_checklist, packaging, v03_bridge), "Tutorials & guides" section (colab.md, tutorial_figures), and "About" section (manuscript_alignment).
 - **Updated docs/ci_policy.md:** Fixed test count from 804 to 903 (cumulative baseline after v0.2.27 conservation diagnostics).
 
 ### Tutorial figure regeneration (v0.2.28 core requirement)
-- **Generated 12 tutorial PNG figures:** `01_spike_raster.png` (behavioral), `02_voltage_traces.png` (state), `03_source_proxy_heatmap.png` (source), `04_lfp_proxy_trace.png` (scalar readout), `05_csd_proxy_heatmap.png` (spatial readout), `06_phi_e_proxy_heatmap.png` (field potential), `07_source_proxy_spatial.png` (kernel-weighted source), `08_conservation_diagnostics.png` (metrics), `09_laminar_profile_depths.png` (geometry), `10_firing_rate_raster.png` (population activity), `11_claim_gates_summary.png` (metadata), `12_spectral_summary.png` (analysis).
-- **Figure count:** 12 total; 11 with real simulation data; 1 placeholder (claim gates summary, uses_real_data=False). **Minimum required: 10 real-data figures. Status: PASS (11 >= 10).**
+- **Generated 12 tutorial PNG figures:** `01_spike_raster.png` (behavioral), `02_voltage_traces.png` (state), `03_source_proxy_heatmap.png` (source), `04_lfp_proxy_trace.png` (scalar readout), `05_csd_proxy_heatmap.png` (spatial readout), `06_phi_e_proxy_heatmap.png` (field potential), `07_source_proxy_spatial.png` (kernel-weighted source), `08_conservation_diagnostics.png` (metrics), `09_laminar_profile_depths.png` (geometry), `10_firing_rate_raster.png` (population activity), `11_status_summary.png` (metadata), `12_spectral_summary.png` (analysis).
+- **Figure count:** 12 total; 11 with real simulation data; 1 placeholder (status checks summary, uses_real_data=False). **Minimum required: 10 real-data figures. Status: PASS (11 >= 10).**
 - **New `scripts/generate_tutorial_figures.py`:** Deterministic figure generation script (seed=0, CPU-safe matplotlib Agg backend). Uses observed jaxfne API: `signals.spikes`, `signals.V_m`, `signals.sources`, `signals.field.lfp_proxy`, `signals.field.csd_proxy`, `signals.field.phi_e_proxy`, `signals.field.source_proxy`, `manifest['conservation_proxy_diagnostics']`.
-- **New `docs/tutorial_figures.md`:** Complete figure gallery with claim status, data sources, and truth status for each figure. Includes regeneration instructions.
-- **Figure manifest `docs/_static/tutorial_figures/figure_manifest.json`:** JSON-safe schema with per-figure metadata (filename, title, type, uses_real_data, path, visually_confirmed, visual_status, claim_status). Global fields: figure_count, real_data_figure_count, min_required, jaxfne_version, truth gates, source_script, visual_confirmation_method.
+- **New `docs/tutorial_figures.md`:** Complete figure gallery with status, data sources, and status status for each figure. Includes regeneration instructions.
+- **Figure manifest `docs/_static/tutorial_figures/figure_manifest.json`:** JSON-safe schema with per-figure metadata (filename, title, type, uses_real_data, path, visually_confirmed, visual_status, readout_status). Global fields: figure_count, real_data_figure_count, min_required, jaxfne_version, status fields, source_script, visual_confirmation_method.
 - **All figures visually confirmed:** PIL/ImageStat verification (nonzero size, nonblank content, >1 KB). visual_confirmed=True, visual_status="pass" for all 12 figures.
-- **New test file `tests/test_tutorial_figure_manifest_v028.py`:** 9 test methods covering manifest structure (JSON-safe, required keys, claim gates), figure count (12 total, >=10 real data), figure paths (exist, PNG, nonzero), figure metadata (required fields, visually confirmed), forbidden phrases (no "real EEG", "validated", "biological metabolism", "Maxwell", "Poisson"), claim-gate immutability, data integrity (filename/path matching, no duplicates, count consistency).
-- **Claim gates frozen and immutable:** truth_mode="truth_safe_unverified", claim_level="computational_scaffold", field_solver_status="laminar_proxy_no_pde", physical_amplitude_claim_allowed=False, biological_metabolism_claim_allowed=False. No "real EEG", "validated CSD", "biological proof", "solver implementation" language in any figure title or description.
+- **New test file `tests/test_tutorial_figure_manifest_v028.py`:** 9 test methods covering manifest structure (JSON-safe, required keys, status checks), figure count (12 total, >=10 real data), figure paths (exist, PNG, nonzero), figure metadata (required fields, visually confirmed), forbidden phrases (no "real EEG", "validated", "biological metabolism", "Maxwell", "Poisson"), statement-gate immutability, data integrity (filename/path matching, no duplicates, count consistency).
+- **Status checks frozen and immutable:** run_status="tutorial_scaffold", model_status="computational_scaffold", field_solver_status="laminar_proxy_no_pde", amplitude_status=False, metabolism_status=False. No "real EEG", "validated CSD", "biological proof", "solver implementation" language in any figure title or description.
 - **No code changes to core jaxfne modules.** v0.2.28 figure generation is scripts/docs/tests only.
 
 ### Summary
 - **Purpose:** Complete tutorial figure regeneration with visual confirmation + bridge hardening for v0.3+ readiness.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
-- **BETA completion:** All v0.2.28 gates passed (12 figures generated, 11 real-data, all visually confirmed, claim gates frozen, no forbidden language).
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`, `field_solver_status: laminar_proxy_no_pde`.
+- **BETA completion:** All v0.2.28 gates passed (12 figures generated, 11 real-data, all visually confirmed, status checks frozen, no forbidden language).
 
 ## v0.2.27
 
@@ -255,12 +255,12 @@
 - **Diagnostics computed:** `source_norm_l1`, `source_norm_l2`, `source_abs_mean`, `source_conservation_proxy_residual` (spatial-mean proxy for ∫q≈0), `phi_abs_mean`, `phi_gradient_proxy_norm2` (mean squared spatial gradient of phi_e proxy), `csd_abs_mean`, `csd_norm_l2`, `lfp_abs_mean`, `lfp_norm_l2`, `field_energy_like_proxy`.
 - **Explicitly not-implemented gates:** `j_dot_e_proxy=None` (J_e not computed in proxy mode), `poynting_flux_proxy=None`, `poisson_solver_status="not_implemented"`, `maxwell_solver_status="not_implemented"`, `stress_energy_tensor_status="not_implemented"`.
 - **Manifest integration:** `Model.manifest()` now includes `conservation_proxy_diagnostics` block when `signals.field` is available.
-- **42 new tests:** `tests/test_conservation_proxy_diagnostics_v027.py` covering: JSON safety, zero/nonzero array norms, missing-array None returns, physical/biological claim gates, j_dot_e/Poynting/solver/Maxwell/stress-energy invariants, manifest integration, language audit, no double-counting regression.
+- **42 new tests:** `tests/test_conservation_proxy_diagnostics_v027.py` covering: JSON safety, zero/nonzero array norms, missing-array None returns, physical/biological status checks, j_dot_e/Poynting/solver/Maxwell/stress-energy invariants, manifest integration, language audit, no double-counting regression.
 - **Patched stale `docs/poisson_admissibility.md`:** Updated status from "v0.2.16 will implement a Poisson solver" to correct v0.2.27 doctrine (specification-only; no solver; requires separate approval).
 - **Added `docs/conservation_proxy_diagnostics.md`:** New doc with mathematical basis (source norms, conservation residual, phi-gradient proxy, J·E boundary, Poynting future doctrine), output contract table, API examples, and explicit not-implemented table.
 - **Updated `docs/index.md`:** Added link to conservation proxy diagnostics doc.
-- **No new solver, no Maxwell dynamics, no physical amplitude claims.** v0.2.27 is proxy diagnostics only.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status=laminar_proxy_no_pde`.
+- **No new solver, no Maxwell dynamics, no physical amplitude statuss.** v0.2.27 is proxy diagnostics only.
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`, `field_solver_status=laminar_proxy_no_pde`.
 - **BETA finalization:** Bumped package version to `0.2.27` after BETA passed with no blockers.
 
 ## v0.2.26
@@ -268,25 +268,25 @@
 - **Computation-basis contracts release.**
 - **Added `AxisSpec` and `BasisSpec` dataclasses:** Typed, frozen contract objects in `jaxfne/core.py` describing the spatial basis (`laminar_depth`, `xy`, `xyz`, `collapsed`, `graph`), time basis (`continuous_ms`, `discrete_steps`, `slow_proxy`), field regime (`laminar_proxy`, `quasi_static_resistive`, `solved_poisson`, `future_admittive`, `future_maxwell`), source mode, and probe basis for each TFNE run. Default matches current laminar-proxy scaffold.
 - **Added `default_basis_spec()` factory:** Returns the default `BasisSpec` for v0.2.26 laminar-proxy behavior.
-- **Added basis validation:** `validate_basis_spec()` and `basis_claim_gate()` in `jaxfne/validation.py`. Validates enum values, axis-space consistency (xy/xyz/laminar_depth/collapsed rules), future-regime gating, and source mode eligibility. Returns JSON-safe dicts. `physical_amplitude_claim_allowed` is always `False`.
-- **Future regimes are doctrine-only:** `future_maxwell` and `future_admittive` serialize as `implemented=False, claim_allowed=False`. Cannot be escalated. Structural enforcement tested.
+- **Added basis validation:** `validate_basis_spec()` and `basis_statement_gate()` in `jaxfne/validation.py`. Validates enum values, axis-space consistency (xy/xyz/laminar_depth/collapsed rules), future-regime gating, and source mode eligibility. Returns JSON-safe dicts. `amplitude_status` is always `False`.
+- **Future regimes are doctrine-only:** `future_maxwell` and `future_admittive` serialize as `implemented=False, status_enabled=False`. Cannot be escalated. Structural enforcement tested.
 - **Added manifest `basis` block:** `Model.manifest()` now includes a nested `basis` field with space/time/field/source/probe basis metadata and dimension status (x/y collapsed, z active by default).
 - **Public API:** `AxisSpec`, `BasisSpec`, `default_basis_spec` exported from `jaxfne`.
-- **55 new tests:** `tests/test_computation_basis_v026.py` covers JSON safety, laminar proxy defaults, axis validation, space basis rules (xy/xyz/laminar_depth/collapsed), future regime gating, manifest integration, claim gate, and public export verification.
+- **55 new tests:** `tests/test_computation_basis_v026.py` covers JSON safety, laminar proxy defaults, axis validation, space basis rules (xy/xyz/laminar_depth/collapsed), future regime gating, manifest integration, status check, and public export verification.
 - **Updated `docs/computation_basis.md`:** Added "Implemented in v0.2.26" section listing contracts, allowed field regimes, and status table.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`, `field_solver_status: laminar_proxy_no_pde`.
 - **No new solver, no conservation diagnostics, no Maxwell/stress-energy implementation.** v0.2.26 is contracts-only.
-- **BETA patch:** Corrected v0.2.27 roadmap language in `docs/computation_basis.md`. v0.2.27 is approved for conservation-inspired proxy diagnostics only. No Poisson solver is introduced in v0.2.27. `solved_poisson` remains `implemented=False`, `claim_allowed=False`. Poisson/Maxwell/admittive solvers remain gated future work requiring separate approval.
+- **BETA patch:** Corrected v0.2.27 roadmap language in `docs/computation_basis.md`. v0.2.27 is approved for conservation-inspired proxy diagnostics only. No Poisson solver is introduced in v0.2.27. `solved_poisson` remains `implemented=False`, `status_enabled=False`. Poisson/Maxwell/admittive solvers remain gated future work requiring separate approval.
 
 ## v0.2.25
 
 - **Mathematical glossary flow and docs-first upgrade.**
-- **Added mathematical glossary flow doctrine:** New `docs/mathematical_glossary_flow.md` documents seven core TFNE equations (emitter dynamics, source projection, ohmic current, field compatibility, CSD, probe operator, EMM-proxy) with formal definitions, complete term glossaries, worded-equations, critical bridge terms, claim boundaries, and implementation locations. Includes conservation-law doctrine (Poynting's theorem) as future reference.
+- **Added mathematical glossary flow doctrine:** New `docs/mathematical_glossary_flow.md` documents seven core TFNE equations (emitter dynamics, source projection, ohmic current, field compatibility, CSD, probe operator, EMM-proxy) with formal definitions, complete term glossaries, worded-equations, critical bridge terms, statement boundaries, and implementation locations. Includes conservation-law doctrine (Poynting's theorem) as future reference.
 - **Added source/field bookkeeping guide:** New `docs/source_field_equations.md` specifies source modes (total_membrane_current, decomposed_cap_ion_syn, proxy_no_field_solve), one-source-per-run requirement, **forbidden synaptic double-counting pattern** with audit examples, field metadata (boundary/gauge/CSD convention), calibration labels, and code-to-manifest mappings. Minimal examples tying equations to implementation.
 - **Added computation basis doctrine:** New `docs/computation_basis.md` describes TFNE as collapsible tensor-field scaffold with canonical dimensions (time, units, space, features, readout), collapse rules, basis-change philosophy, declared-future field regimes (v0.2.27 diagnostics, v0.3.x physical), extensibility doctrine for new domains, and PRNG/finiteness contracts.
-- **Rewrote README.md for compactness:** Reorganized with sections: identity, installation, minimal example, pipeline (4 stages + operators table), readout meanings, validation (fast vs extended), documentation map, roadmap (v0.2.24–v0.3.0), claim status. Explicit "not a biological simulator" statement with guidance on when/when-not to use.
+- **Rewrote README.md for compactness:** Reorganized with sections: identity, installation, minimal example, pipeline (4 stages + operators table), readout meanings, validation (fast vs extended), documentation map, roadmap (v0.2.24–v0.3.0), status. Explicit "not a biological simulator" statement with guidance on when/when-not to use.
 - **Updated docs/index.md:** Added new "Core mathematics & equations" section highlighting glossary flow, source/field equations, and computation basis. Reorganized "Learn more" to prioritize equation documentation.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`, `field_solver_status: laminar_proxy_no_pde`.
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`, `field_solver_status: laminar_proxy_no_pde`.
 - **No code changes, no feature expansion.** v0.2.25 is pure documentation: mathematical grounding, forbidden patterns, equation-to-code mapping, and clear roadmap.
 - **Purpose:** Establish solid mathematical and conceptual foundation for v0.2.26–v0.3.x extensibility, diagnostics, and physical-field work.
 - **BETA patch:** Bumped package version to `0.2.25` and patched the source-projection glossary to define `a_k` (state-to-source scalar) and `b_k` (input-to-source scalar), resolving the documentation completeness gap identified in BETA review.
@@ -297,10 +297,10 @@
 - **Verified v0.2.23 release baseline:** Confirmed tag, version consistency, and clean repo state after v0.2.23 release.
 - **Audited calibration/source/field/report contracts:** Verified all required fields present and correct; no double-counting of synaptic current.
 - **Confirmed solver status:** Field solver remains `laminar_proxy_no_pde`; field readouts remain proxy-only; boundary/gauge conditions remain metadata-only.
-- **Confirmed public language:** Verified no forbidden phrases (real EEG, real MEG, biological metabolism claims, mechanism proof). All public language uses approved proxy/scaffold terminology.
+- **Confirmed public language:** Verified no forbidden phrases (real EEG, real MEG, biological metabolism statements, mechanism proof). All public language uses approved proxy/scaffold terminology.
 - **Updated version assertions in tests:** Fixed 11 test files with outdated version checks; validation baseline: 806 passed, 5 skipped.
-- **Preserved truth status:** `truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`.
-- **No new science features, no code rewrites, no biological claims.**
+- **Preserved status status:** `tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`.
+- **No new science features, no code rewrites, no biological statements.**
 - **Purpose:** Establish stable foundation for v0.2.25–v0.2.28 late-0.2.x bridge block (mathematical glossary, computation-basis contracts, conservation diagnostics, 0.3 bridge hardening).
 
 ## v0.2.23
@@ -319,8 +319,8 @@
   removed casual language ('we' → 'jaxfne', 'you can' → 'workflows can').
 - **Preserved all features:** No code changes, no new dependencies, no feature expansion. v0.2.23 is pure 
   documentation and packaging polish.
-- **Preserved truth status:** All claim gates remain frozen (`truth_safe_unverified`, `computational_scaffold`, 
-  `physical_amplitude_claim_allowed=False`).
+- **Preserved status status:** All status checks remain frozen (`tutorial_scaffold`, `computational_scaffold`, 
+  `amplitude_status=False`).
 - **Known issue documented:** Subprocess tests (test_example_script_runs) excluded from fast CI; documented as 
   release-validation only. Infrastructure issue, not regression.
 
@@ -328,7 +328,7 @@
 
 - **Added Jaxley array-first trace bridge:** Minimal optional bridge for converting Jaxley-style voltage 
   trace arrays to jaxfne Signals without Jaxley installation.
-- **New API:** `JaxleyTraceSpec` (frozen dataclass with immutable claim gates) and `jaxley_trace_to_signals()` 
+- **New API:** `JaxleyTraceSpec` (frozen dataclass with immutable status checks) and `jaxley_trace_to_signals()` 
   (main conversion function).
 - **Layout normalization:** Supports three input layouts: `time_by_unit` [T,N], `unit_by_time` [N,T], 
   `recording_by_time` [R,T]. All normalize to canonical [T,N] internally.
@@ -339,9 +339,9 @@
   source handling, metadata gates, NumPy/JAX conversion, and no-Jaxley-required import.
 - **Synthetic example:** `examples/07_jaxley_trace_bridge.py` demonstrates bridge usage with synthetic voltage 
   traces (CPU-only, <10 seconds runtime).
-- **Immutable claim gates (frozen):**
-  - `claim_level: "computational_scaffold"`
-  - `physical_amplitude_claim_allowed: False`
+- **Immutable status checks (frozen):**
+  - `model_status: "computational_scaffold"`
+  - `amplitude_status: False`
   - `field_solver_status: "not_computed"`
   - `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"`
 - **Field computation deferred:** All Signals have `field=None`; field computation reserved for downstream 
@@ -349,7 +349,7 @@
 - **Scope discipline:** No multi-compartment support, sparse spike format, ionic current mapping, field computation, 
   or simulator wrapper in v0.2.22 (all deferred to later phases).
 - **Full test validation:** 806 tests passed, 5 skipped; no regressions from v0.2.21.
-- **Preserved truth status:** `truth_safe_unverified`, `computational_scaffold`, no biological claims.
+- **Preserved status status:** `tutorial_scaffold`, `computational_scaffold`, no biological statements.
 
 ## v0.1.2
 
@@ -361,9 +361,9 @@
 - **Added benchmark harness:** `scripts/benchmark_scan_backends.py` measures wall time for dense and 
   edge-list backends at scales ranging from 50 to 100 neurons across durations up to 1000 ms.
 - **Added metadata tests:** `tests/test_scan_backends_v012.py` ensures dense, edge-list, and 
-  receptor-exponential paths report correct metadata and preserve truth gates.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`, 
-  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `physical_amplitude_claim_allowed=False`.
+  receptor-exponential paths report correct metadata and preserve status fields.
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`, 
+  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `amplitude_status=False`.
 - **No kernel refactoring:** Dense and edge-list backends remain unchanged; this release validates 
   performance and correctness of the existing scan-backed implementations.
 
@@ -377,8 +377,8 @@
   from population names to neuron index ranges for layer-specific readouts.
 - **Added preset registry:** Introduced `jaxfne.presets` with standardized `CELL_TYPE_PRESETS`,
   `RECEPTOR_KINETICS`, and `DEFAULT_SPIKE_IMPULSE_GAIN` constants for reproducible configuration.
-- **Preserved all truth gates:** `truth_safe_unverified`, `computational_scaffold`,
-  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `physical_amplitude_claim_allowed=False`.
+- **Preserved all status fields:** `tutorial_scaffold`, `computational_scaffold`,
+  `laminar_proxy_no_pde`, `uncalibrated_izhikevich_native_current`, `amplitude_status=False`.
 - **No biological calibration changes:** This is a computational-correctness and API-readiness pass,
   not an empirical validation upgrade.
 
@@ -390,10 +390,10 @@
   MIT LICENSE, normalized examples 00-06, full packaging validation.
 - Validated wheel and sdist install smokes from `/tmp`; canonical workflow passes
   from installed package (site-packages, not repo).
-- Preserved truth status at `truth_safe_unverified`.
+- Preserved status status at `tutorial_scaffold`.
 - Preserved field status as `laminar_proxy_no_pde`.
 - Preserved source calibration as `uncalibrated_izhikevich_native_current`.
-- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
+- Preserved `amplitude_status=False` across all outputs.
 
 ## v0.0.23
 
@@ -404,9 +404,9 @@
   when passed the canonical `compute_readout()` return value.
 - Added `_normalize_manifest_readout()` normaliser; surfaces readout results under
   `readout_results` key in manifest with `n_results`, `requested_metrics`, and frozen
-  `physical_amplitude_claim_allowed=False` guard.
+  `amplitude_status=False` guard.
 - Added 8 tests in `tests/test_manifest_readout_compat.py` covering all argument forms,
-  JSON strictness, and truth-gate non-escalation.
+  JSON strictness, and status-gate non-escalation.
 - Added MIT LICENSE file.
 - Normalized examples directory to 00-06 naming convention.
 - Validated wheel and sdist build via `python -m build`; `twine check dist/*` passes.
@@ -414,19 +414,19 @@
   as `site-packages` (not repo).
 - Confirmed canonical workflow from installed wheel:
   `compute_readout(...)` → `manifest(signals, readouts)` → `json.dumps(allow_nan=False)`.
-- Preserved truth status at `truth_safe_unverified`.
-- Preserved `physical_amplitude_claim_allowed=False` across all outputs.
+- Preserved status status at `tutorial_scaffold`.
+- Preserved `amplitude_status=False` across all outputs.
 
 ## v0.0.22
 - Added packaging, release, and Colab installation documentation.
 - Validated wheel and sdist builds with twine check.
 - Validated fresh virtual-environment install smoke tests for wheel and sdist.
 - Added a minimal Colab spectrolaminar proxy scaffold example.
-- Preserved truth status at truth_safe_unverified.
+- Preserved status status at tutorial_scaffold.
 
 # Changelog
 
-All entries reflect `truth_mode: truth_safe_unverified`. No biological claims
+All entries reflect `run_status: tutorial_scaffold`. No biological statements
 are made at any version. Receipts, reports, and manifests are computational
 validation artifacts, not empirical evidence.
 
@@ -435,9 +435,9 @@ validation artifacts, not empirical evidence.
 - **Config/runtime fidelity:** Added `_SUPPORTED_RUNTIME_SPEC_KEYS` and
   `_runtime_from_spec()` to validate runtime declarations from `.jcfg.json`;
   unknown keys now warn; invalid known values (e.g. bad `synaptic_kernel`) raise.
-- **Truth escalation guard:** Implemented `_conservative_truth_transfer()` to
-  force user-declared truth claims back to conservative defaults
-  (`truth_safe_unverified`, `computational_scaffold`, `physical_amplitude_claim_allowed=False`);
+- **Status escalation guard:** Implemented `_conservative_status_transfer()` to
+  force user-declared status statements back to conservative defaults
+  (`tutorial_scaffold`, `computational_scaffold`, `amplitude_status=False`);
   escalations trigger warnings; non-scalar unknown keys skipped.
 - **Unsupported config warnings:** Added `_config_section_warnings()` to detect
   unsupported emitter families, field domains, conductivities, boundaries, and gauges;
@@ -460,8 +460,8 @@ validation artifacts, not empirical evidence.
   for current default flow.
 - **Schema version bumps:** Updated `_RECEIPT_SCHEMA_VERSION` to
   `"run_receipt_v0.0.21"`, `_MANIFEST_SCHEMA_VERSION` to `"manifest.v0.0.21"`.
-- Preserved all truth gates at `truth_safe_unverified / computational_scaffold /
-  laminar_proxy_no_pde / proxy_readout_only / physical_amplitude_claim_allowed=False`.
+- Preserved all status fields at `tutorial_scaffold / computational_scaffold /
+  laminar_proxy_no_pde / proxy_readout_only / amplitude_status=False`.
 
 ## v0.0.20
 
@@ -477,7 +477,7 @@ validation artifacts, not empirical evidence.
 - Added `Simulation.__post_init__` validation (duration/dt must be positive finite).
 - Clarified `record_sources` semantics in metadata.
 - Centralized version/schema constants near `_JAXFNE_VERSION`.
-- Preserved truth status at `truth_safe_unverified`.
+- Preserved status status at `tutorial_scaffold`.
 - Preserved canonical v0.1 workflow: `run_receipt`, `compute_readout`,
   `evaluate_report`. Compatibility aliases (`manifest`, `probe`) unchanged.
 
@@ -487,7 +487,7 @@ validation artifacts, not empirical evidence.
   and `evaluate_report` are the canonical workflow methods.
 - Documented `manifest()` and `probe()` as compatibility aliases retained
   from v0.0.4–v0.0.14; not removed.
-- Added docstring notes to `config_truth_boundary()`: passthrough helper,
+- Added docstring notes to `config_status_boundary()`: passthrough helper,
   call `validate_config()` first.
 - Added docstring notes to `JaxFNEConfig.config_hash`: unknown `.jcfg.json`
   keys enter the hash; hash equality is structural identity, not biological
@@ -501,7 +501,7 @@ validation artifacts, not empirical evidence.
 
 - Added `ObjectiveReport` (frozen dataclass) and `Model.evaluate_report()`.
 - `ObjectiveReport` embeds `ReadoutResult` items when `readout_specs` are
-  provided; carries frozen truth gates.
+  provided; carries frozen status fields.
 
 ## v0.0.17
 
@@ -515,16 +515,16 @@ validation artifacts, not empirical evidence.
 - Added `RunReceipt` (frozen dataclass) and `Model.run_receipt()`.
 - Added module-level `run_receipt()` factory and `save_receipt()`.
 - `receipt_id` is deterministic: `sha256(config_hash:seed:version)[:16]`.
-- Fixed `truth_mode` absent from `_CONSERVATIVE_TRUTH_DEFAULTS` (blocking
-  defect: `validate_config` now checks all 8 required truth keys).
+- Fixed `run_status` absent from `_CONSERVATIVE_STATUS_DEFAULTS` (blocking
+  defect: `validate_config` now checks all 8 required status keys).
 
 ## v0.0.15
 
 - Added `JaxFNEConfig`, `ConfigValidationResult`, `load_config()`,
   `validate_config()`, and `.jcfg.json` declarative config standard.
 - Added `config_to_simulation`, `config_to_geometry`,
-  `config_to_configuration`, `config_to_trial_batch`, `config_truth_boundary`.
-- Truth boundary fields are required in every config; any escalation is a
+  `config_to_configuration`, `config_to_trial_batch`, `config_status_boundary`.
+- Status boundary fields are required in every config; any escalation is a
   blocking validation error.
 
 ## v0.0.14

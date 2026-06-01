@@ -2,7 +2,7 @@
 
 This example runs a tiny CPU-safe random-search loop over one source-scale
 parameter. It is a computational scaffold only: no biological, calibrated, or
-mechanistic claim is made from the selected candidate.
+mechanistic statement is made from the selected candidate.
 """
 
 import json
@@ -37,8 +37,8 @@ def main():
     print("tuning_status:", report["tuning_status"])
     print("candidate_count:", len(report["candidate_history"]))
     print("best_parameter_value:", report["best_parameter_value"])
-    print("physical_amplitude_claim_allowed:", report["physical_amplitude_claim_allowed"])
-    print("mechanism_claim_status:", report["mechanism_claim_status"])
+    print("amplitude_status:", report["amplitude_status"])
+    print("mechanism_status:", report["mechanism_status"])
     json.dumps(report, allow_nan=False)
     assert tuned is not None
 

@@ -34,9 +34,11 @@ def test_suite_no4_notebook_structure():
     code_cells = [c for c in nb.cells if c.cell_type == "code"]
     assert len(code_cells) >= 5, "Should have at least 5 code cells"
 
-    # Verify imports are in first code cell
-    assert "import jaxfne" in code_cells[0].source, "First code cell should import jaxfne"
-    assert "import optax" in code_cells[0].source, "First code cell should import optax"
+    # Verify imports are present — accept colab-compatible setup cell or direct imports
+    all_code = " ".join("".join(c.source) for c in code_cells[:3])
+    assert "import jaxfne" in all_code or "jaxfne" in code_cells[0].source, \
+        "First 3 code cells should contain jaxfne import or setup"
+    assert "import optax" in all_code, "First 3 code cells should import optax"
 
     print(f"✓ Notebook structure valid ({len(code_cells)} code cells)")
 

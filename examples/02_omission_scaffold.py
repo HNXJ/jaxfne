@@ -5,10 +5,10 @@ jaxfne v0.0.5-P1.  No simulation is run here — this example shows the
 task-flow grammar (conditions, event codes, analysis windows) and verifies
 that the full paradigm serializes to strict JSON.
 
-Scientific truth status:
-  truth_mode: truth_safe_unverified
-  claim_level: computational_scaffold
-  mechanism_claim_status: not_claimed
+Scientific status status:
+  run_status: tutorial_scaffold
+  model_status: computational_scaffold
+  mechanism_status: outside_run
   empirical_validation_status: not_empirically_validated
 
 No biological mechanism is implied by the condition structure.  The paradigm
@@ -74,9 +74,10 @@ def main():
     print(f"  Conditions serialized: {len(paradigm_dict['conditions'])}")
     print(f"  JSON byte length: {len(json_str.encode('utf-8'))}")
 
-    print("\n=== Scientific truth status ===")
-    print("  truth_mode: truth_safe_unverified")
-    print("  claim_level: computational_scaffold")
+    print("\n=== Scientific status status ===")
+    print("  run_status: tutorial_scaffold")
+    print("  model_status: computational_scaffold")
+    print("  mechanism_status: outside_run")
     print("  mechanism_claim_status: not_claimed")
     print("  empirical_validation_status: not_empirically_validated")
     print("  This paradigm object is a computational schema only.")

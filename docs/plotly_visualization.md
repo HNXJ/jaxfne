@@ -314,7 +314,7 @@ fig.write_html("figure.html", include_plotlyjs=True)  # ~3 MB file!
 fig.write_html("figure.html", include_plotlyjs="cdn")  # ~100 KB
 ```
 
-### 2. Claiming physical amplitude without calibration
+### 2. Stating physical amplitude without calibration
 
 ❌ **WRONG:**
 ```python

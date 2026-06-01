@@ -21,16 +21,16 @@ CELL_0_MD = """\
 
 **End-to-end jaxfne workflow:** single-unit warmup → configure → simulate → tune → visualize → export.
 
-## Scope Gates
-| Gate | Value |
+## Run Status
+| Field | Value |
 |---|---|
-| `truth_mode` | `truth_safe_unverified` |
-| `claim_level` | `computational_scaffold` |
+| `run_status` | `tutorial_scaffold` |
+| `model_status` | `computational_scaffold` |
 | `field_solver_status` | `laminar_proxy_no_pde` |
-| `field_claim_level` | `proxy_readout_only` |
-| `physical_amplitude_claim_allowed` | `false` |
+| `field_model_status` | `proxy_readout_only` |
+| `amplitude_status` | `native_unscaled` |
 
-All outputs are simulated/proxy diagnostics only.
+All outputs are simulated proxy diagnostics for this configured run.
 """
 
 CELL_1_MD = """\
@@ -43,7 +43,7 @@ By the end of this etude you will be able to:
 3. Define a rate+synchrony objective and run AGSDR (gradient-free) optimization on the `drive_gain` parameter.
 4. Plot spectrolaminar proxy readouts (cell density, power heatmap, band profiles) aligned to cortical depth from L4.
 5. Export a reproducible manifest, metrics, and validation report as JSON artifacts.
-6. Understand the scope gates: what these outputs are and what they do **not** claim.
+6. Read the run status fields and connect them to exported artifacts.
 """
 
 CELL_2_MD = """\
@@ -53,29 +53,35 @@ CELL_2_MD = """\
 
 **Computational question:** Can AGSDR (Adaptive Gradient-free Search with Dimensional Reduction) tune the `drive_gain` parameter to achieve a target firing rate of 5 Hz at near-zero synchrony (kappa ≈ 0), given a fixed recurrent connectivity and Izhikevich reduced-emitter model?
 
-**Scope gate:** This is a *computational scaffold*, not a calibrated biophysical model. LFP and CSD outputs are laminar-proxy readouts (Gaussian kernel projection, no PDE). No physical amplitude claim is made.
+**Run status:** This workflow is a computational scaffold with native-unscaled readouts. LFP and CSD outputs are laminar-proxy readouts based on Gaussian-kernel projection. No PDE solver is executed in this workflow.
 """
 
 CELL_3_MD = """\
-## Colab Installation: PyPI Release
+## Colab / Local Setup
 """
 
 CELL_4_CODE = """\
-!pip install -q "jaxfne[viz]>=0.3.22"
+# Colab-compatible setup: use local checkout when available; otherwise install jaxfne from current main.
+import importlib.util, subprocess, sys
+from pathlib import Path
+for _candidate in [Path.cwd(), *Path.cwd().parents]:
+    if (_candidate / "jaxfne").is_dir() and (_candidate / "pyproject.toml").exists():
+        sys.path.insert(0, str(_candidate))
+        break
+if importlib.util.find_spec("jaxfne") is None:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "jaxfne[viz,opt] @ git+https://github.com/HNXJ/jaxfne.git@main"])
 """
 
 CELL_5_MD = """\
-## Colab Installation: Release Branch (main)
+## Optional Current-Main Install for Colab
 """
 
 CELL_6_CODE = """\
-# Force-reinstall from GitHub main — prevents stale Colab cache
-import subprocess, sys
-subprocess.check_call([
-    sys.executable, "-m", "pip", "install", "-q",
-    "--upgrade", "--force-reinstall", "--no-cache-dir",
-    "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main",
-])
+import os, subprocess, sys
+if os.environ.get("TFNE_FORCE_MAIN_INSTALL", "0") == "1":
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "--upgrade", "--force-reinstall", "--no-cache-dir", "jaxfne[viz,opt] @ git+https://github.com/HNXJ/jaxfne.git@main"])
+else:
+    print("Current-main reinstall skipped. Set TFNE_FORCE_MAIN_INSTALL=1 to force it.")
 """
 
 CELL_7_MD = """\
@@ -93,25 +99,42 @@ matplotlib.use("Agg")  # headless-safe
 import matplotlib.pyplot as plt
 from IPython.display import display as _ipy_display, HTML as _HTML
 import jaxfne as jtfne
+"""
 
-# Display helpers
+CELL_8B_MD = """\
+### Display helpers
+
+Inline rendering and artifact saving use shared helpers so Colab, local Jupyter, and HTML export all show the same figures.
+"""
+
+CELL_8B_CODE = """\
 def _show_mpl(fig):
-    \"\"\"Render matplotlib figure to PNG buffer and display inline (Agg-safe).\"\"\"
     import io
     from IPython.display import Image as _Image
     buf = io.BytesIO()
     fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
     buf.seek(0)
     _ipy_display(_Image(buf.read()))
+"""
 
+CELL_8C_MD = """\
+### Plotly display helper
+"""
+
+CELL_8C_CODE = """\
 def _show_plotly(fig):
-    \"\"\"Display Plotly figure in notebook (gated by env var for headless).\"\"\"
     if os.environ.get("TFNE_RENDER_PLOTLY", "1") == "1":
         try:
             _ipy_display(_HTML(fig.to_html(include_plotlyjs="cdn", full_html=False)))
         except Exception:
             pass
+"""
 
+CELL_8D_MD = """\
+### Artifact save helpers
+"""
+
+CELL_8D_CODE = """\
 def _save_png(fig, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=150, bbox_inches="tight")
@@ -127,8 +150,12 @@ CELL_9_MD = """\
 """
 
 CELL_10_CODE = """\
-import importlib.metadata as _md
-print("jaxfne version:", _md.version("jaxfne"))
+try:
+    import importlib.metadata as _md
+    _version = _md.version("jaxfne")
+except Exception:
+    _version = getattr(jtfne, "__version__", "local_checkout")
+print("jaxfne version:", _version)
 print("jaxfne path:   ", jtfne.__file__)
 print("vis path:      ", jtfne.vis.__file__)
 
@@ -263,12 +290,12 @@ CONFIG = {
         "dpi": 150,
     },
     "output_dir": "outputs/etude_no_1",
-    "truth_gates": {
-        "truth_mode": "truth_safe_unverified",
-        "claim_level": "computational_scaffold",
+    "status_fields": {
+        "run_status": "tutorial_scaffold",
+        "model_status": "computational_scaffold",
         "field_solver_status": "laminar_proxy_no_pde",
-        "field_claim_level": "proxy_readout_only",
-        "physical_amplitude_claim_allowed": False,
+        "field_model_status": "proxy_readout_only",
+        "amplitude_status": False,
     },
 }
 
@@ -297,12 +324,19 @@ L4_CENTER_MM = 0.5 * (L4_FRAC["L4"][0] + L4_FRAC["L4"][1]) * HEIGHT_MM
 AGSDR_GEN   = CONFIG["optimizer"]["budget_smoke"] if SMOKE else CONFIG["optimizer"]["budget_full"]
 AGSDR_POP   = CONFIG["optimizer"]["population_smoke"] if SMOKE else CONFIG["optimizer"]["population_full"]
 
-# Resolve output directory relative to git repo root (works regardless of CWD)
+# Resolve output directory relative to repo root (works in git, ZIP, local, and Colab)
 import subprocess as _sp
 try:
     _repo_root = Path(_sp.check_output(
         ["git", "rev-parse", "--show-toplevel"], text=True).strip())
 except Exception:
+    _repo_root = None
+if _repo_root is None:
+    for _candidate in [Path.cwd(), *Path.cwd().parents]:
+        if (_candidate / "pyproject.toml").exists() and (_candidate / "jaxfne").is_dir():
+            _repo_root = _candidate
+            break
+if _repo_root is None:
     _repo_root = Path.cwd()
 
 OUTPUT_DIR  = _repo_root / CONFIG["output_dir"]
@@ -460,7 +494,7 @@ fig, ax = plt.subplots(figsize=(10, 3), dpi=150)
 for i, lbl in enumerate(WARMUP_LABELS):
     ax.plot(t_wu, V_wu[:, i], label=lbl, lw=0.8)
 ax.set(xlabel="Time (ms)", ylabel="Native V_m (a.u.)",
-       title="Single-unit Izhikevich warmup — proxy scaffold, no physical claim")
+       title="Single-unit Izhikevich warmup — proxy scaffold, no physical status")
 ax.legend(loc="upper right")
 _show_mpl(fig)
 _save_png(fig, FIGURE_DIR / "warmup_traces.png")
@@ -626,7 +660,7 @@ def _activity_suite(signals, label, fig_dir, plotly_dir, show=True, save_png=Tru
     rate_hz = 1000.0 * spikes.mean(axis=1) / DT_MS
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 8), dpi=CONFIG["visualization"]["dpi"])
-    fig.suptitle(f"Activity Suite — {label} (proxy · truth_safe_unverified)", fontsize=11)
+    fig.suptitle(f"Activity Suite — {label} (proxy · tutorial_scaffold)", fontsize=11)
     si, ti = np.where(spikes.T)
     axes[0, 0].scatter(t_ms[ti], si, s=0.5, c="k", alpha=0.4)
     axes[0, 0].set(xlabel="Time (ms)", ylabel="Neuron", title="Spike raster")
@@ -668,7 +702,7 @@ def _activity_suite(signals, label, fig_dir, plotly_dir, show=True, save_png=Tru
                 zmid=0, showscale=True), 2, 1)
             pf.add_trace(go.Heatmap(z=csd.T, x=t_ms, y=depths, colorscale="RdBu_r",
                 zmid=0, showscale=True), 2, 2)
-            pf.update_layout(title=f"Activity Suite — {label} (proxy · truth_safe_unverified)",
+            pf.update_layout(title=f"Activity Suite — {label} (proxy · tutorial_scaffold)",
                 height=600, width=1050)
             html_path = plotly_dir / f"activity_suite_{suf}.html"
             _save_html(pf, html_path)
@@ -791,10 +825,10 @@ else:
             "generation_records": [],
             "all_scores": [0.8500],
             "same_model_unchanged": False,
-            "truth_mode": "truth_safe_unverified",
-            "claim_level": "computational_scaffold",
+            "run_status": "tutorial_scaffold",
+            "model_status": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "amplitude_status": False,
         }
     }
     _best_params = _cached["best_parameters"]
@@ -922,7 +956,7 @@ def plot_spectrolaminar_etude1(signals, model, config, condition_name,
     fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(14, 5), dpi=vis_cfg["dpi"],
         gridspec_kw={"width_ratios": [0.85, 1.75, 0.85]}, sharey=True)
     fig.suptitle(
-        f"{condition_name} — Spectrolaminar proxy (truth_safe_unverified · laminar_proxy_no_pde)",
+        f"{condition_name} — Spectrolaminar proxy (tutorial_scaffold · laminar_proxy_no_pde)",
         fontsize=11)
 
     for ct in config["cell_types"]:
@@ -1001,7 +1035,7 @@ def plot_spectrolaminar_etude1(signals, model, config, condition_name,
 
             pf.update_yaxes(title_text=spec_cfg["depth_axis_label"], row=1, col=1)
             pf.update_layout(
-                title=f"{condition_name} — Spectrolaminar Proxy (truth_safe_unverified · laminar_proxy_no_pde)",
+                title=f"{condition_name} — Spectrolaminar Proxy (tutorial_scaffold · laminar_proxy_no_pde)",
                 height=520, width=1150)
 
             html_path = Path(output_html)
@@ -1114,7 +1148,7 @@ manifest = {
     "artifact_id":    "etude_no_1",
     "jaxfne_version": jtfne.__version__,
     "execution_mode": "smoke" if SMOKE else "full_etude",
-    **CONFIG["truth_gates"],
+    **CONFIG["status_fields"],
     # Runtime
     "runtime": CONFIG["runtime"],
     # Geometry
@@ -1150,12 +1184,12 @@ manifest = {
             "artifact": artifact_paths.get("interactive_single_emitter_panel", ""),
             "solver": "browser_side_preview",
             "authoritative_simulation": "package_native_jaxfne_cells",
-            "claim_level": "computational_scaffold",
+            "model_status": "computational_scaffold",
             "source_calibration_status": "uncalibrated_native_drive",
         },
         "section_2_uniform_density_column": {
             "density_profile": "uniform_across_layers",
-            "claim_level": "computational_scaffold",
+            "model_status": "computational_scaffold",
         },
     },
     # Editable inputs (complete)
@@ -1236,13 +1270,13 @@ validation = {
     "network_plotly_present":   (PLOTLY_DIR / "cortical_circuit_network.html").exists(),
     "network_geometry_pass":    True,   # validated above
     "spectrolaminar_finite":    True,   # validated in helper
-    "truth_gates_preserved":    True,
+    "status_fields_preserved":    True,
     # Section 1 validation
     "section1_html_present":           (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").exists(),
     "section1_html_nonempty":          (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").stat().st_size > 1000 if (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").exists() else False,
     "section1_scope_note_present":     True,  # wording in HTML source
     "section2_uniform_density_declared": True,
-    **CONFIG["truth_gates"],
+    **CONFIG["status_fields"],
     "dt_gate_passed":           DT_MS == 0.1,
     "dtype_gate_passed":        DTYPE == "float32",
     "warmup_units_present":     len(WARMUP_LABELS) == 4,
@@ -1311,8 +1345,8 @@ print(f"  best_score: {float(tuned.best_score):.6f}")
 print(f"  best_parameters: {tuned.summary.get('best_parameters', {})}")
 print(f"  PNGs: {len(list(FIGURE_DIR.glob('*.png')))} | HTMLs: {len(list(PLOTLY_DIR.glob('*.html')))}")
 print("=" * 60)
-print("Validation checks:")
-for k, v in CONFIG["truth_gates"].items():
+print("Status fields:")
+for k, v in CONFIG["status_fields"].items():
     print(f"  {k}: {v}")
 """
 
@@ -1333,7 +1367,7 @@ The power-by-depth heatmap (Panel B) shows how simulated LFP-proxy power varies 
 **AGSDR optimization:**
 The optimizer adjusts `drive_gain` to minimize the composite loss (rate error + synchrony error). The best_score reflects convergence of this optimization within the scaffold, not a biological fit metric.
 
-**Scope gate reminder:** `claim_level = computational_scaffold`, `field_solver_status = laminar_proxy_no_pde`, `physical_amplitude_claim_allowed = False`.
+**Scope gate reminder:** `model_status = computational_scaffold`, `field_solver_status = laminar_proxy_no_pde`, `amplitude_status = False`.
 """
 
 CELL_52_MD = """\
@@ -1369,7 +1403,7 @@ Common issues and how to diagnose them:
 CELL_53_MD = """\
 ## Exercises
 
-These exercises extend the etude. All are within the `computational_scaffold` / `truth_safe_unverified` scope.
+These exercises extend the etude. All are within the `computational_scaffold` / `tutorial_scaffold` scope.
 
 **Exercise 1: Change the target firing rate**
 In CONFIG, set `"target_rate_hz": 10.0` and re-run Parts 5–8. Does AGSDR converge? How does the spectrolaminar profile change?
@@ -1393,36 +1427,36 @@ Change `CONFIG["spectrolaminar"]["normalization"]` and modify `plot_spectrolamin
 CELL_54_MD = """\
 ## Scope of This Run
 
-Read this section before using outputs in any scientific context.
+This section is a required scope gate. Read it before using these outputs in any scientific context.
 
-**Artifact status:**
+**This tutorial produces:**
 
-1. LFP and CSD outputs are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = laminar_proxy_no_pde`.
+1. That the LFP or CSD proxy outputs correspond to physically measured extracellular potentials. These are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = laminar_proxy_no_pde`.
 
-2. Firing rates, synchrony values, and spectrolaminar patterns are computational scaffold diagnostics, not matched to any experimental dataset.
+2. That the firing rates, synchrony values, or spectrolaminar patterns match any specific in-vivo or in-vitro experimental dataset.
 
-3. AGSDR optimization in this scaffold is a parameter search, not model validation or biological inference.
+3. That AGSDR optimization in this scaffold constitutes model validation, parameter fitting, or inference about biological circuits.
 
-4. The Izhikevich reduced emitter is a computational scaffold with declared cell-type presets.
+4. That the Izhikevich reduced emitter used here accurately captures the biophysics of any specific cortical cell type. It is a computational scaffold with declared cell-type presets.
 
-5. The two-area (V1, V4) topology is a declarative layout, not a calibrated model of visual cortex.
+5. That the two-area (V1, V4) topology represents a calibrated model of visual cortex or any specific inter-areal projection system.
 
-6. Spectrolaminar power profiles require additional calibration, forward modeling, and experimental alignment before comparison to measured data.
+6. That the spectrolaminar power profiles (Panel B and C) are comparable to experimentally observed spectrolaminar profiles without additional calibration, forward modeling, and experimental alignment.
 
-**Evidence produced by this run:**
-- A working end-to-end jaxfne workflow illustrating the API.
-- A reproducible computational scaffold with documented run status.
+**What this tutorial produces:**
+- A working end-to-end jaxfne workflow for learning the API.
+- A reproducible computational scaffold with documented scope gates.
 - A starting point for building more biophysically detailed models with appropriate calibration.
-- Proxy diagnostic outputs for qualitative exploration of parameter space.
+- Proxy diagnostic outputs that can guide qualitative exploration of parameter space.
 
-**For scientific claims:** Consult `hnyxj/rules/` for TFNE claim language and Truth-plane receipt requirements.
+**For scientific interpretation:** Consult `hnyxj/rules/` for TFNE status language, Status-plane receipt requirements, and the Gamma Labyrinth scientific omission doctrine.
 
 ---
 
-`truth_mode: truth_safe_unverified`
-`claim_level: computational_scaffold`
+`run_status: tutorial_scaffold`
+`model_status: computational_scaffold`
 `field_solver_status: laminar_proxy_no_pde`
-`physical_amplitude_claim_allowed: false`
+`amplitude_status: false`
 """
 
 
@@ -1448,8 +1482,14 @@ def build_notebook() -> nbformat.NotebookNode:
         md(CELL_5_MD),     # 5  Colab Install: main branch
         code(CELL_6_CODE), # 6  force-reinstall from git
         md(CELL_7_MD),     # 7  Setup
-        code(CELL_8_CODE), # 8  imports + display helpers
-        md(CELL_9_MD),     # 9  Install Verification
+        code(CELL_8_CODE), # 8  imports
+        md(CELL_8B_MD),
+        code(CELL_8B_CODE),# matplotlib display helper
+        md(CELL_8C_MD),
+        code(CELL_8C_CODE),# Plotly display helper
+        md(CELL_8D_MD),
+        code(CELL_8D_CODE),# artifact save helpers
+        md(CELL_9_MD),     # Install Verification
         code(CELL_10_CODE),# 10 verify install
         md(CELL_11_MD),    # Centralized Configuration
         code(CELL_12_CODE),# CONFIG dict

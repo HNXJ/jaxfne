@@ -2,7 +2,7 @@
 
 **Status:** v0.2.19 Specification  
 **Date:** 2026-05-21  
-**truth_mode:** truth_safe_unverified
+**run_status:** tutorial_scaffold
 
 ---
 
@@ -10,13 +10,13 @@
 
 The 4 core jaxfne example scripts generate self-contained evidence bundles. Each tutorial produces:
 
-1. **JSON metadata files** — full pipeline information, claim gates, validation status
+1. **JSON metadata files** — full pipeline information, status checks, validation status
 2. **Static figures** — deterministic PNG visualizations generated from simulation data
 3. **Hashed artifacts** — SHA256 integrity verification for all outputs
 
 This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and limitations.
 
-**Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism claims. Claim gates are frozen: `physical_amplitude_claim_allowed=False`.
+**Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
 ---
 
@@ -31,10 +31,10 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 **Key fields:**
 ```json
 {
-  "claim_level": "computational_scaffold",
-  "physical_amplitude_claim_allowed": false,
-  "field_claim_level": "proxy_readout_only",
-  "truth_mode": "truth_safe_unverified",
+  "model_status": "computational_scaffold",
+  "amplitude_status": false,
+  "field_model_status": "proxy_readout_only",
+  "run_status": "tutorial_scaffold",
   "model_config": { ... },
   "simulation_config": { ... },
   "probe_operators": [ "spk", "vm", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy" ]
@@ -42,9 +42,9 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 ```
 
 **Constraints:**
-- `physical_amplitude_claim_allowed` is **always False** in v0.2.19
-- `claim_level` must be `"computational_scaffold"`
-- `field_claim_level` must be `"proxy_readout_only"`
+- `amplitude_status` is **always False** in v0.2.19
+- `model_status` must be `"computational_scaffold"`
+- `field_model_status` must be `"proxy_readout_only"`
 - All values must be JSON-safe (no NaN/Inf)
 
 ### 2. probe_report.json
@@ -88,27 +88,27 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 - All values must be finite numbers (no NaN/Inf)
 - Spike rate may be 0 (silent neurons are allowed)
 - Voltage statistics should reflect neuronal dynamics
-- No overclaiming of biological accuracy
+- No overstateing of biological accuracy
 
 ### 4. validation_report.json
 
-**Purpose:** Scope and claim-status metadata audit.
+**Purpose:** Scope and status metadata audit.
 
 **Key fields:**
 ```json
 {
-  "claim_level": "computational_scaffold",
-  "field_claim_level": "proxy_readout_only",
-  "physical_amplitude_claim_allowed": false,
+  "model_status": "computational_scaffold",
+  "field_model_status": "proxy_readout_only",
+  "amplitude_status": false,
   "empirical_validation_status": null,
-  "mechanism_claim_status": null
+  "mechanism_status": null
 }
 ```
 
 **Constraints:**
-- Must mirror claim gates from manifest.json
+- Must mirror status checks from manifest.json
 - `empirical_validation_status` is null (empirical validation pending)
-- `mechanism_claim_status` is null (biological mechanism claims deferred)
+- `mechanism_status` is null (biological mechanism statements deferred)
 - Explicitly declares scope limits
 
 ### 5. asset_hashes.json
@@ -207,10 +207,10 @@ The validation script enforces strict gates on all tutorial outputs. **Any gate 
 7. **Figures nonzero:** All figure files must have size > 0 bytes
 8. **Hash present:** Each figure must have SHA256 entry in asset_hashes.json
 9. **Hash matches:** Recomputed SHA256 must match recorded hash exactly
-10. **Claim gates frozen:**
-    - `physical_amplitude_claim_allowed` = False
-    - `claim_level` = "computational_scaffold"
-    - `field_claim_level` = "proxy_readout_only"
+10. **Status checks frozen:**
+    - `amplitude_status` = False
+    - `model_status` = "computational_scaffold"
+    - `field_model_status` = "proxy_readout_only"
 11. **Probe report complete:** All 8 operators present
 12. **Metrics nonzero:** Signal statistics are finite and present
 
@@ -248,15 +248,15 @@ Tutorials validated: 3/4
 
 ---
 
-## Truth Status and Scope
+## Status Status and Scope
 
-**Claim Level:** `computational_scaffold`
+**Statement Level:** `computational_scaffold`
 
 - **What this means:** Tutorials demonstrate the jaxfne pipeline architecture
 - **What this does NOT mean:**
   - No empirical validation against electrophysiology data
-  - No biological mechanism claims
-  - No claims of physical amplitude accuracy
+  - Simulated mechanism-readout outputs
+  - Status notes of physical amplitude accuracy
   - No calibration to biological parameters
   - No whole-brain simulation capability
 
@@ -267,9 +267,9 @@ Tutorials validated: 3/4
 - For validation and conceptual demonstration only
 
 **Frozen Gates:**
-- `physical_amplitude_claim_allowed = False` (hardcoded invariant)
+- `amplitude_status = False` (hardcoded invariant)
 - `empirical_validation_status = null` (empirical validation pending)
-- `mechanism_claim_status = null` (biological mechanism claims deferred)
+- `mechanism_status = null` (biological mechanism statements deferred)
 
 ---
 
@@ -316,7 +316,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 - ✓ All 4 tutorials generate figures
 - ✓ Figure hashes in asset_hashes.json
 - ✓ Test coverage for output contract
-- ✓ Claim gates frozen
+- ✓ Status checks frozen
 
 **v0.2.20 (in development):**
 - ✓ Automated runner script (scripts/run_all_tutorials.py)

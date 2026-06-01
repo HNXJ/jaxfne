@@ -2,7 +2,7 @@
 
 This example compares the dense baseline path with the sparse EdgeList path.
 Both remain proxy readout scaffolds: no PDE solve, no calibrated amplitudes,
-and no mechanism claim.
+and no mechanism statement.
 """
 
 import json
@@ -33,19 +33,19 @@ def main() -> None:
         "edge_list": edge_payload,
         "signals_summary": summary,
         "batch_metadata": batch["metadata"],
-        "truth_mode": "truth_safe_unverified",
+        "run_status": "tutorial_scaffold",
         "field_solver_status": "laminar_proxy_no_pde",
-        "field_claim_level": "proxy_readout_only",
-        "physical_amplitude_claim_allowed": False,
-        "mechanism_claim_status": "not_claimed",
+        "field_model_status": "proxy_readout_only",
+        "amplitude_status": False,
+        "mechanism_status": "outside_run",
     }
     json.dumps(report, allow_nan=False)
     print("edge backend:", edge_payload["backend"])
     print("n_edges:", edge_payload["n_edges"])
     print("V_m shape:", tuple(signals.V_m.shape))
     print("batch shape:", tuple(batch["V_m"].shape))
-    print("field_claim_level:", report["field_claim_level"])
-    print("physical_amplitude_claim_allowed:", report["physical_amplitude_claim_allowed"])
+    print("field_model_status:", report["field_model_status"])
+    print("amplitude_status:", report["amplitude_status"])
 
 
 if __name__ == "__main__":

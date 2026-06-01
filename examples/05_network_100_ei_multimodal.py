@@ -9,7 +9,7 @@ Generates a reproducible output bundle with all eight readouts:
 SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy.
 
 Scope metadata: All operators are simulated proxies with frozen
-validation metadata. No biological mechanism claims. No empirical validation.
+validation metadata. Simulated mechanism-readout outputs. No empirical validation.
 
 Usage:
     python examples/05_network_100_ei_multimodal.py
@@ -183,15 +183,15 @@ def main():
 
     # === 8. Scope metadata verification ===
     validation_report = {
-        "claim_level": manifest.get("claim_level"),
-        "field_claim_level": manifest.get("field_claim_level"),
+        "model_status": manifest.get("model_status"),
+        "field_model_status": manifest.get("field_model_status"),
         "field_solver_status": manifest.get("field_solver_status"),
         "source_calibration_status": manifest.get("source_calibration_status"),
-        "physical_amplitude_claim_allowed": manifest.get(
-            "physical_amplitude_claim_allowed"
+        "amplitude_status": manifest.get(
+            "amplitude_status"
         ),
         "empirical_validation_status": manifest.get("empirical_validation_status"),
-        "mechanism_claim_status": manifest.get("mechanism_claim_status"),
+        "mechanism_status": manifest.get("mechanism_status"),
     }
 
     # === 9. Write outputs ===
@@ -269,8 +269,8 @@ def main():
         "unit_id": unit_ids,
         "units_or_status": "binary_spike_event_proxy",
         "operator_kind": "spk",
-        "claim_level": manifest.get("claim_level"),
-        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed"),
+        "model_status": manifest.get("model_status"),
+        "amplitude_status": manifest.get("amplitude_status"),
     }
 
     figures_dir = output_dir / "figures"
@@ -330,7 +330,7 @@ def main():
     print("\n✓ All outputs are JSON-strict (no NaN/Inf).")
     print("✓ Eight proxy operators executed successfully.")
     print("✓ Scope metadata verified and immutable.")
-    print("\nTruth status: computational scaffold, not empirically validated.")
+    print("\nStatus status: computational scaffold, not empirically validated.")
 
 
 if __name__ == "__main__":

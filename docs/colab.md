@@ -4,7 +4,7 @@
 
 **Version:** v0.2.27  
 **Last updated:** 2026-05-22  
-**truth_mode:** truth_safe_unverified, exploratory_not_biological_truth
+**run_status:** tutorial_scaffold, exploratory_simulated_proxy
 
 ---
 
@@ -56,8 +56,8 @@ manifest = model.manifest(signals)
 print("=== v0.2.27 BASIS (Computation Contract) ===")
 basis = manifest["basis"]
 print(f"Version: {basis['jaxfne_version']}")
-print(f"Computational scaffold: {basis['claim_level']}")
-print(f"Physical amplitude claim allowed: {basis['physical_amplitude_claim_allowed']}")
+print(f"Computational scaffold: {basis['model_status']}")
+print(f"Physical amplitude status allowed: {basis['amplitude_status']}")
 print(f"Field solver status: {basis['field_solver_status']}")
 
 print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.2.27) ===")
@@ -90,7 +90,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 === v0.2.27 BASIS (Computation Contract) ===
 Version: 0.2.27
 Computational scaffold: computational_scaffold
-Physical amplitude claim allowed: False
+Physical amplitude status allowed: False
 Field solver status: laminar_proxy_no_pde
 
 === CONSERVATION PROXY DIAGNOSTICS (v0.2.27) ===
@@ -153,10 +153,10 @@ print("=== TWO-NEURON E/I CIRCUIT ===")
 print(f"Excitatory firing rate: {signals.spikes[:, 0].sum() / 200:.2f} Hz")
 print(f"Inhibitory firing rate: {signals.spikes[:, 1].sum() / 200:.2f} Hz")
 
-# Verify claim gates still immutable
+# Verify status checks still immutable
 basis = manifest["basis"]
-assert basis["physical_amplitude_claim_allowed"] == False, "Claim gate violated!"
-print("✓ Claim gates immutable: physical_amplitude_claim_allowed = False")
+assert basis["amplitude_status"] == False, "Status check violated!"
+print("✓ Status checks immutable: amplitude_status = False")
 ```
 
 **Expected output:**
@@ -164,7 +164,7 @@ print("✓ Claim gates immutable: physical_amplitude_claim_allowed = False")
 === TWO-NEURON E/I CIRCUIT ===
 Excitatory firing rate: 0.45 Hz
 Inhibitory firing rate: 0.65 Hz
-✓ Claim gates immutable: physical_amplitude_claim_allowed = False
+✓ Status checks immutable: amplitude_status = False
 ```
 
 ---
@@ -190,8 +190,8 @@ output_dict = {
     "time_ms": signals.time_ms.tolist(),
     "voltage_mV": signals.V_m.tolist(),
     "spikes": signals.spikes.tolist(),
-    "claim_level": manifest["basis"]["claim_level"],
-    "truth_mode": "truth_safe_unverified"
+    "model_status": manifest["basis"]["model_status"],
+    "run_status": "tutorial_scaffold"
 }
 
 with open('simulation_output.json', 'w') as f:
@@ -201,13 +201,13 @@ print("✓ Simulation output saved to simulation_output.json")
 
 ---
 
-## Truth Status and Scientific Claims
+## Status Status and Scientific Statements
 
-**Important:** jaxfne is an exploratory computational framework. Do not interpret outputs as biological truth.
+**Important:** jaxfne is an exploratory computational framework. Do not interpret outputs as biological status.
 
-### Claim Boundaries (v0.2.27)
+### Statement Boundaries (v0.2.27)
 
-| Claim | Status | Notes |
+| Statement | Status | Notes |
 |-------|--------|-------|
 | **Physical amplitude** | Not allowed | Values are in simulation units, not validated physical currents |
 | **Biological metabolism** | Not allowed | Izhikevich model is phenomenological, not biophysical |
@@ -244,7 +244,7 @@ cpd = manifest.get("conservation_proxy_diagnostics")
 if cpd:
     print("=== CONSERVATION PROXY DIAGNOSTICS ===")
     print(f"Diagnostic version: {cpd['diagnostic_version']}")
-    print(f"Physical amplitude claim: {cpd['physical_amplitude_claim_allowed']}")
+    print(f"Physical amplitude status: {cpd['amplitude_status']}")
     
     if cpd.get('source_norm_l1') is not None:
         print(f"Source norm (L1): {cpd['source_norm_l1']:.4f}")

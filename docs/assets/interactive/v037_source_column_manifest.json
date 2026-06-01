@@ -2,7 +2,6 @@
   "scope_status": "computational_scaffold",
   "readout_status": "simulated_proxy",
   "field_mode": "proxy_convolution_no_pde",
-  "physical_amplitude_claim_allowed": false,
   "visualizer": "plotly_standalone_html",
   "duration_ms": 1000.0,
   "dt_ms": 0.1,
@@ -32,5 +31,6 @@
     "field_handoff": "Y(t) = P\u00b7S(t)",
     "probe_readout": "R_k(t) = Q_k\u00b7Y(t)"
   },
-  "html_output": "docs/assets/interactive/v037_source_column_3d.html"
+  "html_output": "docs/assets/interactive/v037_source_column_3d.html",
+  "physical_amplitude_claim_allowed": false
 }

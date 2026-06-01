@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Mathematical glossary flow is the documentation format used to teach TFNE/jaxfne equations by connecting formal mathematics to physical intuition, computational implementation, and claim boundaries.
+Mathematical glossary flow is the documentation format used to teach TFNE/jaxfne equations by connecting formal mathematics to physical intuition, computational implementation, and statement boundaries.
 
 Each important equation is presented in:
 1. Simple/familiar form
@@ -10,10 +10,10 @@ Each important equation is presented in:
 3. Complete term glossary
 4. Worded-equation (plain-language translation)
 5. Critical bridge term (how this equation connects the pipeline)
-6. Claim boundary (what scientific status this equation carries)
+6. Run boundary (what scientific status this equation carries)
 7. Implementation location (where in code/report this shows up)
 
-This structure ensures that equations remain teachable, grounded, and appropriately claimed.
+This structure ensures that equations remain teachable, grounded, and appropriately stated.
 
 ---
 
@@ -42,7 +42,7 @@ $$\boxed{\text{state change} = \text{declared neural dynamics applied to state, 
 
 $F_\theta$ is the **Emitter → Source** bridge. It transforms parameter choices and input currents into state evolution that later becomes membrane current and spike signals.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Computational scaffold** unless $F_\theta$ is calibrated to empirical neural response
 - **Not biological proof** without comparison to experimental data
@@ -85,10 +85,10 @@ $$\boxed{\text{field source density} = \text{projection of neural state and curr
 
 $P_s$ is the **Source → Field** bridge. It transforms time-domain neural currents into spatially-localized sources that can be convolved with field operators.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Physical only** when `source_calibration_status` includes calibrated or empirical current evidence
-- **Proxy** in default laminar_proxy_no_pde path (no physical current units claimed)
+- **Proxy** in default laminar_proxy_no_pde path (no physical current units stated)
 - **Model current** (Izhikevich model current + spike impulse proxy) by default
 - **No double-counting** of synaptic current (forbidden pattern: using both synaptic conductance-based current and spike-based source in the same field computation)
 
@@ -123,7 +123,7 @@ $$\boxed{\text{extracellular current density} = \text{passive conductive tissue 
 
 $\sigma_e$ is the **Field → Current** bridge. It encodes how tissue converts electrostatic voltage gradients into current flow.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Proxy** in current v0.2.24–v0.2.27 laminar_proxy_no_pde path (assumed isotropic, no PDE solve)
 - **Physical only** when:
@@ -161,11 +161,11 @@ $$\boxed{\text{divergence of conductive extracellular current} = \text{declared 
 
 $q$ is the **Source → Field** boundary condition. It ensures the field solution (when computed) is compatible with declared sources.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Current default**: `laminar_proxy_no_pde` — equation is declared but NOT solved
 - **Future path**: `specified_future_solver` when field solver is implemented and validated
-- **Not a physical claim** unless solver evidence exists
+- **Not a physical status** unless solver evidence exists
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — declares but doesn't solve
@@ -196,7 +196,7 @@ $$\boxed{\text{current-source density} = \text{local divergence of extracellular
 
 CSD turns a field-current pattern into a source/sink-like readout. It is the primary laminar-field observable.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **CSD-like proxy** unless source AND field are calibrated/solved
 - **Sign convention** in jaxfne: `positive_equals_extracellular_source` (positive CSD = current flowing outward)
@@ -204,7 +204,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — computes CSD proxy directly
-- Manifest: `csd_sign_convention`, `field_claim_level == "proxy_readout_only"`
+- Manifest: `csd_sign_convention`, `field_model_status == "proxy_readout_only"`
 
 ---
 
@@ -229,14 +229,14 @@ $$\boxed{\text{channel readout} = \text{declared probe operator applied to field
 
 $P_c$ is the **Field → Probe** bridge. It extracts spatially localized measurements from the field solution.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Simulated/proxy readout** unless:
   - Geometry (lead field) is calibrated to real electrodes
   - Field is solved (not proxy)
   - Validation against empirical data exists
 - **Eight multimodal operators** in jaxfne: SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
-- See [Probe Operators](probe_operators.md) for operator-specific claim boundaries
+- See [Probe Operators](probe_operators.md) for operator-specific statement boundaries
 
 **Implementation:**
 - `jaxfne.fields.probe_laminar_modes()` — operator definitions
@@ -264,12 +264,12 @@ $$\boxed{\mathrm{EMM\text{-proxy}} = \text{weighted normalized source activity +
 
 EMM-proxy is a **relative within-run cost/activity index**, not biological metabolism. It combines source, field-gradient, and current-density norms to measure "computational cost" or "activity intensity."
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Proxy-only** in v0.2.24–v0.2.27
 - **Computational cost metric** — combines source and field norms, not ATP consumption or metabolic rate
 - **Valid for relative within-run comparison** (e.g., which timestep is most active)
-- **Requires empirical calibration** for any biological interpretation claims
+- **Requires empirical calibration** for any biological interpretation statements
 
 **Implementation:**
 - `jaxfne.fields.probe_laminar_modes()` → EMM-proxy operator
@@ -307,14 +307,14 @@ $$\boxed{\text{field energy change} + \text{energy flux leaving region} + \text{
 
 $\mathbf{J} \cdot \mathbf{E}$ is the **field-to-matter power density bridge**. It quantifies electromagnetic power transferred to moving charges.
 
-**Claim boundary:**
+**Run boundary:**
 
 - **Used in v0.2.25 as doctrine and future diagnostic motivation only**
 - **Full Maxwell/stress-energy tensor dynamics are NOT implemented** in v0.2.24–v0.2.27
 - **Reserved for v0.3.x and later**
 
 **Why included:**
-Poynting's theorem provides a conservation-principle foundation for future field diagnostics (v0.2.27) and future full electrodynamic solvers (v0.3.x+). It is documented here to motivate the direction without claiming implementation.
+Poynting's theorem provides a conservation-principle foundation for future field diagnostics (v0.2.27) and future full electrodynamic solvers (v0.3.x+). It is documented here to motivate the direction without stating implementation.
 
 ---
 
@@ -327,7 +327,7 @@ When adding a new equation to jaxfne documentation:
 - [ ] Define every term in glossary
 - [ ] Provide worded-equation in plain language
 - [ ] Identify critical bridge term and pipeline location
-- [ ] State claim boundary (computational scaffold? proxy? calibrated physical?)
+- [ ] State run boundary (computational scaffold? proxy? calibrated physical?)
 - [ ] Link to code location and manifest fields
 - [ ] Verify no forbidden phrasing (real EEG, biological metabolism, mechanism proof)
 
@@ -337,5 +337,5 @@ When adding a new equation to jaxfne documentation:
 
 - [Source-Field Equations](source_field_equations.md) — source bookkeeping, forbidden patterns
 - [Computation Basis](computation_basis.md) — extensibility doctrine
-- [Probe Operators](probe_operators.md) — detailed operator claims
+- [Probe Operators](probe_operators.md) — detailed operator statements
 - [Scope and Limitations](scope_and_limitations.md) — boundary conditions

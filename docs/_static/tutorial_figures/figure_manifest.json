@@ -3,11 +3,11 @@
   "real_data_figure_count": 11,
   "min_required": 10,
   "jaxfne_version": "0.3.4",
-  "truth_mode": "truth_safe_unverified",
-  "claim_level": "computational_scaffold",
+  "run_status": "tutorial_scaffold",
+  "model_status": "computational_scaffold",
   "field_solver_status": "laminar_proxy_no_pde",
-  "physical_amplitude_claim_allowed": false,
-  "biological_metabolism_claim_allowed": false,
+  "amplitude_status": false,
+  "metabolism_status": false,
   "source_script": "scripts/generate_tutorial_figures.py",
   "visual_confirmation_method": "manual_inspection_and_image_nonblank_check",
   "figures": [
@@ -19,7 +19,7 @@
       "path": "docs/_static/tutorial_figures/01_spike_raster.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "02_voltage_traces.png",
@@ -29,7 +29,7 @@
       "path": "docs/_static/tutorial_figures/02_voltage_traces.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "03_source_proxy_heatmap.png",
@@ -39,7 +39,7 @@
       "path": "docs/_static/tutorial_figures/03_source_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "04_lfp_proxy_trace.png",
@@ -49,7 +49,7 @@
       "path": "docs/_static/tutorial_figures/04_lfp_proxy_trace.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "05_csd_proxy_heatmap.png",
@@ -59,7 +59,7 @@
       "path": "docs/_static/tutorial_figures/05_csd_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "06_phi_e_proxy_heatmap.png",
@@ -69,7 +69,7 @@
       "path": "docs/_static/tutorial_figures/06_phi_e_proxy_heatmap.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "07_source_proxy_spatial.png",
@@ -79,7 +79,7 @@
       "path": "docs/_static/tutorial_figures/07_source_proxy_spatial.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "08_conservation_diagnostics.png",
@@ -89,7 +89,7 @@
       "path": "docs/_static/tutorial_figures/08_conservation_diagnostics.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "09_laminar_profile_depths.png",
@@ -99,7 +99,7 @@
       "path": "docs/_static/tutorial_figures/09_laminar_profile_depths.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "10_firing_rate_raster.png",
@@ -109,17 +109,17 @@
       "path": "docs/_static/tutorial_figures/10_firing_rate_raster.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
-      "filename": "11_claim_gates_summary.png",
-      "title": "Claim Gates Summary",
+      "filename": "11_status_summary.png",
+      "title": "Statement Gates Summary",
       "type": "metadata",
       "uses_real_data": false,
-      "path": "docs/_static/tutorial_figures/11_claim_gates_summary.png",
+      "path": "docs/_static/tutorial_figures/11_status_summary.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     },
     {
       "filename": "12_spectral_summary.png",
@@ -129,7 +129,7 @@
       "path": "docs/_static/tutorial_figures/12_spectral_summary.png",
       "visually_confirmed": true,
       "visual_status": "pass",
-      "claim_status": "simulated_proxy"
+      "readout_status": "simulated_proxy"
     }
   ]
 }

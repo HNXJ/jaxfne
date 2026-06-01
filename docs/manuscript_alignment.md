@@ -5,7 +5,7 @@
 **Version:** v0.2.27  
 **Last updated:** 2026-05-22  
 **Manuscript target:** v0.2.24-aligned draft  
-**truth_mode:** truth_safe_unverified
+**run_status:** tutorial_scaffold
 
 ---
 
@@ -52,7 +52,7 @@ obj = Objective(...)  # Custom fitness function
 
 **Scope contracts (immutable):**
 - physical_amplitude_allowed: False
-- biological_mechanism_claimed: False
+- biological_mechanism_status: False
 - computational_scaffold: True
 
 ---
@@ -85,7 +85,7 @@ emitter = IzhikevichEmitter(
 - ✓ Parameter set preserved (a, b, c, d)
 - ✓ Reset behavior unchanged (spike detection at v >= 30)
 - ✓ Recovery variable (u) maintained
-- ✓ No biological calibration claimed (truth_safe_unverified)
+- ✓ No biological calibration stated (tutorial_scaffold)
 
 ---
 
@@ -108,7 +108,7 @@ diag = compute_conservation_proxy_diagnostics(
     lfp=signals.field.lfp_proxy,
 )
 
-# Claim gates (hardcoded, immutable):
+# Status checks (hardcoded, immutable):
 # - field_solver_status: "laminar_proxy_no_pde"
 # - Poisson solver: planned for future release
 # - Maxwell solver: planned for future release
@@ -161,7 +161,7 @@ probe_report = manifest["probe_report"]  # Contains all 8 operator results
 
 ---
 
-## Computation Basis and Claim Boundary (v0.2.26–v0.2.27)
+## Computation Basis and Statement Boundary (v0.2.26–v0.2.27)
 
 **NEW in v0.2.26:** Explicit computation-basis contract  
 **EXTENDED in v0.2.27:** Conservation proxy diagnostics
@@ -174,7 +174,7 @@ basis = default_basis_spec()
 # Returns frozen BasisSpec with scope properties:
 # - scope_level: "computational_scaffold"
 # - physical_amplitude_allowed: False
-# - biological_mechanism_claimed: False
+# - biological_mechanism_status: False
 # - field_solver_status: "laminar_proxy_no_pde"
 # - maxwell_solver_status: "planned_future_module"
 # - admittance_solver_status: "planned_future_module"
@@ -190,7 +190,7 @@ if signals.field is not None:
 
 **Manuscript alignment:**
 - ✓ New computation-basis chapter aligns with v0.2.26+ codebase
-- ✓ Claim gates frozen (cannot be violated at runtime)
+- ✓ Status checks frozen (cannot be violated at runtime)
 - ✓ Future solver regimes explicitly gated
 - ✗ Manuscript may predate computation-basis contract; update required
 
@@ -225,7 +225,7 @@ diag = compute_conservation_proxy_diagnostics(
 **Manuscript alignment:**
 - ✗ **Not in original manuscript** (added v0.2.27)
 - ✓ Aligns with "Conservation" section if manuscript discusses proxy diagnostics
-- ✗ If manuscript claims Poisson solver, that is **deferred** to future phase
+- ✗ If manuscript statements Poisson solver, that is **deferred** to future phase
 
 **Important:** This is a **diagnostic-only** addition. No solvers implemented.
 
@@ -273,18 +273,18 @@ best_params, best_fitness = optimizer.run()
 - v0.2.26: Computation-basis contract frozen; Poisson gated as future
 - v0.2.27: Conservation proxy diagnostics (diagnostic-only); Poisson still gated
 
-**If manuscript claims Poisson solver in v0.2.27:**
+**If manuscript statements Poisson solver in v0.2.27:**
 - ❌ That is **incorrect** for the released v0.2.27 codebase
 - ✓ Update manuscript to reflect diagnostic-only status
 - ✓ Mark Poisson solver as "gated future work"
 
 ---
 
-## Truth Status and Manuscript Framing
+## Status Status and Manuscript Framing
 
-**Manuscript truth_mode:** truth_safe_unverified  
-**Current code truth_mode:** truth_safe_unverified  
-**Scientific claims:** None (exploratory framework)
+**Manuscript run_status:** tutorial_scaffold  
+**Current code run_status:** tutorial_scaffold  
+**Scientific interpretation:** None (exploratory framework)
 
 **Manuscript should state:**
 - jaxfne is a **computational scaffold** for neuroscience research
@@ -292,7 +292,7 @@ best_params, best_fitness = optimizer.run()
 - No empirical calibration
 - Teaching/exploration tool only
 - Izhikevich model is phenomenological (not biophysical)
-- Field outputs are proxies (no physical claims)
+- Field outputs are proxies (no physical statuss)
 
 ---
 
@@ -329,7 +329,7 @@ If manuscript was finalized before v0.2.27:
    - Izhikevich / HH emitters (immutable)
    - TFNE pipeline (immutable)
 
-4. **Add truth status section:**
+4. **Add status status section:**
    - Explicitly state "computational_scaffold"
    - Explicitly state no biological calibration
    - Explicitly state proxy-field terminology

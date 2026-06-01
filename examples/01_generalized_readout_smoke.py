@@ -62,7 +62,7 @@ def main():
         "n_contacts": n_contacts,
         "n_neurons": n_neurons,
         "superposition_test": "passed" if superposition_holds else "failed",
-        "physical_amplitude_claim_allowed": False,
+        "amplitude_status": False,
         "operator_status": readout_lfp.report()
     }
     

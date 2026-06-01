@@ -18,8 +18,8 @@ cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e",
 # Metadata gates are included by default in v0.0.2
 # Optional: override with update_metadata()
 cfg = cfg.update_metadata(
-    truth_mode="truth_safe_unverified",
-    claim_level="computational_scaffold",
+    run_status="tutorial_scaffold",
+    model_status="computational_scaffold",
 )
 
 model = jtfne.construct(cfg)

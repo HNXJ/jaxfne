@@ -9,14 +9,14 @@
 
 ## Overview
 
-This tutorial documents the jaxfne **source bookkeeping API**: how neural sources are declared (implicitly via emitter + probes), how they flow to fields (convolution-based proxies), and how metadata gates physical amplitude claims.
+This tutorial documents the jaxfne **source bookkeeping API**: how neural sources are declared (implicitly via emitter + probes), how they flow to fields (convolution-based proxies), and how metadata gates physical amplitude statuss.
 
 The core concepts:
 
 1. **Source Declaration (Implicit):** Emitter type (`izhikevich`, preset) + probe modes determine which fields are computed
 2. **Field Handoff (Convolution-based):** Sources spread spatially via fixed convolution kernels (not PDE-solved)
 3. **Probe Readout (Configurable):** Multiple readout modes (`source`, `LFP-proxy`, `CSD-proxy`) extract different field perspectives
-4. **Scope Clarity (Metadata):** Manifest keys (`physical_amplitude_claim_allowed=False`) prevent misinterpretation
+4. **Scope Clarity (Metadata):** Manifest keys (`amplitude_status=False`) prevent misinterpretation
 
 This is **not a biophysical validation tutorial**. It is a **computational scaffold** for understanding how neural sources map to observable fields in the jaxfne framework.
 
@@ -128,7 +128,7 @@ signals.metadata = {
     "scope_status": "computational_scaffold",
     "readout_status": "simulated_proxy",
     "field_mode": "proxy_convolution_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "amplitude_status": False,
     "duration_ms": 1000.0,
     "dt_ms": 0.1,
     "dtype": "float32",
@@ -136,7 +136,7 @@ signals.metadata = {
 }
 ```
 
-**Critical key:** `physical_amplitude_claim_allowed=False` gates claims about real-world amplitude. This is a computational scaffold, not a calibrated model.
+**Critical key:** `amplitude_status=False` gates statements about real-world amplitude. This is a computational scaffold, not a calibrated model.
 
 ---
 
@@ -206,7 +206,7 @@ RUN_METADATA = {
     "scope_status": "computational_scaffold",
     "readout_status": "simulated_proxy",
     "field_mode": "proxy_convolution_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "amplitude_status": False,
     "duration_ms": 1000.0,
     "dt_ms": 0.1,
     "dtype": "float32",
@@ -242,15 +242,15 @@ json.dumps(manifest, allow_nan=False)  # ← JSONDecodeError
 
 ---
 
-## Claim Gates & Interpretation
+## Statement Gates & Interpretation
 
-### The Gate: `physical_amplitude_claim_allowed`
+### The Gate: `amplitude_status`
 
 This boolean key prevents misinterpretation:
 
 ```python
-if not metadata["physical_amplitude_claim_allowed"]:
-    # BLOCKED: Claiming real-world amplitude
+if not metadata["amplitude_status"]:
+    # BLOCKED: Stating real-world amplitude
     # "The LFP-proxy amplitude is 50 µV"
     
     # ALLOWED: Relative or tutorial statements
@@ -282,7 +282,7 @@ if not metadata["physical_amplitude_claim_allowed"]:
 1. **Sources are implicit:** Emitter + probes determine field computation
 2. **Fields are proxies:** Convolution-based, fast, approximate
 3. **Readouts are multi-modal:** Different operators extract different field perspectives
-4. **Metadata gates claims:** `physical_amplitude_claim_allowed=False` prevents misinterpretation
+4. **Metadata gates statements:** `amplitude_status=False` prevents misinterpretation
 
 ### How to Use This in Your Work
 
@@ -295,9 +295,9 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, ...)
 
 # Step 3: Check scope before interpreting
-assert not signals.metadata["physical_amplitude_claim_allowed"]
+assert not signals.metadata["amplitude_status"]
 
-# Step 4: Use relative comparisons, not absolute claims
+# Step 4: Use relative comparisons, not absolute statements
 layer5_rate = signals.spikes[layer5_idx].mean()
 layer23_rate = signals.spikes[layer23_idx].mean()
 print(f"L5 rate is {layer5_rate / layer23_rate:.1f}x L2/3 rate")  # ✓ OK

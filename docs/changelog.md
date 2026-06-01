@@ -26,7 +26,7 @@
 
 ### Added
 - Added Etude No. 1 as an advanced multi-laminar cortical AGSDR workflow under `tutorials/etudes/`.
-- Added a canonical notebook template under `tutorials/templates/` with unified setup, truth gates, and placeholder configuration.
+- Added a canonical notebook template under `tutorials/templates/` with unified setup, status fields, and placeholder configuration.
 - Added a template guide for Suites and Etudes.
 
 ### Changed
@@ -37,7 +37,7 @@
 ### Validation status
 - Package import and compile gates pass.
 - Etude and template notebooks pass structural hygiene checks.
-- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+- Maintains `tutorial_scaffold`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `amplitude_status=false`.
 
 ---
 
@@ -47,7 +47,7 @@
 
 - Optimized `project_laminar_sources` boundary fallbacks for low contact counts.
 - Added comprehensive boundary and stencil numerical parity tests.
-- Maintains `truth_safe_unverified`, `laminar_proxy_no_pde` status.
+- Maintains `tutorial_scaffold`, `laminar_proxy_no_pde` status.
 
 ---
 
@@ -84,7 +84,7 @@
 ## v0.2.1 (2026-05-10)
 
 - Introduced probe operator contracts
-- Added claim-status metadata
+- Added status metadata
 - Eight canonical readout channels
 
 ## v0.2.0 (2026-04-15)

@@ -73,14 +73,14 @@ def main():
     manifest_data = {
         "run_id": "generalized_tfne_3d_smoke_00",
         "jaxfne_version": jtfne.__version__,
-        "truth_mode": "truth_safe_unverified",
+        "run_status": "tutorial_scaffold",
         "seed": 42,
         "n_steps": n_steps,
         "n_neurons": n_neurons,
         "dt_ms": dt_ms,
         "source_bookkeeping": source_report,
         "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False
+        "amplitude_status": False
     }
     
     os.makedirs("outputs", exist_ok=True)

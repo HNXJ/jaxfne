@@ -33,8 +33,8 @@ def main():
         "paradigm": paradigm.to_dict(),
         "dataset": dataset.to_dict(),
         "bridge": bridge,
-        "truth_mode": "truth_safe_unverified",
-        "mechanism_claim_status": "not_claimed",
+        "run_status": "tutorial_scaffold",
+        "mechanism_status": "outside_run",
     }
     print("dataset_status:", payload["dataset"]["dataset_status"])
     print("bridge_status:", payload["bridge"]["status"])

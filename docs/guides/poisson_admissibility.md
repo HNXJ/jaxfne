@@ -2,9 +2,9 @@
 
 > **Doctrine update (v0.2.27):** This document is a **future field-solver specification and roadmap**, a planning document rather than a concrete implementation guide.
 > elliptic field solver implementation is planned for a future release following separate approval. The `solved_poisson` field regime
-> is declared as `implemented=False, claim_allowed=False` in v0.2.26+ and reserved for future implementation. 
+> is declared as `implemented=False, status_enabled=False` in v0.2.26+ and reserved for future implementation. 
 > v0.2.27 adds proxy diagnostics only — solver-free proxy mode.
-> Physical amplitude claims remain disallowed in all v0.2.x releases pending future field solver implementation and calibration.
+> Physical amplitude amplitudes stay native-unscaled in all v0.2.x releases pending future field solver implementation and calibration.
 
 ## Overview
 
@@ -15,8 +15,8 @@ A concrete elliptic field solver requires separate approval before implementatio
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
-- **Physical amplitude claims are disallowed in all v0.2.x releases**, even if admissibility gates pass on synthetic data.
-- `physical_amplitude_claim_allowed` is **always false** in v0.2.x reports.
+- **Physical amplitude statuss are disallowed in all v0.2.x releases**, even if admissibility gates pass on synthetic data.
+- `amplitude_status` is **always false** in v0.2.x reports.
 - Elliptic field solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
 
 ## Mathematical Problem
@@ -182,8 +182,8 @@ report = build_poisson_admissibility_report(
 
 # Example report structure (v0.2.15)
 assert report["admissibility_status"] == "admissible"
-# v0.2.15 specification-only: physical_amplitude_claim_allowed is ALWAYS false
-assert report["physical_amplitude_claim_allowed"] is False
+# v0.2.15 specification-only: amplitude_status is ALWAYS false
+assert report["amplitude_status"] is False
 assert "specification-only" in report.get("v0215_note", "").lower()
 ```
 
@@ -223,8 +223,8 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "gauge": "mean_zero",
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
-  "physical_amplitude_claim_allowed": false,
-  "v02x_note": "v0.2.x is specification-only (solver pending future implementation). physical_amplitude_claim_allowed is ALWAYS false. Elliptic field solver requires separate approval; physical amplitude claims remain disallowed until solver is implemented and calibrated."
+  "amplitude_status": false,
+  "v02x_note": "v0.2.x is specification-only (solver pending future implementation). amplitude_status is ALWAYS false. Elliptic field solver requires separate approval; physical amplitude amplitudes stay native-unscaled until solver is implemented and calibrated."
 }
 ```
 
@@ -236,7 +236,7 @@ When a elliptic field solver is separately approved and implemented:
 2. **Validate:** Run all five admissibility gates
 3. **Report:** Build and emit admissibility report
 4. **Gate:** Only pass solution downstream if `admissibility_status == "admissible"`
-5. **Claim:** Physical amplitude claims remain disallowed until calibration is validated
+5. **Statement:** Physical amplitude amplitudes stay native-unscaled until calibration is validated
 
 ## Current Status (v0.2.27)
 
@@ -245,10 +245,10 @@ When a elliptic field solver is separately approved and implemented:
 - ✓ Validation helpers implemented in `jaxfne.validation`
 - ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-scale mode, solver pending future implementation
 - ⧉ Elliptic field solver — planned for future release, requires separate approval
-- ⧉ Physical amplitude claims — pending field solver implementation and calibration validation
+- ⧉ Physical amplitude statuss — pending field solver implementation and calibration validation
 
-**Public-output status:** Specification and roadmap; solver pending future implementation; physical-amplitude claims remain disallowed pending calibration.
-`solved_poisson` regime is gated: `implemented=False`, `claim_allowed=False` in v0.2.26+.
+**Public-output status:** Specification and roadmap; solver pending future implementation; physical-amplitude amplitudes stay native-unscaled pending calibration.
+`solved_poisson` regime is gated: `implemented=False`, `status_enabled=False` in v0.2.26+.
 
 ---
 

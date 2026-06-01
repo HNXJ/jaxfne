@@ -140,7 +140,7 @@ Configuration validation and consistency checks.
 - `validate_projection_invariants(sources, field)` — Check source-field mapping
 - `compute_conservation_proxy_diagnostics(sources, field)` — Energy metrics
 - `operator_status()` — Get operator status declarations
-- `config_truth_boundary(cfg)` — Get claim boundaries
+- `config_status_boundary(cfg)` — Get statement boundaries
 
 **[→ Full Validation API documentation](validation.md)**
 
@@ -230,7 +230,7 @@ print(f"Energy ratio: {diag['energy_ratio']:.3f}")
 - **Source projection:** Declared anatomy, not 3D solved
 - **Field solvers:** Proxy convolution, not PDE solutions
 - **Readouts:** Relative metrics, not validated measurements
-- **Claim level:** `"computational_scaffold"` for learning and prototyping
+- **Model status:** `"computational_scaffold"` for learning and prototyping
 
 **Use for:** Teaching, prototyping, validation workflows
 
@@ -240,7 +240,7 @@ print(f"Energy ratio: {diag['energy_ratio']:.3f}")
 
 ## Full Documentation
 
-- **[Scope and Limitations](../scope_and_limitations.md)** — Detailed boundaries and claims
+- **[Scope and Limitations](../scope_and_limitations.md)** — Detailed boundaries and statements
 - **[Probe Operators](../probe_operators.md)** — Mathematical definitions of eight operators
 - **[Computation Basis](../computation_basis.md)** — TFNE architecture overview
 - **[Mathematical Glossary](../mathematical_glossary_flow.md)** — Equation reference

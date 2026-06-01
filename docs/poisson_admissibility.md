@@ -2,9 +2,9 @@
 
 > **Doctrine update (v0.2.27):** This document is a **future solver-readiness specification**, not an implementation guide.
 > Poisson solver implementation is planned for future phases. The `solved_poisson` field regime
-> is declared as `implemented=False, claim_allowed=False` in v0.2.26+ and remains so until a
+> is declared as `implemented=False, status_enabled=False` in v0.2.26+ and remains so until a
 > separately approved implementation phase begins. v0.2.27 adds proxy diagnostics for verification — full solver deferred.
-> Physical amplitude claims remain disallowed in all v0.2.x releases until solver validation is complete.
+> Physical amplitude amplitudes stay unscaled (amplitude_status: false) in all v0.2.x releases until solver validation is complete.
 
 ## Overview
 
@@ -15,8 +15,8 @@ A concrete Poisson solver requires separate approval before implementation begin
 [computation_basis.md](computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
-- **No physical amplitude claims are allowed in any v0.2.x release**, even if admissibility gates pass on synthetic data.
-- `physical_amplitude_claim_allowed` is **always false** in v0.2.x reports.
+- **No physical amplitude statuss are allowed in any v0.2.x release**, even if admissibility gates pass on synthetic data.
+- `amplitude_status` is **always false** in v0.2.x reports.
 - Poisson solver implementation requires separate approval and is planned for future phases. The `solved_poisson` regime remains `implemented=False` until approval and completion.
 
 ## Mathematical Problem
@@ -182,8 +182,8 @@ report = build_poisson_admissibility_report(
 
 # Example report structure (v0.2.15)
 assert report["admissibility_status"] == "admissible"
-# v0.2.15 specification-only: physical_amplitude_claim_allowed is ALWAYS false
-assert report["physical_amplitude_claim_allowed"] is False
+# v0.2.15 specification-only: amplitude_status is ALWAYS false
+assert report["amplitude_status"] is False
 assert "specification-only" in report.get("v0215_note", "").lower()
 ```
 
@@ -223,8 +223,8 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "gauge": "mean_zero",
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
-  "physical_amplitude_claim_allowed": false,
-  "v02x_note": "v0.2.x is specification-only (no solver). physical_amplitude_claim_allowed is ALWAYS false. A Poisson solver requires separate approval; physical amplitude claims remain disallowed until solver is implemented and calibrated."
+  "amplitude_status": false,
+  "v02x_note": "v0.2.x is specification-only (no solver). amplitude_status is ALWAYS false. A Poisson solver requires separate approval; physical amplitude amplitudes stay unscaled (amplitude_status: false) until solver is implemented and calibrated."
 }
 ```
 
@@ -236,7 +236,7 @@ When a Poisson solver is separately approved and implemented:
 2. **Validate:** Run all five admissibility gates
 3. **Report:** Build and emit admissibility report
 4. **Gate:** Only pass solution downstream if `admissibility_status == "admissible"`
-5. **Claim:** Physical amplitude claims remain disallowed until calibration is validated
+5. **Statement:** Physical amplitude amplitudes stay unscaled (amplitude_status: false) until calibration is validated
 
 ## Current Status (v0.2.27)
 
@@ -245,10 +245,10 @@ When a Poisson solver is separately approved and implemented:
 - ✓ Validation helpers implemented in `jaxfne.validation`
 - ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-based verification, full solver planned
 - ◐ Poisson solver implementation planned for future phases — requires separate approval
-- ◐ Physical amplitude claims validation planned for future calibration phases
+- ◐ Physical amplitude statuss validation planned for future calibration phases
 
-**Public-output status:** Specification-only; no solver implementation; no calibrated physical-amplitude claims.
-`solved_poisson` regime is gated: `implemented=False`, `claim_allowed=False` in v0.2.26+.
+**Public-output status:** Specification-only; no solver implementation; no calibrated physical-amplitude statuss.
+`solved_poisson` regime is gated: `implemented=False`, `status_enabled=False` in v0.2.26+.
 
 ---
 

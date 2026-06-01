@@ -5,8 +5,8 @@ Phase F: Minimal spectrolaminar oddball scaffold.
 Demonstrates the v0.2.0 computational pipeline:
 Emitter -> Source -> Field -> Probe -> Objective -> Manifest
 
-Focus: manifest-first JSON evidence. No biological mechanism claims.
-Truth gates remain frozen throughout.
+Focus: manifest-first JSON evidence. Simulated mechanism-readout outputs.
+Status fields remain frozen throughout.
 
 Usage:
     python examples/02_spectrolaminar_oddball_scaffold.py
@@ -231,18 +231,18 @@ def main():
     manifest = model.manifest(signals=signals)
 
     # === 9. Validation metadata audit ===
-    truth_gates = {
-        "truth_mode": manifest.get("truth_mode"),
-        "claim_level": manifest.get("claim_level"),
+    status_fields = {
+        "run_status": manifest.get("run_status"),
+        "model_status": manifest.get("model_status"),
         "source_calibration_status": manifest.get("source_calibration_status"),
         "field_solver_status": manifest.get("field_solver_status"),
-        "field_claim_level": manifest.get("field_claim_level"),
-        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed"),
+        "field_model_status": manifest.get("field_model_status"),
+        "amplitude_status": manifest.get("amplitude_status"),
     }
 
     validation_report = {
         "validation_status": "all_gates_frozen",
-        "gates": truth_gates,
+        "gates": status_fields,
         "condition_vocabulary": [
             "baseline",
             "unexpected_sensory",
@@ -262,10 +262,10 @@ def main():
             "synchrony": objective_report["regularizers"][0]["name"] if objective_report["regularizers"] else None,
         },
         "assertions": {
-            "physical_amplitude_claim_allowed_is_false": manifest.get("physical_amplitude_claim_allowed") is False,
+            "amplitude_status_is_false": manifest.get("amplitude_status") is False,
             "source_calibration_uncalibrated": manifest.get("source_calibration_status") == "uncalibrated_izhikevich_native_current",
-            "field_claim_proxy_readout_only": manifest.get("field_claim_level") == "proxy_readout_only",
-            "truth_mode_safe_unverified": manifest.get("truth_mode") == "truth_safe_unverified",
+            "field_statement_proxy_readout_only": manifest.get("field_model_status") == "proxy_readout_only",
+            "run_status_safe_unverified": manifest.get("run_status") == "tutorial_scaffold",
         }
     }
 
@@ -359,8 +359,8 @@ def main():
         "gamma_profile": gamma_profile,
         "units_or_status": "relative_proxy_units",
         "operator_kind": "spectrolaminar_profile",
-        "claim_level": manifest.get("claim_level"),
-        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed"),
+        "model_status": manifest.get("model_status"),
+        "amplitude_status": manifest.get("amplitude_status"),
     }
 
     figures_dir = outdir / "figures"
@@ -399,8 +399,8 @@ def main():
             size = source_data_path.stat().st_size
             print(f"  figures/source_data.json{'':<14} {size:8} bytes")
 
-    print(f"\nTruth gates (frozen):")
-    for key, value in sorted(truth_gates.items()):
+    print(f"\nStatus fields (frozen):")
+    for key, value in sorted(status_fields.items()):
         print(f"  {key:40} = {value}")
 
     print(f"\nObjective evaluation:")
