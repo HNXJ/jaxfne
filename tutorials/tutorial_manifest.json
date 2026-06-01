@@ -1,5 +1,5 @@
 {
-  "claim_level": "computational_scaffold",
+  "model_status": "computational_scaffold",
   "source_calibration_status": "uncalibrated_izhikevich_native_current",
   "source_projection_mode": "proxy_no_field_solve",
   "readout_status": "LFP-proxy and CSD-proxy readouts",
@@ -89,6 +89,6 @@
     "22_pre_vs_post_bandpower"
   ],
   "version": "jaxfne-colab-tutorial-v1",
-  "truth_mode": "truth_safe_unverified",
+  "run_status": "tutorial_scaffold",
   "tutorial_purpose": "tutorial_exploratory_computational_scaffold"
 }

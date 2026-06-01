@@ -76,7 +76,7 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str) -> 
         "files_missing": [],
         "figures_found": [],
         "figures_missing": [],
-        "claim_gates": {},
+        "status_checks": {},
         "errors": [],
     }
 
@@ -130,29 +130,29 @@ def validate_tutorial_output(tutorial_dir: pathlib.Path, tutorial_name: str) -> 
 
             data = json.loads(json_str)
 
-            # Validate claim gates
-            if "claim_level" in data:
-                results["claim_gates"]["claim_level"] = data["claim_level"]
-                if data["claim_level"] != "computational_scaffold":
+            # Validate status checks
+            if "model_status" in data:
+                results["status_checks"]["model_status"] = data["model_status"]
+                if data["model_status"] != "computational_scaffold":
                     raise ValueError(
-                        f"Invalid claim_level: {data['claim_level']} "
+                        f"Invalid model_status: {data['model_status']} "
                         f"(expected: computational_scaffold)"
                     )
 
-            if "physical_amplitude_claim_allowed" in data:
-                results["claim_gates"]["physical_amplitude_claim_allowed"] = data[
-                    "physical_amplitude_claim_allowed"
+            if "amplitude_status" in data:
+                results["status_checks"]["amplitude_status"] = data[
+                    "amplitude_status"
                 ]
-                if data["physical_amplitude_claim_allowed"] is not False:
+                if data["amplitude_status"] is not False:
                     raise ValueError(
-                        f"physical_amplitude_claim_allowed must be False, got {data['physical_amplitude_claim_allowed']}"
+                        f"amplitude_status must be False, got {data['amplitude_status']}"
                     )
 
-            if "field_claim_level" in data:
-                results["claim_gates"]["field_claim_level"] = data["field_claim_level"]
-                if data["field_claim_level"] != "proxy_readout_only":
+            if "field_model_status" in data:
+                results["status_checks"]["field_model_status"] = data["field_model_status"]
+                if data["field_model_status"] != "proxy_readout_only":
                     raise ValueError(
-                        f"Invalid field_claim_level: {data['field_claim_level']} "
+                        f"Invalid field_model_status: {data['field_model_status']} "
                         f"(expected: proxy_readout_only)"
                     )
 

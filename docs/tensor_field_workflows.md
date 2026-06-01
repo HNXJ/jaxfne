@@ -48,7 +48,7 @@ Extract multimodal outputs:
 Serialize workflows as JSON-safe manifests:
 
 - **Data arrays:** Readouts, signals, field outputs
-- **Metadata:** Operator status, units, assumptions, claim-status
+- **Metadata:** Operator status, units, assumptions, status
 - **Receipts:** Run ID, seed, execution time, validation flags
 - **Validation:** JSON encoding enforces strict serialization (no NaN/Inf by default)
 
@@ -118,7 +118,7 @@ Generic probe operator $\mathcal{O}_j$ applies to field potential, source, or bo
 
 $$\mathcal{R} = \{\mathrm{field\_solver\_status}, \mathrm{gauge}, \mathrm{boundary\_condition}, \mathrm{csd\_sign\_convention}, \ldots\}$$
 
-Report declares solver path (proxy vs. physical), convergence status, and claim constraints.
+Report declares solver path (proxy vs. physical), convergence status, and statement constraints.
 
 ---
 
@@ -133,7 +133,7 @@ Laminar proxy operators project source tensors directly to contacts without solv
 - **Source-balance:** Not applicable (no PDE solve)
 - **Gauge:** Declared metadata only
 - **Boundary condition:** Declared metadata only
-- **Physical amplitude claims:** False by default
+- **Physical amplitude statuss:** False by default
 
 ### Physical solver path (planned v0.3+)
 
@@ -162,7 +162,7 @@ operator = make_field_operator_status(operator_path="physical_candidate")
 # → field_solver_status: "physical_field_solver_candidate"
 ```
 
-All diagnostics keep `physical_amplitude_claim_allowed: false` in v0.2.6. Physical amplitude claims require separate calibration and validation evidence.
+All diagnostics keep `amplitude_status: false` in v0.2.6. Physical amplitude statuss require separate calibration and validation evidence.
 
 ## Local and global summaries
 

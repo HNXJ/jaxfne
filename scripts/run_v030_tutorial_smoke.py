@@ -4,14 +4,14 @@ v0.3 Tutorial Smoke Test Runner
 
 Executes all v0.3 tutorial notebooks in smoke mode (reduced simulation duration
 and network size for fast CI/CD validation). Validates manifest structure,
-claim gates, and basic numerics without full runtime.
+status checks, and basic numerics without full runtime.
 
 Usage:
     python scripts/run_v030_tutorial_smoke.py --help
     python scripts/run_v030_tutorial_smoke.py --out-dir outputs/smoke_test
     python scripts/run_v030_tutorial_smoke.py --list  # Show available tutorials
 
-truth_mode: truth_safe_unverified
+run_status: tutorial_scaffold
 """
 
 import argparse
@@ -87,13 +87,13 @@ def validate_tutorial_manifest(manifest: Dict[str, Any], scenario_id: str) -> Di
         else:
             checks[f'structure_{block}'] = True
 
-    # Check 2: Claim gates
+    # Check 2: Status checks
     basis = manifest.get('basis', {})
     checks['claim_gate_physical_amplitude'] = (
-        basis.get('physical_amplitude_claim_allowed') == False
+        basis.get('amplitude_status') == False
     )
     if not checks['claim_gate_physical_amplitude']:
-        errors.append("physical_amplitude_claim_allowed is not False")
+        errors.append("amplitude_status is not False")
 
     checks['claim_gate_biological_metabolism'] = (
         basis.get('biological_metabolism_claim_allowed') == False
@@ -102,10 +102,10 @@ def validate_tutorial_manifest(manifest: Dict[str, Any], scenario_id: str) -> Di
         errors.append("biological_metabolism_claim_allowed is not False")
 
     checks['claim_gate_level'] = (
-        basis.get('claim_level') == 'computational_scaffold'
+        basis.get('model_status') == 'computational_scaffold'
     )
     if not checks['claim_gate_level']:
-        errors.append(f"claim_level is {basis.get('claim_level')}, not 'computational_scaffold'")
+        errors.append(f"model_status is {basis.get('model_status')}, not 'computational_scaffold'")
 
     # Check 3: Probe operators (8 required)
     probe_report = manifest.get('probe_report', {})

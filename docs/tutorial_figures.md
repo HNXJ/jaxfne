@@ -11,7 +11,7 @@
 v0.2.28 includes a complete set of regenerated tutorial PNG figures demonstrating the jaxfne forward-field workflow. All figures are:
 
 - **Simulated:** Generated from `cortical_column` network with Izhikevich emitters
-- **Proxy-safe:** No biological claims or solver status overclaims
+- **Proxy-safe:** No biological statements or solver status overstates
 - **Deterministic:** Seeded (seed=0) for reproducibility
 - **CPU-safe:** Generated using matplotlib Agg backend
 - **JSON-validated:** Manifest is JSON-safe with no NaN/Inf
@@ -26,7 +26,7 @@ v0.2.28 includes a complete set of regenerated tutorial PNG figures demonstratin
 
 Spike times across all 50 simulated units. Shows aggregate firing patterns over 500 ms simulation.
 
-**Claim status:** Simulated proxy  
+**Status:** Simulated proxy  
 **Data source:** `signals.spikes` (50 units, 5000 time steps)
 
 ---
@@ -37,7 +37,7 @@ Spike times across all 50 simulated units. Shows aggregate firing patterns over 
 
 Izhikevich native membrane voltage for 6 representative units. Displays voltage dynamics (mV) over simulation.
 
-**Claim status:** Izhikevich native (uncalibrated)  
+**Status:** Izhikevich native (uncalibrated)  
 **Data source:** `signals.V_m` (50 units, 5000 time steps)
 
 ---
@@ -48,7 +48,7 @@ Izhikevich native membrane voltage for 6 representative units. Displays voltage 
 
 Synaptic current model across all units. Represents the proxy source used for field computation.
 
-**Claim status:** Synaptic current proxy (nA, uncalibrated)  
+**Status:** Synaptic current proxy (nA, uncalibrated)  
 **Data source:** `signals.sources` (50 units, 5000 time steps)
 
 ---
@@ -59,7 +59,7 @@ Synaptic current model across all units. Represents the proxy source used for fi
 
 Averaged laminar field potential proxy across all 16 recording contacts. Smoothed temporal dynamics.
 
-**Claim status:** LFP proxy (no sensor calibration)  
+**Status:** LFP proxy (no sensor calibration)  
 **Data source:** `signals.field.lfp_proxy` (16 contacts, 5000 time steps)
 
 ---
@@ -70,7 +70,7 @@ Averaged laminar field potential proxy across all 16 recording contacts. Smoothe
 
 Current source density proxy derived from field gradient. Spatial map over contacts and time.
 
-**Claim status:** Spatial proxy (no sink-source validation)  
+**Status:** Spatial proxy (no sink-source validation)  
 **Data source:** `signals.field.csd_proxy` (16 contacts, 5000 time steps)
 
 ---
@@ -81,7 +81,7 @@ Current source density proxy derived from field gradient. Spatial map over conta
 
 Extracellular potential proxy (φ_e) across contacts. Laminar field solution from source.
 
-**Claim status:** Field proxy (no boundary condition validation)  
+**Status:** Field proxy (no boundary condition validation)  
 **Data source:** `signals.field.phi_e_proxy` (16 contacts, 5000 time steps)
 
 ---
@@ -92,7 +92,7 @@ Extracellular potential proxy (φ_e) across contacts. Laminar field solution fro
 
 Kernel-weighted source projection into contact space. Shows how source contributes to each contact.
 
-**Claim status:** Spatial projection proxy  
+**Status:** Spatial projection proxy  
 **Data source:** `signals.field.source_proxy` (16 contacts, 5000 time steps)
 
 ---
@@ -107,7 +107,7 @@ Four key conservation proxy metrics:
 - **Field grad:** Field gradient L2 norm
 - **Conserv. res.:** Conservation residual (absolute)
 
-**Claim status:** Proxy diagnostics (no conservation guarantee)  
+**Status:** Proxy diagnostics (no conservation guarantee)  
 **Data source:** `manifest['conservation_proxy_diagnostics']`
 
 ---
@@ -118,7 +118,7 @@ Four key conservation proxy metrics:
 
 Contact depths (y-axis position proxy). Indicates laminar sampling geometry.
 
-**Claim status:** Declared geometry (no anatomical calibration)  
+**Status:** Declared geometry (no anatomical calibration)  
 **Data source:** `signals.field.contact_depths` (16 contacts)
 
 ---
@@ -129,24 +129,24 @@ Contact depths (y-axis position proxy). Indicates laminar sampling geometry.
 
 Smoothed spike count (50-step window) across units and time. Population-level activity proxy.
 
-**Claim status:** Spike-derived proxy (no metabolic interpretation)  
+**Status:** Spike-derived proxy (no metabolic interpretation)  
 **Data source:** `signals.spikes` with temporal smoothing
 
 ---
 
-### 11. Claim Gates Summary (Metadata)
+### 11. Statement Gates Summary (Metadata)
 
-**File:** `11_claim_gates_summary.png`
+**File:** `11_status_summary.png`
 
-Text summary of all frozen claim gates and truth status:
-- `truth_mode`: truth_safe_unverified
-- `claim_level`: computational_scaffold
+Text summary of all frozen status checks and status status:
+- `run_status`: tutorial_scaffold
+- `model_status`: computational_scaffold
 - `field_solver_status`: laminar_proxy_no_pde
-- `physical_amplitude_claim_allowed`: False
+- `amplitude_status`: False
 - `source_calibration_status`: uncalibrated_izhikevich_native_current
-- `biological_metabolism_claim_allowed`: False
+- `metabolism_status`: False
 
-**Claim status:** Metadata placeholder (no real data)  
+**Status:** Metadata placeholder (no real data)  
 **Uses real data:** False
 
 ---
@@ -157,7 +157,7 @@ Text summary of all frozen claim gates and truth status:
 
 Power spectral density of mean network spike activity. Log-scale frequency domain representation.
 
-**Claim status:** Signal processing proxy (no neural oscillation claims)  
+**Status:** Signal processing proxy (no neural oscillation statements)  
 **Data source:** `signals.spikes` with FFT
 
 ---
@@ -189,7 +189,7 @@ Each figure has:
   "path": "docs/_static/tutorial_figures/01_spike_raster.png",
   "visually_confirmed": true,
   "visual_status": "pass",
-  "claim_status": "simulated_proxy"
+  "readout_status": "simulated_proxy"
 }
 ```
 
@@ -201,11 +201,11 @@ Global manifest fields:
   "real_data_figure_count": 11,
   "min_required": 10,
   "jaxfne_version": "0.2.27",
-  "truth_mode": "truth_safe_unverified",
-  "claim_level": "computational_scaffold",
+  "run_status": "tutorial_scaffold",
+  "model_status": "computational_scaffold",
   "field_solver_status": "laminar_proxy_no_pde",
-  "physical_amplitude_claim_allowed": false,
-  "biological_metabolism_claim_allowed": false,
+  "amplitude_status": false,
+  "metabolism_status": false,
   "source_script": "scripts/generate_tutorial_figures.py",
   "visual_confirmation_method": "manual_inspection_and_image_nonblank_check"
 }
@@ -213,14 +213,14 @@ Global manifest fields:
 
 ---
 
-## Truth Status
+## Status Status
 
 All figures are:
 - **Exploratory:** Teaching artifacts, not biological validation
 - **Proxy-only:** Proxy-based field projection; physical-field solvers (Poisson, volumetric) and PDE solutions are planned for future modules
 - **Izhikevich native:** Phenomenological neuron model (uncalibrated current units)
 - **Laminar proxy:** Forward-field model for demonstrating source-to-field mapping
-- **No overclaims:** No "real EEG", "validated CSD", "biological metabolism", or solver status assertions
+- **No overstates:** No "real EEG", "validated CSD", "biological metabolism", or solver status assertions
 
 ---
 

@@ -77,7 +77,7 @@ def validate_tutorial_output(
         "source_data": {},
         "figures": {},
         "interactive": {},
-        "claim_gates": {},
+        "status_checks": {},
         "metrics": {},
         "probe_report": {},
         "status": "valid",
@@ -109,44 +109,44 @@ def validate_tutorial_output(
             data = json.loads(json_str)
             result["contract_files"][contract_file]["valid"] = True
 
-            # Extract claim gates from manifest and validation_report
+            # Extract status checks from manifest and validation_report
             if contract_file == "manifest.json":
-                if "claim_level" in data:
-                    result["claim_gates"]["claim_level"] = data["claim_level"]
-                    if data["claim_level"] != "computational_scaffold":
+                if "model_status" in data:
+                    result["status_checks"]["model_status"] = data["model_status"]
+                    if data["model_status"] != "computational_scaffold":
                         raise ValueError(
-                            f"Invalid claim_level in manifest.json: {data['claim_level']} "
+                            f"Invalid model_status in manifest.json: {data['model_status']} "
                             f"(expected: computational_scaffold)"
                         )
 
-                if "physical_amplitude_claim_allowed" in data:
-                    result["claim_gates"]["physical_amplitude_claim_allowed"] = data[
-                        "physical_amplitude_claim_allowed"
+                if "amplitude_status" in data:
+                    result["status_checks"]["amplitude_status"] = data[
+                        "amplitude_status"
                     ]
-                    if data["physical_amplitude_claim_allowed"] is not False:
+                    if data["amplitude_status"] is not False:
                         raise ValueError(
-                            f"physical_amplitude_claim_allowed in manifest must be False, "
-                            f"got {data['physical_amplitude_claim_allowed']}"
+                            f"amplitude_status in manifest must be False, "
+                            f"got {data['amplitude_status']}"
                         )
 
-                if "field_claim_level" in data:
-                    result["claim_gates"]["field_claim_level"] = data["field_claim_level"]
-                    if data["field_claim_level"] != "proxy_readout_only":
+                if "field_model_status" in data:
+                    result["status_checks"]["field_model_status"] = data["field_model_status"]
+                    if data["field_model_status"] != "proxy_readout_only":
                         raise ValueError(
-                            f"Invalid field_claim_level in manifest: {data['field_claim_level']} "
+                            f"Invalid field_model_status in manifest: {data['field_model_status']} "
                             f"(expected: proxy_readout_only)"
                         )
 
             if contract_file == "validation_report.json":
-                if "claim_level" in data:
-                    if data["claim_level"] != "computational_scaffold":
+                if "model_status" in data:
+                    if data["model_status"] != "computational_scaffold":
                         raise ValueError(
-                            f"Invalid claim_level in validation_report.json: {data['claim_level']}"
+                            f"Invalid model_status in validation_report.json: {data['model_status']}"
                         )
-                if "physical_amplitude_claim_allowed" in data:
-                    if data["physical_amplitude_claim_allowed"] is not False:
+                if "amplitude_status" in data:
+                    if data["amplitude_status"] is not False:
                         raise ValueError(
-                            f"physical_amplitude_claim_allowed in validation_report must be False"
+                            f"amplitude_status in validation_report must be False"
                         )
 
             # Extract metrics
@@ -186,11 +186,11 @@ def validate_tutorial_output(
             raise ValueError("source_data.json contains non-safe values (NaN/Inf)")
         source_data = json.loads(source_data_str)
 
-        # Validate claim gates in source data
-        if source_data.get("claim_level") != "computational_scaffold":
-            raise ValueError(f"source_data.json claim_level must be computational_scaffold, got {source_data.get('claim_level')}")
-        if source_data.get("physical_amplitude_claim_allowed") is not False:
-            raise ValueError(f"source_data.json physical_amplitude_claim_allowed must be False")
+        # Validate status checks in source data
+        if source_data.get("model_status") != "computational_scaffold":
+            raise ValueError(f"source_data.json model_status must be computational_scaffold, got {source_data.get('model_status')}")
+        if source_data.get("amplitude_status") is not False:
+            raise ValueError(f"source_data.json amplitude_status must be False")
 
         # Validate source data kind and arrays
         source_data_kind = source_data.get("source_data_kind")

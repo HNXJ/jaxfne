@@ -68,7 +68,7 @@ This:
 - Executes all large examples (02-07)
 - Generates static PNG figures and metadata
 - Validates output contracts (manifest.json, metrics.json, etc.)
-- Checks validation gates (computational_scaffold, physical_amplitude_claim_allowed=False)
+- Checks validation gates (computational_scaffold, amplitude_status=False)
 - Regenerates artifact hashes
 
 Expected runtime: 5-10 minutes (CPU-only, JAX on CPU).
@@ -84,14 +84,14 @@ Before tagging a release:
 5. Update CHANGELOG.md with version and summary
 6. Tag and push
 
-## Truth Status and Claim Gates
+## Status Status and Statement Gates
 
 All outputs maintain strict validation gates:
 
 ```yaml
-truth_mode: truth_safe_unverified
+run_status: tutorial_scaffold
 computational_scaffold: true
-physical_amplitude_claim_allowed: false
+amplitude_status: false
 field_solver_status: laminar_proxy_no_pde (or not_computed)
 ```
 
@@ -106,9 +106,9 @@ jaxfne v0.2.30 includes deterministic performance benchmarking scripts (not CI g
 - `scripts/benchmark_jaxfne.py`: Measures 7 computational phases with hardware metadata
 - `scripts/validate_json_safe.py`: Detects NaN/Infinity in JSON outputs
 
-### Benchmark claim boundaries
+### Benchmark statement boundaries
 
-**Important:** Benchmarks are `local_environment_receipt_only`. No universal performance claims are made:
+**Important:** Benchmarks are `local_environment_receipt_only`. No universal performance statements are made:
 
 - ✓ Local timing receipts (CPU/platform specific)
 - ✓ Timing model and scaling analysis
@@ -116,7 +116,7 @@ jaxfne v0.2.30 includes deterministic performance benchmarking scripts (not CI g
 - ✗ GPU/TPU acceleration factors
 - ✗ Real-time performance or biological correspondence
 
-See [Performance Baseline](performance_baseline.md) for detailed claims and reproduction instructions.
+See [Performance Baseline](performance_baseline.md) for detailed statements and reproduction instructions.
 
 ### Running benchmarks manually
 

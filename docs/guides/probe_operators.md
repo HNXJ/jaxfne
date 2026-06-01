@@ -74,7 +74,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `method: point_or_finite_contact_phi_proxy`
 - `units_or_status: proxy_voltage_units_or_V_if_calibrated`
 - `field_solver_status: laminar_proxy_no_pde`
-- `physical_amplitude_claim_allowed: false`
+- `amplitude_status: false`
 
 **Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
@@ -126,7 +126,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 - `sensor_geometry_status: simulated_minimal`
 - `units_or_status: arbitrary_proxy_units`
 - `operator_status: simulated_proxy`
-- `physical_amplitude_claim_allowed: false`
+- `amplitude_status: false`
 
 **v0.2.1 scope:** All EEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
 
@@ -152,7 +152,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 - `orientation_convention: declared`
 - `units_or_status: arbitrary_proxy_units`
 - `operator_status: simulated_proxy`
-- `physical_amplitude_claim_allowed: false`
+- `amplitude_status: false`
 
 **v0.2.1 scope:** All MEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
 
@@ -189,7 +189,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 - `units_or_status: normalized_proxy_units`
 - `biophysical_calibration_status: uncalibrated_proxy`
 - `operator_status: simulated_proxy`
-- `physical_amplitude_claim_allowed: false`
+- `amplitude_status: false`
 
 **Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
 
@@ -251,9 +251,9 @@ Normalized electrophysiological activity cost proxy combining source and field e
 
 ### Probe Report Sidecar
 
-$$R_k = \{\mathrm{kind}, \mathrm{method}, \mathrm{units\_or\_status}, \mathrm{operator\_status}, \mathrm{physical\_amplitude\_claim\_allowed}, \ldots\}$$
+$$R_k = \{\mathrm{kind}, \mathrm{method}, \mathrm{units\_or\_status}, \mathrm{operator\_status}, \mathrm{physical\_amplitude\_statement\_allowed}, \ldots\}$$
 
-Each operator returns a JSON-safe report $R_k$ declaring operator type, computation method, status (proxy/simulated), and claim constraints.
+Each operator returns a JSON-safe report $R_k$ declaring operator type, computation method, status (proxy/simulated), and statement constraints.
 
 ---
 
@@ -282,7 +282,7 @@ Planned areas include:
 - **v0.2.4–v0.2.6:** field/proxy mathematics and admissibility diagnostics
 - **v0.2.5 and v0.2.17:** calibration specification and reporting workflows
 - **v0.2.7–v0.2.15:** Colab-ready tutorial stack and tutorial smoke tests
-- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without claiming reproduction of the reference datasets.
+- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
 - **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
 
 Calibration workflows and advanced tutorials are developed in the docs and examples.
@@ -327,7 +327,7 @@ print(emm_readout.report)
 
 - Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels in v0.2.1+.
 - This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
-- All operators are "simulated" or "proxy" in v0.2.x. Claims of physical equivalence require separate calibration and validation evidence.
+- All operators are "simulated" or "proxy" in v0.2.x. Statements of physical equivalence require separate calibration and validation evidence.
 - EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy in v0.2.x.
 
 ---

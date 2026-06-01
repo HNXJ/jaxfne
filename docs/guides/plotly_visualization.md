@@ -318,7 +318,7 @@ fig.write_html("figure.html", include_plotlyjs="cdn")  # ~100 KB
 
 ❌ **INCORRECT:**
 ```python
-# Avoid claiming physical amplitude:
+# Avoid stating physical amplitude:
 fig.update_layout(title="Real LFP recorded from V1 cortex")  # Use proxy-scale label
 ```
 

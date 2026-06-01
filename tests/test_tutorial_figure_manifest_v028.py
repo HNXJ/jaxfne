@@ -7,8 +7,8 @@ Validates:
 3. All figure paths exist
 4. All files are PNGs with nonzero size
 5. All figures are visually confirmed
-6. Claim gates are scaffold/proxy
-7. Forbidden phrases audit
+6. Status fields are scaffold/proxy
+7. Blocked phrase audit
 8. Metadata integrity
 """
 
@@ -52,11 +52,11 @@ class TestManifestStructure:
             "real_data_figure_count",
             "min_required",
             "jaxfne_version",
-            "truth_mode",
-            "claim_level",
+            "run_status",
+            "model_status",
             "field_solver_status",
-            "physical_amplitude_claim_allowed",
-            "biological_metabolism_claim_allowed",
+            "amplitude_status",
+            "metabolism_status",
             "source_script",
             "visual_confirmation_method",
             "figures",
@@ -64,13 +64,13 @@ class TestManifestStructure:
         for key in required_keys:
             assert key in manifest, f"Missing required key: {key}"
 
-    def test_manifest_truth_fields(self, manifest):
-        """Truth status fields must be correct."""
-        assert manifest["truth_mode"] == "truth_safe_unverified"
-        assert manifest["claim_level"] == "computational_scaffold"
+    def test_manifest_status_fields(self, manifest):
+        """Status fields must be correct."""
+        assert manifest["run_status"] == "tutorial_scaffold"
+        assert manifest["model_status"] == "computational_scaffold"
         assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
-        assert manifest["physical_amplitude_claim_allowed"] is False
-        assert manifest["biological_metabolism_claim_allowed"] is False
+        assert manifest["amplitude_status"] is False
+        assert manifest["metabolism_status"] is False
 
 
 class TestFigureCount:
@@ -134,7 +134,7 @@ class TestFigureMetadata:
             "path",
             "visually_confirmed",
             "visual_status",
-            "claim_status",
+            "readout_status",
         ]
         for fig in manifest["figures"]:
             for field in required_fields:
@@ -150,18 +150,17 @@ class TestFigureMetadata:
         for fig in manifest["figures"]:
             assert fig["visual_status"] == "pass", f"Visual status not 'pass': {fig['filename']}"
 
-    def test_claim_status_proxy(self, manifest):
-        """All figures must have claim_status containing 'proxy'."""
+    def test_readout_status_proxy(self, manifest):
+        """All figures must have readout_status containing proxy/simulated."""
         for fig in manifest["figures"]:
-            claim = fig.get("claim_status", "")
+            status = fig.get("readout_status", "")
             if fig.get("uses_real_data", False):
-                # Real-data figures should have proxy claim
-                assert "proxy" in claim.lower() or "simulated" in claim.lower(), \
-                    f"Claim not proxy/simulated: {fig['filename']}"
+                assert "proxy" in status.lower() or "simulated" in status.lower(), \
+                    f"Readout status not proxy/simulated: {fig['filename']}"
 
 
-class TestForbiddenPhrases:
-    """Tests for forbidden claim language."""
+class TestBlockedPhrases:
+    """Tests for blocked public wording."""
 
     FORBIDDEN_PHRASES = [
         "real EEG",
@@ -188,8 +187,8 @@ class TestForbiddenPhrases:
     def test_no_forbidden_phrases_in_global_fields(self, manifest):
         """Global manifest fields must not contain forbidden phrases."""
         forbidden_fields = [
-            "truth_mode",
-            "claim_level",
+            "run_status",
+            "model_status",
             "field_solver_status",
             "source_script",
             "visual_confirmation_method",
@@ -201,22 +200,21 @@ class TestForbiddenPhrases:
                     f"Forbidden phrase '{phrase}' in field '{field}'"
 
 
-class TestClaimGates:
-    """Tests for immutable claim gates."""
+class TestStatusFields:
+    """Tests for immutable status fields."""
 
-    def test_claim_gates_immutable(self, manifest):
-        """Claim gates must be in allowed states."""
-        gates = {
-            "truth_mode": "truth_safe_unverified",
-            "claim_level": "computational_scaffold",
+    def test_status_fields_immutable(self, manifest):
+        """Status fields must be in allowed states."""
+        fields = {
+            "run_status": "tutorial_scaffold",
+            "model_status": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
-            "biological_metabolism_claim_allowed": False,
+            "amplitude_status": False,
+            "metabolism_status": False,
         }
-        for gate_name, gate_value in gates.items():
-            actual = manifest.get(gate_name)
-            assert actual == gate_value, \
-                f"Gate '{gate_name}' has unexpected value: {actual} (expected {gate_value})"
+        for field_name, field_value in fields.items():
+            actual = manifest.get(field_name)
+            assert actual == field_value,                 f"Field '{field_name}' has unexpected value: {actual} (expected {field_value})"
 
     def test_jaxfne_version_current(self, manifest):
         """jaxfne_version should be 0.3.4."""

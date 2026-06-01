@@ -15,9 +15,9 @@ Per-condition gate semantics:
   - low_or_silent_out_of_target_regime: Hz < 2, finite
   - nonfinite_failure:                 any nonfinite output
 
-Truth status: computational_scaffold, proxy_readout_only
-Physical amplitude claim allowed: False
-Claim level: computational_scaffold
+Status status: computational_scaffold, proxy_readout_only
+Physical amplitude status allowed: False
+Model status: computational_scaffold
 """
 
 import hashlib
@@ -372,12 +372,12 @@ def main(update_canonical: bool = False):
         # === Required embedded blocks ===
 
         "basis": {
-            "truth_mode": "truth_safe_unverified",
-            "claim_level": "computational_scaffold",
+            "run_status": "tutorial_scaffold",
+            "model_status": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
-            "biological_metabolism_claim_allowed": False,
+            "field_model_status": "proxy_readout_only",
+            "amplitude_status": False,
+            "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_projection_mode": "proxy_no_field_solve",
         },
@@ -491,7 +491,7 @@ def main(update_canonical: bool = False):
             },
         },
 
-        "non_claims": [
+        "non_statements": [
             "This tutorial is a computational scaffold, not a biological validation.",
             "Parameter regimes are proxy computational ranges, not calibrated biophysical ranges.",
             "High-rate conditions (>25 Hz) are explicitly labelled out-of-target regimes for contrast; they are not accepted as baseline cortical activity.",
@@ -512,8 +512,8 @@ def main(update_canonical: bool = False):
     # Round-trip check
     with open(manifest_path) as f:
         loaded = json.load(f)
-    assert loaded["basis"]["physical_amplitude_claim_allowed"] is False
-    assert loaded["basis"]["claim_level"] == "computational_scaffold"
+    assert loaded["basis"]["amplitude_status"] is False
+    assert loaded["basis"]["model_status"] == "computational_scaffold"
     assert set(loaded["probe_report"].keys()) == {
         "spikes", "V_m", "source", "lfp_proxy", "csd_proxy",
         "eeg_proxy", "meg_proxy", "emm_proxy",
@@ -589,8 +589,8 @@ def main(update_canonical: bool = False):
     print(f"✓ Docs-stable figures: {static_heatmap}, {static_regime}")
     print(f"✓ Plotly available: {plotly_available}")
     print()
-    print("Truth status: computational_scaffold, proxy_readout_only")
-    print("Physical amplitude claim allowed: False")
+    print("Status status: computational_scaffold, proxy_readout_only")
+    print("Physical amplitude status allowed: False")
     print("=" * 80)
 
     return atlas_manifest

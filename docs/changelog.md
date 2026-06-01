@@ -64,7 +64,7 @@
 ## v0.2.1 (2026-05-10)
 
 - Introduced probe operator contracts
-- Added claim-status metadata
+- Added status metadata
 - Eight canonical readout channels
 
 ## v0.2.0 (2026-04-15)

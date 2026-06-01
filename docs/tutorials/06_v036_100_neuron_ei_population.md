@@ -14,7 +14,7 @@ This tutorial demonstrates the **chainable Configuration API** of jaxfne v0.3.5+
 - Configure a biologically-inspired E/I population (75% excitatory, 25% inhibitory)
 - Simulate with the Izhikevich neuron model (cortical parameters)
 - Extract multimodal readouts: spikes, voltage, source, and field proxies
-- Inspect scope metadata to understand computational claims and limitations
+- Inspect scope metadata to understand computational statements and limitations
 - Generate population-level metrics and visualizations
 
 ### Key Concepts
@@ -33,7 +33,7 @@ cfg = (jtfne.Configuration()
     .probes(["SPK", "Vm", "source", "LFP-proxy", "CSD-proxy"]))
 ```
 
-**Proxy-Scale Readouts:** Field outputs (LFP, CSD) are computed via convolution-based proxies, not full PDE solutions. This enables fast visualization and relative comparison without claiming physical amplitude.
+**Proxy-Scale Readouts:** Field outputs (LFP, CSD) are computed via convolution-based proxies, not full PDE solutions. This enables fast visualization and relative comparison without stating physical amplitude.
 
 ---
 
@@ -48,7 +48,7 @@ The notebook follows a 13-section structure:
 5. **Configuration Block** — Chainable API setup
 6. **Simulation Block** — Construct model and run
 7. **Probe/Readout Block** — Compute population metrics
-8. **Manifest and Scope Metadata** — JSON output with scope claims
+8. **Manifest and Scope Metadata** — JSON output with scope statements
 9. **Figures** — Five visualizations (raster, rates, voltages, source, summary)
 10. **Interpretation** — Results and dynamics
 11. **Failure Modes** — Debugging silent or unstable networks
@@ -129,7 +129,7 @@ readouts = model.compute_readout(signals, readout_specs)
 
 ### Scope Metadata
 
-All outputs include manifest JSON with explicit scope claims:
+All outputs include manifest JSON with explicit scope statements:
 
 ```json
 {
@@ -137,11 +137,11 @@ All outputs include manifest JSON with explicit scope claims:
   "calibration_status": "uncalibrated_phenomenological",
   "readout_status": "proxy_scale",
   "field_mode": "proxy_convolution_no_pde",
-  "physical_amplitude_claim_allowed": false
+  "amplitude_status": false
 }
 ```
 
-**Key principle:** Proxy-scale outputs enable comparison and visualization without claiming physical validity.
+**Key principle:** Proxy-scale outputs enable comparison and visualization without stating physical validity.
 
 ---
 

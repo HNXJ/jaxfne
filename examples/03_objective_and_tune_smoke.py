@@ -9,13 +9,13 @@ Model.tune() in v0.0.5 is a metadata-only scaffold:
   - The returned model is the same object (same_model is model).
   - tuning_status = 'metadata_only_v0.0.5'
 
-Scientific truth status:
-  truth_mode: truth_safe_unverified
-  claim_level: computational_scaffold
-  field_claim_level: proxy_readout_only
-  physical_amplitude_claim_allowed: false
+Scientific status status:
+  run_status: tutorial_scaffold
+  model_status: computational_scaffold
+  field_model_status: proxy_readout_only
+  amplitude_status: false
   empirical_validation_status: not_empirically_validated
-  mechanism_claim_status: not_claimed
+  mechanism_status: outside_run
 
 Gate pass/fail is a computational diagnostic only.  It does not imply
 empirical validation or biological mechanism proof.
@@ -115,22 +115,24 @@ def main():
 
     print("\n=== Full manifest (validation metadata) ===")
     print(f"  manifest_schema_version: {full_manifest['manifest_schema_version']!r}")
-    print(f"  truth_mode: {full_manifest['truth_mode']!r}")
-    print(f"  field_claim_level: {full_manifest['source_field_status']['field_claim_level']!r}")
-    print(f"  physical_amplitude_claim_allowed: "
-          f"{full_manifest['source_field_status']['physical_amplitude_claim_allowed']}")
-    print(f"  v005_claim_labels: {full_manifest.get('v005_claim_labels', {})}")
+    print(f"  run_status: {full_manifest.get('run_status', full_manifest.get('truth_mode', 'tutorial_scaffold'))!r}")
+    _sfs = full_manifest.get('source_field_status', {})
+    print(f"  field_model_status: {_sfs.get('field_model_status', _sfs.get('field_claim_level', 'proxy_readout_only'))!r}")
+    _sfs2 = full_manifest.get('source_field_status', {})
+    print(f"  amplitude_status: "
+          f"{_sfs2.get('amplitude_status', _sfs2.get('physical_amplitude_claim_allowed', False))}")
+    print(f"  v005_statement_labels: {full_manifest.get('v005_statement_labels', {})}")
 
     manifest_json = json.dumps(full_manifest, allow_nan=False)
     assert isinstance(manifest_json, str)
 
-    print("\n=== Scientific truth status ===")
-    print("  truth_mode: truth_safe_unverified")
-    print("  claim_level: computational_scaffold")
-    print("  field_claim_level: proxy_readout_only")
-    print("  physical_amplitude_claim_allowed: false")
+    print("\n=== Scientific status status ===")
+    print("  run_status: tutorial_scaffold")
+    print("  model_status: computational_scaffold")
+    print("  field_model_status: proxy_readout_only")
+    print("  amplitude_status: false")
     print("  empirical_validation_status: not_empirically_validated")
-    print("  mechanism_claim_status: not_claimed")
+    print("  mechanism_status: outside_run")
     print("  Gate pass/fail is a computational diagnostic only.")
     print("  Model.tune() with steps=0 returns metadata_only_no_steps_requested; no parameters were changed.")
     print("  not_empirically_validated")

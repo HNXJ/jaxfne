@@ -14,9 +14,9 @@ for v0.3 collector validation.
 Computational question: How does E→I excitatory drive and I→E inhibitory feedback
 shape the spike timing and voltage dynamics of a minimal coupled network?
 
-Truth status: computational_scaffold, proxy_readout_only
-Physical amplitude claim allowed: False
-Claim level: computational_scaffold
+Status status: computational_scaffold, proxy_readout_only
+Physical amplitude status allowed: False
+Model status: computational_scaffold
 Scope: Tutorial demonstrating jaxfne TFNE pipeline; not biological validation.
 """
 
@@ -452,14 +452,14 @@ def main(update_canonical: bool = False):
 
         # === Gate 1: Required embedded blocks ===
 
-        # basis block — immutable claim gates (collector checks these)
+        # basis block — immutable status checks (collector checks these)
         "basis": {
-            "truth_mode": "truth_safe_unverified",
-            "claim_level": "computational_scaffold",
+            "run_status": "tutorial_scaffold",
+            "model_status": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
-            "biological_metabolism_claim_allowed": False,
+            "field_model_status": "proxy_readout_only",
+            "amplitude_status": False,
+            "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_projection_mode": "proxy_no_field_solve",
         },
@@ -578,11 +578,11 @@ def main(update_canonical: bool = False):
             "plotly_status_reason": "static_png_baseline_for_v0303",
         },
 
-        "non_claims": [
+        "non_statements": [
             "This tutorial is a computational scaffold, not a biological validation.",
             "The Izhikevich native current is not empirically calibrated membrane current.",
             "No field PDE is solved in laminar_proxy_no_pde mode.",
-            "Output CSD/LFP are proxy readouts without physical amplitude claims.",
+            "Output CSD/LFP are proxy readouts without physical amplitude statuss.",
             "Dynamic coupling is implemented via exponential synaptic traces in lax.scan carry state.",
             "Each neuron's dynamics reflect the Izhikevich E+PV preset with adjusted drives.",
             "No mechanism of E/I balance or cortical function is proven by this tutorial.",
@@ -708,7 +708,7 @@ def main(update_canonical: bool = False):
         ax.set_ylabel('LFP-like proxy')
         ax.set_title(
             'v0.3.3: Simulated LFP-like Proxy (first 4 contacts)\n'
-            '(Proxy readout, no physical amplitude claim)'
+            '(Proxy readout, no physical amplitude status)'
         )
         ax.grid(True, alpha=0.3)
         ax.legend(loc='upper right', fontsize=8)
@@ -877,8 +877,8 @@ def main(update_canonical: bool = False):
         # Verify JSON round-trip
         with open(manifest_path) as f:
             loaded = json.load(f)
-        assert loaded["basis"]["physical_amplitude_claim_allowed"] is False
-        assert loaded["basis"]["claim_level"] == "computational_scaffold"
+        assert loaded["basis"]["amplitude_status"] is False
+        assert loaded["basis"]["model_status"] == "computational_scaffold"
         assert set(loaded["probe_report"].keys()) == {
             "spikes", "V_m", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy"
         }
@@ -970,8 +970,8 @@ def main(update_canonical: bool = False):
         print(f"✓ Figures: {len(atlas_manifest['figures'])} generated and hashed")
         print(f"✓ Plotly available: {plotly_available}")
         print()
-        print("Truth status: computational_scaffold, proxy_readout_only")
-        print("Physical amplitude claim allowed: False")
+        print("Status status: computational_scaffold, proxy_readout_only")
+        print("Physical amplitude status allowed: False")
         print("Coupling mode: dynamic_synaptic_current_injection (not post-hoc)")
         print("=" * 80)
     else:

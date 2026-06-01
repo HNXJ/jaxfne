@@ -50,6 +50,13 @@ from .network3d import (
     circuit3d,
     geometry3d,
     column_geometry,
+    visualize_network_3d,
+)
+from . import tutorial_panels
+from .tutorial_panels import (
+    visualize_laminar_column_3d,
+    activity_trace_suite,
+    spectrolaminar_suite_3panel,
 )
 
 __all__ = [
@@ -95,4 +102,9 @@ __all__ = [
     "circuit3d",
     "geometry3d",
     "column_geometry",
+    "visualize_network_3d",
+    # Tutorial panels (Etude No. 1)
+    "visualize_laminar_column_3d",
+    "activity_trace_suite",
+    "spectrolaminar_suite_3panel",
 ]

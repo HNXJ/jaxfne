@@ -106,15 +106,22 @@ class TestMetadataFormatting:
         )
 
         required_keys = [
-            "truth_mode",
-            "claim_level",
             "boundary_condition",
             "gauge",
         ]
+        # Accept either legacy key name or updated v0.3.22+ schema name
+        required_keys_with_aliases = {
+            "truth_mode": "run_status",
+            "claim_level": "model_status",
+        }
 
         for key in required_keys:
             assert f'"{key}"' in code or f"'{key}'" in code, \
                 f"Missing metadata key: {key}"
+        for key, alias in required_keys_with_aliases.items():
+            has_key = f'"{key}"' in code or f"'{key}'" in code
+            has_alias = f'"{alias}"' in code or f"'{alias}'" in code
+            assert has_key or has_alias, f"Missing metadata key: {key} (or alias {alias})"
 
 
 class TestFigureReferences:

@@ -1,72 +1,67 @@
-# Python
+# Python caches/builds
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
+.eggs/
+build/
+dist/
+wheels/
 MANIFEST
 
-# Virtual environments
+# Environments
+.venv/
 venv/
-venv_push/
-ENV/
 env/
-.venv
-env.bak/
-venv.bak/
+ENV/
+venv_push/
 
-# IDE
+# Test/coverage caches
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+.cache/
+
+# Jupyter/editor/OS
+.ipynb_checkpoints/
+*.ipynb~
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-.DS_Store
-.sublime-project
-.sublime-workspace
 *.code-workspace
+.DS_Store
+._*
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
-.hypothesis/
-.pytest_cache
-*.cover
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+# Local secrets
+.env
+.env.local
+.env.*.local
+credentials.json
+config.local.py
 
-# Jupyter
-.ipynb_checkpoints
-*.ipynb_checkpoints
-*.ipynb~
-*.html
-*suite_no4_*
+# Generated runtime artifacts
+outputs/
+artifacts/
+results/
+data/
+tutorial_outputs/
+test_execution_output/
+site/
+scratch/
+tmp/
+*.tmp
+*.temp
+*.bak
+*.orig
+*.log
 
-# Data & artifacts
+# Numeric/data outputs
 *.pkl
 *.pickle
 *.h5
@@ -74,98 +69,15 @@ coverage.xml
 *.npy
 *.npz
 *.csv
-*.log
-outputs/
-artifacts/
-results/
-data/
-*.tmp
 
-# JAX/NumPy
-*.jax
-*.npy.swp
-.jax_cache/
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Secrets (CRITICAL)
-.env
-.env.local
-.env.*.local
-*.key
-*.pem
-*.pem.pub
-secrets.json
-credentials.json
-config.local.py
-
-# OS
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Temporary files
-*.bak
-*.orig
-*.tmp
-*.temp
-*~
-
-# Build artifacts
-*.so
-*.o
-*.c
-*.cpp.swp
-
-# macOS
-.AppleDouble
-.LSOverride
-*.localized
-.local_project_sources/
-
-# MkDocs
-site/
-
-# Agent/tool context (machine-local and ephemeral)
+# Agent/tool local state
 .claude/
 .local_project_sources/
-.pytest_cache/
 
-# Generated artifacts and temporary files
-scratch/
-notebooks/
-*.tmp
-tmp/
-
-# Local agent state
-.claude/
-
-# Transient scratch & temp
-scratch/
-tmp/
-*.tmp
-
-# Generated tutorial artifacts
-tutorial_outputs/
-figures/
-suite_no1_theta_execution_receipt.json
-
-# Audit and validation artifacts (ephemeral)
+# Root audit/receipt clutter; archive durable receipts under internal_docs/
+*_AUDIT*.md
+*_VALIDATION*.md
 GRAMMAR_AUDIT_FINAL.md
 JAX_NATIVE_HARDENING_VALIDATION.md
 VALIDATION_FINAL.md
-suite_no1_figures.zip
-suite_no1_public_manifest.json
-*_AUDIT*.md
-*_VALIDATION*.md
-
-# Runtime/tutorial execution outputs
-test_execution_output/
-.ipynb_checkpoints/
+/receipt_final_polish.json

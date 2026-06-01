@@ -4,7 +4,7 @@
 
 This document describes the computation basis of TFNE (Tensor-Field Neural Equations): a principled framework for composing neural emitters, source projections, field approximations, and readout operators into reproducible, extensible workflows.
 
-The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape contract. When not computed or not claimed, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
+The key principle: **TFNE is collapsible.** Every operator (emitter, source, field, probe) has a well-defined input/output shape contract. When not computed or not stated, operators can be "collapsed" to identity or proxy equivalents without breaking the pipeline. This enables safe modularity and reduces the barrier to adding new domains (whole-brain, ephaptic, ionic, etc.).
 
 This is a **doctrine document**, not an implementation guide. It complements [Mathematical Glossary Flow](mathematical_glossary_flow.md) (equations) and [Source/Field Equations](source_field_equations.md) (implementation detail).
 
@@ -151,7 +151,7 @@ Implementation: CSD ∝ ∇·q from source (proxy)
 Conductivity: Proxy (scalar, isotropic, no calibration)
 Boundary: Metadata-only (future use)
 Gauge: Metadata-only (future use)
-Claim: Computational scaffold; no physical conductivity claim
+Statement: Computational scaffold; no physical conductivity statement
 ```
 
 **What is computed:**
@@ -168,7 +168,7 @@ Claim: Computational scaffold; no physical conductivity claim
 
 > **Approved scope:** conservation-inspired proxy diagnostics only.
 > No Poisson solver is introduced in v0.2.27.
-> `solved_poisson` remains `implemented=False` and `claim_allowed=False`.
+> `solved_poisson` remains `implemented=False` and `status_enabled=False`.
 > A Poisson solver remains gated future work and requires separate approval before any implementation begins.
 
 ```
@@ -180,10 +180,10 @@ Conductivity: Proxy (still scalar, no calibration)
 Boundary: Metadata-only (future use)
 Gauge: Metadata-only (future use)
 Diagnostic: Source conservation proxy (∫∫q dA ≈ 0 checked as proxy, not PDE-enforced)
-Claim: Proxy conservation check; no field solve; conductivity still uncalibrated
+Statement: Proxy conservation check; no field solve; conductivity still uncalibrated
 ```
 
-**Motivation:** Validate that source declarations satisfy approximate conservation laws at the proxy level, without claiming physical conductivity or solving a PDE. Useful for debugging source projection and testing model consistency.
+**Motivation:** Validate that source declarations satisfy approximate conservation laws at the proxy level, without stating physical conductivity or solving a PDE. Useful for debugging source projection and testing model consistency.
 
 **Planned diagnostic outputs (proxy-only, no field solve):**
 - Source conservation proxy check: `source_integral_proxy` (scalar, proxy)
@@ -195,7 +195,7 @@ Claim: Proxy conservation check; no field solve; conductivity still uncalibrated
 - No CG/MINRES or iterative solver
 - No boundary/gauge enforcement (metadata only)
 - No calibrated conductivity
-- No physical-amplitude claim
+- No physical-amplitude status
 
 ### v0.3.x (Declared Future): Calibrated Physical Field
 
@@ -207,10 +207,10 @@ Implementation: Fast FFT-based or high-order FEM with validated geometry
 Conductivity: Calibrated to empirical tissue (SPD tensor, anisotropic)
 Boundary: Dipole/inhomogeneous (empirical)
 Gauge: Physical (zero-flux far-field)
-Claim: Field is physical under empirical conductivity calibration
+Statement: Field is physical under empirical conductivity calibration
 ```
 
-**When to claim this regime:**
+**When to statement this regime:**
 - Tissue conductivity is measured (anisotropic tensor, not scalar proxy)
 - Field geometry is validated against real probe data (lead field measured)
 - CSD/LFP/EEG outputs match empirical recordings (validation data present)
@@ -257,12 +257,12 @@ Assumption: No ephaptic coupling (future: add extracellular voltage feedback to 
 Collapse rule: Can run single area with all-to-all connectivity if whole-brain is too large
 ```
 
-### Step 4: Declare Claim Boundary
+### Step 4: Declare Statement Boundary
 
 ```
-truth_mode: truth_safe_unverified
-claim_level: computational_scaffold (new domain, not validated)
-physical_amplitude_claim_allowed: False (connectivity not empirically calibrated)
+run_status: tutorial_scaffold
+model_status: computational_scaffold (new domain, not validated)
+amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
 field_solver_status: laminar_proxy_no_pde (even for 3D, still proxy in v0.2.24)
 Validation required: None yet; this is exploratory setup
@@ -338,7 +338,7 @@ for seed in range(10):
 | **No fake dimensions** | Never add dimensions not grounded in the problem | Batch, stochasticity, features must be explicit |
 | **Basis choice** | Multiple bases allowed if input/output shapes preserved | Spatial/layer/spectral projection bases equivalent |
 | **Declared-future regimes** | Future solver/conductivity modes are declared but not implemented | v0.2.27 diagnostics, v0.3.x physical conductivity are future |
-| **Extensibility** | New domains follow: shapes → dimensions → basis → claims → test | Whole-brain extension example above |
+| **Extensibility** | New domains follow: shapes → dimensions → basis → statements → test | Whole-brain extension example above |
 | **Determinism** | Same seed → same trajectory (PRNG contract) | `seed=42` reproducible across runs |
 | **Finiteness** | All outputs are JSON-safe (no NaN/Inf before serialization) | `json.dumps(manifest, allow_nan=False)` enforced |
 
@@ -356,12 +356,12 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 | `BasisSpec` | `jaxfne.core` | Typed descriptor for the full computation basis (space, time, field regime, source mode, probe basis) |
 | `default_basis_spec()` | `jaxfne.core` | Returns the default BasisSpec matching the current laminar-proxy scaffold |
 | `validate_basis_spec()` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis contracts |
-| `basis_claim_gate()` | `jaxfne.validation` | Evaluates physical-amplitude claim eligibility given basis + runtime status |
+| `basis_statement_gate()` | `jaxfne.validation` | Evaluates physical-amplitude status eligibility given basis + runtime status |
 | `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest |
 
 **Allowed `BasisSpec.field_regime` values and their status:**
 
-| Regime | Status | Implemented | Claim Allowed |
+| Regime | Status | Implemented | Statement Allowed |
 |--------|--------|-------------|---------------|
 | `laminar_proxy` | Active (default) | True | False |
 | `quasi_static_resistive` | Reserved | False | False |
@@ -369,7 +369,7 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 | `future_admittive` | Declared future (v0.3.x) | **False** | **False** |
 | `future_maxwell` | Declared future (v0.3.x) | **False** | **False** |
 
-`solved_poisson`, `future_maxwell`, and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `claim_allowed=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
+`solved_poisson`, `future_maxwell`, and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
 
 ---
 
@@ -378,5 +378,5 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — v0.2.29 conceptual context: basis-transform doctrine and historical parallels
-- [Probe Operators](probe_operators.md) — Readout operators and their claim boundaries
-- [Scope and Limitations](scope_and_limitations.md) — What TFNE claims and does not claim
+- [Probe Operators](probe_operators.md) — Readout operators and their statement boundaries
+- [Scope and Limitations](scope_and_limitations.md) — What TFNE statements and stays scoped to

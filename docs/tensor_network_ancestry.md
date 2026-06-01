@@ -2,8 +2,8 @@
 
 **Status:** v0.2.29 conceptual documentation  
 **Version:** v0.2.28-aligned  
-**truth_mode:** truth_safe_unverified  
-**Scope:** Terminology, historical context, architectural parallels; no implementation claims
+**run_status:** tutorial_scaffold  
+**Scope:** Terminology, historical context, architectural parallels; no implementation notes
 
 ---
 
@@ -105,7 +105,7 @@ $$
 ### Why Basis Transforms Matter
 
 1. **Modularity:** Each stage is independent. A source can exist without field solve; a field without EEG readout.
-2. **Claim boundary:** Each basis transform carries its own truth status. Source projection is deterministic; field solve is (currently) proxy-only.
+2. **Run boundary:** Each basis transform carries its own status status. Source projection is deterministic; field solve is (currently) proxy-only.
 3. **Extensibility:** New bases (ionic current frame, spectral frame, etc.) fit the same architecture without breaking the pipeline.
 4. **Tensor structure:** The cascade is naturally a tensor contraction chain: state → source density → field potential → readout metrics.
 
@@ -131,21 +131,21 @@ $$\text{LFP\_proxy}(t) = \sum_{contacts} w_{contact} \, \phi_e(contact, t)$$
 
 (where $\phi_e$ is extracellular potential and $w_{contact}$ are weights from contact geometry)
 
-**Non-claim:** This is not a real LFP sensor. It is a proxy computed from simulated sources. No calibration to empirical recordings is claimed.
+**Non-statement:** This is not a real LFP sensor. It is a proxy computed from simulated sources. No calibration to empirical recordings is stated.
 
 ---
 
-## Part 4: What TFNE Does (and Does Not Claim)
+## Part 4: What TFNE Does (and Does Not Statement)
 
 ### TFNE Does
 
 ✓ Organize emitter → source → field → readout as a modular tensor-contraction pipeline  
 ✓ Support multi-basis workflows (e.g., Izhikevich emitter in mV, source in nA, LFP proxy in arbitrary units)  
 ✓ Provide 8 probe operators for simultaneous multimodal readouts  
-✓ Validate claim gates: proxy-only, no biological metabolism claims, no solver oversteps  
+✓ Validate status checks: proxy-only, no biological metabolism statements, no solver oversteps  
 ✓ Enable future extensions: new emitters, new field solvers, new probes—all within the same basis-transform architecture
 
-### TFNE Does NOT Claim
+### TFNE Does NOT Statement
 
 ✗ **No cerebellar metric-tensor learning:** jaxfne does not implement Pellionisz/Llinás sensorimotor transforms or learned basis-transform coefficients  
 ✗ **No tensor-train/MPS compression:** jaxfne is not a tensor-network factorization library (no tensor-train states, MPS, PEPS, etc.)  
@@ -190,25 +190,25 @@ A **future cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform
 # 3. Validation against empirical cerebellar response
 
 # Such a tutorial would be a NEW module with its own:
-# - Claim gates
+# - Status checks
 # - Validation tests
 # - Manuscript references
-# - Disclaimer that this is exploratory, not a biological proof
+# - Scope Note that this is exploratory, not a biological proof
 ```
 
 This path is **deferred and not promised.** If pursued, it would:
 - Require separate validation evidence
-- Use separate claim gates (distinct from computational_scaffold)
+- Use separate status checks (distinct from computational_scaffold)
 - Be a distinct research module, not a core jaxfne feature
 
 ---
 
 ## Part 7: Distinction from Other Tensor-Network Meanings
 
-| Term | Meaning | jaxfne Role | Claim? |
+| Term | Meaning | jaxfne Role | Statement? |
 |------|---------|-------------|--------|
 | **Tensor network (Pellionisz)** | Sensorimotor coordinate transforms, metric-tensor learning | ✓ Architectural inspiration | ✗ No implementation |
-| **Tensor network (ML/Physics)** | Factorized state compression (MPS, PEPS, TT) | ✗ Not used | ✗ No claim |
+| **Tensor network (ML/Physics)** | Factorized state compression (MPS, PEPS, TT) | ✗ Not used | ✗ Status note |
 | **Basis transform** | Cascade of coordinate changes (emitter → source → field → readout) | ✓ Core TFNE principle | ✓ Implemented |
 | **Tensor contraction** | Algebraic operation summing over shared indices | ✓ Mathematical formalism | ✓ Implicit in readouts |
 
@@ -218,20 +218,20 @@ This path is **deferred and not promised.** If pursued, it would:
 
 1. **Architecture:** Basis transforms make TFNE's modularity explicit. Users understand why sources can exist without fields.
 2. **Extensibility:** New bases (ionic channels, spectral, population-level) fit the same framework.
-3. **Claim clarity:** Each basis transform has its own truth status and claim gate.
+3. **Statement clarity:** Each basis transform has its own status status and status check.
 4. **Teaching:** The basis-coordinate idea connects TFNE to classical computational neuroscience (Pellionisz, Koch, Arleo) while remaining distinct.
-5. **Humility:** By referencing Pellionisz/Llinás and NOT claiming their results, we honor the intellectual history while respecting scope boundaries.
+5. **Humility:** By referencing Pellionisz/Llinás and NOT stating their results, we honor the intellectual history while respecting scope boundaries.
 
 ---
 
 ## See Also
 
 - **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension contracts
-- **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with claim boundaries
+- **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
 - **[Manuscript Alignment](manuscript_alignment.md)** — How TFNE code maps to published manuscript sections
 
 ---
 
-**Status:** v0.2.29 conceptual documentation (no implementation claims)  
-**truth_mode:** truth_safe_unverified
+**Status:** v0.2.29 conceptual documentation (no implementation notes)  
+**run_status:** tutorial_scaffold

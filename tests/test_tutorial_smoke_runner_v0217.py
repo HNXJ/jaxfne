@@ -207,8 +207,12 @@ class TestTutorialSmokeRunner:
             first_code_text = (
                 "".join(first_code) if isinstance(first_code, list) else first_code
             )
-            assert "!pip install jaxfne" in first_code_text, \
-                f"{nb_file}: first code cell missing pip install"
+            # Accept either classic magic syntax or programmatic colab-compatible setup
+            has_setup = (
+                "!pip install jaxfne" in first_code_text
+                or ("jaxfne" in first_code_text and ("pip" in first_code_text or "importlib" in first_code_text))
+            )
+            assert has_setup, f"{nb_file}: first code cell missing pip install"
 
             # Check second code cell has version verification
             assert len(code_cells) >= 2, f"{nb_file}: fewer than 2 code cells"

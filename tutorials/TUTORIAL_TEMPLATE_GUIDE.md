@@ -9,10 +9,10 @@ The **jaxfne Notebook Template** (`tutorials/templates/jaxfne_notebook_template.
 The template enforces:
 
 - ✅ **Hygiene gates:** Workflow code cells ≤ 8 lines by default; setup/configuration cells may be longer, no consecutive code cells
-- ✅ **Installation options:** Both PyPI and dev-branch installs in one unified setup cell
+- ✅ **Installation options:** Both PyPI (`jaxfne[viz]`) and `main` release-branch installs in one unified setup cell
 - ✅ **Environment setup:** XLA/JAX config, PRNG seeding, canonical imports
 - ✅ **Canonical imports:** `import jaxfne as jtfne`
-- ✅ **Truth gates:** Scope gates explicitly documented
+- ✅ **Status fields:** Scope gates explicitly documented
 - ✅ **Reproducibility:** Deterministic seeding from the start
 
 ## How to Use
@@ -41,8 +41,8 @@ cp tutorials/templates/jaxfne_notebook_template.ipynb \
 ### 3. Structure Rules
 
 **Mandatory:**
-- Keep the unified setup cell (Cell 2) with both install options
-- Keep truth gates documented at the top
+- Keep the unified setup cell (Cell 2) with both install options (`jaxfne[viz]` from PyPI and `jaxfne[viz] @ git+...@main`)
+- Keep status fields documented at the top
 - Separate every code cell with markdown (no consecutive code cells)
 - Keep normal workflow code cells ≤ 8 lines; setup/configuration cells may be longer when they hold required setup or explicit input domains
 
@@ -81,7 +81,7 @@ The canonical template now uses a unified setup pattern to minimize code cells:
 |------|------|---------|
 | 1 | Markdown | Title & scope gates |
 | 2 | Markdown | Setup header |
-| 3 | Code | **Unified setup cell** (8 lines):<br>- Both PyPI and dev installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
+| 3 | Code | **Unified setup cell** (8 lines):<br>- Both PyPI (`jaxfne[viz]`) and `main` release-branch installs<br>- Environment variables (XLA, JAX_PLATFORM_NAME)<br>- JAX config (jax_enable_x64)<br>- Canonical imports (jax, jaxfne as jtfne) |
 | 4 | Markdown | Outline & description |
 | 5 | Markdown | Configuration header |
 | 6 | Code | Placeholder configuration |
@@ -93,10 +93,10 @@ The canonical template now uses a unified setup pattern to minimize code cells:
 
 ```markdown
 ## Scope Gates
-- **truth_mode:** `truth_safe_unverified`
-- **claim_level:** `computational_scaffold`
+- **run_status:** `tutorial_scaffold`
+- **model_status:** `computational_scaffold`
 - **field_solver_status:** `laminar_proxy_no_pde`
-- **physical_amplitude_claim_allowed:** `False`
+- **amplitude_status:** `False`
 ```
 
 Always include these unless your tutorial requires different gates. Document any deviations.
@@ -113,8 +113,8 @@ manifest = {
     "artifact_class": "etude",  # or "suite"
     "artifact_id": "your_id",
     "jaxfne_version": jtfne.__version__,
-    "truth_mode": "truth_safe_unverified",
-    "claim_level": "computational_scaffold",
+    "run_status": "tutorial_scaffold",
+    "model_status": "computational_scaffold",
     # ... other metadata
 }
 jtfne.save_json(manifest, output_dir / "manifest.json")
@@ -160,7 +160,7 @@ jtfne.save_json(hashes, output_dir / "asset_hashes.json")
    - Workflow code cells ≤ 8 lines: ✅
    - No consecutive code cells: ✅
    - Both install options present: ✅
-   - Truth gates documented: ✅
+   - Status fields documented: ✅
 
 5. **Execute full run**
    ```bash

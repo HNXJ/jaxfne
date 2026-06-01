@@ -95,7 +95,7 @@ def main():
         "metadata": {
             "operator_status": "simulated_proxy",
             "units_or_status": "proxy_units_or_declared",
-            "physical_amplitude_claim_allowed": False
+            "amplitude_status": False
         }
     }
     

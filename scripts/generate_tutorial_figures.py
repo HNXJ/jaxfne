@@ -55,8 +55,8 @@ def build_config():
         )
     )
     cfg = cfg.update_metadata(
-        truth_mode="truth_safe_unverified",
-        claim_level="computational_scaffold",
+        run_status="tutorial_scaffold",
+        model_status="computational_scaffold",
     )
     return cfg
 
@@ -345,21 +345,21 @@ def gen_firing_rate_raster(signals, output_dir):
     return {"filename": "10_firing_rate_raster.png", "title": "Firing Rate Proxy", "type": "behavioral", "uses_real_data": True}
 
 
-def gen_claim_gates_summary(manifest, output_dir):
-    """Claim gates and truth status (text-based figure)."""
+def gen_status_summary(manifest, output_dir):
+    """Status checks and status status (text-based figure)."""
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.axis("off")
 
     gates = [
-        ("truth_mode", manifest.get("truth_mode", "N/A")),
-        ("claim_level", manifest.get("claim_level", "N/A")),
+        ("run_status", manifest.get("run_status", "N/A")),
+        ("model_status", manifest.get("model_status", "N/A")),
         ("field_solver_status", manifest.get("field_solver_status", "N/A")),
-        ("physical_amplitude_claim_allowed", manifest.get("physical_amplitude_claim_allowed", "N/A")),
+        ("amplitude_status", manifest.get("amplitude_status", "N/A")),
         ("source_calibration_status", manifest.get("source_calibration_status", "N/A")),
-        ("biological_metabolism_claim_allowed", manifest.get("biological_metabolism_claim_allowed", "N/A")),
+        ("metabolism_status", manifest.get("metabolism_status", "N/A")),
     ]
 
-    text_lines = ["Claim Gates and Truth Status", "=" * 50]
+    text_lines = ["Statement Gates and Status Status", "=" * 50]
     for gate_name, gate_value in gates:
         text_lines.append(f"{gate_name}: {gate_value}")
 
@@ -367,14 +367,14 @@ def gen_claim_gates_summary(manifest, output_dir):
     ax.text(0.1, 0.9, text_content, transform=ax.transAxes, fontfamily="monospace",
             fontsize=10, verticalalignment="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
 
-    fig.suptitle("v0.2.27 Claim Gates Summary")
+    fig.suptitle("v0.2.27 Statement Gates Summary")
     fig.tight_layout()
 
-    path = output_dir / "11_claim_gates_summary.png"
+    path = output_dir / "11_status_summary.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
     plt.close(fig)
     print(f"  ✓ {path.name}")
-    return {"filename": "11_claim_gates_summary.png", "title": "Claim Gates Summary", "type": "metadata", "uses_real_data": False}
+    return {"filename": "11_status_summary.png", "title": "Statement Gates Summary", "type": "metadata", "uses_real_data": False}
 
 
 def gen_spectral_summary(signals, output_dir):
@@ -440,13 +440,13 @@ def main():
         ("conservation_diagnostics", gen_conservation_diagnostics),
         ("contact_depths_profile", gen_contact_depths_profile),
         ("firing_rate_raster", gen_firing_rate_raster),
-        ("claim_gates_summary", gen_claim_gates_summary),
+        ("status_checks_summary", gen_status_summary),
         ("spectral_summary", gen_spectral_summary),
     ]
 
     for figure_name, generator_func in generators:
         try:
-            if figure_name in ["conservation_diagnostics", "claim_gates_summary"]:
+            if figure_name in ["conservation_diagnostics", "status_checks_summary"]:
                 result = generator_func(manifest, output_dir)
             else:
                 result = generator_func(signals, output_dir)
@@ -468,11 +468,11 @@ def main():
         "real_data_figure_count": real_data_count,
         "min_required": 10,
         "jaxfne_version": jtfne.__version__,
-        "truth_mode": manifest.get("truth_mode", "truth_safe_unverified"),
-        "claim_level": manifest.get("claim_level", "computational_scaffold"),
+        "run_status": manifest.get("run_status", "tutorial_scaffold"),
+        "model_status": manifest.get("model_status", "computational_scaffold"),
         "field_solver_status": manifest.get("field_solver_status", "laminar_proxy_no_pde"),
-        "physical_amplitude_claim_allowed": manifest.get("physical_amplitude_claim_allowed", False),
-        "biological_metabolism_claim_allowed": manifest.get("biological_metabolism_claim_allowed", False),
+        "amplitude_status": manifest.get("amplitude_status", False),
+        "metabolism_status": manifest.get("metabolism_status", False),
         "source_script": "scripts/generate_tutorial_figures.py",
         "visual_confirmation_method": "manual_inspection_and_image_nonblank_check",
         "figures": [
@@ -481,7 +481,7 @@ def main():
                 "path": f"docs/_static/tutorial_figures/{fig['filename']}",
                 "visually_confirmed": False,  # To be updated in Phase E
                 "visual_status": "pending",
-                "claim_status": "simulated_proxy",
+                "readout_status": "simulated_proxy",
             }
             for fig in figures_metadata
         ],

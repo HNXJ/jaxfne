@@ -18,7 +18,7 @@ The core concepts:
 3. **LFP-proxy:** The spatially-smoothed source projection represents local field potential
 4. **CSD-proxy:** The second spatial derivative of LFP-proxy approximates current-source density
 5. **Probe Readout:** Eight multimodal operators extract spikes, voltage, sources, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, and EMM-proxy
-6. **Scope Clarity:** Metadata gates (`physical_amplitude_claim_allowed=False`) prevent amplitude overclaims
+6. **Scope Clarity:** Metadata gates (`amplitude_status=False`) prevent amplitude overstates
 
 This is a **computational scaffold**, not a biophysically validated model.
 
@@ -139,7 +139,7 @@ signals.metadata = {
     "scope_status": "computational_scaffold",
     "readout_status": "simulated_proxy",
     "field_mode": "proxy_convolution_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "amplitude_status": False,
     "duration_ms": 1000.0,
     "dt_ms": 0.1,
     "dtype": "float32",
@@ -147,7 +147,7 @@ signals.metadata = {
 }
 ```
 
-**Critical key:** `physical_amplitude_claim_allowed=False` gates claims about real-world amplitude.
+**Critical key:** `amplitude_status=False` gates statements about real-world amplitude.
 
 ---
 
@@ -251,7 +251,7 @@ RUN_METADATA = {
     "scope_status": "computational_scaffold",
     "readout_status": "simulated_proxy",
     "field_mode": "proxy_laminar_gaussian_kernel",
-    "physical_amplitude_claim_allowed": False,
+    "amplitude_status": False,
     "duration_ms": 1000.0,
     "dt_ms": 0.1,
     "dtype": "float32",
@@ -291,15 +291,15 @@ json.dumps(manifest, allow_nan=False)  # ← JSONDecodeError
 
 ---
 
-## Interpretation & Claim Gates
+## Interpretation & Statement Gates
 
-### The Gate: `physical_amplitude_claim_allowed`
+### The Gate: `amplitude_status`
 
 This boolean key prevents misinterpretation:
 
 ```python
-if not metadata["physical_amplitude_claim_allowed"]:
-    # BLOCKED: Claiming real-world amplitude
+if not metadata["amplitude_status"]:
+    # BLOCKED: Stating real-world amplitude
     # ✗ "The LFP-proxy amplitude is 50 µV"
     # ✗ "CSD-proxy indicates a sink at L5"
     
@@ -335,7 +335,7 @@ if not metadata["physical_amplitude_claim_allowed"]:
 2. **Spatial projection:** Gaussian kernels map point sources to contacts
 3. **LFP/CSD computation:** Source projection + spatial derivatives
 4. **Multimodal readouts:** Different operators extract different field perspectives
-5. **Metadata gates:** `physical_amplitude_claim_allowed=False` prevents misinterpretation
+5. **Metadata gates:** `amplitude_status=False` prevents misinterpretation
 
 ### How to Use This in Your Work
 
@@ -348,9 +348,9 @@ model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, ...)
 
 # Step 3: Check scope before interpreting
-assert not signals.metadata["physical_amplitude_claim_allowed"]
+assert not signals.metadata["amplitude_status"]
 
-# Step 4: Use relative comparisons, not absolute claims
+# Step 4: Use relative comparisons, not absolute statements
 layer5_rate = signals.spikes[layer5_idx].mean()
 layer23_rate = signals.spikes[layer23_idx].mean()
 print(f"L5 rate is {layer5_rate / layer23_rate:.1f}x L2/3 rate")  # ✓ OK

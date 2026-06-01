@@ -4,7 +4,7 @@
 
 This document specifies source bookkeeping modes, field metadata contracts, forbidden patterns, and the mappings between jaxfne core equations and runtime manifest/report fields.
 
-It complements the [Mathematical Glossary Flow](mathematical_glossary_flow.md) by grounding source and field equations in implementation detail: which manifest field controls which equation, what modes are allowed, what combinations are forbidden, and how to interpret claim boundaries in code.
+It complements the [Mathematical Glossary Flow](mathematical_glossary_flow.md) by grounding source and field equations in implementation detail: which manifest field controls which equation, what modes are allowed, what combinations are forbidden, and how to interpret statement boundaries in code.
 
 ---
 
@@ -142,15 +142,15 @@ if source_decomp == "decomposed_cap_ion_syn":
 
 ---
 
-## Field Metadata and Claim Boundaries
+## Field Metadata and Statement Boundaries
 
 ### Field Solver Status
 
 The **field_solver_status** field in Manifest declares whether the field PDE is solved or proxy-only.
 
-| Status | Solver | φ_e | Current | CSD | Claim |
+| Status | Solver | φ_e | Current | CSD | Statement |
 |--------|--------|-----|---------|-----|-------|
-| `laminar_proxy_no_pde` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity claim |
+| `laminar_proxy_no_pde` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity statement |
 | `specified_future_solver` | **Reserved** | To be solved | To be solved | **Solved** | Future v0.2.27+; not implemented yet |
 
 **Current default (v0.2.24–v0.2.27):**
@@ -225,7 +225,7 @@ print(manifest.get("csd_sign_convention"))  # → "positive_equals_extracellular
 
 The **source_calibration_status** field documents the empirical grounding of the source model.
 
-| Status | Meaning | Biological Claim | Allowed? |
+| Status | Meaning | Biological Statement | Allowed? |
 |--------|---------|------------------|----------|
 | `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ v0.2.24+ default |
 | `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
@@ -234,11 +234,11 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 **Current constraint:**
 ```
-physical_amplitude_claim_allowed = False
+amplitude_status = False
 ```
 
 This immutable field means:
-- No claim that readout values are in physical units (pA, mV, μA/mm³)
+- Status note that readout values are in physical units (pA, mV, μA/mm³)
 - Voltage and current are computational proxies
 - CSD and LFP are readout proxies (derived from proxy source + proxy field)
 - Biological interpretation requires separate calibration and validation
@@ -283,9 +283,9 @@ manifest["conductivity_status"]          # E.g. "proxy" (not "calibrated_physica
 
 **Validation gates (immutable):**
 ```python
-manifest["physical_amplitude_claim_allowed"]  # Always False in v0.2.24
+manifest["amplitude_status"]  # Always False in v0.2.24
 manifest["scope_status"]                      # Always "computational_scaffold" in v0.2.24
-manifest["truth_mode"]                        # Always "truth_safe_unverified" in v0.2.24
+manifest["run_status"]                        # Always "tutorial_scaffold" in v0.2.24
 ```
 
 ### Readout Report Fields
@@ -384,7 +384,7 @@ signals = jaxley_trace_to_signals(
 print(f"Source calibration: {signals.metadata.get('source_calibration_status')}")
 # → "uncalibrated_jaxley_voltage_proxy"
 
-print(f"Physical amplitude allowed: {signals.metadata.get('physical_amplitude_claim_allowed')}")
+print(f"Physical amplitude allowed: {signals.metadata.get('amplitude_status')}")
 # → False
 
 # Signals.sources [T, N] = voltage proxy (no field computation)
@@ -402,7 +402,7 @@ Before releasing a model, verify:
 - [ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a future solver name
 - [ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)
 - [ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)
-- [ ] physical_amplitude_claim_allowed is False
+- [ ] amplitude_status is False
 - [ ] No forbidden synaptic double-counting pattern in source computation
 - [ ] Manifest JSON is NaN/Inf-free and JSON-safe
 
@@ -410,7 +410,7 @@ Before releasing a model, verify:
 
 ## See Also
 
-- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, claim boundaries
+- [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, statement boundaries
 - [Probe Operators](probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](output_bundles.md) — Manifest and report schema
-- [Scope and Limitations](scope_and_limitations.md) — What jaxfne claims and does not claim
+- [Scope and Limitations](scope_and_limitations.md) — What jaxfne statements and stays scoped to

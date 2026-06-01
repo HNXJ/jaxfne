@@ -63,7 +63,7 @@ Result container from configuration validation.
 - `valid` (bool): True if configuration passes all checks
 - `errors` (list[str]): List of error messages (empty if valid)
 - `warnings` (list[str]): Non-critical warnings
-- `claim_status` (dict): Operator status declarations
+- `readout_status` (dict): Operator status declarations
 
 ### Methods
 
@@ -231,20 +231,20 @@ else:
 
 ## Metadata Validation
 
-### `config_truth_boundary(cfg: Configuration) -> dict`
+### `config_status_boundary(cfg: Configuration) -> dict`
 
-Get truth/claim boundaries for a configuration.
+Get status/statement boundaries for a configuration.
 
 **Parameters:**
 - `cfg` (Configuration): Configuration to check
 
-**Returns:** Dictionary with claim status for each operator
+**Returns:** Dictionary with status for each operator
 
 **Example:**
 ```python
-boundaries = jtfne.config_truth_boundary(cfg)
-print(f"Claim level: {boundaries['claim_level']}")
-print(f"Truth mode: {boundaries['truth_mode']}")
+boundaries = jtfne.config_status_boundary(cfg)
+print(f"Model status: {boundaries['model_status']}")
+print(f"Run status: {boundaries['run_status']}")
 print(f"Field solver status: {boundaries['field_solver_status']}")
 ```
 

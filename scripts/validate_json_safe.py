@@ -4,7 +4,7 @@
 Walks JSON files under outputs/ and docs/_static/tutorial_figures/ to detect
 serialization violations: NaN, Infinity, non-JSON types.
 
-Claim status: validation artifact, no scientific claim.
+Status: validation artifact, no scientific statement.
 """
 
 import json

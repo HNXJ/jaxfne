@@ -251,7 +251,7 @@ class ProbeReport:
     method: str  # Computation method
     units_or_status: str  # Units or proxy declaration
     operator_status: str  # "simulated_proxy" for all v0.2.x
-    physical_amplitude_claim_allowed: bool  # Always false for proxy
+    amplitude_status: bool  # Always false for proxy
 ```
 
 **Example:**
@@ -261,28 +261,28 @@ class ProbeReport:
   "method": "point_or_finite_contact_phi_proxy",
   "units_or_status": "proxy_voltage_units",
   "operator_status": "simulated_proxy",
-  "physical_amplitude_claim_allowed": false
+  "amplitude_status": false
 }
 ```
 
 ---
 
-## Claim Boundaries
+## Statement Boundaries
 
 ⚠️ **All probe operators are computational proxies:**
 
 - **No empirical validation:** Results are simulated, not measured
-- **No physical amplitude:** Cannot claim mV or µV units without calibration
+- **No physical amplitude:** Cannot statement mV or µV units without calibration
 - **Relative metrics only:** Use for comparative analysis, not absolute scaling
 - **Sign conventions declared:** CSD+ = inward current (extracellular source)
 - **Spatial approximations:** Field solvers use convolution, not full PDE
 
-**Safe claims:**
+**Safe statements:**
 - "Spike rate increased by 20%"
 - "LFP magnitude varies with depth"
 - "EMM proxy indicates higher activity"
 
-**Unsafe claims:**
+**Unsafe statements:**
 - "LFP amplitude is 50 µV"
 - "CSD source is located at 400 µm depth" (localization not solved)
 - "EEG matches real recordings" (without validation)

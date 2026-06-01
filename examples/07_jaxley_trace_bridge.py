@@ -4,16 +4,16 @@ Jaxley array-first trace bridge tutorial (v0.2.22).
 
 Demonstrates minimal array-first conversion of Jaxley-style voltage trace arrays
 to jaxfne Signals. Generates synthetic voltage traces (no Jaxley required),
-converts via the bridge, and validates claim gates.
+converts via the bridge, and validates status checks.
 
 Generates:
     outputs/jaxley_trace_bridge/
     ├── manifest.json            (bridge metadata)
     ├── signals_report.json      (conversion results)
-    ├── validation_report.json   (claim gate verification)
+    ├── validation_report.json   (status check verification)
     └── asset_hashes.json        (file integrity)
 
-Truth status: computational_scaffold, proxy-voltage-only, no field computation.
+Status status: computational_scaffold, proxy-voltage-only, no field computation.
 
 Usage:
     python examples/07_jaxley_trace_bridge.py
@@ -133,13 +133,13 @@ def main():
     assert spike_count_high >= spike_count_default, "lower threshold should produce more or equal spikes"
     print("✓ Spike threshold variation verified\n")
 
-    # === 5. Verify claim gates are immutable ===
-    print("Claim gate verification:")
-    print(f"  physical_amplitude_claim_allowed: {signals_time_by_unit.metadata['physical_amplitude_claim_allowed']}")
-    print(f"  claim_level: {signals_time_by_unit.metadata['claim_level']}")
-    assert signals_time_by_unit.metadata['physical_amplitude_claim_allowed'] is False
-    assert signals_time_by_unit.metadata['claim_level'] == "computational_scaffold"
-    print("✓ Claim gates frozen (immutable)\n")
+    # === 5. Verify status checks are immutable ===
+    print("Status check verification:")
+    print(f"  amplitude_status: {signals_time_by_unit.metadata['amplitude_status']}")
+    print(f"  model_status: {signals_time_by_unit.metadata['model_status']}")
+    assert signals_time_by_unit.metadata['amplitude_status'] is False
+    assert signals_time_by_unit.metadata['model_status'] == "computational_scaffold"
+    print("✓ Status checks frozen (immutable)\n")
 
     # === 6. Construct outputs ===
     manifest = {
@@ -149,8 +149,8 @@ def main():
         "n_neurons": int(n_neurons),
         "dt_ms": float(dt_ms),
         "layouts_tested": ["time_by_unit", "unit_by_time", "recording_by_time"],
-        "claim_level": signals_time_by_unit.metadata["claim_level"],
-        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
+        "model_status": signals_time_by_unit.metadata["model_status"],
+        "amplitude_status": signals_time_by_unit.metadata["amplitude_status"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
     }
@@ -183,13 +183,13 @@ def main():
     }
 
     validation_report = {
-        "claim_level": signals_time_by_unit.metadata["claim_level"],
-        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
+        "model_status": signals_time_by_unit.metadata["model_status"],
+        "amplitude_status": signals_time_by_unit.metadata["amplitude_status"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
-        "truth_mode": "computational_scaffold",
+        "run_status": "computational_scaffold",
         "field_computation": "not_computed",
-        "biological_claim_status": "no_biological_claims",
+        "biological_status": "simulated_proxy_scope",
         "all_layouts_equivalent": True,
         "spike_threshold_working": True,
         "metadata_json_safe": True,
@@ -233,10 +233,10 @@ def main():
             print(f"  {fpath.name:<30} {size:>6} bytes")
 
     print("\n✓ Jaxley trace bridge tutorial complete.")
-    print("✓ All claim gates frozen (computational_scaffold, proxy-voltage-only).")
+    print("✓ All status checks frozen (computational_scaffold, proxy-voltage-only).")
     print("✓ No field computation (field=None in all Signals).")
     print("✓ No Jaxley dependency required.")
-    print("\nTruth status: computational scaffold, not empirically validated.")
+    print("\nStatus status: computational scaffold, not empirically validated.")
 
 
 if __name__ == "__main__":

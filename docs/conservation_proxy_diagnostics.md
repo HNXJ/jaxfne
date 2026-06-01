@@ -7,11 +7,11 @@ This document describes the v0.2.27 conservation-inspired proxy diagnostics in T
 laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` —
 and produce JSON-safe scalar summaries for source/field validation.
 
-**Claim boundary (v0.2.27):**
-- Proxy diagnostics only — proxy-based computation; physical-field solvers (Poisson, Maxwell) are planned for future modules. Physical amplitude claims are deferred to calibration phases.
+**Run boundary (v0.2.27):**
+- Proxy diagnostics only — proxy-based computation; physical-field solvers (Poisson, Maxwell) are planned for future modules. Physical amplitude statuss are deferred to calibration phases.
 - All values are derived from existing proxy arrays; nothing is fabricated.
-- `physical_amplitude_claim_allowed: false` (immutable).
-- `biological_metabolism_claim_allowed: false` (immutable).
+- `amplitude_status: false` (immutable).
+- `metabolism_status: false` (immutable).
 - `j_dot_e_proxy: null` — J_e is not computed in `laminar_proxy_no_pde` mode.
 - `poynting_flux_proxy: null` — not implemented in v0.2.x.
 - `poisson_solver_status: not_implemented`.
@@ -32,7 +32,7 @@ $$\|q\|_2 = \sqrt{\frac{1}{T \cdot N} \sum_{t,n} q_{tn}^2}$$
 `source_norm_l1` = mean absolute value of the declared source proxy array.
 `source_norm_l2` = root-mean-square of the declared source proxy array.
 
-**Claim boundary:** These are scalar summaries of the proxy source. No physical current density
+**Run boundary:** These are scalar summaries of the proxy source. No physical current density
 calibration. The source array is `uncalibrated_izhikevich_native_current` unless separately
 declared otherwise.
 
@@ -46,7 +46,7 @@ $$\mathrm{source\_conservation\_proxy\_residual} = \frac{1}{T}\sum_t \mathrm{res
 At each timestep, compute the spatial mean of the source. Average the absolute value of this
 spatial mean over time. A value near zero suggests the source is approximately spatially balanced.
 
-**Claim boundary:** This is a spatial-mean proxy for ∫q dV ≈ 0, not a PDE-enforced conservation
+**Run boundary:** This is a spatial-mean proxy for ∫q dV ≈ 0, not a PDE-enforced conservation
 check. The true conservation integral requires a solved field with boundary conditions.
 
 ### Potential-Field Gradient Proxy
@@ -57,7 +57,7 @@ $$\|\nabla \phi_e\|^2_\mathrm{proxy} = \frac{1}{T \cdot X} \sum_{t,x} \left(\fra
 `phi_gradient_proxy_norm2` = mean squared spatial variation of the extracellular-potential-like
 proxy, computed via finite differences along the laminar depth axis.
 
-**Claim boundary:** This is NOT a physical field gradient. The potential `phi_e_proxy` is a
+**Run boundary:** This is NOT a physical field gradient. The potential `phi_e_proxy` is a
 laminar row-normalized projection, not a solution to ∇·(-σ∇φ_e) = q. The gradient magnitude is
 a proxy-level diagnostic only.
 
@@ -69,7 +69,7 @@ $$E_\mathrm{proxy} = \|\nabla \phi_e\|^2_\mathrm{proxy}$$
 `field_energy_like_proxy` = same as `phi_gradient_proxy_norm2`. It is named separately to
 distinguish it as a proxy analog of field energy density; it is not a physical energy.
 
-**Claim boundary:** No calibrated conductivity. This is not ½ σ |∇φ_e|² (physical field energy).
+**Run boundary:** No calibrated conductivity. This is not ½ σ |∇φ_e|² (physical field energy).
 
 ### J·E Proxy (Not Computed)
 
@@ -90,7 +90,7 @@ $$\frac{\partial u_{em}}{\partial t} + \nabla \cdot \mathbf{S} + \mathbf{J} \cdo
 
 where $\mathbf{S} = \mathbf{E} \times \mathbf{H}$ is the Poynting vector.
 
-**Claim boundary:**
+**Run boundary:**
 v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric field dynamics. These are planned for future physical-field module implementations.
 `poynting_flux_proxy: null`. This equation is documented here as future doctrine only.
 
@@ -102,14 +102,14 @@ v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric fie
 
 | Field | Type | Description |
 |---|---|---|
-| `diagnostic_status` | `"proxy"` | Always `"proxy"` — no physical claim |
+| `diagnostic_status` | `"proxy"` | Always `"proxy"` — no physical status |
 | `diagnostic_version` | `"v0.2.27"` | Version tag |
-| `claim_level` | `"computational_scaffold"` | Always scaffold |
+| `model_status` | `"computational_scaffold"` | Always scaffold |
 | `field_solver_status` | str | Passed through; `"laminar_proxy_no_pde"` by default |
-| `field_claim_level` | str | Passed through; `"proxy_readout_only"` by default |
+| `field_model_status` | str | Passed through; `"proxy_readout_only"` by default |
 | `source_calibration_status` | str | Passed through from run metadata |
-| `physical_amplitude_claim_allowed` | `false` | Always `false` |
-| `biological_metabolism_claim_allowed` | `false` | Always `false` |
+| `amplitude_status` | `false` | Always `false` |
+| `metabolism_status` | `false` | Always `false` |
 | `source_norm_l1` | float or null | Mean absolute source proxy |
 | `source_norm_l2` | float or null | RMS source proxy |
 | `source_abs_mean` | float or null | Mean absolute source (same as l1) |
@@ -126,7 +126,7 @@ v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric fie
 | `stress_energy_tensor_status` | `"not_implemented"` | Explicitly gated |
 | `poisson_solver_status` | `"not_implemented"` | Explicitly gated |
 | `maxwell_solver_status` | `"not_implemented"` | Explicitly gated |
-| `notes` | list[str] | Human-readable claim scope notes |
+| `notes` | list[str] | Human-readable statement scope notes |
 
 ---
 
@@ -168,7 +168,7 @@ cpd = manifest["conservation_proxy_diagnostics"]
 print(cpd["source_norm_l1"])         # float
 print(cpd["phi_gradient_proxy_norm2"])  # float
 print(cpd["poisson_solver_status"])  # "not_implemented"
-print(cpd["physical_amplitude_claim_allowed"])  # False
+print(cpd["amplitude_status"])  # False
 ```
 
 ---
@@ -183,8 +183,8 @@ print(cpd["physical_amplitude_claim_allowed"])  # False
 | Poynting flux computation | Not implemented — future doctrine only |
 | Stress-energy tensor | Not implemented — future doctrine only |
 | J·E power density | Not computed — J_e not available in proxy mode |
-| Physical amplitude claim | Disallowed — `physical_amplitude_claim_allowed: false` |
-| Biological metabolism claim | Disallowed — `biological_metabolism_claim_allowed: false` |
+| Physical amplitude status | Disallowed — `amplitude_status: false` |
+| Biological metabolism statement | Disallowed — `metabolism_status: false` |
 | Calibrated conductivity | Not available — proxy scalar, no SPD tensor |
 | Boundary/gauge enforcement | Metadata-only declarations |
 
@@ -195,6 +195,6 @@ print(cpd["physical_amplitude_claim_allowed"])  # False
 - [Computation Basis](computation_basis.md) — Field regime gating doctrine
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Source/field equations
 - [Source/Field Equations](source_field_equations.md) — Source modes and bookkeeping
-- [Probe Operators](probe_operators.md) — Readout operator claim boundaries
+- [Probe Operators](probe_operators.md) — Readout operator statement boundaries
 - [Elliptic Field Equation Specification](poisson_admissibility.md) — Roadmap for future field-solver implementation
-- [Scope and Limitations](scope_and_limitations.md) — What TFNE claims and does not claim
+- [Scope and Limitations](scope_and_limitations.md) — What TFNE statements and stays scoped to

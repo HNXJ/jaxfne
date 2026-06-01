@@ -57,7 +57,7 @@ manifest = model.manifest(signals)
 print(f"Simulation complete. Manifest keys: {list(manifest.keys())[:5]}")
 ```
 
-This teaches users to understand model metadata and claim-status.
+This teaches users to understand model metadata and status.
 
 ### 7. Public Vocabulary
 
@@ -69,7 +69,7 @@ Notebooks **must** use approved public vocabulary. The following terms are **app
 - **computational proxy** — Declared, not-yet-validated readout
 - **declared metadata** — Explicit specification of assumptions, geometry, parameters
 
-**Avoid:** internal control terminology, undeclared placeholder fields, claims that computed readouts equal real physical measurements without validation evidence.
+**Avoid:** internal control terminology, undeclared placeholder fields, statements that computed readouts equal real physical measurements without validation evidence.
 
 Always frame readouts as computational or declared proxy, never as validated physical measurements without supporting validation workflow and evidence.
 

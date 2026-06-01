@@ -2,15 +2,15 @@
 
 **Status:** v0.2.21 Optional Interactive HTML Layer  
 **Date:** 2026-05-21  
-**truth_mode:** truth_safe_unverified  
+**run_status:** tutorial_scaffold  
 
 ---
 
 ## Overview
 
-v0.2.21 adds optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default and unchanged. Interactive HTML is opt-in, Plotly is optional, and all original claim gates remain frozen.
+v0.2.21 adds optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default and unchanged. Interactive HTML is opt-in, Plotly is optional, and all original status checks remain frozen.
 
-**Key principle:** Interactive visualizations are derived from the same source data as static PNG figures. No separate data sources, no additional claims, no biological validation added.
+**Key principle:** Interactive visualizations are derived from the same source data as static PNG figures. No separate data sources, no additional statements, no biological validation added.
 
 ---
 
@@ -64,7 +64,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 
 Checks: manifest.json, probe_report.json, metrics.json, validation_report.json, asset_hashes.json, figures/*.png, source_data.json.
 
-Claim gates verified: physical_amplitude_claim_allowed=False, claim_level="computational_scaffold", field_claim_level="proxy_readout_only".
+Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout_only".
 
 ### Validate Static PNG + Interactive HTML
 
@@ -101,8 +101,8 @@ Adds validation:
   "unit_id": [...],
   "units_or_status": "binary_spike_event_proxy",
   "operator_kind": "spk",
-  "claim_level": "computational_scaffold",
-  "physical_amplitude_claim_allowed": false
+  "model_status": "computational_scaffold",
+  "amplitude_status": false
 }
 ```
 
@@ -144,8 +144,8 @@ Adds validation:
   "gamma_profile": [...],
   "units_or_status": "relative_proxy_units",
   "operator_kind": "spectrolaminar_profile",
-  "claim_level": "computational_scaffold",
-  "physical_amplitude_claim_allowed": false
+  "model_status": "computational_scaffold",
+  "amplitude_status": false
 }
 ```
 
@@ -171,18 +171,18 @@ Every tutorial's `asset_hashes.json` includes:
 
 ---
 
-## Claim Discipline
+## Statement Discipline
 
-All interactive visualizations respect and propagate the immutable claim gates:
+All interactive visualizations respect and propagate the immutable status checks:
 
-- `physical_amplitude_claim_allowed`: Always **False** (no amplitude calibration)
-- `claim_level`: Always **"computational_scaffold"** (no biological claims)
-- `field_claim_level`: Always **"proxy_readout_only"** (simulated fields, not real)
+- `amplitude_status`: Always **False** (no amplitude calibration)
+- `model_status`: Always **"computational_scaffold"** (no biological statements)
+- `field_model_status`: Always **"proxy_readout_only"** (simulated fields, not real)
 
 **What interactive HTML shows:**
 - Mathematical relationships between simulation variables (spike times, field power)
 - Deterministic visualization of source data arrays
-- No empirical validation, no mechanism claims, no biological truth
+- No empirical validation, no mechanism statements, no biological status
 
 **What interactive HTML does NOT show:**
 - Biological plausibility scores
@@ -243,6 +243,6 @@ This validates static PNG without interactive generation overhead. Full interact
 
 ---
 
-**Truth Status:** Interactive visualizations are computational artifacts, not empirically validated evidence. All claim gates remain frozen.
+**Status Status:** Interactive visualizations are computational artifacts, not empirically validated evidence. All status checks remain frozen.
 
 **Version:** v0.2.21 (optional layer, static PNG default preserved)

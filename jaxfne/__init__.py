@@ -79,11 +79,39 @@ from .core import (
     default_basis_spec,
 )
 
+from . import tutorial_utils
 from .tutorial_utils import (
     select_neurons,
     kappa_synchrony,
     rate_synchrony_targets,
+    # Etude No. 1 laminar column helpers.
+    # The tutorial scaffold builder lives at jtfne.tutorial_utils.build_laminar_column
+    # and is also exposed at root as the unambiguous alias build_tutorial_laminar_column
+    # (defined below). Root-level build_laminar_column remains the established
+    # builders.build_laminar_column API.
+    LaminarColumnConfig,
+    CellTypePreset,
+    make_cell_dist,
+    make_cell_type_catalog,
+    cell_catalog_frame,
+    make_laminar_column_config,
+    config_summary_frame,
+    make_izhikevich_control_panel,
+    collect_izhikevich_control,
+    make_stimulus,
+    build_laminar_connections,
+    select_cells,
+    simulate_laminar_trials,
+    spectrolaminar_from_trials,
+    summarize_spectrolaminar_similarity,
+    export_tutorial_artifacts,
 )
+
+# Unambiguous root-level alias for the tutorial scaffold builder. Root-level
+# build_laminar_column (from builders, imported below) is the established API;
+# this alias avoids confusion for tutorial users.
+build_tutorial_laminar_column = tutorial_utils.build_laminar_column
+
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import vis
 from .emitters import (
@@ -247,6 +275,8 @@ __all__ = [
     "validate_config",
     "vis",
     "with_emitter_parameters",
+    # Etude No. 1 tutorial scaffold builder (unambiguous alias)
+    "build_tutorial_laminar_column",
     # Phase 5b: AGSDR tuning helpers
     "select_neurons",
     "kappa_synchrony",

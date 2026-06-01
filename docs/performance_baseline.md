@@ -1,15 +1,15 @@
 # jaxfne Performance Baseline (v0.2.30)
 
 **Status:** v0.2.30 performance receipts  
-**Claim Level:** `local_environment_receipt_only`  
-**Truth Mode:** `truth_safe_unverified`  
+**Statement Level:** `local_environment_receipt_only`  
+**Status Mode:** `tutorial_scaffold`  
 **Date:** 2026-05-23
 
 ---
 
 ## Executive Summary
 
-jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to document computational efficiency under controlled local conditions. **No universal performance claims are made.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
+jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to document computational efficiency under controlled local conditions. **No universal performance statements are made.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
 
 ---
 
@@ -18,11 +18,11 @@ jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to doc
 **What is measured:**
 - Wall-clock time per computational phase (setup, construct, simulate, probe, evaluate, manifest)
 - Hardware metadata (CPU type, device count, Python/JAX versions)
-- Claim gates (computational_scaffold, truth_safe_unverified)
+- Status checks (computational_scaffold, tutorial_scaffold)
 
-**What is NOT measured or claimed:**
+**What is NOT measured or stated:**
 - GPU/TPU acceleration factors
-- Comparative performance vs. other simulators (no comparative claims)
+- Comparative performance vs. other simulators (no comparative statements)
 - Biological accuracy or empirical correspondence
 - Scalability beyond tested network sizes (50, 100 neurons)
 - Real-time performance or hardware-general conclusions
@@ -107,16 +107,16 @@ Device: CpuDevice(id=0)
 
 ---
 
-## Claim Boundaries
+## Statement Boundaries
 
-### What CAN be claimed:
+### What CAN be stated:
 
 ✓ "jaxfne simulates 50 neurons for 100 ms in ~150 ms wall-clock on CPU" (with hardware/date caveat)  
 ✓ "Time scales linearly with neuron count and duration" (within tested range)  
 ✓ "Core simulation dominates total time; overhead phases are ~10% of total"  
 ✓ "Configuration and construction are negligible overhead"
 
-### What CANNOT be claimed:
+### What CANNOT be stated:
 
 ✗ "jaxfne is faster than X simulator" (no comparative analysis)  
 ✗ "jaxfne scales to 1M neurons efficiently" (untested, extrapolation forbidden)  
@@ -162,7 +162,7 @@ Rationale: Performance depends on machine load, network contention, and hardware
 - Multi-thread/multi-core analysis
 - Plasticity overhead quantification
 
-All future work will maintain `local_environment_receipt_only` framing and avoid universal claims.
+All future work will maintain `local_environment_receipt_only` framing and avoid universal statements.
 
 ---
 
@@ -177,11 +177,11 @@ All future work will maintain `local_environment_receipt_only` framing and avoid
 
 ---
 
-## Truth Status
+## Status Status
 
-**Claim Level:** `computational_scaffold`  
-**Truth Mode:** `truth_safe_unverified`  
-**Physical Amplitude Claim Allowed:** `False`  
+**Statement Level:** `computational_scaffold`  
+**Status Mode:** `tutorial_scaffold`  
+**Physical Amplitude Statement Allowed:** `False`  
 **Empirical Validation:** `Not empirically validated`
 
 Performance measurements are **audit artifacts** (reproducibility, determinism), not scientific evidence. Time values do not imply biological correspondence or simulator superiority.

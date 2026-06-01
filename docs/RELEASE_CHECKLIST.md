@@ -57,11 +57,11 @@ To prevent accidental release drift or tag/commit mutation, the following machin
   - [ ] `mkdocs.yml` → version reference (if present)
   - [ ] `docs/_generated/version.md` (if auto-generated, verify post-build)
 
-### Truth & Scope Validation
-- [ ] Truth posture confirmed: `truth_safe_unverified`, `computational_scaffold`, no `physical_amplitude_claim_allowed`
-- [ ] Claim language audit: CHANGELOG and release notes avoid "validated", "proved", "physical" amplitude
+### Run Scope Validation
+- [ ] Status posture confirmed: `tutorial_scaffold`, `computational_scaffold`, no `amplitude_status`
+- [ ] Statement language audit: CHANGELOG and release notes avoid "validated", "proved", "physical" amplitude
 - [ ] Field solver status: all data classes carry `field_solver_status=laminar_proxy_no_pde` or equivalent
-- [ ] No hardcoded EEG/MEG/LFP/CSD amplitude claims in tutorials or notebooks
+- [ ] No hardcoded EEG/MEG/LFP/CSD amplitude statuss in tutorials or notebooks
 
 ### Final Sign-off
 - [ ] All gates pass locally or on CI

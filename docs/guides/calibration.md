@@ -16,7 +16,7 @@ jaxfne is designed to support future calibration workflows. The framework:
 To prepare a workflow for calibration:
 
 1. **Specify geometry:** Define layer depths, contact locations, tissue conductivity (if known)
-2. **Document assumptions:** State source model, field solver, claim-status
+2. **Document assumptions:** State source model, field solver, status
 3. **Collect reference data:** Identify empirical EEG/MEG/LFP/CSD for comparison
 4. **Validate:** Compare proxy readouts to empirical data; compute residuals and alignment metrics
 
@@ -77,15 +77,15 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 # report contains:
 # - calibration_name, target, mode, status
 # - units, scale, reference, description
-# - physical_amplitude_claim_allowed: false (always in v0.2.5)
-# - calibration_claim_level: computational_proxy_with_declared_metadata
+# - amplitude_status: false (always in v0.2.5)
+# - calibration_model_status: computational_proxy_with_declared_metadata
 # - assumptions and warnings
 ```
 
 ### Important: v0.2.5 Behavior
 
 - **All proxy readouts remain computational proxies** by default
-- `physical_amplitude_claim_allowed` stays `false` for all modes in v0.2.5
+- `amplitude_status` stays `false` for all modes in v0.2.5
 - Calibration metadata is declared for future validation, validation pending
 - Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
 
