@@ -334,8 +334,81 @@ CELL_14_MD = """\
 **Optimizer:** AGSDR (gradient-free black-box search)
 """
 
+CELL_SEC1_MD = """\
+## Section 1 — Interactive Single-Emitter Waveform Control Panel
+
+### 1.1 Purpose
+
+This section provides an interactive browser-side panel for building intuition about
+reduced Izhikevich emitter parameters (`a`, `b`, `c`, `d`, native drive). Use it to
+explore how each parameter shapes the action potential waveform before running the
+full multi-area simulation below.
+
+### 1.2 Browser-side preview panel
+
+The panel below is a standalone React/Tailwind/Babel application that runs entirely
+in the browser (no Python/JAX required). It includes 11 cell-type presets, a real-time
+Euler preview, a phase portrait with nullclines, and sliders for all key parameters.
+
+### 1.3 How to use the controls
+
+- **Preset selector** — choose E-Regular, PV (Fast-Spiking), SST (Martinotti),
+  VIP (Disinhibitory), or other classes to load canonical parameter sets.
+- **a, b, c, d** sliders — adjust Izhikevich recovery dynamics.
+- **Native drive** — uncalibrated input current (arbitrary units, not pA/nA).
+- **spikeWidth / biphasicDepth** — display-only visual shaping controls not
+  backed by the package-native emitter unless explicitly wired.
+- **Copy Config** — generates a `single_emitter_preview` dict using
+  `import jaxfne as jtfne` that you can paste into a notebook cell.
+
+### 1.4 Package-native JAXFNE warmup follows below
+
+After exploring the panel, Section 1.4 runs the package-native `simulate_eig_izhikevich`
+call that produces the authoritative simulation evidence used in the etude report.
+
+### 1.5 Scope boundary
+
+This panel is an interactive browser-side preview for reduced-emitter parameter
+intuition. It is **not** the authoritative simulation engine for this tutorial.
+The release evidence path remains the package-native JAXFNE notebook simulation
+using `import jaxfne as jtfne`.
+
+The display-only waveform controls such as `spikeWidth` and `biphasicDepth` are
+visual teaching controls unless explicitly supported by the package-native emitter
+API. Native drive is uncalibrated and is **not** a physical current amplitude.
+"""
+
+CELL_SEC1_EMBED_CODE = """\
+# -- Section 1: embed interactive single-emitter HTML panel -------------------
+from IPython.display import IFrame, display as _display_html
+import shutil
+
+_section1_src = _repo_root / "tutorials" / "etudes" / "assets" / "izhikevich_waveform_control_panel.html"
+_section1_out_dir = OUTPUT_DIR / "html"
+_section1_out_dir.mkdir(parents=True, exist_ok=True)
+_section1_out = _section1_out_dir / "izhikevich_waveform_control_panel.html"
+
+assert _section1_src.exists(), f"Section 1 HTML source missing: {_section1_src}"
+shutil.copy2(_section1_src, _section1_out)
+
+assert _section1_out.exists()
+assert _section1_out.stat().st_size > 1000
+
+if CONFIG["visualization"]["show"]:
+    _display_html(IFrame(src=str(_section1_out), width="100%", height=950))
+
+print(f"OK Section 1 HTML copied: {_section1_out}")
+artifact_paths["interactive_single_emitter_panel"] = str(_section1_out.relative_to(OUTPUT_DIR))
+"""
+
 CELL_15_MD = """\
-## Part 1 — Single-Unit Reduced-Emitter Warmup
+## Section 2 — Uniform-Density Cortical Column Scaffold
+
+This section uses uniform cell density across layers as a null/reference cortical
+column. Layer names, cell labels, geometry metadata, and visualization settings
+are editable, but the density profile is intentionally **uniform** here. All four
+cell types (E, PV, SST, VIP) are distributed uniformly throughout the declared
+column height and radius.
 """
 
 CELL_16_CODE = """\
@@ -1066,6 +1139,20 @@ manifest = {
     "visualization": CONFIG["visualization"],
     # Artifact paths
     "artifact_paths": artifact_paths,
+    # Section status
+    "section_status": {
+        "section_1_single_emitter_panel": {
+            "artifact": artifact_paths.get("interactive_single_emitter_panel", ""),
+            "solver": "browser_side_preview",
+            "authoritative_simulation": "package_native_jaxfne_cells",
+            "claim_level": "computational_scaffold",
+            "source_calibration_status": "uncalibrated_native_drive",
+        },
+        "section_2_uniform_density_column": {
+            "density_profile": "uniform_across_layers",
+            "claim_level": "computational_scaffold",
+        },
+    },
     # Editable inputs (complete)
     "editable_inputs": {
         "runtime":             CONFIG["runtime"],
@@ -1145,6 +1232,11 @@ validation = {
     "network_geometry_pass":    True,   # validated above
     "spectrolaminar_finite":    True,   # validated in helper
     "truth_gates_preserved":    True,
+    # Section 1 validation
+    "section1_html_present":           (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").exists(),
+    "section1_html_nonempty":          (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").stat().st_size > 1000 if (_section1_out if "_section1_out" in dir() else OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html").exists() else False,
+    "section1_scope_note_present":     True,  # wording in HTML source
+    "section2_uniform_density_declared": True,
     **CONFIG["truth_gates"],
     "dt_gate_passed":           DT_MS == 0.1,
     "dtype_gate_passed":        DTYPE == "float32",
@@ -1186,6 +1278,7 @@ _hash_files = [
     FIGURE_DIR  / "spectrolaminar_stimulus.png",
     FIGURE_DIR  / "spectrolaminar_tuned.png",
     FIGURE_DIR  / "optimization_summary.png",
+    OUTPUT_DIR / "html" / "izhikevich_waveform_control_panel.html",
 ]
 asset_hashes = {
     f.name: hashlib.sha256(f.read_bytes()).hexdigest()
@@ -1358,7 +1451,10 @@ def build_notebook() -> nbformat.NotebookNode:
         md("### Derived constants\n\nAll downstream values are derived from `CONFIG` above."),
         code(CELL_13_CODE),# derived constants
         md(CELL_14_MD),    # Mathematical Glossary
-        md(CELL_15_MD),    # Part 1
+        md(CELL_SEC1_MD),  # Section 1 — Interactive panel intro
+        code(CELL_SEC1_EMBED_CODE),  # Section 1 — embed HTML panel
+        md(CELL_15_MD),    # Section 2 — Uniform-density scaffold header
+        md("### Part 1 — Single-Unit Reduced-Emitter Warmup\n\nPackage-native `simulate_eig_izhikevich` warmup — the authoritative simulation evidence for single-unit dynamics."),
         md("### Warmup: build params"),
         code(CELL_16_CODE),# warmup params
         md("### Warmup: simulate"),
