@@ -38,7 +38,7 @@ The workflow exports simulated proxy readouts and validation artifacts for the c
 The notebook contains install cells for both public package use and current `main` branch testing:
 
 ```python
-!pip install -q "jaxfne[viz]>=0.3.22"
+!pip install -q "jaxfne[viz]>=0.3.24"
 ```
 
 ```python
