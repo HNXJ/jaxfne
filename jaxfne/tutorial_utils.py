@@ -449,7 +449,6 @@ def rate_synchrony_targets(
 # ─────────────────────────────────────────────────────────────────────────────
 
 import json
-import pandas as pd
 from dataclasses import dataclass, field, asdict
 
 
@@ -520,8 +519,9 @@ class LaminarColumnConfig:
     physical_amplitude_claim_allowed: bool = False
 
     @property
-    def cell_dist_frame(self) -> pd.DataFrame:
+    def cell_dist_frame(self) -> "pd.DataFrame":
         """Return cell distribution as DataFrame."""
+        import pandas as pd
         return pd.DataFrame(
             self.cell_dist,
             index=list(self.layers),
@@ -675,8 +675,9 @@ def make_cell_type_catalog(
     return catalog
 
 
-def cell_catalog_frame(catalog: dict[str, CellTypePreset]) -> pd.DataFrame:
+def cell_catalog_frame(catalog: dict[str, CellTypePreset]) -> "pd.DataFrame":
     """Return cell catalog as DataFrame for display."""
+    import pandas as pd
     rows = []
     for cell_type, preset in catalog.items():
         rows.append({
@@ -866,8 +867,9 @@ def make_laminar_column_config(
     )
 
 
-def config_summary_frame(cfg: LaminarColumnConfig) -> pd.DataFrame:
+def config_summary_frame(cfg: LaminarColumnConfig) -> "pd.DataFrame":
     """Return config as a summary DataFrame."""
+    import pandas as pd
     rows = [
         ('Areas', ', '.join(cfg.areas)),
         ('Layers', ', '.join(cfg.layers)),
@@ -1050,6 +1052,7 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
     dict
         Model dict with keys: neurons, positions_m, W_parts, truth_gates
     """
+    import pandas as pd
     # Create neuron table
     neuron_id = 0
     neurons = []
@@ -1447,6 +1450,7 @@ def summarize_spectrolaminar_similarity(
         scores_df: DataFrame with columns [area, similarity_percent]
         specs_dict: dict[area -> power/profile dicts]
     """
+    import pandas as pd
     if areas is None:
         areas = cfg.areas
 
