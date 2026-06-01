@@ -239,13 +239,30 @@ def activity_trace_suite(
     axes[0, 0].set_ylabel('Neuron index')
     axes[0, 0].set_title('Spike Raster')
 
-    # Panel 2: LFP traces
-    for ci in range(min(4, lfp_mean.shape[1])):
-        axes[0, 1].plot(t_window, lfp_mean[mask, ci] * lfp_gain, lw=1, label=f'Contact {ci}')
+    # Panel 2: LFP traces — stacked per-channel waterfall (one row per contact,
+    # non-overlapping), superficial contact at top, deep at bottom.
+    lfp_win = lfp_mean[mask]                      # (T_win, n_contacts)
+    n_ch = lfp_win.shape[1]
+    # Per-channel z-score so every contact has comparable amplitude.
+    ch_mean = lfp_win.mean(axis=0, keepdims=True)
+    ch_std = lfp_win.std(axis=0, keepdims=True) + 1e-9
+    lfp_z = (lfp_win - ch_mean) / ch_std
+    row_spacing = 4.0                            # in z-score units (non-overlap)
+    cmap = plt.get_cmap('viridis')
+    for ci in range(n_ch):
+        offset = ci * row_spacing
+        axes[0, 1].plot(
+            t_window, lfp_z[:, ci] * lfp_gain * 0.2 + offset,
+            lw=0.6, color=cmap(ci / max(n_ch - 1, 1)),
+        )
     axes[0, 1].set_xlabel('Time (ms)')
-    axes[0, 1].set_ylabel('LFP-proxy (V)')
-    axes[0, 1].set_title('LFP Traces')
-    axes[0, 1].legend(fontsize=8)
+    axes[0, 1].set_ylabel('Contact (depth)')
+    axes[0, 1].set_title(f'LFP Traces ({n_ch} channels)')
+    tick_idx = np.linspace(0, n_ch - 1, min(n_ch, 8)).astype(int)
+    axes[0, 1].set_yticks([i * row_spacing for i in tick_idx])
+    axes[0, 1].set_yticklabels([str(int(i)) for i in tick_idx])
+    axes[0, 1].set_ylim(-row_spacing, (n_ch) * row_spacing)
+    axes[0, 1].invert_yaxis()                    # contact 0 (superficial) at top
 
     # Panel 3: CSD heatmap
     if csd_mean.shape[1] > 1:
@@ -300,6 +317,7 @@ def spectrolaminar_suite_3panel(
     density_smooth_sigma: float = 1.2,
     power_vmin: float = 0.48,
     power_vmax: float = 0.94,
+    profile_smooth_sigma: float = 1.0,
 ) -> dict:
     """Create 3-panel spectrolaminar suite per area.
 
@@ -343,73 +361,86 @@ def spectrolaminar_suite_3panel(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    line_color = '#f5f5f5' if theme == "dark" else '#202020'
     figs = {}
 
     for area in areas:
+        # Genuine per-area spec (specs is keyed by area name).
+        spec = specs[area] if area in specs else specs
+
         fig, axes = plt.subplots(1, 3, figsize=(14, 5), dpi=150,
                                 gridspec_kw={'width_ratios': [0.85, 1.75, 0.85]},
                                 sharey=True)
 
-        fig.suptitle(f"{area} Spectrolaminar ({stage})", fontsize=11)
+        n_trials = int(spec.get('n_trials', getattr(cfg, 'n_trials', 0)))
+        sim_pct = float(spec.get('similarity_percent', float('nan')))
+        fig.suptitle(
+            f"{stage}: TFNE-Izhikevich spectrolaminar suite "
+            f"({n_trials} trials, area {area}, similarity {sim_pct:.1f}%)",
+            fontsize=12,
+        )
 
-        # Get area neurons
+        # Depth axis from the spec's contact positions (mm), shared across panels.
+        pos_from_l4 = np.asarray(spec['pos_from_l4'], dtype=float) * 1.0e3  # m -> mm
+        pos_lo, pos_hi = float(pos_from_l4.min()), float(pos_from_l4.max())
+
+        # ── Panel A: Mean Relative Dist of Cells ──────────────────────────────
         neurons_df = model['neurons']
-        area_mask = neurons_df['area'] == area
-        area_neurons = neurons_df[area_mask]
-
-        # Panel A: Cell density
-        pos_from_l4 = specs.get('pos_from_l4', np.linspace(-0.5, 0.5, 33))
-        bin_edges = np.linspace(pos_from_l4.min() - 0.05, pos_from_l4.max() + 0.05, density_bins + 1)
+        area_neurons = neurons_df[neurons_df['area'] == area]
+        bin_edges = np.linspace(pos_lo, pos_hi, density_bins + 1)
         bin_ctrs = 0.5 * (bin_edges[:-1] + bin_edges[1:])
-
         for ct in cfg.cell_types:
-            ct_mask = area_neurons['cell_type'] == ct
-            z_ct = area_neurons.loc[ct_mask, 'pos_from_l4'].values
+            z_ct = area_neurons.loc[area_neurons['cell_type'] == ct, 'pos_from_l4'].values * 1.0e3
             if len(z_ct) == 0:
                 continue
             counts, _ = np.histogram(z_ct, bins=bin_edges)
             counts = gauss1d(counts.astype(float), density_smooth_sigma)
             if counts.max() > 0:
                 counts = counts / counts.max()
-            axes[0].plot(counts, bin_ctrs, lw=2.0, color=cfg.cell_colors.get(ct, '#808080'),
-                        label=ct)
-
-        axes[0].axhline(0, color='#f5f5f5', lw=1.0, ls='--', alpha=0.5)
-        axes[0].set_title('A Cell Density', fontsize=10)
+            axes[0].plot(counts, bin_ctrs, lw=2.0,
+                         color=cfg.cell_colors.get(ct, '#808080'), label=ct)
+        axes[0].axhline(0, color=line_color, lw=1.0, alpha=0.7)
+        axes[0].set_title('A Mean Relative Dist of Cells', fontsize=10)
         axes[0].set_xlabel('Relative Count')
-        axes[0].set_ylabel('Cortical Position from L4 (mm)')
-        axes[0].legend(fontsize=8)
+        axes[0].set_ylabel('Cortical Position from L4')
+        axes[0].legend(fontsize=8, loc='lower right')
 
-        # Panel B: Power heatmap
-        relative_power = specs.get('relative_power', np.random.rand(64, 32))
-        freq_hz = specs.get('freq_hz', np.logspace(0, 2.2, 64))
-
-        im = axes[1].imshow(relative_power, aspect='auto', origin='lower',
-                           extent=[freq_hz[0], freq_hz[-1], pos_from_l4.min(), pos_from_l4.max()],
-                           cmap='viridis', vmin=power_vmin, vmax=power_vmax)
-        axes[1].axhline(0, color='#f5f5f5', lw=1.0, ls='--', alpha=0.5)
-        axes[1].set_title('B Power Spectrum', fontsize=10)
+        # ── Panel B: Mean Relative Power Spectrum ─────────────────────────────
+        # spec['relative_power'] is (n_freqs, n_contacts); transpose so depth is
+        # the vertical axis and frequency the horizontal axis.
+        relative_power = np.asarray(spec['relative_power'], dtype=float)
+        freq_hz = np.asarray(spec['freq_hz'], dtype=float)
+        im = axes[1].imshow(
+            relative_power.T, aspect='auto', origin='lower',
+            extent=[float(freq_hz[0]), float(freq_hz[-1]), pos_lo, pos_hi],
+            cmap='viridis', vmin=power_vmin, vmax=power_vmax,
+        )
+        axes[1].axhline(0, color=line_color, lw=1.0, alpha=0.7)
+        axes[1].set_title('B Mean Relative Power Spectrum', fontsize=10)
         axes[1].set_xlabel('Frequency (Hz)')
-        fig.colorbar(im, ax=axes[1], label='Rel Power')
+        fig.colorbar(im, ax=axes[1], label='Rel Pow')
 
-        # Panel C: Band profiles
-        ab_profile = specs.get('alpha_beta', np.ones(len(pos_from_l4)))
-        gm_profile = specs.get('gamma', np.ones(len(pos_from_l4)))
+        # ── Panel C: Alpha-beta / Gamma cross ─────────────────────────────────
+        ab_profile = np.asarray(spec['alpha_beta'], dtype=float)
+        gm_profile = np.asarray(spec['gamma'], dtype=float)
+        if profile_smooth_sigma and profile_smooth_sigma > 0 and ab_profile.size >= 3:
+            ab_profile = gauss1d(ab_profile, profile_smooth_sigma)
+            gm_profile = gauss1d(gm_profile, profile_smooth_sigma)
+        axes[2].plot(ab_profile, pos_from_l4, color='#1f4fe0', lw=2.5, label='Alpha-beta')
+        axes[2].plot(gm_profile, pos_from_l4, color='#e01f1f', lw=2.5, label='Gamma')
+        axes[2].axhline(0, color=line_color, lw=1.0, alpha=0.7)
+        axes[2].set_title('C Alpha-beta / Gamma cross', fontsize=10)
+        axes[2].set_xlabel('Relative power')
+        axes[2].legend(fontsize=8, loc='lower left')
 
-        axes[2].plot(ab_profile, pos_from_l4, color='#4169e1', lw=2.5, label='Alpha-beta')
-        axes[2].plot(gm_profile, pos_from_l4, color='#dc143c', lw=2.5, label='Gamma')
-        axes[2].axhline(0, color='#f5f5f5', lw=1.0, ls='--', alpha=0.5)
-        axes[2].set_title('C Band Profiles', fontsize=10)
-        axes[2].set_xlabel('Relative Power')
-        axes[2].legend(fontsize=8)
+        # Cortical depth increases downward (superficial above L4 at top).
+        axes[0].set_ylim(pos_hi, pos_lo)
 
-        # Apply dark theme
         if theme == "dark":
             _apply_dark_theme(fig, axes)
 
         fig.tight_layout()
 
-        # Save PNG
         png_path = output_dir / f"spectrolaminar_{stage}_{area}.png"
         fig.savefig(png_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
         print(f"Saved: {png_path}")
