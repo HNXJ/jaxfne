@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.25 (2026-06-01)
+
+**Feature release:** Cylindric scaffold, spectrolaminar motif, and 32-contact LFP artifacts.
+
+### Added
+- Cylindric scaffold geometry: per-area vertical cylinders (circular x-y cross-section, depth on z); `visualize_network_3d` gains `column_shape="cylinder"` shells and per-cell-type marker symbols.
+- Genuine per-area three-panel spectrolaminar suite (cell density, relative power spectrum, alpha-beta/gamma crossing) with smoothed band profiles.
+- 32-contact LFP/spectrolaminar artifacts: equal-spaced contacts, robust relative-power normalization excluding degenerate low-power channels, 32-channel stacked LFP waterfall.
+
+### Fixed
+- Notebook controls for trials, contacts, and per-layer cell-type fractions; CI dev-extra (`ipykernel`) for slow notebook-execution tests.
+
+### Scope
+- Outputs remain proxy readouts with `field_solver_status=laminar_proxy_no_pde` and `physical_amplitude_claim_allowed=false`.
+
+
 ## v0.3.24 (2026-06-01)
 
 **Release candidate:** Compact Etude No. 1 tutorial utilities and Colab-ready visualization flow.

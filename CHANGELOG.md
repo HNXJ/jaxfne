@@ -1,3 +1,18 @@
+## [0.3.25] - 2026-06-01
+
+### Added
+- Cylindric scaffold geometry: `build_laminar_column` now places neurons in vertical per-area cylinders (circular x-y cross-section, depth on z), and `visualize_network_3d` gains `column_shape="cylinder"` shells plus per-cell-type marker symbols.
+- Spectrolaminar motif update: genuine per-area three-panel suite (cell-density profile, relative power spectrum heatmap, alpha-beta/gamma crossing) with Gaussian-smoothed band profiles and reference-matched labels.
+- 32-contact LFP/spectrolaminar artifacts: equal-spaced contacts, robust relative-power normalization that excludes degenerate low-power channels, and a 32-channel stacked LFP waterfall trace panel.
+
+### Fixed
+- Notebook controls for trial count, contact count, and per-layer cell-type fractions; CI dev-extra (`ipykernel`) for slow notebook-execution tests.
+
+### Scope
+- Maintains `truth_safe_unverified`, `computational_scaffold`, and `laminar_proxy_no_pde` status; proxy readouts only, `physical_amplitude_claim_allowed=false`.
+
+---
+
 ## [0.3.24] - 2026-06-01
 
 ### Added
