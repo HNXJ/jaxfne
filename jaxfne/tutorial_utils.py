@@ -511,6 +511,15 @@ class LaminarColumnConfig:
     output_dir: Path
     base_control: dict = field(default_factory=dict)
 
+    # Per-cell-type Izhikevich parameter overrides, e.g.
+    #   {"E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 7.0}, ...}
+    # Any subset of {a, b, c, d, drive} per cell type overrides the package
+    # default for every neuron of that type. Lets a tutorial shape per-type
+    # waveform/frequency content (e.g. a WIDER, slower E AP -> more alpha-beta;
+    # fast PV -> gamma) to test spectrolaminar properties. Native/uncalibrated
+    # proxy units; does not change truth gates.
+    cell_type_izh_params: dict = field(default_factory=dict)
+
     # Truth gates (immutable by frozen dataclass)
     truth_mode: str = "truth_safe_unverified"
     claim_level: str = "computational_scaffold"
@@ -730,6 +739,7 @@ def make_laminar_column_config(
     freq_count=96,
     output_dir="outputs/jaxfne_etude_no_1",
     base_control=None,
+    cell_type_izh_params=None,
     truth_mode="truth_safe_unverified",
     claim_level="computational_scaffold",
     field_solver_status="laminar_proxy_no_pde",
@@ -824,6 +834,16 @@ def make_laminar_column_config(
             'feedback_gain': 1.00,
         }
 
+    if cell_type_izh_params is None:
+        # Default to a WIDER, slower excitatory action potential (the "E-Wide"
+        # profile): lower recovery rate `a` and higher `c`/`d` slow the AP so E
+        # cells carry more low-frequency (alpha-beta) content, while the fast
+        # interneurons (PV default a=0.10) keep their gamma-range dynamics.
+        # Override any subset per cell type to test other waveforms.
+        cell_type_izh_params = {
+            'E': {'a': 0.015, 'b': 0.20, 'c': -60.0, 'd': 10.0},
+        }
+
     # Create cell distribution matrix
     cell_dist = make_cell_dist(layers, cell_types, layer_cell_type_frac)
 
@@ -859,6 +879,7 @@ def make_laminar_column_config(
         freq_count=int(freq_count),
         output_dir=Path(output_dir),
         base_control=dict(base_control),
+        cell_type_izh_params={k: dict(v) for k, v in dict(cell_type_izh_params).items()},
         truth_mode=truth_mode,
         claim_level=claim_level,
         field_solver_status=field_solver_status,
@@ -1328,6 +1349,34 @@ def simulate_laminar_trials(
         params = izhikevich_params_from_labels(
             area_cells, layer_labels=area_layers, dtype=cfg.dtype,
         )
+
+        # Per-cell-type Izhikevich parameter overrides (a, b, c, d, drive) so a
+        # tutorial can shape per-type waveform/frequency content (e.g. wider/
+        # slower E -> more alpha-beta; fast PV -> gamma).
+        izh_over = getattr(cfg, "cell_type_izh_params", None) or {}
+        if izh_over:
+            a_arr = np.asarray(params.a, dtype=np.float32).copy()
+            b_arr = np.asarray(params.b, dtype=np.float32).copy()
+            c_arr = np.asarray(params.c, dtype=np.float32).copy()
+            d_arr = np.asarray(params.d, dtype=np.float32).copy()
+            drv_arr = np.asarray(params.drive, dtype=np.float32).copy()
+            cells_arr = np.asarray(area_cells)
+            for ct, p in izh_over.items():
+                m = cells_arr == ct
+                if not m.any():
+                    continue
+                if 'a' in p: a_arr[m] = float(p['a'])
+                if 'b' in p: b_arr[m] = float(p['b'])
+                if 'c' in p: c_arr[m] = float(p['c'])
+                if 'd' in p: d_arr[m] = float(p['d'])
+                if 'drive' in p: drv_arr[m] = float(p['drive'])
+            u0_arr = b_arr * np.asarray(params.v0, dtype=np.float32)
+            params = _dataclasses.replace(
+                params,
+                a=jnp.asarray(a_arr), b=jnp.asarray(b_arr),
+                c=jnp.asarray(c_arr), d=jnp.asarray(d_arr),
+                drive=jnp.asarray(drv_arr), u0=jnp.asarray(u0_arr),
+            )
 
         # Scale recurrent weights by per-presynaptic-sign local gain.
         sign = np.asarray(params.sign)

@@ -360,6 +360,37 @@ class TestSimulateTrials:
             "— leadfield depth structure missing (mock regression?)"
         )
 
+    def test_cell_type_izh_params_override_reaches_engine(self):
+        """Per-cell-type Izhikevich overrides must change the real dynamics.
+
+        Drives the E population hard vs not at all via cell_type_izh_params and
+        asserts the resulting E spike counts differ — confirming the override is
+        applied to simulate_eig_izhikevich, not silently dropped.
+        """
+        from jaxfne.tutorial_utils import make_laminar_column_config
+
+        def e_rate(drive):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=20,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={"E": {"drive": drive}},
+            )
+            model = build_laminar_column(cfg)
+            trials = simulate_laminar_trials(model, cfg, n_trials=1)
+            e_idx = np.flatnonzero(model["neurons"]["cell_type"].to_numpy() == "E")
+            return float(trials["spikes"][0][:, e_idx].mean())
+
+        quiet = e_rate(0.0)
+        loud = e_rate(12.0)
+        assert loud > quiet, f"E drive override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_default_config_applies_wider_E_waveform(self):
+        """Default tutorial config ships the wider 'E-Wide' excitatory profile."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(areas=("V1",), cell_types=("E", "PV"))
+        assert "E" in cfg.cell_type_izh_params
+        assert cfg.cell_type_izh_params["E"]["a"] < 0.02  # slower recovery => wider AP
+
     def test_simulate_is_reproducible_for_fixed_seed(self):
         """Real-engine trials must be deterministic given the config seed."""
         cfg = make_test_config(
