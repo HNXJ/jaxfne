@@ -1,4 +1,4 @@
-# Tutorial: Multi-Area Laminar Cortical Workshop
+# Tutorial: Multi-area Laminar Model
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 

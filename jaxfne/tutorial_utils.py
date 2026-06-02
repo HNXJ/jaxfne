@@ -1115,15 +1115,36 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
     neuron_id = 0
     neurons = []
 
-    for area_idx, area in enumerate(cfg.areas):
-        for n in range(cfg.n_neuron_per_column):
-            # Assign layer and cell type based on distributions
-            layer_idx = n % len(cfg.layers)
-            layer = cfg.layers[layer_idx]
+    # Pre-compute per-layer neuron counts (largest-remainder from layer_count_frac).
+    _layer_keys = list(cfg.layers)
+    _lcf_vals   = np.array([cfg.layer_count_frac.get(l, 1.0) for l in _layer_keys], dtype=float)
+    _lcf_vals  /= _lcf_vals.sum()
+    _n_raw      = _lcf_vals * cfg.n_neuron_per_column
+    _n_floor    = np.floor(_n_raw).astype(int)
+    _remainder  = int(cfg.n_neuron_per_column - _n_floor.sum())
+    _topup      = np.argsort(-(_n_raw - _n_floor))[:_remainder]
+    _layer_n    = _n_floor.copy(); _layer_n[_topup] += 1
 
-            # Cell type assignment (round-robin or based on cell_dist)
-            cell_type_idx = (n // len(cfg.layers)) % len(cfg.cell_types)
-            cell_type = cfg.cell_types[cell_type_idx]
+    # Per-layer per-cell-type integer counts (largest-remainder from cell_dist).
+    _layer_cell_counts: list[list[int]] = []
+    for li in range(len(_layer_keys)):
+        row = np.array(cfg.cell_dist[li], dtype=float)
+        raw = row * _layer_n[li]
+        fl  = np.floor(raw).astype(int)
+        rem = int(_layer_n[li] - fl.sum())
+        fl[np.argsort(-(raw - fl))[:rem]] += 1
+        _layer_cell_counts.append(fl.tolist())
+
+    for area_idx, area in enumerate(cfg.areas):
+        # Expand (layer, cell_type) pairs then shuffle within area for uniform geometry.
+        _neuron_list: list[tuple[str, str]] = []
+        for li, layer in enumerate(_layer_keys):
+            for ci, ct in enumerate(cfg.cell_types):
+                _neuron_list.extend([(layer, ct)] * _layer_cell_counts[li][ci])
+        _rng_shuf = np.random.RandomState(int(cfg.seed) + area_idx * 997)
+        _rng_shuf.shuffle(_neuron_list)
+
+        for n, (layer, cell_type) in enumerate(_neuron_list):
 
             # Vertical-cylinder geometry: depth runs along z; the (x, y) base is a
             # circular cross-section of radius ``radius_rel * cx_m`` centred on the
@@ -1803,7 +1824,7 @@ def summarize_spectrolaminar_similarity(
     trials: dict,
     cfg: LaminarColumnConfig,
     areas: Sequence[str] | None = None,
-    signal_key: str = "csd_contacts",
+    signal_key: str = "lfp_contacts",
     freq_min_hz: float | None = None,
     freq_max_hz: float | None = None,
     freq_count: int | None = None,
