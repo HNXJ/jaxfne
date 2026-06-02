@@ -317,6 +317,63 @@ class TestSimulateTrials:
             assert trials[key].shape[3] == cfg.n_contacts
             assert np.all(np.isfinite(trials[key]))
 
+    def test_real_engine_produces_depth_structure_and_activity(self):
+        """Regression: trials come from the real Izhikevich engine + a
+        depth-dependent leadfield, NOT white-noise mock.
+
+        Guards against reverting to the old mock path (which broadcast one
+        area-mean to every contact + noise, giving no depth structure and a
+        white-noise power spectrum). Asserts: plausible spiking activity, and
+        that LFP band power genuinely varies across depth/contacts.
+        """
+        cfg = make_test_config(
+            areas=("V1",), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=40, n_contacts=16,
+            duration_ms=150.0, dt_ms=0.5,
+        )
+        model = build_laminar_column(cfg)
+        stim = make_stimulus(
+            kind="sine", duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms,
+            frequency_hz=10.0, amplitude=6.0,
+        )
+        target = select_cells(model, layers=("L4",), cell_types=("E",), seed=cfg.seed)
+        trials = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=3)
+
+        # Plausible, finite activity (the mock used a flat 5 Hz Bernoulli rate;
+        # the real engine produces spikes driven by dynamics).
+        rate_hz = float(trials["spikes"].mean()) * 1000.0 / cfg.dt_ms
+        assert 0.1 < rate_hz < 500.0, rate_hz
+        assert np.all(np.isfinite(trials["lfp_contacts"]))
+        assert np.all(np.isfinite(trials["source_native"]))
+
+        # Depth structure: top and bottom contacts must see genuinely different
+        # signals. The old mock broadcast ONE area-mean to every contact, so all
+        # contact traces correlated ~1.0; the depth-dependent leadfield makes the
+        # shallowest and deepest contacts sample different neuron populations, so
+        # their correlation drops well below 1.0.
+        lfp = trials["lfp_contacts"][:, 0]          # (trials, T, contacts)
+        pooled = np.concatenate(list(lfp), axis=0)  # (trials*T, contacts)
+        corr = np.corrcoef(pooled.T)
+        first_last_corr = float(corr[0, -1])
+        assert first_last_corr < 0.9, (
+            f"top/bottom contacts nearly identical ({first_last_corr:.3f}) "
+            "— leadfield depth structure missing (mock regression?)"
+        )
+
+    def test_simulate_is_reproducible_for_fixed_seed(self):
+        """Real-engine trials must be deterministic given the config seed."""
+        cfg = make_test_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=20,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5,
+        )
+        model = build_laminar_column(cfg)
+        stim = make_stimulus(kind="sine", duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms)
+        target = select_cells(model, layers=("L4",), cell_types=("E",), seed=cfg.seed)
+        a = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=2)
+        b = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=2)
+        assert np.array_equal(a["spikes"], b["spikes"])
+        assert np.allclose(a["lfp_contacts"], b["lfp_contacts"])
+
     def test_per_area_specs_distinct(self):
         """Test spectrolaminar specs differ across areas (no copy-same-spec)."""
         cfg = make_test_config(

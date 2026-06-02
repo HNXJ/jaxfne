@@ -1247,9 +1247,11 @@ def simulate_laminar_trials(
     ---------------
     spikes / voltage_mV / source_native : (n_trials, n_steps, n_neurons)
     lfp_contacts / csd_contacts         : (n_trials, n_areas, n_steps, n_contacts)
-        Per-area laminar-proxy projections (population mean per area as the
-        proxy readout — NOT a solved PDE; field_solver_status stays
-        "laminar_proxy_no_pde").
+        Per-area laminar-proxy projections produced by a depth-dependent
+        Gaussian leadfield (jaxfne.fields.project_laminar_sources) applied to
+        the real per-neuron Izhikevich source traces, so band power genuinely
+        varies with cortical depth. NOT a solved PDE; field_solver_status stays
+        "laminar_proxy_no_pde" and physical_amplitude_claim_allowed=False.
     contact_depths_m                    : (n_contacts,)
     area_names                          : tuple[str, ...]
     """
@@ -1271,7 +1273,43 @@ def simulate_laminar_trials(
         for area in areas
     ]
 
-    # Initialize output arrays
+    # Real engine + depth-dependent leadfield (package-native; no local mock).
+    import jax
+    import jax.numpy as jnp
+    import dataclasses as _dataclasses
+    from .emitters import izhikevich_params_from_labels, simulate_eig_izhikevich
+    from .fields import project_laminar_sources
+
+    # Per-neuron cell/layer labels and relative laminar depth (z in [0, 1]).
+    cell_labels = [str(x) for x in neurons_df['cell_type'].tolist()]
+    layer_labels = [str(x) for x in neurons_df['layer'].tolist()]
+    z_rel_all = np.clip(
+        neurons_df['z_m'].to_numpy(dtype=np.float64) / max(float(cfg.cz_m), 1e-12),
+        0.0, 1.0,
+    )
+
+    # Control knobs become real proxy parameters (previously ignored): the
+    # external stimulus is a thalamic-like drive into the targeted cells scaled
+    # by feedforward_gain, and the recurrent weights are scaled per presynaptic
+    # sign by local exc/inh gain. These are native/uncalibrated proxy units.
+    ff_gain = float(control.get('feedforward_gain', 1.0))
+    exc_gain = float(control.get('local_exc_gain', 1.0))
+    inh_gain = float(control.get('local_inh_gain', 1.0))
+
+    if stimulus is None:
+        stim_vec = np.zeros(n_steps, dtype=np.float64)
+    else:
+        stim_vec = np.asarray(stimulus, dtype=np.float64).reshape(-1)
+        if stim_vec.shape[0] < n_steps:
+            stim_vec = np.pad(stim_vec, (0, n_steps - stim_vec.shape[0]))
+        else:
+            stim_vec = stim_vec[:n_steps]
+
+    target_mask_global = np.zeros(n_neurons, dtype=bool)
+    if target_cells is not None and np.asarray(target_cells).size > 0:
+        target_mask_global[np.asarray(target_cells, dtype=int)] = True
+
+    # Output arrays (tensor contract preserved)
     time_ms = np.arange(n_steps) * cfg.dt_ms
     spikes = np.zeros((n_trials, n_steps, n_neurons), dtype=bool)
     voltage_mV = np.zeros((n_trials, n_steps, n_neurons), dtype=np.float32)
@@ -1279,37 +1317,64 @@ def simulate_laminar_trials(
     lfp_contacts = np.zeros((n_trials, n_areas, n_steps, cfg.n_contacts), dtype=np.float32)
     csd_contacts = np.zeros((n_trials, n_areas, n_steps, cfg.n_contacts), dtype=np.float32)
 
-    # Generate mock trials
-    rng = np.random.RandomState(cfg.seed + seed_offset)
+    field_diagnostics = None
 
-    for trial in range(n_trials):
-        # Mock spike generation
-        baseline_rate = 5.0  # Hz
-        spike_prob = baseline_rate * cfg.dt_ms / 1000.0
-        spikes[trial] = rng.rand(n_steps, n_neurons) < spike_prob
+    for ai, idx in enumerate(area_indices):
+        if idx.size == 0:
+            continue
 
-        # Mock voltage trajectory
-        voltage_mV[trial] = -70.0 + rng.randn(n_steps, n_neurons) * 5.0
+        area_cells = [cell_labels[i] for i in idx]
+        area_layers = [layer_labels[i] for i in idx]
+        params = izhikevich_params_from_labels(
+            area_cells, layer_labels=area_layers, dtype=cfg.dtype,
+        )
 
-        # Mock source
-        source_native[trial] = rng.randn(n_steps, n_neurons) * 0.5
+        # Scale recurrent weights by per-presynaptic-sign local gain.
+        sign = np.asarray(params.sign)
+        col_gain = np.where(sign > 0, exc_gain, inh_gain).astype(np.float32)
+        scaled_W = params.W * jnp.asarray(col_gain)[None, :]
+        params = _dataclasses.replace(params, W=scaled_W)
 
-        # Per-area laminar-proxy LFP/CSD: project each area's source subset
-        # independently to its contacts (population mean per area as the proxy).
-        for ai, idx in enumerate(area_indices):
-            if idx.size > 0:
-                area_lfp = source_native[trial][:, idx].mean(axis=1, keepdims=True)
-            else:
-                area_lfp = np.zeros((n_steps, 1), dtype=np.float32)
-            lfp = area_lfp + rng.randn(n_steps, cfg.n_contacts) * 0.1
-            lfp_contacts[trial, ai] = lfp
-            # CSD-proxy as spatial derivative across contacts
-            csd_contacts[trial, ai] = (
-                np.diff(lfp, axis=1, prepend=lfp[:, [0]])
-                + rng.randn(n_steps, cfg.n_contacts) * 0.05
+        # Per-area external drive schedule (n_steps, n_area_neurons).
+        area_target = target_mask_global[idx]
+        drive_sched = np.zeros((n_steps, idx.size), dtype=np.float32)
+        if area_target.any():
+            drive_sched[:, area_target] = (ff_gain * stim_vec)[:, None]
+        drive_sched_j = jnp.asarray(drive_sched)
+
+        # Positions for the laminar leadfield (only depth, column 2, is used).
+        positions = np.zeros((idx.size, 3), dtype=np.float32)
+        positions[:, 2] = z_rel_all[idx]
+        positions_j = jnp.asarray(positions)
+
+        for trial in range(n_trials):
+            key = jax.random.PRNGKey(
+                int(cfg.seed) + int(seed_offset) + 1009 * ai + trial
             )
+            v, spk, src = simulate_eig_izhikevich(
+                params, n_steps, cfg.dt_ms, key,
+                dtype=cfg.dtype, drive_schedule=drive_sched_j,
+            )
+            v = np.asarray(v)
+            spk = np.asarray(spk)
+            src = np.asarray(src)
+            voltage_mV[trial][:, idx] = v
+            spikes[trial][:, idx] = spk > 0.5
+            source_native[trial][:, idx] = src
 
-    # Contact depths (linear from 0 to 1)
+            # Depth-dependent Gaussian leadfield -> genuine laminar LFP/CSD that
+            # reflect each cell's depth and oscillatory content. Truth-gated as
+            # laminar_proxy_no_pde (no field solve; amplitude claim not allowed).
+            field = project_laminar_sources(
+                jnp.asarray(src), positions_j,
+                n_contacts=cfg.n_contacts, dtype=cfg.dtype,
+            )
+            lfp_contacts[trial, ai] = np.asarray(field.lfp_proxy)
+            csd_contacts[trial, ai] = np.asarray(field.csd_proxy)
+            if field_diagnostics is None:
+                field_diagnostics = field.diagnostics
+
+    # Contact depths in meters (leadfield uses relative [0,1]; map for plotting).
     contact_depths_m = np.linspace(0.0, cfg.cz_m, cfg.n_contacts)
 
     return {
@@ -1322,6 +1387,8 @@ def simulate_laminar_trials(
         'contact_depths_m': contact_depths_m,
         'area_names': cfg.areas,
         'control': control,
+        'field_solver_status': cfg.field_solver_status,
+        'field_diagnostics': field_diagnostics,
     }
 
 
@@ -1381,21 +1448,29 @@ def spectrolaminar_from_trials(
         ai = 0 if area_index is None else int(area_index)
         signal = signal[:, ai]  # (n_trials, n_steps, n_contacts)
 
-    # Collapse trials (mean)
-    signal_mean = signal.mean(axis=0)  # (n_steps, n_contacts)
+    # Spectral power, averaged ACROSS TRIALS in the power (magnitude) domain.
+    #
+    # Compute the spectral magnitude per trial, then average the per-trial
+    # spectra. Averaging the raw signal in the TIME domain first (the previous
+    # behavior) cancels every oscillation that is not phase-locked across trials
+    # and leaves mostly noise — which is why adding trials never cleaned up the
+    # motif and the power spectrum looked like a checkerboard. Power/magnitude
+    # averaging is the standard estimator for laminar oscillatory power: each
+    # added trial genuinely reduces variance and reveals the band structure.
+    signal = np.asarray(signal)  # (n_trials, n_steps, n_contacts)
+    n_trials_eff, n_steps, n_contacts = signal.shape
 
-    # Compute PSD via FFT
     freqs = np.linspace(freq_min_hz, freq_max_hz, freq_count)
-    n_contacts = signal_mean.shape[1]
-    psd = np.zeros((freq_count, n_contacts), dtype=np.float32)
+    sample_idx = np.arange(n_steps)
+    # DFT basis (freq_count, n_steps), reused for every trial/contact.
+    basis = np.exp(-1j * 2.0 * np.pi * (freqs[:, None] / fs) * sample_idx[None, :])
 
-    for ci in range(n_contacts):
-        x = signal_mean[:, ci]
-        n = len(x)
-        for fi, freq in enumerate(freqs):
-            k = freq / fs
-            phase = 2.0 * np.pi * k * np.arange(n)
-            psd[fi, ci] = np.abs(np.dot(x, np.exp(-1j * phase))) / max(n, 1)
+    psd_accum = np.zeros((freq_count, n_contacts), dtype=np.float64)
+    for ti in range(n_trials_eff):
+        # (freq_count, n_steps) @ (n_steps, n_contacts) -> (freq_count, n_contacts)
+        spec_t = basis @ signal[ti]
+        psd_accum += np.abs(spec_t) / max(n_steps, 1)
+    psd = (psd_accum / max(n_trials_eff, 1)).astype(np.float32)
 
     # Normalize to relative power. Use a robust scale that IGNORES degenerate
     # low-power channels (e.g. the top contact whose CSD is ~0 from the spatial
@@ -1413,16 +1488,28 @@ def spectrolaminar_from_trials(
     vmin, vmax = np.percentile(psd_log[:, valid], [5, 95])
     relative_power = np.clip((psd_log - vmin) / (vmax - vmin + 1e-12), 0, 1)
 
-    # Extract band profiles
+    # Extract band profiles for the spectrolaminar cross (panel C).
+    #
+    # Relative power density definition: for each band, take the mean spectral
+    # power across that band's frequencies at every channel, then divide by the
+    # MAXIMUM band power across channels. Each band is thus normalized to its own
+    # depth-wise peak (=1.0), so the alpha-beta (deep) and gamma (superficial)
+    # profiles share a [0, 1] scale and visibly cross near L4.
+    #
+    # Computed from the raw spectral power `psd` (the same quantity panel B shows
+    # in log scale), NOT from the percentile-clipped log heatmap `relative_power`
+    # — clipping distorts true relative magnitudes across depth. Normalizing by
+    # the per-band max across channels is naturally robust to degenerate
+    # low-power channels (e.g. the top CSD contact ~0): a near-zero channel maps
+    # to ~0, it cannot inflate the max.
     ab_mask = (freqs >= alpha_beta_range_hz[0]) & (freqs <= alpha_beta_range_hz[1])
     gm_mask = (freqs >= gamma_range_hz[0]) & (freqs <= gamma_range_hz[1])
 
-    ab_profile = relative_power[ab_mask].mean(axis=0) if ab_mask.any() else np.ones(n_contacts)
-    gm_profile = relative_power[gm_mask].mean(axis=0) if gm_mask.any() else np.ones(n_contacts)
+    ab_power = psd[ab_mask].mean(axis=0) if ab_mask.any() else np.ones(n_contacts)
+    gm_power = psd[gm_mask].mean(axis=0) if gm_mask.any() else np.ones(n_contacts)
 
-    # Normalize profiles
-    ab_profile = ab_profile / (ab_profile.max() + 1e-12)
-    gm_profile = gm_profile / (gm_profile.max() + 1e-12)
+    ab_profile = ab_power / (float(ab_power.max()) + 1e-12)
+    gm_profile = gm_power / (float(gm_power.max()) + 1e-12)
 
     # Depth axis (position from L4)
     pos_from_l4 = trials['contact_depths_m'] - cfg.l4_ref_rel * cfg.cz_m
