@@ -391,6 +391,59 @@ class TestSimulateTrials:
         assert "E" in cfg.cell_type_izh_params
         assert cfg.cell_type_izh_params["E"]["a"] < 0.02  # slower recovery => wider AP
 
+    def test_inter_area_connectivity_applied(self):
+        """Default V1/V4 config wires feedforward + feedback projections."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=60.0, dt_ms=0.5, n_trials=1,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=1)
+        assert set(trials["connectivity_applied"]) == {"feedforward", "feedback"}
+
+    def test_lesion_silences_target_neurons(self):
+        """lesion_spec must zero spikes for matching neurons (knock-out)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config, _laminar_match_mask
+        cfg = make_laminar_column_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5, n_trials=1,
+            lesion_spec=({"area": "V1", "layers": ("L4",), "cell_types": ("E",)},),
+        )
+        model = build_laminar_column(cfg)
+        les = np.flatnonzero(_laminar_match_mask(model["neurons"], "V1", ("L4",), ("E",)))
+        trials = simulate_laminar_trials(model, cfg, n_trials=1)
+        assert trials["n_lesioned"] == int(les.size) > 0
+        assert trials["spikes"][0][:, les].sum() == 0
+
+    def test_single_cell_waveforms_shapes_and_E_slower_than_PV(self):
+        """single_cell_waveforms returns each type; wider/slower E fires less than PV."""
+        from jaxfne.tutorial_utils import single_cell_waveforms
+        wf = single_cell_waveforms(
+            cell_types=("E", "PV"), duration_ms=150.0, dt_ms=0.25,
+            cell_type_izh_params={"E": {"a": 0.015, "c": -60.0, "d": 10.0}},
+        )
+        assert set(wf) == {"E", "PV"}
+        for w in wf.values():
+            assert np.all(np.isfinite(w["voltage_mV"]))
+        assert int(wf["E"]["spikes"].sum()) < int(wf["PV"]["spikes"].sum())
+
+    def test_tune_laminar_agsdr_improves_loss(self):
+        """AGSDR-style tuner returns a control dict and does not worsen loss."""
+        from jaxfne.tutorial_utils import make_laminar_column_config, tune_laminar_agsdr
+        cfg = make_laminar_column_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5, n_trials=1,
+        )
+        model = build_laminar_column(cfg)
+        best, hist = tune_laminar_agsdr(
+            model, cfg, target_rate_hz=8.0, generations=3, population_size=3,
+            tune_duration_ms=80.0, seed=1,
+        )
+        assert "local_exc_gain" in best and "feedforward_gain" in best
+        losses = list(hist["loss"]) if hasattr(hist, "loss") else [h["loss"] for h in hist]
+        assert losses[-1] <= losses[0] + 1e-9
+
     def test_simulate_is_reproducible_for_fixed_seed(self):
         """Real-engine trials must be deterministic given the config seed."""
         cfg = make_test_config(
