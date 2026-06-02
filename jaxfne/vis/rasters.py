@@ -38,6 +38,7 @@ def raster(signals: Any, **kwargs: Any) -> Any:
 
     sort_by = kwargs.pop("sort_by", "z")
     marker_size = float(kwargs.pop("marker_size", 2.0))
+    kwargs.pop("dt_ms", None)  # rasters use time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 

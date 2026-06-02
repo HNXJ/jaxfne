@@ -135,10 +135,10 @@ def main():
 
     # === 5. Verify status checks are immutable ===
     print("Status check verification:")
-    print(f"  amplitude_status: {signals_time_by_unit.metadata['amplitude_status']}")
-    print(f"  model_status: {signals_time_by_unit.metadata['model_status']}")
-    assert signals_time_by_unit.metadata['amplitude_status'] is False
-    assert signals_time_by_unit.metadata['model_status'] == "computational_scaffold"
+    print(f"  physical_amplitude_claim_allowed: {signals_time_by_unit.metadata['physical_amplitude_claim_allowed']}")
+    print(f"  claim_level: {signals_time_by_unit.metadata['claim_level']}")
+    assert signals_time_by_unit.metadata['physical_amplitude_claim_allowed'] is False
+    assert signals_time_by_unit.metadata['claim_level'] == "computational_scaffold"
     print("✓ Status checks frozen (immutable)\n")
 
     # === 6. Construct outputs ===
@@ -149,8 +149,8 @@ def main():
         "n_neurons": int(n_neurons),
         "dt_ms": float(dt_ms),
         "layouts_tested": ["time_by_unit", "unit_by_time", "recording_by_time"],
-        "model_status": signals_time_by_unit.metadata["model_status"],
-        "amplitude_status": signals_time_by_unit.metadata["amplitude_status"],
+        "claim_level": signals_time_by_unit.metadata["claim_level"],
+        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
     }
@@ -183,8 +183,8 @@ def main():
     }
 
     validation_report = {
-        "model_status": signals_time_by_unit.metadata["model_status"],
-        "amplitude_status": signals_time_by_unit.metadata["amplitude_status"],
+        "claim_level": signals_time_by_unit.metadata["claim_level"],
+        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
         "run_status": "computational_scaffold",
