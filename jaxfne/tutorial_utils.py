@@ -848,13 +848,17 @@ def make_laminar_column_config(
         }
 
     if cell_type_izh_params is None:
-        # Default to a WIDER, slower excitatory action potential (the "E-Wide"
-        # profile): lower recovery rate `a` and higher `c`/`d` slow the AP so E
-        # cells carry more low-frequency (alpha-beta) content, while the fast
-        # interneurons (PV default a=0.10) keep their gamma-range dynamics.
-        # Override any subset per cell type to test other waveforms.
+        # Default per-cell-type Izhikevich params + internal drive/noise tuned for
+        # a STABLE network: average ~5-10 Hz/neuron and peak < ~40 Hz. E is the
+        # "E-Wide" slow/wide AP (more alpha-beta); PV is fast-spiking; VIP uses
+        # b=+0.20 so it is firable at modest drive (b=-0.10 has rheobase ~23).
+        # `drive` is the per-type internal excitability knob; `noise` is the
+        # per-type stochastic-current std (stability knob). Override any subset.
         cell_type_izh_params = {
-            'E': {'a': 0.015, 'b': 0.20, 'c': -60.0, 'd': 10.0},
+            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 4.5, 'noise': 0.5},
+            'PV':  {'a': 0.10,  'b': 0.20,  'c': -65.0, 'd': 2.0,  'drive': 3.5, 'noise': 0.5},
+            'SST': {'a': 0.02,  'b': 0.25,  'c': -65.0, 'd': 2.0,  'drive': 3.0, 'noise': 0.5},
+            'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
         }
 
     if connectivity_spec is None:
@@ -1402,6 +1406,7 @@ def simulate_laminar_trials(
     c_arr = np.asarray(params.c, dtype=np.float32).copy()
     d_arr = np.asarray(params.d, dtype=np.float32).copy()
     drv_arr = np.asarray(params.drive, dtype=np.float32).copy()
+    noise_arr = np.full(n_neurons, 0.5, dtype=np.float32)  # per-neuron internal noise
     cells_arr = np.asarray(cell_labels)
     for ct, p in (getattr(cfg, "cell_type_izh_params", None) or {}).items():
         m = cells_arr == ct
@@ -1412,6 +1417,8 @@ def simulate_laminar_trials(
         if 'c' in p: c_arr[m] = float(p['c'])
         if 'd' in p: d_arr[m] = float(p['d'])
         if 'drive' in p: drv_arr[m] = float(p['drive'])
+        if 'noise' in p: noise_arr[m] = float(p['noise'])
+    noise_scale_j = jnp.asarray(noise_arr)
     sign = np.asarray(params.sign, dtype=np.float32)
     v0_arr = np.asarray(params.v0, dtype=np.float32)
     params = _dataclasses.replace(
@@ -1498,6 +1505,7 @@ def simulate_laminar_trials(
         v, spk, src, _final = simulate_edge_recurrent_izhikevich(
             params, edges, n_steps, cfg.dt_ms, key,
             dtype=cfg.dtype, drive_schedule=drive_sched_j, silence_mask=silence_j,
+            noise_scale=noise_scale_j,
         )
         voltage_mV[trial] = np.asarray(v)
         spikes[trial] = np.asarray(spk) > 0.5
@@ -1584,6 +1592,7 @@ def single_cell_waveforms(
         )
         v, spk, _src = simulate_eig_izhikevich(
             params, n_steps, dt_ms, jax.random.PRNGKey(int(seed)), dtype="float32",
+            noise_scale=0.0,  # clean deterministic AP for waveform display
         )
         out[str(ct)] = {
             "time_ms": np.arange(n_steps) * dt_ms,

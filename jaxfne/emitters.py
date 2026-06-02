@@ -353,13 +353,17 @@ def simulate_eig_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added to
     ``params.drive`` at each timestep as native (uncalibrated) current.
-    No physical-amplitude or calibration claim is introduced.
+    ``noise_scale`` sets the stochastic-current coefficient: ``None`` keeps the
+    historical 0.5 scalar; a scalar or ``(n_neurons,)`` array gives per-neuron
+    control of the internal noise. No physical-amplitude or calibration claim is
+    introduced.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -371,6 +375,8 @@ def simulate_eig_izhikevich(
     weights = params.W.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
 
     if silence_mask is not None:
         s_mask = silence_mask.astype(jdtype)
@@ -390,7 +396,7 @@ def simulate_eig_izhikevich(
         def step(carry, noise_t):
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -414,7 +420,7 @@ def simulate_eig_izhikevich(
             sched_t, noise_t = xs_t
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + sched_t + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -517,6 +523,7 @@ def simulate_edge_recurrent_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -526,7 +533,9 @@ def simulate_edge_recurrent_izhikevich(
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added as
-    native uncalibrated current at each timestep.
+    native uncalibrated current at each timestep. ``noise_scale`` sets the
+    stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
+    scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -537,6 +546,8 @@ def simulate_edge_recurrent_izhikevich(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
@@ -564,7 +575,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -590,7 +601,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + sched_t + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv

@@ -384,6 +384,42 @@ class TestSimulateTrials:
         loud = e_rate(12.0)
         assert loud > quiet, f"E drive override had no effect: quiet={quiet}, loud={loud}"
 
+    def test_cell_type_noise_override_changes_spikes(self):
+        """Per-cell-type `noise` must reach the engine (zero vs high noise differ)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+
+        def total_spikes(noise):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={
+                    "E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 2.0, "noise": noise},
+                    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 2.0, "noise": noise},
+                },
+            )
+            model = build_laminar_column(cfg)
+            return int(simulate_laminar_trials(model, cfg, n_trials=1)["spikes"].sum())
+
+        quiet = total_spikes(0.0)
+        loud = total_spikes(6.0)
+        assert loud != quiet, f"noise override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_default_config_firing_rates_are_stable(self):
+        """Default per-cell-type drive/noise keep rates in a stable band (<~40 Hz)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=60, n_contacts=16, duration_ms=300.0, dt_ms=0.5,
+            n_trials=2,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=2)
+        per_neuron_hz = trials["spikes"].mean(axis=(0, 1)) * 1000.0 / cfg.dt_ms
+        mean_hz = float(per_neuron_hz.mean())
+        max_hz = float(per_neuron_hz.max())
+        assert max_hz <= 45.0, f"peak rate {max_hz:.1f} Hz exceeds stable ceiling"
+        assert 2.0 <= mean_hz <= 15.0, f"mean rate {mean_hz:.1f} Hz outside stable band"
+
     def test_default_config_applies_wider_E_waveform(self):
         """Default tutorial config ships the wider 'E-Wide' excitatory profile."""
         from jaxfne.tutorial_utils import make_laminar_column_config
