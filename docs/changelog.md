@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.26 (2026-06-02)
+
+**Feature release:** Multi-area laminar workshop — inter-area connectivity, lesioning, AGSDR tuning, waveform explorer.
+
+### Added
+- Global multi-area network in `simulate_laminar_trials` with within-area recurrence + inter-area projections (`connectivity_spec`) and lesioning (`lesion_spec`); per-area depth leadfield. Defaults: feedforward V1 L2/3 (E) → V4 L4, feedback V4 L2/3 (E) → V1 L5/6.
+- Per-cell-type Izhikevich overrides (`cell_type_izh_params`, wider "E-Wide" default), `single_cell_waveforms`, and `tune_laminar_agsdr` (AGSDR tuning of firing rate + kappa).
+- Étude No. 1 rebuilt as a two-area Colab-ready customizable workshop notebook.
+
+### Fixed
+- Trial-averaged spectral power (per-trial PSD then mean); relative-power-density cross; uniform `dt_ms` kwarg across vis plotters; example API drift; GHA `checkout@v5` / `setup-python@v6`.
+
+### Scope
+- Proxy readouts only (`laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=false`); spectrolaminar motif is emergent, not imposed.
+
+
 ## v0.3.25 (2026-06-01)
 
 **Feature release:** Cylindric scaffold, spectrolaminar motif, and 32-contact LFP artifacts.

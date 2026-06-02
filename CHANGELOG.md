@@ -1,3 +1,20 @@
+## [0.3.26] - 2026-06-02
+
+### Added
+- Multi-area laminar workshop: `simulate_laminar_trials` now simulates one global multi-area Izhikevich network with within-area recurrence plus inter-area projections (`connectivity_spec`) and lesioning (`lesion_spec`), via the package-native sparse edge-recurrent emitter and a per-area depth leadfield. Defaults: feedforward V1 L2/3 (E) → V4 L4, feedback V4 L2/3 (E) → V1 L5/6.
+- `cell_type_izh_params` per-cell-type Izhikevich overrides (a, b, c, d, drive) with a wider-by-default "E-Wide" excitatory profile.
+- `single_cell_waveforms` per-type action-potential explorer and `tune_laminar_agsdr` (AGSDR adaptive-greedy tuning of firing rate + kappa synchrony from real metrics).
+- Étude No. 1 rebuilt as a two-area, Colab-ready, maximally customizable workshop notebook (waveforms, connectivity, lesions/knock-out, AGSDR, spectrolaminar motif).
+
+### Fixed
+- Spectrolaminar PSD is now power-averaged across trials (was time-domain averaged, cancelling oscillations); cross profiles use relative power density (band power per channel ÷ band max across channels).
+- vis plotters uniformly accept the `dt_ms` kwarg; example API drift (`examples/01`, `07`); GitHub Actions bumped to `checkout@v5` / `setup-python@v6`.
+
+### Scope
+- Outputs remain proxy readouts (`laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=false`). The spectrolaminar motif is emergent from the dynamics + leadfield, not imposed.
+
+---
+
 ## [0.3.25] - 2026-06-01
 
 ### Added
