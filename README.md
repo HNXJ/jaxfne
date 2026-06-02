@@ -1,17 +1,12 @@
 # jaxfne
 
-[![PyPI version](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/)
-[![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/HNXJ/jaxfne/blob/main/LICENSE)
-[![Release](https://img.shields.io/github/v/release/HNXJ/jaxfne)](https://github.com/HNXJ/jaxfne/releases)
-
-JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.
+JAX-native tools for compact Tensor-Field Neural Equation workflows.
 
 ```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
+Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
 ```
 
-`jaxfne` is built for compact computational biophysics tutorials and package-level experiments. Current tutorial readouts use simulated/proxy scales with JSON-safe reports and deterministic seeds.
+`jaxfne` is a computational scaffold for emitter/source/field/probe modeling, tutorials, validation reports, and optimizer workflows. Current tutorial readouts are simulated/proxy-scale unless a run provides solver, calibration, boundary, gauge, units, residual, convergence, and validation evidence.
 
 ## Install
 
@@ -27,68 +22,75 @@ cd jaxfne
 pip install -e .[dev,viz,opt]
 ```
 
+## Canonical import
+
+```python
+import jaxfne as jtfne
+```
+
+## 0.3.28+ object model
+
+| Object | Role |
+|---|---|
+| `Config` | Declarative circuit/task/training spec; the bio-circuit PCB sketch. |
+| `Net` | Compiled biophysical circuit from Config. |
+| `Paradigm` | Task/trial/stimulus schedule, from constant DC to sequence tasks. |
+| `Objective` | Metrics, gates, and scores computed from Signals. |
+| `Trainer` | AGSDR or other tuning loop over declared trainables. |
+| `Signals` | Tensor outputs and query/layout API. |
+| `FlatNet` | JAX/JIT/pmap-friendly array form with tracking maps. |
+
+Compatibility aliases may remain during migration:
+
+```text
+Configuration -> Config
+Model -> Net
+FlatModel -> FlatNet
+```
+
 ## Minimal workflow
 
 ```python
 import jaxfne as jtfne
 
-cfg = jtfne.Configuration()
-cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
-cfg = cfg.column("single_neuron", layers=["L2/3"], n=1)
-cfg = cfg.cell_types({"E": 1.0})
-cfg = cfg.connectivity()
-cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-cfg = cfg.probes(["MUA-proxy", "source-proxy", "LFP-proxy"])
-
-model = jtfne.construct(cfg)
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
-print(signals.V_m.shape, signals.spikes.sum())
-```
-
-## Multi-objective tuning
-
-```python
-objectives = jtfne.rate_targets(
-    groups={"first_half": range(24), "second_half": range(24, 48)},
-    targets_hz={"first_half": 5.0, "second_half": 10.0},
+cfg = (
+    jtfne.Config(schema_version="0.3.28")
+    .runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
+    .areas(["V1"])
+    .layers(["L2/3"])
+    .cells({"E": 1.0})
+    .cell_params({"E": {"drive": 4.5, "noise": 0.5}})
+    .mechanisms({})
+    .connections([])
+    .probes(["spk", "vm", "source", "lfp_like", "csd_like"])
 )
-optimizer = jtfne.agsdr(
-    parameters={"drive_scale_a": (0.35, 2.25), "drive_scale_b": (0.35, 2.25)},
-    generations=8,
-    population_size=6,
-    seed=42,
-)
-result = model.tune(objectives=objectives, optimizer=optimizer)
-print(result.best_score, result.best_parameters)
+
+net = jtfne.construct(cfg)
+paradigm = jtfne.Paradigm.constant_dc(target={"area": "V1"}, amplitude=1.0)
+signals = net.simulate(paradigm=paradigm, seed=7)
+print(signals.get("spikes", layout="time_node").shape)
 ```
 
 ## Core readouts
 
 | Readout | Role |
 |---|---|
-| SPK | spike matrix or events |
-| Vm | emitter voltage/state trace |
-| Source | source/current proxy |
-| LFP-proxy | laminar field proxy |
-| CSD-proxy | spatial source/divergence proxy |
-| EEG-proxy | linear scalp-channel proxy |
-| MEG-proxy | linear magnetic-channel proxy |
-| EMM-proxy | normalized activity-cost proxy |
+| `spk` | spike events or matrix |
+| `vm` | emitter voltage/state trace |
+| `source` | source/current proxy |
+| `lfp_like` | laminar LFP-like proxy |
+| `csd_like` | CSD-like proxy |
+| `eeg_like` | linear EEG-like proxy |
+| `meg_like` | linear MEG-like proxy |
+| `emm_proxy` | normalized activity-cost proxy |
 
 ## Validate a checkout
 
 ```bash
-python -m compileall -q jaxfne tests examples
+python -m compileall -q jaxfne tests examples scripts
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line
+PYTHONPATH=. python scripts/audit_notebooks_and_assets.py --check
 mkdocs build --strict
 ```
-
-## Documentation
-
-- [Quickstart](docs/quickstart.md)
-- [Install](docs/install.md)
-- [Probe operators](docs/probe_operators.md)
-- [Tutorials](docs/tutorials/index.md)
-- [API reference](docs/api/index.md)
 
 MIT License.

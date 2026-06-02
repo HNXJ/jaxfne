@@ -1,8 +1,38 @@
-# JAXFNE Source Doctrine
+# jaxfne Source Doctrine
 
-This folder is the compact source doctrine for `jaxfne` / TFNE work. It replaces the longer scattered planning bundle with six durable files.
+This folder is the active compact doctrine for jaxfne work.
 
-Default posture:
+## Active architecture
+
+```text
+Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
+```
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `CLAUDE.md` | Worker operating contract and stop conditions. |
+| `jaxfne-core-doctrine.md` | Package identity, module boundaries, truth/status posture. |
+| `jaxfne-equations-runtime-validation.md` | Tensor equations, JAX/JIT rules, schemas, validation gates. |
+| `jaxfne-tutorial-etude-atlas.md` | Tutorial/Etude rules, notebook gates, artifacts, visualization doctrine. |
+| `jaxfne-longterm-plan.md` | 0.3.28+ release ladder and 0.4 solver entry criteria. |
+
+## Canonical names
+
+```text
+Config, Net, Paradigm, Objective, Trainer, Signals, FlatNet
+```
+
+Compatibility aliases:
+
+```text
+Configuration -> Config
+Model -> Net
+FlatModel -> FlatNet
+```
+
+## Default status
 
 ```yaml
 truth_mode: truth_safe_unverified
@@ -12,29 +42,15 @@ field_claim_level: proxy_readout_only
 physical_amplitude_claim_allowed: false
 ```
 
-Canonical pipeline:
-
-```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer
-```
-
-## Files
-
-| File | Purpose |
-|---|---|
-| `README.md` | Bundle index and active doctrine map. |
-| `CLAUDE.md` | Worker/assistant operating contract. |
-| `jaxfne-core-doctrine.md` | Package identity, public API rules, truth gates, source/probe/report doctrine. |
-| `jaxfne-equations-runtime-validation.md` | Equations, JAX/JIT rules, optimizer status, schemas, and validation gates. |
-| `jaxfne-tutorial-etude-atlas.md` | Suite/Etude rules, notebook gates, Etude No. 1 standard, docs/artifact requirements. |
-| `jaxfne-longterm-plan.md` | v0.3.x/v0.4.x/v0.5+ direction, solver ladder, refactor plan. |
-
 ## Immediate rules
 
 - Canonical import: `import jaxfne as jtfne`.
-- Tutorials and Etudes use package APIs as the engine.
-- Reusable scientific logic belongs in `jaxfne`, not notebooks.
-- Notebook plotting glue is allowed; simulator/readout/objective/solver logic is package code.
-- Release-facing notebooks export finite, JSON-safe reports and stable PNG figures.
-- Plotly HTML may augment figures; PNG remains required.
-- Final audits use public raw GitHub URLs and immutable SHA URLs when possible.
+- Config is the source of declarative circuit/task/training state.
+- Net is the compiled implementation.
+- Paradigm owns task/trial/stimulus schedules.
+- Objective owns measures and gates.
+- Trainer owns optimization loops.
+- Signals owns tensor outputs and layout queries.
+- Vis owns plotting only.
+- Core stays small: facade and tensor-field contracts only.
+- Plotting glue may exist in notebooks; simulation/readout/objective logic belongs in package code.

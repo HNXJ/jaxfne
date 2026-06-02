@@ -4,15 +4,40 @@
 
 `jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is a bridge and evidence-generation layer, not a validated biological simulator or full EEG/MEG forward solver.
 
-## Canonical API use
+## Canonical architecture
 
-```python
-import jaxfne as jtfne
+```text
+Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
 ```
 
-Avoid alternate aliases, wildcard imports, and invented APIs.
+| Object | Owns | Does not own |
+|---|---|---|
+| Config | declarative specs, schema version, JSON-safe config | compiled arrays, running state |
+| Net | compiled circuit, state init, simulation, introspection | task semantics, optimizer loops |
+| Paradigm | trial schedule, events, stimuli, target mapping | circuit structure |
+| Objective | metrics, gates, score composition | optimizer search |
+| Trainer | candidate generation, tuning loop, save/load | plotting, field solving |
+| Signals | tensor outputs, layouts, selectors | plotting style |
+| Vis | raster/traces/PSD/spectrogram/suites | simulation or optimizer logic |
+| FlatNet | JAX/JIT/pmap arrays and maps | public prose or artifacts |
 
-## Truth gates
+## Module boundaries
+
+```text
+jaxfne.core          facade and minimal public contracts
+jaxfne.config        Config and sub-specs
+jaxfne.net           Net and compiled circuit behavior
+jaxfne.paradigm      task/trial/stimulus scheduling
+jaxfne.objective     objective outputs and score reports
+jaxfne.optim         optimizers and trainers
+jaxfne.signals       Signals and layout conversion
+jaxfne.connectivity  selectors, mechanisms, rules, compiler
+jaxfne.fields        source/field/probe tensor operators
+jaxfne.flatten       FlatNet and tracking maps
+jaxfne.vis           visualization only
+```
+
+## Truth/status gates
 
 ```yaml
 truth_mode: truth_safe_unverified
@@ -22,7 +47,7 @@ field_claim_level: proxy_readout_only
 physical_amplitude_claim_allowed: false
 ```
 
-Use evidence/status wording. Reserve stronger interpretation for runs with solver, calibration, geometry, boundary, gauge, residual, units, and validation evidence.
+Use status/evidence wording. Reserve stronger interpretation for runs with solver, calibration, geometry, boundary, gauge, residual, units, and validation evidence.
 
 ## Source bookkeeping
 
@@ -50,20 +75,5 @@ Each readout report includes shape, units/status, method, assumptions, source ca
 - Preserve public names unless a breaking cleanup is explicitly requested.
 - Prefer compatibility wrappers for moved helpers.
 - Keep optional dependencies lazy.
-- Core `import jaxfne as jtfne` must not require visualization extras.
-- Reusable visualization such as `jtfne.vis.visualize_network_3d(...)` belongs in `jaxfne.vis`, not notebook-local code.
-
-## Reporting and artifacts
-
-Release-facing workflows export:
-
-```text
-manifest.json
-validation_report.json
-metrics.json when objective/optimizer evidence exists
-asset_hashes.json
-figures/*.png
-plotly/*.html optional
-```
-
-All JSON uses finite values and strict serialization.
+- Core import must not require visualization extras.
+- Reusable visualization belongs in `jaxfne.vis`, not notebooks.

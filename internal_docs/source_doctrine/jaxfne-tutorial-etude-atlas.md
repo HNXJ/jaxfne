@@ -3,6 +3,7 @@
 ## Tutorial roles
 
 - Suite: structured release/tutorial unit.
+- Tutorial: public-facing runnable learning path.
 - Etude: full-detail workflow with explicit configuration, diagnostics, visualizations, artifacts, and execution receipts.
 
 ## Hard gates
@@ -22,27 +23,12 @@ plotly_html: optional
 proxy_safe_titles: true
 ```
 
-## Etude No. 1 current standard
-
-Etude No. 1 is a legacy-inspired, jaxfne-native multi-laminar cortical AGSDR workflow.
+## Current multi-area laminar tutorial standard
 
 Required spine:
 
 ```text
-setup -> centralized config -> single-unit E/PV/SST/VIP warmup -> construct scaffold -> visualize 3D network -> simulate baseline/stimulus/tuned -> activity suites -> spectrolaminar suites -> AGSDR evidence -> export artifacts
-```
-
-Install cells:
-
-```python
-!pip install -q "jaxfne[viz]"
-!pip install -q "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"
-```
-
-Colab badge targets:
-
-```text
-blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb
+setup -> centralized Config -> single-unit warmup -> construct Net -> visualize 3D scaffold -> simulate baseline/stimulus/tuned -> activity suites -> spectrolaminar suites -> AGSDR trainer evidence -> export artifacts
 ```
 
 ## Required figures
@@ -62,70 +48,69 @@ Every visualization cell must display the figure and save an artifact.
 
 ## Editable-input export
 
-Etudes export all major knobs under `manifest["editable_inputs"]`:
+Tutorials export major knobs under `manifest["editable_inputs"]` or the unified Config export:
 
 ```text
-runtime, geometry, areas, layers, cell_types, cell_colors, cell_signs,
-layer_fractions, drive, connectivity, field, probes, objective, optimizer,
-stimulus, visualization, artifact_paths, truth_gates
+runtime, geometry, areas, layers, cell_types, cell_params, mechanisms,
+connections, lesions, probes, paradigm, objective_outputs, trainables,
+optimizer, visualization, artifact_paths, status_metadata
 ```
 
-Config cells may be long. Scientific API calls should show important defaults explicitly when useful.
+## AGSDR/trainer evidence
 
-## AGSDR evidence
-
-`metrics.json` must include:
+`metrics.json` includes:
 
 ```yaml
 best_score: finite_number
 best_parameters: non_empty_object
-tuning_status: string
+training_status: string
 same_model_unchanged: false
-rate_improvement_hz: positive_number
-kappa_improvement: number
+rate_mean_hz: finite_number
+rate_max_hz: finite_number
+rate_stable: bool
+objective_outputs: object
 ```
 
-Use supported tunable parameters such as `drive_gain`. Avoid unsupported knobs such as `noise_amplitude` unless the package supports them.
+Use declared trainable paths such as:
+
+```text
+cell.E.drive
+cell.PV.noise
+conn.local_exc_gain
+conn.feedforward_gain
+mechanism.AMPA.g
+```
+
+Unsupported knobs must fail validation before training.
+
+## Visualization doctrine
+
+`jaxfne.vis` owns:
+
+```text
+raster
+voltage traces
+source traces
+LFP/CSD/EEG/MEG proxy traces
+PSD
+spectrogram
+spectrolaminar suite
+activity suite
+connectivity weight maps
+network 3D
+2-photon image proxy
+```
+
+Notebook-local visualization code may format one-off figures, but reusable plotting options belong in `jaxfne.vis`:
+
+```text
+dark theme
+axis flip/range/aspect/camera
+activity height/scale
+relative_power_mode="per_frequency_depth_max"
+trained-vs-initial comparison
+```
 
 ## Docs navigation
 
-MkDocs nav includes:
-
-```yaml
-Etude No. 1 (Multi-Laminar Cortical AGSDR): tutorials/11_multi_laminar_cortical_agsdr.md
-```
-
-## Near-term package gaps
-
-Move reusable notebook glue into package APIs:
-
-```text
-jtfne.vis.visualize_network_3d(...)
-shared JSON-safe artifact helpers
-shared metric registry for objectives/tutorial helpers
-static network PNG helper with compatibility wrappers
-```
-Binary files repo_orig/jaxfne/__pycache__/__init__.cpython-313.pyc and repo_final/jaxfne/__pycache__/__init__.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/bridges.cpython-313.pyc and repo_final/jaxfne/__pycache__/bridges.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/builders.cpython-313.pyc and repo_final/jaxfne/__pycache__/builders.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/core.cpython-313.pyc and repo_final/jaxfne/__pycache__/core.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/emitters.cpython-313.pyc and repo_final/jaxfne/__pycache__/emitters.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/io.cpython-313.pyc and repo_final/jaxfne/__pycache__/io.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/objectives.cpython-313.pyc and repo_final/jaxfne/__pycache__/objectives.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/paradigm.cpython-313.pyc and repo_final/jaxfne/__pycache__/paradigm.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/presets.cpython-313.pyc and repo_final/jaxfne/__pycache__/presets.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/runtime.cpython-313.pyc and repo_final/jaxfne/__pycache__/runtime.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/sharding_utils.cpython-313.pyc and repo_final/jaxfne/__pycache__/sharding_utils.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/tutorial_utils.cpython-313.pyc and repo_final/jaxfne/__pycache__/tutorial_utils.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/__pycache__/validation.cpython-313.pyc and repo_final/jaxfne/__pycache__/validation.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/fields/__pycache__/__init__.cpython-313.pyc and repo_final/jaxfne/fields/__pycache__/__init__.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/fields/__pycache__/probes.cpython-313.pyc and repo_final/jaxfne/fields/__pycache__/probes.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/fields/__pycache__/proxy.cpython-313.pyc and repo_final/jaxfne/fields/__pycache__/proxy.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/__init__.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/__init__.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/agsdr.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/agsdr.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/bounds.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/bounds.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/core.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/core.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/gsdr.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/gsdr.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/gsgd.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/gsgd.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/manifests.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/manifests.cpython-313.pyc differ
-Binary files repo_orig/jaxfne/optim/__pycache__/sdr.cpython-313.pyc and repo_final/jaxfne/optim/__pycache__/sdr.cpython-313.pyc differ
+Use public user-facing labels such as `Tutorial: Multi-area Laminar Model`. File paths may keep legacy names if tests and Colab links depend on them.
