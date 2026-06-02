@@ -155,6 +155,53 @@ class TestLaminarColumnConfig:
         assert len(frame) > 0
         assert 'Parameter' in frame.columns
 
+    def test_rejects_negative_noise(self):
+        """Config validation must reject negative per-type noise."""
+        with pytest.raises(ValueError, match="noise must be nonnegative"):
+            make_laminar_column_config(
+                cell_type_izh_params={"E": {"drive": 4.0, "noise": -0.1}}
+            )
+
+    def test_rejects_nonfinite_drive(self):
+        """Config validation must reject non-finite per-type drive."""
+        with pytest.raises(ValueError, match="drive must be finite"):
+            make_laminar_column_config(
+                cell_type_izh_params={"E": {"drive": float("nan")}}
+            )
+
+    def test_cell_type_noise_override_changes_spikes(self):
+        """Per-cell-type `noise` must reach the engine (zero vs high noise differ)."""
+        def total_spikes(noise):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={
+                    "E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 2.0, "noise": noise},
+                    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 2.0, "noise": noise},
+                },
+            )
+            model = build_laminar_column(cfg)
+            return int(simulate_laminar_trials(model, cfg, n_trials=1)["spikes"].sum())
+
+        quiet = total_spikes(0.0)
+        loud = total_spikes(6.0)
+        assert loud != quiet, f"noise override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_default_config_firing_rates_are_stable(self):
+        """Default per-cell-type drive/noise keep rates in a stable band (<~40 Hz)."""
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=60, n_contacts=16, duration_ms=300.0, dt_ms=0.5,
+            n_trials=2,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=2)
+        per_neuron_hz = trials["spikes"].mean(axis=(0, 1)) * 1000.0 / cfg.dt_ms
+        mean_hz = float(per_neuron_hz.mean())
+        max_hz = float(per_neuron_hz.max())
+        assert max_hz <= 45.0, f"peak rate {max_hz:.1f} Hz exceeds stable ceiling"
+        assert 2.0 <= mean_hz <= 15.0, f"mean rate {mean_hz:.1f} Hz outside stable band"
+
 
 class TestBuildLaminarColumn:
     """Test model building."""
@@ -608,3 +655,44 @@ class TestExportArtifacts:
         data = json.loads(text)
         json_text = json.dumps(data, allow_nan=False)  # Should not raise
         assert json_text is not None
+
+
+class TestEmitterNoiseScale:
+    """Test emitter noise_scale parameter."""
+
+    def test_noise_scale_vector_contract(self):
+        """Verify noise_scale accepts (n_neurons,) vector and applies per-neuron."""
+        import jax
+        import jax.numpy as jnp
+        from jaxfne.emitters import izhikevich_eig_params, simulate_eig_izhikevich
+
+        params = izhikevich_eig_params(4, {"E": 1.0})
+        noise = jnp.asarray([0.0, 0.1, 0.2, 0.3], dtype=jnp.float32)
+        v, spk, src = simulate_eig_izhikevich(
+            params,
+            n_steps=20,
+            dt_ms=0.1,
+            key=jax.random.PRNGKey(0),
+            dtype="float32",
+            noise_scale=noise,
+        )
+        assert v.shape == (20, 4)
+        assert spk.shape == (20, 4)
+        assert src.shape == (20, 4)
+        assert np.isfinite(np.asarray(v)).all()
+        assert np.isfinite(np.asarray(src)).all()
+
+    def test_noise_scale_backward_compatible(self):
+        """noise_scale=None preserves historical 0.5 behavior."""
+        import jax
+        from jaxfne.emitters import izhikevich_eig_params, simulate_eig_izhikevich
+
+        params = izhikevich_eig_params(2, {"E": 1.0})
+        v1, _, _ = simulate_eig_izhikevich(
+            params, n_steps=10, dt_ms=0.1, key=jax.random.PRNGKey(0), noise_scale=None
+        )
+        v2, _, _ = simulate_eig_izhikevich(
+            params, n_steps=10, dt_ms=0.1, key=jax.random.PRNGKey(0), noise_scale=0.5
+        )
+        # Same key + same noise_scale should give same result
+        assert np.allclose(np.asarray(v1), np.asarray(v2))

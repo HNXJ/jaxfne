@@ -715,6 +715,26 @@ def cell_catalog_frame(catalog: dict[str, CellTypePreset]) -> "pd.DataFrame":
     return pd.DataFrame(rows)
 
 
+def _validate_cell_type_izh_params(cell_type_izh_params: dict) -> None:
+    """Validate per-cell-type Izhikevich parameters for nonnegative noise and finite numerics."""
+    if cell_type_izh_params is None:
+        return
+    for cell_type, params in cell_type_izh_params.items():
+        if "noise" in params:
+            noise_val = float(params["noise"])
+            if noise_val < 0.0:
+                raise ValueError(f"{cell_type}.noise must be nonnegative; got {noise_val}")
+        if "drive" in params:
+            drive_val = float(params["drive"])
+            if not np.isfinite(drive_val):
+                raise ValueError(f"{cell_type}.drive must be finite; got {drive_val}")
+        for key in ("a", "b", "c", "d"):
+            if key in params:
+                val = float(params[key])
+                if not np.isfinite(val):
+                    raise ValueError(f"{cell_type}.{key} must be finite; got {val}")
+
+
 def make_laminar_column_config(
     *,
     areas=("V1", "V4", "PFC"),
@@ -860,6 +880,9 @@ def make_laminar_column_config(
             'SST': {'a': 0.02,  'b': 0.25,  'c': -65.0, 'd': 2.0,  'drive': 3.0, 'noise': 0.5},
             'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
         }
+
+    # Validate all cell-type parameters
+    _validate_cell_type_izh_params(cell_type_izh_params)
 
     if connectivity_spec is None:
         # Canonical hierarchical defaults: feedforward V1 L2/3 (E) -> V4 L4,
