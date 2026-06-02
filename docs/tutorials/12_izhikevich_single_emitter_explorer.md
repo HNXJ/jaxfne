@@ -56,7 +56,7 @@ The emitter presets in the explorer correspond to `jtfne.suite2_celltype_presets
 </div>
 
 <iframe
-  src="../assets/interactive/izhikevich_single_emitter_explorer.html"
+  src="../../assets/interactive/izhikevich_single_emitter_explorer.html"
   width="100%"
   height="900px"
   style="border: 1px solid #2e2e3a; border-radius: 8px; background: #0d0d10;"
