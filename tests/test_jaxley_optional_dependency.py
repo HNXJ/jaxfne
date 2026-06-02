@@ -14,14 +14,14 @@ def test_require_jaxley_raises_error_when_missing():
     """Verify require_jaxley raises ImportError when jaxley is missing in env."""
     # Mask jaxley to force an ImportError
     with patch.dict(sys.modules, {"jaxley": None}):
-        with pytest.raises(ImportError, match="requires optional dependency 'jaxley'"):
+        with pytest.raises(ImportError, match="requires 'Jaxley'"):
             require_jaxley()
 
 
 def test_hh_jaxley_reference_trace_optional_dependency():
     """Verify that hh_jaxley_reference_trace raises optional dependency error when jaxley is absent."""
     with patch.dict(sys.modules, {"jaxley": None}):
-        with pytest.raises(ImportError, match="requires optional dependency 'jaxley'"):
+        with pytest.raises(ImportError, match="requires 'Jaxley'"):
             from jaxfne.bridges import hh_jaxley_reference_trace
             hh_jaxley_reference_trace(duration_ms=10.0, dt_ms=0.1)
 

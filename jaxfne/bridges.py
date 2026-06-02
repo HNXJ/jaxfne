@@ -17,8 +17,8 @@ def require_jaxley():
         import jaxley  # type: ignore
     except ImportError as exc:
         raise ImportError(
-            "This feature requires optional dependency 'jaxley'. "
-            "Install with: pip install -e '.[jaxley]'"
+            "This optional feature requires 'Jaxley'. "
+            "Install with: pip install jaxfne[jaxley]"
         ) from exc
     return jaxley
 
