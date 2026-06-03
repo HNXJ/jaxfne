@@ -2,7 +2,6 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/jaxfne.svg)](https://pypi.org/project/jaxfne/)
 [![Docs](https://readthedocs.org/projects/jaxfne/badge/?version=latest)](https://jaxfne.readthedocs.io/en/latest/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/HNXJ/jaxfne/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/HNXJ/jaxfne)](https://github.com/HNXJ/jaxfne/releases)
 
 JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.
@@ -90,5 +89,3 @@ mkdocs build --strict
 - [Probe operators](docs/probe_operators.md)
 - [Tutorials](docs/tutorials/index.md)
 - [API reference](docs/api/index.md)
-
-MIT License.
