@@ -5392,6 +5392,61 @@ def run_receipt(
     return model.run_receipt(signals, tags=tags)
 
 
+def provenance_receipt(
+    branch: str = "unknown",
+    sha: str = "unknown",
+    dirty: bool = False,
+) -> dict[str, Any]:
+    """Capture release provenance atomically.
+
+    Freezes branch, SHA, dirty flag, and jaxfne version metadata into a single
+    JSON-safe dict for release auditing and reproducibility.
+
+    Args:
+        branch: Git branch name (e.g., "main", "feat/something"). Default: "unknown".
+        sha: Git commit SHA (short or full). Default: "unknown".
+        dirty: True if working tree has uncommitted changes. Default: False.
+
+    Returns:
+        dict[str, Any] (JSON-safe) with keys:
+        - branch (str)
+        - sha (str)
+        - dirty (bool)
+        - jaxfne_version (str, from _JAXFNE_VERSION)
+        - config_schema_version (str, from _JAXFNE_CONFIG_SCHEMA_VERSION)
+        - manifest_schema_version (str, from _MANIFEST_SCHEMA_VERSION)
+        - timestamp (str, ISO-8601 format)
+
+    Example:
+        receipt = provenance_receipt(branch="main", sha="abc123def456", dirty=False)
+        json.dumps(receipt, allow_nan=False)  # Always succeeds
+    """
+    import json
+    from datetime import datetime, timezone
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    receipt = {
+        "branch": branch,
+        "sha": sha,
+        "dirty": dirty,
+        "jaxfne_version": _JAXFNE_VERSION,
+        "config_schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
+        "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
+        "timestamp": timestamp,
+    }
+
+    # Verify JSON-safe by attempting serialization
+    try:
+        json.dumps(receipt, allow_nan=False)
+    except (TypeError, ValueError) as e:
+        raise RuntimeError(
+            f"provenance_receipt produced non-JSON-safe dict: {e}"
+        ) from e
+
+    return receipt
+
+
 def readout_spec(
     name: str,
     metric: str,
@@ -5513,7 +5568,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.27"
+_JAXFNE_VERSION = "0.3.28"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
@@ -5555,7 +5610,7 @@ _KNOWN_READOUT_METRICS = frozenset({
 # v0.0.15 config foundation
 # ───────────────────────────────────────────────��──────────────
 
-_JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.15"
+_JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.16"
 
 _REQUIRED_CONFIG_SECTIONS = frozenset(
     {"schema_version", "run", "truth", "network", "emitter", "field", "probes"}
