@@ -158,11 +158,48 @@ class SelectorSpec:
     ids: Optional[tuple[int, ...]] = None
 
     def resolve(self, neuron_table: Sequence[Mapping[str, Any]], *, allow_empty: bool = False) -> jax.Array:
-        """Resolve selector to global integer node indices.
+        """Resolve selector to integer node row indices (strict AND semantics).
 
-        Returns an int32 JAX array. Empty results fail unless ``allow_empty=True``.
+        Each row in ``neuron_table`` must match ALL specified fields
+        (``area``/``area_id``/``layer``/``cell_type`` by equality or membership,
+        ``ids`` by ``neuron_id`` membership). Input row order is preserved.
+
+        A requested field that is absent from a row raises ``KeyError`` rather
+        than matching/skipping silently — selectors never invent metadata.
+
+        Returns an int32 JAX array of row positions. Empty results raise
+        ``ValueError`` unless ``allow_empty=True`` (then an empty array).
         """
-        _tbi()
+
+        def _match(row: Mapping[str, Any], field_name: str, wanted: Any) -> bool:
+            if field_name not in row:
+                raise KeyError(
+                    f"SelectorSpec.resolve requires neuron_table field {field_name!r}; "
+                    f"row {row.get('neuron_id', '?')} is missing it"
+                )
+            value = row[field_name]
+            if isinstance(wanted, (list, tuple, set, frozenset)):
+                return value in wanted
+            return value == wanted
+
+        matches: list[int] = []
+        for i, row in enumerate(neuron_table):
+            if self.area is not None and not _match(row, "area", self.area):
+                continue
+            if self.area_id is not None and not _match(row, "area_id", self.area_id):
+                continue
+            if self.layer is not None and not _match(row, "layer", self.layer):
+                continue
+            if self.cell_type is not None and not _match(row, "cell_type", self.cell_type):
+                continue
+            if self.ids is not None and not _match(row, "neuron_id", self.ids):
+                continue
+            matches.append(i)
+
+        if not matches and not allow_empty:
+            raise ValueError(f"SelectorSpec matched no neurons: {self!r}")
+
+        return jnp.asarray(matches, dtype=jnp.int32)
 
 
 @dataclass(frozen=True)
