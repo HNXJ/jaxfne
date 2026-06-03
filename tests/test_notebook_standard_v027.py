@@ -90,14 +90,14 @@ class TestTemplateNotebook:
     def test_template_notebook_exists(self):
         """Test that notebooks/00_template_colab.ipynb exists."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         assert notebook_path.exists(), f"Template notebook not found at {notebook_path}"
 
     def test_template_notebook_is_valid_json(self):
         """Test that template notebook is valid JSON."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         content = notebook_path.read_text(encoding="utf-8")
         try:
@@ -109,7 +109,7 @@ class TestTemplateNotebook:
     def test_first_code_cell_has_pip_install(self):
         """Test that first code cell contains !pip install jaxfne."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
         code_cells = [c for c in nb_json["cells"] if c["cell_type"] == "code"]
@@ -126,7 +126,7 @@ class TestTemplateNotebook:
     def test_second_code_cell_verifies_version(self):
         """Test that second code cell verifies jaxfne version."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
         code_cells = [c for c in nb_json["cells"] if c["cell_type"] == "code"]
@@ -144,7 +144,7 @@ class TestTemplateNotebook:
     def test_template_has_no_committed_outputs(self):
         """Test that template notebook has empty/cleared outputs."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -159,7 +159,7 @@ class TestTemplateNotebook:
     def test_template_has_no_private_paths(self):
         """Test that template notebook contains no absolute private paths."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -182,7 +182,7 @@ class TestTemplateNotebook:
     def test_template_has_colab_metadata(self):
         """Test that template notebook includes Colab metadata."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
@@ -196,7 +196,7 @@ class TestTemplateNotebook:
     def test_template_has_python_kernel(self):
         """Test that template notebook specifies Python 3 kernel."""
         notebook_path = (
-            Path(__file__).parent.parent / "notebooks" / "00_template_colab.ipynb"
+            Path(__file__).parent.parent / ".legacy" / "notebooks" / "00_template_colab.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
 
