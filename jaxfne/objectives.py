@@ -96,178 +96,65 @@ def spectrolaminar_profile_score(
     return report
 
 
-def layer_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Layer shuffle null: permute profiles across L4-relative positions.
 
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma', 'pos_from_l4'
-
-    Returns
-    -------
-    dict
-        Shuffled profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
+def _make_null(readout: Dict[str, Any], mutate_fn: callable, null_type: str) -> Dict[str, np.ndarray]:
+    """Higher-order null distribution generator.
+    
+    Applies a mutation function to copies of the readout profiles.
     """
     ab = readout["alpha_beta"].copy()
     gamma = readout["gamma"].copy()
-    pos = readout["pos_from_l4"]
-
-    # Shuffle by depth (pos_from_l4)
-    perm = np.random.permutation(len(ab))
-
+    ab_shuffled, gamma_shuffled = mutate_fn(ab, gamma, readout)
     return {
-        "alpha_beta_shuffled": ab[perm],
-        "gamma_shuffled": gamma[perm],
-        "null_type": "layer_shuffle",
+        "alpha_beta_shuffled": ab_shuffled,
+        "gamma_shuffled": gamma_shuffled,
+        "null_type": null_type,
     }
+
+
+def layer_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
+    """Layer shuffle null: permute profiles across L4-relative positions."""
+    def _mutate(ab, gamma, r):
+        perm = np.random.permutation(len(ab))
+        return ab[perm], gamma[perm]
+    return _make_null(readout, _mutate, "layer_shuffle")
 
 
 def band_label_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Band label shuffle null: swap alpha/beta and gamma profiles.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Swapped profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    # Swap the two band profiles
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    # Swap alpha/beta with gamma
-    ab_shuffled = gamma.copy()
-    gamma_shuffled = ab.copy()
-
-    return {
-        "alpha_beta_shuffled": ab_shuffled,
-        "gamma_shuffled": gamma_shuffled,
-        "null_type": "band_label_shuffle",
-    }
+    """Band label shuffle null: swap alpha/beta and gamma profiles."""
+    def _mutate(ab, gamma, r):
+        return gamma.copy(), ab.copy()
+    return _make_null(readout, _mutate, "band_label_shuffle")
 
 
 def uniform_gain_null(readout: Dict[str, Any], gain_min: float = 0.1) -> Dict[str, np.ndarray]:
-    """
-    Uniform gain null: scale profiles by random uniform gain.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-    gain_min : float
-        Minimum gain factor (default 0.1)
-
-    Returns
-    -------
-    dict
-        Scaled profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    # Random gain [gain_min, 1.0]
-    gain = np.random.uniform(gain_min, 1.0)
-
-    return {
-        "alpha_beta_shuffled": ab * gain,
-        "gamma_shuffled": gamma * gain,
-        "null_type": "uniform_gain",
-    }
+    """Uniform gain null: scale profiles by random uniform gain."""
+    def _mutate(ab, gamma, r):
+        gain = np.random.uniform(gain_min, 1.0)
+        return ab * gain, gamma * gain
+    return _make_null(readout, _mutate, "uniform_gain")
 
 
 def no_field_projection_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    No field projection null: flatten profiles to mean.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Flattened profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    # Flatten to mean + small noise
-    ab_mean = np.mean(ab)
-    gamma_mean = np.mean(gamma)
-
-    ab_shuffled = np.ones_like(ab) * ab_mean + np.random.normal(0, 0.01, size=ab.shape)
-    gamma_shuffled = np.ones_like(gamma) * gamma_mean + np.random.normal(
-        0, 0.01, size=gamma.shape
-    )
-
-    return {
-        "alpha_beta_shuffled": ab_shuffled,
-        "gamma_shuffled": gamma_shuffled,
-        "null_type": "no_field_projection",
-    }
+    """No field projection null: flatten profiles to mean."""
+    def _mutate(ab, gamma, r):
+        return (np.ones_like(ab) * np.mean(ab) + np.random.normal(0, 0.01, size=ab.shape),
+                np.ones_like(gamma) * np.mean(gamma) + np.random.normal(0, 0.01, size=gamma.shape))
+    return _make_null(readout, _mutate, "no_field_projection")
 
 
 def phase_randomized_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Phase randomized null: randomize phase relationships.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Phase-randomized profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    # Add random phase offsets
-    phase_ab = np.random.uniform(0, 2 * np.pi, size=ab.shape)
-    phase_gamma = np.random.uniform(0, 2 * np.pi, size=gamma.shape)
-
-    ab_shuffled = ab * np.cos(phase_ab)
-    gamma_shuffled = gamma * np.cos(phase_gamma)
-
-    return {
-        "alpha_beta_shuffled": ab_shuffled,
-        "gamma_shuffled": gamma_shuffled,
-        "null_type": "phase_randomized",
-    }
+    """Phase randomized null: randomize phase relationships."""
+    def _mutate(ab, gamma, r):
+        return ab * np.cos(np.random.uniform(0, 2*np.pi, size=ab.shape)), gamma * np.cos(np.random.uniform(0, 2*np.pi, size=gamma.shape))
+    return _make_null(readout, _mutate, "phase_randomized")
 
 
 def source_polarity_flip_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Source polarity flip null: invert profiles.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Inverted profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    return {
-        "alpha_beta_shuffled": -ab,
-        "gamma_shuffled": -gamma,
-        "null_type": "source_polarity_flip",
-    }
+    """Source polarity flip null: invert profiles."""
+    def _mutate(ab, gamma, r):
+        return -ab, -gamma
+    return _make_null(readout, _mutate, "source_polarity_flip")
 
 
 def compute_synchrony_metric(

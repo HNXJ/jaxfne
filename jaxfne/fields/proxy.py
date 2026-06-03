@@ -13,6 +13,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 from scipy import signal
+# diagnostics.py mirrors validate_projection_invariants and _make_field_solution_report
 
 
 @dataclass(frozen=True)
@@ -125,19 +126,13 @@ def project_laminar_sources(
     lfp_proxy = source_proxy
     phi_e_proxy = lfp_proxy
 
-    # Proxy CSD-proxy readout evaluated via explicit central-difference stencils.
-    # Configured as a structural simulation proxy under laminar_proxy_no_pde bounds.
-    # Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
+    # CSD proxy via vectorized second-derivative stencil
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
     
-    if n_contacts > 3:
-        interior = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:-1] + phi_e_proxy[:, :-2]) / (dz * dz)
-        left_boundary = (2.0 * phi_e_proxy[:, 0:1] - 5.0 * phi_e_proxy[:, 1:2] + 4.0 * phi_e_proxy[:, 2:3] - phi_e_proxy[:, 3:4]) / (dz * dz)
-        right_boundary = (2.0 * phi_e_proxy[:, -1:] - 5.0 * phi_e_proxy[:, -2:-1] + 4.0 * phi_e_proxy[:, -3:-2] - phi_e_proxy[:, -4:-3]) / (dz * dz)
-        csd_proxy = -jnp.concatenate([left_boundary, interior, right_boundary], axis=1)
-    elif n_contacts == 3:
-        interior = (phi_e_proxy[:, 2:] - 2.0 * phi_e_proxy[:, 1:2] + phi_e_proxy[:, 0:1]) / (dz * dz)
-        csd_proxy = -jnp.concatenate([interior, interior, interior], axis=1)
+    if n_contacts >= 3:
+        # Central difference for interior + one-sided boundaries via padding
+        padded = jnp.pad(phi_e_proxy, ((0, 0), (1, 1)), mode='edge')
+        csd_proxy = -(padded[:, 2:] - 2.0 * padded[:, 1:-1] + padded[:, :-2]) / (dz * dz)
     else:
         csd_proxy = jnp.zeros_like(phi_e_proxy)
 

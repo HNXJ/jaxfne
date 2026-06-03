@@ -10,21 +10,16 @@ from typing import Any, Optional
 import jax
 import jax.numpy as jnp
 
+from .base import BaseSDRState
+
 
 @dataclass(frozen=True)
-class SDRState:
+class SDRState(BaseSDRState):
     """Stochastic Delta Rule optimizer state.
 
     Holds best-loss tracking, reset counter, and EMA variance estimates
     for adaptive alpha computation.
     """
-    step: int = 0
-    best_loss: float = float("inf")
-    best_param: Optional[Any] = None
-    reset_counter: int = 0
-    var_sup_ema: float = 0.0  # EMA of supervised (inner) update variance
-    var_unsup_ema: float = 0.0  # EMA of unsupervised (stochastic delta) variance
-    ema_decay: float = 0.99
 
 
 def step_sdr_transform(u_t: jnp.ndarray, grad_l: jnp.ndarray, state: Any, hyperparams: dict) -> tuple[jnp.ndarray, Any]:

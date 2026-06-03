@@ -4,6 +4,7 @@ Exposes specialized Stochastic Delta Rule and stochastic gradient descent optimi
 """
 from __future__ import annotations
 
+from .base import BaseSDRState
 from .agsdr import AGSDRState, step_agsdr_transform
 from .bounds import apply_parameter_constraints, enforce_parameter_bounds
 from .gsdr import GSDRState, step_gsdr_transform
@@ -40,6 +41,7 @@ __all__ = [
     "apply_parameter_constraints",
     "enforce_parameter_bounds",
     "serialize_optimization_manifest",
+    "BaseSDRState",
     "AGSDRState",
     "GSDRState",
     "SDRState",

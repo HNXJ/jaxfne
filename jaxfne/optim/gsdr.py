@@ -10,21 +10,16 @@ from typing import Any, Optional
 import jax
 import jax.numpy as jnp
 
+from .base import BaseSDRState
+
 
 @dataclass(frozen=True)
-class GSDRState:
+class GSDRState(BaseSDRState):
     """Genetic Stochastic Delta Rule optimizer state.
 
     Similar to SDRState, with additional tracking for genetic deselection.
     """
-    step: int = 0
-    best_loss: float = float("inf")
-    best_param: Optional[Any] = None
-    reset_counter: int = 0
     deselection_counter: int = 0
-    var_sup_ema: float = 0.0
-    var_unsup_ema: float = 0.0
-    ema_decay: float = 0.99
 
 
 def step_gsdr_transform(

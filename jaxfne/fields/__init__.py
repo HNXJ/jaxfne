@@ -31,6 +31,7 @@ from .proxy import (
 )
 from .probes import (
     ProbeReadout,
+    create_probe,
     spk_probe,
     vm_probe,
     source_probe,
@@ -42,6 +43,10 @@ from .probes import (
     eeg_proxy_transform,
     meg_proxy_transform,
     emm_proxy_transform,
+)
+from .diagnostics import (
+    validate_projection_invariants,
+    _make_field_solution_report,
 )
 
 __all__ = [
@@ -68,6 +73,7 @@ __all__ = [
     "spectrolaminar_similarity",
     "spectrolaminar_objective",
     "_make_field_solution_report",
+    "create_probe",
     "ProbeReadout",
     "spk_probe",
     "vm_probe",

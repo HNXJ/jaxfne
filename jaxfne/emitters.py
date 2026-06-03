@@ -14,6 +14,27 @@ import jax
 import jax.numpy as jnp
 
 
+# Canonical Izhikevich cell-type parameter defaults.
+# Single source of truth for E/PV/SST/VIP reduced-model parameters.
+IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
+    "E":   {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0,  "drive": 5.0, "sign":  1.0},
+    "PV":  {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0,  "drive": 3.0, "sign": -1.0},
+    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0,  "drive": 3.0, "sign": -1.0},
+    "SST": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
+    "Ing": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+}
+
+
+def _get_cell_type_params(name: str) -> dict[str, float]:
+    """Look up canonical Izhikevich parameters for a cell type."""
+    if name in IZHIKEVICH_CELL_TYPE_DEFAULTS:
+        return IZHIKEVICH_CELL_TYPE_DEFAULTS[name]
+    # Default fallback to VIP/IS profile for unknown types
+    return IZHIKEVICH_CELL_TYPE_DEFAULTS["VIP"]
+
+
+
 @dataclass(frozen=True)
 class ReceptorSpec:
     """Metadata declaration for a synaptic receptor. Not a biological kernel."""
@@ -205,34 +226,13 @@ def izhikevich_eig_params(
     sign: list[float] = []
 
     for name in labels:
-        if name == "E":
-            a.append(0.02)
-            b.append(0.20)
-            c.append(-65.0)
-            d.append(8.0)
-            drive.append(5.0)
-            sign.append(1.0)
-        elif name in {"PV", "Inl"}:
-            a.append(0.10)
-            b.append(0.20)
-            c.append(-65.0)
-            d.append(2.0)
-            drive.append(3.0)
-            sign.append(-1.0)
-        elif name in {"SST", "Ing"}:
-            a.append(0.02)
-            b.append(0.25)
-            c.append(-65.0)
-            d.append(2.0)
-            drive.append(3.5)
-            sign.append(-1.0)
-        else:  # VIP / IS profile
-            a.append(0.02)
-            b.append(-0.10)  # Corrected from +0.20 to IS/chattering profile
-            c.append(-55.0)
-            d.append(6.0)
-            drive.append(3.0)
-            sign.append(-1.0)
+        p = _get_cell_type_params(name)
+        a.append(p["a"])
+        b.append(p["b"])
+        c.append(p["c"])
+        d.append(p["d"])
+        drive.append(p["drive"])
+        sign.append(p["sign"])
 
     sign_array = jnp.asarray(sign, dtype=jdtype)
     return IzhikevichParams(
@@ -284,22 +284,15 @@ def izhikevich_params_from_labels(
     sign: list[float] = []
 
     for name in label_tuple:
-        if name == "E":
-            aa, bb, cc, dd, drv, sg = 0.02, 0.20, -65.0, 8.0, 5.0, 1.0
-        elif name in {"PV", "Inl"}:
-            aa, bb, cc, dd, drv, sg = 0.10, 0.20, -65.0, 2.0, 3.0, -1.0
-        elif name in {"SST", "Ing"}:
-            aa, bb, cc, dd, drv, sg = 0.02, 0.25, -65.0, 2.0, 3.5, -1.0
-        elif name == "VIP":
-            aa, bb, cc, dd, drv, sg = 0.02, -0.10, -55.0, 6.0, 3.0, -1.0
-        else:
+        p = _get_cell_type_params(name)
+        if name not in IZHIKEVICH_CELL_TYPE_DEFAULTS:
             raise ValueError(f"unknown Suite No. 2 cell type label: {name!r}")
-        a.append(aa)
-        b.append(bb)
-        c.append(cc)
-        d.append(dd)
-        drive.append(overrides.get(name, drv))
-        sign.append(sg)
+        a.append(p["a"])
+        b.append(p["b"])
+        c.append(p["c"])
+        d.append(p["d"])
+        drive.append(overrides.get(name, p["drive"]))
+        sign.append(p["sign"])
 
     n = len(label_tuple)
     sign_array = jnp.asarray(sign, dtype=jdtype)
