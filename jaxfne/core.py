@@ -5146,6 +5146,20 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
+    # Fail loudly on unsupported emitter families. The construct/simulate path
+    # only implements the Izhikevich kernel; any other declared family (e.g.
+    # "lif", "glif") must raise rather than silently running Izhikevich. Silent
+    # fallback would let a caller believe they ran an emitter that does not yet
+    # exist in this path.
+    for _emitter in cfg.emitters:
+        _family = _emitter.get("family")
+        if _family is not None and _family not in _SUPPORTED_EMITTER_FAMILIES:
+            _supported = ", ".join(sorted(_SUPPORTED_EMITTER_FAMILIES))
+            raise ValueError(
+                f"Unsupported emitter family {_family!r} for construct/simulate. "
+                f"Supported families: {_supported}. "
+                "This path does not silently fall back to another emitter."
+            )
     net = cfg.networks[0]
     n = int(net.get("n", 100))
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
