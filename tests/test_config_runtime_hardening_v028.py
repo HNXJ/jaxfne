@@ -1,4 +1,4 @@
-"""v0.3.28 Config/Runtime/Provenance Hardening Tests.
+"""v0.3.29 Config/Runtime/Provenance Hardening Tests.
 
 Tests for:
 - Config schema version bump (v0.0.15 → v0.0.16)
@@ -238,7 +238,7 @@ class TestVersionAlignment:
         """Check _JAXFNE_VERSION in core.py."""
         from jaxfne.core import _JAXFNE_VERSION
 
-        assert _JAXFNE_VERSION == "0.3.28"
+        assert _JAXFNE_VERSION == "0.3.29"
 
     def test_version_in_pyproject(self):
         """Check version in pyproject.toml."""
@@ -248,7 +248,7 @@ class TestVersionAlignment:
 
         match = re.search(r'version = "([^"]+)"', content)
         assert match, "Could not find version in pyproject.toml"
-        assert match.group(1) == "0.3.28"
+        assert match.group(1) == "0.3.29"
 
     def test_version_in_mkdocs(self):
         """Check version in mkdocs.yml."""
@@ -258,7 +258,7 @@ class TestVersionAlignment:
 
         match = re.search(r'jaxfne_version: "([^"]+)"', content)
         assert match, "Could not find jaxfne_version in mkdocs.yml"
-        assert match.group(1) == "0.3.28"
+        assert match.group(1) == "0.3.29"
 
     def test_all_versions_match(self):
         """All version fields must match."""
@@ -276,7 +276,7 @@ class TestVersionAlignment:
         mkdocs_ver = re.search(r'jaxfne_version: "([^"]+)"', mkdocs_content).group(1)
 
         assert (
-            _JAXFNE_VERSION == pyproject_ver == mkdocs_ver == "0.3.28"
+            _JAXFNE_VERSION == pyproject_ver == mkdocs_ver == "0.3.29"
         ), f"Version mismatch: core={_JAXFNE_VERSION}, pyproject={pyproject_ver}, mkdocs={mkdocs_ver}"
 
 
