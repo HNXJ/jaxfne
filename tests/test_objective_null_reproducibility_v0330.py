@@ -24,6 +24,7 @@ import pytest
 
 from jaxfne.objectives import (
     spectrolaminar_objective,
+    spectrolaminar_objective_factory,
     layer_shuffle_null,
     band_label_shuffle_null,
     uniform_gain_null,
@@ -131,6 +132,28 @@ def test_dispatcher_null_seed_reproducible():
 
     assert json.dumps(rep_a, default=float, sort_keys=True) == json.dumps(
         rep_b, default=float, sort_keys=True
+    )
+
+
+def test_factory_forwards_null_seed():
+    """The factory must forward null_seed so factory-built objectives are reproducible."""
+    import json
+
+    readout = _readout()
+    target_ab = np.array([0.25, 0.28, 0.12, 0.08, 0.06, 0.04, 0.02, 0.01])
+    target_gamma = np.array([0.08, 0.05, 0.1, 0.18, 0.22, 0.15, 0.1, 0.05])
+    nulls = ["layer_shuffle", "uniform_gain", "phase_randomized"]
+
+    obj = spectrolaminar_objective_factory(
+        target_ab, target_gamma, nulls=nulls, null_n_samples=8, null_seed=11
+    )
+    rep_factory = obj(readout)
+    rep_direct = spectrolaminar_objective(
+        readout, target_ab, target_gamma, nulls=nulls, null_n_samples=8, null_seed=11
+    )
+    # Factory path must match the direct path for the same seed.
+    assert json.dumps(rep_factory, default=float, sort_keys=True) == json.dumps(
+        rep_direct, default=float, sort_keys=True
     )
 
 

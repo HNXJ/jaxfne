@@ -318,6 +318,12 @@ def spectrolaminar_objective(
         unseeded generator is used — nondeterministic by design, preserving
         legacy behavior.
 
+        Note: a single generator is shared across all null types in the order
+        given by ``nulls``, so reproducibility holds for a fixed ``nulls`` list
+        and ordering. Adding, removing, or reordering entries shifts the RNG
+        state seen by later null types. For per-type isolation, call this
+        function once per null type with the same ``null_seed``.
+
     Returns
     -------
     dict
@@ -470,6 +476,7 @@ def spectrolaminar_objective_factory(
     null_n_samples: int = 10,
     synchrony_metric: Optional[str] = None,
     synchrony_threshold: float = 0.7,
+    null_seed: Optional[int] = None,
 ) -> callable:
     """
     Factory for spectrolaminar objective (jaxfne pattern).
@@ -488,6 +495,10 @@ def spectrolaminar_objective_factory(
         Synchrony method
     synchrony_threshold : float
         Synchrony threshold
+    null_seed : int, optional
+        Seed forwarded to ``spectrolaminar_objective`` for reproducible null
+        distributions. ``None`` (default) preserves the legacy unseeded,
+        nondeterministic behavior.
 
     Returns
     -------
@@ -505,6 +516,7 @@ def spectrolaminar_objective_factory(
             synchrony_metric=synchrony_metric,
             synchrony_spikes=synchrony_spikes,
             synchrony_threshold=synchrony_threshold,
+            null_seed=null_seed,
         )
 
     return objective_fn
