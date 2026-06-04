@@ -3,6 +3,7 @@
 Validate that docs build cleanly and links resolve.
 """
 
+import shutil
 import subprocess
 import pathlib
 
@@ -14,11 +15,15 @@ class TestDocsLinksV0330:
 
     def test_mkdocs_strict_build_passes(self):
         """MkDocs must build with --strict flag."""
+        if not shutil.which("mkdocs"):
+            pytest.skip("mkdocs not installed; skipping docs build test")
+
         result = subprocess.run(
             ["mkdocs", "build", "--strict"],
             capture_output=True,
             text=True,
             cwd=pathlib.Path.cwd(),
+            timeout=120,
         )
 
         assert result.returncode == 0, (
