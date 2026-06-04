@@ -112,46 +112,95 @@ def _make_null(readout: Dict[str, Any], mutate_fn: callable, null_type: str) -> 
     }
 
 
-def layer_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """Layer shuffle null: permute profiles across L4-relative positions."""
+def layer_shuffle_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Layer shuffle null: permute profiles across L4-relative positions.
+
+    Pass an explicit ``rng`` (a ``np.random.Generator``) for reproducible
+    nulls. When ``rng is None`` an unseeded generator is used, which is
+    nondeterministic by design (preserves legacy behavior).
+    """
+    gen = rng if rng is not None else np.random.default_rng()
+
     def _mutate(ab, gamma, r):
-        perm = np.random.permutation(len(ab))
+        perm = gen.permutation(len(ab))
         return ab[perm], gamma[perm]
     return _make_null(readout, _mutate, "layer_shuffle")
 
 
-def band_label_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """Band label shuffle null: swap alpha/beta and gamma profiles."""
+def band_label_shuffle_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Band label shuffle null: swap alpha/beta and gamma profiles.
+
+    Deterministic; ``rng`` is accepted for a uniform dispatcher signature
+    and intentionally ignored.
+    """
+    del rng
+
     def _mutate(ab, gamma, r):
         return gamma.copy(), ab.copy()
     return _make_null(readout, _mutate, "band_label_shuffle")
 
 
-def uniform_gain_null(readout: Dict[str, Any], gain_min: float = 0.1) -> Dict[str, np.ndarray]:
-    """Uniform gain null: scale profiles by random uniform gain."""
+def uniform_gain_null(
+    readout: Dict[str, Any],
+    gain_min: float = 0.1,
+    *,
+    rng: "np.random.Generator | None" = None,
+) -> Dict[str, np.ndarray]:
+    """Uniform gain null: scale profiles by random uniform gain.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
+    """
+    gen = rng if rng is not None else np.random.default_rng()
+
     def _mutate(ab, gamma, r):
-        gain = np.random.uniform(gain_min, 1.0)
+        gain = gen.uniform(gain_min, 1.0)
         return ab * gain, gamma * gain
     return _make_null(readout, _mutate, "uniform_gain")
 
 
-def no_field_projection_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """No field projection null: flatten profiles to mean."""
+def no_field_projection_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """No field projection null: flatten profiles to mean.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
+    """
+    gen = rng if rng is not None else np.random.default_rng()
+
     def _mutate(ab, gamma, r):
-        return (np.ones_like(ab) * np.mean(ab) + np.random.normal(0, 0.01, size=ab.shape),
-                np.ones_like(gamma) * np.mean(gamma) + np.random.normal(0, 0.01, size=gamma.shape))
+        return (np.ones_like(ab) * np.mean(ab) + gen.normal(0, 0.01, size=ab.shape),
+                np.ones_like(gamma) * np.mean(gamma) + gen.normal(0, 0.01, size=gamma.shape))
     return _make_null(readout, _mutate, "no_field_projection")
 
 
-def phase_randomized_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """Phase randomized null: randomize phase relationships."""
+def phase_randomized_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Phase randomized null: randomize phase relationships.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
+    """
+    gen = rng if rng is not None else np.random.default_rng()
+
     def _mutate(ab, gamma, r):
-        return ab * np.cos(np.random.uniform(0, 2*np.pi, size=ab.shape)), gamma * np.cos(np.random.uniform(0, 2*np.pi, size=gamma.shape))
+        return ab * np.cos(gen.uniform(0, 2*np.pi, size=ab.shape)), gamma * np.cos(gen.uniform(0, 2*np.pi, size=gamma.shape))
     return _make_null(readout, _mutate, "phase_randomized")
 
 
-def source_polarity_flip_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """Source polarity flip null: invert profiles."""
+def source_polarity_flip_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Source polarity flip null: invert profiles.
+
+    Deterministic; ``rng`` is accepted for a uniform dispatcher signature
+    and intentionally ignored.
+    """
+    del rng
+
     def _mutate(ab, gamma, r):
         return -ab, -gamma
     return _make_null(readout, _mutate, "source_polarity_flip")
@@ -236,6 +285,7 @@ def spectrolaminar_objective(
     synchrony_spikes: Optional[np.ndarray] = None,
     synchrony_threshold: float = 0.7,
     similarity_metric: Optional[callable] = None,
+    null_seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Full spectrolaminar objective with null distributions and synchrony gates.
@@ -261,6 +311,12 @@ def spectrolaminar_objective(
         Threshold for synchrony rejection (default 0.7)
     similarity_metric : callable, optional
         Custom similarity function
+    null_seed : int, optional
+        Seed for the null-distribution generator. When provided, the null
+        sample sequence is reproducible across runs while still drawing
+        distinct samples within a single run. When ``None`` (default), an
+        unseeded generator is used — nondeterministic by design, preserving
+        legacy behavior.
 
     Returns
     -------
@@ -290,6 +346,10 @@ def spectrolaminar_objective(
 
         null_scores = []
 
+        # One generator threaded through every null draw: distinct samples
+        # within a run, reproducible across runs when null_seed is set.
+        null_gen = np.random.default_rng(null_seed)
+
         for null_type in nulls:
             if null_type not in null_functions:
                 continue
@@ -298,7 +358,7 @@ def spectrolaminar_objective(
 
             for _ in range(null_n_samples):
                 try:
-                    null_readout = null_func(readout)
+                    null_readout = null_func(readout, rng=null_gen)
 
                     # Score null
                     if similarity_metric is None:
