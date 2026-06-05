@@ -55,8 +55,12 @@ def test_proxy_does_not_redefine_helpers():
 
 
 def test_proxy_names_are_identical_objects():
-    """proxy.<name> must be the same object as diagnostics.<name> (no shadow)."""
-    for name in ["validate_projection_invariants", "_make_field_solution_report"]:
+    """proxy.<name> must be the same object as diagnostics.<name> (no shadow).
+
+    Covers all five deduped symbols (not just the two public ones) so a future
+    re-definition of any private helper in proxy.py is caught by identity too.
+    """
+    for name in DEDUPED:
         assert getattr(proxy, name) is getattr(diagnostics, name), (
             f"{name}: proxy and diagnostics resolve to different objects"
         )
