@@ -9,7 +9,7 @@ Reconciled against live git: 2026-06-04T20:11:00-05:00 @ `main == dev == fab4c9c
 
 This bundle was authored from the stale `jaxfne-main.zip` (package `0.3.27`, no git SHA). It has since been reconciled against the live working tree at `fab4c9c` (`jaxfne 0.3.29`). Deltas applied:
 
-- **B01 (objective null RNG reproducibility) is DONE** — shipped as PR #22 (HEAD `6ba7621`): explicit keyword-only `rng` threaded through all six null generators plus a `null_seed` dispatcher/factory parameter; CI green on 3.10/3.11/3.12, review threads resolved, MERGEABLE/CLEAN, awaiting human merge go. The next ready GREEN item is now **B02**. See `05_BACKLOG.md`.
+- **B01 (objective null RNG reproducibility) is MERGED** — PR #22 merged into `main` (merge commit `33f99db`): explicit keyword-only `rng` threaded through all six null generators plus a `null_seed` dispatcher/factory parameter. (Related: fields-helper dedup shipped separately as PR #23, merged `e29c604`.) The next ready GREEN item is now **B02**. See `05_BACKLOG.md`.
 - Validation receipts refreshed to the post-PR#22 tree: focused `54 passed`, full suite `1986 passed, 66 skipped, 4 xfailed`. See `06_VALIDATION_LADDER.md`.
 - `03_JAX_RUNTIME_CONTRACT.md` grep tables populated with live audit counts (PRNG 47, scan 12, vmap 34, jit 10, pytree 23, np.random 16).
 
