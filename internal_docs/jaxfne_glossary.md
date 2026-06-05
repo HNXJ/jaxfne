@@ -184,22 +184,23 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 
 ## Rollup (2026-06-04 @ 33f99db)
 
-Per-category means are **indicative** (mix of measured ✅, estimated 🔶, gated ⛔,
-and `TBD` excluded from the mean). Recompute each cycle.
+Per-category means are the **arithmetic mean of scored factors** (`TBD` excluded;
+mix of measured ✅, estimated 🔶, gated ⛔). Rounded to the nearest integer.
+Recompute each cycle.
 
-| Category | Indicative mean | Notes |
+| Category | Mean (scored/10) | Notes |
 |---|---|---|
-| A. Release engineering | ~96 (8 scored) | A08/A09 TBD |
-| B. API & surface hygiene | ~88 | `_KNOWN_METRICS`, sys leak, FlatNet |
-| C. Config/model/sim | ~93 (8 scored) | C06/C09 TBD |
-| D. JAX runtime | ~84 | FlatNet (D09), recompile (D06) drag |
-| E. Numerical safety | ~85 (9 scored) | E05 TBD; golden coverage thin |
-| F. Source/field/probe | ~94 | strong; dedup landed |
-| G. Optimizers/objectives | ~87 (9 scored) | G10 TBD |
-| H. Truth gates | ~94 (9 scored) | H08 TBD |
-| I. Notebooks/docs | ~74 | nav/dup/coverage gaps (docs audit) |
-| J. Bridges/perf | ~39 (9 scored) | mostly planned/gated |
-| **Overall (measured+estimated)** | **~83** | J & I are the largest headroom |
+| A. Release engineering | 98 (8 scored) | A08/A09 TBD |
+| B. API & surface hygiene | 91 (10) | `_KNOWN_METRICS`, sys leak, FlatNet |
+| C. Config/model/sim | 94 (8 scored) | C06/C09 TBD |
+| D. JAX runtime | 84 (10) | FlatNet (D09), recompile (D06) drag |
+| E. Numerical safety | 86 (9 scored) | E05 TBD; golden coverage thin |
+| F. Source/field/probe | 94 (10) | strong; dedup landed |
+| G. Optimizers/objectives | 88 (9 scored) | G10 TBD |
+| H. Truth gates | 95 (9 scored) | H08 TBD |
+| I. Notebooks/docs | 78 (10) | nav/dup/coverage gaps (docs audit) |
+| J. Bridges/perf | 45 (9 scored) | mostly planned/gated |
+| **Overall (measured+estimated)** | **85** (92 scored factors) | J & I are the largest headroom |
 
 ## Maintenance protocol
 
