@@ -141,6 +141,43 @@ def test_objective_output_requires_name():
         jtfne.Configuration().objective_outputs(name="")
 
 
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda C: C.mechanisms(name="", kind="synapse"),
+        lambda C: C.connections(name="", source={"a": 1}, target={"a": 1}),
+        lambda C: C.lesions(name="", selector={"layer": "L4"}, effect="disable"),
+        lambda C: C.trainables(name="", path="x"),
+    ],
+)
+def test_all_named_methods_reject_empty_name(call):
+    with pytest.raises(ValueError, match="name"):
+        call(jtfne.Configuration())
+
+
+def test_trainable_bounds_wrong_length_fails():
+    with pytest.raises(ValueError, match="2 elements"):
+        jtfne.Configuration().trainables(name="t1", path="x", bounds=(0.5,))
+
+
+def test_connection_non_mapping_selector_fails():
+    with pytest.raises(ValueError, match="selector mappings"):
+        jtfne.Configuration().connections(name="c1", source=None, target={"a": 1})
+
+
+def test_compiled_flag_resets_on_new_declaration():
+    """A new declaration must reset circuit_compiled even if a prior step set it True."""
+    cfg = jtfne.Configuration().connections(name="c1", source={"a": 1}, target={"a": 1})
+    # Simulate a future compiler having marked it compiled.
+    import dataclasses
+    md = dict(cfg.metadata)
+    md["circuit_compiled"] = True
+    cfg = dataclasses.replace(cfg, metadata=md)
+    # Chaining another declaration must invalidate the stale flag.
+    cfg = cfg.mechanisms(name="ampa", kind="synapse")
+    assert cfg.metadata["circuit_compiled"] is False
+
+
 def test_unknown_mechanism_reference_warns_only():
     with pytest.warns(UserWarning, match="mechanism"):
         cfg = jtfne.Configuration().connections(

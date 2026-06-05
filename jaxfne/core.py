@@ -745,6 +745,8 @@ class Configuration:
         self, *, name: str, kind: str, params: Optional[Mapping[str, Any]] = None, **extra: Any
     ) -> "Configuration":
         """Declare a named mechanism spec (declaration only; not compiled)."""
+        if not name:
+            raise ValueError("mechanism requires a non-empty name")
         entry = {
             "name": str(name),
             "kind": str(kind),
@@ -772,8 +774,12 @@ class Configuration:
         Distinct from :meth:`connectivity`, which records feedforward/feedback
         bookkeeping. This appends a rule to ``metadata["circuit"]["connections"]``.
         """
-        if source is None or target is None:
-            raise ValueError(f"connection {name!r} requires both source and target selectors")
+        if not name:
+            raise ValueError("connection requires a non-empty name")
+        if not isinstance(source, Mapping) or not isinstance(target, Mapping):
+            raise ValueError(
+                f"connection {name!r} requires source and target selector mappings"
+            )
         if probability is not None:
             p = float(probability)
             if not math.isfinite(p) or not (0.0 <= p <= 1.0):
@@ -814,6 +820,8 @@ class Configuration:
 
     def lesions(self, *, name: str, selector: Mapping[str, Any], effect: str) -> "Configuration":
         """Declare a lesion (disabled nodes/edges/mechanisms; declaration only)."""
+        if not name:
+            raise ValueError("lesion requires a non-empty name")
         entry = {
             "name": str(name),
             "selector": _circuit_json_safe(dict(selector), "lesions.selector"),
@@ -831,8 +839,14 @@ class Configuration:
         bounds: Optional[Sequence[float]] = None,
     ) -> "Configuration":
         """Declare a trainable parameter selector/spec (declaration only; not optimized)."""
+        if not name:
+            raise ValueError("trainable requires a non-empty name")
         clean_bounds = None
         if bounds is not None:
+            if len(bounds) != 2:
+                raise ValueError(
+                    f"trainable {name!r} bounds must have exactly 2 elements (low, high); got {bounds!r}"
+                )
             lo, hi = (float(bounds[0]), float(bounds[1]))
             if not (math.isfinite(lo) and math.isfinite(hi)):
                 raise ValueError(f"trainable {name!r} bounds must be finite; got {bounds!r}")
@@ -882,7 +896,10 @@ class Configuration:
         circuit[key] = lst
         metadata["circuit"] = circuit
         metadata["circuit_declared"] = True
-        metadata.setdefault("circuit_compiled", False)
+        # A new declaration invalidates any prior compiled state, so reset
+        # rather than setdefault (which would leave a stale True if a future
+        # compiler set the flag and the user then chained another declaration).
+        metadata["circuit_compiled"] = False
         return replace(self, metadata=metadata)
 
     def _append_training(self, key: str, entry: dict[str, Any]) -> "Configuration":
@@ -897,7 +914,9 @@ class Configuration:
         training[key] = lst
         metadata["training"] = training
         metadata["training_declared"] = True
-        metadata.setdefault("training_executed", False)
+        # Reset (not setdefault): a new training declaration invalidates any
+        # prior executed state.
+        metadata["training_executed"] = False
         return replace(self, metadata=metadata)
 
     def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
