@@ -7,9 +7,31 @@ Status: `truth_safe_unverified` · Claim level: `computational_scaffold` · Phys
 > **Relationship to `jaxfne_glossary.md`.** This file is the **grammar / ontology**
 > layer: it fixes how a score is *defined, evidenced, and aggregated*. The sibling
 > `internal_docs/jaxfne_glossary.md` is the **instance** — one concrete 100-factor
-> scoreboard. Author scoreboards against this grammar; keep instances under
+> scoreboard. Author new scoreboards against this grammar; keep instances under
 > `internal_docs/scoreboards/`. Last reconciled: 2026-06-05 @ `main == dev == 263c180`
-> (v0.3.28 circuit declarations merged; v0.3.30 connectivity compiler not yet started).
+> (v0.3.28 circuit declarations merged; v0.3.30 connectivity compiler in PR).
+>
+> **⚠ Legacy-instance compatibility (READ before computing §18 metrics).** This
+> grammar is the **canonical, going-forward standard**. The existing
+> `jaxfne_glossary.md` was authored *before* this grammar and is therefore a
+> **legacy `v0` instance**: its factor-ID assignment and its rubric differ from
+> this document and are **NOT factor-ID-comparable** with grammar-conformant
+> scoreboards. Concretely (legacy → grammar, non-exhaustive):
+>
+> | ID | legacy `jaxfne_glossary.md` | this grammar |
+> |---|---|---|
+> | A02 | Version metadata alignment | main/dev alignment |
+> | A03 | Tag/release identity | agy isolation |
+> | B01 | `__all__` curated | Canonical import |
+> | D01 | Explicit PRNG keys | JAX array math |
+>
+> Rules: (1) the **§18 consistency metrics (`AC`/`RC`/`RAC`) and roadmap
+> temperature compare ONLY scoreboards authored under this grammar (v0.1+)** —
+> never the legacy instance factor-by-factor. (2) The legacy instance is
+> **frozen as a v0 snapshot**; it is re-mapped to grammar IDs the next time it is
+> re-scored (target: the first measured scoreboard after the v0.3.30 compiler
+> lands), at which point it becomes the first grammar-conformant baseline. Until
+> then, treat legacy and grammar scores as separate series.
 
 The transfer from the multi-LLM ontology manuscript is the **ontology discipline**:
 factor definitions are fixed before scoring, undefined values stay undefined (never
@@ -120,7 +142,17 @@ Default category weights:
 
 ## 3. Score rubric
 
-Use this scale unless a factor defines stricter thresholds.
+The table below gives **10-point anchors**; the score space is the full integer
+range `[0, 100]`. Anchors are reference descriptions, **not** the only legal
+values — a score *between* anchors (e.g. `75`) is valid and means "between the
+two nearest anchors" (here: better than a functional prototype, not yet
+fully usable-with-debt). Use this scale unless a factor defines stricter thresholds.
+
+> **Legacy note.** The legacy `jaxfne_glossary.md` instance used *range bands*
+> (90–100, 75–89, 50–74, 25–49, 0–24) rather than these anchors. The two are
+> close but not identical at the boundaries, so a legacy band score is not
+> silently equal to a grammar anchor. Re-grade the legacy instance against this
+> anchor scale when it is re-mapped (see the legacy-compatibility note above).
 
 | Score | Meaning |
 |---:|---|
@@ -409,6 +441,12 @@ Field solver status: laminar_proxy_no_pde · Physical amplitude allowed: false
 ## 18. Consistency metrics
 
 Mirroring the multi-LLM ontology paper, adapted to repo audits.
+
+> **Comparability precondition.** `mean_f` and `mean_{a'}` are only meaningful
+> when both operands share **the same factor-ID assignment**. Compute these
+> metrics **only across scoreboards authored under this grammar (v0.1+)**. Do
+> not compute them against the legacy `jaxfne_glossary.md` instance until it is
+> re-mapped to grammar IDs (see the legacy-compatibility note at the top).
 
 ### 18.1 Auditor Consistency
 ```text
