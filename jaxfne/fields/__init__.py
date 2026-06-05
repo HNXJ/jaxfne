@@ -8,7 +8,6 @@ from .proxy import (
     FieldOutput,
     project_laminar_sources,
     project_sources_to_laminar_field,
-    validate_projection_invariants,
     validate_source_field_status,
     compute_conservation_proxy_diagnostics,
     probe_laminar_modes,
@@ -27,7 +26,6 @@ from .proxy import (
     combined_multi_area_source,
     spectrolaminar_similarity,
     spectrolaminar_objective,
-    _make_field_solution_report,
 )
 from .probes import (
     ProbeReadout,
