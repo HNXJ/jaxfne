@@ -6,7 +6,7 @@ Ranked by value-per-risk. Live audit identified PRNG null reproducibility as the
 
 | id | status | note |
 |---|---|---|
-| B01 | ✅ DONE | Shipped as PR #22 (HEAD `6ba7621`); CI green 3.10/3.11/3.12; threads resolved; MERGEABLE/CLEAN; awaiting human merge go. Realized PRNG 62→85. |
+| B01 | ✅ MERGED | PR #22 merged into `main` (merge commit `33f99db`); objective null RNG reproducibility live. Realized PRNG 62→85. (Related: fields-helper dedup shipped separately as PR #23, merged `e29c604`.) |
 | B02 | ▶ READY (next) | Leading GREEN item. Live root cause confirmed: zsh `nomatch` on bare `*.egg-info` aborts the cleanup line, leaving stale 0.3.27 wheels. The find-based cleanup is already encoded in `06_VALIDATION_LADDER.md`. |
 | B03 | ⏸ DEFERRED | `sys` leak sits adjacent to the fragile runtime-wrapper (`__init__.py:359,396,400`); deliberately deferred — cosmetic `dir()` leak only, not in `__all__`. |
 | B04, B05, B06, B10 | ▶ READY (YELLOW) | Do-then-hold after local verification. |
