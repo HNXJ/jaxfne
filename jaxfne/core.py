@@ -172,6 +172,29 @@ def _default_operator_status() -> dict[str, str]:
     }
 
 
+def _circuit_json_safe(value: Any, path: str) -> Any:
+    """Recursively validate and return a strict-JSON-safe copy of a declaration.
+
+    Used by the v0.3.28 circuit/training declaration methods. Raises ``ValueError``
+    on non-finite numbers (NaN/Inf) or unsupported types so non-serializable
+    declarations fail loudly at declaration time rather than at manifest export.
+    ``bool`` is checked before ``int`` because ``bool`` is an ``int`` subclass.
+    """
+    if value is None or isinstance(value, (str, bool)):
+        return value
+    if isinstance(value, int):
+        return int(value)
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError(f"non-finite value at {path}: {value!r}")
+        return float(value)
+    if isinstance(value, Mapping):
+        return {str(k): _circuit_json_safe(v, f"{path}.{k}") for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_circuit_json_safe(v, f"{path}[{i}]") for i, v in enumerate(value)]
+    raise ValueError(f"non-JSON-safe value at {path}: {type(value).__name__}")
+
+
 def _default_metadata() -> dict[str, Any]:
     return {
         "truth_mode": "truth_safe_unverified",
@@ -697,6 +720,185 @@ class Configuration:
     def set_connectivity(self, **kwargs: Any) -> "Configuration":
         """Backward-compatible alias for :meth:`connectivity`."""
         return self.connectivity(**kwargs)
+
+    # ------------------------------------------------------------------
+    # v0.3.28 completion: declarative circuit/training ownership.
+    #
+    # These methods are DECLARATION-ONLY. They record JSON-safe specs under
+    # ``metadata["circuit"]`` / ``metadata["training"]`` for a future
+    # connectivity compiler (v0.3.30) to consume. They deliberately do NOT
+    # compile edges, change simulation numerics, build dense matrices, trigger
+    # JIT, import optional dependencies, or claim biological/physical validity.
+    # Each declaration carries an explicit status so nothing reads as compiled,
+    # applied, or optimized yet.
+    # ------------------------------------------------------------------
+    def cell_params(self, selector: Mapping[str, Any], params: Mapping[str, Any]) -> "Configuration":
+        """Declare cell/emitter parameter overrides for a selector (declaration only)."""
+        entry = {
+            "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
+            "params": _circuit_json_safe(dict(params), "cell_params.params"),
+            "status": "declared_not_compiled",
+        }
+        return self._append_circuit("cell_params", entry, dedup_name=False)
+
+    def mechanisms(
+        self, *, name: str, kind: str, params: Optional[Mapping[str, Any]] = None, **extra: Any
+    ) -> "Configuration":
+        """Declare a named mechanism spec (declaration only; not compiled)."""
+        entry = {
+            "name": str(name),
+            "kind": str(kind),
+            "params": _circuit_json_safe(dict(params or {}), "mechanisms.params"),
+            **_circuit_json_safe(dict(extra), "mechanisms.extra"),
+            "status": "declared_not_compiled",
+        }
+        return self._append_circuit("mechanisms", entry, dedup_name=True)
+
+    def connections(
+        self,
+        *,
+        name: str,
+        source: Mapping[str, Any],
+        target: Mapping[str, Any],
+        probability: Optional[float] = None,
+        weight: Optional[float] = None,
+        sign: Optional[str] = None,
+        mechanism: Optional[str] = None,
+        plasticity: Optional[Mapping[str, Any]] = None,
+        control_key: Optional[str] = None,
+    ) -> "Configuration":
+        """Declare a connection rule for the future compiler (declaration only).
+
+        Distinct from :meth:`connectivity`, which records feedforward/feedback
+        bookkeeping. This appends a rule to ``metadata["circuit"]["connections"]``.
+        """
+        if source is None or target is None:
+            raise ValueError(f"connection {name!r} requires both source and target selectors")
+        if probability is not None:
+            p = float(probability)
+            if not math.isfinite(p) or not (0.0 <= p <= 1.0):
+                raise ValueError(
+                    f"connection {name!r} probability must be finite in [0, 1]; got {probability!r}"
+                )
+        if weight is not None and not math.isfinite(float(weight)):
+            raise ValueError(f"connection {name!r} weight must be finite; got {weight!r}")
+        if sign is not None and sign not in {"excitatory", "inhibitory", "signed"}:
+            raise ValueError(
+                f"connection {name!r} sign must be excitatory/inhibitory/signed or None; got {sign!r}"
+            )
+        entry = {
+            "name": str(name),
+            "source": _circuit_json_safe(dict(source), "connections.source"),
+            "target": _circuit_json_safe(dict(target), "connections.target"),
+            "probability": float(probability) if probability is not None else None,
+            "weight": float(weight) if weight is not None else None,
+            "sign": sign,
+            "mechanism": str(mechanism) if mechanism is not None else None,
+            "plasticity": _circuit_json_safe(dict(plasticity), "connections.plasticity")
+            if plasticity is not None
+            else None,
+            "control_key": str(control_key) if control_key is not None else None,
+            "status": "declared_not_compiled",
+        }
+        cfg = self._append_circuit("connections", entry, dedup_name=True)
+        # Unknown-mechanism reference is a WARNING in this declaration-only phase;
+        # the v0.3.30 compiler will promote it to a hard error.
+        known = {m.get("name") for m in cfg.metadata["circuit"]["mechanisms"]}
+        if mechanism is not None and mechanism not in known:
+            warnings.warn(
+                f"connection {name!r} references mechanism {mechanism!r} not declared via "
+                ".mechanisms() (declared_not_compiled phase)",
+                UserWarning,
+            )
+        return cfg
+
+    def lesions(self, *, name: str, selector: Mapping[str, Any], effect: str) -> "Configuration":
+        """Declare a lesion (disabled nodes/edges/mechanisms; declaration only)."""
+        entry = {
+            "name": str(name),
+            "selector": _circuit_json_safe(dict(selector), "lesions.selector"),
+            "effect": str(effect),
+            "status": "declared_not_applied",
+        }
+        return self._append_circuit("lesions", entry, dedup_name=True)
+
+    def trainables(
+        self,
+        *,
+        name: str,
+        path: str,
+        selector: Optional[Mapping[str, Any]] = None,
+        bounds: Optional[Sequence[float]] = None,
+    ) -> "Configuration":
+        """Declare a trainable parameter selector/spec (declaration only; not optimized)."""
+        clean_bounds = None
+        if bounds is not None:
+            lo, hi = (float(bounds[0]), float(bounds[1]))
+            if not (math.isfinite(lo) and math.isfinite(hi)):
+                raise ValueError(f"trainable {name!r} bounds must be finite; got {bounds!r}")
+            if lo > hi:
+                raise ValueError(f"trainable {name!r} bounds reversed: low {lo} > high {hi}")
+            clean_bounds = [lo, hi]
+        entry = {
+            "name": str(name),
+            "path": str(path),
+            "selector": _circuit_json_safe(dict(selector or {}), "trainables.selector"),
+            "bounds": clean_bounds,
+            "status": "declared_not_optimized",
+        }
+        return self._append_training("trainables", entry)
+
+    def objective_outputs(
+        self,
+        *,
+        name: str,
+        dtype: str = "float32",
+        shape: Optional[Sequence[int]] = None,
+        required: bool = True,
+    ) -> "Configuration":
+        """Declare an expected objective output schema entry (declaration only)."""
+        if not name:
+            raise ValueError("objective output requires a non-empty name")
+        entry = {
+            "name": str(name),
+            "dtype": str(dtype),
+            "shape": [int(x) for x in shape] if shape is not None else None,
+            "required": bool(required),
+            "status": "declared",
+        }
+        return self._append_training("objective_outputs", entry)
+
+    def _append_circuit(
+        self, key: str, entry: dict[str, Any], *, dedup_name: bool
+    ) -> "Configuration":
+        metadata = dict(self.metadata)
+        circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+        for k in ("cell_params", "mechanisms", "connections", "lesions"):
+            circuit.setdefault(k, [])
+        lst = list(circuit.get(key, []))
+        if dedup_name and any(e.get("name") == entry.get("name") for e in lst):
+            raise ValueError(f"duplicate {key} declaration name: {entry.get('name')!r}")
+        lst.append(entry)
+        circuit[key] = lst
+        metadata["circuit"] = circuit
+        metadata["circuit_declared"] = True
+        metadata.setdefault("circuit_compiled", False)
+        return replace(self, metadata=metadata)
+
+    def _append_training(self, key: str, entry: dict[str, Any]) -> "Configuration":
+        metadata = dict(self.metadata)
+        training = {k: list(v) for k, v in dict(metadata.get("training", {})).items()}
+        for k in ("trainables", "objective_outputs"):
+            training.setdefault(k, [])
+        lst = list(training.get(key, []))
+        if any(e.get("name") == entry.get("name") for e in lst):
+            raise ValueError(f"duplicate {key} declaration name: {entry.get('name')!r}")
+        lst.append(entry)
+        training[key] = lst
+        metadata["training"] = training
+        metadata["training_declared"] = True
+        metadata.setdefault("training_executed", False)
+        return replace(self, metadata=metadata)
 
     def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
         """Chainable config method to set/wrap emitter family and presets."""
