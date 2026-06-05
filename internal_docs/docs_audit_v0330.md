@@ -18,7 +18,7 @@ Generated: 2026-06-04. Branch: `docs/docs-audit-v0330`.
 | 4 | 11 public callables have no docstring at all | medium | PATCH (code) |
 | 5 | `_KNOWN_METRICS` (private) leaks into `__all__` | medium | PATCH (code) |
 | 6 | Old `api/index.md` had stale API refs + verbose prose | medium | ✅ DONE |
-| 7 | No dedicated API page for optim/io/bridges/paradigm/sharding (39 names) | medium | PLAN |
+| 7 | No dedicated API page for optim/io/bridges/paradigm/sharding (43 names) | medium | PLAN |
 | 8 | Tutorial files use colliding numeric prefixes (06/07/08 ×2-3) | low | FOLLOW-UP |
 | 9 | Per-module API pages verbose (261–345 lines each) | medium | PLAN |
 
@@ -81,7 +81,7 @@ guide _or_ repoint inbound links to `guides/...` and delete the root copy, (c)
 - **`_KNOWN_METRICS`** (private, underscore) is exported in `__all__` → PATCH
   (code): drop from `__all__` (API-honesty; matches the loop-context backlog).
 
-## 4. Missing module pages (39 names)
+## 4. Missing module pages (43 names)
 
 No dedicated `api/*.md` for: **Optimizers (`optim`, 15)**, **IO/receipts (7)**,
 **Bridges/Jaxley (7)**, **Paradigms (4)**, **Sharding (4)**, **Tutorial utils (4)**,

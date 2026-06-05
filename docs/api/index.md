@@ -28,7 +28,7 @@ grouped by module. Per-module pages carry detailed signatures and examples.
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (see Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (see Core) |
 | [Validation](validation.md) | config/field validators, `operator_status` | (see Core) |
-| _(no page yet)_ | **Optimizers** (`optim`), **IO/receipts**, **Bridges**, **Paradigms**, **Sharding**, **Tutorial utils**, **Experimental HPC** | 39 |
+| _(no page yet)_ | **Optimizers** (`optim`), **IO/receipts**, **Bridges**, **Paradigms**, **Sharding**, **Tutorial utils**, **Experimental HPC** | 43 |
 
 > Several public names (optimizers, IO, bridges, paradigms, sharding) do not yet
 > have a dedicated module page — they are listed in the index below. See the
@@ -45,8 +45,9 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)
 
 vm = signals.get("vm")            # membrane voltage [T, N]
 spk = signals.get("spk")          # spikes [T, N]
-e_idx = model.select(cell_type="E")
-vm_e = signals.get("vm", cell_type="E")
+e_idx = model.select(cell_type="E")     # excitatory neuron indices
+vm_e = signals.get("vm", cell_type="E") # equivalent to vm[:, e_idx]
+assert vm_e.shape[-1] == len(e_idx)
 ```
 
 ---
@@ -101,7 +102,7 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `runtime` | func | —  _(undocumented)_ |
 | `runtime_report` | func | —  _(undocumented)_ |
 | `RuntimeConfig` | class | JAX runtime and dtype policy. |
-| `Signal` | class | Simulation output container holding multiple arrays. |
+| `Signal` | class | Deprecated alias for `Signals` (`Signal = Signals`). |
 | `Signals` | class | Simulation output container holding multiple arrays. |
 | `simulate` | func | Run a simulation with the given model. |
 | `Simulation` | class | —  _(no docstring; dataclass)_ |
