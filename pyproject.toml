@@ -47,5 +47,7 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
-  "slow: marks tests as slow (notebook execution, full simulation runs)",
+  "slow: long-running tests",
+  "release: release-gate tests including docs/notebooks/full examples",
+  "notebook: notebook execution tests",
 ]

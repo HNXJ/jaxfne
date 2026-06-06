@@ -1506,6 +1506,9 @@ class Configuration:
         }
 
 
+Config = Configuration
+
+
 @dataclass(frozen=True)
 class RuntimeConfig:
     """JAX runtime and dtype policy.
