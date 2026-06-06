@@ -676,6 +676,13 @@ def _run_agsdr_optimization_loop(
     all_scores: list[float] = []
     all_candidates: list[dict[str, float]] = []
 
+    # Pre-generate noise for all generations in one vectorized JAX call
+    all_noise = jax.random.normal(
+        base_key,
+        shape=(int(n_generations), int(n_population), len(param_names)),
+        dtype=_wdtype,
+    )
+
     # Main AGSDR loop.  Candidate proposal is JAX-native (jit + vmap) while
     # evaluate_fn remains a Python black-box callback over a Model simulation.
     for gen in range(int(n_generations)):
@@ -683,12 +690,7 @@ def _run_agsdr_optimization_loop(
         gen_best_params: dict[str, float] = {}
         generation_candidates_history = []
 
-        key = jax.random.fold_in(base_key, int(gen))
-        noise = jax.random.normal(
-            key,
-            shape=(int(n_population), len(param_names)),
-            dtype=_wdtype,
-        )
+        noise = all_noise[gen]
         candidate_matrix = _agsdr_candidates_from_noise(
             center_arr,
             lows,
@@ -1355,17 +1357,19 @@ def _tune_matrix_agsdr_optax(
 
     base_key = jax.random.PRNGKey(int(seed))
 
+    # Pre-generate noise for all generations in one vectorized JAX call
+    all_noise = jax.random.normal(
+        base_key,
+        shape=(int(generations), int(population_size), len(param_names)),
+        dtype=_wdtype_outer,
+    )
+
     for gen in range(int(generations)):
         gen_best_score = float("inf")
         gen_best_params: dict = {}
 
         # Propose AGSDR candidates
-        key = jax.random.fold_in(base_key, int(gen))
-        noise = jax.random.normal(
-            key,
-            shape=(int(population_size), len(param_names)),
-            dtype=_wdtype_outer,
-        )
+        noise = all_noise[gen]
         candidate_matrix = _agsdr_candidates_from_noise(
             center_arr,
             lows,

@@ -202,7 +202,6 @@ def project_sources_to_laminar_field(
 
 
 def validate_projection_invariants(
-    *,
     sources: jax.Array,
     positions: jax.Array,
     kernel: jax.Array,
@@ -211,6 +210,30 @@ def validate_projection_invariants(
     csd_proxy: jax.Array,
     lfp_proxy: jax.Array,
 ) -> dict[str, Any]:
+    """Validate projection invariants and check shapes/finiteness.
+
+    Parameters
+    ----------
+    sources : jax.Array
+        Source currents tensor.
+    positions : jax.Array
+        3D coordinate positions of the emitters.
+    kernel : jax.Array
+        Laminar projection kernel.
+    source_proxy : jax.Array
+        Source proxy potential currents.
+    phi_e_proxy : jax.Array
+        Extracellular potential proxy.
+    csd_proxy : jax.Array
+        Current source density proxy.
+    lfp_proxy : jax.Array
+        Local field potential proxy.
+
+    Returns
+    -------
+    dict[str, Any]
+        Dictionary with validation results, shape tuples, and warning messages.
+    """
     kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)
     kernel_row_sum_max_abs_error = kernel_norm_tests["kernel_row_sum_max_abs_error"]
 
@@ -221,9 +244,22 @@ def validate_projection_invariants(
         kernel_row_sum_max_abs_error_val = float(kernel_row_sum_max_abs_error)
         normalization_valid = kernel_row_sum_max_abs_error_val < 1e-6
 
-    t_steps = int(sources.shape[0])
-    n_emitters = int(sources.shape[1])
-    n_contacts = int(kernel.shape[0])
+    # Extract shapes safely, handling tracer shapes
+    try:
+        t_steps = int(sources.shape[0])
+    except (TypeError, ValueError):
+        t_steps = sources.shape[0]
+
+    try:
+        n_emitters = int(sources.shape[1])
+    except (TypeError, ValueError):
+        n_emitters = sources.shape[1]
+
+    try:
+        n_contacts = int(kernel.shape[0])
+    except (TypeError, ValueError):
+        n_contacts = kernel.shape[0]
+
     warnings: list[str] = []
     if positions.shape != (n_emitters, 3):
         warnings.append("positions_shape_not_N_by_3")
@@ -234,14 +270,17 @@ def validate_projection_invariants(
     if not _finite_bool(csd_proxy):
         warnings.append("non_finite_csd_proxy")
 
+    def _shape_tuple(arr: jax.Array) -> tuple:
+        return tuple(int(x) if isinstance(x, (int, float)) else x for x in arr.shape)
+
     return {
-        "source_shape": tuple(int(x) for x in sources.shape),
-        "positions_shape": tuple(int(x) for x in positions.shape),
-        "kernel_shape": tuple(int(x) for x in kernel.shape),
-        "source_proxy_shape": tuple(int(x) for x in source_proxy.shape),
-        "phi_e_proxy_shape": tuple(int(x) for x in phi_e_proxy.shape),
-        "csd_proxy_shape": tuple(int(x) for x in csd_proxy.shape),
-        "lfp_proxy_shape": tuple(int(x) for x in lfp_proxy.shape),
+        "source_shape": _shape_tuple(sources),
+        "positions_shape": _shape_tuple(positions),
+        "kernel_shape": _shape_tuple(kernel),
+        "source_proxy_shape": _shape_tuple(source_proxy),
+        "phi_e_proxy_shape": _shape_tuple(phi_e_proxy),
+        "csd_proxy_shape": _shape_tuple(csd_proxy),
+        "lfp_proxy_shape": _shape_tuple(lfp_proxy),
         "dtype": _dtype_name(sources),
         "kernel_row_sum_max_abs_error": kernel_row_sum_max_abs_error_val,
         "finite_sources": _finite_bool(sources),

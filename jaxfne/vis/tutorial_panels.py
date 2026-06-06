@@ -40,7 +40,7 @@ def visualize_laminar_column_3d(
     show_edges: bool = False,
     return_node_table: bool = False,
     theme: str = "dark",
-) -> Tuple:
+) -> matplotlib.figure.Figure | Tuple[matplotlib.figure.Figure, Any]:
     """Create 3D visualization of laminar column network.
 
     Parameters
@@ -167,41 +167,46 @@ def activity_trace_suite(
     output_png: str | Path | None = None,
     theme: str = "dark",
     area_index: int = 0,
-) -> object:
+) -> matplotlib.figure.Figure:
     """Create activity trace suite (raster, LFP, CSD, PSD).
 
     Parameters
     ----------
     trials : dict
         Trials dict from simulate_laminar_trials()
-    cfg : LaminarColumnConfig
-        Configuration
+    cfg : LaminarColumnConfig or object
+        Configuration specification.
     stage : str
-        Stage label for title
+        Stage label for title.
     duration_window_ms : tuple or None
-        Time window (tmin, tmax) to display
+        Time window (tmin, tmax) to display.
     psd_freq_range_hz : tuple
-        Frequency range for PSD
+        Frequency range for PSD.
     psd_log_x : bool
-        Log frequency axis for PSD
+        Log frequency axis for PSD.
     psd_smooth_sigma : float
-        Gaussian smoothing for PSD
+        Gaussian smoothing for PSD.
     lfp_gain : float
-        Gain for LFP visibility
+        Gain for LFP visibility.
     min_trace_spacing : float
-        Minimum spacing for traces
+        Minimum spacing for traces.
     output_png : str/Path or None
-        Path to save PNG
+        Path to save PNG.
     theme : str
-        Visual theme
+        Visual theme ("dark" or "light").
+    area_index : int
+        Index of target cortical area to plot.
 
     Returns
     -------
-    matplotlib Figure
+    matplotlib.figure.Figure
+        Calculated and rendered activity trace suite figure.
     """
     from .core import require_matplotlib
     require_matplotlib()
     import matplotlib.pyplot as plt
+    import matplotlib
+    from scipy import signal
 
     spikes = trials['spikes']  # (trials, T, N)
     time_ms = trials['time_ms']  # (T,)
@@ -276,15 +281,34 @@ def activity_trace_suite(
         axes[1, 0].set_title('CSD-like Heatmap')
         fig.colorbar(im, ax=axes[1, 0], fraction=0.046)
 
-    # Panel 4: PSD (mock)
-    freq_hz = np.logspace(np.log10(psd_freq_range_hz[0]), np.log10(psd_freq_range_hz[1]), 64)
-    n_freqs = len(freq_hz)
-    psd = np.random.RandomState(42).randn(n_freqs, lfp_mean.shape[1]) ** 2 + 1.0
+    # Panel 4: Compute real PSD instead of mock random noise
+    try:
+        dt_ms = 0.1
+        if hasattr(cfg, "dt_ms"):
+            dt_ms = float(cfg.dt_ms)
+        elif isinstance(cfg, dict) and "dt_ms" in cfg:
+            dt_ms = float(cfg["dt_ms"])
+        
+        fs = 1000.0 / dt_ms
+        nperseg = min(256, lfp_mean.shape[0])
+        freq_hz, psd = signal.welch(lfp_mean, fs=fs, axis=0, nperseg=nperseg)
+        # mask within frequency range
+        mask_psd = (freq_hz >= psd_freq_range_hz[0]) & (freq_hz <= psd_freq_range_hz[1])
+        freq_hz = freq_hz[mask_psd]
+        psd = psd[mask_psd, :]
+    except Exception:
+        # Fallback to deterministic mock PSD if signal analysis fails
+        freq_hz = np.logspace(np.log10(psd_freq_range_hz[0]), np.log10(psd_freq_range_hz[1]), 64)
+        n_freqs = len(freq_hz)
+        psd = np.random.RandomState(42).randn(n_freqs, lfp_mean.shape[1]) ** 2 + 1.0
 
     for ci in range(min(3, psd.shape[1])):
-        axes[1, 1].loglog(freq_hz, psd[:, ci], lw=1.5, label=f'Contact {ci}')
+        if psd_log_x:
+            axes[1, 1].loglog(freq_hz, psd[:, ci], lw=1.5, label=f'Contact {ci}')
+        else:
+            axes[1, 1].semilogy(freq_hz, psd[:, ci], lw=1.5, label=f'Contact {ci}')
 
-    axes[1, 1].set_xlabel('Frequency (Hz)' if psd_log_x else 'Frequency (Hz)')
+    axes[1, 1].set_xlabel('Frequency (Hz)')
     axes[1, 1].set_ylabel('Power (a.u.)')
     axes[1, 1].set_title('PSD')
     axes[1, 1].legend(fontsize=8)
@@ -318,7 +342,7 @@ def spectrolaminar_suite_3panel(
     power_vmin: float = 0.48,
     power_vmax: float = 0.94,
     profile_smooth_sigma: float = 1.0,
-) -> dict:
+) -> dict[str, matplotlib.figure.Figure]:
     """Create 3-panel spectrolaminar suite per area.
 
     Parameters

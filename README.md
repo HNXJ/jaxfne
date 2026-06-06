@@ -1,6 +1,6 @@
 # jaxfne
 
-JAX-native tools for compact Tensor-Field Neural Equation workflows.
+JAX-powered tools for compact Tensor-Field Neural Equation workflows.
 
 ```text
 Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export

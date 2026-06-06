@@ -594,10 +594,24 @@ def objective_report(
     return fig
 
 
-def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
-    """Render the core Suite No. 2 readout panel in one figure."""
+def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> matplotlib.figure.Figure:
+    """Render the core Suite No. 2 readout panel in one figure.
+
+    Parameters
+    ----------
+    signals : Signals or dict
+        Container of simulated signals including spikes, LFP, CSD, and metadata.
+    **kwargs : Any
+        Plotting and matplotlib figure formatting options.
+
+    Returns
+    -------
+    matplotlib.figure.Figure
+        Calculated and rendered suite panel figure.
+    """
     require_matplotlib()
     import matplotlib.pyplot as plt
+    import matplotlib
 
     freq_min_hz = float(kwargs.pop("freq_min_hz", 0.0))
     freq_max_hz = float(kwargs.pop("freq_max_hz", 80.0))
@@ -633,7 +647,7 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
     except ValueError:
         lfp_arr = None
 
-    if lfp_arr is not None and np.all(np.isfinite(lfp_arr)):
+    if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
         im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
         axes[1].set_title("LFP-like contacts")
         fig.colorbar(im1, ax=axes[1], fraction=0.046)
@@ -646,7 +660,7 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
     except ValueError:
         csd_arr = None
 
-    if csd_arr is not None and np.all(np.isfinite(csd_arr)):
+    if csd_arr is not None and np.isfinite(np.sum(csd_arr)):
         vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
         im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
         axes[2].set_title("CSD-like contacts")
@@ -655,7 +669,7 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
         axes[2].text(0.5, 0.5, "CSD data unavailable", ha="center", va="center", transform=axes[2].transAxes)
         axes[2].set_title("CSD-like contacts")
 
-    if lfp_arr is not None and np.all(np.isfinite(lfp_arr)):
+    if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
         dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
         fs = 1000.0 / dt_ms
         nperseg = psd_nperseg if psd_nperseg is not None else min(512, lfp_arr.shape[0])
@@ -674,7 +688,7 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
     except ValueError:
         eeg_y = None
 
-    if eeg_y is not None and np.all(np.isfinite(eeg_y)):
+    if eeg_y is not None and np.isfinite(np.sum(eeg_y)):
         scale = np.nanstd(eeg_y) or 1.0
         for ch in range(eeg_y.shape[1]):
             axes[4].plot(time_ms, eeg_y[:, ch] / scale + ch)
@@ -689,7 +703,7 @@ def spectrolaminar_suite(signals: Any, **kwargs: Any) -> Any:
     except ValueError:
         src = None
 
-    if src is not None and np.all(np.isfinite(src)):
+    if src is not None and np.isfinite(np.sum(src)):
         emm_cost = spikes_mean + np.mean(np.abs(src), axis=1)
         if lfp_arr is not None:
             emm_cost = emm_cost + np.mean(lfp_arr * lfp_arr, axis=1)

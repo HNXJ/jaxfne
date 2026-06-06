@@ -1335,6 +1335,16 @@ class RuntimeConfig:
         return jnp.float64 if self.actual_dtype == "float64" else jnp.float32
 
     def runtime_report(self) -> dict[str, Any]:
+        """Compile a summary of JAX system runtime, backend, and device topology.
+
+        Detects requested vs actual execution backends (CPU, GPU, or TPU) and
+        validates system properties.
+
+        Returns
+        -------
+        dict[str, Any]
+            System configuration report metadata.
+        """
         devices = [str(device) for device in jax.devices()]
         default_backend = jax.default_backend()
         requested_backend = self.selected_backend  # alias for selected (user-requested)
@@ -2760,12 +2770,34 @@ class Model:
         return rows_out
 
     def _simulate_arrays(
-        self,
+        self: "Model",
         sim: Simulation,
         key: jax.Array,
         runtime_cfg: RuntimeConfig,
-        drive_schedule: Optional[Any] = None,
-    ):
+        drive_schedule: Optional[jax.Array] = None,
+    ) -> tuple[jax.Array, jax.Array, jax.Array]:
+        """Compile and execute the underlying simulation kernel.
+
+        This method resolves the ablation mode masks, updates parameters, and
+        dispatches to either the sparse/edge-list or dense JAX simulation kernels
+        with compile-time caching.
+
+        Parameters
+        ----------
+        sim : Simulation
+            Simulation configuration.
+        key : jax.Array
+            JAX PRNG key.
+        runtime_cfg : RuntimeConfig
+            Resolved runtime config.
+        drive_schedule : jax.Array, optional
+            Input drive schedule array, by default None.
+
+        Returns
+        -------
+        tuple[jax.Array, jax.Array, jax.Array]
+            Voltages, spikes, and source currents.
+        """
         from .emitters import _dtype_from_policy
         emitter: IzhikevichParams = self.params["emitter"]
         sched = drive_schedule  # None or (n_steps, n_neurons) array
@@ -2773,15 +2805,25 @@ class Model:
         # Build silence_mask if E_silence or I_silence is requested
         n_neurons = emitter.v0.shape[0]
         jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
-        silence_mask = jnp.ones((n_neurons,), dtype=jdtype)
         ablation_mode = getattr(sim, "ablation", None)
         
+        if not hasattr(self, "_silence_masks"):
+            object.__setattr__(self, "_silence_masks", {})
+
         if ablation_mode == "E_silence":
-            mask_list = [0.0 if lbl.startswith("E") else 1.0 for lbl in emitter.labels]
-            silence_mask = jnp.array(mask_list, dtype=jdtype)
+            if "E_silence" not in self._silence_masks:
+                mask_list = [0.0 if lbl.startswith("E") else 1.0 for lbl in emitter.labels]
+                self._silence_masks["E_silence"] = jnp.array(mask_list, dtype=jdtype)
+            silence_mask = self._silence_masks["E_silence"]
         elif ablation_mode == "I_silence":
-            mask_list = [1.0 if lbl.startswith("E") else 0.0 for lbl in emitter.labels]
-            silence_mask = jnp.array(mask_list, dtype=jdtype)
+            if "I_silence" not in self._silence_masks:
+                mask_list = [1.0 if lbl.startswith("E") else 0.0 for lbl in emitter.labels]
+                self._silence_masks["I_silence"] = jnp.array(mask_list, dtype=jdtype)
+            silence_mask = self._silence_masks["I_silence"]
+        else:
+            if "default" not in self._silence_masks:
+                self._silence_masks["default"] = jnp.ones((n_neurons,), dtype=jdtype)
+            silence_mask = self._silence_masks["default"]
             
         if ablation_mode == "disconnected_null":
             if runtime_cfg.recurrent_backend == "edge_list":
@@ -2881,7 +2923,7 @@ class Model:
         return None
 
     def simulate(
-        self,
+        self: "Model",
         sim: Simulation,
         paradigm: "Optional[Any]" = None,
     ) -> Signals:
@@ -3517,7 +3559,7 @@ class Model:
         )
 
     def _evaluate_group_rate_targets(
-        self,
+        self: "Model",
         signals: Signals,
         objective: "Objective",
         warnings: list[str],
@@ -3565,8 +3607,10 @@ class Model:
         if weights_dict is None:
             weights_dict = {name: 1.0 for name in groups_dict.keys()}
 
-        # Compute dt from time axis
-        dt_ms = float(signals.time_ms[1] - signals.time_ms[0]) if signals.time_ms.shape[0] > 1 else 0.05
+        # Compute dt from metadata to avoid JAX device-to-host transfer
+        dt_ms = float(signals.metadata.get("dt_ms", 0.0))
+        if dt_ms <= 0:
+            dt_ms = float(signals.time_ms[1] - signals.time_ms[0]) if signals.time_ms.shape[0] > 1 else 0.05
         if dt_ms <= 0:
             dt_ms = 0.05
 
@@ -3656,7 +3700,7 @@ class Model:
         })
 
     def tune(
-        self,
+        self: "Model",
         objective: Optional["Objective"] = None,
         optimizer: Any = None,
         steps: int = 0,
