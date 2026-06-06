@@ -187,6 +187,22 @@ def _candidate_pairs(
     return sorted(all_pairs[int(i)] for i in idx)
 
 
+def _stable_fold(seed: Any) -> int:
+    """Deterministic 31-bit fold value from a weight-spec ``seed``.
+
+    Uses the integer directly when possible, otherwise a content hash
+    (``hashlib.sha256``) — never the builtin ``hash()``, which is randomized
+    per-process for strings (PEP 456 / ``PYTHONHASHSEED``) and would break the
+    determinism contract for string seeds.
+    """
+    if isinstance(seed, bool):
+        seed = int(seed)
+    if isinstance(seed, int):
+        return seed & 0x7FFFFFFF
+    digest = hashlib.sha256(str(seed).encode("utf-8")).hexdigest()
+    return int(digest[:8], 16) & 0x7FFFFFFF
+
+
 def _edge_weights(
     weight: Any,
     pairs: list[tuple[int, int]],
@@ -226,7 +242,7 @@ def _edge_weights(
         return np.full((n,), w, dtype=np.float64)
     if mode in ("random_uniform", "random_normal"):
         scale = float(weight.get("scale", 1.0))
-        wkey = jax.random.fold_in(key, hash(weight.get("seed", 0)) & 0x7FFFFFFF)
+        wkey = jax.random.fold_in(key, _stable_fold(weight.get("seed", 0)))
         if mode == "random_uniform":
             low = float(weight.get("low", 0.0))
             high = float(weight.get("high", 1.0))

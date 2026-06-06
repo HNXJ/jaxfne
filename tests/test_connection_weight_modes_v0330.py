@@ -45,6 +45,17 @@ def test_random_normal_mode_finite():
     assert np.all(np.isfinite(np.asarray(r.edge_weight)))
 
 
+def test_string_seed_is_deterministic():
+    """A string weight-spec seed must give identical weights (no builtin hash())."""
+    spec = {"mode": "random_uniform", "low": 0.0, "high": 1.0, "seed": "experiment_A"}
+    a = _compile(spec, seed=0)
+    b = _compile(spec, seed=0)
+    assert np.array_equal(np.asarray(a.edge_weight), np.asarray(b.edge_weight))
+    from jaxfne.connectivity import _stable_fold
+    assert _stable_fold("experiment_A") == _stable_fold("experiment_A")
+    assert _stable_fold(7) == 7
+
+
 def test_matrix_mode_maps_positions():
     # n_pre=2 (E: 0,1), n_post=2 (PV: 2,3)
     mat = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=float)
