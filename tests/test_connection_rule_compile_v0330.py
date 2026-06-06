@@ -156,3 +156,27 @@ def test_truth_gates_in_diagnostics():
     assert r.diagnostics["field_solver_status"] == "laminar_proxy_no_pde"
     assert r.diagnostics["physical_amplitude_claim_allowed"] is False
     assert r.mechanism_table[0]["status"] == "declared_not_simulated"
+
+
+def test_dense_regime_shortfall_warns_on_self_exclusion():
+    """Dense regime with allow_self=False and overlapping populations warns when target can't be met."""
+    # V1 has 3 neurons (0, 1, 2): probability=0.9 → target = round(0.9*9) = 8
+    # But with allow_self=False, max pairs = 9 - 3 = 6 (excluding diagonal)
+    # Dense regime should warn and realize only 6 edges.
+    conn = [{
+        "name": "rec_high_prob",
+        "source": {"area": "V1"},
+        "target": {"area": "V1"},
+        "probability": 0.9,
+        "weight": 0.05,
+        "mechanism": "ampa",
+        "allow_self_connections": False,  # Exclude self-connections
+    }]
+    with pytest.warns(UserWarning, match="Dense-regime edge target.*exceeds non-self"):
+        r = _compile(conn, seed=0)
+    # The compiler should realize exactly 6 edges (3*3 - 3 diagonal)
+    assert r.n_edges == 6
+    # Verify no self-connections were added
+    pre = np.asarray(r.edge_pre, dtype=int)
+    post = np.asarray(r.edge_post, dtype=int)
+    assert not np.any(pre == post)

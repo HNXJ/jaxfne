@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import warnings
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
@@ -132,12 +133,15 @@ def _candidate_pairs(
 
     probability=None -> full bipartite (sparse list, no dense mask).
     probability=p    -> target edge *density*: the realized unique edge count is
-                        round(p*n_pre*n_post). ``probability`` is the target
-                        density fraction, NOT an independent per-pair Bernoulli
-                        rate; p>=1 yields full all-to-all (minus self unless
-                        allowed). Sampling is deterministic given ``key`` and
-                        never materializes a dense n_pre x n_post mask in the
-                        sparse regime.
+                        round(p*n_pre*n_post), except when allow_self=False and
+                        populations overlap (same neurons in pre and post), in which
+                        case self-connections are excluded and the count may be capped
+                        below target. ``probability`` is the target density fraction,
+                        NOT an independent per-pair Bernoulli rate; p>=1 yields full
+                        all-to-all (minus self unless allowed). Sampling is deterministic
+                        given ``key`` and never materializes a dense n_pre x n_post mask
+                        in the sparse regime. A warning is issued when self-connection
+                        exclusion prevents reaching the target.
     """
     n_pre, n_post = len(pre_ids), len(post_ids)
     if n_pre == 0 or n_post == 0:
@@ -183,6 +187,18 @@ def _candidate_pairs(
     # p>=1 branch, so this stays consistent and exact.
     all_pairs = _all_pairs()
     take = min(n_target, len(all_pairs))
+
+    # Warn if self-connection exclusion prevents reaching the probability target
+    if take < n_target:
+        max_possible = len(all_pairs)
+        warnings.warn(
+            f"Dense-regime edge target {n_target} exceeds non-self pairs {max_possible} "
+            f"(probability={probability:.3f} on {n_pre}→{n_post}); "
+            f"realized {take} edges instead. Use sparse populations or lower probability.",
+            UserWarning,
+            stacklevel=4,
+        )
+
     idx = np.asarray(jax.random.choice(key, len(all_pairs), shape=(take,), replace=False))
     return sorted(all_pairs[int(i)] for i in idx)
 
