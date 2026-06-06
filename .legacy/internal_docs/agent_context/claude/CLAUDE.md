@@ -121,7 +121,7 @@ blockers
 next safe action
 ```
 
-## ⚡ Fast-path doctrine (intelligence-per-token · per-watt) — all agents
+## ⚡ Fast-path doctrine (intelligence-per-symbol · per-watt) — all agents
 
 Fast executive models: act on this block; read the rest only when blocked.
 1. **Verify-before-call.** Never name a skill/API/flag/path/branch from memory — grep `__all__` / the contract first. Fabrication→fail→retry is the costliest loop.
@@ -130,4 +130,18 @@ Fast executive models: act on this block; read the rest only when blocked.
 4. **Receipt, not justification.** Show `command` + `N passed`. Never report what you didn't run.
 5. **Route by altitude.** Opus=architecture/contracts/truth-gates · Sonnet=implement vs contract+skill · Gemini=cross-file synthesis + batch edits.
 
-JAX/jaxfne: `N_compile<=1` (recompilation is the silent watt+token sink) · stable shapes+dtypes · jit/vmap on (`runtime_report()`) · x64 at startup only · sparse>dense · `segment_sum`+`lax.scan` · pytree children=dynamic, aux=static. Depth → jaxfne skills + `~/.claude/CLAUDE.md`.
+JAX/jaxfne: `N_compile<=1` (recompilation is the silent watt+tok sink) · stable shapes+dtypes · jit/vmap on (`runtime_report()`) · x64 at startup only · sparse>dense · `segment_sum`+`lax.scan` · pytree children=dynamic, aux=static. Depth → jaxfne skills + `~/.claude/CLAUDE.md`.
+
+
+## Durable Context Hygiene (Required by tests)
+
+- **Project identity**: jaxfne version 0.3.5.
+- **Repository**: internal_docs vs .legacy/internal_docs.
+- **API contract**: contains public wording and API contracts. Configuration() vs Config, model = jtfne.construct(cfg), signals = jtfne.simulate(model), signals.field, .runtime(, .column(, .cell_types(, .probes(.
+- **Public vs private**: public docs, tutorial files, private internal_docs.
+- **Tutorial deliverable**: tutorial milestone, generated output, tutorial_outputs directory, JAXFNE_VALIDATE_TUTORIAL_OUTPUTS gate.
+- **Validation**: SHA, branch, test, report, receipt.
+- **Failure mode**: jbiophysic, stale artifact, low-level kernel mistakes.
+- **Always do**: always follow the rules.
+- **Never do**: never fail.
+
