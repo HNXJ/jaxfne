@@ -10,21 +10,16 @@ from typing import Any, Optional
 import jax
 import jax.numpy as jnp
 
+from .base import BaseSDRState
+
 
 @dataclass(frozen=True)
-class AGSDRState:
+class AGSDRState(BaseSDRState):
     """Adaptive Genetic Stochastic Delta Rule optimizer state.
 
     Combines genetic deselection with adaptive alpha for two-phase search.
     """
-    step: int = 0
-    best_loss: float = float("inf")
-    best_param: Optional[Any] = None
-    reset_counter: int = 0
     deselection_counter: int = 0
-    var_sup_ema: float = 0.0
-    var_unsup_ema: float = 0.0
-    ema_decay: float = 0.99
     alpha_adaptive: float = 0.7  # Adaptive alpha, updated via variance ratio
 
 

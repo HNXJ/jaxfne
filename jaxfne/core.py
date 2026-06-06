@@ -32,6 +32,10 @@ _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
 
+# v0.3.29: canonical selector/identity types live in experimental_hpc.contracts.
+# Re-export (do not duplicate) so the stable API exposes one definition.
+from .experimental_hpc.contracts import NodeIdentity, SelectorSpec
+
 
 @dataclass(frozen=True)
 class MatrixParameterSpec:
@@ -166,6 +170,29 @@ def _default_operator_status() -> dict[str, str]:
         "O_optimizer": "prototype_api",
         "C_constraints": "prototype_api",
     }
+
+
+def _circuit_json_safe(value: Any, path: str) -> Any:
+    """Recursively validate and return a strict-JSON-safe copy of a declaration.
+
+    Used by the v0.3.28 circuit/training declaration methods. Raises ``ValueError``
+    on non-finite numbers (NaN/Inf) or unsupported types so non-serializable
+    declarations fail loudly at declaration time rather than at manifest export.
+    ``bool`` is checked before ``int`` because ``bool`` is an ``int`` subclass.
+    """
+    if value is None or isinstance(value, (str, bool)):
+        return value
+    if isinstance(value, int):
+        return int(value)
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError(f"non-finite value at {path}: {value!r}")
+        return float(value)
+    if isinstance(value, Mapping):
+        return {str(k): _circuit_json_safe(v, f"{path}.{k}") for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_circuit_json_safe(v, f"{path}[{i}]") for i, v in enumerate(value)]
+    raise ValueError(f"non-JSON-safe value at {path}: {type(value).__name__}")
 
 
 def _default_metadata() -> dict[str, Any]:
@@ -693,6 +720,204 @@ class Configuration:
     def set_connectivity(self, **kwargs: Any) -> "Configuration":
         """Backward-compatible alias for :meth:`connectivity`."""
         return self.connectivity(**kwargs)
+
+    # ------------------------------------------------------------------
+    # v0.3.28 completion: declarative circuit/training ownership.
+    #
+    # These methods are DECLARATION-ONLY. They record JSON-safe specs under
+    # ``metadata["circuit"]`` / ``metadata["training"]`` for a future
+    # connectivity compiler (v0.3.30) to consume. They deliberately do NOT
+    # compile edges, change simulation numerics, build dense matrices, trigger
+    # JIT, import optional dependencies, or claim biological/physical validity.
+    # Each declaration carries an explicit status so nothing reads as compiled,
+    # applied, or optimized yet.
+    # ------------------------------------------------------------------
+    def cell_params(self, selector: Mapping[str, Any], params: Mapping[str, Any]) -> "Configuration":
+        """Declare cell/emitter parameter overrides for a selector (declaration only)."""
+        entry = {
+            "selector": _circuit_json_safe(dict(selector), "cell_params.selector"),
+            "params": _circuit_json_safe(dict(params), "cell_params.params"),
+            "status": "declared_not_compiled",
+        }
+        return self._append_circuit("cell_params", entry, dedup_name=False)
+
+    def mechanisms(
+        self, *, name: str, kind: str, params: Optional[Mapping[str, Any]] = None, **extra: Any
+    ) -> "Configuration":
+        """Declare a named mechanism spec (declaration only; not compiled)."""
+        if not name:
+            raise ValueError("mechanism requires a non-empty name")
+        entry = {
+            "name": str(name),
+            "kind": str(kind),
+            "params": _circuit_json_safe(dict(params or {}), "mechanisms.params"),
+            **_circuit_json_safe(dict(extra), "mechanisms.extra"),
+            "status": "declared_not_compiled",
+        }
+        return self._append_circuit("mechanisms", entry, dedup_name=True)
+
+    def connections(
+        self,
+        *,
+        name: str,
+        source: Mapping[str, Any],
+        target: Mapping[str, Any],
+        probability: Optional[float] = None,
+        weight: Optional[float] = None,
+        sign: Optional[str] = None,
+        mechanism: Optional[str] = None,
+        plasticity: Optional[Mapping[str, Any]] = None,
+        control_key: Optional[str] = None,
+    ) -> "Configuration":
+        """Declare a connection rule for the future compiler (declaration only).
+
+        Distinct from :meth:`connectivity`, which records feedforward/feedback
+        bookkeeping. This appends a rule to ``metadata["circuit"]["connections"]``.
+        """
+        if not name:
+            raise ValueError("connection requires a non-empty name")
+        if not isinstance(source, Mapping) or not isinstance(target, Mapping):
+            raise ValueError(
+                f"connection {name!r} requires source and target selector mappings"
+            )
+        if probability is not None:
+            p = float(probability)
+            if not math.isfinite(p) or not (0.0 <= p <= 1.0):
+                raise ValueError(
+                    f"connection {name!r} probability must be finite in [0, 1]; got {probability!r}"
+                )
+        if weight is not None and not math.isfinite(float(weight)):
+            raise ValueError(f"connection {name!r} weight must be finite; got {weight!r}")
+        if sign is not None and sign not in {"excitatory", "inhibitory", "signed"}:
+            raise ValueError(
+                f"connection {name!r} sign must be excitatory/inhibitory/signed or None; got {sign!r}"
+            )
+        entry = {
+            "name": str(name),
+            "source": _circuit_json_safe(dict(source), "connections.source"),
+            "target": _circuit_json_safe(dict(target), "connections.target"),
+            "probability": float(probability) if probability is not None else None,
+            "weight": float(weight) if weight is not None else None,
+            "sign": sign,
+            "mechanism": str(mechanism) if mechanism is not None else None,
+            "plasticity": _circuit_json_safe(dict(plasticity), "connections.plasticity")
+            if plasticity is not None
+            else None,
+            "control_key": str(control_key) if control_key is not None else None,
+            "status": "declared_not_compiled",
+        }
+        cfg = self._append_circuit("connections", entry, dedup_name=True)
+        # Unknown-mechanism reference is a WARNING in this declaration-only phase;
+        # the v0.3.30 compiler will promote it to a hard error.
+        known = {m.get("name") for m in cfg.metadata["circuit"]["mechanisms"]}
+        if mechanism is not None and mechanism not in known:
+            warnings.warn(
+                f"connection {name!r} references mechanism {mechanism!r} not declared via "
+                ".mechanisms() (declared_not_compiled phase)",
+                UserWarning,
+            )
+        return cfg
+
+    def lesions(self, *, name: str, selector: Mapping[str, Any], effect: str) -> "Configuration":
+        """Declare a lesion (disabled nodes/edges/mechanisms; declaration only)."""
+        if not name:
+            raise ValueError("lesion requires a non-empty name")
+        entry = {
+            "name": str(name),
+            "selector": _circuit_json_safe(dict(selector), "lesions.selector"),
+            "effect": str(effect),
+            "status": "declared_not_applied",
+        }
+        return self._append_circuit("lesions", entry, dedup_name=True)
+
+    def trainables(
+        self,
+        *,
+        name: str,
+        path: str,
+        selector: Optional[Mapping[str, Any]] = None,
+        bounds: Optional[Sequence[float]] = None,
+    ) -> "Configuration":
+        """Declare a trainable parameter selector/spec (declaration only; not optimized)."""
+        if not name:
+            raise ValueError("trainable requires a non-empty name")
+        clean_bounds = None
+        if bounds is not None:
+            if len(bounds) != 2:
+                raise ValueError(
+                    f"trainable {name!r} bounds must have exactly 2 elements (low, high); got {bounds!r}"
+                )
+            lo, hi = (float(bounds[0]), float(bounds[1]))
+            if not (math.isfinite(lo) and math.isfinite(hi)):
+                raise ValueError(f"trainable {name!r} bounds must be finite; got {bounds!r}")
+            if lo > hi:
+                raise ValueError(f"trainable {name!r} bounds reversed: low {lo} > high {hi}")
+            clean_bounds = [lo, hi]
+        entry = {
+            "name": str(name),
+            "path": str(path),
+            "selector": _circuit_json_safe(dict(selector or {}), "trainables.selector"),
+            "bounds": clean_bounds,
+            "status": "declared_not_optimized",
+        }
+        return self._append_training("trainables", entry)
+
+    def objective_outputs(
+        self,
+        *,
+        name: str,
+        dtype: str = "float32",
+        shape: Optional[Sequence[int]] = None,
+        required: bool = True,
+    ) -> "Configuration":
+        """Declare an expected objective output schema entry (declaration only)."""
+        if not name:
+            raise ValueError("objective output requires a non-empty name")
+        entry = {
+            "name": str(name),
+            "dtype": str(dtype),
+            "shape": [int(x) for x in shape] if shape is not None else None,
+            "required": bool(required),
+            "status": "declared",
+        }
+        return self._append_training("objective_outputs", entry)
+
+    def _append_circuit(
+        self, key: str, entry: dict[str, Any], *, dedup_name: bool
+    ) -> "Configuration":
+        metadata = dict(self.metadata)
+        circuit = {k: list(v) for k, v in dict(metadata.get("circuit", {})).items()}
+        for k in ("cell_params", "mechanisms", "connections", "lesions"):
+            circuit.setdefault(k, [])
+        lst = list(circuit.get(key, []))
+        if dedup_name and any(e.get("name") == entry.get("name") for e in lst):
+            raise ValueError(f"duplicate {key} declaration name: {entry.get('name')!r}")
+        lst.append(entry)
+        circuit[key] = lst
+        metadata["circuit"] = circuit
+        metadata["circuit_declared"] = True
+        # A new declaration invalidates any prior compiled state, so reset
+        # rather than setdefault (which would leave a stale True if a future
+        # compiler set the flag and the user then chained another declaration).
+        metadata["circuit_compiled"] = False
+        return replace(self, metadata=metadata)
+
+    def _append_training(self, key: str, entry: dict[str, Any]) -> "Configuration":
+        metadata = dict(self.metadata)
+        training = {k: list(v) for k, v in dict(metadata.get("training", {})).items()}
+        for k in ("trainables", "objective_outputs"):
+            training.setdefault(k, [])
+        lst = list(training.get(key, []))
+        if any(e.get("name") == entry.get("name") for e in lst):
+            raise ValueError(f"duplicate {key} declaration name: {entry.get('name')!r}")
+        lst.append(entry)
+        training[key] = lst
+        metadata["training"] = training
+        metadata["training_declared"] = True
+        # Reset (not setdefault): a new training declaration invalidates any
+        # prior executed state.
+        metadata["training_executed"] = False
+        return replace(self, metadata=metadata)
 
     def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
         """Chainable config method to set/wrap emitter family and presets."""
@@ -1502,6 +1727,24 @@ class Probe:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+# v0.3.29 signal-access key aliases. Maps user-facing keys to the real
+# underlying attribute. Only real, present readouts are listed: the core proxy
+# field carries lfp/csd/phi_e/source proxies — there is NO eeg/meg/emm readout.
+_SIGNALS_GET_KEY_ALIASES: dict[str, str] = {
+    "vm": "V_m", "v_m": "V_m", "voltage": "V_m", "V_m": "V_m",
+    "spk": "spikes", "spike": "spikes", "spikes": "spikes", "raster": "spikes",
+    "src": "sources", "source": "sources", "sources": "sources",
+    "lfp": "lfp_proxy", "lfp_like": "lfp_proxy", "lfp_proxy": "lfp_proxy",
+    "csd": "csd_proxy", "csd_like": "csd_proxy", "csd_proxy": "csd_proxy",
+    "phi_e": "phi_e_proxy", "phi": "phi_e_proxy", "phi_e_proxy": "phi_e_proxy",
+    "field_source": "source_proxy", "source_proxy": "source_proxy",
+}
+# Signals whose neuron axis is the trailing axis (length == n_units).
+_SIGNALS_GET_NEURON_AXIS_KEYS = frozenset({"V_m", "spikes", "sources"})
+# Field readouts are laminar/contact-indexed, not neuron-indexed.
+_SIGNALS_GET_FIELD_KEYS = frozenset({"lfp_proxy", "csd_proxy", "phi_e_proxy", "source_proxy"})
+
+
 @dataclass(frozen=True)
 class Signals:
     """Simulation output container holding multiple arrays."""
@@ -1530,6 +1773,111 @@ class Signals:
             "truth_mode": self.metadata.get("truth_mode", "truth_safe_unverified"),
             "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout_only"),
         })
+
+    def get(
+        self,
+        key: str,
+        *,
+        selector: "Optional[SelectorSpec]" = None,
+        area: Optional[Any] = None,
+        layer: Optional[Any] = None,
+        cell_type: Optional[Any] = None,
+        ids: Optional[Sequence[int]] = None,
+        trial: Optional[int] = None,
+        as_numpy: bool = False,
+    ) -> Any:
+        """Return a named signal array, optionally filtered to selected neurons.
+
+        Key aliases (case-sensitive): ``vm``/``V_m``/``voltage`` -> V_m;
+        ``spk``/``spikes``/``raster`` -> spikes; ``src``/``sources`` -> sources;
+        ``lfp``/``csd``/``phi_e`` -> the corresponding laminar proxy readout;
+        ``field_source`` -> field source proxy. Unknown keys raise ``KeyError``
+        listing the available ones.
+
+        A selector (either a ``SelectorSpec`` or the ``area``/``layer``/
+        ``cell_type``/``ids`` fields, not both) filters neuron-indexed signals
+        (V_m, spikes, sources) along their trailing axis. Selectors on laminar
+        field readouts raise ``ValueError`` (no declared neuron axis). Selection
+        requires ``metadata['neuron_metadata']``; if absent it raises
+        ``ValueError`` rather than guessing.
+
+        ``trial`` is not supported: core ``Signals`` has no declared trial axis,
+        so any ``trial`` argument raises ``NotImplementedError``.
+        """
+        if trial is not None:
+            raise NotImplementedError(
+                "Signals.get(..., trial=...) is not supported: core Signals has no "
+                "declared trial axis (V_m is (n_steps, n_units)). Use a trial-batched "
+                "API or index the array directly once trial semantics are explicit."
+            )
+
+        field_args = (area, layer, cell_type, ids)
+        if selector is not None and any(x is not None for x in field_args):
+            raise ValueError(
+                "Pass either selector=SelectorSpec(...) or the area/layer/cell_type/ids "
+                "fields, not both."
+            )
+        if selector is None and any(x is not None for x in field_args):
+            selector = SelectorSpec(
+                area=area,
+                layer=layer,
+                cell_type=cell_type,
+                ids=tuple(ids) if ids is not None else None,
+            )
+
+        if key not in _SIGNALS_GET_KEY_ALIASES:
+            available = ", ".join(sorted(_SIGNALS_GET_KEY_ALIASES))
+            raise KeyError(f"Unknown signal key {key!r}. Available: {available}")
+        attr = _SIGNALS_GET_KEY_ALIASES[key]
+
+        if attr == "V_m":
+            arr = self.V_m
+        elif attr == "spikes":
+            arr = self.spikes
+        elif attr == "sources":
+            if self.sources is None:
+                raise ValueError("sources not recorded (run with record_sources=True)")
+            arr = self.sources
+        elif attr in _SIGNALS_GET_FIELD_KEYS:
+            if self.field is None:
+                raise ValueError(f"field not recorded; {attr!r} unavailable (record_fields=True)")
+            arr = getattr(self.field, attr, None)
+            if arr is None:
+                raise ValueError(f"field output has no attribute {attr!r}")
+        else:  # pragma: no cover - alias map and branches kept in sync
+            raise KeyError(f"Signal {attr!r} not available")
+
+        if selector is not None:
+            if attr not in _SIGNALS_GET_NEURON_AXIS_KEYS:
+                raise ValueError(
+                    f"Selector cannot be applied to signal {key!r}: {attr!r} is a laminar "
+                    f"field readout with no declared neuron axis. Slice it directly instead."
+                )
+            if getattr(arr, "ndim", 0) < 2:
+                raise ValueError(
+                    f"Cannot apply selector to {attr!r}: expected a neuron axis "
+                    f"(ndim >= 2), got shape {getattr(arr, 'shape', None)}"
+                )
+            n_units = int(self.V_m.shape[-1]) if self.V_m.ndim >= 2 else None
+            if n_units is not None and int(arr.shape[-1]) != n_units:
+                raise ValueError(
+                    f"Cannot apply selector to {attr!r}: trailing axis {arr.shape[-1]} "
+                    f"does not match neuron count {n_units}; no declared neuron axis."
+                )
+            table = self.metadata.get("neuron_metadata")
+            if table is None:
+                raise ValueError(
+                    "Selector requested but this run has no neuron identity table "
+                    "(metadata['neuron_metadata'] is None). Build the model with geometry "
+                    "that provides neuron rows, or index by integer position directly."
+                )
+            indices = selector.resolve(table)
+            arr = arr[..., indices]
+
+        if as_numpy:
+            import numpy as _np
+            arr = _np.asarray(arr)
+        return arr
 
 
 # Backwards-compatible alias.
@@ -2768,6 +3116,33 @@ class Model:
                 "z": z_value,
             })
         return rows_out
+
+    def select(
+        self,
+        *,
+        area: Optional[Any] = None,
+        area_id: Optional[Any] = None,
+        layer: Optional[Any] = None,
+        cell_type: Optional[Any] = None,
+        ids: Optional[Sequence[int]] = None,
+        allow_empty: bool = False,
+    ) -> jax.Array:
+        """Resolve semantic selectors to neuron row indices (does not mutate).
+
+        Thin, non-mutating wrapper around :class:`SelectorSpec` over this model's
+        :meth:`neuron_table`. Returns an int32 JAX array of row positions suitable
+        for indexing the trailing (neuron) axis of V_m/spikes/sources. Empty
+        matches raise ``ValueError`` unless ``allow_empty=True``. A requested
+        field absent from the neuron table raises ``KeyError``.
+        """
+        spec = SelectorSpec(
+            area=area,
+            area_id=area_id,
+            layer=layer,
+            cell_type=cell_type,
+            ids=tuple(ids) if ids is not None else None,
+        )
+        return spec.resolve(self.neuron_table(), allow_empty=allow_empty)
 
     def _simulate_arrays(
         self: "Model",
@@ -5068,6 +5443,21 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
+    # Fail loudly on explicitly declared unsupported emitter families. The
+    # construct/simulate path only implements the Izhikevich kernel; any other
+    # explicitly named family (e.g. "lif", "glif") must raise rather than
+    # silently running Izhikevich. A config that omits "family" (or sets it to
+    # None) uses the documented default Izhikevich kernel by design.
+    for _emitter in cfg.emitters:
+        _family = _emitter.get("family")
+        if _family is not None and _family not in _SUPPORTED_EMITTER_FAMILIES:
+            _supported = ", ".join(sorted(_SUPPORTED_EMITTER_FAMILIES))
+            raise ValueError(
+                f"Unsupported emitter family {_family!r} for construct/simulate. "
+                f"Supported families: {_supported}. "
+                "An explicitly declared unsupported family does not silently "
+                "fall back to another emitter."
+            )
     net = cfg.networks[0]
     n = int(net.get("n", 100))
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
@@ -5468,6 +5858,74 @@ def run_receipt(
     return model.run_receipt(signals, tags=tags)
 
 
+def provenance_receipt(
+    branch: str = "unknown",
+    sha: str = "unknown",
+    dirty: bool = False,
+) -> dict[str, Any]:
+    """Capture release provenance atomically.
+
+    Freezes branch, SHA, dirty flag, and jaxfne version metadata into a single
+    JSON-safe dict for release auditing and reproducibility.
+
+    Args:
+        branch: Git branch name (e.g., "main", "feat/something"). Default: "unknown".
+        sha: Git commit SHA (short or full). Default: "unknown".
+        dirty: True if working tree has uncommitted changes. Default: False.
+
+    Returns:
+        dict[str, Any] (JSON-safe) with keys:
+        - branch (str)
+        - sha (str)
+        - dirty (bool)
+        - jaxfne_version (str, from _JAXFNE_VERSION)
+        - config_schema_version (str, from _JAXFNE_CONFIG_SCHEMA_VERSION)
+        - manifest_schema_version (str, from _MANIFEST_SCHEMA_VERSION)
+        - timestamp (str, ISO-8601 format)
+
+    Example:
+        receipt = provenance_receipt(branch="main", sha="abc123def456", dirty=False)
+        json.dumps(receipt, allow_nan=False)  # Always succeeds
+    """
+    import json
+    from datetime import datetime, timezone
+
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    receipt = {
+        "branch": branch,
+        "sha": sha,
+        "dirty": dirty,
+        "jaxfne_version": _JAXFNE_VERSION,
+        "config_schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
+        "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
+        "timestamp": timestamp,
+    }
+
+    # Verify JSON-safe by attempting serialization
+    try:
+        json.dumps(receipt, allow_nan=False)
+    except (TypeError, ValueError) as e:
+        raise RuntimeError(
+            f"provenance_receipt produced non-JSON-safe dict: {e}"
+        ) from e
+
+    return receipt
+
+
+def get_signal(obj: Any, key: str, **kwargs: Any) -> Any:
+    """Thin free-function accessor that delegates to :meth:`Signals.get`.
+
+    This is a convenience wrapper only; it does not implement any signal logic
+    of its own. ``obj`` must be a :class:`Signals` instance.
+    """
+    if isinstance(obj, Signals):
+        return obj.get(key, **kwargs)
+    raise TypeError(
+        f"get_signal expects a Signals instance, got {type(obj).__name__}"
+    )
+
+
 def readout_spec(
     name: str,
     metric: str,
@@ -5589,7 +6047,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.24"
+_JAXFNE_VERSION = "0.3.29"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
@@ -5631,7 +6089,7 @@ _KNOWN_READOUT_METRICS = frozenset({
 # v0.0.15 config foundation
 # ───────────────────────────────────────────────��──────────────
 
-_JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.15"
+_JAXFNE_CONFIG_SCHEMA_VERSION = "jaxfne.config.v0.0.16"
 
 _REQUIRED_CONFIG_SECTIONS = frozenset(
     {"schema_version", "run", "truth", "network", "emitter", "field", "probes"}

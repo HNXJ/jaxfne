@@ -14,10 +14,10 @@ jobs:
         python-version: ["3.10", "3.12"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -40,9 +40,10 @@ jobs:
       - name: Run examples
         run: |
           for ex in examples/00_minimal_column.py examples/01_source_field_manifest.py \
+                    examples/01_generalized_readout_smoke.py examples/02_generalized_vis_smoke.py \
                     examples/02_omission_scaffold.py examples/03_objective_and_tune_smoke.py \
                     examples/04_blackbox_tuning_loop.py examples/05_dataset_bridge_manifest.py \
-                    examples/06_edge_list_recurrent_backend.py; do
+                    examples/06_edge_list_recurrent_backend.py examples/07_jaxley_trace_bridge.py; do
             PYTHONPATH=. python "$ex" > /dev/null && echo "PASS: $ex" || { echo "FAIL: $ex"; exit 1; }
           done
 
@@ -50,10 +51,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 

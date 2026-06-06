@@ -27,7 +27,7 @@ class TestSingleNeuronNotebook:
         """Test that notebooks/01_single_neuron_multimodal.ipynb exists."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
@@ -36,7 +36,7 @@ class TestSingleNeuronNotebook:
         """Test that notebook is valid JSON."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         content = notebook_path.read_text(encoding="utf-8")
@@ -51,7 +51,7 @@ class TestSingleNeuronNotebook:
         """Test that first code cell contains !pip install jaxfne."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -70,7 +70,7 @@ class TestSingleNeuronNotebook:
         """Test that second code cell verifies jaxfne version."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -90,7 +90,7 @@ class TestSingleNeuronNotebook:
         """Test that all code cell outputs are empty (cleared before commit)."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -106,7 +106,7 @@ class TestSingleNeuronNotebook:
         """Test that notebook contains no absolute private paths."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -130,7 +130,7 @@ class TestSingleNeuronNotebook:
         """Test that notebook includes all eight readout operator names."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -161,7 +161,7 @@ class TestSingleNeuronNotebook:
         """Test that notebook mentions jaxfne.__version__."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -191,7 +191,7 @@ class TestSingleNeuronNotebook:
         """Test that notebook follows v0.2.7 standard structure."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -250,7 +250,7 @@ class TestDocumentationConsistency:
         """Test that notebook avoids forbidden internal terminology."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -278,7 +278,7 @@ class TestDocumentationConsistency:
         """Test that notebook includes Colab metadata."""
         notebook_path = (
             Path(__file__).parent.parent
-            / "notebooks"
+            / ".legacy" / "notebooks"
             / "01_single_neuron_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))

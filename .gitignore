@@ -13,71 +13,38 @@ MANIFEST
 .venv/
 venv/
 env/
-ENV/
-venv_push/
 
 # Test/coverage caches
 .pytest_cache/
 .coverage
-.coverage.*
 htmlcov/
-.tox/
-.hypothesis/
 .mypy_cache/
-.dmypy.json
-.cache/
 
 # Jupyter/editor/OS
 .ipynb_checkpoints/
 *.ipynb~
 .vscode/
 .idea/
-*.swp
-*.swo
-*.code-workspace
 .DS_Store
-._*
 
 # Local secrets
 .env
 .env.local
-.env.*.local
 credentials.json
-config.local.py
 
 # Generated runtime artifacts
 outputs/
-artifacts/
-results/
-data/
-tutorial_outputs/
-test_execution_output/
 site/
 scratch/
 tmp/
-*.tmp
-*.temp
-*.bak
-*.orig
-*.log
+test_execution_output/
 
 # Numeric/data outputs
 *.pkl
-*.pickle
 *.h5
 *.hdf5
 *.npy
 *.npz
-*.csv
 
-# Agent/tool local state
+# Agent local state
 .claude/
-.local_project_sources/
-
-# Root audit/receipt clutter; archive durable receipts under internal_docs/
-*_AUDIT*.md
-*_VALIDATION*.md
-GRAMMAR_AUDIT_FINAL.md
-JAX_NATIVE_HARDENING_VALIDATION.md
-VALIDATION_FINAL.md
-/receipt_final_polish.json

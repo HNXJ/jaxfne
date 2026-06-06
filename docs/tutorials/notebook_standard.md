@@ -88,7 +88,7 @@ Every tutorial notebook **should** follow this structure:
 
 ## Template
 
-See `notebooks/00_template_colab.ipynb` for a minimal working template.
+See `.legacy/notebooks/00_template_colab.ipynb` for a minimal working template.
 
 ## Validation
 

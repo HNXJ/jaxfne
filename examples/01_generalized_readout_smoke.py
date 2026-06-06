@@ -29,7 +29,6 @@ def main():
     readout_lfp = jtfne.fields.LinearReadout(
         name="lfp_like",
         W=jnp.asarray(W_lfp),
-        input_key="source"
     )
     
     # Apply readouts

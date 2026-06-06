@@ -1,240 +1,136 @@
-# Etude No. 1: Multi-Laminar Cortical AGSDR
+# Tutorial: Multi-area Laminar Model
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb)
 
-Artifact class: Etude. This page tracks the release notebook used for the multi-laminar cortical AGSDR workflow.
+A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in `jaxfne`; the notebook exposes the controls and runs entirely through the package engine (`import jaxfne as jtfne`) — there is no local simulator.
 
 ## What this tutorial does
 
-This tutorial builds and runs a JAXFNE scaffold with four sections:
-
-1. Interactive single-emitter waveform preview.
-2. Uniform-density cortical column scaffold.
-3. Baseline, stimulus, tuned readouts, and spectrolaminar suites.
-4. Run artifacts, validation metrics, hashes, exercises, and scope.
-
-The workflow follows the package-native path:
-
-```text
-configure -> construct -> simulate -> visualize -> optimize -> export
-```
+1. **Explore neuron types and waveforms** — E (excitatory) vs PV / SST / VIP (inhibitory) Izhikevich action potentials, with editable per-type `a, b, c, d, drive`.
+2. **Build a two-area laminar network** — 6 layers × 4 cell types per area (extend freely), with within-area recurrence and between-area projections. Defaults: thalamic input → L4 of V1; V1 L2/3 (E) **feedforward** → V4 L4; V4 L2/3 (E) **feedback** → V1 L5/6.
+3. **AGSDR fine-tuning** — adaptively tune control toward a target firing rate while minimizing spike synchrony (kappa).
+4. **Custom everything** — stimulus, stimulation target, lesions, cell-type parameters, drive, connectivity.
+5. **Spectrolaminar motif play** — manipulate cfg, cell types, ratios, densities, drives, and waveforms and watch the alpha-beta / gamma depth profile respond.
+6. **Knock-out experiments** — lesion a layer / cell type / area and measure the downstream effect.
 
 ## Run status
 
 ```yaml
-artifact_class: etude
-artifact_id: etude_no_1
+artifact_class: tutorial
+artifact_id: multi_area_laminar_workshop
 run_status: tutorial_scaffold
-model_status: computational_scaffold
+truth_mode: truth_safe_unverified
+claim_level: computational_scaffold
 field_solver_status: laminar_proxy_no_pde
-field_readout_status: proxy_readout_only
-amplitude_status: native_unscaled
+field_claim_level: proxy_readout_only
+physical_amplitude_claim_allowed: false
 ```
 
-The workflow exports simulated proxy readouts and validation artifacts for the configured run. LFP/CSD-like outputs are laminar proxy readouts. No PDE solver is executed in this workflow.
+LFP/CSD-like outputs are laminar **proxy** readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is **emergent** from the dynamics and the leadfield — it is not imposed.
 
 ## Colab setup
 
-The notebook contains install cells for both public package use and current `main` branch testing:
+The first cell installs the package. Set `INSTALL_MODE` to `pypi`, `github-main`, `local-editable`, or `skip`:
 
 ```python
-!pip install -q "jaxfne[viz]>=0.3.24"
+%pip install -q "jaxfne[viz]"                                      # pypi
+%pip install -q "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"  # github-main
 ```
+
+Under `TFNE_SMOKE=1` (CI / local validation) the install mode is forced to `skip` so the checked-out code is used.
+
+## Package-native path
+
+The tutorial uses the `jaxfne.tutorial_utils` helpers end to end:
 
 ```python
-!pip install -q --force-reinstall --no-cache-dir "jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main"
+import jaxfne as jtfne
+
+cfg = jtfne.tutorial_utils.make_laminar_column_config(
+    areas=("V1", "V4"),
+    layer_cell_type_frac=LAYER_CELL_TYPE_FRAC,
+    cell_type_izh_params=CELL_TYPE_IZH,     # per-type waveform (wider-E default)
+    connectivity_spec=CONNECTIVITY_SPEC,    # inter-area feedforward / feedback
+    lesion_spec=LESION_SPEC,                # knock-out rules
+)
+model = jtfne.tutorial_utils.build_laminar_column(cfg)
+stimulus = jtfne.tutorial_utils.make_stimulus(kind="sine", duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms)
+target = jtfne.tutorial_utils.select_cells(model, area="V1", layers=("L4",), cell_types=("E",))
+trials = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg, cfg.base_control, stimulus, target)
 ```
-
-The notebook verifies the installed package and hard-fails when required visualization APIs are unavailable.
-
-## Learning objectives
-
-1. Use a centralized full-detail config as the edit anchor.
-2. Explore single-emitter waveform intuition in an interactive HTML panel.
-3. Run package-native E/PV/SST/VIP warmup traces.
-4. Construct a uniform-density multi-area laminar scaffold.
-5. Simulate baseline, stimulus, and tuned conditions.
-6. Visualize declared geometry, activity, and spectrolaminar proxy readouts.
-7. Tune with AGSDR toward a 5.0 Hz average firing-rate target and low synchrony.
-8. Export JSON-safe manifest, validation report, metrics, hashes, PNG figures, and Plotly HTML.
 
 ## Notebook structure
 
 ```text
-setup
-centralized config
-Section 1: interactive single-emitter waveform preview
-Section 2: uniform-density cortical column scaffold
-Section 3: baseline / stimulus / tuned simulations and readouts
-Section 4: run artifacts, validation metrics, hashes, exercises, scope
+1.  Install + import
+2.  Runtime / scale controls (smoke / interactive / release)
+3.  Column geometry (x, y, z, radius, L4 reference)
+4.  Layers and per-layer neuron counts
+5.  Per-layer cell-type ratios + per-cell-type Izhikevich params (CELL_TYPE_IZH)
+5b. Inter-area connectivity (CONNECTIVITY_SPEC) and lesions (LESION_SPEC)
+6.  Build the jaxfne configuration
+7.  Izhikevich control panel
+7b. Single-cell E/PV/SST/VIP waveform explorer
+8.  Build model + interactive 3D cortical scaffold
+9.  Stimulus, target cells, simulation
+10. Activity suite (raster / Vm / extracellular proxy / CSD-like / PSD)
+11. Spectrolaminar relative-power motif (A density / B power spectrum / C alpha-beta vs gamma)
+12. Export artifacts (manifest / metrics / validation / hashes)
+13. AGSDR fine-tuning (target firing rate + minimize kappa)
+14. Knock-out experiment
 ```
 
-## Configuration domains
+## Customization controls
 
-Expose these as named values or dictionaries and export them under `manifest["editable_inputs"]`:
+| Control | Where | Effect |
+| --- | --- | --- |
+| `CELL_TYPE_IZH` | §5 | Per-cell-type `a, b, c, d, drive` (waveform / frequency content) |
+| `LAYER_CELL_TYPE_FRAC`, `LAYER_COUNT_FRAC` | §4–5 | Per-layer composition and density |
+| `CONNECTIVITY_SPEC` | §5b | Inter-area feedforward / feedback projections |
+| `LESION_SPEC` | §5b / §14 | Silence a layer / cell type / area (knock-out) |
+| `STIMULUS_*`, `TARGET_*` | §9 | Custom stimulus and stimulation target |
+| `base_control` gains | §6 | `local_exc_gain`, `local_inh_gain`, `feedforward_gain`, `feedback_gain` |
+| `tune_laminar_agsdr(...)` | §13 | AGSDR adaptive-greedy control tuning |
 
-```text
-runtime, geometry, areas, layers, cell_types, cell_colors, cell_signs,
-layer fractions, native drive, connectivity metadata, field/proxy metadata,
-probes, objective, optimizer, stimulus, visualization, artifact paths, status fields
-```
+## AGSDR tuning
 
-Core tutorial settings:
-
-```yaml
-dt_ms: 0.1
-dtype: float32
-seed: deterministic
-column_height_mm: 1.5
-column_radius_mm: 0.125
-target_rate_hz: 5.0
-target_kappa: 0.0
-primary_tunable: drive_gain
-```
-
-## Section 1: interactive single-emitter waveform preview
-
-Section 1 embeds `tutorials/etudes/assets/izhikevich_waveform_control_panel.html` and copies it to:
-
-```text
-outputs/etude_no_1/html/izhikevich_waveform_control_panel.html
-```
-
-The panel is a browser-side Euler preview for parameter intuition. The package-native JAXFNE warmup cells remain the executable evidence path for the tutorial.
-
-## Section 2: uniform-density cortical column scaffold
-
-Section 2 builds the cortical column scaffold with uniform cell density across layers. This section is the reference condition for later readout comparisons.
-
-Network visualization requirements:
-
-```text
-Plotly 3D HTML: required
-Static PNG: required
-E/PV/SST/VIP labels: required
-Per-area cylinder geometry validation: required
-```
-
-Geometry target:
-
-```text
-height approximately 1.5 mm
-radius metadata 0.125 mm
-observed node-cloud extent validated with tolerance
-```
-
-## Section 3: simulations and spectrolaminar readouts
-
-The notebook runs three conditions:
-
-```text
-baseline
-stimulus
-tuned + stimulus
-```
-
-Each condition exports:
-
-```text
-activity suite PNG
-activity suite Plotly HTML
-spectrolaminar suite PNG
-spectrolaminar suite Plotly HTML
-```
-
-The spectrolaminar suite uses cortical position from L4 as the shared depth axis.
-
-## Section 4: AGSDR metrics and artifacts
-
-The optimizer target is:
-
-```yaml
-target_rate_hz: 5.0
-target_kappa: 0.0
-```
-
-Required JSON outputs:
-
-```text
-manifest.json
-validation_report.json
-metrics.json
-asset_hashes.json
-```
-
-Required PNG outputs:
-
-```text
-figures/cortical_circuit_network.png
-figures/activity_suite_baseline.png
-figures/activity_suite_stimulus.png
-figures/activity_suite_tuned.png
-figures/spectrolaminar_baseline.png
-figures/spectrolaminar_stimulus.png
-figures/spectrolaminar_tuned.png
-figures/optimization_summary.png
-```
-
-Required HTML outputs:
-
-```text
-html/izhikevich_waveform_control_panel.html
-plotly/cortical_circuit_network.html
-plotly/activity_suite_baseline.html
-plotly/activity_suite_stimulus.html
-plotly/activity_suite_tuned.html
-plotly/spectrolaminar_baseline.html
-plotly/spectrolaminar_stimulus.html
-plotly/spectrolaminar_tuned.html
-```
-
-## Package-native calls
+`tune_laminar_agsdr` applies the AGSDR algorithm (adaptive greedy selection / deselection with stochastic restart) to the control vector, scoring each candidate with the real `population_rate_hz` and `kappa_synchrony` from short simulations:
 
 ```python
-import jaxfne as jtfne
-```
-
-Typical flow:
-
-```python
-cfg = jtfne.default_spectrolaminar_config(...)
-model = jtfne.construct(cfg)
-sim = jtfne.Simulation(...)
-signals = model.simulate(sim)
-```
-
-Objective and optimizer:
-
-```python
-objective = jtfne.rate_synchrony_targets(
-    target_rate_hz=5.0,
-    target_kappa_synchrony=0.0,
-    rate_weight=1.0,
-    synchrony_weight=0.25,
+best_control, history = jtfne.tutorial_utils.tune_laminar_agsdr(
+    model, cfg, target_rate_hz=10.0, kappa_weight=1.0,
+    parameters={"local_exc_gain": (0.3, 2.5),
+                "local_inh_gain": (0.3, 2.5),
+                "feedforward_gain": (0.0, 3.0)},
+    generations=8, population_size=6,
 )
+```
 
-opt = jtfne.agsdr(
-    parameters={"drive_gain": (0.1, 1.5)},
-    generations=3,
-    population_size=2,
-    seed=SEED,
-)
+This tunes the scaffold's proxy control knobs; it is distinct from `jtfne.agsdr` + `Model.tune`, which optimizes the core-engine `Model`.
+
+## Knock-out experiment
+
+```python
+import dataclasses
+cfg_lesion = dataclasses.replace(cfg, lesion_spec=({"area": "V1", "layers": ("L2", "L3"), "cell_types": ("E",)},))
+trials_lesion = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg_lesion, cfg.base_control, stimulus, target)
+```
+
+The lesioned population is silenced for the run, and per-area firing rates are compared to the intact network. Inter-area projections are modulatory, so knock-out of a feedforward/feedback source shifts the downstream area's rate by a measurable amount.
+
+## Artifacts
+
+```text
+manifest.json, metrics.json, validation_report.json   (JSON-safe, finite)
+scaffold_3d.html                                       (interactive Plotly)
+activity_suite.png                                     (raster / Vm / proxy / CSD / PSD)
+spectrolaminar_initial_<area>.png                      (3-panel motif per area)
 ```
 
 ## ReadTheDocs build
-
-ReadTheDocs uses:
-
-```text
-.readthedocs.yaml
-mkdocs.yml
-docs/requirements.txt
-```
-
-The docs build command is:
 
 ```bash
 mkdocs build --strict
 ```
 
-The notebook link in this page opens the current GitHub notebook directly in Colab.
+The Colab badge above opens the current `main` notebook directly.

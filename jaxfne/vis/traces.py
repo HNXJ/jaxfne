@@ -174,6 +174,7 @@ def lfp(signals: Any, **kwargs: Any) -> Any:
     require_matplotlib()
     import matplotlib.pyplot as plt
 
+    kwargs.pop("dt_ms", None)  # heatmap uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
@@ -211,6 +212,7 @@ def csd(signals: Any, **kwargs: Any) -> Any:
     require_matplotlib()
     import matplotlib.pyplot as plt
 
+    kwargs.pop("dt_ms", None)  # heatmap uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
@@ -253,6 +255,7 @@ def lfp_traces(signals: Any, **kwargs: Any) -> Any:
     import matplotlib.pyplot as plt
 
     max_contacts = int(kwargs.pop("max_contacts", 6))
+    kwargs.pop("dt_ms", None)  # uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
@@ -286,6 +289,7 @@ def csd_traces(signals: Any, **kwargs: Any) -> Any:
     import matplotlib.pyplot as plt
 
     max_contacts = int(kwargs.pop("max_contacts", 6))
+    kwargs.pop("dt_ms", None)  # uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
@@ -336,6 +340,7 @@ def eeg(signals: Any, **kwargs: Any) -> Any:
     import matplotlib.pyplot as plt
 
     n_channels = int(kwargs.pop("n_channels", 4))
+    kwargs.pop("dt_ms", None)  # uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
     y = _linear_proxy_from_sources(signals, n_channels=n_channels, phase=0.0)
@@ -356,6 +361,7 @@ def meg(signals: Any, **kwargs: Any) -> Any:
     import matplotlib.pyplot as plt
 
     n_channels = int(kwargs.pop("n_channels", 4))
+    kwargs.pop("dt_ms", None)  # uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
     y = _linear_proxy_from_sources(signals, n_channels=n_channels, phase=np.pi / 4.0)
@@ -375,6 +381,7 @@ def emm(signals: Any, **kwargs: Any) -> Any:
     require_matplotlib()
     import matplotlib.pyplot as plt
 
+    kwargs.pop("dt_ms", None)  # uses time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 

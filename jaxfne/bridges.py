@@ -17,8 +17,8 @@ def require_jaxley():
         import jaxley  # type: ignore
     except ImportError as exc:
         raise ImportError(
-            "This feature requires optional dependency 'jaxley'. "
-            "Install with: pip install -e '.[jaxley]'"
+            "This optional feature requires 'Jaxley'. "
+            "Install with: pip install jaxfne[jaxley]"
         ) from exc
     return jaxley
 
@@ -119,30 +119,21 @@ class JaxleyTraceSpec:
 
     def validate(self) -> dict[str, Any]:
         """Return validation metadata for audit."""
-        return {
-            "spec_class": "JaxleyTraceSpec",
-            "backend": self.backend,
-            "layout": self.layout,
-            "dt_ms": self.dt_ms,
-            "source_mode": self.source_mode,
-            "claim_level": self.claim_level,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
-        }
+        from dataclasses import fields as dc_fields
+        result = {"spec_class": "JaxleyTraceSpec"}
+        result.update({f.name: getattr(self, f.name) for f in dc_fields(self)
+                if f.name in ("backend", "layout", "dt_ms", "source_mode", "claim_level", "physical_amplitude_claim_allowed")})
+        return result
 
     def to_dict(self) -> dict[str, Any]:
         """Return JSON-safe specification dict."""
-        return {
-            "trace_name": self.trace_name,
-            "backend": self.backend,
-            "layout": self.layout,
-            "dt_ms": float(self.dt_ms),
-            "spike_threshold": float(self.spike_threshold) if self.spike_threshold is not None else None,
-            "source_mode": self.source_mode,
-            "source_calibration_status": self.source_calibration_status,
-            "claim_level": self.claim_level,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
-            "metadata": self.metadata,
-        }
+        from dataclasses import asdict
+        d = asdict(self)
+        # Ensure float types for numeric fields
+        d["dt_ms"] = float(d["dt_ms"])
+        if d["spike_threshold"] is not None:
+            d["spike_threshold"] = float(d["spike_threshold"])
+        return d
 
 
 def _normalize_trace_layout(x: Any, layout: str) -> Any:

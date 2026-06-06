@@ -96,178 +96,114 @@ def spectrolaminar_profile_score(
     return report
 
 
-def layer_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Layer shuffle null: permute profiles across L4-relative positions.
 
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma', 'pos_from_l4'
-
-    Returns
-    -------
-    dict
-        Shuffled profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
+def _make_null(readout: Dict[str, Any], mutate_fn: callable, null_type: str) -> Dict[str, np.ndarray]:
+    """Higher-order null distribution generator.
+    
+    Applies a mutation function to copies of the readout profiles.
     """
     ab = readout["alpha_beta"].copy()
     gamma = readout["gamma"].copy()
-    pos = readout["pos_from_l4"]
-
-    # Shuffle by depth (pos_from_l4)
-    perm = np.random.permutation(len(ab))
-
-    return {
-        "alpha_beta_shuffled": ab[perm],
-        "gamma_shuffled": gamma[perm],
-        "null_type": "layer_shuffle",
-    }
-
-
-def band_label_shuffle_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Band label shuffle null: swap alpha/beta and gamma profiles.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Swapped profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    # Swap the two band profiles
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    # Swap alpha/beta with gamma
-    ab_shuffled = gamma.copy()
-    gamma_shuffled = ab.copy()
-
+    ab_shuffled, gamma_shuffled = mutate_fn(ab, gamma, readout)
     return {
         "alpha_beta_shuffled": ab_shuffled,
         "gamma_shuffled": gamma_shuffled,
-        "null_type": "band_label_shuffle",
+        "null_type": null_type,
     }
 
 
-def uniform_gain_null(readout: Dict[str, Any], gain_min: float = 0.1) -> Dict[str, np.ndarray]:
+def layer_shuffle_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Layer shuffle null: permute profiles across L4-relative positions.
+
+    Pass an explicit ``rng`` (a ``np.random.Generator``) for reproducible
+    nulls. When ``rng is None`` an unseeded generator is used, which is
+    nondeterministic by design (preserves legacy behavior).
     """
-    Uniform gain null: scale profiles by random uniform gain.
+    gen = rng if rng is not None else np.random.default_rng()
 
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-    gain_min : float
-        Minimum gain factor (default 0.1)
+    def _mutate(ab, gamma, r):
+        perm = gen.permutation(len(ab))
+        return ab[perm], gamma[perm]
+    return _make_null(readout, _mutate, "layer_shuffle")
 
-    Returns
-    -------
-    dict
-        Scaled profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
+
+def band_label_shuffle_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Band label shuffle null: swap alpha/beta and gamma profiles.
+
+    Deterministic; ``rng`` is accepted for a uniform dispatcher signature
+    and intentionally ignored.
     """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
+    del rng
 
-    # Random gain [gain_min, 1.0]
-    gain = np.random.uniform(gain_min, 1.0)
-
-    return {
-        "alpha_beta_shuffled": ab * gain,
-        "gamma_shuffled": gamma * gain,
-        "null_type": "uniform_gain",
-    }
+    def _mutate(ab, gamma, r):
+        return gamma.copy(), ab.copy()
+    return _make_null(readout, _mutate, "band_label_shuffle")
 
 
-def no_field_projection_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
+def uniform_gain_null(
+    readout: Dict[str, Any],
+    gain_min: float = 0.1,
+    *,
+    rng: "np.random.Generator | None" = None,
+) -> Dict[str, np.ndarray]:
+    """Uniform gain null: scale profiles by random uniform gain.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
     """
-    No field projection null: flatten profiles to mean.
+    gen = rng if rng is not None else np.random.default_rng()
 
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
+    def _mutate(ab, gamma, r):
+        gain = gen.uniform(gain_min, 1.0)
+        return ab * gain, gamma * gain
+    return _make_null(readout, _mutate, "uniform_gain")
 
-    Returns
-    -------
-    dict
-        Flattened profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
+
+def no_field_projection_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """No field projection null: flatten profiles to mean.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
     """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
+    gen = rng if rng is not None else np.random.default_rng()
 
-    # Flatten to mean + small noise
-    ab_mean = np.mean(ab)
-    gamma_mean = np.mean(gamma)
-
-    ab_shuffled = np.ones_like(ab) * ab_mean + np.random.normal(0, 0.01, size=ab.shape)
-    gamma_shuffled = np.ones_like(gamma) * gamma_mean + np.random.normal(
-        0, 0.01, size=gamma.shape
-    )
-
-    return {
-        "alpha_beta_shuffled": ab_shuffled,
-        "gamma_shuffled": gamma_shuffled,
-        "null_type": "no_field_projection",
-    }
+    def _mutate(ab, gamma, r):
+        return (np.ones_like(ab) * np.mean(ab) + gen.normal(0, 0.01, size=ab.shape),
+                np.ones_like(gamma) * np.mean(gamma) + gen.normal(0, 0.01, size=gamma.shape))
+    return _make_null(readout, _mutate, "no_field_projection")
 
 
-def phase_randomized_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
+def phase_randomized_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Phase randomized null: randomize phase relationships.
+
+    Pass an explicit ``rng`` for reproducible nulls; ``None`` is unseeded.
     """
-    Phase randomized null: randomize phase relationships.
+    gen = rng if rng is not None else np.random.default_rng()
 
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
+    def _mutate(ab, gamma, r):
+        return ab * np.cos(gen.uniform(0, 2*np.pi, size=ab.shape)), gamma * np.cos(gen.uniform(0, 2*np.pi, size=gamma.shape))
+    return _make_null(readout, _mutate, "phase_randomized")
 
-    Returns
-    -------
-    dict
-        Phase-randomized profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
+
+def source_polarity_flip_null(
+    readout: Dict[str, Any], *, rng: "np.random.Generator | None" = None
+) -> Dict[str, np.ndarray]:
+    """Source polarity flip null: invert profiles.
+
+    Deterministic; ``rng`` is accepted for a uniform dispatcher signature
+    and intentionally ignored.
     """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
+    del rng
 
-    # Add random phase offsets
-    phase_ab = np.random.uniform(0, 2 * np.pi, size=ab.shape)
-    phase_gamma = np.random.uniform(0, 2 * np.pi, size=gamma.shape)
-
-    ab_shuffled = ab * np.cos(phase_ab)
-    gamma_shuffled = gamma * np.cos(phase_gamma)
-
-    return {
-        "alpha_beta_shuffled": ab_shuffled,
-        "gamma_shuffled": gamma_shuffled,
-        "null_type": "phase_randomized",
-    }
-
-
-def source_polarity_flip_null(readout: Dict[str, Any]) -> Dict[str, np.ndarray]:
-    """
-    Source polarity flip null: invert profiles.
-
-    Parameters
-    ----------
-    readout : dict
-        Readout dict with 'alpha_beta', 'gamma'
-
-    Returns
-    -------
-    dict
-        Inverted profiles: 'alpha_beta_shuffled', 'gamma_shuffled'
-    """
-    ab = readout["alpha_beta"].copy()
-    gamma = readout["gamma"].copy()
-
-    return {
-        "alpha_beta_shuffled": -ab,
-        "gamma_shuffled": -gamma,
-        "null_type": "source_polarity_flip",
-    }
+    def _mutate(ab, gamma, r):
+        return -ab, -gamma
+    return _make_null(readout, _mutate, "source_polarity_flip")
 
 
 def compute_synchrony_metric(
@@ -349,6 +285,7 @@ def spectrolaminar_objective(
     synchrony_spikes: Optional[np.ndarray] = None,
     synchrony_threshold: float = 0.7,
     similarity_metric: Optional[callable] = None,
+    null_seed: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
     Full spectrolaminar objective with null distributions and synchrony gates.
@@ -374,6 +311,18 @@ def spectrolaminar_objective(
         Threshold for synchrony rejection (default 0.7)
     similarity_metric : callable, optional
         Custom similarity function
+    null_seed : int, optional
+        Seed for the null-distribution generator. When provided, the null
+        sample sequence is reproducible across runs while still drawing
+        distinct samples within a single run. When ``None`` (default), an
+        unseeded generator is used — nondeterministic by design, preserving
+        legacy behavior.
+
+        Note: a single generator is shared across all null types in the order
+        given by ``nulls``, so reproducibility holds for a fixed ``nulls`` list
+        and ordering. Adding, removing, or reordering entries shifts the RNG
+        state seen by later null types. For per-type isolation, call this
+        function once per null type with the same ``null_seed``.
 
     Returns
     -------
@@ -403,6 +352,10 @@ def spectrolaminar_objective(
 
         null_scores = []
 
+        # One generator threaded through every null draw: distinct samples
+        # within a run, reproducible across runs when null_seed is set.
+        null_gen = np.random.default_rng(null_seed)
+
         for null_type in nulls:
             if null_type not in null_functions:
                 continue
@@ -411,7 +364,7 @@ def spectrolaminar_objective(
 
             for _ in range(null_n_samples):
                 try:
-                    null_readout = null_func(readout)
+                    null_readout = null_func(readout, rng=null_gen)
 
                     # Score null
                     if similarity_metric is None:
@@ -523,6 +476,7 @@ def spectrolaminar_objective_factory(
     null_n_samples: int = 10,
     synchrony_metric: Optional[str] = None,
     synchrony_threshold: float = 0.7,
+    null_seed: Optional[int] = None,
 ) -> callable:
     """
     Factory for spectrolaminar objective (jaxfne pattern).
@@ -541,6 +495,10 @@ def spectrolaminar_objective_factory(
         Synchrony method
     synchrony_threshold : float
         Synchrony threshold
+    null_seed : int, optional
+        Seed forwarded to ``spectrolaminar_objective`` for reproducible null
+        distributions. ``None`` (default) preserves the legacy unseeded,
+        nondeterministic behavior.
 
     Returns
     -------
@@ -558,6 +516,7 @@ def spectrolaminar_objective_factory(
             synchrony_metric=synchrony_metric,
             synchrony_spikes=synchrony_spikes,
             synchrony_threshold=synchrony_threshold,
+            null_seed=null_seed,
         )
 
     return objective_fn

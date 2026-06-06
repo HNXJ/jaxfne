@@ -155,6 +155,53 @@ class TestLaminarColumnConfig:
         assert len(frame) > 0
         assert 'Parameter' in frame.columns
 
+    def test_rejects_negative_noise(self):
+        """Config validation must reject negative per-type noise."""
+        with pytest.raises(ValueError, match="noise must be nonnegative"):
+            make_laminar_column_config(
+                cell_type_izh_params={"E": {"drive": 4.0, "noise": -0.1}}
+            )
+
+    def test_rejects_nonfinite_drive(self):
+        """Config validation must reject non-finite per-type drive."""
+        with pytest.raises(ValueError, match="drive must be finite"):
+            make_laminar_column_config(
+                cell_type_izh_params={"E": {"drive": float("nan")}}
+            )
+
+    def test_cell_type_noise_override_changes_spikes(self):
+        """Per-cell-type `noise` must reach the engine (zero vs high noise differ)."""
+        def total_spikes(noise):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={
+                    "E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 2.0, "noise": noise},
+                    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 2.0, "noise": noise},
+                },
+            )
+            model = build_laminar_column(cfg)
+            return int(simulate_laminar_trials(model, cfg, n_trials=1)["spikes"].sum())
+
+        quiet = total_spikes(0.0)
+        loud = total_spikes(6.0)
+        assert loud != quiet, f"noise override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_default_config_firing_rates_are_stable(self):
+        """Default per-cell-type drive/noise keep rates in a stable band (<~40 Hz)."""
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=60, n_contacts=16, duration_ms=300.0, dt_ms=0.5,
+            n_trials=2,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=2)
+        per_neuron_hz = trials["spikes"].mean(axis=(0, 1)) * 1000.0 / cfg.dt_ms
+        mean_hz = float(per_neuron_hz.mean())
+        max_hz = float(per_neuron_hz.max())
+        assert max_hz <= 45.0, f"peak rate {max_hz:.1f} Hz exceeds stable ceiling"
+        assert 2.0 <= mean_hz <= 15.0, f"mean rate {mean_hz:.1f} Hz outside stable band"
+
 
 class TestBuildLaminarColumn:
     """Test model building."""
@@ -317,6 +364,183 @@ class TestSimulateTrials:
             assert trials[key].shape[3] == cfg.n_contacts
             assert np.all(np.isfinite(trials[key]))
 
+    def test_real_engine_produces_depth_structure_and_activity(self):
+        """Regression: trials come from the real Izhikevich engine + a
+        depth-dependent leadfield, NOT white-noise mock.
+
+        Guards against reverting to the old mock path (which broadcast one
+        area-mean to every contact + noise, giving no depth structure and a
+        white-noise power spectrum). Asserts: plausible spiking activity, and
+        that LFP band power genuinely varies across depth/contacts.
+        """
+        cfg = make_test_config(
+            areas=("V1",), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=40, n_contacts=16,
+            duration_ms=150.0, dt_ms=0.5,
+        )
+        model = build_laminar_column(cfg)
+        stim = make_stimulus(
+            kind="sine", duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms,
+            frequency_hz=10.0, amplitude=6.0,
+        )
+        target = select_cells(model, layers=("L4",), cell_types=("E",), seed=cfg.seed)
+        trials = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=3)
+
+        # Plausible, finite activity (the mock used a flat 5 Hz Bernoulli rate;
+        # the real engine produces spikes driven by dynamics).
+        rate_hz = float(trials["spikes"].mean()) * 1000.0 / cfg.dt_ms
+        assert 0.1 < rate_hz < 500.0, rate_hz
+        assert np.all(np.isfinite(trials["lfp_contacts"]))
+        assert np.all(np.isfinite(trials["source_native"]))
+
+        # Depth structure: top and bottom contacts must see genuinely different
+        # signals. The old mock broadcast ONE area-mean to every contact, so all
+        # contact traces correlated ~1.0; the depth-dependent leadfield makes the
+        # shallowest and deepest contacts sample different neuron populations, so
+        # their correlation drops well below 1.0.
+        lfp = trials["lfp_contacts"][:, 0]          # (trials, T, contacts)
+        pooled = np.concatenate(list(lfp), axis=0)  # (trials*T, contacts)
+        corr = np.corrcoef(pooled.T)
+        first_last_corr = float(corr[0, -1])
+        assert first_last_corr < 0.9, (
+            f"top/bottom contacts nearly identical ({first_last_corr:.3f}) "
+            "— leadfield depth structure missing (mock regression?)"
+        )
+
+    def test_cell_type_izh_params_override_reaches_engine(self):
+        """Per-cell-type Izhikevich overrides must change the real dynamics.
+
+        Drives the E population hard vs not at all via cell_type_izh_params and
+        asserts the resulting E spike counts differ — confirming the override is
+        applied to simulate_eig_izhikevich, not silently dropped.
+        """
+        from jaxfne.tutorial_utils import make_laminar_column_config
+
+        def e_rate(drive):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=20,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={"E": {"drive": drive}},
+            )
+            model = build_laminar_column(cfg)
+            trials = simulate_laminar_trials(model, cfg, n_trials=1)
+            e_idx = np.flatnonzero(model["neurons"]["cell_type"].to_numpy() == "E")
+            return float(trials["spikes"][0][:, e_idx].mean())
+
+        quiet = e_rate(0.0)
+        loud = e_rate(12.0)
+        assert loud > quiet, f"E drive override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_cell_type_noise_override_changes_spikes(self):
+        """Per-cell-type `noise` must reach the engine (zero vs high noise differ)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+
+        def total_spikes(noise):
+            cfg = make_laminar_column_config(
+                areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+                n_contacts=8, duration_ms=120.0, dt_ms=0.5, n_trials=1,
+                cell_type_izh_params={
+                    "E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 2.0, "noise": noise},
+                    "PV": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0, "drive": 2.0, "noise": noise},
+                },
+            )
+            model = build_laminar_column(cfg)
+            return int(simulate_laminar_trials(model, cfg, n_trials=1)["spikes"].sum())
+
+        quiet = total_spikes(0.0)
+        loud = total_spikes(6.0)
+        assert loud != quiet, f"noise override had no effect: quiet={quiet}, loud={loud}"
+
+    def test_default_config_firing_rates_are_stable(self):
+        """Default per-cell-type drive/noise keep rates in a stable band (<~40 Hz)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV", "SST", "VIP"),
+            n_neuron_per_column=60, n_contacts=16, duration_ms=300.0, dt_ms=0.5,
+            n_trials=2,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=2)
+        per_neuron_hz = trials["spikes"].mean(axis=(0, 1)) * 1000.0 / cfg.dt_ms
+        mean_hz = float(per_neuron_hz.mean())
+        max_hz = float(per_neuron_hz.max())
+        assert max_hz <= 45.0, f"peak rate {max_hz:.1f} Hz exceeds stable ceiling"
+        assert 2.0 <= mean_hz <= 15.0, f"mean rate {mean_hz:.1f} Hz outside stable band"
+
+    def test_default_config_applies_wider_E_waveform(self):
+        """Default tutorial config ships the wider 'E-Wide' excitatory profile."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(areas=("V1",), cell_types=("E", "PV"))
+        assert "E" in cfg.cell_type_izh_params
+        assert cfg.cell_type_izh_params["E"]["a"] < 0.02  # slower recovery => wider AP
+
+    def test_inter_area_connectivity_applied(self):
+        """Default V1/V4 config wires feedforward + feedback projections."""
+        from jaxfne.tutorial_utils import make_laminar_column_config
+        cfg = make_laminar_column_config(
+            areas=("V1", "V4"), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=60.0, dt_ms=0.5, n_trials=1,
+        )
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg, n_trials=1)
+        assert set(trials["connectivity_applied"]) == {"feedforward", "feedback"}
+
+    def test_lesion_silences_target_neurons(self):
+        """lesion_spec must zero spikes for matching neurons (knock-out)."""
+        from jaxfne.tutorial_utils import make_laminar_column_config, _laminar_match_mask
+        cfg = make_laminar_column_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5, n_trials=1,
+            lesion_spec=({"area": "V1", "layers": ("L4",), "cell_types": ("E",)},),
+        )
+        model = build_laminar_column(cfg)
+        les = np.flatnonzero(_laminar_match_mask(model["neurons"], "V1", ("L4",), ("E",)))
+        trials = simulate_laminar_trials(model, cfg, n_trials=1)
+        assert trials["n_lesioned"] == int(les.size) > 0
+        assert trials["spikes"][0][:, les].sum() == 0
+
+    def test_single_cell_waveforms_shapes_and_E_slower_than_PV(self):
+        """single_cell_waveforms returns each type; wider/slower E fires less than PV."""
+        from jaxfne.tutorial_utils import single_cell_waveforms
+        wf = single_cell_waveforms(
+            cell_types=("E", "PV"), duration_ms=150.0, dt_ms=0.25,
+            cell_type_izh_params={"E": {"a": 0.015, "c": -60.0, "d": 10.0}},
+        )
+        assert set(wf) == {"E", "PV"}
+        for w in wf.values():
+            assert np.all(np.isfinite(w["voltage_mV"]))
+        assert int(wf["E"]["spikes"].sum()) < int(wf["PV"]["spikes"].sum())
+
+    def test_tune_laminar_agsdr_improves_loss(self):
+        """AGSDR-style tuner returns a control dict and does not worsen loss."""
+        from jaxfne.tutorial_utils import make_laminar_column_config, tune_laminar_agsdr
+        cfg = make_laminar_column_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=24,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5, n_trials=1,
+        )
+        model = build_laminar_column(cfg)
+        best, hist = tune_laminar_agsdr(
+            model, cfg, target_rate_hz=8.0, generations=3, population_size=3,
+            tune_duration_ms=80.0, seed=1,
+        )
+        assert "local_exc_gain" in best and "feedforward_gain" in best
+        losses = list(hist["loss"]) if hasattr(hist, "loss") else [h["loss"] for h in hist]
+        assert losses[-1] <= losses[0] + 1e-9
+
+    def test_simulate_is_reproducible_for_fixed_seed(self):
+        """Real-engine trials must be deterministic given the config seed."""
+        cfg = make_test_config(
+            areas=("V1",), cell_types=("E", "PV"), n_neuron_per_column=20,
+            n_contacts=8, duration_ms=80.0, dt_ms=0.5,
+        )
+        model = build_laminar_column(cfg)
+        stim = make_stimulus(kind="sine", duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms)
+        target = select_cells(model, layers=("L4",), cell_types=("E",), seed=cfg.seed)
+        a = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=2)
+        b = simulate_laminar_trials(model, cfg, cfg.base_control, stim, target, n_trials=2)
+        assert np.array_equal(a["spikes"], b["spikes"])
+        assert np.allclose(a["lfp_contacts"], b["lfp_contacts"])
+
     def test_per_area_specs_distinct(self):
         """Test spectrolaminar specs differ across areas (no copy-same-spec)."""
         cfg = make_test_config(
@@ -431,3 +655,44 @@ class TestExportArtifacts:
         data = json.loads(text)
         json_text = json.dumps(data, allow_nan=False)  # Should not raise
         assert json_text is not None
+
+
+class TestEmitterNoiseScale:
+    """Test emitter noise_scale parameter."""
+
+    def test_noise_scale_vector_contract(self):
+        """Verify noise_scale accepts (n_neurons,) vector and applies per-neuron."""
+        import jax
+        import jax.numpy as jnp
+        from jaxfne.emitters import izhikevich_eig_params, simulate_eig_izhikevich
+
+        params = izhikevich_eig_params(4, {"E": 1.0})
+        noise = jnp.asarray([0.0, 0.1, 0.2, 0.3], dtype=jnp.float32)
+        v, spk, src = simulate_eig_izhikevich(
+            params,
+            n_steps=20,
+            dt_ms=0.1,
+            key=jax.random.PRNGKey(0),
+            dtype="float32",
+            noise_scale=noise,
+        )
+        assert v.shape == (20, 4)
+        assert spk.shape == (20, 4)
+        assert src.shape == (20, 4)
+        assert np.isfinite(np.asarray(v)).all()
+        assert np.isfinite(np.asarray(src)).all()
+
+    def test_noise_scale_backward_compatible(self):
+        """noise_scale=None preserves historical 0.5 behavior."""
+        import jax
+        from jaxfne.emitters import izhikevich_eig_params, simulate_eig_izhikevich
+
+        params = izhikevich_eig_params(2, {"E": 1.0})
+        v1, _, _ = simulate_eig_izhikevich(
+            params, n_steps=10, dt_ms=0.1, key=jax.random.PRNGKey(0), noise_scale=None
+        )
+        v2, _, _ = simulate_eig_izhikevich(
+            params, n_steps=10, dt_ms=0.1, key=jax.random.PRNGKey(0), noise_scale=0.5
+        )
+        # Same key + same noise_scale should give same result
+        assert np.allclose(np.asarray(v1), np.asarray(v2))

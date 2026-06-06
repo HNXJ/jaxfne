@@ -14,6 +14,27 @@ import jax
 import jax.numpy as jnp
 
 
+# Canonical Izhikevich cell-type parameter defaults.
+# Single source of truth for E/PV/SST/VIP reduced-model parameters.
+IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
+    "E":   {"a": 0.02, "b": 0.20, "c": -65.0, "d": 8.0,  "drive": 5.0, "sign":  1.0},
+    "PV":  {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0,  "drive": 3.0, "sign": -1.0},
+    "Inl": {"a": 0.10, "b": 0.20, "c": -65.0, "d": 2.0,  "drive": 3.0, "sign": -1.0},
+    "SST": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
+    "Ing": {"a": 0.02, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
+    "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+}
+
+
+def _get_cell_type_params(name: str) -> dict[str, float]:
+    """Look up canonical Izhikevich parameters for a cell type."""
+    if name in IZHIKEVICH_CELL_TYPE_DEFAULTS:
+        return IZHIKEVICH_CELL_TYPE_DEFAULTS[name]
+    # Default fallback to VIP/IS profile for unknown types
+    return IZHIKEVICH_CELL_TYPE_DEFAULTS["VIP"]
+
+
+
 @dataclass(frozen=True)
 class ReceptorSpec:
     """Metadata declaration for a synaptic receptor. Not a biological kernel."""
@@ -205,34 +226,13 @@ def izhikevich_eig_params(
     sign: list[float] = []
 
     for name in labels:
-        if name == "E":
-            a.append(0.02)
-            b.append(0.20)
-            c.append(-65.0)
-            d.append(8.0)
-            drive.append(5.0)
-            sign.append(1.0)
-        elif name in {"PV", "Inl"}:
-            a.append(0.10)
-            b.append(0.20)
-            c.append(-65.0)
-            d.append(2.0)
-            drive.append(3.0)
-            sign.append(-1.0)
-        elif name in {"SST", "Ing"}:
-            a.append(0.02)
-            b.append(0.25)
-            c.append(-65.0)
-            d.append(2.0)
-            drive.append(3.5)
-            sign.append(-1.0)
-        else:  # VIP / IS profile
-            a.append(0.02)
-            b.append(-0.10)  # Corrected from +0.20 to IS/chattering profile
-            c.append(-55.0)
-            d.append(6.0)
-            drive.append(3.0)
-            sign.append(-1.0)
+        p = _get_cell_type_params(name)
+        a.append(p["a"])
+        b.append(p["b"])
+        c.append(p["c"])
+        d.append(p["d"])
+        drive.append(p["drive"])
+        sign.append(p["sign"])
 
     sign_array = jnp.asarray(sign, dtype=jdtype)
     return IzhikevichParams(
@@ -284,22 +284,15 @@ def izhikevich_params_from_labels(
     sign: list[float] = []
 
     for name in label_tuple:
-        if name == "E":
-            aa, bb, cc, dd, drv, sg = 0.02, 0.20, -65.0, 8.0, 5.0, 1.0
-        elif name in {"PV", "Inl"}:
-            aa, bb, cc, dd, drv, sg = 0.10, 0.20, -65.0, 2.0, 3.0, -1.0
-        elif name in {"SST", "Ing"}:
-            aa, bb, cc, dd, drv, sg = 0.02, 0.25, -65.0, 2.0, 3.5, -1.0
-        elif name == "VIP":
-            aa, bb, cc, dd, drv, sg = 0.02, -0.10, -55.0, 6.0, 3.0, -1.0
-        else:
+        p = _get_cell_type_params(name)
+        if name not in IZHIKEVICH_CELL_TYPE_DEFAULTS:
             raise ValueError(f"unknown Suite No. 2 cell type label: {name!r}")
-        a.append(aa)
-        b.append(bb)
-        c.append(cc)
-        d.append(dd)
-        drive.append(overrides.get(name, drv))
-        sign.append(sg)
+        a.append(p["a"])
+        b.append(p["b"])
+        c.append(p["c"])
+        d.append(p["d"])
+        drive.append(overrides.get(name, p["drive"]))
+        sign.append(p["sign"])
 
     n = len(label_tuple)
     sign_array = jnp.asarray(sign, dtype=jdtype)
@@ -353,13 +346,17 @@ def simulate_eig_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array]:
     """Simulate a reduced EIG Izhikevich scaffold using ``jax.lax.scan``.
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added to
     ``params.drive`` at each timestep as native (uncalibrated) current.
-    No physical-amplitude or calibration claim is introduced.
+    ``noise_scale`` sets the stochastic-current coefficient: ``None`` keeps the
+    historical 0.5 scalar; a scalar or ``(n_neurons,)`` array gives per-neuron
+    control of the internal noise. No physical-amplitude or calibration claim is
+    introduced.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -371,6 +368,8 @@ def simulate_eig_izhikevich(
     weights = params.W.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
 
     if silence_mask is not None:
         s_mask = silence_mask.astype(jdtype)
@@ -390,7 +389,7 @@ def simulate_eig_izhikevich(
         def step(carry, noise_t):
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -414,7 +413,7 @@ def simulate_eig_izhikevich(
             sched_t, noise_t = xs_t
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
-            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + sched_t + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -517,6 +516,7 @@ def simulate_edge_recurrent_izhikevich(
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -526,7 +526,9 @@ def simulate_edge_recurrent_izhikevich(
 
     When ``drive_schedule`` is None the existing scan path is preserved exactly.
     When provided, it must have shape ``(n_steps, n_neurons)`` and is added as
-    native uncalibrated current at each timestep.
+    native uncalibrated current at each timestep. ``noise_scale`` sets the
+    stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
+    scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -537,6 +539,8 @@ def simulate_edge_recurrent_izhikevich(
     drive = params.drive.astype(jdtype)
     source_scale = params.source_scale.astype(jdtype)
     dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
     pre = edges.pre.astype(jnp.int32)
     post = edges.post.astype(jnp.int32)
     weight = edges.weight.astype(jdtype)
@@ -564,7 +568,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv
@@ -590,7 +594,7 @@ def simulate_edge_recurrent_izhikevich(
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
-            current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
+            current_native = drive + sched_t + syn + noise_coef * noise_t
             dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
             du = a * (b * v - u)
             v_next = v + dt * dv

@@ -79,53 +79,63 @@ def _make_probe_report(
     return report
 
 
+
+def create_probe(
+    kind: str,
+    data: jax.Array,
+    *,
+    method: str,
+    units_or_status: str = "proxy_units",
+    assumptions: list[str] | None = None,
+    extra_fields: dict | None = None,
+    **report_kwargs,
+) -> ProbeReadout:
+    """Generic probe factory — creates a ProbeReadout with a standardized report.
+
+    Replaces repetitive per-kind probe wrappers with a single entry point.
+    """
+    data = jnp.asarray(data)
+    report = _make_probe_report(
+        kind=kind,
+        method=method,
+        data_shape=data.shape,
+        units_or_status=units_or_status,
+        assumptions=assumptions or [],
+        extra_fields=extra_fields,
+        **report_kwargs,
+    )
+    return ProbeReadout(name=kind, kind=kind, data=data, report=report)
+
+
 def spk_probe(spikes: jax.Array) -> ProbeReadout:
     """SPK probe operator: expose spike events or spike matrix."""
-    spikes = jnp.asarray(spikes)
-    report = _make_probe_report(
-        kind="spk",
+    return create_probe(
+        "spk", spikes,
         method="threshold_or_emitter_spike_array",
-        data_shape=spikes.shape,
         units_or_status="binary_spike_indicator",
-        assumptions=[
-            "spike_array_from_emitter_or_threshold",
-            "binary_or_threshold_values",
-        ],
+        assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
     )
-    return ProbeReadout(name="spk", kind="spk", data=spikes, report=report)
 
 
 def vm_probe(voltage: jax.Array) -> ProbeReadout:
     """Vm probe operator: expose membrane voltage or native reduced-emitter state."""
-    voltage = jnp.asarray(voltage)
-    report = _make_probe_report(
-        kind="vm",
+    return create_probe(
+        "vm", voltage,
         method="emitter_state_voltage_trace",
-        data_shape=voltage.shape,
         units_or_status="mV_or_native_model_voltage",
-        assumptions=[
-            "voltage_from_emitter_native_state",
-            "not_physical_membrane_voltage_unless_calibrated",
-        ],
+        assumptions=["voltage_from_emitter_native_state", "not_physical_membrane_voltage_unless_calibrated"],
     )
-    return ProbeReadout(name="vm", kind="vm", data=voltage, report=report)
 
 
 def source_probe(source: jax.Array) -> ProbeReadout:
     """Source probe operator: expose current/source proxy."""
-    source = jnp.asarray(source)
-    report = _make_probe_report(
-        kind="source",
+    return create_probe(
+        "source", source,
         method="declared_source_projection_or_proxy",
-        data_shape=source.shape,
         units_or_status="native_current_units_or_proxy",
         source_decomposition="proxy_reduced_emitter",
-        assumptions=[
-            "source_from_emitter_native_state",
-            "not_physical_membrane_current_unless_calibrated",
-        ],
+        assumptions=["source_from_emitter_native_state", "not_physical_membrane_current_unless_calibrated"],
     )
-    return ProbeReadout(name="source", kind="source", data=source, report=report)
 
 
 def lfp_proxy_probe(

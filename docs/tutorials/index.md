@@ -178,16 +178,16 @@ Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-ar
 
 ## Running tutorials
 
-Tutorials are available as Jupyter notebooks in the `notebooks/` directory:
+Tutorials are available as Jupyter notebooks in the `.legacy/notebooks/` directory:
 
 ```bash
-jupyter notebook notebooks/01_single_neuron_multimodal.ipynb
+jupyter notebook .legacy/notebooks/01_single_neuron_multimodal.ipynb
 ```
 
 Or run directly with nbconvert:
 
 ```bash
-nbconvert --execute notebooks/01_single_neuron_multimodal.ipynb
+nbconvert --execute .legacy/notebooks/01_single_neuron_multimodal.ipynb
 ```
 
 ## Quick example: Single-neuron primer

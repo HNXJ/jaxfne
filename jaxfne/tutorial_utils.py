@@ -511,6 +511,26 @@ class LaminarColumnConfig:
     output_dir: Path
     base_control: dict = field(default_factory=dict)
 
+    # Per-cell-type Izhikevich parameter overrides, e.g.
+    #   {"E": {"a": 0.015, "b": 0.20, "c": -60.0, "d": 10.0, "drive": 7.0}, ...}
+    # Any subset of {a, b, c, d, drive} per cell type overrides the package
+    # default for every neuron of that type. Lets a tutorial shape per-type
+    # waveform/frequency content (e.g. a WIDER, slower E AP -> more alpha-beta;
+    # fast PV -> gamma) to test spectrolaminar properties. Native/uncalibrated
+    # proxy units; does not change truth gates.
+    cell_type_izh_params: dict = field(default_factory=dict)
+
+    # Inter-area projection rules. Each rule wires presynaptic source neurons
+    # (matched by area/layers/cell_types) to postsynaptic destination neurons,
+    # added on top of within-area recurrent connectivity. Default = canonical
+    # feedforward (V1 L2/3 E -> V4 L4) + feedback (V4 L2/3 E -> V1 L5/6). Each
+    # rule may name a control_key whose value in base_control scales its weight.
+    connectivity_spec: tuple = field(default_factory=tuple)
+
+    # Lesion / knock-out rules: each {area, layers, cell_types} silences the
+    # matching neurons (silence_mask=0) for the run. Empty = intact network.
+    lesion_spec: tuple = field(default_factory=tuple)
+
     # Truth gates (immutable by frozen dataclass)
     truth_mode: str = "truth_safe_unverified"
     claim_level: str = "computational_scaffold"
@@ -695,6 +715,26 @@ def cell_catalog_frame(catalog: dict[str, CellTypePreset]) -> "pd.DataFrame":
     return pd.DataFrame(rows)
 
 
+def _validate_cell_type_izh_params(cell_type_izh_params: dict) -> None:
+    """Validate per-cell-type Izhikevich parameters for nonnegative noise and finite numerics."""
+    if cell_type_izh_params is None:
+        return
+    for cell_type, params in cell_type_izh_params.items():
+        if "noise" in params:
+            noise_val = float(params["noise"])
+            if noise_val < 0.0:
+                raise ValueError(f"{cell_type}.noise must be nonnegative; got {noise_val}")
+        if "drive" in params:
+            drive_val = float(params["drive"])
+            if not np.isfinite(drive_val):
+                raise ValueError(f"{cell_type}.drive must be finite; got {drive_val}")
+        for key in ("a", "b", "c", "d"):
+            if key in params:
+                val = float(params[key])
+                if not np.isfinite(val):
+                    raise ValueError(f"{cell_type}.{key} must be finite; got {val}")
+
+
 def make_laminar_column_config(
     *,
     areas=("V1", "V4", "PFC"),
@@ -730,6 +770,9 @@ def make_laminar_column_config(
     freq_count=96,
     output_dir="outputs/jaxfne_etude_no_1",
     base_control=None,
+    cell_type_izh_params=None,
+    connectivity_spec=None,
+    lesion_spec=None,
     truth_mode="truth_safe_unverified",
     claim_level="computational_scaffold",
     field_solver_status="laminar_proxy_no_pde",
@@ -824,6 +867,45 @@ def make_laminar_column_config(
             'feedback_gain': 1.00,
         }
 
+    if cell_type_izh_params is None:
+        # Default per-cell-type Izhikevich params + internal drive/noise tuned for
+        # a STABLE network: average ~5-10 Hz/neuron and peak < ~40 Hz. E is the
+        # "E-Wide" slow/wide AP (more alpha-beta); PV is fast-spiking; VIP uses
+        # b=+0.20 so it is firable at modest drive (b=-0.10 has rheobase ~23).
+        # `drive` is the per-type internal excitability knob; `noise` is the
+        # per-type stochastic-current std (stability knob). Override any subset.
+        cell_type_izh_params = {
+            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 4.5, 'noise': 0.5},
+            'PV':  {'a': 0.10,  'b': 0.20,  'c': -65.0, 'd': 2.0,  'drive': 3.5, 'noise': 0.5},
+            'SST': {'a': 0.02,  'b': 0.25,  'c': -65.0, 'd': 2.0,  'drive': 3.0, 'noise': 0.5},
+            'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
+        }
+
+    # Validate all cell-type parameters
+    _validate_cell_type_izh_params(cell_type_izh_params)
+
+    if connectivity_spec is None:
+        # Canonical hierarchical defaults: feedforward V1 L2/3 (E) -> V4 L4,
+        # feedback V4 L2/3 (E) -> V1 L5/6. Edit/extend for custom hierarchies;
+        # rules referencing absent areas are simply skipped.
+        connectivity_spec = (
+            {
+                'name': 'feedforward', 'src_area': 'V1',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
+                'dst_area': 'V4', 'dst_layers': ('L4',), 'dst_cell_types': None,
+                'weight': 8.0, 'control_key': 'feedforward_gain',
+            },
+            {
+                'name': 'feedback', 'src_area': 'V4',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
+                'dst_area': 'V1', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': None,
+                'weight': 8.0, 'control_key': 'feedback_gain',
+            },
+        )
+
+    if lesion_spec is None:
+        lesion_spec = ()
+
     # Create cell distribution matrix
     cell_dist = make_cell_dist(layers, cell_types, layer_cell_type_frac)
 
@@ -859,6 +941,9 @@ def make_laminar_column_config(
         freq_count=int(freq_count),
         output_dir=Path(output_dir),
         base_control=dict(base_control),
+        cell_type_izh_params={k: dict(v) for k, v in dict(cell_type_izh_params).items()},
+        connectivity_spec=tuple(dict(r) for r in connectivity_spec),
+        lesion_spec=tuple(dict(r) for r in lesion_spec),
         truth_mode=truth_mode,
         claim_level=claim_level,
         field_solver_status=field_solver_status,
@@ -1057,15 +1142,36 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
     neuron_id = 0
     neurons = []
 
-    for area_idx, area in enumerate(cfg.areas):
-        for n in range(cfg.n_neuron_per_column):
-            # Assign layer and cell type based on distributions
-            layer_idx = n % len(cfg.layers)
-            layer = cfg.layers[layer_idx]
+    # Pre-compute per-layer neuron counts (largest-remainder from layer_count_frac).
+    _layer_keys = list(cfg.layers)
+    _lcf_vals   = np.array([cfg.layer_count_frac.get(l, 1.0) for l in _layer_keys], dtype=float)
+    _lcf_vals  /= _lcf_vals.sum()
+    _n_raw      = _lcf_vals * cfg.n_neuron_per_column
+    _n_floor    = np.floor(_n_raw).astype(int)
+    _remainder  = int(cfg.n_neuron_per_column - _n_floor.sum())
+    _topup      = np.argsort(-(_n_raw - _n_floor))[:_remainder]
+    _layer_n    = _n_floor.copy(); _layer_n[_topup] += 1
 
-            # Cell type assignment (round-robin or based on cell_dist)
-            cell_type_idx = (n // len(cfg.layers)) % len(cfg.cell_types)
-            cell_type = cfg.cell_types[cell_type_idx]
+    # Per-layer per-cell-type integer counts (largest-remainder from cell_dist).
+    _layer_cell_counts: list[list[int]] = []
+    for li in range(len(_layer_keys)):
+        row = np.array(cfg.cell_dist[li], dtype=float)
+        raw = row * _layer_n[li]
+        fl  = np.floor(raw).astype(int)
+        rem = int(_layer_n[li] - fl.sum())
+        fl[np.argsort(-(raw - fl))[:rem]] += 1
+        _layer_cell_counts.append(fl.tolist())
+
+    for area_idx, area in enumerate(cfg.areas):
+        # Expand (layer, cell_type) pairs then shuffle within area for uniform geometry.
+        _neuron_list: list[tuple[str, str]] = []
+        for li, layer in enumerate(_layer_keys):
+            for ci, ct in enumerate(cfg.cell_types):
+                _neuron_list.extend([(layer, ct)] * _layer_cell_counts[li][ci])
+        _rng_shuf = np.random.RandomState(int(cfg.seed) + area_idx * 997)
+        _rng_shuf.shuffle(_neuron_list)
+
+        for n, (layer, cell_type) in enumerate(_neuron_list):
 
             # Vertical-cylinder geometry: depth runs along z; the (x, y) base is a
             # circular cross-section of radius ``radius_rel * cx_m`` centred on the
@@ -1210,6 +1316,18 @@ def select_cells(
     return np.asarray(indices, dtype=int)
 
 
+def _laminar_match_mask(neurons_df, area=None, layers=None, cell_types=None) -> np.ndarray:
+    """Boolean mask over neurons matching area / layers / cell_types (None=any)."""
+    mask = np.ones(len(neurons_df), dtype=bool)
+    if area is not None:
+        mask &= (neurons_df['area'].to_numpy() == area)
+    if layers:
+        mask &= neurons_df['layer'].isin(list(layers)).to_numpy()
+    if cell_types:
+        mask &= neurons_df['cell_type'].isin(list(cell_types)).to_numpy()
+    return mask
+
+
 def simulate_laminar_trials(
     model: dict,
     cfg: LaminarColumnConfig,
@@ -1247,9 +1365,11 @@ def simulate_laminar_trials(
     ---------------
     spikes / voltage_mV / source_native : (n_trials, n_steps, n_neurons)
     lfp_contacts / csd_contacts         : (n_trials, n_areas, n_steps, n_contacts)
-        Per-area laminar-proxy projections (population mean per area as the
-        proxy readout — NOT a solved PDE; field_solver_status stays
-        "laminar_proxy_no_pde").
+        Per-area laminar-proxy projections produced by a depth-dependent
+        Gaussian leadfield (jaxfne.fields.project_laminar_sources) applied to
+        the real per-neuron Izhikevich source traces, so band power genuinely
+        varies with cortical depth. NOT a solved PDE; field_solver_status stays
+        "laminar_proxy_no_pde" and physical_amplitude_claim_allowed=False.
     contact_depths_m                    : (n_contacts,)
     area_names                          : tuple[str, ...]
     """
@@ -1271,7 +1391,122 @@ def simulate_laminar_trials(
         for area in areas
     ]
 
-    # Initialize output arrays
+    # Real engine: ONE global multi-area Izhikevich network with within-area
+    # recurrence + inter-area projections (connectivity_spec), lesioning
+    # (lesion_spec -> silence_mask), an external drive into target cells, and a
+    # depth-dependent leadfield per area. Package-native; no local mock.
+    import jax
+    import jax.numpy as jnp
+    import dataclasses as _dataclasses
+    from .emitters import (
+        izhikevich_params_from_labels,
+        simulate_edge_recurrent_izhikevich,
+        make_edge_list_from_dense,
+    )
+    from .fields import project_laminar_sources
+
+    cell_labels = [str(x) for x in neurons_df['cell_type'].tolist()]
+    layer_labels = [str(x) for x in neurons_df['layer'].tolist()]
+    area_labels = neurons_df['area'].to_numpy()
+    z_rel_all = np.clip(
+        neurons_df['z_m'].to_numpy(dtype=np.float64) / max(float(cfg.cz_m), 1e-12),
+        0.0, 1.0,
+    )
+
+    exc_gain = float(control.get('local_exc_gain', 1.0))
+    inh_gain = float(control.get('local_inh_gain', 1.0))
+
+    # Global Izhikevich params (per-neuron a,b,c,d,drive,sign) from labels; its
+    # built-in W is discarded — we build a custom multi-area W below.
+    params = izhikevich_params_from_labels(
+        tuple(cell_labels), layer_labels=tuple(layer_labels), dtype=cfg.dtype,
+    )
+
+    # Per-cell-type Izhikevich overrides (a, b, c, d, drive) applied globally so
+    # a tutorial can shape per-type waveform/frequency content.
+    a_arr = np.asarray(params.a, dtype=np.float32).copy()
+    b_arr = np.asarray(params.b, dtype=np.float32).copy()
+    c_arr = np.asarray(params.c, dtype=np.float32).copy()
+    d_arr = np.asarray(params.d, dtype=np.float32).copy()
+    drv_arr = np.asarray(params.drive, dtype=np.float32).copy()
+    noise_arr = np.full(n_neurons, 0.5, dtype=np.float32)  # per-neuron internal noise
+    cells_arr = np.asarray(cell_labels)
+    for ct, p in (getattr(cfg, "cell_type_izh_params", None) or {}).items():
+        m = cells_arr == ct
+        if not m.any():
+            continue
+        if 'a' in p: a_arr[m] = float(p['a'])
+        if 'b' in p: b_arr[m] = float(p['b'])
+        if 'c' in p: c_arr[m] = float(p['c'])
+        if 'd' in p: d_arr[m] = float(p['d'])
+        if 'drive' in p: drv_arr[m] = float(p['drive'])
+        if 'noise' in p: noise_arr[m] = float(p['noise'])
+    noise_scale_j = jnp.asarray(noise_arr)
+    sign = np.asarray(params.sign, dtype=np.float32)
+    v0_arr = np.asarray(params.v0, dtype=np.float32)
+    params = _dataclasses.replace(
+        params,
+        a=jnp.asarray(a_arr), b=jnp.asarray(b_arr), c=jnp.asarray(c_arr),
+        d=jnp.asarray(d_arr), drive=jnp.asarray(drv_arr),
+        u0=jnp.asarray(b_arr * v0_arr),
+    )
+
+    # --- Global connectivity matrix W[post, pre] -------------------------------
+    W = np.zeros((n_neurons, n_neurons), dtype=np.float32)
+    # Within-area signed recurrence (presynaptic sign in columns, sign*local gain).
+    for area in areas:
+        a_idx = np.flatnonzero(area_labels == area)
+        na = a_idx.size
+        if na < 2:
+            continue
+        col_sign = sign[a_idx]
+        col_gain = np.where(col_sign > 0, exc_gain, inh_gain).astype(np.float32)
+        block = np.broadcast_to(
+            (0.5 / np.sqrt(na)) * (col_sign * col_gain)[None, :], (na, na)
+        ).copy()
+        np.fill_diagonal(block, 0.0)
+        W[np.ix_(a_idx, a_idx)] += block
+    # Inter-area projections from connectivity_spec.
+    applied_rules = []
+    for rule in (getattr(cfg, "connectivity_spec", None) or ()):
+        src_idx = np.flatnonzero(_laminar_match_mask(
+            neurons_df, rule.get('src_area'), rule.get('src_layers'), rule.get('src_cell_types')))
+        dst_idx = np.flatnonzero(_laminar_match_mask(
+            neurons_df, rule.get('dst_area'), rule.get('dst_layers'), rule.get('dst_cell_types')))
+        if src_idx.size == 0 or dst_idx.size == 0:
+            continue
+        ck = rule.get('control_key')
+        gain = float(control.get(ck, 1.0)) if ck else 1.0
+        w = float(rule.get('weight', 0.5)) * gain
+        contrib = (w / src_idx.size) * sign[src_idx][None, :]
+        W[np.ix_(dst_idx, src_idx)] += np.broadcast_to(contrib, (dst_idx.size, src_idx.size))
+        applied_rules.append(str(rule.get('name', 'rule')))
+
+    edges = make_edge_list_from_dense(jnp.asarray(W), dtype=cfg.dtype)
+
+    # --- Lesion / knock-out silence mask --------------------------------------
+    silence = np.ones(n_neurons, dtype=np.float32)
+    n_lesioned = 0
+    for rule in (getattr(cfg, "lesion_spec", None) or ()):
+        m = _laminar_match_mask(
+            neurons_df, rule.get('area'), rule.get('layers'), rule.get('cell_types'))
+        silence[m] = 0.0
+        n_lesioned += int(m.sum())
+    silence_j = jnp.asarray(silence)
+
+    # --- External drive schedule (stimulus into target cells) ------------------
+    if stimulus is None:
+        stim_vec = np.zeros(n_steps, dtype=np.float32)
+    else:
+        stim_vec = np.asarray(stimulus, dtype=np.float32).reshape(-1)
+        stim_vec = (np.pad(stim_vec, (0, n_steps - stim_vec.shape[0]))
+                    if stim_vec.shape[0] < n_steps else stim_vec[:n_steps])
+    drive_sched = np.zeros((n_steps, n_neurons), dtype=np.float32)
+    if target_cells is not None and np.asarray(target_cells).size > 0:
+        drive_sched[:, np.asarray(target_cells, dtype=int)] = stim_vec[:, None]
+    drive_sched_j = jnp.asarray(drive_sched)
+
+    # Output arrays (tensor contract preserved)
     time_ms = np.arange(n_steps) * cfg.dt_ms
     spikes = np.zeros((n_trials, n_steps, n_neurons), dtype=bool)
     voltage_mV = np.zeros((n_trials, n_steps, n_neurons), dtype=np.float32)
@@ -1279,37 +1514,39 @@ def simulate_laminar_trials(
     lfp_contacts = np.zeros((n_trials, n_areas, n_steps, cfg.n_contacts), dtype=np.float32)
     csd_contacts = np.zeros((n_trials, n_areas, n_steps, cfg.n_contacts), dtype=np.float32)
 
-    # Generate mock trials
-    rng = np.random.RandomState(cfg.seed + seed_offset)
+    # Per-area leadfield positions (depth = column 2).
+    area_positions = []
+    for idx in area_indices:
+        pos = np.zeros((idx.size, 3), dtype=np.float32)
+        if idx.size:
+            pos[:, 2] = z_rel_all[idx]
+        area_positions.append(jnp.asarray(pos))
 
+    field_diagnostics = None
     for trial in range(n_trials):
-        # Mock spike generation
-        baseline_rate = 5.0  # Hz
-        spike_prob = baseline_rate * cfg.dt_ms / 1000.0
-        spikes[trial] = rng.rand(n_steps, n_neurons) < spike_prob
-
-        # Mock voltage trajectory
-        voltage_mV[trial] = -70.0 + rng.randn(n_steps, n_neurons) * 5.0
-
-        # Mock source
-        source_native[trial] = rng.randn(n_steps, n_neurons) * 0.5
-
-        # Per-area laminar-proxy LFP/CSD: project each area's source subset
-        # independently to its contacts (population mean per area as the proxy).
+        key = jax.random.PRNGKey(int(cfg.seed) + int(seed_offset) + trial)
+        v, spk, src, _final = simulate_edge_recurrent_izhikevich(
+            params, edges, n_steps, cfg.dt_ms, key,
+            dtype=cfg.dtype, drive_schedule=drive_sched_j, silence_mask=silence_j,
+            noise_scale=noise_scale_j,
+        )
+        voltage_mV[trial] = np.asarray(v)
+        spikes[trial] = np.asarray(spk) > 0.5
+        src = np.asarray(src)
+        source_native[trial] = src
         for ai, idx in enumerate(area_indices):
-            if idx.size > 0:
-                area_lfp = source_native[trial][:, idx].mean(axis=1, keepdims=True)
-            else:
-                area_lfp = np.zeros((n_steps, 1), dtype=np.float32)
-            lfp = area_lfp + rng.randn(n_steps, cfg.n_contacts) * 0.1
-            lfp_contacts[trial, ai] = lfp
-            # CSD-proxy as spatial derivative across contacts
-            csd_contacts[trial, ai] = (
-                np.diff(lfp, axis=1, prepend=lfp[:, [0]])
-                + rng.randn(n_steps, cfg.n_contacts) * 0.05
+            if idx.size == 0:
+                continue
+            field = project_laminar_sources(
+                jnp.asarray(src[:, idx]), area_positions[ai],
+                n_contacts=cfg.n_contacts, dtype=cfg.dtype,
             )
+            lfp_contacts[trial, ai] = np.asarray(field.lfp_proxy)
+            csd_contacts[trial, ai] = np.asarray(field.csd_proxy)
+            if field_diagnostics is None:
+                field_diagnostics = field.diagnostics
 
-    # Contact depths (linear from 0 to 1)
+    # Contact depths in meters (leadfield uses relative [0,1]; map for plotting).
     contact_depths_m = np.linspace(0.0, cfg.cz_m, cfg.n_contacts)
 
     return {
@@ -1322,7 +1559,165 @@ def simulate_laminar_trials(
         'contact_depths_m': contact_depths_m,
         'area_names': cfg.areas,
         'control': control,
+        'field_solver_status': cfg.field_solver_status,
+        'field_diagnostics': field_diagnostics,
+        'connectivity_applied': tuple(applied_rules),
+        'n_lesioned': int(n_lesioned),
     }
+
+
+def single_cell_waveforms(
+    cfg: "LaminarColumnConfig | None" = None,
+    *,
+    cell_types: Sequence[str] = ("E", "PV", "SST", "VIP"),
+    duration_ms: float = 200.0,
+    dt_ms: float = 0.25,
+    drive: float = 14.0,
+    cell_type_izh_params: Mapping | None = None,
+    seed: int = 0,
+) -> dict:
+    """Simulate each cell type as a single isolated Izhikevich emitter.
+
+    Returns {cell_type: {"time_ms", "voltage_mV", "spikes", "params"}} for
+    waveform exploration (request #1). Uses the package emitter with the same
+    cell_type_izh_params overrides as the network, so the AP shape shown here is
+    exactly what each type contributes to the laminar dynamics (e.g. a WIDER,
+    slower E AP vs fast-spiking PV). Native/uncalibrated proxy units.
+    """
+    import jax
+    import jax.numpy as jnp
+    import dataclasses as _dataclasses
+    from .emitters import izhikevich_params_from_labels, simulate_eig_izhikevich
+
+    overrides = cell_type_izh_params
+    if overrides is None:
+        overrides = getattr(cfg, "cell_type_izh_params", None) if cfg is not None else None
+    overrides = overrides or {}
+    n_steps = int(round(duration_ms / dt_ms))
+    out: dict = {}
+    for ct in cell_types:
+        params = izhikevich_params_from_labels((str(ct),), dtype="float32")
+        a = np.asarray(params.a, dtype=np.float32).copy()
+        b = np.asarray(params.b, dtype=np.float32).copy()
+        c = np.asarray(params.c, dtype=np.float32).copy()
+        d = np.asarray(params.d, dtype=np.float32).copy()
+        p = overrides.get(ct, {})
+        if 'a' in p: a[:] = float(p['a'])
+        if 'b' in p: b[:] = float(p['b'])
+        if 'c' in p: c[:] = float(p['c'])
+        if 'd' in p: d[:] = float(p['d'])
+        drv = np.full(1, float(drive), dtype=np.float32)  # constant drive for a clean AP
+        params = _dataclasses.replace(
+            params,
+            a=jnp.asarray(a), b=jnp.asarray(b), c=jnp.asarray(c), d=jnp.asarray(d),
+            drive=jnp.asarray(drv), u0=jnp.asarray(b * np.asarray(params.v0, dtype=np.float32)),
+            W=jnp.zeros((1, 1), dtype=jnp.float32),
+        )
+        v, spk, _src = simulate_eig_izhikevich(
+            params, n_steps, dt_ms, jax.random.PRNGKey(int(seed)), dtype="float32",
+            noise_scale=0.0,  # clean deterministic AP for waveform display
+        )
+        out[str(ct)] = {
+            "time_ms": np.arange(n_steps) * dt_ms,
+            "voltage_mV": np.asarray(v)[:, 0],
+            "spikes": np.asarray(spk)[:, 0],
+            "params": {"a": float(a[0]), "b": float(b[0]), "c": float(c[0]), "d": float(d[0])},
+        }
+    return out
+
+
+def tune_laminar_agsdr(
+    model: dict,
+    cfg: LaminarColumnConfig,
+    *,
+    target_rate_hz: float = 10.0,
+    kappa_weight: float = 1.0,
+    parameters: Mapping[str, Tuple[float, float]] | None = None,
+    generations: int = 8,
+    population_size: int = 6,
+    tune_duration_ms: float = 120.0,
+    tune_n_trials: int = 1,
+    seed: int = 0,
+    alpha: float = 0.7,
+    exploration: float = 0.05,
+) -> tuple:
+    """AGSDR-style fine-tuning of laminar control to hit a target firing rate
+    and minimize spike synchrony (kappa).
+
+    Applies the AGSDR algorithm — adaptive greedy selection/deselection with
+    stochastic exploration/restart — to the scaffold control vector (default:
+    local exc/inh gains + feedforward gain), scoring each candidate with REAL
+    metrics on a short simulate_laminar_trials run:
+
+        loss = |rate - target| / target + kappa_weight * |kappa|
+
+    This tunes the tutorial's proxy control knobs; it is distinct from
+    ``jtfne.agsdr`` + ``Model.tune`` (which optimizes the core-engine Model).
+    Returns ``(best_control, history)`` where history is a DataFrame if pandas
+    is available, else a list of dicts.
+    """
+    import dataclasses as _dataclasses
+    rng = np.random.default_rng(int(seed))
+    if parameters is None:
+        parameters = {
+            "local_exc_gain": (0.3, 2.5),
+            "local_inh_gain": (0.3, 2.5),
+            "feedforward_gain": (0.0, 3.0),
+        }
+    keys = list(parameters)
+    lo = np.array([float(parameters[k][0]) for k in keys], dtype=float)
+    hi = np.array([float(parameters[k][1]) for k in keys], dtype=float)
+    base = dict(cfg.base_control)
+    x = np.clip(np.array([float(base.get(k, 1.0)) for k in keys], dtype=float), lo, hi)
+
+    cfg_short = _dataclasses.replace(cfg, duration_ms=float(tune_duration_ms))
+    stim = make_stimulus(
+        kind="sine", duration_ms=tune_duration_ms, dt_ms=cfg.dt_ms,
+        frequency_hz=10.0, amplitude=5.0, seed=cfg.seed,
+    )
+    target = select_cells(model, area=cfg.areas[0], layers=("L4",), cell_types=("E",), seed=cfg.seed)
+
+    def objective(xv):
+        ctrl = dict(base)
+        for k, val in zip(keys, xv):
+            ctrl[k] = float(val)
+        tr = simulate_laminar_trials(model, cfg_short, ctrl, stim, target, n_trials=tune_n_trials)
+        sp = tr["spikes"][0]
+        rate = population_rate_hz(sp, cfg.dt_ms)
+        kap = kappa_synchrony(sp, cfg.dt_ms)
+        loss = abs(rate - target_rate_hz) / max(target_rate_hz, 1e-6) + kappa_weight * abs(kap)
+        return float(loss), float(rate), float(kap)
+
+    best_loss, best_rate, best_kap = objective(x)
+    best_x = x.copy()
+    history = [{"generation": 0, "loss": best_loss, "rate_hz": best_rate, "kappa": best_kap,
+                **{k: float(v) for k, v in zip(keys, best_x)}}]
+    scale = 0.3 * (hi - lo)
+    for g in range(1, int(generations) + 1):
+        improved = False
+        for _ in range(int(population_size)):
+            if rng.random() < exploration:
+                cand = lo + rng.random(len(keys)) * (hi - lo)  # restart
+            else:
+                cand = np.clip(best_x + rng.normal(0.0, 1.0, len(keys)) * scale, lo, hi)
+            loss, rate, kap = objective(cand)
+            if loss < best_loss:
+                best_loss, best_rate, best_kap, best_x = loss, rate, kap, cand
+                improved = True
+        if not improved:
+            scale = scale * float(alpha)  # deselect / contract step size
+        history.append({"generation": g, "loss": best_loss, "rate_hz": best_rate, "kappa": best_kap,
+                        **{k: float(v) for k, v in zip(keys, best_x)}})
+
+    best_control = dict(base)
+    for k, v in zip(keys, best_x):
+        best_control[k] = float(v)
+    try:
+        import pandas as pd
+        history = pd.DataFrame(history)
+    except ImportError:
+        pass
+    return best_control, history
 
 
 def spectrolaminar_from_trials(
@@ -1381,21 +1776,29 @@ def spectrolaminar_from_trials(
         ai = 0 if area_index is None else int(area_index)
         signal = signal[:, ai]  # (n_trials, n_steps, n_contacts)
 
-    # Collapse trials (mean)
-    signal_mean = signal.mean(axis=0)  # (n_steps, n_contacts)
+    # Spectral power, averaged ACROSS TRIALS in the power (magnitude) domain.
+    #
+    # Compute the spectral magnitude per trial, then average the per-trial
+    # spectra. Averaging the raw signal in the TIME domain first (the previous
+    # behavior) cancels every oscillation that is not phase-locked across trials
+    # and leaves mostly noise — which is why adding trials never cleaned up the
+    # motif and the power spectrum looked like a checkerboard. Power/magnitude
+    # averaging is the standard estimator for laminar oscillatory power: each
+    # added trial genuinely reduces variance and reveals the band structure.
+    signal = np.asarray(signal)  # (n_trials, n_steps, n_contacts)
+    n_trials_eff, n_steps, n_contacts = signal.shape
 
-    # Compute PSD via FFT
     freqs = np.linspace(freq_min_hz, freq_max_hz, freq_count)
-    n_contacts = signal_mean.shape[1]
-    psd = np.zeros((freq_count, n_contacts), dtype=np.float32)
+    sample_idx = np.arange(n_steps)
+    # DFT basis (freq_count, n_steps), reused for every trial/contact.
+    basis = np.exp(-1j * 2.0 * np.pi * (freqs[:, None] / fs) * sample_idx[None, :])
 
-    for ci in range(n_contacts):
-        x = signal_mean[:, ci]
-        n = len(x)
-        for fi, freq in enumerate(freqs):
-            k = freq / fs
-            phase = 2.0 * np.pi * k * np.arange(n)
-            psd[fi, ci] = np.abs(np.dot(x, np.exp(-1j * phase))) / max(n, 1)
+    psd_accum = np.zeros((freq_count, n_contacts), dtype=np.float64)
+    for ti in range(n_trials_eff):
+        # (freq_count, n_steps) @ (n_steps, n_contacts) -> (freq_count, n_contacts)
+        spec_t = basis @ signal[ti]
+        psd_accum += np.abs(spec_t) / max(n_steps, 1)
+    psd = (psd_accum / max(n_trials_eff, 1)).astype(np.float32)
 
     # Normalize to relative power. Use a robust scale that IGNORES degenerate
     # low-power channels (e.g. the top contact whose CSD is ~0 from the spatial
@@ -1413,16 +1816,28 @@ def spectrolaminar_from_trials(
     vmin, vmax = np.percentile(psd_log[:, valid], [5, 95])
     relative_power = np.clip((psd_log - vmin) / (vmax - vmin + 1e-12), 0, 1)
 
-    # Extract band profiles
+    # Extract band profiles for the spectrolaminar cross (panel C).
+    #
+    # Relative power density definition: for each band, take the mean spectral
+    # power across that band's frequencies at every channel, then divide by the
+    # MAXIMUM band power across channels. Each band is thus normalized to its own
+    # depth-wise peak (=1.0), so the alpha-beta (deep) and gamma (superficial)
+    # profiles share a [0, 1] scale and visibly cross near L4.
+    #
+    # Computed from the raw spectral power `psd` (the same quantity panel B shows
+    # in log scale), NOT from the percentile-clipped log heatmap `relative_power`
+    # — clipping distorts true relative magnitudes across depth. Normalizing by
+    # the per-band max across channels is naturally robust to degenerate
+    # low-power channels (e.g. the top CSD contact ~0): a near-zero channel maps
+    # to ~0, it cannot inflate the max.
     ab_mask = (freqs >= alpha_beta_range_hz[0]) & (freqs <= alpha_beta_range_hz[1])
     gm_mask = (freqs >= gamma_range_hz[0]) & (freqs <= gamma_range_hz[1])
 
-    ab_profile = relative_power[ab_mask].mean(axis=0) if ab_mask.any() else np.ones(n_contacts)
-    gm_profile = relative_power[gm_mask].mean(axis=0) if gm_mask.any() else np.ones(n_contacts)
+    ab_power = psd[ab_mask].mean(axis=0) if ab_mask.any() else np.ones(n_contacts)
+    gm_power = psd[gm_mask].mean(axis=0) if gm_mask.any() else np.ones(n_contacts)
 
-    # Normalize profiles
-    ab_profile = ab_profile / (ab_profile.max() + 1e-12)
-    gm_profile = gm_profile / (gm_profile.max() + 1e-12)
+    ab_profile = ab_power / (float(ab_power.max()) + 1e-12)
+    gm_profile = gm_power / (float(gm_power.max()) + 1e-12)
 
     # Depth axis (position from L4)
     pos_from_l4 = trials['contact_depths_m'] - cfg.l4_ref_rel * cfg.cz_m
@@ -1441,7 +1856,7 @@ def summarize_spectrolaminar_similarity(
     trials: dict,
     cfg: LaminarColumnConfig,
     areas: Sequence[str] | None = None,
-    signal_key: str = "csd_contacts",
+    signal_key: str = "lfp_contacts",
     freq_min_hz: float | None = None,
     freq_max_hz: float | None = None,
     freq_count: int | None = None,

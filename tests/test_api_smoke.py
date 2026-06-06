@@ -143,7 +143,7 @@ def test_optional_dependency_guards():
     try:
         require_jaxley()
     except ImportError as e:
-        assert "optional dependency 'jaxley'" in str(e)
+        assert "requires 'Jaxley'" in str(e)
         assert "pip install" in str(e)
 
     try:
