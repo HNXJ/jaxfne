@@ -20,6 +20,7 @@ calibrated amplitude, or solved-field claim is made.
 """
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
@@ -130,27 +131,60 @@ def _candidate_pairs(
     """Return (pre, post) edge pairs.
 
     probability=None -> full bipartite (sparse list, no dense mask).
-    probability=p    -> sparse-first sample of round(p*n_pre*n_post) pairs.
+    probability=p    -> target edge *density*: the realized unique edge count is
+                        round(p*n_pre*n_post). ``probability`` is the target
+                        density fraction, NOT an independent per-pair Bernoulli
+                        rate; p>=1 yields full all-to-all (minus self unless
+                        allowed). Sampling is deterministic given ``key`` and
+                        never materializes a dense n_pre x n_post mask in the
+                        sparse regime.
     """
     n_pre, n_post = len(pre_ids), len(post_ids)
     if n_pre == 0 or n_post == 0:
         return []
+
+    def _all_pairs():
+        return [(a, b) for a in pre_ids for b in post_ids if allow_self or a != b]
+
     if probability is None:
-        pairs = [(a, b) for a in pre_ids for b in post_ids if allow_self or a != b]
-        return pairs
-    n_target = int(round(float(probability) * n_pre * n_post))
+        return _all_pairs()
+    total = n_pre * n_post
+    n_target = min(int(round(float(probability) * total)), total)
     if n_target <= 0:
         return []
-    k1, k2 = jax.random.split(key)
-    pre_pick = np.asarray(jax.random.randint(k1, (n_target,), 0, n_pre))
-    post_pick = np.asarray(jax.random.randint(k2, (n_target,), 0, n_post))
-    seen: set[tuple[int, int]] = set()
-    for a, b in zip(pre_pick, post_pick):
-        pr, po = pre_ids[int(a)], post_ids[int(b)]
-        if not allow_self and pr == po:
-            continue
-        seen.add((pr, po))
-    return sorted(seen)
+    if n_target >= total:
+        # p>=1: full connectivity (minus self unless allowed).
+        return _all_pairs()
+
+    if n_target * 2 <= total:
+        # Sparse regime: top-up rejection sampling to exactly n_target distinct
+        # edges (fixes birthday-paradox under-sampling) at O(n_target) memory.
+        seen: set[tuple[int, int]] = set()
+        k = key
+        attempts = 0
+        max_attempts = 40 * n_target + 100
+        while len(seen) < n_target and attempts < max_attempts:
+            k, sub = jax.random.split(k)
+            draw = max((n_target - len(seen)) * 2, 16)
+            pre_pick = np.asarray(jax.random.randint(sub, (draw,), 0, n_pre))
+            post_pick = np.asarray(jax.random.randint(jax.random.fold_in(sub, 1), (draw,), 0, n_post))
+            for a, b in zip(pre_pick, post_pick):
+                pr, po = pre_ids[int(a)], post_ids[int(b)]
+                if not allow_self and pr == po:
+                    continue
+                seen.add((pr, po))
+                if len(seen) >= n_target:
+                    break
+            attempts += draw
+        return sorted(seen)
+
+    # Dense-ish regime (n_target > total/2): enumerate then subsample without
+    # replacement. The full pair list is the same O(total) we'd build for the
+    # p>=1 branch, so this stays consistent and exact.
+    all_pairs = _all_pairs()
+    take = min(n_target, len(all_pairs))
+    idx = np.asarray(jax.random.choice(key, len(all_pairs), shape=(take,), replace=False))
+    return sorted(all_pairs[int(i)] for i in idx)
 
 
 def _edge_weights(
@@ -225,8 +259,18 @@ def _edge_weights(
                 f"connection {rule_name!r} artifact_ref array {array_name!r} not supplied; "
                 "pass it via artifacts={name: array} (compiler does not read files)"
             )
+        arr = np.ascontiguousarray(np.asarray(artifacts[array_name]))
+        # Verify the declared content hash against the supplied array so the
+        # sha256 field is a real integrity gate, not just a present-key check.
+        digest = hashlib.sha256(arr.tobytes()).hexdigest()
+        if digest != str(weight["sha256"]):
+            raise ValueError(
+                f"connection {rule_name!r} artifact_ref sha256 mismatch for {array_name!r}: "
+                f"declared {weight['sha256']!r} != supplied-array digest {digest!r} "
+                f"(hash of np.ascontiguousarray(array).tobytes())"
+            )
         return _edge_weights(
-            {"mode": "matrix", "array": artifacts[array_name]},
+            {"mode": "matrix", "array": arr},
             pairs, pre_pos, post_pos, key=key, rule_name=rule_name, artifacts=artifacts,
         )
     raise ValueError(f"connection {rule_name!r} unknown weight mode {mode!r}")
@@ -299,15 +343,12 @@ def compile_connection_rules(
     for rule_id, rule in enumerate(connections):
         rname = rule.get("name", f"rule_{rule_id}")
         rule_self = bool(rule.get("allow_self_connections", allow_self_connections))
-        try:
-            pre_ids = _select_indices(neurons, rule.get("source", {}), allow_empty=allow_empty, label=f"{rname}.source")
-            post_ids = _select_indices(neurons, rule.get("target", {}), allow_empty=allow_empty, label=f"{rname}.target")
-        except ValueError:
-            if allow_empty:
-                skipped.append(rname)
-                connection_table.append({"name": rname, "n_edges": 0, "status": "skipped_empty_selector"})
-                continue
-            raise
+        # _select_indices honors allow_empty internally (returns [] vs raises on
+        # zero-match) and ALWAYS raises on a structurally invalid (non-mapping)
+        # selector. No try/except here: structural errors must surface loudly,
+        # never be silently recorded as an empty-selector skip.
+        pre_ids = _select_indices(neurons, rule.get("source", {}), allow_empty=allow_empty, label=f"{rname}.source")
+        post_ids = _select_indices(neurons, rule.get("target", {}), allow_empty=allow_empty, label=f"{rname}.target")
         if not pre_ids or not post_ids:
             skipped.append(rname)
             connection_table.append({"name": rname, "n_edges": 0, "status": "skipped_empty_selector"})

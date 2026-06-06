@@ -88,6 +88,32 @@ def test_empty_selector_skipped_when_allowed():
     assert r.diagnostics["skipped_rules"] == ["x"]
 
 
+def test_structural_selector_error_not_swallowed_under_allow_empty():
+    """A non-mapping selector must raise loudly even with allow_empty=True."""
+    with pytest.raises(ValueError, match="must be a mapping"):
+        _compile([{"name": "bad", "source": ["cell_type", "E"], "target": {"cell_type": "PV"},
+                   "weight": 0.1, "mechanism": "ampa"}], allow_empty=True)
+
+
+def test_probability_one_yields_full_connectivity():
+    """probability=1.0 must produce all-to-all (minus self), not ~63%."""
+    conn = [{"name": "rec", "source": {"area": "V1"}, "target": {"area": "V1"},
+             "probability": 1.0, "weight": 0.1, "mechanism": "ampa", "allow_self_connections": True}]
+    r = _compile(conn)
+    n_v1 = sum(1 for row in NEURONS if row["area"] == "V1")  # 3
+    assert r.n_edges == n_v1 * n_v1  # full bipartite incl self = 9
+
+
+def test_probability_hits_target_density_count():
+    """Realized unique edge count == round(p * n_pre * n_post) in sparse regime."""
+    # Build a larger same-area population for a meaningful density target.
+    neurons = [{"neuron_id": i, "area": "X", "layer": "L", "cell_type": "E"} for i in range(10)]
+    conn = [{"name": "rec", "source": {"area": "X"}, "target": {"area": "X"},
+             "probability": 0.2, "weight": 0.1, "mechanism": "ampa", "allow_self_connections": True}]
+    r = jtfne.compile_connection_rules(neurons, conn, MECHS, seed=0)
+    assert r.n_edges == round(0.2 * 10 * 10)  # exactly 20, not birthday-reduced
+
+
 def test_edges_finite_and_diagnostics_json_safe():
     r = _compile([{"name": "E_PV", "source": {"cell_type": "E"}, "target": {"cell_type": "PV"},
                    "weight": 0.1, "mechanism": "ampa"}])

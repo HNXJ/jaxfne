@@ -68,18 +68,30 @@ def test_artifact_ref_requires_fields():
         _compile({"mode": "artifact_ref", "path": "w.npy", "array_name": "w"})  # missing sha256
 
 
+def _sha(arr):
+    import hashlib
+    return hashlib.sha256(np.ascontiguousarray(np.asarray(arr)).tobytes()).hexdigest()
+
+
 def test_artifact_ref_requires_supplied_array():
     spec = {"mode": "artifact_ref", "path": "w.npy", "array_name": "w", "sha256": "abc"}
     with pytest.raises(ValueError, match="not supplied"):
         _compile(spec)
 
 
-def test_artifact_ref_uses_supplied_array():
+def test_artifact_ref_uses_supplied_array_with_matching_hash():
     mat = np.array([[1.0, 2.0], [3.0, 4.0]])
-    spec = {"mode": "artifact_ref", "path": "w.npy", "array_name": "w", "sha256": "abc"}
+    spec = {"mode": "artifact_ref", "path": "w.npy", "array_name": "w", "sha256": _sha(mat)}
     r = _compile(spec, artifacts={"w": mat})
     assert r.n_edges == 4
     assert np.all(np.isfinite(np.asarray(r.edge_weight)))
+
+
+def test_artifact_ref_sha256_mismatch_fails():
+    mat = np.array([[1.0, 2.0], [3.0, 4.0]])
+    spec = {"mode": "artifact_ref", "path": "w.npy", "array_name": "w", "sha256": "deadbeef"}
+    with pytest.raises(ValueError, match="sha256 mismatch"):
+        _compile(spec, artifacts={"w": mat})
 
 
 def test_unknown_weight_mode_fails():
