@@ -66,7 +66,7 @@ physical_amplitude_claim_allowed: false
 
 | Figure | Purpose | Generator (planned) | Artifacts | Validation gate | Claim boundary |
 |--------|---------|---------------------|-----------|-----------------|----------------|
-| **Fig 1** | TFNE operator grammar (Emitter→Source→Field→Probe→Objective) | `scripts/publication/fig01_architecture.py` (TBD) | `figures/publication/fig01_tfne_architecture.png`, manifest | compileall + diagram hash | computational scaffold only |
+| **Fig 1** | TFNE operator grammar (Emitter→Source→Field→Probe→Objective) | `scripts/publication/fig01_architecture.py` **(implemented)** | `figures/publication/fig01_tfne_architecture.png`, `outputs/publication/fig01_tfne_architecture_manifest.json` | `python scripts/publication/fig01_architecture.py` + SHA256 manifest | computational scaffold only |
 | **Fig 2** | Source/field contracts and truth gates | `scripts/publication/fig02_contracts.py` (TBD) | `fig02_source_field_contracts.png`, JSON schema excerpt | `validate_config`, probe report tests | no PDE solve claim |
 | **Fig 3** | jaxfne backend: Config→Net→simulate | `examples/00_minimal_column.py` + panel script | `fig03_jaxfne_backend.png`, run receipt | `test_api_smoke.py` | package-native API only |
 | **Fig 4** | Minimal install + 10 s smoke run | `docs/quickstart.md` command block | `fig04_minimal_install_run.png`, stdout log | fresh venv install receipt | no GPU requirement |
@@ -102,7 +102,7 @@ physical_amplitude_claim_allowed: false
 | Install | partial | clean-room install log (Linux/macOS) | `pip install jaxfne && python -c "import jaxfne"` | import + version match |
 | Minimal run | green | figure panel for Fig 4 | `python examples/00_minimal_column.py` | exit 0, finite outputs |
 | Tutorials | partial | executed notebook receipts for all atlas entries | `python scripts/run_all_tutorials.py` | all marked PASS |
-| Figures | red | 18 PNG assets (see inventory) | `python scripts/publication_inventory.py` | all `exists: true` |
+| Figures | partial (1/8 main) | 17 PNG assets remaining (see inventory) | `python scripts/publication/fig01_architecture.py` | inventory reports `1/8` main figures |
 | Manifests | partial | publication output bundle at fixed SHA | example scripts → `outputs/publication/` | JSON-safe + SHA256 |
 | Tests | green | pinned count in manuscript | `pytest tests/ -q` | 2111+ passed, 0 failed |
 | Docs | green | publication nav + roadmap | `mkdocs build --strict` | strict pass |
@@ -174,6 +174,15 @@ physical_amplitude_claim_allowed: false
 5. **No figure citation** without `figures/publication/<name>.png` hash in inventory JSON.
 6. **No PyPI/TestPyPI/GitHub Release** without explicit human approval.
 7. **No branch deletion or force-push** on permanent branches (`main`, `dev`, `agy`, `cur`).
+
+---
+
+## Generate Figure 1
+
+```bash
+python scripts/publication/fig01_architecture.py
+python scripts/publication_inventory.py
+```
 
 ---
 

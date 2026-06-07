@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "f77822e88e8ea11537f6b7f393079d671dacf8d2",
-  "branch": "pub/nature-methods-roadmap",
+  "repo_sha": "aaf2770",
+  "branch": "pub/fig01-architecture",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T03:50:56Z",
+  "generated_at_utc": "2026-06-07T04:02:30Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
@@ -16,8 +16,10 @@
       "id": "fig01",
       "filename": "fig01_tfne_architecture.png",
       "purpose": "TFNE operator grammar overview",
-      "status": "missing",
+      "status": "implemented",
       "generator_script": "scripts/publication/fig01_architecture.py",
+      "manifest_path": "outputs/publication/fig01_tfne_architecture_manifest.json",
+      "figure_path": "figures/publication/fig01_tfne_architecture.png",
       "claim_boundary": "computational_scaffold_only"
     },
     {
@@ -135,7 +137,8 @@
     "full_pytest": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line",
     "notebook_audit": "python scripts/audit_notebooks_and_assets.py --check",
     "mkdocs_strict": "mkdocs build --strict",
-    "publication_inventory": "python scripts/publication_inventory.py"
+    "publication_inventory": "python scripts/publication_inventory.py",
+    "fig01_architecture": "python scripts/publication/fig01_architecture.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -144,7 +147,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig01_tfne_architecture.png",
     "figures/publication/fig02_source_field_contracts.png",
     "figures/publication/fig03_jaxfne_backend.png",
     "figures/publication/fig04_minimal_install_run.png",
