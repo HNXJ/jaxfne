@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "c73f1708405eef1c41adf30af8e9f04a5766e0e3",
-  "branch": "pub/ed02-json-schema-validation",
+  "repo_sha": "a4ea6884ae27edcf8376bc164c55925de7eff066",
+  "branch": "pub/ed06-benchmark-scaling-tables",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T19:35:41Z",
+  "generated_at_utc": "2026-06-07T20:23:01Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
@@ -137,17 +137,32 @@
     {
       "id": "ed05",
       "filename": "ed05_manifest_hashes.png",
-      "status": "missing"
+      "purpose": "Local manifest/hash integrity receipt",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed05_manifest_hashes.py",
+      "manifest_path": "outputs/publication/ed05_manifest_hashes_manifest.json",
+      "figure_path": "figures/publication/ed05_manifest_hashes.png",
+      "claim_boundary": "local_artifact_integrity_receipt_only"
     },
     {
       "id": "ed06",
       "filename": "ed06_benchmark_scaling_tables.png",
-      "status": "missing"
+      "purpose": "Benchmark scaling tables (local CPU runtime receipt)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed06_benchmark_scaling_tables.py",
+      "manifest_path": "outputs/publication/ed06_benchmark_scaling_tables_manifest.json",
+      "figure_path": "figures/publication/ed06_benchmark_scaling_tables.png",
+      "claim_boundary": "local_cpu_runtime_receipt_only"
     },
     {
       "id": "ed07",
       "filename": "ed07_probe_operator_contracts.png",
-      "status": "missing"
+      "purpose": "Probe/readout operator contract matrix",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed07_probe_operator_contracts.py",
+      "manifest_path": "outputs/publication/ed07_probe_operator_contracts_manifest.json",
+      "figure_path": "figures/publication/ed07_probe_operator_contracts.png",
+      "claim_boundary": "proxy_readout_operator_contracts_only"
     },
     {
       "id": "ed08",
@@ -183,7 +198,10 @@
     "ed01_api_stability_snapshot": "python scripts/publication/ed01_api_stability_snapshot.py",
     "ed02_json_schema_validation": "python scripts/publication/ed02_json_schema_validation.py",
     "ed03_notebook_execution_receipts": "python scripts/publication/ed03_notebook_execution_receipts.py",
-    "ed04_optional_dependency_laziness": "python scripts/publication/ed04_optional_dependency_laziness.py"
+    "ed04_optional_dependency_laziness": "python scripts/publication/ed04_optional_dependency_laziness.py",
+    "ed05_manifest_hashes": "python scripts/publication/ed05_manifest_hashes.py",
+    "ed06_benchmark_scaling_tables": "python scripts/publication/ed06_benchmark_scaling_tables.py",
+    "ed07_probe_operator_contracts": "python scripts/publication/ed07_probe_operator_contracts.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -192,16 +210,12 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed05_manifest_hashes.png",
-    "figures/publication/ed06_benchmark_scaling_tables.png",
-    "figures/publication/ed07_probe_operator_contracts.png",
     "figures/publication/ed08_tutorial_atlas_coverage.png",
     "figures/publication/ed09_failure_modes_and_nulls.png",
-    "figures/publication/ed10_release_archive_receipt.png",
-    "outputs/publication/benchmark_receipt.json"
+    "figures/publication/ed10_release_archive_receipt.png"
   ],
   "benchmark_plan": {
-    "status": "planned",
+    "status": "implemented_ed06_local_receipt",
     "axes": [
       "neuron_count",
       "laminar_contacts",
