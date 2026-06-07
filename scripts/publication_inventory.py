@@ -66,6 +66,7 @@ MANIFEST_PATHS = [
     "outputs/publication/ed05_manifest_hashes_manifest.json",
     "outputs/publication/ed06_benchmark_scaling_tables_manifest.json",
     "outputs/publication/ed07_probe_operator_contracts_manifest.json",
+    "outputs/publication/ed08_tutorial_atlas_coverage_manifest.json",
     "docs/publication/publication_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",

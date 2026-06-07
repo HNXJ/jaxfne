@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "a4ea6884ae27edcf8376bc164c55925de7eff066",
-  "branch": "pub/ed06-benchmark-scaling-tables",
+  "repo_sha": "9a8c7db58f588bde9f5e8c31b664d56c4982958e",
+  "branch": "pub/ed08-tutorial-atlas-coverage",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T20:23:01Z",
+  "generated_at_utc": "2026-06-07T22:25:39Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
@@ -167,7 +167,12 @@
     {
       "id": "ed08",
       "filename": "ed08_tutorial_atlas_coverage.png",
-      "status": "missing"
+      "purpose": "Tutorial atlas coverage matrix (receipt-driven)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed08_tutorial_atlas_coverage.py",
+      "manifest_path": "outputs/publication/ed08_tutorial_atlas_coverage_manifest.json",
+      "figure_path": "figures/publication/ed08_tutorial_atlas_coverage.png",
+      "claim_boundary": "tutorial_atlas_coverage_receipt_only"
     },
     {
       "id": "ed09",
@@ -201,7 +206,8 @@
     "ed04_optional_dependency_laziness": "python scripts/publication/ed04_optional_dependency_laziness.py",
     "ed05_manifest_hashes": "python scripts/publication/ed05_manifest_hashes.py",
     "ed06_benchmark_scaling_tables": "python scripts/publication/ed06_benchmark_scaling_tables.py",
-    "ed07_probe_operator_contracts": "python scripts/publication/ed07_probe_operator_contracts.py"
+    "ed07_probe_operator_contracts": "python scripts/publication/ed07_probe_operator_contracts.py",
+    "ed08_tutorial_atlas_coverage": "python scripts/publication/ed08_tutorial_atlas_coverage.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -210,7 +216,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed08_tutorial_atlas_coverage.png",
     "figures/publication/ed09_failure_modes_and_nulls.png",
     "figures/publication/ed10_release_archive_receipt.png"
   ],

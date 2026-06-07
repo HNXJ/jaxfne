@@ -86,7 +86,7 @@ physical_amplitude_claim_allowed: false
 | ED5 | Manifest hashes | `scripts/publication/ed05_manifest_hashes.py` **(implemented)** | `figures/publication/ed05_manifest_hashes.png`, `outputs/publication/ed05_manifest_hashes_receipt.json` | `python scripts/publication/ed05_manifest_hashes.py` + SHA256 manifest |
 | ED6 | Benchmark scaling tables | `scripts/publication/ed06_benchmark_scaling_tables.py` **(implemented)** | `figures/publication/ed06_benchmark_scaling_tables.png`, `outputs/publication/ed06_benchmark_scaling_tables_receipt.json` | local CPU receipt; no speedup claims |
 | ED7 | Probe operator contracts | `scripts/publication/ed07_probe_operator_contracts.py` **(implemented)** | `figures/publication/ed07_probe_operator_contracts.png`, `outputs/publication/ed07_probe_operator_contracts_receipt.json` | eight-operator contract matrix |
-| ED8 | Tutorial atlas coverage | tutorial manifest | `ed08_tutorial_atlas_coverage.png` | `tutorial_manifest.json` |
+| ED8 | Tutorial atlas coverage | `scripts/publication/ed08_tutorial_atlas_coverage.py` **(implemented)** | `figures/publication/ed08_tutorial_atlas_coverage.png`, `outputs/publication/ed08_tutorial_atlas_coverage_receipt.json` | atlas matrix; no full-execution claim without receipts |
 | ED9 | Failure modes and nulls | negative tests | `ed09_failure_modes_and_nulls.png` | emitter validation tests |
 | ED10 | Release archive receipt | release scripts (approval-gated) | `ed10_release_archive_receipt.png` | tag + sdist/wheel hash |
 
@@ -102,7 +102,7 @@ physical_amplitude_claim_allowed: false
 | Install | partial | clean-room install log (Linux/macOS) | `pip install jaxfne && python -c "import jaxfne"` | import + version match |
 | Minimal run | green | figure panel for Fig 4 | `python examples/00_minimal_column.py` | exit 0, finite outputs |
 | Tutorials | partial | executed notebook receipts for all atlas entries | `python scripts/run_all_tutorials.py` | all marked PASS |
-| Figures | complete (8/8 main) | 7/10 Extended Data PNG assets remaining (see inventory) | `python scripts/publication_inventory.py` | inventory reports `8/8` main + ED progress |
+| Figures | complete (8/8 main) | 8/10 Extended Data PNG assets remaining (see inventory) | `python scripts/publication_inventory.py` | inventory reports `8/8` main + ED progress |
 | Manifests | partial | publication output bundle at fixed SHA | example scripts → `outputs/publication/` | JSON-safe + SHA256 |
 | Tests | green | pinned count in manuscript | `pytest tests/ -q` | 2111+ passed, 0 failed |
 | Docs | green | publication nav + roadmap | `mkdocs build --strict` | strict pass |

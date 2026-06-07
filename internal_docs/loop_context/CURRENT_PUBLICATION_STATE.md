@@ -1,6 +1,6 @@
 # Current publication state
 
-Last updated: ED6 on `pub/ed06-benchmark-scaling-tables`.
+Last updated: ED8 on `pub/ed08-tutorial-atlas-coverage`.
 
 ## Sync target
 
@@ -15,7 +15,7 @@ python3 scripts/publication_inventory.py
 ## Inventory (expected after sync)
 
 - 8/8 main figures
-- 7/10 Extended Data (after ED6 on branch)
+- 8/10 Extended Data (after ED8 on branch)
 
 ## Completed main figures
 
@@ -30,15 +30,16 @@ fig01–fig08 (see `docs/publication/publication_checklist.json`)
 - ED5 manifest hashes (`ed05_manifest_hashes`)
 - ED6 benchmark scaling tables (`ed06_benchmark_scaling_tables`)
 - ED7 probe/readout operator contracts (`ed07_probe_operator_contracts`)
+- ED8 tutorial atlas coverage (`ed08_tutorial_atlas_coverage`)
 
 ## Next work
 
-ED8 tutorial atlas coverage:
+ED9 failure modes and null controls:
 
 ```bash
 git switch cur
 git pull --ff-only origin cur
-git switch -c pub/ed08-tutorial-atlas-coverage
+git switch -c pub/ed09-failure-modes-null-controls
 ```
 
 ## Agent anchor
