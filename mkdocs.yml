@@ -89,6 +89,9 @@ nav:
       - Objectives: api/objectives.md
       - Validation: api/validation.md
 
+  - Publication:
+      - Nature Methods roadmap: publication/nature_methods_roadmap.md
+
   - About jaxfne:
       - Scope and limitations: scope_and_limitations.md
       - Changelog: changelog.md
