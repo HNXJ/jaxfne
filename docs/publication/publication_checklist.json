@@ -1,6 +1,6 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "54c92b3980657a8c9af78c1fbe38a6fea3c919fb",
+  "repo_sha": "163d126",
   "branch": "pub/fig01-architecture",
   "jaxfne_version": "0.3.29",
   "generated_at_utc": "2026-06-07T04:02:30Z",
@@ -26,8 +26,10 @@
       "id": "fig02",
       "filename": "fig02_source_field_contracts.png",
       "purpose": "Source/field contracts and truth gates",
-      "status": "missing",
+      "status": "implemented",
       "generator_script": "scripts/publication/fig02_contracts.py",
+      "manifest_path": "outputs/publication/fig02_source_field_contracts_manifest.json",
+      "figure_path": "figures/publication/fig02_source_field_contracts.png",
       "claim_boundary": "no_pde_solver_claim"
     },
     {
@@ -138,7 +140,8 @@
     "notebook_audit": "python scripts/audit_notebooks_and_assets.py --check",
     "mkdocs_strict": "mkdocs build --strict",
     "publication_inventory": "python scripts/publication_inventory.py",
-    "fig01_architecture": "python scripts/publication/fig01_architecture.py"
+    "fig01_architecture": "python scripts/publication/fig01_architecture.py",
+    "fig02_contracts": "python scripts/publication/fig02_contracts.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -147,7 +150,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig02_source_field_contracts.png",
     "figures/publication/fig03_jaxfne_backend.png",
     "figures/publication/fig04_minimal_install_run.png",
     "figures/publication/fig05_runtime_scaling.png",

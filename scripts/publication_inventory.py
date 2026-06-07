@@ -52,6 +52,7 @@ INSPECT_DIRS = [
 MANIFEST_PATHS = [
     "outputs/publication/inventory.json",
     "outputs/publication/fig01_tfne_architecture_manifest.json",
+    "outputs/publication/fig02_source_field_contracts_manifest.json",
     "docs/publication/publication_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",
