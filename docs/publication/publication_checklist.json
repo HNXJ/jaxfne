@@ -1,6 +1,6 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "55925fd9b6b8d6833ed89c04206c172119ea66db",
+  "repo_sha": "d7a067d",
   "branch": "pub/fig01-architecture",
   "jaxfne_version": "0.3.29",
   "generated_at_utc": "2026-06-07T04:02:30Z",
@@ -36,8 +36,10 @@
       "id": "fig03",
       "filename": "fig03_jaxfne_backend.png",
       "purpose": "Config to simulate backend flow",
-      "status": "missing",
-      "generator_script": "examples/00_minimal_column.py",
+      "status": "implemented",
+      "generator_script": "scripts/publication/fig03_backend.py",
+      "manifest_path": "outputs/publication/fig03_jaxfne_backend_manifest.json",
+      "figure_path": "figures/publication/fig03_jaxfne_backend.png",
       "claim_boundary": "package_native_api"
     },
     {
@@ -141,7 +143,8 @@
     "mkdocs_strict": "mkdocs build --strict",
     "publication_inventory": "python scripts/publication_inventory.py",
     "fig01_architecture": "python scripts/publication/fig01_architecture.py",
-    "fig02_contracts": "python scripts/publication/fig02_contracts.py"
+    "fig02_contracts": "python scripts/publication/fig02_contracts.py",
+    "fig03_backend": "python scripts/publication/fig03_backend.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -150,7 +153,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig03_jaxfne_backend.png",
     "figures/publication/fig04_minimal_install_run.png",
     "figures/publication/fig05_runtime_scaling.png",
     "figures/publication/fig06_readout_family_panel.png",
