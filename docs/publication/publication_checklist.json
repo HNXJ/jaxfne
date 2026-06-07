@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "57840dcf8531f8a61addbb7eaf39cd0877f30479",
-  "branch": "pub/fig04-minimal-install-run",
+  "repo_sha": "0651e3e3daaf8ad45fa3464d85c656137062940d",
+  "branch": "pub/fig05-runtime-scaling",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T15:25:43Z",
+  "generated_at_utc": "2026-06-07T15:30:50Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
