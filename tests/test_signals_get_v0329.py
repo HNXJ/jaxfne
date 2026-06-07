@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 import jaxfne as jtfne
+from jaxfne.core import _SIGNALS_GET_KEY_ALIASES
 
 
 def _sim(config_fn=None, **sim_kwargs):
@@ -41,6 +42,29 @@ def test_get_unknown_key_raises_keyerror_with_available():
     with pytest.raises(KeyError) as exc:
         sig.get("does_not_exist")
     assert "Available" in str(exc.value)
+
+
+def test_probe_only_aliases_normalize_to_proxy_names():
+    assert _SIGNALS_GET_KEY_ALIASES["eeg_like"] == "eeg_proxy"
+    assert _SIGNALS_GET_KEY_ALIASES["meg_like"] == "meg_proxy"
+    assert _SIGNALS_GET_KEY_ALIASES["emm_like"] == "emm_proxy"
+    assert _SIGNALS_GET_KEY_ALIASES["emm"] == "emm_proxy"
+
+
+@pytest.mark.parametrize(
+    ("key", "resolved"),
+    [
+        ("eeg_like", "eeg_proxy"),
+        ("meg_like", "meg_proxy"),
+        ("emm_like", "emm_proxy"),
+        ("emm", "emm_proxy"),
+    ],
+)
+def test_probe_only_aliases_fail_explicitly_when_unavailable(key, resolved):
+    """EEG/MEG/EMM are not on core FieldOutput; aliases must not synthesize data."""
+    _, sig = _sim()
+    with pytest.raises(KeyError, match=resolved):
+        sig.get(key)
 
 
 def test_get_trial_raises_not_implemented():

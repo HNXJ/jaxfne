@@ -20,7 +20,32 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+
+import pytest
+
+_REPO_ROOT = Path(__file__).parent.parent
+_EXAMPLE_SCRIPT = _REPO_ROOT / "examples" / "04_two_neuron_ei_multimodal.py"
+_EXAMPLE_OUTPUT_REL = Path("outputs/v029_two_neuron_ei_multimodal")
+
+
+@pytest.fixture(scope="class")
+def example_output_dir(tmp_path_factory):
+    """Run the example script in an isolated temp cwd and return its output bundle."""
+    workdir = tmp_path_factory.mktemp("two_neuron_ei_run")
+    result = subprocess.run(
+        [sys.executable, str(_EXAMPLE_SCRIPT)],
+        cwd=workdir,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert result.returncode == 0, f"Script failed: {result.stderr}"
+    assert "✓" in result.stdout, "Script should print success indicator"
+    output_dir = workdir / _EXAMPLE_OUTPUT_REL
+    assert output_dir.is_dir(), f"Expected output directory not found: {output_dir}"
+    return output_dir
 
 
 class TestTwoNeuronEINotebook:
@@ -212,27 +237,12 @@ class TestTwoNeuronEINotebook:
         )
         assert script_path.exists(), f"Example script not found at {script_path}"
 
-    def test_example_script_runs(self):
+    def test_example_script_runs(self, example_output_dir):
         """Test that example script runs successfully."""
-        script_path = (
-            Path(__file__).parent.parent / "examples" / "04_two_neuron_ei_multimodal.py"
-        )
-        try:
-            result = subprocess.run(
-                ["python", str(script_path)],
-                cwd=Path(__file__).parent.parent,
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-            assert result.returncode == 0, f"Script failed: {result.stderr}"
-            assert "✓" in result.stdout, "Script should print success indicator"
-        except subprocess.TimeoutExpired:
-            raise AssertionError("Example script timed out")
+        assert example_output_dir.is_dir()
 
-    def test_example_script_generates_outputs(self):
+    def test_example_script_generates_outputs(self, example_output_dir):
         """Test that example script generates JSON output files."""
-        output_dir = Path("outputs/v029_two_neuron_ei_multimodal")
         expected_files = [
             "manifest.json",
             "probe_report.json",
@@ -242,7 +252,7 @@ class TestTwoNeuronEINotebook:
         ]
 
         for filename in expected_files:
-            filepath = output_dir / filename
+            filepath = example_output_dir / filename
             assert filepath.exists(), f"Expected output file not found: {filepath}"
             # Verify JSON validity
             try:

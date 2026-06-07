@@ -1741,6 +1741,10 @@ _SIGNALS_GET_KEY_ALIASES: dict[str, str] = {
     "csd": "csd_proxy", "csd_like": "csd_proxy", "csd_proxy": "csd_proxy",
     "phi_e": "phi_e_proxy", "phi": "phi_e_proxy", "phi_e_proxy": "phi_e_proxy",
     "field_source": "source_proxy", "source_proxy": "source_proxy",
+    # Probe-only readouts (not on FieldOutput); aliases normalize config vocabulary.
+    "eeg": "eeg_proxy", "eeg_like": "eeg_proxy", "eeg_proxy": "eeg_proxy",
+    "meg": "meg_proxy", "meg_like": "meg_proxy", "meg_proxy": "meg_proxy",
+    "emm": "emm_proxy", "emm_like": "emm_proxy", "emm_proxy": "emm_proxy",
 }
 # Signals whose neuron axis is the trailing axis (length == n_units).
 _SIGNALS_GET_NEURON_AXIS_KEYS = frozenset({"V_m", "spikes", "sources"})
