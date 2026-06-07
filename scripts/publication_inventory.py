@@ -57,6 +57,7 @@ MANIFEST_PATHS = [
     "outputs/publication/fig04_minimal_install_run_manifest.json",
     "outputs/publication/fig05_runtime_scaling_manifest.json",
     "outputs/publication/fig06_readout_family_panel_manifest.json",
+    "outputs/publication/fig07_reproducibility_artifacts_manifest.json",
     "docs/publication/publication_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",

@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "053e24576221972718ffaa616b311a3fe0ee4a64",
-  "branch": "pub/fig06-readout-family-panel",
+  "repo_sha": "26ea48cb87156c53ad5f524fbda98883a1b32e1d",
+  "branch": "pub/fig07-reproducibility-artifacts",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T15:41:52Z",
+  "generated_at_utc": "2026-06-07T18:51:10Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
@@ -76,8 +76,10 @@
       "id": "fig07",
       "filename": "fig07_reproducibility_artifacts.png",
       "purpose": "Manifest and hash reproducibility",
-      "status": "missing",
-      "generator_script": "scripts/publication_inventory.py",
+      "status": "implemented",
+      "generator_script": "scripts/publication/fig07_reproducibility_artifacts.py",
+      "manifest_path": "outputs/publication/fig07_reproducibility_artifacts_manifest.json",
+      "figure_path": "figures/publication/fig07_reproducibility_artifacts.png",
       "claim_boundary": "fixed_tag_sha_required"
     },
     {
@@ -153,7 +155,8 @@
     "fig03_backend": "python scripts/publication/fig03_backend.py",
     "fig04_minimal_install_run": "python scripts/publication/fig04_minimal_install_run.py",
     "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py",
-    "fig06_readout_family_panel": "python scripts/publication/fig06_readout_family_panel.py"
+    "fig06_readout_family_panel": "python scripts/publication/fig06_readout_family_panel.py",
+    "fig07_reproducibility_artifacts": "python scripts/publication/fig07_reproducibility_artifacts.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -162,7 +165,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig07_reproducibility_artifacts.png",
     "figures/publication/fig08_adjacent_tools_comparison.png",
     "figures/publication/ed01_api_stability.png",
     "figures/publication/ed02_json_schema_validation.png",
