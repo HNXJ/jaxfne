@@ -1,21 +1,21 @@
 # Current publication state
 
-Last updated: `2026-06-07` (live `cur` after ED9 merge).
+Last updated: live `cur` after ED10 merge.
 
 ## Freeze target
 
 ```text
 branch: cur
-sha: 5c78541 (re-verify with git rev-parse HEAD)
+sha: verify with git rev-parse HEAD
 jaxfne_version: 0.3.29
 ```
 
-## Inventory (live checkout)
+## Inventory
 
 ```text
 main figures: 8/8
-extended data: 9/10
-remaining: ED10 release archive receipt (approval-gated)
+extended data: 10/10
+publication artifact stack: complete
 ```
 
 ## Completed Extended Data
@@ -31,19 +31,22 @@ remaining: ED10 release archive receipt (approval-gated)
 | ed07 | Probe/readout operator contract matrix | proxy_readout_operator_contracts_only |
 | ed08 | Tutorial atlas coverage matrix (receipt-driven) | tutorial_atlas_coverage_receipt_only |
 | ed09 | Failure modes and null controls (local receipt) | failure_null_local_receipt_only |
+| ed10 | Release/archive readiness receipt (evidence panel) | release_archive_evidence_receipt_only |
 
-## Remaining Extended Data
+## Approval-gated (not executed by ED10)
 
-| ID | Required next artifact | Scope |
-|---|---|---|
-| ED10 | `scripts/publication/ed10_release_archive_receipt.py`; `figures/publication/ed10_release_archive_receipt.png`; manifest/receipt | Release tag, wheel/sdist hashes, clean install smoke, archive/DOI metadata, exact repo SHA. Approval-gated. |
+- version tag at current HEAD
+- wheel/sdist build and PyPI/TestPyPI publish
+- GitHub release
+- archive/DOI assignment
+- full clean-room pip install smoke (isolated import smoke recorded in ED10)
 
 ## Immediate next work
 
-1. Regenerate `outputs/publication/*` by running fig01–fig08 and ed01–ed09 scripts on live checkout.
-2. Implement ED10 only after explicit release/archive approval.
-3. Repeat optional dependency laziness gate in a clean venv if root import loads `pandas` there.
+1. Regenerate `outputs/publication/*` on live checkout before submission bundle export.
+2. Obtain explicit approval before any tag, release, publish, or archive action.
+3. Manuscript alignment pass: replace TBD slots with exact SHA/inventory receipts.
 
 ## Status language
 
-Use `implemented`, `receipt-driven`, `local artifact integrity`, `local CPU runtime receipt`, `failure/null local receipt`, and `proxy operator contract`. Do not use physical-field or empirical-validation language for current v0.3.x proxy results.
+Use `implemented`, `receipt-driven`, `release_archive_evidence_receipt_only`, and `pending_approval` for release fields. Do not use physical-field or empirical-validation language for current v0.3.x proxy results.

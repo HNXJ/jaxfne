@@ -187,7 +187,12 @@
     {
       "id": "ed10",
       "filename": "ed10_release_archive_receipt.png",
-      "status": "missing"
+      "purpose": "Release/archive readiness receipt (evidence panel)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed10_release_archive_receipt.py",
+      "manifest_path": "outputs/publication/ed10_release_archive_receipt_manifest.json",
+      "figure_path": "figures/publication/ed10_release_archive_receipt.png",
+      "claim_boundary": "release_archive_evidence_receipt_only"
     }
   ],
   "validation_commands": {
@@ -213,7 +218,8 @@
     "ed06_benchmark_scaling_tables": "python scripts/publication/ed06_benchmark_scaling_tables.py",
     "ed07_probe_operator_contracts": "python scripts/publication/ed07_probe_operator_contracts.py",
     "ed08_tutorial_atlas_coverage": "python scripts/publication/ed08_tutorial_atlas_coverage.py",
-    "ed09_failure_modes_and_nulls": "python scripts/publication/ed09_failure_modes_and_nulls.py"
+    "ed09_failure_modes_and_nulls": "python scripts/publication/ed09_failure_modes_and_nulls.py",
+    "ed10_release_archive_receipt": "python scripts/publication/ed10_release_archive_receipt.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -221,9 +227,7 @@
     "scripts/publication_inventory.py",
     "outputs/publication/inventory.json"
   ],
-  "missing_artifacts": [
-    "figures/publication/ed10_release_archive_receipt.png"
-  ],
+  "missing_artifacts": [],
   "benchmark_plan": {
     "status": "implemented_ed06_local_receipt",
     "axes": [

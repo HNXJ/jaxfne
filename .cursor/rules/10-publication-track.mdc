@@ -13,8 +13,9 @@ alwaysApply: false
 Current expected state:
 
 - Branch: `cur`
-- Expected publication posture after sync: 8/8 main figures + 9/10 Extended Data
-- Next planned branch: `pub/ed10-release-archive-receipt` from `cur` (approval-gated)
+- Expected publication posture after sync: 8/8 main figures + 10/10 Extended Data
+- Publication artifact stack: complete (ED1–ED10)
+- Release/tag/archive/publish: approval-gated (not part of ED10 receipt execution)
 
 Before work:
 
@@ -31,12 +32,15 @@ Expected inventory:
 
 ```text
 main figures: 8/8
-extended data: 9/10
+extended data: 10/10
 ```
 
-Remaining:
+Release/archive (separate approval required):
 
-- ED10 release archive receipt (approval-gated)
+- tag creation
+- wheel/sdist build and publish
+- GitHub release
+- archive/DOI assignment
 
 New publication artifacts follow this pattern:
 

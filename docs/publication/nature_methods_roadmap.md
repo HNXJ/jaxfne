@@ -88,7 +88,7 @@ physical_amplitude_claim_allowed: false
 | ED7 | Probe operator contracts | `scripts/publication/ed07_probe_operator_contracts.py` **(implemented)** | `figures/publication/ed07_probe_operator_contracts.png`, `outputs/publication/ed07_probe_operator_contracts_receipt.json` | eight-operator contract matrix |
 | ED8 | Tutorial atlas coverage | `scripts/publication/ed08_tutorial_atlas_coverage.py` **(implemented)** | `figures/publication/ed08_tutorial_atlas_coverage.png`, `outputs/publication/ed08_tutorial_atlas_coverage_receipt.json` | atlas matrix; no full-execution claim without receipts |
 | ED9 | Failure modes and nulls | `scripts/publication/ed09_failure_modes_and_nulls.py` **(implemented)** | `figures/publication/ed09_failure_modes_and_nulls.png`, `outputs/publication/ed09_failure_modes_and_nulls_receipt.json` | objective nulls + JSON/gate failure taxonomy; local receipt only |
-| ED10 | Release archive receipt | release scripts (approval-gated) | `ed10_release_archive_receipt.png` | tag + sdist/wheel hash |
+| ED10 | Release archive receipt | `scripts/publication/ed10_release_archive_receipt.py` **(implemented)** | `figures/publication/ed10_release_archive_receipt.png`, `outputs/publication/ed10_release_archive_receipt_receipt.json` | release/archive readiness evidence; tag/publish/archive pending approval |
 
 **Manuscript draft note:** No `.tex` / PDF source found in-repo at roadmap time. Existing alignment doc: `docs/manuscript_alignment.md` (v0.2.27-era; requires update for v0.3.29 gates). Assumed external draft contains TFNE operator grammar, jaxfne v0.3.x surface, TBD slots for version/SHA/tests/figures, and proxy-scope gates.
 
