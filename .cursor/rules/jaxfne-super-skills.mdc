@@ -1,0 +1,57 @@
+---
+description: jaxfne super-skill routing, doctrine gates, and approved agent skill names for Cursor.
+globs: "**/*.{py,ipynb,md,toml,yml,yaml,json}"
+alwaysApply: true
+---
+
+# jaxfne Super-Skills (Cursor)
+
+Route work through approved skills. Full SKILL.md bodies live in the developer's user-level agent skill install — not copied into this repo. Registry: `internal_docs/skills/README.md`.
+
+## Doctrine (non-negotiable)
+
+- Canonical import: `import jaxfne as jtfne`
+- Package-native engine: tutorials configure; `jaxfne` computes — no notebook-local solvers, readouts, or optimizers
+- Proxy readout language: LFP/CSD/EEG/MEG/EMM are proxies unless solver + calibration evidence exists
+- Lazy optional deps: `optax`, `jaxley`, CUDA — guarded imports; CPU import must succeed
+- Default gates: `truth_safe_unverified`, `computational_scaffold`, `laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=False`
+- No calibrated EEG/MEG/PDE/mechanism claims without validation evidence
+
+See `internal_docs/loop_context/04_TRUTH_GATES_AND_CLAIMS.md`.
+
+## Super-skills (repo-local content)
+
+Read these tracked files first when triggers match:
+
+| Skill name | Triggers | Repo file |
+|---|---|---|
+| `jaxfne-modeling-optimization-schema` | Config, Net, connectivity, weld, Paradigm, Objective, Trainer, AGSDR | `internal_docs/skills/jaxfne_modeling_and_optimization_schema.md` |
+| `jax-jit-pmap-performance-guard` | JAX, jit, vmap, pmap, scan, FlatNet, GPU, compile | `internal_docs/skills/jax_jit_pmap_performance_guard.md` |
+| `jaxfne-notebook-release-gate` | notebook, tutorial, Colab, release, manifest, PNG | `internal_docs/skills/jaxfne_notebook_release_gate.md` |
+
+## Tier 1 companion skills (name + thin adapter)
+
+| Skill name | Triggers | Adapter |
+|---|---|---|
+| `jaxfne-worker-context-router` | jaxfne, repo, branch, worker, handoff | `internal_docs/skills/adapters/jaxfne-worker-context-router.md` |
+| `jax-neuro-diffsim-guard` | jaxley, differentiable sim, dt, solver, BPTT | `internal_docs/skills/adapters/jax-neuro-diffsim-guard.md` |
+| `neuro-biophysics-units-sanity` | mV, ms, conductance, Vm, units | `internal_docs/skills/adapters/neuro-biophysics-units-sanity.md` |
+| `jaxfne-release-mutation-guard` | push, tag, PyPI, GitHub Release | `internal_docs/skills/adapters/jaxfne-release-mutation-guard.md` |
+
+Load the matching user-installed skill by name when available. Adapters are the portable in-repo fallback.
+
+## Tier 2 (on demand)
+
+`jaxfne-api-truth`, `jaxfne-code-orientation`, `jaxfne-test-runner`, `jaxfne-repo-audit`, `jaxfne-evidence-validator`, `jaxfne-style-conformance`, `jaxfne-tutorial-executor`, `jaxfne-theta-tutorial-validator`, `jaxfne-worker-handoff`, `jaxfne-jax-lint`, `jaxfne-visualization-schema`, `jaxfne-sha256-artifact-integrity` — see `internal_docs/skills/adapters/`.
+
+## Workflow
+
+1. Match task to a skill trigger.
+2. Read the repo super-skill or adapter file.
+3. If a user-installed skill with the same name is loaded, follow it.
+4. Before reporting success on tutorial/release work, satisfy `jaxfne-notebook-release-gate` or `jaxfne-evidence-validator` gates.
+5. Before remote mutation, apply `jaxfne-release-mutation-guard`.
+
+## Local full skills (optional, never committed)
+
+Developers may symlink user-installed skills into `.cursor/skills/` or `.cursor/local/` locally. Both paths are gitignored.
