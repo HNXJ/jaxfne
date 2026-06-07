@@ -86,8 +86,10 @@
       "id": "fig08",
       "filename": "fig08_adjacent_tools_comparison.png",
       "purpose": "Positioning vs adjacent tools",
-      "status": "missing",
-      "generator_script": "manual",
+      "status": "implemented",
+      "generator_script": "scripts/publication/fig08_adjacent_tools_comparison.py",
+      "manifest_path": "outputs/publication/fig08_adjacent_tools_comparison_manifest.json",
+      "figure_path": "figures/publication/fig08_adjacent_tools_comparison.png",
       "claim_boundary": "capability_comparison_not_superiority"
     }
   ],
@@ -156,7 +158,8 @@
     "fig04_minimal_install_run": "python scripts/publication/fig04_minimal_install_run.py",
     "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py",
     "fig06_readout_family_panel": "python scripts/publication/fig06_readout_family_panel.py",
-    "fig07_reproducibility_artifacts": "python scripts/publication/fig07_reproducibility_artifacts.py"
+    "fig07_reproducibility_artifacts": "python scripts/publication/fig07_reproducibility_artifacts.py",
+    "fig08_adjacent_tools_comparison": "python scripts/publication/fig08_adjacent_tools_comparison.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -165,7 +168,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig08_adjacent_tools_comparison.png",
     "figures/publication/ed01_api_stability.png",
     "figures/publication/ed02_json_schema_validation.png",
     "figures/publication/ed03_notebook_execution_receipts.png",

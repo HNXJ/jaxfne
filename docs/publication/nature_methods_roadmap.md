@@ -73,7 +73,7 @@ physical_amplitude_claim_allowed: false
 | **Fig 5** | Runtime scaling (neurons × contacts × seeds) | `scripts/publication/fig05_runtime_scaling.py` **(implemented)** | `figures/publication/fig05_runtime_scaling.png`, `outputs/publication/fig05_runtime_scaling.csv` | `python scripts/publication/fig05_runtime_scaling.py` + SHA256 manifest | no unsupported speedup claims |
 | **Fig 6** | Readout family panel (8 probes) | `scripts/publication/fig06_readout_family_panel.py` **(implemented)** | `figures/publication/fig06_readout_family_panel.png`, `outputs/publication/fig06_readout_family_panel_manifest.json` | `python scripts/publication/fig06_readout_family_panel.py` + SHA256 manifest | all proxy readouts |
 | **Fig 7** | Reproducibility artifacts (manifest/hash) | `scripts/publication/fig07_reproducibility_artifacts.py` **(implemented)** | `figures/publication/fig07_reproducibility_artifacts.png`, `outputs/publication/inventory.json` | `python scripts/publication/fig07_reproducibility_artifacts.py` + SHA256 round-trip | fixed tag/SHA required for final |
-| **Fig 8** | Adjacent tools comparison (positioning) | manual diagram + citation table | `fig08_adjacent_tools_comparison.png` | literature review checklist | compare capabilities, not superiority |
+| **Fig 8** | Adjacent tools comparison (positioning) | `scripts/publication/fig08_adjacent_tools_comparison.py` **(implemented)** | `figures/publication/fig08_adjacent_tools_comparison.png`, `outputs/publication/fig08_adjacent_tools_comparison_manifest.json` | `python scripts/publication/fig08_adjacent_tools_comparison.py` + SHA256 manifest | compare capabilities, not superiority |
 
 ### Extended Data (1–10)
 
@@ -102,7 +102,7 @@ physical_amplitude_claim_allowed: false
 | Install | partial | clean-room install log (Linux/macOS) | `pip install jaxfne && python -c "import jaxfne"` | import + version match |
 | Minimal run | green | figure panel for Fig 4 | `python examples/00_minimal_column.py` | exit 0, finite outputs |
 | Tutorials | partial | executed notebook receipts for all atlas entries | `python scripts/run_all_tutorials.py` | all marked PASS |
-| Figures | partial (7/8 main) | 11 PNG assets remaining (see inventory) | `python scripts/publication/fig07_reproducibility_artifacts.py` | inventory reports `7/8` main figures |
+| Figures | complete (8/8 main) | 10 Extended Data PNG assets remaining (see inventory) | `python scripts/publication/fig08_adjacent_tools_comparison.py` | inventory reports `8/8` main figures |
 | Manifests | partial | publication output bundle at fixed SHA | example scripts → `outputs/publication/` | JSON-safe + SHA256 |
 | Tests | green | pinned count in manuscript | `pytest tests/ -q` | 2111+ passed, 0 failed |
 | Docs | green | publication nav + roadmap | `mkdocs build --strict` | strict pass |
