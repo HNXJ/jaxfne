@@ -1,0 +1,213 @@
+{
+  "schema_version": "jaxfne.publication_checklist.v0.1.0",
+  "repo_sha": "f77822e88e8ea11537f6b7f393079d671dacf8d2",
+  "branch": "pub/nature-methods-roadmap",
+  "jaxfne_version": "0.3.29",
+  "generated_at_utc": "2026-06-07T03:50:56Z",
+  "truth_gates": {
+    "truth_mode": "truth_safe_unverified",
+    "claim_level": "computational_scaffold",
+    "field_solver_status": "laminar_proxy_no_pde",
+    "field_claim_level": "proxy_readout_only",
+    "physical_amplitude_claim_allowed": false
+  },
+  "main_figures": [
+    {
+      "id": "fig01",
+      "filename": "fig01_tfne_architecture.png",
+      "purpose": "TFNE operator grammar overview",
+      "status": "missing",
+      "generator_script": "scripts/publication/fig01_architecture.py",
+      "claim_boundary": "computational_scaffold_only"
+    },
+    {
+      "id": "fig02",
+      "filename": "fig02_source_field_contracts.png",
+      "purpose": "Source/field contracts and truth gates",
+      "status": "missing",
+      "generator_script": "scripts/publication/fig02_contracts.py",
+      "claim_boundary": "no_pde_solver_claim"
+    },
+    {
+      "id": "fig03",
+      "filename": "fig03_jaxfne_backend.png",
+      "purpose": "Config to simulate backend flow",
+      "status": "missing",
+      "generator_script": "examples/00_minimal_column.py",
+      "claim_boundary": "package_native_api"
+    },
+    {
+      "id": "fig04",
+      "filename": "fig04_minimal_install_run.png",
+      "purpose": "Minimal install and smoke run",
+      "status": "missing",
+      "generator_script": "docs/quickstart.md",
+      "claim_boundary": "cpu_safe_tutorial"
+    },
+    {
+      "id": "fig05",
+      "filename": "fig05_runtime_scaling.png",
+      "purpose": "Runtime scaling across N, Z, seeds",
+      "status": "missing",
+      "generator_script": "scripts/benchmark_jaxfne.py",
+      "claim_boundary": "benchmark_receipt_required"
+    },
+    {
+      "id": "fig06",
+      "filename": "fig06_readout_family_panel.png",
+      "purpose": "Eight proxy readout families",
+      "status": "missing",
+      "generator_script": "examples/04_two_neuron_ei_multimodal.py",
+      "claim_boundary": "proxy_readouts_only"
+    },
+    {
+      "id": "fig07",
+      "filename": "fig07_reproducibility_artifacts.png",
+      "purpose": "Manifest and hash reproducibility",
+      "status": "missing",
+      "generator_script": "scripts/publication_inventory.py",
+      "claim_boundary": "fixed_tag_sha_required"
+    },
+    {
+      "id": "fig08",
+      "filename": "fig08_adjacent_tools_comparison.png",
+      "purpose": "Positioning vs adjacent tools",
+      "status": "missing",
+      "generator_script": "manual",
+      "claim_boundary": "capability_comparison_not_superiority"
+    }
+  ],
+  "extended_data": [
+    {
+      "id": "ed01",
+      "filename": "ed01_api_stability.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed02",
+      "filename": "ed02_json_schema_validation.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed03",
+      "filename": "ed03_notebook_execution_receipts.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed04",
+      "filename": "ed04_manifest_hashes.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed05",
+      "filename": "ed05_optional_dependency_laziness.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed06",
+      "filename": "ed06_benchmark_scaling_tables.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed07",
+      "filename": "ed07_probe_operator_contracts.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed08",
+      "filename": "ed08_tutorial_atlas_coverage.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed09",
+      "filename": "ed09_failure_modes_and_nulls.png",
+      "status": "missing"
+    },
+    {
+      "id": "ed10",
+      "filename": "ed10_release_archive_receipt.png",
+      "status": "missing"
+    }
+  ],
+  "validation_commands": {
+    "compileall": "python -m compileall -q jaxfne tests examples scripts",
+    "smoke_pytest": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short",
+    "full_pytest": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line",
+    "notebook_audit": "python scripts/audit_notebooks_and_assets.py --check",
+    "mkdocs_strict": "mkdocs build --strict",
+    "publication_inventory": "python scripts/publication_inventory.py"
+  },
+  "required_artifacts": [
+    "docs/publication/nature_methods_roadmap.md",
+    "docs/publication/publication_checklist.json",
+    "scripts/publication_inventory.py",
+    "outputs/publication/inventory.json"
+  ],
+  "missing_artifacts": [
+    "figures/publication/fig01_tfne_architecture.png",
+    "figures/publication/fig02_source_field_contracts.png",
+    "figures/publication/fig03_jaxfne_backend.png",
+    "figures/publication/fig04_minimal_install_run.png",
+    "figures/publication/fig05_runtime_scaling.png",
+    "figures/publication/fig06_readout_family_panel.png",
+    "figures/publication/fig07_reproducibility_artifacts.png",
+    "figures/publication/fig08_adjacent_tools_comparison.png",
+    "figures/publication/ed01_api_stability.png",
+    "figures/publication/ed02_json_schema_validation.png",
+    "figures/publication/ed03_notebook_execution_receipts.png",
+    "figures/publication/ed04_manifest_hashes.png",
+    "figures/publication/ed05_optional_dependency_laziness.png",
+    "figures/publication/ed06_benchmark_scaling_tables.png",
+    "figures/publication/ed07_probe_operator_contracts.png",
+    "figures/publication/ed08_tutorial_atlas_coverage.png",
+    "figures/publication/ed09_failure_modes_and_nulls.png",
+    "figures/publication/ed10_release_archive_receipt.png",
+    "outputs/publication/benchmark_receipt.json",
+    "outputs/publication/notebook_execution_receipt.json"
+  ],
+  "benchmark_plan": {
+    "status": "planned",
+    "axes": [
+      "neuron_count",
+      "laminar_contacts",
+      "seed_batch",
+      "readout_families",
+      "runtime_mode_eager_vs_jit",
+      "memory_peak_rss",
+      "cpu_baseline",
+      "optional_accelerator"
+    ],
+    "performance_claims_allowed": false,
+    "receipt_required_fields": [
+      "repo_sha",
+      "jaxfne_version",
+      "hardware_cpu",
+      "jax_device",
+      "duration_ms",
+      "dt_ms",
+      "command",
+      "timestamp_utc"
+    ]
+  },
+  "release_requirements": {
+    "git_tag_approval_required": true,
+    "pypi_publish_allowed": false,
+    "testpypi_publish_allowed": false,
+    "github_release_approval_required": true,
+    "zenodo_doi_required": true,
+    "pinned_sha_required": true
+  },
+  "submission_requirements": {
+    "code_availability": "partial",
+    "data_availability": "not_applicable_synthetic_only",
+    "software_dependencies_documented": "partial",
+    "install_instructions": "complete",
+    "test_demo_data": "partial",
+    "reproducibility_commands": "partial",
+    "llm_use_statement": "placeholder",
+    "author_contributions": "placeholder",
+    "competing_interests": "placeholder",
+    "license": "MIT",
+    "doi_placeholder": "TBD"
+  }
+}
