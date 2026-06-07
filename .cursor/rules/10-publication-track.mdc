@@ -1,0 +1,62 @@
+---
+description: publication figure and Extended Data workflow
+globs:
+  - "scripts/publication/**"
+  - "docs/publication/**"
+  - "figures/publication/**"
+  - "outputs/publication/**"
+alwaysApply: false
+---
+
+# Publication workflow
+
+Current expected state:
+
+- Branch: `cur`
+- Expected SHA after sync: `5c41cd248caf98a4bb5e986eef364d38bc63c79a`
+- Inventory: 8/8 main figures + 4/10 Extended Data
+- Next planned branch: `pub/ed05-manifest-hashes` from `cur`
+
+Before work:
+
+```bash
+git fetch --all --prune
+git switch cur
+git pull --ff-only origin cur
+git status --short
+git rev-parse HEAD
+python3 scripts/publication_inventory.py
+```
+
+Expected inventory:
+
+```text
+main 8/8
+extended data 4/10
+```
+
+New publication artifacts follow this pattern:
+
+- script: `scripts/publication/<name>.py`
+- PNG: `figures/publication/<name>.png`
+- manifest: `outputs/publication/<name>_manifest.json`
+- optional receipt: `outputs/publication/<name>_receipt.json`
+
+Validation:
+
+```bash
+python3 -m compileall -q scripts/publication jaxfne tests
+python3 scripts/publication/<name>.py
+python3 scripts/publication_inventory.py
+python3 -m mkdocs build --strict
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py -q --tb=line
+```
+
+Every publication manifest must preserve:
+
+```text
+physical_amplitude_claim_allowed: false
+performance_claims_allowed: false
+```
+
+Use capability/evidence wording, not superiority wording.

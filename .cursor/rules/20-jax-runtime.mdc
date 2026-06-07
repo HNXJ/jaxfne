@@ -1,0 +1,39 @@
+---
+description: JAX runtime and performance guard
+globs:
+  - "jaxfne/**/*.py"
+  - "scripts/**/*.py"
+  - "tests/**/*.py"
+alwaysApply: false
+---
+
+# JAX runtime discipline
+
+Use:
+
+- `jax.numpy` as `jnp`
+- explicit PRNG keys
+- pure numerical kernels
+- `lax.scan` for time loops
+- `vmap` for batches/seeds/candidates
+- `jit` only hot numerical paths
+
+Avoid:
+
+- Python object mutation inside `jit`
+- file I/O inside `jit`
+- plotting inside `jit`
+- JSON/markdown generation inside `jit`
+- global PRNG state
+- accidental float64 unless explicitly requested
+
+When timing JAX:
+
+- warm up separately
+- call `block_until_ready` before stopping timers
+- report what phases are timed and excluded
+
+For publication benchmarks:
+
+- local environment receipt only
+- no speedup claims unless benchmark design supports them

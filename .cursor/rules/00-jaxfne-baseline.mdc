@@ -1,0 +1,48 @@
+---
+description: jaxfne baseline doctrine and branch discipline
+alwaysApply: true
+---
+
+# jaxfne baseline
+
+Canonical import:
+
+```python
+import jaxfne as jtfne
+```
+
+jaxfne is a compact JAX-native TFNE scaffold for:
+
+```text
+Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
+```
+
+Use package APIs as the engine. Tutorials configure and visualize; they must not contain notebook-local solvers, readout engines, objective engines, or optimizer engines.
+
+Default gates:
+
+```text
+truth_mode: truth_safe_unverified
+claim_level: computational_scaffold
+field_solver_status: laminar_proxy_no_pde
+field_claim_level: proxy_readout_only
+physical_amplitude_claim_allowed: false
+```
+
+Never claim:
+
+- real EEG/MEG
+- calibrated amplitude
+- biological metabolism
+- mechanism proof
+- solved PDE/Maxwell/Poisson/stress-energy dynamics
+
+unless the run includes solver, geometry, boundary, gauge, residual, units, calibration, and validation evidence.
+
+Branch policy:
+
+- Publication track uses `cur`.
+- Do not mutate `main`, `dev`, or `agy` unless explicitly approved.
+- No force-push, tags, releases, package publishing, or branch deletion unless explicitly approved.
+
+Skill routing (on demand): `internal_docs/skills/README.md`.
