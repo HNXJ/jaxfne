@@ -3124,6 +3124,25 @@ class Model:
             })
         return rows_out
 
+    def compile_connections(self, *, seed: int = 0, **kwargs: Any):
+        """Compile this model's declared connection rules into sparse edges.
+
+        Thin wrapper over :func:`jaxfne.compile_connection_rules`: resolves the
+        rule selectors against this model's :meth:`neuron_table` and the
+        ``metadata["circuit"]`` declarations. Declaration-only inputs in →
+        finite sparse edge arrays out; no simulation numerics change.
+        """
+        from .connectivity import compile_connection_rules
+
+        circuit = dict(self.cfg.metadata.get("circuit", {}))
+        return compile_connection_rules(
+            self.neuron_table(),
+            circuit.get("connections", []),
+            circuit.get("mechanisms", []),
+            seed=seed,
+            **kwargs,
+        )
+
     def select(
         self,
         *,

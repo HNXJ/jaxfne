@@ -158,6 +158,7 @@ from .builders import (
     configuration_table,
     validate_configuration,
 )
+from .connectivity import compile_connection_rules, ConnectionCompileResult
 from .fields import (
     FieldOutput,
     compute_conservation_proxy_diagnostics,
@@ -251,6 +252,8 @@ __all__ = [
     "config_truth_boundary",
     "configuration",
     "construct",
+    "compile_connection_rules",
+    "ConnectionCompileResult",
     "dataset_spec",
     "enable_x64",
     "get_signal",
