@@ -13,8 +13,8 @@ alwaysApply: false
 Current expected state:
 
 - Branch: `cur`
-- Expected publication posture after sync: 8/8 main figures + 8/10 Extended Data
-- Next planned branch: `pub/ed09-failure-modes-null-controls` from `cur`
+- Expected publication posture after sync: 8/8 main figures + 9/10 Extended Data
+- Next planned branch: `pub/ed10-release-archive-receipt` from `cur` (approval-gated)
 
 Before work:
 
@@ -31,12 +31,11 @@ Expected inventory:
 
 ```text
 main figures: 8/8
-extended data: 8/10
+extended data: 9/10
 ```
 
 Remaining:
 
-- ED9 failure modes/null controls
 - ED10 release archive receipt (approval-gated)
 
 New publication artifacts follow this pattern:

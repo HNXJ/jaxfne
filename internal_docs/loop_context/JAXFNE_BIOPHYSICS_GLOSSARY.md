@@ -48,10 +48,10 @@ Expected current publication posture (sync and verify):
 
 ```text
 main figures: 8/8
-extended data: 8/10
-completed ED: ED1–ED8 (through ed08_tutorial_atlas_coverage)
-next ED target: ED9 failure modes/null controls (ed09_failure_modes_and_nulls)
-live HEAD after ED8 merge: verify with `git rev-parse HEAD` on `cur`
+extended data: 9/10
+completed ED: ED1–ED9 (through ed09_failure_modes_and_nulls)
+next ED target: ED10 release archive receipt (ed10_release_archive_receipt; approval-gated)
+live HEAD after ED9 merge: verify with `git rev-parse HEAD` on `cur`
 ```
 
 Permanent branches: `main`, `dev`, `agy`, `cur`. Publication work lands on `cur`.
@@ -417,7 +417,7 @@ Rules:
 |---:|---|---:|---:|---|---|---|
 | 1 | Branch/release hygiene | 90 | 100 | clean branches, pinned SHA/tag, no force-push | keep `cur` isolated | dirty state before work |
 | 2 | Main figure stack | 88 | 100 | 8/8 generated scripts/PNGs/manifests/hashes | final rerun bundle | hand-edited figure without script |
-| 3 | Extended Data stack | 80 | 100 | 10/10 ED panels with receipts | ED9-ED10 | ED without receipt/manifest |
+| 3 | Extended Data stack | 88 | 100 | 10/10 ED panels with receipts | ED10 only | ED without receipt/manifest |
 | 4 | Manifest/hash closure | 72 | 100 | hash table for all artifacts | rerun ED5 after new ED | self-reference drift unreported |
 | 5 | Notebook execution evidence | 45 | 95 | smoke/full receipts, paths, cells, errors | expand ED3 | claiming full execution without receipt |
 | 6 | JSON/schema validation | 65 | 95 | strict JSON, schemas, expected failures | broaden ED2 | NaN/Inf or raw ndarray in JSON |
@@ -428,7 +428,7 @@ Rules:
 | 11 | Probe/readout contracts | 78 | 95 | all readouts finite/status-labeled | ED7 done; keep probe tests | physical labels on proxy arrays |
 | 12 | Electromagnetic admissibility | 35 | 90 | boundary/gauge/continuity/passivity/residual tests | solver ladder docs/tests | PDE/field claim without residual |
 | 13 | Physical amplitude discipline | 80 | 100 | amplitude gate false unless evidence present | preserve gates | calibrated claim without calibration |
-| 14 | Mechanism-claim discipline | 72 | 95 | nulls, ablations, repeated seeds, alternatives | ED9 in progress | objective success called proof |
+| 14 | Mechanism-claim discipline | 82 | 95 | nulls, ablations, repeated seeds, alternatives | ED9 done; keep null tests | objective success called proof |
 | 15 | Benchmark evidence | 65 | 85 | hardware/env/timing-phase receipts | ED6 done; keep local receipt only | speedup claim from local smoke |
 | 16 | Adjacent-tool positioning | 70 | 95 | capability comparison with citations | final Fig8/ED text | superiority claim |
 | 17 | Tutorial-to-package discipline | 45 | 90 | notebook helpers moved to package/utils | tutorial dedupe pass | notebook-local solver/readout/optimizer |
@@ -455,8 +455,8 @@ Rules:
 | ED6 | Benchmark receipt table | What are local runtime costs and hardware conditions? | completed (`ed06_benchmark_scaling_tables`) |
 | ED7 | Probe/readout contracts | Are readouts separated and status-labeled? | completed (`ed07_probe_operator_contracts`) |
 | ED8 | Tutorial atlas coverage | What tutorials exist and what evidence do they export? | completed (`ed08_tutorial_atlas_coverage`) |
-| ED9 | Failure/null controls | What prevents overinterpretation? | next (`ed09_failure_modes_and_nulls`) |
-| ED10 | Release bundle receipt | What exact release generated the paper? | approval-gated |
+| ED9 | Failure/null controls | What prevents overinterpretation? | completed (`ed09_failure_modes_and_nulls`) |
+| ED10 | Release bundle receipt | What exact release generated the paper? | next; approval-gated |
 
 ---
 
@@ -742,6 +742,6 @@ metabolic mechanism
 
 ## 20. Summary for agents
 
-`jaxfne` is publication-close as an auditable JAX-native computational scaffold. The current priority is evidence density: ED9 failure/null controls, ED10 release bundle (ED1–ED8 complete). Regenerate `outputs/publication/*` on live checkout before final submission. The deeper biophysical path comes after the publication artifact stack: config-first 0.3.28-0.3.34, then source calibration, solver metadata, experimental field solvers, PyNWB/Jaxley bridges, and empirical validation.
+`jaxfne` is publication-close as an auditable JAX-native computational scaffold. The current priority is evidence density: ED10 release bundle only (ED1–ED9 complete). Regenerate `outputs/publication/*` on live checkout before final submission. The deeper biophysical path comes after the publication artifact stack: config-first 0.3.28-0.3.34, then source calibration, solver metadata, experimental field solvers, PyNWB/Jaxley bridges, and empirical validation.
 
 Do not upgrade claims faster than evidence.
