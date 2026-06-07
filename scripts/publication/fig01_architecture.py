@@ -8,34 +8,27 @@ Outputs:
 
 from __future__ import annotations
 
-import hashlib
-import json
-import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+from _figure_common import (
+    ensure_publication_dirs,
+    repo_root,
+    save_figure_manifest,
+    sha256_file,
+)
 
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-FIGURE_PATH = REPO_ROOT / "figures" / "publication" / "fig01_tfne_architecture.png"
-MANIFEST_PATH = REPO_ROOT / "outputs" / "publication" / "fig01_tfne_architecture_manifest.json"
 SOURCE_FILES = [
     "scripts/publication/fig01_architecture.py",
+    "scripts/publication/_figure_common.py",
 ]
-
-TRUTH_GATES = {
-    "truth_mode": "truth_safe_unverified",
-    "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "field_claim_level": "proxy_readout_only",
-    "physical_amplitude_claim_allowed": False,
-}
 
 SCOPE_STATUS = (
     "Computational scaffold; proxy readouts unless calibrated run evidence is supplied"
@@ -62,40 +55,8 @@ METADATA_BANDS = [
     "JSON-safe manifests / SHA256 hashes",
 ]
 
-
-def git_head_sha() -> str | None:
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        return None
-
-
-def jaxfne_version() -> str:
-    try:
-        import jaxfne as jtfne
-
-        return str(getattr(jtfne, "__version__", "unknown"))
-    except Exception:
-        content = (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-        for line in content.splitlines():
-            if line.strip().startswith("version"):
-                return line.split("=", 1)[1].strip().strip('"')
-        return "unknown"
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(65536), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+_dirs = ensure_publication_dirs()
+FIGURE_PATH = _dirs["figures"] / "fig01_tfne_architecture.png"
 
 
 def draw_figure() -> None:
@@ -227,34 +188,23 @@ def draw_figure() -> None:
     plt.close(fig)
 
 
-def write_manifest(sha256: str) -> dict:
-    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    manifest = {
-        "schema_version": "jaxfne.publication_figure_manifest.v0.1.0",
-        "figure_id": "fig01",
-        "title": TITLE,
-        "output_path": str(FIGURE_PATH.relative_to(REPO_ROOT)),
-        "sha256": sha256,
-        "generated_at_utc": generated_at,
-        "jaxfne_version": jaxfne_version(),
-        "repo_sha": git_head_sha(),
-        "truth_gates": dict(TRUTH_GATES),
-        "source_files": SOURCE_FILES,
-        "scope_status": SCOPE_STATUS,
-        "physical_amplitude_claim_allowed": False,
-        "generator_command": "python scripts/publication/fig01_architecture.py",
-    }
-    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
-    MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    return manifest
-
-
 def main() -> int:
     draw_figure()
+    manifest = save_figure_manifest(
+        figure_id="fig01",
+        title=TITLE,
+        output_path=FIGURE_PATH,
+        source_files=SOURCE_FILES,
+        extra={
+            "scope_status": SCOPE_STATUS,
+            "generator_command": "python scripts/publication/fig01_architecture.py",
+        },
+    )
     sha = sha256_file(FIGURE_PATH)
-    manifest = write_manifest(sha)
-    print(f"wrote: {FIGURE_PATH.relative_to(REPO_ROOT)}")
-    print(f"wrote: {MANIFEST_PATH.relative_to(REPO_ROOT)}")
+    root = repo_root()
+    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    print(f"wrote: {FIGURE_PATH.relative_to(root)}")
+    print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     return 0
