@@ -117,7 +117,12 @@
     {
       "id": "ed03",
       "filename": "ed03_notebook_execution_receipts.png",
-      "status": "missing"
+      "purpose": "Notebook execution receipts (tutorial atlas survey)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed03_notebook_execution_receipts.py",
+      "manifest_path": "outputs/publication/ed03_notebook_execution_receipts_manifest.json",
+      "figure_path": "figures/publication/ed03_notebook_execution_receipts.png",
+      "claim_boundary": "receipt_driven_structural_scan"
     },
     {
       "id": "ed04",
@@ -171,7 +176,8 @@
     "fig07_reproducibility_artifacts": "python scripts/publication/fig07_reproducibility_artifacts.py",
     "fig08_adjacent_tools_comparison": "python scripts/publication/fig08_adjacent_tools_comparison.py",
     "ed01_api_stability_snapshot": "python scripts/publication/ed01_api_stability_snapshot.py",
-    "ed02_json_schema_validation": "python scripts/publication/ed02_json_schema_validation.py"
+    "ed02_json_schema_validation": "python scripts/publication/ed02_json_schema_validation.py",
+    "ed03_notebook_execution_receipts": "python scripts/publication/ed03_notebook_execution_receipts.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -180,7 +186,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed03_notebook_execution_receipts.png",
     "figures/publication/ed04_manifest_hashes.png",
     "figures/publication/ed05_optional_dependency_laziness.png",
     "figures/publication/ed06_benchmark_scaling_tables.png",
@@ -188,8 +193,7 @@
     "figures/publication/ed08_tutorial_atlas_coverage.png",
     "figures/publication/ed09_failure_modes_and_nulls.png",
     "figures/publication/ed10_release_archive_receipt.png",
-    "outputs/publication/benchmark_receipt.json",
-    "outputs/publication/notebook_execution_receipt.json"
+    "outputs/publication/benchmark_receipt.json"
   ],
   "benchmark_plan": {
     "status": "planned",

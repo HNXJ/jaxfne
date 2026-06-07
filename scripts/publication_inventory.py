@@ -61,6 +61,7 @@ MANIFEST_PATHS = [
     "outputs/publication/fig08_adjacent_tools_comparison_manifest.json",
     "outputs/publication/ed01_api_stability_snapshot_manifest.json",
     "outputs/publication/ed02_json_schema_validation_manifest.json",
+    "outputs/publication/ed03_notebook_execution_receipts_manifest.json",
     "docs/publication/publication_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",
