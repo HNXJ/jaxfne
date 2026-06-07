@@ -48,3 +48,7 @@ test_execution_output/
 
 # Agent local state
 .claude/
+
+# Local Cursor skill wiring (machine-specific; never commit)
+.cursor/skills/
+.cursor/local/
