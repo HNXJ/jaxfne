@@ -80,7 +80,7 @@ physical_amplitude_claim_allowed: false
 | ED | Purpose | Generator | Artifact | Gate |
 |----|---------|-----------|----------|------|
 | ED1 | API stability / public surface | `scripts/publication/ed01_api_stability_snapshot.py` **(implemented)** | `figures/publication/ed01_api_stability_snapshot.png`, `outputs/publication/ed01_api_stability_snapshot_manifest.json` | `python scripts/publication/ed01_api_stability_snapshot.py` + SHA256 manifest |
-| ED2 | JSON schema / config validation | `validate_config` fixtures | `ed02_json_schema_validation.png` | `test_config_schema_*` |
+| ED2 | JSON schema / config validation | `scripts/publication/ed02_json_schema_validation.py` **(implemented)** | `figures/publication/ed02_json_schema_validation.png`, `outputs/publication/ed02_json_schema_validation_receipt.json` | `python scripts/publication/ed02_json_schema_validation.py` + SHA256 manifest |
 | ED3 | Notebook execution receipts | `scripts/run_all_tutorials.py` | `ed03_notebook_execution_receipts.png` | notebook CI markers |
 | ED4 | Manifest hashes | example output bundles | `ed04_manifest_hashes.png` | `test_artifact_json_safety_*` |
 | ED5 | Optional dependency laziness | import-cost tests | `ed05_optional_dependency_laziness.png` | `test_jaxley_optional_*`, `test_root_import_*` |
