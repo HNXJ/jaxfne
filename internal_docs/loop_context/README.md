@@ -1,8 +1,8 @@
 # jaxfne loop context bundle
 
-Canonical, contract-first context for autonomous `/loop` and `/pr-maintain` ticks
-and for any downstream Claude Code agent doing jaxfne work. Read `00_MANIFEST.md`
-first — it carries the **live reconciliation** block and the trust order.
+**Primary agent anchor:** [`JAXFNE_BIOPHYSICS_GLOSSARY.md`](JAXFNE_BIOPHYSICS_GLOSSARY.md) — consolidated glossary, scoreboard, ED ladder, stop rules, and Cursor prompts.
+
+Contract-first context for autonomous `/loop` and `/pr-maintain` ticks and downstream agents. Read `00_MANIFEST.md` for **live reconciliation** and trust order when reconciling stale bundle files.
 
 ## Trust order (non-negotiable)
 
@@ -26,6 +26,16 @@ live git — the bundle was seeded from a stale `0.3.27` ZIP and reconciled to
 | `06_VALIDATION_LADDER.md` | copy-paste validation commands + expected receipts |
 | `07_V0330_ARCHITECTURE_NOTES.md` | v0.3.30 connectivity/FlatNet/PyNWB plans (RED/gated) |
 | `08_RISKS_AND_FRAGILITIES.md` | fragile spots + smallest safe mitigations |
+| `JAXFNE_BIOPHYSICS_GLOSSARY.md` | **primary** publication/biophysics agent anchor (scoreboard, ED ladder, prompts) |
+| `CURRENT_PUBLICATION_STATE.md` | live publication inventory snapshot and next ED |
+| `PUBLICATION_READINESS_SCOREBOARD.md` | dense 27-factor scoreboard (synced with bundle) |
+| `TENSOR_FIELD_BIOPHYSICS_OBJECTIVE_MAP.md` | dense biophysics objective map |
+| `JAXFNE_BACKLOG_AND_WORKER_PROMPTS.md` | ED9/ED10 worker prompts and backlog |
+| `REPO_INSPECTION_REPORT.md` | zip inspection facts and validation receipts |
+| `jaxfne-core-doctrine.md` | core doctrine (gates, grammar, branch policy) |
+| `jaxfne-equations-runtime-validation.md` | equations + runtime validation ladder |
+| `jaxfne-tutorial-etude-atlas.md` | tutorial/Etude atlas rules |
+| `jaxfne-longterm-plan.md` | post-publication hardening ladder |
 
 ## Current state (as reconciled)
 

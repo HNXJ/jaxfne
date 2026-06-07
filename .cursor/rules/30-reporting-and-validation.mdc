@@ -1,0 +1,34 @@
+---
+description: reporting format and validation receipts
+alwaysApply: true
+---
+
+# Reporting format
+
+For worker reports, include:
+
+1. Status
+2. Repo state — branch, SHA, working tree dirty/clean
+3. Changed files
+4. Commands run
+5. Exact results
+6. Evidence/truth status
+7. Blockers
+8. Next safe action
+
+Treat test counts as unverified unless the report includes:
+
+- exact command
+- branch/SHA
+- platform/Python when relevant
+- output summary
+
+Stop and report if any appear:
+
+- invented public API
+- hidden local scientific engine
+- NaN/Inf exported to JSON
+- proxy path described as solved field
+- uncalibrated source described as physical amplitude
+- test changed before failure provenance is known
+- optional dependency imported eagerly by root import

@@ -1,0 +1,69 @@
+---
+description: publication figure and Extended Data workflow
+globs:
+  - "scripts/publication/**"
+  - "docs/publication/**"
+  - "figures/publication/**"
+  - "outputs/publication/**"
+alwaysApply: false
+---
+
+# Publication workflow
+
+Current expected state:
+
+- Branch: `cur`
+- Expected publication posture after sync: 8/8 main figures + 10/10 Extended Data
+- Publication artifact stack: complete (ED1–ED10)
+- Release/tag/archive/publish: approval-gated (not part of ED10 receipt execution)
+
+Before work:
+
+```bash
+git fetch --all --prune
+git switch cur
+git pull --ff-only origin cur
+git status --short
+git rev-parse HEAD
+python3 scripts/publication_inventory.py
+```
+
+Expected inventory:
+
+```text
+main figures: 8/8
+extended data: 10/10
+```
+
+Release/archive (separate approval required):
+
+- tag creation
+- wheel/sdist build and publish
+- GitHub release
+- archive/DOI assignment
+
+New publication artifacts follow this pattern:
+
+- script: `scripts/publication/<name>.py`
+- PNG: `figures/publication/<name>.png`
+- manifest: `outputs/publication/<name>_manifest.json`
+- optional receipt: `outputs/publication/<name>_receipt.json`
+
+Validation:
+
+```bash
+python3 -m compileall -q scripts/publication jaxfne tests
+python3 scripts/publication/<name>.py
+python3 scripts/publication_inventory.py
+python3 -m mkdocs build --strict
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py -q --tb=line
+```
+
+Every publication manifest must preserve:
+
+```text
+physical_amplitude_claim_allowed: false
+performance_claims_allowed: false
+```
+
+Use capability/evidence wording, not superiority wording.
