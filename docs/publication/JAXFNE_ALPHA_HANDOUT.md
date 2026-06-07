@@ -12,7 +12,7 @@
 |---|---|
 | Repository | `https://github.com/HNXJ/jaxfne` |
 | Branch | `cur` |
-| Commit SHA | `5ed17f2455e286d5cc33c58577d7d69953464903` |
+| Commit SHA | `1f5e599d4bc8045f822222945355667bfaea4c73` |
 | Package version | `0.3.29` |
 | Checkpoint date (UTC) | `2026-06-07` |
 | Main figures | `8/8` |
@@ -154,7 +154,7 @@ Do **not** treat proxy outputs as physical measurements. Do **not** credit empir
 
 | # | Factor | Hamm score now | Target | Primary evidence to inspect |
 |---:|---|---:|---:|---|
-| 1 | Branch/release hygiene | 90 | 100 | `cur` @ `5ed17f2`, clean tree, no force-push |
+| 1 | Branch/release hygiene | 90 | 100 | `cur` @ `1f5e599`, clean tree, no force-push |
 | 2 | Main figure stack | 88 | 100 | `figures/publication/fig01–08`, scripts, ED5 hashes |
 | 3 | Extended Data stack | 98 | 100 | ED1–ED10 PNGs + scripts |
 | 4 | Manifest/hash closure | 72 | 100 | `ed05_manifest_hashes.py`, `outputs/publication/*` |

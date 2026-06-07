@@ -6,7 +6,7 @@ Last updated: live `cur` after ED10 merge.
 
 ```text
 branch: cur
-sha: 5ed17f2455e286d5cc33c58577d7d69953464903
+sha: 1f5e599d4bc8045f822222945355667bfaea4c73
 jaxfne_version: 0.3.29
 ```
 
