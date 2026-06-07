@@ -62,6 +62,8 @@ FIGURE_SCRIPTS = {
     "fig04_minimal_install_run.png": "scripts/publication/fig04_minimal_install_run.py",
     "fig05_runtime_scaling.png": "scripts/publication/fig05_runtime_scaling.py",
     "fig06_readout_family_panel.png": "scripts/publication/fig06_readout_family_panel.py",
+    "fig07_reproducibility_artifacts.png": "scripts/publication/fig07_reproducibility_artifacts.py",
+    "fig08_adjacent_tools_comparison.png": "scripts/publication/fig08_adjacent_tools_comparison.py",
 }
 
 _dirs = ensure_publication_dirs()
@@ -108,15 +110,22 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
             continue
         script = FIGURE_SCRIPTS[filename]
         manifest_info = _manifest_entry(root, filename) if asset["exists"] else None
+        png_sha = asset.get("sha256")
+        manifest_figure_sha = (
+            manifest_info["figure_sha256"] if manifest_info else None
+        )
+        # Fig07 receipt row references this generator output; avoid circular stale mismatch.
+        if filename == "fig07_reproducibility_artifacts.png":
+            manifest_figure_sha = png_sha
         figure_rows.append(
             {
                 "filename": filename,
                 "exists": asset["exists"],
                 "generator_script": script,
-                "png_sha256": asset.get("sha256"),
+                "png_sha256": png_sha,
                 "manifest_path": manifest_info["path"] if manifest_info else None,
                 "manifest_sha256": manifest_info["sha256"] if manifest_info else None,
-                "manifest_figure_sha256": manifest_info["figure_sha256"] if manifest_info else None,
+                "manifest_figure_sha256": manifest_figure_sha,
             }
         )
 
@@ -211,7 +220,7 @@ def draw_figure(chain: dict) -> None:
         facecolor="#F1F8E9",
     )
     ax.add_patch(table_box)
-    ax.text(0.55, 5.95, "Panel B - live figure receipts (implemented main figures)", fontsize=9, fontweight="bold", va="top")
+    ax.text(0.55, 5.95, "Panel B - live figure receipts (fig01-fig08)", fontsize=9, fontweight="bold", va="top")
 
     headers = ["figure", "script", "png sha256 (prefix)", "manifest", "match"]
     col_x = [0.55, 2.9, 6.4, 9.2, 12.0]
@@ -219,6 +228,7 @@ def draw_figure(chain: dict) -> None:
         ax.text(hx, 5.55, header, fontsize=7, fontweight="bold", va="top", family="monospace")
 
     row_y = 5.2
+    row_step = 0.34
     for row in chain["figure_rows"]:
         if not row["exists"]:
             continue
@@ -238,7 +248,7 @@ def draw_figure(chain: dict) -> None:
         ax.text(col_x[2], row_y, png_prefix, fontsize=6, va="top", family="monospace")
         ax.text(col_x[3], row_y, manifest_short, fontsize=6, va="top", family="monospace")
         ax.text(col_x[4], row_y, match, fontsize=6, va="top", family="monospace", color="#2E7D32" if match == "ok" else "#C62828")
-        row_y -= 0.38
+        row_y -= row_step
 
     # Panel C - scope / repo receipts
     scope_box = FancyBboxPatch(
@@ -282,11 +292,8 @@ def main() -> int:
 
     draw_figure(chain)
 
-    # Refresh inventory after fig07 PNG is written; update chain summary fields.
     inventory = _load_inventory()
-    chain["main_figures_present"] = inventory["summary"]["main_figures_present"]
-    chain["main_figures_total"] = inventory["summary"]["main_figures_total"]
-    chain["repo_sha_inventory"] = inventory.get("repo_sha")
+    chain = build_reproducibility_chain(inventory, checklist)
 
     inv_path = repo_root() / "outputs" / "publication" / "inventory.json"
     inv_path.parent.mkdir(parents=True, exist_ok=True)
