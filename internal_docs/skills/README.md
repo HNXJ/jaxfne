@@ -34,7 +34,7 @@ Common roots: Claude Code skills directory, Cursor agent skills directory. Use s
 
 ## Cursor rule entry point
 
-`.cursor/rules/jaxfne-super-skills.mdc`
+`.cursor/rules/00-jaxfne-baseline.mdc`
 
 ## Doctrine
 
