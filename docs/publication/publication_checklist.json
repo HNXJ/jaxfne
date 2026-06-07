@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "053e24576221972718ffaa616b311a3fe0ee4a64",
-  "branch": "pub/fig06-readout-family-panel",
+  "repo_sha": "26ea48cb87156c53ad5f524fbda98883a1b32e1d",
+  "branch": "pub/fig07-reproducibility-artifacts",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T15:41:52Z",
+  "generated_at_utc": "2026-06-07T18:51:10Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
