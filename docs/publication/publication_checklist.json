@@ -177,7 +177,12 @@
     {
       "id": "ed09",
       "filename": "ed09_failure_modes_and_nulls.png",
-      "status": "missing"
+      "purpose": "Failure modes and null controls (local receipt)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed09_failure_modes_and_nulls.py",
+      "manifest_path": "outputs/publication/ed09_failure_modes_and_nulls_manifest.json",
+      "figure_path": "figures/publication/ed09_failure_modes_and_nulls.png",
+      "claim_boundary": "failure_null_local_receipt_only"
     },
     {
       "id": "ed10",
@@ -207,7 +212,8 @@
     "ed05_manifest_hashes": "python scripts/publication/ed05_manifest_hashes.py",
     "ed06_benchmark_scaling_tables": "python scripts/publication/ed06_benchmark_scaling_tables.py",
     "ed07_probe_operator_contracts": "python scripts/publication/ed07_probe_operator_contracts.py",
-    "ed08_tutorial_atlas_coverage": "python scripts/publication/ed08_tutorial_atlas_coverage.py"
+    "ed08_tutorial_atlas_coverage": "python scripts/publication/ed08_tutorial_atlas_coverage.py",
+    "ed09_failure_modes_and_nulls": "python scripts/publication/ed09_failure_modes_and_nulls.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -216,7 +222,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed09_failure_modes_and_nulls.png",
     "figures/publication/ed10_release_archive_receipt.png"
   ],
   "benchmark_plan": {
