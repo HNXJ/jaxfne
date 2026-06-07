@@ -13,9 +13,8 @@ alwaysApply: false
 Current expected state:
 
 - Branch: `cur`
-- Expected SHA after sync: `5c41cd248caf98a4bb5e986eef364d38bc63c79a`
-- Inventory: 8/8 main figures + 6/10 Extended Data (after ED5 + ED7)
-- Next planned branch: `pub/ed05-manifest-hashes` from `cur`
+- Expected publication posture after sync: 8/8 main figures + 8/10 Extended Data
+- Next planned branch: `pub/ed09-failure-modes-null-controls` from `cur`
 
 Before work:
 
@@ -31,9 +30,14 @@ python3 scripts/publication_inventory.py
 Expected inventory:
 
 ```text
-main 8/8
-extended data 4/10
+main figures: 8/8
+extended data: 8/10
 ```
+
+Remaining:
+
+- ED9 failure modes/null controls
+- ED10 release archive receipt (approval-gated)
 
 New publication artifacts follow this pattern:
 
