@@ -12,6 +12,7 @@ No universal performance claims. Local environment receipt only.
 from __future__ import annotations
 
 import csv
+import os
 import platform
 import sys
 import time
@@ -33,7 +34,6 @@ from _figure_common import (
     save_figure_manifest,
     sha256_file,
     truth_gates,
-    write_json_strict,
 )
 
 
@@ -84,8 +84,11 @@ def hardware_receipt() -> dict:
         "jax_version": str(jax.__version__),
         "jaxlib_version": jaxlib_version,
         "default_backend": str(jax.default_backend()),
+        "jax_enable_x64": bool(jax.config.read("jax_enable_x64")),
         "device_count": len(devices),
         "devices": device_rows,
+        "xla_flags": os.environ.get("XLA_FLAGS", ""),
+        "omp_num_threads": os.environ.get("OMP_NUM_THREADS", ""),
         "local_environment_receipt_only": True,
         "performance_claims_allowed": False,
     }
@@ -149,8 +152,16 @@ def run_scaling_grid() -> list[dict]:
                 )
                 t0 = time.perf_counter()
                 signals = model.simulate(sim)
+                jax.block_until_ready(signals.V_m)
+                jax.block_until_ready(signals.spikes)
+                elapsed_simulate_s = time.perf_counter() - t0
+
+                t1 = time.perf_counter()
                 readout = model.probe(signals, modes=list(PROBE_MODES))
-                elapsed_s = time.perf_counter() - t0
+                for key in ("CSD", "LFP", "csd_proxy", "lfp_proxy", "V_m", "spikes"):
+                    if key in readout and hasattr(readout[key], "shape"):
+                        jax.block_until_ready(readout[key])
+                elapsed_probe_s = time.perf_counter() - t1
 
                 csd = readout.get("CSD")
                 n_contacts_observed = int(csd.shape[1]) if csd is not None else n_contacts
@@ -165,7 +176,9 @@ def run_scaling_grid() -> list[dict]:
                         "duration_ms": DURATION_MS,
                         "dt_ms": DT_MS,
                         "dtype": str(signals.V_m.dtype),
-                        "elapsed_s": round(elapsed_s, 6),
+                        "elapsed_simulate_s": round(elapsed_simulate_s, 6),
+                        "elapsed_probe_s": round(elapsed_probe_s, 6),
+                        "elapsed_s": round(elapsed_simulate_s + elapsed_probe_s, 6),
                         "finite_outputs": _finite_status(signals, readout),
                         "n_timesteps": int(signals.V_m.shape[0]),
                         "n_readout_modes": len(PROBE_MODES),
@@ -191,6 +204,18 @@ def write_csv(rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+def _contacts_series_label(rows: list[dict], n_contacts_requested: int) -> str:
+    observed = {
+        r["n_contacts_observed"]
+        for r in rows
+        if r["n_contacts_requested"] == n_contacts_requested
+    }
+    if len(observed) == 1 and next(iter(observed)) == n_contacts_requested:
+        return f"contacts={n_contacts_requested}"
+    obs_str = ",".join(str(v) for v in sorted(observed))
+    return f"contacts_req={n_contacts_requested}_obs={obs_str}"
+
+
 def _mean_elapsed(rows: list[dict], n_neurons: int, n_contacts: int) -> float:
     subset = [
         r["elapsed_s"]
@@ -204,7 +229,7 @@ def draw_figure(rows: list[dict], hw: dict) -> None:
     """Render publication scaling figure from benchmark rows."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 6), dpi=150)
 
-    # Panel A — mean elapsed vs N, grouped by contacts (seed-averaged).
+    # Panel A - mean elapsed vs N, grouped by contacts (seed-averaged).
     ax = axes[0]
     for n_contacts in N_CONTACTS_GRID:
         ys = [_mean_elapsed(rows, n, n_contacts) for n in N_NEURONS_GRID]
@@ -213,15 +238,15 @@ def draw_figure(rows: list[dict], hw: dict) -> None:
             ys,
             marker="o",
             linewidth=1.5,
-            label=f"contacts={n_contacts}",
+            label=_contacts_series_label(rows, n_contacts),
         )
-    ax.set_title("Panel A — simulate+probe elapsed (seed mean)", fontsize=10, fontweight="bold")
+    ax.set_title("Panel A - simulate+probe elapsed (seed mean)", fontsize=10, fontweight="bold")
     ax.set_xlabel("n_neurons")
     ax.set_ylabel("elapsed (s)")
     ax.grid(True, alpha=0.3, linewidth=0.5)
     ax.legend(fontsize=8)
 
-    # Panel B — seed spread at mid configuration.
+    # Panel B - seed spread at mid configuration.
     ax = axes[1]
     mid_n = 12 if 12 in N_NEURONS_GRID else N_NEURONS_GRID[1]
     for n_contacts in N_CONTACTS_GRID:
@@ -232,8 +257,8 @@ def draw_figure(rows: list[dict], hw: dict) -> None:
         ]
         xs = [r["seed"] for r in subset]
         ys = [r["elapsed_s"] for r in subset]
-        ax.plot(xs, ys, marker="s", linewidth=1.2, label=f"contacts={n_contacts}")
-    ax.set_title(f"Panel B — seed spread at n={mid_n}", fontsize=10, fontweight="bold")
+        ax.plot(xs, ys, marker="s", linewidth=1.2, label=_contacts_series_label(rows, n_contacts))
+    ax.set_title(f"Panel B - seed spread at n={mid_n}", fontsize=10, fontweight="bold")
     ax.set_xlabel("seed")
     ax.set_ylabel("elapsed (s)")
     ax.grid(True, alpha=0.3, linewidth=0.5)
@@ -297,6 +322,18 @@ def main() -> int:
             "local_environment_receipt_only": True,
             "performance_claims_allowed": False,
             "warmup_policy": "one discarded simulate per (n_neurons, n_contacts) before seed=0 timed run",
+            "timed_phases": ["simulate", "probe"],
+            "timing_excludes": [
+                "model_construct",
+                "warmup_simulate",
+                "csv_write",
+                "figure_render",
+                "manifest_write",
+            ],
+            "jax_timing_policy": "jax.block_until_ready on simulate and probe arrays before stopping timers",
+            "n_contacts_observed_values": sorted(
+                {r["n_contacts_observed"] for r in rows}
+            ),
             "benchmark_grid": {
                 "n_neurons": list(N_NEURONS_GRID),
                 "n_contacts": list(N_CONTACTS_GRID),
