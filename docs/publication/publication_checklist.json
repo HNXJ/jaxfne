@@ -1,6 +1,6 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "PLACEHOLDER",
+  "repo_sha": "57840dcf8531f8a61addbb7eaf39cd0877f30479",
   "branch": "pub/fig04-minimal-install-run",
   "jaxfne_version": "0.3.29",
   "generated_at_utc": "2026-06-07T15:25:43Z",
