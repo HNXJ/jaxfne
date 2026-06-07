@@ -1,9 +1,9 @@
 {
   "schema_version": "jaxfne.publication_checklist.v0.1.0",
-  "repo_sha": "57840dcf8531f8a61addbb7eaf39cd0877f30479",
-  "branch": "pub/fig04-minimal-install-run",
+  "repo_sha": "0651e3e3daaf8ad45fa3464d85c656137062940d",
+  "branch": "pub/fig05-runtime-scaling",
   "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T15:25:43Z",
+  "generated_at_utc": "2026-06-07T15:30:50Z",
   "truth_gates": {
     "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
@@ -56,8 +56,10 @@
       "id": "fig05",
       "filename": "fig05_runtime_scaling.png",
       "purpose": "Runtime scaling across N, Z, seeds",
-      "status": "missing",
-      "generator_script": "scripts/benchmark_jaxfne.py",
+      "status": "implemented",
+      "generator_script": "scripts/publication/fig05_runtime_scaling.py",
+      "manifest_path": "outputs/publication/fig05_runtime_scaling_manifest.json",
+      "figure_path": "figures/publication/fig05_runtime_scaling.png",
       "claim_boundary": "benchmark_receipt_required"
     },
     {
@@ -147,7 +149,8 @@
     "fig01_architecture": "python scripts/publication/fig01_architecture.py",
     "fig02_contracts": "python scripts/publication/fig02_contracts.py",
     "fig03_backend": "python scripts/publication/fig03_backend.py",
-    "fig04_minimal_install_run": "python scripts/publication/fig04_minimal_install_run.py"
+    "fig04_minimal_install_run": "python scripts/publication/fig04_minimal_install_run.py",
+    "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -156,7 +159,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig05_runtime_scaling.png",
     "figures/publication/fig06_readout_family_panel.png",
     "figures/publication/fig07_reproducibility_artifacts.png",
     "figures/publication/fig08_adjacent_tools_comparison.png",
