@@ -96,8 +96,13 @@
   "extended_data": [
     {
       "id": "ed01",
-      "filename": "ed01_api_stability.png",
-      "status": "missing"
+      "filename": "ed01_api_stability_snapshot.png",
+      "purpose": "Public API stability snapshot",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed01_api_stability_snapshot.py",
+      "manifest_path": "outputs/publication/ed01_api_stability_snapshot_manifest.json",
+      "figure_path": "figures/publication/ed01_api_stability_snapshot.png",
+      "claim_boundary": "local_api_snapshot_only"
     },
     {
       "id": "ed02",
@@ -159,7 +164,8 @@
     "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py",
     "fig06_readout_family_panel": "python scripts/publication/fig06_readout_family_panel.py",
     "fig07_reproducibility_artifacts": "python scripts/publication/fig07_reproducibility_artifacts.py",
-    "fig08_adjacent_tools_comparison": "python scripts/publication/fig08_adjacent_tools_comparison.py"
+    "fig08_adjacent_tools_comparison": "python scripts/publication/fig08_adjacent_tools_comparison.py",
+    "ed01_api_stability_snapshot": "python scripts/publication/ed01_api_stability_snapshot.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -168,7 +174,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed01_api_stability.png",
     "figures/publication/ed02_json_schema_validation.png",
     "figures/publication/ed03_notebook_execution_receipts.png",
     "figures/publication/ed04_manifest_hashes.png",
