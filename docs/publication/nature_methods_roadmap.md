@@ -82,8 +82,8 @@ physical_amplitude_claim_allowed: false
 | ED1 | API stability / public surface | `scripts/publication/ed01_api_stability_snapshot.py` **(implemented)** | `figures/publication/ed01_api_stability_snapshot.png`, `outputs/publication/ed01_api_stability_snapshot_manifest.json` | `python scripts/publication/ed01_api_stability_snapshot.py` + SHA256 manifest |
 | ED2 | JSON schema / config validation | `scripts/publication/ed02_json_schema_validation.py` **(implemented)** | `figures/publication/ed02_json_schema_validation.png`, `outputs/publication/ed02_json_schema_validation_receipt.json` | `python scripts/publication/ed02_json_schema_validation.py` + SHA256 manifest |
 | ED3 | Notebook execution receipts | `scripts/publication/ed03_notebook_execution_receipts.py` **(implemented)** | `figures/publication/ed03_notebook_execution_receipts.png`, `outputs/publication/ed03_notebook_execution_receipts.json` | `python scripts/publication/ed03_notebook_execution_receipts.py` + optional `--run-smoke` |
-| ED4 | Manifest hashes | example output bundles | `ed04_manifest_hashes.png` | `test_artifact_json_safety_*` |
-| ED5 | Optional dependency laziness | import-cost tests | `ed05_optional_dependency_laziness.png` | `test_jaxley_optional_*`, `test_root_import_*` |
+| ED4 | Optional dependency laziness | `scripts/publication/ed04_optional_dependency_laziness.py` **(implemented)** | `figures/publication/ed04_optional_dependency_laziness.png`, `outputs/publication/ed04_optional_dependency_laziness_receipt.json` | `python scripts/publication/ed04_optional_dependency_laziness.py` + subprocess receipts |
+| ED5 | Manifest hashes | example output bundles | `ed05_manifest_hashes.png` | `test_artifact_json_safety_*` |
 | ED6 | Benchmark scaling tables | benchmark scripts | `ed06_benchmark_scaling_tables.png` | hardware receipt |
 | ED7 | Probe operator contracts | probe unit tests | `ed07_probe_operator_contracts.png` | eight-operator suite |
 | ED8 | Tutorial atlas coverage | tutorial manifest | `ed08_tutorial_atlas_coverage.png` | `tutorial_manifest.json` |
