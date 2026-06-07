@@ -66,8 +66,10 @@
       "id": "fig06",
       "filename": "fig06_readout_family_panel.png",
       "purpose": "Eight proxy readout families",
-      "status": "missing",
-      "generator_script": "examples/04_two_neuron_ei_multimodal.py",
+      "status": "implemented",
+      "generator_script": "scripts/publication/fig06_readout_family_panel.py",
+      "manifest_path": "outputs/publication/fig06_readout_family_panel_manifest.json",
+      "figure_path": "figures/publication/fig06_readout_family_panel.png",
       "claim_boundary": "proxy_readouts_only"
     },
     {
@@ -150,7 +152,8 @@
     "fig02_contracts": "python scripts/publication/fig02_contracts.py",
     "fig03_backend": "python scripts/publication/fig03_backend.py",
     "fig04_minimal_install_run": "python scripts/publication/fig04_minimal_install_run.py",
-    "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py"
+    "fig05_runtime_scaling": "python scripts/publication/fig05_runtime_scaling.py",
+    "fig06_readout_family_panel": "python scripts/publication/fig06_readout_family_panel.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -159,7 +162,6 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/fig06_readout_family_panel.png",
     "figures/publication/fig07_reproducibility_artifacts.png",
     "figures/publication/fig08_adjacent_tools_comparison.png",
     "figures/publication/ed01_api_stability.png",
