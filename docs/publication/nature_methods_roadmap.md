@@ -71,7 +71,7 @@ physical_amplitude_claim_allowed: false
 | **Fig 3** | jaxfne backend: Config→Net→simulate | `scripts/publication/fig03_backend.py` **(implemented)** | `figures/publication/fig03_jaxfne_backend.png`, `outputs/publication/fig03_jaxfne_backend_manifest.json` | `python scripts/publication/fig03_backend.py` + SHA256 manifest | package-native API only |
 | **Fig 4** | Minimal install + 10 s smoke run | `scripts/publication/fig04_minimal_install_run.py` **(implemented)** | `figures/publication/fig04_minimal_install_run.png`, `outputs/publication/fig04_smoke_stdout.log` | `python scripts/publication/fig04_minimal_install_run.py` + SHA256 manifest | no GPU requirement |
 | **Fig 5** | Runtime scaling (neurons × contacts × seeds) | `scripts/publication/fig05_runtime_scaling.py` **(implemented)** | `figures/publication/fig05_runtime_scaling.png`, `outputs/publication/fig05_runtime_scaling.csv` | `python scripts/publication/fig05_runtime_scaling.py` + SHA256 manifest | no unsupported speedup claims |
-| **Fig 6** | Readout family panel (8 probes) | `examples/04_two_neuron_ei_multimodal.py` | `fig06_readout_family_panel.png`, probe_report.json | `test_probe_operators_v021.py` | all proxy readouts |
+| **Fig 6** | Readout family panel (8 probes) | `scripts/publication/fig06_readout_family_panel.py` **(implemented)** | `figures/publication/fig06_readout_family_panel.png`, `outputs/publication/fig06_readout_family_panel_manifest.json` | `python scripts/publication/fig06_readout_family_panel.py` + SHA256 manifest | all proxy readouts |
 | **Fig 7** | Reproducibility artifacts (manifest/hash) | `scripts/publication_inventory.py` | `fig07_reproducibility_artifacts.png`, inventory.json | SHA256 round-trip | fixed tag/SHA required for final |
 | **Fig 8** | Adjacent tools comparison (positioning) | manual diagram + citation table | `fig08_adjacent_tools_comparison.png` | literature review checklist | compare capabilities, not superiority |
 
@@ -102,7 +102,7 @@ physical_amplitude_claim_allowed: false
 | Install | partial | clean-room install log (Linux/macOS) | `pip install jaxfne && python -c "import jaxfne"` | import + version match |
 | Minimal run | green | figure panel for Fig 4 | `python examples/00_minimal_column.py` | exit 0, finite outputs |
 | Tutorials | partial | executed notebook receipts for all atlas entries | `python scripts/run_all_tutorials.py` | all marked PASS |
-| Figures | partial (5/8 main) | 13 PNG assets remaining (see inventory) | `python scripts/publication/fig05_runtime_scaling.py` | inventory reports `5/8` main figures |
+| Figures | partial (6/8 main) | 12 PNG assets remaining (see inventory) | `python scripts/publication/fig06_readout_family_panel.py` | inventory reports `6/8` main figures |
 | Manifests | partial | publication output bundle at fixed SHA | example scripts → `outputs/publication/` | JSON-safe + SHA256 |
 | Tests | green | pinned count in manuscript | `pytest tests/ -q` | 2111+ passed, 0 failed |
 | Docs | green | publication nav + roadmap | `mkdocs build --strict` | strict pass |
