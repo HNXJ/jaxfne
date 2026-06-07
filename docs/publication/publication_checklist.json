@@ -126,12 +126,17 @@
     },
     {
       "id": "ed04",
-      "filename": "ed04_manifest_hashes.png",
-      "status": "missing"
+      "filename": "ed04_optional_dependency_laziness.png",
+      "purpose": "Optional dependency laziness (local subprocess receipts)",
+      "status": "implemented",
+      "generator_script": "scripts/publication/ed04_optional_dependency_laziness.py",
+      "manifest_path": "outputs/publication/ed04_optional_dependency_laziness_manifest.json",
+      "figure_path": "figures/publication/ed04_optional_dependency_laziness.png",
+      "claim_boundary": "local_subprocess_optional_dep_receipt"
     },
     {
       "id": "ed05",
-      "filename": "ed05_optional_dependency_laziness.png",
+      "filename": "ed05_manifest_hashes.png",
       "status": "missing"
     },
     {
@@ -177,7 +182,8 @@
     "fig08_adjacent_tools_comparison": "python scripts/publication/fig08_adjacent_tools_comparison.py",
     "ed01_api_stability_snapshot": "python scripts/publication/ed01_api_stability_snapshot.py",
     "ed02_json_schema_validation": "python scripts/publication/ed02_json_schema_validation.py",
-    "ed03_notebook_execution_receipts": "python scripts/publication/ed03_notebook_execution_receipts.py"
+    "ed03_notebook_execution_receipts": "python scripts/publication/ed03_notebook_execution_receipts.py",
+    "ed04_optional_dependency_laziness": "python scripts/publication/ed04_optional_dependency_laziness.py"
   },
   "required_artifacts": [
     "docs/publication/nature_methods_roadmap.md",
@@ -186,8 +192,7 @@
     "outputs/publication/inventory.json"
   ],
   "missing_artifacts": [
-    "figures/publication/ed04_manifest_hashes.png",
-    "figures/publication/ed05_optional_dependency_laziness.png",
+    "figures/publication/ed05_manifest_hashes.png",
     "figures/publication/ed06_benchmark_scaling_tables.png",
     "figures/publication/ed07_probe_operator_contracts.png",
     "figures/publication/ed08_tutorial_atlas_coverage.png",
