@@ -54,6 +54,7 @@ MANIFEST_PATHS = [
     "outputs/publication/fig01_tfne_architecture_manifest.json",
     "outputs/publication/fig02_source_field_contracts_manifest.json",
     "outputs/publication/fig03_jaxfne_backend_manifest.json",
+    "outputs/publication/fig04_minimal_install_run_manifest.json",
     "docs/publication/publication_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",
