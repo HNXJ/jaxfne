@@ -41,8 +41,11 @@ unless the run includes solver, geometry, boundary, gauge, residual, units, cali
 
 Branch policy:
 
-- Publication track uses `cur`.
+- Publication track uses `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`.
 - Do not mutate `main`, `dev`, or `agy` unless explicitly approved.
-- No force-push, tags, releases, package publishing, or branch deletion unless explicitly approved.
+- No force-push, tags, releases, or package publishing unless explicitly approved.
+- After merge to a permanent branch, delete the source feature branch locally and on `origin` unless explicitly retained.
+
+Agent anchor: `internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md`.
 
 Skill routing (on demand): `internal_docs/skills/README.md`.

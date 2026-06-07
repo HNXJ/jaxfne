@@ -14,7 +14,7 @@ Current expected state:
 
 - Branch: `cur`
 - Expected SHA after sync: `5c41cd248caf98a4bb5e986eef364d38bc63c79a`
-- Inventory: 8/8 main figures + 4/10 Extended Data
+- Inventory: 8/8 main figures + 6/10 Extended Data (after ED5 + ED7)
 - Next planned branch: `pub/ed05-manifest-hashes` from `cur`
 
 Before work:

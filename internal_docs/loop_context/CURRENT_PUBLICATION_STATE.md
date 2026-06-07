@@ -1,6 +1,6 @@
 # Current publication state
 
-Last updated: after PRs #40–#42 merged.
+Last updated: after ED5 + ED7 merged to `cur`.
 
 ## Sync target
 
@@ -9,35 +9,17 @@ git fetch --all --prune
 git switch cur
 git pull --ff-only origin cur
 git rev-parse HEAD
-```
-
-Expected:
-
-```text
-5c41cd248caf98a4bb5e986eef364d38bc63c79a
-```
-
-## Inventory
-
-```bash
 python3 scripts/publication_inventory.py
 ```
 
-Expected:
+## Inventory (expected after sync)
 
 - 8/8 main figures
-- 4/10 Extended Data
+- 6/10 Extended Data
 
 ## Completed main figures
 
-- fig01 TFNE architecture
-- fig02 source-field contracts
-- fig03 backend/reproducibility boundary
-- fig04 minimal install + 10 s smoke
-- fig05 runtime scaling receipt
-- fig06 eight proxy readout families
-- fig07 reproducibility chain
-- fig08 adjacent tools positioning
+fig01–fig08 (see `docs/publication/publication_checklist.json`)
 
 ## Completed Extended Data
 
@@ -45,20 +27,19 @@ Expected:
 - ED2 JSON/config schema validation
 - ED3 notebook execution receipts
 - ED4 optional dependency laziness
+- ED5 manifest hashes (`ed05_manifest_hashes`)
+- ED7 probe/readout operator contracts (`ed07_probe_operator_contracts`)
 
 ## Next work
 
-ED5 manifest hashes:
+ED6 benchmark scaling tables:
 
 ```bash
 git switch cur
 git pull --ff-only origin cur
-git switch -c pub/ed05-manifest-hashes
+git switch -c pub/ed06-benchmark-scaling-tables
 ```
 
-Goal:
+## Agent anchor
 
-- summarize manifest/PNG/receipt hash coverage across main figures and ED1–ED4
-- local artifact hash receipt only
-- no package API changes
-- preserve truth gates
+Full glossary, scoreboard, ED ladder, and Cursor prompts: [`JAXFNE_BIOPHYSICS_GLOSSARY.md`](JAXFNE_BIOPHYSICS_GLOSSARY.md).
