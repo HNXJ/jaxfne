@@ -50,12 +50,12 @@ SOURCE_FILES = [
     "tests/test_suite_no4_notebook_execution.py",
 ]
 
-TITLE = "Notebook execution receipts (tutorial atlas survey)"
+TITLE = "Notebook execution receipts (receipt-driven structural scan)"
 
 SCOPE_STATUS = (
-    "Receipt-driven notebook atlas survey; structural metadata from .ipynb files; "
-    "optional smoke execution via --run-smoke only; "
-    "notebook_execution_completeness_claim_allowed remains false unless full atlas run"
+    "Receipt-driven structural scan of tutorial notebooks; structural metadata from .ipynb files; "
+    "optional smoke execution via --run-smoke only; not a full atlas execution claim; "
+    "notebook_execution_completeness_claim_allowed remains false"
 )
 
 # Controlled smoke subset (short runtime notebooks only).
@@ -301,8 +301,9 @@ def _build_notebook_row(
     receipt_rel, receipt_data = _find_external_receipt(root, rel)
     if receipt_data is not None and receipt_rel:
         row["artifact_receipt_path"] = receipt_rel
-        row["source"] = "external_receipt"
-        row["mode"] = _mode_from_receipt(receipt_data) or "full"
+        resolved_mode = _mode_from_receipt(receipt_data) or "full"
+        row["source"] = "full_executed" if resolved_mode == "full" else "prior_receipt"
+        row["mode"] = resolved_mode
         row["execution_status"] = _status_from_receipt(receipt_data) or "receipt-on-file"
         row["last_verified_sha"] = receipt_data.get("repo_sha") or receipt_data.get("verified_repo_sha")
         row["last_verified_at_utc"] = receipt_data.get("generated_at_utc") or receipt_data.get(
@@ -312,6 +313,14 @@ def _build_notebook_row(
     for cache in (prior_ed03, prior_aggregate):
         if rel in cache:
             cached = cache[rel]
+            cached_source = cached.get("source")
+            has_explicit_receipt = bool(cached.get("artifact_receipt_path"))
+            if not run_smoke and (
+                cached_source == "smoke_executed"
+                or cached.get("mode") == "smoke"
+                or not has_explicit_receipt
+            ):
+                continue
             if row["execution_status"] == "not-run" and cached.get("execution_status"):
                 row["execution_status"] = cached["execution_status"]
             if row["mode"] == "not-run" and cached.get("mode"):
@@ -322,8 +331,11 @@ def _build_notebook_row(
                 row["last_verified_sha"] = cached["last_verified_sha"]
             if not row["last_verified_at_utc"] and cached.get("last_verified_at_utc"):
                 row["last_verified_at_utc"] = cached["last_verified_at_utc"]
-            if row["source"] == "structural_scan":
-                row["source"] = "prior_receipt_cache"
+            if row["source"] == "structural_scan" and cached_source in {
+                "prior_receipt",
+                "full_executed",
+            }:
+                row["source"] = cached_source
 
     if run_smoke and rel in SMOKE_NOTEBOOKS:
         try:
@@ -334,7 +346,7 @@ def _build_notebook_row(
             row["error_samples"] = exec_result.get("error_samples", [])
             row["last_verified_sha"] = exec_result["verified_repo_sha"]
             row["last_verified_at_utc"] = exec_result["executed_at_utc"]
-            row["source"] = "smoke_execution"
+            row["source"] = "smoke_executed"
             smoke_receipt_rel = f"outputs/publication/smoke_receipts/{nb_path.stem}.json"
             row["artifact_receipt_path"] = smoke_receipt_rel
         except Exception as exc:
@@ -344,7 +356,7 @@ def _build_notebook_row(
             row["error_samples"] = [str(exc)[:120]]
             row["last_verified_sha"] = repo_sha()
             row["last_verified_at_utc"] = utc_now_iso()
-            row["source"] = "smoke_execution"
+            row["source"] = "smoke_executed"
 
     return row
 
@@ -423,7 +435,7 @@ def draw_figure(rows: list[dict], summary: dict, receipt: dict) -> None:
         facecolor="#F8FAFF",
     )
     ax.add_patch(table_box)
-    ax.text(0.65, 8.95, "Panel A - notebook execution receipt atlas", fontsize=9, fontweight="bold", va="top")
+    ax.text(0.65, 8.95, "Panel A - receipt-driven structural scan", fontsize=9, fontweight="bold", va="top")
 
     headers = ["notebook", "mode", "status", "cells", "errs", "receipt"]
     col_x = [0.65, 5.55, 6.55, 7.55, 8.25, 8.85]
@@ -484,7 +496,7 @@ def _write_smoke_receipts(rows: list[dict]) -> None:
     smoke_dir = root / "outputs" / "publication" / "smoke_receipts"
     smoke_dir.mkdir(parents=True, exist_ok=True)
     for row in rows:
-        if row.get("source") != "smoke_execution":
+        if row.get("source") != "smoke_executed":
             continue
         rel = row.get("artifact_receipt_path")
         if not rel:
@@ -587,7 +599,7 @@ def main() -> int:
         extra={
             "scope_status": SCOPE_STATUS,
             "generator_command": "python scripts/publication/ed03_notebook_execution_receipts.py",
-            "claim_boundary": "receipt_driven_atlas_survey",
+            "claim_boundary": "receipt_driven_structural_scan",
             "summary": summary,
             "runtime_receipt": receipt,
             "receipt_json_path": str(RECEIPT_JSON_PATH.relative_to(root)),
