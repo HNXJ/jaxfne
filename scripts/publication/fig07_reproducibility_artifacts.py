@@ -104,7 +104,9 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
 
     for asset in inventory["main_figures"]:
         filename = asset["filename"]
-        script = FIGURE_SCRIPTS.get(filename)
+        if filename not in FIGURE_SCRIPTS:
+            continue
+        script = FIGURE_SCRIPTS[filename]
         manifest_info = _manifest_entry(root, filename) if asset["exists"] else None
         figure_rows.append(
             {
@@ -274,16 +276,21 @@ def draw_figure(chain: dict) -> None:
 
 
 def main() -> int:
-    inventory = _load_inventory()
     checklist = _load_checklist()
+    inventory = _load_inventory()
     chain = build_reproducibility_chain(inventory, checklist)
 
-    # Persist inventory so chain includes current run timestamp.
+    draw_figure(chain)
+
+    # Refresh inventory after fig07 PNG is written; update chain summary fields.
+    inventory = _load_inventory()
+    chain["main_figures_present"] = inventory["summary"]["main_figures_present"]
+    chain["main_figures_total"] = inventory["summary"]["main_figures_total"]
+    chain["repo_sha_inventory"] = inventory.get("repo_sha")
+
     inv_path = repo_root() / "outputs" / "publication" / "inventory.json"
     inv_path.parent.mkdir(parents=True, exist_ok=True)
     inv_path.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
-
-    draw_figure(chain)
 
     manifest = save_figure_manifest(
         figure_id="fig07",
@@ -294,6 +301,7 @@ def main() -> int:
             "scope_status": SCOPE_STATUS,
             "generator_command": "python scripts/publication/fig07_reproducibility_artifacts.py",
             "claim_boundary": "fixed_tag_sha_required",
+            "fixed_tag_sha_required": True,
             "reproducibility_chain": chain,
             "truth_gates": truth_gates(),
         },
