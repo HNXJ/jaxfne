@@ -1,51 +1,44 @@
 # jaxfne loop context bundle
 
-**Primary agent anchor:** [`JAXFNE_BIOPHYSICS_GLOSSARY.md`](JAXFNE_BIOPHYSICS_GLOSSARY.md) — consolidated glossary, scoreboard, ED ladder, stop rules, and Cursor prompts.
+**Read first:** [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md)
 
-Contract-first context for autonomous `/loop` and `/pr-maintain` ticks and downstream agents. Read `00_MANIFEST.md` for **live reconciliation** and trust order when reconciling stale bundle files.
+Deep reference: [`JAXFNE_BIOPHYSICS_GLOSSARY.md`](JAXFNE_BIOPHYSICS_GLOSSARY.md). Live publication snapshot: [`CURRENT_PUBLICATION_STATE.md`](CURRENT_PUBLICATION_STATE.md).
+
+Contract-first context for autonomous ticks and downstream agents. `00_MANIFEST.md` documents bundle provenance and trust order.
 
 ## Trust order (non-negotiable)
 
-**live git > this reconciled bundle > original ZIP/PDF/checklist/assessment** (context only).
+**live git on the task branch > `CURRENT_PUBLICATION_STATE.md` > this bundle > original ZIP/PDF/checklist** (context only).
 
-Always `git fetch --all --prune` and re-freeze `main/dev/tag` before any mutation.
-Never name a symbol, path, or line from this bundle without re-verifying it against
-live git — the bundle was seeded from a stale `0.3.27` ZIP and reconciled to
-`fab4c9c` (`jaxfne 0.3.29`) on 2026-06-04.
+Always `git fetch --all --prune` and re-freeze before mutation. Publication track uses **`cur`**; `01–08` bundle files were reconciled against `main`/`dev` history and may lag `cur`.
 
 ## Files
 
 | file | use |
 |---|---|
-| `00_MANIFEST.md` | purpose, live reconciliation, input/source hashes, freshness |
-| `01_REPO_MAP.md` | module-by-module map (role, JAX-critical, public, risk, tests) |
-| `02_PUBLIC_API_CONTRACT.md` | root `__all__` surface, signatures, stubs/leaks |
-| `03_JAX_RUNTIME_CONTRACT.md` | PRNG/scan/vmap/jit/dtype/PyTree contract + live grep counts |
-| `04_TRUTH_GATES_AND_CLAIMS.md` | truth gates + proxy-vs-solver claim contract |
-| `05_BACKLOG.md` | ranked backlog with live status (B01 DONE; B02 next) |
-| `06_VALIDATION_LADDER.md` | copy-paste validation commands + expected receipts |
-| `07_V0330_ARCHITECTURE_NOTES.md` | v0.3.30 connectivity/FlatNet/PyNWB plans (RED/gated) |
-| `08_RISKS_AND_FRAGILITIES.md` | fragile spots + smallest safe mitigations |
-| `JAXFNE_BIOPHYSICS_GLOSSARY.md` | **primary** publication/biophysics agent anchor (scoreboard, ED ladder, prompts) |
-| `CURRENT_PUBLICATION_STATE.md` | live publication inventory snapshot and next ED |
-| `PUBLICATION_READINESS_SCOREBOARD.md` | dense 27-factor scoreboard (synced with bundle) |
-| `TENSOR_FIELD_BIOPHYSICS_OBJECTIVE_MAP.md` | dense biophysics objective map |
-| `JAXFNE_BACKLOG_AND_WORKER_PROMPTS.md` | ED9/ED10 worker prompts and backlog |
-| `REPO_INSPECTION_REPORT.md` | zip inspection facts and validation receipts |
-| `jaxfne-core-doctrine.md` | core doctrine (gates, grammar, branch policy) |
-| `jaxfne-equations-runtime-validation.md` | equations + runtime validation ladder |
-| `jaxfne-tutorial-etude-atlas.md` | tutorial/Etude atlas rules |
-| `jaxfne-longterm-plan.md` | post-publication hardening ladder |
+| `AGENT_QUICKREF.md` | **session entry** — freeze, gates, smoke, stop rules |
+| `CURRENT_PUBLICATION_STATE.md` | live publication inventory snapshot (refresh SHA) |
+| `JAXFNE_BIOPHYSICS_GLOSSARY.md` | deep biophysics, scoreboard, ED ladder (on demand) |
+| `00_MANIFEST.md` | bundle provenance, input hashes, freshness |
+| `01_REPO_MAP.md` | module map (re-verify paths against live git) |
+| `02_PUBLIC_API_CONTRACT.md` | root `__all__`, signatures |
+| `03_JAX_RUNTIME_CONTRACT.md` | PRNG/scan/vmap/jit contract |
+| `04_TRUTH_GATES_AND_CLAIMS.md` | truth gates + claim contract |
+| `05_BACKLOG.md` | ranked backlog (`main`/`dev` reconciliation) |
+| `06_VALIDATION_LADDER.md` | validation commands + receipts |
+| `07_V0330_ARCHITECTURE_NOTES.md` | gated architecture plans |
+| `08_RISKS_AND_FRAGILITIES.md` | fragile spots |
+| `PUBLICATION_READINESS_SCOREBOARD.md` | pointer to external review scoreboard |
+| `JAXFNE_BACKLOG_AND_WORKER_PROMPTS.md` | post-ED10 follow-ups (ED9/ED10 archived) |
+| `REPO_INSPECTION_REPORT.md` | **superseded** zip inspection record |
 
-## Current state (as reconciled)
+## Current state (publication track)
 
-- Release: `v0.3.29` @ `fab4c9c`; `main == dev`; `agy` untouched.
-- B01 (objective null RNG reproducibility): **DONE** — PR #22, green, awaiting human merge go.
-- Next ready GREEN item: **B02** (release-clean script hardening).
-- RED/gated (need human design): B07 connectivity compiler, B08 FlatNet boundary, B09 PyNWB export.
+- Branch: `cur`, version `0.3.29`
+- Inventory: 8/8 main figures + 10/10 Extended Data (verify with `publication_inventory.py`)
+- ED9/ED10: complete; release/tag/publish/archive approval-gated
+- Package backlog on `main`/`dev`: B01 merged; B02 next GREEN; B07–B09 gated
 
 ## Maintenance
 
-When a backlog item ships, update `05_BACKLOG.md`'s status table and the matching
-risk row in `08_RISKS_AND_FRAGILITIES.md`. Keep this bundle reconciled to the
-latest released SHA; stale context is worse than no context.
+When backlog items ship, update `05_BACKLOG.md` and `08_RISKS_AND_FRAGILITIES.md`. Refresh `CURRENT_PUBLICATION_STATE.md` SHA when publication-facing docs change.

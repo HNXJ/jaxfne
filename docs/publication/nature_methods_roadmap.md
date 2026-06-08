@@ -102,9 +102,9 @@ physical_amplitude_claim_allowed: false
 | Install | partial | clean-room install log (Linux/macOS) | `pip install jaxfne && python -c "import jaxfne"` | import + version match |
 | Minimal run | green | figure panel for Fig 4 | `python examples/00_minimal_column.py` | exit 0, finite outputs |
 | Tutorials | partial | executed notebook receipts for all atlas entries | `python scripts/run_all_tutorials.py` | all marked PASS |
-| Figures | complete (8/8 main) | 8/10 Extended Data PNG assets remaining (see inventory) | `python scripts/publication_inventory.py` | inventory reports `8/8` main + ED progress |
+| Figures | complete (8/8 main + 10/10 ED) | regenerate outputs at submission SHA | `python scripts/publication_inventory.py` | inventory reports `8/8` main + `10/10` ED |
 | Manifests | partial | publication output bundle at fixed SHA | example scripts → `outputs/publication/` | JSON-safe + SHA256 |
-| Tests | green | pinned count in manuscript | `pytest tests/ -q` | 2111+ passed, 0 failed |
+| Tests | green | pinned count in manuscript (re-freeze on `cur`) | `pytest tests/ -q` | 0 failed; cite live pass count from command output |
 | Docs | green | publication nav + roadmap | `mkdocs build --strict` | strict pass |
 | Benchmarks | partial | ED6 local CPU receipt on publication branch | `python scripts/publication/ed06_benchmark_scaling_tables.py` | strict JSON receipt; no speedup claims |
 | Optional deps | green | lazy-import audit | `python scripts/audit_notebooks_and_assets.py --check` | Jaxley GREEN |

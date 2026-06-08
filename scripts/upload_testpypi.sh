@@ -17,7 +17,7 @@ echo "=== jaxfne TestPyPI upload — v${EXPECTED_VERSION} ==="
 # Guard: credentials
 if [ ! -f "$HOME/.pypirc" ]; then
   echo "BLOCKED: ~/.pypirc not found. Create it with [testpypi] credentials first."
-  echo "See docs/RELEASE_CHECKLIST.md for the template."
+  echo "See internal_docs/receipts/RELEASE_CHECKLIST.md for the template."
   exit 1
 fi
 

@@ -5,7 +5,7 @@ This document tracks verification gates for jaxfne releases.
 ## Release-Control State Machine (v0.3.15+)
 
 To prevent accidental release drift or tag/commit mutation, the following machine checks are enforced prior to tagging and PyPI upload:
-1. **Intended Release SHA Lock**: The file `CLAUDE.md` or `AGENTS.md` must declare `intended_release_sha: "<commit_sha>"` and `release_freeze: true`.
+1. **Intended Release SHA Lock**: `AGENTS.md` or `internal_docs/agent_context/claude/CLAUDE.md` must declare `intended_release_sha: "<commit_sha>"` and `release_freeze: true`.
 2. **Release Freeze Enforcement**: Running `python scripts/release/assert_release_freeze.py` must verify that `HEAD` matches `intended_release_sha`.
 3. **Peeled vs Object Tag Audit**: Prior to PyPI upload, running `bash scripts/release/print_tag_receipt.sh` must verify that the peeled ref matches `intended_release_sha`.
 4. **Reconciled Target Report**: Running `python scripts/release/reconcile_release_target.py` must produce a validated target report JSON with `"release_target_reconciled": true`.
@@ -50,7 +50,7 @@ To prevent accidental release drift or tag/commit mutation, the following machin
 - [ ] CHANGELOG.md updated with v0.3.21 entry ✅
 - [ ] docs/changelog.md updated with v0.3.21 entry ✅
 - [ ] pyproject.toml version: 0.3.21 ✅
-- [ ] docs/RELEASE_CHECKLIST.md created ✅
+- [ ] internal_docs/receipts/RELEASE_CHECKLIST.md created ✅
 - [ ] Version strings synchronized across:
   - [ ] `pyproject.toml` → `version = "0.3.21"` ✅
   - [ ] `jaxfne/__init__.py` → version constant

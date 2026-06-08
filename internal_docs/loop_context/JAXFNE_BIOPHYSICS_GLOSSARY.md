@@ -1,8 +1,10 @@
 # jaxfne Biophysics Glossary and Publication-Readiness Guide
 
-**Purpose:** durable Cursor/agent context for making `jaxfne` publication-ready as a stable JAX/JIT/Jaxley-compatible computational neurobiophysics, neuroelectrodynamics, and tensor-field source-to-readout scaffold.
+> **Reference document — not the session entry point.** Read [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md) first; re-freeze git SHA and `publication_inventory.py` before citing publication state from this file.
 
-**Audience:** Cursor/Composer agents, repo workers, paper-editing workers, and future release auditors.
+**Purpose:** durable deep reference for publication-ready JAX/JIT/Jaxley-compatible computational neurobiophysics, neuroelectrodynamics, and tensor-field source-to-readout scaffold.
+
+**Audience:** Cursor/Composer agents, repo workers, paper-editing workers, and future release auditors (on demand).
 
 **Canonical import:**
 

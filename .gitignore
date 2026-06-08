@@ -34,6 +34,8 @@ credentials.json
 
 # Generated runtime artifacts
 outputs/
+outputs-provenance-patched.zip
+outputs-*-patched.zip
 site/
 scratch/
 tmp/

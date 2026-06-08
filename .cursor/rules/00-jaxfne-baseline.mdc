@@ -5,21 +5,17 @@ alwaysApply: true
 
 # jaxfne baseline
 
-Canonical import:
-
 ```python
 import jaxfne as jtfne
 ```
 
-jaxfne is a compact JAX-native TFNE scaffold for:
+Public API path: `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export`.
 
-```text
-Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
-```
+Scientific operator path: `Emitter -> Source -> Field -> Probe -> Objective -> Optimizer` (same package; deeper layer).
 
-Use package APIs as the engine. Tutorials configure and visualize; they must not contain notebook-local solvers, readout engines, objective engines, or optimizer engines.
+Package APIs are the engine. Tutorials configure and visualize only — no notebook-local solvers, readouts, objectives, or optimizers.
 
-Default gates:
+Gates:
 
 ```text
 truth_mode: truth_safe_unverified
@@ -29,23 +25,8 @@ field_claim_level: proxy_readout_only
 physical_amplitude_claim_allowed: false
 ```
 
-Never claim:
+Never claim real EEG/MEG, calibrated amplitude, metabolism, mechanism proof, or solved PDE/Maxwell/Poisson without solver, geometry, boundary, gauge, residual, units, calibration, and validation evidence.
 
-- real EEG/MEG
-- calibrated amplitude
-- biological metabolism
-- mechanism proof
-- solved PDE/Maxwell/Poisson/stress-energy dynamics
+Branch: publication on `cur`. Do not mutate `main`/`dev`/`agy` without approval. No force-push, tags, releases, or publish without approval.
 
-unless the run includes solver, geometry, boundary, gauge, residual, units, calibration, and validation evidence.
-
-Branch policy:
-
-- Publication track uses `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`.
-- Do not mutate `main`, `dev`, or `agy` unless explicitly approved.
-- No force-push, tags, releases, or package publishing unless explicitly approved.
-- After merge to a permanent branch, delete the source feature branch locally and on `origin` unless explicitly retained.
-
-Agent anchor: `internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md`.
-
-Skill routing (on demand): `internal_docs/skills/README.md`.
+Anchor: `internal_docs/loop_context/AGENT_QUICKREF.md`. Skills on demand: `internal_docs/skills/README.md`.
