@@ -48,7 +48,14 @@ No package API, solver, Jaxley, PyNWB, or manuscript TBD edits.
 
 ## Branch sync
 
-Recorded after push/ff attempt in this pass.
+| Step | Result |
+|---|---|
+| `git push origin cur` | **done** — `origin/cur` = `82a0a237d00b74bd00c73c943a0bb42d8be2b583` |
+| `origin/main` | `087a1576b95d27b621af6500b74f88d858dccdac` (merge PR #43; not contained in `cur`) |
+| `git merge --ff-only cur` on `main` | **blocked** — `fatal: Not possible to fast-forward, aborting.` |
+| `origin/main == origin/cur` | **no** — fast-forward sync deferred per hard-stop rule |
+
+**Blocker:** `origin/main` has merge commit `087a157` not on `cur`. Non-fast-forward sync requires explicit approval.
 
 ## P0/P1 alpha preservation
 
