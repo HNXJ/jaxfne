@@ -9,7 +9,7 @@
 | Field | Value |
 |---|---|
 | branch | `cur` |
-| HEAD | `408cb7960e374636ef3c72fbe545e0e1b5dd4f10` |
+| HEAD | `c34a2c8ddebdfe2702f6c7b223efe6c0541963bf` |
 | origin/cur | sync at push |
 | version | `0.3.29` |
 | working tree | clean except gitignored `outputs/publication/*` |
