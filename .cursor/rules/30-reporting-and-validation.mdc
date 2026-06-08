@@ -16,10 +16,10 @@ For worker reports, include:
 7. Blockers
 8. Next safe action
 
-Treat test counts as unverified unless the report includes:
+Treat test counts, SHA, and inventory rows as unverified unless the report includes:
 
 - exact command
-- branch/SHA
+- branch/SHA from a live freeze (`git rev-parse HEAD`, `publication_inventory.py`)
 - platform/Python when relevant
 - output summary
 

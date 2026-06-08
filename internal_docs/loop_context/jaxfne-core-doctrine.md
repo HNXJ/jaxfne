@@ -9,6 +9,8 @@ Generated UTC: 2026-06-07T22:34:39Z
 -->
 # JAXFNE Core Doctrine
 
+> Session entry: [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md). This file is supplementary doctrine from bundle inspection.
+
 ## Package identity
 
 `jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is an evidence-generation and assumption-auditing layer for computational neurophysiology. It is not currently a validated biological simulator, calibrated EEG/MEG solver, metabolic simulator, Maxwell solver, or physical-amplitude package.

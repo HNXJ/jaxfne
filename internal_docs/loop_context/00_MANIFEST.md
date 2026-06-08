@@ -1,6 +1,8 @@
 # 00_MANIFEST
 
-Purpose: self-contained context bundle for a downstream Claude Code agent working on `jaxfne` with high intelligence-per-token: frozen contracts, evidence map, validation ladder, and ranked backlog. This is the **canonical autonomous-loop context** — `/pr-maintain` and `/loop` ticks read it before acting.
+> **Session entry:** [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md). Publication track uses branch **`cur`**; this manifest reconciles `main`/`dev` bundle history.
+
+Purpose: self-contained context bundle for a downstream Claude Code agent working on `jaxfne` with high intelligence-per-token: frozen contracts, evidence map, validation ladder, and ranked backlog.
 
 Generated (external expert): 2026-06-05T01:03:28Z
 Reconciled against live git: 2026-06-04T20:11:00-05:00 @ `main == dev == fab4c9c`, tag `v0.3.29`.

@@ -11,20 +11,25 @@ Generated UTC: 2026-06-07T22:34:39Z
 
 ## Status classification
 
-**accept with follow-up**: the inspected zip is publication-track current through ED8, but output manifests are absent from the zip and ED9/ED10 remain open.
+**accept with follow-up**: publication artifact stack complete on `cur` (8/8 main + 10/10 ED). ED9/ED10 shipped. Remaining work is output regeneration, manuscript alignment, and approval-gated release.
 
 ## Immediate backlog
 
 | ID | Classification | Work | Why |
 |---|---|---|---|
-| P-ED9 | patch | Add ED9 failure modes and null controls | Reviewers need proof that objectives/proxies cannot be overinterpreted silently. |
-| P-ED10 | approval-gated patch | Add ED10 release archive receipt | Strong journal submission needs exact tag/SHA/wheel/archive/DOI receipts. |
-| P-OUT | reproduce | Regenerate all `outputs/publication/*` manifests/receipts | Attached zip has PNGs/scripts/checklist but missing output manifests. |
+| P-OUT | reproduce | Regenerate all `outputs/publication/*` manifests/receipts on live `cur` | Submission bundle needs manifests at frozen SHA. |
 | P-LAZY | reproduce/follow-up | Re-run root import laziness in clean venv | Local container had pandas loaded before import, contaminating test. |
 | P-API | follow-up | Reconcile `Net` object grammar with root exports | README names Net; root inspection found Config/Model but not root Net. |
 | P-MANUSCRIPT | follow-up | Convert roadmap/checklist into manuscript claims table | Needed for Nature Methods-style reviewer scope questions. |
-| P-PYNWB | plan | Design optional PyNWB export bridge | Future computational-biophysics strength; not required before ED10. |
+| P-PYNWB | plan | Design optional PyNWB export bridge | Future computational-biophysics strength. |
 | P-SOLVER | plan | Physical solver experimental namespace design | Must wait for source/field schema and admissibility gates. |
+
+## Archived worker prompts (ED9/ED10 — complete)
+
+ED9 (`ed09_failure_modes_and_nulls`) and ED10 (`ed10_release_archive_receipt`) are implemented. Scripts, figures, manifests, and receipts live under `scripts/publication/`, `figures/publication/`, and `outputs/publication/`. Do not re-open unless regression is proven.
+
+<details>
+<summary>Historical ED9 prompt (archived)</summary>
 
 ## Worker prompt: ED9 failure modes and null controls
 
@@ -126,6 +131,8 @@ Acceptance:
 - no publication/release action occurs without approval
 - all truth gates preserved
 ```
+
+</details>
 
 ## Worker prompt: root import laziness follow-up
 

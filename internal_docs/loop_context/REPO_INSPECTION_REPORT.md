@@ -9,6 +9,8 @@ Generated UTC: 2026-06-07T22:34:39Z
 -->
 # Repo Inspection Report
 
+> **Superseded (2026-06-08).** Historical record from `jaxfne-pub-ed08-tutorial-atlas-coverage.zip` inspection. For live state run `python3 scripts/publication_inventory.py` on `cur` and read `CURRENT_PUBLICATION_STATE.md`. Live inventory: **10/10 Extended Data**; findings below about missing ED9/ED10 and stale `.cursor/rules` are obsolete.
+
 ## Input
 
 | Item | Value |

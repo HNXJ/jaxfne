@@ -12,7 +12,7 @@
 |---|---|
 | Repository | `https://github.com/HNXJ/jaxfne` |
 | Branch | `cur` |
-| Commit SHA | `c34a2c8ddebdfe2702f6c7b223efe6c0541963bf` |
+| Commit SHA | verify live: `git rev-parse HEAD` on `cur` (do not cite handout SHA without re-freeze) |
 | Package version | `0.3.29` |
 | Checkpoint date (UTC) | `2026-06-07` |
 | Main figures | `8/8` |
@@ -154,7 +154,7 @@ Do **not** treat proxy outputs as physical measurements. Do **not** credit empir
 
 | # | Factor | Hamm score now | Target | Primary evidence to inspect |
 |---:|---|---:|---:|---|
-| 1 | Branch/release hygiene | 90 | 100 | `cur` @ `c34a2c8`, clean tree, no force-push |
+| 1 | Branch/release hygiene | 90 | 100 | `cur` @ live SHA (re-freeze), clean tree, no force-push |
 | 2 | Main figure stack | 88 | 100 | `figures/publication/fig01–08`, scripts, ED5 hashes |
 | 3 | Extended Data stack | 98 | 100 | ED1–ED10 PNGs + scripts |
 | 4 | Manifest/hash closure | 72 | 100 | `ed05_manifest_hashes.py`, `outputs/publication/*` |
@@ -190,7 +190,8 @@ Do **not** treat proxy outputs as physical measurements. Do **not** credit empir
 
 | File | Role |
 |---|---|
-| `internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md` | primary agent anchor |
+| `internal_docs/loop_context/AGENT_QUICKREF.md` | primary agent anchor |
+| `internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md` | deep biophysics reference |
 | `internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md` | live posture |
 | `docs/publication/publication_checklist.json` | machine-readable artifact list |
 | `docs/publication/nature_methods_roadmap.md` | evidence matrix |

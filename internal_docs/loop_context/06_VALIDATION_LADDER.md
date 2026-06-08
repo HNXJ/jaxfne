@@ -6,8 +6,9 @@ Expected receipts (compile PASS, notebook audit PASS, mkdocs strict exit 0 in al
 |---|---|---|
 | `main` @ fab4c9c (pre-PR#22 merge) | `49 passed, 1 skipped` | `1961 passed, 66 skipped, 4 xfailed` |
 | with PR#22 (B01) merged | `54 passed, 1 skipped` | `1986 passed, 66 skipped, 4 xfailed` |
+| `cur` publication track | re-freeze required | re-freeze required |
 
-The +5 / +25 delta is the B01 reproducibility test file (`tests/test_objective_null_reproducibility_v0330.py`). Match the row to whichever tree you re-froze this tick (`Pasted markdown.md:L63`).
+Historical rows above are provenance only. On `cur`, always re-run the ladder and cite live output — do not copy pass counts from this table.
 
 ## Copy-paste ladder
 

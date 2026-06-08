@@ -10,14 +10,7 @@ alwaysApply: false
 
 # Publication workflow
 
-Current expected state:
-
-- Branch: `cur`
-- Expected publication posture after sync: 8/8 main figures + 10/10 Extended Data
-- Publication artifact stack: complete (ED1–ED10)
-- Release/tag/archive/publish: approval-gated (not part of ED10 receipt execution)
-
-Before work:
+Branch `cur`. Re-freeze before work — do not trust static ED counts in docs.
 
 ```bash
 git fetch --all --prune
@@ -28,26 +21,11 @@ git rev-parse HEAD
 python3 scripts/publication_inventory.py
 ```
 
-Expected inventory:
+Expected live inventory: `main figures: 8/8`, `extended data: 10/10`. Release/tag/publish/archive: approval-gated (ED10 receipt ≠ release authorization).
 
-```text
-main figures: 8/8
-extended data: 10/10
-```
+Artifact pattern: `scripts/publication/<name>.py` → `figures/publication/<name>.png` → `outputs/publication/<name>_manifest.json` (+ optional `_receipt.json`).
 
-Release/archive (separate approval required):
-
-- tag creation
-- wheel/sdist build and publish
-- GitHub release
-- archive/DOI assignment
-
-New publication artifacts follow this pattern:
-
-- script: `scripts/publication/<name>.py`
-- PNG: `figures/publication/<name>.png`
-- manifest: `outputs/publication/<name>_manifest.json`
-- optional receipt: `outputs/publication/<name>_receipt.json`
+Manifests must preserve `physical_amplitude_claim_allowed: false` and `performance_claims_allowed: false`. Capability/evidence wording only.
 
 Validation:
 
@@ -58,12 +36,3 @@ python3 scripts/publication_inventory.py
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py -q --tb=line
 ```
-
-Every publication manifest must preserve:
-
-```text
-physical_amplitude_claim_allowed: false
-performance_claims_allowed: false
-```
-
-Use capability/evidence wording, not superiority wording.

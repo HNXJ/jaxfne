@@ -2,7 +2,7 @@
 
 **Superseded for alpha review:** use `docs/publication/JAXFNE_ALPHA_EXTERNAL_REVIEW_SCOREBOARD.md` (recalibrated 10/10 ED).
 
-**Canonical anchor:** `internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md` §11.
+**Session anchor:** `internal_docs/loop_context/AGENT_QUICKREF.md`. Deep scoreboard detail: `JAXFNE_BIOPHYSICS_GLOSSARY.md` §11.
 
 ## Alpha snapshot
 
