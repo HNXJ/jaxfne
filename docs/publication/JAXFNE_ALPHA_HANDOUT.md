@@ -211,18 +211,18 @@ Do **not** treat proxy outputs as physical measurements. Do **not** credit empir
 
 ---
 
-## 10. Zip packaging note for sender
+## 10. Two-part review bundle (required)
 
-Exclude `.git`, `.venv*`, `__pycache__`, large `outputs/` except if regenerated manifests are needed for review.
+`outputs/publication/*` is gitignored. External review requires **two parts**:
 
-Recommended regeneration before zipping:
+| Part | Artifact | Pin |
+|---|---|---|
+| A — Repo | `git archive 9f831bd` | source code + figure PNGs + alpha docs |
+| B — Outputs | `outputs-provenance-patched.zip` | SHA256 `a0292503268616c1c3756ad3e03d426bcda7ac01f6c6bc37575db2fcf87107c4` |
 
-```bash
-git archive --format=zip --prefix=jaxfne/ -o jaxfne-alpha-cur.zip cur
-# then on extracted copy, run fig01–08 and ed01–10 scripts to populate outputs/publication/
-```
+Full instructions: `docs/publication/TWO_PART_REVIEW_BUNDLE.md`
 
-Or zip live checkout after `outputs/publication/` regeneration for manifest-aware review.
+Do not use an older combined repo zip with stale embedded outputs. Notebook receipts (ED3/ED8) are **structural** unless separate execution logs exist.
 
 ---
 

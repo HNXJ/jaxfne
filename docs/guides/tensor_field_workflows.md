@@ -21,7 +21,7 @@ Start with spike or voltage outputs from:
 Organize emitter outputs into spatially localized currents:
 
 - **Source projection:** Map emitter states to physical/proxy current
-- **Spatial support:** Declare layer/depth assignments for field solvers
+- **Spatial support:** Declare layer/depth assignments for field-proxy operator placement (not PDE solvers in v0.3.x)
 - **Metadata:** Track source origin (emitter type, calibration status)
 
 ### 3. Field operators

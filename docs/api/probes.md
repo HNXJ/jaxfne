@@ -8,7 +8,7 @@ Probe operators extract various readout modalities from neural simulation:
 - **Spike-based:** Spike detection (SPK) from membrane voltage
 - **Voltage-based:** Direct voltage readouts (Vm)
 - **Field-based:** lfp_proxy and csd_proxy from spatial current distributions
-- **Sensor-based:** eeg_proxy and meg_proxy from head/field models
+- **Sensor-based:** eeg_proxy and meg_proxy from head/field **proxy** projection operators (computational scaffold; no clinical forward-model claim)
 - **Activity cost:** emm_proxy signaling-energy estimation
 
 All operators return **proxy readouts** suitable for tutorial simulations, designed for exploratory workflows.
@@ -79,7 +79,7 @@ cfg = cfg.probes(["source"])
 **Output:** Source density [time, spatial locations]
 
 **Description:**
-Projects Izhikevich transmembrane currents into space using anatomical mapping. This is the input to field solvers (LFP, CSD).
+Projects Izhikevich transmembrane currents into space using anatomical mapping. This feeds **field-proxy** operators (LFP-proxy, CSD-proxy); no PDE field solver is invoked in v0.3.x.
 
 **Status:** Spatial projection proxy
 
@@ -106,7 +106,7 @@ where $W_{cn}$ is row-normalized source-to-contact mapping.
 
 **Status:** Proxy convolution; no PDE solve
 
-**Units:** Proxy voltage units (or mV if calibrated; see documentation)
+**Units:** Proxy voltage units (unscaled). Calibrated mV requires separate calibration evidence; not claimed by default.
 
 **Description:**
 Extracellular potential sampled at electrode contacts. Computed via weighted summation of sources with spatial weighting. Approximates field without solving Poisson equation.
@@ -302,10 +302,10 @@ class ProbeReport:
 | `min_V_m` | Vm | Min voltage (mV) |
 | `max_V_m` | Vm | Max voltage (mV) |
 | `mean_source` | source | Mean source magnitude |
-| `mean_LFP` | LFP-proxy | Mean LFP amplitude |
-| `mean_CSD` | CSD-proxy | Mean CSD magnitude |
-| `mean_EEG` | EEG-proxy | Mean EEG amplitude |
-| `mean_MEG` | MEG-proxy | Mean MEG amplitude |
+| `mean_LFP` | LFP-proxy | Mean LFP-proxy magnitude (unscaled) |
+| `mean_CSD` | CSD-proxy | Mean CSD-proxy magnitude (unscaled) |
+| `mean_EEG` | EEG-proxy | Mean EEG-proxy magnitude (unscaled) |
+| `mean_MEG` | MEG-proxy | Mean MEG-proxy magnitude (unscaled) |
 | `mean_EMM` | EMM-proxy | Mean metabolic proxy |
 
 **Example:**

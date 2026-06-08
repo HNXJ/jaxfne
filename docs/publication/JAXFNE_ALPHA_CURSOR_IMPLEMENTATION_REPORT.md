@@ -84,8 +84,20 @@ Local receipt: `outputs/publication/root_inventory_after_cleanup.md` (gitignored
 3. Release/tag/PyPI/archive require separate explicit approval.
 4. Notebook execution remains structural receipt, not universal PASS.
 
+## P1 follow-up (post P0 provenance closure)
+
+| Item | Status |
+|---|---|
+| Proxy-safe API/docs wording | patched (`docs/api/probes.md`, `docs/api/core.md`, tensor workflow guides, `probe_operators.md`) |
+| Two-part review bundle note | `docs/publication/TWO_PART_REVIEW_BUNDLE.md` |
+| Handout §10 two-part pins | updated with `a0292503...` outputs SHA |
+| Notebook execution scope | preserved as structural (ED3/ED8); no universal PASS claim |
+| `test_public_docs_hygiene.py` | 218 passed, 5 skipped |
+
+Frozen review target unchanged: `source_head=9f831bd`, `jaxfne_version=0.3.29`, `outputs_zip_sha256=a0292503...7107c4`.
+
 ## Next safe action
 
-1. Package review zip: repo + regenerated `outputs/publication/` + handout + external scoreboard.
-2. Send to GPT/human reviewer with prompt from `JAXFNE_ALPHA_HANDOUT.md`.
-3. Optionally archive cursor bundle under `internal_docs/cursor_alpha_bundle/` after review (not done in this pass).
+1. Send **two-part bundle** per `TWO_PART_REVIEW_BUNDLE.md` (repo at `9f831bd` + `outputs-provenance-patched.zip`).
+2. Manuscript TBD replacement and release/tag/archive remain approval-gated.
+3. No tag, build, publish, GitHub release, archive, or DOI until explicit approval.

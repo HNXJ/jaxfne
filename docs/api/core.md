@@ -232,8 +232,8 @@ Specification for a single readout metric.
 - `spike_rate_hz`: Mean firing rate in Hz
 - `mean_V_m`: Mean membrane voltage (mV)
 - `mean_source`: Mean source density
-- `mean_LFP`: Mean LFP amplitude
-- `mean_CSD`: Mean CSD amplitude
+- `mean_LFP`: Mean LFP-proxy magnitude (unscaled)
+- `mean_CSD`: Mean CSD-proxy magnitude (unscaled)
 - `max_spike_rate_hz`: Maximum firing rate
 - `burst_frequency_hz`: Burst frequency estimate
 
