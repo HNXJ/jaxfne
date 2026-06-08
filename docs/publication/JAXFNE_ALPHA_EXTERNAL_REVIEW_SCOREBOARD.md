@@ -7,7 +7,7 @@ Recalibrated after alpha bundle execution on live `cur`. Operational scores (0â€
 | Field | Value |
 |---|---|
 | branch | `cur` |
-| SHA | `fc80a0e1eab9d37e4318276375c86fec10a639f0` (post Task 01 reconciliation) |
+| SHA | `408cb7960e374636ef3c72fbe545e0e1b5dd4f10` (alpha bundle closure) |
 | version | `0.3.29` |
 | inventory | `8/8 main + 10/10 ED` |
 | output manifests | regenerated locally in `outputs/publication/` (gitignored) |
