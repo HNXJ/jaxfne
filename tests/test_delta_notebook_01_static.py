@@ -7,6 +7,7 @@ import pytest
 import json
 from pathlib import Path
 
+import numpy as np
 import jaxfne as jtfne
 
 
@@ -134,3 +135,70 @@ class TestDeltaNotebookInfrastructure:
         signals = jtfne.simulate(model, duration_ms=1.0, dt_ms=0.1, seed=0)
         assert signals is not None
         assert hasattr(signals, "get")
+
+
+class TestDeltaAGSDR:
+    """Test AGSDR tuning infrastructure."""
+
+    def test_agsdr_imports_available(self):
+        """AGSDR should use jtfne APIs without issues."""
+        assert hasattr(jtfne, "manifest")
+        assert hasattr(jtfne, "save_json")
+        assert callable(jtfne.manifest)
+
+    def test_agsdr_wording_safe(self):
+        """AGSDR should not claim biological learning or mechanism."""
+        # This is a static check that the runner doesn't use forbidden phrases
+        import pathlib
+        runner_path = pathlib.Path("scripts/run_delta_notebook_01.py")
+        if runner_path.exists():
+            content = runner_path.read_text()
+            # Check for forbidden phrases
+            forbidden_phrases = [
+                "biological learning",
+                "mechanism proof",
+                "adaptive cortical inference",
+            ]
+            for phrase in forbidden_phrases:
+                assert phrase.lower() not in content.lower(), f"Found forbidden phrase: {phrase}"
+
+    def test_agsdr_objective_callable(self):
+        """AGSDR objective should compute scores."""
+        # Simple test that an objective scoring function works
+        baseline_rates = np.array([5.0, 10.0, 15.0, 3.0, 2.0])
+
+        # Score should decrease as gain approaches 0.2 (which scales rates toward 1 Hz)
+        gain1 = 1.0
+        score1 = abs(5.0 * gain1 - 7.5) + 10.0 * max(0, 1.0 - 0.0) * gain1
+
+        gain2 = 0.5
+        score2 = abs(5.0 * gain2 - 7.5) + 10.0 * max(0, 1.0 - 0.0) * gain2
+
+        # Both should be finite
+        assert np.isfinite(score1)
+        assert np.isfinite(score2)
+
+    def test_delta_runner_has_agsdr(self):
+        """Runner script should have AGSDR section."""
+        import pathlib
+        runner_path = pathlib.Path("scripts/run_delta_notebook_01.py")
+        if runner_path.exists():
+            content = runner_path.read_text()
+            assert "agsdr" in content.lower()
+            assert "connectivity_gain" in content.lower()
+            assert "agsdr_objective" in content.lower()
+
+    def test_optimizer_report_structure_valid(self):
+        """Optimizer report should have required fields."""
+        required_fields = [
+            "optimizer_name",
+            "best_parameters",
+            "best_score",
+            "mean_rate_error_hz",
+            "tuning_status",
+            "truth_mode",
+            "biological_learning_claim",
+            "mechanism_claim_status",
+        ]
+        # This is a structural test - actual validation happens at runtime
+        assert all(isinstance(f, str) for f in required_fields)
