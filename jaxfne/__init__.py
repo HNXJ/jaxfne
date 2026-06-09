@@ -175,7 +175,7 @@ from .fields import (
     validate_source_field_status,
     LinearReadout,
 )
-from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text
+from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
 from .optim import (
     AGSDR,
     AGSDROptimizerSpec,
@@ -342,6 +342,9 @@ __all__ = [
     "save_receipt",
     "sha256_file",
     "sha256_text",
+    "validation_report",
+    "probe_report",
+    "asset_hashes",
     "AGSDR",
     "AGSDROptimizerSpec",
     "AGSDRState",

@@ -190,5 +190,70 @@ def load_json(path: str | Path) -> Any:
     with Path(path).open("r", encoding="utf-8") as f:
         return json.load(f)
 
+
+def validation_report(
+    config_valid: bool,
+    issues: list[str] | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a validation report JSON bundle.
+
+    Args:
+        config_valid: Whether configuration passed validation.
+        issues: List of validation issues (if any).
+        metadata: Additional metadata (truth gates, etc.).
+
+    Returns:
+        JSON-safe dict with validation status and details.
+    """
+    return json_safe({
+        "valid": bool(config_valid),
+        "issues": issues or [],
+        "metadata": metadata or {},
+    })
+
+
+def probe_report(
+    n_probes: int,
+    probe_types: dict[str, int] | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Create a probe operator report JSON bundle.
+
+    Args:
+        n_probes: Total number of probes.
+        probe_types: Breakdown by type (e.g., {"V_m": 1, "spikes": 1}).
+        metadata: Additional metadata.
+
+    Returns:
+        JSON-safe dict with probe information.
+    """
+    return json_safe({
+        "n_probes": int(n_probes),
+        "probe_types": probe_types or {},
+        "metadata": metadata or {},
+    })
+
+
+def asset_hashes(
+    assets: dict[str, str | Path],
+) -> dict[str, str]:
+    """Create a SHA256 hash manifest for assets.
+
+    Args:
+        assets: Dict mapping asset names to file paths.
+
+    Returns:
+        Dict mapping asset names to their SHA256 hashes.
+    """
+    hashes = {}
+    for name, path in assets.items():
+        if isinstance(path, (str, Path)):
+            hashes[name] = sha256_file(path)
+        else:
+            hashes[name] = None
+    return json_safe(hashes)
+
+
 # Backwards-compatible name from v0.0.1.
 hash_file = sha256_file
