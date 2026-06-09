@@ -1,5 +1,5 @@
 {
-  "version": "0.3.29",
+  "version": "0.3.31",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -32,6 +32,7 @@
     "LinearReadout",
     "MatrixParameterSpec",
     "Model",
+    "Net",
     "NodeIdentity",
     "Objective",
     "ObjectiveReport",
@@ -91,6 +92,7 @@
     "jaxley_trace_to_signals",
     "json_safe",
     "kappa_synchrony",
+    "laminar_cortex_config",
     "laminar_source_geometry",
     "load_config",
     "make_candidate_sharding",
