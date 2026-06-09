@@ -89,6 +89,9 @@ nav:
       - Objectives: api/objectives.md
       - Validation: api/validation.md
 
+  - Reference:
+      - Glossary of Methods: reference/glossary_of_methods.md
+
   - Publication:
       - Nature Methods roadmap: publication/nature_methods_roadmap.md
 
