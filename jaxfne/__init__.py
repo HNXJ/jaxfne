@@ -412,6 +412,8 @@ class _RuntimeModuleWrapper(_ModuleType):
             from .core import runtime as _runtime_fn
             return _runtime_fn
         # Delegate to the original module's __dict__ for other attributes
+        if name in self.__dict__:
+            return self.__dict__[name]
         raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
 
 

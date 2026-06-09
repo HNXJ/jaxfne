@@ -258,17 +258,31 @@ def main():
 
         baseline_rates_all = np.concatenate(baseline_rates_all)
 
-        # Apply minimum rate floor from baseline drive (simulate stochastic baseline)
-        # This is a workaround until simulate() directly applies DC current
-        baseline_drive = GLOBAL.get("baseline_drive_by_cell_type", {})
-        if baseline_drive:
-            # Min floor needed to pass min_neuron_rate gate after AGSDR scaling
-            # With best gain ~0.78, need floor ~1.3 Hz to reach 1.0 Hz after scaling
-            min_rate_floor = 1.3  # Hz
-            baseline_rates_all = np.maximum(baseline_rates_all, min_rate_floor)
+        # CRITICAL: Separate observed from regularized metrics
+        # Observed rates are spike-derived, no post-hoc floor
+        observed_baseline_rates_all = baseline_rates_all.copy()  # Keep original unfloor-ed
+        observed_baseline_mean_rate_hz = float(np.mean(observed_baseline_rates_all))
+        observed_baseline_min_rate_hz = float(np.min(observed_baseline_rates_all))
 
-        baseline_mean_rate_hz = float(np.mean(baseline_rates_all))
-        baseline_min_rate_hz = float(np.min(baseline_rates_all))
+        # Regularized rates use a floor (for objective scoring only, NOT for gates)
+        # This floor is a workaround until simulate() directly applies DC current
+        baseline_drive = GLOBAL.get("baseline_drive_by_cell_type", {})
+        regularized_baseline_rates_all = baseline_rates_all.copy()
+        min_rate_floor_hz = None
+        if baseline_drive:
+            min_rate_floor_hz = 1.3  # Hz - floor for objective scoring
+            regularized_baseline_rates_all = np.maximum(regularized_baseline_rates_all, min_rate_floor_hz)
+
+        regularized_baseline_mean_rate_hz = float(np.mean(regularized_baseline_rates_all))
+        regularized_baseline_min_rate_hz = float(np.min(regularized_baseline_rates_all))
+
+        # For AGSDR tuning, use regularized rates (with floor for stable objective)
+        # But gates will evaluate against observed rates
+        baseline_rates_all_for_tuning = regularized_baseline_rates_all
+        baseline_rates_all = regularized_baseline_rates_all  # Used for objective
+
+        baseline_mean_rate_hz = regularized_baseline_mean_rate_hz
+        baseline_min_rate_hz = regularized_baseline_min_rate_hz
 
         print(f"  ✓ Baseline mean rate: {baseline_mean_rate_hz:.2f} Hz")
         print(f"  ✓ Baseline min rate: {baseline_min_rate_hz:.2f} Hz")
@@ -309,9 +323,22 @@ def main():
         # Step 6: Create metrics with AGSDR info
         print("Step 6: Creating optimizer report...")
 
-        # Determine tuning status
-        target_pass = abs(best_result["mean_rate_hz"] - GLOBAL["agsdr_target_mean_rate_hz"]) <= GLOBAL["agsdr_mean_rate_tolerance_hz"]
-        min_rate_pass = best_result["min_rate_hz"] >= GLOBAL["agsdr_min_neuron_rate_hz"]
+        # CRITICAL: Compute OBSERVED rates for gates (gates MUST use observed, unfloor-ed baseline)
+        best_gain = best_result["candidate_gain"]
+
+        # Compute observed rates by applying best gain to unfloor-ed baseline
+        observed_best_tuned_rates = observed_baseline_rates_all * best_gain
+        observed_best_tuned_mean_rate_hz = float(np.mean(observed_best_tuned_rates))
+        observed_best_tuned_min_rate_hz = float(np.min(observed_best_tuned_rates))
+
+        # Regularized rates (with floor) - for reference only
+        regularized_best_tuned_rates = regularized_baseline_rates_all * best_gain
+        regularized_best_tuned_mean_rate_hz = float(np.mean(regularized_best_tuned_rates))
+        regularized_best_tuned_min_rate_hz = float(np.min(regularized_best_tuned_rates))
+
+        # GATES MUST DEPEND ON OBSERVED RATES ONLY
+        target_pass = abs(observed_best_tuned_mean_rate_hz - GLOBAL["agsdr_target_mean_rate_hz"]) <= GLOBAL["agsdr_mean_rate_tolerance_hz"]
+        min_rate_pass = observed_best_tuned_min_rate_hz >= GLOBAL["agsdr_min_neuron_rate_hz"]
 
         if SMOKE_MODE:
             tuning_status = "smoke_not_decisive" if (target_pass and min_rate_pass) else "smoke_test"
@@ -333,16 +360,26 @@ def main():
             "best_parameters": {
                 "connectivity_gain": best_result["candidate_gain"],
             },
-            "baseline_mean_rate_hz": baseline_mean_rate_hz,
-            "baseline_min_neuron_rate_hz": baseline_min_rate_hz,
-            "best_mean_rate_hz": best_result["mean_rate_hz"],
-            "best_min_neuron_rate_hz": best_result["min_rate_hz"],
-            "mean_rate_error_hz": best_result["mean_error_hz"],
-            "min_rate_gate_pass": min_rate_pass,
+            # OBSERVED BASELINE (unfloor-ed spike-derived rates)
+            "observed_baseline_mean_rate_hz": observed_baseline_mean_rate_hz,
+            "observed_baseline_min_neuron_rate_hz": observed_baseline_min_rate_hz,
+            # REGULARIZED BASELINE (with post-hoc floor, for tuning objective only)
+            "regularized_baseline_mean_rate_hz": regularized_baseline_mean_rate_hz,
+            "regularized_baseline_min_neuron_rate_hz": regularized_baseline_min_rate_hz,
+            "baseline_rate_floor_hz": min_rate_floor_hz,
+            # BEST TUNED (observed metrics used for gates)
+            "observed_best_tuned_mean_rate_hz": observed_best_tuned_mean_rate_hz,
+            "observed_best_tuned_min_neuron_rate_hz": observed_best_tuned_min_rate_hz,
+            # BEST TUNED (regularized, for reference)
+            "regularized_best_tuned_mean_rate_hz": regularized_best_tuned_mean_rate_hz,
+            "regularized_best_tuned_min_neuron_rate_hz": regularized_best_tuned_min_rate_hz,
+            # GATES (based on OBSERVED only, not regularized)
             "target_gate_pass": target_pass,
+            "min_rate_gate_pass": min_rate_pass,
+            "mean_rate_error_hz": abs(observed_best_tuned_mean_rate_hz - GLOBAL["agsdr_target_mean_rate_hz"]),
+            "rate_improvement_hz": float(observed_best_tuned_mean_rate_hz - observed_baseline_mean_rate_hz),
             "tuning_status": tuning_status,
             "same_model_unchanged": True,
-            "rate_improvement_hz": float(best_result["mean_rate_hz"] - baseline_mean_rate_hz),
             "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
