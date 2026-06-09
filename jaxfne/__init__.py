@@ -204,6 +204,8 @@ from .sharding_utils import (
 from .validation import compilation_registry
 # v0.3.31: state integrators
 from .solvers import euler_step, euler_scan
+# v0.3.31: PyNWB placeholder (not yet implemented)
+from .pynwb_compat import write_nwb, read_nwb
 
 
 __all__ = [
@@ -368,6 +370,9 @@ __all__ = [
     # v0.3.31: state integrators
     "euler_step",
     "euler_scan",
+    # v0.3.31: PyNWB placeholder
+    "write_nwb",
+    "read_nwb",
 ]
 
 __version__ = _JAXFNE_VERSION
