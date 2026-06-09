@@ -223,6 +223,7 @@ __all__ = [
     "MatrixParameterSpec",
     "matrix_parameter",
     "Model",
+    "Net",
     "NodeIdentity",
     "SelectorSpec",
     "Objective",
@@ -360,6 +361,7 @@ __all__ = [
 ]
 
 __version__ = _JAXFNE_VERSION
+Net = Model
 
 
 import sys
