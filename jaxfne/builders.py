@@ -582,3 +582,116 @@ def validate_configuration(
         "issues": issues,
         "truth_gates": truth_gates,
     }
+
+
+def laminar_cortex_config(
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    areas: Sequence[str] | None = None,
+    layers: Sequence[str] | None = None,
+    cell_types: Mapping[str, float] | None = None,
+    n: int = 128,
+    emitter: str = "izhikevich",
+) -> Configuration:
+    """Generalized laminar cortical configuration builder.
+
+    Creates a multi-area, multi-layer laminar circuit Configuration with
+    stable metadata and user-controlled geometry.
+
+    Parameters
+    ----------
+    seed : int
+        Random seed for reproducibility. Default: 0.
+    duration_ms : float
+        Simulation duration in milliseconds. Default: 1000.0.
+    dt_ms : float
+        Simulation timestep in milliseconds. Default: 0.1.
+    areas : Sequence[str], optional
+        Area labels (e.g., ["V1", "V4"]). Default: ["V1"].
+    layers : Sequence[str], optional
+        Layer labels (e.g., ["L2/3", "L4", "L5"]). Default: ["L2/3", "L4", "L5", "L6"].
+        For single-layer degenerate case, use ["single"] or any one-element list.
+    cell_types : Mapping[str, float], optional
+        Cell-type fractions (must sum to ~1.0). Default: {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}.
+    n : int
+        Total number of neurons. Default: 128.
+    emitter : str
+        Emitter family ("izhikevich", "lif", "glif"). Default: "izhikevich".
+
+    Returns
+    -------
+    Configuration
+        Generalized laminar cortex Configuration with stable area/layer/cell_type metadata.
+
+    Notes
+    -----
+    - All truth gates preserved: truth_safe_unverified, computational_scaffold,
+      laminar_proxy_no_pde, physical_amplitude_claim_allowed=False.
+    - Selectors work on area, layer, cell_type, and combinations (e.g., select(area="V1", layer="L4")).
+    - All arrays generated with finite values and float32 dtype by default.
+    - Non-laminar use: pass layers=["single"] for one-layer degenerate case.
+
+    Examples
+    --------
+    >>> import jaxfne as jtfne
+    >>> cfg = jtfne.laminar_cortex_config(
+    ...     seed=0,
+    ...     duration_ms=1000.0,
+    ...     dt_ms=0.1,
+    ...     areas=["V1"],
+    ...     layers=["L2/3", "L4", "L5", "L6"],
+    ...     cell_types={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
+    ...     n=128,
+    ... )
+    >>> model = jtfne.construct(cfg)
+    >>> signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)
+
+    Single-layer degenerate case:
+
+    >>> cfg_single = jtfne.laminar_cortex_config(
+    ...     layers=["single"],
+    ...     n=64,
+    ... )
+    """
+    if areas is None:
+        areas = ["V1"]
+    if layers is None:
+        layers = ["L2/3", "L4", "L5", "L6"]
+    if cell_types is None:
+        cell_types = {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}
+
+    # Ensure cell_types sum is approximately 1.0 (tolerance for floating point)
+    cell_types_sum = sum(cell_types.values())
+    if not (0.99 <= cell_types_sum <= 1.01):
+        raise ValueError(
+            f"cell_types fractions must sum to ~1.0; got {cell_types_sum}. "
+            f"Provided: {cell_types}"
+        )
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+    )
+
+    # Add areas and layers
+    for area_idx, area_label in enumerate(areas):
+        cfg = cfg.column(area_label, layers=list(layers), n=n)
+        cfg = cfg.cell_types(cell_types)
+
+    # Set emitter
+    if emitter == "izhikevich":
+        cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+    elif emitter == "lif":
+        cfg = cfg.set_emitter("lif")
+    elif emitter == "glif":
+        cfg = cfg.set_emitter("glif")
+    else:
+        raise ValueError(f"Unknown emitter: {emitter}. Choose from: izhikevich, lif, glif")
+
+    # Add probes and field
+    cfg = cfg.probes(["spikes", "V_m"], n_contacts=16)
+    cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+
+    return cfg
