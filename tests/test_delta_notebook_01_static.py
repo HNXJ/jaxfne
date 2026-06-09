@@ -137,6 +137,105 @@ class TestDeltaNotebookInfrastructure:
         assert hasattr(signals, "get")
 
 
+class TestDeltaNotebookAGSDRCells:
+    """Test that AGSDR cells exist in the notebook."""
+
+    def test_notebook_contains_agsdr_section(self):
+        """Notebook must have AGSDR cells."""
+        import pathlib
+        nb_path = pathlib.Path("tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+        assert nb_path.exists(), f"Notebook not found: {nb_path}"
+
+        import json
+        with open(nb_path) as f:
+            nb = json.load(f)
+
+        # Check that we have AGSDR-related cells
+        nb_text = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in nb.get("cells", [])
+            if cell.get("cell_type") == "code"
+        )
+
+        assert "AGSDR" in nb_text or "agsdr" in nb_text.lower(), \
+            "Notebook should contain AGSDR section"
+
+    def test_notebook_has_baseline_rate_computation(self):
+        """Notebook must compute baseline firing rates."""
+        import pathlib
+        nb_path = pathlib.Path("tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+
+        import json
+        with open(nb_path) as f:
+            nb = json.load(f)
+
+        nb_text = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in nb.get("cells", [])
+            if cell.get("cell_type") == "code"
+        )
+
+        assert "baseline_rates" in nb_text.lower(), \
+            "Notebook should compute baseline_rates"
+
+    def test_notebook_has_connectivity_gain_grid(self):
+        """Notebook must define connectivity gain candidates."""
+        import pathlib
+        nb_path = pathlib.Path("tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+
+        import json
+        with open(nb_path) as f:
+            nb = json.load(f)
+
+        nb_text = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in nb.get("cells", [])
+            if cell.get("cell_type") == "code"
+        )
+
+        assert "candidate_gain" in nb_text.lower() or "connectivity_gain" in nb_text.lower(), \
+            "Notebook should define candidate connectivity gains"
+
+    def test_notebook_exports_optimizer_report(self):
+        """Notebook must export optimizer_report.json."""
+        import pathlib
+        nb_path = pathlib.Path("tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+
+        import json
+        with open(nb_path) as f:
+            nb = json.load(f)
+
+        nb_text = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in nb.get("cells", [])
+            if cell.get("cell_type") == "code"
+        )
+
+        assert "optimizer_report" in nb_text.lower(), \
+            "Notebook should export optimizer_report"
+
+    def test_notebook_has_truth_gates_preserved(self):
+        """AGSDR cells must preserve truth gates."""
+        import pathlib
+        nb_path = pathlib.Path("tutorials/jaxfne-sanity-checker-notebook-01.ipynb")
+
+        import json
+        with open(nb_path) as f:
+            nb = json.load(f)
+
+        nb_text = "\n".join(
+            "".join(cell.get("source", []))
+            for cell in nb.get("cells", [])
+            if cell.get("cell_type") == "code"
+        )
+
+        # Should have truth mode and biological_learning_claim=False
+        assert "truth_mode" in nb_text.lower(), \
+            "Notebook should declare truth_mode"
+        assert "biological_learning_claim" in nb_text, \
+            "Notebook should set biological_learning_claim explicitly"
+
+
 class TestDeltaAGSDR:
     """Test AGSDR tuning infrastructure."""
 

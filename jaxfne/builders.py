@@ -594,6 +594,7 @@ def laminar_cortex_config(
     cell_types: Mapping[str, float] | None = None,
     n: int = 128,
     emitter: str = "izhikevich",
+    baseline_drive_by_cell_type: Mapping[str, float] | None = None,
 ) -> Configuration:
     """Generalized laminar cortical configuration builder.
 
@@ -619,6 +620,10 @@ def laminar_cortex_config(
         Total number of neurons. Default: 128.
     emitter : str
         Emitter family ("izhikevich", "lif", "glif"). Default: "izhikevich".
+    baseline_drive_by_cell_type : Mapping[str, float], optional
+        Baseline DC input (drive) per cell type to eliminate silent neurons.
+        Default: None (no explicit baseline drive; uses emitter preset defaults).
+        Example: {"E": 4.5, "PV": 4.0, "SST": 5.5, "VIP": 10.0} (in nA or native units).
 
     Returns
     -------
@@ -689,6 +694,10 @@ def laminar_cortex_config(
         cfg = cfg.set_emitter("glif")
     else:
         raise ValueError(f"Unknown emitter: {emitter}. Choose from: izhikevich, lif, glif")
+
+    # Set baseline drive to eliminate silent neurons (if provided)
+    if baseline_drive_by_cell_type:
+        cfg = cfg.drive(baseline_drive_by_cell_type=baseline_drive_by_cell_type)
 
     # Add probes and field
     cfg = cfg.probes(["spikes", "V_m"], n_contacts=16)
