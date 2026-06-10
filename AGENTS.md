@@ -45,3 +45,11 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
 ## Report format
 
 Status, repo state, changed files, commands run, exact results, evidence/truth status, blockers, next safe action.
+
+## API catalog (read before writing helpers)
+
+Before writing any jaxfne helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/
+EEG-proxy/MEG-proxy/spectrolaminar/AGSDR/manifest logic, consult the curated
+lookup table: [`internal_docs/JAXFNE_AGENT_API_CATALOG.md`](internal_docs/JAXFNE_AGENT_API_CATALOG.md).
+It lists the package-native functions (incl. the exact spectrolaminar pipeline)
+so existing APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.

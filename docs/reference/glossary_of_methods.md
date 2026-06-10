@@ -136,6 +136,7 @@ State is immutable across time (functional programming via JAX).
 ---
 
 **See also:**
+- Agent API Catalog (v0.3.31): see `internal_docs/JAXFNE_AGENT_API_CATALOG.md` in the repo root — curated lookup so agents reuse package-native functions instead of rediscovering them (not part of the docs site; intentionally a plain reference)
 - [API Reference](../api/index.md)
 - [Tutorials](../tutorials/index.md)
 - [Guides](../guides/index.md)

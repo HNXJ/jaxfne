@@ -5,7 +5,7 @@ Reads the already-produced sanity-notebook outputs under ``outputs/delta_test_01
 and emits, under ``outputs/delta_test_01/report/``:
 
 * ``jaxfne_delta_test_01_report.pdf``            — programmatic visual report (matplotlib PdfPages)
-* ``jaxfne_delta_test_01_png_bundle.zip``        — ZIP of the 9 notebook visualization PNGs
+* ``jaxfne_delta_test_01_png_bundle.zip``        — ZIP of the notebook PNGs (9 core gate + optional field-laminar)
 * ``jaxfne_delta_test_01_report_manifest.json``  — strict JSON manifest (hashes/sizes/dims/truth gates)
 * ``jaxfne_delta_test_01_report.md``             — optional plain-text mirror of the report
 
@@ -67,12 +67,24 @@ FIGURE_TITLES = {
     "eeg_proxy_16ch.png": "EEG-proxy (16-channel)",
     "meg_proxy_16ch.png": "MEG-proxy (16-channel)",
     "agsdr_rate_tuning.png": "AGSDR rate-tuning landscape",
-    "spectrolaminar_proxy_V1.png": "Spectrolaminar-proxy V1",
-    "spectrolaminar_proxy_V4.png": "Spectrolaminar-proxy V4",
-    "spectrolaminar_proxy_MT.png": "Spectrolaminar-proxy MT",
-    "spectrolaminar_proxy_FEF.png": "Spectrolaminar-proxy FEF",
-    "spectrolaminar_proxy_PFC.png": "Spectrolaminar-proxy PFC",
+    "spectrolaminar_proxy_V1.png": "Spectrolaminar-proxy V1 (depth x frequency)",
+    "spectrolaminar_proxy_V4.png": "Spectrolaminar-proxy V4 (depth x frequency)",
+    "spectrolaminar_proxy_MT.png": "Spectrolaminar-proxy MT (depth x frequency)",
+    "spectrolaminar_proxy_FEF.png": "Spectrolaminar-proxy FEF (depth x frequency)",
+    "spectrolaminar_proxy_PFC.png": "Spectrolaminar-proxy PFC (depth x frequency)",
+    "field_laminar_proxy_V1.png": "Field-laminar-proxy V1 (depth x time Vm)",
+    "field_laminar_proxy_V4.png": "Field-laminar-proxy V4 (depth x time Vm)",
+    "field_laminar_proxy_MT.png": "Field-laminar-proxy MT (depth x time Vm)",
+    "field_laminar_proxy_FEF.png": "Field-laminar-proxy FEF (depth x time Vm)",
+    "field_laminar_proxy_PFC.png": "Field-laminar-proxy PFC (depth x time Vm)",
 }
+
+# Optional, non-gate diagnostic figures (depth x time layer-averaged Vm proxy).
+# These are NOT spectrolaminar; they complement the core gate set.
+FIELD_LAMINAR_SPECS = [
+    (f"field_laminar_proxy_{a}.png", "field_laminar_proxy")
+    for a in ("V1", "V4", "MT", "FEF", "PFC")
+]
 
 TRUTH_GATES = {
     "truth_mode": "truth_safe_unverified",
@@ -351,20 +363,39 @@ def build_pdf(data: dict, figure_records: list[dict]) -> None:
         _text_page(pdf, agsdr_lines, title="AGSDR Summary")
         md_lines += [""] + agsdr_lines
 
-        # 6. Figures (one page each)
-        md_lines += ["", "## Figures"]
-        for rec in figure_records:
+        # 6. Core gate figures (one page each). Spectrolaminar-proxy panels here
+        #    are the native depth x frequency 3-panel suite.
+        core_recs = [r for r in figure_records if r["core_gate"]]
+        field_recs = [r for r in figure_records if not r["core_gate"]]
+        md_lines += ["", "## Figures (core gate)"]
+        for rec in core_recs:
             fp = Path(rec["path"])
             caption = FIGURE_TITLES.get(fp.name, fp.name)
             _figure_page(pdf, fp, caption)
             md_lines.append(f"- {caption}: {fp.name} ({rec['width_px']}x{rec['height_px']})")
+
+        # 6b. Field-laminar-proxy appendix (optional, depth x time Vm maps).
+        if field_recs:
+            _text_page(pdf, [
+                "## Field-laminar-proxy appendix",
+                "",
+                "These are layer-averaged Vm proxy maps over TIME (depth x time).",
+                "They are complementary diagnostics and are NOT spectrolaminar",
+                "(which is depth x frequency, shown in the core figures above).",
+            ], title="Field-laminar-proxy (depth x time Vm)")
+            md_lines += ["", "## Field-laminar-proxy appendix (optional)"]
+            for rec in field_recs:
+                fp = Path(rec["path"])
+                caption = FIGURE_TITLES.get(fp.name, fp.name)
+                _figure_page(pdf, fp, caption)
+                md_lines.append(f"- {caption}: {fp.name} ({rec['width_px']}x{rec['height_px']})")
 
         # 7. Artifact appendix
         app_lines = ["## Artifact Appendix", ""]
         for rec in figure_records:
             fp = Path(rec["path"])
             app_lines.append(f"{fp.name}")
-            app_lines.append(f"  role:   {rec['role']}")
+            app_lines.append(f"  role:   {rec['role']} ({'core_gate' if rec['core_gate'] else 'optional'})")
             app_lines.append(f"  bytes:  {rec['size_bytes']}")
             app_lines.append(f"  dims:   {rec['width_px']}x{rec['height_px']}")
             app_lines.append(f"  sha256: {rec['sha256']}")
@@ -417,6 +448,8 @@ def build_manifest(data: dict, figure_records: list[dict]) -> dict:
             "sha256": _sha256(ZIP_PATH),
             "size_bytes": ZIP_PATH.stat().st_size,
             "file_count": len(figure_records),
+            "core_count": sum(1 for r in figure_records if r["core_gate"]),
+            "optional_count": sum(1 for r in figure_records if not r["core_gate"]),
         },
         "figures": [
             {
@@ -426,6 +459,7 @@ def build_manifest(data: dict, figure_records: list[dict]) -> dict:
                 "width_px": rec["width_px"],
                 "height_px": rec["height_px"],
                 "role": rec["role"],
+                "core_gate": rec["core_gate"],
             }
             for rec in figure_records
         ],
@@ -436,7 +470,7 @@ def build_manifest(data: dict, figure_records: list[dict]) -> dict:
         "biological_learning_claim": TRUTH_GATES["biological_learning_claim"],
         "mechanism_claim_status": TRUTH_GATES["mechanism_claim_status"],
         "strict_json_pass": bool(data["strict_json_pass"]),
-        "png_figures_present": len(figure_records) == 9,
+        "png_figures_present": sum(1 for r in figure_records if r["core_gate"]) == 9,
         "pdf_report_present": PDF_PATH.exists(),
         "zip_bundle_present": ZIP_PATH.exists(),
     }
@@ -462,19 +496,28 @@ def main() -> int:
     data = gather()
 
     # Build figure records (hash/size/dims) once; reused by PDF, ZIP, manifest.
-    figure_records: list[dict] = []
-    for name, role in FIGURE_SPECS:
+    def _record(name: str, role: str, core_gate: bool) -> dict:
         fp = FIG_DIR / name
         w, h = _image_size(fp)
-        figure_records.append({
+        return {
             "path": str(fp),
             "sha256": _sha256(fp),
             "size_bytes": fp.stat().st_size,
             "width_px": w,
             "height_px": h,
             "role": role,
+            "core_gate": core_gate,
             "strict_validation": fp.stat().st_size > 10_000 and w >= 800 and h >= 500,
-        })
+        }
+
+    core_records = [_record(name, role, True) for name, role in FIGURE_SPECS]
+    # Optional field-laminar diagnostics are included only if present.
+    optional_records = [
+        _record(name, role, False)
+        for name, role in FIELD_LAMINAR_SPECS
+        if (FIG_DIR / name).exists()
+    ]
+    figure_records = core_records + optional_records
 
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     build_pdf(data, figure_records)
@@ -485,7 +528,8 @@ def main() -> int:
     print(f"PDF:      {PDF_PATH}  ({manifest['pdf_report']['size_bytes']} bytes)")
     print(f"          sha256 {manifest['pdf_report']['sha256']}")
     print(f"ZIP:      {ZIP_PATH}  ({manifest['png_bundle']['size_bytes']} bytes, "
-          f"{manifest['png_bundle']['file_count']} pngs)")
+          f"{manifest['png_bundle']['file_count']} pngs = "
+          f"{manifest['png_bundle']['core_count']} core + {manifest['png_bundle']['optional_count']} optional)")
     print(f"          sha256 {manifest['png_bundle']['sha256']}")
     print(f"MD:       {MD_PATH}")
     print(f"manifest: {MANIFEST_PATH}")
