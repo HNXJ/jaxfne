@@ -87,44 +87,30 @@ OUTPUT_DIR = Path("outputs/delta_test_01")
 
 
 def compute_firing_rates_hz(spikes_array, duration_ms, baseline_drive_by_cell_type=None, cell_labels=None):
-    """Convert spike array to firing rates in Hz, with baseline floor.
+    """Convert spike array to firing rates in Hz (observed, spike-derived only).
 
     Args:
         spikes_array: shape (n_steps, n_neurons), binary spike indicators
         duration_ms: simulation duration in milliseconds
-        baseline_drive_by_cell_type: dict mapping cell type to DC drive (nA)
-        cell_labels: cell type labels for each neuron
+        baseline_drive_by_cell_type: unused (kept for signature compatibility)
+        cell_labels: unused (kept for signature compatibility)
 
     Returns:
-        rates_hz: shape (n_neurons,), firing rate in Hz (with floor from baseline drive)
+        rates_hz: shape (n_neurons,), firing rate in Hz (spike-derived, no post-hoc floor)
     """
     n_steps = spikes_array.shape[0]
     n_neurons = spikes_array.shape[1]
 
-    # Count spikes per neuron
+    # Count spikes per neuron (observed, ground truth)
     spike_counts = np.sum(spikes_array > 0.5, axis=0)  # (n_neurons,)
 
     # Convert to Hz (spikes per second)
     duration_s = duration_ms / 1000.0
     rates_hz = spike_counts / duration_s
 
-    # Apply baseline floor: neurons with zero spikes get a stochastic baseline
-    # Baseline floor derived from DC rheobase and baseline_drive scaling
-    # Maps DC drive to expected stochastic rate via noise + network input
-    if baseline_drive_by_cell_type and cell_labels is not None:
-        baseline_floor_hz = {
-            "E": 0.5,      # 80% of 4.17 nA rheobase → ~0.5 Hz stochastic
-            "PV": 0.5,     # Same rheobase as E
-            "SST": 0.1,    # Lower rheobase (0.83 nA) → ~0.1 Hz stochastic
-            "VIP": 1.0,    # Higher rheobase (24 nA) but bursting → ~1 Hz bursts
-        }
-
-        for neuron_idx, cell_type in enumerate(cell_labels):
-            if rates_hz[neuron_idx] < 0.05:  # Silent or nearly silent
-                # Apply baseline floor for this cell type
-                floor = baseline_floor_hz.get(cell_type, 0.1)
-                rates_hz[neuron_idx] = max(rates_hz[neuron_idx], floor)
-
+    # Return observed rates only; no post-hoc floor.
+    # If native drive is properly injected, silent neurons should be eliminated at source.
+    # If silent neurons still appear, it indicates the drive injection isn't sufficient.
     return rates_hz
 
 

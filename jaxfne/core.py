@@ -383,11 +383,15 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
                 neuron_rows.append({"neuron_id": neuron_id, "area": area, "layer": layer, "cell_type": cell_type, "x": float(x[local_idx]), "y": float(y[local_idx]), "z": float(z[local_idx])})
                 neuron_id += 1
 
+    # Apply baseline_drive_by_cell_type from drive specification if present
+    drive_spec = metadata.get("drive", {})
+    baseline_drive = drive_spec.get("baseline_drive_by_cell_type") if isinstance(drive_spec, dict) else None
+
     params = izhikevich_params_from_labels(
         labels,
         layer_labels=layer_labels,
         dtype=dtype,
-        drive_overrides=metadata.get("cell_type_drives"),
+        drive_overrides=baseline_drive,
     )
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
     params = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
