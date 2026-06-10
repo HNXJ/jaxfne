@@ -404,16 +404,30 @@ def main():
             "best_parameters": {
                 "connectivity_gain": best_result["candidate_gain"],
             },
+            # OBSERVED METRICS (gate basis - spike-derived, no post-hoc floor)
+            "observed_baseline_mean_rate_hz": observed_baseline_mean_rate_hz,
+            "observed_baseline_min_neuron_rate_hz": observed_baseline_min_rate_hz,
+            "observed_mean_rate_hz": observed_best_tuned_mean_rate_hz,
+            "observed_min_neuron_rate_hz": observed_best_tuned_min_rate_hz,
+            # REGULARIZED METRICS (for reference; not used for gates)
+            "regularized_baseline_mean_rate_hz": regularized_baseline_mean_rate_hz,
+            "regularized_baseline_min_neuron_rate_hz": regularized_baseline_min_rate_hz,
+            "regularized_mean_rate_hz": regularized_best_tuned_mean_rate_hz,
+            "regularized_min_neuron_rate_hz": regularized_best_tuned_min_rate_hz,
+            "baseline_rate_floor_hz": min_rate_floor_hz,
+            # Legacy fields (for backward compatibility)
             "baseline_mean_rate_hz": baseline_mean_rate_hz,
             "baseline_min_neuron_rate_hz": baseline_min_rate_hz,
             "best_mean_rate_hz": best_result["mean_rate_hz"],
             "best_min_neuron_rate_hz": best_result["min_rate_hz"],
             "mean_rate_error_hz": best_result["mean_error_hz"],
+            # GATE EVALUATION (based on OBSERVED metrics only)
             "min_rate_gate_pass": min_rate_pass,
             "target_gate_pass": target_pass,
+            "min_rate_gate_basis": "observed_spike_rate",
             "tuning_status": tuning_status,
             "same_model_unchanged": True,
-            "rate_improvement_hz": float(best_result["mean_rate_hz"] - baseline_mean_rate_hz),
+            "rate_improvement_hz": float(observed_best_tuned_mean_rate_hz - observed_baseline_mean_rate_hz),
             "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "field_solver_status": "laminar_proxy_no_pde",
