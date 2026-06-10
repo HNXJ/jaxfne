@@ -206,6 +206,16 @@ from .validation import compilation_registry
 from .solvers import euler_step, euler_scan
 # v0.3.31: PyNWB placeholder (not yet implemented)
 from .pynwb_compat import write_nwb, read_nwb
+# v0.3.32: Hierarchical global-local oddball API hardening
+from .sanity_delta import (
+    SanityDeltaConfig,
+    SanityDeltaModel,
+    HierarchicalOddballParadigm,
+    BehaviorGate,
+    BackupState,
+    TaskEpisode,
+    Manifest,
+)
 
 
 __all__ = [
@@ -373,6 +383,14 @@ __all__ = [
     # v0.3.31: PyNWB placeholder
     "write_nwb",
     "read_nwb",
+    # v0.3.32: Hierarchical global-local oddball API
+    "SanityDeltaConfig",
+    "SanityDeltaModel",
+    "HierarchicalOddballParadigm",
+    "BehaviorGate",
+    "BackupState",
+    "TaskEpisode",
+    "Manifest",
 ]
 
 __version__ = _JAXFNE_VERSION
