@@ -27,7 +27,7 @@ def main():
     # 2. Build LinearReadout operator
     W_lfp = rng.standard_normal((n_contacts, n_neurons)).astype(np.float32)
     readout_lfp = jtfne.fields.LinearReadout(
-        name="lfp_like",
+        name="lfp_proxy",
         W=jnp.asarray(W_lfp),
     )
     

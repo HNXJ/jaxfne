@@ -94,7 +94,8 @@ class TestTaskEpisode:
         episode = model.run_task(paradigm=paradigm, gate=paradigm.make_fixation_gate(), backup=backup)
 
         resumed = episode.resume(from_segment="d4")
-        assert resumed is episode
+        assert isinstance(resumed, jtfne.TaskEpisode)
+        assert resumed is not episode
 
 
 class TestManifest:

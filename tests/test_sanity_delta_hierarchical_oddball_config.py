@@ -103,3 +103,32 @@ class TestSanityDeltaModel:
         assert backup.time_ms == 0.0
         assert backup.fixation_counter == 0
         assert backup.runtime_metadata["n_neurons"] == 500
+
+    def test_full_runtime_mode(self, tmp_path):
+        """Test full physical simulation run, validation, resume, and export."""
+        cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball(runtime_mode="full", duration_ms=3000.0)
+        model = cfg.construct()
+        paradigm = cfg.make_paradigm()
+        backup = model.initialize_backup(paradigm)
+        episode = model.run_task(paradigm=paradigm, gate=paradigm.make_fixation_gate(), backup=backup)
+
+        # Check shapes
+        assert episode.spikes.shape == (30000, 500)
+        assert episode.vm.shape == (30000, 500)
+        assert "lfp_proxy" in episode.source_terms
+        assert episode.source_terms["lfp_proxy"].shape == (30000, 20)
+
+        # Validate checks
+        results = episode.validate()
+        assert results["finite_outputs"] is True
+        assert results["backup_resume_equivalence"] is True
+        assert results["proxy_safe_readout_names"] is True
+        assert results["truth_gates_preserved"] is True
+
+        # Export outputs
+        episode.export(artifact_dir=tmp_path)
+        assert (tmp_path / "manifest.json").exists()
+        assert (tmp_path / "validation_report.json").exists()
+        assert (tmp_path / "backup_resume_report.json").exists()
+        assert (tmp_path / "probe_report.json").exists()
+        assert (tmp_path / "plasticity_report.json").exists()
