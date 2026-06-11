@@ -27,9 +27,9 @@ jaxfne makes source-to-field assumptions explicit, executable, auditable, and re
 | Deterministic JAX simulations | supported | `jtfne.simulate`, `tests/test_api_smoke.py` |
 | Typed / chainable configuration | supported | `jtfne.Configuration`, `tests/test_config_*` |
 | Source and probe JSON reports | supported | `jaxfne/fields/probes.py`, `tests/test_probe_operators_v021.py` |
-| Proxy readouts: spk, vm, source | supported | `Signals.get`, probe operators |
-| Proxy readouts: lfp_like, csd_like | supported | `FieldOutput`, laminar projection |
-| Proxy readouts: eeg_like, meg_like, emm_proxy | supported (probe path) | `Model.probe`, `fields/probes.py`; not on core `FieldOutput` |
+| Proxy readouts: spk, vm, source | supported | Signals.get, probe operators |
+| Proxy readouts: lfp_proxy, csd_proxy | supported | FieldOutput, laminar projection |
+| Proxy readouts: eeg_proxy, meg_proxy, emm_proxy | supported (probe path) | Model.probe, fields/probes.py; not on core FieldOutput |
 | Manifests and validation reports | supported | `jaxfne/io.py`, `jaxfne/validation.py` |
 | Tutorial notebooks and examples | supported | `tutorials/`, `examples/` |
 | Optional lazy Jaxley bridge | supported | `jaxfne/bridges.py`, `tests/test_jaxley_optional_dependency.py` |

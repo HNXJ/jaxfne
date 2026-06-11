@@ -17,7 +17,7 @@ def _cfg(n=8):
 
 
 def test_version_008_exports_dataset_spec():
-    parts = [int(p) for p in jtfne.__version__.split(".")]
+    parts = [int(p) for p in jtfne.__version__.split("-")[0].split(".")]
     assert parts >= [0, 0, 8]
     spec = jtfne.dataset_spec(name="nwb_spk", modality="SPK", source_format="npy")
     assert spec.validate()["valid"] is True

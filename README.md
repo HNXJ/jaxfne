@@ -34,8 +34,8 @@ into declared current-like / source-like tensors under explicit bookkeeping
 layers map source tensors into extracellular observable-like variables using a
 quasi-static resistive framing — a row-normalized laminar projection, not a
 Maxwell or boundary-value field solve. Probe operators then sample named
-readouts: spike rasters, voltage-like traces, source traces, LFP-like and
-CSD-like laminar proxies, EEG-like and MEG-like linear-projection proxies, and
+readouts: spike rasters, voltage-like traces, source traces, LFP-proxy and
+CSD-proxy laminar proxies, EEG-proxy and MEG-proxy linear-projection proxies, and
 an EMM-proxy within-run activity/source/field cost summary.
 
 The v0.3.x line uses **simulated / proxy** readouts unless a run supplies
@@ -103,7 +103,7 @@ cfg = (
     .cell_params({"E": {"drive": 4.5, "noise": 0.5}})
     .mechanisms({})
     .connections([])
-    .probes(["spk", "vm", "source", "lfp_like", "csd_like"])
+    .probes(["spk", "vm", "source", "lfp_proxy", "csd_proxy"])
 )
 
 net = jtfne.construct(cfg)
@@ -138,10 +138,10 @@ idx = model.select(cell_type="E")           # resolve selector to indices
 | `spk`       | spike / event readout                                  |
 | `vm`        | voltage / emitter state trace                          |
 | `source`    | declared source tensor or source proxy                 |
-| `lfp_like`  | local potential-like laminar proxy                     |
-| `csd_like`  | laminar source-profile / second-derivative-like proxy  |
-| `eeg_like`  | linear scalp-channel projection proxy                  |
-| `meg_like`  | current-orientation / magnetic projection proxy        |
+| `lfp_proxy` | local potential-like laminar proxy                     |
+| `csd_proxy` | laminar source-profile / second-derivative-like proxy  |
+| `eeg_proxy` | linear scalp-channel projection proxy                  |
+| `meg_proxy` | current-orientation / magnetic projection proxy        |
 | `emm_proxy` | normalized within-run activity / source / field cost   |
 
 All readouts are simulated/proxy under `truth_safe_unverified` status unless a

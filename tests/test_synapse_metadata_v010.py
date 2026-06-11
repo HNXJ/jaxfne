@@ -8,7 +8,7 @@ import jaxfne
 
 
 def test_version_alignment():
-    parts = [int(p) for p in jaxfne.__version__.split(".")]
+    parts = [int(p) for p in jaxfne.__version__.split("-")[0].split(".")]
     assert parts >= [0, 0, 10]
 
     # Also verify pyproject.toml carries the same runtime version.

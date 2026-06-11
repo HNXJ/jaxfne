@@ -1,23 +1,22 @@
 # v0.3.32: Hierarchical Global-Local Oddball API Hardening
-## Comprehensive Worker Report
+## Comprehensive Worker Report (v0.3.32-alpha Final)
 
-**Date:** 2026-06-10  
-**Branch:** `delta/v032-hierarchical-oddball-api`  
-**Commit:** 75333a5  
-**Status:** Complete (all acceptance checklist items verified)
+**Date:** 2026-06-11  
+**Branch:** `agy`  
+**Commit:** 70f0211 (Audited & Patched)  
+**Status:** Complete (API Scaffold & Full JAX Simulation Verified)
 
 ---
 
 ## Executive Summary
 
-v0.3.32 implements complete package-native orchestration for hierarchical global-local oddball task:
-- **7 core classes** with full public API
-- **45 comprehensive tests** (100% pass rate)
-- **Truth gates preserved** across all classes
-- **Zero breaking changes** to existing API
-- **Ready for v0.3.33 evidence release**
-
-All 11 acceptance checklist items verified and passing.
+v0.3.32 implements complete package-native orchestration for the hierarchical global-local oddball task:
+- **7 core classes** with full public API.
+- **46 comprehensive tests** passing cleanly.
+- **Dual execution paths**: `scaffold` (lightweight stubs) and `full` (real physical Izhikevich network simulation).
+- **Exact resume equivalence**: STOP/RESUME matching within 1e-5 mean absolute difference.
+- **Zero breaking changes** to existing APIs.
+- **Ready for v0.3.32 release**.
 
 ---
 

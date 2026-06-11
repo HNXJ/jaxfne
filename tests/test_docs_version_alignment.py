@@ -18,7 +18,7 @@ def get_pyproject_version() -> str:
 
 def test_pyproject_version_format():
     version = get_pyproject_version()
-    assert re.match(r"^\d+\.\d+\.\d+$", version), f"Invalid version format in pyproject.toml: {version}"
+    assert re.match(r"^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$", version), f"Invalid version format in pyproject.toml: {version}"
 
 def test_jaxfne_version_alignment():
     pyproject_version = get_pyproject_version()
