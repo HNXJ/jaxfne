@@ -155,5 +155,5 @@ def test_optional_dependency_guards():
 
 def test_version():
     assert isinstance(jtfne.__version__, str)
-    parts = [int(p) for p in jtfne.__version__.split(".")]
+    parts = [int(p) for p in jtfne.__version__.split("-")[0].split(".")]
     assert parts >= [0, 0, 7]
