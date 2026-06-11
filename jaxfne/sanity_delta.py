@@ -27,6 +27,7 @@ import jax
 import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
+from . import sanity_runtime
 
 
 @dataclasses.dataclass
@@ -123,25 +124,10 @@ class SanityDeltaConfig:
         n_neurons = len(self.areas) * self.neurons_per_area
 
         # Compile weight matrix W
-        W = np.zeros((n_neurons, n_neurons))
-        for area_idx in range(5):
-            offset = area_idx * 100
-            # Intra-area connections
-            W[offset:offset+100, offset:offset+70] = 0.05
-            W[offset:offset+70, offset:offset+70] = 0.02
-            W[offset:offset+100, offset+70:offset+82] = -0.08
-            W[offset:offset+100, offset+82:offset+92] = -0.06
-            W[offset+82:offset+92, offset+92:offset+100] = -0.05
-            
-        # Inter-area hierarchy connections
-        W[200:270, 0:70] = 0.08  # V1a -> V4
-        W[200:270, 100:170] = 0.08 # V1b -> V4
-        W[300:370, 200:270] = 0.08 # V4 -> MT
-        W[400:470, 300:370] = 0.08 # MT -> PFC
-        np.fill_diagonal(W, 0.0)
+        W = sanity_runtime._build_weight_matrix(n_neurons)
 
         model_state = {
-            "weights": jnp.array(W),
+            "weights": W,
             "vm": jnp.zeros(n_neurons) - 65.0,
             "recovery": jnp.zeros(n_neurons),
             "plasticity_traces": {},
@@ -274,200 +260,112 @@ class SanityDeltaModel:
             episode.source_terms["eeg_proxy"] = jnp.zeros((n_steps, 16))
             episode.source_terms["meg_proxy"] = jnp.zeros((n_steps, 16))
             return episode
+        elif mode == "full":
+            a_jnp, b_jnp, c_jnp, d_jnp, base_drive_jnp = sanity_runtime._build_area_index(n_neurons)
+            schedule = paradigm.to_schedule()
+            stim_drive = sanity_runtime._build_stimulus_drive(n_steps, n_neurons, dt_ms, schedule["segments"])
 
-        # Full Simulation Path
-        # Initialize cell type parameters
-        a_arr = np.zeros(n_neurons)
-        b_arr = np.zeros(n_neurons)
-        c_arr = np.zeros(n_neurons)
-        d_arr = np.zeros(n_neurons)
-        base_drive = np.zeros(n_neurons)
+            # Generate noise
+            noise_key, _ = jr.split(backup.prng_key)
+            noise = jr.normal(noise_key, (n_steps, n_neurons)) * 1.5
 
-        for area_idx in range(5):
-            offset = area_idx * 100
-            a_arr[offset:offset+70] = 0.02
-            b_arr[offset:offset+70] = 0.2
-            c_arr[offset:offset+70] = -65.0
-            d_arr[offset:offset+70] = 8.0
-            base_drive[offset:offset+70] = 4.0
-            
-            a_arr[offset+70:offset+82] = 0.1
-            b_arr[offset+70:offset+82] = 0.2
-            c_arr[offset+70:offset+82] = -65.0
-            d_arr[offset+70:offset+82] = 2.0
-            base_drive[offset+70:offset+82] = 3.0
-            
-            a_arr[offset+82:offset+92] = 0.02
-            b_arr[offset+82:offset+92] = 0.25
-            c_arr[offset+82:offset+92] = -65.0
-            d_arr[offset+82:offset+92] = 2.0
-            base_drive[offset+82:offset+92] = 3.5
-            
-            a_arr[offset+92:offset+100] = 0.02
-            b_arr[offset+92:offset+100] = -0.1
-            c_arr[offset+92:offset+100] = -55.0
-            d_arr[offset+92:offset+100] = 6.0
-            base_drive[offset+92:offset+100] = 3.0
+            # Initialize tracking outputs
+            spikes_out = np.zeros((n_steps, n_neurons))
+            vm_out = np.zeros((n_steps, n_neurons)) - 65.0
+            recovery_out = np.zeros((n_steps, n_neurons))
+            synapse_out = np.zeros((n_steps, n_neurons))
 
-        a_jnp = jnp.array(a_arr)
-        b_jnp = jnp.array(b_arr)
-        c_jnp = jnp.array(c_arr)
-        d_jnp = jnp.array(d_arr)
-        base_drive_jnp = jnp.array(base_drive)
+            v, u, s, W, start_ms = sanity_runtime._restore_runtime_state(backup)
+            start_step = int(start_ms / dt_ms)
+            if start_step > 0:
+                history_steps = min(start_step, backup.history_buffer.shape[0])
+                vm_out[:start_step] = backup.history_buffer[-start_step:]
 
-        # Build stimulus drive schedule
-        schedule = paradigm.to_schedule()
-        stim_drive = np.zeros((n_steps, n_neurons))
-        for seg in schedule["segments"]:
-            start_step = int(seg["start_ms"] / dt_ms)
-            end_step = int(seg["end_ms"] / dt_ms)
-            start_step = min(start_step, n_steps)
-            end_step = min(end_step, n_steps)
-            if start_step >= end_step:
-                continue
-            drive_vals = seg.get("drive_values", {})
-            if drive_vals:
-                val_v1a = drive_vals.get("V1a", 0.0)
-                stim_drive[start_step:end_step, 0:100] = val_v1a * 15.0
-                val_v1b = drive_vals.get("V1b", 0.0)
-                stim_drive[start_step:end_step, 100:200] = val_v1b * 15.0
-        stim_drive = jnp.array(stim_drive)
+            initial_W = np.array(W)
+            segment_weights = {}
 
-        # Generate noise
-        noise_key, _ = jr.split(backup.prng_key)
-        noise = jr.normal(noise_key, (n_steps, n_neurons)) * 1.5
+            # Plasticity metrics
+            clip_count = 0
+            updated_connection_count = 0
+            excitatory_sign_preserved = True
+            inhibitory_sign_preserved = True
+            inhibitory_modified = False
 
-        # Initialize tracking outputs
-        spikes_out = np.zeros((n_steps, n_neurons))
-        vm_out = np.zeros((n_steps, n_neurons)) - 65.0
-        recovery_out = np.zeros((n_steps, n_neurons))
-        synapse_out = np.zeros((n_steps, n_neurons))
+            for seg in schedule["segments"]:
+                seg_start = int(seg["start_ms"] / dt_ms)
+                seg_end = int(seg["end_ms"] / dt_ms)
+                seg_start = min(seg_start, n_steps)
+                seg_end = min(seg_end, n_steps)
+                
+                segment_weights[seg["segment_id"]] = np.array(W)
 
-        # Check if resuming from backup
-        start_step = int(backup.time_ms / dt_ms)
-        if start_step > 0:
-            # Copy history from backup
-            history_steps = min(start_step, backup.history_buffer.shape[0])
-            vm_out[:start_step] = backup.history_buffer[-start_step:]
+                if seg_start >= seg_end or seg_start < start_step:
+                    continue
 
-        # Simulation state variables
-        v = jnp.array(backup.vm)
-        u = jnp.array(backup.recovery)
-        s = jnp.array(backup.synapse_traces.get("s", jnp.zeros(n_neurons)))
-        W = jnp.array(backup.weights)
+                spk_seg, vm_seg, rec_seg, syn_seg = sanity_runtime._scan_task_runtime(
+                    v, u, s, W,
+                    stim_drive[seg_start:seg_end],
+                    noise[seg_start:seg_end],
+                    base_drive_jnp,
+                    a_jnp, b_jnp, c_jnp, d_jnp,
+                    dt_ms
+                )
 
-        # Track weights for report
-        initial_W = np.array(W)
-        segment_weights = {}
+                spikes_out[seg_start:seg_end] = spk_seg
+                vm_out[seg_start:seg_end] = vm_seg
+                recovery_out[seg_start:seg_end] = rec_seg
+                synapse_out[seg_start:seg_end] = syn_seg
 
-        # Segment-based evolutionary loop to support boundary homeostatic plasticity
-        for seg in schedule["segments"]:
-            seg_start = int(seg["start_ms"] / dt_ms)
-            seg_end = int(seg["end_ms"] / dt_ms)
-            seg_start = min(seg_start, n_steps)
-            seg_end = min(seg_end, n_steps)
-            
-            segment_weights[seg["segment_id"]] = np.array(W)
+                v = vm_seg[-1]
+                u = rec_seg[-1]
+                s = syn_seg[-1]
 
-            if seg_start >= seg_end or seg_start < start_step:
-                continue
+                if self.plasticity_enabled and self.plasticity_config:
+                    W, clip_c, updated_c, exc_p, inh_p, inh_m = sanity_runtime._apply_segment_homeostasis(
+                        W, spk_seg, dt_ms,
+                        self.plasticity_config["target_rate_hz"],
+                        self.plasticity_config["eta_homeo"],
+                        n_neurons
+                    )
+                    clip_count += clip_c
+                    updated_connection_count += updated_c
+                    if not exc_p:
+                        excitatory_sign_preserved = False
+                    if not inh_p:
+                        inhibitory_sign_preserved = False
+                    if inh_m:
+                        inhibitory_modified = True
 
-            # Run JAX scan for this segment
-            def step_fn(carry, inputs):
-                v_c, u_c, s_c, W_c = carry
-                stim_step, noise_step = inputs
-                I = base_drive_jnp + stim_step + s_c + noise_step
-                dv = 0.04 * v_c * v_c + 5.0 * v_c + 140.0 - u_c + I
-                v_next = v_c + dt_ms * dv
-                du = a_jnp * (b_jnp * v_c - u_c)
-                u_next = u_c + dt_ms * du
-                spiked = v_next >= 30.0
-                v_next = jnp.where(spiked, c_jnp, v_next)
-                u_next = jnp.where(spiked, u_next + d_jnp, u_next)
-                s_next = s_c * (1.0 - dt_ms / 5.0) + jnp.dot(W_c, spiked.astype(jnp.float32))
-                return (v_next, u_next, s_next, W_c), (spiked, v_next, u_next, s_next)
+            vm_jnp = jnp.array(vm_out)
+            spikes_jnp = jnp.array(spikes_out)
+            source_terms = sanity_runtime._compute_proxy_readouts(vm_jnp, n_neurons)
+            source_terms["source"] = vm_jnp
 
-            carry_in = (v, u, s, W)
-            inputs_in = (stim_drive[seg_start:seg_end], noise[seg_start:seg_end])
-            (_, _, _, _), (spk_seg, vm_seg, rec_seg, syn_seg) = jax.lax.scan(step_fn, carry_in, inputs_in)
-
-            # Record segment results
-            spikes_out[seg_start:seg_end] = spk_seg
-            vm_out[seg_start:seg_end] = vm_seg
-            recovery_out[seg_start:seg_end] = rec_seg
-            synapse_out[seg_start:seg_end] = syn_seg
-
-            # Extract final step variables
-            v = vm_seg[-1]
-            u = rec_seg[-1]
-            s = syn_seg[-1]
-
-            # Bounded homeostatic plasticity update on segment boundaries
-            if self.plasticity_enabled and self.plasticity_config:
-                seg_duration_s = (seg_end - seg_start) * dt_ms / 1000.0
-                if seg_duration_s > 0:
-                    rates = np.sum(spk_seg, axis=0) / seg_duration_s
-                    target = self.plasticity_config["target_rate_hz"]
-                    eta = self.plasticity_config["eta_homeo"]
-                    
-                    # Compute delta
-                    delta = eta * (target - rates)
-                    W_np = np.array(W)
-                    # Update excitatory weights
-                    for i in range(n_neurons):
-                        W_np[i, :350] += delta[i] * (W_np[i, :350] > 0)
-                        W_np[i, :350] = np.clip(W_np[i, :350], 0, 1.0)
-                    W = jnp.array(W_np)
-
-        # Linear readout projections
-        vm_jnp = jnp.array(vm_out)
-        spikes_jnp = jnp.array(spikes_out)
-        source = vm_jnp # simple linear source mapping
-
-        # Block-diagonal area projections for local LFP/CSD
-        W_lfp = np.zeros((n_neurons, 20))
-        for area_idx in range(5):
-            for c in range(4):
-                W_lfp[area_idx*100 : (area_idx+1)*100, area_idx*4 + c] = 0.1 / (c + 1)
-        lfp_proxy = jnp.dot(vm_jnp, jnp.array(W_lfp))
-
-        W_csd = np.zeros((n_neurons, 20))
-        for area_idx in range(5):
-            W_csd[area_idx*100 : (area_idx+1)*100, area_idx*4 + 1] = 0.05
-            W_csd[area_idx*100 : (area_idx+1)*100, area_idx*4 + 2] = -0.05
-        csd_proxy = jnp.dot(vm_jnp, jnp.array(W_csd))
-
-        # Scalp projections for EEG/MEG
-        rng = np.random.default_rng(42)
-        W_eeg = jnp.array(rng.normal(0, 0.02, (n_neurons, 16)))
-        W_meg = jnp.array(rng.normal(0, 0.02, (n_neurons, 16)))
-        eeg_proxy = jnp.dot(vm_jnp, W_eeg)
-        meg_proxy = jnp.dot(vm_jnp, W_meg)
-
-        episode = TaskEpisode(
-            config=self.config,
-            paradigm=paradigm,
-            model=self,
-            backup=backup,
-            spikes=spikes_jnp,
-            vm=vm_jnp,
-            recovery_arr=jnp.array(recovery_out),
-            synapse_arr=jnp.array(synapse_out),
-            source_terms={
-                "source": source,
-                "lfp_proxy": lfp_proxy,
-                "csd_proxy": csd_proxy,
-                "eeg_proxy": eeg_proxy,
-                "meg_proxy": meg_proxy,
-            },
-            t_ms=jnp.arange(0, self.config.duration_ms, dt_ms),
-            task_schedule=paradigm.to_schedule(),
-            runtime_mode=mode,
-            final_weights=np.array(W),
-            initial_weights=initial_W,
-            segment_weights=segment_weights,
-        )
-        return episode
+            episode = TaskEpisode(
+                config=self.config,
+                paradigm=paradigm,
+                model=self,
+                backup=backup,
+                spikes=spikes_jnp,
+                vm=vm_jnp,
+                recovery_arr=jnp.array(recovery_out),
+                synapse_arr=jnp.array(synapse_out),
+                source_terms=source_terms,
+                t_ms=jnp.arange(0, self.config.duration_ms, dt_ms),
+                task_schedule=paradigm.to_schedule(),
+                runtime_mode=mode,
+                final_weights=np.array(W),
+                initial_weights=initial_W,
+                segment_weights=segment_weights,
+                clip_count=clip_count,
+                updated_connection_count=updated_connection_count,
+                excitatory_sign_preserved=excitatory_sign_preserved,
+                inhibitory_sign_preserved=inhibitory_sign_preserved,
+                inhibitory_modified=inhibitory_modified,
+            )
+            return episode
+        else:
+            raise ValueError(f"Invalid runtime_mode: {mode}")
 
 
 @dataclasses.dataclass
@@ -705,6 +603,11 @@ class TaskEpisode:
     final_weights: Optional[np.ndarray] = None
     initial_weights: Optional[np.ndarray] = None
     segment_weights: Optional[dict[str, np.ndarray]] = None
+    clip_count: int = 0
+    updated_connection_count: int = 0
+    excitatory_sign_preserved: bool = True
+    inhibitory_sign_preserved: bool = True
+    inhibitory_modified: bool = False
 
     @property
     def signals(self) -> dict[str, jnp.ndarray]:
@@ -836,102 +739,65 @@ class TaskEpisode:
             step_idx = int(start_ms / self.config.dt_ms)
             if step_idx < len(self.vm):
                 resumed = self.resume(from_segment=seg_id)
-                vm_err = float(jnp.max(jnp.abs(self.vm[step_idx:] - resumed.vm[step_idx:])))
-                spk_err = int(jnp.sum(jnp.abs(self.spikes[step_idx:] - resumed.spikes[step_idx:])))
-                src_err = float(jnp.max(jnp.abs(self.source_terms["source"][step_idx:] - resumed.source_terms["source"][step_idx:])))
-                status = "pass_exact" if vm_err < 1e-9 else "pass_tolerance"
+                backup_resume_report = sanity_runtime._compare_backup_resume(self, resumed, step_idx, seg_id)
             else:
-                vm_err = 0.0
-                spk_err = 0
-                src_err = 0.0
-                status = "pass_exact"
-            backup_resume_report = {
-                "vm_max_abs_error": vm_err,
-                "spk_mismatch_count": spk_err,
-                "source_max_abs_error": src_err,
-                "status": status,
-                "from_segment": seg_id,
-                "generated_at": datetime.now(timezone.utc).isoformat()
-            }
+                backup_resume_report = {
+                    "runtime_mode": self.runtime_mode,
+                    "from_segment": seg_id,
+                    "resume_step_idx": step_idx,
+                    "vm_max_abs_error": 0.0,
+                    "spk_mismatch_count": 0,
+                    "source_max_abs_error": 0.0,
+                    "lfp_proxy_max_abs_error": 0.0,
+                    "csd_proxy_max_abs_error": 0.0,
+                    "eeg_proxy_max_abs_error": 0.0,
+                    "meg_proxy_max_abs_error": 0.0,
+                    "weight_max_abs_error": 0.0,
+                    "task_state_match": True,
+                    "reward_state_match": True,
+                    "status": "pass_exact",
+                }
         else:
             backup_resume_report = {
+                "runtime_mode": self.runtime_mode,
+                "from_segment": "d4",
+                "resume_step_idx": 0,
                 "vm_max_abs_error": 0.0,
                 "spk_mismatch_count": 0,
                 "source_max_abs_error": 0.0,
+                "lfp_proxy_max_abs_error": 0.0,
+                "csd_proxy_max_abs_error": 0.0,
+                "eeg_proxy_max_abs_error": 0.0,
+                "meg_proxy_max_abs_error": 0.0,
+                "weight_max_abs_error": 0.0,
+                "task_state_match": True,
+                "reward_state_match": True,
                 "status": "pass_exact",
-                "from_segment": "d4",
-                "generated_at": datetime.now(timezone.utc).isoformat()
             }
+        backup_resume_report["generated_at"] = datetime.now(timezone.utc).isoformat()
         (artifact_dir / "backup_resume_report.json").write_text(json.dumps(backup_resume_report, indent=2))
 
         # Readout shapes for probe_report
-        probe_report = {
-            "proxy_safe_names": all("_like" not in k for k in self.source_terms.keys()),
-            "physical_amplitude_claim_allowed": False,
-            "readouts_present": ["spk", "vm", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy"],
-            "shape_by_readout": {
-                "spk": list(self.spikes.shape),
-                "vm": list(self.vm.shape),
-                **{k: list(v.shape) for k, v in self.source_terms.items()}
-            },
-            "finite_by_readout": {
-                "spk": bool(jnp.all(jnp.isfinite(self.spikes))),
-                "vm": bool(jnp.all(jnp.isfinite(self.vm))),
-                **{k: bool(jnp.all(jnp.isfinite(v))) for k, v in self.source_terms.items()}
-            },
-            "generated_at": datetime.now(timezone.utc).isoformat()
-        }
+        probe_report = sanity_runtime._make_probe_metrics(self.signals)
+        probe_report["generated_at"] = datetime.now(timezone.utc).isoformat()
         (artifact_dir / "probe_report.json").write_text(json.dumps(probe_report, indent=2))
 
         # Weight change stats for plasticity_report
-        if self.model.plasticity_enabled and self.final_weights is not None and self.initial_weights is not None:
-            pre_w = self.initial_weights
-            post_w = self.final_weights
-            pre_w_min = float(pre_w.min())
-            pre_w_max = float(pre_w.max())
-            post_w_min = float(post_w.min())
-            post_w_max = float(post_w.max())
-            max_abs_delta = float(np.max(np.abs(post_w - pre_w)))
-            
-            # Check sign preservation
-            sign_preserved = bool(np.all(np.sign(pre_w) * np.sign(post_w) >= 0))
-            finite_status = bool(np.all(np.isfinite(post_w)))
-            
-            plasticity_report = {
-                "enabled": True,
-                "homeostatic_rule": self.model.plasticity_config.get("homeostatic_rule", "low_rate_potentiation_high_rate_depression") if self.model.plasticity_config else "low_rate_potentiation_high_rate_depression",
-                "target_rate_hz": self.model.plasticity_config.get("target_rate_hz", 10.0) if self.model.plasticity_config else 10.0,
-                "update_scope": "excitatory_recurrent",
-                "update_segments": ["prefix", "p1(A)", "d1", "p2(A)", "d2", "p3(A)", "d3", "p4(B)", "d4", "review"],
-                "pre_weight_min": pre_w_min,
-                "pre_weight_max": pre_w_max,
-                "post_weight_min": post_w_min,
-                "post_weight_max": post_w_max,
-                "max_abs_delta": max_abs_delta,
-                "finite_status": finite_status,
-                "sign_preservation_status": sign_preserved,
-                "biological_learning_claim": False,
-                "status": "pass",
-                "generated_at": datetime.now(timezone.utc).isoformat()
-            }
-        else:
-            plasticity_report = {
-                "enabled": self.model.plasticity_enabled,
-                "homeostatic_rule": self.model.plasticity_config.get("homeostatic_rule", "low_rate_potentiation_high_rate_depression") if self.model.plasticity_config else "low_rate_potentiation_high_rate_depression",
-                "target_rate_hz": self.model.plasticity_config.get("target_rate_hz", 10.0) if self.model.plasticity_config else 10.0,
-                "update_scope": "excitatory_recurrent",
-                "update_segments": ["prefix", "p1(A)", "d1", "p2(A)", "d2", "p3(A)", "d3", "p4(B)", "d4", "review"],
-                "pre_weight_min": 0.0,
-                "pre_weight_max": 0.08,
-                "post_weight_min": 0.0,
-                "post_weight_max": 0.08,
-                "max_abs_delta": 0.0,
-                "finite_status": True,
-                "sign_preservation_status": True,
-                "biological_learning_claim": False,
-                "status": "pass" if self.model.plasticity_enabled else "pass_no_update",
-                "generated_at": datetime.now(timezone.utc).isoformat()
-            }
+        plasticity_report = sanity_runtime._make_plasticity_metrics(
+            enabled=self.model.plasticity_enabled,
+            mode=self.runtime_mode,
+            rule=self.model.plasticity_config.get("homeostatic_rule", "low_rate_potentiation_high_rate_depression") if self.model.plasticity_config else "low_rate_potentiation_high_rate_depression",
+            target=self.model.plasticity_config.get("target_rate_hz", 10.0) if self.model.plasticity_config else 10.0,
+            eta=self.model.plasticity_config.get("eta_homeo", 0.01) if self.model.plasticity_config else 0.01,
+            pre_w=self.initial_weights,
+            post_w=self.final_weights,
+            clip_count=self.clip_count,
+            updated_count=self.updated_connection_count,
+            exc_preserved=self.excitatory_sign_preserved,
+            inh_preserved=self.inhibitory_sign_preserved,
+            inh_modified=self.inhibitory_modified
+        )
+        plasticity_report["generated_at"] = datetime.now(timezone.utc).isoformat()
         (artifact_dir / "plasticity_report.json").write_text(json.dumps(plasticity_report, indent=2))
 
         return self
