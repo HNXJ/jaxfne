@@ -1025,12 +1025,12 @@ class Configuration:
         # Use standard L1-L6 fractions if not provided
         if layer_fractions is None:
             layer_fractions = {
-                "L1": (0.00, 0.10),
-                "L2": (0.10, 0.25),
-                "L3": (0.25, 0.45),
-                "L4": (0.45, 0.55),
-                "L5": (0.55, 0.85),
-                "L6": (0.85, 1.00),
+                "L1": (0.00, 0.08),
+                "L2": (0.08, 0.20),
+                "L3": (0.20, 0.35),
+                "L4": (0.35, 0.45),
+                "L5": (0.45, 0.75),
+                "L6": (0.75, 1.00),
             }
 
         # Validate layer fractions
@@ -1041,12 +1041,12 @@ class Configuration:
         # Use default layer cell-type distributions if not provided
         if layer_cell_types is None:
             layer_cell_types = {
-                "L1": {"E": 0.75, "PV": 0.0, "SST": 0.0, "VIP": 0.25},
-                "L2": {"E": 0.75, "PV": 0.05, "SST": 0.05, "VIP": 0.15},
-                "L3": {"E": 0.75, "PV": 0.10, "SST": 0.10, "VIP": 0.05},
-                "L4": {"E": 0.25, "PV": 0.45, "SST": 0.15, "VIP": 0.15},
-                "L5": {"E": 0.15, "PV": 0.25, "SST": 0.30, "VIP": 0.30},
-                "L6": {"E": 0.10, "PV": 0.20, "SST": 0.20, "VIP": 0.50},
+                "L1": {"E": 0.20, "PV": 0.10, "SST": 0.10, "VIP": 0.60},
+                "L2": {"E": 0.40, "PV": 0.15, "SST": 0.30, "VIP": 0.15},
+                "L3": {"E": 0.40, "PV": 0.35, "SST": 0.20, "VIP": 0.05},
+                "L4": {"E": 0.50, "PV": 0.35, "SST": 0.10, "VIP": 0.05},
+                "L5": {"E": 0.90, "PV": 0.05, "SST": 0.04, "VIP": 0.01},
+                "L6": {"E": 0.90, "PV": 0.05, "SST": 0.04, "VIP": 0.01},
             }
 
         metadata = dict(self.metadata)

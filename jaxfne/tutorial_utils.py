@@ -741,12 +741,12 @@ def make_laminar_column_config(
     area_x_rel=(-1.0, 0.0, 1.0),
     layers=("L1", "L2", "L3", "L4", "L5", "L6"),
     layer_fractions=(
-        ("L1", 0.00, 0.10),
-        ("L2", 0.10, 0.25),
-        ("L3", 0.25, 0.45),
-        ("L4", 0.45, 0.55),
-        ("L5", 0.55, 0.85),
-        ("L6", 0.85, 1.00),
+        ("L1", 0.00, 0.08),
+        ("L2", 0.08, 0.20),
+        ("L3", 0.20, 0.35),
+        ("L4", 0.35, 0.45),
+        ("L5", 0.45, 0.75),
+        ("L6", 0.75, 1.00),
     ),
     layer_count_frac=None,
     layer_cell_type_frac=None,
@@ -836,7 +836,14 @@ def make_laminar_column_config(
     """
     # Fill defaults for None arguments
     if layer_count_frac is None:
-        layer_count_frac = {L: 1.0 / len(layers) for L in layers}
+        layer_count_frac = {
+            "L1": 0.08,
+            "L2": 0.12,
+            "L3": 0.15,
+            "L4": 0.10,
+            "L5": 0.30,
+            "L6": 0.25,
+        }
 
     if layer_cell_type_frac is None:
         layer_cell_type_frac = {L: {ct: 1.0 / len(cell_types) for ct in cell_types} for L in layers}
