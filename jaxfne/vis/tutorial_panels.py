@@ -434,10 +434,21 @@ def spectrolaminar_suite_3panel(
         # the vertical axis and frequency the horizontal axis.
         relative_power = np.asarray(spec['relative_power'], dtype=float)
         freq_hz = np.asarray(spec['freq_hz'], dtype=float)
+        # Check if depth-normalized
+        is_depth_normalized = np.allclose(relative_power.sum(axis=1), 1.0, atol=1e-2)
+        if is_depth_normalized:
+            vmin_to_use = 0.0
+            vmax_to_use = float(relative_power.max())
+            if vmax_to_use <= 0.0:
+                vmax_to_use = 1.0
+        else:
+            vmin_to_use = power_vmin
+            vmax_to_use = power_vmax
+
         im = axes[1].imshow(
             relative_power.T, aspect='auto', origin='lower',
             extent=[float(freq_hz[0]), float(freq_hz[-1]), pos_lo, pos_hi],
-            cmap='viridis', vmin=power_vmin, vmax=power_vmax,
+            cmap='viridis', vmin=vmin_to_use, vmax=vmax_to_use,
         )
         axes[1].axhline(0, color=line_color, lw=1.0, alpha=0.7)
         axes[1].set_title('B Mean Relative Power Spectrum', fontsize=10)

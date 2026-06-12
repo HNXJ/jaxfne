@@ -1800,21 +1800,11 @@ def spectrolaminar_from_trials(
         psd_accum += np.abs(spec_t) / max(n_steps, 1)
     psd = (psd_accum / max(n_trials_eff, 1)).astype(np.float32)
 
-    # Normalize to relative power. Use a robust scale that IGNORES degenerate
-    # low-power channels (e.g. the top contact whose CSD is ~0 from the spatial
-    # derivative) — otherwise those channels drag the percentile floor down and
-    # collapse the relative-power contrast across depth.
-    psd_log = np.log10(psd + 1e-12)
-    chan_power = psd.mean(axis=0)
-    pmax = float(chan_power.max())
-    if pmax > 0:
-        valid = chan_power >= (low_power_frac * pmax)
-    else:
-        valid = np.ones(n_contacts, dtype=bool)
-    if int(valid.sum()) < 2:
-        valid = np.ones(n_contacts, dtype=bool)
-    vmin, vmax = np.percentile(psd_log[:, valid], [5, 95])
-    relative_power = np.clip((psd_log - vmin) / (vmax - vmin + 1e-12), 0, 1)
+    # Normalize to relative power per frequency across depth channels.
+    # Given X[t, depth_channel], psd shape is (freq_count, n_contacts).
+    # We want: P_rel[depth_channel, frequency] = P[depth_channel, frequency] / sum_depth(P[:, frequency])
+    depth_sum = psd.sum(axis=1, keepdims=True)
+    relative_power = psd / (depth_sum + 1e-12)
 
     # Extract band profiles for the spectrolaminar cross (panel C).
     #

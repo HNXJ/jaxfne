@@ -203,7 +203,14 @@ from .sharding_utils import (
 # v0.3.20: compilation registry
 from .validation import compilation_registry
 # v0.3.31: state integrators
-from .solvers import euler_step, euler_scan
+from .solvers import (
+    euler_step,
+    euler_scan,
+    SolverConfig,
+    EulerSolver,
+    DiffraxSolver,
+    solve_ode,
+)
 # v0.3.31: PyNWB placeholder (not yet implemented)
 from .pynwb_compat import write_nwb, read_nwb
 # v0.3.32: Hierarchical global-local oddball API hardening
@@ -382,6 +389,10 @@ __all__ = [
     # v0.3.31: state integrators
     "euler_step",
     "euler_scan",
+    "SolverConfig",
+    "EulerSolver",
+    "DiffraxSolver",
+    "solve_ode",
     # v0.3.31: PyNWB placeholder
     "write_nwb",
     "read_nwb",
