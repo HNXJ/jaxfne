@@ -882,7 +882,7 @@ def make_laminar_column_config(
         # `drive` is the per-type internal excitability knob; `noise` is the
         # per-type stochastic-current std (stability knob). Override any subset.
         cell_type_izh_params = {
-            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 4.5, 'noise': 0.5},
+            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 5.5, 'noise': 1.0},
             'PV':  {'a': 0.10,  'b': 0.20,  'c': -65.0, 'd': 2.0,  'drive': 3.5, 'noise': 0.5},
             'SST': {'a': 0.02,  'b': 0.25,  'c': -65.0, 'd': 2.0,  'drive': 3.0, 'noise': 0.5},
             'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
@@ -1526,6 +1526,24 @@ def simulate_laminar_trials(
         contrib = (w / src_idx.size) * sign[src_idx][None, :]
         W[np.ix_(dst_idx, src_idx)] += np.broadcast_to(contrib, (dst_idx.size, src_idx.size))
         applied_rules.append(str(rule.get('name', 'rule')))
+
+    # Apply connection matrix filters:
+    # 1. PV/SST/VIP only receive inter-laminar connections (pre_layer != post_layer)
+    # 2. Inter-area connections must be E-to-E only
+    post_cell_types = np.asarray(cell_labels)
+    post_layers = np.asarray(layer_labels)
+    post_areas = np.asarray(area_labels)
+    
+    same_layer = post_layers[:, None] == post_layers[None, :]
+    diff_area = post_areas[:, None] != post_areas[None, :]
+    post_is_i = np.isin(post_cell_types, ["PV", "SST", "VIP"])[:, None]
+    
+    not_e_post = (post_cell_types != "E")[:, None]
+    not_e_pre = (post_cell_types != "E")[None, :]
+    not_e_to_e = not_e_post | not_e_pre
+    
+    W[post_is_i & same_layer] = 0.0
+    W[diff_area & not_e_to_e] = 0.0
 
     edges = make_edge_list_from_dense(jnp.asarray(W), dtype=cfg.dtype)
 
