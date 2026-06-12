@@ -1,5 +1,5 @@
 """
-Test suite for v0.3.8 LFP/CSD-like readout tutorial.
+Test suite for v0.3.8 LFP/CSD readout tutorial.
 
 Validates:
 - Notebook structure and API compliance
@@ -20,26 +20,26 @@ class TestNotebookStructure:
 
     def test_notebook_exists(self):
         """Assert notebook file exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         assert nb_path.exists(), f"Expected {nb_path}"
 
     def test_notebook_is_valid_json(self):
         """Assert notebook is valid JSON."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         assert isinstance(content, dict), "Notebook is not valid JSON"
         assert "cells" in content, "Notebook missing cells key"
 
     def test_notebook_has_cells(self):
         """Assert notebook has expected cell count."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         cells = content.get("cells", [])
         assert len(cells) >= 12, f"Expected >= 12 cells, got {len(cells)}"
 
     def test_first_cell_is_title_markdown(self):
         """Assert first cell is markdown with title."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         first_cell = content["cells"][0]
         assert first_cell["cell_type"] == "markdown", "First cell should be markdown"
@@ -48,7 +48,7 @@ class TestNotebookStructure:
 
     def test_second_cell_imports_jaxfne(self):
         """Assert second code cell imports jaxfne."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         code_cells = [c for c in content["cells"] if c["cell_type"] == "code"]
         assert len(code_cells) >= 1, "No code cells found"
@@ -62,7 +62,7 @@ class TestCanonicalImports:
 
     def test_notebook_defines_helper_functions(self):
         """Assert helper functions are defined."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -72,7 +72,7 @@ class TestCanonicalImports:
 
     def test_notebook_uses_public_api_workflow(self):
         """Assert notebook uses public API workflow."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -91,7 +91,7 @@ class TestConfigurationAPI:
 
     def test_notebook_single_neuron_config(self):
         """Assert single neuron example exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -100,7 +100,7 @@ class TestConfigurationAPI:
 
     def test_notebook_laminar_config(self):
         """Assert laminar column example exists."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -109,7 +109,7 @@ class TestConfigurationAPI:
 
     def test_notebook_probes_lfp_csd(self):
         """Assert LFP-proxy and CSD-proxy probes are specified."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -118,7 +118,7 @@ class TestConfigurationAPI:
 
     def test_notebook_has_n_contacts_16(self):
         """Assert n_contacts=16 is specified."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -131,7 +131,7 @@ class TestFigureDeclaration:
 
     def test_figure_filenames_declared(self):
         """Assert all expected figure names are mentioned."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -149,7 +149,7 @@ class TestFigureDeclaration:
 
     def test_figures_directory_created(self):
         """Assert figures output directory is created."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -161,7 +161,7 @@ class TestMetadataManifest:
 
     def test_notebook_declares_manifest_keys(self):
         """Assert manifest keys are declared."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -182,7 +182,7 @@ class TestMetadataManifest:
 
     def test_notebook_physical_amplitude_false(self):
         """Assert physical_amplitude_claim_allowed is False."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -197,7 +197,7 @@ class TestPublicWording:
 
     def test_no_negative_prose_patterns(self):
         """Assert no negative prose patterns in public text."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
 
         forbidden_patterns = [
@@ -218,7 +218,7 @@ class TestPublicWording:
 
     def test_approved_scope_language(self):
         """Assert approved scope language is present."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
@@ -238,18 +238,18 @@ class TestDocumentation:
 
     def test_docs_page_exists(self):
         """Assert tutorial documentation page exists."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         assert docs_path.exists(), f"Expected {docs_path}"
 
     def test_docs_page_has_content(self):
         """Assert docs page has substantive content."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
         assert len(content) > 1000, "Documentation page too short"
 
     def test_docs_mentions_examples(self):
         """Assert docs page covers all examples."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         examples = ["Example 1", "Example 2", "Example 3", "Single Neuron", "Laminar"]
@@ -258,7 +258,7 @@ class TestDocumentation:
 
     def test_docs_includes_equations(self):
         """Assert docs page includes mathematical equations."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Check for LaTeX math delimiters or equation references
@@ -267,7 +267,7 @@ class TestDocumentation:
 
     def test_docs_includes_configuration_examples(self):
         """Assert docs page shows configuration examples."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         assert "Configuration()" in content, "Missing Configuration() example"
@@ -313,7 +313,7 @@ class TestArtifactValidation:
     )
     def test_output_directory_exists(self):
         """Assert output directory was created."""
-        output_dir = Path("tutorial_outputs/v038_lfp_csd_like_readout/figures")
+        output_dir = Path("tutorial_outputs/v038_lfp_csd_readout/figures")
         assert output_dir.exists(), f"Output directory {output_dir} not created"
 
     @pytest.mark.skipif(
@@ -322,7 +322,7 @@ class TestArtifactValidation:
     )
     def test_all_figures_exist(self):
         """Assert all 6 PNG figures were generated."""
-        figure_dir = Path("tutorial_outputs/v038_lfp_csd_like_readout/figures")
+        figure_dir = Path("tutorial_outputs/v038_lfp_csd_readout/figures")
 
         expected_figures = [
             "01_source_heatmap.png",
@@ -343,7 +343,7 @@ class TestArtifactValidation:
     )
     def test_figures_nonzero_size(self):
         """Assert PNG files have nonzero size."""
-        figure_dir = Path("tutorial_outputs/v038_lfp_csd_like_readout/figures")
+        figure_dir = Path("tutorial_outputs/v038_lfp_csd_readout/figures")
 
         for png_file in figure_dir.glob("*.png"):
             size = png_file.stat().st_size
@@ -355,7 +355,7 @@ class TestArtifactValidation:
     )
     def test_manifest_exists_and_valid(self):
         """Assert manifest JSON exists and is valid."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         assert manifest_path.exists(), f"Manifest {manifest_path} not found"
 
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
@@ -367,7 +367,7 @@ class TestArtifactValidation:
     )
     def test_manifest_json_safe(self):
         """Assert manifest is JSON-safe (no NaN/Inf)."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         # Should not raise on allow_nan=False
@@ -382,7 +382,7 @@ class TestArtifactValidation:
     )
     def test_manifest_has_required_keys(self):
         """Assert manifest has all required keys."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         required_keys = [
@@ -407,7 +407,7 @@ class TestArtifactValidation:
     )
     def test_manifest_scope_gates(self):
         """Assert manifest has correct scope gates."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         assert manifest["scope_status"] == "computational_scaffold"
@@ -420,7 +420,7 @@ class TestArtifactValidation:
     )
     def test_manifest_shapes_correct(self):
         """Assert manifest tensor shapes are as expected."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         # Source should have shape [T, N] where N is the neuron count
@@ -442,7 +442,7 @@ class TestArtifactValidation:
     )
     def test_manifest_outputs_finite(self):
         """Assert manifest reports all outputs are finite."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         assert manifest["finite_outputs"] is True, "All outputs should be finite"
@@ -453,7 +453,7 @@ class TestArtifactValidation:
     )
     def test_manifest_population_rate_reasonable(self):
         """Assert population rate is in active-rate regime."""
-        manifest_path = Path("tutorial_outputs/v038_lfp_csd_like_readout/manifest.json")
+        manifest_path = Path("tutorial_outputs/v038_lfp_csd_readout/manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
 
         rate = manifest["mean_population_rate_hz"]
@@ -466,7 +466,7 @@ class TestExecutionSmoke:
 
     def test_notebook_syntax_valid(self):
         """Assert notebook can be parsed without errors."""
-        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_like_readout.ipynb")
+        nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
 
         # Basic validation
@@ -479,7 +479,7 @@ class TestExecutionSmoke:
 
     def test_docs_markdown_valid(self):
         """Assert documentation page is valid markdown."""
-        docs_path = Path("docs/tutorials/08_v038_lfp_csd_like_readout.md")
+        docs_path = Path("docs/tutorials/08_v038_lfp_csd_readout.md")
         content = docs_path.read_text(encoding='utf-8')
 
         # Basic markdown checks

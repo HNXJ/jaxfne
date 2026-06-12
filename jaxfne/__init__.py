@@ -227,17 +227,23 @@ from . import sanity_runtime
 
 # v0.3.34: STDP network plasticity API
 from .plasticity import (
-    build_stdp_network_geometry,
-    build_initial_stdp_weights,
-    generate_triangular_drive,
-    run_stdp_simulation_chunk,
+    STDPPlasticityConfig,
+    STDPState,
+    summarize_stdp_adaptation,
+    plot_stdp_adaptation_suite,
 )
+from .geometry import make_ei_cloud_network
+from .stimulus import triangular_drive
+from .streaming import run_stdp_stream
 
 __all__ = [
-    "build_stdp_network_geometry",
-    "build_initial_stdp_weights",
-    "generate_triangular_drive",
-    "run_stdp_simulation_chunk",
+    "STDPPlasticityConfig",
+    "STDPState",
+    "summarize_stdp_adaptation",
+    "plot_stdp_adaptation_suite",
+    "make_ei_cloud_network",
+    "triangular_drive",
+    "run_stdp_stream",
     "compilation_registry",
     "AxisSpec",
     "BasisSpec",
