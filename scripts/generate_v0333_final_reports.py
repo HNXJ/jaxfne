@@ -122,7 +122,7 @@ def process_figures_and_reports():
     for name in required:
         src = src_fig_dir / name
         dst = fig_dir / name
-        if src.exists():
+        if name != "agsdr_rate_tuning.png" and src.exists():
             shutil.copy(src, dst)
         
         if dst.exists():
@@ -187,7 +187,7 @@ def process_figures_and_reports():
     depth_sums = relative_power.sum(axis=1) # shape (freq_count,)
     
     spectrolaminar_report = {
-        "areas": ["V1a", "V1b", "V4", "MT", "PFC"],
+        "areas": ["V1", "V4", "MT", "FEF", "PFC"],
         "frequency_hz": spec_dict["freq_hz"].tolist(),
         "depth_channels": list(range(20)),
         "power_shape": [64, 20],
@@ -204,6 +204,10 @@ def process_figures_and_reports():
     print("Saved spectrolaminar report.")
 
 def main():
+    # Run structured gain optimization first to generate the heatmap figure
+    import scripts.run_agsdr_gain_optimization as agsdr_opt
+    agsdr_opt.main()
+
     clean_docs_wording()
     run_notebooks()
     process_figures_and_reports()
