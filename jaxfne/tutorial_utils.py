@@ -882,7 +882,7 @@ def make_laminar_column_config(
         # `drive` is the per-type internal excitability knob; `noise` is the
         # per-type stochastic-current std (stability knob). Override any subset.
         cell_type_izh_params = {
-            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 5.5, 'noise': 1.0},
+            'E':   {'a': 0.015, 'b': 0.20,  'c': -60.0, 'd': 10.0, 'drive': 3.5, 'noise': 0.5},
             'PV':  {'a': 0.10,  'b': 0.20,  'c': -65.0, 'd': 2.0,  'drive': 3.5, 'noise': 0.5},
             'SST': {'a': 0.02,  'b': 0.25,  'c': -65.0, 'd': 2.0,  'drive': 3.0, 'noise': 0.5},
             'VIP': {'a': 0.02,  'b': 0.20,  'c': -55.0, 'd': 6.0,  'drive': 5.0, 'noise': 0.5},
