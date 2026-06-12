@@ -53,7 +53,7 @@ Two tests spawn large examples as subprocesses:
 - `test_network_100_ei_colab_v0210.py::test_example_script_runs`
 - `test_two_neuron_ei_colab_v029.py::test_example_script_runs`
 
-These fail in local dev without release-validation environment setup. They should be marked `@pytest.mark.release_validation` to exclude from default pytest runs. See [Release validation](#release-validation) for manual execution.
+These fail in local dev without release-validation environment setup. They should be marked `@pytest.mark.release_validation` to exclude from default pytest runs. See [Extended validation](#extended-validation-manualrelease) for manual execution.
 
 ## Extended Validation (Manual/Release)
 

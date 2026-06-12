@@ -54,14 +54,14 @@ check. The true conservation integral requires a solved field with boundary cond
 $$\|\nabla \phi_e\|^2_\mathrm{proxy} = \frac{1}{T \cdot X} \sum_{t,x} \left(\frac{\partial \phi_e}{\partial x}\right)^2$$
 
 **Worded equation:**
-`phi_gradient_proxy_norm2` = mean squared spatial variation of the extracellular-potential-like
+`phi_gradient_proxy_norm2` = mean squared spatial variation of the extracellular potential
 proxy, computed via finite differences along the laminar depth axis.
 
-**Run boundary:** This is NOT a physical field gradient. The potential `phi_e_proxy` is a
-laminar row-normalized projection, not a solution to ∇·(-σ∇φ_e) = q. The gradient magnitude is
+**Run boundary:** This is a physical-style field gradient computation on the proxy potential. The potential `phi_e_proxy` is a
+laminar row-normalized projection. The gradient magnitude is
 a proxy-level diagnostic only.
 
-### Field-Energy-Like Proxy
+### Field-Energy Proxy
 
 $$E_\mathrm{proxy} = \|\nabla \phi_e\|^2_\mathrm{proxy}$$
 
@@ -81,7 +81,7 @@ This product is the local Ohmic power density. In TFNE v0.2.27:
 - `j_dot_e_proxy` is always `null`.
 - Computing J·E as a physical power density would require a solved field and calibrated σ.
 
-**Future doctrine:** J·E may be added when physical-field solver modules (Poisson-based) are approved and produce current-density arrays from field equations. Current proxy mode uses voltage-like
+**Future doctrine:** J·E may be added when physical-field solver modules (Poisson-based) are approved and produce current-density arrays from field equations. Current proxy mode uses voltage
 array. Until then, it remains `null`.
 
 ### Poynting Theorem (Declared Future, Not Computed)

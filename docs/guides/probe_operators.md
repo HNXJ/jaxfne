@@ -62,7 +62,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 ### LFP-proxy
 
-**Purpose:** Sample or average extracellular potential-like state at contacts.
+**Purpose:** Sample or average extracellular potential state at contacts.
 
 **Acceptable v0.2.1 implementation:**
 - Point sample from `phi_e` proxy/solution
@@ -84,7 +84,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 ### CSD-proxy
 
-**Purpose:** Estimate current-source density-like source profile or second spatial derivative/divergence proxy.
+**Purpose:** Estimate current-source density profile or second spatial derivative/divergence proxy.
 
 **Acceptable v0.2.1 implementation:**
 - `div(J_e)` when `J_e` exists
@@ -109,7 +109,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 ### EEG-proxy
 
-**Purpose:** Provide a simulated scalp-channel-like readout using a declared toy or proxy lead field.
+**Purpose:** Provide a simulated scalp-channel proxy readout using a declared toy or proxy lead field.
 
 **Acceptable v0.2.1 implementation:**
 
@@ -136,7 +136,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 ### MEG-proxy
 
-**Purpose:** Provide a simulated magnetometer-like readout using a declared current-orientation or lead-field proxy.
+**Purpose:** Provide a simulated magnetometer proxy readout using a declared current-orientation or lead-field proxy.
 
 **Acceptable v0.2.1 implementation:**
 
@@ -171,7 +171,7 @@ EMM = electromagnetic metabolism estimate proxy
 **Interpretation in v0.2.1:**
 
 ```
-normalized electrophysiological activity / electromagnetic energy-like cost proxy
+normalized electrophysiological activity / electromagnetic energy cost proxy
 ```
 
 **Possible first operator:**

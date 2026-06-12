@@ -26,7 +26,7 @@ field_claim_level: proxy_readout_only
 physical_amplitude_claim_allowed: false
 ```
 
-LFP/CSD-like outputs are laminar **proxy** readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is **emergent** from the dynamics and the leadfield — it is not imposed.
+LFP/CSD outputs are laminar **proxy** readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is **emergent** from the dynamics and the leadfield — it is not imposed.
 
 ## Colab setup
 
@@ -73,7 +73,7 @@ trials = jtfne.tutorial_utils.simulate_laminar_trials(model, cfg, cfg.base_contr
 7b. Single-cell E/PV/SST/VIP waveform explorer
 8.  Build model + interactive 3D cortical scaffold
 9.  Stimulus, target cells, simulation
-10. Activity suite (raster / Vm / extracellular proxy / CSD-like / PSD)
+10. Activity suite (raster / Vm / extracellular proxy / CSD-proxy / PSD)
 11. Spectrolaminar relative-power motif (A density / B power spectrum / C alpha-beta vs gamma)
 12. Export artifacts (manifest / metrics / validation / hashes)
 13. AGSDR fine-tuning (target firing rate + minimize kappa)

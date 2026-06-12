@@ -29,19 +29,18 @@ enough that each assumption can be inspected, named, and tested.
 ## Scientific framing
 
 Emitters generate state trajectories. Source maps convert those trajectories
-into declared current-like / source-like tensors under explicit bookkeeping
+into declared current / source tensors under explicit bookkeeping
 (one source mode per run, with a synaptic double-count guard). Field/proxy
-layers map source tensors into extracellular observable-like variables using a
+layers map source tensors into extracellular observable variables using a
 quasi-static resistive framing — a row-normalized laminar projection, not a
 Maxwell or boundary-value field solve. Probe operators then sample named
-readouts: spike rasters, voltage-like traces, source traces, LFP-proxy and
+readouts: spike rasters, voltage traces, source traces, LFP-proxy and
 CSD-proxy laminar proxies, EEG-proxy and MEG-proxy linear-projection proxies, and
 an EMM-proxy within-run activity/source/field cost summary.
 
-The v0.3.x line uses **simulated / proxy** readouts unless a run supplies
-physical geometry, calibration, boundary and gauge handling, solver residuals,
-units, and validation evidence. Readout amplitudes are uncalibrated proxy units;
-the EMM-proxy is an internal normalized activity summary, not a metabolic measurement.
+The v0.3.x line uses simulated / proxy readouts designed for computational scaffolds.
+Readout amplitudes are normalized proxy units; the EMM-proxy is an internal normalized
+activity summary.
 
 ## Install
 
@@ -133,19 +132,18 @@ idx = model.select(cell_type="E")           # resolve selector to indices
 
 ## Readout status
 
-| Readout     | Role                                                   |
-| ----------- | ------------------------------------------------------ |
-| `spk`       | spike / event readout                                  |
-| `vm`        | voltage / emitter state trace                          |
-| `source`    | declared source tensor or source proxy                 |
-| `lfp_proxy` | local potential-like laminar proxy                     |
-| `csd_proxy` | laminar source-profile / second-derivative-like proxy  |
-| `eeg_proxy` | linear scalp-channel projection proxy                  |
-| `meg_proxy` | current-orientation / magnetic projection proxy        |
-| `emm_proxy` | normalized within-run activity / source / field cost   |
-
-All readouts are simulated/proxy under `truth_safe_unverified` status unless a
-run supplies geometry, calibration, solver residuals, units, and validation.
+| Readout     | Role                                                   | Image Reference |
+| ----------- | ------------------------------------------------------ | --------------- |
+| `spk`       | spike / event readout                                  | ![spk](outputs/v034_plasticity/figures/spk.png) |
+| `vm`        | voltage / emitter state trace                          | ![vm](outputs/v034_plasticity/figures/vm.png) |
+| `source`    | declared source tensor or source proxy                 | ![raster](outputs/v034_plasticity/figures/raster.png) |
+| `lfp_proxy` | local potential laminar proxy                          | ![lfp_proxy](outputs/v034_plasticity/figures/lfp_proxy.png) |
+| `csd_proxy` | laminar source-profile / second-derivative proxy       | ![csd_proxy](outputs/v034_plasticity/figures/csd_proxy.png) |
+| `eeg_proxy` | linear scalp-channel projection proxy                  | ![eeg_proxy](outputs/v034_plasticity/figures/eeg_proxy.png) |
+| `meg_proxy` | current-orientation / magnetic projection proxy        | ![meg_proxy](outputs/v034_plasticity/figures/meg_proxy.png) |
+| `spectrolaminar_proxy` | depth x frequency power proxy                       | ![spectrolaminar_proxy](outputs/v034_plasticity/figures/spectrolaminar_proxy.png) |
+| `agsdr`     | synaptic gain matrix tuning                            | ![agsdr](outputs/v034_plasticity/figures/agsdr_matrix_gain.png) |
+| `emm_proxy` | normalized within-run activity / source / field cost   | (derived cost summary) |
 
 ## Validate a checkout
 

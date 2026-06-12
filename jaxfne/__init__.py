@@ -225,9 +225,19 @@ from .sanity_delta import (
 )
 from . import sanity_runtime
 
-
+# v0.3.34: STDP network plasticity API
+from .plasticity import (
+    build_stdp_network_geometry,
+    build_initial_stdp_weights,
+    generate_triangular_drive,
+    run_stdp_simulation_chunk,
+)
 
 __all__ = [
+    "build_stdp_network_geometry",
+    "build_initial_stdp_weights",
+    "generate_triangular_drive",
+    "run_stdp_simulation_chunk",
     "compilation_registry",
     "AxisSpec",
     "BasisSpec",

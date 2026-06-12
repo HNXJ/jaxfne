@@ -1,4 +1,4 @@
-# v0.3.8: LFP/CSD-Like Readout Tutorial
+# v0.3.8: LFP/CSD Readout Tutorial
 
 **Version:** 0.3.8  
 **Difficulty:** Intermediate  
@@ -48,7 +48,7 @@ where $d_c$ is contact depth, $d_n$ is neuron depth, and $w = 0.10$ is the kerne
 
 **Worded equation:** The kernel is a Gaussian centered at each contact's depth, with width controlled by w. Row normalization ensures each contact receives a properly weighted summary.
 
-### CSD-like Readout (Second Spatial Derivative)
+### CSD-proxy Readout (Second Spatial Derivative)
 
 $$\text{CSD}(t, c) \approx -\frac{Y(t, c-1) - 2Y(t, c) + Y(t, c+1)}{\Delta z^2}$$
 
@@ -160,7 +160,7 @@ A single neuron in layer L2/3 projects to 16 evenly-spaced laminar contacts.
 - **Source shape:** [T=10000, N=1] (time × neuron)
 - **LFP-proxy shape:** [T=10000, C=16] (time × contacts)
 - **CSD-proxy shape:** [T=10000, C=16] (time × contacts, second derivative)
-- **Single source → distributed field:** The point source is smoothed by the Gaussian kernel, producing a smooth LFP-like profile across contacts
+- **Single source → distributed field:** The point source is smoothed by the Gaussian kernel, producing a smooth LFP-proxy profile across contacts
 - **Nearest contacts receive highest amplitude:** Contacts near the neuron's depth receive stronger signal
 
 ---
