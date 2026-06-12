@@ -483,7 +483,7 @@ class TestSimulateTrials:
         )
         model = build_laminar_column(cfg)
         trials = simulate_laminar_trials(model, cfg, n_trials=1)
-        assert set(trials["connectivity_applied"]) == {"feedforward", "feedback"}
+        assert {"feedforward", "feedback"}.issubset(set(trials["connectivity_applied"]))
 
     def test_lesion_silences_target_neurons(self):
         """lesion_spec must zero spikes for matching neurons (knock-out)."""

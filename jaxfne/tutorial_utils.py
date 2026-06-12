@@ -901,6 +901,44 @@ def make_laminar_column_config(
                 'dst_area': 'V1', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': None,
                 'weight': 8.0, 'control_key': 'feedback_gain',
             },
+            # Intra-column L4 -> L2/3 pathways
+            {
+                'name': 'L4_to_L23_V1', 'src_area': 'V1',
+                'src_layers': ('L4',), 'src_cell_types': ('E',),
+                'dst_area': 'V1', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedforward_gain',
+            },
+            {
+                'name': 'L4_to_L23_V4', 'src_area': 'V4',
+                'src_layers': ('L4',), 'src_cell_types': ('E',),
+                'dst_area': 'V4', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedforward_gain',
+            },
+            {
+                'name': 'L4_to_L23_PFC', 'src_area': 'PFC',
+                'src_layers': ('L4',), 'src_cell_types': ('E',),
+                'dst_area': 'PFC', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedforward_gain',
+            },
+            # Intra-column deep -> L2/3 pathways
+            {
+                'name': 'deep_to_L23_V1', 'src_area': 'V1',
+                'src_layers': ('L5', 'L6'), 'src_cell_types': ('E',),
+                'dst_area': 'V1', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedback_gain',
+            },
+            {
+                'name': 'deep_to_L23_V4', 'src_area': 'V4',
+                'src_layers': ('L5', 'L6'), 'src_cell_types': ('E',),
+                'dst_area': 'V4', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedback_gain',
+            },
+            {
+                'name': 'deep_to_L23_PFC', 'src_area': 'PFC',
+                'src_layers': ('L5', 'L6'), 'src_cell_types': ('E',),
+                'dst_area': 'PFC', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
+                'weight': 12.0, 'control_key': 'feedback_gain',
+            },
         )
 
     if lesion_spec is None:
