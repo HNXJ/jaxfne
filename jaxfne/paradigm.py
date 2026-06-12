@@ -377,7 +377,18 @@ def coop_omission_oddball_paradigm(
         }
     )
 
-paradigm.coop_omission_oddball_paradigm = coop_omission_oddball_paradigm
-paradigm.omission_oddball_paradigm = omission_oddball_paradigm
-paradigm.evoked_l4_drive_paradigm = evoked_l4_drive_paradigm
+import sys
+from types import ModuleType as _ModuleType
+
+class _ParadigmModuleWrapper(_ModuleType):
+    def __call__(self, *args, **kwargs):
+        return paradigm(*args, **kwargs)
+
+# Replace the module in sys.modules
+_current_module = sys.modules[__name__]
+_wrapper = _ParadigmModuleWrapper(__name__)
+_wrapper.__dict__.update(_current_module.__dict__)
+_wrapper.__file__ = __file__
+sys.modules[__name__] = _wrapper
+
 

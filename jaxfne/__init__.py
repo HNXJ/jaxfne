@@ -56,7 +56,6 @@ from .core import (
     omission_oddball_paradigm,
     coop_omission_oddball_paradigm,
     operator_status,
-    paradigm,
     rate_targets,
     runtime_report,
     _JAXFNE_VERSION,
@@ -85,6 +84,7 @@ from .core import (
     default_basis_spec,
 )
 
+from . import paradigm
 from . import tutorial_utils
 from .tutorial_utils import (
     select_neurons,

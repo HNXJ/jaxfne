@@ -1,5 +1,5 @@
 {
-  "version": "0.3.34",
+  "version": "0.3.32-alpha",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -91,6 +91,7 @@
     "configuration",
     "construct",
     "construct_source_tensor",
+    "coop_omission_oddball_paradigm",
     "dataset_spec",
     "default_basis_spec",
     "eeg_proxy_transform",
@@ -121,6 +122,7 @@
     "matrix_parameter",
     "meg_proxy_transform",
     "objective",
+    "omission_oddball_paradigm",
     "operator_status",
     "optax_adam",
     "optax_sgd",
@@ -178,5 +180,13 @@
     "vis",
     "with_emitter_parameters",
     "write_nwb"
-  ]
+  ],
+  "has_Configuration": true,
+  "has_Config": true,
+  "has_Model": true,
+  "has_Simulation": true,
+  "has_Signals": true,
+  "has_RuntimeConfig": true,
+  "has_construct": true,
+  "has_simulate": true
 }
