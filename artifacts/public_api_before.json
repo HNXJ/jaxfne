@@ -98,6 +98,7 @@
     "euler_step",
     "get_sharding_context",
     "get_signal",
+    "is_valid_signal",
     "gsdr",
     "gsdr_transform",
     "hh_numpy_reference_trace",

@@ -37,6 +37,59 @@ def _is_finite_value(val: Any) -> bool:
         return True
 
 
+def is_valid_signal(signals: Any) -> bool:
+    """Check if signal arrays contain only finite values (no NaN/Inf).
+
+    Validates that a Signals object or signal dict has required arrays with
+    finite values. Checks V_m (membrane potential) and spikes (spike raster)
+    as the core required signals.
+
+    Parameters
+    ----------
+    signals : Signals or dict
+        Either a jaxfne.Signals object or a dict-like object with 'V_m' and
+        'spikes' keys (both jax.Array or compatible).
+
+    Returns
+    -------
+    bool
+        True if all required signal arrays are present and finite;
+        False if any required array is missing, contains NaN/Inf, or input
+        type is invalid.
+
+    Examples
+    --------
+    >>> import jaxfne as jtfne
+    >>> cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=10.0)
+    >>> model = jtfne.construct(cfg)
+    >>> signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1, seed=0)
+    >>> assert jtfne.is_valid_signal(signals)
+    """
+    try:
+        # Try to get V_m and spikes from the signals object
+        if hasattr(signals, "V_m") and hasattr(signals, "spikes"):
+            # signals is a Signals dataclass
+            v_m = signals.V_m
+            spikes = signals.spikes
+        elif isinstance(signals, dict):
+            # signals is a dict-like object
+            if "V_m" not in signals or "spikes" not in signals:
+                return False
+            v_m = signals["V_m"]
+            spikes = signals["spikes"]
+        else:
+            # Invalid input type
+            return False
+
+        # Check that arrays are finite
+        v_m_finite = jnp.isfinite(v_m).all()
+        spikes_finite = jnp.isfinite(spikes).all()
+
+        return bool(v_m_finite and spikes_finite)
+    except (AttributeError, KeyError, TypeError, ValueError):
+        return False
+
+
 def validate_scalar_conductivity(
     sigma: Any, *, tolerance: float = 1e-10
 ) -> dict[str, Any]:

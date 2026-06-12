@@ -201,7 +201,7 @@ from .sharding_utils import (
     make_replicated_sharding,
 )
 # v0.3.20: compilation registry
-from .validation import compilation_registry
+from .validation import compilation_registry, is_valid_signal
 # v0.3.31: state integrators
 from .solvers import (
     euler_step,
@@ -313,6 +313,7 @@ __all__ = [
     "surrogate_config",
     "trial_batch",
     "validate_config",
+    "is_valid_signal",
     "vis",
     "with_emitter_parameters",
     # Etude No. 1 tutorial scaffold builder (unambiguous alias)
