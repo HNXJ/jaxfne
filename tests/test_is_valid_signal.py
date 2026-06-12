@@ -149,3 +149,26 @@ class TestIsValidSignalExportedInPublicAPI:
     def test_in_all(self):
         """is_valid_signal should be in __all__."""
         assert "is_valid_signal" in jtfne.__all__
+
+
+class TestIsValidSignalAliases:
+    """Test is_valid_signal with vm/spk aliases."""
+
+    def test_valid_dict_signals_aliases(self):
+        """Valid dict with vm and spk should pass."""
+        signals_dict = {
+            "vm": jnp.zeros((10, 5)),
+            "spk": jnp.ones((10, 5))
+        }
+        assert jtfne.is_valid_signal(signals_dict) is True
+
+    def test_valid_object_signals_aliases(self):
+        """Valid object with vm and spk should pass."""
+        class MockSignals:
+            def __init__(self):
+                self.vm = jnp.zeros((5,))
+                self.spk = jnp.zeros((5,))
+
+        signals = MockSignals()
+        assert jtfne.is_valid_signal(signals) is True
+

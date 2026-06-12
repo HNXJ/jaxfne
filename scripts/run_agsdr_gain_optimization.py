@@ -117,8 +117,8 @@ def main():
 
     # Plot the 5x5 structured gain matrix heatmap
     import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=(7, 6))
-    im = ax.imshow(best_G, cmap="viridis", vmin=0.0, vmax=3.0)
+    fig, ax = plt.subplots(figsize=(11, 8.5))
+    im = ax.imshow(best_G.T, cmap="viridis", vmin=0.0, vmax=3.0)
     cbar = fig.colorbar(im, ax=ax, label="Synaptic Gain Scale")
     
     # Label areas
@@ -129,18 +129,19 @@ def main():
     ax.set_yticklabels(areas)
     ax.set_xlabel("Presynaptic Source Area")
     ax.set_ylabel("Postsynaptic Destination Area")
-    ax.set_title("Optimized Structured Gain Matrix G[src, dst]")
+    ax.set_title("Optimized Structured Gain Matrix G.T[dst, src]")
     
     # Annotate non-diagonal active gain values
     for i in range(5):
         for j in range(5):
             if i != j:
-                ax.text(j, i, f"{best_G[i, j]:.2f}", ha="center", va="center", color="white" if best_G[i, j] < 1.5 else "black")
+                val = best_G.T[i, j]
+                ax.text(j, i, f"{val:.2f}", ha="center", va="center", color="white" if val < 1.5 else "black")
                 
     plt.tight_layout()
     fig_dir = Path("outputs/v0333_final_patch/figures")
     fig_dir.mkdir(parents=True, exist_ok=True)
-    plt.savefig(fig_dir / "agsdr_rate_tuning.png", dpi=100)
+    plt.savefig(fig_dir / "agsdr_rate_tuning.png", dpi=120)
     plt.close()
     print(f"Saved optimized structured gain figure to: {fig_dir / 'agsdr_rate_tuning.png'}")
 

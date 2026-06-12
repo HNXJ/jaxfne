@@ -131,12 +131,13 @@ def process_figures_and_reports():
                 mode_by_figure[name] = img.mode
                 
     # Figure quality report
+    all_meet = all(size[0] >= 1000 and size[1] >= 500 for size in size_by_figure.values())
     fig_quality = {
         "figures_scanned": required,
-        "all_meet_size_gate": all(size[0] >= 1000 and size[1] >= 500 for size in size_by_figure.values()),
+        "all_meet_size_gate": all_meet,
         "size_by_figure": size_by_figure,
         "mode_by_figure": mode_by_figure,
-        "quality_status": "PASS"
+        "quality_status": "PASS" if all_meet else "FAIL"
     }
     with open(out_dir / "figure_quality_report.json", "w") as f:
         json.dump(fig_quality, f, indent=2)
@@ -166,25 +167,57 @@ def process_figures_and_reports():
         "contact_depths_m": np.linspace(0, 1e-3, 20),
         "voltage_mV": np.array(episode.signals.get("vm")),
         "source_native": np.array(episode.signals.get("source")) if "source" in episode.signals else np.zeros_like(episode.signals.get("vm")),
-        "lfp_contacts": np.array(episode.signals.get("lfp_proxy")) if "lfp_proxy" in episode.signals else np.zeros((1, episode.signals.get("csd_proxy").shape[0], 20))
+        "lfp_contacts": np.array(episode.signals.get("lfp_proxy"))[None, ...] if "lfp_proxy" in episode.signals else np.zeros((1, episode.signals.get("csd_proxy").shape[0], 20))
     }
     
-    # Run spectrolaminar_from_trials on V1 (indices 0 to 99 in neurons corresponds to V1, wait)
+    # Run spectrolaminar_from_trials on all five areas
+    areas = ["V1", "V4", "MT", "FEF", "PFC"]
+    per_area = {}
+    
+    for idx, area in enumerate(areas):
+        # Slice the 4 CSD channels for this area
+        area_csd = trials["csd_contacts"][:, :, idx*4 : (idx+1)*4]
+        area_trials = {
+            "csd_contacts": area_csd,
+            "contact_depths_m": np.linspace(0, 1e-3, 4),
+            "voltage_mV": trials["voltage_mV"],
+            "source_native": trials["source_native"],
+            "lfp_contacts": trials["lfp_contacts"][:, :, idx*4 : (idx+1)*4]
+        }
+        
+        area_cfg = jtfne.make_laminar_column_config(
+            areas=(area,),
+            n_contacts=4,
+            freq_count=64,
+        )
+        area_cfg = jtfne.tutorial_utils.LaminarColumnConfig(
+            **{**area_cfg.__dict__, "dt_ms": 0.1}
+        )
+        
+        relative_power, spec_dict = jtfne.tutorial_utils.spectrolaminar_from_trials(
+            area_trials, area_cfg, signal_key="csd_contacts"
+        )
+        
+        depth_sums = relative_power.sum(axis=1)
+        per_area[area] = {
+            "sum_min": float(np.min(depth_sums)),
+            "sum_max": float(np.max(depth_sums)),
+            "shape": list(relative_power.shape)
+        }
+        
+    # Global / legacy V1 check for backward compatibility/root keys
     column_cfg = jtfne.make_laminar_column_config(
         areas=("V1",),
         n_contacts=20,
         freq_count=64,
     )
-    # Ensure dt_ms matches
     column_cfg = jtfne.tutorial_utils.LaminarColumnConfig(
         **{**column_cfg.__dict__, "dt_ms": 0.1}
     )
-    
     relative_power, spec_dict = jtfne.tutorial_utils.spectrolaminar_from_trials(
         trials, column_cfg, signal_key="csd_contacts"
     )
-    
-    depth_sums = relative_power.sum(axis=1) # shape (freq_count,)
+    global_depth_sums = relative_power.sum(axis=1)
     
     spectrolaminar_report = {
         "areas": ["V1", "V4", "MT", "FEF", "PFC"],
@@ -193,9 +226,10 @@ def process_figures_and_reports():
         "power_shape": [64, 20],
         "relative_power_shape": list(relative_power.shape),
         "finite_outputs": bool(np.all(np.isfinite(relative_power))),
-        "per_frequency_depth_sum_min": float(np.min(depth_sums)),
-        "per_frequency_depth_sum_max": float(np.max(depth_sums)),
+        "per_frequency_depth_sum_min": float(np.min(global_depth_sums)),
+        "per_frequency_depth_sum_max": float(np.max(global_depth_sums)),
         "per_frequency_depth_sum_tolerance": 1e-5,
+        "per_area": per_area,
         "figure_paths": [str(fig_dir / f"spectrolaminar_proxy_{area}.png") for area in ["V1", "V4", "MT", "FEF", "PFC"]]
     }
     

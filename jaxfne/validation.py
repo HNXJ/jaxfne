@@ -66,19 +66,27 @@ def is_valid_signal(signals: Any) -> bool:
     >>> assert jtfne.is_valid_signal(signals)
     """
     try:
-        # Try to get V_m and spikes from the signals object
         if hasattr(signals, "V_m") and hasattr(signals, "spikes"):
-            # signals is a Signals dataclass
             v_m = signals.V_m
             spikes = signals.spikes
+        elif hasattr(signals, "vm") and hasattr(signals, "spk"):
+            v_m = signals.vm
+            spikes = signals.spk
         elif isinstance(signals, dict):
-            # signals is a dict-like object
-            if "V_m" not in signals or "spikes" not in signals:
+            if "V_m" in signals:
+                v_m = signals["V_m"]
+            elif "vm" in signals:
+                v_m = signals["vm"]
+            else:
                 return False
-            v_m = signals["V_m"]
-            spikes = signals["spikes"]
+
+            if "spikes" in signals:
+                spikes = signals["spikes"]
+            elif "spk" in signals:
+                spikes = signals["spk"]
+            else:
+                return False
         else:
-            # Invalid input type
             return False
 
         # Check that arrays are finite

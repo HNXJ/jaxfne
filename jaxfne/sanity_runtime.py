@@ -149,6 +149,13 @@ def _apply_segment_homeostasis(
     inh_sign_preserved = True
     inh_modified = False
 
+    # Create explicit excitatory/inhibitory mask (70 E, 30 I per 100-neuron block)
+    exc_mask = np.zeros(n_neurons, dtype=bool)
+    for start in range(0, n_neurons, 100):
+        end_exc = min(start + 70, n_neurons)
+        exc_mask[start:end_exc] = True
+    inh_mask = ~exc_mask
+
     if seg_duration_s > 0:
         rates = np.sum(spk_seg, axis=0) / seg_duration_s
         delta = eta_homeo * (target_rate_hz - rates)
@@ -157,29 +164,29 @@ def _apply_segment_homeostasis(
         # Copy to check what actually changes and what gets clipped
         pre_W = np.copy(W_np)
         
-        # Update excitatory weights (columns < 350 that have positive weights)
+        # Update excitatory weights (where exc_mask is True and pre_W > 0)
         for i in range(n_neurons):
             # Only update positive connection weights to preserve sign
-            mask = pre_W[i, :350] > 0
+            mask = (pre_W[i, :] > 0) & exc_mask
             if np.any(mask):
-                raw_updated = pre_W[i, :350][mask] + delta[i]
+                raw_updated = pre_W[i, mask] + delta[i]
                 clipped = np.clip(raw_updated, 0.0, 1.0)
                 
                 # Update original array
-                W_np[i, :350][mask] = clipped
+                W_np[i, mask] = clipped
                 
                 # Count clips
                 num_clips = np.sum((raw_updated < 0.0) | (raw_updated > 1.0))
                 clip_count += int(num_clips)
                 
                 # Count updated connections (which are different from pre_W)
-                updated_connection_count += np.sum(np.abs(clipped - pre_W[i, :350][mask]) > 1e-9)
+                updated_connection_count += np.sum(np.abs(clipped - pre_W[i, mask]) > 1e-9)
 
         # Check sign preservation
-        exc_sign_preserved = bool(np.all(np.sign(pre_W[:, :350]) * np.sign(W_np[:, :350]) >= 0))
-        # Inhibitory columns 350-500 should never be modified
-        inh_modified = bool(np.any(np.abs(W_np[:, 350:] - pre_W[:, 350:]) > 1e-9))
-        inh_sign_preserved = bool(np.all(np.sign(pre_W[:, 350:]) * np.sign(W_np[:, 350:]) >= 0))
+        exc_sign_preserved = bool(np.all(np.sign(pre_W[:, exc_mask]) * np.sign(W_np[:, exc_mask]) >= 0))
+        # Inhibitory columns should never be modified
+        inh_modified = bool(np.any(np.abs(W_np[:, inh_mask] - pre_W[:, inh_mask]) > 1e-9))
+        inh_sign_preserved = bool(np.all(np.sign(pre_W[:, inh_mask]) * np.sign(W_np[:, inh_mask]) >= 0))
 
         W_final = jnp.array(W_np)
     else:

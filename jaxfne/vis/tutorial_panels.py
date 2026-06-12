@@ -9,6 +9,13 @@ from typing import Tuple, Sequence
 def _apply_dark_theme(fig, ax=None):
     """Apply dark theme to matplotlib figure."""
     fig.patch.set_facecolor('#0d0d10')
+    for text in fig.texts:
+        text.set_color('#f5f5f5')
+    if hasattr(fig, "_suptitle") and fig._suptitle is not None:
+        try:
+            fig._suptitle.set_color('#f5f5f5')
+        except Exception:
+            pass
     if ax is not None:
         # Handle different ax inputs
         if isinstance(ax, np.ndarray):
@@ -453,7 +460,7 @@ def spectrolaminar_suite_3panel(
         axes[1].axhline(0, color=line_color, lw=1.0, alpha=0.7)
         axes[1].set_title('B Mean Relative Power Spectrum', fontsize=10)
         axes[1].set_xlabel('Frequency (Hz)')
-        fig.colorbar(im, ax=axes[1], label='Rel Pow')
+        fig.colorbar(im, ax=axes[1], label='Relative Power (Normalized)')
 
         # ── Panel C: Alpha-beta / Gamma cross ─────────────────────────────────
         ab_profile = np.asarray(spec['alpha_beta'], dtype=float)
