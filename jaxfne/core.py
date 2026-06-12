@@ -1976,7 +1976,9 @@ from .paradigm import (
     paradigm,
     evoked_l4_drive_paradigm,
     omission_oddball_paradigm,
+    coop_omission_oddball_paradigm,
 )
+
 
 
 @dataclass(frozen=True)
@@ -6019,13 +6021,16 @@ def stimulus_schedule(
             amp = float(e.metadata.get("drive_amplitude", drive_amplitude))
             dur = float(e.metadata.get("event_duration_ms", event_duration_ms))
             is_drive = not e.is_omission and e.onset_ms is not None
-            ev_dicts.append({
+            ev_dict = {
                 "label": e.label,
                 "onset_ms": float(e.onset_ms) if e.onset_ms is not None else 0.0,
                 "duration_ms": dur,
                 "amplitude": amp if is_drive else 0.0,
                 "is_drive_event": is_drive,
-            })
+            }
+            if "target_indices" in e.metadata:
+                ev_dict["target_indices"] = e.metadata["target_indices"]
+            ev_dicts.append(ev_dict)
         else:
             d = dict(e)
             if "amplitude" not in d:

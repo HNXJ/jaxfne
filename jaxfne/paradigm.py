@@ -308,3 +308,76 @@ def omission_oddball_paradigm(
         },
     )
     return paradigm
+
+
+def coop_omission_oddball_paradigm(
+    duration_ms: float = 10000.0,
+    dt_ms: float = 0.5,
+    freq_hz: float = 6.0,
+    omission_prob: float = 0.1,
+    standard_amplitude: float = 5.0,
+    pre_stimulus_buffer_ms: float = 200.0,
+    target_indices: Optional[Sequence[int]] = None,
+    seed: int = 42,
+    name: str = "coop_omission_oddball"
+) -> Paradigm:
+    """Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence.
+    
+    Chains standard triangular/pulse drive events and omission events continuously.
+    """
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    
+    period_ms = 1000.0 / freq_hz
+    event_dur_ms = 50.0
+    
+    onsets = np.arange(pre_stimulus_buffer_ms, duration_ms - period_ms, period_ms)
+    events = []
+    
+    events.append(ParadigmEvent(
+        label="trial_start",
+        onset_ms=0.0,
+        duration_ms=pre_stimulus_buffer_ms,
+        metadata={}
+    ))
+    
+    for idx, onset in enumerate(onsets):
+        is_omitted = rng.uniform() < omission_prob
+        label = "omission" if is_omitted else f"pulse_{idx}"
+        meta = {
+            "drive_amplitude": 0.0 if is_omitted else standard_amplitude,
+            "event_duration_ms": event_dur_ms
+        }
+        if target_indices is not None:
+            meta["target_indices"] = list(target_indices)
+            
+        events.append(ParadigmEvent(
+            label=label,
+            onset_ms=float(onset),
+            duration_ms=event_dur_ms,
+            is_omission=is_omitted,
+            metadata=meta
+        ))
+        
+    coop_condition = ParadigmCondition(
+        name="coop_condition",
+        sequence=("pre", "coop", "post", "null"),
+        events=tuple(events),
+        probability=1.0,
+        omission_position="standard" if omission_prob > 0.0 else None
+    )
+    
+    return Paradigm(
+        name=name,
+        conditions=(coop_condition,),
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={
+            "baseline": (0.0, pre_stimulus_buffer_ms),
+            "continuous_coop": (pre_stimulus_buffer_ms, duration_ms)
+        }
+    )
+
+paradigm.coop_omission_oddball_paradigm = coop_omission_oddball_paradigm
+paradigm.omission_oddball_paradigm = omission_oddball_paradigm
+paradigm.evoked_l4_drive_paradigm = evoked_l4_drive_paradigm
+
