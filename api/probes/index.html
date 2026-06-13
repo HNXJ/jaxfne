@@ -1,0 +1,3003 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/api/probes/">
+      
+      
+        <link rel="prev" href="../fields/">
+      
+      
+        <link rel="next" href="../objectives/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Probes - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_theme_override.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#probes-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Probes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 1 (Computational Biophysics)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 2 (Corticospectrolaminar Motif)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 3 (Low-Frequency Scaling)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: Multi-area Laminar Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE-Izhikevich Single Emitter Explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09: EEG/MEG/EMM Proxy Bundle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: Single-neuron Multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: 100-neuron Network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: V1 Six-layer Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: V1-PFC Dual Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06: v0.3.6 Chainable Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07: v0.3.7 Source Bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08: v0.3.8 LFP/CSD Readout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-Field Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotly Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Poisson Admissibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley Interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biophysical Alignment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-operators-eight-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Operators (Eight Kinds)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Probe Operators (Eight Kinds)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-spk-spike-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. SPK: Spike Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-vm-membrane-voltage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Vm: Membrane Voltage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-source-transmembrane-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. source: Transmembrane Current
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-lfp_proxy-local-field-potential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. lfp_proxy: Local Field Potential
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-csd_proxy-current-source-density" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. csd_proxy: Current Source Density
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-eeg_proxy-electroencephalogram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. eeg_proxy: Electroencephalogram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-meg_proxy-magnetoencephalogram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. meg_proxy: Magnetoencephalogram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-emm_proxy-energeticmetabolic-activity-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. emm_proxy: Energetic/Metabolic Activity Metric
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Specifications
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Probe Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#declaring-multiple-probes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declaring Multiple Probes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#probe-report-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Report Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statement-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statement Boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#readout-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Readout Metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Readout Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-metrics-from-readoutspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Metrics (from ReadoutSpec)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary of Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Publication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../publication/nature_methods_roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nature Methods roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About jaxfne
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About jaxfne
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope and limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_5" id="__nav_7_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.3.4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.3.4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.18
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.10
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-operators-eight-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Operators (Eight Kinds)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Probe Operators (Eight Kinds)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-spk-spike-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. SPK: Spike Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-vm-membrane-voltage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Vm: Membrane Voltage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-source-transmembrane-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. source: Transmembrane Current
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-lfp_proxy-local-field-potential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. lfp_proxy: Local Field Potential
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-csd_proxy-current-source-density" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. csd_proxy: Current Source Density
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-eeg_proxy-electroencephalogram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. eeg_proxy: Electroencephalogram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-meg_proxy-magnetoencephalogram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. meg_proxy: Magnetoencephalogram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-emm_proxy-energeticmetabolic-activity-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. emm_proxy: Energetic/Metabolic Activity Metric
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#probe-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Specifications
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Probe Specifications">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#declaring-multiple-probes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declaring Multiple Probes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#probe-report-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Probe Report Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#statement-boundaries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Statement Boundaries
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#readout-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Readout Metrics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Readout Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#available-metrics-from-readoutspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available Metrics (from ReadoutSpec)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json-serialization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON Serialization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="probes-api">Probes API<a class="headerlink" href="#probes-api" title="Permanent link">&para;</a></h1>
+<p>Probe operators and multimodal readout channels for neural signals.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>Probe operators extract various readout modalities from neural simulation:
+- <strong>Spike-based:</strong> Spike detection (SPK) from membrane voltage
+- <strong>Voltage-based:</strong> Direct voltage readouts (Vm)
+- <strong>Field-based:</strong> lfp_proxy and csd_proxy from spatial current distributions
+- <strong>Sensor-based:</strong> eeg_proxy and meg_proxy from head/field <strong>proxy</strong> projection operators (computational scaffold; no clinical forward-model claim)
+- <strong>Activity cost:</strong> emm_proxy signaling-energy estimation</p>
+<p>All operators return <strong>proxy readouts</strong> suitable for tutorial simulations, designed for exploratory workflows.</p>
+<hr />
+<h2 id="probe-operators-eight-kinds">Probe Operators (Eight Kinds)<a class="headerlink" href="#probe-operators-eight-kinds" title="Permanent link">&para;</a></h2>
+<h3 id="1-spk-spike-detection">1. SPK: Spike Detection<a class="headerlink" href="#1-spk-spike-detection" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;SPK&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(\mathrm{SPK}_n = \mathbb{1}[V_n(t) \geq \theta_n]\)</span></p>
+<p><strong>Output:</strong> Binary spike raster [time, neurons]</p>
+<p><strong>Parameters:</strong>
+- <code>threshold</code> (float): Spike threshold (default: 30 mV for Izhikevich)</p>
+<p><strong>Status:</strong> Simulated proxy; threshold-based detection</p>
+<p><strong>Units:</strong> Binary (0/1)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">spikes</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">spikes</span>  <span class="c1"># [time, neurons]</span>
+<span class="n">spike_rate_hz</span> <span class="o">=</span> <span class="n">spikes</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1000.0</span> <span class="o">/</span> <span class="n">dt_ms</span>
+</code></pre></div></p>
+<hr />
+<h3 id="2-vm-membrane-voltage">2. Vm: Membrane Voltage<a class="headerlink" href="#2-vm-membrane-voltage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;Vm&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(\mathrm{Vm}_n(t) = V_n(t)\)</span></p>
+<p><strong>Output:</strong> Voltage trace [time, neurons]</p>
+<p><strong>Status:</strong> Direct state readout from Izhikevich emitter</p>
+<p><strong>Units:</strong> mV (millivolts)</p>
+<p><strong>Range:</strong> Typically -90 to 30 mV</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">V_m</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">V_m</span>  <span class="c1"># [time, neurons]</span>
+<span class="n">mean_voltage</span> <span class="o">=</span> <span class="n">V_m</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">voltage_std</span> <span class="o">=</span> <span class="n">V_m</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+</code></pre></div></p>
+<hr />
+<h3 id="3-source-transmembrane-current">3. source: Transmembrane Current<a class="headerlink" href="#3-source-transmembrane-current" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;source&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(S_n(t) = f_{\mathrm{source}}(I_{\mathrm{mem}}, \text{anatomy})\)</span></p>
+<p><strong>Output:</strong> Source density [time, spatial locations]</p>
+<p><strong>Description:</strong>
+Projects Izhikevich transmembrane currents into space using anatomical mapping. This feeds <strong>field-proxy</strong> operators (LFP-proxy, CSD-proxy); no PDE field solver is invoked in v0.3.x.</p>
+<p><strong>Status:</strong> Spatial projection proxy</p>
+<p><strong>Units:</strong> Current density (relative Izhikevich units, not µA/mm³)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">source</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">source</span>  <span class="c1"># [time, locations]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="4-lfp_proxy-local-field-potential">4. lfp_proxy: Local Field Potential<a class="headerlink" href="#4-lfp_proxy-local-field-potential" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;lfp_proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)\)</span></p>
+<p>where <span class="arithmatex">\(W_{cn}\)</span> is row-normalized source-to-contact mapping.</p>
+<p><strong>Output:</strong> Potential at recording contacts [time, contacts]</p>
+<p><strong>Status:</strong> Proxy convolution; no PDE solve</p>
+<p><strong>Units:</strong> Proxy voltage units (unscaled). Calibrated mV requires separate calibration evidence; not claimed by default.</p>
+<p><strong>Description:</strong>
+Extracellular potential sampled at electrode contacts. Computed via weighted summation of sources with spatial weighting. Approximates field without solving Poisson equation.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">LFP</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">LFP</span>  <span class="c1"># [time, n_contacts]</span>
+<span class="n">LFP_mean</span> <span class="o">=</span> <span class="n">LFP</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># Mean per contact</span>
+</code></pre></div></p>
+<hr />
+<h3 id="5-csd_proxy-current-source-density">5. csd_proxy: Current Source Density<a class="headerlink" href="#5-csd_proxy-current-source-density" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;csd_proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi(t,c+1) - 2\phi(t,c) + \phi(t,c-1)}{(\Delta z)^2}\)</span></p>
+<p><strong>Output:</strong> Current source density [time, locations]</p>
+<p><strong>Status:</strong> Proxy second spatial derivative</p>
+<p><strong>Units:</strong> Proxy current density units (relative)</p>
+<p><strong>Description:</strong>
+Estimate of inward/outward transmembrane current at each depth. Computed as second spatial derivative of LFP. Sign convention: <strong>positive CSD = extracellular source = inward current</strong>.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">CSD</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">CSD</span>  <span class="c1"># [time, n_locations]</span>
+<span class="n">CSD_positive</span> <span class="o">=</span> <span class="p">(</span><span class="n">CSD</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>  <span class="c1"># Count source voxels</span>
+</code></pre></div></p>
+<hr />
+<h3 id="6-eeg_proxy-electroencephalogram">6. eeg_proxy: Electroencephalogram<a class="headerlink" href="#6-eeg_proxy-electroencephalogram" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;eeg_proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(Y_{\mathrm{EEG}}(t, e) = \sum_{c=1}^{C} L_{ec} \phi_{\mathrm{proxy}}(t,c)\)</span></p>
+<p><strong>Output:</strong> Scalp electrode readings [time, n_eeg_channels]</p>
+<p><strong>Status:</strong> Toy head model projection; no volumetric conductivity</p>
+<p><strong>Units:</strong> Proxy voltage units (relative mV)</p>
+<p><strong>Description:</strong>
+Projects laminar LFP to scalp electrodes using a simplified lead-field matrix. Not a realistic head model; suitable for relative visualization.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">EEG</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">EEG</span>  <span class="c1"># [time, n_eeg_channels]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="7-meg_proxy-magnetoencephalogram">7. meg_proxy: Magnetoencephalogram<a class="headerlink" href="#7-meg_proxy-magnetoencephalogram" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;meg_proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(Y_{\mathrm{MEG}}(t, m) = \sum_{n,s} L_{m,ns} o_n S_n(t)\)</span></p>
+<p><strong>Output:</strong> Magnetometer readings [time, n_meg_channels]</p>
+<p><strong>Status:</strong> Toy dipole model; no volume conductor</p>
+<p><strong>Units:</strong> Proxy magnetic field units (relative to source)</p>
+<p><strong>Description:</strong>
+Estimates magnetic field from dipoles with orientation weighting. Each source contributes based on its orientation relative to magnetometer. Simplified model for visualization.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">MEG</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">MEG</span>  <span class="c1"># [time, n_meg_channels]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="8-emm_proxy-energeticmetabolic-activity-metric">8. emm_proxy: Energetic/Metabolic Activity Metric<a class="headerlink" href="#8-emm_proxy-energeticmetabolic-activity-metric" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;emm_proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<p><strong>Math form:</strong> <span class="arithmatex">\(\mathrm{EMM}(t) = \alpha \|S(t)\|_1 + \beta \|\phi(t)\|_1\)</span></p>
+<p><strong>Output:</strong> Single activity metric [time]</p>
+<p><strong>Status:</strong> Proxy cost function for exploratory analysis; signaling-energy proxy</p>
+<p><strong>Units:</strong> Relative activity intensity (no physical units)</p>
+<p><strong>Description:</strong>
+Estimates relative energy cost of network activity. Combines source magnitude (ion pump cost) and field magnitude (ATP for signal propagation). Weighted by parameters α and β.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">EMM</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">EMM</span>  <span class="c1"># [time]</span>
+<span class="n">activity</span> <span class="o">=</span> <span class="n">EMM</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>  <span class="c1"># Mean metabolic proxy over time</span>
+</code></pre></div></p>
+<hr />
+<h2 id="probe-specifications">Probe Specifications<a class="headerlink" href="#probe-specifications" title="Permanent link">&para;</a></h2>
+<h3 id="declaring-multiple-probes">Declaring Multiple Probes<a class="headerlink" href="#declaring-multiple-probes" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span>
+    <span class="s2">&quot;SPK&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Vm&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;source&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LFP-proxy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;CSD-proxy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EEG-proxy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MEG-proxy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EMM-proxy&quot;</span>
+<span class="p">])</span>
+</code></pre></div>
+<p>Or selectively:</p>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;MUA-proxy&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP-proxy&quot;</span><span class="p">,</span> <span class="s2">&quot;CSD-proxy&quot;</span><span class="p">])</span>
+</code></pre></div>
+<h3 id="probe-report-structure">Probe Report Structure<a class="headerlink" href="#probe-report-structure" title="Permanent link">&para;</a></h3>
+<p>Each probe operator returns a JSON-safe report:</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ProbeReport</span><span class="p">:</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># &quot;spk&quot; | &quot;vm&quot; | &quot;source&quot; | &quot;lfp_proxy&quot; | ...</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Computation method</span>
+    <span class="n">units_or_status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># Units or proxy declaration</span>
+    <span class="n">operator_status</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># &quot;simulated_proxy&quot; for all v0.2.x</span>
+    <span class="n">amplitude_status</span><span class="p">:</span> <span class="nb">bool</span>  <span class="c1"># Always false for proxy</span>
+</code></pre></div>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;lfp_proxy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;method&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;point_or_finite_contact_phi_proxy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;units_or_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;proxy_voltage_units&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;operator_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;simulated_proxy&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<hr />
+<h2 id="statement-boundaries">Statement Boundaries<a class="headerlink" href="#statement-boundaries" title="Permanent link">&para;</a></h2>
+<p>⚠️ <strong>All probe operators are computational proxies:</strong></p>
+<ul>
+<li><strong>No empirical validation:</strong> Results are simulated, not measured</li>
+<li><strong>No physical amplitude:</strong> Cannot statement mV or µV units without calibration</li>
+<li><strong>Relative metrics only:</strong> Use for comparative analysis, not absolute scaling</li>
+<li><strong>Sign conventions declared:</strong> CSD+ = inward current (extracellular source)</li>
+<li><strong>Spatial approximations:</strong> Field solvers use convolution, not full PDE</li>
+</ul>
+<p><strong>Safe statements:</strong>
+- "Spike rate increased by 20%"
+- "LFP magnitude varies with depth"
+- "EMM proxy indicates higher activity"</p>
+<p><strong>Unsafe statements:</strong>
+- "LFP amplitude is 50 µV"
+- "CSD source is located at 400 µm depth" (localization not solved)
+- "EEG matches real recordings" (without validation)</p>
+<hr />
+<h2 id="readout-metrics">Readout Metrics<a class="headerlink" href="#readout-metrics" title="Permanent link">&para;</a></h2>
+<h3 id="available-metrics-from-readoutspec">Available Metrics (from ReadoutSpec)<a class="headerlink" href="#available-metrics-from-readoutspec" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Operator</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spike_rate_hz</code></td>
+<td>SPK</td>
+<td>Mean firing rate (Hz)</td>
+</tr>
+<tr>
+<td><code>burst_frequency_hz</code></td>
+<td>SPK</td>
+<td>Burst rate estimate</td>
+</tr>
+<tr>
+<td><code>max_spike_rate_hz</code></td>
+<td>SPK</td>
+<td>Peak firing rate</td>
+</tr>
+<tr>
+<td><code>mean_V_m</code></td>
+<td>Vm</td>
+<td>Mean membrane voltage (mV)</td>
+</tr>
+<tr>
+<td><code>min_V_m</code></td>
+<td>Vm</td>
+<td>Min voltage (mV)</td>
+</tr>
+<tr>
+<td><code>max_V_m</code></td>
+<td>Vm</td>
+<td>Max voltage (mV)</td>
+</tr>
+<tr>
+<td><code>mean_source</code></td>
+<td>source</td>
+<td>Mean source magnitude</td>
+</tr>
+<tr>
+<td><code>mean_LFP</code></td>
+<td>LFP-proxy</td>
+<td>Mean LFP-proxy magnitude (unscaled)</td>
+</tr>
+<tr>
+<td><code>mean_CSD</code></td>
+<td>CSD-proxy</td>
+<td>Mean CSD-proxy magnitude (unscaled)</td>
+</tr>
+<tr>
+<td><code>mean_EEG</code></td>
+<td>EEG-proxy</td>
+<td>Mean EEG-proxy magnitude (unscaled)</td>
+</tr>
+<tr>
+<td><code>mean_MEG</code></td>
+<td>MEG-proxy</td>
+<td>Mean MEG-proxy magnitude (unscaled)</td>
+</tr>
+<tr>
+<td><code>mean_EMM</code></td>
+<td>EMM-proxy</td>
+<td>Mean metabolic proxy</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">readouts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_readout</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="p">[</span>
+    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;firing_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;spike_rate_hz&quot;</span><span class="p">),</span>
+    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;voltage&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_V_m&quot;</span><span class="p">),</span>
+    <span class="n">jtfne</span><span class="o">.</span><span class="n">readout_spec</span><span class="p">(</span><span class="s2">&quot;field_strength&quot;</span><span class="p">,</span> <span class="s2">&quot;mean_LFP&quot;</span><span class="p">)</span>
+<span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">readouts</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
+</code></pre></div></p>
+<hr />
+<h2 id="json-serialization">JSON Serialization<a class="headerlink" href="#json-serialization" title="Permanent link">&para;</a></h2>
+<p>All probe outputs must be JSON-safe:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">json_safe</span>
+
+<span class="n">signals_dict</span> <span class="o">=</span> <span class="n">json_safe</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">to_dict</span><span class="p">())</span>
+<span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">signals_dict</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Must not raise</span>
+</code></pre></div>
+<p>NaN or Inf values in signals will fail serialization.</p>
+<hr />
+<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../probe_operators/">Probe Operators Guide</a> — Detailed mathematical descriptions</li>
+<li><a href="../fields/">Fields API</a> — Source projection and field computation</li>
+<li><a href="../core/">Core API</a> — Signal and readout containers</li>
+<li><a href="../">API reference</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

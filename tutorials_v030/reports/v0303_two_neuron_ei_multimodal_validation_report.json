@@ -1,0 +1,14 @@
+{
+  "all_gates_pass": true,
+  "coupling_dynamic_injection": true,
+  "dt_gate": true,
+  "dtype_gate": true,
+  "duration_gate": true,
+  "e_firing_rate_gate_2_25_hz": true,
+  "e_voltage_finite": true,
+  "i_firing_rate_gate_2_25_hz": true,
+  "i_voltage_finite": true,
+  "json_safe": true,
+  "source_finite": true,
+  "status": "PASS"
+}

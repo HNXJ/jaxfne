@@ -1,0 +1,2991 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/publication/JAXFNE_ALPHA_HANDOUT/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>jaxfne Alpha Checkpoint Handout - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../_theme_override.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#jaxfne-alpha-checkpoint-handout" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              jaxfne Alpha Checkpoint Handout
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../.." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 1 (Computational Biophysics)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 2 (Corticospectrolaminar Motif)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 3 (Low-Frequency Scaling)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: Multi-area Laminar Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE-Izhikevich Single Emitter Explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09: EEG/MEG/EMM Proxy Bundle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: Single-neuron Multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: 100-neuron Network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: V1 Six-layer Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: V1-PFC Dual Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06: v0.3.6 Chainable Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07: v0.3.7 Source Bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08: v0.3.8 LFP/CSD Readout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-Field Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/plotly_visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotly Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/poisson_admissibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Poisson Admissibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley Interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biophysical Alignment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/probes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary_of_methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary of Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Publication
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../nature_methods_roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nature Methods roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About jaxfne
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About jaxfne
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../scope_and_limitations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scope and limitations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_7_5" id="__nav_7_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.3.4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.3.4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.18
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.10
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releases/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-freeze-receipt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Freeze receipt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-core-thesis-what-jaxfne-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Core thesis (what jaxfne is)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-truth-gates-must-remain-unchanged-in-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Truth gates (must remain unchanged in review)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-publication-artifact-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Publication artifact inventory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Publication artifact inventory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#main-figures-88" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Main figures (8/8)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extended-data-1010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extended Data (10/10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-alpha-validation-receipt-live-checkout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Alpha validation receipt (live checkout)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-approval-gated-items-explicitly-pending" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Approval-gated items (explicitly pending)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-scoreboard-for-external-review-27-factors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Scoreboard for external review (27 factors)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-key-doctrine-files-read-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Key doctrine files (read first)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-known-alpha-limitations-do-not-penalize-as-surprise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Known alpha limitations (do not penalize as surprise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-two-part-review-bundle-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Two-part review bundle (required)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-alpha-verdict-internal-pre-external-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Alpha verdict (internal, pre-external review)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="jaxfne-alpha-checkpoint-handout">jaxfne Alpha Checkpoint Handout<a class="headerlink" href="#jaxfne-alpha-checkpoint-handout" title="Permanent link">&para;</a></h1>
+<p><strong>Checkpoint label:</strong> <code>alpha-publication-artifact-stack</code><br />
+<strong>Intended use:</strong> attach this handout plus a repo zip to an external reviewer (GPT or human) for deep, critical, scoreboard-precise review against Nature Methods–style <strong>software/methods</strong> publication criteria.<br />
+<strong>Not intended use:</strong> biological mechanism proof, calibrated EEG/MEG validation, or release authorization.</p>
+<hr />
+<h2 id="1-freeze-receipt">1. Freeze receipt<a class="headerlink" href="#1-freeze-receipt" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repository</td>
+<td><code>https://github.com/HNXJ/jaxfne</code></td>
+</tr>
+<tr>
+<td>Branch</td>
+<td><code>cur</code></td>
+</tr>
+<tr>
+<td>Commit SHA</td>
+<td>verify live: <code>git rev-parse HEAD</code> on <code>cur</code> (do not cite handout SHA without re-freeze)</td>
+</tr>
+<tr>
+<td>Package version</td>
+<td><code>0.3.29</code></td>
+</tr>
+<tr>
+<td>Checkpoint date (UTC)</td>
+<td><code>2026-06-07</code></td>
+</tr>
+<tr>
+<td>Main figures</td>
+<td><code>8/8</code></td>
+</tr>
+<tr>
+<td>Extended Data</td>
+<td><code>10/10</code></td>
+</tr>
+<tr>
+<td>Publication artifact stack</td>
+<td><strong>complete</strong> (ED1–ED10)</td>
+</tr>
+<tr>
+<td>Release/tag/publish/archive</td>
+<td><strong>not executed</strong> (approval-gated)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Canonical import:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+</code></pre></div>
+<hr />
+<h2 id="2-core-thesis-what-jaxfne-is">2. Core thesis (what jaxfne is)<a class="headerlink" href="#2-core-thesis-what-jaxfne-is" title="Permanent link">&para;</a></h2>
+<p><code>jaxfne</code> makes <strong>emitter → source → field → probe → objective → optimizer</strong> assumptions <strong>explicit, executable, auditable, and hashable</strong> in a JAX-native computational scaffold.</p>
+<p>It is <strong>not</strong> claiming:</p>
+<ul>
+<li>real EEG/MEG forward modeling with calibrated amplitude</li>
+<li>PDE field solving with residual-validated electromagnetics</li>
+<li>metabolic or mechanism proof from objective success alone</li>
+<li>empirical validation against held-out neural recordings in this package paper</li>
+</ul>
+<hr />
+<h2 id="3-truth-gates-must-remain-unchanged-in-review">3. Truth gates (must remain unchanged in review)<a class="headerlink" href="#3-truth-gates-must-remain-unchanged-in-review" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="nt">truth_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">truth_safe_unverified</span>
+<span class="nt">claim_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">computational_scaffold</span>
+<span class="nt">field_solver_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">laminar_proxy_no_pde</span>
+<span class="nt">field_claim_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">proxy_readout_only</span>
+<span class="nt">physical_amplitude_claim_allowed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>Any reviewer score that assumes physical amplitude, solver validation, or mechanism proof <strong>without cited repo evidence</strong> should be marked <strong>reject</strong> or downgraded.</p>
+<hr />
+<h2 id="4-publication-artifact-inventory">4. Publication artifact inventory<a class="headerlink" href="#4-publication-artifact-inventory" title="Permanent link">&para;</a></h2>
+<h3 id="main-figures-88">Main figures (8/8)<a class="headerlink" href="#main-figures-88" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Script</th>
+<th>PNG</th>
+<th>Claim boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fig01</td>
+<td><code>scripts/publication/fig01_architecture.py</code></td>
+<td><code>figures/publication/fig01_tfne_architecture.png</code></td>
+<td>computational_scaffold_only</td>
+</tr>
+<tr>
+<td>fig02</td>
+<td><code>scripts/publication/fig02_contracts.py</code></td>
+<td><code>figures/publication/fig02_source_field_contracts.png</code></td>
+<td>no_pde_solver_claim</td>
+</tr>
+<tr>
+<td>fig03</td>
+<td><code>scripts/publication/fig03_backend.py</code></td>
+<td><code>figures/publication/fig03_jaxfne_backend.png</code></td>
+<td>package_native_api</td>
+</tr>
+<tr>
+<td>fig04</td>
+<td><code>scripts/publication/fig04_minimal_install_run.py</code></td>
+<td><code>figures/publication/fig04_minimal_install_run.png</code></td>
+<td>cpu_safe_tutorial</td>
+</tr>
+<tr>
+<td>fig05</td>
+<td><code>scripts/publication/fig05_runtime_scaling.py</code></td>
+<td><code>figures/publication/fig05_runtime_scaling.png</code></td>
+<td>benchmark_receipt_required</td>
+</tr>
+<tr>
+<td>fig06</td>
+<td><code>scripts/publication/fig06_readout_family_panel.py</code></td>
+<td><code>figures/publication/fig06_readout_family_panel.png</code></td>
+<td>proxy_readouts_only</td>
+</tr>
+<tr>
+<td>fig07</td>
+<td><code>scripts/publication/fig07_reproducibility_artifacts.py</code></td>
+<td><code>figures/publication/fig07_reproducibility_artifacts.png</code></td>
+<td>fixed_tag_sha_required</td>
+</tr>
+<tr>
+<td>fig08</td>
+<td><code>scripts/publication/fig08_adjacent_tools_comparison.py</code></td>
+<td><code>figures/publication/fig08_adjacent_tools_comparison.png</code></td>
+<td>capability_comparison_not_superiority</td>
+</tr>
+</tbody>
+</table>
+<h3 id="extended-data-1010">Extended Data (10/10)<a class="headerlink" href="#extended-data-1010" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Script</th>
+<th>PNG</th>
+<th>Claim boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ed01</td>
+<td><code>scripts/publication/ed01_api_stability_snapshot.py</code></td>
+<td><code>ed01_api_stability_snapshot.png</code></td>
+<td>local_api_snapshot_only</td>
+</tr>
+<tr>
+<td>ed02</td>
+<td><code>scripts/publication/ed02_json_schema_validation.py</code></td>
+<td><code>ed02_json_schema_validation.png</code></td>
+<td>config_schema_validation_receipt</td>
+</tr>
+<tr>
+<td>ed03</td>
+<td><code>scripts/publication/ed03_notebook_execution_receipts.py</code></td>
+<td><code>ed03_notebook_execution_receipts.png</code></td>
+<td>receipt_driven_structural_scan</td>
+</tr>
+<tr>
+<td>ed04</td>
+<td><code>scripts/publication/ed04_optional_dependency_laziness.py</code></td>
+<td><code>ed04_optional_dependency_laziness.png</code></td>
+<td>local_subprocess_optional_dep_receipt</td>
+</tr>
+<tr>
+<td>ed05</td>
+<td><code>scripts/publication/ed05_manifest_hashes.py</code></td>
+<td><code>ed05_manifest_hashes.png</code></td>
+<td>local_artifact_integrity_receipt_only</td>
+</tr>
+<tr>
+<td>ed06</td>
+<td><code>scripts/publication/ed06_benchmark_scaling_tables.py</code></td>
+<td><code>ed06_benchmark_scaling_tables.png</code></td>
+<td>local_cpu_runtime_receipt_only</td>
+</tr>
+<tr>
+<td>ed07</td>
+<td><code>scripts/publication/ed07_probe_operator_contracts.py</code></td>
+<td><code>ed07_probe_operator_contracts.png</code></td>
+<td>proxy_readout_operator_contracts_only</td>
+</tr>
+<tr>
+<td>ed08</td>
+<td><code>scripts/publication/ed08_tutorial_atlas_coverage.py</code></td>
+<td><code>ed08_tutorial_atlas_coverage.png</code></td>
+<td>tutorial_atlas_coverage_receipt_only</td>
+</tr>
+<tr>
+<td>ed09</td>
+<td><code>scripts/publication/ed09_failure_modes_and_nulls.py</code></td>
+<td><code>ed09_failure_modes_and_nulls.png</code></td>
+<td>failure_null_local_receipt_only</td>
+</tr>
+<tr>
+<td>ed10</td>
+<td><code>scripts/publication/ed10_release_archive_receipt.py</code></td>
+<td><code>ed10_release_archive_receipt.png</code></td>
+<td>release_archive_evidence_receipt_only</td>
+</tr>
+</tbody>
+</table>
+<p>PNG paths: <code>figures/publication/&lt;name&gt;.png</code><br />
+Manifest/receipt paths: <code>outputs/publication/*</code> (gitignored; regenerate on live checkout)</p>
+<hr />
+<h2 id="5-alpha-validation-receipt-live-checkout">5. Alpha validation receipt (live checkout)<a class="headerlink" href="#5-alpha-validation-receipt-live-checkout" title="Permanent link">&para;</a></h2>
+<p>Commands run at alpha checkpoint:</p>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>switch<span class="w"> </span>cur
+git<span class="w"> </span>rev-parse<span class="w"> </span>HEAD
+python3<span class="w"> </span>scripts/publication_inventory.py
+<span class="c1"># main figures: 8/8 present</span>
+<span class="c1"># extended data: 10/10 present</span>
+
+python3<span class="w"> </span>-m<span class="w"> </span>compileall<span class="w"> </span>-q<span class="w"> </span>jaxfne<span class="w"> </span>scripts/publication<span class="w"> </span>tests
+<span class="c1"># exit 0</span>
+
+<span class="nv">PYTEST_DISABLE_PLUGIN_AUTOLOAD</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">PYTHONPATH</span><span class="o">=</span>.<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_api_smoke.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_root_import_lightweight.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_signals_get_v0329.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_objective_null_reproducibility_v0330.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_artifact_json_safety_v0330.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_public_docs_hygiene.py<span class="w"> </span>-q<span class="w"> </span>--tb<span class="o">=</span>line
+<span class="c1"># 277 passed, 6 skipped</span>
+
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv-docs
+.<span class="w"> </span>.venv-docs/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="w"> </span>-r<span class="w"> </span>docs/requirements.txt
+python<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
+<span class="c1"># exit 0</span>
+</code></pre></div>
+<p>Root-import laziness (isolated subprocess): <strong>pass</strong> (<code>optional_loaded []</code>).</p>
+<hr />
+<h2 id="6-approval-gated-items-explicitly-pending">6. Approval-gated items (explicitly pending)<a class="headerlink" href="#6-approval-gated-items-explicitly-pending" title="Permanent link">&para;</a></h2>
+<p>ED10 records these as <code>pending_approval</code>, <code>not_created</code>, or <code>not_applicable_without_release_approval</code> — <strong>not failures</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Alpha status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Version tag at current HEAD</td>
+<td>pending approval (<code>v0.3.29</code> tag exists but may not match HEAD)</td>
+</tr>
+<tr>
+<td>Wheel/sdist build</td>
+<td>not approved</td>
+</tr>
+<tr>
+<td>PyPI/TestPyPI publish</td>
+<td>not approved</td>
+</tr>
+<tr>
+<td>GitHub release</td>
+<td>not approved</td>
+</tr>
+<tr>
+<td>Archive/DOI</td>
+<td>not approved</td>
+</tr>
+<tr>
+<td>Full clean-room pip install</td>
+<td>pending approval (import smoke only)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-scoreboard-for-external-review-27-factors">7. Scoreboard for external review (27 factors)<a class="headerlink" href="#7-scoreboard-for-external-review-27-factors" title="Permanent link">&para;</a></h2>
+<p><strong>Instructions to reviewer:</strong> For each factor, assign:</p>
+<ul>
+<li><strong>Score now</strong> (0–100)</li>
+<li><strong>Target</strong> (reference)</li>
+<li><strong>Evidence found in zip/repo</strong> (file paths, test names, manifest IDs)</li>
+<li><strong>Gap</strong> (what is missing or overstated)</li>
+<li><strong>Classification:</strong> <code>accept</code> | <code>follow-up</code> | <code>patch</code> | <code>reproduce</code> | <code>reject</code></li>
+<li><strong>Stop condition</strong> (what would block submission)</li>
+</ul>
+<p>Do <strong>not</strong> treat proxy outputs as physical measurements. Do <strong>not</strong> credit empirical validation without datasets and held-out tests.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">#</th>
+<th>Factor</th>
+<th style="text-align: right;">Hamm score now</th>
+<th style="text-align: right;">Target</th>
+<th>Primary evidence to inspect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1</td>
+<td>Branch/release hygiene</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">100</td>
+<td><code>cur</code> @ live SHA (re-freeze), clean tree, no force-push</td>
+</tr>
+<tr>
+<td style="text-align: right;">2</td>
+<td>Main figure stack</td>
+<td style="text-align: right;">88</td>
+<td style="text-align: right;">100</td>
+<td><code>figures/publication/fig01–08</code>, scripts, ED5 hashes</td>
+</tr>
+<tr>
+<td style="text-align: right;">3</td>
+<td>Extended Data stack</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">100</td>
+<td>ED1–ED10 PNGs + scripts</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td>Manifest/hash closure</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">100</td>
+<td><code>ed05_manifest_hashes.py</code>, <code>outputs/publication/*</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">5</td>
+<td>Notebook execution evidence</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">95</td>
+<td>ED3, ED8; <code>notebook_execution_completeness_claim_allowed: false</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td>JSON/schema validation</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">95</td>
+<td>ED2, <code>test_artifact_json_safety_v0330.py</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">7</td>
+<td>API stability</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">95</td>
+<td>ED1, <code>test_api_smoke.py</code>, <code>jaxfne/__init__.py</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td>Optional dependency laziness</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">95</td>
+<td>ED4, <code>test_root_import_lightweight.py</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">9</td>
+<td>JAX numerical discipline</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">95</td>
+<td>runtime rules, scan/vmap/jit tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td>Source bookkeeping</td>
+<td style="text-align: right;">55</td>
+<td style="text-align: right;">95</td>
+<td>source modes, double-count guards</td>
+</tr>
+<tr>
+<td style="text-align: right;">11</td>
+<td>Probe/readout contracts</td>
+<td style="text-align: right;">78</td>
+<td style="text-align: right;">95</td>
+<td>ED7, <code>docs/probe_operators.md</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">12</td>
+<td>Electromagnetic admissibility</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">90</td>
+<td>P0–P5 ladder, <code>docs/poisson_admissibility.md</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">13</td>
+<td>Physical amplitude discipline</td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">100</td>
+<td>truth gates in all manifests</td>
+</tr>
+<tr>
+<td style="text-align: right;">14</td>
+<td>Mechanism-claim discipline</td>
+<td style="text-align: right;">82</td>
+<td style="text-align: right;">95</td>
+<td>ED9 nulls, <code>test_objective_null_reproducibility_v0330.py</code></td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td>Benchmark evidence</td>
+<td style="text-align: right;">65</td>
+<td style="text-align: right;">85</td>
+<td>ED6 local CPU receipt only</td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td>Adjacent-tool positioning</td>
+<td style="text-align: right;">70</td>
+<td style="text-align: right;">95</td>
+<td>fig08, no superiority claims</td>
+</tr>
+<tr>
+<td style="text-align: right;">17</td>
+<td>Tutorial-to-package discipline</td>
+<td style="text-align: right;">45</td>
+<td style="text-align: right;">90</td>
+<td>ED8 atlas, tutorial thinness tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">18</td>
+<td>Release archive readiness</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">100</td>
+<td>ED10 receipt; release actions pending</td>
+</tr>
+<tr>
+<td style="text-align: right;">19</td>
+<td>Manuscript alignment</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">95</td>
+<td><code>docs/manuscript_alignment.md</code>, roadmap</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td>Empirical validation readiness</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">70</td>
+<td>intentionally out of scope for alpha</td>
+</tr>
+<tr>
+<td style="text-align: right;">21</td>
+<td>Config-first backbone</td>
+<td style="text-align: right;">35</td>
+<td style="text-align: right;">95</td>
+<td><code>Configuration</code>, 0.3.28+ ladder</td>
+</tr>
+<tr>
+<td style="text-align: right;">22</td>
+<td>Identity/selectors</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">95</td>
+<td>selector tests v0.3.29</td>
+</tr>
+<tr>
+<td style="text-align: right;">23</td>
+<td>Connectivity rules</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">95</td>
+<td>connection-rule compiler tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">24</td>
+<td>Weld/reconstruct/flatten</td>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">90</td>
+<td>experimental HPC contracts</td>
+</tr>
+<tr>
+<td style="text-align: right;">25</td>
+<td>Solver-readiness</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">90</td>
+<td>schemas before solver promotion</td>
+</tr>
+<tr>
+<td style="text-align: right;">26</td>
+<td>Jaxley bridge</td>
+<td style="text-align: right;">60</td>
+<td style="text-align: right;">90</td>
+<td>optional lazy bridge, guarded tests</td>
+</tr>
+<tr>
+<td style="text-align: right;">27</td>
+<td>PyNWB bridge</td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">85</td>
+<td>doctrine/plan; no empirical NWB claim</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reviewer deliverable:</strong> recalibrated 27-row table + top 10 blockers + top 10 strengths + overall publication posture (<code>accept</code> / <code>follow-up</code> / <code>patch</code> / <code>reject</code>).</p>
+<hr />
+<h2 id="8-key-doctrine-files-read-first">8. Key doctrine files (read first)<a class="headerlink" href="#8-key-doctrine-files-read-first" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal_docs/loop_context/AGENT_QUICKREF.md</code></td>
+<td>primary agent anchor</td>
+</tr>
+<tr>
+<td><code>internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md</code></td>
+<td>deep biophysics reference</td>
+</tr>
+<tr>
+<td><code>internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md</code></td>
+<td>live posture</td>
+</tr>
+<tr>
+<td><code>docs/publication/publication_checklist.json</code></td>
+<td>machine-readable artifact list</td>
+</tr>
+<tr>
+<td><code>docs/publication/nature_methods_roadmap.md</code></td>
+<td>evidence matrix</td>
+</tr>
+<tr>
+<td><code>AGENTS.md</code></td>
+<td>worker contracts</td>
+</tr>
+<tr>
+<td><code>.cursor/rules/00-jaxfne-baseline.mdc</code></td>
+<td>baseline gates</td>
+</tr>
+<tr>
+<td><code>.cursor/rules/10-publication-track.mdc</code></td>
+<td>publication workflow</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-known-alpha-limitations-do-not-penalize-as-surprise">9. Known alpha limitations (do not penalize as surprise)<a class="headerlink" href="#9-known-alpha-limitations-do-not-penalize-as-surprise" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>outputs/publication/*</code> is gitignored — zip may lack manifests unless regenerated locally.</li>
+<li>Notebook full-execution receipts are structural/receipt-driven, not universal PASS execution.</li>
+<li>Benchmark panel is local CPU receipt; no cross-hardware superiority claim.</li>
+<li>Physical solver and empirical validation are <strong>future scope</strong>, not alpha defects.</li>
+<li><code>PUBLICATION_READINESS_SCOREBOARD.md</code> in <code>internal_docs/loop_context/</code> may lag glossary; prefer glossary §11 and this handout.</li>
+</ol>
+<hr />
+<h2 id="10-two-part-review-bundle-required">10. Two-part review bundle (required)<a class="headerlink" href="#10-two-part-review-bundle-required" title="Permanent link">&para;</a></h2>
+<p><code>outputs/publication/*</code> is gitignored. External review requires <strong>two parts</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Artifact</th>
+<th>Pin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A — Repo</td>
+<td><code>git archive 9f831bd</code></td>
+<td>source code + figure PNGs + alpha docs</td>
+</tr>
+<tr>
+<td>B — Outputs</td>
+<td><code>outputs-provenance-patched.zip</code></td>
+<td>SHA256 <code>a0292503268616c1c3756ad3e03d426bcda7ac01f6c6bc37575db2fcf87107c4</code></td>
+</tr>
+</tbody>
+</table>
+<p>Full instructions: <code>docs/publication/TWO_PART_REVIEW_BUNDLE.md</code></p>
+<p>Do not use an older combined repo zip with stale embedded outputs. Notebook receipts (ED3/ED8) are <strong>structural</strong> unless separate execution logs exist.</p>
+<hr />
+<h2 id="11-alpha-verdict-internal-pre-external-review">11. Alpha verdict (internal, pre-external review)<a class="headerlink" href="#11-alpha-verdict-internal-pre-external-review" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Publication artifact stack</td>
+<td><strong>complete</strong> (8/8 + 10/10)</td>
+</tr>
+<tr>
+<td>Scientific claim scope</td>
+<td><strong>controlled</strong> (computational scaffold)</td>
+</tr>
+<tr>
+<td>Release readiness</td>
+<td><strong>pending approval</strong></td>
+</tr>
+<tr>
+<td>External critical review</td>
+<td><strong>requested</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Classification:</strong> <code>accept</code> for alpha checkpoint handoff; <code>follow-up</code> on manuscript alignment, notebook execution depth, manifest bundle in zip, and release/archive execution after approval.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
