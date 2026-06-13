@@ -198,7 +198,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 **Run boundary:**
 
-- **CSD-like proxy** unless source AND field are calibrated/solved
+- **CSD-proxy** unless source AND field are calibrated/solved
 - **Sign convention** in jaxfne: `positive_equals_extracellular_source` (positive CSD = current flowing outward)
 - **Not a direct biological measurement** in v0.2.24–v0.2.27 (no physical conductivity or solved field)
 

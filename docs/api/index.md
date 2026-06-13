@@ -6,8 +6,9 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 146 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 179 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
+Released in `jaxfne==0.3.37` (tag `v0.3.37`, commit `49aa025`).
 
 !!! note "Scope & truth gates"
     All field/EEG/MEG/EMM outputs are **computational proxies**, not solved PDE
@@ -21,18 +22,19 @@ grouped by module. Per-module pages carry detailed signatures and examples.
 
 | Page | Covers | Public names |
 |---|---|---|
-| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 66 |
+| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 68 |
 | [Emitters](emitters.md) | Izhikevich emitter, receptors, synapses, EIG networks, edge lists | 19 |
-| [Fields](fields.md) | Source→laminar projection, `FieldOutput`, proxy diagnostics | 9 |
-| [Probes](probes.md) | EEG/MEG/EMM proxy transforms (+ probe operators guide) | 3 |
-| [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (see Core) |
-| [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (see Core) |
-| [Validation](validation.md) | config/field validators, `operator_status` | (see Core) |
-| _(no page yet)_ | **Optimizers** (`optim`), **IO/receipts**, **Bridges**, **Paradigms**, **Sharding**, **Tutorial utils**, **Experimental HPC** | 43 |
+| [Fields](fields.md) | Source→laminar projection, `FieldOutput`, proxy diagnostics | 12 |
+| [Probes](probes.md) | EEG/MEG/EMM proxy transforms (within Fields) | (in Fields) |
+| [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
+| [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
+| [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (6) · **Sanity-delta** (7) · **Plasticity** (4) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (2) · **PyNWB** (2) · **Experimental HPC** (2) · geometry/builders/streaming/stimulus (4) | 78 |
 
-> Several public names (optimizers, IO, bridges, paradigms, sharding) do not yet
-> have a dedicated module page — they are listed in the index below. See the
-> docs audit (`internal_docs/docs_audit_v0330.md`) for the gap plan.
+> Several public names (optimizers, IO, bridges, paradigms, sharding, solvers)
+> do not yet have a dedicated module page — they are listed with full signatures
+> in the complete symbol index below. Counts sum to **179** (`len(jaxfne.__all__)`).
+> See the docs audit (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
 ## Minimal workflow (verified)
 
@@ -52,18 +54,38 @@ assert vm_e.shape[-1] == len(e_idx)
 
 ---
 
+## Export & figure APIs (root-level, v0.3.37)
+
+The strict-notebook export grammar introduced in `jaxfne==0.3.37` is exposed as
+root-level callables (`jaxfne.<name>`). These are importable from the package
+root but are not listed in `jaxfne.__all__`; they are the canonical replacement
+for direct `matplotlib`/`json` calls in release-facing notebooks.
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `save_figure` | func | Save a matplotlib figure to disk. |
+| `save_figures` | func | Save multiple figures to an output directory. |
+| `export_report` | func | Export a complete report with JSON artifacts and figures. |
+| `export_tutorial_artifacts` | func | Export tutorial artifacts (JSON only, no figures). |
+| `plot_raster` | func | Plot a spike raster. |
+| `plot_spectrolaminar_suite` | func | Plot spectrolaminar suite from a signals object. |
+
+All export helpers honor the truth gates: JSON is written with `allow_nan=False`,
+and figure/readout outputs remain proxy diagnostics
+(`physical_amplitude_claim_allowed = False`).
+
+---
+
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__`. Summaries are
-the first docstring line; `_(undocumented)_` marks public callables with no
-docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**179 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released `jaxfne==0.3.37` wheel.
 
-### Core (66)
-
+### Core (68)
 | Symbol | Kind | Summary |
 |---|---|---|
 | `AxisSpec` | class | Typed descriptor for one tensor axis in the TFNE scaffold. |
 | `BasisSpec` | class | Typed descriptor for the computation basis of a TFNE run. |
+| `Config` | class | Declarative TFNE model configuration. |
 | `config_to_configuration` | func | Map the `network`/`emitter`/`field`/`probes` sections to a `Configuration`. |
 | `config_to_geometry` | func | Map the `geometry` section to a `LaminarSourceGeometry`, or `None`. |
 | `config_to_simulation` | func | Map the `run` section of a `JaxFNEConfig` to a `Simulation`. |
@@ -85,12 +107,13 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `load_config` | func | Load a `.jcfg.json` file and return a `JaxFNEConfig`. |
 | `matrix_parameter` | func | Create a matrix parameter specification for tuning weight matrices. |
 | `MatrixParameterSpec` | class | Declarative specification for a tunable weight matrix parameter. |
-| `Model` | class | —  _(no docstring; dataclass)_ |
+| `Model` | class | —  _(dataclass; fields in signature)_ |
+| `Net` | class | —  _(dataclass; fields in signature)_ |
 | `Objective` | class | Declarative objective specification: losses, regularizers, and diagnostic gates. |
 | `objective` | func | —  _(undocumented)_ |
 | `ObjectiveReport` | class | Structured, immutable result of evaluating an Objective against Signals. |
 | `operator_status` | func | Return the current operator status registry for all declared operators. |
-| `Probe` | class | —  _(no docstring; dataclass)_ |
+| `Probe` | class | —  _(dataclass; fields in signature)_ |
 | `provenance_receipt` | func | Capture release provenance atomically. |
 | `rate_targets` | func | Create a multi-group firing-rate objective. |
 | `readout_spec` | func | Build a ReadoutSpec for declarative feature extraction. |
@@ -102,14 +125,14 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `runtime` | func | —  _(undocumented)_ |
 | `runtime_report` | func | —  _(undocumented)_ |
 | `RuntimeConfig` | class | JAX runtime and dtype policy. |
-| `Signal` | class | Deprecated alias for `Signals` (`Signal = Signals`). |
+| `Signal` | class | Simulation output container holding multiple arrays. |
 | `Signals` | class | Simulation output container holding multiple arrays. |
 | `simulate` | func | Run a simulation with the given model. |
-| `Simulation` | class | —  _(no docstring; dataclass)_ |
+| `Simulation` | class | —  _(dataclass; fields in signature)_ |
 | `simulation` | func | —  _(undocumented)_ |
 | `standard_visual_omission` | func | Construct a Paradigm with standard visual oddball/omission task conditions. |
 | `stimulus_schedule` | func | Build a `StimulusSchedule` from a sequence of events. |
-| `StimulusSchedule` | class | Explicit drive schedule for event-aligned stimulus injection. |
+| `StimulusSchedule` | class | Explicit native-drive schedule for event-aligned stimulus injection. |
 | `suite2_celltype_presets` | func | Return compact E/PV/SST/VIP reduced-emitter preset metadata. |
 | `suite2_four_celltype_config` | func | Build the Suite No. 2 four-emitter E/PV/SST/VIP configuration. |
 | `suite2_net1_config` | func | Build net1: a uniformly sampled 3D E/PV/SST/VIP column. |
@@ -130,17 +153,16 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
 
 ### Emitters (19)
-
 | Symbol | Kind | Summary |
 |---|---|---|
 | `EdgeList` | class | Sparse recurrent connectivity as a JAX pytree. |
 | `EIGNetwork` | class | Lightweight description of an E/PV/SST/VIP-like reduced network. |
-| `Emitter` | class | Base class for package-level emitter facades. |
-| `GLIFEmitter` | class | Loud stub — raises `NotImplementedError` (not yet implemented). |
+| `Emitter` | class | Base class for package-native emitter facades. |
+| `GLIFEmitter` | class | Base class for package-native emitter facades. |
 | `izhikevich_params_from_labels` | func | Create reduced Izhikevich parameters from explicit cell labels. |
-| `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with a JAX step function. |
+| `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with JAX-native step. |
 | `IzhikevichParams` | class | Parameter container for a reduced Izhikevich population. |
-| `LIFEmitter` | class | Loud stub — raises `NotImplementedError` (not yet implemented). |
+| `LIFEmitter` | class | Base class for package-native emitter facades. |
 | `make_edge_list_from_dense` | func | Convert a dense recurrent weight matrix into a sparse EdgeList. |
 | `make_eig_network` | func | Build a minimal EIG network with laminar depth positions. |
 | `ReceptorSpec` | class | Metadata declaration for a synaptic receptor. Not a biological kernel. |
@@ -151,32 +173,25 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `standard_receptor_tau_table` | func | Return the receptor_index → tau_ms lookup table used by v0.0.11. |
 | `SynapseLayer` | class | Exponential synapse layer returning recurrent input currents. |
 | `SynapseSpec` | class | Metadata declaration for a synapse. Not a biological kernel. |
-| `SynapseState` | class | —  _(no docstring; dataclass)_ |
+| `SynapseState` | class | —  _(namedtuple; fields in signature)_ |
 
-### Fields (9)
-
+### Fields (12)
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compute_conservation_proxy_diagnostics` | func | Compute conservation-inspired proxy diagnostics over existing source/field arrays. |
 | `construct_source_tensor` | func | —  _(undocumented)_ |
+| `eeg_proxy_transform` | func | Compute EEG-proxy readout via linear leadfield projection. |
+| `emm_proxy_transform` | func | Compute EMM-proxy (normalized activity/source/field cost) readout. |
 | `FieldOutput` | class | Container for laminar proxy field/readout arrays. |
-| `LinearReadout` | class | —  _(no docstring; dataclass)_ |
+| `LinearReadout` | class | —  _(dataclass; fields in signature)_ |
+| `meg_proxy_transform` | func | Compute MEG-proxy readout via linear leadfield projection. |
 | `probe_laminar_modes` | func | —  _(undocumented)_ |
 | `project_laminar_sources` | func | Project source traces to laminar proxy contacts. |
 | `project_sources_to_laminar_field` | func | —  _(undocumented)_ |
 | `validate_projection_invariants` | func | —  _(undocumented)_ |
 | `validate_source_field_status` | func | Return truth-preserving status for source-field readouts. |
 
-### Probes (3)
-
-| Symbol | Kind | Summary |
-|---|---|---|
-| `eeg_proxy_transform` | func | Compute EEG-proxy readout via linear leadfield projection. |
-| `emm_proxy_transform` | func | Compute EMM-proxy (normalized activity/source/field cost) readout. |
-| `meg_proxy_transform` | func | Compute MEG-proxy readout via linear leadfield projection. |
-
 ### Optimizers — `optim` (15)
-
 | Symbol | Kind | Summary |
 |---|---|---|
 | `AGSDR` | class | Legacy AGSDR adapter retained for old notebooks and tests. |
@@ -195,31 +210,21 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `sdr_transform` | func | Return an Optax-compatible GradientTransformation for Stochastic Delta Rule. |
 | `SDRState` | class | Stochastic Delta Rule optimizer state. |
 
-### Runtime / Validation registry
-
+### IO & receipts (10)
 | Symbol | Kind | Summary |
 |---|---|---|
-| `compilation_registry` | const | Automated JAX tracing and compilation tracking registry for v0.3.20. |
-
-> Runtime config (`RuntimeConfig`, `enable_x64`, `runtime_report`, `runtime`) and
-> validators (`validate_config`, `validate_source_field_status`,
-> `validate_projection_invariants`, `operator_status`, `config_truth_boundary`)
-> are defined in **Core** and listed there.
-
-### IO & receipts (7)
-
-| Symbol | Kind | Summary |
-|---|---|---|
+| `asset_hashes` | func | Create a SHA256 hash manifest for assets. |
 | `config_hash` | func | Return a compact SHA256 hash for a configuration-like object. |
 | `json_safe` | func | Convert common scientific Python/JAX objects into strict JSON values. |
 | `manifest` | func | Build a strict JSON-safe run manifest. |
+| `probe_report` | func | Create a probe operator report JSON bundle. |
 | `save_json` | func | Save strict JSON with `allow_nan=False`. |
 | `save_receipt` | func | Save a RunReceipt as strict JSON. |
 | `sha256_file` | func | Return SHA256 for a file. |
 | `sha256_text` | func | Return SHA256 for a text payload. |
+| `validation_report` | func | Create a validation report JSON bundle. |
 
 ### Bridges — Jaxley (7)
-
 | Symbol | Kind | Summary |
 |---|---|---|
 | `BridgeSpec` | class | JSON-safe optional-backend bridge declaration. |
@@ -230,26 +235,46 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `JaxleyTraceSpec` | class | Metadata specification for Jaxley-style voltage trace arrays. |
 | `require_jaxley` | func | Import Jaxley lazily with an informative error. |
 
-### Paradigms (4)
-
+### Paradigms (6)
 | Symbol | Kind | Summary |
 |---|---|---|
-| `Paradigm` | class | —  _(no docstring; dataclass)_ |
-| `paradigm` | func | —  _(undocumented)_ |
+| `coop_omission_oddball_paradigm` | func | Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence. |
+| `omission_oddball_paradigm` | func | Create an omission/oddball detection paradigm. |
+| `Paradigm` | class | —  _(dataclass; fields in signature)_ |
+| `paradigm` | module | _(constant; see source)_ |
 | `ParadigmCondition` | class | A specific trial condition: sequence of stimuli and associated events. |
 | `ParadigmEvent` | class | Discrete event within a task trial: stimulus, behavioral code, or omission marker. |
 
-### Sharding (4)
-
+### Solvers (6)
 | Symbol | Kind | Summary |
 |---|---|---|
-| `get_sharding_context` | func | Return a dict with `mesh`, `candidate`, and `replicated` sharding specs. |
-| `make_candidate_sharding` | func | Return a `jax.sharding.NamedSharding` that slices the first axis. |
-| `make_population_mesh` | func | Return a 1-D named `jax.sharding.Mesh` across all visible JAX devices. |
-| `make_replicated_sharding` | func | Return a `jax.sharding.NamedSharding` that fully replicates an array. |
+| `DiffraxSolver` | class | Optional Runge-Kutta solver using diffrax (lazily imported). |
+| `euler_scan` | func | Forward Euler integration scan (backward compatibility). |
+| `euler_step` | func | Single forward Euler step (backward compatibility). |
+| `EulerSolver` | class | Forward Euler integrator using JAX and lax.scan. |
+| `solve_ode` | func | Public ODE solver entrypoint routing to appropriate solver backend. |
+| `SolverConfig` | class | Configuration class for ODE solvers. |
+
+### Sanity-delta runtime (7)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `BackupState` | class | Resumable task state with ring buffer history. |
+| `BehaviorGate` | class | Fixation gate: monitors PFC superficial activity. |
+| `HierarchicalOddballParadigm` | class | Task paradigm: AAAB oddball sequence with timing and gating. |
+| `Manifest` | class | Output manifest: configuration, paradigm, backup, validation. |
+| `SanityDeltaConfig` | class | Hierarchical oddball configuration factory and validation. |
+| `SanityDeltaModel` | class | Wrapper around constructed hierarchical oddball model. |
+| `TaskEpisode` | class | Result of a task episode with probing, export, validation. |
+
+### Plasticity (4)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `plot_stdp_adaptation_suite` | func | Generates and saves the standard STDP adaptation visualization figures. |
+| `STDPPlasticityConfig` | class | Configuration class for STDP activity-dependent plasticity. |
+| `STDPState` | class | Container for the state variables of the STDP synapse model. |
+| `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
 
 ### Tutorial utils (4)
-
 | Symbol | Kind | Summary |
 |---|---|---|
 | `build_tutorial_laminar_column` | func | Build a laminar column scaffold model. |
@@ -257,22 +282,70 @@ docstring (tracked in the docs audit (`internal_docs/docs_audit_v0330.md`)).
 | `rate_synchrony_targets` | func | Create an objective specification for AGSDR tuning toward rate and synchrony targets. |
 | `select_neurons` | func | Select neuron indices matching given criteria (area, layer, cell_type). |
 
-### Experimental HPC (2)
+### Sharding (4)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `get_sharding_context` | func | Return a dict with `mesh`, `candidate`, and `replicated` sharding specs. |
+| `make_candidate_sharding` | func | Return a `jax.sharding.NamedSharding` that slices the first |
+| `make_population_mesh` | func | Return a 1-D named `jax.sharding.Mesh` across all visible JAX devices. |
+| `make_replicated_sharding` | func | Return a `jax.sharding.NamedSharding` that fully replicates an array |
 
+### Connectivity (2)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `compile_connection_rules` | func | Compile declared connection rules into sparse finite edge arrays. |
+| `ConnectionCompileResult` | class | Compiled sparse connectivity. |
+
+### Geometry (1)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `make_ei_cloud_network` | func | Generates geometry and initial weights for a 100-neuron E-I cloud network. |
+
+### Builders (1)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `laminar_cortex_config` | func | Generalized laminar cortical configuration builder. |
+
+### Streaming (1)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `run_stdp_stream` | func | Runs simulation in a chunked, streaming fashion to avoid memory explosion. |
+
+### Stimulus (1)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `triangular_drive` | func | Generates a triangular drive trace. |
+
+### Validation registry (2)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `compilation_registry` | const | Automated JAX tracing and compilation tracking registry. |
+| `is_valid_signal` | func | Check if signal arrays contain only finite values (no NaN/Inf). |
+
+### PyNWB compatibility (2)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `read_nwb` | func | Placeholder for NWB read (not implemented). |
+| `write_nwb` | func | Placeholder for NWB write (not implemented). |
+
+### Experimental HPC (2)
 | Symbol | Kind | Summary |
 |---|---|---|
 | `NodeIdentity` | class | Stable node identity for selector-addressable circuits. |
 | `SelectorSpec` | class | Selector over area/layer/cell-type/id fields. |
 
-### Submodules & constants (5)
-
+### Submodules (1)
 | Symbol | Kind | Summary |
 |---|---|---|
+| `vis` | module | Visualization package for jaxfne. |
+
+### Constants (4)
+| Symbol | Kind | Summary |
+|---|---|---|
+| `_KNOWN_METRICS` | const | ⚠ private name leaking into `__all__` — see docs audit (remove). |
 | `CELL_TYPE_PRESETS` | const | Mapping of cell-type label → preset Izhikevich parameters. |
 | `DEFAULT_SPIKE_IMPULSE_GAIN` | const | Default spike-impulse gain for the source proxy. |
 | `RECEPTOR_KINETICS` | const | Mapping of receptor name → kinetic time constants. |
-| `vis` | module | Visualization package for jaxfne. |
-| `_KNOWN_METRICS` | const | ⚠ private name leaking into `__all__` — see docs audit (remove). |
 
 ---
 

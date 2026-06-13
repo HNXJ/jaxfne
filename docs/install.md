@@ -6,10 +6,13 @@
 pip install -U jaxfne
 ```
 
-For the current release line used by the repository tutorials:
+The current release is **`jaxfne==0.3.37`** (tag `v0.3.37`, commit `49aa025`),
+published to PyPI as both a wheel (`jaxfne-0.3.37-py3-none-any.whl`) and an
+sdist (`jaxfne-0.3.37.tar.gz`). To pin the exact release used by the repository
+tutorials:
 
 ```bash
-pip install "jaxfne>=0.3.5"
+pip install "jaxfne==0.3.37"
 ```
 
 Optional extras:

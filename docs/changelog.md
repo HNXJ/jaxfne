@@ -1,3 +1,36 @@
+## v0.3.37 (2026-06-13)
+
+**Release:** Strict notebook grammar + truth gates. Published to PyPI (wheel +
+sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
+
+### Added
+- Root-level export grammar: `save_figure`, `save_figures`, `export_report`,
+  `export_tutorial_artifacts`, `plot_raster`, `plot_spectrolaminar_suite` —
+  the canonical replacement for direct `matplotlib`/`json` calls in
+  release-facing notebooks.
+- Scientific scope cells in all 15 release-facing tutorials documenting
+  `computational_scaffold` / `proxy_readout` status, local nonlinearity, global
+  linearity, and the `physical_amplitude_claim_allowed = False` truth gate.
+
+### Changed
+- Strict notebook call grammar: root-level `jtfne.<fn>()` only (no
+  `jtfne.vis.*` / `jtfne.tutorial_utils.*` in public notebooks).
+- Tensor-field naming standardized to `*_proxy` (e.g. `LFP-proxy`, `CSD-proxy`);
+  public `*_like` wording removed.
+
+### Validation
+- 2284/2284 tests pass; `mkdocs build --strict` passes; `twine check` passes on
+  both artifacts.
+- Truth gates enforced: `field_solver_status = "laminar_proxy_no_pde"`,
+  `physical_amplitude_claim_allowed = False`; no physical EEG/MEG/LFP/CSD
+  measurement wording.
+
+### Scope
+- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
+  `physical_amplitude_claim_allowed=false`); the package is a computational
+  scaffold, not a calibrated biological simulator.
+
+
 ## v0.3.26 (2026-06-02)
 
 **Feature release:** Multi-area laminar workshop — inter-area connectivity, lesioning, AGSDR tuning, waveform explorer.

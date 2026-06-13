@@ -1,5 +1,7 @@
 # Quickstart
 
+> Verified against `jaxfne==0.3.37` (`pip install "jaxfne==0.3.37"`).
+
 ## Configure, construct, simulate
 
 ```python

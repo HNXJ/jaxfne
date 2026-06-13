@@ -53,7 +53,7 @@ Synaptic current model across all units. Represents the proxy source used for fi
 
 ---
 
-### 4. LFP-Like Proxy Trace (Scalar Readout)
+### 4. LFP-Proxy Trace (Scalar Readout)
 
 **File:** `04_lfp_proxy_trace.png`
 

@@ -2,11 +2,11 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
 
-**Duration:** 15–20 minutes | **Difficulty:** Intermediate | **v0.3.5+**
+**Duration:** 15–20 minutes | **Difficulty:** Intermediate | **jaxfne 0.3.37**
 
 ## Overview
 
-This tutorial demonstrates the **chainable Configuration API** of jaxfne v0.3.5+, introduced for streamlined workflow composition. You will build, simulate, and analyze a **100-neuron excitatory-inhibitory (E/I) population** using the new fluent configuration grammar.
+This tutorial demonstrates the **chainable Configuration API** of jaxfne (introduced in v0.3.5, current in `jaxfne==0.3.37`), built for streamlined workflow composition. You will build, simulate, and analyze a **100-neuron excitatory-inhibitory (E/I) population** using the new fluent configuration grammar.
 
 ### What You'll Learn
 
