@@ -86,6 +86,7 @@ from .core import (
 
 from . import paradigm
 from . import tutorial_utils
+from . import export as _export_module
 from .tutorial_utils import (
     select_neurons,
     kappa_synchrony,
@@ -110,7 +111,14 @@ from .tutorial_utils import (
     simulate_laminar_trials,
     spectrolaminar_from_trials,
     summarize_spectrolaminar_similarity,
+)
+from .export import (
+    save_figure,
+    save_figures,
+    export_report,
     export_tutorial_artifacts,
+    plot_raster,
+    plot_spectrolaminar_suite,
 )
 
 # Unambiguous root-level alias for the tutorial scaffold builder. Root-level
