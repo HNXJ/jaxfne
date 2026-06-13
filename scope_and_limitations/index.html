@@ -1844,6 +1844,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#truth-gates-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truth gates (non-negotiable)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Truth gates (non-negotiable)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modeling-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modeling assumptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#current-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2242,6 +2270,34 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#truth-gates-non-negotiable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Truth gates (non-negotiable)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Truth gates (non-negotiable)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modeling-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modeling assumptions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#current-use" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2296,6 +2352,29 @@
 
 <h1 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h1>
 <p>jaxfne provides compact TFNE source, field, probe, objective, and optimizer workflows.</p>
+<h2 id="truth-gates-non-negotiable">Truth gates (non-negotiable)<a class="headerlink" href="#truth-gates-non-negotiable" title="Permanent link">&para;</a></h2>
+<p>jaxfne is a <strong><code>computational_scaffold</code></strong>, not a calibrated biological simulator.
+Every field/EEG/MEG/EMM/LFP/CSD output is a <strong><code>proxy_readout</code></strong> — a computational
+diagnostic, never a solved PDE or sensor-level measurement. The following gates
+are enforced in code and may be read but never escalated:</p>
+<ul>
+<li><strong><code>field_solver_status = "laminar_proxy_no_pde"</code></strong> — the laminar field is a
+  Gaussian-leadfield proxy with finite-difference CSD; no PDE is solved and no
+  current source density <code>J_e</code> is synthesized.</li>
+<li><strong><code>physical_amplitude_claim_allowed = False</code></strong> — all amplitudes are relative
+  (uncalibrated) units only. No physical-amplitude or physical-measurement claim
+  is made for any EEG/MEG/LFP/CSD proxy output.</li>
+</ul>
+<h3 id="modeling-assumptions">Modeling assumptions<a class="headerlink" href="#modeling-assumptions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>local nonlinearity</strong> — preserved within the reduced Izhikevich emitter
+  dynamics at the single-unit level.</li>
+<li><strong>global linearity</strong> — the source→field projection is an approximately linear
+  (superposition-respecting) readout between populations.</li>
+</ul>
+<p>These outputs are tools for structural and dynamical analysis, not evidence of
+biological mechanism or amplitude. See the <a href="../api/">API reference</a> for the
+per-symbol gate annotations.</p>
 <h2 id="current-use">Current use<a class="headerlink" href="#current-use" title="Permanent link">&para;</a></h2>
 <ul>
 <li>tutorial-scale neural simulations</li>

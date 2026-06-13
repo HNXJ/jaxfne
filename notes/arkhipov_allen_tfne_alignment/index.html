@@ -2460,7 +2460,7 @@ $<span class="arithmatex">\(Y_c(t) = \sum_n W_{cn} S_n(t)\)</span>$</p>
 <blockquote>
 <p>[!IMPORTANT]
 <strong>Proxy Readouts Only (Uncalibrated)</strong>
-Extracellular potential metrics (LFP-like, CSD-like, EEG-like, MEG-like, and EMM-proxy) produced by <code>jaxfne</code> are <em>numerical proxy readouts</em> designed for machine learning objective functions, optimization, and system-level comparison.</p>
+Extracellular potential metrics (LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, and EMM-proxy) produced by <code>jaxfne</code> are <em>numerical proxy readouts</em> designed for machine learning objective functions, optimization, and system-level comparison.</p>
 <ul>
 <li><strong>Laminar Proxy (No PDE)</strong>: The calculations do not solve dynamic volume-conductor partial differential equations (PDEs) or complex boundary-element models.</li>
 <li><strong>No Uncalibrated Physical Amplitude Statements</strong>: Unless a physical-conductivity solver has been explicitly instantiated and calibrated with local tissue properties, users MUST NOT statement absolute physical amplitude metrics (e.g., microvolts, nanoamperes) in publications. The outputs are represented in uncalibrated <em>proxy units</em>.</li>
