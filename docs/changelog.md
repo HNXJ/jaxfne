@@ -1,3 +1,30 @@
+## v0.3.39 (2026-06-13)
+
+**Stable release:** packaging/docs/PyPI consolidation of the v0.3.37–v0.3.38
+quality line. No new APIs, no solver work, no scientific-claim escalation.
+
+### Summary of the v0.3.37 → v0.3.39 quality line
+- **v0.3.37** — docs alignment: strict notebook grammar, root export grammar,
+  scope/truth-gate cells, `*_proxy` naming, API index regenerated.
+- **v0.3.38** — root-export hardening: the six export helpers (`save_figure`,
+  `save_figures`, `export_report`, `export_tutorial_artifacts`, `plot_raster`,
+  `plot_spectrolaminar_suite`) promoted to formal `jaxfne.__all__` members
+  (`len(__all__)` 179 → 185); clean-venv root-import laziness verified.
+- **v0.3.39** — stable packaging: version bump to `0.3.39` across
+  pyproject/core/mkdocs/docs; wheel + sdist rebuilt and `twine`-checked;
+  published to PyPI, GitHub Release, and docs.
+
+### Validation
+- Targeted pytest, `mkdocs build --strict`, and `compileall` pass.
+- Root import loads no `matplotlib`/`plotly`/`pandas`/`optax`/`jaxley`/`pynwb`.
+- API index count equals runtime `len(jaxfne.__all__)` = 185.
+
+### Scope
+- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
+  `physical_amplitude_claim_allowed=false`); computational scaffold, not a
+  calibrated biological simulator.
+
+
 ## v0.3.37 (2026-06-13)
 
 **Release:** Strict notebook grammar + truth gates. Published to PyPI (wheel +

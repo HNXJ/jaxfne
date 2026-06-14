@@ -8,8 +8,9 @@ import jaxfne as jtfne
 
 This page is the complete index of the public API (`jaxfne.__all__`, 185 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Released in `jaxfne==0.3.37` (tag `v0.3.37`, commit `49aa025`); the six
-root-level export helpers were promoted to formal `__all__` members in v0.3.38.
+Current release `jaxfne==0.3.39` (tag `v0.3.39`). The six root-level export
+helpers were introduced in v0.3.37 and promoted to formal `__all__` members in
+v0.3.38.
 
 !!! note "Scope & truth gates"
     All field/EEG/MEG/EMM outputs are **computational proxies**, not solved PDE

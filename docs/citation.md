@@ -8,8 +8,8 @@ If you use jaxfne in your research, please cite:
   title = {jaxfne: JAX Field Neural Equations},
   year = {2026},
   url = {https://github.com/HNXJ/jaxfne},
-  version = {0.3.37},
-  note = {Tag v0.3.37, commit 49aa025}
+  version = {0.3.39},
+  note = {Tag v0.3.39}
 }
 ```
 
