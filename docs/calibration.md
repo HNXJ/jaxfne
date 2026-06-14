@@ -18,7 +18,7 @@ To prepare a workflow for calibration:
 1. **Specify geometry:** Define layer depths, contact locations, tissue conductivity (if known)
 2. **Document assumptions:** State source model, field solver, status
 3. **Collect reference data:** Identify empirical EEG/MEG/LFP/CSD for comparison
-4. **Validate:** Compare proxy readouts to empirical data; compute residuals and alignment metrics
+4. **Validate:** Compare proxy readouts to empirical data; compute residuals and comparison metrics
 
 ## Calibration Specification and Reporting (v0.2.5)
 
@@ -37,7 +37,7 @@ spec = CalibrationSpec(
     target="readout"
 )
 
-# Declare toy calibration (illustrative, not validated)
+# Declare toy calibration (illustrative, candidate-status)
 spec = CalibrationSpec(
     name="toy_eeg_proxy",
     target="readout",
@@ -47,7 +47,7 @@ spec = CalibrationSpec(
     reference="toy_leadfield"
 )
 
-# Declare empirical calibration candidate (metadata declared, not validated in v0.2.5)
+# Declare empirical calibration candidate (metadata declared, candidate-status in v0.2.5)
 spec = CalibrationSpec(
     name="eeg_candidate",
     target="readout",
@@ -61,11 +61,11 @@ spec = CalibrationSpec(
 ### Supported Modes
 
 - `uncalibrated_native` — Proxy readout, no calibration (default)
-- `toy_scale` — Illustrative calibration, not validated
+- `toy_scale` — Illustrative calibration, candidate-status
 - `relative_normalized` — Normalized relative to proxy baseline
-- `empirical_gain_candidate` — Candidate gain estimate, not validated
-- `physical_units_candidate` — Candidate physical units, not validated
-- `calibrated_empirical` — Calibration metadata declared (not validated in v0.2.5)
+- `empirical_gain_candidate` — Candidate gain estimate, candidate-status
+- `physical_units_candidate` — Candidate physical units, candidate-status
+- `calibrated_empirical` — Calibration metadata declared (candidate-status in v0.2.5)
 
 ### Calibration Reports
 

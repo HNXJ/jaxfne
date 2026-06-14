@@ -11,7 +11,7 @@ Generated UTC: 2026-06-07T22:34:39Z
 
 ## Mathematical glossary flow
 
-Every technical equation in tutorials, docs, figures, and manuscript text follows:
+Every technical equation in tutorials, docs, figures, and technical report text follows:
 
 ```text
 formal equation -> term definitions -> worded equation -> implementation location -> evidence/status boundary
@@ -112,9 +112,9 @@ optional_dependency_laziness: pass_or_environment_contaminated_or_fail
 ## Validation ladder
 
 ```bash
-python3 -m json.tool docs/publication/publication_checklist.json >/dev/null
-python3 -m compileall -q jaxfne scripts/publication tests
-python3 scripts/publication_inventory.py
+python3 -m json.tool docs/evidence_artifacts/evidence_checklist.json >/dev/null
+python3 -m compileall -q jaxfne scripts/evidence_figures tests
+python3 scripts/evidence_figures_inventory.py
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/ -q --tb=line
 python3 scripts/audit_notebooks_and_assets.py --check
 python3 -m mkdocs build --strict

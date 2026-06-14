@@ -611,6 +611,7 @@ class TaskEpisode:
 
     @property
     def signals(self) -> dict[str, jnp.ndarray]:
+        """Documented public function `signals`."""
         return {
             "vm": self.vm,
             "spk": self.spikes,

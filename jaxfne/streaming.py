@@ -135,7 +135,9 @@ def run_stdp_stream(
         # JIT-compiled scanner loop for the current chunk
         @jax.jit
         def run_chunk_scan(st, ip):
+            """Documented public function `run_chunk_scan`."""
             def step_wrapper(state, inputs):
+                """Documented public function `step_wrapper`."""
                 return simulate_stdp_euler_step(
                     state, inputs, a, b, c, d, exc_mask, inh_mask, dt_ms,
                     plasticity_scale, plasticity_config.w_min, plasticity_config.w_max,

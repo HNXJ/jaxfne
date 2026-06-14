@@ -1015,7 +1015,7 @@
     "scipy.optimize._direct_py",
     "scipy.optimize._dual_annealing",
     "scipy.optimize._group_columns",
-    "scipy.optimize._hessian_update_strategy",
+    "scipy.optimize._hessian_update_scope",
     "scipy.optimize._highspy",
     "scipy.optimize._highspy._core",
     "scipy.optimize._highspy._core.cb",

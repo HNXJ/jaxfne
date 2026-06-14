@@ -153,7 +153,7 @@ Every displayed equation must be followed by:
 2. **Term Glossary:** Define each symbol, units, ranges
 3. **Worded Equation:** Explain in plain English what the equation computes
 4. **Implementation Location:** Where in jaxfne code this is computed
-5. **Claim Boundary:** What this equation claims and what it does not claim
+5. **Claim Boundary:** What this equation claims and what it scopes
 
 **Example format (v0.3 tutorial section):**
 
@@ -509,7 +509,7 @@ except Exception as e:
 
 ### **Section 9: Figures and Artifacts**
 
-**Purpose:** Generate publication-quality figures and store artifact metadata.
+**Purpose:** Generate evidence-quality figures and store artifact metadata.
 
 **Format:**
 ```markdown

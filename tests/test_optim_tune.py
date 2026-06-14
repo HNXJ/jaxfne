@@ -283,7 +283,7 @@ def test_tune_parameter_propagation_source_scale():
     assert report["parameter"] == "source_scale"
     assert report["bounds"] == [0.5, 2.0]
     assert len(report["candidate_values"]) == 3
-    # Candidates should span the bounds (with AGSDR's two-phase strategy)
+    # Candidates should span the bounds (with AGSDR's two-phase scope)
     assert min(report["candidate_values"]) >= 0.4  # Allow small margin
     assert max(report["candidate_values"]) <= 2.1
 

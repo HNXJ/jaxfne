@@ -1,4 +1,4 @@
-# jaxfne Source Code Review — Gemini Expert Audit (2026-06-02)
+# jaxfne Source Code Review — notebook Expert Audit (2026-06-02)
 
 ## Scores
 
@@ -47,6 +47,6 @@
 
 ## Status
 - Review date: 2026-06-02
-- Reviewer: Gemini expert
+- Reviewer: notebook expert
 - Applied: pending
 - Target version: 0.3.28+

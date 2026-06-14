@@ -166,7 +166,7 @@ class TestPublicWording:
     """Validate public-facing wording."""
 
     def test_scope_clarified(self):
-        """Notebook clarifies scope and limitations."""
+        """Notebook clarifies scope and scope notes."""
         with open(NOTEBOOK_PATH) as f:
             nb = json.load(f)
 

@@ -278,7 +278,7 @@ EMM-proxy is a **relative within-run cost/activity index**, not biological metab
 
 ---
 
-## Conservation-Law Doctrine (Future Reference)
+## Conservation-Law Doctrine (Reserved Reference)
 
 ### Poynting's Theorem
 

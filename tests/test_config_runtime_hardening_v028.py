@@ -7,7 +7,7 @@ Tests for:
 - Provenance receipt atomicity and JSON safety
 - Simulate runtime precedence (reject both sim + kwargs)
 - Optional dependencies remain lazy on import
-- Version alignment across files
+- Version comparison across files
 - Backward compatibility (existing configs with v0.0.15 schema rejected with clear message)
 """
 
@@ -231,7 +231,7 @@ class TestOptionalDepsLazy:
         assert "jaxley" not in sys.modules, "jaxley should not be imported with jaxfne"
 
 
-class TestVersionAlignment:
+class TestVersionComparison:
     """Test that version is consistent across all files."""
 
     def test_version_in_core(self):

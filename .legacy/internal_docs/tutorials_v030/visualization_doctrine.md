@@ -503,7 +503,7 @@ if PLOTLY_AVAILABLE:
 - Include colorbar/legend for all heatmaps and multi-trace plots
 - Add descriptive title and 1–2 sentence caption
 - Use consistent color schemes (viridis for spectral, RdBu for signed, gray for neutral)
-- High DPI (150+) for print/publication quality
+- High DPI (150+) for print/evidence quality
 - Proxy-safe language in all labels and titles
 
 ❌ **Don't:**

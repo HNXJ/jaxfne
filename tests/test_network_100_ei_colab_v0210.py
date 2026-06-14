@@ -270,7 +270,7 @@ class TestNetwork100EINotebook:
         assert metrics.get("n_inhibitory") == 25, "n_inhibitory must be 25"
 
     def test_version_unchanged(self):
-        """Test that jaxfne version matches pyproject.toml (active version alignment)."""
+        """Test that jaxfne version matches pyproject.toml (active version comparison)."""
         import jaxfne
         import re
 

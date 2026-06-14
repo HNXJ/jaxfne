@@ -313,6 +313,7 @@ class FlatNet:
     static: Mapping[str, Any] = field(default_factory=dict)
 
     def tree_flatten(self):
+        """Documented public function `tree_flatten`."""
         children = (
             self.neuron_params,
             self.positions,
@@ -329,6 +330,7 @@ class FlatNet:
 
     @classmethod
     def tree_unflatten(cls, aux_data: Mapping[str, Any], children: tuple[Any, ...]) -> "FlatNet":
+        """Documented public function `tree_unflatten`."""
         return cls(*children, static=aux_data)
 
     @property

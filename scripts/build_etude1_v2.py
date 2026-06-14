@@ -1441,7 +1441,7 @@ This section is a required scope gate. Read it before using these outputs in any
 
 5. That the two-area (V1, V4) topology represents a calibrated model of visual cortex or any specific inter-areal projection system.
 
-6. That the spectrolaminar power profiles (Panel B and C) are comparable to experimentally observed spectrolaminar profiles without additional calibration, forward modeling, and experimental alignment.
+6. That the spectrolaminar power profiles (Panel B and C) are comparable to experimentally observed spectrolaminar profiles without additional calibration, forward modeling, and experimental comparison.
 
 **What this tutorial produces:**
 - A working end-to-end jaxfne workflow for learning the API.
@@ -1449,7 +1449,7 @@ This section is a required scope gate. Read it before using these outputs in any
 - A starting point for building more biophysically detailed models with appropriate calibration.
 - Proxy diagnostic outputs that can guide qualitative exploration of parameter space.
 
-**For scientific interpretation:** Consult `hnyxj/rules/` for TFNE status language, Status-plane receipt requirements, and the Gamma Labyrinth scientific omission doctrine.
+**For scientific interpretation:** Consult `hnyxj/rules/` for TFNE status language, Status-notese receipt requirements, and the Gamma Labyrinth scientific omission doctrine.
 
 ---
 

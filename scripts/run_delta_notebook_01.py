@@ -74,7 +74,7 @@ GLOBAL = {
     "agsdr_gain_bounds": (0.2, 3.0),
 
     # Baseline drive (from neuron I-O characterization via scripts/characterize_neuron_io_curves.py)
-    # Strategy: 100% of rheobase to fully eliminate silent neurons in network context
+    # Scope: 100% of rheobase to fully eliminate silent neurons in network context
     "baseline_drive_by_cell_type": {
         "E": 4.17,    # 100% of rheobase (was 80% = 3.33; increased to eliminate remaining silent)
         "PV": 4.17,   # 100% of rheobase (was 80% = 3.33)

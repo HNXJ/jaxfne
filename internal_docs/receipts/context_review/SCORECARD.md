@@ -6,7 +6,7 @@ Scope: active agent/context markdowns from `jaxfne_md_context_files.zip`, not th
 
 | Score band | Meaning |
 |---|---|
-| 90-100 | Highly usable, low ambiguity, strong triggers, current API/roadmap alignment. |
+| 90-100 | Highly usable, low ambiguity, strong triggers, current API/scope catalogue comparison. |
 | 80-89 | Useful, but needs sharper triggers, less overlap, or current-version cleanup. |
 | 70-79 | Partly useful, but stale, too long, or too narrow/passive. |
 | 60-69 | Risky as active context; should be archived or merged. |
@@ -16,9 +16,9 @@ Scope: active agent/context markdowns from `jaxfne_md_context_files.zip`, not th
 
 | File | Score | Keep? | Main issue | Update action |
 |---|---:|---:|---|---|
-| `AGENTS.md` | 78 | Yes | Good release gates, but stale release line and lacks Config/Net roadmap triggers. | Replace with concise agent operating contract. |
+| `AGENTS.md` | 78 | Yes | Good release gates, but stale release line and lacks Config/Net scope catalogue triggers. | Replace with concise agent operating contract. |
 | `README.md` | 82 | Yes | Good user intro, but still uses old `Configuration/Model` vocabulary only. | Update to Config-first public story with aliases. |
-| `internal_docs/agent_context/claude/CLAUDE.md` | 64 | Replace | Stale version discipline, v0.3.5-era contracts, too much old tutorial language. | Replace with current Claude/Gemini shared context. |
+| `internal_docs/agent_context/claude/CLAUDE.md` | 64 | Replace | Stale version discipline, v0.3.5-era contracts, too much old tutorial language. | Replace with current Claude/notebook shared context. |
 | `internal_docs/source_doctrine/README.md` | 84 | Yes | Good index, but does not mention 0.3.28+ Config/Net/FlatNet decisions. | Update as doctrine map. |
 | `internal_docs/source_doctrine/CLAUDE.md` | 86 | Yes | Strong compact contract, but lacks current Config/Net naming and agent trigger terms. | Update as active worker contract. |
 | `internal_docs/source_doctrine/jaxfne-core-doctrine.md` | 87 | Yes | Strong truth gates, but old pipeline-only framing; needs five-object architecture. | Update with module ownership map. |

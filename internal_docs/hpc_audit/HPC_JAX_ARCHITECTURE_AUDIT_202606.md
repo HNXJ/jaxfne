@@ -211,7 +211,7 @@ Use `FlatNet`, `SignalTensor`, and `FieldTensor` pytrees for numerical paths; le
 
 Make SciPy import lazy inside CPU-only helper functions.
 
-## Refactoring roadmap
+## Refactoring scope catalogue
 
 ### Stage 1: introduce contracts without behavior mutation
 
@@ -250,7 +250,7 @@ Add JAX PSD, JAX nulls, vectorized synchrony metrics, and shape-static bandpower
 
 Make candidate dimension the leading axis for optimizer population sweeps. Shard candidates, replicate model arrays unless memory requires partitioned edges.
 
-## Testing strategy
+## Testing scope
 
 ### Transform tests
 

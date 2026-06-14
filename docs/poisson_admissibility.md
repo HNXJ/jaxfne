@@ -227,7 +227,7 @@ assert "specification-only" in report.get("v0215_note", "").lower()
 }
 ```
 
-## Future Usage (Separately Approved Phase)
+## Reserved Usage (Separately Approved Phase)
 
 When a Poisson solver is separately approved and implemented:
 

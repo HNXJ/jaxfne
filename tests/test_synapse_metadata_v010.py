@@ -7,7 +7,7 @@ from pathlib import Path
 import jaxfne
 
 
-def test_version_alignment():
+def test_version_comparison():
     parts = [int(p) for p in jaxfne.__version__.split("-")[0].split(".")]
     assert parts >= [0, 0, 10]
 

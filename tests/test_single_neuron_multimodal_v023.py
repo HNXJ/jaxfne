@@ -6,7 +6,7 @@ Tests verify:
 2. Output bundle exists and is JSON-strict.
 3. All eight readouts present with correct metadata.
 4. Claim-status metadata frozen across all operators.
-5. EMM-proxy does not claim biological metabolism.
+5. EMM-proxy scopes biological metabolism.
 6. CSD-proxy includes sign convention.
 7. EEG/MEG-proxy metadata present.
 8. Generated outputs not committed.
@@ -160,7 +160,7 @@ def test_eeg_meg_proxy_metadata():
 
 
 def test_emm_proxy_not_biological_metabolism():
-    """Test that EMM-proxy does not claim biological metabolism."""
+    """Test that EMM-proxy scopes biological metabolism."""
     output_dir = pathlib.Path("outputs/v023_single_neuron_multimodal")
 
     with open(output_dir / "probe_report.json") as f:
@@ -217,7 +217,7 @@ def test_output_not_tracked():
 
 
 def test_version_bumped_to_023():
-    """Test that version matches pyproject.toml (active version alignment)."""
+    """Test that version matches pyproject.toml (active version comparison)."""
     import jaxfne
     import re
 

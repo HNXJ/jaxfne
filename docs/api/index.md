@@ -103,7 +103,7 @@ and figure/readout outputs remain proxy diagnostics
 | `ConfigValidationResult` | class | Report container for configuration validation. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
-| `DatasetSpec` | class | Manifest-safe dataset/alignment declaration for observed data. |
+| `DatasetSpec` | class | Manifest-safe dataset/comparison declaration for observed data. |
 | `default_basis_spec` | func | Return the default BasisSpec matching the current laminar-proxy scaffold. |
 | `enable_x64` | func | Enable JAX float64 mode before constructing arrays and report status. |
 | `get_signal` | func | Thin free-function accessor that delegates to `Signals.get`. |
@@ -254,7 +254,7 @@ and figure/readout outputs remain proxy diagnostics
 | `hh_numpy_reference_trace` | func | Standalone tutorial/reference Hodgkin-Huxley single-compartment trace. |
 | `jaxley_trace_to_signals` | func | Convert Jaxley-style voltage trace array to jaxfne Signals. |
 | `JaxleyBridge` | class | Jaxley-focused biophysical emitter bridge. |
-| `JaxleyEmitterBridge` | class | Jaxley bridge contract for future compartment emitters. |
+| `JaxleyEmitterBridge` | class | Jaxley bridge contract for reserved compartment emitters. |
 | `JaxleyTraceSpec` | class | Metadata specification for Jaxley-style voltage trace arrays. |
 | `require_jaxley` | func | Import Jaxley lazily with an informative error. |
 
@@ -375,8 +375,8 @@ and figure/readout outputs remain proxy diagnostics
 
 | Symbol | Kind | Summary |
 |---|---|---|
-| `read_nwb` | func | Placeholder for NWB read (not implemented). |
-| `write_nwb` | func | Placeholder for NWB write (not implemented). |
+| `read_nwb` | func | Placeholder for NWB read (reserved status). |
+| `write_nwb` | func | Placeholder for NWB write (reserved status). |
 
 ### Experimental HPC (2)
 
@@ -402,5 +402,5 @@ and figure/readout outputs remain proxy diagnostics
 
 ---
 
-See the docs audit & restructure plan (`internal_docs/docs_audit_v0330.md`)
+See the docs audit & restructure notes (`internal_docs/docs_audit_v0330.md`)
 for orphaned pages, duplicate cleanup, and the per-module table migration.

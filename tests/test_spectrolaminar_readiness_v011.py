@@ -257,7 +257,7 @@ def test_d_presets_are_json_safe():
 
 
 def test_e_jaxfne_version_is_028():
-    """Version must match pyproject.toml (active version alignment)."""
+    """Version must match pyproject.toml (active version comparison)."""
     import re
 
     from pathlib import Path

@@ -129,7 +129,7 @@ Each phase is a scenario unit. Most phases produce:
 | **v0.3.26** | Performance Benchmark | Benchmark script; wall-clock model; claim boundaries |
 | **v0.3.27** | Tutorial Figure Regeneration Audit | Re-run figure generation; hash verification; visual confirmation |
 | **v0.3.28** | Colab Compatibility Audit | All tutorials runnable from Colab; first-cell install; portability |
-| **v0.3.29** | Manuscript-Equation Alignment Audit | Map every public equation to code; identify gaps; patch or gate |
+| **v0.3.29** | Technical report-Equation Comparison Audit | Map every public equation to code; identify gaps; patch or gate |
 | **v0.3.30** | Biophysics Tutorial Complete Pass | End-to-end from Izhikevich dynamics to laminar field proxy; full chain |
 | **v0.3.31** | v0.3 Series Post-Audit and Release-Readiness Report | BETA audit of all v0.3 tutorials; decision gate for v0.4 planning |
 

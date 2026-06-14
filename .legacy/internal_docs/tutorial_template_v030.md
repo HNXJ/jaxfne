@@ -23,7 +23,7 @@ State 2–5 concrete learning objectives using active-verb phrasing.
 > 1. Construct a single-neuron Izhikevich configuration using `jtfne.configuration()`.
 > 2. Run a simulation and retrieve spike and voltage traces from `Signals`.
 > 3. Read the manifest to verify claim gates.
-> 4. Distinguish what the tutorial demonstrates from what it does not claim.
+> 4. Distinguish what the tutorial demonstrates from what it scopes.
 
 ---
 

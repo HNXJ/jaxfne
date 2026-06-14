@@ -253,7 +253,7 @@ class TestPublicDocsHardRules:
                 found[pattern] = len(hits)
 
         # Ghost language should be minimal in public prose
-        # Allow some in lists like "Scope and Limitations" but flag excessive use
+        # Allow some in lists like "Limitations and Future Plans" but flag excessive use
         total = sum(found.values())
         assert total < 30, \
             f"{file_path}: Excessive ghost language ({total} hits): {found}"

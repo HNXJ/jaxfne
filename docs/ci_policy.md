@@ -2,7 +2,7 @@
 
 ## Overview
 
-jaxfne uses a two-tier validation strategy:
+jaxfne uses a two-tier validation scope:
 
 1. **Fast CI** (runs on every push/PR): Smoke tests, quick examples, build validation (~1 min)
 2. **Extended validation** (manual/release): Full tutorials, large simulations (~5-10 min)
@@ -141,7 +141,7 @@ CI policy documentation:
 
 See the "Extended Validation (Manual/Release)" section above for manual validation commands.
 
-## Future Improvements
+## Reserved Improvements
 
 Potential enhancements (not yet implemented):
 

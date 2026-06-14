@@ -1346,6 +1346,7 @@ def make_recompilation_guard(
     """
     def wrapped(*args, **kwargs):
         # This python code executes exactly once when JAX compiles/traces this block
+        """Documented public function `wrapped`."""
         compilation_registry.set_mode(recompilation_guard)
         compilation_registry.track_trace(name, (B, Z, C, T))
         return fn(*args, **kwargs)

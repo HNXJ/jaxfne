@@ -21,15 +21,15 @@
 | edited | `.gitignore` (ignore private review output zips) |
 | added | this receipt |
 
-No package API, solver, Jaxley, PyNWB, or manuscript TBD edits.
+No package API, solver, Jaxley, PyNWB, or technical report TBD edits.
 
 ## Private artifact handling
 
 | Artifact | Handling |
 |---|---|
-| `figures/publication/*.png` (14 files) | stashed: `hold local P0 regenerated publication PNG drift` — **not committed** |
+| `figures/evidence/*.png` (14 files) | stashed: `hold local P0 regenerated publication PNG drift` — **not committed** |
 | `outputs-provenance-patched.zip` | moved to `/tmp/jaxfne_private_review/` — **not committed** |
-| `outputs/publication/*` | gitignored; inventory regen local only — **not committed** |
+| `outputs/evidence/*` | gitignored; inventory regen local only — **not committed** |
 
 ## Validation
 
@@ -38,8 +38,8 @@ No package API, solver, Jaxley, PyNWB, or manuscript TBD edits.
 | `python3 -m compileall -q jaxfne scripts tests` | exit 0 |
 | `pytest tests/test_public_docs_hygiene.py -q` | 218 passed, 5 skipped |
 | `pytest test_api_smoke + root_import + signals_get + hygiene -q` | 248 passed, 6 skipped |
-| `python3 scripts/publication_inventory.py` | 8/8 main + 10/10 ED |
-| `python3 -m json.tool docs/publication/publication_checklist.json` | exit 0 |
+| `python3 scripts/evidence_figures_inventory.py` | 8/8 main + 10/10 ED |
+| `python3 -m json.tool docs/evidence_artifacts/evidence_checklist.json` | exit 0 |
 | `python3 -m mkdocs build --strict` | exit 0 |
 
 ## Release / tag / build / archive

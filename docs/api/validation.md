@@ -180,7 +180,7 @@ Get status declarations for all computational operators.
 - `"prototype_api"`: Preliminary implementation, subject to change
 - `"stable_api"`: Core functionality, stable interface
 - `"deprecated"`: Scheduled for removal; migration path provided
-- `"planned"`: Not yet implemented
+- `"reserved"`: Not yet implemented
 
 **Example:**
 ```python

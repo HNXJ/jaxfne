@@ -365,7 +365,7 @@ def gen_status_summary(manifest, output_dir):
 
     text_content = "\n".join(text_lines)
     ax.text(0.1, 0.9, text_content, transform=ax.transAxes, fontfamily="monospace",
-            fontsize=10, verticalalignment="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
+            fontsize=10, verticalcomparison="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
 
     fig.suptitle("v0.2.27 Statement Gates Summary")
     fig.tight_layout()

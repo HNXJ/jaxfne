@@ -168,7 +168,7 @@ def test_connection_non_mapping_selector_fails():
 def test_compiled_flag_resets_on_new_declaration():
     """A new declaration must reset circuit_compiled even if a prior step set it True."""
     cfg = jtfne.Configuration().connections(name="c1", source={"a": 1}, target={"a": 1})
-    # Simulate a future compiler having marked it compiled.
+    # Simulate a planned compiler having marked it compiled.
     import dataclasses
     md = dict(cfg.metadata)
     md["circuit_compiled"] = True

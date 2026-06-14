@@ -14,7 +14,7 @@ The 4 core jaxfne example scripts generate self-contained evidence bundles. Each
 2. **Static figures** — deterministic PNG visualizations generated from simulation data
 3. **Hashed artifacts** — SHA256 integrity verification for all outputs
 
-This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and limitations.
+This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and scope notes.
 
 **Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
@@ -284,7 +284,7 @@ python scripts/run_all_tutorials.py --out-root outputs/
 
 **Flags:**
 - `--out-root OUTPUT_DIR` — Output directory (default: `outputs/`)
-- `--smoke` — Reduced runtime (not yet fully implemented; defer to future version)
+- `--smoke` — Reduced runtime (not yet fully implemented; defer to reserved mode)
 - `--write-figures` — Enable figure generation (default: True)
 
 **Output:**

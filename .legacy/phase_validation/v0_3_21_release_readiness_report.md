@@ -4,7 +4,7 @@ Status: release-candidate prepared in the returned workspace.
 
 ## Scope
 
-This pass focused on repository organization, documentation alignment, Etude/template consistency, and release validation readiness. It did not change numerical kernels or escalate source/field claims.
+This pass focused on repository organization, documentation comparison, Etude/template consistency, and release validation readiness. It did not change numerical kernels or escalate source/field claims.
 
 ## Key changes
 

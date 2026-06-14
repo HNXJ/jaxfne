@@ -35,7 +35,7 @@ Always `git fetch --all --prune` and re-freeze before mutation. Publication trac
 ## Current state (publication track)
 
 - Branch: `cur`, version `0.3.29`
-- Inventory: 8/8 main figures + 10/10 Extended Data (verify with `publication_inventory.py`)
+- Inventory: 8/8 main figures + 10/10 Extended Data (verify with `evidence_inventory.py`)
 - ED9/ED10: complete; release/tag/publish/archive approval-gated
 - Package backlog on `main`/`dev`: B01 merged; B02 next GREEN; B07–B09 gated
 

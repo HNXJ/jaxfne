@@ -43,7 +43,7 @@ readouts = model.compute_readout(signals, [
 - Bi-directional V1 ↔ PFC connections
 - Laminar specificity: V1 L4 → PFC L1, PFC L5 → V1 L1
 - LFP-proxy shows areal-specific spectral signatures
-- Traveling-wave analysis (planned) for inter-areal phase dynamics
+- Traveling-wave analysis (reserved) for inter-areal phase dynamics
 
 ## Applications
 

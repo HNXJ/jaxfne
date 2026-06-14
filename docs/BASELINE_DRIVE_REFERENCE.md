@@ -27,7 +27,7 @@
 | SST       | 0.67    | Very conservative (low rheobase) |
 | VIP       | 19.31   | Requires high DC due to burst dynamics |
 
-**Strategy:** Use 80% of rheobase to raise excitability **without** forcing tonic spiking. Network synaptic input can then reliably activate neurons above this baseline.
+**Scope:** Use 80% of rheobase to raise excitability **without** forcing tonic spiking. Network synaptic input can then reliably activate neurons above this baseline.
 
 ---
 

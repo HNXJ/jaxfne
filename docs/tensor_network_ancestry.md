@@ -99,7 +99,7 @@ $$
 | Transform | Implemented | Status |
 |-----------|-------------|--------|
 | Emitter → Source | ✓ (always) | Mandatory; state projection via current/conductance emission |
-| Source → Field | ◑ (optional) | Proxy-only or PDE-based (future) |
+| Source → Field | ◑ (optional) | Proxy-only or PDE-based (reserved) |
 | Field → Readout | ✓ (selective) | User chooses probe operators (8 available: SPK, Vm, source, LFP, CSD, EEG, MEG, EMM) |
 
 ### Why Basis Transforms Matter
@@ -170,9 +170,9 @@ readout_basis = BasisSpec(name="multimodal", units="mixed", n_dims=8)
 
 ---
 
-## Part 6: Future Optional Path (Not Implemented)
+## Part 6: Reserved Optional Path (Not Implemented)
 
-A **future cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform architecture as a teaching tool:
+A **reserved cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform architecture as a teaching tool:
 
 **Hypothetical example (NOT IMPLEMENTED):**
 

@@ -2,7 +2,7 @@
 
 ## Package identity
 
-`jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is a bridge and evidence-generation layer, not a validated biological simulator or full EEG/MEG forward solver.
+`jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is a bridge and evidence-generation layer, proxy-scoped biological simulator or full EEG/MEG forward solver.
 
 ## Canonical architecture
 

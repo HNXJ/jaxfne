@@ -107,9 +107,9 @@ class DocsAudit:
 
                 # Check if target exists
                 if not resolved.exists():
-                    # Check if it's in notebooks (may not exist yet for planned scenarios)
-                    if "notebooks/v030" in link_path and "planned" in content:
-                        self.notes.append(f"Future notebook link (planned): {link_path}")
+                    # Check if it's in notebooks (may not exist yet for reserved scenarios)
+                    if "notebooks/v030" in link_path and "reserved" in content:
+                        self.notes.append(f"Reserved notebook link (reserved): {link_path}")
                         continue
                     self.missing_links.append(f"{md_file.name}: broken link [{link_text}]({link_path})")
 
@@ -127,7 +127,7 @@ class DocsAudit:
                     current_scenarios.append(f"v0.3.{i:02d}")
 
             # Check if Colab links are present for current scenarios
-            # (Planned scenarios v0.3.16-v0.3.31 can skip this check)
+            # (Reserved scenarios v0.3.16-v0.3.31 can skip this check)
             if current_scenarios:
                 # Must have at least one Colab link reference
                 colab_pattern = r'\[Open in Colab\]\(https://colab\.research\.google\.com/'

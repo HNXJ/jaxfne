@@ -4,7 +4,7 @@
 
 [`internal_docs/loop_context/AGENT_QUICKREF.md`](internal_docs/loop_context/AGENT_QUICKREF.md)
 
-Publication snapshot (refresh SHA each session): [`internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md`](internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md)
+Evidence snapshot (refresh SHA each session): [`internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md`](internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md)
 
 Deep reference (on demand): [`internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md`](internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md)
 
@@ -30,13 +30,13 @@ physical_amplitude_claim_allowed: false
 
 ## Branch policy
 
-Publication on `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`. Do not mutate `main`/`dev`/`agy` without approval. No force-push, tag, release, or publish without approval.
+Evidence on `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`. Do not mutate `main`/`dev`/`agy` without approval. No force-push, tag, release, or publish without approval.
 
 ## Validation
 
 ```bash
-python3 scripts/publication_inventory.py
-python3 -m compileall -q scripts/publication jaxfne tests
+python3 scripts/evidence_figures_inventory.py
+python3 -m compileall -q scripts/evidence_figures jaxfne tests
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
   tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short

@@ -72,7 +72,7 @@ class TestTaskCRuntimeSpecValidation:
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
                       "boundary": "mean_zero_neumann", "gauge": "mean_zero"},
             "probes": [{"name": "test_probe", "modes": ["spikes"]}],
-            "runtime_spec": {"unknown_future_key": "some_value"}
+            "runtime_spec": {"unknown_planned_key": "some_value"}
         }
         cfg = jtfne.JaxFNEConfig(**cfg_dict)
         # Should succeed but generate warnings in metadata
@@ -133,7 +133,7 @@ class TestTaskCRuntimeSpecValidation:
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
             "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
-            "emitter": {"family": "unknown_future_emitter", "preset": "default"},
+            "emitter": {"family": "unknown_planned_emitter", "preset": "default"},
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
                       "boundary": "mean_zero_neumann", "gauge": "mean_zero"},
             "probes": [{"name": "test_probe", "modes": ["spikes"]}]
@@ -153,7 +153,7 @@ class TestTaskCRuntimeSpecValidation:
             "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
-            "field_spec": {"domain": "future_3d_domain", "conductivity": "proxy",
+            "field_spec": {"domain": "planned_3d_domain", "conductivity": "proxy",
                       "boundary": "mean_zero_neumann", "gauge": "mean_zero"},
             "probes": [{"name": "test_probe", "modes": ["spikes"]}]
         }

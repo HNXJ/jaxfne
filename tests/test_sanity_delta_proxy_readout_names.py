@@ -69,7 +69,7 @@ class TestProxyReadoutNames:
         """Test that config forbids biological field-solve claim."""
         cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
 
-        # These are computational proxies, not validated against biology
+        # These are computational proxies, proxy-scoped for computational examples
         assert cfg.physical_amplitude_claim_allowed is False
         assert cfg.claim_level == "computational_scaffold"
         assert cfg.field_solver_status == "laminar_proxy_no_pde"

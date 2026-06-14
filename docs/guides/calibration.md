@@ -18,7 +18,7 @@ To prepare a workflow for calibration:
 1. **Specify geometry:** Define layer depths, contact locations, tissue conductivity (if known)
 2. **Document assumptions:** State source model, field solver, status
 3. **Collect reference data:** Identify empirical EEG/MEG/LFP/CSD for comparison
-4. **Validate:** Compare proxy readouts to empirical data; compute residuals and alignment metrics
+4. **Validate:** Compare proxy readouts to empirical data; compute residuals and comparison metrics
 
 ## Calibration Specification and Reporting (v0.2.5)
 

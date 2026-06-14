@@ -3,7 +3,7 @@
 This guards against the v0.0.8 incident where the GitHub tag/release shipped
 with __version__ = "0.0.8" but pyproject.toml still declared "0.0.4". Wheel
 and sdist metadata must agree with the runtime package version before any
-TestPyPI/PyPI publication.
+TestPyPI/PyPI evidence.
 """
 
 from pathlib import Path

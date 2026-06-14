@@ -304,7 +304,7 @@ objective = jtfne.objective()
 
 ---
 
-## Implementation Roadmap
+## Implementation Scope catalogue
 
 ### Phase 1 (Current): Source Bookkeeping + Theoretical Contract
 - Add this document
@@ -368,7 +368,7 @@ Until then, all outputs remain computational scaffolds under `truth_safe_unverif
 - v0.1.0 release: compact public API and scaffold
 - v0.1.1 release: source/field truth metadata hardening
 - v0.1.2 release: scan-backend performance validation
-- DOCTRINE.md: Gamma Labyrinth alignment
+- DOCTRINE.md: Gamma Labyrinth comparison
 - jaxfne/core.py: Signals, Manifest, RunReceipt classes
 - jaxfne/fields.py: laminar proxy source/field logic
 - jaxfne/validation.py: invariant checking

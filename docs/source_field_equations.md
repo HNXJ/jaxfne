@@ -24,8 +24,8 @@ A jaxfne model declares **exactly one** source mode per simulation run. All othe
 
 | Mode | Equation | Status | Implementation |
 |------|----------|--------|-----------------|
-| **total_membrane_current** | $q = I_\mathrm{mem}(z, t)$ | Reserved (future) | Not in v0.2.24–v0.2.27 |
-| **decomposed_cap_ion_syn** | $q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}$ | Reserved (future) | Not in v0.2.24–v0.2.27 |
+| **total_membrane_current** | $q = I_\mathrm{mem}(z, t)$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
+| **decomposed_cap_ion_syn** | $q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
 | **proxy_no_field_solve** | $q = \text{declared proxy} \approx I_\mathrm{native}$ | **Active (current default)** | `jaxfne.fields.project_laminar_sources()` |
 | (none declared) | Signals.sources = None | Allowed (no source) | Field=None, no readouts |
 
@@ -95,9 +95,9 @@ q(x,t) = χ(x) · (I_cap(t) + I_ion(t) + I_syn(t))
          Single transmembrane source, all components included once
 ```
 
-**Option B: Decomposed sources (future v0.2.26)**
+**Option B: Decomposed sources (reserved source mode)**
 ```
-ALLOWED (declared future):
+ALLOWED (declared reserved):
 q_cap(x,t) = χ(x) · I_cap(t)
 q_ion(x,t) = χ(x) · I_ion(t)
 q_syn(x,t) = χ(x) · I_syn(t)
@@ -151,7 +151,7 @@ The **field_solver_status** field in Manifest declares whether the field PDE is 
 | Status | Solver | φ_e | Current | CSD | Statement |
 |--------|--------|-----|---------|-----|-------|
 | `laminar_proxy_no_pde` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity statement |
-| `specified_future_solver` | **Reserved** | To be solved | To be solved | **Solved** | Future v0.2.27+; not implemented yet |
+| `specified_reserved_solver` | **Reserved** | To be solved | To be solved | **Solved** | Reserved v0.2.27+; reserved status yet |
 
 **Current default (v0.2.24–v0.2.27):**
 ```
@@ -195,7 +195,7 @@ print(manifest["boundary_condition"])  # → "mean_zero_neumann"
 print(manifest["gauge"])  # → "mean_zero"
 
 # These fields are informational only in v0.2.24.
-# They document intended future behavior.
+# They document intended reserved behavior.
 ```
 
 ### CSD Sign Convention
@@ -215,7 +215,7 @@ manifest = model.manifest(signals, readouts)
 print(manifest.get("csd_sign_convention"))  # → "positive_equals_extracellular_source"
 ```
 
-**Validation:** Always verify CSD sign convention when comparing to external data or publications. Different fields/literature use opposite conventions.
+**Validation:** Always verify CSD sign convention when comparing to external data or evidences. Different fields/literature use opposite conventions.
 
 ---
 
@@ -230,7 +230,7 @@ The **source_calibration_status** field documents the empirical grounding of the
 | `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ v0.2.24+ default |
 | `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
 | `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ v0.2.22+ bridge |
-| `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ v0.2.24–v0.2.26; future |
+| `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ v0.2.24–v0.2.26; reserved |
 
 **Current constraint:**
 ```

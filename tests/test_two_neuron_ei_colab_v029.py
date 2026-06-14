@@ -261,7 +261,7 @@ class TestTwoNeuronEINotebook:
                 raise AssertionError(f"Invalid JSON in {filepath}: {e}")
 
     def test_version_unchanged(self):
-        """Test that jaxfne version matches pyproject.toml (active version alignment)."""
+        """Test that jaxfne version matches pyproject.toml (active version comparison)."""
         import jaxfne
         import re
 

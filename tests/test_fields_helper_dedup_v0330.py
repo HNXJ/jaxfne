@@ -7,7 +7,7 @@ single canonical source; proxy.py re-imports the names so `fields.proxy.<name>`
 still resolves and the public `jtfne.validate_projection_invariants` has exactly
 one definition.
 
-These tests lock that in and prevent future copy-paste drift.
+These tests lock that in and prevent planned copy-paste drift.
 """
 
 import ast
@@ -57,7 +57,7 @@ def test_proxy_does_not_redefine_helpers():
 def test_proxy_names_are_identical_objects():
     """proxy.<name> must be the same object as diagnostics.<name> (no shadow).
 
-    Covers all five deduped symbols (not just the two public ones) so a future
+    Covers all five deduped symbols (not just the two public ones) so a planned
     re-definition of any private helper in proxy.py is caught by identity too.
     """
     for name in DEDUPED:

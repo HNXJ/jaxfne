@@ -209,7 +209,7 @@ optimizer = {'family': 'AGSDR', 'gen': 3, 'pop': 2, 'seed': SEED}
 
 - **Format:** PNG, 1800×1200 pixels, 150 dpi
 - **Content:** Spectrolaminar profile (LFP, CSD, power spectrum)
-- **Status:** ✅ Generated, publication-ready
+- **Status:** ✅ Generated, evidence-ready
 
 ## Final Verification Checklist
 

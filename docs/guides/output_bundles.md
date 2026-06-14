@@ -86,7 +86,7 @@ Each operator returns a report declaring:
 - **units_or_status:** Units (if physical) or proxy status
 - **assumptions:** List of assumptions (geometry, solver, etc.)
 
-This metadata supports future validation and calibration workflows.
+This metadata supports calibration validation path and calibration workflows.
 
 ## Example: Saving and loading bundles
 

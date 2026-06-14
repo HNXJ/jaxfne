@@ -153,16 +153,16 @@ Rationale: Performance depends on machine load, network contention, and hardware
 
 ---
 
-## Future Directions (Post-v0.2.30)
+## Reserved Directions (Post-v0.2.30)
 
-**Potential future work (not committed):**
+**Potential reserved work (not committed):**
 - Profiling breakdown per neuron type (E, PV, SST, VIP)
 - Synaptic kernel comparison (exponential vs. receptor_exponential)
 - JIT vs. eager compilation benchmark
 - Multi-thread/multi-core analysis
 - Plasticity overhead quantification
 
-All future work will maintain `local_environment_receipt_only` framing and avoid universal statements.
+All reserved work will maintain `local_environment_receipt_only` framing and avoid universal statements.
 
 ---
 

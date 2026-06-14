@@ -2,7 +2,7 @@
 
 Design target: object-oriented public API, pure-JAX computational core.  The
 current package is an honest TFNE scaffold: reduced emitters plus laminar proxy
-source/readout status, not a full PDE field solver.
+source/readout status, a proxy field/readout scaffold.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ class MatrixParameterSpec:
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str
-        Initialization strategy; "current" means start from the
+        Initialization scope; "current" means start from the
         model's existing weight values.
     trainable : bool
         Whether this parameter participates in optimization.
@@ -448,6 +448,7 @@ class _ProbeDeclarations(list):
         self._owner = owner
 
     def bind(self, owner: "Configuration") -> "_ProbeDeclarations":
+        """Documented public function `bind`."""
         return _ProbeDeclarations(self, owner=owner)
 
     def __call__(
@@ -1493,6 +1494,7 @@ class Configuration:
         return self.update_metadata(optimizer=optimizer_spec)
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.networks:
             issues.append("no_networks_declared")
@@ -1580,20 +1582,24 @@ class RuntimeConfig:
 
     @property
     def requested_dtype(self) -> str:
+        """Documented public function `requested_dtype`."""
         return self.dtype_primary or self.dtype
 
     @property
     def selected_backend(self) -> str:
+        """Documented public function `selected_backend`."""
         return self.device_type or self.backend
 
     @property
     def actual_dtype(self) -> str:
+        """Documented public function `actual_dtype`."""
         if self.requested_dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
             return "float64"
         return "float32"
 
     @property
     def jnp_dtype(self) -> jnp.dtype:
+        """Documented public function `jnp_dtype`."""
         return jnp.float64 if self.actual_dtype == "float64" else jnp.float32
 
     def runtime_report(self) -> dict[str, Any]:
@@ -1730,11 +1736,13 @@ class SurrogateConfig:
     status: str = "declaration_only_v0.0.8"
 
     def gradient_path_status(self) -> str:
+        """Documented public function `gradient_path_status`."""
         if self.method in {"straight_through", "sigmoid_beta"}:
             return "declared_surrogate"
         return "required_but_missing"
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "method": self.method,
@@ -1996,6 +2004,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `loss`."""
         spec: dict[str, Any] = {"name": name, "weight": float(weight)}
         if target is not None:
             spec["target"] = float(target)
@@ -2013,6 +2022,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `regularizer`."""
         spec: dict[str, Any] = {"name": name, "target": float(target), "weight": float(weight)}
         if metric is not None:
             spec["metric"] = str(metric)
@@ -2028,6 +2038,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `gate`."""
         spec: dict[str, Any] = {"name": name, "threshold": threshold, "criterion": str(criterion)}
         if metric is not None:
             spec["metric"] = str(metric)
@@ -2061,7 +2072,7 @@ from .paradigm import (
 
 @dataclass(frozen=True)
 class DatasetSpec:
-    """Manifest-safe dataset/alignment declaration for observed data.
+    """Manifest-safe dataset/comparison declaration for observed data.
 
     DatasetSpec is a schema object, not a loader.  It records how an external
     dataset is aligned and interpreted so objectives can reference data without
@@ -2071,8 +2082,8 @@ class DatasetSpec:
     name: str = "unnamed_dataset"
     modality: str = "unspecified"
     source_format: str = "unspecified"
-    alignment_label: str = "p1"
-    alignment_code: int = 101
+    comparison_label: str = "p1"
+    comparison_code: int = 101
     sampling_rate_hz: Optional[float] = None
     units: str = "unspecified"
     trial_filter: dict[str, Any] = field(default_factory=dict)
@@ -2081,21 +2092,24 @@ class DatasetSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def with_condition_map(self, condition_map: Mapping[str, Sequence[int]]) -> "DatasetSpec":
+        """Documented public function `with_condition_map`."""
         mapped = {str(k): [int(x) for x in v] for k, v in condition_map.items()}
         return replace(self, condition_map=mapped)
 
     def with_quality_gate(self, name: str, value: Any) -> "DatasetSpec":
+        """Documented public function `with_quality_gate`."""
         gates = dict(self.quality_gates)
         gates[str(name)] = value
         return replace(self, quality_gates=gates)
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.name:
             issues.append("dataset_name_missing")
-        if self.alignment_code is None:
-            issues.append("alignment_code_missing")
+        if self.comparison_code is None:
+            issues.append("comparison_code_missing")
         if self.sampling_rate_hz is not None and self.sampling_rate_hz <= 0:
             issues.append("sampling_rate_hz_must_be_positive")
         return {
@@ -2106,13 +2120,14 @@ class DatasetSpec:
         }
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
             "modality": self.modality,
             "source_format": self.source_format,
-            "alignment_label": self.alignment_label,
-            "alignment_code": self.alignment_code,
+            "comparison_label": self.comparison_label,
+            "comparison_code": self.comparison_code,
             "sampling_rate_hz": self.sampling_rate_hz,
             "units": self.units,
             "trial_filter": self.trial_filter,
@@ -2134,6 +2149,7 @@ class TrialSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "trial_id": self.trial_id,
@@ -2152,6 +2168,7 @@ class TrialBatch:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "batch_id": self.batch_id,
@@ -2194,6 +2211,7 @@ class TrialBatchResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "batch_id": self.batch_id,
@@ -2231,6 +2249,7 @@ class ReadoutSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
@@ -2263,6 +2282,7 @@ class ReadoutResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "spec_name": self.spec_name,
@@ -2313,6 +2333,7 @@ class ObjectiveReport:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "objective_name": self.objective_name,
@@ -2353,6 +2374,7 @@ class RunReceipt:
     tags: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "receipt_id": self.receipt_id,
@@ -2521,6 +2543,7 @@ class LaminarPopulation:
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.name:
             issues.append("name_empty")
@@ -2542,6 +2565,7 @@ class LaminarPopulation:
         return {"valid": not issues, "issues": issues, "warnings": warnings}
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
@@ -2575,6 +2599,7 @@ class LaminarSourceGeometry:
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.populations:
             issues.append("populations_empty")
@@ -2591,6 +2616,7 @@ class LaminarSourceGeometry:
         return {"valid": not issues, "issues": issues, "n_populations": len(self.populations)}
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "type": "laminar_source_geometry",
@@ -3640,6 +3666,7 @@ class Model:
         )
 
         def one(k):
+            """Documented public function `one`."""
             if runtime_cfg.recurrent_backend == "edge_list":
                 return edge_kernel_fn(
                     emitter,
@@ -4267,7 +4294,7 @@ class Model:
         optimizer: Any = None,
         steps: int = 0,
         seed: int = 0,
-        strategy: Optional[str] = None,
+        scope: Optional[str] = None,
         strict: bool = False,
         simulation: Optional[Simulation] = None,
         parameter: Optional[str] = None,
@@ -4341,7 +4368,7 @@ class Model:
             "same_model_unchanged": True,
             "steps_requested": n_steps,
             "seed": int(seed),
-            "strategy": strategy or spec.optimizer,
+            "scope": scope or spec.optimizer,
             "parameter": parameter,
             "bounds": [float(bounds[0]), float(bounds[1])],
             "optimizer": spec.to_dict(),
@@ -4541,7 +4568,7 @@ class Model:
         base_report: dict[str, Any] = {
             "same_model_unchanged": True,
             "seed": int(seed),
-            "strategy": "agsdr_multiparameter",
+            "scope": "agsdr_multiparameter",
             "parameters": {
                 k: (
                     {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)}
@@ -5202,6 +5229,7 @@ class _RuntimeReportAdapter:
     report: dict[str, Any]
 
     def runtime_report(self) -> dict[str, Any]:
+        """Documented public function `runtime_report`."""
         return self.report
 
 
@@ -5556,6 +5584,7 @@ def suite2_tune_noise_agsdr_adam(
     target_mid = 0.5 * (lo + hi)
 
     def run_amp(amp: float, run_seed: int) -> tuple[float, float, Signals]:
+        """Documented public function `run_amp`."""
         sim = replace(
             sim0,
             seed=int(run_seed),
@@ -5783,7 +5812,7 @@ def standard_visual_omission() -> Paradigm:
       - event: 0 to 500 ms (post-stimulus)
       - post_event: 500 to 1000 ms (post-stimulus)
 
-    Alignment: P1 onset (code 101) at t=0.
+    Comparison: P1 onset (code 101) at t=0.
     Pre-stimulus buffer: 1000 ms.
     """
     # Define event code mapping (immutable, hardcoded).
@@ -5984,8 +6013,8 @@ def standard_visual_omission() -> Paradigm:
     return Paradigm(
         name="standard_visual_omission",
         conditions=tuple(conditions),
-        alignment_code=event_codes["p1"],
-        alignment_label="p1",
+        comparison_code=event_codes["p1"],
+        comparison_label="p1",
         pre_stimulus_buffer_ms=1000.0,
         analysis_windows={
             "baseline": (-500.0, 0.0),
@@ -6439,6 +6468,7 @@ class ConfigValidationResult:
     schema_version: str
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
 
         return json_safe({

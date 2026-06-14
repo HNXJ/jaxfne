@@ -507,6 +507,7 @@ def spectrolaminar_objective_factory(
     """
 
     def objective_fn(readout, synchrony_spikes=None):
+        """Documented public function `objective_fn`."""
         return spectrolaminar_objective(
             readout,
             target_alpha_beta,

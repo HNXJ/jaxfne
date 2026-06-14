@@ -42,7 +42,7 @@
 quality line. No new APIs, no solver work, no scientific-claim escalation.
 
 ### Summary of the v0.3.37 → v0.3.39 quality line
-- **v0.3.37** — docs alignment: strict notebook grammar, root export grammar,
+- **v0.3.37** — docs comparison: strict notebook grammar, root export grammar,
   scope/truth-gate cells, `*_proxy` naming, API index regenerated.
 - **v0.3.38** — root-export hardening: the six export helpers (`save_figure`,
   `save_figures`, `export_report`, `export_tutorial_artifacts`, `plot_raster`,
@@ -176,7 +176,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 
 ### Changed
 - Cleaned duplicated Etude notebook artifacts.
-- Moved release/alignment receipts into `internal_docs/release_receipts/`.
+- Moved release/comparison receipts into `internal_docs/release_receipts/`.
 - Updated release checklist and agent status metadata for the v0.3.21 release candidate.
 
 ### Validation status
@@ -202,7 +202,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 
 - Added `jaxfne/sharding_utils.py` with distributed mesh and NamedSharding stubs.
 - 14 new tests for sharding context and single-device fallbacks.
-- Sharding stubs do not yet drive multi-device dispatch (planned for v0.3.20+).
+- Sharding stubs do not yet drive multi-device dispatch (reserved for v0.3.20+).
 
 ---
 

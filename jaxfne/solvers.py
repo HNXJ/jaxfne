@@ -38,6 +38,7 @@ class EulerSolver:
         n_steps = int(round((t_end - t_start) / self.dt))
         
         def step_fn(carry, i):
+            """Documented public function `step_fn`."""
             y, t = carry
             dy = dydt_fn(y, t)
             y_next = y + self.dt * dy

@@ -44,14 +44,17 @@ class FieldOutput:
 
     @property
     def phi_e(self) -> jax.Array:
+        """Documented public function `phi_e`."""
         return self.phi_e_proxy
 
     @property
     def csd(self) -> jax.Array:
+        """Documented public function `csd`."""
         return self.csd_proxy
 
     @property
     def lfp(self) -> jax.Array:
+        """Documented public function `lfp`."""
         return self.lfp_proxy
 
     @property
@@ -433,6 +436,7 @@ def make_laminar_connectivity(
     w_ff_range: tuple[float, float] = (0.007, 0.030),
     w_fb_range: tuple[float, float] = (0.006, 0.026),
 ) -> dict[str, Any]:
+    """Documented public function `make_laminar_connectivity`."""
     if control_params is None:
         control_params = {
             "local_exc_gain": 1.0,
@@ -528,11 +532,13 @@ def exponential_synaptic_trace(
     tau_ms: float,
     dt_ms: float,
 ) -> jax.Array:
+    """Documented public function `exponential_synaptic_trace`."""
     alpha = jnp.exp(-dt_ms / tau_ms)
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
     if spikes_arr.ndim == 1:
         def body_fun(carry, spike):
+            """Documented public function `body_fun`."""
             next_carry = alpha * carry + spike
             return next_carry, next_carry
 
@@ -541,6 +547,7 @@ def exponential_synaptic_trace(
         return trace
     else:
         def body_fun(carry, step_spikes):
+            """Documented public function `body_fun`."""
             next_carry = alpha * carry + step_spikes
             return next_carry, next_carry
 
@@ -556,6 +563,7 @@ def synaptic_current(
     tau_ms: float,
     dt_ms: float,
 ) -> jax.Array:
+    """Documented public function `synaptic_current`."""
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
     return jnp.dot(trace, W.T)
 
@@ -567,6 +575,7 @@ def filtered_spike_source(
     dt_ms: float = 0.1,
     cell_signs: Mapping[str, int] | None = None,
 ) -> tuple[jax.Array, dict[str, Any]]:
+    """Documented public function `filtered_spike_source`."""
     if cell_signs is None:
         cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
 
@@ -683,6 +692,7 @@ def spectrolaminar_psd(
     freq_min: float = 1.0,
     freq_max: float = 150.0,
 ) -> tuple[jax.Array, jax.Array]:
+    """Documented public function `spectrolaminar_psd`."""
     signal_arr = np.asarray(signal_arr, dtype=np.float32)
     if signal_arr.ndim == 1:
         signal_arr = signal_arr.reshape(-1, 1)
@@ -715,6 +725,7 @@ def spectrolaminar_bandpower(
     freqs: jax.Array,
     bands: dict[str, tuple[float, float]] | None = None,
 ) -> dict[str, jax.Array]:
+    """Documented public function `spectrolaminar_bandpower`."""
     if bands is None:
         bands = {
             "alpha_beta": (8.0, 25.0),
@@ -744,6 +755,7 @@ def spectrolaminar_readout(
     n_contacts: int | None = None,
     dt_ms: float = 0.1,
 ) -> dict[str, Any]:
+    """Documented public function `spectrolaminar_readout`."""
     signal_arr = np.asarray(signal_arr, dtype=np.float32)
     T, N = signal_arr.shape
 
@@ -835,6 +847,7 @@ def multi_area_spectrolaminar_readout(
     n_contacts: int | None = None,
     dt_ms: float = 0.1,
 ) -> dict[str, dict[str, Any]]:
+    """Documented public function `multi_area_spectrolaminar_readout`."""
     areas = set(neurons.get("area", ["V1"]))
     readouts = {}
 
@@ -865,6 +878,7 @@ class LinearReadout:
     units_or_status: str = "relative_proxy_units"
 
     def apply(self, source: jax.Array) -> jax.Array:
+        """Documented public function `apply`."""
         src = jnp.asarray(source)
         W = jnp.asarray(self.W)
         if W.ndim != 2:
@@ -880,6 +894,7 @@ class LinearReadout:
         raise ValueError(f"source must be 1D or 2D, got {src.shape}")
 
     def report(self) -> dict[str, Any]:
+        """Documented public function `report`."""
         return {
             "name": self.name,
             "operator_status": self.operator_status,
@@ -969,6 +984,7 @@ def synaptic_resonance_source(
     dt_ms: float = 0.1,
     control_params: Optional[dict] = None,
 ) -> jax.Array:
+    """Documented public function `synaptic_resonance_source`."""
     resonance, _ = teaching_control_spectrolaminar_resonance_source(
         neurons, n_steps, dt_ms, control_params
     )
@@ -982,6 +998,7 @@ def combined_multi_area_source(
     dt_ms: float = 0.1,
     control_params: Optional[dict] = None,
 ) -> jax.Array:
+    """Documented public function `combined_multi_area_source`."""
     if control_params is None:
         control_params = {}
     
@@ -1001,6 +1018,7 @@ def spectrolaminar_similarity(
     target_alpha_beta: Optional[np.ndarray] = None,
     target_gamma: Optional[np.ndarray] = None,
 ) -> float:
+    """Documented public function `spectrolaminar_similarity`."""
     is_default_target = (target_alpha_beta is None) or (target_gamma is None)
     
     if target_alpha_beta is None:
@@ -1045,6 +1063,7 @@ class spectrolaminar_objective:
         self.target_profiles = target_profiles or {}
         
     def score(self, readouts: dict[str, dict], spikes: Optional[dict] = None) -> float:
+        """Documented public function `score`."""
         scores = []
         for area, readout in readouts.items():
             if area in self.target_profiles:

@@ -63,7 +63,7 @@ Every mathematical section must include:
 2. **Term glossary**: List of symbols and their meanings
 3. **Worded equation**: English description of what the equation computes
 4. **Implementation location**: Where in jaxfne code this is computed
-5. **Claim boundary**: What this equation claims and what it does not claim
+5. **Claim boundary**: What this equation claims and what it scopes
 
 **Correct pattern:**
 

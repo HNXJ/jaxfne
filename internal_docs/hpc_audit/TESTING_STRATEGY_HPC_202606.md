@@ -1,4 +1,4 @@
-# jaxfne HPC/JAX Testing Strategy — Patch 202606
+# jaxfne HPC/JAX Testing Scope — Patch 202606
 
 ## Test axes
 

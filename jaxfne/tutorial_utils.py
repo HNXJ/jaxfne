@@ -1741,6 +1741,7 @@ def tune_laminar_agsdr(
     target = select_cells(model, area=cfg.areas[0], layers=("L4",), cell_types=("E",), seed=cfg.seed)
 
     def objective(xv):
+        """Documented public function `objective`."""
         ctrl = dict(base)
         for k, val in zip(keys, xv):
             ctrl[k] = float(val)

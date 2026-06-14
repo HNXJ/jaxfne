@@ -120,7 +120,7 @@ Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy ten
 | `lfp_norm_l2` | float or null | RMS LFP proxy |
 | `field_energy_like_proxy` | float or null | Same as phi_gradient_proxy_norm2 |
 | `j_dot_e_proxy` | `null` | Not computed: J_e not available in proxy mode |
-| `poynting_flux_proxy` | `null` | Not implemented in v0.2.x |
+| `poynting_flux_proxy` | `null` | Reserved status in v0.2.x |
 | `stress_energy_tensor_status` | `"not_implemented"` | Explicitly gated |
 | `poisson_solver_status` | `"not_implemented"` | Explicitly gated |
 | `maxwell_solver_status` | `"not_implemented"` | Explicitly gated |

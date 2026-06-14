@@ -35,7 +35,7 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 | ID | Factor | Ideal (100/100) | Score | Evidence / notes |
 |---|---|---|---|---|
 | A01 | Git provenance | clean tree; `main==dev` aligned to a known SHA | 100 ✅ | `main==dev==33f99db`, clean |
-| A02 | Version metadata alignment | `pyproject`/`__init__`/`mkdocs`/`version.md` identical | 100 🔶 | v0.3.29 aligned (hotfix e377829) |
+| A02 | Version metadata comparison | `pyproject`/`__init__`/`mkdocs`/`version.md` identical | 100 🔶 | v0.3.29 aligned (hotfix e377829) |
 | A03 | Tag/release identity | annotated tag; peeled commit SHA == intended | 100 ✅ | `v0.3.29^{}`==fab4c9c |
 | A04 | Dist hygiene | `dist/` holds exactly the current-version artifacts | 90 🔶 | zsh `*.egg-info` glob trap (B02) — fixed manually, script unhardened |
 | A05 | Build + twine | `python -m build` + `twine check` pass | 100 ✅ | both PASSED on fab4c9c |
@@ -146,9 +146,9 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 | H05 | No solver/PDE claims | future-tense only until evidence | 96 ✅ | all Maxwell/Poisson hits future/negated |
 | H06 | Claim wording | "simulated/proxy/scaffold/diagnostic" | 96 🔶 | doctrine §13 |
 | H07 | Receipts write-once | `save_receipt` refuses overwrite | 96 🔶 | core.py guard |
-| H08 | Manuscript claim_level | claim escalation gated by evidence | TBD | hnyxj/rules cross-check |
+| H08 | Technical report claim_level | claim escalation gated by evidence | TBD | hnyxj/rules cross-check |
 | H09 | Null tests for mechanism | nulls/ablations before mechanism claims | 85 🔶 | null framework present (reproducible now) |
-| H10 | TFNE grammar alignment | source→field→probe→objective→report grammar | 90 🔶 | manuscript_alignment doc |
+| H10 | TFNE grammar comparison | source→field→probe→objective→report grammar | 90 🔶 | technical report_comparison doc |
 
 ## I. Notebooks / Tutorials / Docs
 

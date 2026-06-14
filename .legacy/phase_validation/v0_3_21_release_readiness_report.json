@@ -59,11 +59,11 @@
       "result": "PASS"
     },
     {
-      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_package_version_alignment.py",
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_package_version_comparison.py",
       "result": "PASS: 1 passed"
     },
     {
-      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_docs_version_alignment.py",
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_docs_version_comparison.py",
       "result": "PASS: 5 passed"
     },
     {
@@ -117,7 +117,7 @@
   ],
   "summary": [
     "Repository root minimized: stale root receipts, duplicate Etude notebook copies, and generated execution-output notebooks removed from active paths.",
-    "Retained main-alignment receipt lives in internal_docs/release_receipts.",
+    "Retained main-comparison receipt lives in internal_docs/release_receipts.",
     "Active Etude stays under tutorials/etudes and executes in smoke and full duration modes in local source-tree execution.",
     "Canonical template stays under tutorials/templates and uses both install options plus backend/dtype setup and canonical import.",
     "Template guide, release checklist, changelog, and agent status aligned with 0.3.21.",

@@ -212,7 +212,7 @@ This metadata is immutable and reflects the tutorial's exploratory scope, not bi
 
 ## 9. Figures
 
-The tutorial generates 5 publication-ready figures:
+The tutorial generates 5 evidence-ready figures:
 
 ### Figure 1: Voltage Trace
 Shows membrane potential oscillation over the full 1-second simulation. Spikes are visible as upward deflections followed by reset to the configured $c$ value. The baseline oscillates around −65 mV.

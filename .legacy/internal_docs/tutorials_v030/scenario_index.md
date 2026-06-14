@@ -592,7 +592,7 @@ The first two tutorial scenarios have generated critical insights that all subse
 - Large-scale network: 1000+ neurons, 5 areas, plasticity, multiple readouts
 - Profiling: JAX JIT time, device memory, wall-clock runtime
 - Scaling analysis: runtime vs. network size (expected linear/quadratic)
-- Future roadmap: Poisson solver, Maxwell fields, GPU acceleration (deferred)
+- Future scope catalogue: Poisson solver, Maxwell fields, GPU acceleration (deferred)
 
 **Figure artifacts:**
 - Large-network raster (1000 neurons, visual sample)

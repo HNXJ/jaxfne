@@ -241,7 +241,7 @@ def test_e_emm_proxy_contains_proxy_status():
 
 
 def test_e_emm_proxy_does_not_claim_biological_metabolism():
-    """EMM-proxy report does not claim biological metabolism."""
+    """EMM-proxy report scopes biological metabolism."""
     emm = jnp.ones((50,), dtype=jnp.float32)
     readout = emm_proxy_probe(emm)
     report_str = str(readout.report).lower()

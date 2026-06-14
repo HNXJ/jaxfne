@@ -12,7 +12,7 @@ Scientific status status:
   empirical_validation_status: not_empirically_validated
 
 No biological mechanism is implied by the condition structure.  The paradigm
-object is a computational schema for organizing trial types, not a validated
+object is a computational schema for organizing trial types, proxy-scoped
 model of neural processing.
 """
 
@@ -48,9 +48,9 @@ def main():
     for window, (lo, hi) in paradigm.analysis_windows.items():
         print(f"  {window:12s}: [{lo}, {hi}]")
 
-    print(f"\n=== Alignment ===")
-    print(f"  alignment_label: {paradigm.alignment_label!r}")
-    print(f"  alignment_code:  {paradigm.alignment_code}")
+    print(f"\n=== Comparison ===")
+    print(f"  comparison_label: {paradigm.comparison_label!r}")
+    print(f"  comparison_code:  {paradigm.comparison_code}")
     print(f"  pre_stimulus_buffer_ms: {paradigm.pre_stimulus_buffer_ms}")
 
     print("\n=== Condition detail: AAAX ===")

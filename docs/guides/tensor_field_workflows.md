@@ -170,7 +170,7 @@ For circuit-level workflows, tensor-field operations can produce:
 
 - **Local summaries:** Per-layer or per-region spike rates, LFP power
 - **Global summaries:** Whole-network activity, cross-layer synchronization
-- **Traveling-wave summaries:** (Planned) Spatiotemporal dynamics across layers/regions
+- **Traveling-wave summaries:** (Reserved) Spatiotemporal dynamics across layers/regions
 
 See tutorials for examples.
 

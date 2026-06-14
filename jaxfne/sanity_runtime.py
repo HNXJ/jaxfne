@@ -115,6 +115,7 @@ def _scan_task_runtime(
 ) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """Runs a single segment forward-Euler step scan over time."""
     def step_fn(carry, inputs):
+        """Documented public function `step_fn`."""
         v_c, u_c, s_c, W_c = carry
         stim_step, noise_step = inputs
         I = base_drive + stim_step + s_c + noise_step

@@ -1,6 +1,6 @@
 # 03_JAX_RUNTIME_CONTRACT
 
-Doctrine: numerical kernels should use `jax.numpy`, explicit random keys, `lax.scan` for time, `vmap` for batching, JIT only for hot numerical paths, and no serialization/plotting inside JIT. Manuscript JAX backend text is at `2026_jtfne_arxiv.txt:L243`; the JAX doctrine file in uploaded context adds explicit PRNG, no hidden global random state, scan/vmap/JIT constraints, float32 default, and x64 opt-in.
+Doctrine: numerical kernels should use `jax.numpy`, explicit random keys, `lax.scan` for time, `vmap` for batching, JIT only for hot numerical paths, and no serialization/plotting inside JIT. Technical report JAX backend text is at `2026_jtfne_arxiv.txt:L243`; the JAX doctrine file in uploaded context adds explicit PRNG, no hidden global random state, scan/vmap/JIT constraints, float32 default, and x64 opt-in.
 
 Live audit highlights: JAX kernels use explicit PRNGKey at 47 sites, `lax.scan` at 12 sites, `vmap` at 34 sites, JIT at 10 sites, and the main gap was host-side unseeded `np.random` in objectives nulls (`Pasted markdown.md:L95`).
 

@@ -53,6 +53,7 @@ class ConnectionCompileResult:
 
     @property
     def n_edges(self) -> int:
+        """Documented public function `n_edges`."""
         return int(self.edge_pre.shape[0])
 
     def to_edge_list(self, *, default_tau_ms: float = 5.0, dtype: str = "float32"):

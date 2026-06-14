@@ -34,6 +34,7 @@ class BridgeSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         return {
             "name": self.name,
             "backend": self.backend,
@@ -54,6 +55,7 @@ class JaxleyEmitterBridge:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_spec(self) -> BridgeSpec:
+        """Documented public function `to_spec`."""
         return BridgeSpec(
             name="jaxley_emitter_bridge",
             backend="jaxley",
@@ -67,6 +69,7 @@ class JaxleyEmitterBridge:
         )
 
     def construct(self) -> dict[str, Any]:
+        """Documented public function `construct`."""
         require_jaxley()
         spec = self.to_spec().to_dict()
         spec["status"] = "backend_available_contract_only"
@@ -380,21 +383,27 @@ def hh_numpy_reference_trace(
     E_L = -54.387  # mV
 
     def alpha_m(V):
+        """Documented public function `alpha_m`."""
         return 0.1 * (V + 40.0) / (1.0 - np.exp(-(V + 40.0) / 10.0)) if abs(V + 40.0) > 1e-6 else 1.0
 
     def beta_m(V):
+        """Documented public function `beta_m`."""
         return 4.0 * np.exp(-(V + 65.0) / 18.0)
 
     def alpha_h(V):
+        """Documented public function `alpha_h`."""
         return 0.07 * np.exp(-(V + 65.0) / 20.0)
 
     def beta_h(V):
+        """Documented public function `beta_h`."""
         return 1.0 / (1.0 + np.exp(-(V + 35.0) / 10.0))
 
     def alpha_n(V):
+        """Documented public function `alpha_n`."""
         return 0.01 * (V + 55.0) / (1.0 - np.exp(-(V + 55.0) / 10.0)) if abs(V + 55.0) > 1e-6 else 0.1
 
     def beta_n(V):
+        """Documented public function `beta_n`."""
         return 0.125 * np.exp(-(V + 65.0) / 80.0)
 
     t = np.arange(0, duration_ms, dt_ms)
@@ -433,6 +442,7 @@ class JaxleyBridge:
         self.compartment_axis = compartment_axis
 
     def simulate(self, *args: Any, **kwargs: Any) -> Any:
+        """Documented public function `simulate`."""
         require_jaxley()
         raise NotImplementedError(
             "TODO: implement JaxleyBridge.simulate for detailed compartment simulation rollout"
@@ -473,6 +483,7 @@ class JaxleyBridge:
         return jnp.asarray(signals)
 
     def report(self) -> dict:
+        """Documented public function `report`."""
         return {
             "bridge_name": "jaxley_bridge",
             "source_mode": self.source_mode,

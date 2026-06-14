@@ -263,7 +263,7 @@ Each code cell executed successfully with:
 | validation_report.json generated | ✅ 542 bytes, all gate fields |
 | metrics.json generated | ✅ 412 bytes, firing rates + kappa |
 | asset_hashes.json generated | ✅ 364 bytes, 4 files hashed |
-| spectrolaminar.png generated | ✅ 265 KB, publication-ready |
+| spectrolaminar.png generated | ✅ 265 KB, evidence-ready |
 | visualize_circuit | ✅ `jtfne.vis.spectrolaminar_suite()` used |
 | SMOKE vs. Full control | ✅ TFNE_SMOKE env var implemented |
 | Command receipts | ✅ Full details above |

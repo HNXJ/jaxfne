@@ -3,7 +3,7 @@
 Validates explicit score labels, synchrony diagnostics, null-mode support,
 manifest contracts, and JSON safety for objective evaluation.
 
-Gate pass/fail is a computational diagnostic only. No biological validation,
+Gate pass/fail is a computational diagnostic only. Proxy status,
 empirical mechanism proof, or amplitude calibration is claimed.
 """
 
@@ -170,7 +170,7 @@ class TestNullReadySchema:
         assert meta.get("n_null") == 100
 
     def test_null_modes_supported(self):
-        """Objective supports declaring multiple null modes for future use."""
+        """Objective supports declaring multiple null modes for planned use."""
         model, signals = _model_and_signals(n=4)
         null_modes = [
             "layer_shuffle",

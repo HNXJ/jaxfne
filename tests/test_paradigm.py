@@ -66,8 +66,8 @@ def test_event_code_mapping():
     }
 
     assert paradigm.event_codes == expected_codes
-    assert paradigm.alignment_code == 101  # P1
-    assert paradigm.alignment_label == "p1"
+    assert paradigm.comparison_code == 101  # P1
+    assert paradigm.comparison_label == "p1"
 
 
 def test_omission_position_detection():
