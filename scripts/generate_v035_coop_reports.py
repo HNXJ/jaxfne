@@ -191,7 +191,7 @@ def main():
     print(f"Report saved to {out_dir / 'agsdr_gain_report.json'}")
     
     # Also copy figures and report to the artifacts directory as required
-    artifact_path = Path("/Users/hamednejat/.gemini/antigravity/brain/761087d9-8c96-406d-b914-b61190a913a9")
+    artifact_path = Path("artifacts/v035_coop_reports")
     artifact_path.mkdir(parents=True, exist_ok=True)
     
     # Copy JSON report

@@ -17,7 +17,7 @@ import jaxfne as jtfne
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-ARTIFACTS_DIR = jtfne.io.Path("/Users/hamednejat/.gemini/antigravity/brain/39583144-86c9-4537-982e-52a28c32e57c")
+ARTIFACTS_DIR = jtfne.io.Path("artifacts/find_5hz_vmap")
 ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
 DURATION_MS = 1000.0

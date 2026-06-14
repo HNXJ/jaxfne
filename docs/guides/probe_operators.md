@@ -78,7 +78,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for future workflows.
+**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -103,7 +103,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Finite output
 - Sign convention exported
 
-**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for future workflows.
+**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -128,7 +128,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 - `operator_status: simulated_proxy`
 - `amplitude_status: false`
 
-**v0.2.1 scope:** All EEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
+**Scope:** EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
 **v0.2.1 status:** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
@@ -154,7 +154,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 - `operator_status: simulated_proxy`
 - `amplitude_status: false`
 
-**v0.2.1 scope:** All MEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.
+**Scope:** MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
 **v0.2.1 status:** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
@@ -217,7 +217,7 @@ Direct readout of state voltage from emitter $n$. Proxy readout.
 
 $$S_n(t)=f_{\mathrm{source}}(x_n(t),\theta_n)$$
 
-Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: proxy-scale units in v0.2.x; calibration path documented for future implementations.
+Source/current proxy derived from emitter state $x_n(t)$ and parameters $\theta_n$. Status: proxy-scale units in v0.2.x; calibration path documented in the calibration guide.
 
 ### LFP-proxy
 
@@ -268,8 +268,8 @@ All eight operators in v0.2.1 are simulated or proxy readouts:
 | source | Simulated source proxy | From emitter state or declared mode |
 | LFP-proxy | Laminar proxy readout | Point sample or contact average; solver-free proxy mode |
 | CSD-proxy | Laminar proxy readout | Second derivative or divergence proxy; solver-free proxy mode |
-| EEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; future physical-model roadmap |
-| MEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; future physical-model roadmap |
+| EEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; calibration metadata exposed |
+| MEG-proxy | Simulated linear projection | Proxy implementation with toy leadfield; calibration metadata exposed |
 | EMM-proxy | Normalized cost proxy | Relative metric for optimization; signaling-energy proxy |
 
 ---
@@ -291,7 +291,7 @@ Calibration workflows and advanced tutorials are developed in the docs and examp
 - Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
-- Optional full-PDE field solver (future; resistive/impedance forward model; requires separate approval — not in v0.3.x)
+- Full-PDE field solver — see [Limitations and future plans](../limitations_and_future_plans.md)
 - Empirically calibrated LFP/CSD readouts with validated sign conventions
 - Physical leadfields from anatomically-validated head models
 - Whole-brain connectivity integrated with laminar columns

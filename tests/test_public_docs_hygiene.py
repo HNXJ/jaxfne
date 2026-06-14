@@ -25,7 +25,7 @@ class TestPublicDocsHardRules:
         "docs/quickstart.md",
         "docs/install.md",
         "docs/faq.md",
-        "docs/scope_and_limitations.md",
+        "docs/limitations_and_future_plans.md",
         "docs/tutorials/index.md",
         "docs/tutorials/notebook_standard.md",
         "docs/tutorials/01_single_neuron_multimodal.md",

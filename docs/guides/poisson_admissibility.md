@@ -1,17 +1,16 @@
-# Elliptic Field Equation Specification: Admissibility Roadmap
+# Elliptic Field Equation Specification: Admissibility Conditions
 
-> **Doctrine update (v0.2.27):** This document is a **future field-solver specification and roadmap**, a planning document rather than a concrete implementation guide.
-> elliptic field solver implementation is planned for a future release following separate approval. The `solved_poisson` field regime
-> is declared as `implemented=False, status_enabled=False` in v0.2.26+ and reserved for future implementation. 
-> v0.2.27 adds proxy diagnostics only — solver-free proxy mode.
-> Physical amplitude amplitudes stay native-unscaled in all v0.2.x releases pending future field solver implementation and calibration.
+> **Scope:** This page specifies the admissibility mathematics (well-posedness, accuracy,
+> consistency) for the elliptic field regime. The regime is one of the reserved regimes in
+> [Limitations and future plans](../limitations_and_future_plans.md); the shipped package uses
+> the laminar proxy. The `solved_poisson` regime carries `implemented=False, status_enabled=False`,
+> and proxy amplitudes stay relative (uncalibrated) under `physical_amplitude_claim_allowed = False`.
 
 ## Overview
 
-This document specifies the mathematical contract for future elliptic field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
+This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
 
-**Status (updated v0.2.27):** Specification and roadmap. elliptic field solver implementation is deferred to a future release.
-A concrete elliptic field solver requires separate approval before implementation begins; see
+**Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
@@ -224,7 +223,7 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
   "amplitude_status": false,
-  "v02x_note": "v0.2.x is specification-only (solver pending future implementation). amplitude_status is ALWAYS false. Elliptic field solver requires separate approval; physical amplitude amplitudes stay native-unscaled until solver is implemented and calibrated."
+  "note": "Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_claim_allowed=false."
 }
 ```
 
@@ -243,11 +242,11 @@ When a elliptic field solver is separately approved and implemented:
 - ✓ Admissibility specification defined
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
-- ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-scale mode, solver pending future implementation
-- ⧉ Elliptic field solver — planned for future release, requires separate approval
+- ✓ Conservation proxy diagnostics — proxy-scale mode
+- ⧉ Elliptic field solver — reserved regime ([Limitations and future plans](../limitations_and_future_plans.md))
 - ⧉ Physical amplitude statuss — pending field solver implementation and calibration validation
 
-**Public-output status:** Specification and roadmap; solver pending future implementation; physical-amplitude amplitudes stay native-unscaled pending calibration.
+**Public-output status:** Specification of admissibility conditions; proxy amplitudes stay relative pending calibration.
 `solved_poisson` regime is gated: `implemented=False`, `status_enabled=False` in v0.2.26+.
 
 ---
@@ -261,5 +260,5 @@ When a elliptic field solver is separately approved and implemented:
 
 ---
 
-**Document version:** v0.2.27 (updated from v0.2.15 spec; solver pending future release)  
+**Document version:** admissibility specification  
 **Last updated:** 2026-05-22

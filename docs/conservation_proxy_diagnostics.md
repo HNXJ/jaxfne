@@ -8,7 +8,7 @@ laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp
 and produce JSON-safe scalar summaries for source/field validation.
 
 **Run boundary (v0.2.27):**
-- Proxy diagnostics only — proxy-based computation; physical-field solvers (Poisson, Maxwell) are planned for future modules. Physical amplitude statuss are deferred to calibration phases.
+- Proxy diagnostics only — proxy-based computation over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in [Limitations and future plans](limitations_and_future_plans.md).
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
@@ -81,18 +81,16 @@ This product is the local Ohmic power density. In TFNE v0.2.27:
 - `j_dot_e_proxy` is always `null`.
 - Computing J·E as a physical power density would require a solved field and calibrated σ.
 
-**Future doctrine:** J·E may be added when physical-field solver modules (Poisson-based) are approved and produce current-density arrays from field equations. Current proxy mode uses voltage
-array. Until then, it remains `null`.
+**Reserved regime:** J·E becomes available once a physical-field solver produces current-density arrays. Proxy mode uses the voltage array and reports `null`; see [Limitations and future plans](limitations_and_future_plans.md).
 
-### Poynting Theorem (Declared Future, Not Computed)
+### Poynting Theorem (reserved regime)
 
 $$\frac{\partial u_{em}}{\partial t} + \nabla \cdot \mathbf{S} + \mathbf{J} \cdot \mathbf{E} = 0$$
 
 where $\mathbf{S} = \mathbf{E} \times \mathbf{H}$ is the Poynting vector.
 
 **Run boundary:**
-v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric field dynamics. These are planned for future physical-field module implementations.
-`poynting_flux_proxy: null`. This equation is documented here as future doctrine only.
+Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy tensor, and volumetric field dynamics belong to the reserved regimes in [Limitations and future plans](limitations_and_future_plans.md); the equation is recorded here for reference.
 
 ---
 
@@ -173,20 +171,9 @@ print(cpd["amplitude_status"])  # False
 
 ---
 
-## What is NOT in v0.2.27
+## Reserved capabilities
 
-| Capability | Status |
-|---|---|
-| Elliptic field solver (Poisson) | Planned for future module — requires separate approval |
-| Volumetric field solver (Maxwell) | Planned for future module (v0.3.x+) |
-| Admittive field solver | Not implemented — declared future (v0.3.x+) |
-| Poynting flux computation | Not implemented — future doctrine only |
-| Stress-energy tensor | Not implemented — future doctrine only |
-| J·E power density | Not computed — J_e not available in proxy mode |
-| Physical amplitude status | Disallowed — `amplitude_status: false` |
-| Biological metabolism statement | Disallowed — `metabolism_status: false` |
-| Calibrated conductivity | Not available — proxy scalar, no SPD tensor |
-| Boundary/gauge enforcement | Metadata-only declarations |
+Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and stress-energy computation, calibrated conductivity, and physical-amplitude reporting are reserved regimes. Proxy mode holds `amplitude_status: false` and `metabolism_status: false`. The regime catalogue lives in [Limitations and future plans](limitations_and_future_plans.md).
 
 ---
 
@@ -196,5 +183,5 @@ print(cpd["amplitude_status"])  # False
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Source/field equations
 - [Source/Field Equations](source_field_equations.md) — Source modes and bookkeeping
 - [Probe Operators](probe_operators.md) — Readout operator statement boundaries
-- [Elliptic Field Equation Specification](poisson_admissibility.md) — Roadmap for future field-solver implementation
-- [Scope and Limitations](scope_and_limitations.md) — What TFNE statements and stays scoped to
+- [Elliptic Field Equation Specification](poisson_admissibility.md) — admissibility mathematics
+- [Limitations and future plans](limitations_and_future_plans.md) — scope boundaries and reserved regimes

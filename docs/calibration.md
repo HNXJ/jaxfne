@@ -4,7 +4,7 @@ jaxfne readouts are computational proxies by default. Physical-unit workflows re
 
 ## Calibration-ready design
 
-jaxfne is designed to support future calibration workflows. The framework:
+jaxfne is designed to support calibration workflows. The framework:
 
 - **Preserves source identity** — track source origin (emitter type, cell type)
 - **Declares assumptions** — metadata fields state conductivity, solver, geometry models
@@ -91,7 +91,7 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 
 ## Current status (v0.2.3–v0.2.5)
 
-- ✓ Metadata fields support future calibration annotations
+- ✓ Metadata fields support calibration annotations
 - ✓ JSON output bundles preserve geometry and source information
 - ✓ Calibration specification contracts: v0.2.5 (metadata only, no physical amplitude upgrade)
 - ◐ Empirically validated calibration examples: v0.2.6–v0.2.7
@@ -129,6 +129,6 @@ manifest = model.manifest(signals, ...)
 
 ## References and further reading
 
-- [Scope and limitations](scope_and_limitations.md)
+- [Scope and limitations](limitations_and_future_plans.md)
 - [Output bundles](output_bundles.md)
 - [Probe operators](probe_operators.md)

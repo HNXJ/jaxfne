@@ -116,4 +116,4 @@ for readout in loaded_manifest["readouts"]:
 ## Next steps
 
 - [Calibration](calibration.md) for preparing outputs for empirical validation
-- [Scope and limitations](../scope_and_limitations.md) for understanding operator status
+- [Scope and limitations](../limitations_and_future_plans.md) for understanding operator status

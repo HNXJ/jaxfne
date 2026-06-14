@@ -18,7 +18,7 @@ v0.3.38.
     `physical_amplitude_claim_allowed = False`). The package is a
     `computational_scaffold` for teaching, prototyping, and validation — not a
     calibrated biological simulator. See
-    [Scope and limitations](../scope_and_limitations.md).
+    [Scope and limitations](../limitations_and_future_plans.md).
 
 ## Module pages
 

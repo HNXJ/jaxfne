@@ -179,8 +179,8 @@ cfg = jtfne.configuration()
 In v0.2.24–v0.2.27, these are stored in Manifest but do **not** affect simulation:
 
 ```
-boundary_condition: Specifies Neumann (zero-flux) condition (future solver will enforce)
-gauge: Specifies mean-zero constraint (future solver will use)
+boundary_condition: Specifies Neumann (zero-flux) condition (reserved solver regime)
+gauge: Specifies mean-zero constraint (reserved solver regime)
 ```
 
 **In v0.2.27+ (future)**, when a field solver is added:
@@ -399,7 +399,7 @@ Before releasing a model, verify:
 
 - [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
 - [ ] Source projection mode is declared (if source_calibration_status is not None)
-- [ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a future solver name
+- [ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a reserved solver name
 - [ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)
 - [ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)
 - [ ] amplitude_status is False
@@ -413,4 +413,4 @@ Before releasing a model, verify:
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, statement boundaries
 - [Probe Operators](probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](output_bundles.md) — Manifest and report schema
-- [Scope and Limitations](scope_and_limitations.md) — What jaxfne statements and stays scoped to
+- [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to
