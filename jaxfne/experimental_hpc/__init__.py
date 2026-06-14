@@ -33,6 +33,10 @@ from .contracts import (
     weld_config,
     get_signal,
 )
+from .physical_field_solver_v040 import (
+    PhysicalFieldSolverSpec,
+    solve_physical_field,
+)
 
 __all__ = [
     "Config",
@@ -62,4 +66,6 @@ __all__ = [
     "simulate_flat_izhikevich",
     "weld_config",
     "get_signal",
+    "PhysicalFieldSolverSpec",
+    "solve_physical_field",
 ]

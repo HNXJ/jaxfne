@@ -67,6 +67,15 @@ class ParadigmCondition:
 
 @dataclass(frozen=True)
 class Paradigm:
+    """Immutable experimental-paradigm specification (blocks, conditions, windows).
+
+    ``name`` labels the paradigm; ``blocks`` and ``conditions`` declare the trial
+    structure; ``alignment_code``/``alignment_label`` set the event-alignment
+    marker; ``pre_stimulus_buffer_ms`` is the pre-event buffer (ms); and
+    ``analysis_windows`` maps window names to ``(start_ms, end_ms)`` ranges (all
+    in milliseconds, relative to the alignment event).
+    """
+
     name: str = "none"
     blocks: list[dict[str, Any]] = field(default_factory=list)
     conditions: tuple[ParadigmCondition, ...] = ()

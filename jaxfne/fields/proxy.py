@@ -172,6 +172,14 @@ def project_sources_to_laminar_field(
     *,
     dtype: str = "float32",
 ) -> FieldOutput:
+    """Project sources onto ``n_contacts`` laminar contacts (proxy field).
+
+    Convenience wrapper over :func:`project_laminar_sources`: maps ``sources`` at
+    ``positions`` to a :class:`FieldOutput` via the Gaussian-leadfield laminar
+    proxy. This is not a PDE/volume-conductor solve
+    (``field_solver_status = "laminar_proxy_no_pde"``); outputs are relative-unit
+    proxies.
+    """
     return project_laminar_sources(sources, positions, n_contacts=n_contacts, dtype=dtype)
 
 
@@ -383,6 +391,13 @@ def probe_laminar_modes(
     field_output: FieldOutput,
     modes: Sequence[str],
 ) -> dict[str, Any]:
+    """Extract requested proxy readouts from a :class:`FieldOutput`.
+
+    ``modes`` selects among the available laminar proxies (``"source"``,
+    ``"phi_e"``, ``"csd"``, ``"lfp"``, ...); returns a dict mapping each to its
+    ``*_proxy`` array. All returned arrays are proxy readouts
+    (``field_solver_status = "laminar_proxy_no_pde"``), not physical signals.
+    """
     out: dict[str, Any] = {}
     if "source" in modes or "sources" in modes:
         out["source_proxy"] = field_output.source_proxy
@@ -833,6 +848,16 @@ def multi_area_spectrolaminar_readout(
 
 @dataclass(frozen=True)
 class LinearReadout:
+    """Linear (superposition-respecting) proxy readout operator ``y = source @ Wᵀ``.
+
+    ``name`` labels the operator; ``W`` is the readout/leadfield matrix
+    (``[n_contacts, n_sources]``). The status fields document the truth gates and
+    are not escalated by the code: ``leadfield_status`` defaults to
+    ``"toy_or_declared_proxy"`` (no calibrated leadfield), ``operator_status`` to
+    ``"simulated_proxy"``, and ``units_or_status`` to ``"relative_proxy_units"``
+    (relative units, not calibrated physical amplitudes).
+    """
+
     name: str
     W: jax.Array
     leadfield_status: str = "toy_or_declared_proxy"
@@ -873,6 +898,13 @@ def construct_source_tensor(
     spike_proxy: jax.Array | None = None,
     scale: float = 1.0,
 ) -> tuple[jax.Array, dict[str, Any]]:
+    """Assemble a source tensor for laminar projection from the named ``mode``.
+
+    Selects one source basis — ``total_membrane_current``, ``decomposed_cap_ion``,
+    ``synaptic_current`` or ``spike_proxy`` — and applies ``scale``. Returns the
+    source array plus a JSON-safe metadata dict recording the mode and proxy
+    status. The result is a proxy source basis, not a physical current density.
+    """
     if mode == "total_membrane_current_proxy":
         if total_membrane_current is None:
             raise ValueError(

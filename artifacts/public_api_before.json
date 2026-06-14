@@ -1,5 +1,5 @@
 {
-  "version": "0.3.32-alpha",
+  "version": "0.3.39",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -99,6 +99,8 @@
     "enable_x64",
     "euler_scan",
     "euler_step",
+    "export_report",
+    "export_tutorial_artifacts",
     "get_sharding_context",
     "get_signal",
     "gsdr",
@@ -127,6 +129,8 @@
     "optax_adam",
     "optax_sgd",
     "paradigm",
+    "plot_raster",
+    "plot_spectrolaminar_suite",
     "plot_stdp_adaptation_suite",
     "probe_laminar_modes",
     "probe_report",
@@ -145,6 +149,8 @@
     "run_trials",
     "runtime",
     "runtime_report",
+    "save_figure",
+    "save_figures",
     "save_json",
     "save_receipt",
     "sdr_transform",

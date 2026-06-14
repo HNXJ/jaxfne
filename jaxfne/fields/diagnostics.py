@@ -50,6 +50,15 @@ def validate_projection_invariants(
     csd_proxy: jax.Array,
     lfp_proxy: jax.Array,
 ) -> dict[str, Any]:
+    """Check structural invariants of the laminar proxy projection.
+
+    Verifies kernel row-normalization (row-stochastic to ``tol=1e-6``) and the
+    finiteness/consistency of the ``source_proxy``/``phi_e_proxy``/``csd_proxy``/
+    ``lfp_proxy`` arrays for the given ``sources``/``positions``/``kernel``.
+    Returns a JSON-safe dict of per-invariant pass/fail diagnostics. This checks
+    the proxy operator's internal consistency only — it makes no claim of
+    physical correctness.
+    """
     kernel_norm_tests = _test_kernel_row_normalization(kernel, tol=1e-6)
     kernel_row_sum_max_abs_error = kernel_norm_tests["kernel_row_sum_max_abs_error"]
 

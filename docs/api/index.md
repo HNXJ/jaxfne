@@ -139,7 +139,7 @@ and figure/readout outputs remain proxy diagnostics
 | `simulation` | func | —  _(undocumented)_ |
 | `standard_visual_omission` | func | Construct a Paradigm with standard visual oddball/omission task conditions. |
 | `stimulus_schedule` | func | Build a `StimulusSchedule` from a sequence of events. |
-| `StimulusSchedule` | class | Explicit native-drive schedule for event-aligned stimulus injection. |
+| `StimulusSchedule` | class | Explicit drive schedule for event-aligned stimulus injection. |
 | `suite2_celltype_presets` | func | Return compact E/PV/SST/VIP reduced-emitter preset metadata. |
 | `suite2_four_celltype_config` | func | Build the Suite No. 2 four-emitter E/PV/SST/VIP configuration. |
 | `suite2_net1_config` | func | Build net1: a uniformly sampled 3D E/PV/SST/VIP column. |
@@ -165,12 +165,12 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `EdgeList` | class | Sparse recurrent connectivity as a JAX pytree. |
 | `EIGNetwork` | class | Lightweight description of an E/PV/SST/VIP-like reduced network. |
-| `Emitter` | class | Base class for package-native emitter facades. |
-| `GLIFEmitter` | class | Base class for package-native emitter facades. |
+| `Emitter` | class | Base class for package-level emitter facades. |
+| `GLIFEmitter` | class | Base class for package-level emitter facades. |
 | `izhikevich_params_from_labels` | func | Create reduced Izhikevich parameters from explicit cell labels. |
-| `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with JAX-native step. |
+| `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with a JAX step function. |
 | `IzhikevichParams` | class | Parameter container for a reduced Izhikevich population. |
-| `LIFEmitter` | class | Base class for package-native emitter facades. |
+| `LIFEmitter` | class | Base class for package-level emitter facades. |
 | `make_edge_list_from_dense` | func | Convert a dense recurrent weight matrix into a sparse EdgeList. |
 | `make_eig_network` | func | Build a minimal EIG network with laminar depth positions. |
 | `ReceptorSpec` | class | Metadata declaration for a synaptic receptor. Not a biological kernel. |

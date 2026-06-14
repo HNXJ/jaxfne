@@ -1027,7 +1027,7 @@ class EmitterOutput(_NamedTuple):
 
 
 class Emitter:
-    """Base class for package-native emitter facades."""
+    """Base class for package-level emitter facades."""
 
     def initial_state(self, seed: int = 0) -> EmitterState:
         raise NotImplementedError("TODO: implement Emitter.initial_state in a concrete emitter")
@@ -1037,7 +1037,7 @@ class Emitter:
 
 
 class IzhikevichEmitter(Emitter):
-    """Reduced Izhikevich emitter facade with JAX-native step."""
+    """Reduced Izhikevich emitter facade with a JAX step function."""
 
     def __init__(self, n: int | None = None, *, n_neurons: int | None = None, dtype: str = "float32", cell_type_fractions: Mapping[str, float] | None = None):
         self.n = int(n if n is not None else (n_neurons if n_neurons is not None else 1))
@@ -1094,6 +1094,13 @@ class LIFEmitter(Emitter):
 
 
 class SynapseState(_NamedTuple):
+    """Per-step synaptic state carried through the recurrent scan.
+
+    ``trace`` is the synaptic activation/conductance trace array (one entry per
+    synapse or edge), advanced by the synapse kernel at each time step. A
+    NamedTuple so it registers as a JAX pytree for ``lax.scan``.
+    """
+
     trace: jax.Array
 
 

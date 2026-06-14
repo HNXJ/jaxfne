@@ -1688,6 +1688,16 @@ class SurrogateConfig:
 
 @dataclass(frozen=True)
 class Simulation:
+    """Immutable specification of one simulation run.
+
+    Fields: ``duration_ms`` and ``dt_ms`` (milliseconds; both must be positive
+    and finite), ``seed`` (PRNG seed), ``plasticity`` (plasticity gain),
+    ``record_sources``/``record_fields`` (recording toggles), ``poisson_drive``
+    (optional drive spec), ``runtime`` (:class:`RuntimeConfig` override), and
+    ``ablation`` (optional ablation label). ``n_steps`` is derived as
+    ``round(duration_ms / dt_ms)`` and must be > 0.
+    """
+
     duration_ms: float = 1000.0
     dt_ms: float = 0.05
     plasticity: float = 0.0
@@ -1729,6 +1739,14 @@ class Simulation:
 
 @dataclass(frozen=True)
 class Probe:
+    """Immutable declaration of a readout probe.
+
+    ``name`` identifies the probe; ``modes`` is the sequence of requested
+    readout keys (e.g. ``"spikes"``, ``"V_m"``, ``"lfp_proxy"``,
+    ``"csd_proxy"``); ``metadata`` carries optional JSON-safe annotations. All
+    field-derived modes are proxy readouts, not physical measurements.
+    """
+
     name: str
     modes: Sequence[str]
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -2315,7 +2333,7 @@ def _make_poisson_drive(
 
 @dataclass(frozen=True)
 class StimulusSchedule:
-    """Explicit native-drive schedule for event-aligned stimulus injection.
+    """Explicit drive schedule for event-aligned stimulus injection.
 
     Contains an ordered sequence of drive events as JSON-safe dicts with keys:
     ``onset_ms``, ``duration_ms``, ``amplitude``, ``label``, ``is_drive_event``.
@@ -3083,6 +3101,15 @@ def _normalize_manifest_readout(
 
 @dataclass(frozen=True)
 class Model:
+    """Immutable, runnable model built from a validated :class:`Configuration`.
+
+    Holds the source ``cfg``, the dynamic ``params`` pytree (arrays that may be
+    tuned/traced), and ``static`` metadata (JIT-static, non-array). Construct via
+    :func:`construct`; run via :func:`simulate` / :meth:`simulate`. Also exported
+    as the alias ``Net``. The model is a computational scaffold — its field and
+    probe outputs are proxy readouts, not calibrated physical signals.
+    """
+
     cfg: Configuration
     params: dict[str, Any]
     static: dict[str, Any]
@@ -5092,6 +5119,12 @@ def with_emitter_parameters(
 
 
 def configuration() -> Configuration:
+    """Return a fresh, empty :class:`Configuration` builder.
+
+    Entry point for the chainable configuration grammar
+    (``configuration().network(...).emitter(...)...``). Equivalent to calling
+    ``Configuration()`` directly.
+    """
     return Configuration()
 
 
@@ -5110,6 +5143,13 @@ def runtime(
     dtype_primary: str | None = None,
     x64_enabled: bool | None = None,
 ) -> RuntimeConfig:
+    """Build a :class:`RuntimeConfig` (JAX backend/dtype/jit/vmap policy).
+
+    Thin keyword factory for :class:`RuntimeConfig`; ``device_type``,
+    ``dtype_primary`` and ``x64_enabled`` are accepted as v0.0.3-compatibility
+    aliases. This configures execution only — it makes no numerical or
+    scientific claim about the simulation.
+    """
     return RuntimeConfig(
         backend=backend,
         dtype=dtype,
@@ -5127,14 +5167,30 @@ def runtime(
 
 
 def runtime_report(runtime_config: RuntimeConfig | None = None) -> dict[str, Any]:
+    """Return a JSON-safe dict describing the resolved JAX runtime.
+
+    Reports the effective backend, dtype policy, and jit/vmap flags for the
+    given :class:`RuntimeConfig` (or the default if ``None``). Use it to confirm
+    ``actual_dtype`` and that jit/vmap are enabled before profiling.
+    """
     return (runtime_config or RuntimeConfig()).runtime_report()
 
 
 def simulation(**kwargs: Any) -> Simulation:
+    """Build a :class:`Simulation` spec from keyword arguments.
+
+    Thin factory for :class:`Simulation` (``duration_ms``, ``dt_ms``, ``seed``,
+    ``plasticity``, recording flags, ...). Equivalent to ``Simulation(**kwargs)``.
+    """
     return Simulation(**kwargs)
 
 
 def objective() -> Objective:
+    """Return a fresh, empty :class:`Objective` specification.
+
+    Starting point for declaring losses, regularizers, and diagnostic gates.
+    Equivalent to ``Objective()``.
+    """
     return Objective()
 
 
@@ -5472,6 +5528,16 @@ def simulate(
 
 
 def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
+    """Validate a :class:`Configuration` and build a runnable :class:`Model`.
+
+    Raises ``ValueError`` if the configuration is invalid or names an
+    unsupported emitter family (only the Izhikevich kernel is implemented; an
+    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
+    than silently substituting Izhikevich). An optional
+    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
+    The returned model is a computational scaffold; its field/probe outputs are
+    proxy readouts, not calibrated physical signals.
+    """
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
