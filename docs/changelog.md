@@ -1,6 +1,6 @@
 ## v0.3.41 (2026-06-14)
 
-**Port of JAX-native computational kernels.** No scientific-claim escalation.
+**Port of JAX computational kernels.** No scientific-claim escalation.
 
 ### Added
 - JAX spectral analysis functions: `spectrolaminar_psd_jax`, `bandpower_jax`, `spectrolaminar_readout_kernel_jax`, `spectrolaminar_similarity_kernel_jax`, and vectorized batched variants `spectrolaminar_similarity_candidates_jax`, `spectrolaminar_similarity_candidates_seeds_jax`.
