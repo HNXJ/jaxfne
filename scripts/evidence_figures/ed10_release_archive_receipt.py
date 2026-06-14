@@ -26,6 +26,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from _figure_common import (
+    evidence_checklist_path,
     ensure_evidence_dirs,
     jaxfne_version,
     repo_root,
@@ -104,7 +105,7 @@ def _load_inventory() -> dict[str, Any]:
 
 
 def _checklist_hash() -> dict[str, Any]:
-    path = _REPO_ROOT / "docs" / "evidence" / "evidence_checklist.json"
+    path = evidence_checklist_path()
     return {
         "path": str(path.relative_to(_REPO_ROOT)),
         "exists": path.is_file(),

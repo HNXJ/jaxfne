@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _figure_common import (
+    evidence_checklist_path,
     ensure_evidence_dirs,
     repo_root,
     repo_sha,
@@ -81,7 +82,7 @@ def _load_inventory() -> dict:
 
 
 def _load_checklist() -> dict:
-    path = repo_root() / "docs" / "evidence" / "evidence_checklist.json"
+    path = evidence_checklist_path()
     return json.loads(path.read_text(encoding="utf-8"))
 
 

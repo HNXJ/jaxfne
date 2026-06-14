@@ -9,7 +9,8 @@ git fetch --all --prune
 git branch --show-current
 git status --short
 git rev-parse HEAD
-python3 scripts/evidence_figures_inventory.py
+python3 scripts/evidence_inventory.py
+# scripts/evidence_figures_inventory.py is kept as a compatibility wrapper.
 ```
 
 Publication track: branch `cur`. Re-freeze SHA and inventory before citing counts or technical report receipts.

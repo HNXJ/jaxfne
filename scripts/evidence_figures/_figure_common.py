@@ -63,6 +63,25 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+
+def evidence_checklist_path() -> Path:
+    """Return the active evidence checklist path with compatibility fallback.
+
+    v0.3.42 public generators refer to ``docs/evidence/evidence_checklist.json``.
+    Some repo bundles place the same checklist under ``docs/evidence_artifacts``.
+    Prefer the canonical path when present, but allow the compatibility path so
+    local audit and figure scripts do not false fail on zipped source bundles.
+    """
+    root = repo_root()
+    candidates = [
+        root / "docs" / "evidence" / "evidence_checklist.json",
+        root / "docs" / "evidence_artifacts" / "evidence_checklist.json",
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    return candidates[0]
+
 def truth_gates() -> dict:
     """Default evidence truth gates (copy safe for manifests)."""
     return {

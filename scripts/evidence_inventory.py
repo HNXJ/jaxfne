@@ -43,10 +43,18 @@ EXTENDED_DATA = [
 
 INSPECT_DIRS = [
     "docs/evidence",
+    "docs/evidence_artifacts",
     "tutorials",
     "examples",
     "outputs/evidence",
+    "outputs/publication",
     "figures/evidence",
+    "figures/publication",
+]
+
+FIGURE_DIR_CANDIDATES = [
+    "figures/evidence",
+    "figures/publication",
 ]
 
 MANIFEST_PATHS = [
@@ -70,6 +78,7 @@ MANIFEST_PATHS = [
     "outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
     "outputs/evidence/ed10_release_archive_receipt_manifest.json",
     "docs/evidence/evidence_checklist.json",
+    "docs/evidence_artifacts/evidence_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",
 ]
@@ -97,12 +106,27 @@ def git_head_sha() -> str | None:
         return None
 
 
-def inventory_asset(filename: str, figures_dir: Path) -> dict:
-    path = figures_dir / filename
+def inventory_asset(filename: str, figure_dirs: list[Path]) -> dict:
+    """Inventory one PNG from canonical or compatibility figure directories.
+
+    The v0.3.42 evidence scripts write to ``figures/evidence``. Some release
+    bundles still contain the previously tracked ``figures/publication`` assets.
+    Treat the latter as a compatibility source so inventory reports do not false
+    fail before the evidence figures are regenerated.
+    """
+    preferred = figure_dirs[0] / filename
+    path = preferred
+    for candidate_dir in figure_dirs:
+        candidate = candidate_dir / filename
+        if candidate.is_file():
+            path = candidate
+            break
     entry = {
         "filename": filename,
         "path": str(path.relative_to(REPO_ROOT)),
+        "canonical_path": str(preferred.relative_to(REPO_ROOT)),
         "exists": path.is_file(),
+        "compatibility_path_used": path != preferred,
         "sha256": None,
         "size_bytes": None,
     }
@@ -134,11 +158,11 @@ def count_glob(directory: Path, pattern: str) -> int:
 
 
 def build_inventory() -> dict:
-    figures_dir = REPO_ROOT / "figures" / "evidence"
+    figure_dirs = [REPO_ROOT / rel for rel in FIGURE_DIR_CANDIDATES]
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    main_assets = [inventory_asset(name, figures_dir) for name in MAIN_FIGURES]
-    ed_assets = [inventory_asset(name, figures_dir) for name in EXTENDED_DATA]
+    main_assets = [inventory_asset(name, figure_dirs) for name in MAIN_FIGURES]
+    ed_assets = [inventory_asset(name, figure_dirs) for name in EXTENDED_DATA]
 
     inspect_summary = {}
     for rel in INSPECT_DIRS:
@@ -172,6 +196,12 @@ def build_inventory() -> dict:
         "extended_data": ed_assets,
         "manifests_and_reports": manifests,
         "summary": {
+            "figure_dir_candidates": FIGURE_DIR_CANDIDATES,
+            "compatibility_assets_used": sum(
+                1
+                for asset in [*main_assets, *ed_assets]
+                if asset.get("compatibility_path_used")
+            ),
             "main_figures_present": main_present,
             "main_figures_total": len(MAIN_FIGURES),
             "extended_data_present": ed_present,

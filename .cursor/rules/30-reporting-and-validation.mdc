@@ -19,7 +19,7 @@ For worker reports, include:
 Treat test counts, SHA, and inventory rows as unverified unless the report includes:
 
 - exact command
-- branch/SHA from a live freeze (`git rev-parse HEAD`, `publication_inventory.py`)
+- branch/SHA from a live freeze (`git rev-parse HEAD`, `scripts/evidence_inventory.py`)
 - platform/Python when relevant
 - output summary
 

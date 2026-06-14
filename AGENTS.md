@@ -35,7 +35,8 @@ Evidence on `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`. Do not mutat
 ## Validation
 
 ```bash
-python3 scripts/evidence_figures_inventory.py
+python3 scripts/evidence_inventory.py
+# scripts/evidence_figures_inventory.py is kept as a compatibility wrapper.
 python3 -m compileall -q scripts/evidence_figures jaxfne tests
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
