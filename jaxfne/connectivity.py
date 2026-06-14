@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import math
 import warnings
+from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
@@ -446,7 +447,7 @@ def compile_connection_rules(
     )
 
 
-@jax.jit(static_argnums=(4,))
+@partial(jax.jit, static_argnums=(4,))
 def compile_connection_rules_jax(
     pre_indices: jax.Array,
     post_indices: jax.Array,
