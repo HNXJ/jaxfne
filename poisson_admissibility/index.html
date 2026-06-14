@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2224,21 +2224,20 @@
 
 <h1 id="poisson-field-solver-admissibility-specification">Poisson Field Solver Admissibility Specification<a class="headerlink" href="#poisson-field-solver-admissibility-specification" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Doctrine update (v0.2.27):</strong> This document is a <strong>future solver-readiness specification</strong>, not an implementation guide.
-Poisson solver implementation is planned for future phases. The <code>solved_poisson</code> field regime
-is declared as <code>implemented=False, status_enabled=False</code> in v0.2.26+ and remains so until a
-separately approved implementation phase begins. v0.2.27 adds proxy diagnostics for verification — full solver deferred.
-Physical amplitude amplitudes stay unscaled (amplitude_status: false) in all v0.2.x releases until solver validation is complete.</p>
+<p><strong>Scope:</strong> This page specifies the admissibility (solver-readiness) conditions for the
+elliptic field regime, one of the reserved regimes in
+<a href="../limitations_and_future_plans/">Limitations and future plans</a>. The shipped package uses the
+laminar proxy; the <code>solved_poisson</code> regime carries <code>implemented=False, status_enabled=False</code>,
+and proxy amplitudes stay relative under <code>amplitude_status: false</code>.</p>
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>This document specifies the mathematical contract for future Poisson field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.</p>
-<p><strong>Status (updated v0.2.27):</strong> Specification only. Poisson solver implementation is planned for future releases beyond v0.2.x.
-A concrete Poisson solver requires separate approval before implementation begins; see
+<p>This document specifies the mathematical contract for the elliptic (Poisson) field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.</p>
+<p><strong>Status:</strong> Specification of the admissibility conditions for the elliptic field regime; see
 <a href="../computation_basis/">computation_basis.md</a> for the <code>solved_poisson</code> regime gating doctrine.</p>
 <p>⚠️ <strong>v0.2.x Critical Invariant:</strong>
 - <strong>No physical amplitude statuss are allowed in any v0.2.x release</strong>, even if admissibility gates pass on synthetic data.
 - <code>amplitude_status</code> is <strong>always false</strong> in v0.2.x reports.
-- Poisson solver implementation requires separate approval and is planned for future phases. The <code>solved_poisson</code> regime remains <code>implemented=False</code> until approval and completion.</p>
+- The <code>solved_poisson</code> regime carries <code>implemented=False</code>; it is a reserved regime in <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <h2 id="mathematical-problem">Mathematical Problem<a class="headerlink" href="#mathematical-problem" title="Permanent link">&para;</a></h2>
 <p>A resistive forward-field problem seeks extracellular potential <span class="arithmatex">\(\phi_e\)</span> and current density <span class="arithmatex">\(\mathbf{J}_e\)</span> satisfying:</p>
 <div class="arithmatex">\[\nabla \cdot (\sigma \nabla \phi_e) = -I_{\mathrm{src}}\]</div>
@@ -2393,7 +2392,7 @@ A concrete Poisson solver requires separate approval before implementation begin
 <span class="w">    </span><span class="nt">&quot;csd_sign_convention&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;positive_equals_extracellular_source&quot;</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;v02x_note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v0.2.x is specification-only (no solver). amplitude_status is ALWAYS false. A Poisson solver requires separate approval; physical amplitude amplitudes stay unscaled (amplitude_status: false) until solver is implemented and calibrated.&quot;</span>
+<span class="w">  </span><span class="nt">&quot;note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative.&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="future-usage-separately-approved-phase">Future Usage (Separately Approved Phase)<a class="headerlink" href="#future-usage-separately-approved-phase" title="Permanent link">&para;</a></h2>
@@ -2411,8 +2410,8 @@ A concrete Poisson solver requires separate approval before implementation begin
 <li>✓ Five gates mathematically specified</li>
 <li>✓ Validation helpers implemented in <code>jaxfne.validation</code></li>
 <li>✓ Conservation proxy diagnostics added (v0.2.27) — proxy-based verification, full solver planned</li>
-<li>◐ Poisson solver implementation planned for future phases — requires separate approval</li>
-<li>◐ Physical amplitude statuss validation planned for future calibration phases</li>
+<li>◐ Elliptic field solver — reserved regime (<a href="../limitations_and_future_plans/">Limitations and future plans</a>)</li>
+<li>◐ Physical-amplitude reporting requires calibration (<a href="../limitations_and_future_plans/">Limitations and future plans</a>)</li>
 </ul>
 <p><strong>Public-output status:</strong> Specification-only; no solver implementation; no calibrated physical-amplitude statuss.
 <code>solved_poisson</code> regime is gated: <code>implemented=False</code>, <code>status_enabled=False</code> in v0.2.26+.</p>

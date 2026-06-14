@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2182,52 +2182,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#declared-future-field-regimes" class="md-nav__link">
+  <a href="#proxy-field-regime" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Declared-Future Field Regimes
+        Proxy field regime
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Declared-Future Field Regimes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#v0224v0227-proxy-field-current" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.2.24–v0.2.27: Proxy Field (Current)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#v0227-declared-future-conservation-inspired-proxy-diagnostics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.2.27 (Declared Future): Conservation-Inspired Proxy Diagnostics
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#v03x-declared-future-calibrated-physical-field" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        v0.3.x (Declared Future): Calibrated Physical Field
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2571,70 +2532,24 @@ $<span class="arithmatex">\(\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_
 - Implementation: <code>jaxfne.fields.project_laminar_sources(..., basis="spectral")</code></p>
 <p><strong>Contract:</strong> All bases must have output shape <span class="arithmatex">\([T, X]\)</span> for some <span class="arithmatex">\(X\)</span>. Basis choice is documented in Manifest.</p>
 <hr />
-<h2 id="declared-future-field-regimes">Declared-Future Field Regimes<a class="headerlink" href="#declared-future-field-regimes" title="Permanent link">&para;</a></h2>
-<p>TFNE defines a roadmap of <strong>future field computation regimes</strong>, each with different complexity and assumptions.</p>
-<h3 id="v0224v0227-proxy-field-current">v0.2.24–v0.2.27: Proxy Field (Current)<a class="headerlink" href="#v0224v0227-proxy-field-current" title="Permanent link">&para;</a></h3>
+<h2 id="proxy-field-regime">Proxy field regime<a class="headerlink" href="#proxy-field-regime" title="Permanent link">&para;</a></h2>
+<p>The shipped field regime is the laminar proxy:</p>
 <div class="highlight"><pre><span></span><code>Field solver status: laminar_proxy_no_pde
-Regime: No PDE solve
-Equation: ∇·(-σ_e ∇φ_e) = q  [DECLARED, NOT SOLVED]
-Implementation: CSD ∝ ∇·q from source (proxy)
-Conductivity: Proxy (scalar, isotropic, no calibration)
-Boundary: Metadata-only (future use)
-Gauge: Metadata-only (future use)
-Statement: Computational scaffold; no physical conductivity statement
+Regime: proxy readout (no PDE solve)
+Equation: CSD_proxy = nabla . q  (kernel convolution)
+Conductivity: scalar proxy (uncalibrated)
+Boundary / gauge: metadata fields
 </code></pre></div>
-<p><strong>What is computed:</strong>
+<p><strong>Computed:</strong>
 - Source projection: <span class="arithmatex">\(q(x,t)\)</span> from emitter state
-- Proxy CSD: <span class="arithmatex">\(\mathrm{CSD}_\mathrm{proxy} = \nabla \cdot q\)</span> (kernel convolution, no solve)
+- Proxy CSD: <span class="arithmatex">\(\mathrm{CSD}_\mathrm{proxy} = \nabla \cdot q\)</span> (kernel convolution)
 - Proxy LFP: <span class="arithmatex">\(\mathrm{LFP}_\mathrm{proxy} = \sum_x K_\mathrm{LFP}(x) \cdot q(x)\)</span> (spatial filter)</p>
-<p><strong>What is NOT computed:</strong>
-- Field solve: <span class="arithmatex">\(\phi_e\)</span>, <span class="arithmatex">\(\mathbf{J}_e\)</span> (not solved; only proxy)
-- Conductivity validation: no SPD check, no physical unit assignment
-- Boundary/gauge enforcement: metadata only</p>
-<h3 id="v0227-declared-future-conservation-inspired-proxy-diagnostics">v0.2.27 (Declared Future): Conservation-Inspired Proxy Diagnostics<a class="headerlink" href="#v0227-declared-future-conservation-inspired-proxy-diagnostics" title="Permanent link">&para;</a></h3>
-<blockquote>
-<p><strong>Approved scope:</strong> conservation-inspired proxy diagnostics only.
-No Poisson solver is introduced in v0.2.27.
-<code>solved_poisson</code> remains <code>implemented=False</code> and <code>status_enabled=False</code>.
-A Poisson solver remains gated future work and requires separate approval before any implementation begins.</p>
-</blockquote>
-<div class="highlight"><pre><span></span><code>Field solver status: poisson_admissibility_diagnostic (planned, not implemented)
-Regime: Conservation-inspired proxy diagnostics
-Equation: ∇·q ≈ 0 [source conservation proxy check, NOT solved]
-Implementation: Proxy diagnostics over existing field/source outputs; no Poisson solver in v0.2.27
-Conductivity: Proxy (still scalar, no calibration)
-Boundary: Metadata-only (future use)
-Gauge: Metadata-only (future use)
-Diagnostic: Source conservation proxy (∫∫q dA ≈ 0 checked as proxy, not PDE-enforced)
-Statement: Proxy conservation check; no field solve; conductivity still uncalibrated
-</code></pre></div>
-<p><strong>Motivation:</strong> Validate that source declarations satisfy approximate conservation laws at the proxy level, without stating physical conductivity or solving a PDE. Useful for debugging source projection and testing model consistency.</p>
-<p><strong>Planned diagnostic outputs (proxy-only, no field solve):</strong>
-- Source conservation proxy check: <code>source_integral_proxy</code> (scalar, proxy)
-- Gradient proxy: <code>∇·q</code> approximation over existing source array
-- Diagnostics: source_integral_check, proxy_conservation_residual</p>
-<p><strong>What is NOT in v0.2.27:</strong>
-- No Poisson solve: <span class="arithmatex">\(\phi_e\)</span>, <span class="arithmatex">\(\mathbf{J}_e\)</span> are not computed
-- No CG/MINRES or iterative solver
-- No boundary/gauge enforcement (metadata only)
-- No calibrated conductivity
-- No physical-amplitude status</p>
-<h3 id="v03x-declared-future-calibrated-physical-field">v0.3.x (Declared Future): Calibrated Physical Field<a class="headerlink" href="#v03x-declared-future-calibrated-physical-field" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>Field solver status: calibrated_physical_conductivity (not in v0.2.x roadmap)
-Regime: Solve Poisson with calibrated conductivity
-Equation: ∇·(-σ_e(x) ∇φ_e) = q  [SOLVED with SPD σ_e(x)]
-Implementation: Fast FFT-based or high-order FEM with validated geometry
-Conductivity: Calibrated to empirical tissue (SPD tensor, anisotropic)
-Boundary: Dipole/inhomogeneous (empirical)
-Gauge: Physical (zero-flux far-field)
-Statement: Field is physical under empirical conductivity calibration
-</code></pre></div>
-<p><strong>When to statement this regime:</strong>
-- Tissue conductivity is measured (anisotropic tensor, not scalar proxy)
-- Field geometry is validated against real probe data (lead field measured)
-- CSD/LFP/EEG outputs match empirical recordings (validation data present)
-- Methods section documents calibration source and validation benchmark</p>
-<hr />
+<p>The field potential <span class="arithmatex">\(\phi_e\)</span> and current density <span class="arithmatex">\(\mathbf{J}_e\)</span> are represented by
+proxy operators rather than a volume-conductor solve, consistent with
+<code>field_solver_status = "laminar_proxy_no_pde"</code> and
+<code>physical_amplitude_claim_allowed = False</code>. Reserved field regimes
+(conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
+<a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <h2 id="extensibility-doctrine-adding-new-domains">Extensibility Doctrine: Adding New Domains<a class="headerlink" href="#extensibility-doctrine-adding-new-domains" title="Permanent link">&para;</a></h2>
 <p>When extending TFNE to a new domain (whole-brain, multi-area, ephaptic coupling, etc.), follow this framework:</p>
 <h3 id="step-1-define-inputoutput-shapes">Step 1: Define Input/Output Shapes<a class="headerlink" href="#step-1-define-inputoutput-shapes" title="Permanent link">&para;</a></h3>
@@ -2745,9 +2660,9 @@ Validation required: None yet; this is exploratory setup
 <td>Spatial/layer/spectral projection bases equivalent</td>
 </tr>
 <tr>
-<td><strong>Declared-future regimes</strong></td>
-<td>Future solver/conductivity modes are declared but not implemented</td>
-<td>v0.2.27 diagnostics, v0.3.x physical conductivity are future</td>
+<td><strong>Reserved regimes</strong></td>
+<td>Elliptic/electrodynamic solver and conductivity modes are catalogued in <a href="../limitations_and_future_plans/">Limitations and future plans</a></td>
+<td>reserved</td>
 </tr>
 <tr>
 <td><strong>Extensibility</strong></td>
@@ -2862,7 +2777,7 @@ Validation required: None yet; this is exploratory setup
 <li><a href="../source_field_equations/">Source/Field Equations</a> — Source modes, forbidden patterns, field metadata</li>
 <li><a href="../tensor_network_ancestry/">Tensor-Network Ancestry</a> — v0.2.29 conceptual context: basis-transform doctrine and historical parallels</li>
 <li><a href="../probe_operators/">Probe Operators</a> — Readout operators and their statement boundaries</li>
-<li><a href="../scope_and_limitations/">Scope and Limitations</a> — What TFNE statements and stays scoped to</li>
+<li><a href="../limitations_and_future_plans/">Scope and Limitations</a> — What TFNE statements and stays scoped to</li>
 </ul>
 
 

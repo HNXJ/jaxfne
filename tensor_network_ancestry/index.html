@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2165,15 +2165,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#part-4-what-tfne-does-and-does-not-statement" class="md-nav__link">
+  <a href="#part-4-what-tfne-does" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Part 4: What TFNE Does (and Does Not Statement)
+        Part 4: What TFNE Does
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Part 4: What TFNE Does (and Does Not Statement)">
+    <nav class="md-nav" aria-label="Part 4: What TFNE Does">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2181,17 +2181,6 @@
     <span class="md-ellipsis">
       
         TFNE Does
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tfne-does-not-statement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        TFNE Does NOT Statement
       
     </span>
   </a>
@@ -2388,22 +2377,17 @@ X^{probe}_a = P_{a, basis(source \to probe)} \left( F_{basis(field \to source)} 
 <p><strong>Example (LFP proxy):</strong></p>
 <div class="arithmatex">\[\text{LFP\_proxy}(t) = \sum_{contacts} w_{contact} \, \phi_e(contact, t)\]</div>
 <p>(where <span class="arithmatex">\(\phi_e\)</span> is extracellular potential and <span class="arithmatex">\(w_{contact}\)</span> are weights from contact geometry)</p>
-<p><strong>Non-statement:</strong> This is not a real LFP sensor. It is a proxy computed from simulated sources. No calibration to empirical recordings is stated.</p>
+<p><strong>Proxy note:</strong> LFP-proxy is a computational readout derived from simulated sources in relative units. See <a href="../limitations_and_future_plans/">Limitations and future plans</a> for calibration scope.</p>
 <hr />
-<h2 id="part-4-what-tfne-does-and-does-not-statement">Part 4: What TFNE Does (and Does Not Statement)<a class="headerlink" href="#part-4-what-tfne-does-and-does-not-statement" title="Permanent link">&para;</a></h2>
+<h2 id="part-4-what-tfne-does">Part 4: What TFNE Does<a class="headerlink" href="#part-4-what-tfne-does" title="Permanent link">&para;</a></h2>
 <h3 id="tfne-does">TFNE Does<a class="headerlink" href="#tfne-does" title="Permanent link">&para;</a></h3>
 <p>✓ Organize emitter → source → field → readout as a modular tensor-contraction pipeline<br />
 ✓ Support multi-basis workflows (e.g., Izhikevich emitter in mV, source in nA, LFP proxy in arbitrary units)<br />
 ✓ Provide 8 probe operators for simultaneous multimodal readouts<br />
-✓ Validate status checks: proxy-only, no biological metabolism statements, no solver oversteps<br />
-✓ Enable future extensions: new emitters, new field solvers, new probes—all within the same basis-transform architecture</p>
-<h3 id="tfne-does-not-statement">TFNE Does NOT Statement<a class="headerlink" href="#tfne-does-not-statement" title="Permanent link">&para;</a></h3>
-<p>✗ <strong>No cerebellar metric-tensor learning:</strong> jaxfne does not implement Pellionisz/Llinás sensorimotor transforms or learned basis-transform coefficients<br />
-✗ <strong>No tensor-train/MPS compression:</strong> jaxfne is not a tensor-network factorization library (no tensor-train states, MPS, PEPS, etc.)<br />
-✗ <strong>No Maxwell/Poisson/stress-energy solver implementation from tensor-network ancestry:</strong> jaxfne's source-field framework is a proxy spatial projection in the default v0.2.x path (no PDE solvers, no boundary-condition enforcement). TFNE's source and field basis transforms are fundamental to the electromagnetic observable framework; they are not absent from it.<br />
-✗ <strong>No biological validation:</strong> Proxy readouts (LFP, CSD, EEG, MEG) are named <em>proxy</em> because they are not validated against empirical measurements<br />
-✗ <strong>No sensorimotor proof:</strong> Using basis transforms does not demonstrate that neural circuits implement metric-tensor learning<br />
-✗ <strong>No condensed-matter quantum analogy:</strong> jaxfne tensors are not quantum states and do not use variational tensor-network algorithms</p>
+✓ Validate status checks: proxy-only readouts under the package truth gates<br />
+✓ Support extensions: new emitters, field operators, and probes within the same basis-transform architecture</p>
+<p>The proxy-readout scope, reserved field-solver regimes, and calibration boundaries are
+catalogued in <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <hr />
 <h2 id="part-5-relationship-to-basisspec-contract">Part 5: Relationship to BasisSpec Contract<a class="headerlink" href="#part-5-relationship-to-basisspec-contract" title="Permanent link">&para;</a></h2>
 <p>jaxfne's <code>BasisSpec</code> (introduced in v0.2.25) formalizes the basis-transform idea:</p>

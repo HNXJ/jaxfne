@@ -61,6 +61,10 @@
          <lastmod>2026-06-14</lastmod>
     </url>
     <url>
+         <loc>https://jaxfne.readthedocs.io/limitations_and_future_plans/</loc>
+         <lastmod>2026-06-14</lastmod>
+    </url>
+    <url>
          <loc>https://jaxfne.readthedocs.io/mathematical_glossary_flow/</loc>
          <lastmod>2026-06-14</lastmod>
     </url>
@@ -86,10 +90,6 @@
     </url>
     <url>
          <loc>https://jaxfne.readthedocs.io/quickstart/</loc>
-         <lastmod>2026-06-14</lastmod>
-    </url>
-    <url>
-         <loc>https://jaxfne.readthedocs.io/scope_and_limitations/</loc>
          <lastmod>2026-06-14</lastmod>
     </url>
     <url>
@@ -177,7 +177,7 @@
          <lastmod>2026-06-14</lastmod>
     </url>
     <url>
-         <loc>https://jaxfne.readthedocs.io/notes/arkhipov_allen_tfne_alignment/</loc>
+         <loc>https://jaxfne.readthedocs.io/notes/biophysical_model_comparison/</loc>
          <lastmod>2026-06-14</lastmod>
     </url>
     <url>
@@ -282,18 +282,6 @@
     </url>
     <url>
          <loc>https://jaxfne.readthedocs.io/tutorials/tutorial_outputs/</loc>
-         <lastmod>2026-06-14</lastmod>
-    </url>
-    <url>
-         <loc>https://jaxfne.readthedocs.io/tutorials/v0333_colab_gemini_evidence/</loc>
-         <lastmod>2026-06-14</lastmod>
-    </url>
-    <url>
-         <loc>https://jaxfne.readthedocs.io/tutorials/v0333_colab_gemini_orientation/</loc>
-         <lastmod>2026-06-14</lastmod>
-    </url>
-    <url>
-         <loc>https://jaxfne.readthedocs.io/tutorials/v0333_colab_gemini_task_smoke/</loc>
          <lastmod>2026-06-14</lastmod>
     </url>
 </urlset>

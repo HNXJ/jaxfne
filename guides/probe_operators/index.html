@@ -1486,14 +1486,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -2016,14 +2016,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../scope_and_limitations/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2740,7 +2740,7 @@
 - <code>field_solver_status: laminar_proxy_no_pde</code>
 - <code>amplitude_status: false</code></p>
 <p><strong>Important:</strong> v0.2.1 uses <code>-proxy</code> terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.</p>
-<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for future workflows.</p>
+<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
 <hr />
 <h3 id="csd-proxy">CSD-proxy<a class="headerlink" href="#csd-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Estimate current-source density profile or second spatial derivative/divergence proxy.</p>
@@ -2758,7 +2758,7 @@
 - Linear potential gives near-zero second derivative
 - Finite output
 - Sign convention exported</p>
-<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for future workflows.</p>
+<p><strong>v0.2.1 status:</strong> Laminar proxy-scale readout; calibration metadata available for calibrated workflows.</p>
 <hr />
 <h3 id="eeg-proxy">EEG-proxy<a class="headerlink" href="#eeg-proxy" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> Provide a simulated scalp-channel proxy readout using a declared toy or proxy lead field.</p>
@@ -2774,7 +2774,7 @@
 - <code>units_or_status: arbitrary_proxy_units</code>
 - <code>operator_status: simulated_proxy</code>
 - <code>amplitude_status: false</code></p>
-<p><strong>v0.2.1 scope:</strong> All EEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.</p>
+<p><strong>Scope:</strong> EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in <a href="../../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <p><strong>v0.2.1 status:</strong> Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
 <hr />
 <h3 id="meg-proxy">MEG-proxy<a class="headerlink" href="#meg-proxy" title="Permanent link">&para;</a></h3>
@@ -2791,7 +2791,7 @@
 - <code>units_or_status: arbitrary_proxy_units</code>
 - <code>operator_status: simulated_proxy</code>
 - <code>amplitude_status: false</code></p>
-<p><strong>v0.2.1 scope:</strong> All MEG readouts are computational proxies with declared toy leadfields. Future physical-field implementations will require calibration against empirical reference data.</p>
+<p><strong>Scope:</strong> MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in <a href="../../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <p><strong>v0.2.1 status:</strong> Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.</p>
 <hr />
 <h3 id="emm-proxy">EMM-proxy<a class="headerlink" href="#emm-proxy" title="Permanent link">&para;</a></h3>
@@ -2827,7 +2827,7 @@
 <p>Direct readout of state voltage from emitter <span class="arithmatex">\(n\)</span>. Proxy readout.</p>
 <h3 id="source_1">Source<a class="headerlink" href="#source_1" title="Permanent link">&para;</a></h3>
 <div class="arithmatex">\[S_n(t)=f_{\mathrm{source}}(x_n(t),\theta_n)\]</div>
-<p>Source/current proxy derived from emitter state <span class="arithmatex">\(x_n(t)\)</span> and parameters <span class="arithmatex">\(\theta_n\)</span>. Status: proxy-scale units in v0.2.x; calibration path documented for future implementations.</p>
+<p>Source/current proxy derived from emitter state <span class="arithmatex">\(x_n(t)\)</span> and parameters <span class="arithmatex">\(\theta_n\)</span>. Status: proxy-scale units in v0.2.x; calibration path documented in the calibration guide.</p>
 <h3 id="lfp-proxy_1">LFP-proxy<a class="headerlink" href="#lfp-proxy_1" title="Permanent link">&para;</a></h3>
 <div class="arithmatex">\[\phi_{\mathrm{proxy}}(t,c)=\sum_{n=1}^{N}W_{cn}S_n(t), \quad \sum_{n=1}^{N}W_{cn}=1\]</div>
 <p>Row-normalized kernel projection: potential at contact <span class="arithmatex">\(c\)</span> is a weighted sum of sources, with row sums equal to one. Status: laminar proxy via solver-free kernel projection.</p>
@@ -2886,12 +2886,12 @@
 <tr>
 <td>EEG-proxy</td>
 <td>Simulated linear projection</td>
-<td>Proxy implementation with toy leadfield; future physical-model roadmap</td>
+<td>Proxy implementation with toy leadfield; calibration metadata exposed</td>
 </tr>
 <tr>
 <td>MEG-proxy</td>
 <td>Simulated linear projection</td>
-<td>Proxy implementation with toy leadfield; future physical-model roadmap</td>
+<td>Proxy implementation with toy leadfield; calibration metadata exposed</td>
 </tr>
 <tr>
 <td>EMM-proxy</td>
@@ -2914,7 +2914,7 @@
 - Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
-- Optional full-PDE field solver (future; resistive/impedance forward model; requires separate approval — not in v0.3.x)
+- Full-PDE field solver — see <a href="../../limitations_and_future_plans/">Limitations and future plans</a>
 - Empirically calibrated LFP/CSD readouts with validated sign conventions
 - Physical leadfields from anatomically-validated head models
 - Whole-brain connectivity integrated with laminar columns

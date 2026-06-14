@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#elliptic-field-equation-specification-admissibility-roadmap" class="md-skip">
+        <a href="#elliptic-field-equation-specification-admissibility-conditions" class="md-skip">
           Skip to content
         </a>
       
@@ -1348,14 +1348,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1878,14 +1878,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../scope_and_limitations/" class="md-nav__link">
+      <a href="../../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2413,18 +2413,17 @@
   
 
 
-<h1 id="elliptic-field-equation-specification-admissibility-roadmap">Elliptic Field Equation Specification: Admissibility Roadmap<a class="headerlink" href="#elliptic-field-equation-specification-admissibility-roadmap" title="Permanent link">&para;</a></h1>
+<h1 id="elliptic-field-equation-specification-admissibility-conditions">Elliptic Field Equation Specification: Admissibility Conditions<a class="headerlink" href="#elliptic-field-equation-specification-admissibility-conditions" title="Permanent link">&para;</a></h1>
 <blockquote>
-<p><strong>Doctrine update (v0.2.27):</strong> This document is a <strong>future field-solver specification and roadmap</strong>, a planning document rather than a concrete implementation guide.
-elliptic field solver implementation is planned for a future release following separate approval. The <code>solved_poisson</code> field regime
-is declared as <code>implemented=False, status_enabled=False</code> in v0.2.26+ and reserved for future implementation. 
-v0.2.27 adds proxy diagnostics only — solver-free proxy mode.
-Physical amplitude amplitudes stay native-unscaled in all v0.2.x releases pending future field solver implementation and calibration.</p>
+<p><strong>Scope:</strong> This page specifies the admissibility mathematics (well-posedness, accuracy,
+consistency) for the elliptic field regime. The regime is one of the reserved regimes in
+<a href="../../limitations_and_future_plans/">Limitations and future plans</a>; the shipped package uses
+the laminar proxy. The <code>solved_poisson</code> regime carries <code>implemented=False, status_enabled=False</code>,
+and proxy amplitudes stay relative (uncalibrated) under <code>physical_amplitude_claim_allowed = False</code>.</p>
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>This document specifies the mathematical contract for future elliptic field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.</p>
-<p><strong>Status (updated v0.2.27):</strong> Specification and roadmap. elliptic field solver implementation is deferred to a future release.
-A concrete elliptic field solver requires separate approval before implementation begins; see
+<p>This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.</p>
+<p><strong>Status:</strong> Specification of the admissibility conditions. The elliptic field regime is reserved; see
 <a href="../../computation_basis/">../computation_basis.md</a> for the <code>solved_poisson</code> regime gating doctrine.</p>
 <p>⚠️ <strong>v0.2.x Critical Invariant:</strong>
 - <strong>Physical amplitude statuss are disallowed in all v0.2.x releases</strong>, even if admissibility gates pass on synthetic data.
@@ -2584,7 +2583,7 @@ A concrete elliptic field solver requires separate approval before implementatio
 <span class="w">    </span><span class="nt">&quot;csd_sign_convention&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;positive_equals_extracellular_source&quot;</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;v02x_note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;v0.2.x is specification-only (solver pending future implementation). amplitude_status is ALWAYS false. Elliptic field solver requires separate approval; physical amplitude amplitudes stay native-unscaled until solver is implemented and calibrated.&quot;</span>
+<span class="w">  </span><span class="nt">&quot;note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_claim_allowed=false.&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="future-usage-separately-approved-phase">Future Usage (Separately Approved Phase)<a class="headerlink" href="#future-usage-separately-approved-phase" title="Permanent link">&para;</a></h2>
@@ -2601,11 +2600,11 @@ A concrete elliptic field solver requires separate approval before implementatio
 <li>✓ Admissibility specification defined</li>
 <li>✓ Five gates mathematically specified</li>
 <li>✓ Validation helpers implemented in <code>jaxfne.validation</code></li>
-<li>✓ Conservation proxy diagnostics added (v0.2.27) — proxy-scale mode, solver pending future implementation</li>
-<li>⧉ Elliptic field solver — planned for future release, requires separate approval</li>
+<li>✓ Conservation proxy diagnostics — proxy-scale mode</li>
+<li>⧉ Elliptic field solver — reserved regime (<a href="../../limitations_and_future_plans/">Limitations and future plans</a>)</li>
 <li>⧉ Physical amplitude statuss — pending field solver implementation and calibration validation</li>
 </ul>
-<p><strong>Public-output status:</strong> Specification and roadmap; solver pending future implementation; physical-amplitude amplitudes stay native-unscaled pending calibration.
+<p><strong>Public-output status:</strong> Specification of admissibility conditions; proxy amplitudes stay relative pending calibration.
 <code>solved_poisson</code> regime is gated: <code>implemented=False</code>, <code>status_enabled=False</code> in v0.2.26+.</p>
 <hr />
 <h2 id="mathematical-references">Mathematical References<a class="headerlink" href="#mathematical-references" title="Permanent link">&para;</a></h2>
@@ -2616,7 +2615,7 @@ A concrete elliptic field solver requires separate approval before implementatio
 <li><strong>Gauge conditions:</strong> Standard practice in computational electrodynamics and neuroscience forward modeling</li>
 </ul>
 <hr />
-<p><strong>Document version:</strong> v0.2.27 (updated from v0.2.15 spec; solver pending future release)<br />
+<p><strong>Document version:</strong> admissibility specification<br />
 <strong>Last updated:</strong> 2026-05-22</p>
 
 

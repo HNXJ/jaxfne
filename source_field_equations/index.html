@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2569,8 +2569,8 @@ q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
     <span class="p">)</span>
 </code></pre></div>
 <p>In v0.2.24–v0.2.27, these are stored in Manifest but do <strong>not</strong> affect simulation:</p>
-<div class="highlight"><pre><span></span><code>boundary_condition: Specifies Neumann (zero-flux) condition (future solver will enforce)
-gauge: Specifies mean-zero constraint (future solver will use)
+<div class="highlight"><pre><span></span><code>boundary_condition: Specifies Neumann (zero-flux) condition (reserved solver regime)
+gauge: Specifies mean-zero constraint (reserved solver regime)
 </code></pre></div>
 <p><strong>In v0.2.27+ (future)</strong>, when a field solver is added:
 - boundary_condition will be enforced during PDE solve
@@ -2802,7 +2802,7 @@ gauge: Specifies mean-zero constraint (future solver will use)
 <ul>
 <li>[ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None</li>
 <li>[ ] Source projection mode is declared (if source_calibration_status is not None)</li>
-<li>[ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a future solver name</li>
+<li>[ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a reserved solver name</li>
 <li>[ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)</li>
 <li>[ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)</li>
 <li>[ ] amplitude_status is False</li>
@@ -2815,7 +2815,7 @@ gauge: Specifies mean-zero constraint (future solver will use)
 <li><a href="../mathematical_glossary_flow/">Mathematical Glossary Flow</a> — Formal equations, term glossaries, bridge terms, statement boundaries</li>
 <li><a href="../probe_operators/">Probe Operators</a> — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)</li>
 <li><a href="../output_bundles/">Output Bundles</a> — Manifest and report schema</li>
-<li><a href="../scope_and_limitations/">Scope and Limitations</a> — What jaxfne statements and stays scoped to</li>
+<li><a href="../limitations_and_future_plans/">Scope and Limitations</a> — What jaxfne statements and stays scoped to</li>
 </ul>
 
 

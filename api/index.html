@@ -1161,14 +1161,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1693,14 +1693,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2204,10 +2204,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#solvers-6" class="md-nav__link">
+  <a href="#solvers-7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Solvers (6)
+        Solvers (7)
       
     </span>
   </a>
@@ -2226,10 +2226,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#plasticity-4" class="md-nav__link">
+  <a href="#plasticity-5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Plasticity (4)
+        Plasticity (5)
       
     </span>
   </a>
@@ -2259,10 +2259,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#connectivity-2" class="md-nav__link">
+  <a href="#connectivity-3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Connectivity (2)
+        Connectivity (3)
       
     </span>
   </a>
@@ -2307,6 +2307,17 @@
     <span class="md-ellipsis">
       
         Stimulus (1)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jax-spectral-analysis-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JAX Spectral Analysis (6)
       
     </span>
   </a>
@@ -2409,7 +2420,7 @@ or sensor-level signals (<code>field_solver_status = "laminar_proxy_no_pde"</cod
 <code>physical_amplitude_claim_allowed = False</code>). The package is a
 <code>computational_scaffold</code> for teaching, prototyping, and validation — not a
 calibrated biological simulator. See
-<a href="../scope_and_limitations/">Scope and limitations</a>.</p>
+<a href="../limitations_and_future_plans/">Scope and limitations</a>.</p>
 </div>
 <h2 id="module-pages">Module pages<a class="headerlink" href="#module-pages" title="Permanent link">&para;</a></h2>
 <table>
@@ -2458,15 +2469,15 @@ calibrated biological simulator. See
 </tr>
 <tr>
 <td><em>(no page yet)</em></td>
-<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Export &amp; figures</strong> (6) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (6) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (4) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (2) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · geometry/builders/streaming/stimulus (4)</td>
-<td>84</td>
+<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Export &amp; figures</strong> (6) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (7) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (5) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (3) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · <strong>JAX Spectral Analysis</strong> (6) · geometry/builders/streaming/stimulus (4)</td>
+<td>93</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
 <p>Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 solvers) do not yet have a dedicated module page — they are listed with full
-signatures in the complete symbol index below. Counts sum to <strong>185</strong>
+signatures in the complete symbol index below. Counts sum to <strong>194</strong>
 (<code>len(jaxfne.__all__)</code>). See the docs audit
 (<code>internal_docs/docs_audit_v0330.md</code>) for the page-migration plan.</p>
 </blockquote>
@@ -2538,7 +2549,7 @@ and figure/readout outputs remain proxy diagnostics
 (<code>physical_amplitude_claim_allowed = False</code>).</p>
 <hr />
 <h2 id="complete-public-symbol-index">Complete public symbol index<a class="headerlink" href="#complete-public-symbol-index" title="Permanent link">&para;</a></h2>
-<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>185 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released wheel.</p>
+<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>194 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released wheel.</p>
 <h3 id="core-68">Core (68)<a class="headerlink" href="#core-68" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3350,7 +3361,7 @@ and figure/readout outputs remain proxy diagnostics
 </tr>
 </tbody>
 </table>
-<h3 id="solvers-6">Solvers (6)<a class="headerlink" href="#solvers-6" title="Permanent link">&para;</a></h3>
+<h3 id="solvers-7">Solvers (7)<a class="headerlink" href="#solvers-7" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3384,6 +3395,11 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>solve_ode</code></td>
 <td>func</td>
 <td>Public ODE solver entrypoint routing to appropriate solver backend.</td>
+</tr>
+<tr>
+<td><code>solve_volume_conductor_experimental</code></td>
+<td>func</td>
+<td>Experimental volume conductor solver skeleton.</td>
 </tr>
 <tr>
 <td><code>SolverConfig</code></td>
@@ -3439,7 +3455,7 @@ and figure/readout outputs remain proxy diagnostics
 </tr>
 </tbody>
 </table>
-<h3 id="plasticity-4">Plasticity (4)<a class="headerlink" href="#plasticity-4" title="Permanent link">&para;</a></h3>
+<h3 id="plasticity-5">Plasticity (5)<a class="headerlink" href="#plasticity-5" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3468,6 +3484,11 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>summarize_stdp_adaptation</code></td>
 <td>func</td>
 <td>Computes synapse-by-synapse adaptation statistics.</td>
+</tr>
+<tr>
+<td><code>update_stdp_weights_jax</code></td>
+<td>func</td>
+<td>JAX-optimized plasticity weight update kernel (STDP).</td>
 </tr>
 </tbody>
 </table>
@@ -3535,7 +3556,7 @@ and figure/readout outputs remain proxy diagnostics
 </tr>
 </tbody>
 </table>
-<h3 id="connectivity-2">Connectivity (2)<a class="headerlink" href="#connectivity-2" title="Permanent link">&para;</a></h3>
+<h3 id="connectivity-3">Connectivity (3)<a class="headerlink" href="#connectivity-3" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3549,6 +3570,11 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>compile_connection_rules</code></td>
 <td>func</td>
 <td>Compile declared connection rules into sparse finite edge arrays.</td>
+</tr>
+<tr>
+<td><code>compile_connection_rules_jax</code></td>
+<td>func</td>
+<td>Tensorized JAX connectivity compiler producing static-shape edge outputs.</td>
 </tr>
 <tr>
 <td><code>ConnectionCompileResult</code></td>
@@ -3622,6 +3648,48 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>triangular_drive</code></td>
 <td>func</td>
 <td>Generates a triangular drive trace.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="jax-spectral-analysis-6">JAX Spectral Analysis (6)<a class="headerlink" href="#jax-spectral-analysis-6" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Kind</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spectrolaminar_psd_jax</code></td>
+<td>func</td>
+<td>Compute spectrolaminar PSD averaged across trials using JAX.</td>
+</tr>
+<tr>
+<td><code>bandpower_jax</code></td>
+<td>func</td>
+<td>Compute average power within a frequency band normalized by channel max.</td>
+</tr>
+<tr>
+<td><code>spectrolaminar_readout_kernel_jax</code></td>
+<td>func</td>
+<td>Batchable readout kernel computing relative power and normalized band profiles.</td>
+</tr>
+<tr>
+<td><code>spectrolaminar_similarity_kernel_jax</code></td>
+<td>func</td>
+<td>Compute the profile similarity score in JAX.</td>
+</tr>
+<tr>
+<td><code>spectrolaminar_similarity_candidates_jax</code></td>
+<td>func</td>
+<td>Batched vectorization path for similarity scoring.</td>
+</tr>
+<tr>
+<td><code>spectrolaminar_similarity_candidates_seeds_jax</code></td>
+<td>func</td>
+<td>Nested batched vectorization path for seeds and candidates.</td>
 </tr>
 </tbody>
 </table>

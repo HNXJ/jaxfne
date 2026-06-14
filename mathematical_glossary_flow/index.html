@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2352,7 +2352,7 @@
 <p><strong>Run boundary:</strong></p>
 <ul>
 <li><strong>Current default</strong>: <code>laminar_proxy_no_pde</code> — equation is declared but NOT solved</li>
-<li><strong>Future path</strong>: <code>specified_future_solver</code> when field solver is implemented and validated</li>
+<li><strong>Reserved path</strong>: <code>specified_future_solver</code> for a calibrated field solver (see <a href="../limitations_and_future_plans/">Limitations and future plans</a>)</li>
 <li><strong>Not a physical status</strong> unless solver evidence exists</li>
 </ul>
 <p><strong>Implementation:</strong>
@@ -2450,12 +2450,11 @@
 <p><span class="arithmatex">\(\mathbf{J} \cdot \mathbf{E}\)</span> is the <strong>field-to-matter power density bridge</strong>. It quantifies electromagnetic power transferred to moving charges.</p>
 <p><strong>Run boundary:</strong></p>
 <ul>
-<li><strong>Used in v0.2.25 as doctrine and future diagnostic motivation only</strong></li>
-<li><strong>Full Maxwell/stress-energy tensor dynamics are NOT implemented</strong> in v0.2.24–v0.2.27</li>
-<li><strong>Reserved for v0.3.x and later</strong></li>
+<li>Recorded here as conservation-principle motivation for the field diagnostics</li>
+<li>Full Maxwell/stress-energy tensor dynamics belong to the reserved regimes in <a href="../limitations_and_future_plans/">Limitations and future plans</a></li>
 </ul>
 <p><strong>Why included:</strong>
-Poynting's theorem provides a conservation-principle foundation for future field diagnostics (v0.2.27) and future full electrodynamic solvers (v0.3.x+). It is documented here to motivate the direction without stating implementation.</p>
+Poynting's theorem provides a conservation-principle foundation for the field diagnostics and the reserved electrodynamic regimes catalogued in <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <hr />
 <h2 id="implementation-checklist">Implementation Checklist<a class="headerlink" href="#implementation-checklist" title="Permanent link">&para;</a></h2>
 <p>When adding a new equation to jaxfne documentation:</p>
@@ -2475,7 +2474,7 @@ Poynting's theorem provides a conservation-principle foundation for future field
 <li><a href="../source_field_equations/">Source-Field Equations</a> — source bookkeeping, forbidden patterns</li>
 <li><a href="../computation_basis/">Computation Basis</a> — extensibility doctrine</li>
 <li><a href="../probe_operators/">Probe Operators</a> — detailed operator statements</li>
-<li><a href="../scope_and_limitations/">Scope and Limitations</a> — boundary conditions</li>
+<li><a href="../limitations_and_future_plans/">Scope and Limitations</a> — boundary conditions</li>
 </ul>
 
 

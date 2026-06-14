@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2243,10 +2243,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#physical-solver-path-planned-v03" class="md-nav__link">
+  <a href="#physical-solver-path" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Physical solver path (planned v0.3+)
+        Physical solver path
       
     </span>
   </a>
@@ -2403,7 +2403,7 @@
 <p>Report declares solver path (proxy vs. physical), convergence status, and statement constraints.</p>
 <hr />
 <h2 id="fieldproxy-diagnostics-v026">Field/proxy diagnostics (v0.2.6+)<a class="headerlink" href="#fieldproxy-diagnostics-v026" title="Permanent link">&para;</a></h2>
-<p>jaxfne distinguishes between proxy readout paths and future physical solver paths using field diagnostics:</p>
+<p>jaxfne distinguishes between proxy readout paths and physical solver paths using field diagnostics:</p>
 <h3 id="proxy-readout-path-v023present">Proxy readout path (v0.2.3–present)<a class="headerlink" href="#proxy-readout-path-v023present" title="Permanent link">&para;</a></h3>
 <p>Laminar proxy operators project source tensors directly to contacts without solving a PDE:</p>
 <ul>
@@ -2412,7 +2412,7 @@
 <li><strong>Boundary condition:</strong> Declared metadata only</li>
 <li><strong>Physical amplitude statuss:</strong> False by default</li>
 </ul>
-<h3 id="physical-solver-path-planned-v03">Physical solver path (planned v0.3+)<a class="headerlink" href="#physical-solver-path-planned-v03" title="Permanent link">&para;</a></h3>
+<h3 id="physical-solver-path">Physical solver path<a class="headerlink" href="#physical-solver-path" title="Permanent link">&para;</a></h3>
 <p>Future versions will support full PDE solvers with these diagnostics:</p>
 <ul>
 <li><strong>Source-balance:</strong> Integrated source vs boundary flux residual</li>
@@ -2431,7 +2431,7 @@
 <span class="n">operator</span> <span class="o">=</span> <span class="n">make_field_operator_status</span><span class="p">(</span><span class="n">operator_path</span><span class="o">=</span><span class="s2">&quot;proxy&quot;</span><span class="p">)</span>
 <span class="c1"># → field_solver_status: &quot;laminar_proxy_no_pde&quot;</span>
 
-<span class="c1"># Declare physical_candidate path (for future integration)</span>
+<span class="c1"># Declare physical_candidate path</span>
 <span class="n">operator</span> <span class="o">=</span> <span class="n">make_field_operator_status</span><span class="p">(</span><span class="n">operator_path</span><span class="o">=</span><span class="s2">&quot;physical_candidate&quot;</span><span class="p">)</span>
 <span class="c1"># → field_solver_status: &quot;physical_field_solver_candidate&quot;</span>
 </code></pre></div>

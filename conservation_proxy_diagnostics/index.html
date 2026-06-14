@@ -1157,14 +1157,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../notes/arkhipov_allen_tfne_alignment/" class="md-nav__link">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Biophysical Alignment
+    Biophysical Model Comparison
   
 
     
@@ -1687,14 +1687,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../scope_and_limitations/" class="md-nav__link">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Scope and limitations
+    Limitations and future plans
   
 
     
@@ -2143,10 +2143,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#poynting-theorem-declared-future-not-computed" class="md-nav__link">
+  <a href="#poynting-theorem-reserved-regime" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Poynting Theorem (Declared Future, Not Computed)
+        Poynting Theorem (reserved regime)
       
     </span>
   </a>
@@ -2198,10 +2198,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#what-is-not-in-v0227" class="md-nav__link">
+  <a href="#reserved-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What is NOT in v0.2.27
+        Reserved capabilities
       
     </span>
   </a>
@@ -2246,7 +2246,7 @@
 laminar-proxy field outputs — <code>source_proxy</code>, <code>phi_e_proxy</code>, <code>csd_proxy</code>, <code>lfp_proxy</code> —
 and produce JSON-safe scalar summaries for source/field validation.</p>
 <p><strong>Run boundary (v0.2.27):</strong>
-- Proxy diagnostics only — proxy-based computation; physical-field solvers (Poisson, Maxwell) are planned for future modules. Physical amplitude statuss are deferred to calibration phases.
+- Proxy diagnostics only — proxy-based computation over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in <a href="../limitations_and_future_plans/">Limitations and future plans</a>.
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - <code>amplitude_status: false</code> (immutable).
 - <code>metabolism_status: false</code> (immutable).
@@ -2296,14 +2296,12 @@ distinguish it as a proxy analog of field energy density; it is not a physical e
 <li><code>j_dot_e_proxy</code> is always <code>null</code>.</li>
 <li>Computing J·E as a physical power density would require a solved field and calibrated σ.</li>
 </ul>
-<p><strong>Future doctrine:</strong> J·E may be added when physical-field solver modules (Poisson-based) are approved and produce current-density arrays from field equations. Current proxy mode uses voltage
-array. Until then, it remains <code>null</code>.</p>
-<h3 id="poynting-theorem-declared-future-not-computed">Poynting Theorem (Declared Future, Not Computed)<a class="headerlink" href="#poynting-theorem-declared-future-not-computed" title="Permanent link">&para;</a></h3>
+<p><strong>Reserved regime:</strong> J·E becomes available once a physical-field solver produces current-density arrays. Proxy mode uses the voltage array and reports <code>null</code>; see <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
+<h3 id="poynting-theorem-reserved-regime">Poynting Theorem (reserved regime)<a class="headerlink" href="#poynting-theorem-reserved-regime" title="Permanent link">&para;</a></h3>
 <div class="arithmatex">\[\frac{\partial u_{em}}{\partial t} + \nabla \cdot \mathbf{S} + \mathbf{J} \cdot \mathbf{E} = 0\]</div>
 <p>where <span class="arithmatex">\(\mathbf{S} = \mathbf{E} \times \mathbf{H}\)</span> is the Poynting vector.</p>
 <p><strong>Run boundary:</strong>
-v0.2.27 proxy mode omits Poynting flux, stress-energy tensor, and volumetric field dynamics. These are planned for future physical-field module implementations.
-<code>poynting_flux_proxy: null</code>. This equation is documented here as future doctrine only.</p>
+Proxy mode reports <code>poynting_flux_proxy: null</code>. Poynting flux, stress-energy tensor, and volumetric field dynamics belong to the reserved regimes in <a href="../limitations_and_future_plans/">Limitations and future plans</a>; the equation is recorded here for reference.</p>
 <hr />
 <h2 id="output-contract">Output Contract<a class="headerlink" href="#output-contract" title="Permanent link">&para;</a></h2>
 <p><code>compute_conservation_proxy_diagnostics()</code> returns a JSON-safe dict with the following fields:</p>
@@ -2479,57 +2477,8 @@ automatically includes a <code>conservation_proxy_diagnostics</code> block:</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">cpd</span><span class="p">[</span><span class="s2">&quot;amplitude_status&quot;</span><span class="p">])</span>  <span class="c1"># False</span>
 </code></pre></div>
 <hr />
-<h2 id="what-is-not-in-v0227">What is NOT in v0.2.27<a class="headerlink" href="#what-is-not-in-v0227" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Capability</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Elliptic field solver (Poisson)</td>
-<td>Planned for future module — requires separate approval</td>
-</tr>
-<tr>
-<td>Volumetric field solver (Maxwell)</td>
-<td>Planned for future module (v0.3.x+)</td>
-</tr>
-<tr>
-<td>Admittive field solver</td>
-<td>Not implemented — declared future (v0.3.x+)</td>
-</tr>
-<tr>
-<td>Poynting flux computation</td>
-<td>Not implemented — future doctrine only</td>
-</tr>
-<tr>
-<td>Stress-energy tensor</td>
-<td>Not implemented — future doctrine only</td>
-</tr>
-<tr>
-<td>J·E power density</td>
-<td>Not computed — J_e not available in proxy mode</td>
-</tr>
-<tr>
-<td>Physical amplitude status</td>
-<td>Disallowed — <code>amplitude_status: false</code></td>
-</tr>
-<tr>
-<td>Biological metabolism statement</td>
-<td>Disallowed — <code>metabolism_status: false</code></td>
-</tr>
-<tr>
-<td>Calibrated conductivity</td>
-<td>Not available — proxy scalar, no SPD tensor</td>
-</tr>
-<tr>
-<td>Boundary/gauge enforcement</td>
-<td>Metadata-only declarations</td>
-</tr>
-</tbody>
-</table>
+<h2 id="reserved-capabilities">Reserved capabilities<a class="headerlink" href="#reserved-capabilities" title="Permanent link">&para;</a></h2>
+<p>Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and stress-energy computation, calibrated conductivity, and physical-amplitude reporting are reserved regimes. Proxy mode holds <code>amplitude_status: false</code> and <code>metabolism_status: false</code>. The regime catalogue lives in <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <hr />
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2537,8 +2486,8 @@ automatically includes a <code>conservation_proxy_diagnostics</code> block:</p>
 <li><a href="../mathematical_glossary_flow/">Mathematical Glossary Flow</a> — Source/field equations</li>
 <li><a href="../source_field_equations/">Source/Field Equations</a> — Source modes and bookkeeping</li>
 <li><a href="../probe_operators/">Probe Operators</a> — Readout operator statement boundaries</li>
-<li><a href="../poisson_admissibility/">Elliptic Field Equation Specification</a> — Roadmap for future field-solver implementation</li>
-<li><a href="../scope_and_limitations/">Scope and Limitations</a> — What TFNE statements and stays scoped to</li>
+<li><a href="../poisson_admissibility/">Elliptic Field Equation Specification</a> — admissibility mathematics</li>
+<li><a href="../limitations_and_future_plans/">Limitations and future plans</a> — scope boundaries and reserved regimes</li>
 </ul>
 
 
