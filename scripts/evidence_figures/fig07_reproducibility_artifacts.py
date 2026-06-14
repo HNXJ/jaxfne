@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Generate Figure 7: reproducibility artifact chain diagram.
 
-Shows the publication evidence chain:
+Shows the evidence evidence chain:
   script -> PNG -> manifest -> SHA256 -> inventory -> checklist -> repo SHA
 
 Outputs:
-  figures/publication/fig07_reproducibility_artifacts.png
-  outputs/publication/fig07_reproducibility_artifacts_manifest.json
+  figures/evidence/fig07_reproducibility_artifacts.png
+  outputs/evidence/fig07_reproducibility_artifacts_manifest.json
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -32,13 +32,13 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig07_reproducibility_artifacts.py",
-    "scripts/publication/_figure_common.py",
-    "scripts/publication_inventory.py",
-    "docs/publication/publication_checklist.json",
+    "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
+    "scripts/evidence_figures/_figure_common.py",
+    "scripts/evidence_inventory.py",
+    "docs/evidence/evidence_checklist.json",
 ]
 
-TITLE = "Publication reproducibility artifact chain"
+TITLE = "Evidence reproducibility artifact chain"
 
 SCOPE_STATUS = (
     "Computational scaffold receipts; proxy readouts only; "
@@ -51,22 +51,22 @@ CHAIN_STEPS = [
     "manifest JSON",
     "SHA256 digest",
     "inventory.json",
-    "publication_checklist.json",
+    "evidence_checklist.json",
     "repo SHA",
 ]
 
 FIGURE_SCRIPTS = {
-    "fig01_tfne_architecture.png": "scripts/publication/fig01_architecture.py",
-    "fig02_source_field_contracts.png": "scripts/publication/fig02_contracts.py",
-    "fig03_jaxfne_backend.png": "scripts/publication/fig03_backend.py",
-    "fig04_minimal_install_run.png": "scripts/publication/fig04_minimal_install_run.py",
-    "fig05_runtime_scaling.png": "scripts/publication/fig05_runtime_scaling.py",
-    "fig06_readout_family_panel.png": "scripts/publication/fig06_readout_family_panel.py",
-    "fig07_reproducibility_artifacts.png": "scripts/publication/fig07_reproducibility_artifacts.py",
-    "fig08_adjacent_tools_comparison.png": "scripts/publication/fig08_adjacent_tools_comparison.py",
+    "fig01_tfne_architecture.png": "scripts/evidence_figures/fig01_architecture.py",
+    "fig02_source_field_contracts.png": "scripts/evidence_figures/fig02_contracts.py",
+    "fig03_jaxfne_backend.png": "scripts/evidence_figures/fig03_backend.py",
+    "fig04_minimal_install_run.png": "scripts/evidence_figures/fig04_minimal_install_run.py",
+    "fig05_runtime_scaling.png": "scripts/evidence_figures/fig05_runtime_scaling.py",
+    "fig06_readout_family_panel.png": "scripts/evidence_figures/fig06_readout_family_panel.py",
+    "fig07_reproducibility_artifacts.png": "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
+    "fig08_adjacent_tools_comparison.png": "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
 }
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig07_reproducibility_artifacts.png"
 
 
@@ -75,19 +75,19 @@ def _load_inventory() -> dict:
     scripts_dir = root / "scripts"
     if str(scripts_dir) not in sys.path:
         sys.path.insert(0, str(scripts_dir))
-    from publication_inventory import build_inventory
+    from evidence_inventory import build_inventory
 
     return build_inventory()
 
 
 def _load_checklist() -> dict:
-    path = repo_root() / "docs" / "publication" / "publication_checklist.json"
+    path = repo_root() / "docs" / "evidence" / "evidence_checklist.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 
 def _manifest_entry(root: Path, png_name: str) -> dict | None:
     stem = Path(png_name).stem
-    manifest_path = root / "outputs" / "publication" / f"{stem}_manifest.json"
+    manifest_path = root / "outputs" / "evidence" / f"{stem}_manifest.json"
     if not manifest_path.is_file():
         return None
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -129,17 +129,17 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
             }
         )
 
-    inventory_path = root / "outputs" / "publication" / "inventory.json"
-    checklist_path = root / "docs" / "publication" / "publication_checklist.json"
+    inventory_path = root / "outputs" / "evidence" / "inventory.json"
+    checklist_path = root / "docs" / "evidence" / "evidence_checklist.json"
 
     return {
         "chain_steps": CHAIN_STEPS,
         "repo_sha_git": repo_sha(),
         "repo_sha_inventory": inventory.get("repo_sha"),
         "repo_sha_checklist": checklist.get("repo_sha"),
-        "inventory_path": "outputs/publication/inventory.json",
+        "inventory_path": "outputs/evidence/inventory.json",
         "inventory_exists": inventory_path.is_file(),
-        "checklist_path": "docs/publication/publication_checklist.json",
+        "checklist_path": "docs/evidence/evidence_checklist.json",
         "checklist_exists": checklist_path.is_file(),
         "main_figures_present": inventory["summary"]["main_figures_present"],
         "main_figures_total": inventory["summary"]["main_figures_total"],
@@ -295,7 +295,7 @@ def main() -> int:
     inventory = _load_inventory()
     chain = build_reproducibility_chain(inventory, checklist)
 
-    inv_path = repo_root() / "outputs" / "publication" / "inventory.json"
+    inv_path = repo_root() / "outputs" / "evidence" / "inventory.json"
     inv_path.parent.mkdir(parents=True, exist_ok=True)
     inv_path.write_text(json.dumps(inventory, indent=2) + "\n", encoding="utf-8")
 
@@ -306,7 +306,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig07_reproducibility_artifacts.py",
+            "generator_command": "python scripts/evidence_figures/fig07_reproducibility_artifacts.py",
             "claim_boundary": "fixed_tag_sha_required",
             "fixed_tag_sha_required": True,
             "reproducibility_chain": chain,
@@ -316,10 +316,10 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
-    print(f"wrote: outputs/publication/inventory.json")
+    print(f"wrote: outputs/evidence/inventory.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(

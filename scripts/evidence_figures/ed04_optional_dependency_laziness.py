@@ -5,9 +5,9 @@ Runs isolated subprocess import receipts to verify root ``import jaxfne as jtfne
 does not eagerly load optional visualization/export backends.
 
 Outputs:
-  figures/publication/ed04_optional_dependency_laziness.png
-  outputs/publication/ed04_optional_dependency_laziness_manifest.json
-  outputs/publication/ed04_optional_dependency_laziness_receipt.json
+  figures/evidence/ed04_optional_dependency_laziness.png
+  outputs/evidence/ed04_optional_dependency_laziness_manifest.json
+  outputs/evidence/ed04_optional_dependency_laziness_receipt.json
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -39,8 +39,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed04_optional_dependency_laziness.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/ed04_optional_dependency_laziness.py",
+    "scripts/evidence_figures/_figure_common.py",
     "tests/test_root_import_lightweight.py",
     "tests/test_config_runtime_hardening_v028.py",
     "tests/test_v0321_migration_boundaries.py",
@@ -74,7 +74,7 @@ _SUBPROCESS_ENV = {
     "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
 }
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed04_optional_dependency_laziness.png"
 RECEIPT_JSON_PATH = _dirs["outputs"] / "ed04_optional_dependency_laziness_receipt.json"
 
@@ -369,7 +369,7 @@ def main() -> int:
     write_json_strict(
         RECEIPT_JSON_PATH,
         {
-            "schema_version": "jaxfne.publication_ed04_optional_dep_receipt.v0.1.0",
+            "schema_version": "jaxfne.evidence_ed04_optional_dep_receipt.v0.1.0",
             "generated_at_utc": utc_now_iso(),
             "runtime_receipt": runtime,
             "fixtures": rows,
@@ -388,7 +388,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed04_optional_dependency_laziness.py",
+            "generator_command": "python scripts/evidence_figures/ed04_optional_dependency_laziness.py",
             "claim_boundary": "local_subprocess_optional_dep_receipt",
             "fixtures": rows,
             "runtime_receipt": runtime,
@@ -403,7 +403,7 @@ def main() -> int:
     sha = sha256_file(FIGURE_PATH)
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {RECEIPT_JSON_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(f"fixtures_passed: {sum(1 for r in rows if r['fixture_pass'])}/{len(rows)}")

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Generate Extended Data ED7: probe/readout operator contract matrix.
 
-Publication-local contract matrix for eight proxy readout families. Separates
+Evidence-local contract matrix for eight proxy readout families. Separates
 operator status, field solver posture, calibration, JSON strictness, and truth
 gates without claiming validated EEG/MEG or physical amplitude.
 
 Outputs:
-  figures/publication/ed07_probe_operator_contracts.png
-  outputs/publication/ed07_probe_operator_contracts_manifest.json
-  outputs/publication/ed07_probe_operator_contracts_receipt.json
+  figures/evidence/ed07_probe_operator_contracts.png
+  outputs/evidence/ed07_probe_operator_contracts_manifest.json
+  outputs/evidence/ed07_probe_operator_contracts_receipt.json
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ from jaxfne.fields import (
 from jaxfne.io import json_safe
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -51,9 +51,9 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed07_probe_operator_contracts.py",
-    "scripts/publication/_figure_common.py",
-    "scripts/publication/fig06_readout_family_panel.py",
+    "scripts/evidence_figures/ed07_probe_operator_contracts.py",
+    "scripts/evidence_figures/_figure_common.py",
+    "scripts/evidence_figures/fig06_readout_family_panel.py",
     "jaxfne/fields/probes.py",
     "tests/test_probe_operators_v021.py",
 ]
@@ -85,7 +85,7 @@ MATRIX_COLUMNS = [
     "gates",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed07_probe_operator_contracts.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed07_probe_operator_contracts_receipt.json"
 
@@ -326,7 +326,7 @@ def main() -> int:
     write_json_strict(
         RECEIPT_PATH,
         {
-            "schema_version": "jaxfne.publication_ed07_probe_contract_receipt.v0.1.0",
+            "schema_version": "jaxfne.evidence_ed07_probe_contract_receipt.v0.1.0",
             "artifact": "ed07_probe_operator_contracts",
             "generated_at_utc": utc_now_iso(),
             "runtime_receipt": runtime,
@@ -354,7 +354,7 @@ def main() -> int:
         extra={
             "artifact": "ed07_probe_operator_contracts",
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed07_probe_operator_contracts.py",
+            "generator_command": "python scripts/evidence_figures/ed07_probe_operator_contracts.py",
             "claim_boundary": "proxy_readout_operator_contracts_only",
             "physical_amplitude_claim_allowed": False,
             "performance_claims_allowed": False,
@@ -369,7 +369,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")

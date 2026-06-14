@@ -2,9 +2,9 @@
 """Generate Figure 4: minimal install, 10 s smoke run, multimodal proxy readout receipt.
 
 Outputs:
-  figures/publication/fig04_minimal_install_run.png
-  outputs/publication/fig04_minimal_install_run_manifest.json
-  outputs/publication/fig04_smoke_stdout.log
+  figures/evidence/fig04_minimal_install_run.png
+  outputs/evidence/fig04_minimal_install_run_manifest.json
+  outputs/evidence/fig04_smoke_stdout.log
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from matplotlib.patches import FancyBboxPatch
 import jaxfne as jtfne
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -34,8 +34,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig04_minimal_install_run.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig04_minimal_install_run.py",
+    "scripts/evidence_figures/_figure_common.py",
     "docs/quickstart.md",
     "tests/test_api_smoke.py",
 ]
@@ -76,7 +76,7 @@ READOUT_PANELS = [
     ("lfp_proxy", "LFP proxy (laminar)", "#6A1B9A"),
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig04_minimal_install_run.png"
 STDOUT_LOG_PATH = _dirs["outputs"] / "fig04_smoke_stdout.log"
 
@@ -133,7 +133,7 @@ def run_smoke() -> tuple[dict, dict, dict, list[str]]:
 
 
 def write_stdout_log(receipt: list[str]) -> None:
-    """Persist smoke stdout receipt for publication evidence."""
+    """Persist smoke stdout receipt for evidence evidence."""
     buffer = io.StringIO()
     with redirect_stdout(buffer):
         print("=== fig04 smoke run receipt ===")
@@ -284,7 +284,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig04_minimal_install_run.py",
+            "generator_command": "python scripts/evidence_figures/fig04_minimal_install_run.py",
             "smoke_duration_ms": 10.0,
             "smoke_dt_ms": 0.1,
             "smoke_seed": 0,
@@ -297,7 +297,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {smoke_receipt_path}")

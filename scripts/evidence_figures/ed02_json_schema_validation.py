@@ -2,8 +2,8 @@
 """Generate Extended Data ED2: JSON schema and config validation panel.
 
 Outputs:
-  figures/publication/ed02_json_schema_validation.png
-  outputs/publication/ed02_json_schema_validation_manifest.json
+  figures/evidence/ed02_json_schema_validation.png
+  outputs/evidence/ed02_json_schema_validation_manifest.json
 
 Uses validate_config fixtures aligned with tests/test_config_schema_v015.py.
 """
@@ -25,7 +25,7 @@ import jaxfne as jtfne
 from jaxfne.core import _JAXFNE_CONFIG_SCHEMA_VERSION
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -36,8 +36,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed02_json_schema_validation.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/ed02_json_schema_validation.py",
+    "scripts/evidence_figures/_figure_common.py",
     "tests/test_config_schema_v015.py",
     "jaxfne/core.py",
 ]
@@ -45,7 +45,7 @@ SOURCE_FILES = [
 TITLE = "JSON schema and config validation receipts (JaxFNEConfig)"
 
 SCOPE_STATUS = (
-    "Publication-local validation panel from validate_config fixtures; "
+    "Evidence-local validation panel from validate_config fixtures; "
     "blocking issues for missing sections, unsupported schema_version, and truth escalation; "
     "JSON-safe dict emission checked with allow_nan=False"
 )
@@ -100,7 +100,7 @@ VALIDATION_FIXTURES: list[tuple[str, dict, bool, str]] = [
     ),
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed02_json_schema_validation.png"
 RECEIPT_JSON_PATH = _dirs["outputs"] / "ed02_json_schema_validation_receipt.json"
 
@@ -288,7 +288,7 @@ def main() -> int:
     write_json_strict(
         RECEIPT_JSON_PATH,
         {
-            "schema_version": "jaxfne.publication_ed02_validation_receipt.v0.1.0",
+            "schema_version": "jaxfne.evidence_ed02_validation_receipt.v0.1.0",
             "validation_fixtures": rows,
             "json_check": json_check,
             "runtime_receipt": receipt,
@@ -306,7 +306,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed02_json_schema_validation.py",
+            "generator_command": "python scripts/evidence_figures/ed02_json_schema_validation.py",
             "claim_boundary": "config_schema_validation_receipt",
             "config_schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
             "validation_fixtures": rows,
@@ -321,7 +321,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {receipt_rel}")

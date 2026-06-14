@@ -2,9 +2,9 @@
 """Generate Figure 5: CPU-safe runtime scaling receipt over N, contacts, and seeds.
 
 Outputs:
-  figures/publication/fig05_runtime_scaling.png
-  outputs/publication/fig05_runtime_scaling_manifest.json
-  outputs/publication/fig05_runtime_scaling.csv
+  figures/evidence/fig05_runtime_scaling.png
+  outputs/evidence/fig05_runtime_scaling_manifest.json
+  outputs/evidence/fig05_runtime_scaling.csv
 
 No universal performance claims. Local environment receipt only.
 """
@@ -29,7 +29,7 @@ import numpy as np
 import jaxfne as jtfne
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -38,8 +38,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig05_runtime_scaling.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig05_runtime_scaling.py",
+    "scripts/evidence_figures/_figure_common.py",
     "scripts/benchmark_jaxfne.py",
 ]
 
@@ -50,7 +50,7 @@ SCOPE_STATUS = (
     "proxy readouts; durations kept small for CI/local smoke"
 )
 
-# Small CPU-safe grid for publication smoke.
+# Small CPU-safe grid for evidence smoke.
 N_NEURONS_GRID = (8, 12, 24)
 N_CONTACTS_GRID = (4, 16)
 SEEDS_GRID = (0, 1)
@@ -58,7 +58,7 @@ DURATION_MS = 5.0
 DT_MS = 0.1
 PROBE_MODES = ["spikes", "V_m", "CSD", "LFP"]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig05_runtime_scaling.png"
 CSV_PATH = _dirs["outputs"] / "fig05_runtime_scaling.csv"
 
@@ -127,7 +127,7 @@ def _finite_status(signals, readout: dict) -> bool:
 
 
 def run_scaling_grid() -> list[dict]:
-    """Execute the publication scaling grid and return per-run receipts."""
+    """Execute the evidence scaling grid and return per-run receipts."""
     hw = hardware_receipt()
     rows: list[dict] = []
     run_idx = 0
@@ -226,7 +226,7 @@ def _mean_elapsed(rows: list[dict], n_neurons: int, n_contacts: int) -> float:
 
 
 def draw_figure(rows: list[dict], hw: dict) -> None:
-    """Render publication scaling figure from benchmark rows."""
+    """Render evidence scaling figure from benchmark rows."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 6), dpi=150)
 
     # Panel A - mean elapsed vs N, grouped by contacts (seed-averaged).
@@ -317,7 +317,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig05_runtime_scaling.py",
+            "generator_command": "python scripts/evidence_figures/fig05_runtime_scaling.py",
             "claim_boundary": "benchmark_receipt_required",
             "local_environment_receipt_only": True,
             "performance_claims_allowed": False,
@@ -351,7 +351,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"wrote: {csv_rel}")

@@ -2,8 +2,8 @@
 """Generate Extended Data ED1: public API stability snapshot panel.
 
 Outputs:
-  figures/publication/ed01_api_stability_snapshot.png
-  outputs/publication/ed01_api_stability_snapshot_manifest.json
+  figures/evidence/ed01_api_stability_snapshot.png
+  outputs/evidence/ed01_api_stability_snapshot_manifest.json
 
 Local snapshot only; does not claim completeness beyond tested import surface.
 """
@@ -22,7 +22,7 @@ from matplotlib.patches import FancyBboxPatch
 import jaxfne as jtfne
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -32,8 +32,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed01_api_stability_snapshot.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/ed01_api_stability_snapshot.py",
+    "scripts/evidence_figures/_figure_common.py",
     "scripts/snapshot_public_api.py",
     "jaxfne/__init__.py",
 ]
@@ -120,7 +120,7 @@ API_GROUPS = {
     },
 }
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed01_api_stability_snapshot.png"
 
 
@@ -291,7 +291,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed01_api_stability_snapshot.py",
+            "generator_command": "python scripts/evidence_figures/ed01_api_stability_snapshot.py",
             "claim_boundary": "local_api_snapshot_only",
             "api_snapshot": snapshot,
             "runtime_receipt": receipt,
@@ -302,7 +302,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

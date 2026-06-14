@@ -42,34 +42,34 @@ EXTENDED_DATA = [
 ]
 
 INSPECT_DIRS = [
-    "docs/publication",
+    "docs/evidence",
     "tutorials",
     "examples",
-    "outputs/publication",
-    "figures/publication",
+    "outputs/evidence",
+    "figures/evidence",
 ]
 
 MANIFEST_PATHS = [
-    "outputs/publication/inventory.json",
-    "outputs/publication/fig01_tfne_architecture_manifest.json",
-    "outputs/publication/fig02_source_field_contracts_manifest.json",
-    "outputs/publication/fig03_jaxfne_backend_manifest.json",
-    "outputs/publication/fig04_minimal_install_run_manifest.json",
-    "outputs/publication/fig05_runtime_scaling_manifest.json",
-    "outputs/publication/fig06_readout_family_panel_manifest.json",
-    "outputs/publication/fig07_reproducibility_artifacts_manifest.json",
-    "outputs/publication/fig08_adjacent_tools_comparison_manifest.json",
-    "outputs/publication/ed01_api_stability_snapshot_manifest.json",
-    "outputs/publication/ed02_json_schema_validation_manifest.json",
-    "outputs/publication/ed03_notebook_execution_receipts_manifest.json",
-    "outputs/publication/ed04_optional_dependency_laziness_manifest.json",
-    "outputs/publication/ed05_manifest_hashes_manifest.json",
-    "outputs/publication/ed06_benchmark_scaling_tables_manifest.json",
-    "outputs/publication/ed07_probe_operator_contracts_manifest.json",
-    "outputs/publication/ed08_tutorial_atlas_coverage_manifest.json",
-    "outputs/publication/ed09_failure_modes_and_nulls_manifest.json",
-    "outputs/publication/ed10_release_archive_receipt_manifest.json",
-    "docs/publication/publication_checklist.json",
+    "outputs/evidence/inventory.json",
+    "outputs/evidence/fig01_tfne_architecture_manifest.json",
+    "outputs/evidence/fig02_source_field_contracts_manifest.json",
+    "outputs/evidence/fig03_jaxfne_backend_manifest.json",
+    "outputs/evidence/fig04_minimal_install_run_manifest.json",
+    "outputs/evidence/fig05_runtime_scaling_manifest.json",
+    "outputs/evidence/fig06_readout_family_panel_manifest.json",
+    "outputs/evidence/fig07_reproducibility_artifacts_manifest.json",
+    "outputs/evidence/fig08_adjacent_tools_comparison_manifest.json",
+    "outputs/evidence/ed01_api_stability_snapshot_manifest.json",
+    "outputs/evidence/ed02_json_schema_validation_manifest.json",
+    "outputs/evidence/ed03_notebook_execution_receipts_manifest.json",
+    "outputs/evidence/ed04_optional_dependency_laziness_manifest.json",
+    "outputs/evidence/ed05_manifest_hashes_manifest.json",
+    "outputs/evidence/ed06_benchmark_scaling_tables_manifest.json",
+    "outputs/evidence/ed07_probe_operator_contracts_manifest.json",
+    "outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json",
+    "outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
+    "outputs/evidence/ed10_release_archive_receipt_manifest.json",
+    "docs/evidence/evidence_checklist.json",
     "outputs/v029_two_neuron_ei_multimodal/manifest.json",
     "outputs/v0210_network_100_ei_multimodal/manifest.json",
 ]
@@ -134,7 +134,7 @@ def count_glob(directory: Path, pattern: str) -> int:
 
 
 def build_inventory() -> dict:
-    figures_dir = REPO_ROOT / "figures" / "publication"
+    figures_dir = REPO_ROOT / "figures" / "evidence"
     generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     main_assets = [inventory_asset(name, figures_dir) for name in MAIN_FIGURES]
@@ -157,7 +157,7 @@ def build_inventory() -> dict:
     ed_present = sum(1 for a in ed_assets if a["exists"])
 
     return {
-        "schema_version": "jaxfne.publication_inventory.v0.1.0",
+        "schema_version": "jaxfne.evidence_inventory.v0.1.0",
         "generated_at_utc": generated_at,
         "repo_sha": git_head_sha(),
         "truth_gates": {
@@ -185,7 +185,7 @@ def build_inventory() -> dict:
 
 def print_summary(inventory: dict) -> None:
     summary = inventory["summary"]
-    print("=== jaxfne publication inventory ===")
+    print("=== jaxfne evidence inventory ===")
     print(f"repo_sha: {inventory.get('repo_sha')}")
     print(f"generated_at_utc: {inventory['generated_at_utc']}")
     print(
@@ -208,7 +208,7 @@ def print_summary(inventory: dict) -> None:
 
 def main() -> int:
     inventory = build_inventory()
-    out_dir = REPO_ROOT / "outputs" / "publication"
+    out_dir = REPO_ROOT / "outputs" / "evidence"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / "inventory.json"
     out_path.write_text(json.dumps(inventory, indent=2, sort_keys=False) + "\n", encoding="utf-8")

@@ -2,8 +2,8 @@
 """Generate Figure 2: TFNE source-to-field contract and evidence ladder.
 
 Outputs:
-  figures/publication/fig02_source_field_contracts.png
-  outputs/publication/fig02_source_field_contracts_manifest.json
+  figures/evidence/fig02_source_field_contracts.png
+  outputs/evidence/fig02_source_field_contracts_manifest.json
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -25,17 +25,17 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig02_contracts.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig02_contracts.py",
+    "scripts/evidence_figures/_figure_common.py",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig02_source_field_contracts.png"
 
 TITLE = "TFNE source-to-field contract and evidence ladder"
 
 SCOPE_STATUS = (
-    "Default jaxfne publication path: laminar proxy readouts, not calibrated physical fields"
+    "Default jaxfne evidence path: laminar proxy readouts, not calibrated physical fields"
 )
 
 EQUATIONS_SHOWN = [
@@ -212,12 +212,12 @@ def main() -> int:
             "equations_shown": list(EQUATIONS_SHOWN),
             "evidence_ladder": list(EVIDENCE_LADDER),
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig02_contracts.py",
+            "generator_command": "python scripts/evidence_figures/fig02_contracts.py",
         },
     )
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

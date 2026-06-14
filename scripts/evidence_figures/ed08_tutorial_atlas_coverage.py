@@ -5,9 +5,9 @@ Receipt-driven atlas survey of tutorial notebooks and docs/tutorial pages.
 Does not claim full notebook execution unless artifact receipts exist.
 
 Outputs:
-  figures/publication/ed08_tutorial_atlas_coverage.png
-  outputs/publication/ed08_tutorial_atlas_coverage_manifest.json
-  outputs/publication/ed08_tutorial_atlas_coverage_receipt.json
+  figures/evidence/ed08_tutorial_atlas_coverage.png
+  outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json
+  outputs/evidence/ed08_tutorial_atlas_coverage_receipt.json
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -37,9 +37,9 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed08_tutorial_atlas_coverage.py",
-    "scripts/publication/_figure_common.py",
-    "scripts/publication/ed03_notebook_execution_receipts.py",
+    "scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
+    "scripts/evidence_figures/_figure_common.py",
+    "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
     "scripts/audit_notebooks_and_assets.py",
     "docs/tutorials/tutorial_outputs.md",
 ]
@@ -77,7 +77,7 @@ CI_EXECUTION_TESTS: dict[str, str] = {
 
 MATRIX_COLUMNS = ["import", "receipt", "ci_test", "artifacts", "gates"]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed08_tutorial_atlas_coverage.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed08_tutorial_atlas_coverage_receipt.json"
 
@@ -149,7 +149,7 @@ def _notebook_artifact_coverage(root: Path, rel: str, nb_path: Path) -> dict[str
     stem = nb_path.stem
     outputs_dir = root / "outputs"
     receipt_candidates = list(KNOWN_RECEIPT_PATHS.get(rel, []))
-    receipt_candidates.append(f"outputs/publication/smoke_receipts/{stem}.json")
+    receipt_candidates.append(f"outputs/evidence/smoke_receipts/{stem}.json")
     has_receipt = any((root / p).is_file() for p in receipt_candidates)
     has_output_bundle = any(outputs_dir.rglob(f"*{stem}*manifest.json")) if outputs_dir.is_dir() else False
     has_png = any((root / "tutorials").rglob(f"{stem}*.png")) or any(
@@ -187,7 +187,7 @@ def _execution_receipt_status(root: Path, rel: str) -> str:
             if isinstance(status, str):
                 return status.lower()
             return "receipt-on-file"
-    ed03 = _read_json_if_exists(root / "outputs/publication/ed03_notebook_execution_receipts.json")
+    ed03 = _read_json_if_exists(root / "outputs/evidence/ed03_notebook_execution_receipts.json")
     if ed03:
         for row in ed03.get("notebooks", []):
             if row.get("notebook_path") == rel:
@@ -405,7 +405,7 @@ def main() -> int:
         raise RuntimeError("No tutorial notebooks discovered")
 
     receipt_body = {
-        "schema_version": "jaxfne.publication_ed08_tutorial_atlas_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_ed08_tutorial_atlas_receipt.v0.1.0",
         "artifact": "ed08_tutorial_atlas_coverage",
         "generated_at_utc": utc_now_iso(),
         "runtime_receipt": runtime,
@@ -431,7 +431,7 @@ def main() -> int:
         extra={
             "artifact": "ed08_tutorial_atlas_coverage",
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed08_tutorial_atlas_coverage.py",
+            "generator_command": "python scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
             "claim_boundary": "tutorial_atlas_coverage_receipt_only",
             "notebook_execution_completeness_claim_allowed": False,
             "physical_amplitude_claim_allowed": False,
@@ -445,7 +445,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")

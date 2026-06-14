@@ -2,8 +2,8 @@
 """Generate Figure 3: jaxfne computational backend and reproducibility boundary.
 
 Outputs:
-  figures/publication/fig03_jaxfne_backend.png
-  outputs/publication/fig03_jaxfne_backend_manifest.json
+  figures/evidence/fig03_jaxfne_backend.png
+  outputs/evidence/fig03_jaxfne_backend_manifest.json
 """
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -25,11 +25,11 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig03_backend.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig03_backend.py",
+    "scripts/evidence_figures/_figure_common.py",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig03_jaxfne_backend.png"
 
 TITLE = "jaxfne computational backend and reproducibility boundary"
@@ -234,12 +234,12 @@ def main() -> int:
             "optional_dependency_policy": list(OPTIONAL_DEPENDENCY_POLICY),
             "runtime_reproducibility_fields": list(RUNTIME_REPRODUCIBILITY_FIELDS),
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig03_backend.py",
+            "generator_command": "python scripts/evidence_figures/fig03_backend.py",
         },
     )
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

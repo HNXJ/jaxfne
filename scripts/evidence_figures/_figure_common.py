@@ -1,4 +1,4 @@
-"""Shared helpers for jaxfne publication figure generators.
+"""Shared helpers for jaxfne evidence figure generators.
 
 Dependency-light: no matplotlib, no optional packages, no import-time side effects.
 """
@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-_MANIFEST_SCHEMA = "jaxfne.publication_figure_manifest.v0.1.0"
+_MANIFEST_SCHEMA = "jaxfne.evidence_figure_manifest.v0.1.0"
 
 
 def repo_root() -> Path:
@@ -64,7 +64,7 @@ def utc_now_iso() -> str:
 
 
 def truth_gates() -> dict:
-    """Default publication truth gates (copy safe for manifests)."""
+    """Default evidence truth gates (copy safe for manifests)."""
     return {
         "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
@@ -83,11 +83,11 @@ def write_json_strict(path: Path, obj: dict) -> None:
     )
 
 
-def ensure_publication_dirs() -> dict[str, Path]:
-    """Create and return standard publication output directories."""
+def ensure_evidence_dirs() -> dict[str, Path]:
+    """Create and return standard evidence output directories."""
     root = repo_root()
-    figures = root / "figures" / "publication"
-    outputs = root / "outputs" / "publication"
+    figures = root / "figures" / "evidence"
+    outputs = root / "outputs" / "evidence"
     figures.mkdir(parents=True, exist_ok=True)
     outputs.mkdir(parents=True, exist_ok=True)
     return {
@@ -98,8 +98,8 @@ def ensure_publication_dirs() -> dict[str, Path]:
 
 
 def manifest_path_for(output_path: Path) -> Path:
-    """Standard manifest path: outputs/publication/<stem>_manifest.json."""
-    dirs = ensure_publication_dirs()
+    """Standard manifest path: outputs/evidence/<stem>_manifest.json."""
+    dirs = ensure_evidence_dirs()
     return dirs["outputs"] / f"{output_path.stem}_manifest.json"
 
 

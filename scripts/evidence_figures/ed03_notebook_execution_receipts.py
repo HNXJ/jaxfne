@@ -5,10 +5,10 @@ Receipt-driven atlas survey of tutorial notebooks. Does not execute the full
 notebook stack unless ``--run-smoke`` is passed (controlled small subset).
 
 Outputs:
-  figures/publication/ed03_notebook_execution_receipts.png
-  outputs/publication/ed03_notebook_execution_receipts_manifest.json
-  outputs/publication/ed03_notebook_execution_receipts.json
-  outputs/publication/notebook_execution_receipt.json
+  figures/evidence/ed03_notebook_execution_receipts.png
+  outputs/evidence/ed03_notebook_execution_receipts_manifest.json
+  outputs/evidence/ed03_notebook_execution_receipts.json
+  outputs/evidence/notebook_execution_receipt.json
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -43,8 +43,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed03_notebook_execution_receipts.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
+    "scripts/evidence_figures/_figure_common.py",
     "scripts/audit_notebooks_and_assets.py",
     "tests/test_suite_no1_notebook_execution.py",
     "tests/test_suite_no4_notebook_execution.py",
@@ -89,7 +89,7 @@ KNOWN_RECEIPT_PATHS: dict[str, list[str]] = {
     ],
 }
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed03_notebook_execution_receipts.png"
 RECEIPT_JSON_PATH = _dirs["outputs"] / "ed03_notebook_execution_receipts.json"
 AGGREGATE_RECEIPT_PATH = _dirs["outputs"] / "notebook_execution_receipt.json"
@@ -142,7 +142,7 @@ def _read_json_if_exists(path: Path) -> dict | None:
 
 def _load_prior_ed03_receipt(root: Path) -> dict[str, dict]:
     """Index prior ED3 notebook rows by path."""
-    path = root / "outputs/publication/ed03_notebook_execution_receipts.json"
+    path = root / "outputs/evidence/ed03_notebook_execution_receipts.json"
     data = _read_json_if_exists(path)
     if not data:
         return {}
@@ -151,7 +151,7 @@ def _load_prior_ed03_receipt(root: Path) -> dict[str, dict]:
 
 
 def _load_aggregate_receipt(root: Path) -> dict[str, dict]:
-    path = root / "outputs/publication/notebook_execution_receipt.json"
+    path = root / "outputs/evidence/notebook_execution_receipt.json"
     data = _read_json_if_exists(path)
     if not data:
         return {}
@@ -347,7 +347,7 @@ def _build_notebook_row(
             row["last_verified_sha"] = exec_result["verified_repo_sha"]
             row["last_verified_at_utc"] = exec_result["executed_at_utc"]
             row["source"] = "smoke_executed"
-            smoke_receipt_rel = f"outputs/publication/smoke_receipts/{nb_path.stem}.json"
+            smoke_receipt_rel = f"outputs/evidence/smoke_receipts/{nb_path.stem}.json"
             row["artifact_receipt_path"] = smoke_receipt_rel
         except Exception as exc:
             row["mode"] = "smoke"
@@ -493,7 +493,7 @@ def draw_figure(rows: list[dict], summary: dict, receipt: dict) -> None:
 
 def _write_smoke_receipts(rows: list[dict]) -> None:
     root = repo_root()
-    smoke_dir = root / "outputs" / "publication" / "smoke_receipts"
+    smoke_dir = root / "outputs" / "evidence" / "smoke_receipts"
     smoke_dir.mkdir(parents=True, exist_ok=True)
     for row in rows:
         if row.get("source") != "smoke_executed":
@@ -505,7 +505,7 @@ def _write_smoke_receipts(rows: list[dict]) -> None:
         write_json_strict(
             path,
             {
-                "schema_version": "jaxfne.publication_notebook_smoke_receipt.v0.1.0",
+                "schema_version": "jaxfne.evidence_notebook_smoke_receipt.v0.1.0",
                 "notebook_path": row["notebook_path"],
                 "mode": row["mode"],
                 "execution_status": row["execution_status"],
@@ -555,7 +555,7 @@ def main() -> int:
     completeness_allowed = False
 
     ed03_payload = {
-        "schema_version": "jaxfne.publication_ed03_notebook_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_ed03_notebook_receipt.v0.1.0",
         "generated_at_utc": utc_now_iso(),
         "runtime_receipt": receipt,
         "summary": summary,
@@ -567,7 +567,7 @@ def main() -> int:
     write_json_strict(RECEIPT_JSON_PATH, ed03_payload)
 
     aggregate_payload = {
-        "schema_version": "jaxfne.publication_notebook_execution_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_notebook_execution_receipt.v0.1.0",
         "generated_at_utc": utc_now_iso(),
         "repo_sha": repo_sha(),
         "summary": summary,
@@ -598,7 +598,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed03_notebook_execution_receipts.py",
+            "generator_command": "python scripts/evidence_figures/ed03_notebook_execution_receipts.py",
             "claim_boundary": "receipt_driven_structural_scan",
             "summary": summary,
             "runtime_receipt": receipt,
@@ -615,7 +615,7 @@ def main() -> int:
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {RECEIPT_JSON_PATH.relative_to(root)}")
     print(f"wrote: {AGGREGATE_RECEIPT_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"sha256: {sha}")
     print(f"figure_id: {manifest['figure_id']}")
     print(f"notebooks: {summary['notebook_total']}")

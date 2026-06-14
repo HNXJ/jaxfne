@@ -2,8 +2,8 @@
 """Generate Figure 6: eight proxy readout family panel with operator receipts.
 
 Outputs:
-  figures/publication/fig06_readout_family_panel.png
-  outputs/publication/fig06_readout_family_panel_manifest.json
+  figures/evidence/fig06_readout_family_panel.png
+  outputs/evidence/fig06_readout_family_panel_manifest.json
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ from jaxfne.fields import (
 )
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -38,8 +38,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig06_readout_family_panel.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig06_readout_family_panel.py",
+    "scripts/evidence_figures/_figure_common.py",
     "examples/04_two_neuron_ei_multimodal.py",
     "jaxfne/fields/probes.py",
 ]
@@ -62,7 +62,7 @@ READOUT_ORDER = [
     "emm_proxy",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig06_readout_family_panel.png"
 
 
@@ -241,7 +241,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig06_readout_family_panel.py",
+            "generator_command": "python scripts/evidence_figures/fig06_readout_family_panel.py",
             "claim_boundary": "proxy_readouts_only",
             "simulation": {"duration_ms": 100.0, "dt_ms": 0.1, "seed": 42, "n_neurons": 2},
             "readout_families": READOUT_ORDER,
@@ -251,7 +251,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

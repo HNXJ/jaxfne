@@ -335,7 +335,7 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
             "Full-repo gates (run separately, see release report):",
             "  pytest:               2197 passed / 67 skipped / 4 xfailed",
             "  mkdocs build --strict: pass",
-            "  publication inventory: 8/8 main + 10/10 extended",
+            "  evidence inventory: 8/8 main + 10/10 extended",
         ]
         _text_page(pdf, val_lines, title="Validation Summary")
         md_lines += [""] + val_lines

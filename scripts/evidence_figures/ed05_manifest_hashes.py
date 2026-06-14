@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Generate Extended Data ED5: local manifest/hash integrity receipt.
 
-Audits fig01-fig08, ED1-ED4, and publication metadata artifacts without
+Audits fig01-fig08, ED1-ED4, and evidence metadata artifacts without
 regenerating committed figure PNGs. Missing figure manifests are synthesized
 from on-disk PNG SHA256 digests (local integrity receipt only).
 
 Outputs:
-  figures/publication/ed05_manifest_hashes.png
-  outputs/publication/ed05_manifest_hashes_manifest.json
-  outputs/publication/ed05_manifest_hashes_receipt.json
+  figures/evidence/ed05_manifest_hashes.png
+  outputs/evidence/ed05_manifest_hashes_manifest.json
+  outputs/evidence/ed05_manifest_hashes_receipt.json
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     manifest_path_for,
     repo_root,
     repo_sha,
@@ -40,59 +40,59 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed05_manifest_hashes.py",
-    "scripts/publication/_figure_common.py",
-    "scripts/publication_inventory.py",
-    "docs/publication/publication_checklist.json",
+    "scripts/evidence_figures/ed05_manifest_hashes.py",
+    "scripts/evidence_figures/_figure_common.py",
+    "scripts/evidence_inventory.py",
+    "docs/evidence/evidence_checklist.json",
 ]
 
 TITLE = "Extended Data 5 - local artifact hash integrity receipt"
 
 SCOPE_STATUS = (
     "Local artifact integrity receipt only; not archival completeness; "
-    "not release immutability; proxy-safe publication scaffold"
+    "not release immutability; proxy-safe evidence scaffold"
 )
 
 RECEIPT_PATHS_BY_STEM: dict[str, list[str]] = {
     "ed03_notebook_execution_receipts": [
-        "outputs/publication/ed03_notebook_execution_receipts.json",
-        "outputs/publication/notebook_execution_receipt.json",
+        "outputs/evidence/ed03_notebook_execution_receipts.json",
+        "outputs/evidence/notebook_execution_receipt.json",
     ],
     "ed04_optional_dependency_laziness": [
-        "outputs/publication/ed04_optional_dependency_laziness_receipt.json",
+        "outputs/evidence/ed04_optional_dependency_laziness_receipt.json",
     ],
 }
 
 METADATA_ARTIFACTS = [
     {
-        "artifact_group": "publication_metadata",
+        "artifact_group": "evidence_metadata",
         "artifact_id": "inventory",
-        "label": "publication_inventory.json",
-        "path": "outputs/publication/inventory.json",
+        "label": "evidence_inventory.json",
+        "path": "outputs/evidence/inventory.json",
         "kind": "json",
     },
     {
-        "artifact_group": "publication_metadata",
+        "artifact_group": "evidence_metadata",
         "artifact_id": "checklist",
-        "label": "publication_checklist.json",
-        "path": "docs/publication/publication_checklist.json",
+        "label": "evidence_checklist.json",
+        "path": "docs/evidence/evidence_checklist.json",
         "kind": "json",
     },
     {
-        "artifact_group": "publication_metadata",
+        "artifact_group": "evidence_metadata",
         "artifact_id": "roadmap",
         "kind": "markdown",
     },
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed05_manifest_hashes.png"
 MANIFEST_PATH = _dirs["outputs"] / "ed05_manifest_hashes_manifest.json"
 RECEIPT_PATH = _dirs["outputs"] / "ed05_manifest_hashes_receipt.json"
 
 
 def _load_checklist() -> dict:
-    path = repo_root() / "docs" / "publication" / "publication_checklist.json"
+    path = repo_root() / "docs" / "evidence" / "evidence_checklist.json"
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -101,13 +101,13 @@ def _load_inventory() -> dict:
     scripts_dir = root / "scripts"
     if str(scripts_dir) not in sys.path:
         sys.path.insert(0, str(scripts_dir))
-    from publication_inventory import build_inventory
+    from evidence_inventory import build_inventory
 
     return build_inventory()
 
 
 def _write_inventory_json(inventory: dict) -> Path:
-    path = repo_root() / "outputs" / "publication" / "inventory.json"
+    path = repo_root() / "outputs" / "evidence" / "inventory.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     write_json_strict(path, inventory)
     return path
@@ -137,7 +137,7 @@ def _truth_gates_preserved(manifest_data: dict | None) -> bool | None:
 
 def _resolve_receipt_paths(stem: str) -> list[Path]:
     root = repo_root()
-    candidates = RECEIPT_PATHS_BY_STEM.get(stem, [f"outputs/publication/{stem}_receipt.json"])
+    candidates = RECEIPT_PATHS_BY_STEM.get(stem, [f"outputs/evidence/{stem}_receipt.json"])
     return [root / rel for rel in candidates]
 
 
@@ -165,7 +165,7 @@ def _ensure_figure_manifest(
                 output_path=png_path,
                 source_files=[
                     str(script_path.relative_to(root)),
-                    "scripts/publication/_figure_common.py",
+                    "scripts/evidence_figures/_figure_common.py",
                 ],
                 extra={
                     "scope_status": "manifest_resynchronized_by_ed05_from_committed_png",
@@ -182,7 +182,7 @@ def _ensure_figure_manifest(
             figure_id=figure_id,
             title=title,
             output_path=png_path,
-            source_files=[str(script_path.relative_to(root)), "scripts/publication/_figure_common.py"],
+            source_files=[str(script_path.relative_to(root)), "scripts/evidence_figures/_figure_common.py"],
             extra={
                 "scope_status": "manifest_synthesized_by_ed05_from_committed_png",
                 "synthesized_by_ed05": True,
@@ -225,7 +225,7 @@ def _audit_figure_entry(
         figure_id=artifact_id,
         title=title,
         png_path=png_path,
-        script_path=script_path or Path("scripts/publication/_figure_common.py"),
+        script_path=script_path or Path("scripts/evidence_figures/_figure_common.py"),
         synthesize_if_missing=synthesize_manifests,
     )
     manifest_exists = manifest_path.is_file()
@@ -349,7 +349,7 @@ def build_audit_rows(*, synthesize_manifests: bool) -> tuple[list[dict], dict]:
     summary = {
         "main_figure_rows": sum(1 for r in rows if r["artifact_group"] == "main_figure"),
         "extended_data_rows": sum(1 for r in rows if r["artifact_group"] == "extended_data"),
-        "metadata_rows": sum(1 for r in rows if r["artifact_group"] == "publication_metadata"),
+        "metadata_rows": sum(1 for r in rows if r["artifact_group"] == "evidence_metadata"),
         "png_manifest_ok": sum(1 for r in rows if r["png_manifest_match"] == "ok"),
         "png_manifest_mismatch": sum(1 for r in rows if r["png_manifest_match"] == "mismatch"),
         "png_manifest_missing": sum(1 for r in rows if r["png_manifest_match"] in {"no_manifest", "png_missing"}),
@@ -571,7 +571,7 @@ def main() -> int:
         raise RuntimeError("ED5 integrity audit failures:\n  " + "\n  ".join(failures))
 
     receipt_body = {
-        "schema_version": "jaxfne.publication_ed05_manifest_hash_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_ed05_manifest_hash_receipt.v0.1.0",
         "artifact": "ed05_manifest_hashes",
         "generated_at_utc": utc_now_iso(),
         "runtime_receipt": runtime,
@@ -593,7 +593,7 @@ def main() -> int:
         "artifact_group": "extended_data",
         "artifact_id": "ed05",
         "label": "ed05_manifest_hashes",
-        "script_path": "scripts/publication/ed05_manifest_hashes.py",
+        "script_path": "scripts/evidence_figures/ed05_manifest_hashes.py",
         "png_path": str(FIGURE_PATH.relative_to(root)),
         "manifest_path": str(MANIFEST_PATH.relative_to(root)),
         "receipt_path": str(RECEIPT_PATH.relative_to(root)),
@@ -621,7 +621,7 @@ def main() -> int:
         extra={
             "artifact": "ed05_manifest_hashes",
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed05_manifest_hashes.py",
+            "generator_command": "python scripts/evidence_figures/ed05_manifest_hashes.py",
             "claim_boundary": "local_artifact_integrity_receipt_only",
             "local_artifact_integrity_receipt_only": True,
             "archive_completeness_claim_allowed": False,

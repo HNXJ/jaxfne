@@ -2,8 +2,8 @@
 """Generate Figure 8: adjacent tools positioning (capability comparison only).
 
 Outputs:
-  figures/publication/fig08_adjacent_tools_comparison.png
-  outputs/publication/fig08_adjacent_tools_comparison_manifest.json
+  figures/evidence/fig08_adjacent_tools_comparison.png
+  outputs/evidence/fig08_adjacent_tools_comparison_manifest.json
 
 No speedup, accuracy, biological-validity, or solver-superiority claims.
 """
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -27,8 +27,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig08_adjacent_tools_comparison.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
+    "scripts/evidence_figures/_figure_common.py",
 ]
 
 TITLE = "Adjacent tools positioning (capability comparison only)"
@@ -62,7 +62,7 @@ COMPARISON_ROWS = [
     (
         "jaxfne",
         "emitter -> source -> field/probe scaffold",
-        "compact tutorial and publication evidence layer",
+        "compact tutorial and evidence evidence layer",
     ),
 ]
 
@@ -73,7 +73,7 @@ POSITIONING_NOTES = [
     "comparison is capability-oriented, not benchmark-oriented",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig08_adjacent_tools_comparison.png"
 
 
@@ -181,7 +181,7 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig08_adjacent_tools_comparison.py",
+            "generator_command": "python scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
             "claim_boundary": "capability_comparison_not_superiority",
             "comparison_rows": [
                 {"tool": t, "primary_role": r, "jaxfne_relation": j}
@@ -195,7 +195,7 @@ def main() -> int:
 
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Generate Extended Data ED10: release/archive receipt panel.
 
-Records branch, commit SHA, publication inventory, checklist/output hashes,
+Records branch, commit SHA, evidence inventory, checklist/output hashes,
 and release/archive field status. Does not tag, release, publish, or archive.
 
 Outputs:
-  figures/publication/ed10_release_archive_receipt.png
-  outputs/publication/ed10_release_archive_receipt_manifest.json
-  outputs/publication/ed10_release_archive_receipt_receipt.json
+  figures/evidence/ed10_release_archive_receipt.png
+  outputs/evidence/ed10_release_archive_receipt_manifest.json
+  outputs/evidence/ed10_release_archive_receipt_receipt.json
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     jaxfne_version,
     repo_root,
     repo_sha,
@@ -43,10 +43,10 @@ if str(_REPO_ROOT) not in sys.path:
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed10_release_archive_receipt.py",
-    "scripts/publication/_figure_common.py",
-    "scripts/publication_inventory.py",
-    "docs/publication/publication_checklist.json",
+    "scripts/evidence_figures/ed10_release_archive_receipt.py",
+    "scripts/evidence_figures/_figure_common.py",
+    "scripts/evidence_inventory.py",
+    "docs/evidence/evidence_checklist.json",
     "pyproject.toml",
 ]
 
@@ -57,7 +57,7 @@ SCOPE_STATUS = (
     "not empirical validation; physical_amplitude_claim_allowed: false"
 )
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed10_release_archive_receipt.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed10_release_archive_receipt_receipt.json"
 
@@ -98,13 +98,13 @@ def _load_inventory() -> dict[str, Any]:
     scripts_dir = _REPO_ROOT / "scripts"
     if str(scripts_dir) not in sys.path:
         sys.path.insert(0, str(scripts_dir))
-    from publication_inventory import build_inventory
+    from evidence_inventory import build_inventory
 
     return build_inventory()
 
 
 def _checklist_hash() -> dict[str, Any]:
-    path = _REPO_ROOT / "docs" / "publication" / "publication_checklist.json"
+    path = _REPO_ROOT / "docs" / "evidence" / "evidence_checklist.json"
     return {
         "path": str(path.relative_to(_REPO_ROOT)),
         "exists": path.is_file(),
@@ -113,7 +113,7 @@ def _checklist_hash() -> dict[str, Any]:
 
 
 def _output_inventory_hash(inventory: dict[str, Any]) -> dict[str, Any]:
-    path = _REPO_ROOT / "outputs" / "publication" / "inventory.json"
+    path = _REPO_ROOT / "outputs" / "evidence" / "inventory.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(inventory, indent=2, sort_keys=False) + "\n", encoding="utf-8")
     return {
@@ -306,7 +306,7 @@ def build_receipt_body() -> dict[str, Any]:
     summary = inventory.get("summary", {})
 
     body = {
-        "schema_version": "jaxfne.publication_ed10_release_archive_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_ed10_release_archive_receipt.v0.1.0",
         "artifact": "ed10_release_archive_receipt",
         "generated_at_utc": utc_now_iso(),
         "runtime_receipt": _runtime_receipt(),
@@ -326,7 +326,7 @@ def build_receipt_body() -> dict[str, Any]:
             "status_short": status_lines,
         },
         "package_version": jaxfne_version(),
-        "publication_inventory": {
+        "evidence_inventory": {
             "main_figures": (
                 f"{summary.get('main_figures_present', 0)}/"
                 f"{summary.get('main_figures_total', 8)}"
@@ -391,8 +391,8 @@ def draw_figure(body: dict[str, Any]) -> None:
         ("commit_sha", body["repo_state"]["commit_sha"][:12]),
         ("tree_clean", str(body["repo_state"]["working_tree_clean"])),
         ("package_version", body["package_version"]),
-        ("main_figures", body["publication_inventory"]["main_figures"]),
-        ("extended_data", body["publication_inventory"]["extended_data"]),
+        ("main_figures", body["evidence_inventory"]["main_figures"]),
+        ("extended_data", body["evidence_inventory"]["extended_data"]),
         ("checklist_sha256", (body["checklist_hash"].get("sha256") or "")[:16]),
         ("inventory_sha256", (body["output_inventory_hash"].get("sha256") or "")[:16]),
         ("tag_status", body["tag_status"]["status"]),
@@ -456,7 +456,7 @@ def main() -> int:
         extra={
             "artifact": "ed10_release_archive_receipt",
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed10_release_archive_receipt.py",
+            "generator_command": "python scripts/evidence_figures/ed10_release_archive_receipt.py",
             "claim_boundary": "release_archive_evidence_receipt_only",
             "release_action_taken": False,
             "tag_action_taken": False,
@@ -465,7 +465,7 @@ def main() -> int:
             "local_receipt_only": True,
             "repo_state": body["repo_state"],
             "package_version": body["package_version"],
-            "publication_inventory": body["publication_inventory"],
+            "evidence_inventory": body["evidence_inventory"],
             "checklist_hash": body["checklist_hash"],
             "output_inventory_hash": body["output_inventory_hash"],
             "wheel_sdist_status": body["wheel_sdist_status"],
@@ -481,14 +481,14 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")
     print(
         "inventory: "
-        f"{body['publication_inventory']['main_figures']} main, "
-        f"{body['publication_inventory']['extended_data']} ED"
+        f"{body['evidence_inventory']['main_figures']} main, "
+        f"{body['evidence_inventory']['extended_data']} ED"
     )
     return 0
 

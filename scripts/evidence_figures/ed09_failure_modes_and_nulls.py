@@ -5,9 +5,9 @@ Local receipt for objective null controls, JSON/gate failure modes, and
 overinterpretation guards. Not empirical validation.
 
 Outputs:
-  figures/publication/ed09_failure_modes_and_nulls.png
-  outputs/publication/ed09_failure_modes_and_nulls_manifest.json
-  outputs/publication/ed09_failure_modes_and_nulls_receipt.json
+  figures/evidence/ed09_failure_modes_and_nulls.png
+  outputs/evidence/ed09_failure_modes_and_nulls_manifest.json
+  outputs/evidence/ed09_failure_modes_and_nulls_receipt.json
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     repo_sha,
     save_figure_manifest,
@@ -42,8 +42,8 @@ if str(_REPO_ROOT) not in sys.path:
 
 
 SOURCE_FILES = [
-    "scripts/publication/ed09_failure_modes_and_nulls.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
+    "scripts/evidence_figures/_figure_common.py",
     "tests/test_objective_null_reproducibility_v0330.py",
     "tests/test_artifact_json_safety_v0330.py",
     "tests/test_public_docs_hygiene.py",
@@ -81,7 +81,7 @@ PYTEST_TARGETS = [
     "tests/test_public_docs_hygiene.py",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "ed09_failure_modes_and_nulls.png"
 RECEIPT_PATH = _dirs["outputs"] / "ed09_failure_modes_and_nulls_receipt.json"
 
@@ -359,7 +359,7 @@ def main() -> int:
         raise RuntimeError(f"ED9 gate failures: {names}")
 
     receipt_body = {
-        "schema_version": "jaxfne.publication_ed09_failure_null_receipt.v0.1.0",
+        "schema_version": "jaxfne.evidence_ed09_failure_null_receipt.v0.1.0",
         "artifact": "ed09_failure_modes_and_nulls",
         "generated_at_utc": utc_now_iso(),
         "runtime_receipt": runtime,
@@ -386,7 +386,7 @@ def main() -> int:
         extra={
             "artifact": "ed09_failure_modes_and_nulls",
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/ed09_failure_modes_and_nulls.py",
+            "generator_command": "python scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
             "claim_boundary": "failure_null_local_receipt_only",
             "local_receipt_only": True,
             "empirical_validation_claim_allowed": False,
@@ -401,7 +401,7 @@ def main() -> int:
     )
 
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
-    print(f"wrote: outputs/publication/{FIGURE_PATH.stem}_manifest.json")
+    print(f"wrote: outputs/evidence/{FIGURE_PATH.stem}_manifest.json")
     print(f"wrote: {RECEIPT_PATH.relative_to(root)}")
     print(f"sha256: {sha256_file(FIGURE_PATH)}")
     print(f"figure_id: {manifest['figure_id']}")

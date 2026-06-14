@@ -2,8 +2,8 @@
 """Generate Figure 1: TFNE source-to-field/readout architecture diagram.
 
 Outputs:
-  figures/publication/fig01_tfne_architecture.png
-  outputs/publication/fig01_tfne_architecture_manifest.json
+  figures/evidence/fig01_tfne_architecture.png
+  outputs/evidence/fig01_tfne_architecture_manifest.json
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 from _figure_common import (
-    ensure_publication_dirs,
+    ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
     sha256_file,
@@ -26,8 +26,8 @@ from _figure_common import (
 
 
 SOURCE_FILES = [
-    "scripts/publication/fig01_architecture.py",
-    "scripts/publication/_figure_common.py",
+    "scripts/evidence_figures/fig01_architecture.py",
+    "scripts/evidence_figures/_figure_common.py",
 ]
 
 SCOPE_STATUS = (
@@ -55,7 +55,7 @@ METADATA_BANDS = [
     "JSON-safe manifests / SHA256 hashes",
 ]
 
-_dirs = ensure_publication_dirs()
+_dirs = ensure_evidence_dirs()
 FIGURE_PATH = _dirs["figures"] / "fig01_tfne_architecture.png"
 
 
@@ -197,12 +197,12 @@ def main() -> int:
         source_files=SOURCE_FILES,
         extra={
             "scope_status": SCOPE_STATUS,
-            "generator_command": "python scripts/publication/fig01_architecture.py",
+            "generator_command": "python scripts/evidence_figures/fig01_architecture.py",
         },
     )
     sha = sha256_file(FIGURE_PATH)
     root = repo_root()
-    manifest_rel = f"outputs/publication/{FIGURE_PATH.stem}_manifest.json"
+    manifest_rel = f"outputs/evidence/{FIGURE_PATH.stem}_manifest.json"
     print(f"wrote: {FIGURE_PATH.relative_to(root)}")
     print(f"wrote: {manifest_rel}")
     print(f"sha256: {sha}")
