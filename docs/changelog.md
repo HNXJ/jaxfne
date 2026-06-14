@@ -1,3 +1,10 @@
+## v0.3.42 (2026-06-14)
+
+**Public context hardening release.**
+- Added missing docstrings to stub emitters (`GLIFEmitter`, `LIFEmitter`).
+- Enforced clean-venv lazy root imports to guarantee heavy optional packages are not loaded on import.
+- Harmonized version references across documentation, package configurations, and tests.
+
 ## v0.3.41 (2026-06-14)
 
 **Port of JAX computational kernels.** No scientific-claim escalation.

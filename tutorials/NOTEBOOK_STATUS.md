@@ -28,9 +28,9 @@ Archived notebooks are excluded from strict validation. They may use legacy patt
 
 - **jaxfne_etude_no_2_spectrolaminar_power.ipynb** — Pedagogical etude with local simulation helpers; requires API extraction before release-facing status
 - **jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb** — Experimental delta-test for hierarchical oddball; not part of release suite
-- **jaxfne-v0333-colab-gemini-evidence.ipynb** — Colab prototype; notebook evidence collection (pre-release exploration)
-- **jaxfne-v0333-colab-gemini-orientation.ipynb** — Colab prototype; notebook orientation task (pre-release exploration)
-- **jaxfne-v0333-colab-gemini-task-smoke.ipynb** — Colab prototype; notebook task smoke test (pre-release exploration)
+- **jaxfne-v0333-colab-evidence.ipynb** — Colab prototype; notebook evidence collection (pre-release exploration)
+- **jaxfne-v0333-colab-orientation.ipynb** — Colab prototype; notebook orientation task (pre-release exploration)
+- **jaxfne-v0333-colab-task-smoke.ipynb** — Colab prototype; notebook task smoke test (pre-release exploration)
 - **jaxfne-v034-stdp-ltp-ltd-adaptation.ipynb** — Experimental plasticity notebook; STDP/LTP/LTD mechanisms (pre-release, biophysics incomplete)
 - **jaxfne-v035-coop-paradigm-stability.ipynb** — Experimental cooperative/competition paradigm (pre-release, scope unstable)
 - **jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb** — Legacy etude; replaced by jaxfne_etude_no_1_base.ipynb with cleaner workflow

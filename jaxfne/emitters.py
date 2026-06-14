@@ -1102,11 +1102,21 @@ class IzhikevichEmitter(Emitter):
 
 
 class GLIFEmitter(Emitter):
+    """Generalized Leaky Integrate-and-Fire emitter facade stub.
+
+    Provides a placeholder for future implementation of multi-compartment or
+    highly parameterized GLIF models. Raises NotImplementedError on construction.
+    """
     def __init__(self, *args, **kwargs):
         raise NotImplementedError("TODO: implement GLIFEmitter dynamics before exposing this emitter")
 
 
 class LIFEmitter(Emitter):
+    """Leaky Integrate-and-Fire emitter facade stub.
+
+    Provides a placeholder for standard LIF single-compartment dynamics.
+    Raises NotImplementedError on construction.
+    """
     def __init__(self, *args, **kwargs):
         raise NotImplementedError("TODO: implement LIFEmitter dynamics before exposing this emitter")
 
