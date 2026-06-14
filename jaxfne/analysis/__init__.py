@@ -13,7 +13,7 @@ burst_index
     Compute fraction of time bins where population is active (bursting).
 
 fano_factor
-    Compute Fano factor of spike counts (Poisson-ness metric).
+    Compute fraction of spike counts (Poisson-ness metric).
 
 fleiss_kappa_binary
     Compute Fleiss-kappa-like agreement metric for population synchrony.
@@ -25,10 +25,24 @@ from .metrics import (
     fleiss_kappa_binary,
     mean_pairwise_spike_correlation,
 )
+from .spectral import (
+    spectrolaminar_psd_jax,
+    bandpower_jax,
+    spectrolaminar_readout_kernel_jax,
+    spectrolaminar_similarity_kernel_jax,
+    spectrolaminar_similarity_candidates_jax,
+    spectrolaminar_similarity_candidates_seeds_jax,
+)
 
 __all__ = [
     "mean_pairwise_spike_correlation",
     "burst_index",
     "fano_factor",
     "fleiss_kappa_binary",
+    "spectrolaminar_psd_jax",
+    "bandpower_jax",
+    "spectrolaminar_readout_kernel_jax",
+    "spectrolaminar_similarity_kernel_jax",
+    "spectrolaminar_similarity_candidates_jax",
+    "spectrolaminar_similarity_candidates_seeds_jax",
 ]

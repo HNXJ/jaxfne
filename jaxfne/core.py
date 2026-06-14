@@ -1524,8 +1524,8 @@ class RuntimeConfig:
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
     dtype: str = "float32"  # "float32" | "float64"
-    jit: bool = False
-    vmap: bool = False
+    jit: bool | str = False
+    vmap: bool | str = False
     precision: str = "default"  # "default" | "high"
     seed: int = 0
     n_steps: int = 0
@@ -1548,6 +1548,35 @@ class RuntimeConfig:
                 f"recompilation_guard must be one of {{'warning', 'exception', 'off'}}; "
                 f"got {self.recompilation_guard!r}"
             )
+        # Validate jit and vmap options
+        jit_str = str(self.jit).lower()
+        if jit_str not in {"true", "false", "auto", "1", "0"}:
+            raise ValueError(
+                f"jit must be a boolean or 'auto'; got {self.jit!r}"
+            )
+        vmap_str = str(self.vmap).lower()
+        if vmap_str not in {"true", "false", "auto", "1", "0"}:
+            raise ValueError(
+                f"vmap must be a boolean or 'auto'; got {self.vmap!r}"
+            )
+
+    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
+        """Resolve the effective JIT compilation status based on policy and parameters."""
+        if isinstance(self.jit, bool):
+            return self.jit
+        jit_str = str(self.jit).lower()
+        if jit_str == "auto":
+            return (n_steps * n_units * batch) > 50000
+        return jit_str in {"true", "1"}
+
+    def resolve_vmap(self, batch: int) -> bool:
+        """Resolve the effective vmap vectorization status based on policy and batch size."""
+        if isinstance(self.vmap, bool):
+            return self.vmap
+        vmap_str = str(self.vmap).lower()
+        if vmap_str == "auto":
+            return batch > 1
+        return vmap_str in {"true", "1"}
 
     @property
     def requested_dtype(self) -> str:
@@ -2417,6 +2446,39 @@ class StimulusSchedule:
                     schedule[start:end, :] += amp
         np_dtype = _np.float64 if dtype == "float64" else _np.float32
         return jnp.asarray(schedule.astype(np_dtype))
+
+    def to_array_jax(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> jax.Array:
+        """Materialize a ``(n_steps, n_neurons)`` drive schedule array using JAX.
+
+        Supports target_indices in event to apply amplitude only to selected neurons.
+        Uses time masking and outer products for JIT/vmap compatibility.
+        """
+        jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
+        time_ms = jnp.arange(n_steps, dtype=jdtype) * dt_ms
+        
+        schedule = jnp.zeros((n_steps, self.n_neurons), dtype=jdtype)
+        
+        for ev in self.events:
+            if not ev.get("is_drive_event", True):
+                continue
+            amp = float(ev.get("amplitude", 0.0))
+            if amp == 0.0:
+                continue
+            onset_ms = float(ev.get("onset_ms", 0.0))
+            dur_ms = float(ev.get("duration_ms", 50.0))
+            
+            event_mask = (time_ms >= onset_ms) & (time_ms < onset_ms + dur_ms)
+            
+            target_indices = ev.get("target_indices", None)
+            if target_indices is not None:
+                idx_array = jnp.asarray(target_indices, dtype=jnp.int32)
+                neuron_mask = jnp.zeros((self.n_neurons,), dtype=jdtype)
+                neuron_mask = neuron_mask.at[idx_array].set(1.0)
+                schedule = schedule + (event_mask[:, None] * neuron_mask[None, :]) * amp
+            else:
+                schedule = schedule + event_mask[:, None] * amp
+                
+        return schedule
 
     def to_dict(self) -> dict[str, Any]:
         from .io import json_safe
@@ -3306,7 +3368,8 @@ class Model:
                 if runtime_cfg.synaptic_kernel == "receptor_exponential"
                 else simulate_edge_recurrent_izhikevich
             )
-            if runtime_cfg.jit:
+            effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+            if effective_jit:
                 if not hasattr(self, "_compiled_cache"):
                     object.__setattr__(self, "_compiled_cache", {})
                 from .validation import make_recompilation_guard
@@ -3319,6 +3382,7 @@ class Model:
                 cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode, runtime_cfg.selected_backend)
                 with _device_scope(runtime_cfg.selected_backend):
                     if cache_key not in self._compiled_cache:
+                        import time
                         target_fn = lambda k, s: kernel_fn(
                             emitter, edges, sim.n_steps, sim.dt_ms, k,
                             dtype=runtime_cfg.actual_dtype, drive_schedule=s,
@@ -3331,6 +3395,13 @@ class Model:
                             B=B, Z=Z, C=C, T=T
                         )
                         self._compiled_cache[cache_key] = jax.jit(target_fn)
+                        t0 = time.perf_counter()
+                        res = self._compiled_cache[cache_key](key, sched)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                        return res
                     run = self._compiled_cache[cache_key]
                     return run(key, sched)
             with _device_scope(runtime_cfg.selected_backend):
@@ -3339,7 +3410,8 @@ class Model:
                     dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
                     silence_mask=silence_mask,
                 )[:3]
-        if runtime_cfg.jit:
+        effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+        if effective_jit:
             if not hasattr(self, "_compiled_cache"):
                 object.__setattr__(self, "_compiled_cache", {})
             from .validation import make_recompilation_guard
@@ -3352,6 +3424,7 @@ class Model:
             cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode, runtime_cfg.selected_backend)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
+                    import time
                     target_fn = lambda k, s: simulate_eig_izhikevich(
                         emitter, sim.n_steps, sim.dt_ms, k,
                         dtype=runtime_cfg.actual_dtype, drive_schedule=s,
@@ -3364,6 +3437,13 @@ class Model:
                         B=B, Z=Z, C=C, T=T
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    t0 = time.perf_counter()
+                    res = self._compiled_cache[cache_key](key, sched)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                    return res
                 run = self._compiled_cache[cache_key]
                 return run(key, sched)
         with _device_scope(runtime_cfg.selected_backend):
@@ -3576,7 +3656,8 @@ class Model:
         # v0.0.21: honor runtime.vmap flag behaviorally.
         # vmap=True  → jax.vmap over keys (one compiled call, vectorized over batch).
         # vmap=False → Python-loop + jnp.stack (each key runs independently, no vmap).
-        if runtime_cfg.vmap:
+        effective_vmap = runtime_cfg.resolve_vmap(int(n_seeds))
+        if effective_vmap:
             if not hasattr(self, "_compiled_cache"):
                 object.__setattr__(self, "_compiled_cache", {})
             B = int(n_seeds)
@@ -3585,8 +3666,10 @@ class Model:
             T = int(sim.n_steps)
             cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, runtime_cfg.selected_backend)
             with _device_scope(runtime_cfg.selected_backend):
-                if runtime_cfg.jit:
+                effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
+                if effective_jit:
                     if cache_key not in self._compiled_cache:
+                        import time
                         from .validation import make_recompilation_guard
                         guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
                         run_mapped = jax.vmap(one)
@@ -3597,10 +3680,19 @@ class Model:
                             B=B, Z=Z, C=C, T=T
                         )
                         self._compiled_cache[cache_key] = jax.jit(run_mapped)
-                    run = self._compiled_cache[cache_key]
+                        t0 = time.perf_counter()
+                        results = self._compiled_cache[cache_key](keys)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                        voltages, spikes, sources = results
+                    else:
+                        run = self._compiled_cache[cache_key]
+                        voltages, spikes, sources = run(keys)
                 else:
                     run = jax.vmap(one)
-                voltages, spikes, sources = run(keys)
+                    voltages, spikes, sources = run(keys)
             batch_execution_mode = "jax_vmap"
         else:
             per_key = [one(k) for k in keys]
@@ -6184,7 +6276,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.40"
+_JAXFNE_VERSION = "0.3.41"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"

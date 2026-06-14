@@ -1,3 +1,19 @@
+## v0.3.41 (2026-06-14)
+
+**Port of JAX-native computational kernels.** No scientific-claim escalation.
+
+### Added
+- JAX spectral analysis functions: `spectrolaminar_psd_jax`, `bandpower_jax`, `spectrolaminar_readout_kernel_jax`, `spectrolaminar_similarity_kernel_jax`, and vectorized batched variants `spectrolaminar_similarity_candidates_jax`, `spectrolaminar_similarity_candidates_seeds_jax`.
+- Tensorized static-shape connectivity rule compilation kernel `compile_connection_rules_jax`.
+- JAX-optimized activity-dependent STDP synaptic weight update kernel `update_stdp_weights_jax`.
+- `StimulusSchedule.to_array_jax` for compiling event schedules into JAX arrays.
+- Auto-JIT cache warming compile tracking under `Model._warmup_times` during JIT initialization.
+- Experimental volume conductor loud-fail skeleton `solve_volume_conductor_experimental` that raises `NotImplementedError` pending boundary/gauge/calibration validation.
+
+### Scope
+- Outputs remain proxy readouts (`laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=false`).
+
+
 ## v0.3.40 (2026-06-13)
 
 **Pre-0.4.0 hardening + device flexibility.** No scientific-claim escalation.
