@@ -7,6 +7,7 @@ source/readout status, not a full PDE field solver.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import warnings
@@ -1587,24 +1588,22 @@ class RuntimeConfig:
         # - "cpu" : actual_backend = "cpu"; enforced = True iff JAX default is cpu.
         # - "gpu"/"tpu": if JAX default is the requested device, enforced = True;
         #   otherwise enforced = False with a clean warning (no false claim).
+        # v0.3.40: simulate() pins execution to the requested backend device via
+        # ``_device_scope`` (jax.default_device) when that device is available, so
+        # a non-"auto" backend is genuinely enforced — not merely reported. The
+        # report mirrors that: enforced iff the requested backend resolves to an
+        # available device. Unavailable devices are an honest downgrade.
         backend_warning: Optional[str] = None
         if requested_backend == "auto":
             actual_backend = default_backend
             backend_enforced = True
-        elif requested_backend == "cpu":
-            actual_backend = "cpu"
-            backend_enforced = (default_backend == "cpu")
-            if not backend_enforced:
-                backend_warning = (
-                    f"requested_cpu_but_jax_default_is:{default_backend!r}"
-                    "; jaxfne_does_not_force_jax_backend"
-                )
-        elif requested_backend in ("gpu", "tpu"):
-            if default_backend == requested_backend:
+        elif requested_backend in ("cpu", "gpu", "tpu"):
+            device_available = _resolve_backend_device(requested_backend) is not None
+            if device_available:
                 actual_backend = requested_backend
                 backend_enforced = True
             else:
-                # Honest downgrade: do not falsely report GPU/TPU executed.
+                # Honest downgrade: do not falsely report a device that is absent.
                 actual_backend = default_backend
                 backend_enforced = False
                 backend_warning = (
@@ -1643,6 +1642,38 @@ class RuntimeConfig:
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
         }
+
+
+def _resolve_backend_device(backend: Optional[str]):
+    """Resolve a RuntimeConfig backend string to a concrete JAX device or ``None``.
+
+    ``None``/``"auto"`` returns ``None`` (let JAX keep its default device).
+    ``"cpu"``/``"gpu"``/``"tpu"`` return that backend's first device when it
+    exists, else ``None`` — an honest fallback that never crashes and never
+    falsely claims placement on an absent device.
+    """
+    if not backend or backend == "auto":
+        return None
+    try:
+        devices = jax.devices(backend)
+    except (RuntimeError, ValueError):
+        return None
+    return devices[0] if devices else None
+
+
+def _device_scope(backend: Optional[str]):
+    """Return a context manager pinning execution to the requested backend device.
+
+    Yields ``jax.default_device(dev)`` when the backend resolves to an available
+    device, else a no-op context (``"auto"`` or an unavailable backend) so JAX
+    keeps its default device. Compiling and running inside this scope is what
+    actually honors ``RuntimeConfig.backend`` for cpu/gpu/tpu placement; on a
+    single-device host it is a no-op.
+    """
+    device = _resolve_backend_device(backend)
+    if device is not None:
+        return jax.default_device(device)
+    return contextlib.nullcontext()
 
 
 def _jaxlib_version() -> str:
@@ -3285,27 +3316,29 @@ class Model:
                 T = int(sim.n_steps)
                 guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
 
-                cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode)
-                if cache_key not in self._compiled_cache:
-                    target_fn = lambda k, s: kernel_fn(
-                        emitter, edges, sim.n_steps, sim.dt_ms, k,
-                        dtype=runtime_cfg.actual_dtype, drive_schedule=s,
-                        silence_mask=silence_mask,
-                    )[:3]
-                    target_fn = make_recompilation_guard(
-                        target_fn,
-                        name="simulate",
-                        recompilation_guard=guard_mode,
-                        B=B, Z=Z, C=C, T=T
-                    )
-                    self._compiled_cache[cache_key] = jax.jit(target_fn)
-                run = self._compiled_cache[cache_key]
-                return run(key, sched)
-            return kernel_fn(
-                emitter, edges, sim.n_steps, sim.dt_ms, key,
-                dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
-                silence_mask=silence_mask,
-            )[:3]
+                cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode, runtime_cfg.selected_backend)
+                with _device_scope(runtime_cfg.selected_backend):
+                    if cache_key not in self._compiled_cache:
+                        target_fn = lambda k, s: kernel_fn(
+                            emitter, edges, sim.n_steps, sim.dt_ms, k,
+                            dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                            silence_mask=silence_mask,
+                        )[:3]
+                        target_fn = make_recompilation_guard(
+                            target_fn,
+                            name="simulate",
+                            recompilation_guard=guard_mode,
+                            B=B, Z=Z, C=C, T=T
+                        )
+                        self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    run = self._compiled_cache[cache_key]
+                    return run(key, sched)
+            with _device_scope(runtime_cfg.selected_backend):
+                return kernel_fn(
+                    emitter, edges, sim.n_steps, sim.dt_ms, key,
+                    dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+                    silence_mask=silence_mask,
+                )[:3]
         if runtime_cfg.jit:
             if not hasattr(self, "_compiled_cache"):
                 object.__setattr__(self, "_compiled_cache", {})
@@ -3316,27 +3349,29 @@ class Model:
             T = int(sim.n_steps)
             guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
 
-            cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode)
-            if cache_key not in self._compiled_cache:
-                target_fn = lambda k, s: simulate_eig_izhikevich(
-                    emitter, sim.n_steps, sim.dt_ms, k,
-                    dtype=runtime_cfg.actual_dtype, drive_schedule=s,
-                    silence_mask=silence_mask,
-                )
-                target_fn = make_recompilation_guard(
-                    target_fn,
-                    name="simulate",
-                    recompilation_guard=guard_mode,
-                    B=B, Z=Z, C=C, T=T
-                )
-                self._compiled_cache[cache_key] = jax.jit(target_fn)
-            run = self._compiled_cache[cache_key]
-            return run(key, sched)
-        return simulate_eig_izhikevich(
-            emitter, sim.n_steps, sim.dt_ms, key,
-            dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
-            silence_mask=silence_mask,
-        )
+            cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode, runtime_cfg.selected_backend)
+            with _device_scope(runtime_cfg.selected_backend):
+                if cache_key not in self._compiled_cache:
+                    target_fn = lambda k, s: simulate_eig_izhikevich(
+                        emitter, sim.n_steps, sim.dt_ms, k,
+                        dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                        silence_mask=silence_mask,
+                    )
+                    target_fn = make_recompilation_guard(
+                        target_fn,
+                        name="simulate",
+                        recompilation_guard=guard_mode,
+                        B=B, Z=Z, C=C, T=T
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(target_fn)
+                run = self._compiled_cache[cache_key]
+                return run(key, sched)
+        with _device_scope(runtime_cfg.selected_backend):
+            return simulate_eig_izhikevich(
+                emitter, sim.n_steps, sim.dt_ms, key,
+                dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+                silence_mask=silence_mask,
+            )
 
     def _resolve_stimulus_schedule(
         self,
@@ -3548,23 +3583,24 @@ class Model:
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend)
-            if runtime_cfg.jit:
-                if cache_key not in self._compiled_cache:
-                    from .validation import make_recompilation_guard
-                    guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
-                    run_mapped = jax.vmap(one)
-                    run_mapped = make_recompilation_guard(
-                        run_mapped,
-                        name="simulate_batch",
-                        recompilation_guard=guard_mode,
-                        B=B, Z=Z, C=C, T=T
-                    )
-                    self._compiled_cache[cache_key] = jax.jit(run_mapped)
-                run = self._compiled_cache[cache_key]
-            else:
-                run = jax.vmap(one)
-            voltages, spikes, sources = run(keys)
+            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, runtime_cfg.selected_backend)
+            with _device_scope(runtime_cfg.selected_backend):
+                if runtime_cfg.jit:
+                    if cache_key not in self._compiled_cache:
+                        from .validation import make_recompilation_guard
+                        guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+                        run_mapped = jax.vmap(one)
+                        run_mapped = make_recompilation_guard(
+                            run_mapped,
+                            name="simulate_batch",
+                            recompilation_guard=guard_mode,
+                            B=B, Z=Z, C=C, T=T
+                        )
+                        self._compiled_cache[cache_key] = jax.jit(run_mapped)
+                    run = self._compiled_cache[cache_key]
+                else:
+                    run = jax.vmap(one)
+                voltages, spikes, sources = run(keys)
             batch_execution_mode = "jax_vmap"
         else:
             per_key = [one(k) for k in keys]
