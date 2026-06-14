@@ -92,9 +92,6 @@ nav:
   - Reference:
       - Glossary of Methods: reference/glossary_of_methods.md
 
-  - Publication:
-      - Nature Methods roadmap: publication/nature_methods_roadmap.md
-
   - About jaxfne:
       - Scope and limitations: scope_and_limitations.md
       - Changelog: changelog.md

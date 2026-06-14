@@ -192,7 +192,6 @@ A **future cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform
 # Such a tutorial would be a NEW module with its own:
 # - Status checks
 # - Validation tests
-# - Manuscript references
 # - Scope Note that this is exploratory, not a biological proof
 ```
 
@@ -229,7 +228,6 @@ This path is **deferred and not promised.** If pursued, it would:
 - **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension contracts
 - **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
-- **[Manuscript Alignment](manuscript_alignment.md)** — How TFNE code maps to published manuscript sections
 
 ---
 

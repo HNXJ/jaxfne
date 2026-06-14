@@ -537,7 +537,6 @@ ED5 must cover:
 - ED1-ED4 scripts, PNGs, manifests, receipts when available
 - publication_inventory.json if generated
 - publication_checklist.json
-- nature_methods_roadmap.md
 
 For each row record:
 - group

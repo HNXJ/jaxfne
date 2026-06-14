@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory publication artifacts for the Nature Methods evidence stack.
+"""Inventory release artifacts for the evidence stack.
 
 Lightweight: no matplotlib/plotly/JAX required. Writes JSON inventory with
 SHA256 hashes for files that exist.

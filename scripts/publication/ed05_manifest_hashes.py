@@ -44,7 +44,6 @@ SOURCE_FILES = [
     "scripts/publication/_figure_common.py",
     "scripts/publication_inventory.py",
     "docs/publication/publication_checklist.json",
-    "docs/publication/nature_methods_roadmap.md",
 ]
 
 TITLE = "Extended Data 5 - local artifact hash integrity receipt"
@@ -82,8 +81,6 @@ METADATA_ARTIFACTS = [
     {
         "artifact_group": "publication_metadata",
         "artifact_id": "roadmap",
-        "label": "nature_methods_roadmap.md",
-        "path": "docs/publication/nature_methods_roadmap.md",
         "kind": "markdown",
     },
 ]

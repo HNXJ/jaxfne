@@ -277,7 +277,7 @@ $$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\ph
 
 ---
 
-## Proxy Nature & Limitations
+## Proxy Scope & Limitations
 
 ⚠️ **All field computations are proxy approximations:**
 

@@ -29,7 +29,6 @@ from _figure_common import (
 SOURCE_FILES = [
     "scripts/publication/fig08_adjacent_tools_comparison.py",
     "scripts/publication/_figure_common.py",
-    "docs/publication/nature_methods_roadmap.md",
 ]
 
 TITLE = "Adjacent tools positioning (capability comparison only)"
