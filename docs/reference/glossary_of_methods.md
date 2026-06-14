@@ -1,142 +1,103 @@
-# Glossary of Methods
+# Glossary of methods
 
-This page documents the numerical methods, algorithms, and technical approaches used in jaxfne.
+This glossary defines the package-level terms used by `jaxfne` docs, examples, tests, and manifests.
 
-## Integrators and Solvers
+## Objective grammar
 
-### Forward Euler (`euler_step`, `euler_scan`)
+```text
+Emitter -> Source -> FieldProxy -> Probe -> Objective -> Optimizer -> Manifest
+```
 
-A simple first-order numerical method for integrating ordinary differential equations:
+| Term | Meaning in `jaxfne` |
+|---|---|
+| `Emitter` | Local state generator for voltage, spikes, synaptic traces, or typed neural state. |
+| `Source` | Declared source tensor derived from emitter state under one source mode per run. |
+| `FieldProxy` | Fixed computational projection from source tensors to named proxy readouts. |
+| `Probe` | Selector and sampling operator for a readout family and channel layout. |
+| `Objective` | Metrics, gates, nulls, and scores computed from readouts. |
+| `Optimizer` | Bounded parameter search or gradient path over declared objectives. |
+| `Manifest` | Strict JSON receipt for runtime, artifacts, hashes, truth gates, and validation status. |
 
-$$y_{n+1} = y_n + \Delta t \cdot f(y_n, t_n)$$
+## Numerical integration
 
-**Use case:** State vector evolution (e.g., neural membrane voltage over time).
+### Forward Euler and scan integration
 
-**Properties:**
-- O(Δt) local truncation error
-- Explicitly used for Izhikevich and GLIF emitters
-- Stable for sufficiently small timesteps
-- Implemented via `jax.lax.scan` for efficient batching
+```math
+y_{n+1} = y_n + \Delta t\, f(y_n, t_n)
+```
 
-**Not a field solver:** This is a temporal integrator for neural state, not a spatial PDE solver.
+`jaxfne` uses explicit state updates for emitter dynamics and wraps hot time loops with `jax.lax.scan` where practical.
 
-## Field Projection Methods
+## Proxy readout equations
 
-### Laminar Proxy (LFP, CSD, EEG, MEG)
+### Source projection
 
-Laminar proxies estimate extracellular signals from neuronal sources without solving Maxwell's equations or assuming tissue conductivity.
+```math
+\Phi_{k,c} = \sum_n S_{k,n} W_{c,n}
+```
 
-#### Local Field Potential (LFP)
+`S` is the source tensor, `W` is a declared projection kernel, `k` indexes time or sample, `c` indexes channels, and `n` indexes source support.
 
-Computed as a weighted spatial projection of source currents:
+### LFP proxy
 
-$$\text{LFP} \propto \int \text{CSD}(z') \cdot K(|z - z'|) \, dz'$$
+```math
+\mathrm{lfp\_proxy}_{k,c} = \sum_n S_{k,n} K_{c,n}
+```
 
-where $K$ is a Gaussian kernel and CSD is current source density.
+The kernel `K` encodes the laminar or spatial projection used by the run.
 
-**Status:** Proxy-based readout, not field solve. No physical amplitude claims.
+### CSD proxy
 
-#### Current Source Density (CSD)
+```math
+\mathrm{csd\_proxy}_{k,c} = D_{zz}\Phi_{k,c}
+```
 
-Estimated from intracellular ionic currents using source geometry:
+`D_{zz}` is the declared depth-axis finite-difference operator.
 
-$$\text{CSD} = -\nabla \cdot \mathbf{I}_\text{transmembrane}$$
+### EEG and MEG proxies
 
-**Status:** Computational diagnostic. Approximates multi-compartment transmembrane current distribution.
+```math
+\mathrm{eeg\_proxy}_{k,c} = \sum_n S_{k,n} L^{\mathrm{eeg}}_{c,n}
+```
 
-#### EEG Proxy
+```math
+\mathrm{meg\_proxy}_{k,c} = \sum_n S_{k,n} L^{\mathrm{meg}}_{c,n}
+```
 
-EEG signals are computed as a far-field approximation (single dipole moment):
+`L` is the fixed readout kernel declared for the run.
 
-$$\text{EEG} \propto \sum_i I_i \cdot \text{position}_i$$
+## Runtime methods
 
-Assumes dipole far-field and negligible conductivity variation.
+| Method | Package behavior |
+|---|---|
+| `jax.numpy` kernels | numerical arrays and vectorized tensor operations |
+| explicit PRNG keys | deterministic seeded simulations and search paths |
+| `jax.lax.scan` | hot time loops for emitter and trace updates |
+| `jax.vmap` | candidate, seed, readout, and batch axes where supported |
+| `jax.jit` | pure numerical kernels with I/O and plotting kept outside compiled functions |
+| dtype policy | `float32` default with `float64` opt-in through JAX x64 configuration |
 
-**Status:** Extreme approximation. Physical amplitude claims not allowed.
+## Optimization methods
 
-#### MEG Proxy
+| Optimizer | Role |
+|---|---|
+| `SDR` | spectral descent response transform |
+| `GSDR` | generalized spectral descent response transform |
+| `AGSDR` | adaptive generalized spectral descent response path |
+| random search | bounded stochastic search over declared parameter spaces |
 
-MEG is computed as a weighted integral of source currents over space. Similar to EEG but sensitive to magnetic dipole moment:
+## Configuration objects
 
-$$\text{MEG} \propto \oint \mathbf{I}(z) \times \mathbf{r}(z) \, dz$$
+| Object | Role |
+|---|---|
+| `Config` / `Configuration` | typed circuit, runtime, source, probe, and task specification |
+| `Model` / `Net` | constructed computational graph and identity map |
+| `Signals` | tensor output container with semantic selectors |
+| `ProbeReport` | readout metadata and interpretation status |
+| `RuntimeReport` | backend, dtype, device, and timing receipt |
 
-**Status:** Proxy only. No physical amplitude claims.
+## See also
 
----
-
-## Truth Gates and Claim Labels
-
-### Truth Modes
-
-- **`truth_safe_unverified`** — Computational scaffold. Results are not empirically validated and should not be published as neural biology without external validation.
-
-### Claim Levels
-
-- **`computational_scaffold`** — Intermediate computational output. Not a ground-truth measurement.
-- **`proxy_readout_only`** — Proxy-based approximation. No claim of physical accuracy.
-
-### Physical Amplitude Claims
-
-By default, **`physical_amplitude_claim_allowed = False`**. This prevents downstream code from interpreting proxy outputs as physical measurements (mV, µV, etc.) without explicit calibration.
-
----
-
-## Optimization Methods
-
-### AGSDR (Adaptive Gradient + Spectral Descent Response)
-
-A two-phase optimizer that combines:
-
-1. **Gradient phase:** Optax-based optimization (Adam, SGD)
-2. **Spectral phase:** Adaptive dampening based on loss spectral properties
-
-Used for tuning Izhikevich parameters and readout weights.
-
-**References:** See `jaxfne.optim.AGSDR` and `jaxfne.optim.agsdr_transform`.
-
-### Gradient Estimation Methods
-
-- **SDR** — Spectral descent response
-- **GSDR** — Generalized spectral descent response
-- **AGSDR** — Adaptive generalized spectral descent response
-
-All use `jax.grad()` under the hood but apply spectral adaptive damping.
-
----
-
-## Configuration and Construction
-
-### Network Construction
-
-Networks are built via `jaxfne.construct(config)` which:
-
-1. Parses the configuration schema
-2. Allocates emitter state (Izhikevich parameters, etc.)
-3. Builds sparse connectivity matrices
-4. Initializes PRNG keys for stochastic elements
-
-### Simulation State
-
-Simulations track:
-
-- **Membrane voltage** $V_m(t)$ [mV]
-- **Spike times** (binary or graded)
-- **Field outputs** (LFP, CSD, EEG, MEG if requested)
-
-State is immutable across time (functional programming via JAX).
-
----
-
-## References
-
-- **Field proxies:** Reimann et al. (2013), Koch & Segev (1998)
-- **Izhikevich model:** Izhikevich (2003) "Simple model of spiking neurons"
-- **Optimization:** Boyd & Vandenberghe (2004), Nesterov & Nemirovskii (1994)
-
----
-
-**See also:**
-- Agent API Catalog (v0.3.31): see `internal_docs/JAXFNE_AGENT_API_CATALOG.md` in the repo root — curated lookup so agents reuse package-native functions instead of rediscovering them (not part of the docs site; intentionally a plain reference)
-- [API Reference](../api/index.md)
+- [API reference](../api/index.md)
 - [Tutorials](../tutorials/index.md)
-- [Guides](../guides/index.md)
+- [Limitations and future plans](../limitations_and_future_plans.md)

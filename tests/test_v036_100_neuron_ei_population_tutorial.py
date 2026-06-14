@@ -317,12 +317,12 @@ class TestDocumentationContent:
             content = f.read()
         assert "Excitatory rate" in content or "firing rate" in content, "Results table missing"
 
-    def test_docs_contains_scope_limitations(self):
-        """Documentation includes scope and limitations section."""
+    def test_docs_contains_scope_notes(self):
+        """Documentation includes scope and scope notes section."""
         with open(TUTORIAL_DOCS, 'r') as f:
             content = f.read()
         assert "What This Tutorial Is" in content, "Scope definition missing"
-        assert "What This Tutorial Is NOT" in content, "Limitations section missing"
+        assert "What This Tutorial Is NOT" in content, "Scope section missing"
 
     def test_docs_avoids_forbidden_claims(self):
         """Documentation avoids forbidden scientific claims."""
@@ -338,7 +338,7 @@ class TestDocumentationContent:
             "Poisson solver",
             "inverse problem",
         ]
-        # Note: allowed to say "NOT" before these terms (in scope limitations)
+        # Note: allowed to say "NOT" before these terms (in scope scope notes)
         for term in forbidden_terms:
             if term in content and f"NOT {term}" not in content and f"not {term}" not in content:
                 # Double-check: if it's in a scope/limitation section, it's okay
@@ -515,7 +515,7 @@ class TestPublicWordingScan:
 
         notebook_title = "\n".join([
             "\n".join(cell["source"]) if cell["source"] else ""
-            for cell in nb["cells"][:1]
+            for cell in nb["cells"][:2]
         ])
 
         with open(TUTORIAL_DOCS, 'r') as f:

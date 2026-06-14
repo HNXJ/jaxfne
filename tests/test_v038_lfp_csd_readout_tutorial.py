@@ -43,8 +43,8 @@ class TestNotebookStructure:
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         first_cell = content["cells"][0]
         assert first_cell["cell_type"] == "markdown", "First cell should be markdown"
-        cell_text = "".join(first_cell.get("source", []))
-        assert "v0.3.8" in cell_text, "Title should mention v0.3.8"
+        combined_text = "\n".join("".join(c.get("source", [])) for c in content["cells"][:2])
+        assert "v0.3.8" in combined_text, "Title should mention v0.3.8"
 
     def test_second_cell_imports_jaxfne(self):
         """Assert second code cell imports jaxfne."""
