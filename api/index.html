@@ -2184,10 +2184,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#export-figure-apis-root-level-v0337" class="md-nav__link">
+  <a href="#export-figure-apis-root-level" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Export &amp; figure APIs (root-level, v0.3.37)
+        Export &amp; figure APIs (root-level)
       
     </span>
   </a>
@@ -2255,6 +2255,17 @@
     <span class="md-ellipsis">
       
         IO &amp; receipts (10)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#export-figures-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Export &amp; figures (6)
       
     </span>
   </a>
@@ -2477,9 +2488,11 @@
 <p>Canonical import:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
 </code></pre></div>
-<p>This page is the complete index of the public API (<code>jaxfne.__all__</code>, 179 names),
+<p>This page is the complete index of the public API (<code>jaxfne.__all__</code>, 185 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Released in <code>jaxfne==0.3.37</code> (tag <code>v0.3.37</code>, commit <code>49aa025</code>).</p>
+Current release <code>jaxfne==0.3.39</code> (tag <code>v0.3.39</code>). The six root-level export
+helpers were introduced in v0.3.37 and promoted to formal <code>__all__</code> members in
+v0.3.38.</p>
 <div class="admonition note">
 <p class="admonition-title">Scope &amp; truth gates</p>
 <p>All field/EEG/MEG/EMM outputs are <strong>computational proxies</strong>, not solved PDE
@@ -2536,16 +2549,17 @@ calibrated biological simulator. See
 </tr>
 <tr>
 <td><em>(no page yet)</em></td>
-<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (6) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (4) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (2) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · geometry/builders/streaming/stimulus (4)</td>
-<td>78</td>
+<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Export &amp; figures</strong> (6) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (6) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (4) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (2) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · geometry/builders/streaming/stimulus (4)</td>
+<td>84</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
-<p>Several public names (optimizers, IO, bridges, paradigms, sharding, solvers)
-do not yet have a dedicated module page — they are listed with full signatures
-in the complete symbol index below. Counts sum to <strong>179</strong> (<code>len(jaxfne.__all__)</code>).
-See the docs audit (<code>internal_docs/docs_audit_v0330.md</code>) for the page-migration plan.</p>
+<p>Several public names (optimizers, IO, export, bridges, paradigms, sharding,
+solvers) do not yet have a dedicated module page — they are listed with full
+signatures in the complete symbol index below. Counts sum to <strong>185</strong>
+(<code>len(jaxfne.__all__)</code>). See the docs audit
+(<code>internal_docs/docs_audit_v0330.md</code>) for the page-migration plan.</p>
 </blockquote>
 <h2 id="minimal-workflow-verified">Minimal workflow (verified)<a class="headerlink" href="#minimal-workflow-verified" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
@@ -2561,11 +2575,14 @@ See the docs audit (<code>internal_docs/docs_audit_v0330.md</code>) for the page
 <span class="k">assert</span> <span class="n">vm_e</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
 </code></pre></div>
 <hr />
-<h2 id="export-figure-apis-root-level-v0337">Export &amp; figure APIs (root-level, v0.3.37)<a class="headerlink" href="#export-figure-apis-root-level-v0337" title="Permanent link">&para;</a></h2>
+<h2 id="export-figure-apis-root-level">Export &amp; figure APIs (root-level)<a class="headerlink" href="#export-figure-apis-root-level" title="Permanent link">&para;</a></h2>
 <p>The strict-notebook export grammar introduced in <code>jaxfne==0.3.37</code> is exposed as
-root-level callables (<code>jaxfne.&lt;name&gt;</code>). These are importable from the package
-root but are not listed in <code>jaxfne.__all__</code>; they are the canonical replacement
-for direct <code>matplotlib</code>/<code>json</code> calls in release-facing notebooks.</p>
+root-level callables (<code>jaxfne.&lt;name&gt;</code>) and, as of v0.3.38, is registered in
+<code>jaxfne.__all__</code> as formal public API (see the <strong>Export &amp; figures</strong> group in the
+symbol index below). These are the canonical replacement for direct
+<code>matplotlib</code>/<code>json</code> calls in release-facing notebooks. <code>matplotlib</code> is imported
+lazily inside the plotting/save functions, so importing <code>jaxfne</code> does not pull
+in a plotting backend.</p>
 <table>
 <thead>
 <tr>
@@ -2612,7 +2629,7 @@ and figure/readout outputs remain proxy diagnostics
 (<code>physical_amplitude_claim_allowed = False</code>).</p>
 <hr />
 <h2 id="complete-public-symbol-index">Complete public symbol index<a class="headerlink" href="#complete-public-symbol-index" title="Permanent link">&para;</a></h2>
-<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>179 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released <code>jaxfne==0.3.37</code> wheel.</p>
+<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>185 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released wheel.</p>
 <h3 id="core-68">Core (68)<a class="headerlink" href="#core-68" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3068,7 +3085,7 @@ and figure/readout outputs remain proxy diagnostics
 <tr>
 <td><code>SynapseState</code></td>
 <td>class</td>
-<td>—  <em>(namedtuple; fields in signature)</em></td>
+<td>—  <em>(no docstring)</em></td>
 </tr>
 </tbody>
 </table>
@@ -3290,6 +3307,48 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>validation_report</code></td>
 <td>func</td>
 <td>Create a validation report JSON bundle.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="export-figures-6">Export &amp; figures (6)<a class="headerlink" href="#export-figures-6" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Symbol</th>
+<th>Kind</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>export_report</code></td>
+<td>func</td>
+<td>Export a complete report with JSON artifacts and figures.</td>
+</tr>
+<tr>
+<td><code>export_tutorial_artifacts</code></td>
+<td>func</td>
+<td>Export tutorial artifacts (JSON only, no figures).</td>
+</tr>
+<tr>
+<td><code>plot_raster</code></td>
+<td>func</td>
+<td>Plot a spike raster.</td>
+</tr>
+<tr>
+<td><code>plot_spectrolaminar_suite</code></td>
+<td>func</td>
+<td>Plot spectrolaminar suite from signals object.</td>
+</tr>
+<tr>
+<td><code>save_figure</code></td>
+<td>func</td>
+<td>Save a matplotlib figure to disk.</td>
+</tr>
+<tr>
+<td><code>save_figures</code></td>
+<td>func</td>
+<td>Save multiple figures to an output directory.</td>
 </tr>
 </tbody>
 </table>
