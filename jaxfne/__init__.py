@@ -394,6 +394,13 @@ __all__ = [
     "validation_report",
     "probe_report",
     "asset_hashes",
+    # v0.3.37: root-level export grammar (lazy matplotlib; see jaxfne.export)
+    "save_figure",
+    "save_figures",
+    "export_report",
+    "export_tutorial_artifacts",
+    "plot_raster",
+    "plot_spectrolaminar_suite",
     "AGSDR",
     "AGSDROptimizerSpec",
     "AGSDRState",

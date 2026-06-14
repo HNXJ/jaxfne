@@ -6,9 +6,10 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 179 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 185 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Released in `jaxfne==0.3.37` (tag `v0.3.37`, commit `49aa025`).
+Released in `jaxfne==0.3.37` (tag `v0.3.37`, commit `49aa025`); the six
+root-level export helpers were promoted to formal `__all__` members in v0.3.38.
 
 !!! note "Scope & truth gates"
     All field/EEG/MEG/EMM outputs are **computational proxies**, not solved PDE
@@ -29,12 +30,13 @@ Released in `jaxfne==0.3.37` (tag `v0.3.37`, commit `49aa025`).
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (6) · **Sanity-delta** (7) · **Plasticity** (4) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (2) · **PyNWB** (2) · **Experimental HPC** (2) · geometry/builders/streaming/stimulus (4) | 78 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (6) · **Sanity-delta** (7) · **Plasticity** (4) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (2) · **PyNWB** (2) · **Experimental HPC** (2) · geometry/builders/streaming/stimulus (4) | 84 |
 
-> Several public names (optimizers, IO, bridges, paradigms, sharding, solvers)
-> do not yet have a dedicated module page — they are listed with full signatures
-> in the complete symbol index below. Counts sum to **179** (`len(jaxfne.__all__)`).
-> See the docs audit (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
+> Several public names (optimizers, IO, export, bridges, paradigms, sharding,
+> solvers) do not yet have a dedicated module page — they are listed with full
+> signatures in the complete symbol index below. Counts sum to **185**
+> (`len(jaxfne.__all__)`). See the docs audit
+> (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
 ## Minimal workflow (verified)
 
@@ -54,12 +56,15 @@ assert vm_e.shape[-1] == len(e_idx)
 
 ---
 
-## Export & figure APIs (root-level, v0.3.37)
+## Export & figure APIs (root-level)
 
 The strict-notebook export grammar introduced in `jaxfne==0.3.37` is exposed as
-root-level callables (`jaxfne.<name>`). These are importable from the package
-root but are not listed in `jaxfne.__all__`; they are the canonical replacement
-for direct `matplotlib`/`json` calls in release-facing notebooks.
+root-level callables (`jaxfne.<name>`) and, as of v0.3.38, is registered in
+`jaxfne.__all__` as formal public API (see the **Export & figures** group in the
+symbol index below). These are the canonical replacement for direct
+`matplotlib`/`json` calls in release-facing notebooks. `matplotlib` is imported
+lazily inside the plotting/save functions, so importing `jaxfne` does not pull
+in a plotting backend.
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -78,9 +83,10 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**179 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released `jaxfne==0.3.37` wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**185 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (68)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `AxisSpec` | class | Typed descriptor for one tensor axis in the TFNE scaffold. |
@@ -153,6 +159,7 @@ and figure/readout outputs remain proxy diagnostics
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
 
 ### Emitters (19)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `EdgeList` | class | Sparse recurrent connectivity as a JAX pytree. |
@@ -173,9 +180,10 @@ and figure/readout outputs remain proxy diagnostics
 | `standard_receptor_tau_table` | func | Return the receptor_index → tau_ms lookup table used by v0.0.11. |
 | `SynapseLayer` | class | Exponential synapse layer returning recurrent input currents. |
 | `SynapseSpec` | class | Metadata declaration for a synapse. Not a biological kernel. |
-| `SynapseState` | class | —  _(namedtuple; fields in signature)_ |
+| `SynapseState` | class | —  _(no docstring)_ |
 
 ### Fields (12)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compute_conservation_proxy_diagnostics` | func | Compute conservation-inspired proxy diagnostics over existing source/field arrays. |
@@ -192,6 +200,7 @@ and figure/readout outputs remain proxy diagnostics
 | `validate_source_field_status` | func | Return truth-preserving status for source-field readouts. |
 
 ### Optimizers — `optim` (15)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `AGSDR` | class | Legacy AGSDR adapter retained for old notebooks and tests. |
@@ -211,6 +220,7 @@ and figure/readout outputs remain proxy diagnostics
 | `SDRState` | class | Stochastic Delta Rule optimizer state. |
 
 ### IO & receipts (10)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `asset_hashes` | func | Create a SHA256 hash manifest for assets. |
@@ -224,7 +234,19 @@ and figure/readout outputs remain proxy diagnostics
 | `sha256_text` | func | Return SHA256 for a text payload. |
 | `validation_report` | func | Create a validation report JSON bundle. |
 
+### Export & figures (6)
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `export_report` | func | Export a complete report with JSON artifacts and figures. |
+| `export_tutorial_artifacts` | func | Export tutorial artifacts (JSON only, no figures). |
+| `plot_raster` | func | Plot a spike raster. |
+| `plot_spectrolaminar_suite` | func | Plot spectrolaminar suite from signals object. |
+| `save_figure` | func | Save a matplotlib figure to disk. |
+| `save_figures` | func | Save multiple figures to an output directory. |
+
 ### Bridges — Jaxley (7)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `BridgeSpec` | class | JSON-safe optional-backend bridge declaration. |
@@ -236,6 +258,7 @@ and figure/readout outputs remain proxy diagnostics
 | `require_jaxley` | func | Import Jaxley lazily with an informative error. |
 
 ### Paradigms (6)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `coop_omission_oddball_paradigm` | func | Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence. |
@@ -246,6 +269,7 @@ and figure/readout outputs remain proxy diagnostics
 | `ParadigmEvent` | class | Discrete event within a task trial: stimulus, behavioral code, or omission marker. |
 
 ### Solvers (6)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `DiffraxSolver` | class | Optional Runge-Kutta solver using diffrax (lazily imported). |
@@ -256,6 +280,7 @@ and figure/readout outputs remain proxy diagnostics
 | `SolverConfig` | class | Configuration class for ODE solvers. |
 
 ### Sanity-delta runtime (7)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `BackupState` | class | Resumable task state with ring buffer history. |
@@ -267,6 +292,7 @@ and figure/readout outputs remain proxy diagnostics
 | `TaskEpisode` | class | Result of a task episode with probing, export, validation. |
 
 ### Plasticity (4)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `plot_stdp_adaptation_suite` | func | Generates and saves the standard STDP adaptation visualization figures. |
@@ -275,6 +301,7 @@ and figure/readout outputs remain proxy diagnostics
 | `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
 
 ### Tutorial utils (4)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `build_tutorial_laminar_column` | func | Build a laminar column scaffold model. |
@@ -283,6 +310,7 @@ and figure/readout outputs remain proxy diagnostics
 | `select_neurons` | func | Select neuron indices matching given criteria (area, layer, cell_type). |
 
 ### Sharding (4)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `get_sharding_context` | func | Return a dict with `mesh`, `candidate`, and `replicated` sharding specs. |
@@ -291,55 +319,65 @@ and figure/readout outputs remain proxy diagnostics
 | `make_replicated_sharding` | func | Return a `jax.sharding.NamedSharding` that fully replicates an array |
 
 ### Connectivity (2)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compile_connection_rules` | func | Compile declared connection rules into sparse finite edge arrays. |
 | `ConnectionCompileResult` | class | Compiled sparse connectivity. |
 
 ### Geometry (1)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `make_ei_cloud_network` | func | Generates geometry and initial weights for a 100-neuron E-I cloud network. |
 
 ### Builders (1)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `laminar_cortex_config` | func | Generalized laminar cortical configuration builder. |
 
 ### Streaming (1)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `run_stdp_stream` | func | Runs simulation in a chunked, streaming fashion to avoid memory explosion. |
 
 ### Stimulus (1)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `triangular_drive` | func | Generates a triangular drive trace. |
 
 ### Validation registry (2)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compilation_registry` | const | Automated JAX tracing and compilation tracking registry. |
 | `is_valid_signal` | func | Check if signal arrays contain only finite values (no NaN/Inf). |
 
 ### PyNWB compatibility (2)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `read_nwb` | func | Placeholder for NWB read (not implemented). |
 | `write_nwb` | func | Placeholder for NWB write (not implemented). |
 
 ### Experimental HPC (2)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `NodeIdentity` | class | Stable node identity for selector-addressable circuits. |
 | `SelectorSpec` | class | Selector over area/layer/cell-type/id fields. |
 
 ### Submodules (1)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `vis` | module | Visualization package for jaxfne. |
 
 ### Constants (4)
+
 | Symbol | Kind | Summary |
 |---|---|---|
 | `_KNOWN_METRICS` | const | ⚠ private name leaking into `__all__` — see docs audit (remove). |
