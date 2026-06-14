@@ -1,3 +1,25 @@
+## v0.3.40 (2026-06-13)
+
+**Pre-0.4.0 hardening + device flexibility.** No scientific-claim escalation.
+
+### Added
+- `RuntimeConfig.backend` (cpu/gpu/tpu) is now **honored** for device placement —
+  `simulate()` pins compile+execute via `jax.default_device`; `runtime_report()`
+  reports `backend_enforced` by device availability (honest downgrade when
+  absent). dtype (float32/float64) and jit remain per-`RuntimeConfig` adjustable.
+- Accurate docstrings for all public `jaxfne.__all__` members; fail-loud
+  pre-0.4 physical-solver placeholder in `experimental_hpc` (raises until a
+  validated solver exists — the stable path stays `laminar_proxy_no_pde`).
+
+### Changed
+- Repo hygiene: root thinned; non-public planning/roadmap material removed from
+  the published repository.
+
+### Scope
+- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
+  `physical_amplitude_claim_allowed=false`); computational scaffold only.
+
+
 ## v0.3.39 (2026-06-13)
 
 **Stable release:** packaging/docs/PyPI consolidation of the v0.3.37–v0.3.38
