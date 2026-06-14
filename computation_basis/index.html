@@ -2465,7 +2465,7 @@
               → [T, X] CSD_proxy → report
 (field solve is skipped; CSD computed from source)
 </code></pre></div></p>
-<p><strong>Example 3: Full pipeline (future, with solver)</strong>
+<p><strong>Example 3: Full pipeline (reserved, with solver)</strong>
 <div class="highlight"><pre><span></span><code>[T, N] state → [T, N] I → [T, X] source → [T, X] potential (solved)
              → [T, X] current → [T, R] readouts (CSD, LFP, EEG, MEG, EMM)
 </code></pre></div></p>
@@ -2522,11 +2522,11 @@ $<span class="arithmatex">\(q_\alpha(t) = \sum_n w_{n\alpha} \cdot I_n(t)\)</spa
 - \)</span>w_{n\alpha}<span class="arithmatex">\(: spatial coupling weight (distance-based)
 - \)</span>q_\alpha<span class="arithmatex">\(: source at contact \)</span>\alpha$
 - Implementation: <code>jaxfne.fields.project_laminar_sources(..., basis="spatial_contact")</code></p>
-<p><strong>Basis 2: Anatomical layer projection (future)</strong>
+<p><strong>Basis 2: Anatomical layer projection (reserved)</strong>
 $<span class="arithmatex">\(q_\ell(t) = \sum_{n \in \ell} I_n(t)\)</span><span class="arithmatex">\(
 - \)</span>q_\ell<span class="arithmatex">\(: total current in layer \)</span>\ell$
 - Implementation: <code>jaxfne.fields.project_laminar_sources(..., basis="layer")</code></p>
-<p><strong>Basis 3: Frequency/spectral projection (future)</strong>
+<p><strong>Basis 3: Frequency/spectral projection (reserved)</strong>
 $<span class="arithmatex">\(\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]\)</span><span class="arithmatex">\(
 - \)</span>\hat{q}_f<span class="arithmatex">\(: spectral component at frequency \)</span>f$
 - Implementation: <code>jaxfne.fields.project_laminar_sources(..., basis="spectral")</code></p>
@@ -2574,13 +2574,13 @@ Collapse rule: Can project to single area (subset of X_3d) or whole brain
 <h3 id="step-3-document-basis-and-assumptions">Step 3: Document Basis and Assumptions<a class="headerlink" href="#step-3-document-basis-and-assumptions" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>Basis: Anatomical connectivity from Allen Mouse Brain Atlas
 Assumption: Straight-line distance (not curved axon paths)
-Assumption: Conductivity isotropic (future: anisotropic white matter)
-Assumption: No ephaptic coupling (future: add extracellular voltage feedback to emitter)
+Assumption: Conductivity isotropic (reserved: anisotropic white matter)
+Assumption: No ephaptic coupling (reserved: add extracellular voltage feedback to emitter)
 Collapse rule: Can run single area with all-to-all connectivity if whole-brain is too large
 </code></pre></div>
 <h3 id="step-4-declare-statement-boundary">Step 4: Declare Statement Boundary<a class="headerlink" href="#step-4-declare-statement-boundary" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>run_status: tutorial_scaffold
-model_status: computational_scaffold (new domain, not validated)
+model_status: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
 field_solver_status: laminar_proxy_no_pde (even for 3D, still proxy in v0.2.24)
@@ -2751,25 +2751,25 @@ Validation required: None yet; this is exploratory setup
 </tr>
 <tr>
 <td><code>solved_poisson</code></td>
-<td>Gated future (no solver in v0.2.x)</td>
+<td>Gated reserved (no solver in v0.2.x)</td>
 <td><strong>False</strong></td>
 <td><strong>False</strong></td>
 </tr>
 <tr>
-<td><code>future_admittive</code></td>
-<td>Declared future (v0.3.x)</td>
+<td><code>reserved_admittive</code></td>
+<td>Declared reserved (v0.3.x)</td>
 <td><strong>False</strong></td>
 <td><strong>False</strong></td>
 </tr>
 <tr>
-<td><code>future_maxwell</code></td>
-<td>Declared future (v0.3.x)</td>
+<td><code>reserved_maxwell</code></td>
+<td>Declared reserved (v0.3.x)</td>
 <td><strong>False</strong></td>
 <td><strong>False</strong></td>
 </tr>
 </tbody>
 </table>
-<p><code>solved_poisson</code>, <code>future_maxwell</code>, and <code>future_admittive</code> are <strong>not capabilities</strong> — they are named future-doctrine markers only. <code>implemented=False</code>, <code>status_enabled=False</code> are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.</p>
+<p><code>solved_poisson</code>, <code>reserved_maxwell</code>, and <code>reserved_admittive</code> are <strong>reserved markers</strong> — they are named reserved-doctrine markers only. <code>implemented=False</code>, <code>status_enabled=False</code> are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.</p>
 <hr />
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>

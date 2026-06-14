@@ -2216,7 +2216,7 @@
 <li><strong>Specify geometry:</strong> Define layer depths, contact locations, tissue conductivity (if known)</li>
 <li><strong>Document assumptions:</strong> State source model, field solver, status</li>
 <li><strong>Collect reference data:</strong> Identify empirical EEG/MEG/LFP/CSD for comparison</li>
-<li><strong>Validate:</strong> Compare proxy readouts to empirical data; compute residuals and alignment metrics</li>
+<li><strong>Validate:</strong> Compare proxy readouts to empirical data; compute residuals and comparison metrics</li>
 </ol>
 <h2 id="calibration-specification-and-reporting-v025">Calibration Specification and Reporting (v0.2.5)<a class="headerlink" href="#calibration-specification-and-reporting-v025" title="Permanent link">&para;</a></h2>
 <p>jaxfne v0.2.5 introduces calibration specification and reporting contracts. These allow workflows to declare calibration state without changing the default proxy readout behavior.</p>
@@ -2230,7 +2230,7 @@
     <span class="n">target</span><span class="o">=</span><span class="s2">&quot;readout&quot;</span>
 <span class="p">)</span>
 
-<span class="c1"># Declare toy calibration (illustrative, not validated)</span>
+<span class="c1"># Declare toy calibration (illustrative, candidate-status)</span>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">CalibrationSpec</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;toy_eeg_proxy&quot;</span><span class="p">,</span>
     <span class="n">target</span><span class="o">=</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span>
@@ -2240,7 +2240,7 @@
     <span class="n">reference</span><span class="o">=</span><span class="s2">&quot;toy_leadfield&quot;</span>
 <span class="p">)</span>
 
-<span class="c1"># Declare empirical calibration candidate (metadata declared, not validated in v0.2.5)</span>
+<span class="c1"># Declare empirical calibration candidate (metadata declared, candidate-status in v0.2.5)</span>
 <span class="n">spec</span> <span class="o">=</span> <span class="n">CalibrationSpec</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;eeg_candidate&quot;</span><span class="p">,</span>
     <span class="n">target</span><span class="o">=</span><span class="s2">&quot;readout&quot;</span><span class="p">,</span>
@@ -2253,11 +2253,11 @@
 <h3 id="supported-modes">Supported Modes<a class="headerlink" href="#supported-modes" title="Permanent link">&para;</a></h3>
 <ul>
 <li><code>uncalibrated_native</code> — Proxy readout, no calibration (default)</li>
-<li><code>toy_scale</code> — Illustrative calibration, not validated</li>
+<li><code>toy_scale</code> — Illustrative calibration, candidate-status</li>
 <li><code>relative_normalized</code> — Normalized relative to proxy baseline</li>
-<li><code>empirical_gain_candidate</code> — Candidate gain estimate, not validated</li>
-<li><code>physical_units_candidate</code> — Candidate physical units, not validated</li>
-<li><code>calibrated_empirical</code> — Calibration metadata declared (not validated in v0.2.5)</li>
+<li><code>empirical_gain_candidate</code> — Candidate gain estimate, candidate-status</li>
+<li><code>physical_units_candidate</code> — Candidate physical units, candidate-status</li>
+<li><code>calibrated_empirical</code> — Calibration metadata declared (candidate-status in v0.2.5)</li>
 </ul>
 <h3 id="calibration-reports">Calibration Reports<a class="headerlink" href="#calibration-reports" title="Permanent link">&para;</a></h3>
 <p>Generate a calibration status report:</p>

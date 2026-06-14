@@ -2409,13 +2409,13 @@
 <tr>
 <td><strong>total_membrane_current</strong></td>
 <td><span class="arithmatex">\(q = I_\mathrm{mem}(z, t)\)</span></td>
-<td>Reserved (future)</td>
+<td>Reserved (reserved)</td>
 <td>Not in v0.2.24–v0.2.27</td>
 </tr>
 <tr>
 <td><strong>decomposed_cap_ion_syn</strong></td>
 <td><span class="arithmatex">\(q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}\)</span></td>
-<td>Reserved (future)</td>
+<td>Reserved (reserved)</td>
 <td>Not in v0.2.24–v0.2.27</td>
 </tr>
 <tr>
@@ -2480,8 +2480,8 @@ Result: I_syn is counted twice (once in total membrane, once in q_syn_extra)
 q(x,t) = χ(x) · (I_cap(t) + I_ion(t) + I_syn(t))
          Single transmembrane source, all components included once
 </code></pre></div></p>
-<p><strong>Option B: Decomposed sources (future v0.2.26)</strong>
-<div class="highlight"><pre><span></span><code>ALLOWED (declared future):
+<p><strong>Option B: Decomposed sources (reserved source mode)</strong>
+<div class="highlight"><pre><span></span><code>ALLOWED (declared reserved):
 q_cap(x,t) = χ(x) · I_cap(t)
 q_ion(x,t) = χ(x) · I_ion(t)
 q_syn(x,t) = χ(x) · I_syn(t)
@@ -2542,12 +2542,12 @@ q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
 <td>Computational scaffold; no physical conductivity statement</td>
 </tr>
 <tr>
-<td><code>specified_future_solver</code></td>
+<td><code>specified_reserved_solver</code></td>
 <td><strong>Reserved</strong></td>
 <td>To be solved</td>
 <td>To be solved</td>
 <td><strong>Solved</strong></td>
-<td>Future v0.2.27+; not implemented yet</td>
+<td>Reserved v0.2.27+; reserved status yet</td>
 </tr>
 </tbody>
 </table>
@@ -2582,7 +2582,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;gauge&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;mean_zero&quot;</span>
 
 <span class="c1"># These fields are informational only in v0.2.24.</span>
-<span class="c1"># They document intended future behavior.</span>
+<span class="c1"># They document intended reserved behavior.</span>
 </code></pre></div></p>
 <h3 id="csd-sign-convention">CSD Sign Convention<a class="headerlink" href="#csd-sign-convention" title="Permanent link">&para;</a></h3>
 <p>The current jaxfne convention:</p>
@@ -2595,7 +2595,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <div class="highlight"><pre><span></span><code><span class="n">manifest</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">manifest</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">readouts</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;csd_sign_convention&quot;</span><span class="p">))</span>  <span class="c1"># → &quot;positive_equals_extracellular_source&quot;</span>
 </code></pre></div></p>
-<p><strong>Validation:</strong> Always verify CSD sign convention when comparing to external data or publications. Different fields/literature use opposite conventions.</p>
+<p><strong>Validation:</strong> Always verify CSD sign convention when comparing to external data or evidences. Different fields/literature use opposite conventions.</p>
 <hr />
 <h2 id="calibration-labels-and-constraints">Calibration Labels and Constraints<a class="headerlink" href="#calibration-labels-and-constraints" title="Permanent link">&para;</a></h2>
 <h3 id="source-calibration-status">Source Calibration Status<a class="headerlink" href="#source-calibration-status" title="Permanent link">&para;</a></h3>
@@ -2632,7 +2632,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <td><code>calibrated_*</code></td>
 <td>Validated against empirical current/field data</td>
 <td>Conditional; requires methods section &amp; receipt</td>
-<td>✗ v0.2.24–v0.2.26; future</td>
+<td>✗ v0.2.24–v0.2.26; reserved</td>
 </tr>
 </tbody>
 </table>

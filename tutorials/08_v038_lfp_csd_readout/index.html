@@ -1260,10 +1260,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#v038-limitations" class="md-nav__link">
+  <a href="#v038-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.3.8 Limitations
+        v0.3.8 Scope
       
     </span>
   </a>
@@ -1271,10 +1271,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#future-work-v039" class="md-nav__link">
+  <a href="#reserved-work-v039" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Work (v0.3.9+)
+        Reserved Work (v0.3.9+)
       
     </span>
   </a>
@@ -2785,10 +2785,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#v038-limitations" class="md-nav__link">
+  <a href="#v038-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.3.8 Limitations
+        v0.3.8 Scope
       
     </span>
   </a>
@@ -2796,10 +2796,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#future-work-v039" class="md-nav__link">
+  <a href="#reserved-work-v039" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Work (v0.3.9+)
+        Reserved Work (v0.3.9+)
       
     </span>
   </a>
@@ -3085,7 +3085,7 @@
 <li>Apply fixed Gaussian kernel: <span class="arithmatex">\(Y(t) = S @ K^T\)</span> [T, C]</li>
 <li>Optionally compute spatial derivatives (for CSD)</li>
 </ol>
-<p>This is <strong>fast</strong> (no solver loop) but <strong>approximate</strong> (not validated against real data).</p>
+<p>This is <strong>fast</strong> (no solver loop) but <strong>approximate</strong> (proxy-scoped for tutorial data).</p>
 <hr />
 <h2 id="validation-json-safety">Validation &amp; JSON Safety<a class="headerlink" href="#validation-json-safety" title="Permanent link">&para;</a></h2>
 <h3 id="run-manifest-template">Run Manifest Template<a class="headerlink" href="#run-manifest-template" title="Permanent link">&para;</a></h3>
@@ -3142,16 +3142,16 @@
     <span class="c1"># ✓ &quot;Layer 5 sources dominate the field&quot;</span>
     <span class="c1"># ✓ &quot;The kernel width of 0.10 produces smoother estimates than 0.05&quot;</span>
 </code></pre></div>
-<h3 id="v038-limitations">v0.3.8 Limitations<a class="headerlink" href="#v038-limitations" title="Permanent link">&para;</a></h3>
+<h3 id="v038-scope">v0.3.8 Scope<a class="headerlink" href="#v038-scope" title="Permanent link">&para;</a></h3>
 <ul>
 <li>No biophysical compartments (soma, dendrite, axon)</li>
 <li>No temperature sensitivity, frequency-dependent effects</li>
 <li>No subject-specific anatomy</li>
 <li>No experimental validation</li>
-<li>Kernels are fixed defaults (not tunable in v0.3.8; planned for v0.3.9)</li>
+<li>Kernels are fixed defaults (not tunable in v0.3.8; reserved for v0.3.9)</li>
 <li>Amplitudes are uncalibrated (proxy-scale only)</li>
 </ul>
-<h3 id="future-work-v039">Future Work (v0.3.9+)<a class="headerlink" href="#future-work-v039" title="Permanent link">&para;</a></h3>
+<h3 id="reserved-work-v039">Reserved Work (v0.3.9+)<a class="headerlink" href="#reserved-work-v039" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Custom convolution kernels via <code>.field_kernel()</code> method</li>
 <li>PDE-based field solvers (optional)</li>

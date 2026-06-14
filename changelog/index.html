@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#v0341-2026-06-14" class="md-skip">
+        <a href="#v0342-2026-06-14" class="md-skip">
           Skip to content
         </a>
       
@@ -1777,6 +1777,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v0342-2026-06-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.3.42 (2026-06-14)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0341-2026-06-14" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2617,6 +2628,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#v0342-2026-06-14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.3.42 (2026-06-14)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#v0341-2026-06-14" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3143,6 +3165,11 @@
 
   <h1>Changelog</h1>
 
+<h2 id="v0342-2026-06-14">v0.3.42 (2026-06-14)<a class="headerlink" href="#v0342-2026-06-14" title="Permanent link">&para;</a></h2>
+<p><strong>Public context hardening release.</strong>
+- Added missing docstrings to stub emitters (<code>GLIFEmitter</code>, <code>LIFEmitter</code>).
+- Enforced clean-venv lazy root imports to guarantee heavy optional packages are not loaded on import.
+- Harmonized version references across documentation, package configurations, and tests.</p>
 <h2 id="v0341-2026-06-14">v0.3.41 (2026-06-14)<a class="headerlink" href="#v0341-2026-06-14" title="Permanent link">&para;</a></h2>
 <p><strong>Port of JAX computational kernels.</strong> No scientific-claim escalation.</p>
 <h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
@@ -3185,7 +3212,7 @@
 quality line. No new APIs, no solver work, no scientific-claim escalation.</p>
 <h3 id="summary-of-the-v0337-v0339-quality-line">Summary of the v0.3.37 → v0.3.39 quality line<a class="headerlink" href="#summary-of-the-v0337-v0339-quality-line" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>v0.3.37</strong> — docs alignment: strict notebook grammar, root export grammar,
+<li><strong>v0.3.37</strong> — docs comparison: strict notebook grammar, root export grammar,
   scope/truth-gate cells, <code>*_proxy</code> naming, API index regenerated.</li>
 <li><strong>v0.3.38</strong> — root-export hardening: the six export helpers (<code>save_figure</code>,
   <code>save_figures</code>, <code>export_report</code>, <code>export_tutorial_artifacts</code>, <code>plot_raster</code>,
@@ -3322,7 +3349,7 @@ sdist), GitHub Release (tag <code>v0.3.37</code>, commit <code>49aa025</code>), 
 <h3 id="changed_2">Changed<a class="headerlink" href="#changed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Cleaned duplicated Etude notebook artifacts.</li>
-<li>Moved release/alignment receipts into <code>internal_docs/release_receipts/</code>.</li>
+<li>Moved release/comparison receipts into <code>internal_docs/release_receipts/</code>.</li>
 <li>Updated release checklist and agent status metadata for the v0.3.21 release candidate.</li>
 </ul>
 <h3 id="validation-status">Validation status<a class="headerlink" href="#validation-status" title="Permanent link">&para;</a></h3>
@@ -3345,7 +3372,7 @@ sdist), GitHub Release (tag <code>v0.3.37</code>, commit <code>49aa025</code>), 
 <ul>
 <li>Added <code>jaxfne/sharding_utils.py</code> with distributed mesh and NamedSharding stubs.</li>
 <li>14 new tests for sharding context and single-device fallbacks.</li>
-<li>Sharding stubs do not yet drive multi-device dispatch (planned for v0.3.20+).</li>
+<li>Sharding stubs do not yet drive multi-device dispatch (reserved for v0.3.20+).</li>
 </ul>
 <hr />
 <h2 id="v0317-2026-05-30">v0.3.17 (2026-05-30)<a class="headerlink" href="#v0317-2026-05-30" title="Permanent link">&para;</a></h2>

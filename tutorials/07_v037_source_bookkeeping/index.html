@@ -1211,10 +1211,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#v037-limitations" class="md-nav__link">
+  <a href="#v037-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.3.7 Limitations
+        v0.3.7 Scope
       
     </span>
   </a>
@@ -1222,10 +1222,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#future-work-v038" class="md-nav__link">
+  <a href="#reserved-work-v038" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Work (v0.3.8+)
+        Reserved Work (v0.3.8+)
       
     </span>
   </a>
@@ -2743,10 +2743,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#v037-limitations" class="md-nav__link">
+  <a href="#v037-scope" class="md-nav__link">
     <span class="md-ellipsis">
       
-        v0.3.7 Limitations
+        v0.3.7 Scope
       
     </span>
   </a>
@@ -2754,10 +2754,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#future-work-v038" class="md-nav__link">
+  <a href="#reserved-work-v038" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Future Work (v0.3.8+)
+        Reserved Work (v0.3.8+)
       
     </span>
   </a>
@@ -2997,7 +2997,7 @@
 <li>Apply fixed spatial convolution kernel (e.g., Gaussian): <span class="arithmatex">\(Y(t) = P \cdot S(t)\)</span></li>
 <li>Optionally compute spatial derivatives (for CSD)</li>
 </ol>
-<p>This is <strong>fast</strong> (no solver loop) but <strong>approximate</strong> (not validated against real data).</p>
+<p>This is <strong>fast</strong> (no solver loop) but <strong>approximate</strong> (proxy-scoped for tutorial data).</p>
 <hr />
 <h2 id="source-to-field-mechanism">Source-to-Field Mechanism<a class="headerlink" href="#source-to-field-mechanism" title="Permanent link">&para;</a></h2>
 <h3 id="the-handoff-flow">The Handoff Flow<a class="headerlink" href="#the-handoff-flow" title="Permanent link">&para;</a></h3>
@@ -3073,7 +3073,7 @@ Readout R(t) = Q @ Y(t)
     <span class="c1"># &quot;LFP-proxy increases during high firing rate&quot;</span>
     <span class="c1"># &quot;Layer 5 sources dominate the field&quot;</span>
 </code></pre></div>
-<h3 id="v037-limitations">v0.3.7 Limitations<a class="headerlink" href="#v037-limitations" title="Permanent link">&para;</a></h3>
+<h3 id="v037-scope">v0.3.7 Scope<a class="headerlink" href="#v037-scope" title="Permanent link">&para;</a></h3>
 <ul>
 <li>No biophysical compartments (soma, dendrite, axon)</li>
 <li>No temperature sensitivity, frequency-dependent effects</li>
@@ -3081,7 +3081,7 @@ Readout R(t) = Q @ Y(t)
 <li>No experimental validation</li>
 <li>Kernels are fixed defaults (not tunable in v0.3.7)</li>
 </ul>
-<h3 id="future-work-v038">Future Work (v0.3.8+)<a class="headerlink" href="#future-work-v038" title="Permanent link">&para;</a></h3>
+<h3 id="reserved-work-v038">Reserved Work (v0.3.8+)<a class="headerlink" href="#reserved-work-v038" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Custom convolution kernels via <code>.field_kernel()</code> method</li>
 <li>PDE-based field solvers (optional)</li>
