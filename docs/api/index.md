@@ -31,11 +31,11 @@ v0.3.38.
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (6) · **Sanity-delta** (7) · **Plasticity** (4) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (2) · **PyNWB** (2) · **Experimental HPC** (2) · geometry/builders/streaming/stimulus (4) | 84 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (7) · **Sanity-delta** (7) · **Plasticity** (5) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (4) | 93 |
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **185**
+> signatures in the complete symbol index below. Counts sum to **194**
 > (`len(jaxfne.__all__)`). See the docs audit
 > (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
@@ -84,7 +84,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**185 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**194 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (68)
 
@@ -269,7 +269,7 @@ and figure/readout outputs remain proxy diagnostics
 | `ParadigmCondition` | class | A specific trial condition: sequence of stimuli and associated events. |
 | `ParadigmEvent` | class | Discrete event within a task trial: stimulus, behavioral code, or omission marker. |
 
-### Solvers (6)
+### Solvers (7)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -278,6 +278,7 @@ and figure/readout outputs remain proxy diagnostics
 | `euler_step` | func | Single forward Euler step (backward compatibility). |
 | `EulerSolver` | class | Forward Euler integrator using JAX and lax.scan. |
 | `solve_ode` | func | Public ODE solver entrypoint routing to appropriate solver backend. |
+| `solve_volume_conductor_experimental` | func | Experimental volume conductor solver skeleton. |
 | `SolverConfig` | class | Configuration class for ODE solvers. |
 
 ### Sanity-delta runtime (7)
@@ -292,7 +293,7 @@ and figure/readout outputs remain proxy diagnostics
 | `SanityDeltaModel` | class | Wrapper around constructed hierarchical oddball model. |
 | `TaskEpisode` | class | Result of a task episode with probing, export, validation. |
 
-### Plasticity (4)
+### Plasticity (5)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -300,6 +301,7 @@ and figure/readout outputs remain proxy diagnostics
 | `STDPPlasticityConfig` | class | Configuration class for STDP activity-dependent plasticity. |
 | `STDPState` | class | Container for the state variables of the STDP synapse model. |
 | `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
+| `update_stdp_weights_jax` | func | JAX-optimized plasticity weight update kernel (STDP). |
 
 ### Tutorial utils (4)
 
@@ -319,11 +321,12 @@ and figure/readout outputs remain proxy diagnostics
 | `make_population_mesh` | func | Return a 1-D named `jax.sharding.Mesh` across all visible JAX devices. |
 | `make_replicated_sharding` | func | Return a `jax.sharding.NamedSharding` that fully replicates an array |
 
-### Connectivity (2)
+### Connectivity (3)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compile_connection_rules` | func | Compile declared connection rules into sparse finite edge arrays. |
+| `compile_connection_rules_jax` | func | Tensorized JAX connectivity compiler producing static-shape edge outputs. |
 | `ConnectionCompileResult` | class | Compiled sparse connectivity. |
 
 ### Geometry (1)
@@ -349,6 +352,17 @@ and figure/readout outputs remain proxy diagnostics
 | Symbol | Kind | Summary |
 |---|---|---|
 | `triangular_drive` | func | Generates a triangular drive trace. |
+
+### JAX Spectral Analysis (6)
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `spectrolaminar_psd_jax` | func | Compute spectrolaminar PSD averaged across trials using JAX. |
+| `bandpower_jax` | func | Compute average power within a frequency band normalized by channel max. |
+| `spectrolaminar_readout_kernel_jax` | func | Batchable readout kernel computing relative power and normalized band profiles. |
+| `spectrolaminar_similarity_kernel_jax` | func | Compute the profile similarity score in JAX. |
+| `spectrolaminar_similarity_candidates_jax` | func | Batched vectorization path for similarity scoring. |
+| `spectrolaminar_similarity_candidates_seeds_jax` | func | Nested batched vectorization path for seeds and candidates. |
 
 ### Validation registry (2)
 

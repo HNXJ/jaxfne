@@ -153,6 +153,19 @@ def euler_scan(
     return solver.solve(dydt_fn, y_init, t_start, t_start + n_steps * dt)
 
 
+def solve_volume_conductor_experimental(*args, **kwargs):
+    """Experimental volume conductor solver skeleton.
+
+    Raises
+    ------
+    NotImplementedError
+        Always raises NotImplementedError. Requires boundary/gauge/residual/convergence validation.
+    """
+    raise NotImplementedError(
+        "experimental solver skeleton: requires boundary/gauge/residual/convergence validation"
+    )
+
+
 __all__ = [
     "SolverConfig",
     "EulerSolver",
@@ -160,4 +173,5 @@ __all__ = [
     "solve_ode",
     "euler_step",
     "euler_scan",
+    "solve_volume_conductor_experimental",
 ]

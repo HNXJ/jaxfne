@@ -169,7 +169,7 @@ from .builders import (
     configuration_table,
     validate_configuration,
 )
-from .connectivity import compile_connection_rules, ConnectionCompileResult
+from .connectivity import compile_connection_rules, ConnectionCompileResult, compile_connection_rules_jax
 from .fields import (
     FieldOutput,
     compute_conservation_proxy_diagnostics,
@@ -219,6 +219,7 @@ from .solvers import (
     EulerSolver,
     DiffraxSolver,
     solve_ode,
+    solve_volume_conductor_experimental,
 )
 # v0.3.31: PyNWB placeholder (not yet implemented)
 from .pynwb_compat import write_nwb, read_nwb
@@ -240,6 +241,15 @@ from .plasticity import (
     STDPState,
     summarize_stdp_adaptation,
     plot_stdp_adaptation_suite,
+    update_stdp_weights_jax,
+)
+from .analysis.spectral import (
+    spectrolaminar_psd_jax,
+    bandpower_jax,
+    spectrolaminar_readout_kernel_jax,
+    spectrolaminar_similarity_kernel_jax,
+    spectrolaminar_similarity_candidates_jax,
+    spectrolaminar_similarity_candidates_seeds_jax,
 )
 from .geometry import make_ei_cloud_network
 from .stimulus import triangular_drive
@@ -439,6 +449,15 @@ __all__ = [
     "BackupState",
     "TaskEpisode",
     "Manifest",
+    "spectrolaminar_psd_jax",
+    "bandpower_jax",
+    "spectrolaminar_readout_kernel_jax",
+    "spectrolaminar_similarity_kernel_jax",
+    "spectrolaminar_similarity_candidates_jax",
+    "spectrolaminar_similarity_candidates_seeds_jax",
+    "compile_connection_rules_jax",
+    "update_stdp_weights_jax",
+    "solve_volume_conductor_experimental",
 ]
 
 __version__ = _JAXFNE_VERSION
