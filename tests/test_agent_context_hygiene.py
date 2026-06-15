@@ -176,3 +176,9 @@ class TestRepositoryStructure:
         context_dir = Path(".legacy/internal_docs/agent_context/claude")
         assert context_dir.exists(), "agent_context/claude directory not found"
         assert (context_dir / "CLAUDE.md").exists(), "CLAUDE.md not found in context dir"
+
+    def test_report_hygiene_check(self):
+        """Assert that scripts/report_hygiene_check.py reports clean."""
+        from scripts.report_hygiene_check import main as hygiene_main
+        assert hygiene_main() == 0
+
