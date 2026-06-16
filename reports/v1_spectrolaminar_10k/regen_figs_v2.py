@@ -46,13 +46,11 @@ DURATION_MS = 1000.0
 DT_MS = 0.1
 N_TRIALS = 4  # More trials for smoother spectra at smaller scale
 SEED = 0
-DC_LEVELS = [0.0, 5.0, 10.0]
+DC_LEVELS = np.arange(0, 105, 5).tolist()  # 0, 5, 10, 15, ..., 100 (21 levels)
 N_CONTACTS = 64  # Reduced contact count for smaller scale
 FREQ_COUNT = 96
 
 # Layer fractions: make deep layers much sparser (thinner depth band)
-# Original: L5 (0.66-0.80), L6 (0.80-1.0) — both substantial
-# New: L5 (0.75-0.88), L6 (0.88-1.0) — deep layers ~1/4 the depth, so ~4x sparser
 LAYER_FRACTIONS = {
     "L1": (0.0, 0.15),    # superficial, thin
     "L2": (0.15, 0.35),   # superficial
@@ -60,6 +58,19 @@ LAYER_FRACTIONS = {
     "L4": (0.50, 0.65),   # mid-deep
     "L5": (0.65, 0.85),   # deep, MUCH thinner
     "L6": (0.85, 1.0),    # deep, MUCH thinner
+}
+
+# Layer-specific cell-type fractions: more I in superficial, more E in deep
+# Superficial (L1-L3): I-dominated (E decreases upward)
+# Mid (L4): balanced
+# Deep (L5-L6): E-dominated (E increases downward)
+LAYER_CELL_TYPE_FRAC = {
+    "L1": {"E": 0.35, "PV": 0.30, "SST": 0.20, "VIP": 0.15},  # Superficial: most I
+    "L2": {"E": 0.45, "PV": 0.25, "SST": 0.18, "VIP": 0.12},  # Superficial: I > E
+    "L3": {"E": 0.55, "PV": 0.20, "SST": 0.15, "VIP": 0.10},  # Mid-sup: E starts rising
+    "L4": {"E": 0.65, "PV": 0.18, "SST": 0.12, "VIP": 0.05},  # Mid: balanced toward E
+    "L5": {"E": 0.85, "PV": 0.08, "SST": 0.05, "VIP": 0.02},  # Deep: E-dominated
+    "L6": {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},  # Deep: strongly E-dominated
 }
 
 # Plasticity params
@@ -134,6 +145,7 @@ def build_model_with_sparsity(
         areas=("V1",),
         layers=("L1", "L2", "L3", "L4", "L5", "L6"),
         layer_fractions=layer_fracs_tuple,
+        layer_cell_type_frac=LAYER_CELL_TYPE_FRAC,  # Layer-specific E/I: more I in sup, more E in deep
         n_neuron_per_column=N_PER_COL,
         duration_ms=DURATION_MS,
         dt_ms=DT_MS,

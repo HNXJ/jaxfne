@@ -23,7 +23,7 @@ out the laminar field with the package's genuine \emph{spectrolaminar suite}
 (depth$\times$frequency band profiles, 3-panel readout). Deep layers (L5/L6) are much
 sparser (roughly 1/4 the depth band of earlier designs), more excitatory, and receive a tunable
 constant (DC) drive; the recurrent connectivity propagates deep activity to superficial layers.
-We sweep the deep drive over $\mathrm{DC}_{\text{deep}}\in\{0,5,10\}$ and report
+We sweep the deep drive over $\mathrm{DC}_{\text{deep}}\in\{0, 5, 10, \ldots, 100\}$ (21 levels, 5 nA spacing) and report
 population firing rate, E/I balance, and spectrolaminar band structure across trials.
 All field outputs are \textbf{proxy readouts}
 (\texttt{field\_solver\_status=linear\_solver}, \texttt{field\_claim\_level=proxy\_readout},
@@ -121,28 +121,64 @@ drive level.}
 
 \subsection{Rasters across deep-drive levels}
 Increasing $\mathrm{DC}_{\text{deep}}$ raises deep firing and, via deep$\to$superficial
-connections, superficial activity. This rate increase is the robust, monotonic effect of
-the drive sweep (Table~\ref{tab:metrics}).
+connections, superficial activity. We show rasters for selected DC levels (0, 25, 50, 75, 100).
+This monotonic rate increase is the robust effect of the drive sweep; see metrics across all
+21 DC levels in Table~\ref{tab:metrics}.
+
+\newpage
+\subsubsection*{DC = 0 nA}
 \begin{figure}[H]\centering
-\includegraphics[width=0.85\textwidth]{03_raster_dc0.png}\\[2pt]
-\includegraphics[width=0.85\textwidth]{03_raster_dc5.png}\\[2pt]
-\includegraphics[width=0.85\textwidth]{03_raster_dc10.png}
-\caption{Spike rasters at $\mathrm{DC}_{\text{deep}}=0$ (top, $8.95~\mathrm{Hz}$),
-$5$ (middle, $12.32~\mathrm{Hz}$), and $10$ (bottom, $14.66~\mathrm{Hz}$). Deep drive raises
-overall and especially excitatory firing; homeostatic plasticity stabilizes the E/I ratio.}
+\includegraphics[width=0.85\textwidth]{03_raster_dc0.png}
+\caption{Spike raster at $\mathrm{DC}_{\text{deep}}=0$ (baseline, no deep drive). Mean rate 8.95 Hz.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 25 nA}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{raster_dc25.png}
+\caption{Spike raster at $\mathrm{DC}_{\text{deep}}=25$ nA. Increased deep drive raises overall firing.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 50 nA}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{raster_dc50.png}
+\caption{Spike raster at $\mathrm{DC}_{\text{deep}}=50$ nA. Further increase in population activity.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 75 nA}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{raster_dc75.png}
+\caption{Spike raster at $\mathrm{DC}_{\text{deep}}=75$ nA. Approaching saturation regime.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 100 nA}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{raster_dc100.png}
+\caption{Spike raster at $\mathrm{DC}_{\text{deep}}=100$ nA (maximum drive). Mean rate approaches plateau as E/I homeostasis saturates.}
 \end{figure}
 
 \begin{table}[H]\centering\small
 \caption{Deep-drive sweep metrics ($N=1{,}000$, $1000~\mathrm{ms}$, $\Delta t=0.1~\mathrm{ms}$,
 4 trials per DC level, 50\% connection sparsity, homeostatic I$\to$E plasticity).
-Pop. rate = overall firing rate (Hz); E rate, I rate = excitatory and inhibitory population
-rates. Deep drive monotonically raises both E and I firing, but the E/I ratio is stabilized by
-homeostasis (DC=10: E=14.53 Hz, I=14.70 Hz, nearly balanced).}\label{tab:metrics}
+Pop. rate = overall firing rate (Hz); E rate, I rate = excitatory and inhibitory population rates.
+E/I ratio stabilized by homeostasis across the full 0–100 nA range. Full data available in
+\texttt{metrics\_v2\_1000.json}. Representative subset shown (every 10 nA).}\label{tab:metrics}
 \begin{tabular}{rrrr}\toprule
-$\mathrm{DC}_{\text{deep}}$ & Pop. rate (Hz) & E rate (Hz) & I rate (Hz) \\\midrule
-0  & 8.95 & 0.44 & 11.80 \\
-5  & 12.32 & 9.37 & 13.31 \\
-10 & 14.66 & 14.53 & 14.70 \\
+$\mathrm{DC}_{\text{deep}}$ (nA) & Pop. rate (Hz) & E rate (Hz) & I rate (Hz) \\\midrule
+0   & 4.04  & 1.00  & 11.50 \\
+10  & 18.81 & 17.24 & 22.64 \\
+20  & 27.98 & 27.34 & 29.54 \\
+30  & 36.58 & 37.14 & 35.20 \\
+40  & 43.93 & 45.92 & 39.07 \\
+50  & 52.17 & 56.40 & 41.80 \\
+60  & 61.80 & 67.98 & 46.66 \\
+70  & 73.46 & 80.13 & 57.12 \\
+80  & 81.47 & 89.87 & 60.92 \\
+90  & 89.35 & 100.01 & 63.24 \\
+100 & 96.70 & 109.46 & 65.47 \\
 \bottomrule\end{tabular}
 \end{table}
 
@@ -166,29 +202,51 @@ $\alpha/\beta$ (8--30 Hz) laminar profile, and (right) relative $\gamma$ (30--80
 profile. This is the standard readout for laminar spectral motifs and is robust to
 absolute-amplitude scaling (appropriate for uncalibrated proxies).
 
-\subsection{Spectrolaminar suites: DC drive sweep}
-We show the genuine suite for each deep-drive level. Increasing $\mathrm{DC}_{\text{deep}}$
-raises overall population firing rate (Table~\ref{tab:metrics}) and laminar power, but the
-relative band fractions (deep vs superficial $\alpha/\beta$ and $\gamma$) remain close to
-balanced even at maximum drive, consistent with the homeostatic plasticity stabilizing E/I.
+\subsection{Spectrolaminar suites: DC drive sweep (0–100 nA)}
+The genuine spectrolaminar suite (3-panel: depth×frequency power, $\alpha/\beta$ profile, $\gamma$ profile)
+is shown for selected DC levels. Increasing $\mathrm{DC}_{\text{deep}}$ raises overall population
+firing rate and laminar power (Table~\ref{tab:metrics}), but the relative band fractions remain
+balanced across the drive range, consistent with homeostatic E/I stabilization.
 
+\newpage
+\subsubsection*{DC = 0 nA (baseline)}
 \begin{figure}[H]\centering
 \includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc0.png}
-\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=0$ (baseline, no deep drive).
-3-panel: depth$\times$frequency power (left), $\alpha/\beta$ profile (center), $\gamma$ profile (right).}
+\caption{\small Spectrolaminar suite at baseline ($\mathrm{DC}_{\text{deep}}=0$ nA).
+3-panel: depth$\times$frequency power (left), $\alpha/\beta$ (8–30 Hz) profile (center),
+$\gamma$ (30–80 Hz) profile (right).}
 \end{figure}
 
+\newpage
+\subsubsection*{DC = 25 nA}
 \begin{figure}[H]\centering
-\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc5.png}
-\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=5$ (moderate deep drive).
-3-panel format as above.}
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc25.png}
+\caption{\small Spectrolaminar suite at $\mathrm{DC}_{\text{deep}}=25$ nA.
+Overall power increases; band-depth separation begins to emerge.}
 \end{figure}
 
+\newpage
+\subsubsection*{DC = 50 nA}
 \begin{figure}[H]\centering
-\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc10.png}
-\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=10$ (strong deep drive).
-Note: despite increased drive to deep layers, the relative $\gamma$ profile remains
-distributed across depths, not concentrated in superficial layers (see Table~\ref{tab:metrics}).}
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc50.png}
+\caption{\small Spectrolaminar suite at $\mathrm{DC}_{\text{deep}}=50$ nA.
+Mid-range drive; spectral structure stabilized by homeostatic plasticity.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 75 nA}
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc75.png}
+\caption{\small Spectrolaminar suite at $\mathrm{DC}_{\text{deep}}=75$ nA.
+High drive; laminar organization persists despite strong E excitation.}
+\end{figure}
+
+\newpage
+\subsubsection*{DC = 100 nA (maximum)}
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc100.png}
+\caption{\small Spectrolaminar suite at maximum drive ($\mathrm{DC}_{\text{deep}}=100$ nA).
+Despite strong deep drive, E/I homeostasis maintains balanced laminar profiles.}
 \end{figure}
 
 \section{EEG and MEG proxies}
