@@ -243,12 +243,14 @@ def main():
         scores, specs = tu.summarize_spectrolaminar_similarity(trials, cfg)
 
         # Render genuine spectrolaminar suite (3-panel depth×freq per area)
+        # power_smooth_sigmas=[5.0, 1.0]: 5x smoothing in frequency dimension (rows)
         figs = tp.spectrolaminar_suite_3panel(
             specs, model, cfg,
             areas=["V1"],
             stage=f"dc_{int(dc)}",
             output_dir=str(FIGS),
             theme="dark",
+            power_smooth_sigmas=[5.0, 1.0],
         )
 
         # Save suite fig with DC label in filename

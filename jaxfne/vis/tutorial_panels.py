@@ -349,6 +349,7 @@ def spectrolaminar_suite_3panel(
     power_vmin: float = 0.48,
     power_vmax: float = 0.94,
     profile_smooth_sigma: float = 1.0,
+    power_smooth_sigmas: Sequence[float] | None = None,
 ) -> dict[str, matplotlib.figure.Figure]:
     """Create 3-panel spectrolaminar suite per area.
 
@@ -372,6 +373,12 @@ def spectrolaminar_suite_3panel(
         Cell density histogram parameters
     power_vmin, power_vmax : float
         Color limits for power heatmap
+    profile_smooth_sigma : float
+        Gaussian smoothing for alpha-beta/gamma profiles (panel C)
+    power_smooth_sigmas : sequence of 2 floats or None
+        Smoothing sigmas for panel B (mean relative power spectrum):
+        [sigma_freq, sigma_depth]. Default [1.0, 1.0] applies minimal smoothing.
+        [5.0, 1.0] applies 5x smoothing along frequency axis (rows).
 
     Returns
     -------
@@ -441,6 +448,14 @@ def spectrolaminar_suite_3panel(
         # the vertical axis and frequency the horizontal axis.
         relative_power = np.asarray(spec['relative_power'], dtype=float)
         freq_hz = np.asarray(spec['freq_hz'], dtype=float)
+
+        # Apply smoothing to the power spectrum if requested
+        if power_smooth_sigmas is not None:
+            sigma_freq, sigma_depth = power_smooth_sigmas[0], power_smooth_sigmas[1]
+            if sigma_freq > 0 or sigma_depth > 0:
+                relative_power = gauss1d(relative_power, sigma=sigma_freq, axis=0)  # smooth frequency axis
+                relative_power = gauss1d(relative_power, sigma=sigma_depth, axis=1)  # smooth depth axis
+
         # Check if depth-normalized
         is_depth_normalized = np.allclose(relative_power.sum(axis=1), 1.0, atol=1e-2)
         if is_depth_normalized:
