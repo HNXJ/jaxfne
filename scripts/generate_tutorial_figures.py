@@ -365,7 +365,7 @@ def gen_status_summary(manifest, output_dir):
 
     text_content = "\n".join(text_lines)
     ax.text(0.1, 0.9, text_content, transform=ax.transAxes, fontfamily="monospace",
-            fontsize=10, verticalalignment="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
+            fontsize=10, verticalcomparison="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
 
     fig.suptitle("v0.2.27 Statement Gates Summary")
     fig.tight_layout()
@@ -470,7 +470,7 @@ def main():
         "jaxfne_version": jtfne.__version__,
         "run_status": manifest.get("run_status", "tutorial_scaffold"),
         "model_status": manifest.get("model_status", "computational_scaffold"),
-        "field_solver_status": manifest.get("field_solver_status", "laminar_proxy_no_pde"),
+        "field_solver_status": manifest.get("field_solver_status", "linear_solver"),
         "amplitude_status": manifest.get("amplitude_status", False),
         "metabolism_status": manifest.get("metabolism_status", False),
         "source_script": "scripts/generate_tutorial_figures.py",

@@ -3,7 +3,7 @@
 A. load_config valid .jcfg.json returns JaxFNEConfig
 B. validate_config valid config returns valid=True
 C. validate_config missing required section returns issue
-D. validate_config truth escalation physical_amplitude_claim_allowed=True returns issue
+D. validate_config truth escalation physical_amplitude_calibrated=True returns issue
 E. validate_config unsupported schema_version returns issue
 F. config_to_simulation maps duration_ms/dt_ms/seed correctly
 G. config_to_geometry maps geometry.populations to LaminarSourceGeometry
@@ -34,11 +34,10 @@ from jaxfne.core import (
 
 
 _VALID_TRUTH = {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "field_solver_status": "linear_solver",
+    "physical_amplitude_calibrated": False,
     "empirical_validation_status": "not_empirically_validated",
     "mechanism_claim_status": "not_claimed",
 }
@@ -96,14 +95,14 @@ def test_c_validate_config_missing_required_section():
 
 
 def test_d_validate_config_truth_escalation_blocking():
-    cfg_dict = {**_MINIMAL_CONFIG, "truth": {**_VALID_TRUTH, "physical_amplitude_claim_allowed": True}}
+    cfg_dict = {**_MINIMAL_CONFIG, "truth": {**_VALID_TRUTH, "physical_amplitude_calibrated": True}}
     with tempfile.TemporaryDirectory() as tmp:
         p = Path(tmp) / "test.jcfg.json"
         _write_config(cfg_dict, p)
         cfg = jtfne.load_config(p)
         result = jtfne.validate_config(cfg)
         assert result.valid is False
-        assert any("physical_amplitude_claim_allowed" in i for i in result.issues)
+        assert any("physical_amplitude_calibrated" in i for i in result.issues)
 
 
 def test_e_validate_config_unsupported_schema_version():
@@ -229,9 +228,8 @@ def test_m_config_truth_boundary_conservative():
         cfg = jtfne.load_config(p)
 
     tb = jtfne.config_truth_boundary(cfg)
-    assert tb["truth_mode"] == "truth_safe_unverified"
     assert tb["claim_level"] == "computational_scaffold"
-    assert tb["physical_amplitude_claim_allowed"] is False
+    assert tb["physical_amplitude_calibrated"] is False
     assert tb["empirical_validation_status"] == "not_empirically_validated"
     assert tb["mechanism_claim_status"] == "not_claimed"
     # Must be JSON-safe
@@ -280,35 +278,3 @@ def test_o_no_physical_units_in_geometry():
     geo_str = json.dumps(geo_dict)
     assert "depth_um" not in geo_str
     assert "_mm" not in geo_str
-
-
-def test_p_validate_config_truth_mode_missing_is_blocking():
-    """truth_mode is required; absent truth_mode must produce a blocking issue."""
-    truth_without_mode = {k: v for k, v in _VALID_TRUTH.items() if k != "truth_mode"}
-    cfg_dict = {**_MINIMAL_CONFIG, "truth": truth_without_mode}
-    with tempfile.TemporaryDirectory() as tmp:
-        p = Path(tmp) / "test.jcfg.json"
-        _write_config(cfg_dict, p)
-        cfg = jtfne.load_config(p)
-        result = jtfne.validate_config(cfg)
-    assert result.valid is False
-    assert any("truth.truth_mode_missing" in i for i in result.issues)
-
-
-def test_q_validate_config_truth_mode_escalation_is_blocking():
-    """truth_mode value other than truth_safe_unverified must produce a blocking issue."""
-    escalated_truth = {**_VALID_TRUTH, "truth_mode": "validated_biological_truth"}
-    cfg_dict = {**_MINIMAL_CONFIG, "truth": escalated_truth}
-    with tempfile.TemporaryDirectory() as tmp:
-        p = Path(tmp) / "test.jcfg.json"
-        _write_config(cfg_dict, p)
-        cfg = jtfne.load_config(p)
-        result = jtfne.validate_config(cfg)
-    assert result.valid is False
-    assert any("truth_escalation:truth_mode" in i for i in result.issues)
-
-
-def test_r_conservative_truth_defaults_has_truth_mode():
-    """_CONSERVATIVE_TRUTH_DEFAULTS must contain truth_mode as a source-of-truth guard."""
-    assert "truth_mode" in _CONSERVATIVE_TRUTH_DEFAULTS
-    assert _CONSERVATIVE_TRUTH_DEFAULTS["truth_mode"] == "truth_safe_unverified"

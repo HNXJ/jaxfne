@@ -35,7 +35,7 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 | ID | Factor | Ideal (100/100) | Score | Evidence / notes |
 |---|---|---|---|---|
 | A01 | Git provenance | clean tree; `main==dev` aligned to a known SHA | 100 ✅ | `main==dev==33f99db`, clean |
-| A02 | Version metadata alignment | `pyproject`/`__init__`/`mkdocs`/`version.md` identical | 100 🔶 | v0.3.29 aligned (hotfix e377829) |
+| A02 | Version metadata comparison | `pyproject`/`__init__`/`mkdocs`/`version.md` identical | 100 🔶 | v0.3.29 aligned (hotfix e377829) |
 | A03 | Tag/release identity | annotated tag; peeled commit SHA == intended | 100 ✅ | `v0.3.29^{}`==fab4c9c |
 | A04 | Dist hygiene | `dist/` holds exactly the current-version artifacts | 90 🔶 | zsh `*.egg-info` glob trap (B02) — fixed manually, script unhardened |
 | A05 | Build + twine | `python -m build` + `twine check` pass | 100 ✅ | both PASSED on fab4c9c |
@@ -109,7 +109,7 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 
 | ID | Factor | Ideal | Score | Evidence / notes |
 |---|---|---|---|---|
-| F01 | Proxy not PDE | `field_solver_status="laminar_proxy_no_pde"` | 96 ✅ | enforced; Poisson "future" only |
+| F01 | Proxy not PDE | `field_solver_status="linear_solver"` | 96 ✅ | enforced; Poisson "future" only |
 | F02 | `*_proxy` naming | proxy outputs carry `_proxy` suffix | 92 🔶 | FieldOutput fields |
 | F03 | No J_e synthesis | never fabricate current density | 96 🔶 | declared not_applicable |
 | F04 | Probe operators (8) | SPK/Vm/source/LFP/CSD/EEG/MEG/EMM finite + tested | 90 🔶 | proxy transforms tested |
@@ -139,16 +139,16 @@ Legend: ✅ measured this cycle · 🔶 estimated from prior audit · ⛔ gated/
 
 | ID | Factor | Ideal | Score | Evidence / notes |
 |---|---|---|---|---|
-| H01 | truth_safe_unverified | default truth mode on all outputs | 96 ✅ | 229 gate token sites |
+| H01 |  | default truth mode on all outputs | 96 ✅ | 229 gate token sites |
 | H02 | computational_scaffold | package status declared | 96 ✅ | doctrine + metadata |
-| H03 | amplitude claim gate | `physical_amplitude_claim_allowed=False` | 100 ✅ | enforced, never flipped |
+| H03 | amplitude claim gate | `physical_amplitude_calibrated=False` | 100 ✅ | enforced, never flipped |
 | H04 | No EEG/MEG overclaim | proxy wording only | 96 ✅ | scan: no active overclaim |
 | H05 | No solver/PDE claims | future-tense only until evidence | 96 ✅ | all Maxwell/Poisson hits future/negated |
 | H06 | Claim wording | "simulated/proxy/scaffold/diagnostic" | 96 🔶 | doctrine §13 |
 | H07 | Receipts write-once | `save_receipt` refuses overwrite | 96 🔶 | core.py guard |
-| H08 | Manuscript claim_level | claim escalation gated by evidence | TBD | hnyxj/rules cross-check |
+| H08 | Technical report claim_level | claim escalation gated by evidence | TBD | hnyxj/rules cross-check |
 | H09 | Null tests for mechanism | nulls/ablations before mechanism claims | 85 🔶 | null framework present (reproducible now) |
-| H10 | TFNE grammar alignment | source→field→probe→objective→report grammar | 90 🔶 | manuscript_alignment doc |
+| H10 | TFNE grammar comparison | source→field→probe→objective→report grammar | 90 🔶 | technical report_comparison doc |
 
 ## I. Notebooks / Tutorials / Docs
 

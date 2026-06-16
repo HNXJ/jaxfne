@@ -44,11 +44,10 @@ FlatModel -> FlatNet
 ## Truth/status posture
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 Use status/evidence wording. Do not describe proxy LFP/CSD/EEG/MEG as calibrated, solved, biological, empirical, or physical amplitude readouts.
@@ -128,7 +127,7 @@ Fast executive models: act on this block; read the rest only when blocked.
 2. **Contract-first.** Read the frozen contract (docstrings + `>TBI-not-ready`), not the 1000-line module.
 3. **Skill = cache.** Run the skill; don't re-reason its checklist.
 4. **Receipt, not justification.** Show `command` + `N passed`. Never report what you didn't run.
-5. **Route by altitude.** Opus=architecture/contracts/truth-gates · Sonnet=implement vs contract+skill · Gemini=cross-file synthesis + batch edits.
+5. **Route by altitude.** Opus=architecture/contracts/truth-gates · Sonnet=implement vs contract+skill · notebook=cross-file synthesis + batch edits.
 
 JAX/jaxfne: `N_compile<=1` (recompilation is the silent watt+tok sink) · stable shapes+dtypes · jit/vmap on (`runtime_report()`) · x64 at startup only · sparse>dense · `segment_sum`+`lax.scan` · pytree children=dynamic, aux=static. Depth → jaxfne skills + `~/.claude/CLAUDE.md`.
 

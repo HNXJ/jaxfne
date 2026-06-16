@@ -18,7 +18,7 @@ Use Plotly HTML figures when you:
 
 - Need interactive exploration (zoom, pan, hover, toggle traces)
 - Are sharing results with collaborators (email, shared drive, web)
-- Want publication-ready plots with minimal post-processing
+- Want evidence-ready plots with minimal post-processing
 - Need quick iteration on visualization parameters
 
 **Do NOT use Plotly when:**

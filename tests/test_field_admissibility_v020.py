@@ -225,7 +225,7 @@ class TestFieldAdmissibilityReport:
             "gauge",
             "CSD_sign_convention",
             "conductivity_status",
-            "physical_amplitude_claim_allowed",
+            "physical_amplitude_calibrated",
         ]
         for field in required_fields:
             assert field in report, f"Missing required field: {field}"
@@ -236,8 +236,8 @@ class TestFieldAdmissibilityReport:
             field_output=signals.field,
             cfg_metadata=dict(model.cfg.metadata or {}),
         )
-        assert report["physical_amplitude_claim_allowed"] is False
-        assert report["field_claim_level"] == "proxy_readout_only"
+        assert report["physical_amplitude_calibrated"] is False
+        assert report["field_claim_level"] == "proxy_readout"
 
     def test_proxy_mode_status(self):
         model, signals = _model_and_signals()
@@ -245,7 +245,7 @@ class TestFieldAdmissibilityReport:
             field_output=signals.field,
             cfg_metadata=dict(model.cfg.metadata or {}),
         )
-        assert report["field_solver_status"] == "laminar_proxy_no_pde"
+        assert report["field_solver_status"] == "linear_solver"
         assert report["conductivity_status"] == "proxy_not_solved"
 
 
@@ -268,7 +268,7 @@ class TestManifestFieldAdmissibilityIntegration:
         model, signals = _model_and_signals()
         manifest = model.manifest(signals=signals)
         field_adm = manifest["backend_metadata"]["field_admissibility"]
-        assert field_adm["physical_amplitude_claim_allowed"] is False
+        assert field_adm["physical_amplitude_calibrated"] is False
 
     def test_manifest_boundary_and_gauge_present(self):
         model, signals = _model_and_signals()
@@ -309,11 +309,10 @@ class TestManifestTruthGatesPreserved:
     def test_manifest_truth_gates_frozen(self):
         model, signals = _model_and_signals()
         manifest = model.manifest(signals=signals)
-        assert manifest["truth_mode"] == "truth_safe_unverified"
         assert manifest["claim_level"] == "computational_scaffold"
         assert manifest["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-        assert manifest["field_claim_level"] == "proxy_readout_only"
-        assert manifest["physical_amplitude_claim_allowed"] is False
+        assert manifest["field_claim_level"] == "proxy_readout"
+        assert manifest["physical_amplitude_calibrated"] is False
 
     def test_manifest_empirical_validation_status_not_validated(self):
         model, signals = _model_and_signals()

@@ -118,7 +118,6 @@ class TestDeltaNotebookInfrastructure:
         )
         assert cfg is not None
         assert hasattr(cfg, "metadata")
-        assert cfg.metadata["truth_mode"] == "truth_safe_unverified"
         assert cfg.metadata["claim_level"] == "computational_scaffold"
 
     def test_construct_produces_model(self):
@@ -229,9 +228,6 @@ class TestDeltaNotebookAGSDRCells:
             if cell.get("cell_type") == "code"
         )
 
-        # Should have truth mode and biological_learning_claim=False
-        assert "truth_mode" in nb_text.lower(), \
-            "Notebook should declare truth_mode"
         assert "biological_learning_claim" in nb_text, \
             "Notebook should set biological_learning_claim explicitly"
 
@@ -295,7 +291,6 @@ class TestDeltaAGSDR:
             "best_score",
             "mean_rate_error_hz",
             "tuning_status",
-            "truth_mode",
             "biological_learning_claim",
             "mechanism_claim_status",
         ]

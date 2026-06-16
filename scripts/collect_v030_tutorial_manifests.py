@@ -7,7 +7,7 @@ single collection for validation, CI/CD verification, and documentation.
 
 Validates:
 - Manifest JSON structure
-- Claim gates (physical_amplitude_claim_allowed=False, etc.)
+- Claim gates (physical_amplitude_calibrated=False, etc.)
 - All 8 probe operators present
 - Figure artifact hashes
 - Acceptance gate compliance (firing rate 2-25 Hz, finite values, JSON-safe)
@@ -19,7 +19,6 @@ Usage:
     python scripts/collect_v030_tutorial_manifests.py --validate --strict
     python scripts/collect_v030_tutorial_manifests.py --list-failures
 
-truth_mode: truth_safe_unverified
 """
 
 import argparse
@@ -159,10 +158,10 @@ class ManifestCollector:
         basis = manifest.get('basis', {})
 
         checks['claim_physical_amplitude'] = (
-            basis.get('physical_amplitude_claim_allowed') == False
+            basis.get('physical_amplitude_calibrated') == False
         )
         if not checks['claim_physical_amplitude']:
-            errors.append("physical_amplitude_claim_allowed != False")
+            errors.append("physical_amplitude_calibrated != False")
 
         checks['claim_biological_metabolism'] = (
             basis.get('biological_metabolism_claim_allowed') == False

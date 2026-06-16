@@ -3,7 +3,6 @@
 **Date:** 2026-05-18  
 **Branch:** dev-v0.0.18-objective-report  
 **HEAD before hardening:** 07d2119  
-**truth_mode:** truth_safe_unverified
 
 ---
 
@@ -22,7 +21,6 @@
 
 | SHA | Message |
 |---|---|
-| 07d2119 | fix(config): add truth_mode to _CONSERVATIVE_TRUTH_DEFAULTS and validate_config |
 | 54ba7ba | feat(report): add ObjectiveReport structured evaluation result |
 | 407f698 | feat(readout): add ReadoutSpec/ReadoutResult declarative feature extraction |
 | 1f49424 | feat(receipt): add RunReceipt deterministic run-capture object |
@@ -32,7 +30,6 @@
 
 | ID | Severity | Finding | Resolution |
 |---|---|---|---|
-| F7 | **Blocking** (resolved) | `truth_mode` absent from `_CONSERVATIVE_TRUTH_DEFAULTS`; validate_config never checked it | Fixed at 07d2119; 3 new tests (P/Q/R) |
 | README | Non-blocking (resolved) | Status header stale at v0.0.5; test count 55; package structure missing new types; version section ordering reversed | Patched in this hardening pass |
 | venv_push | Non-blocking (resolved) | 475MB `venv_push/` not covered by .gitignore | Added to .gitignore |
 | pip metadata | Non-blocking (resolved) | Installed editable wheel reported v0.0.3 | Resolved by `pip install -e .` |
@@ -52,11 +49,10 @@ None. All blocking defects resolved.
 ## Scientific / truth status
 
 ```
-truth_mode:                    truth_safe_unverified
 claim_level:                   computational_scaffold
 source_calibration_status:     uncalibrated_izhikevich_native_current
-field_solver_status:           laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
+field_solver_status:           linear_solver
+physical_amplitude_calibrated: false
 empirical_validation_status:   not_empirically_validated
 mechanism_claim_status:        not_claimed
 ```

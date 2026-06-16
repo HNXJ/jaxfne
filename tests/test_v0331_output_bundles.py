@@ -108,7 +108,6 @@ class TestOutputBundles:
     def test_validation_report_metadata(self):
         """Validation report metadata preservation."""
         meta = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
         }
         report = jtfne.validation_report(
@@ -137,7 +136,6 @@ class TestOutputBundles:
         """Manifest should include truth gates from config."""
         cfg = jtfne.suite2_single_neuron_config()
         m = jtfne.manifest(cfg)
-        assert "truth_mode" in m
         assert "claim_level" in m
-        assert "physical_amplitude_claim_allowed" in m
-        assert m["physical_amplitude_claim_allowed"] is False
+        assert "physical_amplitude_calibrated" in m
+        assert m["physical_amplitude_calibrated"] is False

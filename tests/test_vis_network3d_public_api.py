@@ -78,7 +78,7 @@ def test_visualize_network_3d_writes_plotly_html_when_plotly_available(tmp_path)
     fig, node_table = jtfne.vis.visualize_network_3d(
         rows,
         output_html=output_html,
-        title="Public API smoke - proxy geometry (truth_safe_unverified)",
+        title="Public API smoke - proxy geometry ()",
         coordinate_unit="m",
         display_unit="um",
         return_node_table=True,

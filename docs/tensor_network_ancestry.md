@@ -99,7 +99,7 @@ $$
 | Transform | Implemented | Status |
 |-----------|-------------|--------|
 | Emitter → Source | ✓ (always) | Mandatory; state projection via current/conductance emission |
-| Source → Field | ◑ (optional) | Proxy-only or PDE-based (future) |
+| Source → Field | ◑ (optional) | Proxy-only or PDE-based (reserved) |
 | Field → Readout | ✓ (selective) | User chooses probe operators (8 available: SPK, Vm, source, LFP, CSD, EEG, MEG, EMM) |
 
 ### Why Basis Transforms Matter
@@ -131,28 +131,22 @@ $$\text{LFP\_proxy}(t) = \sum_{contacts} w_{contact} \, \phi_e(contact, t)$$
 
 (where $\phi_e$ is extracellular potential and $w_{contact}$ are weights from contact geometry)
 
-**Non-statement:** This is not a real LFP sensor. It is a proxy computed from simulated sources. No calibration to empirical recordings is stated.
+**Proxy note:** LFP-proxy is a computational readout derived from simulated sources in relative units. See [Limitations and future plans](limitations_and_future_plans.md) for calibration scope.
 
 ---
 
-## Part 4: What TFNE Does (and Does Not Statement)
+## Part 4: What TFNE Does
 
 ### TFNE Does
 
 ✓ Organize emitter → source → field → readout as a modular tensor-contraction pipeline  
 ✓ Support multi-basis workflows (e.g., Izhikevich emitter in mV, source in nA, LFP proxy in arbitrary units)  
 ✓ Provide 8 probe operators for simultaneous multimodal readouts  
-✓ Validate status checks: proxy-only, no biological metabolism statements, no solver oversteps  
-✓ Enable future extensions: new emitters, new field solvers, new probes—all within the same basis-transform architecture
+✓ Validate status checks: proxy-only readouts under the package truth gates  
+✓ Support extensions: new emitters, field operators, and probes within the same basis-transform architecture
 
-### TFNE Does NOT Statement
-
-✗ **No cerebellar metric-tensor learning:** jaxfne does not implement Pellionisz/Llinás sensorimotor transforms or learned basis-transform coefficients  
-✗ **No tensor-train/MPS compression:** jaxfne is not a tensor-network factorization library (no tensor-train states, MPS, PEPS, etc.)  
-✗ **No Maxwell/Poisson/stress-energy solver implementation from tensor-network ancestry:** jaxfne's source-field framework is a proxy spatial projection in the default v0.2.x path (no PDE solvers, no boundary-condition enforcement). TFNE's source and field basis transforms are fundamental to the electromagnetic observable framework; they are not absent from it.  
-✗ **No biological validation:** Proxy readouts (LFP, CSD, EEG, MEG) are named *proxy* because they are not validated against empirical measurements  
-✗ **No sensorimotor proof:** Using basis transforms does not demonstrate that neural circuits implement metric-tensor learning  
-✗ **No condensed-matter quantum analogy:** jaxfne tensors are not quantum states and do not use variational tensor-network algorithms
+The proxy-readout scope, reserved field-solver regimes, and calibration boundaries are
+catalogued in [Limitations and future plans](limitations_and_future_plans.md).
 
 ---
 
@@ -176,9 +170,9 @@ readout_basis = BasisSpec(name="multimodal", units="mixed", n_dims=8)
 
 ---
 
-## Part 6: Future Optional Path (Not Implemented)
+## Part 6: Reserved Optional Path (Not Implemented)
 
-A **future cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform architecture as a teaching tool:
+A **reserved cerebellar/sensorimotor tutorial** could use jaxfne's basis-transform architecture as a teaching tool:
 
 **Hypothetical example (NOT IMPLEMENTED):**
 

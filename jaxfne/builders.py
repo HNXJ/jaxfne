@@ -3,10 +3,9 @@
 This module provides high-level construction helpers for common cortical-column
 and multi-area scenarios. All functions return Configuration objects with
 sensible defaults while preserving truth gates:
-  - truth_mode = truth_safe_unverified
   - claim_level = computational_scaffold
-  - field_solver_status = laminar_proxy_no_pde
-  - physical_amplitude_claim_allowed = False
+  - field_solver_status = linear_solver
+  - physical_amplitude_calibrated = False
 
 This is a proxy toolkit for declarative network specification, not a field
 solver or calibration engine.
@@ -65,8 +64,8 @@ def default_cortical_column_config(
 
     Notes
     -----
-    - All truth gates are preserved: truth_safe_unverified,
-      computational_scaffold, laminar_proxy_no_pde, no physical claims.
+    - All truth gates are preserved: ,
+      computational_scaffold, linear_solver, no physical claims.
     - Field is a declarative proxy only; no PDE solver.
     - No sparse connectivity; all within-area connections are all-to-all uniform random.
     """
@@ -537,10 +536,9 @@ def validate_configuration(
     - Connectivity parameters are valid
     - Field domain is declared
     - Probes list is non-empty
-    - No physical_amplitude_claim_allowed overrides
-    - truth_mode = truth_safe_unverified
+    - No physical_amplitude_calibrated overrides
     - claim_level = computational_scaffold
-    - field_solver_status = laminar_proxy_no_pde
+    - field_solver_status = linear_solver
     """
     issues = []
 
@@ -555,20 +553,18 @@ def validate_configuration(
         issues.append("no_probes_declared")
 
     # Check truth gates
-    truth_mode = cfg.metadata.get("truth_mode")
     claim_level = cfg.metadata.get("claim_level", "computational_scaffold")
-    field_solver_status = cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde")
-    physical_amplitude_claim = cfg.metadata.get("physical_amplitude_claim_allowed", False)
+    field_solver_status = cfg.metadata.get("field_solver_status", "linear_solver")
+    physical_amplitude_claim = cfg.metadata.get("physical_amplitude_calibrated", False)
 
     truth_gates = {
-        "truth_mode": truth_mode,
         "claim_level": claim_level,
         "field_solver_status": field_solver_status,
-        "physical_amplitude_claim_allowed": physical_amplitude_claim,
+        "physical_amplitude_calibrated": physical_amplitude_claim,
     }
 
     if physical_amplitude_claim is not False:
-        issues.append("physical_amplitude_claim_allowed_is_true")
+        issues.append("physical_amplitude_calibrated_is_true")
 
     if strict and issues:
         return {
@@ -632,8 +628,8 @@ def laminar_cortex_config(
 
     Notes
     -----
-    - All truth gates preserved: truth_safe_unverified, computational_scaffold,
-      laminar_proxy_no_pde, physical_amplitude_claim_allowed=False.
+    - All truth gates preserved: computational_scaffold,
+      linear_solver, physical_amplitude_calibrated=False.
     - Selectors work on area, layer, cell_type, and combinations (e.g., select(area="V1", layer="L4")).
     - All arrays generated with finite values and float32 dtype by default.
     - Non-laminar use: pass layers=["single"] for one-layer degenerate case.

@@ -3,7 +3,6 @@
 Validates benchmark report structure, JSON safety, and claim gate integrity.
 Does NOT run heavy benchmarks (those are scripts/benchmark_jaxfne.py).
 
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 """
 
@@ -42,7 +41,6 @@ class TestPerformanceReportSchema:
                     },
                     "jaxfne_version": "0.3.4",
                     "claim_level": "computational_scaffold",
-                    "truth_mode": "truth_safe_unverified",
                     "local_environment_receipt_only": True,
                     "notes": "Local CPU benchmark, no universal claim.",
                 }
@@ -62,7 +60,6 @@ class TestPerformanceReportSchema:
             assert "hardware_info" in result
             assert "jaxfne_version" in result
             assert "claim_level" in result
-            assert "truth_mode" in result
             assert "local_environment_receipt_only" in result
 
             # All timings have phase and elapsed_ms
@@ -84,7 +81,6 @@ class TestPerformanceReportSchema:
                     "hardware_info": {"devices": 1},
                     "jaxfne_version": "0.3.4",
                     "claim_level": "computational_scaffold",
-                    "truth_mode": "truth_safe_unverified",
                     "local_environment_receipt_only": True,
                     "notes": "Test report",
                 }
@@ -108,13 +104,11 @@ class TestPerformanceReportSchema:
             "hardware_info": {},
             "jaxfne_version": "0.3.4",
             "claim_level": "computational_scaffold",
-            "truth_mode": "truth_safe_unverified",
             "local_environment_receipt_only": True,
             "notes": "Test",
         }
 
         assert mock_result["claim_level"] == "computational_scaffold"
-        assert mock_result["truth_mode"] == "truth_safe_unverified"
         assert mock_result["local_environment_receipt_only"] is True
 
     def test_hardware_info_required_fields(self):
@@ -158,7 +152,6 @@ class TestPerformanceReportSchema:
             "hardware_info": {},
             "jaxfne_version": "0.3.4",
             "claim_level": "computational_scaffold",
-            "truth_mode": "truth_safe_unverified",
             "local_environment_receipt_only": True,
             "notes": "Test",
         }

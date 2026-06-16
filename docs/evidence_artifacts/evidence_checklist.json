@@ -1,0 +1,275 @@
+{
+  "schema_version": "jaxfne.evidence_checklist.v0.1.0",
+  "repo_sha": "9a8c7db58f588bde9f5e8c31b664d56c4982958e",
+  "branch": "pub/ed08-tutorial-atlas-coverage",
+  "jaxfne_version": "0.3.29",
+  "generated_at_utc": "2026-06-07T22:25:39Z",
+  "truth_gates": {
+    "claim_level": "computational_scaffold",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false
+  },
+  "main_figures": [
+    {
+      "id": "fig01",
+      "filename": "fig01_tfne_architecture.png",
+      "purpose": "TFNE operator grammar overview",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig01_architecture.py",
+      "manifest_path": "outputs/evidence/fig01_tfne_architecture_manifest.json",
+      "figure_path": "figures/evidence/fig01_tfne_architecture.png",
+      "claim_boundary": "computational_scaffold_only"
+    },
+    {
+      "id": "fig02",
+      "filename": "fig02_source_field_contracts.png",
+      "purpose": "Source/field contracts and truth gates",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig02_contracts.py",
+      "manifest_path": "outputs/evidence/fig02_source_field_contracts_manifest.json",
+      "figure_path": "figures/evidence/fig02_source_field_contracts.png",
+      "claim_boundary": "no_pde_solver_claim"
+    },
+    {
+      "id": "fig03",
+      "filename": "fig03_jaxfne_backend.png",
+      "purpose": "Config to simulate backend flow",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig03_backend.py",
+      "manifest_path": "outputs/evidence/fig03_jaxfne_backend_manifest.json",
+      "figure_path": "figures/evidence/fig03_jaxfne_backend.png",
+      "claim_boundary": "package_native_api"
+    },
+    {
+      "id": "fig04",
+      "filename": "fig04_minimal_install_run.png",
+      "purpose": "Minimal install and smoke run",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig04_minimal_install_run.py",
+      "manifest_path": "outputs/evidence/fig04_minimal_install_run_manifest.json",
+      "figure_path": "figures/evidence/fig04_minimal_install_run.png",
+      "claim_boundary": "cpu_safe_tutorial"
+    },
+    {
+      "id": "fig05",
+      "filename": "fig05_runtime_scaling.png",
+      "purpose": "Runtime scaling across N, Z, seeds",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig05_runtime_scaling.py",
+      "manifest_path": "outputs/evidence/fig05_runtime_scaling_manifest.json",
+      "figure_path": "figures/evidence/fig05_runtime_scaling.png",
+      "claim_boundary": "benchmark_receipt_required"
+    },
+    {
+      "id": "fig06",
+      "filename": "fig06_readout_family_panel.png",
+      "purpose": "Eight proxy readout families",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig06_readout_family_panel.py",
+      "manifest_path": "outputs/evidence/fig06_readout_family_panel_manifest.json",
+      "figure_path": "figures/evidence/fig06_readout_family_panel.png",
+      "claim_boundary": "proxy_readouts_only"
+    },
+    {
+      "id": "fig07",
+      "filename": "fig07_reproducibility_artifacts.png",
+      "purpose": "Manifest and hash reproducibility",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
+      "manifest_path": "outputs/evidence/fig07_reproducibility_artifacts_manifest.json",
+      "figure_path": "figures/evidence/fig07_reproducibility_artifacts.png",
+      "claim_boundary": "fixed_tag_sha_required"
+    },
+    {
+      "id": "fig08",
+      "filename": "fig08_adjacent_tools_comparison.png",
+      "purpose": "Positioning vs adjacent tools",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
+      "manifest_path": "outputs/evidence/fig08_adjacent_tools_comparison_manifest.json",
+      "figure_path": "figures/evidence/fig08_adjacent_tools_comparison.png",
+      "claim_boundary": "capability_comparison_not_superiority"
+    }
+  ],
+  "extended_data": [
+    {
+      "id": "ed01",
+      "filename": "ed01_api_stability_snapshot.png",
+      "purpose": "Public API stability snapshot",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed01_api_stability_snapshot.py",
+      "manifest_path": "outputs/evidence/ed01_api_stability_snapshot_manifest.json",
+      "figure_path": "figures/evidence/ed01_api_stability_snapshot.png",
+      "claim_boundary": "local_api_snapshot_only"
+    },
+    {
+      "id": "ed02",
+      "filename": "ed02_json_schema_validation.png",
+      "purpose": "JSON schema and config validation receipts",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed02_json_schema_validation.py",
+      "manifest_path": "outputs/evidence/ed02_json_schema_validation_manifest.json",
+      "figure_path": "figures/evidence/ed02_json_schema_validation.png",
+      "claim_boundary": "config_schema_validation_receipt"
+    },
+    {
+      "id": "ed03",
+      "filename": "ed03_notebook_execution_receipts.png",
+      "purpose": "Notebook execution receipts (tutorial atlas survey)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
+      "manifest_path": "outputs/evidence/ed03_notebook_execution_receipts_manifest.json",
+      "figure_path": "figures/evidence/ed03_notebook_execution_receipts.png",
+      "claim_boundary": "receipt_driven_structural_scan"
+    },
+    {
+      "id": "ed04",
+      "filename": "ed04_optional_dependency_laziness.png",
+      "purpose": "Optional dependency laziness (local subprocess receipts)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed04_optional_dependency_laziness.py",
+      "manifest_path": "outputs/evidence/ed04_optional_dependency_laziness_manifest.json",
+      "figure_path": "figures/evidence/ed04_optional_dependency_laziness.png",
+      "claim_boundary": "local_subprocess_optional_dep_receipt"
+    },
+    {
+      "id": "ed05",
+      "filename": "ed05_manifest_hashes.png",
+      "purpose": "Local manifest/hash integrity receipt",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed05_manifest_hashes.py",
+      "manifest_path": "outputs/evidence/ed05_manifest_hashes_manifest.json",
+      "figure_path": "figures/evidence/ed05_manifest_hashes.png",
+      "claim_boundary": "local_artifact_integrity_receipt_only"
+    },
+    {
+      "id": "ed06",
+      "filename": "ed06_benchmark_scaling_tables.png",
+      "purpose": "Benchmark scaling tables (local CPU runtime receipt)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed06_benchmark_scaling_tables.py",
+      "manifest_path": "outputs/evidence/ed06_benchmark_scaling_tables_manifest.json",
+      "figure_path": "figures/evidence/ed06_benchmark_scaling_tables.png",
+      "claim_boundary": "local_cpu_runtime_receipt_only"
+    },
+    {
+      "id": "ed07",
+      "filename": "ed07_probe_operator_contracts.png",
+      "purpose": "Probe/readout operator contract matrix",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed07_probe_operator_contracts.py",
+      "manifest_path": "outputs/evidence/ed07_probe_operator_contracts_manifest.json",
+      "figure_path": "figures/evidence/ed07_probe_operator_contracts.png",
+      "claim_boundary": "proxy_readout_operator_contracts_only"
+    },
+    {
+      "id": "ed08",
+      "filename": "ed08_tutorial_atlas_coverage.png",
+      "purpose": "Tutorial atlas coverage matrix (receipt-driven)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
+      "manifest_path": "outputs/evidence/ed08_tutorial_atlas_coverage_manifest.json",
+      "figure_path": "figures/evidence/ed08_tutorial_atlas_coverage.png",
+      "claim_boundary": "tutorial_atlas_coverage_receipt_only"
+    },
+    {
+      "id": "ed09",
+      "filename": "ed09_failure_modes_and_nulls.png",
+      "purpose": "Failure modes and null controls (local receipt)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
+      "manifest_path": "outputs/evidence/ed09_failure_modes_and_nulls_manifest.json",
+      "figure_path": "figures/evidence/ed09_failure_modes_and_nulls.png",
+      "claim_boundary": "failure_null_local_receipt_only"
+    },
+    {
+      "id": "ed10",
+      "filename": "ed10_release_archive_receipt.png",
+      "purpose": "Release/archive readiness receipt (evidence panel)",
+      "status": "implemented",
+      "generator_script": "scripts/evidence_figures/ed10_release_archive_receipt.py",
+      "manifest_path": "outputs/evidence/ed10_release_archive_receipt_manifest.json",
+      "figure_path": "figures/evidence/ed10_release_archive_receipt.png",
+      "claim_boundary": "release_archive_evidence_receipt_only"
+    }
+  ],
+  "validation_commands": {
+    "compileall": "python -m compileall -q jaxfne tests examples scripts",
+    "smoke_pytest": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short",
+    "full_pytest": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/ -q --tb=line",
+    "notebook_audit": "python scripts/audit_notebooks_and_assets.py --check",
+    "mkdocs_strict": "mkdocs build --strict",
+    "evidence_inventory": "python scripts/evidence_figures_inventory.py",
+    "fig01_architecture": "python scripts/evidence_figures/fig01_architecture.py",
+    "fig02_contracts": "python scripts/evidence_figures/fig02_contracts.py",
+    "fig03_backend": "python scripts/evidence_figures/fig03_backend.py",
+    "fig04_minimal_install_run": "python scripts/evidence_figures/fig04_minimal_install_run.py",
+    "fig05_runtime_scaling": "python scripts/evidence_figures/fig05_runtime_scaling.py",
+    "fig06_readout_family_panel": "python scripts/evidence_figures/fig06_readout_family_panel.py",
+    "fig07_reproducibility_artifacts": "python scripts/evidence_figures/fig07_reproducibility_artifacts.py",
+    "fig08_adjacent_tools_comparison": "python scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
+    "ed01_api_stability_snapshot": "python scripts/evidence_figures/ed01_api_stability_snapshot.py",
+    "ed02_json_schema_validation": "python scripts/evidence_figures/ed02_json_schema_validation.py",
+    "ed03_notebook_execution_receipts": "python scripts/evidence_figures/ed03_notebook_execution_receipts.py",
+    "ed04_optional_dependency_laziness": "python scripts/evidence_figures/ed04_optional_dependency_laziness.py",
+    "ed05_manifest_hashes": "python scripts/evidence_figures/ed05_manifest_hashes.py",
+    "ed06_benchmark_scaling_tables": "python scripts/evidence_figures/ed06_benchmark_scaling_tables.py",
+    "ed07_probe_operator_contracts": "python scripts/evidence_figures/ed07_probe_operator_contracts.py",
+    "ed08_tutorial_atlas_coverage": "python scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
+    "ed09_failure_modes_and_nulls": "python scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
+    "ed10_release_archive_receipt": "python scripts/evidence_figures/ed10_release_archive_receipt.py"
+  },
+  "required_artifacts": [
+    "docs/evidence/nature_methods_roadmap.md",
+    "docs/evidence/evidence_checklist.json",
+    "scripts/evidence_figures_inventory.py",
+    "outputs/evidence/inventory.json"
+  ],
+  "missing_artifacts": [],
+  "benchmark_plan": {
+    "status": "implemented_ed06_local_receipt",
+    "axes": [
+      "neuron_count",
+      "laminar_contacts",
+      "seed_batch",
+      "readout_families",
+      "runtime_mode_eager_vs_jit",
+      "memory_peak_rss",
+      "cpu_baseline",
+      "optional_accelerator"
+    ],
+    "performance_claims_allowed": false,
+    "receipt_required_fields": [
+      "repo_sha",
+      "jaxfne_version",
+      "hardware_cpu",
+      "jax_device",
+      "duration_ms",
+      "dt_ms",
+      "command",
+      "timestamp_utc"
+    ]
+  },
+  "release_requirements": {
+    "git_tag_approval_required": true,
+    "pypi_publish_allowed": false,
+    "testpypi_publish_allowed": false,
+    "github_release_approval_required": true,
+    "zenodo_doi_required": true,
+    "pinned_sha_required": true
+  },
+  "submission_requirements": {
+    "code_availability": "partial",
+    "data_availability": "not_applicable_synthetic_only",
+    "software_dependencies_documented": "partial",
+    "install_instructions": "complete",
+    "test_demo_data": "partial",
+    "reproducibility_commands": "partial",
+    "llm_use_statement": "placeholder",
+    "author_contributions": "placeholder",
+    "competing_interests": "placeholder",
+    "license": "MIT",
+    "doi_placeholder": "TBD"
+  }
+}

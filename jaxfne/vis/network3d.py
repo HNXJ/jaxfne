@@ -439,7 +439,6 @@ def visualize_network_3d(
     -----
     - Requires Plotly: ``pip install "jaxfne[viz]"``
     - Geometry is proxy/declared only. Not calibrated anatomical coordinates.
-    - truth_mode: truth_safe_unverified; physical_amplitude_claim_allowed: false
     """
     go = _require_plotly()
 

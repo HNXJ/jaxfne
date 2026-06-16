@@ -6,8 +6,8 @@ environments so callers need no branching logic.
 
 Scope
 -----
-- ``truth_safe_unverified``: laminar proxy output only, no PDE field solver.
-- ``physical_amplitude_claim_allowed: false``
+- ````: laminar proxy output only, no PDE field solver.
+- ``physical_amplitude_calibrated: false``
 - All sharding specs here are *stubs*: they set up the topology but do not yet
   drive any real multi-device dispatch in the AGSDR loop.  Full integration is
   planned for v0.3.20+.

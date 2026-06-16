@@ -139,10 +139,9 @@ def test_evaluation_preserves_truth_gates():
     """Test that evaluate() always returns frozen truth gates."""
     model, signals = _model_and_signals()
     report = model.evaluate(signals, jtfne.objective())
-    assert report["truth_mode"] == "truth_safe_unverified"
     assert report["claim_level"] == "computational_scaffold"
-    assert report["field_claim_level"] == "proxy_readout_only"
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["field_claim_level"] == "proxy_readout"
+    assert report["physical_amplitude_calibrated"] is False
 
 
 def test_unknown_metric_non_strict_warning():

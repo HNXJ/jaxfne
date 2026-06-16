@@ -2,7 +2,6 @@
 
 **Date:** 2026-05-24  
 **Status:** Ready for human review and v0.3.3 kick-off  
-**truth_mode:** truth_safe_unverified  
 **Package baseline:** jaxfne 0.2.30 (stable, no v0.3 release yet)
 
 ---
@@ -12,14 +11,14 @@
 ### v0.3.1: Single Izhikevich Neuron
 - **Status:** Merged (commit 6c3bde8) + validation audit closed
 - **Figures:** 2 PNG (voltage trace, spike raster) at 150 dpi
-- **Truth gate:** computational_scaffold, proxy_readout_only, physical_amplitude_claim_disallowed
+- **Truth gate:** computational_scaffold, proxy_readout, physical_amplitude_claim_disallowed
 - **Key metric:** Voltage range, spike count, firing regularity
 - **Manifest:** docs/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json
 
 ### v0.3.2: Single-Neuron Parameter Sweep
 - **Status:** Merged (commit b3c0f7f) + duration/rate-regime gates closed
 - **Figures:** 2 PNG (parameter sweep heatmap, regime lines) at 150 dpi
-- **Truth gate:** computational_scaffold, proxy_readout_only, physical_amplitude_claim_disallowed
+- **Truth gate:** computational_scaffold, proxy_readout, physical_amplitude_claim_disallowed
 - **Key metric:** Out-of-regime detection, sweep coverage, regime boundary validation
 - **Manifest:** docs/tutorials_v030/manifests/v0302_single_neuron_parameter_sweep_manifest.json
 
@@ -351,7 +350,7 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 - **Validation target:**
   - All keys present per schema version
   - All required fields non-null
-  - All enums valid (truth_mode, claim_level, etc.)
+  - All enums valid (claim_level, etc.)
   - All SHA256 hashes properly formatted
   - No schema version drift
 - **Expected output:** Schema validation report, required schema updates
@@ -400,15 +399,15 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
   - Dependency imports all declared in pyproject.toml
 - **Expected output:** Public API inventory, helper refactoring checklist
 
-#### v0.3.23: Manuscript Alignment Pass
-- **Goal:** Align tutorial narrative with planned publication manuscript sections
+#### v0.3.23: Technical report Comparison Pass
+- **Goal:** Align tutorial narrative with planned publication technical report sections
 - **Scope:** All tutorials + planned paper outline
 - **Validation target:**
-  - Each tutorial maps to 1+ manuscript section
+  - Each tutorial maps to 1+ technical report section
   - Figure numbering matches paper figure numbers (where applicable)
-  - Terminology consistent with draft manuscript
+  - Terminology consistent with draft technical report
   - Supplementary materials identified
-- **Expected output:** Manuscript-to-tutorial mapping table
+- **Expected output:** Technical report-to-tutorial mapping table
 
 #### v0.3.24: Biophysics Tutorial Consolidation
 - **Goal:** Write coherent pedagogical narrative across all 15 tutorials
@@ -481,15 +480,15 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 - **Expected output:** v0.3-atlas.tar.gz with manifest
 
 #### v0.3.31: v0.3 Series Postmortem / Possible Final PyPI Checkpoint
-- **Goal:** Document lessons learned, identify future roadmap items, final truth status
+- **Goal:** Document lessons learned, identify future scope catalogue items, final truth status
 - **Scope:** All 30 prior scenarios + 16 audit phases
 - **Validation target:**
   - All truth claims validated or explicitly deferred
   - All blockers identified and documented
-  - Roadmap updated (future phases: v0.4, v0.5, etc.)
+  - Scope catalogue updated (future phases: v0.4, v0.5, etc.)
   - Package quality gates met
-- **Expected output:** Postmortem markdown, final roadmap, packaging decision
-- **PyPI decision:** After all audits PASS + manuscript alignment confirmed, decide final release label: v0.3.31 as "v0.3.31-complete-tutorial-atlas" or v0.3 (latest minor bump)
+- **Expected output:** Postmortem markdown, final scope catalogue, packaging decision
+- **PyPI decision:** After all audits PASS + technical report comparison confirmed, decide final release label: v0.3.31 as "v0.3.31-complete-tutorial-atlas" or v0.3 (latest minor bump)
 
 ---
 
@@ -511,7 +510,7 @@ The following three checkpoints define explicit capability gates and decision la
 6. Notebook/Colab execution audit: All notebooks run without error; outputs regenerate; figures display
 7. Truth-claim audit PASS: No biological realism claims, no "calibrated" language, no mechanism-proof statements
    - Review all figure captions and narrative text for overclaiming
-   - Confirm all scenarios marked as "computational_scaffold" with physical_amplitude_claim_allowed=False
+   - Confirm all scenarios marked as "computational_scaffold" with physical_amplitude_calibrated=False
 8. Rendered docs website builds and displays all figures correctly (manual visual confirmation required)
 
 **Validation commands (execute before checkpoint approval):**
@@ -682,7 +681,7 @@ python scripts/create_v030_atlas_bundle.py \
 
 **Manual gates:**
 - Rendered docs visual confirmation PASS
-- Postmortem review (lessons learned, blockers, future roadmap)
+- Postmortem review (lessons learned, blockers, future scope catalogue)
 - Final packaging decision (v0.3.31 vs. v0.3 bump; single release vs. three-phase)
 
 **Decision labels for GitHub Project gamma:**
@@ -697,7 +696,7 @@ python scripts/create_v030_atlas_bundle.py \
 - Decide final version label:
   - Option A: v0.3.31 (micro bump, all phases release together)
   - Option B: v0.3 (minor bump; if moving to stable release)
-  - Option C: Release three separate versions at v0.3.11, v0.3.21, v0.3.31 (phased release strategy)
+  - Option C: Release three separate versions at v0.3.11, v0.3.21, v0.3.31 (phased release scope)
 - Tag commit with selected label
 - Publish to PyPI with release notes:
   - List all 15 core + 16 audit scenarios
@@ -723,7 +722,7 @@ Three capability-based PyPI release checkpoints have been formally defined in se
 
 ### Decision Questions for Human Review
 
-1. **PyPI release strategy:**
+1. **PyPI release scope:**
    - Option A: Release all three checkpoints (v0.3.11, v0.3.21, v0.3.31) on PyPI
    - Option B: Skip v0.3.11, release only v0.3.21 and v0.3.31
    - Option C: Release only final v0.3.31 (or v0.3) after all audits
@@ -815,7 +814,7 @@ echo "=========================================="
 
 ## 8. Open Questions for Human Review
 
-1. **PyPI release strategy:** Single v0.3 release after v0.3.31, or three-phase releases at v0.3.11, v0.3.21, v0.3.31?
+1. **PyPI release scope:** Single v0.3 release after v0.3.31, or three-phase releases at v0.3.11, v0.3.21, v0.3.31?
 
 2. **Tutorial asset distribution:** Should PNG figures and manifest JSON files be included in PyPI package distribution, or docs-only (committed to repo but not packaged)?
 
@@ -850,7 +849,7 @@ echo "=========================================="
 - Visualization doctrine: ✓ Linked, Phase V rule established
 
 **This planning document:**
-- 7 sections (current state, workflow, visualization rule, scenarios, audits, PyPI strategy, open questions)
+- 7 sections (current state, workflow, visualization rule, scenarios, audits, PyPI scope, open questions)
 - 30 scenario definitions (v0.3.3–v0.3.31)
 - 3 proposed PyPI checkpoints (v0.3.11, v0.3.21, v0.3.31)
 - 10 open questions for human decision
@@ -861,7 +860,7 @@ echo "=========================================="
 
 **Date reviewed:** 2026-05-24  
 **Sources inspected:**
-1. `/Users/hamednejat/Downloads/jaxfne_jbiophysic_deep_audit_bundle.zip` — deep critical audit of jaxfne/jbiophysic alignment
+1. `/Users/hamednejat/Downloads/jaxfne_jbiophysic_deep_audit_bundle.zip` — deep critical audit of jaxfne/jbiophysic comparison
 2. `/Users/hamednejat/Downloads/tfne_jaxfne_11_figures_executed.ipynb` — eleven-figure visual reference notebook
 
 ### Audit Bundle Summary
@@ -874,11 +873,11 @@ The `jaxfne_jbiophysic_deep_audit_bundle.md` (36.5 KB) contains:
 - **jbiophysic strengths:** Pedagogical ambition, targeted tests pass, HH implementation sound, scientific guardrails present, integration bridge exists.
 - **jbiophysic weaknesses:** Structurally overgrown (211 Python files, overlapping namespaces), `jtfne.py` monolith with wrong namespace, optional dependency tests not optional-safe.
 
-**Doctrine alignment:** All audit P0 findings are compatible with v0.3 accepted gates (truth_safe_unverified, computational_scaffold, laminar_proxy_no_pde, physical_amplitude_claim_allowed=False). No conflicts detected.
+**Doctrine comparison:** All audit P0 findings are compatible with v0.3 accepted gates (computational_scaffold, linear_solver, physical_amplitude_calibrated=False). No conflicts detected.
 
 ### Notebook Figure Analysis
 
-The `tfne_jaxfne_11_figures_executed.ipynb` contains **11 figures** covering the full TFNE manuscript-level pipeline:
+The `tfne_jaxfne_11_figures_executed.ipynb` contains **11 figures** covering the full TFNE technical report-level pipeline:
 
 1. **Fig 1: TFNE architecture flow chart** — operator pipeline with metadata gates; uses Sankey diagram + schematic flow
 2. **Fig 2: Source-to-field mathematical contract** — physics contract diagram + heatmap of laminar LFP-like output
@@ -929,7 +928,7 @@ The `tfne_jaxfne_11_figures_executed.ipynb` contains **11 figures** covering the
 
 1. **Immediate (human review):**
    - Read this handoff (sections 1–11)
-   - Decide on PyPI checkpoint strategy (sections 7–8)
+   - Decide on PyPI checkpoint scope (sections 7–8)
    - Address open questions (section 9)
 
 2. **After approval:**

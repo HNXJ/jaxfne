@@ -4,7 +4,7 @@ Tests for Suite No. 3 (Low-Frequency Scaling Proxy Readouts) public tutorial.
 Validates:
 - Notebook structure and headers
 - Public API usage (Configuration, construct, simulate, probes)
-- Metadata formatting (truth_mode, claim_level, proxy_projection)
+- Metadata formatting (claim_level, proxy_projection)
 - Figures saved correctly
 - JSON safety (no NaN/Inf in manifests/reports)
 """
@@ -111,7 +111,6 @@ class TestMetadataFormatting:
         ]
         # Accept either legacy key name or updated v0.3.22+ schema name
         required_keys_with_aliases = {
-            "truth_mode": "run_status",
             "claim_level": "model_status",
         }
 

@@ -86,7 +86,7 @@ Each operator returns a report declaring:
 - **units_or_status:** Units (if physical) or proxy status
 - **assumptions:** List of assumptions (geometry, solver, etc.)
 
-This metadata supports future validation and calibration workflows.
+This metadata supports calibration validation path and calibration workflows.
 
 ## Example: Saving and loading bundles
 
@@ -116,4 +116,4 @@ for readout in loaded_manifest["readouts"]:
 ## Next steps
 
 - [Calibration](calibration.md) for preparing outputs for empirical validation
-- [Scope and limitations](scope_and_limitations.md) for understanding operator status
+- [Scope and limitations](limitations_and_future_plans.md) for understanding operator status

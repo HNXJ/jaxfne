@@ -91,7 +91,7 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 Version: 0.2.27
 Computational scaffold: computational_scaffold
 Physical amplitude status allowed: False
-Field solver status: laminar_proxy_no_pde
+Field solver status: linear_solver
 
 === CONSERVATION PROXY DIAGNOSTICS (v0.2.27) ===
 Status: proxy
@@ -212,7 +212,7 @@ print("✓ Simulation output saved to simulation_output.json")
 | **Physical amplitude** | Not allowed | Values are in simulation units, not validated physical currents |
 | **Biological metabolism** | Not allowed | Izhikevich model is phenomenological, not biophysical |
 | **Field accuracy** | Proxy only | CSD/LFP outputs are forward-field proxies, not validated against experiment |
-| **Solver status** | Not implemented | Poisson/Maxwell solvers are declared future; diagnostics are proxy summaries |
+| **Solver status** | Not implemented | Elliptic/volumetric solvers are reserved regimes; diagnostics are proxy summaries |
 
 ### What v0.2.27 IS
 

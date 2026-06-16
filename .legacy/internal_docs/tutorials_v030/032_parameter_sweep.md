@@ -79,5 +79,5 @@ This demonstrates parameter sensitivity without optimization.
 - Biological calibration.
 - Conductance-based models.
 
-All results labeled: `truth_safe_unverified / computational_scaffold / uncalibrated`
+All results labeled: ` / computational_scaffold / uncalibrated`
 

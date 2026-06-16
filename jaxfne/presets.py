@@ -1,7 +1,7 @@
 """Preset registries for cell types and receptor kinetics.
 
 These are metadata only — no biological calibration or empirical validation.
-Truth status: truth_safe_unverified, computational_scaffold.
+Truth status: computational_scaffold.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ CELL_TYPE_PRESETS = {
         "description": "Regular-spiking excitatory",
         "source": "Izhikevich 2003 Table 1",
         "truth_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "PV_FS": {
         "a": 0.10,
@@ -33,7 +33,7 @@ CELL_TYPE_PRESETS = {
         "description": "Fast-spiking parvalbumin+",
         "source": "Izhikevich 2003 Table 1",
         "truth_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "SST_LTS": {
         "a": 0.02,
@@ -46,7 +46,7 @@ CELL_TYPE_PRESETS = {
         "description": "Low-threshold somatostatin+",
         "source": "Izhikevich 2003 Table 1 (LTS variant)",
         "truth_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "VIP_IS": {
         "a": 0.02,
@@ -59,7 +59,7 @@ CELL_TYPE_PRESETS = {
         "description": "Intrinsic spiking / bursting, VIP+ disinhibitory",
         "source": "Izhikevich 2003 Table 1 (IS variant)",
         "truth_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
 }
 
@@ -75,7 +75,7 @@ RECEPTOR_KINETICS = {
         "description": "Alpha-amino-3-hydroxy-5-methyl-4-isoxazolepropionic acid",
         "source": "Standard neuroscience literature",
         "source_calibration_status": "metadata_only_uncalibrated",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "NMDA": {
         "name": "NMDA",
@@ -86,7 +86,7 @@ RECEPTOR_KINETICS = {
         "description": "N-methyl-D-aspartate; slow timescale (no Mg-block implemented)",
         "source": "Standard neuroscience literature",
         "source_calibration_status": "metadata_only_uncalibrated",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "GABA_A": {
         "name": "GABA_A",
@@ -97,7 +97,7 @@ RECEPTOR_KINETICS = {
         "description": "Ionotropic GABA receptor, fast timescale",
         "source": "Standard neuroscience literature",
         "source_calibration_status": "metadata_only_uncalibrated",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
     "GABA_B": {
         "name": "GABA_B",
@@ -108,7 +108,7 @@ RECEPTOR_KINETICS = {
         "description": "Metabotropic GABA receptor, slow timescale (no G-protein cascade implemented)",
         "source": "Standard neuroscience literature",
         "source_calibration_status": "metadata_only_uncalibrated",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     },
 }
 

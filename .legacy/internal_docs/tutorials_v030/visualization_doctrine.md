@@ -2,7 +2,6 @@
 
 **Version:** v0.3.0+  
 **Last updated:** 2026-05-24  
-**truth_mode:** truth_safe_unverified  
 
 ---
 
@@ -409,7 +408,7 @@ Every v0.3 tutorial must satisfy this checklist:
 ### Do's ✓
 
 - "Simulated spike raster for 1 Izhikevich neuron, 100 ms"
-- "Proxy current source density (CSD) heatmap; laminar_proxy_no_pde mode"
+- "Proxy current source density (CSD) heatmap; linear_solver mode"
 - "Fictitious feedforward input to sensory area (stimulus proxy)"
 - "Computational scaffold demonstration: multi-area network activity"
 - "Estimated firing rate per layer (from simulated voltage)"
@@ -503,7 +502,7 @@ if PLOTLY_AVAILABLE:
 - Include colorbar/legend for all heatmaps and multi-trace plots
 - Add descriptive title and 1–2 sentence caption
 - Use consistent color schemes (viridis for spectral, RdBu for signed, gray for neutral)
-- High DPI (150+) for print/publication quality
+- High DPI (150+) for print/evidence quality
 - Proxy-safe language in all labels and titles
 
 ❌ **Don't:**

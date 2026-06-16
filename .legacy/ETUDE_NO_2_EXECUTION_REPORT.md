@@ -143,13 +143,13 @@ jupyter nbconvert --to notebook --execute \
 3. **Optimization:** Grid sweep (not gradient-based; ready to upgrade to `jtfne.agsdr()`)
 4. **Visualization:** Plotly 3D + matplotlib; custom distributions in cells (not jaxfne.vis functions used yet)
 
-### Roadmap
+### Scope catalogue
 - [ ] Extend to full 200 neurons/column (runtime ~10 min CPU, ~2 min GPU)
 - [ ] Run full optimization (48 evals, expected min-similarity convergence ~15–20%)
 - [ ] Integrate `jtfne.agsdr()` for gradient-based tuning
 - [ ] Use jaxfne built-in visualization functions where available
 - [ ] Compare final spectrolaminar profiles with reference notebook outputs
-- [ ] Generate manuscript-ready figures
+- [ ] Generate technical report-ready figures
 
 ---
 

@@ -7,7 +7,6 @@ Validates:
 - Metadata formatting (scope, readout, field mode claims)
 - Figure generation
 - JSON safety (no NaN/Inf in manifests)
-- Public wording (no internal truth_mode, claim_level in public display)
 """
 
 import json
@@ -136,7 +135,7 @@ class TestMetadataFormatting:
         ]
         # Accept either legacy key name or updated v0.3.22+ schema name
         required_keys_with_aliases = {
-            "physical_amplitude_claim_allowed": "amplitude_status",
+            "physical_amplitude_calibrated": "amplitude_status",
         }
 
         for key in required_keys:
@@ -159,14 +158,14 @@ class TestMetadataFormatting:
 
         assert "computational_scaffold" in code
         assert "simulated_proxy" in code or "proxy" in code
-        assert "False" in code  # physical_amplitude_claim_allowed
+        assert "False" in code  # physical_amplitude_calibrated
 
 
 class TestPublicWording:
     """Validate public-facing wording."""
 
     def test_scope_clarified(self):
-        """Notebook clarifies scope and limitations."""
+        """Notebook clarifies scope and scope notes."""
         with open(NOTEBOOK_PATH) as f:
             nb = json.load(f)
 

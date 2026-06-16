@@ -96,14 +96,6 @@ class TestSpectrolaminarOutputsJSON:
 class TestSpectrolaminarTruthGates:
     """Truth gates frozen in manifest."""
 
-    def test_manifest_truth_mode(self):
-        """Manifest truth_mode is truth_safe_unverified."""
-        outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
-        manifest_file = outdir / "manifest.json"
-        if manifest_file.exists():
-            manifest = json.loads(manifest_file.read_text())
-            assert manifest.get("truth_mode") == "truth_safe_unverified"
-
     def test_manifest_claim_level(self):
         """Manifest claim_level is computational_scaffold."""
         outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
@@ -121,28 +113,28 @@ class TestSpectrolaminarTruthGates:
             assert manifest.get("source_calibration_status") == "uncalibrated_izhikevich_native_current"
 
     def test_manifest_field_solver_status(self):
-        """Manifest field_solver_status is laminar_proxy_no_pde."""
+        """Manifest field_solver_status is linear_solver."""
         outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
         manifest_file = outdir / "manifest.json"
         if manifest_file.exists():
             manifest = json.loads(manifest_file.read_text())
-            assert manifest.get("field_solver_status") == "laminar_proxy_no_pde"
+            assert manifest.get("field_solver_status") == "linear_solver"
 
     def test_manifest_field_claim_level(self):
-        """Manifest field_claim_level is proxy_readout_only."""
+        """Manifest field_claim_level is proxy_readout."""
         outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
         manifest_file = outdir / "manifest.json"
         if manifest_file.exists():
             manifest = json.loads(manifest_file.read_text())
-            assert manifest.get("field_claim_level") == "proxy_readout_only"
+            assert manifest.get("field_claim_level") == "proxy_readout"
 
     def test_manifest_physical_amplitude_claim_false(self):
-        """Manifest physical_amplitude_claim_allowed is False."""
+        """Manifest physical_amplitude_calibrated is False."""
         outdir = pathlib.Path("outputs/v020_spectrolaminar_public_path")
         manifest_file = outdir / "manifest.json"
         if manifest_file.exists():
             manifest = json.loads(manifest_file.read_text())
-            assert manifest.get("physical_amplitude_claim_allowed") is False
+            assert manifest.get("physical_amplitude_calibrated") is False
 
 
 class TestSpectrolaminarObjectiveGrammar:

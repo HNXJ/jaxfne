@@ -90,5 +90,5 @@ This demonstrates minimal but mechanistically interesting E/I dynamics without c
 - Detailed conductance-based models.
 - Inhibitory receptors (only single inhibitory class).
 
-All results labeled: `truth_safe_unverified / computational_scaffold / uncalibrated_izhikevich_native_current / proxy_readout_only`
+All results labeled: ` / computational_scaffold / uncalibrated_izhikevich_native_current / proxy_readout`
 

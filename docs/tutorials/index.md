@@ -58,11 +58,11 @@ A comprehensive tutorial covering:
 - Part 1: Declaring cortical column anatomy and multi-column loops
 - Part 2: Vectorized JAX-first population simulations
 - Part 3: Sampling multimodal sensor proxies (MUA, LFP, CSD, EEG, MEG, EMM)
-- Part 4: High-fidelity publication-ready spectrolaminar visualizations
+- Part 4: High-resolution spectrolaminar visualizations
 - Part 5: Evoked responses and baseline spectrolaminar heatmaps
 - Part 6: CPU-safe parameter search and tuning trajectories
 
-**13 publication-ready figures**, strict JSON evidence manifests, and JAX-based vis tools.
+**13 figures**, strict JSON evidence manifests, and JAX-based vis tools.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
 
@@ -79,7 +79,7 @@ A comprehensive tutorial covering:
 - Part 4: Investigating synchrony and Fano proxies by scale
 - Part 5: Exporting strict validation JSON manifests and reports
 
-**Five publication-ready figures**, strict verification constraints, and low-frequency scaling diagnostics.
+**Five figures**, strict verification constraints, and low-frequency scaling diagnostics.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_3_low_frequency_scaling.ipynb)
 
@@ -96,7 +96,7 @@ A comprehensive tutorial covering:
 - Part 4: Energy cost timeline projections via metabolic EMM-proxy operators
 - Part 5: Validation receipt and independent panel figures
 
-**Three publication-ready panel figures** and structured validation manifest exports.
+**Three panel figures** and structured validation manifest exports.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb)
 
@@ -113,7 +113,7 @@ A comprehensive tutorial covering:
 - Part 4: Comparing expected vs deviant vs omission population activity and LFP/CSD proxy readouts
 - Part 5: Exporting JSON-safe paradigm reports and validation manifests
 
-**Five publication-ready plots** and structured validation manifests.
+**Five plots** and structured validation manifests.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0313_omission_oddball.ipynb)
 
@@ -140,7 +140,7 @@ A comprehensive tutorial covering:
 - Part 2: Configuration via method chaining
 - Part 3: Simulation and population readouts
 - Part 4: Manifest with scope metadata
-- Part 5: Five publication-ready figures
+- Part 5: Five figures
 - Part 6: Scope boundaries and limitations
 
 **Intermediate difficulty**, CPU-safe, runs in ~1–2 minutes on Colab.

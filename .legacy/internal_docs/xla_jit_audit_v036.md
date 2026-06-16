@@ -51,6 +51,6 @@ A strict test suite (`tests/test_jit_equivalence_v036.py`) has been added to gua
 
 ---
 
-## 5. Solver Roadmap Status
+## 5. Solver Scope catalogue Status
 * **Boundary:** All projection and field solvers remain pure computational **proxies** (LFP-proxy, CSD-proxy, etc.). The mathematical model assumes direct projection of source currents onto sensor geometry templates.
-* **Roadmap doctrine:** Implementing physical partial differential equation (PDE) solvers (e.g., full Maxwell/Poisson solvers) remains strictly **design-only / deferred** for future engineering milestones. No physical PDE claims are made by the current codebase.
+* **Scope catalogue doctrine:** Implementing physical partial differential equation (PDE) solvers (e.g., full Maxwell/Poisson solvers) remains strictly **design-only / deferred** for future engineering milestones. No physical PDE claims are made by the current codebase.

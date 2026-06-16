@@ -153,8 +153,8 @@ def test_model_wrapper_equivalence():
 def test_truth_gates_in_diagnostics():
     r = _compile([{"name": "E_PV", "source": {"cell_type": "E"}, "target": {"cell_type": "PV"},
                    "weight": 0.1, "mechanism": "ampa"}])
-    assert r.diagnostics["field_solver_status"] == "laminar_proxy_no_pde"
-    assert r.diagnostics["physical_amplitude_claim_allowed"] is False
+    assert r.diagnostics["field_solver_status"] == "linear_solver"
+    assert r.diagnostics["physical_amplitude_calibrated"] is False
     assert r.mechanism_table[0]["status"] == "declared_not_simulated"
 
 

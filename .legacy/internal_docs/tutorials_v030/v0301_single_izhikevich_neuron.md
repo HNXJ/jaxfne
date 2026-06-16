@@ -4,7 +4,7 @@
 **Version:** v0.3.1  
 **jaxfne version:** 0.2.30  
 **Date:** 2026-05-23  
-**Truth status:** `truth_safe_unverified`  
+**Truth status:** ``  
 
 [Open in Colab](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/notebooks/v030/v0301_single_izhikevich_neuron.ipynb)
 
@@ -200,11 +200,10 @@ The manifest captures immutable claim gates:
 
 ```json
 {
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "physical_amplitude_claim_allowed": false,
-  "field_solver_status": "laminar_proxy_no_pde",
-  "field_claim_level": "proxy_readout_only",
+  "physical_amplitude_calibrated": false,
+  "field_solver_status": "linear_solver",
+  "field_claim_level": "proxy_readout",
   "firing_rate_hz": 11.0,
   "firing_rate_gate_2_25_hz": true,
   "neuron_model": "izhikevich",
@@ -214,10 +213,9 @@ The manifest captures immutable claim gates:
 ```
 
 **Claim gates (frozen for v0.3.1):**
-- `truth_mode`: truth_safe_unverified
 - `claim_level`: computational_scaffold
-- `physical_amplitude_claim_allowed`: False
-- `field_solver_status`: laminar_proxy_no_pde
+- `physical_amplitude_calibrated`: False
+- `field_solver_status`: linear_solver
 - `biological_validation_claim_allowed`: False
 
 These gates are **immutable** and define the scope of the tutorial. No biological mechanism is proven; no physical field is solved; no external real-world validation is claimed.
@@ -262,7 +260,7 @@ The CSD-proxy output is computed without solving the Poisson equation:
 
 $$\nabla^2 \phi = -\frac{\nabla \cdot \mathbf{J}_e}{\sigma}$$
 
-Instead, the laminar_proxy_no_pde mode computes a contact-normalized projection of source current. This is suitable for visualization and order-of-magnitude reasoning, but **not a physical electric potential**.
+Instead, the linear_solver mode computes a contact-normalized projection of source current. This is suitable for visualization and order-of-magnitude reasoning, but **not a physical electric potential**.
 
 ---
 
@@ -329,10 +327,9 @@ For the cortical_eig preset, spiking is expected and observed.
 
 ### Scientific boundaries (immutable as of v0.2.30)
 
-- **truth_mode:** truth_safe_unverified
 - **claim_level:** computational_scaffold
-- **physical_amplitude_claim_allowed:** False
-- **field_solver_status:** laminar_proxy_no_pde (no Maxwell/Poisson solvers)
+- **physical_amplitude_calibrated:** False
+- **field_solver_status:** linear_solver (no Maxwell/Poisson solvers)
 - **source_calibration_status:** uncalibrated (teaching proxy, not measured)
 - **biological_validation:** Not performed; not claimed
 

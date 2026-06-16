@@ -80,7 +80,7 @@ def test_optimization_report_schema_and_json_strictness():
     summary = result.summary
 
     # Assert canonical keys
-    assert summary["physical_amplitude_claim_allowed"] is False
+    assert summary["physical_amplitude_calibrated"] is False
     assert summary["biological_learning_claim"] is False
     assert summary["amplitude_claim_allowed"] is False
     assert summary["surrogate_status"] in {"none", "not_applicable", "declared", "required_but_missing"}

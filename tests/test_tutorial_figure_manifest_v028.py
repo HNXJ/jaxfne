@@ -68,7 +68,7 @@ class TestManifestStructure:
         """Status fields must be correct."""
         assert manifest["run_status"] == "tutorial_scaffold"
         assert manifest["model_status"] == "computational_scaffold"
-        assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
+        assert manifest["field_solver_status"] == "linear_solver"
         assert manifest["amplitude_status"] is False
         assert manifest["metabolism_status"] is False
 
@@ -208,7 +208,7 @@ class TestStatusFields:
         fields = {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
+            "field_solver_status": "linear_solver",
             "amplitude_status": False,
             "metabolism_status": False,
         }

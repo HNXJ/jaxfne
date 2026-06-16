@@ -19,11 +19,10 @@ A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in
 artifact_class: tutorial
 artifact_id: multi_area_laminar_workshop
 run_status: tutorial_scaffold
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 LFP/CSD outputs are laminar **proxy** readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is **emergent** from the dynamics and the leadfield — it is not imposed.

@@ -1,3 +1,5 @@
+"""Task, condition, and event paradigms for jaxfne simulations."""
+
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional, Sequence, Mapping
 from .io import json_safe
@@ -79,8 +81,8 @@ class Paradigm:
     name: str = "none"
     blocks: list[dict[str, Any]] = field(default_factory=list)
     conditions: tuple[ParadigmCondition, ...] = ()
-    alignment_code: int = 101
-    alignment_label: str = "p1"
+    comparison_code: int = 101
+    comparison_label: str = "p1"
     pre_stimulus_buffer_ms: float = 1000.0
     analysis_windows: dict[str, tuple[float, float]] = field(default_factory=lambda: {
         "baseline": (-500.0, 0.0),
@@ -98,15 +100,18 @@ class Paradigm:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def habituation(self, sequence: Sequence[str], n_trials: int) -> "Paradigm":
+        """Documented public function `habituation`."""
         return replace(
             self,
             blocks=[*self.blocks, {"kind": "habituation", "sequence": list(sequence), "n_trials": n_trials}],
         )
 
     def main_block(self, **kwargs: Any) -> "Paradigm":
+        """Documented public function `main_block`."""
         return replace(self, blocks=[*self.blocks, {"kind": "main_block", **kwargs}])
 
     def batch(self, n_trials: int, seed: int = 0, condition_weights: Optional[dict[str, float]] = None) -> dict[str, Any]:
+        """Documented public function `batch`."""
         return {
             "name": self.name,
             "n_trials": n_trials,
@@ -136,8 +141,8 @@ class Paradigm:
             "name": self.name,
             "blocks": self.blocks,
             "conditions": [c.to_dict() for c in self.conditions],
-            "alignment_code": self.alignment_code,
-            "alignment_label": self.alignment_label,
+            "comparison_code": self.comparison_code,
+            "comparison_label": self.comparison_label,
             "pre_stimulus_buffer_ms": self.pre_stimulus_buffer_ms,
             "analysis_windows": self.analysis_windows,
             "event_codes": self.event_codes,
@@ -146,6 +151,7 @@ class Paradigm:
 
 
 def paradigm(name: str = "none") -> Paradigm:
+    """Documented public function `paradigm`."""
     return Paradigm(name=name)
 
 

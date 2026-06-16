@@ -4,7 +4,6 @@ v0.3 Plotly Artifacts Tests
 Tests that Plotly artifact generation works correctly, both with and without
 Plotly installed. Validates guarded imports, JSON-safe data, and hash integrity.
 
-truth_mode: truth_safe_unverified
 """
 
 import json

@@ -6,36 +6,34 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 185 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 195 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Current release `jaxfne==0.3.40` (tag `v0.3.40`). The six root-level export
-helpers were introduced in v0.3.37 and promoted to formal `__all__` members in
-v0.3.38.
+Current release `jaxfne==0.3.42` (tag `v0.3.42`). The root-level export
+helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 !!! note "Scope & truth gates"
-    All field/EEG/MEG/EMM outputs are **computational proxies**, not solved PDE
-    or sensor-level signals (`field_solver_status = "laminar_proxy_no_pde"`,
-    `physical_amplitude_claim_allowed = False`). The package is a
-    `computational_scaffold` for teaching, prototyping, and validation — not a
-    calibrated biological simulator. See
-    [Scope and limitations](../scope_and_limitations.md).
+    All field/EEG/MEG/EMM outputs are computational proxies
+    (`claim_level = "computational_scaffold"`, `field_solver_status = "linear_solver"`,
+    `field_claim_level = "proxy_readout"`, `physical_amplitude_calibrated = False`).
+    See [Limitations and future plans](../limitations_and_future_plans.md) for the
+    scope statement.
 
 ## Module pages
 
 | Page | Covers | Public names |
 |---|---|---|
-| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 68 |
+| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 69 |
 | [Emitters](emitters.md) | Izhikevich emitter, receptors, synapses, EIG networks, edge lists | 19 |
 | [Fields](fields.md) | Source→laminar projection, `FieldOutput`, proxy diagnostics | 12 |
 | [Probes](probes.md) | EEG/MEG/EMM proxy transforms (within Fields) | (in Fields) |
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (6) · **Sanity-delta** (7) · **Plasticity** (4) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (2) · **PyNWB** (2) · **Experimental HPC** (2) · geometry/builders/streaming/stimulus (4) | 84 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (7) · **Sanity-delta** (7) · **Plasticity** (5) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (4) | 93 |
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **185**
+> signatures in the complete symbol index below. Counts sum to **195**
 > (`len(jaxfne.__all__)`). See the docs audit
 > (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
@@ -78,15 +76,15 @@ in a plotting backend.
 
 All export helpers honor the truth gates: JSON is written with `allow_nan=False`,
 and figure/readout outputs remain proxy diagnostics
-(`physical_amplitude_claim_allowed = False`).
+(`physical_amplitude_calibrated = False`).
 
 ---
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**185 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**195 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (68)
+### Core (69)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -103,7 +101,7 @@ and figure/readout outputs remain proxy diagnostics
 | `ConfigValidationResult` | class | Report container for configuration validation. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
-| `DatasetSpec` | class | Manifest-safe dataset/alignment declaration for observed data. |
+| `DatasetSpec` | class | Manifest-safe dataset/comparison declaration for observed data. |
 | `default_basis_spec` | func | Return the default BasisSpec matching the current laminar-proxy scaffold. |
 | `enable_x64` | func | Enable JAX float64 mode before constructing arrays and report status. |
 | `get_signal` | func | Thin free-function accessor that delegates to `Signals.get`. |
@@ -114,6 +112,7 @@ and figure/readout outputs remain proxy diagnostics
 | `load_config` | func | Load a `.jcfg.json` file and return a `JaxFNEConfig`. |
 | `matrix_parameter` | func | Create a matrix parameter specification for tuning weight matrices. |
 | `MatrixParameterSpec` | class | Declarative specification for a tunable weight matrix parameter. |
+| `migrate_schema` | func | Upgrade a legacy truth/metadata dict to the canonical truth-gate schema. |
 | `Model` | class | —  _(dataclass; fields in signature)_ |
 | `Net` | class | —  _(dataclass; fields in signature)_ |
 | `Objective` | class | Declarative objective specification: losses, regularizers, and diagnostic gates. |
@@ -254,7 +253,7 @@ and figure/readout outputs remain proxy diagnostics
 | `hh_numpy_reference_trace` | func | Standalone tutorial/reference Hodgkin-Huxley single-compartment trace. |
 | `jaxley_trace_to_signals` | func | Convert Jaxley-style voltage trace array to jaxfne Signals. |
 | `JaxleyBridge` | class | Jaxley-focused biophysical emitter bridge. |
-| `JaxleyEmitterBridge` | class | Jaxley bridge contract for future compartment emitters. |
+| `JaxleyEmitterBridge` | class | Jaxley bridge contract for reserved compartment emitters. |
 | `JaxleyTraceSpec` | class | Metadata specification for Jaxley-style voltage trace arrays. |
 | `require_jaxley` | func | Import Jaxley lazily with an informative error. |
 
@@ -269,7 +268,7 @@ and figure/readout outputs remain proxy diagnostics
 | `ParadigmCondition` | class | A specific trial condition: sequence of stimuli and associated events. |
 | `ParadigmEvent` | class | Discrete event within a task trial: stimulus, behavioral code, or omission marker. |
 
-### Solvers (6)
+### Solvers (7)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -278,6 +277,7 @@ and figure/readout outputs remain proxy diagnostics
 | `euler_step` | func | Single forward Euler step (backward compatibility). |
 | `EulerSolver` | class | Forward Euler integrator using JAX and lax.scan. |
 | `solve_ode` | func | Public ODE solver entrypoint routing to appropriate solver backend. |
+| `solve_volume_conductor_experimental` | func | Experimental volume conductor solver skeleton. |
 | `SolverConfig` | class | Configuration class for ODE solvers. |
 
 ### Sanity-delta runtime (7)
@@ -292,7 +292,7 @@ and figure/readout outputs remain proxy diagnostics
 | `SanityDeltaModel` | class | Wrapper around constructed hierarchical oddball model. |
 | `TaskEpisode` | class | Result of a task episode with probing, export, validation. |
 
-### Plasticity (4)
+### Plasticity (5)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -300,6 +300,7 @@ and figure/readout outputs remain proxy diagnostics
 | `STDPPlasticityConfig` | class | Configuration class for STDP activity-dependent plasticity. |
 | `STDPState` | class | Container for the state variables of the STDP synapse model. |
 | `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
+| `update_stdp_weights_jax` | func | JAX-optimized plasticity weight update kernel (STDP). |
 
 ### Tutorial utils (4)
 
@@ -319,11 +320,12 @@ and figure/readout outputs remain proxy diagnostics
 | `make_population_mesh` | func | Return a 1-D named `jax.sharding.Mesh` across all visible JAX devices. |
 | `make_replicated_sharding` | func | Return a `jax.sharding.NamedSharding` that fully replicates an array |
 
-### Connectivity (2)
+### Connectivity (3)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `compile_connection_rules` | func | Compile declared connection rules into sparse finite edge arrays. |
+| `compile_connection_rules_jax` | func | Tensorized JAX connectivity compiler producing static-shape edge outputs. |
 | `ConnectionCompileResult` | class | Compiled sparse connectivity. |
 
 ### Geometry (1)
@@ -350,6 +352,17 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `triangular_drive` | func | Generates a triangular drive trace. |
 
+### JAX Spectral Analysis (6)
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `spectrolaminar_psd_jax` | func | Compute spectrolaminar PSD averaged across trials using JAX. |
+| `bandpower_jax` | func | Compute average power within a frequency band normalized by channel max. |
+| `spectrolaminar_readout_kernel_jax` | func | Batchable readout kernel computing relative power and normalized band profiles. |
+| `spectrolaminar_similarity_kernel_jax` | func | Compute the profile similarity score in JAX. |
+| `spectrolaminar_similarity_candidates_jax` | func | Batched vectorization path for similarity scoring. |
+| `spectrolaminar_similarity_candidates_seeds_jax` | func | Nested batched vectorization path for seeds and candidates. |
+
 ### Validation registry (2)
 
 | Symbol | Kind | Summary |
@@ -361,8 +374,8 @@ and figure/readout outputs remain proxy diagnostics
 
 | Symbol | Kind | Summary |
 |---|---|---|
-| `read_nwb` | func | Placeholder for NWB read (not implemented). |
-| `write_nwb` | func | Placeholder for NWB write (not implemented). |
+| `read_nwb` | func | Placeholder for NWB read (reserved status). |
+| `write_nwb` | func | Placeholder for NWB write (reserved status). |
 
 ### Experimental HPC (2)
 
@@ -388,5 +401,5 @@ and figure/readout outputs remain proxy diagnostics
 
 ---
 
-See the docs audit & restructure plan (`internal_docs/docs_audit_v0330.md`)
+See the docs audit & restructure notes (`internal_docs/docs_audit_v0330.md`)
 for orphaned pages, duplicate cleanup, and the per-module table migration.

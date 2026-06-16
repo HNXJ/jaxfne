@@ -17,7 +17,7 @@ Generated UTC: 2026-06-07T22:34:39Z
 
 | Line | Role | Entry gate |
 |---|---|---|
-| v0.3.x | tutorial atlas, Etudes, proxy readout hardening, publication evidence stack | ED9/ED10, full manifests, strict JSON, clean install smoke |
+| v0.3.x | tutorial atlas, Etudes, proxy readout hardening, evidence stack | ED9/ED10, full manifests, strict JSON, clean install smoke |
 | v0.4.x | experimental physical field solvers | stable source schema, field schema, boundary/gauge doctrine, residual tests |
 | v0.5.x+ | external comparison, calibration workflows, inverse modeling, uncertainty | external reference/empirical comparison, held-out tests, uncertainty reports |
 
@@ -38,8 +38,8 @@ Before a high-journal package paper is submitted:
 
 - 8/8 main figures regenerated from scripts.
 - ED1-ED10 present with scripts, PNGs, manifests, and receipts.
-- All `outputs/publication/*` regenerated from a clean live checkout.
-- `publication_checklist.json` and `inventory.json` strict JSON pass.
+- All `outputs/evidence/*` regenerated from a clean live checkout.
+- `evidence_checklist.json` and `inventory.json` strict JSON pass.
 - All root import/optional dependency gates pass in a clean venv.
 - Notebook smoke/full receipts exist or are explicitly out of scope.
 - No proxy readout is described as physical measurement.

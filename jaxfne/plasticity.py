@@ -3,6 +3,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict
+import jax
 import jax.numpy as jnp
 import numpy as np
 
@@ -145,3 +146,64 @@ def plot_stdp_adaptation_suite(
     plt.tight_layout()
     plt.savefig(os.path.join(fig_dir, f"{prefix}W_heatmaps.png"), dpi=100)
     plt.close()
+
+
+@jax.jit
+def update_stdp_weights_jax(
+    W: jax.Array,
+    trace_pre: jax.Array,
+    trace_post: jax.Array,
+    spiked: jax.Array,
+    exc_mask: jax.Array,
+    A_plus: float,
+    A_minus: float,
+    plasticity_scale: float,
+    w_min: float,
+    w_max: float,
+) -> jax.Array:
+    """JAX-native plasticity weight update kernel (STDP).
+
+    Parameters
+    ----------
+    W : jax.Array
+        Synaptic weight matrix of shape (n_neurons, n_neurons).
+    trace_pre : jax.Array
+        Presynaptic traces of shape (n_neurons,).
+    trace_post : jax.Array
+        Postsynaptic traces of shape (n_neurons,).
+    spiked : jax.Array
+        Boolean spike indicator array of shape (n_neurons,).
+    exc_mask : jax.Array
+        Excitatory cell mask of shape (n_neurons,).
+    A_plus, A_minus : float
+        LTP and LTD rate parameters.
+    plasticity_scale : float
+        Global scaling factor.
+    w_min, w_max : float
+        Synaptic weight limits.
+
+    Returns
+    -------
+    jax.Array
+        Updated weight matrix of shape (n_neurons, n_neurons).
+    """
+    post_spike = spiked[:, None]
+    pre_spike = spiked[None, :]
+    
+    # LTP: pre active, then post spikes (potentiate)
+    dW_ltp = post_spike * trace_pre[None, :] * A_plus
+    # LTD: post active, then pre spikes (depress)
+    dW_ltd = pre_spike * trace_post[:, None] * A_minus
+    dW = plasticity_scale * (dW_ltp - dW_ltd)
+    
+    # Enforce E/I sign preservation and exclude self-connections
+    update_mask = exc_mask[None, :] & (~jnp.eye(W.shape[0], dtype=bool))
+    W_next = W + jnp.where(update_mask, dW, 0.0)
+    
+    # Clip excitatory weights to [w_min, w_max]
+    W_next = jnp.where(exc_mask[None, :], jnp.clip(W_next, w_min, w_max), W_next)
+    
+    # Enforce no self-connections
+    W_next = W_next * (1.0 - jnp.eye(W.shape[0]))
+    return W_next
+

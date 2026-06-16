@@ -37,11 +37,11 @@ def test_laminar_population_construction_and_json_safe():
     )
     assert pop.name == "E_L23"
     assert pop.n_units == 4
-    assert pop.physical_amplitude_claim_allowed is False
+    assert pop.physical_amplitude_calibrated is False
     assert pop.claim_level == "computational_scaffold"
 
     d = pop.to_dict()
-    assert d["physical_amplitude_claim_allowed"] is False
+    assert d["physical_amplitude_calibrated"] is False
     assert d["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
     json.dumps(d, allow_nan=False)
 
@@ -75,12 +75,12 @@ def test_laminar_source_geometry_construction_and_n_units_total():
     assert isinstance(geom, LaminarSourceGeometry)
     assert geom.n_units_total == 5
     assert len(geom.populations) == 2
-    assert geom.physical_amplitude_claim_allowed is False
+    assert geom.physical_amplitude_calibrated is False
     assert geom.claim_level == "computational_scaffold"
 
     d = geom.to_dict()
     assert d["n_units_total"] == 5
-    assert d["physical_amplitude_claim_allowed"] is False
+    assert d["physical_amplitude_calibrated"] is False
     json.dumps(d, allow_nan=False)
 
 
@@ -167,16 +167,15 @@ def test_truth_gates_unchanged_with_geometry():
     signals = model.simulate(sim)
 
     manifest = model.manifest(signals)
-    assert manifest["truth_mode"] == "truth_safe_unverified"
     assert manifest["claim_level"] == "computational_scaffold"
     labels = manifest.get("v005_claim_labels", {})
-    assert labels.get("physical_amplitude_claim_allowed", False) is False
+    assert labels.get("physical_amplitude_calibrated", False) is False
     assert labels.get("empirical_validation_status", "not_empirically_validated") == "not_empirically_validated"
     assert labels.get("mechanism_claim_status", "not_claimed") == "not_claimed"
 
     # geometry itself preserves truth gates
     geom_dict = geom.to_dict()
-    assert geom_dict["physical_amplitude_claim_allowed"] is False
+    assert geom_dict["physical_amplitude_calibrated"] is False
     assert geom_dict["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
     assert geom_dict["claim_level"] == "computational_scaffold"
 

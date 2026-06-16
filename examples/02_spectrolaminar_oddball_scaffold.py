@@ -264,7 +264,7 @@ def main():
         "assertions": {
             "amplitude_status_is_false": manifest.get("amplitude_status") is False,
             "source_calibration_uncalibrated": manifest.get("source_calibration_status") == "uncalibrated_izhikevich_native_current",
-            "field_statement_proxy_readout_only": manifest.get("field_model_status") == "proxy_readout_only",
+            "field_statement_proxy_readout": manifest.get("field_model_status") == "proxy_readout",
             "run_status_safe_unverified": manifest.get("run_status") == "tutorial_scaffold",
         }
     }

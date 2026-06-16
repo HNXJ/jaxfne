@@ -179,7 +179,7 @@ def test_receptor_exponential_manifest_json_safe():
     bm = manifest["backend_metadata"]
     assert bm["used_recurrent_backend"] == "edge_list"
     assert bm["used_synaptic_kernel"] == "receptor_exponential"
-    assert bm["edge_list_physical_amplitude_claim_allowed"] is False
+    assert bm["edge_list_physical_amplitude_calibrated"] is False
     assert bm["edge_count"] > 0
     json.dumps(manifest, allow_nan=False)
 
@@ -191,17 +191,16 @@ def test_receptor_exponential_truth_gates_unchanged():
     sim = jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=9, runtime=rt)
     signals = model.simulate(sim)
     manifest = model.manifest(signals=signals)
-    assert manifest["truth_mode"] == "truth_safe_unverified"
     assert manifest["claim_level"] == "computational_scaffold"
     assert manifest["source_projection_mode"] == "proxy_no_field_solve"
-    assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
+    assert manifest["field_solver_status"] == "linear_solver"
     labels = manifest.get("v005_claim_labels", {})
-    assert labels.get("field_claim_level", "proxy_readout_only") == "proxy_readout_only"
-    assert labels.get("physical_amplitude_claim_allowed", False) is False
+    assert labels.get("field_claim_level", "proxy_readout") == "proxy_readout"
+    assert labels.get("physical_amplitude_calibrated", False) is False
     assert labels.get("empirical_validation_status", "not_empirically_validated") == "not_empirically_validated"
     assert labels.get("mechanism_claim_status", "not_claimed") == "not_claimed"
     # Signals-level gate
-    assert signals.metadata["field_claim_level"] == "proxy_readout_only"
+    assert signals.metadata["field_claim_level"] == "proxy_readout"
 
 
 # Test J — no new source mode

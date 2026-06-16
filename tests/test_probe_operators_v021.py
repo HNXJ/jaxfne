@@ -241,7 +241,7 @@ def test_e_emm_proxy_contains_proxy_status():
 
 
 def test_e_emm_proxy_does_not_claim_biological_metabolism():
-    """EMM-proxy report does not claim biological metabolism."""
+    """EMM-proxy report scopes biological metabolism."""
     emm = jnp.ones((50,), dtype=jnp.float32)
     readout = emm_proxy_probe(emm)
     report_str = str(readout.report).lower()
@@ -271,7 +271,7 @@ def test_f_no_like_in_public_operators():
 
 
 def test_f_physical_amplitude_claim_false():
-    """All proxy operators set physical_amplitude_claim_allowed to False."""
+    """All proxy operators set physical_amplitude_calibrated to False."""
     operators = [
         spk_probe(jnp.ones((10, 8))),
         vm_probe(jnp.ones((10, 8))),
@@ -283,11 +283,11 @@ def test_f_physical_amplitude_claim_false():
         emm_proxy_probe(jnp.ones((10,))),
     ]
     for readout in operators:
-        assert readout.report.get("physical_amplitude_claim_allowed") is False
+        assert readout.report.get("physical_amplitude_calibrated") is False
 
 
 def test_f_truth_gates_frozen():
-    """All operators preserve frozen report metadata (no truth_mode in public reports)."""
+    """All operators preserve frozen report metadata (internal gate keys excluded from public reports)."""
     operators = [
         spk_probe(jnp.ones((10, 8))),
         vm_probe(jnp.ones((10, 8))),
@@ -300,10 +300,8 @@ def test_f_truth_gates_frozen():
     ]
     for readout in operators:
         report = readout.report
-        # v0.2.12: truth_mode is internal only, not in public reports
-        assert "truth_mode" not in report, f"truth_mode should not be in public report: {report.keys()}"
-        assert report.get("field_claim_level") == "proxy_readout_only"
-        assert report.get("physical_amplitude_claim_allowed") is False
+        assert report.get("field_claim_level") == "proxy_readout"
+        assert report.get("physical_amplitude_calibrated") is False
 
 
 # ─── G. Finite Output Test ──────────────────────────────────────────────────

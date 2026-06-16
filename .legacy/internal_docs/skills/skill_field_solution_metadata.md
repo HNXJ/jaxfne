@@ -29,7 +29,7 @@ All field solution reports must include:
 
 | Field | Type | Proxy Value | Purpose |
 |-------|------|-------------|---------|
-| `field_solver_status` | str | `"laminar_proxy_no_pde"` | Solver type (proxy, solved, future) |
+| `field_solver_status` | str | `"linear_solver"` | Solver type (proxy, solved, future) |
 | `solver_name` | str | `"laminar_proxy"` | Human-readable solver identifier |
 | `boundary_condition` | str | `"declared_metadata_only"` | BC declaration for proxy; computed for real solvers |
 | `gauge` | str | `"declared_metadata_only"` | Gauge convention declaration |
@@ -41,8 +41,8 @@ All field solution reports must include:
 | `finite_phi_e` | bool | `true` (if arrays exist) | Extracellular potential finitude |
 | `finite_J_e` | bool | `false` (proxy) | Current density finitude (false: not computed) |
 | `finite_CSD` | bool | `true` (if arrays exist) | CSD finitude |
-| `field_claim_level` | str | `"proxy_readout_only"` | Claim authority (proxy, admissible, empirical) |
-| `physical_amplitude_claim_allowed` | bool | `false` | Can we use physical units? |
+| `field_claim_level` | str | `"proxy_readout"` | Claim authority (proxy, admissible, empirical) |
+| `physical_amplitude_calibrated` | bool | `false` | Can we use physical units? |
 | `source_projection_mode` | str | `"proxy_no_field_solve"` | How sources map to field |
 | `source_current_conservation_status` | str | `"not_applicable_proxy_mode"` | Conservation test status |
 | `source_conservation_tested` | bool | `false` | Was conservation validated? |
@@ -52,7 +52,7 @@ All field solution reports must include:
 
 Use these standardized values for `field_solver_status`:
 
-- **`"laminar_proxy_no_pde"`** — Laminar readout without PDE solve (current: v0.2.13)
+- **`"linear_solver"`** — Laminar readout without PDE solve (current: v0.2.13)
 - **`"solved_resistive_poisson"`** — Resistive Poisson solver (future: v0.2.14+)
 - **`"solved_bidomain"`** — Bidomain PDE solver (future: v0.2.15+)
 - **`"specified_future_module"`** — Reserved for future physical solvers
@@ -61,7 +61,7 @@ Use these standardized values for `field_solver_status`:
 
 Field claim levels express confidence in field admissibility:
 
-- **`"proxy_readout_only"`** — Proxy output; no physical claim
+- **`"proxy_readout"`** — Proxy output; no physical claim
 - **`"physical_admissible_candidate"`** — Solver output; passes admissibility checks (finite, SPD, conservative) but not empirically validated
 - **`"empirical_candidate"`** — Solver output validated against experimental benchmarks (future phase)
 
@@ -71,14 +71,14 @@ Field claim levels express confidence in field admissibility:
 
 | Aspect | Proxy (v0.2.13) | Solved (v0.2.14+) |
 |--------|-----------------|-------------------|
-| `field_solver_status` | `laminar_proxy_no_pde` | `solved_resistive_poisson` |
+| `field_solver_status` | `linear_solver` | `solved_resistive_poisson` |
 | `boundary_condition` | `declared_metadata_only` | Computed; e.g., `dirichlet_zero` |
 | `gauge` | `declared_metadata_only` | Computed; e.g., `mean_zero` |
 | `solver_residual_l2_relative` | `null` | Float ≥ 0 |
 | `n_iterations` | `null` | Int > 0 |
 | `converged` | `null` | Boolean |
-| `physical_amplitude_claim_allowed` | `false` | `true` if admissible, `false` if not |
-| `field_claim_level` | `proxy_readout_only` | `physical_admissible_candidate` or higher |
+| `physical_amplitude_calibrated` | `false` | `true` if admissible, `false` if not |
+| `field_claim_level` | `proxy_readout` | `physical_admissible_candidate` or higher |
 | `finite_J_e` | `false` | `true` if computed |
 
 ## Code Examples
@@ -100,7 +100,7 @@ report = field_out.diagnostics
 # Check key fields
 print(f"Solver: {report['field_solver_status']}")
 print(f"Claim level: {report['field_claim_level']}")
-print(f"Physical amplitude allowed: {report['physical_amplitude_claim_allowed']}")
+print(f"Physical amplitude allowed: {report['physical_amplitude_calibrated']}")
 print(f"Finite CSD: {report['finite_CSD']}")
 ```
 
@@ -124,7 +124,7 @@ required_fields = {
     "finite_J_e",
     "finite_CSD",
     "field_claim_level",
-    "physical_amplitude_claim_allowed",
+    "physical_amplitude_calibrated",
     "source_projection_mode",
     "source_current_conservation_status",
     "source_conservation_tested",
@@ -147,15 +147,15 @@ print("✓ Field report passes validation")
 
 ```python
 # Verify proxy-specific constraints
-if report["field_solver_status"] == "laminar_proxy_no_pde":
+if report["field_solver_status"] == "linear_solver":
     # These must be null for proxy
     assert report["n_iterations"] is None
     assert report["converged"] is None
     assert report["solver_residual_l2_relative"] is None
     
     # Proxy cannot claim physical amplitude
-    assert report["physical_amplitude_claim_allowed"] is False
-    assert report["field_claim_level"] == "proxy_readout_only"
+    assert report["physical_amplitude_calibrated"] is False
+    assert report["field_claim_level"] == "proxy_readout"
     
     # Conservation is untested in proxy
     assert report["source_conservation_tested"] is False
@@ -186,7 +186,7 @@ report = _make_field_solution_report(
     finite_J_e=True,
     finite_CSD=True,
     field_claim_level="physical_admissible_candidate",  # Not "empirical" yet
-    physical_amplitude_claim_allowed=True,  # Only if admissible
+    physical_amplitude_calibrated=True,  # Only if admissible
     source_projection_mode="solved_conservation_enforced",
     source_current_conservation_status="conservation_tested_pass",
     source_conservation_tested=True,
@@ -217,15 +217,15 @@ report["csd_sign_convention"] = "positive_equals_extracellular_source"
 **WRONG:**
 ```python
 # Proxy field but claiming physical amplitude
-report["field_solver_status"] = "laminar_proxy_no_pde"
-report["physical_amplitude_claim_allowed"] = True  # ✗ False for proxy!
+report["field_solver_status"] = "linear_solver"
+report["physical_amplitude_calibrated"] = True  # ✗ False for proxy!
 ```
 
 **CORRECT:**
 ```python
 # Proxy fields never claim physical amplitude
-report["field_solver_status"] = "laminar_proxy_no_pde"
-report["physical_amplitude_claim_allowed"] = False
+report["field_solver_status"] = "linear_solver"
+report["physical_amplitude_calibrated"] = False
 ```
 
 **Why:** Proxy fields are dimensionless. Only solved fields that pass admissibility checks can claim physical units.
@@ -237,7 +237,7 @@ report["physical_amplitude_claim_allowed"] = False
 **WRONG:**
 ```python
 # Proxy, but filling in solver metrics
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["n_iterations"] = 0  # Should be null!
 report["converged"] = False  # Should be null!
 ```
@@ -245,7 +245,7 @@ report["converged"] = False  # Should be null!
 **CORRECT:**
 ```python
 # Proxy leaves solver metrics null
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["n_iterations"] = None
 report["converged"] = None
 ```
@@ -259,7 +259,7 @@ report["converged"] = None
 **WRONG:**
 ```python
 # Proxy but claiming J_e is computed
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["finite_J_e"] = True
 report["current_density_layout"] = "computed_j_e"
 ```
@@ -267,7 +267,7 @@ report["current_density_layout"] = "computed_j_e"
 **CORRECT:**
 ```python
 # Proxy does not compute J_e
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["finite_J_e"] = False
 report["current_density_layout"] = "not_applicable"
 ```
@@ -281,7 +281,7 @@ report["current_density_layout"] = "not_applicable"
 **WRONG:**
 ```python
 # Claiming conservation was tested, but field is proxy
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["source_conservation_tested"] = True  # Untrue for proxy
 report["source_conservation_claim_allowed"] = True  # False for proxy
 ```
@@ -289,7 +289,7 @@ report["source_conservation_claim_allowed"] = True  # False for proxy
 **CORRECT:**
 ```python
 # Proxy never tests conservation
-report["field_solver_status"] = "laminar_proxy_no_pde"
+report["field_solver_status"] = "linear_solver"
 report["source_conservation_tested"] = False
 report["source_conservation_claim_allowed"] = False
 ```
@@ -337,15 +337,14 @@ Field solution reports must follow strict vocabulary rules:
 
 - ❌ `proxy_positive_equals_extracellular_source_like` (old; contains `_like`)
 - ❌ `lfp_like`, `csd_like`, `eeg_like`, `meg_like` (forbidden in any context)
-- ❌ `truth_mode` (internal only; not in public reports)
 - ❌ `biological_metabolism` without `not_` prefix (proxy cannot claim metabolism)
 - ❌ Claims of "validated", "calibrated", or "empirical" without receipts
 
 ### Canonical (Required)
 
 - ✓ `positive_equals_extracellular_source` (CSD sign convention)
-- ✓ `laminar_proxy_no_pde` (proxy solver status)
-- ✓ `proxy_readout_only` (proxy claim level)
+- ✓ `linear_solver` (proxy solver status)
+- ✓ `proxy_readout` (proxy claim level)
 - ✓ `not_applicable_proxy_mode` (conservation status in proxy)
 - ✓ `declared_metadata_only` (proxy boundary/gauge status)
 
@@ -355,15 +354,14 @@ After creating or modifying a field solution report:
 
 - [ ] All 18 required fields present
 - [ ] JSON-safe (no NaN/Inf; `json.dumps(..., allow_nan=False)` succeeds)
-- [ ] No `truth_mode` in field report
 - [ ] No `_like` terminology anywhere
 - [ ] `csd_sign_convention` equals canonical value
 - [ ] Proxy fields: `n_iterations`, `converged`, `solver_residual_l2_relative` are all null
-- [ ] Proxy fields: `physical_amplitude_claim_allowed` is false
-- [ ] Proxy fields: `field_claim_level` is `"proxy_readout_only"`
+- [ ] Proxy fields: `physical_amplitude_calibrated` is false
+- [ ] Proxy fields: `field_claim_level` is `"proxy_readout"`
 - [ ] Proxy fields: `current_density_layout` is `"not_applicable"`
 - [ ] Future solved fields: all metrics (iterations, residual, converged) are non-null
-- [ ] Future solved fields: `physical_amplitude_claim_allowed` matches admissibility
+- [ ] Future solved fields: `physical_amplitude_calibrated` matches admissibility
 - [ ] Examples validate with correct field metadata
 - [ ] Version remains 0.2.10 (no bump for field hardening)
 

@@ -4,7 +4,7 @@ Status: release-candidate prepared in the returned workspace.
 
 ## Scope
 
-This pass focused on repository organization, documentation alignment, Etude/template consistency, and release validation readiness. It did not change numerical kernels or escalate source/field claims.
+This pass focused on repository organization, documentation comparison, Etude/template consistency, and release validation readiness. It did not change numerical kernels or escalate source/field claims.
 
 ## Key changes
 
@@ -17,11 +17,10 @@ This pass focused on repository organization, documentation alignment, Etude/tem
 ## Truth status
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 ## Validation receipt

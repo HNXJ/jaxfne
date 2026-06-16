@@ -3,7 +3,7 @@
 Validates explicit score labels, synchrony diagnostics, null-mode support,
 manifest contracts, and JSON safety for objective evaluation.
 
-Gate pass/fail is a computational diagnostic only. No biological validation,
+Gate pass/fail is a computational diagnostic only. Proxy status,
 empirical mechanism proof, or amplitude calibration is claimed.
 """
 
@@ -170,7 +170,7 @@ class TestNullReadySchema:
         assert meta.get("n_null") == 100
 
     def test_null_modes_supported(self):
-        """Objective supports declaring multiple null modes for future use."""
+        """Objective supports declaring multiple null modes for planned use."""
         model, signals = _model_and_signals(n=4)
         null_modes = [
             "layer_shuffle",
@@ -207,13 +207,6 @@ class TestObjectiveManifestContract:
         assert "acceptance_decision" in report
         assert report["acceptance_decision"] in ["gates_pass", "gates_fail"]
 
-    def test_truth_mode_preserved(self):
-        """Objective report must preserve truth_mode=truth_safe_unverified."""
-        model, signals = _model_and_signals(n=4)
-        obj = jaxfne.Objective(name="truth_test")
-        report = model.evaluate(signals, obj)
-        assert report.get("truth_mode") == "truth_safe_unverified"
-
     def test_claim_level_preserved(self):
         """Objective report must preserve claim_level=computational_scaffold."""
         model, signals = _model_and_signals(n=4)
@@ -222,18 +215,18 @@ class TestObjectiveManifestContract:
         assert report.get("claim_level") == "computational_scaffold"
 
     def test_physical_amplitude_claim_false(self):
-        """Objective report must preserve physical_amplitude_claim_allowed=False."""
+        """Objective report must preserve physical_amplitude_calibrated=False."""
         model, signals = _model_and_signals(n=4)
         obj = jaxfne.Objective(name="amplitude_test")
         report = model.evaluate(signals, obj)
-        assert report.get("physical_amplitude_claim_allowed") is False
+        assert report.get("physical_amplitude_calibrated") is False
 
     def test_field_claim_level_proxy(self):
-        """Objective report must preserve field_claim_level=proxy_readout_only."""
+        """Objective report must preserve field_claim_level=proxy_readout."""
         model, signals = _model_and_signals(n=4)
         obj = jaxfne.Objective(name="field_claim_test")
         report = model.evaluate(signals, obj)
-        assert report.get("field_claim_level") == "proxy_readout_only"
+        assert report.get("field_claim_level") == "proxy_readout"
 
 
 class TestObjectiveWindowDiscipline:
@@ -320,4 +313,3 @@ class TestObjectiveGrammarRejectsOverclaims:
             report = model.evaluate(signals, obj)
             # Truth gates must remain unaffected by metadata claims
             assert report.get("claim_level") == "computational_scaffold"
-            assert report.get("truth_mode") == "truth_safe_unverified"

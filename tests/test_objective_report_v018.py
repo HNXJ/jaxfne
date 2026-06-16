@@ -53,7 +53,7 @@ def test_b_to_dict_json_safe():
     assert isinstance(d, dict)
     assert "evaluation_status" in d
     assert "truth" in d
-    assert d["truth"]["physical_amplitude_claim_allowed"] is False
+    assert d["truth"]["physical_amplitude_calibrated"] is False
     json.dumps(d, allow_nan=False)
 
 
@@ -117,12 +117,11 @@ def test_h_truth_gates_conservative():
     model, signals = _make_model_signals()
     report = model.evaluate_report(signals, jtfne.objective())
     truth = report.truth
-    assert truth["truth_mode"] == "truth_safe_unverified"
     assert truth["claim_level"] == "computational_scaffold"
-    assert truth["physical_amplitude_claim_allowed"] is False
+    assert truth["physical_amplitude_calibrated"] is False
     assert truth["empirical_validation_status"] == "not_empirically_validated"
     assert truth["mechanism_claim_status"] == "not_claimed"
-    assert truth["field_claim_level"] == "proxy_readout_only"
+    assert truth["field_claim_level"] == "proxy_readout"
 
 
 def test_i_objective_report_is_frozen():

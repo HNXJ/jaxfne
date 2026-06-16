@@ -2,7 +2,7 @@
 
 Version: `v0.1-draft`
 Scope: `jaxfne` release, architecture, JAX runtime, scientific-status, docs, tutorial, and ecosystem readiness scoring.
-Status: `truth_safe_unverified` · Claim level: `computational_scaffold` · Physical amplitude allowed: `false`
+Status: `` · Claim level: `computational_scaffold` · Physical amplitude allowed: `false`
 
 > **Relationship to `jaxfne_glossary.md`.** This file is the **grammar / ontology**
 > layer: it fixes how a score is *defined, evidenced, and aggregated*. The sibling
@@ -20,12 +20,12 @@ Status: `truth_safe_unverified` · Claim level: `computational_scaffold` · Phys
 >
 > | ID | legacy `jaxfne_glossary.md` | this grammar |
 > |---|---|---|
-> | A02 | Version metadata alignment | main/dev alignment |
+> | A02 | Version metadata comparison | main/dev comparison |
 > | A03 | Tag/release identity | agy isolation |
 > | B01 | `__all__` curated | Canonical import |
 > | D01 | Explicit PRNG keys | JAX array math |
 >
-> Rules: (1) the **§18 consistency metrics (`AC`/`RC`/`RAC`) and roadmap
+> Rules: (1) the **§18 consistency metrics (`AC`/`RC`/`RAC`) and scope catalogue
 > temperature compare ONLY scoreboards authored under this grammar (v0.1+)** —
 > never the legacy instance factor-by-factor. (2) The legacy instance is
 > **frozen as a v0 snapshot**; it is re-mapped to grammar IDs the next time it is
@@ -33,7 +33,7 @@ Status: `truth_safe_unverified` · Claim level: `computational_scaffold` · Phys
 > lands), at which point it becomes the first grammar-conformant baseline. Until
 > then, treat legacy and grammar scores as separate series.
 
-The transfer from the multi-LLM ontology manuscript is the **ontology discipline**:
+The transfer from the multi-LLM ontology technical report is the **ontology discipline**:
 factor definitions are fixed before scoring, undefined values stay undefined (never
 silently `0`), and disagreement/dispersion is *measured*, not hidden.
 
@@ -42,7 +42,7 @@ silently `0`), and disagreement/dispersion is *measured*, not hidden.
 ## 0. Purpose
 
 A standard, ontology-constrained grammar for scoring `jaxfne` across many factors,
-so every audit, release review, worker report, and roadmap decision is comparable
+so every audit, release review, worker report, and scope catalogue decision is comparable
 across time. Each factor has a stable ID, name, definition, ideal 100/100 state,
 required evidence type, score rubric, blockers, dependencies, score status, and
 truth/status gates. This bans vague scoring ("good", "mostly ready"); every score
@@ -71,7 +71,7 @@ J(r, a, c, f) ∈ [0, 100] ∪ {∅}
 
 ```text
 c ∈ { release, api, runtime, jax, numerical, source_field_probe,
-      objective_optimizer, docs_tutorials, ecosystem, manuscript }
+      objective_optimizer, docs_tutorials, ecosystem, technical report }
 ```
 
 ### 1.3 Factor set
@@ -209,10 +209,10 @@ Every scoreboard must carry these package-level gates.
 
 ```yaml
 truth_gates:
-  truth_status: truth_safe_unverified
+  truth_status: 
   claim_level: computational_scaffold
-  field_solver_status: laminar_proxy_no_pde
-  physical_amplitude_claim_allowed: false
+  field_solver_status: linear_solver
+  physical_amplitude_calibrated: false
   biological_mechanism_claim_allowed: false
   calibrated_sensor_claim_allowed: false
 ```
@@ -263,14 +263,14 @@ Every factor uses this markdown block:
 ## 7. Category A — Release / provenance
 
 - **A01 Repo state frozen** — reports include branch, SHA, dirty state, origin/main, origin/dev, origin/agy. Ideal: every report starts with exact repo state, no mutation before freeze. Evidence: `git status`, branch, SHA, origin refs.
-- **A02 main/dev alignment** — `main`/`dev` match unless staged PR flow. Ideal: divergence `0/0`. Evidence: `git rev-list --left-right --count origin/main...origin/dev`.
+- **A02 main/dev comparison** — `main`/`dev` match unless staged PR flow. Ideal: divergence `0/0`. Evidence: `git rev-list --left-right --count origin/main...origin/dev`.
 - **A03 agy isolation** — `agy` untouched unless authorized. Evidence: before/after `origin/agy` SHA.
 - **A04 tag/release provenance** — tags point to intended SHA, verified by peeled commit. Evidence: `git rev-parse vX.Y.Z^{commit}`.
-- **A05 version metadata alignment** — package/pyproject/docs/tag versions agree. Evidence: import smoke, pyproject, generated version.
+- **A05 version metadata comparison** — package/pyproject/docs/tag versions agree. Evidence: import smoke, pyproject, generated version.
 - **A06 dist hygiene** — `dist/` has exactly wheel + sdist for current version. Evidence: `python -m build`, `twine check`, dist listing.
 - **A07 CI terminal state** — merge only after CI terminal green. Evidence: PR number, run ID, job results.
 - **A08 release mutation gating** — tag/upload/merge/publish are separate authorized gates. Evidence: release report.
-- **A09 changelog/release-note alignment** — notes reflect merged code, no overclaim. Evidence: changelog diff.
+- **A09 changelog/release-note comparison** — notes reflect merged code, no overclaim. Evidence: changelog diff.
 - **A10 rollback/recovery path** — reports identify prior safe SHA/tag. Evidence: release receipt.
 
 ## 8. Category B — Public API / surface
@@ -353,14 +353,14 @@ Every factor uses this markdown block:
 
 ## 14. Category H — Truth gates / claim safety
 
-- **H01 truth status present** — every artifact carries `truth_safe_unverified`. Evidence: manifest tests.
+- **H01 truth status present** — every artifact carries ``. Evidence: manifest tests.
 - **H02 computational scaffold status** — outputs labeled scaffold; no empirical-validation overclaim. Evidence: docs grep.
 - **H03 physical amplitude gate** — false unless calibration evidence; all proxy readouts false. Evidence: probe reports.
 - **H04 biological mechanism gate** — no mechanism-proof wording. Evidence: wording scan.
 - **H05 EEG/MEG wording safety** — `-like`/proxy unless forward model exists. Evidence: docs grep.
 - **H06 calibration label coverage** — every source/readout has calibration status. Evidence: source/probe reports.
 - **H07 field solver status** — every field output states proxy/solver state. Evidence: field tests.
-- **H08 manuscript-package alignment** — claims map to artifact evidence. Evidence: manuscript audit.
+- **H08 technical report-package comparison** — claims map to artifact evidence. Evidence: technical report audit.
 - **H09 anti-guess constraints** — agents can't invent APIs/results; verify-before-claim gates. Evidence: worker reports.
 - **H10 failure provenance** — failures classified before tests/code change. Evidence: PR reports.
 
@@ -397,8 +397,8 @@ Every factor uses this markdown block:
 ```markdown
 # jaxfne Scoreboard
 Release: · Branch: · SHA: · Date: · Evaluator:
-Truth status: truth_safe_unverified · Claim level: computational_scaffold
-Field solver status: laminar_proxy_no_pde · Physical amplitude allowed: false
+Truth status:  · Claim level: computational_scaffold
+Field solver status: linear_solver · Physical amplitude allowed: false
 
 ## Commands
 | Command | Result |
@@ -466,21 +466,21 @@ RAC(r, a) = mean_f [ (J(r, a, c, f) - mean_{a'≠a} J(r, a', c, f))^2 ]
 ```
 Whether one auditor is an outlier for a release.
 
-### 18.4 Roadmap temperature
+### 18.4 Scope catalogue temperature
 ```text
 T_R = c * V_env / n
 ```
 
 | Symbol | Meaning |
 |---|---|
-| `T_R` | roadmap temperature |
+| `T_R` | scope catalogue temperature |
 | `V_env` | volume of the enclosing ellipsoid across category-score vectors |
 | `n` | number of releases / branches / runs |
 | `c` | scaling constant (default 1.0) |
 
 | Temperature | Meaning |
 |---|---|
-| low | stable, compact roadmap state |
+| low | stable, compact scope catalogue state |
 | high | dispersed; architecture goals diverging |
 | increasing | new work expanding unresolved surface |
 | decreasing | implementation consolidating around stable contracts |

@@ -269,8 +269,8 @@ class TestProbeReportMetadata:
         probe = jtfne.fields.eeg_proxy_probe(eeg_data)
 
         report = probe.report
-        assert "physical_amplitude_claim_allowed" in report
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert "physical_amplitude_calibrated" in report
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_meg_proxy_probe_report_has_truth_status(self):
         """MEG proxy probe report must include truth status."""
@@ -278,8 +278,8 @@ class TestProbeReportMetadata:
         probe = jtfne.fields.meg_proxy_probe(meg_data)
 
         report = probe.report
-        assert "physical_amplitude_claim_allowed" in report
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert "physical_amplitude_calibrated" in report
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_emm_proxy_probe_report_has_truth_status(self):
         """EMM proxy probe report must include truth status."""

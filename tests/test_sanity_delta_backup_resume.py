@@ -118,9 +118,8 @@ class TestManifest:
 
         d = manifest.to_dict()
 
-        assert d["truth_mode"] == "truth_safe_unverified"
         assert d["claim_level"] == "computational_scaffold"
-        assert d["physical_amplitude_claim_allowed"] is False
+        assert d["physical_amplitude_calibrated"] is False
         assert d["total_neurons"] == 500
 
     def test_manifest_save(self, tmp_path):
@@ -145,4 +144,3 @@ class TestManifest:
 
         import json
         data = json.loads(path.read_text())
-        assert data["truth_mode"] == "truth_safe_unverified"

@@ -1,7 +1,6 @@
 # Tutorial Environment Setup
 
 **Status:** v0.3.0 tutorial environment guide  
-**truth_mode:** truth_safe_unverified
 
 ---
 
@@ -243,10 +242,9 @@ These tutorials are part of **jaxfne v0.2.30** stable toolbox:
 
 **Truth status:**
 - **claim_level:** computational_scaffold
-- **truth_mode:** truth_safe_unverified
-- **physical_amplitude_claim_allowed:** False
+- **physical_amplitude_calibrated:** False
 - **biological_metabolism_claim_allowed:** False
-- **field_solver_status:** laminar_proxy_no_pde
+- **field_solver_status:** linear_solver
 
 These tutorials teach computational concepts, not biological facts.
 

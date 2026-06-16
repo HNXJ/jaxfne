@@ -22,18 +22,18 @@ class TestProxyReadoutNames:
         assert hasattr(episode, "spikes")
         assert hasattr(episode, "vm")
 
-    def test_proxy_implies_laminar_proxy_no_pde(self):
-        """Test that proxy readouts imply field_solver_status == laminar_proxy_no_pde."""
+    def test_proxy_implies_linear_solver(self):
+        """Test that proxy readouts imply field_solver_status == linear_solver."""
         cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
 
-        assert cfg.field_solver_status == "laminar_proxy_no_pde"
+        assert cfg.field_solver_status == "linear_solver"
 
         # Proxy readouts are only allowed with this status
         paradigm = cfg.make_paradigm()
         model = cfg.construct()
 
         # No full PDE solves; only laminar proxy
-        assert model.config.field_solver_status == "laminar_proxy_no_pde"
+        assert model.config.field_solver_status == "linear_solver"
 
     def test_spikes_and_vm_not_proxy(self):
         """Test that spikes and vm readouts do not carry proxy suffix."""
@@ -69,10 +69,10 @@ class TestProxyReadoutNames:
         """Test that config forbids biological field-solve claim."""
         cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
 
-        # These are computational proxies, not validated against biology
-        assert cfg.physical_amplitude_claim_allowed is False
+        # These are computational proxies, proxy-scoped for computational examples
+        assert cfg.physical_amplitude_calibrated is False
         assert cfg.claim_level == "computational_scaffold"
-        assert cfg.field_solver_status == "laminar_proxy_no_pde"
+        assert cfg.field_solver_status == "linear_solver"
 
     def test_manifest_preserves_proxy_claim(self):
         """Test that manifest output preserves proxy status."""
@@ -91,6 +91,6 @@ class TestProxyReadoutNames:
 
         d = manifest.to_dict()
 
-        assert d["field_solver_status"] == "laminar_proxy_no_pde"
+        assert d["field_solver_status"] == "linear_solver"
         assert d["claim_level"] == "computational_scaffold"
-        assert d["physical_amplitude_claim_allowed"] is False
+        assert d["physical_amplitude_calibrated"] is False

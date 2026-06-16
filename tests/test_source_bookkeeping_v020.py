@@ -47,7 +47,7 @@ class TestSourceBookkeepingMetadata:
             "source_calibration_status",
             "synaptic_current_counting",
             "source_mode_exclusive",
-            "physical_amplitude_claim_allowed",
+            "physical_amplitude_calibrated",
             "double_count_guard",
             "double_count_evidence",
         ]
@@ -65,10 +65,10 @@ class TestSourceBookkeepingMetadata:
         sb = signals.metadata["source_bookkeeping"]
         assert sb["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
 
-    def test_physical_amplitude_claim_allowed_false(self):
-        """physical_amplitude_claim_allowed must be False (no uncalibrated physical claims)."""
+    def test_physical_amplitude_calibrated_false(self):
+        """physical_amplitude_calibrated must be False (no uncalibrated physical claims)."""
         model, signals = _model_and_signals()
-        assert signals.metadata["source_bookkeeping"]["physical_amplitude_claim_allowed"] is False
+        assert signals.metadata["source_bookkeeping"]["physical_amplitude_calibrated"] is False
 
     def test_double_count_guard_passed(self):
         """double_count_guard must be 'passed' (no double-counting detected)."""
@@ -146,29 +146,23 @@ class TestSourceModeExclusivity:
 class TestTruthGatesPreserved:
     """v0.2.0: Truth gates remain frozen from v0.1.2 baseline."""
 
-    def test_truth_mode_unverified(self):
-        """truth_mode must be truth_safe_unverified."""
-        model, signals = _model_and_signals()
-        receipt = model.run_receipt(signals)
-        assert receipt.truth["truth_mode"] == "truth_safe_unverified"
-
     def test_claim_level_scaffold(self):
         """claim_level must be computational_scaffold (no new empirical claims)."""
         model, signals = _model_and_signals()
         receipt = model.run_receipt(signals)
         assert receipt.truth["claim_level"] == "computational_scaffold"
 
-    def test_field_claim_level_proxy_readout_only(self):
-        """field_claim_level must be proxy_readout_only."""
+    def test_field_claim_level_proxy_readout(self):
+        """field_claim_level must be proxy_readout."""
         model, signals = _model_and_signals()
         receipt = model.run_receipt(signals)
-        assert receipt.truth["field_claim_level"] == "proxy_readout_only"
+        assert receipt.truth["field_claim_level"] == "proxy_readout"
 
     def test_physical_amplitude_claim_not_allowed(self):
-        """physical_amplitude_claim_allowed must be False."""
+        """physical_amplitude_calibrated must be False."""
         model, signals = _model_and_signals()
         receipt = model.run_receipt(signals)
-        assert receipt.truth["physical_amplitude_claim_allowed"] is False
+        assert receipt.truth["physical_amplitude_calibrated"] is False
 
     def test_empirical_validation_status_not_validated(self):
         """empirical_validation_status must be not_empirically_validated."""

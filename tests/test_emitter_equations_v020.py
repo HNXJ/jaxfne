@@ -183,10 +183,10 @@ class TestSourceCalibrationStatus:
         assert source_model.get("source_calibration_status") == "uncalibrated_izhikevich_native_current"
 
     def test_physical_amplitude_claim_false_in_metadata(self):
-        """physical_amplitude_claim_allowed must be False in source_bookkeeping."""
+        """physical_amplitude_calibrated must be False in source_bookkeeping."""
         model, signals = _model_and_signals()
         sb = signals.metadata.get("source_bookkeeping", {})
-        assert sb.get("physical_amplitude_claim_allowed") is False
+        assert sb.get("physical_amplitude_calibrated") is False
 
     def test_source_bookkeeping_calibration_status(self):
         """source_bookkeeping must state uncalibrated."""
@@ -205,10 +205,10 @@ class TestManifestSourceClaims:
         assert manifest["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
 
     def test_manifest_physical_amplitude_claim_false(self):
-        """Manifest physical_amplitude_claim_allowed must be False."""
+        """Manifest physical_amplitude_calibrated must be False."""
         model, signals = _model_and_signals()
         manifest = model.manifest(signals=signals)
-        assert manifest["physical_amplitude_claim_allowed"] is False
+        assert manifest["physical_amplitude_calibrated"] is False
 
     def test_manifest_source_model_uncalibrated(self):
         """Manifest source_model must state uncalibrated."""

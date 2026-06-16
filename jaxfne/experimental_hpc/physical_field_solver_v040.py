@@ -6,8 +6,8 @@ fix the API boundary and to **fail loudly** so the proxy → physical transition
 can never happen silently.
 
 Truth gate (non-negotiable): the stable jaxfne field path is the laminar Gaussian
-proxy (``field_solver_status = "laminar_proxy_no_pde"``,
-``physical_amplitude_claim_allowed = False``). Nothing here is validated. Until a
+proxy (``field_solver_status = "linear_solver"``,
+``physical_amplitude_calibrated = False``). Nothing here is validated. Until a
 real, validated solver lands, every entry point raises
 ``NotImplementedError(">TBI-not-ready: v0.4 physical field solver")``. Importing
 or constructing the spec must not, on its own, imply that physical-amplitude or
@@ -49,7 +49,7 @@ class PhysicalFieldSolverSpec:
     gauge: str = "unset"
     geometry: Mapping[str, Any] = field(default_factory=dict)
     field_solver_status: str = "physical_solver_not_implemented_v040"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
 
     def validate(self) -> dict[str, Any]:
         """Fail loudly — physical-solver validation is not implemented in v0.3.x."""

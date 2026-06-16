@@ -62,7 +62,7 @@ def test_model_tune_runs_blackbox_loop_and_returns_json_safe_report():
     )
     assert report["tuning_status"] == "blackbox_loop_v0.0.6"
     assert len(report["candidate_history"]) == 3
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["physical_amplitude_calibrated"] is False
     assert report["empirical_validation_status"] == "not_empirically_validated"
     assert isinstance(report["same_model_unchanged"], bool)
     assert tuned is not None
@@ -90,7 +90,7 @@ def test_optax_path_remains_guarded_and_truth_safe():
 
 def test_bridge_specs_are_json_safe_and_do_not_allow_amplitude_claims():
     spec = BridgeSpec(name="test", backend="jaxley").to_dict()
-    assert spec["physical_amplitude_claim_allowed"] is False
+    assert spec["physical_amplitude_calibrated"] is False
     bridge = JaxleyEmitterBridge(morphology="toy", mechanisms=("hh",)).to_spec().to_dict()
     assert bridge["backend"] == "jaxley"
     assert bridge["source_calibration_status"] == "uncalibrated_jaxley_bridge"
@@ -114,7 +114,7 @@ def test_manifest_accepts_dataset_and_tuning_loop_report():
     )
     assert manifest["dataset_claim_labels"]["dataset_status"] == "schema_only_no_data_loaded"
     assert manifest["v005_claim_labels"]["mechanism_claim_status"] == "not_claimed"
-    assert manifest["source_field_status"]["physical_amplitude_claim_allowed"] is False
+    assert manifest["source_field_status"]["physical_amplitude_calibrated"] is False
     json.dumps(manifest, allow_nan=False)
 
 
@@ -123,8 +123,8 @@ def test_model_and_signal_summary_json_safe():
     signals = model.simulate(jtfne.simulation(duration_ms=4.0, dt_ms=0.1, seed=3))
     ms = model.summary()
     ss = signals.summary()
-    assert ms["field_claim_level"] == "proxy_readout_only"
-    assert ss["field_claim_level"] == "proxy_readout_only"
+    assert ms["field_claim_level"] == "proxy_readout"
+    assert ss["field_claim_level"] == "proxy_readout"
     assert ss["n_steps"] == 40
     json.dumps(ms, allow_nan=False)
     json.dumps(ss, allow_nan=False)
@@ -136,7 +136,7 @@ def test_jit_opt_in_simulation_matches_shape_and_truth_gates():
     signals = model.simulate(jtfne.simulation(duration_ms=3.0, dt_ms=0.1, seed=4, runtime=rt))
     assert signals.V_m.shape == (30, 5)
     assert signals.metadata["runtime"]["jit"] is True
-    assert signals.metadata["field_claim_level"] == "proxy_readout_only"
+    assert signals.metadata["field_claim_level"] == "proxy_readout"
 
 
 def test_simulate_batch_uses_vmap_and_is_json_safe_metadata():
@@ -146,7 +146,7 @@ def test_simulate_batch_uses_vmap_and_is_json_safe_metadata():
     assert batch["V_m"].shape == (3, 20, 4)
     assert batch["spikes"].shape == (3, 20, 4)
     assert batch["metadata"]["batch_status"] == "vmap_seed_batch_v0.0.8"
-    assert batch["metadata"]["physical_amplitude_claim_allowed"] is False
+    assert batch["metadata"]["physical_amplitude_calibrated"] is False
     json.dumps(batch["metadata"], allow_nan=False)
 
 

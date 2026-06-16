@@ -175,7 +175,7 @@ class TestAnalysisFunctions:
         cfg = jtfne.Configuration()
         result = jtfne.validate_configuration(cfg, strict=False)
         gates = result["truth_gates"]
-        assert gates["physical_amplitude_claim_allowed"] is False
+        assert gates["physical_amplitude_calibrated"] is False
 
 
 class TestPublicExports:

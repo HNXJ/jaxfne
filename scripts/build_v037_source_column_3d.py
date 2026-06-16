@@ -447,7 +447,7 @@ def create_manifest(
         "scope_status": "computational_scaffold",
         "readout_status": "simulated_proxy",
         "field_mode": "proxy_convolution_no_pde",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "visualizer": "plotly_standalone_html",
         "duration_ms": DURATION_MS,
         "dt_ms": DT_MS,

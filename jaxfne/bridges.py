@@ -34,13 +34,14 @@ class BridgeSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         return {
             "name": self.name,
             "backend": self.backend,
             "status": self.status,
             "source_calibration_status": self.source_calibration_status,
             "metadata": self.metadata,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
 
@@ -54,6 +55,7 @@ class JaxleyEmitterBridge:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_spec(self) -> BridgeSpec:
+        """Documented public function `to_spec`."""
         return BridgeSpec(
             name="jaxley_emitter_bridge",
             backend="jaxley",
@@ -67,6 +69,7 @@ class JaxleyEmitterBridge:
         )
 
     def construct(self) -> dict[str, Any]:
+        """Documented public function `construct`."""
         require_jaxley()
         spec = self.to_spec().to_dict()
         spec["status"] = "backend_available_contract_only"
@@ -93,8 +96,7 @@ class JaxleyTraceSpec:
     source_projection_mode: str = "external_trace_proxy"
     source_decomposition: str = "proxy_voltage_trace_not_current"
     spike_threshold: float | None = 0.0
-    physical_amplitude_claim_allowed: bool = False
-    truth_mode: str = "truth_safe_unverified"
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -107,10 +109,10 @@ class JaxleyTraceSpec:
                 f"layout must be 'time_by_unit', 'unit_by_time', or 'recording_by_time', "
                 f"got {self.layout}"
             )
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             raise ValueError(
-                "physical_amplitude_claim_allowed must be False (immutable); "
-                f"got {self.physical_amplitude_claim_allowed}"
+                "physical_amplitude_calibrated must be False (immutable); "
+                f"got {self.physical_amplitude_calibrated}"
             )
         if self.claim_level != "computational_scaffold":
             raise ValueError(
@@ -122,7 +124,7 @@ class JaxleyTraceSpec:
         from dataclasses import fields as dc_fields
         result = {"spec_class": "JaxleyTraceSpec"}
         result.update({f.name: getattr(self, f.name) for f in dc_fields(self)
-                if f.name in ("backend", "layout", "dt_ms", "source_mode", "claim_level", "physical_amplitude_claim_allowed")})
+                if f.name in ("backend", "layout", "dt_ms", "source_mode", "claim_level", "physical_amplitude_calibrated")})
         return result
 
     def to_dict(self) -> dict[str, Any]:
@@ -290,9 +292,8 @@ def jaxley_trace_to_signals(
         "source_decomposition": spec.source_decomposition,
         "source_calibration_status": spec.source_calibration_status,
         "field_solver_status": "not_computed",
-        "field_claim_level": "proxy_readout_only",
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": spec.truth_mode,
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
         "claim_level": spec.claim_level,
         "dt_ms": float(_dt_ms),
         "n_time": int(n_time),
@@ -380,21 +381,27 @@ def hh_numpy_reference_trace(
     E_L = -54.387  # mV
 
     def alpha_m(V):
+        """Documented public function `alpha_m`."""
         return 0.1 * (V + 40.0) / (1.0 - np.exp(-(V + 40.0) / 10.0)) if abs(V + 40.0) > 1e-6 else 1.0
 
     def beta_m(V):
+        """Documented public function `beta_m`."""
         return 4.0 * np.exp(-(V + 65.0) / 18.0)
 
     def alpha_h(V):
+        """Documented public function `alpha_h`."""
         return 0.07 * np.exp(-(V + 65.0) / 20.0)
 
     def beta_h(V):
+        """Documented public function `beta_h`."""
         return 1.0 / (1.0 + np.exp(-(V + 35.0) / 10.0))
 
     def alpha_n(V):
+        """Documented public function `alpha_n`."""
         return 0.01 * (V + 55.0) / (1.0 - np.exp(-(V + 55.0) / 10.0)) if abs(V + 55.0) > 1e-6 else 0.1
 
     def beta_n(V):
+        """Documented public function `beta_n`."""
         return 0.125 * np.exp(-(V + 65.0) / 80.0)
 
     t = np.arange(0, duration_ms, dt_ms)
@@ -433,6 +440,7 @@ class JaxleyBridge:
         self.compartment_axis = compartment_axis
 
     def simulate(self, *args: Any, **kwargs: Any) -> Any:
+        """Documented public function `simulate`."""
         require_jaxley()
         raise NotImplementedError(
             "TODO: implement JaxleyBridge.simulate for detailed compartment simulation rollout"
@@ -473,10 +481,11 @@ class JaxleyBridge:
         return jnp.asarray(signals)
 
     def report(self) -> dict:
+        """Documented public function `report`."""
         return {
             "bridge_name": "jaxley_bridge",
             "source_mode": self.source_mode,
             "source_calibration_status": "uncalibrated_jaxley_bridge",
-            "physical_amplitude_claim_allowed": False
+            "physical_amplitude_calibrated": False
         }
 

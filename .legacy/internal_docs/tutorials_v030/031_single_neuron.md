@@ -197,11 +197,10 @@ All outputs are accompanied by run metadata and scope boundaries:
     "v_mean_mV": -55.0
   },
   "scope_metadata": {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
+    "field_solver_status": "linear_solver",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "physical_amplitude_claim_allowed": false
+    "physical_amplitude_calibrated": false
   }
 }
 ```
@@ -212,7 +211,7 @@ This metadata is immutable and reflects the tutorial's exploratory scope, not bi
 
 ## 9. Figures
 
-The tutorial generates 5 publication-ready figures:
+The tutorial generates 5 evidence-ready figures:
 
 ### Figure 1: Voltage Trace
 Shows membrane potential oscillation over the full 1-second simulation. Spikes are visible as upward deflections followed by reset to the configured $c$ value. The baseline oscillates around −65 mV.
@@ -326,11 +325,10 @@ All simulation results are labeled with conservative metadata:
 
 ```json
 {
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
+  "field_solver_status": "linear_solver",
   "source_calibration_status": "uncalibrated_izhikevich_native_current",
-  "physical_amplitude_claim_allowed": false
+  "physical_amplitude_calibrated": false
 }
 ```
 

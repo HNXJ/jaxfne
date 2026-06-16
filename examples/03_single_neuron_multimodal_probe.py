@@ -163,13 +163,13 @@ def main():
         "claim_level": manifest.get("claim_level", manifest.get("model_status", "computational_scaffold")),
         "field_model_status": manifest.get("field_model_status"),
         # Legacy alias: field_claim_level → field_model_status
-        "field_claim_level": manifest.get("field_claim_level", manifest.get("field_model_status", "proxy_readout_only")),
+        "field_claim_level": manifest.get("field_claim_level", manifest.get("field_model_status", "proxy_readout")),
         "field_solver_status": manifest.get("field_solver_status"),
         "source_calibration_status": manifest.get("source_calibration_status"),
         "amplitude_status": manifest.get("amplitude_status"),
-        # Legacy alias: physical_amplitude_claim_allowed → amplitude_status
-        "physical_amplitude_claim_allowed": manifest.get(
-            "physical_amplitude_claim_allowed", manifest.get("amplitude_status", False)
+        # Legacy alias: physical_amplitude_calibrated → amplitude_status
+        "physical_amplitude_calibrated": manifest.get(
+            "physical_amplitude_calibrated", manifest.get("amplitude_status", False)
         ),
         "empirical_validation_status": manifest.get("empirical_validation_status"),
         "mechanism_status": manifest.get("mechanism_status"),

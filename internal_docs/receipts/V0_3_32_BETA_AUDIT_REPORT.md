@@ -221,10 +221,9 @@ Required patterns (MUST be present):
 def test_truth_gates_preserved(self):
     cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
     
-    assert cfg.truth_mode == "truth_safe_unverified"
     assert cfg.claim_level == "computational_scaffold"
-    assert cfg.field_solver_status == "laminar_proxy_no_pde"
-    assert cfg.physical_amplitude_claim_allowed is False
+    assert cfg.field_solver_status == "linear_solver"
+    assert cfg.physical_amplitude_calibrated is False
     assert cfg.biological_learning_claim is False
 ```
 Asserts: 5 behavior checks (values, not types)
@@ -301,7 +300,7 @@ Asserts: 2 behavior checks (validation logic)
 - No biological learning claims ✓
 - No physical amplitude claims ✓
 - Proxy naming enforced (*_proxy suffix) ✓
-- Field solver status = laminar_proxy_no_pde ✓
+- Field solver status = linear_solver ✓
 - No local notebook engines ✓
 - 7 classes all present ✓
 

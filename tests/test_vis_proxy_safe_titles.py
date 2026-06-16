@@ -11,7 +11,7 @@ import jaxfne as jtfne
 
 
 def test_vis_titles_proxy_safe():
-    """Verify that plotting function titles do not claim empirical/calibrated reality."""
+    """Verify that plotting function titles keep scoped empirical/calibrated reality."""
     jtfne.vis.require_matplotlib()
     
     # Generate mock signals

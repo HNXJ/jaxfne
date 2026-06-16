@@ -20,13 +20,13 @@ def test_pyproject_version_format():
     version = get_pyproject_version()
     assert re.match(r"^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$", version), f"Invalid version format in pyproject.toml: {version}"
 
-def test_jaxfne_version_alignment():
+def test_jaxfne_version_comparison():
     pyproject_version = get_pyproject_version()
     assert jaxfne.__version__ == pyproject_version, (
         f"jaxfne.__version__ ({jaxfne.__version__}) does not match pyproject.toml version ({pyproject_version})"
     )
 
-def test_mkdocs_version_alignment():
+def test_mkdocs_version_comparison():
     pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
     mkdocs_path = root_dir / "mkdocs.yml"
@@ -42,7 +42,7 @@ def test_mkdocs_version_alignment():
         f"mkdocs.yml jaxfne_version ({mkdocs_version}) does not match pyproject.toml version ({pyproject_version})"
     )
 
-def test_generated_version_md_alignment():
+def test_generated_version_md_comparison():
     pyproject_version = get_pyproject_version()
     root_dir = Path(__file__).resolve().parent.parent
     version_md_path = root_dir / "docs" / "_generated" / "version.md"

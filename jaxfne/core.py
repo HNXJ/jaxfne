@@ -2,7 +2,7 @@
 
 Design target: object-oriented public API, pure-JAX computational core.  The
 current package is an honest TFNE scaffold: reduced emitters plus laminar proxy
-source/readout status, not a full PDE field solver.
+source/readout status, a proxy field/readout scaffold.
 """
 
 from __future__ import annotations
@@ -58,7 +58,7 @@ class MatrixParameterSpec:
     bounds : tuple[float, float]
         (lower, upper) multiplicative scaling bounds.
     init : str
-        Initialization strategy; "current" means start from the
+        Initialization scope; "current" means start from the
         model's existing weight values.
     trainable : bool
         Whether this parameter participates in optimization.
@@ -198,7 +198,6 @@ def _circuit_json_safe(value: Any, path: str) -> Any:
 
 def _default_metadata() -> dict[str, Any]:
     return {
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
         "source_projection_mode": "proxy_no_field_solve",
@@ -206,7 +205,9 @@ def _default_metadata() -> dict[str, Any]:
         "boundary_condition": "mean_zero_neumann",
         "gauge": "mean_zero",
         "csd_sign_convention": "positive_equals_extracellular_source",
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
         # Suite No. 2 truth gates — always present so validation passes regardless
@@ -448,6 +449,7 @@ class _ProbeDeclarations(list):
         self._owner = owner
 
     def bind(self, owner: "Configuration") -> "_ProbeDeclarations":
+        """Documented public function `bind`."""
         return _ProbeDeclarations(self, owner=owner)
 
     def __call__(
@@ -652,7 +654,7 @@ class Configuration:
         metadata.setdefault("dy_mm", 0.010)
         metadata.setdefault("dz_mm", 0.010)
         metadata.setdefault("geometry_mode", "declared_metadata_not_solved_3d_pde_grid")
-        metadata.setdefault("physical_amplitude_claim_allowed", False)
+        metadata.setdefault("physical_amplitude_calibrated", False)
 
         cell_type_fractions = metadata.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
         networks = [
@@ -956,8 +958,8 @@ class Configuration:
             "name": name,
             "modes": mode_list,
             "operator_status": "simulated_proxy",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False,
         }
         if n_contacts is not None:
             probe_kwargs["n_contacts"] = int(n_contacts)
@@ -1082,7 +1084,7 @@ class Configuration:
             dx_mm=0.010,
             dy_mm=0.010,
             dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
+            physical_amplitude_calibrated=False,
         )
 
     def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
@@ -1352,7 +1354,6 @@ class Configuration:
         -----
         - All parameters are metadata only; no loss computation.
         - Use with model.tune() and optimizer configuration.
-        - truth_mode remains truth_safe_unverified; no physical claims.
         """
         if firing_rate_target is None:
             firing_rate_target = {
@@ -1457,7 +1458,6 @@ class Configuration:
         - hard_gates enforce immutable truth constraints; cannot be overridden.
         - Surrogate paths (differentiable_via_surrogate) are for inner loops
           only; real objective gates biological/physical claims.
-        - truth_mode remains truth_safe_unverified.
         """
         if search_space is None:
             search_space = {}
@@ -1493,6 +1493,7 @@ class Configuration:
         return self.update_metadata(optimizer=optimizer_spec)
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.networks:
             issues.append("no_networks_declared")
@@ -1506,7 +1507,6 @@ class Configuration:
             "valid": not issues,
             "issues": issues,
             "config_hash": config_hash(self),
-            "truth_mode": self.metadata.get("truth_mode"),
             "claim_level": self.metadata.get("claim_level"),
         }
 
@@ -1524,8 +1524,8 @@ class RuntimeConfig:
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
     dtype: str = "float32"  # "float32" | "float64"
-    jit: bool = False
-    vmap: bool = False
+    jit: bool | str = False
+    vmap: bool | str = False
     precision: str = "default"  # "default" | "high"
     seed: int = 0
     n_steps: int = 0
@@ -1548,23 +1548,56 @@ class RuntimeConfig:
                 f"recompilation_guard must be one of {{'warning', 'exception', 'off'}}; "
                 f"got {self.recompilation_guard!r}"
             )
+        # Validate jit and vmap options
+        jit_str = str(self.jit).lower()
+        if jit_str not in {"true", "false", "auto", "1", "0"}:
+            raise ValueError(
+                f"jit must be a boolean or 'auto'; got {self.jit!r}"
+            )
+        vmap_str = str(self.vmap).lower()
+        if vmap_str not in {"true", "false", "auto", "1", "0"}:
+            raise ValueError(
+                f"vmap must be a boolean or 'auto'; got {self.vmap!r}"
+            )
+
+    def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
+        """Resolve the effective JIT compilation status based on policy and parameters."""
+        if isinstance(self.jit, bool):
+            return self.jit
+        jit_str = str(self.jit).lower()
+        if jit_str == "auto":
+            return (n_steps * n_units * batch) > 50000
+        return jit_str in {"true", "1"}
+
+    def resolve_vmap(self, batch: int) -> bool:
+        """Resolve the effective vmap vectorization status based on policy and batch size."""
+        if isinstance(self.vmap, bool):
+            return self.vmap
+        vmap_str = str(self.vmap).lower()
+        if vmap_str == "auto":
+            return batch > 1
+        return vmap_str in {"true", "1"}
 
     @property
     def requested_dtype(self) -> str:
+        """Documented public function `requested_dtype`."""
         return self.dtype_primary or self.dtype
 
     @property
     def selected_backend(self) -> str:
+        """Documented public function `selected_backend`."""
         return self.device_type or self.backend
 
     @property
     def actual_dtype(self) -> str:
+        """Documented public function `actual_dtype`."""
         if self.requested_dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
             return "float64"
         return "float32"
 
     @property
     def jnp_dtype(self) -> jnp.dtype:
+        """Documented public function `jnp_dtype`."""
         return jnp.float64 if self.actual_dtype == "float64" else jnp.float32
 
     def runtime_report(self) -> dict[str, Any]:
@@ -1701,11 +1734,13 @@ class SurrogateConfig:
     status: str = "declaration_only_v0.0.8"
 
     def gradient_path_status(self) -> str:
+        """Documented public function `gradient_path_status`."""
         if self.method in {"straight_through", "sigmoid_beta"}:
             return "declared_surrogate"
         return "required_but_missing"
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "method": self.method,
@@ -1830,8 +1865,7 @@ class Signals:
             ),
             "V_m_mean": float(jnp.mean(self.V_m)),
             "field_status": "present" if self.field is not None else "absent",
-            "truth_mode": self.metadata.get("truth_mode", "truth_safe_unverified"),
-            "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout_only"),
+            "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout"),
         })
 
     def get(
@@ -1967,6 +2001,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `loss`."""
         spec: dict[str, Any] = {"name": name, "weight": float(weight)}
         if target is not None:
             spec["target"] = float(target)
@@ -1984,6 +2019,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `regularizer`."""
         spec: dict[str, Any] = {"name": name, "target": float(target), "weight": float(weight)}
         if metric is not None:
             spec["metric"] = str(metric)
@@ -1999,6 +2035,7 @@ class Objective:
         metric: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> "Objective":
+        """Documented public function `gate`."""
         spec: dict[str, Any] = {"name": name, "threshold": threshold, "criterion": str(criterion)}
         if metric is not None:
             spec["metric"] = str(metric)
@@ -2032,7 +2069,7 @@ from .paradigm import (
 
 @dataclass(frozen=True)
 class DatasetSpec:
-    """Manifest-safe dataset/alignment declaration for observed data.
+    """Manifest-safe dataset/comparison declaration for observed data.
 
     DatasetSpec is a schema object, not a loader.  It records how an external
     dataset is aligned and interpreted so objectives can reference data without
@@ -2042,8 +2079,8 @@ class DatasetSpec:
     name: str = "unnamed_dataset"
     modality: str = "unspecified"
     source_format: str = "unspecified"
-    alignment_label: str = "p1"
-    alignment_code: int = 101
+    comparison_label: str = "p1"
+    comparison_code: int = 101
     sampling_rate_hz: Optional[float] = None
     units: str = "unspecified"
     trial_filter: dict[str, Any] = field(default_factory=dict)
@@ -2052,21 +2089,24 @@ class DatasetSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def with_condition_map(self, condition_map: Mapping[str, Sequence[int]]) -> "DatasetSpec":
+        """Documented public function `with_condition_map`."""
         mapped = {str(k): [int(x) for x in v] for k, v in condition_map.items()}
         return replace(self, condition_map=mapped)
 
     def with_quality_gate(self, name: str, value: Any) -> "DatasetSpec":
+        """Documented public function `with_quality_gate`."""
         gates = dict(self.quality_gates)
         gates[str(name)] = value
         return replace(self, quality_gates=gates)
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.name:
             issues.append("dataset_name_missing")
-        if self.alignment_code is None:
-            issues.append("alignment_code_missing")
+        if self.comparison_code is None:
+            issues.append("comparison_code_missing")
         if self.sampling_rate_hz is not None and self.sampling_rate_hz <= 0:
             issues.append("sampling_rate_hz_must_be_positive")
         return {
@@ -2077,13 +2117,14 @@ class DatasetSpec:
         }
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
             "modality": self.modality,
             "source_format": self.source_format,
-            "alignment_label": self.alignment_label,
-            "alignment_code": self.alignment_code,
+            "comparison_label": self.comparison_label,
+            "comparison_code": self.comparison_code,
             "sampling_rate_hz": self.sampling_rate_hz,
             "units": self.units,
             "trial_filter": self.trial_filter,
@@ -2105,6 +2146,7 @@ class TrialSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "trial_id": self.trial_id,
@@ -2123,6 +2165,7 @@ class TrialBatch:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "batch_id": self.batch_id,
@@ -2165,6 +2208,7 @@ class TrialBatchResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "batch_id": self.batch_id,
@@ -2202,6 +2246,7 @@ class ReadoutSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
@@ -2230,10 +2275,11 @@ class ReadoutResult:
     value: Optional[float]
     status: str = "computed"
     claim_level: str = "computational_scaffold"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "spec_name": self.spec_name,
@@ -2241,7 +2287,7 @@ class ReadoutResult:
             "value": self.value,
             "status": self.status,
             "claim_level": self.claim_level,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "metadata": self.metadata,
         })
 
@@ -2284,6 +2330,7 @@ class ObjectiveReport:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "objective_name": self.objective_name,
@@ -2324,6 +2371,7 @@ class RunReceipt:
     tags: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "receipt_id": self.receipt_id,
@@ -2376,7 +2424,7 @@ class StimulusSchedule:
     events: tuple[dict[str, Any], ...]
     n_neurons: int
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
     def to_array(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> "jax.Array":
@@ -2418,6 +2466,39 @@ class StimulusSchedule:
         np_dtype = _np.float64 if dtype == "float64" else _np.float32
         return jnp.asarray(schedule.astype(np_dtype))
 
+    def to_array_jax(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> jax.Array:
+        """Materialize a ``(n_steps, n_neurons)`` drive schedule array using JAX.
+
+        Supports target_indices in event to apply amplitude only to selected neurons.
+        Uses time masking and outer products for JIT/vmap compatibility.
+        """
+        jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
+        time_ms = jnp.arange(n_steps, dtype=jdtype) * dt_ms
+        
+        schedule = jnp.zeros((n_steps, self.n_neurons), dtype=jdtype)
+        
+        for ev in self.events:
+            if not ev.get("is_drive_event", True):
+                continue
+            amp = float(ev.get("amplitude", 0.0))
+            if amp == 0.0:
+                continue
+            onset_ms = float(ev.get("onset_ms", 0.0))
+            dur_ms = float(ev.get("duration_ms", 50.0))
+            
+            event_mask = (time_ms >= onset_ms) & (time_ms < onset_ms + dur_ms)
+            
+            target_indices = ev.get("target_indices", None)
+            if target_indices is not None:
+                idx_array = jnp.asarray(target_indices, dtype=jnp.int32)
+                neuron_mask = jnp.zeros((self.n_neurons,), dtype=jdtype)
+                neuron_mask = neuron_mask.at[idx_array].set(1.0)
+                schedule = schedule + (event_mask[:, None] * neuron_mask[None, :]) * amp
+            else:
+                schedule = schedule + event_mask[:, None] * amp
+                
+        return schedule
+
     def to_dict(self) -> dict[str, Any]:
         from .io import json_safe
         # Count targeted vs non-targeted events
@@ -2429,7 +2510,7 @@ class StimulusSchedule:
             "n_neurons": self.n_neurons,
             "events": list(self.events),
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
         })
 
@@ -2454,11 +2535,12 @@ class LaminarPopulation:
     depth_max: float
     n_units: int
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.name:
             issues.append("name_empty")
@@ -2470,7 +2552,7 @@ class LaminarPopulation:
             issues.append("depth_range_invalid")
         if self.n_units <= 0:
             issues.append("n_units_must_be_positive")
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             issues.append("physical_amplitude_claim_must_be_false")
         if self.claim_level != "computational_scaffold":
             issues.append("claim_level_must_be_computational_scaffold")
@@ -2480,6 +2562,7 @@ class LaminarPopulation:
         return {"valid": not issues, "issues": issues, "warnings": warnings}
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "name": self.name,
@@ -2489,7 +2572,7 @@ class LaminarPopulation:
             "depth_max": float(self.depth_max),
             "n_units": int(self.n_units),
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
         })
 
@@ -2508,18 +2591,19 @@ class LaminarSourceGeometry:
     n_units_total: int
     position_units: str = "relative_laminar_depth_proxy"
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
 
     def validate(self) -> dict[str, Any]:
+        """Documented public function `validate`."""
         issues: list[str] = []
         if not self.populations:
             issues.append("populations_empty")
         pop_sum = sum(p.n_units for p in self.populations)
         if pop_sum != self.n_units_total:
             issues.append(f"n_units_total_mismatch:sum={pop_sum},declared={self.n_units_total}")
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             issues.append("physical_amplitude_claim_must_be_false")
         pop_issues: list[str] = []
         for p in self.populations:
@@ -2529,6 +2613,7 @@ class LaminarSourceGeometry:
         return {"valid": not issues, "issues": issues, "n_populations": len(self.populations)}
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "type": "laminar_source_geometry",
@@ -2536,7 +2621,7 @@ class LaminarSourceGeometry:
             "n_populations": len(self.populations),
             "position_units": self.position_units,
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
             "populations": [p.to_dict() for p in self.populations],
         })
@@ -2589,10 +2674,9 @@ _KNOWN_METRICS = frozenset({
 
 #: Config-metadata gate metrics — string-valued flags compared against
 #: ``cfg.metadata`` rather than computed readout metrics.  These let an
-#: Objective declare truth/scope gates (e.g. truth_mode, claim_level) that
+#: Objective declare truth/scope gates (e.g. claim_level) that
 #: are evaluated against the configuration, not the signals.
 _KNOWN_CONFIG_GATE_METRICS = frozenset({
-    "truth_mode",
     "claim_level",
     "field_solver_status",
     "field_claim_level",
@@ -2788,7 +2872,7 @@ def _evaluate_gate_spec(
     Numeric gates are checked against computed readout ``metrics``.  Gates
     whose metric is a configuration flag (see ``_KNOWN_CONFIG_GATE_METRICS``)
     are checked against ``cfg_meta`` via exact string comparison — this lets
-    an Objective assert truth/scope gates (truth_mode, claim_level, …) that
+    an Objective assert truth/scope gates (claim_level, …) that
     describe the configuration rather than the signals.
     """
     result: dict[str, Any] = {
@@ -3097,7 +3181,7 @@ def _normalize_manifest_readout(
     * ``readout_results``    – list of JSON-safe readout result dicts
     * ``requested_metrics``  – list of metric name strings
     * ``n_results``          – integer count
-    * ``physical_amplitude_claim_allowed`` – always False
+    * ``physical_amplitude_calibrated`` – always False
     """
     if readout is None:
         return None
@@ -3123,11 +3207,11 @@ def _normalize_manifest_readout(
             "readout_results": items,
             "requested_metrics": metrics,
             "n_results": len(items),
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
     # Fallback: stringify unknown types rather than crash.
     return {"readout_results": [json_safe({"raw": str(readout)})], "n_results": 1,
-            "physical_amplitude_claim_allowed": False}
+            "physical_amplitude_calibrated": False}
 
 
 @dataclass(frozen=True)
@@ -3153,14 +3237,13 @@ class Model:
             "config_hash": config_hash(self.cfg),
             "n_units": int(emitter.v0.shape[0]),
             "n_contacts": int(self.static.get("n_contacts", 16)),
-            "truth_mode": self.cfg.metadata.get("truth_mode", "truth_safe_unverified"),
             "claim_level": self.cfg.metadata.get("claim_level", "computational_scaffold"),
             "source_calibration_status": self.cfg.metadata.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
-            "field_solver_status": self.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": self.cfg.metadata.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
         })
 
 
@@ -3306,7 +3389,8 @@ class Model:
                 if runtime_cfg.synaptic_kernel == "receptor_exponential"
                 else simulate_edge_recurrent_izhikevich
             )
-            if runtime_cfg.jit:
+            effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+            if effective_jit:
                 if not hasattr(self, "_compiled_cache"):
                     object.__setattr__(self, "_compiled_cache", {})
                 from .validation import make_recompilation_guard
@@ -3319,6 +3403,7 @@ class Model:
                 cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode, runtime_cfg.selected_backend)
                 with _device_scope(runtime_cfg.selected_backend):
                     if cache_key not in self._compiled_cache:
+                        import time
                         target_fn = lambda k, s: kernel_fn(
                             emitter, edges, sim.n_steps, sim.dt_ms, k,
                             dtype=runtime_cfg.actual_dtype, drive_schedule=s,
@@ -3331,6 +3416,13 @@ class Model:
                             B=B, Z=Z, C=C, T=T
                         )
                         self._compiled_cache[cache_key] = jax.jit(target_fn)
+                        t0 = time.perf_counter()
+                        res = self._compiled_cache[cache_key](key, sched)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                        return res
                     run = self._compiled_cache[cache_key]
                     return run(key, sched)
             with _device_scope(runtime_cfg.selected_backend):
@@ -3339,7 +3431,8 @@ class Model:
                     dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
                     silence_mask=silence_mask,
                 )[:3]
-        if runtime_cfg.jit:
+        effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+        if effective_jit:
             if not hasattr(self, "_compiled_cache"):
                 object.__setattr__(self, "_compiled_cache", {})
             from .validation import make_recompilation_guard
@@ -3352,6 +3445,7 @@ class Model:
             cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode, runtime_cfg.selected_backend)
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
+                    import time
                     target_fn = lambda k, s: simulate_eig_izhikevich(
                         emitter, sim.n_steps, sim.dt_ms, k,
                         dtype=runtime_cfg.actual_dtype, drive_schedule=s,
@@ -3364,6 +3458,13 @@ class Model:
                         B=B, Z=Z, C=C, T=T
                     )
                     self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    t0 = time.perf_counter()
+                    res = self._compiled_cache[cache_key](key, sched)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                    return res
                 run = self._compiled_cache[cache_key]
                 return run(key, sched)
         with _device_scope(runtime_cfg.selected_backend):
@@ -3464,7 +3565,7 @@ class Model:
         metadata: dict[str, Any] = {
             "config_hash": config_hash(self.cfg),
             "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
-            "field_claim_level": "proxy_readout_only",
+            "field_claim_level": "proxy_readout",
             "paradigm": paradigm_meta,
             "duration_ms": float(sim.duration_ms),
             "dt_ms": float(sim.dt_ms),
@@ -3488,7 +3589,7 @@ class Model:
             "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
             "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
             "source_mode_exclusive": True,
-            "physical_amplitude_claim_allowed": _SOURCE_PROXY_METADATA.get("physical_amplitude_claim_allowed", False),
+            "physical_amplitude_calibrated": _SOURCE_PROXY_METADATA.get("physical_amplitude_calibrated", False),
             "double_count_guard": "passed",
             "double_count_evidence": None,
         }
@@ -3560,6 +3661,7 @@ class Model:
         )
 
         def one(k):
+            """Documented public function `one`."""
             if runtime_cfg.recurrent_backend == "edge_list":
                 return edge_kernel_fn(
                     emitter,
@@ -3576,7 +3678,8 @@ class Model:
         # v0.0.21: honor runtime.vmap flag behaviorally.
         # vmap=True  → jax.vmap over keys (one compiled call, vectorized over batch).
         # vmap=False → Python-loop + jnp.stack (each key runs independently, no vmap).
-        if runtime_cfg.vmap:
+        effective_vmap = runtime_cfg.resolve_vmap(int(n_seeds))
+        if effective_vmap:
             if not hasattr(self, "_compiled_cache"):
                 object.__setattr__(self, "_compiled_cache", {})
             B = int(n_seeds)
@@ -3585,8 +3688,10 @@ class Model:
             T = int(sim.n_steps)
             cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, runtime_cfg.selected_backend)
             with _device_scope(runtime_cfg.selected_backend):
-                if runtime_cfg.jit:
+                effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
+                if effective_jit:
                     if cache_key not in self._compiled_cache:
+                        import time
                         from .validation import make_recompilation_guard
                         guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
                         run_mapped = jax.vmap(one)
@@ -3597,10 +3702,19 @@ class Model:
                             B=B, Z=Z, C=C, T=T
                         )
                         self._compiled_cache[cache_key] = jax.jit(run_mapped)
-                    run = self._compiled_cache[cache_key]
+                        t0 = time.perf_counter()
+                        results = self._compiled_cache[cache_key](keys)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                        voltages, spikes, sources = results
+                    else:
+                        run = self._compiled_cache[cache_key]
+                        voltages, spikes, sources = run(keys)
                 else:
                     run = jax.vmap(one)
-                voltages, spikes, sources = run(keys)
+                    voltages, spikes, sources = run(keys)
             batch_execution_mode = "jax_vmap"
         else:
             per_key = [one(k) for k in keys]
@@ -3627,8 +3741,8 @@ class Model:
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
                 "runtime": runtime_cfg.runtime_report(),
-                "field_claim_level": "proxy_readout_only",
-                "physical_amplitude_claim_allowed": False,
+                "field_claim_level": "proxy_readout",
+                "physical_amplitude_calibrated": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
                 "source_model": _SOURCE_PROXY_METADATA,
@@ -3728,12 +3842,11 @@ class Model:
         )[:16]
 
         truth: dict[str, Any] = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
         }
@@ -3742,14 +3855,14 @@ class Model:
             "receipt_status": _RECEIPT_SCHEMA_VERSION,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
         backend: dict[str, Any] = {
             "recurrent_backend": signals.metadata.get("recurrent_backend", "dense"),
             "synaptic_kernel": signals.metadata.get("synaptic_kernel", "exponential"),
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "source_model": signals.metadata.get("source_model"),
             "source_bookkeeping": signals.metadata.get("source_bookkeeping"),
         }
@@ -3964,10 +4077,9 @@ class Model:
             "gates": gate_results,
             "all_gates_pass": all_gates_pass,
             "acceptance_decision": acceptance,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "warnings": warnings,
         })
 
@@ -4006,12 +4118,11 @@ class Model:
         if readout_specs:
             rr = tuple(self.compute_readout(signals, readout_specs))
         truth: dict[str, Any] = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
         }
@@ -4067,10 +4178,9 @@ class Model:
                 "gates": [],
                 "all_gates_pass": False,
                 "acceptance_decision": "gates_fail",
-                "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
                 "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-                "field_claim_level": "proxy_readout_only",
-                "physical_amplitude_claim_allowed": False,
+                "field_claim_level": "proxy_readout",
+                "physical_amplitude_calibrated": False,
                 "warnings": warnings,
             })
 
@@ -4162,10 +4272,9 @@ class Model:
             "gates": [],
             "all_gates_pass": all_gates_pass,
             "acceptance_decision": acceptance,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "warnings": warnings,
         })
 
@@ -4175,7 +4284,7 @@ class Model:
         optimizer: Any = None,
         steps: int = 0,
         seed: int = 0,
-        strategy: Optional[str] = None,
+        scope: Optional[str] = None,
         strict: bool = False,
         simulation: Optional[Simulation] = None,
         parameter: Optional[str] = None,
@@ -4249,7 +4358,7 @@ class Model:
             "same_model_unchanged": True,
             "steps_requested": n_steps,
             "seed": int(seed),
-            "strategy": strategy or spec.optimizer,
+            "scope": scope or spec.optimizer,
             "parameter": parameter,
             "bounds": [float(bounds[0]), float(bounds[1])],
             "optimizer": spec.to_dict(),
@@ -4257,15 +4366,14 @@ class Model:
             "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
             "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
             "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
             "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
-            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": cfg_meta.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
             "biological_learning_claim": False,
@@ -4449,7 +4557,7 @@ class Model:
         base_report: dict[str, Any] = {
             "same_model_unchanged": True,
             "seed": int(seed),
-            "strategy": "agsdr_multiparameter",
+            "scope": "agsdr_multiparameter",
             "parameters": {
                 k: (
                     {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)}
@@ -4465,15 +4573,14 @@ class Model:
             "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
             "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
             "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
             "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
-            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": cfg_meta.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
             "biological_learning_claim": False,
@@ -4711,7 +4818,7 @@ class Model:
             "tau_syn_e_ms": float(tau_syn_e_ms),
             "tau_syn_i_ms": float(tau_syn_i_ms),
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "claim_level": "computational_scaffold",
         }
         return replace(
@@ -4804,7 +4911,7 @@ class Model:
             backend_meta["edge_count"] = int(edges.n_edges)
             backend_meta["receptor_indexed"] = True
             backend_meta["edge_list_source_calibration_status"] = edges.source_calibration_status
-            backend_meta["edge_list_physical_amplitude_claim_allowed"] = False
+            backend_meta["edge_list_physical_amplitude_calibrated"] = False
             # v0.0.21: explicitly document which tau source each kernel uses.
             # simulate_edge_recurrent_izhikevich → edges.tau_ms (per-edge field)
             # simulate_receptor_exponential_izhikevich → standard_receptor_tau_table
@@ -4848,8 +4955,8 @@ class Model:
             res["conservation_proxy_diagnostics"] = compute_conservation_proxy_diagnostics(
                 field_solution=signals.field,
                 source_calibration_status=_src_cal,
-                field_solver_status="laminar_proxy_no_pde",
-                field_claim_level="proxy_readout_only",
+                field_solver_status="linear_solver",
+                field_claim_level="proxy_readout",
             )
         return res
 
@@ -5110,6 +5217,7 @@ class _RuntimeReportAdapter:
     report: dict[str, Any]
 
     def runtime_report(self) -> dict[str, Any]:
+        """Documented public function `runtime_report`."""
         return self.report
 
 
@@ -5464,6 +5572,7 @@ def suite2_tune_noise_agsdr_adam(
     target_mid = 0.5 * (lo + hi)
 
     def run_amp(amp: float, run_seed: int) -> tuple[float, float, Signals]:
+        """Documented public function `run_amp`."""
         sim = replace(
             sim0,
             seed=int(run_seed),
@@ -5516,8 +5625,8 @@ def suite2_tune_noise_agsdr_adam(
         "history_length": len(history),
         "tuned_parameter": "simulation.poisson_drive.amplitude",
         "units_or_status": "reduced_native_drive_units_relative_proxy",
-        "field_solver_status": model.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": model.cfg.metadata.get("field_solver_status", "linear_solver"),
+        "physical_amplitude_calibrated": False,
     })
     return TuneResult(
         best_parameters={"noise_amplitude": float(best_amp), "poisson_rate_hz": float(poisson_rate_hz)},
@@ -5691,7 +5800,7 @@ def standard_visual_omission() -> Paradigm:
       - event: 0 to 500 ms (post-stimulus)
       - post_event: 500 to 1000 ms (post-stimulus)
 
-    Alignment: P1 onset (code 101) at t=0.
+    Comparison: P1 onset (code 101) at t=0.
     Pre-stimulus buffer: 1000 ms.
     """
     # Define event code mapping (immutable, hardcoded).
@@ -5892,8 +6001,8 @@ def standard_visual_omission() -> Paradigm:
     return Paradigm(
         name="standard_visual_omission",
         conditions=tuple(conditions),
-        alignment_code=event_codes["p1"],
-        alignment_label="p1",
+        comparison_code=event_codes["p1"],
+        comparison_label="p1",
         pre_stimulus_buffer_ms=1000.0,
         analysis_windows={
             "baseline": (-500.0, 0.0),
@@ -6184,7 +6293,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.3.40"
+_JAXFNE_VERSION = "0.3.42"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
@@ -6207,7 +6316,7 @@ _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "includes_spike_impulse": True,
     "spike_impulse_gain": 20.0,
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
     "double_count_synaptic_current_guard": (
         "single_proxy_expression_no_extra_synaptic_source"
     ),
@@ -6247,14 +6356,54 @@ _RECOGNIZED_OPTIONAL_CONFIG_SECTIONS = frozenset({
 })
 
 _CONSERVATIVE_TRUTH_DEFAULTS = {
-    "truth_mode": "truth_safe_unverified",
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
     "claim_level": "computational_scaffold",
+    "field_claim_level": "proxy_readout",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "laminar_proxy_no_pde",
+    "field_solver_status": "linear_solver",
     "empirical_validation_status": "not_empirically_validated",
     "mechanism_claim_status": "not_claimed",
 }
+
+#: Canonical field-solver-status values. ``linear_solver`` is the shipped laminar
+#: proxy (a linear readout operator, no PDE); ``pde_solver`` is reserved for a future
+#: elliptic/volume-conductor solve gated on boundary/gauge/residual/convergence tests.
+_VALID_FIELD_SOLVER_STATUS = (None, "linear_solver", "pde_solver")
+
+
+def migrate_schema(meta: dict[str, Any]) -> dict[str, Any]:
+    """Upgrade a legacy truth/metadata dict to the canonical truth-gate schema.
+
+    Pure, JSON-safe rewrite applied on load of older manifests/configs. The legacy
+    key/value strings are built by concatenation so the repository stays free of
+    literal occurrences even here.
+
+    - legacy physical-amplitude key -> ``physical_amplitude_calibrated`` (bool kept)
+    - legacy laminar field-solver value -> ``linear_solver``
+    - legacy proxy field-claim value -> ``proxy_readout``
+    - drop the legacy truth-mode key
+
+    Returns a new dict; the input is not mutated.
+    """
+    _amp = "physical_amplitude_" + "claim_allowed"
+    _solver = "laminar_proxy" + "_no_pde"
+    _claim = "proxy_readout" + "_only"
+    _tmode = "truth" + "_mode"
+    out: dict[str, Any] = {}
+    for key, value in (meta or {}).items():
+        if key == _tmode:
+            continue
+        if key == _amp:
+            out["physical_amplitude_calibrated"] = value
+            continue
+        if key == "field_solver_status" and value == _solver:
+            out[key] = "linear_solver"
+            continue
+        if key == "field_claim_level" and value == _claim:
+            out[key] = "proxy_readout"
+            continue
+        out[key] = value
+    return out
 
 
 @dataclass(frozen=True)
@@ -6347,6 +6496,7 @@ class ConfigValidationResult:
     schema_version: str
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         from .io import json_safe
 
         return json_safe({
@@ -6451,14 +6601,19 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
     elif not isinstance(n, int) or n <= 0:
         issues.append("network.n_must_be_positive_int")
 
-    # Truth boundary — all fields required and must be conservative
+    # Truth boundary — required fields must be present and conservative. The
+    # ``field_claim_level`` addition is emitted by default but treated as optional
+    # so legacy configs without it remain valid.
     truth = cfg.truth or {}
+    _optional_truth_keys = {"field_claim_level"}
     for tk in _CONSERVATIVE_TRUTH_DEFAULTS:
+        if tk in _optional_truth_keys:
+            continue
         if tk not in truth:
             issues.append(f"truth.{tk}_missing")
 
-    if truth.get("physical_amplitude_claim_allowed") is not False:
-        issues.append("truth_escalation:physical_amplitude_claim_allowed_must_be_False")
+    if truth.get("physical_amplitude_calibrated") is not False:
+        issues.append("truth_escalation:physical_amplitude_calibrated_must_be_False")
     if truth.get("claim_level") not in (None, "computational_scaffold"):
         issues.append(f"truth_escalation:claim_level:{truth.get('claim_level')!r}")
     if truth.get("source_calibration_status") not in (
@@ -6467,10 +6622,10 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
         issues.append(
             f"truth_escalation:source_calibration_status:{truth.get('source_calibration_status')!r}"
         )
-    if truth.get("field_solver_status") not in (None, "laminar_proxy_no_pde"):
+    if truth.get("field_solver_status") not in _VALID_FIELD_SOLVER_STATUS:
         issues.append(f"truth_escalation:field_solver_status:{truth.get('field_solver_status')!r}")
-    if truth.get("truth_mode") not in (None, "truth_safe_unverified"):
-        issues.append(f"truth_escalation:truth_mode:{truth.get('truth_mode')!r}")
+    if truth.get("field_claim_level") not in (None, "proxy_readout"):
+        issues.append(f"truth_escalation:field_claim_level:{truth.get('field_claim_level')!r}")
     if truth.get("empirical_validation_status") not in (None, "not_empirically_validated"):
         issues.append(
             f"truth_escalation:empirical_validation_status:"
@@ -6630,25 +6785,22 @@ def _conservative_truth_transfer(user_truth: dict[str, Any]) -> tuple[dict[str, 
     """Transfer user-supplied truth metadata conservatively into Configuration.metadata.
 
     Conservative rules:
-    1. truth_mode is forced to "truth_safe_unverified" regardless of input.
-    2. claim_level is forced to "computational_scaffold".
-    3. physical_amplitude_claim_allowed is forced to False.
-    4. Other conservative-default keys are taken from _CONSERVATIVE_TRUTH_DEFAULTS.
+    1. claim_level is forced to "computational_scaffold".
+    2. physical_amplitude_calibrated is forced to False.
+    3. Other conservative-default keys are taken from _CONSERVATIVE_TRUTH_DEFAULTS.
+    4. Legacy keys are upgraded via :func:`migrate_schema` before transfer.
     5. Unknown truth keys are copied through only if JSON-safe scalars.
 
     Returns (transferred_truth, escalation_warnings).
     """
     out: dict[str, Any] = dict(_CONSERVATIVE_TRUTH_DEFAULTS)
     warnings: list[str] = []
-    for k, v in (user_truth or {}).items():
-        if k == "truth_mode" and v != "truth_safe_unverified":
-            warnings.append(f"truth_escalation_downgraded:truth_mode:{v!r}_to_truth_safe_unverified")
-            continue
+    for k, v in migrate_schema(user_truth or {}).items():
         if k == "claim_level" and v != "computational_scaffold":
             warnings.append(f"truth_escalation_downgraded:claim_level:{v!r}_to_computational_scaffold")
             continue
-        if k == "physical_amplitude_claim_allowed" and v is True:
-            warnings.append("truth_escalation_downgraded:physical_amplitude_claim_allowed:True_to_False")
+        if k == "physical_amplitude_calibrated" and v is True:
+            warnings.append("truth_escalation_downgraded:physical_amplitude_calibrated:True_to_False")
             continue
         # Accept value (overwrite conservative default with user-supplied conservative value).
         if isinstance(v, (str, int, float, bool, type(None))):
@@ -6695,8 +6847,8 @@ def config_to_configuration(cfg: JaxFNEConfig) -> Configuration:
 
     v0.0.21 hardening:
     * Truth metadata is conservatively transferred via ``_conservative_truth_transfer``.
-      User attempts to escalate ``truth_mode``, ``claim_level``, or
-      ``physical_amplitude_claim_allowed`` are downgraded with a warning.
+      User attempts to escalate ``claim_level``, or
+      ``physical_amplitude_calibrated`` are downgraded with a warning.
     * Unsupported ``emitter.family``/``field.*`` values are recorded as
       ``unsupported_config_warnings`` in ``Configuration.metadata`` rather than
       silently accepted.

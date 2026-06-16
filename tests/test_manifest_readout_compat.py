@@ -43,8 +43,7 @@ def _base():
 def test_a_manifest_readout_none(_base):
     model, signals, _ = _base
     mf = model.manifest(signals)
-    assert mf["truth_mode"] == "truth_safe_unverified"
-    assert mf["physical_amplitude_claim_allowed"] is False
+    assert mf["physical_amplitude_calibrated"] is False
 
 
 # ─── B. readout=list of ReadoutResult (the bug case) ────────────────────────
@@ -55,7 +54,7 @@ def test_b_manifest_readout_list_of_results(_base):
     mf = model.manifest(signals, readouts)
     assert "readout_results" in mf
     assert mf["readout_results"]["n_results"] == 2
-    assert mf["readout_results"]["physical_amplitude_claim_allowed"] is False
+    assert mf["readout_results"]["physical_amplitude_calibrated"] is False
     metrics = mf["readout_results"]["requested_metrics"]
     assert "spike_rate_hz" in metrics
     assert "csd_abs_mean" in metrics
@@ -67,7 +66,6 @@ def test_b_manifest_readout_list_of_results(_base):
 def test_c_manifest_readout_legacy_dict(_base):
     model, signals, _ = _base
     mf = model.manifest(signals, {"requested_modes": ["CSD"]})
-    assert mf["truth_mode"] == "truth_safe_unverified"
 
 
 # ─── D. readout=single ReadoutResult ────────────────────────────────────────
@@ -98,10 +96,9 @@ def test_f_canonical_v1_workflow(_base):
     model, signals, readouts = _base
     manifest = model.manifest(signals, readouts)
     json.dumps(manifest, allow_nan=False)  # must not raise
-    assert manifest["truth_mode"] == "truth_safe_unverified"
     assert manifest["claim_level"] == "computational_scaffold"
-    assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
-    assert manifest["physical_amplitude_claim_allowed"] is False
+    assert manifest["field_solver_status"] == "linear_solver"
+    assert manifest["physical_amplitude_calibrated"] is False
 
 
 # ─── G. JSON strictness ──────────────────────────────────────────────────────
@@ -121,8 +118,7 @@ def test_h_readout_normaliser_no_truth_escalation(_base):
     model, signals, readouts = _base
     for readout_arg in [None, readouts, readouts[0]]:
         mf = model.manifest(signals, readout_arg)
-        assert mf["truth_mode"] == "truth_safe_unverified"
-        assert mf["physical_amplitude_claim_allowed"] is False
+        assert mf["physical_amplitude_calibrated"] is False
         rr = mf.get("readout_results")
         if rr is not None:
-            assert rr["physical_amplitude_claim_allowed"] is False
+            assert rr["physical_amplitude_calibrated"] is False

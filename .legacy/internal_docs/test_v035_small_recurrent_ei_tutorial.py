@@ -3,7 +3,7 @@ Tests for v0.3.5 small recurrent E/I tutorial.
 
 Classification: tutorial_scaffold_test
 Scope: Verify public API, grammar correctness, figure generation, scope metadata
-Truth: truth_safe_unverified
+Truth: 
 """
 
 import json
@@ -245,11 +245,11 @@ class TestV035ScopeMetadata:
         assert cfg.networks[0]['cell_types'] is not None
 
     def test_probes_metadata_forbids_physical_amplitude_claim(self):
-        """Probes declare physical_amplitude_claim_allowed=False."""
+        """Probes declare physical_amplitude_calibrated=False."""
         cfg = jtfne.Configuration()
         cfg = cfg.probes(["MUA-proxy", "source-proxy"])
 
-        assert cfg.probes[0]['physical_amplitude_claim_allowed'] == False, \
+        assert cfg.probes[0]['physical_amplitude_calibrated'] == False, \
             "Probes must forbid physical amplitude claims"
 
     def test_field_solver_status_is_proxy(self):
@@ -351,7 +351,6 @@ class TestV035JSONSafety:
             "n_neurons": 12,
             "mean_firing_rate": float(signals.spikes.mean() * 1000.0 / 100.0),
             "voltage_range": [float(signals.V_m.min()), float(signals.V_m.max())],
-            "truth_mode": "truth_safe_unverified",
             "computational_level": "computational_scaffold",
         }
 

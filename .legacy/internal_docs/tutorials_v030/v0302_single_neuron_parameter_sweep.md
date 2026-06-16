@@ -4,7 +4,7 @@
 
 **Tutorial ID:** v0302_single_neuron_parameter_sweep  
 **jaxfne version:** 0.2.30  
-**Truth status:** `truth_safe_unverified`  
+**Truth status:** ``  
 **Claim level:** `computational_scaffold`  
 **Scenario ID:** v030_02_single_neuron_parameter_sweep  
 
@@ -172,10 +172,9 @@ readout = baseline_model.probe(baseline_signals, modes=["spikes", "V_m", "source
 ```python
 manifest = {
     "basis": {
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
         "biological_metabolism_claim_allowed": False,
     },
     ...
@@ -186,9 +185,8 @@ print("manifest: JSON-safe ✓")
 
 Expected:
 ```
-truth_mode          : truth_safe_unverified
 claim_level         : computational_scaffold
-field_solver_status : laminar_proxy_no_pde
+field_solver_status : linear_solver
 physical_amplitude  : False
 manifest: JSON-safe ✓
 ```
@@ -272,17 +270,16 @@ Specifically, this tutorial does **not** claim:
 - Validated geometry and boundary conditions
 - A peer-reviewed validation protocol
 
-Until these are supplied, all outputs remain computational scaffolds with `physical_amplitude_claim_allowed: False`.
+Until these are supplied, all outputs remain computational scaffolds with `physical_amplitude_calibrated: False`.
 
 ---
 
 **Manifest receipt (v030_02):**
 
 ```
-truth_mode:                       truth_safe_unverified
 claim_level:                      computational_scaffold
-field_solver_status:              laminar_proxy_no_pde
-physical_amplitude_claim_allowed: False
+field_solver_status:              linear_solver
+physical_amplitude_calibrated: False
 biological_metabolism_claim_allowed: False
 baseline_firing_rate_hz:          11.0
 collector_gate:                   PASS

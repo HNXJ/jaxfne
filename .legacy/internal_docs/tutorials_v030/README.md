@@ -2,7 +2,6 @@
 
 **Version:** v0.3.0+  
 **Last updated:** 2026-05-23  
-**truth_mode:** truth_safe_unverified  
 
 ---
 
@@ -29,7 +28,7 @@ See [Lessons from v0.3.1–v0.3.2](v0303_to_v0331_planning_handoff.md) for full 
 ## Quick Links
 
 - **[Scenario Index](scenario_index.md)** — 15 scenarios, learning path, prerequisites
-- **[v0.3.3–v0.3.31 Planning Handoff](v0303_to_v0331_planning_handoff.md)** — Complete roadmap, scenario definitions, audit phases, PyPI strategy, open questions
+- **[v0.3.3–v0.3.31 Planning Handoff](v0303_to_v0331_planning_handoff.md)** — Complete scope catalogue, scenario definitions, audit phases, PyPI scope, open questions
 - **[Visualization Doctrine](visualization_doctrine.md)** — PNG mandatory, Plotly optional, figure panels, manifest contracts
 - **[Tutorial Template](template.md)** — Required 13-section structure for all v0.3 notebooks
 - **[Acceptance Gates](acceptance_gates.yaml)** — Hard validation criteria (firing rate, finite values, JSON-safe, JAX-native)
@@ -40,7 +39,7 @@ See [Lessons from v0.3.1–v0.3.2](v0303_to_v0331_planning_handoff.md) for full 
 
 ## v0.3 Phases and Scope
 
-### 31-Phase Roadmap (v0.3.0 → v0.3.31)
+### 31-Phase Scope catalogue (v0.3.0 → v0.3.31)
 
 | Phase | Scenario | Type | Status | Purpose |
 |-------|----------|------|--------|---------|
@@ -95,7 +94,7 @@ All v0.3 scenarios must pass strict validation gates before acceptance:
 - **Rationale:** Enables future GPU/TPU acceleration
 
 ### Gate Category: Geometry Metadata
-- **Requirement:** dx=dy=dz=0.010 mm declared (laminar_proxy_no_pde mode)
+- **Requirement:** dx=dy=dz=0.010 mm declared (linear_solver mode)
 - **Failure:** Geometry inconsistent with laminar proxy semantics → reject
 - **Rationale:** Prevents false 3D PDE claims without solver
 
@@ -105,7 +104,7 @@ All v0.3 scenarios must pass strict validation gates before acceptance:
 - **Rationale:** Reproducible visual validation and integrity
 
 ### Gate Category: Claim Gates
-- **Requirement:** physical_amplitude_claim_allowed=False, claim_level="computational_scaffold"
+- **Requirement:** physical_amplitude_calibrated=False, claim_level="computational_scaffold"
 - **Failure:** Any claim gate violated → reject
 - **Rationale:** Enforces truthful, bounded scientific framing
 
@@ -170,10 +169,9 @@ except ImportError:
 
 **Explicit truth declarations for all v0.3 tutorials:**
 
-- **truth_mode:** truth_safe_unverified
 - **claim_level:** computational_scaffold
-- **physical_amplitude_claim_allowed:** False
-- **field_solver_status:** laminar_proxy_no_pde
+- **physical_amplitude_calibrated:** False
+- **field_solver_status:** linear_solver
 - **source_calibration_status:** uncalibrated (teaching proxy)
 
 **What we claim:**

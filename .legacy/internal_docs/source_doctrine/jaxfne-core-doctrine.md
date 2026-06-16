@@ -2,7 +2,7 @@
 
 ## Package identity
 
-`jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is a bridge and evidence-generation layer, not a validated biological simulator or full EEG/MEG forward solver.
+`jaxfne` is a compact JAX-native TFNE source-to-field/readout scaffold. It is a bridge and evidence-generation layer, proxy-scoped biological simulator or full EEG/MEG forward solver.
 
 ## Canonical architecture
 
@@ -40,11 +40,10 @@ jaxfne.vis           visualization only
 ## Truth/status gates
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 Use status/evidence wording. Reserve stronger interpretation for runs with solver, calibration, geometry, boundary, gauge, residual, units, and validation evidence.

@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
+    scope:
       matrix:
         python-version: ["3.10", "3.12"]
 
@@ -81,7 +81,6 @@ jobs:
           readouts = model.compute_readout(signals, [jtfne.readout_spec('r', 'spike_rate_hz')])
           manifest = model.manifest(signals, readouts)
           json.dumps(manifest, allow_nan=False)
-          assert manifest['truth_mode'] == 'truth_safe_unverified'
-          assert manifest['physical_amplitude_claim_allowed'] is False
+          assert manifest['physical_amplitude_calibrated'] is False
           print('CI wheel smoke OK', jtfne.__version__)
           "

@@ -203,7 +203,7 @@ class TestTruthGatesPreserved:
     def test_default_metadata_truth_gates(self):
         """Test that default metadata includes truth gates."""
         cfg = jtfne.Configuration()
-        assert cfg.metadata.get("physical_amplitude_claim_allowed", False) is False
+        assert cfg.metadata.get("physical_amplitude_calibrated", False) is False
 
     def test_new_domains_preserve_truth_gates(self):
         """Test that new domains don't override truth gates."""
@@ -214,4 +214,4 @@ class TestTruthGatesPreserved:
             .optimizer()
         )
         # Truth gates should still be false
-        assert cfg.metadata.get("physical_amplitude_claim_allowed", False) is False
+        assert cfg.metadata.get("physical_amplitude_calibrated", False) is False

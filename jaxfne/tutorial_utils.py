@@ -392,7 +392,7 @@ def rate_synchrony_targets(
         - Returned Objective can be used with Model.evaluate() and Model.tune()
         - Surrogate objective for inner-loop optimization only; not a biological claim gate
         - Weights control relative importance of rate vs. synchrony targets
-        - Truth gates preserved: truth_safe_unverified, computational_scaffold
+        - Truth gates preserved: computational_scaffold
     """
     # Import Objective here to avoid circular imports
     import jaxfne as jtfne
@@ -427,12 +427,6 @@ def rate_synchrony_targets(
     )
 
     # Add truth gates
-    obj = obj.gate(
-        name="truth_mode",
-        threshold="truth_safe_unverified",
-        criterion="exact",
-        metric="truth_mode"
-    )
 
     obj = obj.gate(
         name="claim_level",
@@ -532,11 +526,10 @@ class LaminarColumnConfig:
     lesion_spec: tuple = field(default_factory=tuple)
 
     # Truth gates (immutable by frozen dataclass)
-    truth_mode: str = "truth_safe_unverified"
     claim_level: str = "computational_scaffold"
-    field_solver_status: str = "laminar_proxy_no_pde"
-    field_claim_level: str = "proxy_readout_only"
-    physical_amplitude_claim_allowed: bool = False
+    field_solver_status: str = "linear_solver"
+    field_claim_level: str = "proxy_readout"
+    physical_amplitude_calibrated: bool = False
 
     @property
     def cell_dist_frame(self) -> "pd.DataFrame":
@@ -552,11 +545,10 @@ class LaminarColumnConfig:
     def truth_gates(self) -> dict:
         """Return immutable truth gate values."""
         return {
-            'truth_mode': self.truth_mode,
             'claim_level': self.claim_level,
             'field_solver_status': self.field_solver_status,
             'field_claim_level': self.field_claim_level,
-            'physical_amplitude_claim_allowed': self.physical_amplitude_claim_allowed,
+            'physical_amplitude_calibrated': self.physical_amplitude_calibrated,
         }
 
     def to_manifest_dict(self) -> dict:
@@ -773,11 +765,10 @@ def make_laminar_column_config(
     cell_type_izh_params=None,
     connectivity_spec=None,
     lesion_spec=None,
-    truth_mode="truth_safe_unverified",
     claim_level="computational_scaffold",
-    field_solver_status="laminar_proxy_no_pde",
-    field_claim_level="proxy_readout_only",
-    physical_amplitude_claim_allowed=False,
+    field_solver_status="linear_solver",
+    field_claim_level="proxy_readout",
+    physical_amplitude_calibrated=False,
 ) -> LaminarColumnConfig:
     """Create a laminar column configuration with all defaults visible.
 
@@ -989,11 +980,10 @@ def make_laminar_column_config(
         cell_type_izh_params={k: dict(v) for k, v in dict(cell_type_izh_params).items()},
         connectivity_spec=tuple(dict(r) for r in connectivity_spec),
         lesion_spec=tuple(dict(r) for r in lesion_spec),
-        truth_mode=truth_mode,
         claim_level=claim_level,
         field_solver_status=field_solver_status,
         field_claim_level=field_claim_level,
-        physical_amplitude_claim_allowed=physical_amplitude_claim_allowed,
+        physical_amplitude_calibrated=physical_amplitude_calibrated,
     )
 
 
@@ -1012,7 +1002,6 @@ def config_summary_frame(cfg: LaminarColumnConfig) -> "pd.DataFrame":
         ('Seed', cfg.seed),
         ('Contacts', cfg.n_contacts),
         ('Freq Range (Hz)', f'{cfg.freq_min_hz}-{cfg.freq_max_hz}'),
-        ('Truth Mode', cfg.truth_mode),
         ('Claim Level', cfg.claim_level),
         ('Field Status', cfg.field_solver_status),
     ]
@@ -1414,7 +1403,7 @@ def simulate_laminar_trials(
         Gaussian leadfield (jaxfne.fields.project_laminar_sources) applied to
         the real per-neuron Izhikevich source traces, so band power genuinely
         varies with cortical depth. NOT a solved PDE; field_solver_status stays
-        "laminar_proxy_no_pde" and physical_amplitude_claim_allowed=False.
+        "linear_solver" and physical_amplitude_calibrated=False.
     contact_depths_m                    : (n_contacts,)
     area_names                          : tuple[str, ...]
     """
@@ -1741,6 +1730,7 @@ def tune_laminar_agsdr(
     target = select_cells(model, area=cfg.areas[0], layers=("L4",), cell_types=("E",), seed=cfg.seed)
 
     def objective(xv):
+        """Documented public function `objective`."""
         ctrl = dict(base)
         for k, val in zip(keys, xv):
             ctrl[k] = float(val)

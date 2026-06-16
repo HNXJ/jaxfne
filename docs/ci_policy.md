@@ -2,7 +2,7 @@
 
 ## Overview
 
-jaxfne uses a two-tier validation strategy:
+jaxfne uses a two-tier validation scope:
 
 1. **Fast CI** (runs on every push/PR): Smoke tests, quick examples, build validation (~1 min)
 2. **Extended validation** (manual/release): Full tutorials, large simulations (~5-10 min)
@@ -92,7 +92,7 @@ All outputs maintain strict validation gates:
 run_status: tutorial_scaffold
 computational_scaffold: true
 amplitude_status: false
-field_solver_status: laminar_proxy_no_pde (or not_computed)
+field_solver_status: linear_solver (or not_computed)
 ```
 
 These gates are enforced in validation scripts and cannot be escalated without explicit approval and corresponding evidence.
@@ -141,7 +141,7 @@ CI policy documentation:
 
 See the "Extended Validation (Manual/Release)" section above for manual validation commands.
 
-## Future Improvements
+## Reserved Improvements
 
 Potential enhancements (not yet implemented):
 

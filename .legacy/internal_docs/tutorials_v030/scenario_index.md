@@ -2,7 +2,6 @@
 
 **Version:** v0.3.0+  
 **Last updated:** 2026-05-24
-**truth_mode:** truth_safe_unverified  
 
 ---
 
@@ -280,7 +279,7 @@ The first two tutorial scenarios have generated critical insights that all subse
 - Source vector [time, neurons] → current dipole [time, x, y, z]
 - Kernel projection matrix (geometry × neural positions)
 - JAX einsum for efficient kernel application
-- Field validation: divergence-free (∇·σ∇φ = 0 in laminar_proxy_no_pde)
+- Field validation: divergence-free (∇·σ∇φ = 0 in linear_solver)
 
 **Figure artifacts:**
 - Source current trace (single neuron current)
@@ -294,7 +293,7 @@ The first two tutorial scenarios have generated critical insights that all subse
 - Field amplitude scales with population size (expected)
 - JSON-safe source/field metrics and geometry parameters
 
-**Truth status:** Kernel-based approximation, not PDE solution; laminar_proxy_no_pde mode
+**Truth status:** Kernel-based approximation, not PDE solution; linear_solver mode
 
 ---
 
@@ -592,7 +591,7 @@ The first two tutorial scenarios have generated critical insights that all subse
 - Large-scale network: 1000+ neurons, 5 areas, plasticity, multiple readouts
 - Profiling: JAX JIT time, device memory, wall-clock runtime
 - Scaling analysis: runtime vs. network size (expected linear/quadratic)
-- Future roadmap: Poisson solver, Maxwell fields, GPU acceleration (deferred)
+- Future scope catalogue: Poisson solver, Maxwell fields, GPU acceleration (deferred)
 
 **Figure artifacts:**
 - Large-network raster (1000 neurons, visual sample)

@@ -1,0 +1,74 @@
+{
+  "config": {
+    "area": "V1",
+    "n_neurons": 10000,
+    "duration_ms": 1000.0,
+    "dt_ms": 0.1,
+    "n_contacts": 128,
+    "drive_levels": [
+      0.0,
+      10.0
+    ],
+    "main_drive": 10.0,
+    "deep_layers": [
+      "L5",
+      "L6"
+    ],
+    "seed": 0,
+    "connectivity": "dense recurrent W (deep->superficial links present)"
+  },
+  "schema": {
+    "claim_level": "computational_scaffold",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false
+  },
+  "sweep": [
+    {
+      "deep_DC": 0.0,
+      "mean_rate_hz": 10.837,
+      "raster": "03_raster_dc0.png",
+      "spectrolaminar": "04_spectrolaminar_dc0.png"
+    },
+    {
+      "deep_DC": 10.0,
+      "mean_rate_hz": 21.978,
+      "raster": "03_raster_dc10.png",
+      "spectrolaminar": "04_spectrolaminar_dc10.png"
+    }
+  ],
+  "figures": {
+    "lfp": "01_lfp.png",
+    "spectrolaminar_main": "02_spectrolaminar_suite_main.png",
+    "eeg": "05_eeg_proxy.png",
+    "meg": "06_meg_proxy.png",
+    "csd": "07_csd.png",
+    "rate": "08_firing_rate.png",
+    "densities": "10_cell_densities.png",
+    "psd": "11_psd.png",
+    "emm": "11_emm.png",
+    "circuit3d_html": "09_circuit3d_10k.html"
+  },
+  "densities": {
+    "L1": {
+      "n": 1200,
+      "E_frac": 0.5
+    },
+    "L2/3": {
+      "n": 3400,
+      "E_frac": 0.72
+    },
+    "L4": {
+      "n": 2000,
+      "E_frac": 0.78
+    },
+    "L5": {
+      "n": 1400,
+      "E_frac": 0.9
+    },
+    "L6": {
+      "n": 2000,
+      "E_frac": 0.92
+    }
+  }
+}

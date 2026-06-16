@@ -1,23 +1,22 @@
 # Poisson Field Solver Admissibility Specification
 
-> **Doctrine update (v0.2.27):** This document is a **future solver-readiness specification**, not an implementation guide.
-> Poisson solver implementation is planned for future phases. The `solved_poisson` field regime
-> is declared as `implemented=False, status_enabled=False` in v0.2.26+ and remains so until a
-> separately approved implementation phase begins. v0.2.27 adds proxy diagnostics for verification — full solver deferred.
-> Physical amplitude amplitudes stay unscaled (amplitude_status: false) in all v0.2.x releases until solver validation is complete.
+> **Scope:** This page specifies the admissibility (solver-readiness) conditions for the
+> elliptic field regime, one of the reserved regimes in
+> [Limitations and future plans](limitations_and_future_plans.md). The shipped package uses the
+> laminar proxy; the `solved_poisson` regime carries `implemented=False, status_enabled=False`,
+> and proxy amplitudes stay relative under `amplitude_status: false`.
 
 ## Overview
 
-This document specifies the mathematical contract for future Poisson field solvers in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
+This document specifies the mathematical contract for the elliptic (Poisson) field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.
 
-**Status (updated v0.2.27):** Specification only. Poisson solver implementation is planned for future releases beyond v0.2.x.
-A concrete Poisson solver requires separate approval before implementation begins; see
+**Status:** Specification of the admissibility conditions for the elliptic field regime; see
 [computation_basis.md](computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
 ⚠️ **v0.2.x Critical Invariant:**
 - **No physical amplitude statuss are allowed in any v0.2.x release**, even if admissibility gates pass on synthetic data.
 - `amplitude_status` is **always false** in v0.2.x reports.
-- Poisson solver implementation requires separate approval and is planned for future phases. The `solved_poisson` regime remains `implemented=False` until approval and completion.
+- The `solved_poisson` regime carries `implemented=False`; it is a reserved regime in [Limitations and future plans](limitations_and_future_plans.md).
 
 ## Mathematical Problem
 
@@ -224,11 +223,11 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
   "amplitude_status": false,
-  "v02x_note": "v0.2.x is specification-only (no solver). amplitude_status is ALWAYS false. A Poisson solver requires separate approval; physical amplitude amplitudes stay unscaled (amplitude_status: false) until solver is implemented and calibrated."
+  "note": "Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative."
 }
 ```
 
-## Future Usage (Separately Approved Phase)
+## Reserved Usage (Separately Approved Phase)
 
 When a Poisson solver is separately approved and implemented:
 
@@ -244,8 +243,8 @@ When a Poisson solver is separately approved and implemented:
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
 - ✓ Conservation proxy diagnostics added (v0.2.27) — proxy-based verification, full solver planned
-- ◐ Poisson solver implementation planned for future phases — requires separate approval
-- ◐ Physical amplitude statuss validation planned for future calibration phases
+- ◐ Elliptic field solver — reserved regime ([Limitations and future plans](limitations_and_future_plans.md))
+- ◐ Physical-amplitude reporting requires calibration ([Limitations and future plans](limitations_and_future_plans.md))
 
 **Public-output status:** Specification-only; no solver implementation; no calibrated physical-amplitude statuss.
 `solved_poisson` regime is gated: `implemented=False`, `status_enabled=False` in v0.2.26+.

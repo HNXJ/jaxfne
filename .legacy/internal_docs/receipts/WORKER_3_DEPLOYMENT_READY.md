@@ -96,8 +96,7 @@ synchrony_rejection: bool
 rejection_reasons: [list of strings]
 uses_teaching_control_source: bool
 default_evidence_path: bool
-physical_amplitude_claim_allowed: false
-truth_mode: truth_safe_unverified
+physical_amplitude_calibrated: false
 bands:
   alpha_beta: [8.0, 25.0]
   gamma: [40.0, 150.0]
@@ -160,7 +159,6 @@ Acceptance Criteria (ALL must be TRUE):
 ☐ 10+ tests implemented and passing
 ☐ A–C + D–E regression: 0 new failures
 ☐ Phase 2 validator: PASS status required
-☐ Metadata: truth_mode, physical_amplitude_claim_allowed, proxy-safe labels
 ☐ JSON serialization safe (allow_nan=False)
 ☐ Final report includes Phase 2 validator PASS receipt
 

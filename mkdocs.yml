@@ -75,7 +75,7 @@ nav:
       - Plotly Visualization: guides/plotly_visualization.md
       - Poisson Admissibility: guides/poisson_admissibility.md
       - Jaxley Interoperability: guides/jaxley_interop.md
-      - Biophysical Alignment: notes/arkhipov_allen_tfne_alignment.md
+      - Biophysical Model Comparison: notes/biophysical_model_comparison.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
 
@@ -93,7 +93,7 @@ nav:
       - Glossary of Methods: reference/glossary_of_methods.md
 
   - About jaxfne:
-      - Scope and limitations: scope_and_limitations.md
+      - Limitations and future plans: limitations_and_future_plans.md
       - Changelog: changelog.md
       - Citation: citation.md
       - Contributing: contributing.md
@@ -106,4 +106,4 @@ nav:
           - v0.2.0: releases/v0.2.0.md
 
 extra:
-  jaxfne_version: "0.3.40"
+  jaxfne_version: "0.3.42"

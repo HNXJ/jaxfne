@@ -14,7 +14,7 @@ The 4 core jaxfne example scripts generate self-contained evidence bundles. Each
 2. **Static figures** — deterministic PNG visualizations generated from simulation data
 3. **Hashed artifacts** — SHA256 integrity verification for all outputs
 
-This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and limitations.
+This contract ensures tutorials are reproducible, verifiable, and scientifically honest about their scope and scope notes.
 
 **Key principle:** All outputs are **computational evidence**, not biological proof. No empirical validation. No mechanism statements. Status checks are frozen: `amplitude_status=False`.
 
@@ -33,7 +33,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 {
   "model_status": "computational_scaffold",
   "amplitude_status": false,
-  "field_model_status": "proxy_readout_only",
+  "field_model_status": "proxy_readout",
   "run_status": "tutorial_scaffold",
   "model_config": { ... },
   "simulation_config": { ... },
@@ -44,7 +44,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 **Constraints:**
 - `amplitude_status` is **always False** in v0.2.19
 - `model_status` must be `"computational_scaffold"`
-- `field_model_status` must be `"proxy_readout_only"`
+- `field_model_status` must be `"proxy_readout"`
 - All values must be JSON-safe (no NaN/Inf)
 
 ### 2. probe_report.json
@@ -98,7 +98,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 ```json
 {
   "model_status": "computational_scaffold",
-  "field_model_status": "proxy_readout_only",
+  "field_model_status": "proxy_readout",
   "amplitude_status": false,
   "empirical_validation_status": null,
   "mechanism_status": null
@@ -210,7 +210,7 @@ The validation script enforces strict gates on all tutorial outputs. **Any gate 
 10. **Status checks frozen:**
     - `amplitude_status` = False
     - `model_status` = "computational_scaffold"
-    - `field_model_status` = "proxy_readout_only"
+    - `field_model_status` = "proxy_readout"
 11. **Probe report complete:** All 8 operators present
 12. **Metrics nonzero:** Signal statistics are finite and present
 
@@ -284,7 +284,7 @@ python scripts/run_all_tutorials.py --out-root outputs/
 
 **Flags:**
 - `--out-root OUTPUT_DIR` — Output directory (default: `outputs/`)
-- `--smoke` — Reduced runtime (not yet fully implemented; defer to future version)
+- `--smoke` — Reduced runtime (not yet fully implemented; defer to reserved mode)
 - `--write-figures` — Enable figure generation (default: True)
 
 **Output:**

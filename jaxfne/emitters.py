@@ -54,7 +54,7 @@ class SynapseSpec:
 
     receptors: tuple[ReceptorSpec, ...]
     source_calibration_status: str = "metadata_only_uncalibrated"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
 
 
 def standard_receptor_specs() -> dict[str, ReceptorSpec]:
@@ -100,6 +100,7 @@ class IzhikevichParams:
 
     @property
     def n_neurons(self) -> int:
+        """Documented public function `n_neurons`."""
         return int(self.v0.shape[0])
 
 
@@ -171,6 +172,7 @@ class EIGNetwork:
 
     @property
     def n_neurons(self) -> int:
+        """Documented public function `n_neurons`."""
         return self.params.n_neurons
 
 
@@ -387,6 +389,7 @@ def simulate_eig_izhikevich(
 
     if drive_schedule is None:
         def step(carry, noise_t):
+            """Documented public function `step`."""
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
             current_native = drive + syn + noise_coef * noise_t
@@ -410,6 +413,7 @@ def simulate_eig_izhikevich(
         sched = drive_schedule.astype(jdtype)
 
         def step_sched(carry, xs_t):
+            """Documented public function `step_sched`."""
             sched_t, noise_t = xs_t
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
@@ -453,27 +457,30 @@ class EdgeList:
 
     @property
     def n_edges(self) -> int:
+        """Documented public function `n_edges`."""
         return int(self.pre.shape[0])
 
     def tree_flatten(self):
+        """Documented public function `tree_flatten`."""
         children = (self.pre, self.post, self.weight, self.receptor_index, self.tau_ms)
         aux = {"source_calibration_status": self.source_calibration_status}
         return children, aux
 
     @classmethod
     def tree_unflatten(cls, aux, children):
+        """Documented public function `tree_unflatten`."""
         pre, post, weight, receptor_index, tau_ms = children
         return cls(pre, post, weight, receptor_index, tau_ms, aux["source_calibration_status"])
 
     def to_dict(self) -> dict:
+        """Documented public function `to_dict`."""
         from .io import json_safe
         return json_safe({
             "backend": "edge_list_recurrent_v0.0.9",
             "n_edges": self.n_edges,
             "receptors": {"0": "excitatory_native", "1": "inhibitory_native"},
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": False,
-            "truth_mode": "truth_safe_unverified",
+            "physical_amplitude_calibrated": False,
         })
 
 
@@ -565,6 +572,7 @@ def simulate_edge_recurrent_izhikevich(
 
     if drive_schedule is None:
         def step(carry, noise_t):
+            """Documented public function `step`."""
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
@@ -590,6 +598,7 @@ def simulate_edge_recurrent_izhikevich(
         sched = drive_schedule.astype(jdtype)
 
         def step_sched(carry, xs_t):
+            """Documented public function `step_sched`."""
             sched_t, noise_t = xs_t
             v, u, prev_spikes, syn_state = carry
             edge_current = weight * syn_state
@@ -718,6 +727,7 @@ def simulate_receptor_exponential_izhikevich(
 
     if drive_schedule is None:
         def step(carry, noise_t):
+            """Documented public function `step`."""
             v, u, prev_spikes, syn_state = carry
             edge_drive = weight * syn_state
             syn = _segment_sum(edge_drive, post, n_neurons)
@@ -743,6 +753,7 @@ def simulate_receptor_exponential_izhikevich(
         sched = drive_schedule.astype(jdtype)
 
         def step_sched(carry, xs_t):
+            """Documented public function `step_sched`."""
             sched_t, noise_t = xs_t
             v, u, prev_spikes, syn_state = carry
             edge_drive = weight * syn_state
@@ -845,6 +856,7 @@ def simulate_dynamic_ei_coupling(
     )
 
     def step(carry, _):
+        """Documented public function `step`."""
         v, u, prev_spikes, syn_traces, rng = carry
         rng, noise_key = jax.random.split(rng)
         noise = jnp.asarray(0.5, dtype=jdtype) * jax.random.normal(
@@ -1008,6 +1020,7 @@ from typing import NamedTuple as _NamedTuple
 
 
 class EmitterState(_NamedTuple):
+    """Documented public class `EmitterState`."""
     v: jax.Array
     u: jax.Array
     spikes: jax.Array
@@ -1016,6 +1029,7 @@ class EmitterState(_NamedTuple):
 
 
 class EmitterOutput(_NamedTuple):
+    """Documented public class `EmitterOutput`."""
     voltage: jax.Array
     spikes: jax.Array
     source: jax.Array
@@ -1023,6 +1037,7 @@ class EmitterOutput(_NamedTuple):
 
     @property
     def dtype(self) -> str:
+        """Documented public function `dtype`."""
         return str(self.voltage.dtype)
 
 
@@ -1047,6 +1062,7 @@ class IzhikevichEmitter(Emitter):
         self.params = izhikevich_eig_params(self.n, cell_type_fractions or {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}, dtype=dtype)
 
     def initial_state(self, seed: int = 0) -> EmitterState:
+        """Documented public function `initial_state`."""
         jdtype = _dtype_from_policy(self.dtype)
         return EmitterState(
             v=self.params.v0.astype(jdtype),
@@ -1057,6 +1073,7 @@ class IzhikevichEmitter(Emitter):
         )
 
     def step(self, state: EmitterState, input_t: jax.Array, *, dt_ms: float = 0.1) -> tuple[EmitterState, EmitterOutput]:
+        """Documented public function `step`."""
         jdtype = _dtype_from_policy(self.dtype)
         rng, noise_key = jax.random.split(state.key)
         input_t = jnp.asarray(input_t, dtype=jdtype)
@@ -1084,11 +1101,21 @@ class IzhikevichEmitter(Emitter):
 
 
 class GLIFEmitter(Emitter):
+    """Generalized Leaky Integrate-and-Fire emitter facade stub.
+
+    Provides a placeholder for future implementation of multi-compartment or
+    highly parameterized GLIF models. Raises NotImplementedError on construction.
+    """
     def __init__(self, *args, **kwargs):
         raise NotImplementedError("TODO: implement GLIFEmitter dynamics before exposing this emitter")
 
 
 class LIFEmitter(Emitter):
+    """Leaky Integrate-and-Fire emitter facade stub.
+
+    Provides a placeholder for standard LIF single-compartment dynamics.
+    Raises NotImplementedError on construction.
+    """
     def __init__(self, *args, **kwargs):
         raise NotImplementedError("TODO: implement LIFEmitter dynamics before exposing this emitter")
 
@@ -1116,9 +1143,11 @@ class SynapseLayer:
         self.dtype = dtype
 
     def initial_state(self) -> SynapseState:
+        """Documented public function `initial_state`."""
         return SynapseState(trace=jnp.zeros((self.n,), dtype=_dtype_from_policy(self.dtype)))
 
     def step(self, state: SynapseState, pre_spikes: jax.Array, *, dt_ms: float = 0.1) -> tuple[SynapseState, jax.Array]:
+        """Documented public function `step`."""
         jdtype = _dtype_from_policy(self.dtype)
         decay = jnp.exp(-jnp.asarray(dt_ms, dtype=jdtype) / jnp.asarray(self.tau_ms, dtype=jdtype))
         trace_next = state.trace.astype(jdtype) * decay + jnp.asarray(pre_spikes, dtype=jdtype)

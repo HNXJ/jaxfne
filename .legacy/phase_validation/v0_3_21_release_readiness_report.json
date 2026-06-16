@@ -5,11 +5,10 @@
   "platform": "Linux-4.4.0-x86_64-with-glibc2.41",
   "jaxfne_version": "0.3.21",
   "truth_status": {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "field_claim_level": "proxy_readout_only",
-    "physical_amplitude_claim_allowed": false
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false
   },
   "changed_files_or_paths": [
     ".gitignore",
@@ -59,11 +58,11 @@
       "result": "PASS"
     },
     {
-      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_package_version_alignment.py",
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_package_version_comparison.py",
       "result": "PASS: 1 passed"
     },
     {
-      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_docs_version_alignment.py",
+      "cmd": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_docs_version_comparison.py",
       "result": "PASS: 5 passed"
     },
     {
@@ -117,7 +116,7 @@
   ],
   "summary": [
     "Repository root minimized: stale root receipts, duplicate Etude notebook copies, and generated execution-output notebooks removed from active paths.",
-    "Retained main-alignment receipt lives in internal_docs/release_receipts.",
+    "Retained main-comparison receipt lives in internal_docs/release_receipts.",
     "Active Etude stays under tutorials/etudes and executes in smoke and full duration modes in local source-tree execution.",
     "Canonical template stays under tutorials/templates and uses both install options plus backend/dtype setup and canonical import.",
     "Template guide, release checklist, changelog, and agent status aligned with 0.3.21.",

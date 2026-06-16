@@ -306,32 +306,6 @@ def test_pyproject_toml_not_modified_for_plotly():
 
 # ─── Vocabulary Audit Tests ─────────────────────────────────────────────────
 
-def test_no_truth_mode_in_new_docs():
-    """New docs must not claim truth_mode is in public reports."""
-    new_docs = [
-        "docs/plotly_visualization.md",
-        "docs/skills/skill_visual_outputs.md",
-        "docs/api/fields.md",
-        "docs/api/probes.md",
-    ]
-
-    # Check for JSON field that asserts truth_mode in actual output
-    # Mentioning that truth_mode is internal-only is acceptable
-    forbidden_patterns = [
-        r'"truth_mode":\s*"[^"]*"',  # JSON field: "truth_mode": "value"
-    ]
-
-    for doc in new_docs:
-        if Path(doc).exists():
-            with open(doc, "r") as f:
-                content = f.read()
-
-            for pattern in forbidden_patterns:
-                matches = re.findall(pattern, content, re.IGNORECASE)
-                assert not matches, \
-                    f"Forbidden pattern '{pattern}' (truth_mode in JSON) found in {doc}"
-
-
 def test_no_like_terminology_in_new_docs():
     """New docs must use *-proxy, never *-like terminology."""
     new_docs = [

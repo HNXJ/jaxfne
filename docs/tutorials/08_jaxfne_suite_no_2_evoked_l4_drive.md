@@ -53,7 +53,7 @@ $$\bar{R}_{{\text{evoked}}}[t] = \frac{1}{N_{{\text{trials}}}} \sum_{n=1}^{N_{{\
 
 **Implementation location**: `jaxfne.vis.raster()`, `jtfne.vis.lfp_traces()`
 
-**Scope boundary**: Alignment is computational; no physiological latency calibration.
+**Scope boundary**: Comparison is computational; no physiological latency calibration.
 
 ---
 

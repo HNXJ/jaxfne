@@ -107,7 +107,7 @@ class TestV031PublicWording:
             text = f.read().lower()
 
         forbidden_words = [
-            "what this tutorial does not claim",
+            "what this tutorial scopes",
             "claim gates",
             "claim_gate_summary",
         ]

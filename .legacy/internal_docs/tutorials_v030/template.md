@@ -2,7 +2,6 @@
 
 **Version:** v0.3.0+  
 **Last updated:** 2026-05-23  
-**truth_mode:** truth_safe_unverified  
 
 ---
 
@@ -153,7 +152,7 @@ Every displayed equation must be followed by:
 2. **Term Glossary:** Define each symbol, units, ranges
 3. **Worded Equation:** Explain in plain English what the equation computes
 4. **Implementation Location:** Where in jaxfne code this is computed
-5. **Claim Boundary:** What this equation claims and what it does not claim
+5. **Claim Boundary:** What this equation claims and what it scopes
 
 **Example format (v0.3 tutorial section):**
 
@@ -270,7 +269,7 @@ params = jtfne.IzhikevichParams(
 # Network parameters
 n_neurons = 10  # Population size
 
-# Geometry (laminar_proxy_no_pde mode)
+# Geometry (linear_solver mode)
 dx_mm = 0.010  # Spatial resolution (0.010 mm per neuron)
 dy_mm = 0.010
 dz_mm = 0.010
@@ -460,7 +459,7 @@ print("Manifest keys:", list(manifest.keys()))
 # Extract claim gates
 basis = manifest['basis']
 print("\nClaim gates:")
-print(f"  physical_amplitude_claim_allowed: {basis['physical_amplitude_claim_allowed']}")
+print(f"  physical_amplitude_calibrated: {basis['physical_amplitude_calibrated']}")
 print(f"  biological_metabolism_claim_allowed: {basis['biological_metabolism_claim_allowed']}")
 print(f"  claim_level: {basis['claim_level']}")
 print(f"  field_solver_status: {basis['field_solver_status']}")
@@ -470,17 +469,17 @@ print(f"  field_solver_status: {basis['field_solver_status']}")
 
 \`\`\`python
 # Hard validation: claim gates must be frozen
-assert basis['physical_amplitude_claim_allowed'] == False, "CLAIM GATE VIOLATED"
+assert basis['physical_amplitude_calibrated'] == False, "CLAIM GATE VIOLATED"
 assert basis['biological_metabolism_claim_allowed'] == False, "CLAIM GATE VIOLATED"
 assert basis['claim_level'] == 'computational_scaffold', "CLAIM GATE VIOLATED"
-assert basis['field_solver_status'] == 'laminar_proxy_no_pde', "CLAIM GATE VIOLATED"
+assert basis['field_solver_status'] == 'linear_solver', "CLAIM GATE VIOLATED"
 
 print("\n✓ All claim gates frozen and immutable")
 print("\nTruth status:")
 print("  - This tutorial demonstrates a computational model.")
 print("  - Outputs are proxies, not physical measurements.")
 print("  - No biological validation or calibration.")
-print("  - No Maxwell/Poisson solvers (laminar_proxy_no_pde mode).")
+print("  - No Maxwell/Poisson solvers (linear_solver mode).")
 print("  - Safe for exploration and teaching; not for empirical claims.")
 \`\`\`
 
@@ -509,7 +508,7 @@ except Exception as e:
 
 ### **Section 9: Figures and Artifacts**
 
-**Purpose:** Generate publication-quality figures and store artifact metadata.
+**Purpose:** Generate evidence-quality figures and store artifact metadata.
 
 **Format:**
 ```markdown
@@ -781,10 +780,9 @@ Implement synaptic plasticity (STDP or homeostatic scaling) and rerun. How does 
 
 ### Scientific boundaries
 
-- **truth_mode:** truth_safe_unverified
 - **scope:** computational_scaffold
-- **physical_amplitude_claim_allowed:** False
-- **field_solver_status:** laminar_proxy_no_pde
+- **physical_amplitude_calibrated:** False
+- **field_solver_status:** linear_solver
 - **source_calibration_status:** uncalibrated
 
 This tutorial uses v0.3.4 of jaxfne. The package version will not be bumped unless a tutorial reveals a real bug in the core library or a genuinely missing public API.
@@ -818,7 +816,7 @@ This marks the end of this tutorial. The next scenario in the learning path is [
 - Must appear as Section 13 in EVERY v0.3 tutorial notebook
 - Must explicitly list what the tutorial IS and IS NOT
 - Must include immutable claim gates
-- Must state that physical_amplitude_claim_allowed = False
+- Must state that physical_amplitude_calibrated = False
 - Must prevent reader misconception about scope, calibration, biological proof
 
 ---
@@ -856,7 +854,7 @@ Before committing a tutorial notebook, verify:
 - [ ] JAX simulation path jittable (no Python loops in hot path)
 - [ ] Geometry metadata declared (dx=dy=dz values explicit)
 - [ ] Figure artifacts present and hashed
-- [ ] Claim gates frozen (physical_amplitude_claim_allowed=False)
+- [ ] Claim gates frozen (physical_amplitude_calibrated=False)
 
 ---
 

@@ -15,7 +15,7 @@ import jaxfne as jtfne
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-ARTIFACTS_DIR = jtfne.io.Path("/Users/hamednejat/.gemini/antigravity/brain/39583144-86c9-4537-982e-52a28c32e57c")
+ARTIFACTS_DIR = jtfne.io.Path("artifacts/verify_5hz_traces")
 ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
 
 DURATION_MS = 1000.0
@@ -98,7 +98,7 @@ for idx, (cell_type, p) in enumerate(params_5hz.items()):
     ax.set_ylim([-90, 45])
 
 axes[-1].set_xlabel("Time (ms)", fontsize=12)
-plt.suptitle("Verification of 5.0 Hz (5 spikes / 1000ms) Firing Rates across Cell Types\nTruth Mode: truth_safe_unverified | Status: computational_scaffold", fontsize=14, fontweight="bold", y=0.98)
+plt.suptitle("Verification of 5.0 Hz (5 spikes / 1000ms) Firing Rates across Cell Types\nTruth Mode:  | Status: computational_scaffold", fontsize=14, fontweight="bold", y=0.98)
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 
 p1 = OUT_DIR / "sweep_d_5hz_verification.png"

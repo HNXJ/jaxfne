@@ -101,11 +101,11 @@ Jaxley is an optional detailed differentiable cell/compartment emitter bridge. K
 
 PyNWB is an optional archive/export target. Keep it lazy. Export explicit schema, units/status, provenance, and session metadata when available. Validate read/write round trips. NWB export alone is not empirical data validity.
 
-## Roadmap
+## Scope catalogue
 
 | Stage | Goal | Gate |
 |---|---|---|
-| v0.3.x | publication evidence stack, tutorial atlas, proxy readout contracts | ED9/ED10, manifests, strict JSON, clean install |
+| v0.3.x | evidence stack, tutorial atlas, proxy readout contracts | ED9/ED10, manifests, strict JSON, clean install |
 | v0.4.x | experimental physical field solvers | stable source/field schemas, boundary/gauge/residual tests |
 | v0.5.x+ | external comparisons, calibration, inverse modeling | named references, held-out data, uncertainty reports |
 

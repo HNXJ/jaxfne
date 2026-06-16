@@ -160,7 +160,7 @@ signals.metadata = {
 2. Apply fixed spatial convolution kernel (e.g., Gaussian): $Y(t) = P \cdot S(t)$
 3. Optionally compute spatial derivatives (for CSD)
 
-This is **fast** (no solver loop) but **approximate** (not validated against real data).
+This is **fast** (no solver loop) but **approximate** (proxy-scoped for tutorial data).
 
 ---
 
@@ -258,7 +258,7 @@ if not metadata["amplitude_status"]:
     # "Layer 5 sources dominate the field"
 ```
 
-### v0.3.7 Limitations
+### v0.3.7 Scope
 
 - No biophysical compartments (soma, dendrite, axon)
 - No temperature sensitivity, frequency-dependent effects
@@ -266,7 +266,7 @@ if not metadata["amplitude_status"]:
 - No experimental validation
 - Kernels are fixed defaults (not tunable in v0.3.7)
 
-### Future Work (v0.3.8+)
+### Reserved Work (v0.3.8+)
 
 - Custom convolution kernels via `.field_kernel()` method
 - PDE-based field solvers (optional)

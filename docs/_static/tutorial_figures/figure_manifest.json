@@ -5,7 +5,7 @@
   "jaxfne_version": "0.3.4",
   "run_status": "tutorial_scaffold",
   "model_status": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
+  "field_solver_status": "linear_solver",
   "amplitude_status": false,
   "metabolism_status": false,
   "source_script": "scripts/generate_tutorial_figures.py",

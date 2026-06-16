@@ -135,9 +135,9 @@ def main():
 
     # === 5. Verify status checks are immutable ===
     print("Status check verification:")
-    print(f"  physical_amplitude_claim_allowed: {signals_time_by_unit.metadata['physical_amplitude_claim_allowed']}")
+    print(f"  physical_amplitude_calibrated: {signals_time_by_unit.metadata['physical_amplitude_calibrated']}")
     print(f"  claim_level: {signals_time_by_unit.metadata['claim_level']}")
-    assert signals_time_by_unit.metadata['physical_amplitude_claim_allowed'] is False
+    assert signals_time_by_unit.metadata['physical_amplitude_calibrated'] is False
     assert signals_time_by_unit.metadata['claim_level'] == "computational_scaffold"
     print("✓ Status checks frozen (immutable)\n")
 
@@ -150,7 +150,7 @@ def main():
         "dt_ms": float(dt_ms),
         "layouts_tested": ["time_by_unit", "unit_by_time", "recording_by_time"],
         "claim_level": signals_time_by_unit.metadata["claim_level"],
-        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
+        "physical_amplitude_calibrated": signals_time_by_unit.metadata["physical_amplitude_calibrated"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
     }
@@ -184,7 +184,7 @@ def main():
 
     validation_report = {
         "claim_level": signals_time_by_unit.metadata["claim_level"],
-        "physical_amplitude_claim_allowed": signals_time_by_unit.metadata["physical_amplitude_claim_allowed"],
+        "physical_amplitude_calibrated": signals_time_by_unit.metadata["physical_amplitude_calibrated"],
         "field_solver_status": signals_time_by_unit.metadata["field_solver_status"],
         "source_calibration_status": signals_time_by_unit.metadata["source_calibration_status"],
         "run_status": "computational_scaffold",

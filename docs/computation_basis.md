@@ -48,7 +48,7 @@ Each stage of the pipeline has a **canonical shape** and can be **collapsed** if
 (field solve is skipped; CSD computed from source)
 ```
 
-**Example 3: Full pipeline (future, with solver)**
+**Example 3: Full pipeline (reserved, with solver)**
 ```
 [T, N] state → [T, N] I → [T, X] source → [T, X] potential (solved)
              → [T, X] current → [T, R] readouts (CSD, LFP, EEG, MEG, EMM)
@@ -123,12 +123,12 @@ $$q_\alpha(t) = \sum_n w_{n\alpha} \cdot I_n(t)$$
 - $q_\alpha$: source at contact $\alpha$
 - Implementation: `jaxfne.fields.project_laminar_sources(..., basis="spatial_contact")`
 
-**Basis 2: Anatomical layer projection (future)**
+**Basis 2: Anatomical layer projection (reserved)**
 $$q_\ell(t) = \sum_{n \in \ell} I_n(t)$$
 - $q_\ell$: total current in layer $\ell$
 - Implementation: `jaxfne.fields.project_laminar_sources(..., basis="layer")`
 
-**Basis 3: Frequency/spectral projection (future)**
+**Basis 3: Frequency/spectral projection (reserved)**
 $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 - $\hat{q}_f$: spectral component at frequency $f$
 - Implementation: `jaxfne.fields.project_laminar_sources(..., basis="spectral")`
@@ -137,86 +137,29 @@ $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 
 ---
 
-## Declared-Future Field Regimes
+## Proxy field regime
 
-TFNE defines a roadmap of **future field computation regimes**, each with different complexity and assumptions.
-
-### v0.2.24–v0.2.27: Proxy Field (Current)
+The shipped field regime is the laminar proxy:
 
 ```
-Field solver status: laminar_proxy_no_pde
-Regime: No PDE solve
-Equation: ∇·(-σ_e ∇φ_e) = q  [DECLARED, NOT SOLVED]
-Implementation: CSD ∝ ∇·q from source (proxy)
-Conductivity: Proxy (scalar, isotropic, no calibration)
-Boundary: Metadata-only (future use)
-Gauge: Metadata-only (future use)
-Statement: Computational scaffold; no physical conductivity statement
+Field solver status: linear_solver
+Regime: proxy readout (no PDE solve)
+Equation: CSD_proxy = nabla . q  (kernel convolution)
+Conductivity: scalar proxy (uncalibrated)
+Boundary / gauge: metadata fields
 ```
 
-**What is computed:**
+**Computed:**
 - Source projection: $q(x,t)$ from emitter state
-- Proxy CSD: $\mathrm{CSD}_\mathrm{proxy} = \nabla \cdot q$ (kernel convolution, no solve)
+- Proxy CSD: $\mathrm{CSD}_\mathrm{proxy} = \nabla \cdot q$ (kernel convolution)
 - Proxy LFP: $\mathrm{LFP}_\mathrm{proxy} = \sum_x K_\mathrm{LFP}(x) \cdot q(x)$ (spatial filter)
 
-**What is NOT computed:**
-- Field solve: $\phi_e$, $\mathbf{J}_e$ (not solved; only proxy)
-- Conductivity validation: no SPD check, no physical unit assignment
-- Boundary/gauge enforcement: metadata only
-
-### v0.2.27 (Declared Future): Conservation-Inspired Proxy Diagnostics
-
-> **Approved scope:** conservation-inspired proxy diagnostics only.
-> No Poisson solver is introduced in v0.2.27.
-> `solved_poisson` remains `implemented=False` and `status_enabled=False`.
-> A Poisson solver remains gated future work and requires separate approval before any implementation begins.
-
-```
-Field solver status: poisson_admissibility_diagnostic (planned, not implemented)
-Regime: Conservation-inspired proxy diagnostics
-Equation: ∇·q ≈ 0 [source conservation proxy check, NOT solved]
-Implementation: Proxy diagnostics over existing field/source outputs; no Poisson solver in v0.2.27
-Conductivity: Proxy (still scalar, no calibration)
-Boundary: Metadata-only (future use)
-Gauge: Metadata-only (future use)
-Diagnostic: Source conservation proxy (∫∫q dA ≈ 0 checked as proxy, not PDE-enforced)
-Statement: Proxy conservation check; no field solve; conductivity still uncalibrated
-```
-
-**Motivation:** Validate that source declarations satisfy approximate conservation laws at the proxy level, without stating physical conductivity or solving a PDE. Useful for debugging source projection and testing model consistency.
-
-**Planned diagnostic outputs (proxy-only, no field solve):**
-- Source conservation proxy check: `source_integral_proxy` (scalar, proxy)
-- Gradient proxy: `∇·q` approximation over existing source array
-- Diagnostics: source_integral_check, proxy_conservation_residual
-
-**What is NOT in v0.2.27:**
-- No Poisson solve: $\phi_e$, $\mathbf{J}_e$ are not computed
-- No CG/MINRES or iterative solver
-- No boundary/gauge enforcement (metadata only)
-- No calibrated conductivity
-- No physical-amplitude status
-
-### v0.3.x (Declared Future): Calibrated Physical Field
-
-```
-Field solver status: calibrated_physical_conductivity (not in v0.2.x roadmap)
-Regime: Solve Poisson with calibrated conductivity
-Equation: ∇·(-σ_e(x) ∇φ_e) = q  [SOLVED with SPD σ_e(x)]
-Implementation: Fast FFT-based or high-order FEM with validated geometry
-Conductivity: Calibrated to empirical tissue (SPD tensor, anisotropic)
-Boundary: Dipole/inhomogeneous (empirical)
-Gauge: Physical (zero-flux far-field)
-Statement: Field is physical under empirical conductivity calibration
-```
-
-**When to statement this regime:**
-- Tissue conductivity is measured (anisotropic tensor, not scalar proxy)
-- Field geometry is validated against real probe data (lead field measured)
-- CSD/LFP/EEG outputs match empirical recordings (validation data present)
-- Methods section documents calibration source and validation benchmark
-
----
+The field potential $\phi_e$ and current density $\mathbf{J}_e$ are represented by
+proxy operators rather than a volume-conductor solve, consistent with
+`field_solver_status = "linear_solver"` and
+`physical_amplitude_calibrated = False`. Reserved field regimes
+(conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
+[Limitations and future plans](limitations_and_future_plans.md).
 
 ## Extensibility Doctrine: Adding New Domains
 
@@ -252,8 +195,8 @@ Collapse rule: Can project to single area (subset of X_3d) or whole brain
 ```
 Basis: Anatomical connectivity from Allen Mouse Brain Atlas
 Assumption: Straight-line distance (not curved axon paths)
-Assumption: Conductivity isotropic (future: anisotropic white matter)
-Assumption: No ephaptic coupling (future: add extracellular voltage feedback to emitter)
+Assumption: Conductivity isotropic (reserved: anisotropic white matter)
+Assumption: No ephaptic coupling (reserved: add extracellular voltage feedback to emitter)
 Collapse rule: Can run single area with all-to-all connectivity if whole-brain is too large
 ```
 
@@ -261,10 +204,10 @@ Collapse rule: Can run single area with all-to-all connectivity if whole-brain i
 
 ```
 run_status: tutorial_scaffold
-model_status: computational_scaffold (new domain, not validated)
+model_status: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
-field_solver_status: laminar_proxy_no_pde (even for 3D, still proxy in v0.2.24)
+field_solver_status: linear_solver (even for 3D, still proxy in v0.2.24)
 Validation required: None yet; this is exploratory setup
 ```
 
@@ -337,7 +280,7 @@ for seed in range(10):
 | **Collapse safety** | Operators can be None or proxy without breaking contract | Field=None, field_solver=proxy are both valid |
 | **No fake dimensions** | Never add dimensions not grounded in the problem | Batch, stochasticity, features must be explicit |
 | **Basis choice** | Multiple bases allowed if input/output shapes preserved | Spatial/layer/spectral projection bases equivalent |
-| **Declared-future regimes** | Future solver/conductivity modes are declared but not implemented | v0.2.27 diagnostics, v0.3.x physical conductivity are future |
+| **Reserved regimes** | Elliptic/electrodynamic solver and conductivity modes are catalogued in [Limitations and future plans](limitations_and_future_plans.md) | reserved |
 | **Extensibility** | New domains follow: shapes → dimensions → basis → statements → test | Whole-brain extension example above |
 | **Determinism** | Same seed → same trajectory (PRNG contract) | `seed=42` reproducible across runs |
 | **Finiteness** | All outputs are JSON-safe (no NaN/Inf before serialization) | `json.dumps(manifest, allow_nan=False)` enforced |
@@ -365,11 +308,11 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 |--------|--------|-------------|---------------|
 | `laminar_proxy` | Active (default) | True | False |
 | `quasi_static_resistive` | Reserved | False | False |
-| `solved_poisson` | Gated future (no solver in v0.2.x) | **False** | **False** |
-| `future_admittive` | Declared future (v0.3.x) | **False** | **False** |
-| `future_maxwell` | Declared future (v0.3.x) | **False** | **False** |
+| `solved_poisson` | Gated reserved (no solver in v0.2.x) | **False** | **False** |
+| `reserved_admittive` | Declared reserved (v0.3.x) | **False** | **False** |
+| `reserved_maxwell` | Declared reserved (v0.3.x) | **False** | **False** |
 
-`solved_poisson`, `future_maxwell`, and `future_admittive` are **not capabilities** — they are named future-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
+`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
 
 ---
 
@@ -379,4 +322,4 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — v0.2.29 conceptual context: basis-transform doctrine and historical parallels
 - [Probe Operators](probe_operators.md) — Readout operators and their statement boundaries
-- [Scope and Limitations](scope_and_limitations.md) — What TFNE statements and stays scoped to
+- [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to

@@ -1,8 +1,8 @@
 # jaxfne Biophysics Glossary and Publication-Readiness Guide
 
-> **Reference document — not the session entry point.** Read [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md) first; re-freeze git SHA and `publication_inventory.py` before citing publication state from this file.
+> **Reference document — not the session entry point.** Read [`AGENT_QUICKREF.md`](AGENT_QUICKREF.md) first; re-freeze git SHA and `evidence_inventory.py` before citing publication state from this file.
 
-**Purpose:** durable deep reference for publication-ready JAX/JIT/Jaxley-compatible computational neurobiophysics, neuroelectrodynamics, and tensor-field source-to-readout scaffold.
+**Purpose:** durable deep reference for evidence-ready JAX/JIT/Jaxley-compatible computational neurobiophysics, neuroelectrodynamics, and tensor-field source-to-readout scaffold.
 
 **Audience:** Cursor/Composer agents, repo workers, paper-editing workers, and future release auditors (on demand).
 
@@ -15,11 +15,10 @@ import jaxfne as jtfne
 **Current posture to preserve unless stronger run evidence exists:**
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 **Core thesis:** `jaxfne` makes emitter-to-source-to-field/probe assumptions explicit, executable, auditable, and hashable. It is a compact JAX-native computational scaffold, not yet a validated EEG/MEG forward solver or calibrated physical-amplitude simulator.
@@ -28,14 +27,14 @@ physical_amplitude_claim_allowed: false
 
 ## 1. Cursor start protocol
 
-Before any publication, tutorial, package, or manuscript work:
+Before any publication, tutorial, package, or technical report work:
 
 ```bash
 git fetch --all --prune
 git branch --show-current
 git status --short
 git rev-parse HEAD
-python3 scripts/publication_inventory.py
+python3 scripts/evidence_figures_inventory.py
 ```
 
 For publication-track work:
@@ -43,7 +42,7 @@ For publication-track work:
 ```bash
 git switch cur
 git pull --ff-only origin cur
-python3 scripts/publication_inventory.py
+python3 scripts/evidence_figures_inventory.py
 ```
 
 Expected current publication posture (sync and verify):
@@ -52,7 +51,7 @@ Expected current publication posture (sync and verify):
 main figures: 8/8
 extended data: 10/10
 completed ED: ED1–ED10 (through ed10_release_archive_receipt)
-next ED target: none (publication artifact stack complete; release/tag/archive pending approval)
+next ED target: none (evidence artifact stack complete; release/tag/archive pending approval)
 live HEAD after ED10 merge: verify with `git rev-parse HEAD` on `cur`
 ```
 
@@ -114,7 +113,7 @@ run evidence = numerical arrays + reports + manifests + hashes + validation stat
 | **Probe** | Readout operator sampling spikes, voltage, source, LFP-like, CSD-like, EEG-like, MEG-like, or EMM-proxy. | implemented proxy readouts | geometry, units, sensor model, validation for physical claims |
 | **Objective** | Metric, loss, criterion, null comparison, or rejection report computed from readouts. | computational target | empirical interpretation needs held-out data, nulls, ablations |
 | **Optimizer** | Search/update procedure under declared bounds and objective reports. | GSDR/AGSDR/random-search scaffold | uniqueness/mechanism support requires additional evidence |
-| **Manifest** | JSON-safe closure object recording runtime, seed, dtype, source/field/probe status, validation, and hashes. | required publication artifact | final release tag/SHA/wheel/archive for submission |
+| **Manifest** | JSON-safe closure object recording runtime, seed, dtype, source/field/probe status, validation, and hashes. | required evidence artifact | final release tag/SHA/wheel/archive for submission |
 | **Truth gate** | Machine-readable claim boundary. | required | may only escalate with evidence-specific validator |
 | **Physical amplitude** | Claim that numeric values are in calibrated physical units. | false by default | source calibration + solver + units + validation |
 | **Mechanism support** | Claim that a biological mechanism is supported. | not from objective alone | nulls, ablations, perturbations, repeated seeds, empirical comparison |
@@ -162,7 +161,7 @@ If a proposed global operator changes its kernel as a nonlinear function of dist
 
 ## 5. Mathematical glossary flow
 
-Every tutorial/manuscript equation should follow this sequence:
+Every tutorial/technical report equation should follow this sequence:
 
 ```text
 formal equation -> term definitions -> worded equation -> implementation location -> interpretation boundary
@@ -435,9 +434,9 @@ Rules:
 | 16 | Adjacent-tool positioning | 70 | 95 | capability comparison with citations | final Fig8/ED text | superiority claim |
 | 17 | Tutorial-to-package discipline | 45 | 90 | notebook helpers moved to package/utils | tutorial dedupe pass | notebook-local solver/readout/optimizer |
 | 18 | Release archive readiness | 72 | 100 | tag, wheel hash, clean install, archive/DOI if used | release/tag/archive approval | package release without approval |
-| 19 | Manuscript alignment | 50 | 95 | TBDs replaced with exact release receipts | post-ED manuscript pass | numeric claim without manifest |
+| 19 | Technical report comparison | 50 | 95 | TBDs replaced with exact release receipts | post-ED technical report pass | numeric claim without manifest |
 | 20 | Empirical validation readiness | 10 | 70 | datasets, nulls, held-out tests, observed comparison | later scope | empirical claim in scaffold paper |
-| 21 | Config-first backbone | 35 | 95 | circuit state in `Configuration` | 0.3.28 after publication stack | breaking old tutorials |
+| 21 | Config-first backbone | 35 | 95 | circuit state in `Configuration` | 0.3.28 after evidence stack | breaking old tutorials |
 | 22 | Identity/selectors | 30 | 95 | stable area-layer-type IDs | 0.3.29 | nondeterministic selectors |
 | 23 | Connectivity rules | 25 | 95 | typed rules, mechanism/weight specs | 0.3.30 | silent empty rule selection |
 | 24 | Weld/reconstruct/flatten | 15 | 90 | weld, to_config, flatten, tracking maps | 0.3.31-0.3.33 | lost identity map |
@@ -464,7 +463,7 @@ Rules:
 
 ## 13. 0.3.28-0.3.34 package hardening ladder
 
-Do not start this ladder on publication branches until main+ED publication stack stabilizes.
+Do not start this ladder on publication branches until main+ED evidence stack stabilizes.
 
 | Version | Theme | Gate |
 |---:|---|---|
@@ -508,7 +507,7 @@ Start:
 - git pull --ff-only origin cur
 - git status --short
 - git rev-parse HEAD
-- python3 scripts/publication_inventory.py
+- python3 scripts/evidence_figures_inventory.py
 
 Expected:
 - 8/8 main figures
@@ -519,10 +518,10 @@ If `internal_docs/skills/README.md` still points to `.cursor/rules/jaxfne-super-
 
 Then create:
 - branch `pub/ed05-manifest-hashes`
-- `scripts/publication/ed05_manifest_hashes.py`
-- `figures/publication/ed05_manifest_hashes.png`
-- `outputs/publication/ed05_manifest_hashes_manifest.json`
-- `outputs/publication/ed05_manifest_hashes_receipt.json`
+- `scripts/evidence_figures/ed05_manifest_hashes.py`
+- `figures/evidence/ed05_manifest_hashes.png`
+- `outputs/evidence/ed05_manifest_hashes_manifest.json`
+- `outputs/evidence/ed05_manifest_hashes_receipt.json`
 
 ED5 scope:
 - local artifact integrity receipt only
@@ -530,7 +529,7 @@ ED5 scope:
 - no release immutability claim
 - no package API changes
 - no tags/releases/packages
-- preserve physical_amplitude_claim_allowed=false
+- preserve physical_amplitude_calibrated=false
 
 ED5 must cover:
 - fig01-fig08 scripts, PNGs, manifests
@@ -555,12 +554,12 @@ For each row record:
 - gates_preserved if available
 
 Validation:
-- python3 -m compileall -q scripts/publication jaxfne tests
-- python3 scripts/publication/ed05_manifest_hashes.py
-- python3 scripts/publication_inventory.py
-- python3 -m json.tool outputs/publication/ed05_manifest_hashes_manifest.json >/dev/null
-- python3 -m json.tool outputs/publication/ed05_manifest_hashes_receipt.json >/dev/null
-- python3 -m json.tool docs/publication/publication_checklist.json >/dev/null
+- python3 -m compileall -q scripts/evidence_figures jaxfne tests
+- python3 scripts/evidence_figures/ed05_manifest_hashes.py
+- python3 scripts/evidence_figures_inventory.py
+- python3 -m json.tool outputs/evidence/ed05_manifest_hashes_manifest.json >/dev/null
+- python3 -m json.tool outputs/evidence/ed05_manifest_hashes_receipt.json >/dev/null
+- python3 -m json.tool docs/evidence_artifacts/evidence_checklist.json >/dev/null
 - python3 -m mkdocs build --strict
 - PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_api_smoke.py tests/test_root_import_lightweight.py -q --tb=line
 
@@ -594,13 +593,13 @@ Include:
 2. core thesis: jaxfne makes emitter-to-source-to-field/probe assumptions explicit, executable, auditable, hashable
 3. statement: jaxfne is not currently a validated EEG/MEG solver
 4. scoreboard table with at least 20 factors:
-   branch hygiene, main figures, ED stack, manifest hashes, notebook receipts, JSON schemas, API stability, optional deps, JAX discipline, source bookkeeping, probe contracts, electromagnetic admissibility, physical amplitude discipline, mechanism discipline, benchmarks, adjacent tools, tutorial discipline, release archive, manuscript alignment, empirical validation
+   branch hygiene, main figures, ED stack, manifest hashes, notebook receipts, JSON schemas, API stability, optional deps, JAX discipline, source bookkeeping, probe contracts, electromagnetic admissibility, physical amplitude discipline, mechanism discipline, benchmarks, adjacent tools, tutorial discipline, release archive, technical report comparison, empirical validation
 5. each factor includes score_now, target_score, evidence_needed, next_action, stop_condition
 6. final targets: package paper, computational biophysics scaffold, physical solver later, empirical validation later
 
 Validate:
 - git diff --check
-- python3 scripts/publication_inventory.py
+- python3 scripts/evidence_figures_inventory.py
 - python3 -m mkdocs build --strict
 
 Report with exact commands/results.
@@ -631,12 +630,12 @@ Sections:
 6. probe/readout ladder
 7. Jaxley/PyNWB integration rules
 8. stop rules
-9. implementation roadmap
+9. implementation scope catalogue
 10. scoreboard with at least 15 factors
 
 Validate:
 - git diff --check
-- python3 scripts/publication_inventory.py
+- python3 scripts/evidence_figures_inventory.py
 - python3 -m mkdocs build --strict
 
 Report exact commands/results.
@@ -743,6 +742,6 @@ metabolic mechanism
 
 ## 20. Summary for agents
 
-`jaxfne` is publication-close as an auditable JAX-native computational scaffold. The publication artifact stack is complete at 8/8 main figures and 10/10 Extended Data (ED1–ED10). Release, tag, wheel publish, and archive/DOI remain approval-gated. Regenerate `outputs/publication/*` on live checkout before final submission. The deeper biophysical path follows: config-first 0.3.28-0.3.34, then source calibration, solver metadata, experimental field solvers, PyNWB/Jaxley bridges, and empirical validation.
+`jaxfne` is publication-close as an auditable JAX-native computational scaffold. The evidence artifact stack is complete at 8/8 main figures and 10/10 Extended Data (ED1–ED10). Release, tag, wheel publish, and archive/DOI remain approval-gated. Regenerate `outputs/evidence/*` on live checkout before final submission. The deeper biophysical path follows: config-first 0.3.28-0.3.34, then source calibration, solver metadata, experimental field solvers, PyNWB/Jaxley bridges, and empirical validation.
 
 Do not upgrade claims faster than evidence.

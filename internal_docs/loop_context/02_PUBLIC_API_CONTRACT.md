@@ -1,6 +1,6 @@
 # 02_PUBLIC_API_CONTRACT
 
-Canonical import: `import jaxfne as jtfne`. The manuscript/context states this canonical import and the package identity as a compact JAX-native source-to-field/readout scaffold (`2026_jtfne_arxiv.txt:L48`). Live audit reports `__all__=146` and a `sys` namespace leak in `Pasted markdown.md:L? / L140`.
+Canonical import: `import jaxfne as jtfne`. The technical report/context states this canonical import and the package identity as a compact JAX-native source-to-field/readout scaffold (`2026_jtfne_arxiv.txt:L48`). Live audit reports `__all__=146` and a `sys` namespace leak in `Pasted markdown.md:L? / L140`.
 
 ## Exported root surface from uploaded ZIP
 

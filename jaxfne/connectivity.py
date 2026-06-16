@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import math
 import warnings
+from functools import partial
 from dataclasses import dataclass, field
 from typing import Any, Mapping, Optional, Sequence
 
@@ -30,7 +31,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
-__all__ = ["compile_connection_rules", "ConnectionCompileResult"]
+__all__ = ["compile_connection_rules", "ConnectionCompileResult", "compile_connection_rules_jax"]
 
 
 @dataclass(frozen=True)
@@ -52,6 +53,7 @@ class ConnectionCompileResult:
 
     @property
     def n_edges(self) -> int:
+        """Documented public function `n_edges`."""
         return int(self.edge_pre.shape[0])
 
     def to_edge_list(self, *, default_tau_ms: float = 5.0, dtype: str = "float32"):
@@ -430,8 +432,8 @@ def compile_connection_rules(
         "skipped_rules": skipped,
         "seed": int(seed),
         "allow_self_connections": bool(allow_self_connections),
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
         "connectivity_compiled": True,
     }
     return ConnectionCompileResult(
@@ -444,3 +446,44 @@ def compile_connection_rules(
         mechanism_table=mechanism_table,
         diagnostics=diagnostics,
     )
+
+
+@partial(jax.jit, static_argnums=(4,))
+def compile_connection_rules_jax(
+    pre_indices: jax.Array,
+    post_indices: jax.Array,
+    probability: float,
+    key: jax.Array,
+    max_edges: int,
+    weight_val: float = 1.0,
+) -> tuple[jax.Array, jax.Array, jax.Array]:
+    """Tensorized JAX connectivity compiler producing static-shape edge outputs.
+
+    Samples connection pairs using a probability mask and pads/truncates to max_edges.
+    Negative one (-1) pre/post values denote padded/inactive connections.
+    """
+    n_pre = pre_indices.shape[0]
+    n_post = post_indices.shape[0]
+    
+    pre_grid = jnp.tile(pre_indices[:, None], (1, n_post))
+    post_grid = jnp.tile(post_indices[None, :], (n_pre, 1))
+    
+    flat_pre = pre_grid.ravel()
+    flat_post = post_grid.ravel()
+    
+    rand_vals = jax.random.uniform(key, shape=flat_pre.shape)
+    mask = rand_vals < probability
+    
+    # Push unselected edges to score 2.0, selected edges keep random score < 1.0
+    score = jnp.where(mask, rand_vals, 2.0)
+    sorted_idx = jnp.argsort(score)
+    selected_idx = sorted_idx[:max_edges]
+    
+    valid_mask = score[selected_idx] < 2.0
+    
+    edge_pre = jnp.where(valid_mask, flat_pre[selected_idx], -1)
+    edge_post = jnp.where(valid_mask, flat_post[selected_idx], -1)
+    edge_weight = jnp.where(valid_mask, jnp.full((max_edges,), weight_val), 0.0)
+    
+    return edge_pre, edge_post, edge_weight
+

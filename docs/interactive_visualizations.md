@@ -64,7 +64,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 
 Checks: manifest.json, probe_report.json, metrics.json, validation_report.json, asset_hashes.json, figures/*.png, source_data.json.
 
-Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout_only".
+Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout".
 
 ### Validate Static PNG + Interactive HTML
 
@@ -177,7 +177,7 @@ All interactive visualizations respect and propagate the immutable status checks
 
 - `amplitude_status`: Always **False** (no amplitude calibration)
 - `model_status`: Always **"computational_scaffold"** (no biological statements)
-- `field_model_status`: Always **"proxy_readout_only"** (simulated fields, not real)
+- `field_model_status`: Always **"proxy_readout"** (simulated fields, not real)
 
 **What interactive HTML shows:**
 - Mathematical relationships between simulation variables (spike times, field power)

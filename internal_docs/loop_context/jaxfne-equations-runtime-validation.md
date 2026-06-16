@@ -11,7 +11,7 @@ Generated UTC: 2026-06-07T22:34:39Z
 
 ## Mathematical glossary flow
 
-Every technical equation in tutorials, docs, figures, and manuscript text follows:
+Every technical equation in tutorials, docs, figures, and technical report text follows:
 
 ```text
 formal equation -> term definitions -> worded equation -> implementation location -> evidence/status boundary
@@ -42,9 +42,9 @@ CSD = div(J_e)
 Current tutorials keep:
 
 ```yaml
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 ## JAX runtime discipline
@@ -77,7 +77,6 @@ best_score: number_or_null
 best_parameters: object_or_null
 rejection_reasons: list
 finite_outputs: bool
-truth_mode: truth_safe_unverified
 ```
 
 Optax is optional and valid only for differentiable or declared-surrogate paths. Hard spiking reset paths require explicit differentiability status.
@@ -88,11 +87,10 @@ Optax is optional and valid only for differentiable or declared-surrogate paths.
 run_id: string
 jaxfne_version: string
 repo_sha: string_or_null
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 source_calibration_status: string
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+physical_amplitude_calibrated: false
 runtime_report: object
 artifact_paths: object
 asset_hashes: object
@@ -112,9 +110,9 @@ optional_dependency_laziness: pass_or_environment_contaminated_or_fail
 ## Validation ladder
 
 ```bash
-python3 -m json.tool docs/publication/publication_checklist.json >/dev/null
-python3 -m compileall -q jaxfne scripts/publication tests
-python3 scripts/publication_inventory.py
+python3 -m json.tool docs/evidence_artifacts/evidence_checklist.json >/dev/null
+python3 -m compileall -q jaxfne scripts/evidence_figures tests
+python3 scripts/evidence_figures_inventory.py
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/ -q --tb=line
 python3 scripts/audit_notebooks_and_assets.py --check
 python3 -m mkdocs build --strict

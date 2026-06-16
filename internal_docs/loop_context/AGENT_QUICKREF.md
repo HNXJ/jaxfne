@@ -9,10 +9,11 @@ git fetch --all --prune
 git branch --show-current
 git status --short
 git rev-parse HEAD
-python3 scripts/publication_inventory.py
+python3 scripts/evidence_inventory.py
+# scripts/evidence_figures_inventory.py is kept as a compatibility wrapper.
 ```
 
-Publication track: branch `cur`. Re-freeze SHA and inventory before citing counts or manuscript receipts.
+Publication track: branch `cur`. Re-freeze SHA and inventory before citing counts or technical report receipts.
 
 ## Import and public path
 
@@ -39,11 +40,10 @@ Tutorials configure, plot, and export. The package is the engine — no notebook
 ## Truth gates (preserve in manifests)
 
 ```text
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 Never claim real EEG/MEG, calibrated amplitude, biological metabolism, mechanism proof, or solved PDE/Maxwell/Poisson unless the run includes solver, geometry, boundary, gauge, residual, units, calibration, and validation evidence.
@@ -60,7 +60,7 @@ Mechanism support requires nulls, ablations, repeated seeds, and empirical compa
 
 ## Publication posture (verify live)
 
-Expected on `cur` after `publication_inventory.py`:
+Expected on `cur` after `evidence_inventory.py`:
 
 ```text
 main figures: 8/8
@@ -72,7 +72,7 @@ ED1–ED10 complete. Release/tag/publish/archive remain approval-gated (ED10 is 
 ## Smoke validation
 
 ```bash
-python3 -m compileall -q scripts/publication jaxfne tests
+python3 -m compileall -q scripts/evidence_figures jaxfne tests
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
   tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py \

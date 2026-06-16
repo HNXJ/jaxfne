@@ -2,11 +2,11 @@
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v036_100_neuron_ei_population.ipynb)
 
-**Duration:** 15–20 minutes | **Difficulty:** Intermediate | **jaxfne 0.3.40**
+**Duration:** 15–20 minutes | **Difficulty:** Intermediate | **jaxfne 0.3.42**
 
 ## Overview
 
-This tutorial demonstrates the **chainable Configuration API** of jaxfne (introduced in v0.3.5, current in `jaxfne==0.3.40`), built for streamlined workflow composition. You will build, simulate, and analyze a **100-neuron excitatory-inhibitory (E/I) population** using the new fluent configuration grammar.
+This tutorial demonstrates the **chainable Configuration API** of jaxfne (introduced in v0.3.5, current in `jaxfne==0.3.42`), built for streamlined workflow composition. You will build, simulate, and analyze a **100-neuron excitatory-inhibitory (E/I) population** using the new fluent configuration grammar.
 
 ### What You'll Learn
 
@@ -14,7 +14,7 @@ This tutorial demonstrates the **chainable Configuration API** of jaxfne (introd
 - Configure a biologically-inspired E/I population (75% excitatory, 25% inhibitory)
 - Simulate with the Izhikevich neuron model (cortical parameters)
 - Extract multimodal readouts: spikes, voltage, source, and field proxies
-- Inspect scope metadata to understand computational statements and limitations
+- Inspect scope metadata to understand computational statements and scope notes
 - Generate population-level metrics and visualizations
 
 ### Key Concepts
@@ -110,7 +110,7 @@ readouts = model.compute_readout(signals, readout_specs)
 
 ---
 
-## Scope and Limitations
+## Scope notes and Extension Notess
 
 ### ✓ What This Tutorial Is
 

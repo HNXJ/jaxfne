@@ -171,7 +171,6 @@ git branch -d feat/patch-b-connectivity
 
 ## Truth Status
 
-- **Patches A–C:** `truth_mode: truth_safe_unverified` (infrastructure, no dynamics claims)
 - **Patches D–F:** EXPERIMENTAL (teaching/control source + objective, requires gate before evidence path)
 
 ---

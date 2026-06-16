@@ -20,7 +20,7 @@ class TestJaxleyTraceSpec:
         spec_dict = spec.to_dict()
         assert isinstance(spec_dict, dict)
         assert spec_dict["claim_level"] == "computational_scaffold"
-        assert spec_dict["physical_amplitude_claim_allowed"] is False
+        assert spec_dict["physical_amplitude_calibrated"] is False
         assert "metadata" in spec_dict
 
     def test_trace_spec_dt_validation(self) -> None:
@@ -42,9 +42,9 @@ class TestJaxleyTraceSpec:
             assert spec.layout == valid_layout
 
     def test_trace_spec_claim_gate_immutable(self) -> None:
-        """physical_amplitude_claim_allowed must be False."""
-        with pytest.raises(ValueError, match="physical_amplitude_claim_allowed must be False"):
-            JaxleyTraceSpec(physical_amplitude_claim_allowed=True)
+        """physical_amplitude_calibrated must be False."""
+        with pytest.raises(ValueError, match="physical_amplitude_calibrated must be False"):
+            JaxleyTraceSpec(physical_amplitude_calibrated=True)
 
     def test_trace_spec_claim_level_immutable(self) -> None:
         """claim_level must be 'computational_scaffold'."""
@@ -158,10 +158,10 @@ class TestBridgeMetadata:
     """Test metadata and claim gate integrity."""
 
     def test_bridge_proxy_metadata_forbids_physical_amplitude_claim(self) -> None:
-        """Metadata must have physical_amplitude_claim_allowed=False."""
+        """Metadata must have physical_amplitude_calibrated=False."""
         trace = jnp.ones((100, 32))
         signals = jaxley_trace_to_signals(trace)
-        assert signals.metadata["physical_amplitude_claim_allowed"] is False
+        assert signals.metadata["physical_amplitude_calibrated"] is False
         assert signals.metadata["claim_level"] == "computational_scaffold"
 
     def test_bridge_metadata_json_safe(self) -> None:

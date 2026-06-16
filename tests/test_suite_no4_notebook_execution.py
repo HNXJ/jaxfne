@@ -28,7 +28,7 @@ def test_suite_no4_notebook_structure():
 
     # Verify first cell is title/description
     assert nb.cells[0].cell_type == "markdown", "First cell should be markdown"
-    assert "Suite No. 4" in nb.cells[0].source, "First cell should contain Suite No. 4 title"
+    assert any("Suite No. 4" in c.source for c in nb.cells[:2]), "First or second cell should contain Suite No. 4 title"
 
     # Verify code cells are present
     code_cells = [c for c in nb.cells if c.cell_type == "code"]

@@ -2,7 +2,7 @@
 
 **Triggers:** audit, health, readiness, status, before commit, before merge, before release.
 
-**Purpose:** PASS/FAIL snapshot of branch, version alignment, compile, pytest, and secret scan.
+**Purpose:** PASS/FAIL snapshot of branch, version comparison, compile, pytest, and secret scan.
 
 **Core commands:**
 

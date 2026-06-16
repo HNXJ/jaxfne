@@ -105,7 +105,7 @@ class TestCalibrationReportV025:
         assert report["calibration_name"] == "default"
         assert report["target"] == "source"
         assert report["mode"] == "uncalibrated_native"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         assert report["calibration_claim_level"] == "computational_proxy_with_declared_metadata"
 
     def test_toy_scale_report_keeps_false(self):
@@ -116,7 +116,7 @@ class TestCalibrationReportV025:
         report = make_calibration_report(spec)
 
         assert report["mode"] == "toy_scale"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_relative_normalized_report_keeps_false(self):
         """Test that relative_normalized keeps physical amplitude false."""
@@ -129,7 +129,7 @@ class TestCalibrationReportV025:
         report = make_calibration_report(spec)
 
         assert report["mode"] == "relative_normalized"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_empirical_gain_candidate_report(self):
         """Test report for empirical_gain_candidate mode."""
@@ -144,7 +144,7 @@ class TestCalibrationReportV025:
         report = make_calibration_report(spec)
 
         assert report["mode"] == "empirical_gain_candidate"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         assert report["empirical_scale_declared"] is True
         assert "candidate" in str(report["warnings"]).lower()
 
@@ -161,7 +161,7 @@ class TestCalibrationReportV025:
         report = make_calibration_report(spec)
 
         assert report["mode"] == "physical_units_candidate"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         assert report["status"] == "metadata_declared"
 
     def test_calibrated_empirical_complete(self):
@@ -177,7 +177,7 @@ class TestCalibrationReportV025:
         report = make_calibration_report(spec)
 
         assert report["mode"] == "calibrated_empirical"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         assert report["empirical_reference_declared"] is True
         assert report["empirical_units_declared"] is True
         assert report["empirical_scale_declared"] is True
@@ -196,7 +196,7 @@ class TestCalibrationReportV025:
 
         assert len(report["warnings"]) > 0
         assert any("units" in w.lower() for w in report["warnings"])
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_report_always_has_assumptions(self):
         """Test that all reports include assumptions."""
@@ -245,7 +245,7 @@ class TestCalibrationReportV025:
         assert report["target"] == "source"
 
     def test_v025_keeps_false_for_all_modes(self):
-        """Test that v0.2.5 keeps physical_amplitude_claim_allowed false for all modes."""
+        """Test that v0.2.5 keeps physical_amplitude_calibrated false for all modes."""
         for mode in CalibrationSpec.ALLOWED_MODES:
             spec = CalibrationSpec(
                 name=f"mode_{mode}",
@@ -258,5 +258,5 @@ class TestCalibrationReportV025:
             report = make_calibration_report(spec)
 
             assert (
-                report["physical_amplitude_claim_allowed"] is False
+                report["physical_amplitude_calibrated"] is False
             ), f"Mode {mode} should keep physical amplitude false in v0.2.5"

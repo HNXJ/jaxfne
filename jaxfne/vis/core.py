@@ -1,6 +1,6 @@
 """Core visualization utilities and metadata containers for jaxfne/vis.
 
-Evaluated as an uncalibrated computational scaffold matching truth_safe_unverified boundaries.
+Evaluated as an uncalibrated computational scaffold.
 Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=False).
 """
 from __future__ import annotations
@@ -14,7 +14,7 @@ import numpy as np
 class FigureResult:
     """Rich container holding a matplotlib figure and JSON-safe metadata.
 
-    Evaluated as an uncalibrated computational scaffold matching truth_safe_unverified boundaries.
+    Evaluated as an uncalibrated computational scaffold.
     """
     fig: Any
     metadata: dict[str, Any]

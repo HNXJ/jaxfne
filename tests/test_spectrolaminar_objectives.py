@@ -42,7 +42,7 @@ def mock_readout():
         "metadata": {
             "teaching_control_source": False,
             "default_evidence_path": True,
-            "field_solver_status": "laminar_proxy_no_pde",
+            "field_solver_status": "linear_solver",
         },
     }
 
@@ -264,13 +264,12 @@ def test_objective_report_json_serializable(mock_readout, target_profiles):
 
 
 def test_objective_metadata_says_physical_amplitude_false(mock_readout, target_profiles):
-    """Objective metadata should enforce physical_amplitude_claim_allowed=False."""
+    """Objective metadata should enforce physical_amplitude_calibrated=False."""
     alpha_beta, gamma = target_profiles
 
     report = spectrolaminar_objective(mock_readout, alpha_beta, gamma)
 
-    assert report["physical_amplitude_claim_allowed"] is False
-    assert report["truth_mode"] == "truth_safe_unverified"
+    assert report["physical_amplitude_calibrated"] is False
 
 
 def test_s_lam_absent_without_nulls(mock_readout, target_profiles):

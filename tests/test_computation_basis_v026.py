@@ -302,7 +302,7 @@ class TestFutureMaxwellDeclarationOnly:
         b = BasisSpec(field_regime="future_maxwell")
         v = validate_basis_spec(b)
         assert v["valid"] is True  # future regimes are valid declarations
-        assert v["physical_amplitude_claim_allowed"] is False
+        assert v["physical_amplitude_calibrated"] is False
         assert any("future_regime_future_maxwell" in w for w in v.get("warnings", []))
 
     def test_future_maxwell_json_safe(self):
@@ -326,7 +326,7 @@ class TestFutureAdmittiveDeclarationOnly:
     def test_future_admittive_validation_warns(self):
         b = BasisSpec(field_regime="future_admittive")
         v = validate_basis_spec(b)
-        assert v["physical_amplitude_claim_allowed"] is False
+        assert v["physical_amplitude_calibrated"] is False
         assert any("future_regime_future_admittive" in w for w in v.get("warnings", []))
 
 
@@ -348,9 +348,9 @@ class TestSolvedPoissonGated:
         g = basis_claim_gate(
             b,
             source_calibration_status="uncalibrated_izhikevich_native_current",
-            field_solver_status="laminar_proxy_no_pde",
+            field_solver_status="linear_solver",
         )
-        assert g["physical_amplitude_claim_allowed"] is False
+        assert g["physical_amplitude_calibrated"] is False
 
 
 # ─── Test 12: Manifest contains nested basis block ────────────────────────────
@@ -453,25 +453,25 @@ class TestPhysicalAmplitudeClaimFalseInProxyBasis:
     def test_validation_physical_amplitude_always_false(self):
         b = default_basis_spec()
         v = validate_basis_spec(b)
-        assert v["physical_amplitude_claim_allowed"] is False
+        assert v["physical_amplitude_calibrated"] is False
 
     def test_claim_gate_always_false_in_proxy(self):
         b = default_basis_spec()
         g = basis_claim_gate(
             b,
             source_calibration_status="uncalibrated_izhikevich_native_current",
-            field_solver_status="laminar_proxy_no_pde",
+            field_solver_status="linear_solver",
         )
-        assert g["physical_amplitude_claim_allowed"] is False
+        assert g["physical_amplitude_calibrated"] is False
 
     def test_claim_gate_always_false_for_future_maxwell(self):
         b = BasisSpec(field_regime="future_maxwell")
         g = basis_claim_gate(
             b,
             source_calibration_status="uncalibrated_izhikevich_native_current",
-            field_solver_status="laminar_proxy_no_pde",
+            field_solver_status="linear_solver",
         )
-        assert g["physical_amplitude_claim_allowed"] is False
+        assert g["physical_amplitude_calibrated"] is False
 
     def test_to_dict_claim_allowed_false(self):
         b = default_basis_spec()

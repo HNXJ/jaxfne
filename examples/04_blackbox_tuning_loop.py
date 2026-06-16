@@ -37,7 +37,7 @@ def main():
     print("tuning_status:", report["tuning_status"])
     print("candidate_count:", len(report["candidate_history"]))
     print("best_parameter_value:", report["best_parameter_value"])
-    print("physical_amplitude_claim_allowed:", report["physical_amplitude_claim_allowed"])
+    print("physical_amplitude_calibrated:", report["physical_amplitude_calibrated"])
     print("mechanism_claim_status:", report["mechanism_claim_status"])
     json.dumps(report, allow_nan=False)
     assert tuned is not None

@@ -141,7 +141,7 @@ Smoothed spike count (50-step window) across units and time. Population-level ac
 Text summary of all frozen status checks and status status:
 - `run_status`: tutorial_scaffold
 - `model_status`: computational_scaffold
-- `field_solver_status`: laminar_proxy_no_pde
+- `field_solver_status`: linear_solver
 - `amplitude_status`: False
 - `source_calibration_status`: uncalibrated_izhikevich_native_current
 - `metabolism_status`: False
@@ -203,7 +203,7 @@ Global manifest fields:
   "jaxfne_version": "0.2.27",
   "run_status": "tutorial_scaffold",
   "model_status": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
+  "field_solver_status": "linear_solver",
   "amplitude_status": false,
   "metabolism_status": false,
   "source_script": "scripts/generate_tutorial_figures.py",
@@ -217,10 +217,10 @@ Global manifest fields:
 
 All figures are:
 - **Exploratory:** Teaching artifacts, not biological validation
-- **Proxy-only:** Proxy-based field projection; physical-field solvers (Poisson, volumetric) and PDE solutions are planned for future modules
+- **Proxy-only:** Proxy-based field projection; elliptic and volumetric field solvers are reserved regimes ([Limitations and future plans](limitations_and_future_plans.md))
 - **Izhikevich native:** Phenomenological neuron model (uncalibrated current units)
 - **Laminar proxy:** Forward-field model for demonstrating source-to-field mapping
-- **No overstates:** No "real EEG", "validated CSD", "biological metabolism", or solver status assertions
+- **Proxy framing:** figures report proxy readouts in relative units
 
 ---
 

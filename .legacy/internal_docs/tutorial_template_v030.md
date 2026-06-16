@@ -3,7 +3,6 @@
 **Status:** canonical template for all v0.3 tutorial notebooks and documentation  
 **Applies to:** v0.3.1 through v0.3.30 (every numbered tutorial phase)  
 **Canonical import:** `import jaxfne as jtfne`  
-**truth_mode:** tutorial_exploratory_not_biological_truth  
 
 ---
 
@@ -23,7 +22,7 @@ State 2–5 concrete learning objectives using active-verb phrasing.
 > 1. Construct a single-neuron Izhikevich configuration using `jtfne.configuration()`.
 > 2. Run a simulation and retrieve spike and voltage traces from `Signals`.
 > 3. Read the manifest to verify claim gates.
-> 4. Distinguish what the tutorial demonstrates from what it does not claim.
+> 4. Distinguish what the tutorial demonstrates from what it scopes.
 
 ---
 
@@ -150,10 +149,9 @@ Every tutorial must end with a manifest check:
 ```python
 manifest = model.manifest(signals)
 
-print("truth_mode          :", manifest["truth_mode"])
 print("claim_level         :", manifest["claim_level"])
 print("field_solver_status :", manifest["field_solver_status"])
-print("physical_amplitude  :", manifest["physical_amplitude_claim_allowed"])
+print("physical_amplitude  :", manifest["physical_amplitude_calibrated"])
 print("field_claim_level   :", manifest["field_claim_level"])
 
 # Verify JSON safety
@@ -163,11 +161,10 @@ print("manifest: JSON-safe ✓")
 
 Expected output:
 ```
-truth_mode          : truth_safe_unverified
 claim_level         : computational_scaffold
-field_solver_status : laminar_proxy_no_pde
+field_solver_status : linear_solver
 physical_amplitude  : False
-field_claim_level   : proxy_readout_only
+field_claim_level   : proxy_readout
 manifest: JSON-safe ✓
 ```
 
@@ -266,7 +263,7 @@ Specifically, this tutorial does **not** claim:
 - A peer-reviewed validation protocol
 
 Until these are supplied, all outputs remain computational scaffolds with
-`physical_amplitude_claim_allowed: False`.
+`physical_amplitude_calibrated: False`.
 
 ---
 
@@ -296,10 +293,9 @@ Before submitting a v0.3 tutorial for review:
 Every tutorial produced from this template carries:
 
 ```
-truth_mode: tutorial_exploratory_not_biological_truth
 claim_level: computational_scaffold
-physical_amplitude_claim_allowed: False
-field_claim_level: proxy_readout_only
+physical_amplitude_calibrated: False
+field_claim_level: proxy_readout
 ```
 
 These are not advisory labels. They are enforced by the manifest and verified by

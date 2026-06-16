@@ -119,7 +119,6 @@ def test_metadata_exports_fixed_environment():
     # Check fixed constraints
     manifest = model.manifest(signals=signals)
     field_adm = manifest["backend_metadata"]["field_admissibility"]
-    assert field_adm["field_solver_status"] == "laminar_proxy_no_pde"
-    assert manifest["physical_amplitude_claim_allowed"] is False
+    assert field_adm["field_solver_status"] == "linear_solver"
+    assert manifest["physical_amplitude_calibrated"] is False
     assert manifest["claim_level"] == "computational_scaffold"
-    assert manifest["truth_mode"] == "truth_safe_unverified"

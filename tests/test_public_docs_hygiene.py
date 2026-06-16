@@ -6,7 +6,7 @@ Tests for removal of ghost/negative language, rule/QA language, adverbs,
 
 Classification: docs_hygiene_test
 Scope: Validate public-facing tutorial docs and notebooks meet hard-rule language standards
-Truth: truth_safe_unverified
+Truth: 
 """
 
 import json
@@ -25,7 +25,7 @@ class TestPublicDocsHardRules:
         "docs/quickstart.md",
         "docs/install.md",
         "docs/faq.md",
-        "docs/scope_and_limitations.md",
+        "docs/limitations_and_future_plans.md",
         "docs/tutorials/index.md",
         "docs/tutorials/notebook_standard.md",
         "docs/tutorials/01_single_neuron_multimodal.md",
@@ -253,7 +253,7 @@ class TestPublicDocsHardRules:
                 found[pattern] = len(hits)
 
         # Ghost language should be minimal in public prose
-        # Allow some in lists like "Scope and Limitations" but flag excessive use
+        # Allow some in lists like "Limitations and Future Plans" but flag excessive use
         total = sum(found.values())
         assert total < 30, \
             f"{file_path}: Excessive ghost language ({total} hits): {found}"

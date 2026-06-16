@@ -424,7 +424,7 @@ def emm(signals: Any, **kwargs: Any) -> Any:
 def summary(signals: Any, **kwargs: Any) -> Any:
     """Generate a multi-panel summary figure.
 
-    Evaluated as an uncalibrated computational scaffold matching truth_safe_unverified boundaries.
+    Evaluated as an uncalibrated computational scaffold.
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
@@ -496,7 +496,7 @@ def summary(signals: Any, **kwargs: Any) -> Any:
 def summary_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
     """Generate a multi-panel summary figure with metadata.
 
-    Evaluated as an uncalibrated computational scaffold matching truth_safe_unverified boundaries.
+    Evaluated as an uncalibrated computational scaffold.
     """
     fig = summary(signals, **kwargs)
     return FigureResult(fig, {"plot_type": "summary", "proxy_safe": True})

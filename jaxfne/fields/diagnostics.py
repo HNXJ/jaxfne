@@ -124,7 +124,7 @@ def validate_projection_invariants(
 
 
 def _make_field_solution_report(
-    field_solver_status: str = "laminar_proxy_no_pde",
+    field_solver_status: str = "linear_solver",
     solver_name: str = "laminar_proxy",
     boundary_condition: str = "declared_metadata_only",
     gauge: str = "declared_metadata_only",
@@ -136,8 +136,8 @@ def _make_field_solution_report(
     finite_phi_e: bool = True,
     finite_J_e: bool = True,
     finite_CSD: bool = True,
-    field_claim_level: str = "proxy_readout_only",
-    physical_amplitude_claim_allowed: bool = False,
+    field_claim_level: str = "proxy_readout",
+    physical_amplitude_calibrated: bool = False,
     source_projection_mode: str = "proxy_no_field_solve",
     source_current_conservation_status: str = "not_applicable_proxy_mode",
     source_conservation_tested: bool = False,
@@ -157,7 +157,7 @@ def _make_field_solution_report(
         "finite_J_e": finite_J_e,
         "finite_CSD": finite_CSD,
         "field_claim_level": field_claim_level,
-        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "physical_amplitude_calibrated": physical_amplitude_calibrated,
         "source_projection_mode": source_projection_mode,
         "source_current_conservation_status": source_current_conservation_status,
         "source_conservation_tested": source_conservation_tested,

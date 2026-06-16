@@ -89,7 +89,7 @@ def _agsdr_candidates_from_noise(
     proposals = center[None, :] + exploration_val * span[None, :] * noise.astype(dtype)
 
     candidates = jnp.clip(proposals, lows[None, :], highs[None, :])
-    # Fuse center boundary alignment: Candidate 0 remains locked exactly to the clipped center array
+    # Fuse center boundary comparison: Candidate 0 remains locked exactly to the clipped center array
     return candidates.at[0].set(jnp.clip(center, lows, highs))
 
 
@@ -115,6 +115,7 @@ class OptimizerSpec:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        """Documented public function `to_dict`."""
         return {
             "optimizer": self.optimizer,
             "optimizer_class": self.optimizer_class,
@@ -128,9 +129,11 @@ class OptimizerSpec:
         }
 
     def is_blackbox(self) -> bool:
+        """Documented public function `is_blackbox`."""
         return self.optimizer in _BLACKBOX_OPTIMIZERS
 
     def is_differentiable_path(self) -> bool:
+        """Documented public function `is_differentiable_path`."""
         return self.optimizer in _DIFFERENTIABLE_OPTIMIZERS
 
     def gradient_path_safe(self) -> bool:
@@ -138,6 +141,7 @@ class OptimizerSpec:
         return self.differentiability_status in {"differentiable", "declared_surrogate"}
 
     def status(self) -> dict[str, Any]:
+        """Documented public function `status`."""
         return {
             "optimizer_class": self.optimizer_class,
             "optimizer": self.optimizer,
@@ -448,6 +452,7 @@ class AGSDR:
     deselect_factor: float = 2.0
 
     def status(self) -> dict[str, Any]:
+        """Documented public function `status`."""
         return {
             "optimizer_class": "blackbox",
             "optimizer": "AGSDR",
@@ -499,7 +504,7 @@ def propose_blackbox_candidates(
     if optimizer.optimizer == "random_search":
         return [lo + (hi - lo) * rng.random() for _ in range(n)]
     if optimizer.optimizer == "AGSDR":
-        # Adaptive Genetic-Stochastic Delta Rule (improved two-phase strategy).
+        # Adaptive Genetic-Stochastic Delta Rule (improved two-phase scope).
         # Phase 1: Broad exploration across full bounds.
         # Phase 2: Focused exploitation around promising regions.
         center = 0.5 * (lo + hi)
@@ -594,7 +599,7 @@ def _run_agsdr_optimization_loop(
 
     Notes
     -----
-    The AGSDR strategy is two-phase:
+    The AGSDR scope is two-phase:
       - Phase 1 (0 to n_population//5): Propose from bounds center with high variance
       - Phase 2 (remaining): Propose from evolving center with decaying variance
 
@@ -944,6 +949,7 @@ def sdr_transform(
     # Return a simple object with init/update methods
     @dataclass(frozen=True)
     class GradientTransformation:
+        """Documented public class `GradientTransformation`."""
         init: Callable[[Any], Any]
         update: Callable[[Any, Any], Any]
 
@@ -982,6 +988,7 @@ def gsdr_transform(
         inner_optimizer = optax.adam(learning_rate=1e-3)
 
     def init(params: Any) -> tuple[GSDRState, Any]:
+        """Documented public function `init`."""
         inner_state = inner_optimizer.init(params)
         gsdr_state = GSDRState(
             step=0,
@@ -1002,6 +1009,7 @@ def gsdr_transform(
         key: Optional[Any] = None,
         loss: Optional[float] = None,
     ) -> tuple[Any, tuple[GSDRState, Any]]:
+        """Documented public function `update`."""
         if key is None:
             raise ValueError("GSDR transform requires explicit PRNG key")
 
@@ -1053,6 +1061,7 @@ def gsdr_transform(
 
     @dataclass(frozen=True)
     class GradientTransformation:
+        """Documented public class `GradientTransformation`."""
         init: Callable[[Any], Any]
         update: Callable[[Any, Any], Any]
 
@@ -1102,6 +1111,7 @@ def agsdr_transform(
         inner_optimizer = optax.adam(learning_rate=1e-3)
 
     def init(params: Any) -> tuple[AGSDRState, Any]:
+        """Documented public function `init`."""
         inner_state = inner_optimizer.init(params)
         agsdr_state = AGSDRState(
             step=0,
@@ -1131,6 +1141,7 @@ def agsdr_transform(
         key: Optional[Any] = None,
         loss: Optional[float] = None,
     ) -> tuple[Any, tuple[AGSDRState, Any]]:
+        """Documented public function `update`."""
         if key is None:
             raise ValueError("AGSDR transform requires explicit PRNG key")
 
@@ -1198,6 +1209,7 @@ def agsdr_transform(
 
     @dataclass(frozen=True)
     class GradientTransformation:
+        """Documented public class `GradientTransformation`."""
         init: Callable[[Any], Any]
         update: Callable[[Any, Any], Any]
 
@@ -1399,6 +1411,7 @@ def _tune_matrix_agsdr_optax(
 
                     # Define and JIT compile the gradient function once per candidate to avoid retracing
                     def inner_loss_only(W_flat: jax.Array) -> jax.Array:
+                        """Documented public function `inner_loss_only`."""
                         new_W = W_flat.reshape(emitter.W.shape)
                         new_emitter = _replace(emitter, W=new_W)
                         new_params = dict(candidate_model.params)

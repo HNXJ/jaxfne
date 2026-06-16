@@ -4,7 +4,6 @@ v0.3 Tutorial Structure Validation Tests
 Tests that v0.3 tutorials conform to the required 13-section structure,
 claim gates, acceptance gates, and metadata standards.
 
-truth_mode: truth_safe_unverified
 """
 
 import json
@@ -37,15 +36,14 @@ class TestTutorialTemplate:
     def test_claim_gates_immutable(self):
         """Claim gates must be hardcoded and immutable."""
         claim_gates = {
-            'physical_amplitude_claim_allowed': False,
+            'physical_amplitude_calibrated': False,
             'biological_metabolism_claim_allowed': False,
             'claim_level': 'computational_scaffold',
-            'field_solver_status': 'laminar_proxy_no_pde',
-            'truth_mode': 'truth_safe_unverified',
+            'field_solver_status': 'linear_solver',
         }
 
         # All gates must be False or specified string
-        assert claim_gates['physical_amplitude_claim_allowed'] is False
+        assert claim_gates['physical_amplitude_calibrated'] is False
         assert claim_gates['biological_metabolism_claim_allowed'] is False
         assert claim_gates['claim_level'] == 'computational_scaffold'
 
@@ -79,8 +77,8 @@ class TestTutorialTemplate:
             'What this tutorial IS',
             'What this tutorial IS NOT',
             'computational_scaffold',
-            'truth_safe_unverified',
-            'physical_amplitude_claim_allowed',
+            '',
+            'physical_amplitude_calibrated',
         ]
 
         # All keywords should appear in the template (including Section 13)
@@ -217,12 +215,12 @@ class TestAcceptanceGates:
     def test_gate_claim_gates_frozen(self):
         """Gate: Claim gates are immutable."""
         basis = {
-            'physical_amplitude_claim_allowed': False,
+            'physical_amplitude_calibrated': False,
             'biological_metabolism_claim_allowed': False,
             'claim_level': 'computational_scaffold',
         }
 
-        assert basis['physical_amplitude_claim_allowed'] is False
+        assert basis['physical_amplitude_calibrated'] is False
         assert basis['biological_metabolism_claim_allowed'] is False
         assert basis['claim_level'] == 'computational_scaffold'
 

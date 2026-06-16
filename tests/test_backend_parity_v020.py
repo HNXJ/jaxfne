@@ -130,26 +130,26 @@ class TestBackendMetadataPreservation:
         assert sb.get("source_calibration_status") == "uncalibrated_izhikevich_native_current"
 
     def test_dense_physical_amplitude_claim_false(self):
-        """Dense backend must report physical_amplitude_claim_allowed=False."""
+        """Dense backend must report physical_amplitude_calibrated=False."""
         model, signals = _model_and_signals(n=4, backend="dense")
         sb = signals.metadata.get("source_bookkeeping", {})
-        assert sb.get("physical_amplitude_claim_allowed") is False
+        assert sb.get("physical_amplitude_calibrated") is False
 
     def test_edge_list_physical_amplitude_claim_false(self):
-        """Edge-list backend must report physical_amplitude_claim_allowed=False."""
+        """Edge-list backend must report physical_amplitude_calibrated=False."""
         model, signals = _model_and_signals(n=4, backend="edge_list")
         sb = signals.metadata.get("source_bookkeeping", {})
-        assert sb.get("physical_amplitude_claim_allowed") is False
+        assert sb.get("physical_amplitude_calibrated") is False
 
     def test_dense_field_claim_level_preserved(self):
-        """Dense backend must preserve field_claim_level=proxy_readout_only."""
+        """Dense backend must preserve field_claim_level=proxy_readout."""
         model, signals = _model_and_signals(n=4, backend="dense")
-        assert signals.metadata.get("field_claim_level") == "proxy_readout_only"
+        assert signals.metadata.get("field_claim_level") == "proxy_readout"
 
     def test_edge_list_field_claim_level_preserved(self):
-        """Edge-list backend must preserve field_claim_level=proxy_readout_only."""
+        """Edge-list backend must preserve field_claim_level=proxy_readout."""
         model, signals = _model_and_signals(n=4, backend="edge_list")
-        assert signals.metadata.get("field_claim_level") == "proxy_readout_only"
+        assert signals.metadata.get("field_claim_level") == "proxy_readout"
 
 
 class TestBackendTruthGatesPreserved:
@@ -161,12 +161,11 @@ class TestBackendTruthGatesPreserved:
         manifest = model.manifest(signals=signals)
 
         truth_gates = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
         }
         for key, expected_value in truth_gates.items():
             assert manifest.get(key) == expected_value, f"Gate {key} mismatch in dense backend"
@@ -177,12 +176,11 @@ class TestBackendTruthGatesPreserved:
         manifest = model.manifest(signals=signals)
 
         truth_gates = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
         }
         for key, expected_value in truth_gates.items():
             assert manifest.get(key) == expected_value, f"Gate {key} mismatch in edge_list backend"
@@ -301,7 +299,7 @@ class TestFieldAdmissibilityBothBackends:
         manifest = model.manifest(signals=signals)
         assert "field_admissibility" in manifest["backend_metadata"]
         field_adm = manifest["backend_metadata"]["field_admissibility"]
-        assert field_adm["physical_amplitude_claim_allowed"] is False
+        assert field_adm["physical_amplitude_calibrated"] is False
 
     def test_edge_list_field_admissibility_in_manifest(self):
         """Edge-list backend manifest must include field_admissibility."""
@@ -309,4 +307,4 @@ class TestFieldAdmissibilityBothBackends:
         manifest = model.manifest(signals=signals)
         assert "field_admissibility" in manifest["backend_metadata"]
         field_adm = manifest["backend_metadata"]["field_admissibility"]
-        assert field_adm["physical_amplitude_claim_allowed"] is False
+        assert field_adm["physical_amplitude_calibrated"] is False

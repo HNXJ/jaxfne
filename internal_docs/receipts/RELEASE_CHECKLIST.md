@@ -60,7 +60,7 @@ To prevent accidental release drift or tag/commit mutation, the following machin
 ### Run Scope Validation
 - [ ] Status posture confirmed: `tutorial_scaffold`, `computational_scaffold`, no `amplitude_status`
 - [ ] Statement language audit: CHANGELOG and release notes avoid "validated", "proved", "physical" amplitude
-- [ ] Field solver status: all data classes carry `field_solver_status=laminar_proxy_no_pde` or equivalent
+- [ ] Field solver status: all data classes carry `field_solver_status=linear_solver` or equivalent
 - [ ] No hardcoded EEG/MEG/LFP/CSD amplitude statuss in tutorials or notebooks
 
 ### Final Sign-off

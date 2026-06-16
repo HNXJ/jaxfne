@@ -119,7 +119,7 @@ All `diagnostics` must include 18 required fields:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `field_solver_status` | str | Solver type: `"laminar_proxy_no_pde"` |
+| `field_solver_status` | str | Solver type: `"linear_solver"` |
 | `solver_name` | str | Human-readable ID: `"laminar_proxy"` |
 | `boundary_condition` | str | BC declaration; `"declared_metadata_only"` for proxy |
 | `gauge` | str | Gauge convention; `"declared_metadata_only"` for proxy |
@@ -131,7 +131,7 @@ All `diagnostics` must include 18 required fields:
 | `finite_phi_e` | bool | Is potential array finite? |
 | `finite_J_e` | bool | Is current density finite? `false` for proxy |
 | `finite_CSD` | bool | Is CSD array finite? |
-| `field_model_status` | str | Statement authority: `"proxy_readout_only"` |
+| `field_model_status` | str | Statement authority: `"proxy_readout"` |
 | `amplitude_status` | bool | Can statement physical units? Always `false` for proxy |
 | `source_projection_mode` | str | How sources map to field: `"proxy_no_field_solve"` |
 | `source_current_conservation_status` | str | Conservation test: `"not_applicable_proxy_mode"` |
@@ -286,7 +286,7 @@ $$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\ph
 - **No extracellular detail:** Simplified layer-to-layer projections
 - **Proxy LFP/CSD:** Spatial convolution, not source localization
 - **Sign convention:** Positive CSD = extracellular source (inward current)
-- **Field model status:** `"proxy_readout_only"` — not physical amplitude
+- **Field model status:** `"proxy_readout"` — not physical amplitude
 
 **Use for:**
 - Tutorial visualization

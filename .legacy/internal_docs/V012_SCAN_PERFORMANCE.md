@@ -34,8 +34,8 @@ No kernel refactoring is required; the implementations are already scan-backed.
 
 All paths preserve:
 - Output shapes: `(n_steps, n_neurons)`
-- Truth metadata: `truth_safe_unverified`, `computational_scaffold`, `laminar_proxy_no_pde`
-- Status metadata: `source_calibration_status`, `physical_amplitude_claim_allowed = false`
+- Truth metadata: ``, `computational_scaffold`, `linear_solver`
+- Status metadata: `source_calibration_status`, `physical_amplitude_calibrated = false`
 - Metadata reporting: `recurrent_backend`, `synaptic_kernel`
 
 ## Performance Benchmark Plan
@@ -70,9 +70,8 @@ metadata = {
     "recurrent_backend": "dense" | "edge_list",
     "synaptic_kernel": "exponential" | "receptor_exponential",
     "time_integration_backend": "lax_scan",
-    "truth_mode": "truth_safe_unverified",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "field_solver_status": "linear_solver",
+    "physical_amplitude_calibrated": False,
 }
 ```
 
@@ -136,4 +135,4 @@ PYTHONPATH=. python examples/06_edge_list_recurrent_backend.py
 
 v0.1.2 improves confidence in the deterministic JAX execution paths for CPU-first spectrolaminar proxy workflows. Both dense and edge-list recurrent backends use `jax.lax.scan` for compilation, batching, and reproducibility. This release adds benchmark evidence and metadata confirmation.
 
-All scientific status fields remain unchanged: `truth_safe_unverified`, `computational_scaffold`, `laminar_proxy_no_pde`, no calibrated physical claims.
+All scientific status fields remain unchanged: ``, `computational_scaffold`, `linear_solver`, no calibrated physical claims.

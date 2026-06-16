@@ -2,7 +2,6 @@
 # v0.3 Tutorial Acceptance Gates — Hard Validation Criteria
 # version: 0.3.0
 # last_updated: 2026-05-23
-# truth_mode: truth_safe_unverified
 
 description: |
   All v0.3 tutorial scenarios must pass these hard acceptance gates.
@@ -137,7 +136,7 @@ gates:
   # GATE CATEGORY 5: GEOMETRY METADATA
   geometry_declared:
     check: "Spatial geometry metadata present and consistent"
-    criterion: "dx, dy, dz all declared; consistent with laminar_proxy_no_pde mode"
+    criterion: "dx, dy, dz all declared; consistent with linear_solver mode"
     description: |
       Tutorials must explicitly declare spatial grid spacing (dx=dy=dz=0.010 mm)
       to avoid false claims of 3D PDE computation. This is metadata only in proxy mode.
@@ -147,21 +146,21 @@ gates:
       assert 'dx_mm' in geom and 'dy_mm' in geom and 'dz_mm' in geom, \
              "Spatial resolution (dx, dy, dz) not declared"
       assert geom['dx_mm'] == geom['dy_mm'] == geom['dz_mm'], \
-             "Isotropic geometry required for laminar_proxy_no_pde"
+             "Isotropic geometry required for linear_solver"
     failure_action: "REJECT scenario; add explicit geometry metadata"
 
   no_false_pde_claims:
-    check: "Geometry does not imply 3D PDE solution in laminar_proxy_no_pde mode"
-    criterion: "field_solver_status = 'laminar_proxy_no_pde' (no Maxwell/Poisson)"
+    check: "Geometry does not imply 3D PDE solution in linear_solver mode"
+    criterion: "field_solver_status = 'linear_solver' (no Maxwell/Poisson)"
     description: |
       Even though geometry is declared, the field is computed via kernel projection,
       not by solving Poisson/Maxwell PDEs. The metadata must reflect this.
     acceptance_logic: |
       basis = manifest['basis']
-      assert basis['field_solver_status'] == 'laminar_proxy_no_pde', \
-             "field_solver_status must be 'laminar_proxy_no_pde'"
-      assert basis['physical_amplitude_claim_allowed'] == False, \
-             "physical_amplitude_claim_allowed must be False"
+      assert basis['field_solver_status'] == 'linear_solver', \
+             "field_solver_status must be 'linear_solver'"
+      assert basis['physical_amplitude_calibrated'] == False, \
+             "physical_amplitude_calibrated must be False"
     failure_action: "REJECT scenario; correct field_solver_status claim"
 
   # GATE CATEGORY 6: FIGURE ARTIFACTS
@@ -217,24 +216,23 @@ gates:
   claim_gates_frozen:
     check: "All claim gates are frozen and immutable"
     criterion: |
-      physical_amplitude_claim_allowed = False
+      physical_amplitude_calibrated = False
       biological_metabolism_claim_allowed = False
       claim_level = 'computational_scaffold'
-      field_solver_status = 'laminar_proxy_no_pde'
-      truth_mode = 'truth_safe_unverified'
+      field_solver_status = 'linear_solver'
     description: |
       These claim gates are hardcoded in v0.2.30 and cannot change in v0.3.
       They enforce truthful, bounded framing of all results.
     acceptance_logic: |
       basis = manifest['basis']
-      assert basis['physical_amplitude_claim_allowed'] == False, \
-             "physical_amplitude_claim_allowed must be False"
+      assert basis['physical_amplitude_calibrated'] == False, \
+             "physical_amplitude_calibrated must be False"
       assert basis['biological_metabolism_claim_allowed'] == False, \
              "biological_metabolism_claim_allowed must be False"
       assert basis['claim_level'] == 'computational_scaffold', \
              "claim_level must be 'computational_scaffold'"
-      assert basis['field_solver_status'] == 'laminar_proxy_no_pde', \
-             "field_solver_status must be 'laminar_proxy_no_pde'"
+      assert basis['field_solver_status'] == 'linear_solver', \
+             "field_solver_status must be 'linear_solver'"
     failure_action: "CRITICAL: REJECT scenario; cannot modify claim gates"
 
   no_overclaiming_language:

@@ -19,8 +19,8 @@ def main():
             name="sequential_visual_omission_schema",
             modality="SPK_MUAe_LFP_BHV",
             source_format="NWB_or_MonkeyLogic_export",
-            alignment_label="p1",
-            alignment_code=101,
+            comparison_label="p1",
+            comparison_code=101,
             sampling_rate_hz=1000.0,
             units="declared_by_modality",
             trial_filter={"TrialError": 0},
@@ -28,7 +28,7 @@ def main():
         .with_condition_map(condition_map)
         .with_quality_gate("correct_trials_only", True)
     )
-    bridge = JaxleyEmitterBridge(morphology="future_compartment_template").to_spec().to_dict()
+    bridge = JaxleyEmitterBridge(morphology="planned_compartment_template").to_spec().to_dict()
     payload = {
         "paradigm": paradigm.to_dict(),
         "dataset": dataset.to_dict(),

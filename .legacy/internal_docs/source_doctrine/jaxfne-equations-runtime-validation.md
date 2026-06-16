@@ -42,7 +42,7 @@ Extracellular baseline identities:
 \mathrm{CSD}=\nabla\cdot\mathbf{J}_e
 ```
 
-Proxy tutorials keep `field_solver_status=laminar_proxy_no_pde`.
+Proxy tutorials keep `field_solver_status=linear_solver`.
 
 ## JAX runtime rules
 
@@ -143,11 +143,10 @@ Manifest minimum:
 ```yaml
 run_id: string
 jaxfne_version: string
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 source_calibration_status: string
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+physical_amplitude_calibrated: false
 runtime_report: object
 artifact_paths: object
 asset_hashes: object

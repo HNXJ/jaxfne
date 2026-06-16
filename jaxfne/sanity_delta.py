@@ -8,10 +8,10 @@ Package-native orchestration objects for structured oddball task with:
 - Proxy-safe readouts only (lfp_proxy, csd_proxy, eeg_proxy, meg_proxy)
 
 Truth gates:
-  truth_safe_unverified
+  
   computational_scaffold
-  laminar_proxy_no_pde
-  physical_amplitude_claim_allowed=False
+  linear_solver
+  physical_amplitude_calibrated=False
   biological_learning_claim=False
 """
 
@@ -47,10 +47,9 @@ class SanityDeltaConfig:
     cell_counts: dict[str, int]
     stimulus_frequency_hz: float
     stimulus_map: dict[str, dict[str, float]]
-    truth_mode: Literal["truth_safe_unverified"] = "truth_safe_unverified"
     claim_level: Literal["computational_scaffold"] = "computational_scaffold"
-    field_solver_status: Literal["laminar_proxy_no_pde"] = "laminar_proxy_no_pde"
-    physical_amplitude_claim_allowed: bool = False
+    field_solver_status: Literal["linear_solver"] = "linear_solver"
+    physical_amplitude_calibrated: bool = False
     biological_learning_claim: bool = False
     runtime_mode: Literal["scaffold", "full"] = "scaffold"
 
@@ -81,10 +80,9 @@ class SanityDeltaConfig:
         cell_counts: dict[str, int] | None = None,
         stimulus_frequency_hz: float = 100.0,
         stimulus_map: dict[str, dict[str, float]] | None = None,
-        truth_mode: str = "truth_safe_unverified",
         claim_level: str = "computational_scaffold",
-        field_solver_status: str = "laminar_proxy_no_pde",
-        physical_amplitude_claim_allowed: bool = False,
+        field_solver_status: str = "linear_solver",
+        physical_amplitude_calibrated: bool = False,
         runtime_mode: str = "scaffold",
     ) -> SanityDeltaConfig:
         """Factory for hierarchical global-local oddball configuration."""
@@ -108,10 +106,9 @@ class SanityDeltaConfig:
             cell_counts=cell_counts,
             stimulus_frequency_hz=stimulus_frequency_hz,
             stimulus_map=stimulus_map,
-            truth_mode=truth_mode,
             claim_level=claim_level,
             field_solver_status=field_solver_status,
-            physical_amplitude_claim_allowed=physical_amplitude_claim_allowed,
+            physical_amplitude_calibrated=physical_amplitude_calibrated,
             runtime_mode=runtime_mode,
         )
 
@@ -476,10 +473,9 @@ class HierarchicalOddballParadigm:
             "total_duration_ms": t_start + self.review_ms,
             "segments": segments,
             "truth_gates": {
-                "truth_mode": self.config.truth_mode,
                 "claim_level": self.config.claim_level,
                 "field_solver_status": self.config.field_solver_status,
-                "physical_amplitude_claim_allowed": self.config.physical_amplitude_claim_allowed,
+                "physical_amplitude_calibrated": self.config.physical_amplitude_calibrated,
                 "biological_learning_claim": self.config.biological_learning_claim,
             },
         }
@@ -611,6 +607,7 @@ class TaskEpisode:
 
     @property
     def signals(self) -> dict[str, jnp.ndarray]:
+        """Documented public function `signals`."""
         return {
             "vm": self.vm,
             "spk": self.spikes,
@@ -846,10 +843,9 @@ class TaskEpisode:
                 results[check] = all("_like" not in k for k in self.source_terms.keys())
             elif check == "truth_gates_preserved":
                 results[check] = (
-                    self.config.truth_mode == "truth_safe_unverified"
-                    and self.config.claim_level == "computational_scaffold"
-                    and self.config.field_solver_status == "laminar_proxy_no_pde"
-                    and self.config.physical_amplitude_claim_allowed is False
+                    self.config.claim_level == "computational_scaffold"
+                    and self.config.field_solver_status == "linear_solver"
+                    and self.config.physical_amplitude_calibrated is False
                     and self.config.biological_learning_claim is False
                 )
             else:
@@ -872,10 +868,9 @@ class Manifest:
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dict."""
         return {
-            "truth_mode": self.config.truth_mode,
             "claim_level": self.config.claim_level,
             "field_solver_status": self.config.field_solver_status,
-            "physical_amplitude_claim_allowed": self.config.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.config.physical_amplitude_calibrated,
             "biological_learning_claim": self.config.biological_learning_claim,
             "mechanism_claim_status": "not_claimed",
             "areas": list(self.config.areas),

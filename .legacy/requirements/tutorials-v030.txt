@@ -3,7 +3,6 @@
 # This file specifies dependencies for running v0.3 tutorials.
 # Install with: pip install -r requirements/tutorials-v030.txt
 #
-# truth_mode: truth_safe_unverified
 # These requirements are for exploratory/teaching tutorials, not production.
 
 # Core jaxfne package (stable v0.3.5 cleanup release)

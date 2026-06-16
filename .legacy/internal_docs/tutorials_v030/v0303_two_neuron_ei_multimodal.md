@@ -204,11 +204,10 @@ probe_report = {
 ```json
 {
   "basis": {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "field_claim_level": "proxy_readout_only",
-    "physical_amplitude_claim_allowed": false,
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false,
     "biological_metabolism_claim_allowed": false,
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "source_projection_mode": "proxy_no_field_solve"
@@ -437,7 +436,7 @@ Before use, verify:
 - [ ] LFP and CSD shapes match probe configuration (n_steps, n_contacts)
 - [ ] All figures are PNG and > 0 bytes
 - [ ] Manifest contains all 8 probe operator reports
-- [ ] Claim gates are immutable (`physical_amplitude_claim_allowed` = false)
+- [ ] Claim gates are immutable (`physical_amplitude_calibrated` = false)
 - [ ] Non-claims section explicitly lists scope limitations
 
 ---

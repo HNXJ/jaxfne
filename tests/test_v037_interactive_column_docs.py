@@ -92,7 +92,7 @@ class TestInteractiveManifest:
             "scope_status",
             "readout_status",
             "field_mode",
-            "physical_amplitude_claim_allowed",
+            "physical_amplitude_calibrated",
             "n_neurons",
             "layers",
             "mean_population_rate_hz",
@@ -113,8 +113,8 @@ class TestInteractiveManifest:
             "readout_status should be 'simulated_proxy'"
         assert "proxy" in manifest["field_mode"].lower(), \
             "field_mode should indicate proxy-based computation"
-        assert manifest["physical_amplitude_claim_allowed"] is False, \
-            "physical_amplitude_claim_allowed must be False"
+        assert manifest["physical_amplitude_calibrated"] is False, \
+            "physical_amplitude_calibrated must be False"
 
     def test_manifest_equations_present(self):
         """Assert equation annotations are in manifest."""
@@ -242,7 +242,6 @@ class TestPublicWording:
 
         forbidden_terms = [
             "claim_level",
-            "truth_mode",
             "claim_gate",
             "receipt",
             "gamma",

@@ -27,8 +27,7 @@ def test_minimal_api_smoke():
     assert "CSD" in readout
     assert "csd_proxy" in readout
     manifest = model.manifest(signals, readout)
-    assert manifest["truth_mode"] == "truth_safe_unverified"
-    assert manifest["source_field_status"]["physical_amplitude_claim_allowed"] is False
+    assert manifest["source_field_status"]["physical_amplitude_calibrated"] is False
 
 
 def test_signals_vs_signal_alias():
@@ -53,14 +52,13 @@ def test_probe_and_record_equivalence():
 
 def test_metadata_gates_defaults():
     meta = jtfne.configuration().metadata
-    assert meta["truth_mode"] == "truth_safe_unverified"
     assert meta["claim_level"] == "computational_scaffold"
     assert meta["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
     assert meta["source_projection_mode"] == "proxy_no_field_solve"
     assert meta["boundary_condition"] == "mean_zero_neumann"
     assert meta["gauge"] == "mean_zero"
     assert meta["csd_sign_convention"] == "positive_equals_extracellular_source"
-    assert meta["field_solver_status"] == "laminar_proxy_no_pde"
+    assert meta["field_solver_status"] == "linear_solver"
     assert meta["manifest_schema_version"] == "0.0.4"
     assert isinstance(meta["operator_status"], dict)
 
@@ -114,9 +112,9 @@ def test_source_field_truth_contract():
     readout = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP", "J_e"])
     manifest = model.manifest(signals, readout)
     status = manifest["source_field_status"]
-    assert status["field_solver_status"] == "laminar_proxy_no_pde"
-    assert status["field_claim_level"] == "proxy_readout_only"
-    assert status["physical_amplitude_claim_allowed"] is False
+    assert status["field_solver_status"] == "linear_solver"
+    assert status["field_claim_level"] == "proxy_readout"
+    assert status["physical_amplitude_calibrated"] is False
     assert status["is_proxy"] is True
     assert "J_e_status" in readout
     assert "J_e" not in readout

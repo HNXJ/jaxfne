@@ -168,7 +168,7 @@ def test_connection_non_mapping_selector_fails():
 def test_compiled_flag_resets_on_new_declaration():
     """A new declaration must reset circuit_compiled even if a prior step set it True."""
     cfg = jtfne.Configuration().connections(name="c1", source={"a": 1}, target={"a": 1})
-    # Simulate a future compiler having marked it compiled.
+    # Simulate a planned compiler having marked it compiled.
     import dataclasses
     md = dict(cfg.metadata)
     md["circuit_compiled"] = True
@@ -210,9 +210,8 @@ def test_existing_metadata_preserved():
     cfg = jtfne.Configuration().connections(
         name="c1", source={"cell_type": "E"}, target={"cell_type": "E"}
     )
-    assert cfg.metadata["truth_mode"] == "truth_safe_unverified"
     assert cfg.metadata["claim_level"] == "computational_scaffold"
-    assert cfg.metadata["field_solver_status"] == "laminar_proxy_no_pde"
+    assert cfg.metadata["field_solver_status"] == "linear_solver"
 
 
 def test_immutability_chain_does_not_mutate_source():

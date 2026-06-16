@@ -37,7 +37,7 @@ These render to the site only via incoming links (or not at all). Decide per fil
 | `computation_basis.md` | add to nav (Guides) |
 | `conservation_proxy_diagnostics.md` | add to nav (Guides) |
 | `interactive_visualizations.md` | merge into `guides/plotly_visualization.md` |
-| `manuscript_alignment.md` | add to nav (About) |
+| `technical report_comparison.md` | add to nav (About) |
 | `mathematical_glossary_flow.md` | add to nav (Guides) |
 | `performance_baseline.md` | add to nav (About) |
 | `source_field_equations.md` | add to nav (Guides) |
@@ -60,7 +60,7 @@ cannot just be deleted.
 | `docs/jaxley_interop.md` | `guides/jaxley_interop.md` | 14 | tensor_field_workflows, faq, tutorials/index |
 | `docs/output_bundles.md` | `guides/output_bundles.md` | 2 | source_field_equations, faq, 01_single_neuron |
 | `docs/plotly_visualization.md` | `guides/plotly_visualization.md` | 42 | (none) |
-| `docs/poisson_admissibility.md` | `guides/poisson_admissibility.md` | 46 | manuscript_alignment, conservation_proxy_diagnostics |
+| `docs/poisson_admissibility.md` | `guides/poisson_admissibility.md` | 46 | technical report_comparison, conservation_proxy_diagnostics |
 | `docs/probe_operators.md` (53 L stub) | `guides/probe_operators.md` (336 L) | 359 | index, faq, scope, api/probes, api/index, many |
 | `docs/tensor_field_workflows.md` | `guides/tensor_field_workflows.md` | 6 | plotly_visualization, jaxley_interop |
 
@@ -106,7 +106,7 @@ Per-module API pages: `core.md` 345, `probes.md` 344, `validation.md` 336,
 2. **Symbol table** (Name · Kind · Signature · Summary) — the primary content.
 3. A short "Detailed reference" section only for the 3–5 most-used symbols
    (full signature + one example), not every symbol.
-4. Drop repeated scope boilerplate (link to `scope_and_limitations.md` once).
+4. Drop repeated scope boilerplate (link to `limitations_and_future_plans.md` once).
 
 ---
 

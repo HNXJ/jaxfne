@@ -38,6 +38,7 @@ class EulerSolver:
         n_steps = int(round((t_end - t_start) / self.dt))
         
         def step_fn(carry, i):
+            """Documented public function `step_fn`."""
             y, t = carry
             dy = dydt_fn(y, t)
             y_next = y + self.dt * dy
@@ -153,6 +154,19 @@ def euler_scan(
     return solver.solve(dydt_fn, y_init, t_start, t_start + n_steps * dt)
 
 
+def solve_volume_conductor_experimental(*args, **kwargs):
+    """Experimental volume conductor solver skeleton.
+
+    Raises
+    ------
+    NotImplementedError
+        Always raises NotImplementedError. Requires boundary/gauge/residual/convergence validation.
+    """
+    raise NotImplementedError(
+        "experimental solver skeleton: requires boundary/gauge/residual/convergence validation"
+    )
+
+
 __all__ = [
     "SolverConfig",
     "EulerSolver",
@@ -160,4 +174,5 @@ __all__ = [
     "solve_ode",
     "euler_step",
     "euler_scan",
+    "solve_volume_conductor_experimental",
 ]

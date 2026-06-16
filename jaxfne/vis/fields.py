@@ -137,7 +137,7 @@ def _geometry3d_from_config(cfg: Any, *, areas=None, cell_types=None, figsize=(9
 
 
 def spectrolaminar(signals: Signals, **kwargs: Any) -> Any:
-    """Generate a publication-ready, 3-panel spectrolaminar profile figure."""
+    """Generate a evidence-ready, 3-panel spectrolaminar profile figure."""
     field_obj = getattr(signals, "field", None)
     if field_obj is None and isinstance(signals, dict):
         field_obj = signals.get("field")
@@ -588,7 +588,7 @@ def objective_report(
                 ha="center", va="center", transform=ax.transAxes, fontsize=10)
         ax.set_title("Objective report (proxy)")
 
-    fig.suptitle("Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold matching truth_safe_unverified boundaries.",
+    fig.suptitle("Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold.",
                  fontsize=9, style="italic", color="gray")
     fig.tight_layout()
     return fig

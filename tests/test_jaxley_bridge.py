@@ -26,7 +26,7 @@ def test_jaxley_bridge_creation_and_report():
     report = bridge.report()
     assert report["bridge_name"] == "jaxley_bridge"
     assert report["source_mode"] == "transmembrane_current"
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["physical_amplitude_calibrated"] is False
     assert report["source_calibration_status"] == "uncalibrated_jaxley_bridge"
 
 

@@ -84,9 +84,9 @@ def test_v033_manifest_json_valid():
     basis = manifest["basis"]
     # Support both legacy key names and updated v0.3.22+ schema key names
     assert basis.get("model_status", basis.get("claim_level")) == "computational_scaffold"
-    assert basis.get("field_model_status", basis.get("field_claim_level")) == "proxy_readout_only"
-    assert basis.get("amplitude_status", basis.get("physical_amplitude_claim_allowed")) is False
-    assert basis["field_solver_status"] == "laminar_proxy_no_pde"
+    assert basis.get("field_model_status", basis.get("field_claim_level")) == "proxy_readout"
+    assert basis.get("amplitude_status", basis.get("physical_amplitude_calibrated")) is False
+    assert basis["field_solver_status"] == "linear_solver"
 
     probe_keys = set(manifest["probe_report"].keys())
     required_probes = {"spikes", "V_m", "source", "lfp_proxy", "csd_proxy", "eeg_proxy", "meg_proxy", "emm_proxy"}
@@ -358,14 +358,14 @@ def test_v033_validation_report_i_gate_passes():
 # ============================================================================
 
 def test_v033_basis_physical_amplitude_claim_false():
-    """basis amplitude_status (or legacy physical_amplitude_claim_allowed) must be False."""
+    """basis amplitude_status (or legacy physical_amplitude_calibrated) must be False."""
     manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
     if not manifest_path.exists():
         pytest.skip("Manifest not generated")
     with open(manifest_path) as f:
         manifest = json.load(f)
     basis = manifest["basis"]
-    val = basis.get("amplitude_status", basis.get("physical_amplitude_claim_allowed"))
+    val = basis.get("amplitude_status", basis.get("physical_amplitude_calibrated"))
     assert val is False, f"amplitude gate must be False, got: {val}"
 
 
@@ -379,20 +379,6 @@ def test_v033_basis_claim_level_computational_scaffold():
     basis = manifest["basis"]
     val = basis.get("model_status", basis.get("claim_level"))
     assert val == "computational_scaffold", f"model_status must be 'computational_scaffold', got: {val}"
-
-
-def test_v033_basis_truth_mode_correct():
-    """basis run_status (or legacy truth_mode) must declare scaffold or unverified status."""
-    manifest_path = pathlib.Path("outputs/v030_03_two_neuron_ei_multimodal/manifest.json")
-    if not manifest_path.exists():
-        pytest.skip("Manifest not generated")
-    with open(manifest_path) as f:
-        manifest = json.load(f)
-    basis = manifest["basis"]
-    val = basis.get("run_status", basis.get("truth_mode", ""))
-    assert val in ("truth_safe_unverified", "tutorial_scaffold"), \
-        f"run_status must be 'truth_safe_unverified' or 'tutorial_scaffold', got: {val}"
-
 
 # ============================================================================
 # Group D: Asset integrity tests (3 new tests)

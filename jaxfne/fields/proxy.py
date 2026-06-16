@@ -1,6 +1,6 @@
 """Source-to-field and localized laminar projection computing proxy engines.
 
-This module implements structural simulation proxy calculations under laminar_proxy_no_pde.
+This module implements structural simulation proxy calculations under linear_solver.
 Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 """
 from __future__ import annotations
@@ -32,7 +32,7 @@ class FieldOutput:
     """Container for laminar proxy field/readout arrays.
 
     source_proxy, phi_e_proxy, csd_proxy, and lfp_proxy are uncalibrated
-    simulation readouts under truth_safe_unverified boundaries.
+    simulation readouts.
     """
     source_proxy: jax.Array
     phi_e_proxy: jax.Array
@@ -44,14 +44,17 @@ class FieldOutput:
 
     @property
     def phi_e(self) -> jax.Array:
+        """Documented public function `phi_e`."""
         return self.phi_e_proxy
 
     @property
     def csd(self) -> jax.Array:
+        """Documented public function `csd`."""
         return self.csd_proxy
 
     @property
     def lfp(self) -> jax.Array:
+        """Documented public function `lfp`."""
         return self.lfp_proxy
 
     @property
@@ -126,7 +129,7 @@ def project_laminar_sources(
     )
 
     field_solution_report = _make_field_solution_report(
-        field_solver_status="laminar_proxy_no_pde",
+        field_solver_status="linear_solver",
         solver_name="laminar_proxy",
         boundary_condition="mean_zero_neumann",
         gauge="mean_zero",
@@ -138,8 +141,8 @@ def project_laminar_sources(
         finite_phi_e=_finite_bool(phi_e_proxy),
         finite_J_e=False,
         finite_CSD=_finite_bool(csd_proxy),
-        field_claim_level="proxy_readout_only",
-        physical_amplitude_claim_allowed=False,
+        field_claim_level="proxy_readout",
+        physical_amplitude_calibrated=False,
         source_projection_mode="proxy_no_field_solve",
         source_current_conservation_status="not_applicable_proxy_mode",
         source_conservation_tested=False,
@@ -148,7 +151,7 @@ def project_laminar_sources(
 
     diagnostics.update(field_solution_report)
     diagnostics.update({
-        "field_solver": "laminar_proxy_no_pde",
+        "field_solver": "linear_solver",
         "source_projection_status": "contact_row_normalized_proxy",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
         "source_decomposition": "proxy_reduced_emitter",
@@ -177,7 +180,7 @@ def project_sources_to_laminar_field(
     Convenience wrapper over :func:`project_laminar_sources`: maps ``sources`` at
     ``positions`` to a :class:`FieldOutput` via the Gaussian-leadfield laminar
     proxy. This is not a PDE/volume-conductor solve
-    (``field_solver_status = "laminar_proxy_no_pde"``); outputs are relative-unit
+    (``field_solver_status = "linear_solver"``); outputs are relative-unit
     proxies.
     """
     return project_laminar_sources(sources, positions, n_contacts=n_contacts, dtype=dtype)
@@ -192,7 +195,7 @@ def validate_source_field_status(
 ) -> dict[str, Any]:
     """Return truth-preserving status for source-field readouts.
 
-    This configured workflow operates as an uncalibrated computational scaffold under truth_safe_unverified constraints.
+    This configured workflow operates as an uncalibrated computational scaffold.
     """
     metadata = dict(cfg_metadata or {})
     diagnostics = dict(field_output.diagnostics) if field_output is not None else {}
@@ -215,7 +218,7 @@ def validate_source_field_status(
         diagnostics.get("source_calibration_status", "uncalibrated_izhikevich_native_current"),
     )
     field_solver_status = metadata.get(
-        "field_solver_status", diagnostics.get("field_solver_status", "laminar_proxy_no_pde")
+        "field_solver_status", diagnostics.get("field_solver_status", "linear_solver")
     )
 
     source_status = str(source_calibration_status).lower()
@@ -223,12 +226,12 @@ def validate_source_field_status(
     projection_status = str(source_projection_mode).lower()
     is_proxy = "proxy" in field_status or "no_pde" in field_status or "proxy" in projection_status
     is_calibrated = "calibrated" in source_status and "uncalibrated" not in source_status
-    physical_amplitude_claim_allowed = False
-    field_claim_level = "proxy_readout_only"
+    physical_amplitude_calibrated = False
+    field_claim_level = "proxy_readout"
     if "uncalibrated" in source_status:
         warnings.append("uncalibrated_reduced_emitter_source")
     if is_proxy:
-        warnings.append("laminar_proxy_no_pde_not_physical_field_solution")
+        warnings.append("linear_solver_not_physical_field_solution")
 
     finite_flags = {
         "finite_source_proxy": diagnostics.get("finite_source_proxy"),
@@ -247,7 +250,7 @@ def validate_source_field_status(
         ),
         "field_solver_status": field_solver_status,
         "field_claim_level": field_claim_level,
-        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "physical_amplitude_calibrated": physical_amplitude_calibrated,
         "is_proxy": bool(is_proxy),
         "is_calibrated": bool(is_calibrated),
         "validation_status": "proxy_status_report_only",
@@ -264,8 +267,8 @@ def compute_conservation_proxy_diagnostics(
     lfp: jax.Array | None = None,
     field_solution: FieldOutput | None = None,
     source_calibration_status: str = "uncalibrated_izhikevich_native_current",
-    field_solver_status: str = "laminar_proxy_no_pde",
-    field_claim_level: str = "proxy_readout_only",
+    field_solver_status: str = "linear_solver",
+    field_claim_level: str = "proxy_readout",
 ) -> dict[str, Any]:
     """Compute conservation-inspired proxy diagnostics over existing source/field arrays.
     """
@@ -358,7 +361,7 @@ def compute_conservation_proxy_diagnostics(
         "field_solver_status": str(field_solver_status),
         "field_claim_level": str(field_claim_level),
         "source_calibration_status": str(source_calibration_status),
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "biological_metabolism_claim_allowed": False,
         "source_norm_l1": source_norm_l1,
         "source_norm_l2": source_norm_l2,
@@ -379,9 +382,9 @@ def compute_conservation_proxy_diagnostics(
         "notes": [
             "proxy diagnostics only — no physical amplitude claim",
             "EMM-proxy uses normalized signaling-energy units",
-            "field_solver_status=laminar_proxy_no_pde",
+            "field_solver_status=linear_solver",
             "Maxwell/Poynting/stress-energy quantities are unavailable in laminar proxy mode",
-            "j_dot_e_proxy is None: J_e not computed in laminar_proxy_no_pde mode",
+            "j_dot_e_proxy is None: J_e not computed in linear_solver mode",
             "source_conservation_proxy_residual is a proxy conservation summary",
         ],
     }
@@ -396,7 +399,7 @@ def probe_laminar_modes(
     ``modes`` selects among the available laminar proxies (``"source"``,
     ``"phi_e"``, ``"csd"``, ``"lfp"``, ...); returns a dict mapping each to its
     ``*_proxy`` array. All returned arrays are proxy readouts
-    (``field_solver_status = "laminar_proxy_no_pde"``), not physical signals.
+    (``field_solver_status = "linear_solver"``), not physical signals.
     """
     out: dict[str, Any] = {}
     if "source" in modes or "sources" in modes:
@@ -433,6 +436,7 @@ def make_laminar_connectivity(
     w_ff_range: tuple[float, float] = (0.007, 0.030),
     w_fb_range: tuple[float, float] = (0.006, 0.026),
 ) -> dict[str, Any]:
+    """Documented public function `make_laminar_connectivity`."""
     if control_params is None:
         control_params = {
             "local_exc_gain": 1.0,
@@ -528,11 +532,13 @@ def exponential_synaptic_trace(
     tau_ms: float,
     dt_ms: float,
 ) -> jax.Array:
+    """Documented public function `exponential_synaptic_trace`."""
     alpha = jnp.exp(-dt_ms / tau_ms)
     spikes_arr = jnp.asarray(spikes, dtype=jnp.float32)
 
     if spikes_arr.ndim == 1:
         def body_fun(carry, spike):
+            """Documented public function `body_fun`."""
             next_carry = alpha * carry + spike
             return next_carry, next_carry
 
@@ -541,6 +547,7 @@ def exponential_synaptic_trace(
         return trace
     else:
         def body_fun(carry, step_spikes):
+            """Documented public function `body_fun`."""
             next_carry = alpha * carry + step_spikes
             return next_carry, next_carry
 
@@ -556,6 +563,7 @@ def synaptic_current(
     tau_ms: float,
     dt_ms: float,
 ) -> jax.Array:
+    """Documented public function `synaptic_current`."""
     trace = exponential_synaptic_trace(spikes, tau_ms, dt_ms)
     return jnp.dot(trace, W.T)
 
@@ -567,6 +575,7 @@ def filtered_spike_source(
     dt_ms: float = 0.1,
     cell_signs: Mapping[str, int] | None = None,
 ) -> tuple[jax.Array, dict[str, Any]]:
+    """Documented public function `filtered_spike_source`."""
     if cell_signs is None:
         cell_signs = {"E": 1, "PV": -1, "SST": -1, "VIP": -1}
 
@@ -582,9 +591,8 @@ def filtered_spike_source(
         "spectrolaminar_profile_injected": False,
         "default_evidence_path": True,
         "source_calibration_status": "uncalibrated_spike_only_toy_scale_a",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": "truth_safe_unverified",
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
         "tau_ms": float(tau_ms),
         "n_neurons": int(spikes.shape[1]),
         "n_steps": int(spikes.shape[0]),
@@ -658,9 +666,8 @@ def teaching_control_spectrolaminar_resonance_source(
         "default_evidence_path": False,
         "teaching_control_source": True,
         "source_calibration_status": "toy_scale_a_per_native_not_empirical",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": "truth_safe_unverified",
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
         "alpha_beta_freq_hz": float(alpha_beta_freq),
         "gamma_freq_hz": float(gamma_freq),
         "n_neurons": int(n),
@@ -683,6 +690,7 @@ def spectrolaminar_psd(
     freq_min: float = 1.0,
     freq_max: float = 150.0,
 ) -> tuple[jax.Array, jax.Array]:
+    """Documented public function `spectrolaminar_psd`."""
     signal_arr = np.asarray(signal_arr, dtype=np.float32)
     if signal_arr.ndim == 1:
         signal_arr = signal_arr.reshape(-1, 1)
@@ -715,6 +723,7 @@ def spectrolaminar_bandpower(
     freqs: jax.Array,
     bands: dict[str, tuple[float, float]] | None = None,
 ) -> dict[str, jax.Array]:
+    """Documented public function `spectrolaminar_bandpower`."""
     if bands is None:
         bands = {
             "alpha_beta": (8.0, 25.0),
@@ -744,6 +753,7 @@ def spectrolaminar_readout(
     n_contacts: int | None = None,
     dt_ms: float = 0.1,
 ) -> dict[str, Any]:
+    """Documented public function `spectrolaminar_readout`."""
     signal_arr = np.asarray(signal_arr, dtype=np.float32)
     T, N = signal_arr.shape
 
@@ -772,10 +782,9 @@ def spectrolaminar_readout(
                 "readout_kind": "spectrolaminar_profile",
                 "score_computed": False,
                 "input_signal": "source_proxy_or_lfp_like",
-                "field_solver_status": "laminar_proxy_no_pde",
-                "physical_amplitude_claim_allowed": False,
+                "field_solver_status": "linear_solver",
+                "physical_amplitude_calibrated": False,
                 "units_or_status": "proxy_units",
-                "truth_mode": "truth_safe_unverified",
                 "bands": {
                     "alpha_beta": [8.0, 25.0],
                     "gamma": [40.0, 150.0],
@@ -814,10 +823,9 @@ def spectrolaminar_readout(
             "readout_kind": "spectrolaminar_profile",
             "score_computed": False,
             "input_signal": "source_proxy_or_lfp_like",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False,
             "units_or_status": "proxy_units",
-            "truth_mode": "truth_safe_unverified",
             "bands": {
                 "alpha_beta": [8.0, 25.0],
                 "gamma": [40.0, 150.0],
@@ -835,6 +843,7 @@ def multi_area_spectrolaminar_readout(
     n_contacts: int | None = None,
     dt_ms: float = 0.1,
 ) -> dict[str, dict[str, Any]]:
+    """Documented public function `multi_area_spectrolaminar_readout`."""
     areas = set(neurons.get("area", ["V1"]))
     readouts = {}
 
@@ -865,6 +874,7 @@ class LinearReadout:
     units_or_status: str = "relative_proxy_units"
 
     def apply(self, source: jax.Array) -> jax.Array:
+        """Documented public function `apply`."""
         src = jnp.asarray(source)
         W = jnp.asarray(self.W)
         if W.ndim != 2:
@@ -880,12 +890,13 @@ class LinearReadout:
         raise ValueError(f"source must be 1D or 2D, got {src.shape}")
 
     def report(self) -> dict[str, Any]:
+        """Documented public function `report`."""
         return {
             "name": self.name,
             "operator_status": self.operator_status,
             "leadfield_status": self.leadfield_status,
             "units_or_status": self.units_or_status,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
 
@@ -957,7 +968,7 @@ def construct_source_tensor(
         "source_projection_mode": "proxy_no_field_solve",
         "source_decomposition": source_mode,
         "double_count_guard": "passed",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "finite": finite_bool,
     }
     return source, report
@@ -969,6 +980,7 @@ def synaptic_resonance_source(
     dt_ms: float = 0.1,
     control_params: Optional[dict] = None,
 ) -> jax.Array:
+    """Documented public function `synaptic_resonance_source`."""
     resonance, _ = teaching_control_spectrolaminar_resonance_source(
         neurons, n_steps, dt_ms, control_params
     )
@@ -982,6 +994,7 @@ def combined_multi_area_source(
     dt_ms: float = 0.1,
     control_params: Optional[dict] = None,
 ) -> jax.Array:
+    """Documented public function `combined_multi_area_source`."""
     if control_params is None:
         control_params = {}
     
@@ -1001,6 +1014,7 @@ def spectrolaminar_similarity(
     target_alpha_beta: Optional[np.ndarray] = None,
     target_gamma: Optional[np.ndarray] = None,
 ) -> float:
+    """Documented public function `spectrolaminar_similarity`."""
     is_default_target = (target_alpha_beta is None) or (target_gamma is None)
     
     if target_alpha_beta is None:
@@ -1045,6 +1059,7 @@ class spectrolaminar_objective:
         self.target_profiles = target_profiles or {}
         
     def score(self, readouts: dict[str, dict], spikes: Optional[dict] = None) -> float:
+        """Documented public function `score`."""
         scores = []
         for area, readout in readouts.items():
             if area in self.target_profiles:

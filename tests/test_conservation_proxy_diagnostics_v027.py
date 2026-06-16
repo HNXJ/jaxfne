@@ -184,20 +184,20 @@ class TestMissingArrays:
 class TestPhysicalAmplitudeClaim:
     def test_physical_amplitude_claim_false_no_arrays(self):
         d = compute_conservation_proxy_diagnostics()
-        assert d["physical_amplitude_claim_allowed"] is False
+        assert d["physical_amplitude_calibrated"] is False
 
     def test_physical_amplitude_claim_false_with_arrays(self, rng_arrays):
         src, phi, csd, lfp = rng_arrays
         d = compute_conservation_proxy_diagnostics(
             source=src, phi_e=phi, csd=csd, lfp=lfp
         )
-        assert d["physical_amplitude_claim_allowed"] is False
+        assert d["physical_amplitude_calibrated"] is False
 
     def test_cannot_override_physical_claim(self, rng_arrays):
-        """No path to set physical_amplitude_claim_allowed=True exists."""
+        """No path to set physical_amplitude_calibrated=True exists."""
         src, _, _, _ = rng_arrays
         d = compute_conservation_proxy_diagnostics(source=src)
-        assert d["physical_amplitude_claim_allowed"] is False
+        assert d["physical_amplitude_calibrated"] is False
 
 
 # ─── Test 6: Biological metabolism claim always False ────────────────────────
@@ -326,7 +326,7 @@ class TestManifestIntegration:
     def test_manifest_cpd_has_required_keys(self, built_manifest):
         cpd = built_manifest["conservation_proxy_diagnostics"]
         required = [
-            "diagnostic_status", "physical_amplitude_claim_allowed",
+            "diagnostic_status", "physical_amplitude_calibrated",
             "biological_metabolism_claim_allowed",
             "source_norm_l1", "phi_gradient_proxy_norm2",
             "poisson_solver_status", "maxwell_solver_status",
@@ -336,7 +336,7 @@ class TestManifestIntegration:
             assert key in cpd, f"Missing key: {key}"
 
     def test_manifest_cpd_physical_claim_false(self, built_manifest):
-        assert built_manifest["conservation_proxy_diagnostics"]["physical_amplitude_claim_allowed"] is False
+        assert built_manifest["conservation_proxy_diagnostics"]["physical_amplitude_calibrated"] is False
 
 
 # ─── Test 13: full manifest remains JSON-safe ────────────────────────────────

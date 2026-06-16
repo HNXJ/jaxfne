@@ -236,7 +236,7 @@ for layer, indices in layer_indices.items():
 2. Apply fixed Gaussian kernel: $Y(t) = S @ K^T$ [T, C]
 3. Optionally compute spatial derivatives (for CSD)
 
-This is **fast** (no solver loop) but **approximate** (not validated against real data).
+This is **fast** (no solver loop) but **approximate** (proxy-scoped for tutorial data).
 
 ---
 
@@ -309,16 +309,16 @@ if not metadata["amplitude_status"]:
     # ✓ "The kernel width of 0.10 produces smoother estimates than 0.05"
 ```
 
-### v0.3.8 Limitations
+### v0.3.8 Scope
 
 - No biophysical compartments (soma, dendrite, axon)
 - No temperature sensitivity, frequency-dependent effects
 - No subject-specific anatomy
 - No experimental validation
-- Kernels are fixed defaults (not tunable in v0.3.8; planned for v0.3.9)
+- Kernels are fixed defaults (not tunable in v0.3.8; reserved for v0.3.9)
 - Amplitudes are uncalibrated (proxy-scale only)
 
-### Future Work (v0.3.9+)
+### Reserved Work (v0.3.9+)
 
 - Custom convolution kernels via `.field_kernel()` method
 - PDE-based field solvers (optional)

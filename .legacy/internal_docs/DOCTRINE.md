@@ -88,7 +88,6 @@ Configuration includes these immutable metadata fields (defaults):
 
 | Gate | Default | Purpose |
 |------|---------|---------|
-| truth_mode | "truth_safe_unverified" | Scientific claim boundary |
 | claim_level | "computational_scaffold" | Implementation status |
 | source_calibration_status | "uncalibrated_izhikevich_native_current" | Source units warning |
 | source_projection_mode | "proxy_no_field_solve" | Declares laminar proxy solver |
@@ -96,7 +95,7 @@ Configuration includes these immutable metadata fields (defaults):
 | boundary_condition | "mean_zero_neumann" | Field boundary (declared, not enforced in v0.0.3) |
 | gauge | "mean_zero" | Field gauge (declared, not enforced in v0.0.3) |
 | csd_sign_convention | "proxy_positive_equals_extracellular_source_like" | CSD interpretation |
-| field_solver_status | "laminar_proxy_no_pde" | Solver type (proxy, not PDE) |
+| field_solver_status | "linear_solver" | Solver type (proxy, not PDE) |
 | manifest_schema_version | "0.0.3" | Manifest format version |
 | operator_status | {...} | Status of TFNE operators (E, S, C, Q, F, P, A, O, C) |
 
@@ -104,7 +103,7 @@ All gates propagate to manifest.json for downstream audit and validation.
 
 **source_field_status** (new in v0.0.3) added to manifest when signals are present:
 - field_claim_level: "laminar_proxy_uncalibrated" or "laminar_proxy_calibrated"
-- physical_amplitude_claim_allowed: false (until calibration/validation complete)
+- physical_amplitude_calibrated: false (until calibration/validation complete)
 - is_proxy: boolean flag indicating proxy vs. full PDE solver
 - is_calibrated: boolean flag for source calibration status
 - warnings: list of issues (non_finite_phi_e, non_finite_J_e, non_finite_CSD, etc.)

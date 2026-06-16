@@ -104,13 +104,13 @@ class TestSourceDataArtifacts:
             "units_or_status": "binary_spike_event_proxy",
             "operator_kind": "spk",
             "claim_level": "computational_scaffold",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
         # Verify required fields
         assert source_data["source_data_kind"] == "spike_events"
         assert source_data["claim_level"] == "computational_scaffold"
-        assert source_data["physical_amplitude_claim_allowed"] is False
+        assert source_data["physical_amplitude_calibrated"] is False
         assert isinstance(source_data["time_ms"], list)
         assert isinstance(source_data["unit_id"], list)
 
@@ -126,13 +126,13 @@ class TestSourceDataArtifacts:
             "units_or_status": "relative_proxy_units",
             "operator_kind": "spectrolaminar_profile",
             "claim_level": "computational_scaffold",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
         # Verify required fields
         assert source_data["source_data_kind"] == "spectrolaminar_profile"
         assert source_data["claim_level"] == "computational_scaffold"
-        assert source_data["physical_amplitude_claim_allowed"] is False
+        assert source_data["physical_amplitude_calibrated"] is False
         assert len(source_data["layers_or_depths"]) == len(source_data["alpha_beta_profile"])
         assert len(source_data["alpha_beta_profile"]) == len(source_data["gamma_profile"])
 
@@ -141,7 +141,7 @@ class TestSourceDataArtifacts:
         source_data = {
             "value": 1.5,
             "claim_level": "computational_scaffold",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
         # Should not raise with allow_nan=False
@@ -206,9 +206,9 @@ class TestClaimGates:
     """Claim gates remain frozen in all interactive artifacts."""
 
     def test_physical_amplitude_claim_always_false(self):
-        """physical_amplitude_claim_allowed is always False."""
-        source_data = {"physical_amplitude_claim_allowed": False}
-        assert source_data["physical_amplitude_claim_allowed"] is False
+        """physical_amplitude_calibrated is always False."""
+        source_data = {"physical_amplitude_calibrated": False}
+        assert source_data["physical_amplitude_calibrated"] is False
 
     def test_claim_level_always_computational_scaffold(self):
         """claim_level is always computational_scaffold."""

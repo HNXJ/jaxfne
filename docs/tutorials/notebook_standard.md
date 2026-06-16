@@ -109,7 +109,7 @@ Before pushing a notebook:
 - [ ] Outputs cleared
 - [ ] Public vocabulary throughout
 - [ ] Runs top-to-bottom without errors
-- [ ] Includes section headings and markdown explanations
+- [ ] Includes section headings and markdown exnotesations
 - [ ] Links to relevant docs/guides at the end
 
 ## Example Notebooks

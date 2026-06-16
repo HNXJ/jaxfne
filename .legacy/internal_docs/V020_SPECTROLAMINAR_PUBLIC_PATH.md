@@ -20,7 +20,7 @@ This example demonstrates a minimal computational scaffold for peri-event spectr
   - Regularizer: synchrony with bin/window parameters
   - Gate: synchrony threshold check
 - **JSON manifest** with complete model/field metadata
-- **Truth gates frozen** throughout (computational_scaffold status, proxy_readout_only field claim, etc.)
+- **Truth gates frozen** throughout (computational_scaffold status, proxy_readout field claim, etc.)
 
 ## How to Run
 
@@ -46,12 +46,11 @@ All outputs use the **manifest-first** architecture: clean JSON evidence over vi
 
 All outputs preserve the v0.2.0 scientific status:
 
-- **truth_mode:** truth_safe_unverified
 - **claim_level:** computational_scaffold
 - **source_calibration_status:** uncalibrated_izhikevich_native_current
-- **field_solver_status:** laminar_proxy_no_pde (no PDE solution)
-- **field_claim_level:** proxy_readout_only (forward-field model only)
-- **physical_amplitude_claim_allowed:** False
+- **field_solver_status:** linear_solver (no PDE solution)
+- **field_claim_level:** proxy_readout (forward-field model only)
+- **physical_amplitude_calibrated:** False
 
 This is a computational scaffold, not a neurophysiological model or biological validation.
 

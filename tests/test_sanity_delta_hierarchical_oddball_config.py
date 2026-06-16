@@ -24,10 +24,9 @@ class TestSanityDeltaConfigFactory:
         """Test that truth gates are set correctly."""
         cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
 
-        assert cfg.truth_mode == "truth_safe_unverified"
         assert cfg.claim_level == "computational_scaffold"
-        assert cfg.field_solver_status == "laminar_proxy_no_pde"
-        assert cfg.physical_amplitude_claim_allowed is False
+        assert cfg.field_solver_status == "linear_solver"
+        assert cfg.physical_amplitude_calibrated is False
         assert cfg.biological_learning_claim is False
 
     def test_stimulus_map_structure(self):

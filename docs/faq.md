@@ -32,7 +32,7 @@ A: Eight operators: SPK (spikes), Vm (voltage), source, LFP-proxy, CSD-proxy, EE
 
 **Q: How do I calibrate outputs to physical units?**
 
-A: Default readouts are computational proxies. Calibration requires empirical data, geometry specifications, and solver validation. See [Calibration](calibration.md) for the calibration-ready design and future roadmap.
+A: Default readouts are computational proxies. Calibration requires empirical data, geometry specifications, and solver validation. See [Calibration](calibration.md) for the calibration-ready design, and [Limitations and future plans](limitations_and_future_plans.md) for the declared field regimes.
 
 **Q: What metadata does jaxfne attach to outputs?**
 

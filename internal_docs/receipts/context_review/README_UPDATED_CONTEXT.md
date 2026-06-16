@@ -1,6 +1,6 @@
 # Updated jaxfne Context Files Bundle
 
-This bundle replaces the active Gemini/Claude context files with a smaller, more invokable set.
+This bundle replaces the active notebook/Claude context files with a smaller, more invokable set.
 
 ## Main changes
 
@@ -8,7 +8,7 @@ This bundle replaces the active Gemini/Claude context files with a smaller, more
 - Canonicalized `Config`, `Net`, and `FlatNet` names.
 - Kept `Configuration`, `Model`, and `FlatModel` as migration aliases.
 - Replaced passive six-skill set with three high-trigger super-skills.
-- Added Gemini-specific context file.
+- Added notebook-specific context file.
 - Added schema/version/JIT/release safeguards.
 - Preserved truth/status gates.
 
