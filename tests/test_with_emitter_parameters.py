@@ -1,6 +1,5 @@
 """Tests for jtfne.with_emitter_parameters and Model.with_emitter_parameters.
 
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 """
 
@@ -105,18 +104,12 @@ class TestWithEmitterParametersClaimGatesPreserved:
     def test_physical_amplitude_claim_remains_false(self):
         base = _base_model()
         result = jtfne.with_emitter_parameters(base, a=0.05, drive_scale=1.2)
-        assert result.summary()["physical_amplitude_claim_allowed"] is False
+        assert result.summary()["physical_amplitude_calibrated"] is False
 
     def test_claim_level_unchanged(self):
         base = _base_model()
         result = jtfne.with_emitter_parameters(base, c=-70.0)
         assert result.summary()["claim_level"] == "computational_scaffold"
-
-    def test_truth_mode_unchanged(self):
-        base = _base_model()
-        result = jtfne.with_emitter_parameters(base, d=12.0)
-        assert result.summary()["truth_mode"] == "truth_safe_unverified"
-
 
 class TestWithEmitterParametersSimulates:
     """Model modified via with_emitter_parameters produces valid simulations."""

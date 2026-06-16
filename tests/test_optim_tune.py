@@ -200,10 +200,9 @@ def test_tuning_report_preserves_truth_gates():
     model = _model()
     _, report = model.tune(jtfne.objective(), optimizer="GSDR")
 
-    assert report["truth_mode"] == "truth_safe_unverified"
     assert report["claim_level"] == "computational_scaffold"
-    assert report["field_claim_level"] == "proxy_readout_only"
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["field_claim_level"] == "proxy_readout"
+    assert report["physical_amplitude_calibrated"] is False
 
 
 def test_no_gradient_claim_for_spiking_reset_without_surrogate():
@@ -219,7 +218,7 @@ def test_no_gradient_claim_for_spiking_reset_without_surrogate():
     assert report["tuning_status"] == "blocked_non_differentiable_path"
     assert report["acceptance_decision"] == "REVISE"
     # No gradient or optimization claim in report
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["physical_amplitude_calibrated"] is False
     warnings_str = " ".join(report.get("warnings", []))
     assert "spiking_reset_not_differentiable_without_surrogate" in warnings_str
 

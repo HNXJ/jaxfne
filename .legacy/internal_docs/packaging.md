@@ -4,7 +4,6 @@
 
 **Version:** v0.3.4  
 **Last updated:** 2026-05-26  
-**truth_mode:** truth_safe_unverified
 
 ---
 

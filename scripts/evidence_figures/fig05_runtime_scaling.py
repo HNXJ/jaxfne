@@ -281,7 +281,7 @@ def draw_figure(rows: list[dict], hw: dict) -> None:
         f"python: {hw['python_version']}  jax: {hw['jax_version']}  backend: {hw['default_backend']}",
         f"grid: N={list(N_NEURONS_GRID)} contacts={list(N_CONTACTS_GRID)} seeds={list(SEEDS_GRID)}",
         f"duration_ms={DURATION_MS} dt_ms={DT_MS} runs={len(rows)}",
-        "physical_amplitude_claim_allowed: false  |  performance_claims_allowed: false",
+        "physical_amplitude_calibrated: false  |  performance_claims_allowed: false",
     ]
     fig.text(
         0.02,

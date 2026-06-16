@@ -167,7 +167,7 @@ def draw_figure() -> None:
         "probe_status recorded",
         "boundary / gauge required for stronger status",
         "residual / convergence required for solver status",
-        "physical_amplitude_claim_allowed: false (default)",
+        "physical_amplitude_calibrated: false (default)",
     ]
     for i, line in enumerate(panel_e_lines):
         weight = "bold" if "physical_amplitude" in line else "normal"
@@ -188,7 +188,7 @@ def draw_figure() -> None:
     ax.text(
         0.6,
         0.52,
-        "truth_mode: truth_safe_unverified  |  field_solver_status: laminar_proxy_no_pde",
+        "field_solver_status: linear_solver",
         fontsize=7,
         va="top",
         family="monospace",

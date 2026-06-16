@@ -4,7 +4,6 @@
 
 **Version:** v0.2.30  
 **Last updated:** 2026-05-23  
-**truth_mode:** truth_safe_unverified
 
 ---
 
@@ -111,7 +110,7 @@ manifest = model.manifest(signals)
 
 **Hardcoded in v0.2.27 and v0.3+:**
 ```python
-physical_amplitude_claim_allowed: False
+physical_amplitude_calibrated: False
 biological_metabolism_claim_allowed: False
 ```
 
@@ -146,7 +145,7 @@ biological_metabolism_claim_allowed: False
 **What does NOT change:**
 - Izhikevich emitter (still phenomenological)
 - Probe operators (still multimodal)
-- Claim gates (still computational_scaffold, physical_amplitude_claim_allowed=False)
+- Claim gates (still computational_scaffold, physical_amplitude_calibrated=False)
 
 ---
 

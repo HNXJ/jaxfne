@@ -141,7 +141,7 @@ Smoothed spike count (50-step window) across units and time. Population-level ac
 Text summary of all frozen status checks and status status:
 - `run_status`: tutorial_scaffold
 - `model_status`: computational_scaffold
-- `field_solver_status`: laminar_proxy_no_pde
+- `field_solver_status`: linear_solver
 - `amplitude_status`: False
 - `source_calibration_status`: uncalibrated_izhikevich_native_current
 - `metabolism_status`: False
@@ -203,7 +203,7 @@ Global manifest fields:
   "jaxfne_version": "0.2.27",
   "run_status": "tutorial_scaffold",
   "model_status": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
+  "field_solver_status": "linear_solver",
   "amplitude_status": false,
   "metabolism_status": false,
   "source_script": "scripts/generate_tutorial_figures.py",

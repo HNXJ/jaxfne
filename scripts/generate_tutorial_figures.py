@@ -470,7 +470,7 @@ def main():
         "jaxfne_version": jtfne.__version__,
         "run_status": manifest.get("run_status", "tutorial_scaffold"),
         "model_status": manifest.get("model_status", "computational_scaffold"),
-        "field_solver_status": manifest.get("field_solver_status", "laminar_proxy_no_pde"),
+        "field_solver_status": manifest.get("field_solver_status", "linear_solver"),
         "amplitude_status": manifest.get("amplitude_status", False),
         "metabolism_status": manifest.get("metabolism_status", False),
         "source_script": "scripts/generate_tutorial_figures.py",

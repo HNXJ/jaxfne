@@ -98,7 +98,7 @@ inter_conn = {'source': 'V1', 'target': 'V4', 'p_ff': 0.3, 'p_fb': 0.2}
 
 ### Domain 6: Field/Proxy
 ```python
-field = {'solver': 'laminar_proxy_no_pde', 'domain': 'laminar_column'}
+field = {'solver': 'linear_solver', 'domain': 'laminar_column'}
 ```
 
 ### Domain 7: Probes
@@ -137,10 +137,9 @@ optimizer = {'family': 'AGSDR', 'gen': 3, 'pop': 2, 'seed': SEED}
   "artifact_class": "etude",
   "artifact_id": "etude_no_1",
   "jaxfne_version": "0.3.14",
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
-  "physical_amplitude_claim_allowed": false,
+  "field_solver_status": "linear_solver",
+  "physical_amplitude_calibrated": false,
   "execution_mode": "full_etude",
   "seed": 20260530,
   "dtype": "float32",
@@ -173,7 +172,6 @@ optimizer = {'family': 'AGSDR', 'gen': 3, 'pop': 2, 'seed': SEED}
   "dtype_gate_passed": true,
   "code_cell_max_lines": 8,
   "consecutive_code_cells": 0,
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold"
 }
 ```
@@ -226,8 +224,8 @@ optimizer = {'family': 'AGSDR', 'gen': 3, 'pop': 2, 'seed': SEED}
 | metrics.json created | ✅ | Firing rates + kappa |
 | asset_hashes.json created | ✅ | SHA256 hashes |
 | spectrolaminar.png created | ✅ | 287 KB visualization |
-| Truth gates enforced | ✅ | truth_safe_unverified, computational_scaffold, laminar_proxy_no_pde |
-| Physical amplitude claims disabled | ✅ | physical_amplitude_claim_allowed: false |
+| Truth gates enforced | ✅ | computational_scaffold, linear_solver |
+| Physical amplitude claims disabled | ✅ | physical_amplitude_calibrated: false |
 | Final SHA recorded | ✅ | eab748601b5234d2bf5ac88068ec148eee4ba451 |
 | Public receipt at clear path | ✅ | This file |
 

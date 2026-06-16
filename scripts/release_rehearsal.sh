@@ -69,8 +69,7 @@ signals = model.simulate(jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0))
 readouts = model.compute_readout(signals, [jtfne.readout_spec("r", "spike_rate_hz")])
 manifest = model.manifest(signals, readouts)
 json.dumps(manifest, allow_nan=False)
-assert manifest["truth_mode"] == "truth_safe_unverified"
-assert manifest["physical_amplitude_claim_allowed"] is False
+assert manifest["physical_amplitude_calibrated"] is False
 print("wheel smoke: OK", jtfne.__version__)
 PY
 cd "$REPO_ROOT"

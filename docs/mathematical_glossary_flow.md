@@ -88,7 +88,7 @@ $P_s$ is the **Source → Field** bridge. It transforms time-domain neural curre
 **Run boundary:**
 
 - **Physical only** when `source_calibration_status` includes calibrated or empirical current evidence
-- **Proxy** in default laminar_proxy_no_pde path (no physical current units stated)
+- **Proxy** in default linear_solver path (no physical current units stated)
 - **Model current** (Izhikevich model current + spike impulse proxy) by default
 - **No double-counting** of synaptic current (forbidden pattern: using both synaptic conductance-based current and spike-based source in the same field computation)
 
@@ -125,9 +125,9 @@ $\sigma_e$ is the **Field → Current** bridge. It encodes how tissue converts e
 
 **Run boundary:**
 
-- **Proxy** in current v0.2.24–v0.2.27 laminar_proxy_no_pde path (assumed isotropic, no PDE solve)
+- **Proxy** in current v0.2.24–v0.2.27 linear_solver path (assumed isotropic, no PDE solve)
 - **Physical only** when:
-  - Field solver is active and verified (`field_solver_status != laminar_proxy_no_pde`)
+  - Field solver is active and verified (`field_solver_status != linear_solver`)
   - Conductivity is calibrated (`conductivity_status == calibrated_physical`)
   - Solution satisfies conservation constraints
 - **Isotropy assumed** in current proxy mode (conductivity is scalar)
@@ -163,13 +163,13 @@ $q$ is the **Source → Field** boundary condition. It ensures the field solutio
 
 **Run boundary:**
 
-- **Current default**: `laminar_proxy_no_pde` — equation is declared but NOT solved
+- **Current default**: `linear_solver` — equation is declared but NOT solved
 - **Reserved path**: `specified_future_solver` for a calibrated field solver (see [Limitations and future plans](limitations_and_future_plans.md))
 - **Not a physical status** unless solver evidence exists
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — declares but doesn't solve
-- Manifest: `field_solver_status == "laminar_proxy_no_pde"` means this equation is metadata only
+- Manifest: `field_solver_status == "linear_solver"` means this equation is metadata only
 
 ---
 
@@ -204,7 +204,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — computes CSD proxy directly
-- Manifest: `csd_sign_convention`, `field_model_status == "proxy_readout_only"`
+- Manifest: `csd_sign_convention`, `field_model_status == "proxy_readout"`
 
 ---
 

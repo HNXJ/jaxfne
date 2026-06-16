@@ -142,7 +142,7 @@ $$\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_n(t)]$$
 The shipped field regime is the laminar proxy:
 
 ```
-Field solver status: laminar_proxy_no_pde
+Field solver status: linear_solver
 Regime: proxy readout (no PDE solve)
 Equation: CSD_proxy = nabla . q  (kernel convolution)
 Conductivity: scalar proxy (uncalibrated)
@@ -156,8 +156,8 @@ Boundary / gauge: metadata fields
 
 The field potential $\phi_e$ and current density $\mathbf{J}_e$ are represented by
 proxy operators rather than a volume-conductor solve, consistent with
-`field_solver_status = "laminar_proxy_no_pde"` and
-`physical_amplitude_claim_allowed = False`. Reserved field regimes
+`field_solver_status = "linear_solver"` and
+`physical_amplitude_calibrated = False`. Reserved field regimes
 (conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
 [Limitations and future plans](limitations_and_future_plans.md).
 
@@ -207,7 +207,7 @@ run_status: tutorial_scaffold
 model_status: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
-field_solver_status: laminar_proxy_no_pde (even for 3D, still proxy in v0.2.24)
+field_solver_status: linear_solver (even for 3D, still proxy in v0.2.24)
 Validation required: None yet; this is exploratory setup
 ```
 

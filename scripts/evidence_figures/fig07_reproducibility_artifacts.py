@@ -146,7 +146,7 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
         "main_figures_total": inventory["summary"]["main_figures_total"],
         "figure_rows": figure_rows,
         "fixed_tag_sha_required": True,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     }
 
 
@@ -273,7 +273,7 @@ def draw_figure(chain: dict) -> None:
     ax.text(
         0.55,
         0.42,
-        "physical_amplitude_claim_allowed: false  |  fixed_tag_sha_required: true",
+        "physical_amplitude_calibrated: false  |  fixed_tag_sha_required: true",
         fontsize=6.5,
         va="top",
         family="monospace",

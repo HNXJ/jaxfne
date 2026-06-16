@@ -210,9 +210,8 @@ def test_existing_metadata_preserved():
     cfg = jtfne.Configuration().connections(
         name="c1", source={"cell_type": "E"}, target={"cell_type": "E"}
     )
-    assert cfg.metadata["truth_mode"] == "truth_safe_unverified"
     assert cfg.metadata["claim_level"] == "computational_scaffold"
-    assert cfg.metadata["field_solver_status"] == "laminar_proxy_no_pde"
+    assert cfg.metadata["field_solver_status"] == "linear_solver"
 
 
 def test_immutability_chain_does_not_mutate_source():

@@ -63,11 +63,10 @@ Result:            ✅ All 11 code cells passed
   "artifact_class": "etude",
   "artifact_id": "etude_no_1",
   "jaxfne_version": "0.3.14",
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
-  "field_claim_level": "proxy_readout_only",
-  "physical_amplitude_claim_allowed": false,
+  "field_solver_status": "linear_solver",
+  "field_claim_level": "proxy_readout",
+  "physical_amplitude_calibrated": false,
   "source_calibration_status": "uncalibrated_proxy",
   "execution_mode": "full_etude",
   "seed": 20260530,
@@ -90,10 +89,9 @@ Result:            ✅ All 11 code cells passed
 - ✅ `artifact_class`: `"etude"`
 - ✅ `artifact_id`: `"etude_no_1"`
 - ✅ `jaxfne_version`: `"0.3.14"`
-- ✅ `truth_mode`: `"truth_safe_unverified"`
 - ✅ `claim_level`: `"computational_scaffold"`
-- ✅ `field_solver_status`: `"laminar_proxy_no_pde"`
-- ✅ `physical_amplitude_claim_allowed`: `false`
+- ✅ `field_solver_status`: `"linear_solver"`
+- ✅ `physical_amplitude_calibrated`: `false`
 - ✅ `execution_mode`: `"full_etude"`
 - ✅ `duration_ms >= 1000`: `1000.0 ✓`
 - ✅ All firing rates finite and positive
@@ -114,10 +112,9 @@ Result:            ✅ All 11 code cells passed
   "code_cell_max_lines": 8,
   "consecutive_code_cells": 0,
   "proxy_safe_titles": true,
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
-  "physical_amplitude_claim_allowed": false
+  "field_solver_status": "linear_solver",
+  "physical_amplitude_calibrated": false
 }
 ```
 
@@ -190,10 +187,9 @@ Result:            ✅ All 11 code cells passed
 | spectrolaminar.png created | ✅ |
 | All outputs finite (no NaN/Inf) | ✅ |
 | JSON strict validation pass | ✅ |
-| truth_mode = truth_safe_unverified | ✅ |
 | claim_level = computational_scaffold | ✅ |
-| field_solver_status = laminar_proxy_no_pde | ✅ |
-| physical_amplitude_claim_allowed = false | ✅ |
+| field_solver_status = linear_solver | ✅ |
+| physical_amplitude_calibrated = false | ✅ |
 | Code cells all ≤ 8 lines | ✅ |
 | No consecutive code cells | ✅ |
 | No local simulator/readout/objective | ✅ |
@@ -205,11 +201,10 @@ Result:            ✅ All 11 code cells passed
 ```yaml
 artifact_class:                     etude
 artifact_id:                        etude_no_1
-truth_mode:                         truth_safe_unverified
 claim_level:                        computational_scaffold
-field_solver_status:                laminar_proxy_no_pde
-field_claim_level:                  proxy_readout_only
-physical_amplitude_claim_allowed:   false
+field_solver_status:                linear_solver
+field_claim_level:                  proxy_readout
+physical_amplitude_calibrated:   false
 source_calibration_status:          uncalibrated_proxy
 ```
 

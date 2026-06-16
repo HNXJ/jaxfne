@@ -213,7 +213,6 @@ def test_source_metadata_json_safe():
         "source_decomposition": "spike_filter + oscillatory_resonance",
         "source_calibration_status": "uncalibrated_proxy",
         "physical_amplitude_allowed": False,
-        "truth_mode": "truth_safe_unverified",
     }
 
     # Should be JSON-serializable

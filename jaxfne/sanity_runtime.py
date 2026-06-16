@@ -278,7 +278,7 @@ def _make_probe_metrics(signals_dict: Dict[str, jnp.ndarray]) -> Dict[str, Any]:
     finites = {k: bool(jnp.all(jnp.isfinite(v))) for k, v in signals_dict.items()}
     return {
         "proxy_safe_names": proxy_safe,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "readouts_present": list(signals_dict.keys()),
         "shape_by_readout": shapes,
         "finite_by_readout": finites,

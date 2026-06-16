@@ -1,7 +1,6 @@
 # v0.3 Tutorial Docs Audit Policy
 
 **Status:** v0.3.0 scaffold infrastructure  
-**truth_mode:** truth_safe_unverified
 
 ---
 
@@ -103,10 +102,9 @@ Claim gates must be stated explicitly in the tutorial:
 
 This tutorial operates under these immutable constraints:
 
-- **truth_mode:** `truth_safe_unverified`
 - **claim_level:** `computational_scaffold`
-- **physical_amplitude_claim_allowed:** `False`
-- **field_solver_status:** `laminar_proxy_no_pde`
+- **physical_amplitude_calibrated:** `False`
+- **field_solver_status:** `linear_solver`
 - **biological_metabolism_claim_allowed:** `False`
 ```
 
@@ -259,4 +257,3 @@ If converting existing jaxfne tutorials to v0.3 format:
 ---
 
 **Status:** v0.3.0 scaffold  
-**truth_mode:** truth_safe_unverified

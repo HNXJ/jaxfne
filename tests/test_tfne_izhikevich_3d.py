@@ -74,14 +74,13 @@ def test_tfne_izhikevich_3d_integration():
     manifest_data = {
         "run_id": "test_tfne_izhikevich_3d_integration",
         "jaxfne_version": jtfne.__version__,
-        "truth_mode": "truth_safe_unverified",
         "seed": 42,
         "n_steps": n_steps,
         "n_neurons": n_neurons,
         "dt_ms": dt_ms,
         "source_bookkeeping": report,
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False
     }
     
     # Strict JSON parsing

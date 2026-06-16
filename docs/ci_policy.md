@@ -92,7 +92,7 @@ All outputs maintain strict validation gates:
 run_status: tutorial_scaffold
 computational_scaffold: true
 amplitude_status: false
-field_solver_status: laminar_proxy_no_pde (or not_computed)
+field_solver_status: linear_solver (or not_computed)
 ```
 
 These gates are enforced in validation scripts and cannot be escalated without explicit approval and corresponding evidence.

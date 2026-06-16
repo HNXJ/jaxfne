@@ -87,10 +87,9 @@ FIELD_LAMINAR_SPECS = [
 ]
 
 TRUTH_GATES = {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "field_solver_status": "linear_solver",
+    "physical_amplitude_calibrated": False,
     "biological_learning_claim": False,
     "mechanism_claim_status": "not_claimed",
 }
@@ -238,7 +237,7 @@ def _figure_page(pdf, fig_path: Path, caption: str):
     ax.axis("off")
     ax.set_title(caption, fontsize=13, fontweight="bold")
     fig.text(0.5, 0.03,
-             "computational_scaffold / proxy_readout_only / no physical amplitude claim",
+             "computational_scaffold / proxy_readout / no physical amplitude claim",
              ha="center", fontsize=8, style="italic", color="#555555")
     pdf.savefig(fig)
     plt.close(fig)
@@ -283,14 +282,14 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
 
         # 2. Scope / status
         scope_lines = ["## Scope / Truth Status"]
-        for k in ("truth_mode", "claim_level", "field_solver_status",
-                  "physical_amplitude_claim_allowed", "biological_learning_claim",
+        for k in ("claim_level", "field_solver_status",
+                  "physical_amplitude_calibrated", "biological_learning_claim",
                   "mechanism_claim_status"):
             scope_lines.append(f"{k}: {TRUTH_GATES[k]}")
         scope_lines += [
             "",
             "Neural readouts are proxies only: EEG-proxy, MEG-proxy, LFP-proxy,",
-            "CSD-proxy, spectrolaminar-proxy. Field status is laminar_proxy_no_pde",
+            "CSD-proxy, spectrolaminar-proxy. Field status is linear_solver",
             "(a proxy readout, not a PDE field solution); amplitudes are uncalibrated",
             "Izhikevich native units; no mechanism or plasticity claim is made.",
         ]
@@ -430,7 +429,7 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
 
         d = pdf.infodict()
         d["Title"] = "jaxfne v0.3.31 Delta-Test 01 Report"
-        d["Subject"] = "computational_scaffold / proxy_readout_only"
+        d["Subject"] = "computational_scaffold / proxy_readout"
         d["Creator"] = "scripts/make_delta_test_01_report.py"
 
     MD_PATH.write_text("\n".join(md_lines) + "\n")
@@ -574,10 +573,9 @@ def build_manifest(data: dict, figure_records: list[dict], spectrolaminar_audit:
             }
             for rec in figure_records
         ],
-        "truth_mode": TRUTH_GATES["truth_mode"],
         "claim_level": TRUTH_GATES["claim_level"],
         "field_solver_status": TRUTH_GATES["field_solver_status"],
-        "physical_amplitude_claim_allowed": TRUTH_GATES["physical_amplitude_claim_allowed"],
+        "physical_amplitude_calibrated": TRUTH_GATES["physical_amplitude_calibrated"],
         "biological_learning_claim": TRUTH_GATES["biological_learning_claim"],
         "mechanism_claim_status": TRUTH_GATES["mechanism_claim_status"],
         "strict_json_pass": bool(data["strict_json_pass"]),

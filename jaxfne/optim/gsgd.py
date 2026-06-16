@@ -1,6 +1,6 @@
 """Generalized Stochastic Gradient Descent (GSGD) optimization kernel for jaxfne.optim.
 
-Evaluated as an uncalibrated computational scaffold matching truth_safe_unverified boundaries.
+Evaluated as an uncalibrated computational scaffold.
 Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=False).
 """
 from __future__ import annotations

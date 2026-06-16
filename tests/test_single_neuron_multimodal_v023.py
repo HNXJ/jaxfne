@@ -111,7 +111,7 @@ def test_all_eight_readouts_present():
 
 
 def test_physical_amplitude_claim_false():
-    """Test that proxy operators have physical_amplitude_claim_allowed=false."""
+    """Test that proxy operators have physical_amplitude_calibrated=false."""
     output_dir = pathlib.Path("outputs/v023_single_neuron_multimodal")
 
     with open(output_dir / "probe_report.json") as f:
@@ -128,8 +128,8 @@ def test_physical_amplitude_claim_false():
     for op_name in proxy_operators:
         if op_name in probe_report:
             report = probe_report[op_name]
-            claim_allowed = report.get("physical_amplitude_claim_allowed")
-            assert claim_allowed is False, f"{op_name}: physical_amplitude_claim_allowed should be False, got {claim_allowed}"
+            claim_allowed = report.get("physical_amplitude_calibrated")
+            assert claim_allowed is False, f"{op_name}: physical_amplitude_calibrated should be False, got {claim_allowed}"
 
 
 def test_csd_sign_convention_present():
@@ -193,10 +193,10 @@ def test_validation_metadata_frozen():
         validation = json.load(f)
 
     expected_fields = {
-        "field_claim_level": "proxy_readout_only",
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_claim_level": "proxy_readout",
+        "field_solver_status": "linear_solver",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     }
 
     for key, expected_value in expected_fields.items():
@@ -263,7 +263,7 @@ def test_probe_report_structure():
         "units_or_status",
         "method",
         "assumptions",
-        "physical_amplitude_claim_allowed",
+        "physical_amplitude_calibrated",
     ]
 
     for op_name, report in probe_report.items():

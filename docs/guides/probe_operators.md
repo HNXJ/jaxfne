@@ -73,7 +73,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `kind: lfp_proxy`
 - `method: point_or_finite_contact_phi_proxy`
 - `units_or_status: proxy_voltage_units_or_V_if_calibrated`
-- `field_solver_status: laminar_proxy_no_pde`
+- `field_solver_status: linear_solver`
 - `amplitude_status: false`
 
 **Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.

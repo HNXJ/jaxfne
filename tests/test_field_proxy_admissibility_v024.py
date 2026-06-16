@@ -87,7 +87,7 @@ class TestFieldProxyAdmissibilityV024:
         field = project_laminar_sources(sources, positions, n_contacts=16)
         diag = field.diagnostics
 
-        assert diag["physical_amplitude_claim_allowed"] is False
+        assert diag["physical_amplitude_calibrated"] is False
 
     def test_source_field_status_validation_report(self, minimal_setup):
         """Test that validate_source_field_status produces correct report."""
@@ -100,21 +100,21 @@ class TestFieldProxyAdmissibilityV024:
         )
 
         # Check key status fields
-        assert status["field_solver_status"] == "laminar_proxy_no_pde"
+        assert status["field_solver_status"] == "linear_solver"
         assert status["source_projection_mode"] == "proxy_no_field_solve"
         assert status["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-        assert status["physical_amplitude_claim_allowed"] is False
+        assert status["physical_amplitude_calibrated"] is False
         assert status["is_proxy"] is True
         assert status["is_calibrated"] is False
         assert status["validation_status"] == "proxy_status_report_only"
 
     def test_field_claim_level_proxy_only(self, minimal_setup):
-        """Test that field claim level is proxy_readout_only."""
+        """Test that field claim level is proxy_readout."""
         sources, positions = minimal_setup
         field = project_laminar_sources(sources, positions, n_contacts=16)
         diag = field.diagnostics
 
-        assert diag["field_claim_level"] == "proxy_readout_only"
+        assert diag["field_claim_level"] == "proxy_readout"
 
     def test_kernel_normalization_definition_explicit(self, minimal_setup):
         """Test that kernel normalization definition is explicit."""

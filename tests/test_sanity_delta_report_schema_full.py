@@ -49,7 +49,7 @@ def test_reports_strict_json_schema():
         assert pr_path.exists()
         pr_data = json.loads(pr_path.read_text())
         assert pr_data["proxy_safe_names"] is True
-        assert pr_data["physical_amplitude_claim_allowed"] is False
+        assert pr_data["physical_amplitude_calibrated"] is False
         assert "readouts_present" in pr_data
         assert "shape_by_readout" in pr_data
         assert "finite_by_readout" in pr_data

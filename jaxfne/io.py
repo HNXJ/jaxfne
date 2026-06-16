@@ -86,7 +86,6 @@ def manifest(
     data: dict[str, Any] = {
         "package": "jaxfne",
         "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.16"),
-        "truth_mode": cfg_metadata.get("truth_mode", "truth_safe_unverified"),
         "claim_level": cfg_metadata.get("claim_level", "computational_scaffold"),
         "source_calibration_status": cfg_metadata.get(
             "source_calibration_status", "uncalibrated_izhikevich_native_current"
@@ -98,9 +97,9 @@ def manifest(
         "csd_sign_convention": cfg_metadata.get(
             "csd_sign_convention", "positive_equals_extracellular_source"
         ),
-        "field_solver_status": cfg_metadata.get("field_solver_status", "laminar_proxy_no_pde"),
-        "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout_only"),
-        "physical_amplitude_claim_allowed": cfg_metadata.get("physical_amplitude_claim_allowed", False),
+        "field_solver_status": cfg_metadata.get("field_solver_status", "linear_solver"),
+        "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout"),
+        "physical_amplitude_calibrated": cfg_metadata.get("physical_amplitude_calibrated", False),
         "operator_status": cfg_metadata.get("operator_status", {}),
         "config_hash": config_hash(cfg),
     }
@@ -133,8 +132,8 @@ def manifest(
             "optimizer_claim_level": "metadata_only",
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
         }
     if paradigm is not None:
         data["paradigm"] = paradigm
@@ -150,7 +149,7 @@ def manifest(
             "dataset_status": "schema_only_no_data_loaded",
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
     return json_safe(data)
 

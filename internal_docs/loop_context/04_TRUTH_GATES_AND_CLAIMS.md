@@ -1,6 +1,6 @@
 # 04_TRUTH_GATES_AND_CLAIMS
 
-Default status gates: `truth_safe_unverified`, `computational_scaffold`, `laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=False`. Technical report context states physical amplitude/sensor-level/mechanism claims require calibration, geometry, solver evidence, null tests, and empirical comparison (`2026_jtfne_arxiv.txt:L89`).
+Default status gates: ``, `computational_scaffold`, `linear_solver`, and `physical_amplitude_calibrated=False`. Technical report context states physical amplitude/sensor-level/mechanism claims require calibration, geometry, solver evidence, null tests, and empirical comparison (`2026_jtfne_arxiv.txt:L89`).
 
 ## Gate/readout evidence from ZIP grep
 

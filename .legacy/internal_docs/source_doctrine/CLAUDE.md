@@ -17,11 +17,10 @@ Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
 ## Required posture
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 Stronger status needs run-specific geometry, units, calibration, boundary, gauge, solver, convergence, residual, and validation evidence.

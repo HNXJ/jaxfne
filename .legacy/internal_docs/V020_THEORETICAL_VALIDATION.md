@@ -40,13 +40,12 @@ Each layer has explicit acceptance gates documented here.
 ## Truth Position (Frozen at v0.2.0)
 
 ```
-truth_mode:                          truth_safe_unverified
 claim_level:                         computational_scaffold | theoretical_validation_candidate
 source_calibration_status:           uncalibrated_izhikevich_native_current
 source_projection_mode:              proxy_no_field_solve
-field_solver_status:                 laminar_proxy_no_pde
-field_claim_level:                   proxy_readout_only
-physical_amplitude_claim_allowed:    false
+field_solver_status:                 linear_solver
+field_claim_level:                   proxy_readout
+physical_amplitude_calibrated:    false
 empirical_validation_status:         not_empirically_validated
 mechanism_claim_status:              not_claimed
 theoretical_validation_status:       admissibility_gates_pass (if v0.2.0 completion)
@@ -134,7 +133,7 @@ signals.metadata["source_bookkeeping"] = {
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "synaptic_current_counting": "single_proxy_expression_no_extra_synaptic_source",
     "source_mode_exclusive": True,  # Exactly one mode in this run
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
     "double_count_guard": "rejected" | "passed",
     "double_count_evidence": None | {error details}
 }
@@ -173,8 +172,8 @@ manifest["source_bookkeeping"] = signals.metadata["source_bookkeeping"]
 
 ### Proxy-Only Metadata
 
-- **field_claim_level:** "proxy_readout_only" unless full PDE validated.
-- **field_solver_status:** "laminar_proxy_no_pde" for laminar proxy path.
+- **field_claim_level:** "proxy_readout" unless full PDE validated.
+- **field_solver_status:** "linear_solver" for laminar proxy path.
 - **CSD/LFP amplitude:** No physical unit claim without calibration.
 
 ---
@@ -359,7 +358,7 @@ This document is an architectural contract for v0.2.0. It makes no empirical or 
 4. Demonstrate replication across conditions
 5. Pass peer review
 
-Until then, all outputs remain computational scaffolds under `truth_safe_unverified / computational_scaffold`.
+Until then, all outputs remain computational scaffolds under ` / computational_scaffold`.
 
 ---
 

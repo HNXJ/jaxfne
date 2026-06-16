@@ -101,10 +101,9 @@ noise_amplitude_by_cell_type = baseline_drive_by_cell_type
 
 ## Truth Status
 
-- **truth_mode**: truth_safe_unverified
 - **claim_level**: computational_scaffold
 - **scope**: Baseline neural excitability, not biological calibration
-- **physical_amplitude_claim_allowed**: False
+- **physical_amplitude_calibrated**: False
 
 These are Izhikevich native units (not calibrated to biological pA or nA). They are a computational proxy for relative excitability differences between cell types.
 

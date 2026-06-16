@@ -128,10 +128,10 @@ def _json_strict_ok(path: Path | None) -> bool | None:
 def _truth_gates_preserved(manifest_data: dict | None) -> bool | None:
     if manifest_data is None:
         return None
-    if manifest_data.get("physical_amplitude_claim_allowed") is True:
+    if manifest_data.get("physical_amplitude_calibrated") is True:
         return False
     gates = manifest_data.get("truth_gates")
-    if isinstance(gates, dict) and gates.get("physical_amplitude_claim_allowed") is True:
+    if isinstance(gates, dict) and gates.get("physical_amplitude_calibrated") is True:
         return False
     return True
 
@@ -507,7 +507,7 @@ def draw_figure(rows: list[dict], summary: dict, runtime: dict) -> None:
     ax.text(
         0.4,
         0.45,
-        f"repo_sha={runtime['repo_sha'][:12]}  physical_amplitude_claim_allowed: false",
+        f"repo_sha={runtime['repo_sha'][:12]}  physical_amplitude_calibrated: false",
         fontsize=6.5,
         va="top",
         family="monospace",
@@ -579,7 +579,7 @@ def main() -> int:
         "local_artifact_integrity_receipt_only": True,
         "archive_completeness_claim_allowed": False,
         "release_immutability_claim_allowed": False,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "truth_gates_preserved": True,
         "summary": summary,
         "rows": rows,
@@ -627,7 +627,7 @@ def main() -> int:
             "local_artifact_integrity_receipt_only": True,
             "archive_completeness_claim_allowed": False,
             "release_immutability_claim_allowed": False,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "truth_gates_preserved": True,
             "audit_summary": summary,
             "audit_rows": rows,

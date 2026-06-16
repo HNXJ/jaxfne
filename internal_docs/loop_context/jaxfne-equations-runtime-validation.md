@@ -42,9 +42,9 @@ CSD = div(J_e)
 Current tutorials keep:
 
 ```yaml
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 ## JAX runtime discipline
@@ -77,7 +77,6 @@ best_score: number_or_null
 best_parameters: object_or_null
 rejection_reasons: list
 finite_outputs: bool
-truth_mode: truth_safe_unverified
 ```
 
 Optax is optional and valid only for differentiable or declared-surrogate paths. Hard spiking reset paths require explicit differentiability status.
@@ -88,11 +87,10 @@ Optax is optional and valid only for differentiable or declared-surrogate paths.
 run_id: string
 jaxfne_version: string
 repo_sha: string_or_null
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
 source_calibration_status: string
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+physical_amplitude_calibrated: false
 runtime_report: object
 artifact_paths: object
 asset_hashes: object

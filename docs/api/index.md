@@ -6,24 +6,23 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 194 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 195 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.3.42` (tag `v0.3.42`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 !!! note "Scope & truth gates"
-    All field/EEG/MEG/EMM outputs are **computational proxies**, not solved PDE
-    or sensor-level signals (`field_solver_status = "laminar_proxy_no_pde"`,
-    `physical_amplitude_claim_allowed = False`). The package is a
-    `computational_scaffold` for teaching, prototyping, and validation — not a
-    calibrated biological simulator. See
-    [Scope and limitations](../limitations_and_future_plans.md).
+    All field/EEG/MEG/EMM outputs are computational proxies
+    (`claim_level = "computational_scaffold"`, `field_solver_status = "linear_solver"`,
+    `field_claim_level = "proxy_readout"`, `physical_amplitude_calibrated = False`).
+    See [Limitations and future plans](../limitations_and_future_plans.md) for the
+    scope statement.
 
 ## Module pages
 
 | Page | Covers | Public names |
 |---|---|---|
-| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 68 |
+| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 69 |
 | [Emitters](emitters.md) | Izhikevich emitter, receptors, synapses, EIG networks, edge lists | 19 |
 | [Fields](fields.md) | Source→laminar projection, `FieldOutput`, proxy diagnostics | 12 |
 | [Probes](probes.md) | EEG/MEG/EMM proxy transforms (within Fields) | (in Fields) |
@@ -34,7 +33,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **194**
+> signatures in the complete symbol index below. Counts sum to **195**
 > (`len(jaxfne.__all__)`). See the docs audit
 > (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
@@ -77,15 +76,15 @@ in a plotting backend.
 
 All export helpers honor the truth gates: JSON is written with `allow_nan=False`,
 and figure/readout outputs remain proxy diagnostics
-(`physical_amplitude_claim_allowed = False`).
+(`physical_amplitude_calibrated = False`).
 
 ---
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**194 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**195 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (68)
+### Core (69)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -113,6 +112,7 @@ and figure/readout outputs remain proxy diagnostics
 | `load_config` | func | Load a `.jcfg.json` file and return a `JaxFNEConfig`. |
 | `matrix_parameter` | func | Create a matrix parameter specification for tuning weight matrices. |
 | `MatrixParameterSpec` | class | Declarative specification for a tunable weight matrix parameter. |
+| `migrate_schema` | func | Upgrade a legacy truth/metadata dict to the canonical truth-gate schema. |
 | `Model` | class | —  _(dataclass; fields in signature)_ |
 | `Net` | class | —  _(dataclass; fields in signature)_ |
 | `Objective` | class | Declarative objective specification: losses, regularizers, and diagnostic gates. |

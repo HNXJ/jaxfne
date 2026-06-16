@@ -1,7 +1,7 @@
 """Multimodal probe operators and leadfield transforms for jaxfne.
 
 This module implements simulated electrophysiological probe operators (EEG, MEG, EMM proxies)
-under laminar_proxy_no_pde boundaries. All signals are processed as proxies,
+under linear_solver boundaries. All signals are processed as proxies,
 and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 """
 from __future__ import annotations
@@ -44,8 +44,8 @@ def _make_probe_report(
     data_shape: tuple | str = None,
     units_or_status: str = "proxy_units",
     calibration_status: str = "uncalibrated_proxy",
-    field_solver_status: str = "laminar_proxy_no_pde",
-    field_claim_level: str = "proxy_readout_only",
+    field_solver_status: str = "linear_solver",
+    field_claim_level: str = "proxy_readout",
     source_calibration_status: str = "uncalibrated_izhikevich_native_current",
     source_projection_mode: str = "proxy_no_field_solve",
     source_decomposition: str = "proxy_reduced_emitter",
@@ -69,7 +69,7 @@ def _make_probe_report(
         "source_decomposition": source_decomposition,
         "field_solver_status": field_solver_status,
         "field_claim_level": field_claim_level,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": assumptions,
     }
 

@@ -98,7 +98,7 @@ for idx, (cell_type, p) in enumerate(params_5hz.items()):
     ax.set_ylim([-90, 45])
 
 axes[-1].set_xlabel("Time (ms)", fontsize=12)
-plt.suptitle("Verification of 5.0 Hz (5 spikes / 1000ms) Firing Rates across Cell Types\nTruth Mode: truth_safe_unverified | Status: computational_scaffold", fontsize=14, fontweight="bold", y=0.98)
+plt.suptitle("Verification of 5.0 Hz (5 spikes / 1000ms) Firing Rates across Cell Types\nTruth Mode:  | Status: computational_scaffold", fontsize=14, fontweight="bold", y=0.98)
 plt.tight_layout(rect=[0, 0, 1, 0.96])
 
 p1 = OUT_DIR / "sweep_d_5hz_verification.png"

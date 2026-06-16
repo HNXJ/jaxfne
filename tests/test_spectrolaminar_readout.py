@@ -389,10 +389,9 @@ def test_readout_metadata_proxy_safe():
     readout = spectrolaminar_readout(signal, neurons, area="V1")
 
     meta = readout["metadata"]
-    assert meta["field_solver_status"] == "laminar_proxy_no_pde"
-    assert meta["physical_amplitude_claim_allowed"] is False
+    assert meta["field_solver_status"] == "linear_solver"
+    assert meta["physical_amplitude_calibrated"] is False
     assert meta["units_or_status"] == "proxy_units"
-    assert meta["truth_mode"] == "truth_safe_unverified"
 
 
 def test_readout_metadata_json_serializable():

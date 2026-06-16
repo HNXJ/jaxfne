@@ -2,7 +2,6 @@
 
 **Date:** 2026-05-24  
 **Status:** Ready for human review and v0.3.3 kick-off  
-**truth_mode:** truth_safe_unverified  
 **Package baseline:** jaxfne 0.2.30 (stable, no v0.3 release yet)
 
 ---
@@ -12,14 +11,14 @@
 ### v0.3.1: Single Izhikevich Neuron
 - **Status:** Merged (commit 6c3bde8) + validation audit closed
 - **Figures:** 2 PNG (voltage trace, spike raster) at 150 dpi
-- **Truth gate:** computational_scaffold, proxy_readout_only, physical_amplitude_claim_disallowed
+- **Truth gate:** computational_scaffold, proxy_readout, physical_amplitude_claim_disallowed
 - **Key metric:** Voltage range, spike count, firing regularity
 - **Manifest:** docs/tutorials_v030/manifests/v0301_single_izhikevich_neuron_manifest.json
 
 ### v0.3.2: Single-Neuron Parameter Sweep
 - **Status:** Merged (commit b3c0f7f) + duration/rate-regime gates closed
 - **Figures:** 2 PNG (parameter sweep heatmap, regime lines) at 150 dpi
-- **Truth gate:** computational_scaffold, proxy_readout_only, physical_amplitude_claim_disallowed
+- **Truth gate:** computational_scaffold, proxy_readout, physical_amplitude_claim_disallowed
 - **Key metric:** Out-of-regime detection, sweep coverage, regime boundary validation
 - **Manifest:** docs/tutorials_v030/manifests/v0302_single_neuron_parameter_sweep_manifest.json
 
@@ -351,7 +350,7 @@ Reference `/Users/hamednejat/workspace/main/jaxfne/docs/tutorials_v030/visualiza
 - **Validation target:**
   - All keys present per schema version
   - All required fields non-null
-  - All enums valid (truth_mode, claim_level, etc.)
+  - All enums valid (claim_level, etc.)
   - All SHA256 hashes properly formatted
   - No schema version drift
 - **Expected output:** Schema validation report, required schema updates
@@ -511,7 +510,7 @@ The following three checkpoints define explicit capability gates and decision la
 6. Notebook/Colab execution audit: All notebooks run without error; outputs regenerate; figures display
 7. Truth-claim audit PASS: No biological realism claims, no "calibrated" language, no mechanism-proof statements
    - Review all figure captions and narrative text for overclaiming
-   - Confirm all scenarios marked as "computational_scaffold" with physical_amplitude_claim_allowed=False
+   - Confirm all scenarios marked as "computational_scaffold" with physical_amplitude_calibrated=False
 8. Rendered docs website builds and displays all figures correctly (manual visual confirmation required)
 
 **Validation commands (execute before checkpoint approval):**
@@ -874,7 +873,7 @@ The `jaxfne_jbiophysic_deep_audit_bundle.md` (36.5 KB) contains:
 - **jbiophysic strengths:** Pedagogical ambition, targeted tests pass, HH implementation sound, scientific guardrails present, integration bridge exists.
 - **jbiophysic weaknesses:** Structurally overgrown (211 Python files, overlapping namespaces), `jtfne.py` monolith with wrong namespace, optional dependency tests not optional-safe.
 
-**Doctrine comparison:** All audit P0 findings are compatible with v0.3 accepted gates (truth_safe_unverified, computational_scaffold, laminar_proxy_no_pde, physical_amplitude_claim_allowed=False). No conflicts detected.
+**Doctrine comparison:** All audit P0 findings are compatible with v0.3 accepted gates (computational_scaffold, linear_solver, physical_amplitude_calibrated=False). No conflicts detected.
 
 ### Notebook Figure Analysis
 

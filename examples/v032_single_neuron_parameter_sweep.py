@@ -15,7 +15,7 @@ Per-condition gate semantics:
   - low_or_silent_out_of_target_regime: Hz < 2, finite
   - nonfinite_failure:                 any nonfinite output
 
-Status status: computational_scaffold, proxy_readout_only
+Status status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 """
@@ -374,8 +374,8 @@ def main(update_canonical: bool = False):
         "basis": {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_model_status": "proxy_readout_only",
+            "field_solver_status": "linear_solver",
+            "field_model_status": "proxy_readout",
             "amplitude_status": False,
             "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -496,7 +496,7 @@ def main(update_canonical: bool = False):
             "Parameter regimes are proxy computational ranges, not calibrated biophysical ranges.",
             "High-rate conditions (>25 Hz) are explicitly labelled out-of-target regimes for contrast; they are not accepted as baseline cortical activity.",
             "Firing rate changes reflect model dynamics, not measured neuron behavior.",
-            "No field PDE is solved in laminar_proxy_no_pde mode.",
+            "No field PDE is solved in linear_solver mode.",
             "No biological mechanism is proven by this tutorial alone.",
         ],
     }
@@ -589,7 +589,7 @@ def main(update_canonical: bool = False):
     print(f"✓ Docs-stable figures: {static_heatmap}, {static_regime}")
     print(f"✓ Plotly available: {plotly_available}")
     print()
-    print("Status status: computational_scaffold, proxy_readout_only")
+    print("Status status: computational_scaffold, proxy_readout")
     print("Physical amplitude status allowed: False")
     print("=" * 80)
 

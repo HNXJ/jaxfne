@@ -241,11 +241,11 @@ report = {
         "gauge": "mean_zero",
         "csd_sign_convention": "positive_equals_extracellular_source"
     },
-    "physical_amplitude_claim_allowed": True,
+    "physical_amplitude_calibrated": True,
 }
 ```
 
-**Only if all gates pass AND `physical_amplitude_claim_allowed=True` can you claim the solution is physical.**
+**Only if all gates pass AND `physical_amplitude_calibrated=True` can you claim the solution is physical.**
 
 ---
 
@@ -258,7 +258,7 @@ Before declaring a field solution admissible:
 - [ ] **Gauge gate:** Mean potential ≈ 0 (or declared gauge satisfied)
 - [ ] **Finiteness gate:** All fields (phi_e, J_e, CSD) are finite
 - [ ] **Convergence gate:** Solver converged and residual < tolerance
-- [ ] **Report:** `admissibility_status == "admissible"` and `physical_amplitude_claim_allowed == True`
+- [ ] **Report:** `admissibility_status == "admissible"` and `physical_amplitude_calibrated == True`
 
 ---
 
@@ -406,10 +406,10 @@ manifest["field_claim_level"] = "physical"  # No, don't do this
 ```python
 # ✓ Check admissibility first
 report = build_poisson_admissibility_report(...)
-if report["physical_amplitude_claim_allowed"]:
+if report["physical_amplitude_calibrated"]:
     manifest["field_claim_level"] = "physical_admissible"
 else:
-    manifest["field_claim_level"] = "proxy_readout_only"
+    manifest["field_claim_level"] = "proxy_readout"
 ```
 
 ---

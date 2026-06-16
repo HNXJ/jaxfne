@@ -125,6 +125,7 @@
     "manifest",
     "matrix_parameter",
     "meg_proxy_transform",
+    "migrate_schema",
     "objective",
     "omission_oddball_paradigm",
     "operator_status",

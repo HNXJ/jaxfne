@@ -79,10 +79,9 @@ def test_suite_no_2_target_chainable_dsl_facade_constructs_and_simulates():
     assert cfg.metadata["dtype"] == "float32"
     assert cfg.metadata["duration_ms"] == 1000.0
     assert cfg.metadata["dt_ms"] == 0.1
-    assert cfg.metadata["truth_mode"] == "truth_safe_unverified"
     assert cfg.metadata["claim_level"] == "computational_scaffold"
-    assert cfg.metadata["physical_amplitude_claim_allowed"] is False
-    assert cfg.metadata["field_solver_status"] == "laminar_proxy_no_pde"
+    assert cfg.metadata["physical_amplitude_calibrated"] is False
+    assert cfg.metadata["field_solver_status"] == "linear_solver"
     assert cfg.metadata["dx_mm"] == 0.010
     assert cfg.metadata["dy_mm"] == 0.010
     assert cfg.metadata["dz_mm"] == 0.010
@@ -113,7 +112,7 @@ def test_suite_no_2_target_chainable_dsl_facade_constructs_and_simulates():
     assert cfg.probes[0]["name"] == "multimodal_probe"
     assert cfg.probes[0]["modes"] == PROXY_MODES
     assert cfg.probes[0]["operator_status"] == "simulated_proxy"
-    assert cfg.probes[0]["physical_amplitude_claim_allowed"] is False
+    assert cfg.probes[0]["physical_amplitude_calibrated"] is False
 
     # The config remains strict-JSON safe after tuple connectivity is converted by json_safe.
     json.dumps(json_safe({"metadata": cfg.metadata, "networks": cfg.networks, "probes": cfg.probes}), allow_nan=False)

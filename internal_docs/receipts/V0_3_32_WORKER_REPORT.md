@@ -34,7 +34,7 @@ v0.3.32 implements complete package-native orchestration for the hierarchical gl
 | BackupState class | ✓ Complete | 10-field resumable state with ring buffer, to_dict/to_manifest serialization |
 | TaskEpisode class | ✓ Complete | Episode orchestration with probe/resume/validate/export/visualize methods |
 | Manifest class | ✓ Complete | JSON output helper with truth gate preservation, immutable receipt pattern |
-| Truth gates wiring | ✓ Complete | All 7 classes carry: truth_safe_unverified, computational_scaffold, laminar_proxy_no_pde |
+| Truth gates wiring | ✓ Complete | All 7 classes carry: computational_scaffold, linear_solver |
 
 **Metrics:**
 - Lines of code: 600+
@@ -65,7 +65,7 @@ v0.3.32 implements complete package-native orchestration for the hierarchical gl
 | test_sanity_delta_task_schedule.py | 8 | TestHierarchicalOddballParadigm (6) + TestBehaviorGate (2) | Paradigm properties, fixation gate, schedule compilation, segments structure, reward eligibility, total duration, gate initialization, gate evaluation |
 | test_sanity_delta_backup_resume.py | 9 | TestBackupState (3) + TestTaskEpisode (4) + TestManifest (2) | Backup initialization/serialization/manifest, episode initialization/probe/validate/resume, manifest creation/save |
 | test_sanity_delta_plasticity.py | 6 | TestPlasticityConfig (6) | Plasticity defaults, custom params, biological claim preservation, weight bounds, homeostatic rules, segment-boundary application |
-| test_sanity_delta_proxy_readout_names.py | 6 | TestProxyReadoutNames (6) | Proxy naming convention, field_solver_status=laminar_proxy_no_pde, spikes/vm non-proxy, readout canonical forms, no biological claim, manifest preservation |
+| test_sanity_delta_proxy_readout_names.py | 6 | TestProxyReadoutNames (6) | Proxy naming convention, field_solver_status=linear_solver, spikes/vm non-proxy, readout canonical forms, no biological claim, manifest preservation |
 | test_sanity_delta_optional_imports.py | 6 | TestOptionalImports (6) | Heavy deps not loaded, minimal deps, visualization optional, export optional, JSON export core-only, notebook optional marker |
 
 **Test Results:** 45/45 passed in 1.58s
@@ -125,7 +125,7 @@ v0.3.32 implements complete package-native orchestration for the hierarchical gl
 ### Decision 3: Truth gates as class attributes vs. module-level constants
 **Why:** Each class should be independently deployable and carry its validation context. Distributed truth gates prevent loss during serialization/import.
 
-**Implementation:** All 7 classes carry `truth_mode`, `claim_level`, `field_solver_status`, `physical_amplitude_claim_allowed`, `biological_learning_claim` as instance or class attributes.
+**Implementation:** All 7 classes carry `claim_level`, `field_solver_status`, `physical_amplitude_calibrated`, `biological_learning_claim` as instance or class attributes.
 
 ### Decision 4: 45 tests in 6 files vs. fewer larger files
 **Why:** Section 16 specifies one test file per major gate category (config, paradigm, backup/episode, plasticity, proxy naming, optional imports). Parallel test organization mirrors gate semantics.
@@ -265,10 +265,9 @@ v0.3.32 implements complete package-native orchestration for the hierarchical gl
 **Status:** ✓ 100% Complete
 
 ### Checklist Item 8: Truth Gates Preserved
-- [x] All classes carry: truth_mode="truth_safe_unverified"
 - [x] All classes carry: claim_level="computational_scaffold"
-- [x] All classes carry: field_solver_status="laminar_proxy_no_pde"
-- [x] All classes carry: physical_amplitude_claim_allowed=False
+- [x] All classes carry: field_solver_status="linear_solver"
+- [x] All classes carry: physical_amplitude_calibrated=False
 - [x] All classes carry: biological_learning_claim=False
 - [x] Manifest preserves all gates in JSON
 **Status:** ✓ 100% Complete

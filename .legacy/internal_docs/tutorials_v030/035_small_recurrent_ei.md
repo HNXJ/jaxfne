@@ -4,7 +4,7 @@
 
 **Scope:** Educational tutorial demonstrating recurrent excitatory/inhibitory (E/I) coupling in a 12-neuron network using the public jaxfne Configuration grammar.
 
-**Truth status:** `truth_safe_unverified`, `computational_scaffold`
+**Truth status:** ``, `computational_scaffold`
 
 ---
 
@@ -142,10 +142,9 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=42)
 
 ```json
 {
-  "truth_mode": "truth_safe_unverified",
   "computational_level": "computational_scaffold",
-  "physical_amplitude_claim_allowed": false,
-  "field_solver_status": "laminar_proxy_no_pde",
+  "physical_amplitude_calibrated": false,
+  "field_solver_status": "linear_solver",
   "source_calibration_status": "uncalibrated_izhikevich_proxy",
   "tutorial_role": "educational_demonstration"
 }

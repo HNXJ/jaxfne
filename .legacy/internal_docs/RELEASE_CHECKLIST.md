@@ -5,7 +5,6 @@
 
 **Version:** v0.3.4  
 **Last updated:** 2026-05-26  
-**truth_mode:** truth_safe_unverified
 
 > **Note:** Code examples in this checklist use `v0.3.4` as a placeholder. Substitute the
 > actual target version (e.g., `0.3.4`, `0.3.5`) when following these steps.
@@ -88,9 +87,9 @@ from jaxfne.core import default_basis_spec, compute_conservation_proxy_diagnosti
 basis = default_basis_spec()
 diag = compute_conservation_proxy_diagnostics()
 
-assert basis.physical_amplitude_claim_allowed == False, 'Basis gate violated'
+assert basis.physical_amplitude_calibrated == False, 'Basis gate violated'
 assert basis.biological_metabolism_claim_allowed == False, 'Basis gate violated'
-assert diag['physical_amplitude_claim_allowed'] == False, 'Diagnostics gate violated'
+assert diag['physical_amplitude_calibrated'] == False, 'Diagnostics gate violated'
 assert diag['biological_metabolism_claim_allowed'] == False, 'Diagnostics gate violated'
 assert diag['poisson_solver_status'] == 'not_implemented', 'Solver gate violated'
 assert diag['maxwell_solver_status'] == 'not_implemented', 'Solver gate violated'
@@ -161,7 +160,7 @@ Add a new entry at the top (v0.2.27 most recent):
 ### Features
 - Added `compute_conservation_proxy_diagnostics()` function for safe scalar diagnostics over existing source/field proxy arrays
 - Supports source norms (L1, L2), field-gradient proxy, CSD/LFP norms, source conservation residual
-- Explicit immutable claim gates: physical_amplitude_claim_allowed=False, biological_metabolism_claim_allowed=False
+- Explicit immutable claim gates: physical_amplitude_calibrated=False, biological_metabolism_claim_allowed=False
 - Hardcoded not-implemented status for Poisson, Maxwell, stress-energy, J·E, and Poynting solvers
 
 ### Documentation

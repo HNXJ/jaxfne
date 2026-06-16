@@ -5,7 +5,7 @@ Tests that:
 2. Proxy mode reports appropriate status (not_applicable or declared_metadata_only)
 3. Physical_candidate mode accepts residuals and reports checked/candidate status
 4. Operator status distinguishes proxy vs physical paths
-5. All diagnostics keep physical_amplitude_claim_allowed false
+5. All diagnostics keep physical_amplitude_calibrated false
 6. Invalid paths raise clear errors
 7. Existing v0.2.4 and v0.2.5 reports remain unaffected
 """
@@ -40,7 +40,7 @@ class TestSourceBalanceDiagnosticV026:
         assert diag["operator_path"] == "proxy"
         assert diag["status"] == "not_applicable_proxy_mode"
         assert diag["residual"] is None
-        assert diag["physical_amplitude_claim_allowed"] is False
+        assert diag["physical_amplitude_calibrated"] is False
 
     def test_source_balance_physical_candidate_with_residual(self):
         """Test source-balance in physical_candidate mode with residual."""
@@ -196,9 +196,9 @@ class TestFieldOperatorStatusV026:
         assert status["diagnostic_kind"] == "field_operator_status"
         assert status["operator_path"] == "proxy"
         assert status["field_solver_selected"] is False
-        assert status["field_solver_status"] == "laminar_proxy_no_pde"
+        assert status["field_solver_status"] == "linear_solver"
         assert status["physical_field_solver_status"] == "not_selected"
-        assert status["physical_amplitude_claim_allowed"] is False
+        assert status["physical_amplitude_calibrated"] is False
 
     def test_operator_status_physical_candidate_path(self):
         """Test operator status for physical_candidate path."""
@@ -207,7 +207,7 @@ class TestFieldOperatorStatusV026:
         assert status["operator_path"] == "physical_candidate"
         assert status["field_solver_selected"] is False
         assert status["field_solver_status"] == "physical_field_solver_candidate"
-        assert status["physical_amplitude_claim_allowed"] is False
+        assert status["physical_amplitude_calibrated"] is False
 
     def test_operator_status_invalid_path_raises(self):
         """Test that invalid operator_path raises ValueError."""
@@ -236,7 +236,7 @@ class TestDiagnosticIntegrationV026:
         # v0.2.4 diagnostics should be present
         assert "field_admissibility" in field.diagnostics
         assert "kernel_row_stochastic_valid" in field.diagnostics["field_admissibility"]
-        assert field.diagnostics["physical_amplitude_claim_allowed"] is False
+        assert field.diagnostics["physical_amplitude_calibrated"] is False
 
     def test_v025_calibration_spec_compatibility(self):
         """Test that v0.2.5 calibration specs remain compatible."""
@@ -247,11 +247,11 @@ class TestDiagnosticIntegrationV026:
         )
         report = make_calibration_report(spec)
 
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         assert report["calibration_claim_level"] == "computational_proxy_with_declared_metadata"
 
     def test_all_diagnostics_keep_false(self):
-        """Test that all v0.2.6 diagnostics keep physical_amplitude_claim_allowed false."""
+        """Test that all v0.2.6 diagnostics keep physical_amplitude_calibrated false."""
         diags = [
             make_source_balance_diagnostic(operator_path="proxy"),
             make_source_balance_diagnostic(operator_path="physical_candidate"),
@@ -264,7 +264,7 @@ class TestDiagnosticIntegrationV026:
 
         for diag in diags:
             assert (
-                diag["physical_amplitude_claim_allowed"] is False
+                diag["physical_amplitude_calibrated"] is False
             ), f"Diagnostic {diag.get('diagnostic_kind', 'unknown')} should keep physical claim false"
 
     def test_proxy_vs_physical_candidate_distinction(self):
@@ -279,12 +279,12 @@ class TestDiagnosticIntegrationV026:
 
         # Proxy should report not_applicable or declared_metadata_only
         assert proxy_sb["status"] == "not_applicable_proxy_mode"
-        assert proxy_status["field_solver_status"] == "laminar_proxy_no_pde"
+        assert proxy_status["field_solver_status"] == "linear_solver"
 
         # Physical candidate should be distinct
         assert candidate_sb["status"] == "candidate_only"
         assert candidate_status["field_solver_status"] == "physical_field_solver_candidate"
 
         # Both should keep physical amplitude false
-        assert proxy_status["physical_amplitude_claim_allowed"] is False
-        assert candidate_status["physical_amplitude_claim_allowed"] is False
+        assert proxy_status["physical_amplitude_calibrated"] is False
+        assert candidate_status["physical_amplitude_calibrated"] is False

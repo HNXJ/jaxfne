@@ -85,11 +85,10 @@ def evidence_checklist_path() -> Path:
 def truth_gates() -> dict:
     """Default evidence truth gates (copy safe for manifests)."""
     return {
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "field_claim_level": "proxy_readout_only",
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": "linear_solver",
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
     }
 
 
@@ -148,7 +147,7 @@ def save_figure_manifest(
         "repo_sha": repo_sha(),
         "truth_gates": truth_gates(),
         "source_files": list(source_files),
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
     }
     if extra:
         manifest.update(extra)

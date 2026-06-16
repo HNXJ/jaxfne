@@ -54,7 +54,7 @@ class SynapseSpec:
 
     receptors: tuple[ReceptorSpec, ...]
     source_calibration_status: str = "metadata_only_uncalibrated"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
 
 
 def standard_receptor_specs() -> dict[str, ReceptorSpec]:
@@ -480,8 +480,7 @@ class EdgeList:
             "n_edges": self.n_edges,
             "receptors": {"0": "excitatory_native", "1": "inhibitory_native"},
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": False,
-            "truth_mode": "truth_safe_unverified",
+            "physical_amplitude_calibrated": False,
         })
 
 

@@ -198,7 +198,7 @@ def test_with_recurrent_coupling_claim_gates(two_neuron_model):
     """Coupling params include correct claim gates."""
     new_model = two_neuron_model.with_recurrent_coupling()
     coupling = new_model.static["recurrent_coupling"]
-    assert coupling["physical_amplitude_claim_allowed"] is False
+    assert coupling["physical_amplitude_calibrated"] is False
     assert coupling["claim_level"] == "computational_scaffold"
     assert coupling["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
 

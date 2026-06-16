@@ -341,7 +341,7 @@ def draw_figure(rows: list[dict[str, Any]], runtime: dict[str, Any]) -> None:
         f"module_count_after_root_import: {root.get('module_count')}",
         f"optional_dependency_claim_scope: local_subprocess_receipt",
         f"jaxfne: {runtime['jaxfne_version']}  repo_sha: {runtime['repo_sha'][:12]}",
-        "physical_amplitude_claim_allowed: false",
+        "physical_amplitude_calibrated: false",
     ]
     for i, line in enumerate(lines):
         ax.text(0.85, 1.55 - i * 0.22, line, fontsize=6.5, va="top", family="monospace", color="#444444")
@@ -395,7 +395,7 @@ def main() -> int:
             "receipt_json_path": str(RECEIPT_JSON_PATH.relative_to(root)),
             "receipt_json_sha256": sha256_file(RECEIPT_JSON_PATH),
             "truth_gates": truth_gates(),
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "optional_dependency_claim_scope": "local_subprocess_receipt",
         },
     )

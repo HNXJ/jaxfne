@@ -32,9 +32,9 @@ required_fields = {
     "source_calibration_status",      # source calibration (e.g., "uncalibrated_izhikevich_native_current")
     "source_projection_mode",         # how sources are projected (e.g., "proxy_no_field_solve")
     "source_decomposition",           # source decomposition (e.g., "proxy_reduced_emitter")
-    "field_solver_status",            # field solver (e.g., "laminar_proxy_no_pde")
-    "field_claim_level",              # claim level (e.g., "proxy_readout_only")
-    "physical_amplitude_claim_allowed", # boolean: False for proxy operators
+    "field_solver_status",            # field solver (e.g., "linear_solver")
+    "field_claim_level",              # claim level (e.g., "proxy_readout")
+    "physical_amplitude_calibrated", # boolean: False for proxy operators
     "assumptions",                    # list of assumptions (e.g., ["assumption_1", "assumption_2"])
 }
 ```
@@ -180,7 +180,7 @@ report = {
 report = {
     "kind": "eeg_proxy",
     "calibration_status": "empirically_calibrated",  # Not true for proxies
-    "physical_amplitude_claim_allowed": True,        # False for proxies
+    "physical_amplitude_calibrated": True,        # False for proxies
 }
 ```
 
@@ -189,7 +189,7 @@ report = {
 report = {
     "kind": "eeg_proxy",
     "calibration_status": "uncalibrated_proxy",
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
 }
 ```
 
@@ -204,7 +204,7 @@ required = {
     "name", "kind", "operator_status", "method", "data_shape",
     "units_or_status", "calibration_status", "source_calibration_status",
     "source_projection_mode", "source_decomposition", "field_solver_status",
-    "field_claim_level", "physical_amplitude_claim_allowed", "assumptions",
+    "field_claim_level", "physical_amplitude_calibrated", "assumptions",
 }
 
 missing = required - set(readout.report.keys())
@@ -278,10 +278,9 @@ Before accepting a probe report:
 
 - [ ] All 14 required fields present
 - [ ] `kind` is one of: spk, vm, source, lfp_proxy, csd_proxy, eeg_proxy, meg_proxy, emm_proxy
-- [ ] No `truth_mode`, `claim_level`, or other internal fields in public reports
 - [ ] No `*_like` or `*_same` terminology
 - [ ] `data_shape` matches actual output shape (as string)
-- [ ] `physical_amplitude_claim_allowed` is False for proxy operators
+- [ ] `physical_amplitude_calibrated` is False for proxy operators
 - [ ] Operator-specific fields (CSD, EEG, MEG) present and correct
 - [ ] Report is JSON-serializable with `allow_nan=False`
 - [ ] No arrays, complex numbers, or non-serializable types

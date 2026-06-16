@@ -121,12 +121,11 @@ def run_smoke() -> tuple[dict, dict, dict, list[str]]:
         if hasattr(arr, "shape"):
             finite = bool(jnp.all(jnp.isfinite(arr)))
             receipt.append(f"{key}.shape: {tuple(arr.shape)} finite={finite}")
-    receipt.append(f"truth_mode: {manifest.get('truth_mode')}")
     receipt.append(
-        "physical_amplitude_claim_allowed: "
-        f"{manifest['source_field_status']['physical_amplitude_claim_allowed']}"
+        "physical_amplitude_calibrated: "
+        f"{manifest['source_field_status']['physical_amplitude_calibrated']}"
     )
-    receipt.append("field_solver_status: laminar_proxy_no_pde")
+    receipt.append("field_solver_status: linear_solver")
     receipt.append("claim_level: computational_scaffold")
 
     return signals, readout, manifest, receipt
@@ -258,7 +257,7 @@ def draw_figure(signals, readout: dict, receipt: list[str]) -> None:
     ax_receipt.text(
         0.02,
         0.08,
-        "proxy_readout_only  |  physical_amplitude_claim_allowed: false  |  no GPU required",
+        "proxy_readout  |  physical_amplitude_calibrated: false  |  no GPU required",
         fontsize=6.5,
         va="bottom",
         family="monospace",
@@ -290,7 +289,6 @@ def main() -> int:
             "smoke_seed": 0,
             "smoke_stdout_log": smoke_receipt_path,
             "readout_keys": sorted(k for k in readout if hasattr(readout.get(k), "shape")),
-            "truth_mode": manifest.get("truth_mode"),
             "claim_boundary": "cpu_safe_tutorial",
         },
     )

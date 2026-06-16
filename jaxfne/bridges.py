@@ -41,7 +41,7 @@ class BridgeSpec:
             "status": self.status,
             "source_calibration_status": self.source_calibration_status,
             "metadata": self.metadata,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
 
@@ -96,8 +96,7 @@ class JaxleyTraceSpec:
     source_projection_mode: str = "external_trace_proxy"
     source_decomposition: str = "proxy_voltage_trace_not_current"
     spike_threshold: float | None = 0.0
-    physical_amplitude_claim_allowed: bool = False
-    truth_mode: str = "truth_safe_unverified"
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -110,10 +109,10 @@ class JaxleyTraceSpec:
                 f"layout must be 'time_by_unit', 'unit_by_time', or 'recording_by_time', "
                 f"got {self.layout}"
             )
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             raise ValueError(
-                "physical_amplitude_claim_allowed must be False (immutable); "
-                f"got {self.physical_amplitude_claim_allowed}"
+                "physical_amplitude_calibrated must be False (immutable); "
+                f"got {self.physical_amplitude_calibrated}"
             )
         if self.claim_level != "computational_scaffold":
             raise ValueError(
@@ -125,7 +124,7 @@ class JaxleyTraceSpec:
         from dataclasses import fields as dc_fields
         result = {"spec_class": "JaxleyTraceSpec"}
         result.update({f.name: getattr(self, f.name) for f in dc_fields(self)
-                if f.name in ("backend", "layout", "dt_ms", "source_mode", "claim_level", "physical_amplitude_claim_allowed")})
+                if f.name in ("backend", "layout", "dt_ms", "source_mode", "claim_level", "physical_amplitude_calibrated")})
         return result
 
     def to_dict(self) -> dict[str, Any]:
@@ -293,9 +292,8 @@ def jaxley_trace_to_signals(
         "source_decomposition": spec.source_decomposition,
         "source_calibration_status": spec.source_calibration_status,
         "field_solver_status": "not_computed",
-        "field_claim_level": "proxy_readout_only",
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": spec.truth_mode,
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
         "claim_level": spec.claim_level,
         "dt_ms": float(_dt_ms),
         "n_time": int(n_time),
@@ -488,6 +486,6 @@ class JaxleyBridge:
             "bridge_name": "jaxley_bridge",
             "source_mode": self.source_mode,
             "source_calibration_status": "uncalibrated_jaxley_bridge",
-            "physical_amplitude_claim_allowed": False
+            "physical_amplitude_calibrated": False
         }
 

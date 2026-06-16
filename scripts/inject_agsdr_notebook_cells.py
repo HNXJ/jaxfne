@@ -152,7 +152,7 @@ agsdr_cells = [
             "    'best_score': float(best_result['score']),\n",
             "    'mean_rate_error_hz': float(abs(best_result['mean_rate_hz'] - AGSDR_PARAMS['agsdr_target_mean_rate_hz'])),\n",
             "    'tuning_status': 'smoke_test',  # smoke mode with short duration\n",
-            "    'truth_mode': 'truth_safe_unverified',\n",
+            "    \n",
             "    'biological_learning_claim': False,\n",
             "    'mechanism_claim_status': 'not_claimed',\n",
             "    'baseline_mean_rate_hz': baseline_mean_rate_hz,\n",

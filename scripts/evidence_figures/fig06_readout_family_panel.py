@@ -47,8 +47,8 @@ SOURCE_FILES = [
 TITLE = "Eight proxy readout families (operator contracts)"
 
 SCOPE_STATUS = (
-    "All readouts are simulated proxies; proxy_readout_only; "
-    "physical_amplitude_claim_allowed: false; no empirical EEG/MEG validation"
+    "All readouts are simulated proxies; proxy_readout; "
+    "physical_amplitude_calibrated: false; no empirical EEG/MEG validation"
 )
 
 READOUT_ORDER = [
@@ -127,7 +127,7 @@ def _probe_receipt(name: str, readout) -> dict:
         "source_calibration_status": report.get("source_calibration_status"),
         "field_solver_status": report.get("field_solver_status"),
         "field_claim_level": report.get("field_claim_level"),
-        "physical_amplitude_claim_allowed": report.get("physical_amplitude_claim_allowed"),
+        "physical_amplitude_calibrated": report.get("physical_amplitude_calibrated"),
         "finite_outputs": _finite_array(data),
     }
 
@@ -207,7 +207,7 @@ def draw_figure(readouts: dict, receipts: list[dict], time_ms) -> None:
     fig.text(
         0.02,
         -0.01,
-        "physical_amplitude_claim_allowed: false  |  proxy_readout_only",
+        "physical_amplitude_calibrated: false  |  proxy_readout",
         fontsize=6.5,
         family="monospace",
         color="#555555",
@@ -229,8 +229,8 @@ def main() -> int:
 
     if not all(r["finite_outputs"] for r in receipts):
         raise RuntimeError("Non-finite readout detected in Figure 6 panel")
-    if any(r["physical_amplitude_claim_allowed"] for r in receipts):
-        raise RuntimeError("physical_amplitude_claim_allowed must remain false")
+    if any(r["physical_amplitude_calibrated"] for r in receipts):
+        raise RuntimeError("physical_amplitude_calibrated must remain false")
 
     draw_figure(readouts, receipts, np.asarray(signals.time_ms))
 

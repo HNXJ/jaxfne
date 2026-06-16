@@ -372,10 +372,10 @@ def build_field_admissibility_report(
 
     report: dict[str, Any] = {
         "field_solver_status": metadata.get(
-            "field_solver_status", field_diag.get("field_solver_status", "laminar_proxy_no_pde")
+            "field_solver_status", field_diag.get("field_solver_status", "linear_solver")
         ),
         "field_claim_level": metadata.get(
-            "field_claim_level", field_diag.get("field_claim_level", "proxy_readout_only")
+            "field_claim_level", field_diag.get("field_claim_level", "proxy_readout")
         ),
         "boundary_condition": metadata.get("boundary_condition", "mean_zero_neumann"),
         "gauge": metadata.get("gauge", "mean_zero"),
@@ -398,7 +398,7 @@ def build_field_admissibility_report(
         "finite_J_e": None,  # Not computed in proxy mode
         "finite_CSD": field_diag.get("finite_csd_proxy", field_diag.get("finite_CSD", True)),
         "solver_residual_l2_relative": None,  # Not applicable for proxy mode
-        "physical_amplitude_claim_allowed": False,  # Always False for uncalibrated proxy
+        "physical_amplitude_calibrated": False,  # Always False for uncalibrated proxy
     }
 
     return report
@@ -516,9 +516,9 @@ def make_calibration_report(
     has_units = spec.units is not None
     has_reference = spec.reference is not None
 
-    # v0.2.5: Always keep physical_amplitude_claim_allowed false
+    # v0.2.5: Always keep physical_amplitude_calibrated false
     # Empirical calibration is declared metadata only, not validated.
-    physical_amplitude_claim_allowed = False
+    physical_amplitude_calibrated = False
     calibration_claim_level = "computational_proxy_with_declared_metadata"
 
     # Generate warnings for incomplete high-claim modes
@@ -548,7 +548,7 @@ def make_calibration_report(
         "reference": spec.reference,
         "description": spec.description,
         "readout_kind": readout_kind,
-        "physical_amplitude_claim_allowed": physical_amplitude_claim_allowed,
+        "physical_amplitude_calibrated": physical_amplitude_calibrated,
         "calibration_claim_level": calibration_claim_level,
         "empirical_reference_declared": has_reference,
         "empirical_units_declared": has_units,
@@ -604,7 +604,7 @@ def make_source_balance_diagnostic(
         "operator_path": operator_path,
         "status": status,
         "residual": residual_value,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": [
             "proxy mode: source balance is not applicable",
             "physical_candidate mode: residual is declared metadata only, not validated",
@@ -657,7 +657,7 @@ def make_gauge_diagnostic(
         "gauge_mode": gauge_mode,
         "status": status,
         "residual": residual_value,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": [
             "proxy mode: gauge is declared metadata only",
             "physical_candidate mode: residual is diagnostic scaffold, not validation",
@@ -690,7 +690,7 @@ def make_boundary_diagnostic(
         "operator_path": operator_path,
         "status": status,
         "boundary_condition_status": status,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": [
             "proxy mode: boundary condition is declared metadata only",
             "physical_candidate mode: boundary condition is candidate, not validated",
@@ -734,7 +734,7 @@ def make_manufactured_residual_diagnostic(
         "operator_path": operator_path,
         "status": status,
         "residual_l2_relative": residual_value,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": [
             "proxy mode: manufactured residual is not applicable",
             "physical_candidate mode: residual is diagnostic scaffold, not validation",
@@ -771,7 +771,7 @@ def make_field_operator_status(
         )
 
     if operator_path == "proxy":
-        field_solver_status = "laminar_proxy_no_pde"
+        field_solver_status = "linear_solver"
         field_solver_selected = False
     else:  # physical_candidate
         field_solver_status = "physical_field_solver_candidate"
@@ -783,7 +783,7 @@ def make_field_operator_status(
         "field_solver_selected": field_solver_selected,
         "field_solver_status": field_solver_status,
         "physical_field_solver_status": "not_selected",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "assumptions": [
             "proxy path: laminar proxy projection, no PDE solve",
             "physical_candidate path: designated for future PDE integration, not yet implemented",
@@ -999,7 +999,7 @@ def build_poisson_admissibility_report(
     This report contract specifies what a Poisson solver must output to be
     admissible. Used for validating solver implementations before integration.
 
-    **v0.2.15 invariant:** physical_amplitude_claim_allowed is ALWAYS false
+    **v0.2.15 invariant:** physical_amplitude_calibrated is ALWAYS false
     because v0.2.15 is specification-only (no solver implemented yet).
     All gates may pass on synthetic data, but no physical amplitude claims
     are allowed until a solver exists and calibration/units are validated.
@@ -1090,7 +1090,7 @@ def build_poisson_admissibility_report(
             "gauge": gauge,
             "csd_sign_convention": csd_sign_convention,
         },
-        "physical_amplitude_claim_allowed": False,  # v0.2.15: specification-only, no solver yet
+        "physical_amplitude_calibrated": False,  # v0.2.15: specification-only, no solver yet
         "v0215_note": (
             "Admissibility report for Poisson solver specification (v0.2.15). "
             "v0.2.15 is specification-only: no solver implemented, physical amplitude claims remain false. "
@@ -1168,8 +1168,8 @@ def validate_basis_spec(spec: Any) -> dict[str, Any]:
         )
 
     validation["warnings"] = warnings
-    # Guarantee physical_amplitude_claim_allowed is never escalated
-    validation["physical_amplitude_claim_allowed"] = False
+    # Guarantee physical_amplitude_calibrated is never escalated
+    validation["physical_amplitude_calibrated"] = False
     return validation
 
 
@@ -1188,12 +1188,12 @@ def basis_claim_gate(
     source_calibration_status : str
         From manifest (e.g. ``"uncalibrated_izhikevich_native_current"``).
     field_solver_status : str
-        From manifest (e.g. ``"laminar_proxy_no_pde"``).
+        From manifest (e.g. ``"linear_solver"``).
 
     Returns
     -------
     dict
-        JSON-safe gate result. ``physical_amplitude_claim_allowed`` is always
+        JSON-safe gate result. ``physical_amplitude_calibrated`` is always
         ``False`` in v0.2.x.
     """
     validation = validate_basis_spec(spec)
@@ -1202,7 +1202,7 @@ def basis_claim_gate(
 
     # Physical claim gate: requires solved field AND calibrated source
     proxy_solver = field_solver_status in (
-        "laminar_proxy_no_pde",
+        "linear_solver",
         "not_computed",
         None,
         "",
@@ -1220,7 +1220,7 @@ def basis_claim_gate(
         "valid": validation.get("valid", False),
         "issues": issues,
         "warnings": warnings,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "claim_rationale": (
             "proxy_scaffold_no_physical_claim_allowed"
             if (proxy_solver or uncalibrated_source)

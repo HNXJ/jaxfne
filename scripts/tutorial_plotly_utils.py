@@ -9,7 +9,6 @@ otherwise returns JSON-safe dictionaries suitable for manual visualization.
 This module ensures tutorials can run without Plotly dependency while still
 supporting optional interactive figure generation.
 
-truth_mode: truth_safe_unverified
 """
 
 import json

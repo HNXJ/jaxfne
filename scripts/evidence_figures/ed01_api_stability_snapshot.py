@@ -267,7 +267,7 @@ def draw_figure(snapshot: dict, receipt: dict) -> None:
         f"repo_sha: {receipt['repo_sha']}",
         f"python: {receipt['python_version']}  jax: {receipt['jax_version']}  jaxlib: {receipt['jaxlib_version']}",
         f"has_vis_module: {snapshot['has_vis_module']}  matplotlib_for_figure_only: {snapshot['matplotlib_imported_for_figure_only']}",
-        "physical_amplitude_claim_allowed: false  |  snapshot_scope: local_import_surface_only",
+        "physical_amplitude_calibrated: false  |  snapshot_scope: local_import_surface_only",
     ]
     for i, line in enumerate(receipt_lines):
         ax.text(0.85, 1.35 - i * 0.22, line, fontsize=6.5, va="top", family="monospace", color="#444444")

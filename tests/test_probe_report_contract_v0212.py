@@ -2,7 +2,6 @@
 
 Tests the ProbeReport/ProbeReadout contract after hardening:
 - All required fields present
-- No truth_mode in public reports
 - No *_like terminology in public reports
 - JSON-safe serialization with allow_nan=False
 - Operator-specific fields (CSD, EEG, MEG)
@@ -43,7 +42,7 @@ def test_contract_required_fields_all_operators():
         "source_decomposition",
         "field_solver_status",
         "field_claim_level",
-        "physical_amplitude_claim_allowed",
+        "physical_amplitude_calibrated",
         "assumptions",
     }
 
@@ -82,27 +81,6 @@ def test_contract_json_safety_all_operators():
         safe_report = json_safe(readout.report)
         # This must not raise with allow_nan=False
         json.dumps(safe_report, allow_nan=False)
-
-
-# ─── No truth_mode in Public Reports ────────────────────────────────────────────
-
-def test_contract_no_truth_mode_in_reports():
-    """truth_mode must not appear in any public probe report."""
-    operators = [
-        spk_probe(jnp.ones((10, 8))),
-        vm_probe(jnp.ones((10, 8))),
-        source_probe(jnp.ones((10, 8))),
-        lfp_proxy_probe(jnp.ones((10, 16))),
-        csd_proxy_probe(jnp.ones((10, 16))),
-        eeg_proxy_probe(jnp.ones((10, 32))),
-        meg_proxy_probe(jnp.ones((10, 32))),
-        emm_proxy_probe(jnp.ones((10,))),
-    ]
-
-    for readout in operators:
-        assert "truth_mode" not in readout.report, \
-            f"truth_mode found in {readout.report.get('kind')} report"
-
 
 # ─── No *_like Terminology ────────────────────────────────────────────────────────
 
@@ -181,10 +159,10 @@ def test_contract_data_shape_matches_output():
             f"data_shape mismatch: reported={reported_shape_str}, actual={actual_shape_str}"
 
 
-# ─── Proxy Reports Have physical_amplitude_claim_allowed=False ──────────────────
+# ─── Proxy Reports Have physical_amplitude_calibrated=False ──────────────────
 
 def test_contract_proxy_amplitude_claim_false():
-    """All proxy operators set physical_amplitude_claim_allowed=False."""
+    """All proxy operators set physical_amplitude_calibrated=False."""
     proxy_operators = [
         lfp_proxy_probe(jnp.ones((10, 16))),
         csd_proxy_probe(jnp.ones((10, 16))),
@@ -194,8 +172,8 @@ def test_contract_proxy_amplitude_claim_false():
     ]
 
     for readout in proxy_operators:
-        assert readout.report["physical_amplitude_claim_allowed"] is False, \
-            f"{readout.report['kind']} should have physical_amplitude_claim_allowed=False"
+        assert readout.report["physical_amplitude_calibrated"] is False, \
+            f"{readout.report['kind']} should have physical_amplitude_calibrated=False"
 
 
 # ─── CSD Operator Specific Fields ──────────────────────────────────────────────

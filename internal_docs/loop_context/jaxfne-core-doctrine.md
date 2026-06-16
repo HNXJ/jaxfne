@@ -35,11 +35,10 @@ Avoid alternate aliases, wildcard imports, and invented APIs.
 ## Truth gates
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-field_claim_level: proxy_readout_only
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+field_claim_level: proxy_readout
+physical_amplitude_calibrated: false
 ```
 
 Stronger wording requires run-specific solver, geometry, boundary condition, gauge condition, residual, convergence, source calibration, units, finite fields, and external or empirical validation.

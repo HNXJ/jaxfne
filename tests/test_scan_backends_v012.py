@@ -82,11 +82,10 @@ class TestDenseScanBackend:
         signals = model.simulate(sim)
         receipt = model.run_receipt(signals)
         truth = receipt.truth
-        assert truth["truth_mode"] == "truth_safe_unverified"
         assert truth["claim_level"] == "computational_scaffold"
-        assert truth["field_solver_status"] == "laminar_proxy_no_pde"
+        assert truth["field_solver_status"] == "linear_solver"
         assert truth["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-        assert truth["physical_amplitude_claim_allowed"] is False
+        assert truth["physical_amplitude_calibrated"] is False
 
     def test_dense_metadata_json_safe(self):
         """Dense metadata serializes without NaN/Inf."""
@@ -138,10 +137,9 @@ class TestEdgeListScanBackend:
         signals = model.simulate(sim)
         receipt = model.run_receipt(signals)
         truth = receipt.truth
-        assert truth["truth_mode"] == "truth_safe_unverified"
         assert truth["claim_level"] == "computational_scaffold"
-        assert truth["field_solver_status"] == "laminar_proxy_no_pde"
-        assert truth["physical_amplitude_claim_allowed"] is False
+        assert truth["field_solver_status"] == "linear_solver"
+        assert truth["physical_amplitude_calibrated"] is False
 
 
 class TestReceptorExponentialScanBackend:

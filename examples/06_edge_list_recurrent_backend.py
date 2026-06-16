@@ -34,8 +34,8 @@ def main() -> None:
         "signals_summary": summary,
         "batch_metadata": batch["metadata"],
         "run_status": "tutorial_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "field_model_status": "proxy_readout_only",
+        "field_solver_status": "linear_solver",
+        "field_model_status": "proxy_readout",
         "amplitude_status": False,
         "mechanism_status": "outside_run",
     }

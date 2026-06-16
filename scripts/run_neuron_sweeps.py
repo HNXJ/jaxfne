@@ -152,7 +152,7 @@ for cell_type in ["E", "PV", "SST", "VIP"]:
     )
 plot_heatmaps(
     grids=grids_a,
-    title="Sweep A: Absolute Native Sweep (Drive 0-10, Noise 0-1 a.u.)\nTruth Mode: truth_safe_unverified | Status: computational_scaffold",
+    title="Sweep A: Absolute Native Sweep (Drive 0-10, Noise 0-1 a.u.)\nTruth Mode:  | Status: computational_scaffold",
     ylabel="Noise Amplitude (a.u.)",
     xlabel="Constant Drive (a.u.)",
     xticklabels=grid_values * 10.0,
@@ -174,7 +174,7 @@ for cell_type in ["E", "PV", "SST", "VIP"]:
     )
 plot_heatmaps(
     grids=grids_b,
-    title="Sweep B: Preset-Relative Sweep (Drive 0 to 10x Baseline, Noise 0-10 a.u.)\nTruth Mode: truth_safe_unverified | Status: computational_scaffold",
+    title="Sweep B: Preset-Relative Sweep (Drive 0 to 10x Baseline, Noise 0-10 a.u.)\nTruth Mode:  | Status: computational_scaffold",
     ylabel="Noise Amplitude (a.u.)",
     xlabel="Constant Drive (Relative to 10x Preset)",
     xticklabels=grid_values * 10.0, # relative labels 0.0 to 10.0
@@ -202,7 +202,7 @@ for cell_type in ["E", "PV", "SST", "VIP"]:
     )
 plot_heatmaps(
     grids=grids_c,
-    title="Sweep C: Threshold-Spanning Sweep (Drive 0 to 10x MaxDrive, Noise 0-10 a.u.)\nTruth Mode: truth_safe_unverified | Status: computational_scaffold",
+    title="Sweep C: Threshold-Spanning Sweep (Drive 0 to 10x MaxDrive, Noise 0-10 a.u.)\nTruth Mode:  | Status: computational_scaffold",
     ylabel="Noise Amplitude (a.u.)",
     xlabel="Constant Drive (Relative to 10x Threshold-Spanning Max)",
     xticklabels=grid_values * 10.0, # relative labels 0.0 to 10.0
@@ -216,10 +216,9 @@ raw_data = {
         "duration_ms": DURATION_MS,
         "dt_ms": DT_MS,
         "seed": SEED,
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False
     },
     "sweep_a_absolute": {k: v.tolist() for k, v in grids_a.items()},
     "sweep_b_preset_relative": {k: v.tolist() for k, v in grids_b.items()},

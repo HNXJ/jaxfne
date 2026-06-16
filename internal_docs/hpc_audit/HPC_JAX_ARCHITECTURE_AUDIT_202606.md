@@ -9,10 +9,9 @@ Review target: maximize JAX purity, tensor-field mathematical validity, backend 
 Status boundary preserved:
 
 ```yaml
-truth_mode: truth_safe_unverified
 claim_level: computational_scaffold
-field_solver_status: laminar_proxy_no_pde
-physical_amplitude_claim_allowed: false
+field_solver_status: linear_solver
+physical_amplitude_calibrated: false
 ```
 
 ## Executive assessment

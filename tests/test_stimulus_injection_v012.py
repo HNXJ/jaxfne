@@ -40,7 +40,7 @@ def test_stimulus_schedule_construction():
     
     d = sched.to_dict()
     assert d["stimulus_injection_status"] == "native_drive_schedule_v0.0.12"
-    assert d["physical_amplitude_claim_allowed"] is False
+    assert d["physical_amplitude_calibrated"] is False
     assert d["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
     
     # JSON safe
@@ -158,13 +158,12 @@ def test_stimulus_injection_truth_gates_unchanged():
 
     meta = signals.metadata
     assert meta["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-    assert meta["field_claim_level"] == "proxy_readout_only"
+    assert meta["field_claim_level"] == "proxy_readout"
 
     manifest = model.manifest(signals)
-    assert manifest["truth_mode"] == "truth_safe_unverified"
     assert manifest["claim_level"] == "computational_scaffold"
     labels = manifest.get("v005_claim_labels", {})
-    assert labels.get("physical_amplitude_claim_allowed", False) is False
+    assert labels.get("physical_amplitude_calibrated", False) is False
     assert labels.get("empirical_validation_status", "not_empirically_validated") == "not_empirically_validated"
     assert labels.get("mechanism_claim_status", "not_claimed") == "not_claimed"
 

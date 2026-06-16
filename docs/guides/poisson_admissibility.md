@@ -4,7 +4,7 @@
 > consistency) for the elliptic field regime. The regime is one of the reserved regimes in
 > [Limitations and future plans](../limitations_and_future_plans.md); the shipped package uses
 > the laminar proxy. The `solved_poisson` regime carries `implemented=False, status_enabled=False`,
-> and proxy amplitudes stay relative (uncalibrated) under `physical_amplitude_claim_allowed = False`.
+> and proxy amplitudes stay relative (uncalibrated) under `physical_amplitude_calibrated = False`.
 
 ## Overview
 
@@ -223,7 +223,7 @@ assert "specification-only" in report.get("v0215_note", "").lower()
     "csd_sign_convention": "positive_equals_extracellular_source"
   },
   "amplitude_status": false,
-  "note": "Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_claim_allowed=false."
+  "note": "Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_calibrated=false."
 }
 ```
 

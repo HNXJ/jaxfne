@@ -105,8 +105,8 @@ class TestTutorialFigureContract:
             manifest = json.load(f)
 
         assert manifest.get("claim_level") == "computational_scaffold", f"claim_level not frozen in {name}"
-        assert manifest.get("physical_amplitude_claim_allowed") is False, f"physical_amplitude_claim_allowed not False in {name}"
-        assert manifest.get("field_claim_level") == "proxy_readout_only", f"field_claim_level not frozen in {name}"
+        assert manifest.get("physical_amplitude_calibrated") is False, f"physical_amplitude_calibrated not False in {name}"
+        assert manifest.get("field_claim_level") == "proxy_readout", f"field_claim_level not frozen in {name}"
 
     @pytest.mark.parametrize("name,path", TUTORIAL_OUTPUTS)
     def test_metrics_nonzero(self, name, path):

@@ -5,7 +5,6 @@ Measures wall-clock time across construction, simulation, probing, and manifest
 generation phases. Outputs JSON-safe report with hardware metadata and claim gates.
 
 Claim status: local_environment_receipt_only, no universal performance claims.
-truth_mode: truth_safe_unverified
 """
 
 import json
@@ -45,7 +44,6 @@ class BenchmarkResult:
     hardware_info: dict[str, Any]
     jaxfne_version: str
     claim_level: str
-    truth_mode: str
     local_environment_receipt_only: bool
     notes: str
 
@@ -58,7 +56,6 @@ class BenchmarkResult:
             "hardware_info": self.hardware_info,
             "jaxfne_version": str(self.jaxfne_version),
             "claim_level": str(self.claim_level),
-            "truth_mode": str(self.truth_mode),
             "local_environment_receipt_only": bool(self.local_environment_receipt_only),
             "notes": str(self.notes),
         }
@@ -113,7 +110,6 @@ def run_benchmark_case(case: BenchmarkCase) -> BenchmarkResult:
     cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="declared_proxy", gauge="mean_zero")
     cfg = cfg.probe(name="laminar_probe", modes=["spikes", "V_m", "source", "phi_e", "J_e", "CSD", "LFP"])
     cfg = cfg.update_metadata(
-        truth_mode="truth_safe_unverified",
         claim_level="computational_scaffold",
     )
     timings.append({"phase": "configuration_setup", "elapsed_ms": float((time.time() - t0) * 1000.0)})
@@ -162,7 +158,6 @@ def run_benchmark_case(case: BenchmarkCase) -> BenchmarkResult:
         hardware_info=get_hardware_info(),
         jaxfne_version=jtfne.__version__,
         claim_level="computational_scaffold",
-        truth_mode="truth_safe_unverified",
         local_environment_receipt_only=True,
         notes="Benchmark conducted on local CPU. No universal performance claim. Times include Python/JAX overhead and are environment-specific.",
     )

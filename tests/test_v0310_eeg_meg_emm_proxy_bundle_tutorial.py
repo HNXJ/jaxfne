@@ -69,10 +69,10 @@ def test_v0310_non_negotiable_boundaries():
         report = r.report
         
         # 1. No physical amplitude claims are allowed
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
         
         # 2. Field solver is laminar proxy (no PDE)
-        assert report["field_solver_status"] == "laminar_proxy_no_pde"
+        assert report["field_solver_status"] == "linear_solver"
         
         # 3. Explicit uncalibrated/proxy status in assumptions
         assumptions = report["assumptions"]

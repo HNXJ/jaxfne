@@ -112,8 +112,7 @@ synchrony_rejection: bool
 rejection_reasons: [list of strings]
 uses_teaching_control_source: bool
 default_evidence_path: bool
-physical_amplitude_claim_allowed: false
-truth_mode: truth_safe_unverified
+physical_amplitude_calibrated: false
 bands:
   alpha_beta: [8.0, 25.0]
   gamma: [40.0, 150.0]
@@ -159,7 +158,6 @@ Create `tests/test_spectrolaminar_objectives.py` (minimum 10 tests):
 - [x] Implement score_type grammar (only one type per report)
 - [x] Implement 4+ null distributions
 - [x] Implement synchrony metric + rejection gate
-- [x] Metadata: truth_mode, physical_amplitude_claim_allowed, proxy-safe labels
 - [x] Tests: nulls, synchrony, report schema, JSON safety
 - [x] Export to `jaxfne/objectives.py` (new module)
 - [x] Use Phase 2 validator as final gate
@@ -250,7 +248,6 @@ Validator receipt:
   [JSON output from Phase 2 validator — PASS status required]
 
 Truth status:
-  truth_mode: truth_safe_unverified
   evidence_honest: true
   evidence_finite: true
   evidence_reproducible: true
@@ -276,7 +273,6 @@ Next safe action:
 - [ ] 10+ tests implemented and passing
 - [ ] A–C regression: 0 new failures
 - [ ] Phase 2 validator: PASS status required
-- [ ] Metadata: truth_mode, physical_amplitude_claim_allowed, proxy-safe labels
 - [ ] JSON serialization safe (allow_nan=False)
 - [ ] Final report includes validator receipt
 

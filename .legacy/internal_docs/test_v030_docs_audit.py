@@ -7,7 +7,6 @@ Tests that v0.3 tutorial documentation meets audit policy requirements:
 3. Open in Colab link policy enforced
 4. Import alias policy enforced
 
-truth_mode: truth_safe_unverified
 """
 
 import json
@@ -243,7 +242,7 @@ class TestAcceptanceGatesAndClaimGates:
 
         # Must mention claim gates
         assert "Claim Gates" in content or "claim gates" in content.lower()
-        assert "physical_amplitude_claim_allowed" in content
+        assert "physical_amplitude_calibrated" in content
 
     def test_template_mentions_firing_rate_gate(self):
         """template.md must mention 2–25 Hz firing rate acceptance gate."""

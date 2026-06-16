@@ -30,7 +30,7 @@ class TestTaskCRuntimeSpecValidation:
         cfg_dict = {
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
-            "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
+            "truth": {"claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "linear_solver", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_calibrated": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
@@ -48,7 +48,7 @@ class TestTaskCRuntimeSpecValidation:
         cfg_dict = {
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
-            "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
+            "truth": {"claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "linear_solver", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_calibrated": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
@@ -66,7 +66,7 @@ class TestTaskCRuntimeSpecValidation:
         cfg_dict = {
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
-            "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
+            "truth": {"claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "linear_solver", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_calibrated": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
@@ -85,9 +85,8 @@ class TestTaskCRuntimeSpecValidation:
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
             "truth": {
-                "truth_mode": "aggressive_overclaim_attempt",  # Should downgrade
                 "claim_level": "mechanism_validated",  # Should downgrade
-                "physical_amplitude_claim_allowed": True  # Should downgrade to False
+                "physical_amplitude_calibrated": True  # Should downgrade to False
             },
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
@@ -98,9 +97,8 @@ class TestTaskCRuntimeSpecValidation:
         cfg = jtfne.JaxFNEConfig(**cfg_dict)
         configuration = jtfne.config_to_configuration(cfg)
         # Check that truth was downgraded to conservative defaults
-        assert configuration.metadata["truth_mode"] == "truth_safe_unverified"
         assert configuration.metadata["claim_level"] == "computational_scaffold"
-        assert configuration.metadata["physical_amplitude_claim_allowed"] is False
+        assert configuration.metadata["physical_amplitude_calibrated"] is False
 
     def test_truth_transfer_warns_on_escalation(self):
         """Conservative truth transfer tracks escalation warnings."""
@@ -108,9 +106,8 @@ class TestTaskCRuntimeSpecValidation:
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
             "truth": {
-                "truth_mode": "biologically_calibrated",
                 "claim_level": "full_neural_proof",
-                "physical_amplitude_claim_allowed": True
+                "physical_amplitude_calibrated": True
             },
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
@@ -131,7 +128,7 @@ class TestTaskCRuntimeSpecValidation:
         cfg_dict = {
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
-            "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
+            "truth": {"claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "linear_solver", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_calibrated": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "unknown_planned_emitter", "preset": "default"},
             "field_spec": {"domain": "laminar_column", "conductivity": "proxy",
@@ -150,7 +147,7 @@ class TestTaskCRuntimeSpecValidation:
         cfg_dict = {
             "schema_version": "jaxfne.config.v0.0.15",
             "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 0},
-            "truth": {"truth_mode": "truth_safe_unverified", "claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "laminar_proxy_no_pde", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_claim_allowed": False},
+            "truth": {"claim_level": "computational_scaffold", "source_calibration_status": "uncalibrated_izhikevich_native_current", "field_solver_status": "linear_solver", "empirical_validation_status": "not_empirically_validated", "mechanism_claim_status": "not_claimed", "physical_amplitude_calibrated": False},
             "network": {"n": 10, "kind": "cortical_column", "cell_types": {"E": 1.0}},
             "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
             "field_spec": {"domain": "planned_3d_domain", "conductivity": "proxy",
@@ -256,7 +253,7 @@ class TestTaskHSourceProxyMetadata:
         source_model = signals.metadata["source_model"]
         assert source_model["source_model"] == "izhikevich_native_current_plus_spike_impulse_proxy"
         assert source_model["spike_impulse_gain"] == 20.0
-        assert source_model["physical_amplitude_claim_allowed"] is False
+        assert source_model["physical_amplitude_calibrated"] is False
 
     def test_source_metadata_in_simulate_batch(self):
         """simulate_batch() includes source_model metadata."""
@@ -338,9 +335,8 @@ class TestTaskIReceptorTauConsistency:
         mf_rec = model.manifest(signals=signals_rec)
 
         # Truth gates should be identical
-        assert mf_exp["truth_mode"] == mf_rec["truth_mode"]
         assert mf_exp["claim_level"] == mf_rec["claim_level"]
-        assert mf_exp["physical_amplitude_claim_allowed"] == mf_rec["physical_amplitude_claim_allowed"]
+        assert mf_exp["physical_amplitude_calibrated"] == mf_rec["physical_amplitude_calibrated"]
         assert mf_exp["source_projection_mode"] == mf_rec["source_projection_mode"]
         assert mf_exp["field_solver_status"] == mf_rec["field_solver_status"]
 
@@ -399,10 +395,9 @@ class TestTruthGatesFrozen:
         signals = model.simulate(sim)
         manifest = model.manifest(signals=signals)
 
-        assert manifest["truth_mode"] == "truth_safe_unverified"
         assert manifest["claim_level"] == "computational_scaffold"
         assert manifest["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
         assert manifest["source_projection_mode"] == "proxy_no_field_solve"
-        assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
-        assert manifest["field_claim_level"] == "proxy_readout_only"
-        assert manifest["physical_amplitude_claim_allowed"] is False
+        assert manifest["field_solver_status"] == "linear_solver"
+        assert manifest["field_claim_level"] == "proxy_readout"
+        assert manifest["physical_amplitude_calibrated"] is False

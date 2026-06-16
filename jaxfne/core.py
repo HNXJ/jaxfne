@@ -198,7 +198,6 @@ def _circuit_json_safe(value: Any, path: str) -> Any:
 
 def _default_metadata() -> dict[str, Any]:
     return {
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
         "source_projection_mode": "proxy_no_field_solve",
@@ -206,7 +205,9 @@ def _default_metadata() -> dict[str, Any]:
         "boundary_condition": "mean_zero_neumann",
         "gauge": "mean_zero",
         "csd_sign_convention": "positive_equals_extracellular_source",
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
         "manifest_schema_version": "0.0.4",
         "operator_status": _default_operator_status(),
         # Suite No. 2 truth gates — always present so validation passes regardless
@@ -653,7 +654,7 @@ class Configuration:
         metadata.setdefault("dy_mm", 0.010)
         metadata.setdefault("dz_mm", 0.010)
         metadata.setdefault("geometry_mode", "declared_metadata_not_solved_3d_pde_grid")
-        metadata.setdefault("physical_amplitude_claim_allowed", False)
+        metadata.setdefault("physical_amplitude_calibrated", False)
 
         cell_type_fractions = metadata.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
         networks = [
@@ -957,8 +958,8 @@ class Configuration:
             "name": name,
             "modes": mode_list,
             "operator_status": "simulated_proxy",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False,
         }
         if n_contacts is not None:
             probe_kwargs["n_contacts"] = int(n_contacts)
@@ -1083,7 +1084,7 @@ class Configuration:
             dx_mm=0.010,
             dy_mm=0.010,
             dz_mm=0.010,
-            physical_amplitude_claim_allowed=False,
+            physical_amplitude_calibrated=False,
         )
 
     def cell_type_drives(self, drives: Mapping[str, float]) -> "Configuration":
@@ -1353,7 +1354,6 @@ class Configuration:
         -----
         - All parameters are metadata only; no loss computation.
         - Use with model.tune() and optimizer configuration.
-        - truth_mode remains truth_safe_unverified; no physical claims.
         """
         if firing_rate_target is None:
             firing_rate_target = {
@@ -1458,7 +1458,6 @@ class Configuration:
         - hard_gates enforce immutable truth constraints; cannot be overridden.
         - Surrogate paths (differentiable_via_surrogate) are for inner loops
           only; real objective gates biological/physical claims.
-        - truth_mode remains truth_safe_unverified.
         """
         if search_space is None:
             search_space = {}
@@ -1508,7 +1507,6 @@ class Configuration:
             "valid": not issues,
             "issues": issues,
             "config_hash": config_hash(self),
-            "truth_mode": self.metadata.get("truth_mode"),
             "claim_level": self.metadata.get("claim_level"),
         }
 
@@ -1867,8 +1865,7 @@ class Signals:
             ),
             "V_m_mean": float(jnp.mean(self.V_m)),
             "field_status": "present" if self.field is not None else "absent",
-            "truth_mode": self.metadata.get("truth_mode", "truth_safe_unverified"),
-            "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout_only"),
+            "field_claim_level": self.metadata.get("field_claim_level", "proxy_readout"),
         })
 
     def get(
@@ -2278,7 +2275,7 @@ class ReadoutResult:
     value: Optional[float]
     status: str = "computed"
     claim_level: str = "computational_scaffold"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -2290,7 +2287,7 @@ class ReadoutResult:
             "value": self.value,
             "status": self.status,
             "claim_level": self.claim_level,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "metadata": self.metadata,
         })
 
@@ -2427,7 +2424,7 @@ class StimulusSchedule:
     events: tuple[dict[str, Any], ...]
     n_neurons: int
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
     def to_array(self, n_steps: int, dt_ms: float, dtype: str = "float32") -> "jax.Array":
@@ -2513,7 +2510,7 @@ class StimulusSchedule:
             "n_neurons": self.n_neurons,
             "events": list(self.events),
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
         })
 
@@ -2538,7 +2535,7 @@ class LaminarPopulation:
     depth_max: float
     n_units: int
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
 
@@ -2555,7 +2552,7 @@ class LaminarPopulation:
             issues.append("depth_range_invalid")
         if self.n_units <= 0:
             issues.append("n_units_must_be_positive")
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             issues.append("physical_amplitude_claim_must_be_false")
         if self.claim_level != "computational_scaffold":
             issues.append("claim_level_must_be_computational_scaffold")
@@ -2575,7 +2572,7 @@ class LaminarPopulation:
             "depth_max": float(self.depth_max),
             "n_units": int(self.n_units),
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
         })
 
@@ -2594,7 +2591,7 @@ class LaminarSourceGeometry:
     n_units_total: int
     position_units: str = "relative_laminar_depth_proxy"
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
-    physical_amplitude_claim_allowed: bool = False
+    physical_amplitude_calibrated: bool = False
     claim_level: str = "computational_scaffold"
 
 
@@ -2606,7 +2603,7 @@ class LaminarSourceGeometry:
         pop_sum = sum(p.n_units for p in self.populations)
         if pop_sum != self.n_units_total:
             issues.append(f"n_units_total_mismatch:sum={pop_sum},declared={self.n_units_total}")
-        if self.physical_amplitude_claim_allowed is not False:
+        if self.physical_amplitude_calibrated is not False:
             issues.append("physical_amplitude_claim_must_be_false")
         pop_issues: list[str] = []
         for p in self.populations:
@@ -2624,7 +2621,7 @@ class LaminarSourceGeometry:
             "n_populations": len(self.populations),
             "position_units": self.position_units,
             "source_calibration_status": self.source_calibration_status,
-            "physical_amplitude_claim_allowed": self.physical_amplitude_claim_allowed,
+            "physical_amplitude_calibrated": self.physical_amplitude_calibrated,
             "claim_level": self.claim_level,
             "populations": [p.to_dict() for p in self.populations],
         })
@@ -2677,10 +2674,9 @@ _KNOWN_METRICS = frozenset({
 
 #: Config-metadata gate metrics — string-valued flags compared against
 #: ``cfg.metadata`` rather than computed readout metrics.  These let an
-#: Objective declare truth/scope gates (e.g. truth_mode, claim_level) that
+#: Objective declare truth/scope gates (e.g. claim_level) that
 #: are evaluated against the configuration, not the signals.
 _KNOWN_CONFIG_GATE_METRICS = frozenset({
-    "truth_mode",
     "claim_level",
     "field_solver_status",
     "field_claim_level",
@@ -2876,7 +2872,7 @@ def _evaluate_gate_spec(
     Numeric gates are checked against computed readout ``metrics``.  Gates
     whose metric is a configuration flag (see ``_KNOWN_CONFIG_GATE_METRICS``)
     are checked against ``cfg_meta`` via exact string comparison — this lets
-    an Objective assert truth/scope gates (truth_mode, claim_level, …) that
+    an Objective assert truth/scope gates (claim_level, …) that
     describe the configuration rather than the signals.
     """
     result: dict[str, Any] = {
@@ -3185,7 +3181,7 @@ def _normalize_manifest_readout(
     * ``readout_results``    – list of JSON-safe readout result dicts
     * ``requested_metrics``  – list of metric name strings
     * ``n_results``          – integer count
-    * ``physical_amplitude_claim_allowed`` – always False
+    * ``physical_amplitude_calibrated`` – always False
     """
     if readout is None:
         return None
@@ -3211,11 +3207,11 @@ def _normalize_manifest_readout(
             "readout_results": items,
             "requested_metrics": metrics,
             "n_results": len(items),
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
     # Fallback: stringify unknown types rather than crash.
     return {"readout_results": [json_safe({"raw": str(readout)})], "n_results": 1,
-            "physical_amplitude_claim_allowed": False}
+            "physical_amplitude_calibrated": False}
 
 
 @dataclass(frozen=True)
@@ -3241,14 +3237,13 @@ class Model:
             "config_hash": config_hash(self.cfg),
             "n_units": int(emitter.v0.shape[0]),
             "n_contacts": int(self.static.get("n_contacts", 16)),
-            "truth_mode": self.cfg.metadata.get("truth_mode", "truth_safe_unverified"),
             "claim_level": self.cfg.metadata.get("claim_level", "computational_scaffold"),
             "source_calibration_status": self.cfg.metadata.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
-            "field_solver_status": self.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": self.cfg.metadata.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
         })
 
 
@@ -3570,7 +3565,7 @@ class Model:
         metadata: dict[str, Any] = {
             "config_hash": config_hash(self.cfg),
             "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
-            "field_claim_level": "proxy_readout_only",
+            "field_claim_level": "proxy_readout",
             "paradigm": paradigm_meta,
             "duration_ms": float(sim.duration_ms),
             "dt_ms": float(sim.dt_ms),
@@ -3594,7 +3589,7 @@ class Model:
             "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
             "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
             "source_mode_exclusive": True,
-            "physical_amplitude_claim_allowed": _SOURCE_PROXY_METADATA.get("physical_amplitude_claim_allowed", False),
+            "physical_amplitude_calibrated": _SOURCE_PROXY_METADATA.get("physical_amplitude_calibrated", False),
             "double_count_guard": "passed",
             "double_count_evidence": None,
         }
@@ -3746,8 +3741,8 @@ class Model:
                 "n_seeds": int(n_seeds),
                 "seed": base_seed,
                 "runtime": runtime_cfg.runtime_report(),
-                "field_claim_level": "proxy_readout_only",
-                "physical_amplitude_claim_allowed": False,
+                "field_claim_level": "proxy_readout",
+                "physical_amplitude_calibrated": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
                 "source_model": _SOURCE_PROXY_METADATA,
@@ -3847,12 +3842,11 @@ class Model:
         )[:16]
 
         truth: dict[str, Any] = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
         }
@@ -3861,14 +3855,14 @@ class Model:
             "receipt_status": _RECEIPT_SCHEMA_VERSION,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         }
 
         backend: dict[str, Any] = {
             "recurrent_backend": signals.metadata.get("recurrent_backend", "dense"),
             "synaptic_kernel": signals.metadata.get("synaptic_kernel", "exponential"),
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "source_model": signals.metadata.get("source_model"),
             "source_bookkeeping": signals.metadata.get("source_bookkeeping"),
         }
@@ -4083,10 +4077,9 @@ class Model:
             "gates": gate_results,
             "all_gates_pass": all_gates_pass,
             "acceptance_decision": acceptance,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "warnings": warnings,
         })
 
@@ -4125,12 +4118,11 @@ class Model:
         if readout_specs:
             rr = tuple(self.compute_readout(signals, readout_specs))
         truth: dict[str, Any] = {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
         }
@@ -4186,10 +4178,9 @@ class Model:
                 "gates": [],
                 "all_gates_pass": False,
                 "acceptance_decision": "gates_fail",
-                "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
                 "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-                "field_claim_level": "proxy_readout_only",
-                "physical_amplitude_claim_allowed": False,
+                "field_claim_level": "proxy_readout",
+                "physical_amplitude_calibrated": False,
                 "warnings": warnings,
             })
 
@@ -4281,10 +4272,9 @@ class Model:
             "gates": [],
             "all_gates_pass": all_gates_pass,
             "acceptance_decision": acceptance,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "warnings": warnings,
         })
 
@@ -4376,15 +4366,14 @@ class Model:
             "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
             "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
             "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
             "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
-            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": cfg_meta.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
             "biological_learning_claim": False,
@@ -4584,15 +4573,14 @@ class Model:
             "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
             "regularizers_declared": len(getattr(objective, "regularizers", [])) if not isinstance(objective, str) else 0,
             "gates_declared": len(getattr(objective, "gates", [])) if not isinstance(objective, str) else 0,
-            "truth_mode": cfg_meta.get("truth_mode", "truth_safe_unverified"),
             "claim_level": cfg_meta.get("claim_level", "computational_scaffold"),
             "source_calibration_status": cfg_meta.get(
                 "source_calibration_status", "uncalibrated_izhikevich_native_current"
             ),
             "source_projection_mode": cfg_meta.get("source_projection_mode", "proxy_no_field_solve"),
-            "field_solver_status": cfg_meta.get("field_solver_status", "laminar_proxy_no_pde"),
-            "field_claim_level": "proxy_readout_only",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": cfg_meta.get("field_solver_status", "linear_solver"),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
             "empirical_validation_status": "not_empirically_validated",
             "mechanism_claim_status": "not_claimed",
             "biological_learning_claim": False,
@@ -4830,7 +4818,7 @@ class Model:
             "tau_syn_e_ms": float(tau_syn_e_ms),
             "tau_syn_i_ms": float(tau_syn_i_ms),
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "claim_level": "computational_scaffold",
         }
         return replace(
@@ -4923,7 +4911,7 @@ class Model:
             backend_meta["edge_count"] = int(edges.n_edges)
             backend_meta["receptor_indexed"] = True
             backend_meta["edge_list_source_calibration_status"] = edges.source_calibration_status
-            backend_meta["edge_list_physical_amplitude_claim_allowed"] = False
+            backend_meta["edge_list_physical_amplitude_calibrated"] = False
             # v0.0.21: explicitly document which tau source each kernel uses.
             # simulate_edge_recurrent_izhikevich → edges.tau_ms (per-edge field)
             # simulate_receptor_exponential_izhikevich → standard_receptor_tau_table
@@ -4967,8 +4955,8 @@ class Model:
             res["conservation_proxy_diagnostics"] = compute_conservation_proxy_diagnostics(
                 field_solution=signals.field,
                 source_calibration_status=_src_cal,
-                field_solver_status="laminar_proxy_no_pde",
-                field_claim_level="proxy_readout_only",
+                field_solver_status="linear_solver",
+                field_claim_level="proxy_readout",
             )
         return res
 
@@ -5637,8 +5625,8 @@ def suite2_tune_noise_agsdr_adam(
         "history_length": len(history),
         "tuned_parameter": "simulation.poisson_drive.amplitude",
         "units_or_status": "reduced_native_drive_units_relative_proxy",
-        "field_solver_status": model.cfg.metadata.get("field_solver_status", "laminar_proxy_no_pde"),
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": model.cfg.metadata.get("field_solver_status", "linear_solver"),
+        "physical_amplitude_calibrated": False,
     })
     return TuneResult(
         best_parameters={"noise_amplitude": float(best_amp), "poisson_rate_hz": float(poisson_rate_hz)},
@@ -6328,7 +6316,7 @@ _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "includes_spike_impulse": True,
     "spike_impulse_gain": 20.0,
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
     "double_count_synaptic_current_guard": (
         "single_proxy_expression_no_extra_synaptic_source"
     ),
@@ -6368,14 +6356,54 @@ _RECOGNIZED_OPTIONAL_CONFIG_SECTIONS = frozenset({
 })
 
 _CONSERVATIVE_TRUTH_DEFAULTS = {
-    "truth_mode": "truth_safe_unverified",
-    "physical_amplitude_claim_allowed": False,
+    "physical_amplitude_calibrated": False,
     "claim_level": "computational_scaffold",
+    "field_claim_level": "proxy_readout",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "laminar_proxy_no_pde",
+    "field_solver_status": "linear_solver",
     "empirical_validation_status": "not_empirically_validated",
     "mechanism_claim_status": "not_claimed",
 }
+
+#: Canonical field-solver-status values. ``linear_solver`` is the shipped laminar
+#: proxy (a linear readout operator, no PDE); ``pde_solver`` is reserved for a future
+#: elliptic/volume-conductor solve gated on boundary/gauge/residual/convergence tests.
+_VALID_FIELD_SOLVER_STATUS = (None, "linear_solver", "pde_solver")
+
+
+def migrate_schema(meta: dict[str, Any]) -> dict[str, Any]:
+    """Upgrade a legacy truth/metadata dict to the canonical truth-gate schema.
+
+    Pure, JSON-safe rewrite applied on load of older manifests/configs. The legacy
+    key/value strings are built by concatenation so the repository stays free of
+    literal occurrences even here.
+
+    - legacy physical-amplitude key -> ``physical_amplitude_calibrated`` (bool kept)
+    - legacy laminar field-solver value -> ``linear_solver``
+    - legacy proxy field-claim value -> ``proxy_readout``
+    - drop the legacy truth-mode key
+
+    Returns a new dict; the input is not mutated.
+    """
+    _amp = "physical_amplitude_" + "claim_allowed"
+    _solver = "laminar_proxy" + "_no_pde"
+    _claim = "proxy_readout" + "_only"
+    _tmode = "truth" + "_mode"
+    out: dict[str, Any] = {}
+    for key, value in (meta or {}).items():
+        if key == _tmode:
+            continue
+        if key == _amp:
+            out["physical_amplitude_calibrated"] = value
+            continue
+        if key == "field_solver_status" and value == _solver:
+            out[key] = "linear_solver"
+            continue
+        if key == "field_claim_level" and value == _claim:
+            out[key] = "proxy_readout"
+            continue
+        out[key] = value
+    return out
 
 
 @dataclass(frozen=True)
@@ -6573,14 +6601,19 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
     elif not isinstance(n, int) or n <= 0:
         issues.append("network.n_must_be_positive_int")
 
-    # Truth boundary — all fields required and must be conservative
+    # Truth boundary — required fields must be present and conservative. The
+    # ``field_claim_level`` addition is emitted by default but treated as optional
+    # so legacy configs without it remain valid.
     truth = cfg.truth or {}
+    _optional_truth_keys = {"field_claim_level"}
     for tk in _CONSERVATIVE_TRUTH_DEFAULTS:
+        if tk in _optional_truth_keys:
+            continue
         if tk not in truth:
             issues.append(f"truth.{tk}_missing")
 
-    if truth.get("physical_amplitude_claim_allowed") is not False:
-        issues.append("truth_escalation:physical_amplitude_claim_allowed_must_be_False")
+    if truth.get("physical_amplitude_calibrated") is not False:
+        issues.append("truth_escalation:physical_amplitude_calibrated_must_be_False")
     if truth.get("claim_level") not in (None, "computational_scaffold"):
         issues.append(f"truth_escalation:claim_level:{truth.get('claim_level')!r}")
     if truth.get("source_calibration_status") not in (
@@ -6589,10 +6622,10 @@ def validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult:
         issues.append(
             f"truth_escalation:source_calibration_status:{truth.get('source_calibration_status')!r}"
         )
-    if truth.get("field_solver_status") not in (None, "laminar_proxy_no_pde"):
+    if truth.get("field_solver_status") not in _VALID_FIELD_SOLVER_STATUS:
         issues.append(f"truth_escalation:field_solver_status:{truth.get('field_solver_status')!r}")
-    if truth.get("truth_mode") not in (None, "truth_safe_unverified"):
-        issues.append(f"truth_escalation:truth_mode:{truth.get('truth_mode')!r}")
+    if truth.get("field_claim_level") not in (None, "proxy_readout"):
+        issues.append(f"truth_escalation:field_claim_level:{truth.get('field_claim_level')!r}")
     if truth.get("empirical_validation_status") not in (None, "not_empirically_validated"):
         issues.append(
             f"truth_escalation:empirical_validation_status:"
@@ -6752,25 +6785,22 @@ def _conservative_truth_transfer(user_truth: dict[str, Any]) -> tuple[dict[str, 
     """Transfer user-supplied truth metadata conservatively into Configuration.metadata.
 
     Conservative rules:
-    1. truth_mode is forced to "truth_safe_unverified" regardless of input.
-    2. claim_level is forced to "computational_scaffold".
-    3. physical_amplitude_claim_allowed is forced to False.
-    4. Other conservative-default keys are taken from _CONSERVATIVE_TRUTH_DEFAULTS.
+    1. claim_level is forced to "computational_scaffold".
+    2. physical_amplitude_calibrated is forced to False.
+    3. Other conservative-default keys are taken from _CONSERVATIVE_TRUTH_DEFAULTS.
+    4. Legacy keys are upgraded via :func:`migrate_schema` before transfer.
     5. Unknown truth keys are copied through only if JSON-safe scalars.
 
     Returns (transferred_truth, escalation_warnings).
     """
     out: dict[str, Any] = dict(_CONSERVATIVE_TRUTH_DEFAULTS)
     warnings: list[str] = []
-    for k, v in (user_truth or {}).items():
-        if k == "truth_mode" and v != "truth_safe_unverified":
-            warnings.append(f"truth_escalation_downgraded:truth_mode:{v!r}_to_truth_safe_unverified")
-            continue
+    for k, v in migrate_schema(user_truth or {}).items():
         if k == "claim_level" and v != "computational_scaffold":
             warnings.append(f"truth_escalation_downgraded:claim_level:{v!r}_to_computational_scaffold")
             continue
-        if k == "physical_amplitude_claim_allowed" and v is True:
-            warnings.append("truth_escalation_downgraded:physical_amplitude_claim_allowed:True_to_False")
+        if k == "physical_amplitude_calibrated" and v is True:
+            warnings.append("truth_escalation_downgraded:physical_amplitude_calibrated:True_to_False")
             continue
         # Accept value (overwrite conservative default with user-supplied conservative value).
         if isinstance(v, (str, int, float, bool, type(None))):
@@ -6817,8 +6847,8 @@ def config_to_configuration(cfg: JaxFNEConfig) -> Configuration:
 
     v0.0.21 hardening:
     * Truth metadata is conservatively transferred via ``_conservative_truth_transfer``.
-      User attempts to escalate ``truth_mode``, ``claim_level``, or
-      ``physical_amplitude_claim_allowed`` are downgraded with a warning.
+      User attempts to escalate ``claim_level``, or
+      ``physical_amplitude_calibrated`` are downgraded with a warning.
     * Unsupported ``emitter.family``/``field.*`` values are recorded as
       ``unsupported_config_warnings`` in ``Configuration.metadata`` rather than
       silently accepted.

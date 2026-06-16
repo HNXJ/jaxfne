@@ -164,6 +164,5 @@ v0.3.31. Curated, ≤100 entries; the exhaustive list lives in the
 ---
 
 **Truth gates ride on every crossing dataclass and must never be escalated:**
-`truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`,
-`field_solver_status=laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=False`,
+`field_solver_status=linear_solver`, `physical_amplitude_calibrated=False`,
 `biological_learning_claim=False`, `mechanism_claim_status=not_claimed`.

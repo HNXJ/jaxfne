@@ -11,7 +11,7 @@ H. no_field status when field absent and field metric requested
 I. unknown_metric status for unrecognized metric token
 J. time_window_ms slice respected — windowed result vs full result may differ
 K. n_contacts_slice restricts field depth dimension
-L. claim guards: physical_amplitude_claim_allowed False, claim_level scaffold
+L. claim guards: physical_amplitude_calibrated False, claim_level scaffold
 M. _KNOWN_READOUT_METRICS exported and contains expected entries
 """
 
@@ -73,7 +73,7 @@ def test_c_readout_result_to_dict_json_safe():
     assert d["spec_name"] == "rate"
     assert d["value"] == 12.5
     assert d["status"] == "computed"
-    assert d["physical_amplitude_claim_allowed"] is False
+    assert d["physical_amplitude_calibrated"] is False
     json.dumps(d, allow_nan=False)
 
 
@@ -189,10 +189,10 @@ def test_k_n_contacts_slice():
 
 def test_l_claim_guards():
     result = jtfne.ReadoutResult(spec_name="r", metric="spike_rate_hz", value=10.0)
-    assert result.physical_amplitude_claim_allowed is False
+    assert result.physical_amplitude_calibrated is False
     assert result.claim_level == "computational_scaffold"
     d = result.to_dict()
-    assert d["physical_amplitude_claim_allowed"] is False
+    assert d["physical_amplitude_calibrated"] is False
     assert d["claim_level"] == "computational_scaffold"
 
 

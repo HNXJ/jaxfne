@@ -1,7 +1,7 @@
 """The v0.4 physical field solver placeholder must fail loudly, never silently.
 
 Guards the truth-gate boundary: the stable field path is the laminar proxy
-(`laminar_proxy_no_pde`). The pre-0.4 physical-solver contract exists only to fix
+(`linear_solver`). The pre-0.4 physical-solver contract exists only to fix
 the API shape and must raise until a validated solver lands.
 """
 
@@ -14,7 +14,7 @@ from jaxfne.experimental_hpc import PhysicalFieldSolverSpec, solve_physical_fiel
 def test_spec_construction_is_inert_and_makes_no_physical_claim():
     spec = PhysicalFieldSolverSpec()
     # Constructing the spec must not assert any physical claim.
-    assert spec.physical_amplitude_claim_allowed is False
+    assert spec.physical_amplitude_calibrated is False
     assert spec.field_solver_status == "physical_solver_not_implemented_v040"
 
 

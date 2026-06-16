@@ -202,7 +202,7 @@ def _truth_gates_row() -> dict[str, Any]:
     gates = truth_gates()
     return {
         **gates,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "notebook_execution_completeness_claim_allowed": False,
     }
 
@@ -282,7 +282,7 @@ def _matrix_marker(row: dict[str, Any], column: str) -> str:
         )
         return f"{score}/3"
     if column == "gates":
-        return "ok" if not row["truth_gates"].get("physical_amplitude_claim_allowed") else "FAIL"
+        return "ok" if not row["truth_gates"].get("physical_amplitude_calibrated") else "FAIL"
     return "?"
 
 
@@ -413,7 +413,7 @@ def main() -> int:
         "atlas_rows": rows,
         "summary": summary,
         "notebook_execution_completeness_claim_allowed": False,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "performance_claims_allowed": False,
         "truth_gates": truth_gates(),
         "claim_boundary": "tutorial_atlas_coverage_receipt_only",
@@ -434,7 +434,7 @@ def main() -> int:
             "generator_command": "python scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
             "claim_boundary": "tutorial_atlas_coverage_receipt_only",
             "notebook_execution_completeness_claim_allowed": False,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "performance_claims_allowed": False,
             "atlas_summary": summary,
             "atlas_rows": rows,

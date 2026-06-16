@@ -79,7 +79,7 @@ def main():
         "n_neurons": n_neurons,
         "dt_ms": dt_ms,
         "source_bookkeeping": source_report,
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
         "amplitude_status": False
     }
     

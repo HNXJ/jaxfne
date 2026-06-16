@@ -61,8 +61,8 @@ SOURCE_FILES = [
 TITLE = "Extended Data 7 - probe/readout operator contract matrix"
 
 SCOPE_STATUS = (
-    "Simulated/proxy readout operator contracts only; proxy_readout_only; "
-    "physical_amplitude_claim_allowed: false; no real EEG/MEG or mechanism claims"
+    "Simulated/proxy readout operator contracts only; proxy_readout; "
+    "physical_amplitude_calibrated: false; no real EEG/MEG or mechanism claims"
 )
 
 READOUT_ORDER = [
@@ -156,11 +156,11 @@ def _contract_row(name: str, readout) -> dict[str, Any]:
         "field_claim_level": report.get("field_claim_level"),
         "calibration_status": report.get("calibration_status"),
         "source_calibration_status": report.get("source_calibration_status"),
-        "physical_amplitude_claim_allowed": report.get("physical_amplitude_claim_allowed"),
+        "physical_amplitude_calibrated": report.get("physical_amplitude_calibrated"),
         "shape": tuple(readout.data.shape) if hasattr(readout.data, "shape") else None,
         "finite_outputs": _finite_array(readout.data),
         "json_strict": _json_strict_ok(report),
-        "truth_gates_preserved": report.get("physical_amplitude_claim_allowed") is not True,
+        "truth_gates_preserved": report.get("physical_amplitude_calibrated") is not True,
         "report": report,
     }
 
@@ -257,7 +257,7 @@ def draw_figure(rows: list[dict[str, Any]], runtime: dict) -> None:
     ax.text(
         0.4,
         0.48,
-        "physical_amplitude_claim_allowed: false  |  proxy_readout_only",
+        "physical_amplitude_calibrated: false  |  proxy_readout",
         fontsize=6.5,
         va="top",
         family="monospace",
@@ -296,8 +296,8 @@ def _validate_rows(rows: list[dict[str, Any]]) -> list[str]:
             failures.append(f"{row['family']}: json_strict failed")
         if not row["truth_gates_preserved"]:
             failures.append(f"{row['family']}: truth_gates_preserved=false")
-        if row.get("physical_amplitude_claim_allowed"):
-            failures.append(f"{row['family']}: physical_amplitude_claim_allowed=true")
+        if row.get("physical_amplitude_calibrated"):
+            failures.append(f"{row['family']}: physical_amplitude_calibrated=true")
     if len(rows) != len(READOUT_ORDER):
         failures.append(f"expected {len(READOUT_ORDER)} families, got {len(rows)}")
     return failures
@@ -331,7 +331,7 @@ def main() -> int:
             "generated_at_utc": utc_now_iso(),
             "runtime_receipt": runtime,
             "scope_status": SCOPE_STATUS,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "performance_claims_allowed": False,
             "truth_gates_preserved": True,
             "simulation": {"duration_ms": 100.0, "dt_ms": 0.1, "seed": 42, "n_neurons": 2},
@@ -356,7 +356,7 @@ def main() -> int:
             "scope_status": SCOPE_STATUS,
             "generator_command": "python scripts/evidence_figures/ed07_probe_operator_contracts.py",
             "claim_boundary": "proxy_readout_operator_contracts_only",
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "performance_claims_allowed": False,
             "truth_gates_preserved": True,
             "simulation": {"duration_ms": 100.0, "dt_ms": 0.1, "seed": 42},

@@ -14,7 +14,7 @@ for v0.3 collector validation.
 Computational question: How does E→I excitatory drive and I→E inhibitory feedback
 shape the spike timing and voltage dynamics of a minimal coupled network?
 
-Status status: computational_scaffold, proxy_readout_only
+Status status: computational_scaffold, proxy_readout
 Physical amplitude status allowed: False
 Model status: computational_scaffold
 Scope: Tutorial demonstrating jaxfne TFNE pipeline; not biological validation.
@@ -456,8 +456,8 @@ def main(update_canonical: bool = False):
         "basis": {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "field_model_status": "proxy_readout_only",
+            "field_solver_status": "linear_solver",
+            "field_model_status": "proxy_readout",
             "amplitude_status": False,
             "metabolism_status": False,
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
@@ -569,7 +569,7 @@ def main(update_canonical: bool = False):
             "dx_mm": 0.010,
             "dy_mm": 0.010,
             "dz_mm": 0.010,
-            "note": "Declared tutorial geometry; laminar_proxy_no_pde mode does not solve 3D PDE",
+            "note": "Declared tutorial geometry; linear_solver mode does not solve 3D PDE",
         },
 
         "plotly": {
@@ -581,7 +581,7 @@ def main(update_canonical: bool = False):
         "non_statements": [
             "This tutorial is a computational scaffold, not a biological validation.",
             "The Izhikevich native current is not empirically calibrated membrane current.",
-            "No field PDE is solved in laminar_proxy_no_pde mode.",
+            "No field PDE is solved in linear_solver mode.",
             "Output CSD/LFP are proxy readouts without physical amplitude statuss.",
             "Dynamic coupling is implemented via exponential synaptic traces in lax.scan carry state.",
             "Each neuron's dynamics reflect the Izhikevich E+PV preset with adjusted drives.",
@@ -970,7 +970,7 @@ def main(update_canonical: bool = False):
         print(f"✓ Figures: {len(atlas_manifest['figures'])} generated and hashed")
         print(f"✓ Plotly available: {plotly_available}")
         print()
-        print("Status status: computational_scaffold, proxy_readout_only")
+        print("Status status: computational_scaffold, proxy_readout")
         print("Physical amplitude status allowed: False")
         print("Coupling mode: dynamic_synaptic_current_injection (not post-hoc)")
         print("=" * 80)

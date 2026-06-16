@@ -44,7 +44,7 @@ source_calibration_status = "uncalibrated_izhikevich_model_current"
 - $q$ is computed as: emitter model current (Izhikevich $I_k$) + spike impulse proxy (20× gain)
 - $q$ lacks validation against empirical synaptic or ionic current (calibration status: uncalibrated)
 - $q$ is spatial proxy: neuron position (in laminar_source_geometry) → spatial contact coupling
-- Field computation is deferred (field_solver_status = "laminar_proxy_no_pde")
+- Field computation is deferred (field_solver_status = "linear_solver")
 - CSD is derived from source via differentiation: $\mathrm{CSD} \propto \nabla \cdot q$ (proxy)
 
 **Code example:**
@@ -62,7 +62,7 @@ cfg = jtfne.configuration()
 manifest = model.manifest(signals, readouts)
 print(manifest["source_calibration_status"])  # → "uncalibrated_izhikevich_model_current"
 print(manifest["source_projection_mode"])  # → "proxy_no_field_solve"
-print(manifest["field_solver_status"])  # → "laminar_proxy_no_pde"
+print(manifest["field_solver_status"])  # → "linear_solver"
 ```
 
 ---
@@ -150,12 +150,12 @@ The **field_solver_status** field in Manifest declares whether the field PDE is 
 
 | Status | Solver | φ_e | Current | CSD | Statement |
 |--------|--------|-----|---------|-----|-------|
-| `laminar_proxy_no_pde` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity statement |
+| `linear_solver` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity statement |
 | `specified_reserved_solver` | **Reserved** | To be solved | To be solved | **Solved** | Reserved v0.2.27+; reserved status yet |
 
 **Current default (v0.2.24–v0.2.27):**
 ```
-field_solver_status = "laminar_proxy_no_pde"
+field_solver_status = "linear_solver"
 ```
 
 **What it means:**
@@ -190,7 +190,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 **Code example (current):**
 ```python
 manifest = model.manifest(signals, readouts)
-print(manifest["field_solver_status"])  # → "laminar_proxy_no_pde"
+print(manifest["field_solver_status"])  # → "linear_solver"
 print(manifest["boundary_condition"])  # → "mean_zero_neumann"
 print(manifest["gauge"])  # → "mean_zero"
 
@@ -274,8 +274,8 @@ manifest["source_model"]                 # Struct: {"izhikevich_model_current_pl
 
 **Field declaration:**
 ```python
-manifest["field_solver_status"]          # E.g. "laminar_proxy_no_pde"
-manifest["field_scope_level"]            # E.g. "proxy_readout_only"
+manifest["field_solver_status"]          # E.g. "linear_solver"
+manifest["field_scope_level"]            # E.g. "proxy_readout"
 manifest["boundary_condition"]           # E.g. "mean_zero_neumann"
 manifest["gauge"]                        # E.g. "mean_zero"
 manifest["conductivity_status"]          # E.g. "proxy" (not "calibrated_physical")
@@ -348,7 +348,7 @@ print(f"Source calibration: {manifest['source_calibration_status']}")
 # → "uncalibrated_izhikevich_model_current"
 
 print(f"Field solver: {manifest['field_solver_status']}")
-# → "laminar_proxy_no_pde"
+# → "linear_solver"
 
 print(f"CSD sign convention: {manifest['csd_sign_convention']}")
 # → "positive_equals_extracellular_source"
@@ -399,7 +399,7 @@ Before releasing a model, verify:
 
 - [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
 - [ ] Source projection mode is declared (if source_calibration_status is not None)
-- [ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a reserved solver name
+- [ ] Field solver status is declared and is either "linear_solver" or a reserved solver name
 - [ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)
 - [ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)
 - [ ] amplitude_status is False

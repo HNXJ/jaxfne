@@ -155,7 +155,7 @@ from jaxfne.validation import (
 
 # Declare proxy path
 operator = make_field_operator_status(operator_path="proxy")
-# → field_solver_status: "laminar_proxy_no_pde"
+# → field_solver_status: "linear_solver"
 
 # Declare physical_candidate path
 operator = make_field_operator_status(operator_path="physical_candidate")

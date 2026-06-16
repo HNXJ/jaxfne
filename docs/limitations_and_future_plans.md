@@ -13,10 +13,10 @@ field/EEG/MEG/EMM/LFP/CSD output is a **`proxy_readout`** — a computational di
 defined by explicit proxy equations. The following gates are enforced in code and may be
 read but stay at their conservative defaults:
 
-- **`field_solver_status = "laminar_proxy_no_pde"`** — the laminar field is a
+- **`field_solver_status = "linear_solver"`** — the laminar field is a
   Gaussian-leadfield proxy with finite-difference CSD. The proxy operator is defined by
   its kernel equation; it stands in for a volume-conductor PDE solve.
-- **`physical_amplitude_claim_allowed = False`** — amplitudes are relative (uncalibrated)
+- **`physical_amplitude_calibrated = False`** — amplitudes are relative (uncalibrated)
   units. EEG/MEG/LFP/CSD proxy outputs are reported in proxy units.
 
 ### Modeling assumptions

@@ -200,7 +200,7 @@ def draw_figure() -> None:
     ax.text(
         0.6,
         1.55,
-        "physical_amplitude_claim_allowed: false  |  field_solver_status: laminar_proxy_no_pde",
+        "physical_amplitude_calibrated: false  |  field_solver_status: linear_solver",
         fontsize=7,
         va="top",
         family="monospace",

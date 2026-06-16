@@ -2,7 +2,7 @@
 
 Version: `v0.1-draft`
 Scope: `jaxfne` release, architecture, JAX runtime, scientific-status, docs, tutorial, and ecosystem readiness scoring.
-Status: `truth_safe_unverified` · Claim level: `computational_scaffold` · Physical amplitude allowed: `false`
+Status: `` · Claim level: `computational_scaffold` · Physical amplitude allowed: `false`
 
 > **Relationship to `jaxfne_glossary.md`.** This file is the **grammar / ontology**
 > layer: it fixes how a score is *defined, evidenced, and aggregated*. The sibling
@@ -209,10 +209,10 @@ Every scoreboard must carry these package-level gates.
 
 ```yaml
 truth_gates:
-  truth_status: truth_safe_unverified
+  truth_status: 
   claim_level: computational_scaffold
-  field_solver_status: laminar_proxy_no_pde
-  physical_amplitude_claim_allowed: false
+  field_solver_status: linear_solver
+  physical_amplitude_calibrated: false
   biological_mechanism_claim_allowed: false
   calibrated_sensor_claim_allowed: false
 ```
@@ -353,7 +353,7 @@ Every factor uses this markdown block:
 
 ## 14. Category H — Truth gates / claim safety
 
-- **H01 truth status present** — every artifact carries `truth_safe_unverified`. Evidence: manifest tests.
+- **H01 truth status present** — every artifact carries ``. Evidence: manifest tests.
 - **H02 computational scaffold status** — outputs labeled scaffold; no empirical-validation overclaim. Evidence: docs grep.
 - **H03 physical amplitude gate** — false unless calibration evidence; all proxy readouts false. Evidence: probe reports.
 - **H04 biological mechanism gate** — no mechanism-proof wording. Evidence: wording scan.
@@ -397,8 +397,8 @@ Every factor uses this markdown block:
 ```markdown
 # jaxfne Scoreboard
 Release: · Branch: · SHA: · Date: · Evaluator:
-Truth status: truth_safe_unverified · Claim level: computational_scaffold
-Field solver status: laminar_proxy_no_pde · Physical amplitude allowed: false
+Truth status:  · Claim level: computational_scaffold
+Field solver status: linear_solver · Physical amplitude allowed: false
 
 ## Commands
 | Command | Result |

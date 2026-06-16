@@ -337,7 +337,7 @@ def main() -> int:
         "local_environment_receipt_only": True,
         "performance_claims_allowed": False,
         "superiority_claims_allowed": False,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "truth_gates": truth_gates(),
         "claim_boundary": "local_cpu_runtime_receipt_only",
     }
@@ -359,7 +359,7 @@ def main() -> int:
             "local_environment_receipt_only": True,
             "performance_claims_allowed": False,
             "superiority_claims_allowed": False,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "benchmark_grid": benchmark_grid,
             "hardware_receipt": hw,
             "timing_policy": TIMING_POLICY,

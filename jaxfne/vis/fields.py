@@ -588,7 +588,7 @@ def objective_report(
                 ha="center", va="center", transform=ax.transAxes, fontsize=10)
         ax.set_title("Objective report (proxy)")
 
-    fig.suptitle("Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold matching truth_safe_unverified boundaries.",
+    fig.suptitle("Optimization objective — Evaluated as a structured simulation proxy under uncalibrated computational scaffold.",
                  fontsize=9, style="italic", color="gray")
     fig.tight_layout()
     return fig

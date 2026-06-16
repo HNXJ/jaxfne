@@ -23,23 +23,21 @@ from jaxfne.core import _JAXFNE_VERSION, _RECEIPT_SCHEMA_VERSION
 
 
 _TRUTH_REQUIRED_KEYS = {
-    "truth_mode",
     "claim_level",
     "source_calibration_status",
     "field_solver_status",
     "field_claim_level",
-    "physical_amplitude_claim_allowed",
+    "physical_amplitude_calibrated",
     "empirical_validation_status",
     "mechanism_claim_status",
 }
 
 _TRUTH_CONSERVATIVE = {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "field_claim_level": "proxy_readout_only",
-    "physical_amplitude_claim_allowed": False,
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": False,
     "empirical_validation_status": "not_empirically_validated",
     "mechanism_claim_status": "not_claimed",
 }
@@ -117,13 +115,13 @@ def test_e_truth_gates_frozen_conservative():
     # All values match conservative defaults
     for k, v in _TRUTH_CONSERVATIVE.items():
         assert truth[k] == v, f"truth[{k!r}] = {truth[k]!r}, expected {v!r}"
-    # physical_amplitude_claim_allowed is False
-    assert truth["physical_amplitude_claim_allowed"] is False
+    # physical_amplitude_calibrated is False
+    assert truth["physical_amplitude_calibrated"] is False
     # Claim labels must reference the schema version
     assert receipt.claim_labels["receipt_status"] == _RECEIPT_SCHEMA_VERSION
     assert receipt.claim_labels["empirical_validation_status"] == "not_empirically_validated"
     assert receipt.claim_labels["mechanism_claim_status"] == "not_claimed"
-    assert receipt.claim_labels["physical_amplitude_claim_allowed"] is False
+    assert receipt.claim_labels["physical_amplitude_calibrated"] is False
 
 
 def test_f_save_receipt_creates_file():
@@ -135,7 +133,7 @@ def test_f_save_receipt_creates_file():
         assert path.exists()
         loaded = json.loads(path.read_text())
         assert loaded["receipt_id"] == receipt.receipt_id
-        assert loaded["truth"]["physical_amplitude_claim_allowed"] is False
+        assert loaded["truth"]["physical_amplitude_calibrated"] is False
 
 
 def test_g_save_receipt_raises_on_overwrite():
@@ -191,7 +189,7 @@ def test_j_run_receipt_edge_list_backend():
     assert receipt.backend["edge_list_n_edges"] > 0
     assert receipt.backend["edge_list_backend"] == "edge_list_recurrent_v0.0.9"
     # Truth gates still frozen
-    assert receipt.truth["physical_amplitude_claim_allowed"] is False
+    assert receipt.truth["physical_amplitude_calibrated"] is False
     assert receipt.truth["empirical_validation_status"] == "not_empirically_validated"
     # JSON-safe
     json.dumps(receipt.to_dict(), allow_nan=False)

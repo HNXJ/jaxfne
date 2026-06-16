@@ -2,7 +2,6 @@
 
 **Status:** v0.3_TUTORIAL_SCENARIO_DOCTRINE_READY  
 **Stable toolbox:** jaxfne == 0.2.30  
-**truth_mode:** truth_safe_unverified  
 **claim_level:** computational_scaffold  
 
 ---
@@ -170,11 +169,10 @@ other core module.
 Every v0.3 tutorial manifest must satisfy:
 
 ```python
-manifest["truth_mode"] == "truth_safe_unverified"
 manifest["claim_level"] == "computational_scaffold"
-manifest["physical_amplitude_claim_allowed"] == False
-manifest["field_solver_status"] == "laminar_proxy_no_pde"
-manifest["field_claim_level"] == "proxy_readout_only"
+manifest["physical_amplitude_calibrated"] == False
+manifest["field_solver_status"] == "linear_solver"
+manifest["field_claim_level"] == "proxy_readout"
 ```
 
 The `json.dumps(manifest, allow_nan=False)` call must succeed without error.

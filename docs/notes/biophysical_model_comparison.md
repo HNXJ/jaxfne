@@ -71,7 +71,7 @@ $$Y_c(t) = \sum_n W_{cn} S_n(t)$$
 Extracellular metrics (LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy) are
 numerical proxy readouts for objective functions, optimization, and system-level
 comparison. They use uncalibrated proxy units under the package truth gates
-(`field_solver_status = "laminar_proxy_no_pde"`, `physical_amplitude_claim_allowed = False`).
+(`field_solver_status = "linear_solver"`, `physical_amplitude_calibrated = False`).
 See [Limitations and future plans](../limitations_and_future_plans.md) for the centralized
 scope statement.
 

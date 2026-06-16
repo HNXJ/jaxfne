@@ -24,7 +24,7 @@ def test_edge_list_export_and_json_safety():
     assert edges.n_edges > 0
     payload = edges.to_dict()
     assert payload["backend"] == "edge_list_recurrent_v0.0.9"
-    assert payload["physical_amplitude_claim_allowed"] is False
+    assert payload["physical_amplitude_calibrated"] is False
     json.dumps(payload, allow_nan=False)
 
 
@@ -52,8 +52,8 @@ def test_edge_recurrent_simulation_shapes_and_truth_status():
     assert signals.spikes.shape == (30, 5)
     assert signals.sources.shape == (30, 5)
     assert signals.metadata["recurrent_backend"] == "edge_list"
-    assert signals.metadata["field_claim_level"] == "proxy_readout_only"
-    assert signals.summary()["field_claim_level"] == "proxy_readout_only"
+    assert signals.metadata["field_claim_level"] == "proxy_readout"
+    assert signals.summary()["field_claim_level"] == "proxy_readout"
 
 
 def test_edge_recurrent_batch_vmap_metadata():
@@ -62,7 +62,7 @@ def test_edge_recurrent_batch_vmap_metadata():
     batch = model.simulate_batch(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=11, runtime=rt), n_seeds=3)
     assert batch["V_m"].shape == (3, 20, 4)
     assert batch["metadata"]["batch_status"] == "vmap_seed_batch_v0.0.9"
-    assert batch["metadata"]["physical_amplitude_claim_allowed"] is False
+    assert batch["metadata"]["physical_amplitude_calibrated"] is False
     json.dumps(batch["metadata"], allow_nan=False)
 
 
@@ -70,6 +70,6 @@ def test_dense_and_edge_backend_do_not_change_truth_gates():
     model = jtfne.construct(_cfg(n=5))
     dense = model.simulate(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=12, runtime=jtfne.runtime(recurrent_backend="dense")))
     edge = model.simulate(jtfne.simulation(duration_ms=2.0, dt_ms=0.1, seed=12, runtime=jtfne.runtime(recurrent_backend="edge_list")))
-    assert dense.metadata["field_claim_level"] == "proxy_readout_only"
-    assert edge.metadata["field_claim_level"] == "proxy_readout_only"
+    assert dense.metadata["field_claim_level"] == "proxy_readout"
+    assert edge.metadata["field_claim_level"] == "proxy_readout"
     assert edge.metadata["runtime"]["recurrent_backend"] == "edge_list"

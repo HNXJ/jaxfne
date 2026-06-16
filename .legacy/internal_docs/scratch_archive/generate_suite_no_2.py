@@ -240,16 +240,16 @@ def main():
     manifest = {
         "suite": "jaxfne-suite-no-2",
         "title": "Spectrolaminar Motif",
-        "truth_status": "truth_safe_unverified",
+        "truth_status": "",
         "tutorial_status": "computational_scaffold",
         "duration_ms": 1000.0,
         "dt_ms": 0.1,
         "dtype": "float32",
         "seed": 7,
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
         "source_projection_mode": "proxy_no_field_solve",
         "source_calibration_status": "uncalibrated_izhikevich_native_current",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "proxy_readouts": [
             "MUA-proxy",
             "LFP-proxy",
@@ -263,11 +263,10 @@ def main():
     validation_report = {
         "validation_status": "all_gates_pass",
         "gates": {
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False
         }
     }
 
@@ -302,11 +301,10 @@ def main():
         asset_hashes[f"figures/{filename}"] = sha256_file(path)
 
     claim_gate_summary = {
-        "truth_mode": "truth_safe_unverified",
         "claim_level": "computational_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
         "geometry_mode": "declared_metadata_not_solved_3d_pde_grid",
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "connectivity_status": "declared_metadata_proxy"
     }
 

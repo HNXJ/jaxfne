@@ -209,7 +209,7 @@ For V1-V4 only. Declarative metadata; connectivity is stored as parameter dicts,
 | `domain` | `"laminar_column"` | Proxy geometry |
 | `conductivity` | `"proxy"` | Not calibrated |
 | `boundary` | `"mean_zero_neumann"` | Boundary convention |
-| `field_solver_status` | `"laminar_proxy_no_pde"` | **Immutable** |
+| `field_solver_status` | `"linear_solver"` | **Immutable** |
 | `amplitude_status` | `False` | **Immutable** |
 | `source_projection_mode` | `"proxy_no_field_solve"` | Proxy only |
 
@@ -308,7 +308,7 @@ The integration uses forward Euler with fixed `dt_ms`:
         "status_fields": {
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
+            "field_solver_status": "linear_solver",
             "amplitude_status": False,
         },
     },
@@ -380,7 +380,7 @@ The manifest includes:
   "status_fields": {
     "run_status": "tutorial_scaffold",
     "model_status": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
+    "field_solver_status": "linear_solver",
     "amplitude_status": false
   }
 }

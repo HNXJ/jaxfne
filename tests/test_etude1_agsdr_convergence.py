@@ -3,7 +3,7 @@
 These lock in the fix for a previously silent no-op: rate_synchrony_targets()
 declared its loss on a metric name the engine did not compute
 ("mean_firing_rate_hz" instead of "spike_rate_hz_mean"), the synchrony metric
-"kappa_synchrony" was not computed at all, and the truth_mode/claim_level gates
+"kappa_synchrony" was not computed at all, and the claim_level gates
 were evaluated against readout metrics (always unknown). The combined effect was
 that every AGSDR candidate scored null, the optimizer could not select, and the
 tuned model was returned unchanged.

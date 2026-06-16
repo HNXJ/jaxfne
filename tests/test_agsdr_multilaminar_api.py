@@ -136,14 +136,11 @@ class TestRateSynchronyTargets:
         )
 
         gate_names = {gate["name"] for gate in objective.gates}
-        assert "truth_mode" in gate_names
         assert "claim_level" in gate_names
 
         # Find and verify gate values
         for gate in objective.gates:
-            if gate["name"] == "truth_mode":
-                assert gate["threshold"] == "truth_safe_unverified"
-            elif gate["name"] == "claim_level":
+            if gate["name"] == "claim_level":
                 assert gate["threshold"] == "computational_scaffold"
 
     def test_rate_synchrony_targets_loss_targets(self):

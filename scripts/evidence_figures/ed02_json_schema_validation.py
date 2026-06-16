@@ -51,11 +51,10 @@ SCOPE_STATUS = (
 )
 
 _VALID_TRUTH = {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "physical_amplitude_claim_allowed": False,
+    "field_solver_status": "linear_solver",
+    "physical_amplitude_calibrated": False,
     "empirical_validation_status": "not_empirically_validated",
     "mechanism_claim_status": "not_claimed",
 }
@@ -87,10 +86,10 @@ VALIDATION_FIXTURES: list[tuple[str, dict, bool, str]] = [
         "truth_escalation_blocked",
         {
             **_MINIMAL_CONFIG,
-            "truth": {**_VALID_TRUTH, "physical_amplitude_claim_allowed": True},
+            "truth": {**_VALID_TRUTH, "physical_amplitude_calibrated": True},
         },
         False,
-        "physical_amplitude_claim_allowed",
+        "physical_amplitude_calibrated",
     ),
     (
         "unsupported_schema_version",
@@ -141,7 +140,7 @@ def run_validation_fixtures() -> list[dict]:
                     "fixture_pass": passed and issue_ok,
                     "schema_version": result.schema_version,
                     "truth_boundary_physical_amplitude": result.truth_boundary.get(
-                        "physical_amplitude_claim_allowed"
+                        "physical_amplitude_calibrated"
                     ),
                 }
             )
@@ -263,7 +262,7 @@ def draw_figure(rows: list[dict], json_check: dict, receipt: dict) -> None:
         f"validation_valid_baseline: {json_check['validation_valid']}",
         f"config_hash_prefix: {str(json_check['config_hash'])[:16]}",
         f"jaxfne: {receipt['jaxfne_version']}  repo_sha: {receipt['repo_sha'][:12]}",
-        "physical_amplitude_claim_allowed: false  |  blocking truth escalation enforced",
+        "physical_amplitude_calibrated: false  |  blocking truth escalation enforced",
     ]
     for i, line in enumerate(lines):
         ax.text(0.85, 1.55 - i * 0.22, line, fontsize=6.5, va="top", family="monospace", color="#444444")
@@ -315,7 +314,7 @@ def main() -> int:
             "receipt_json_path": receipt_rel,
             "receipt_json_sha256": sha256_file(RECEIPT_JSON_PATH),
             "truth_gates": truth_gates(),
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         },
     )
 

@@ -55,7 +55,7 @@ TITLE = "Extended Data 9 - failure modes and null controls (local receipt)"
 
 SCOPE_STATUS = (
     "Local failure/null control receipt; not empirical validation; "
-    "mechanism_claim_allowed: false; physical_amplitude_claim_allowed: false"
+    "mechanism_claim_allowed: false; physical_amplitude_calibrated: false"
 )
 
 NULL_CONTROLS = [
@@ -70,8 +70,8 @@ NULL_CONTROLS = [
 FAILURE_MODES = [
     ("json_nan_rejection", "json.dumps allow_nan=False rejects NaN"),
     ("json_inf_rejection", "json.dumps allow_nan=False rejects Inf"),
-    ("truth_gate_physical_amplitude", "default physical_amplitude_claim_allowed false"),
-    ("proxy_field_status", "field_solver_status laminar_proxy_no_pde"),
+    ("truth_gate_physical_amplitude", "default physical_amplitude_calibrated false"),
+    ("proxy_field_status", "field_solver_status linear_solver"),
     ("mechanism_not_from_objective", "objective alone not mechanism proof (status)"),
 ]
 
@@ -201,7 +201,7 @@ def _evaluate_failure_modes() -> list[dict[str, Any]]:
         {
             "control_id": "truth_gate_physical_amplitude",
             "category": "failure_mode",
-            "gate_outcome": "pass" if not gates.get("physical_amplitude_claim_allowed") else "fail",
+            "gate_outcome": "pass" if not gates.get("physical_amplitude_calibrated") else "fail",
             "validator": "truth_gates()",
         }
     )
@@ -210,7 +210,7 @@ def _evaluate_failure_modes() -> list[dict[str, Any]]:
             "control_id": "proxy_field_status",
             "category": "failure_mode",
             "gate_outcome": "pass"
-            if gates.get("field_solver_status") == "laminar_proxy_no_pde"
+            if gates.get("field_solver_status") == "linear_solver"
             else "fail",
             "validator": "truth_gates()",
         }
@@ -335,7 +335,7 @@ def draw_figure(rows: list[dict], summary: dict, runtime: dict) -> None:
         (
             f"pass={summary['pass_count']}/{summary['rows_total']} "
             f"repo_sha={runtime['repo_sha'][:12]} "
-            "physical_amplitude_claim_allowed: false"
+            "physical_amplitude_calibrated: false"
         ),
         fontsize=6.5,
         family="monospace",
@@ -367,7 +367,7 @@ def main() -> int:
         "local_receipt_only": True,
         "empirical_validation_claim_allowed": False,
         "mechanism_claim_allowed": False,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "summary": summary,
         "rows": rows,
         "truth_gates": truth_gates(),
@@ -391,7 +391,7 @@ def main() -> int:
             "local_receipt_only": True,
             "empirical_validation_claim_allowed": False,
             "mechanism_claim_allowed": False,
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
             "control_summary": summary,
             "control_rows": rows,
             "receipt_json_path": str(RECEIPT_PATH.relative_to(root)),

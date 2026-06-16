@@ -38,7 +38,7 @@ def test_linear_readout_report():
     report = readout.report()
     
     assert report["name"] == "eeg_like"
-    assert report["physical_amplitude_claim_allowed"] is False
+    assert report["physical_amplitude_calibrated"] is False
     assert report["operator_status"] == "simulated_proxy"
     assert report["leadfield_status"] == "toy_leadfield"
 

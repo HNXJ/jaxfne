@@ -396,7 +396,7 @@ class TestTutorialOutputs:
         scope = manifest.get("scope", {})
         assert scope.get("scope_status") == "computational_scaffold", "Scope status incorrect"
         assert scope.get("field_mode") == "proxy_convolution_no_pde", "Field mode incorrect"
-        assert scope.get("physical_amplitude_claim_allowed") is False, "Physical claims should not be allowed"
+        assert scope.get("physical_amplitude_calibrated") is False, "Physical claims should not be allowed"
 
     def test_manifest_configuration_matches(self):
         """Manifest configuration matches expected values."""

@@ -12,7 +12,7 @@ and produce JSON-safe scalar summaries for source/field validation.
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
-- `j_dot_e_proxy: null` — J_e is not computed in `laminar_proxy_no_pde` mode.
+- `j_dot_e_proxy: null` — J_e is not computed in `linear_solver` mode.
 - `poynting_flux_proxy: null` — not implemented in v0.2.x.
 - `poisson_solver_status: not_implemented`.
 - `maxwell_solver_status: not_implemented`.
@@ -77,7 +77,7 @@ $$\mathbf{J} \cdot \mathbf{E} \approx -\sigma |\nabla \phi_e|^2$$
 
 This product is the local Ohmic power density. In TFNE v0.2.27:
 
-- J_e is not computed in `laminar_proxy_no_pde` mode.
+- J_e is not computed in `linear_solver` mode.
 - `j_dot_e_proxy` is always `null`.
 - Computing J·E as a physical power density would require a solved field and calibrated σ.
 
@@ -103,8 +103,8 @@ Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy ten
 | `diagnostic_status` | `"proxy"` | Always `"proxy"` — no physical status |
 | `diagnostic_version` | `"v0.2.27"` | Version tag |
 | `model_status` | `"computational_scaffold"` | Always scaffold |
-| `field_solver_status` | str | Passed through; `"laminar_proxy_no_pde"` by default |
-| `field_model_status` | str | Passed through; `"proxy_readout_only"` by default |
+| `field_solver_status` | str | Passed through; `"linear_solver"` by default |
+| `field_model_status` | str | Passed through; `"proxy_readout"` by default |
 | `source_calibration_status` | str | Passed through from run metadata |
 | `amplitude_status` | `false` | Always `false` |
 | `metabolism_status` | `false` | Always `false` |

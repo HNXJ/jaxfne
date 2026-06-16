@@ -17,7 +17,6 @@ class TestLaminarCortexConfig:
         """Basic laminar config creation with defaults."""
         cfg = jtfne.laminar_cortex_config(seed=0, n=32)
         assert isinstance(cfg, jtfne.Configuration)
-        assert cfg.metadata['truth_mode'] == 'truth_safe_unverified'
         assert cfg.metadata['claim_level'] == 'computational_scaffold'
 
     def test_single_layer_degenerate(self):
@@ -119,10 +118,9 @@ class TestLaminarCortexConfig:
         """Truth gates are preserved in metadata."""
         cfg = jtfne.laminar_cortex_config(n=8, seed=0)
         m = cfg.metadata
-        assert m['truth_mode'] == 'truth_safe_unverified'
         assert m['claim_level'] == 'computational_scaffold'
-        assert m['field_solver_status'] == 'laminar_proxy_no_pde'
-        assert m['physical_amplitude_claim_allowed'] is False
+        assert m['field_solver_status'] == 'linear_solver'
+        assert m['physical_amplitude_calibrated'] is False
 
     def test_dtype_float32(self):
         """Default dtype is float32."""

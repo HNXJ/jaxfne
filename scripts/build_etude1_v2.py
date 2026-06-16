@@ -26,8 +26,8 @@ CELL_0_MD = """\
 |---|---|
 | `run_status` | `tutorial_scaffold` |
 | `model_status` | `computational_scaffold` |
-| `field_solver_status` | `laminar_proxy_no_pde` |
-| `field_model_status` | `proxy_readout_only` |
+| `field_solver_status` | `linear_solver` |
+| `field_model_status` | `proxy_readout` |
 | `amplitude_status` | `native_unscaled` |
 
 All outputs are simulated proxy diagnostics for this configured run.
@@ -207,7 +207,7 @@ CONFIG = {
         "dy_mm": 0.010,
         "dz_mm": 0.010,
         "geometry_status": "declared_tutorial_metadata",
-        "field_solver_status": "laminar_proxy_no_pde",
+        "field_solver_status": "linear_solver",
     },
     "areas": ["V1", "V4"],
     "n_per_area_full": 80,
@@ -293,8 +293,8 @@ CONFIG = {
     "status_fields": {
         "run_status": "tutorial_scaffold",
         "model_status": "computational_scaffold",
-        "field_solver_status": "laminar_proxy_no_pde",
-        "field_model_status": "proxy_readout_only",
+        "field_solver_status": "linear_solver",
+        "field_model_status": "proxy_readout",
         "amplitude_status": False,
     },
 }
@@ -369,7 +369,7 @@ CELL_14_MD = """\
 | kappa | Kappa synchrony (mean resultant vector of spike phases) |
 
 **Emitter:** `izhikevich`, preset `cortical_eig`
-**Field:** `laminar_proxy_no_pde` — Gaussian kernel projection, no PDE
+**Field:** `linear_solver` — Gaussian kernel projection, no PDE
 **Optimizer:** AGSDR (gradient-free black-box search)
 """
 
@@ -578,7 +578,7 @@ _html_out = PLOTLY_DIR / "cortical_circuit_network.html"
 network_fig, network_rows = jtfne.vis.visualize_network_3d(
     model,
     output_html        = _html_out,
-    title              = "Etude No. 1 cortical scaffold — simulated proxy geometry (laminar_proxy_no_pde)",
+    title              = "Etude No. 1 cortical scaffold — simulated proxy geometry (linear_solver)",
     coordinate_unit    = "mm",
     display_unit       = "mm",
     show_layers        = True,
@@ -637,7 +637,7 @@ for ct in CELL_TYPES:
 _ax3d.set_xlabel("x (mm)")
 _ax3d.set_ylabel("y (mm)")
 _ax3d.set_zlabel("z (mm)")
-_ax3d.set_title("Proxy scaffold geometry (declared, laminar_proxy_no_pde)")
+_ax3d.set_title("Proxy scaffold geometry (declared, linear_solver)")
 _ax3d.legend(loc="upper left", fontsize=8)
 _show_mpl(_fig3d)
 _save_png(_fig3d, FIGURE_DIR / "cortical_circuit_network.png")
@@ -827,7 +827,7 @@ else:
             "same_model_unchanged": False,
             "run_status": "tutorial_scaffold",
             "model_status": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
+            "field_solver_status": "linear_solver",
             "amplitude_status": False,
         }
     }
@@ -956,7 +956,7 @@ def plot_spectrolaminar_etude1(signals, model, config, condition_name,
     fig, (ax0, ax1, ax2) = plt.subplots(1, 3, figsize=(14, 5), dpi=vis_cfg["dpi"],
         gridspec_kw={"width_ratios": [0.85, 1.75, 0.85]}, sharey=True)
     fig.suptitle(
-        f"{condition_name} — Spectrolaminar proxy (tutorial_scaffold · laminar_proxy_no_pde)",
+        f"{condition_name} — Spectrolaminar proxy (tutorial_scaffold · linear_solver)",
         fontsize=11)
 
     for ct in config["cell_types"]:
@@ -1035,7 +1035,7 @@ def plot_spectrolaminar_etude1(signals, model, config, condition_name,
 
             pf.update_yaxes(title_text=spec_cfg["depth_axis_label"], row=1, col=1)
             pf.update_layout(
-                title=f"{condition_name} — Spectrolaminar Proxy (tutorial_scaffold · laminar_proxy_no_pde)",
+                title=f"{condition_name} — Spectrolaminar Proxy (tutorial_scaffold · linear_solver)",
                 height=520, width=1150)
 
             html_path = Path(output_html)
@@ -1367,7 +1367,7 @@ The power-by-depth heatmap (Panel B) shows how simulated LFP-proxy power varies 
 **AGSDR optimization:**
 The optimizer adjusts `drive_gain` to minimize the composite loss (rate error + synchrony error). The best_score reflects convergence of this optimization within the scaffold, not a biological fit metric.
 
-**Scope gate reminder:** `model_status = computational_scaffold`, `field_solver_status = laminar_proxy_no_pde`, `amplitude_status = False`.
+**Scope gate reminder:** `model_status = computational_scaffold`, `field_solver_status = linear_solver`, `amplitude_status = False`.
 """
 
 CELL_52_MD = """\
@@ -1431,7 +1431,7 @@ This section is a required scope gate. Read it before using these outputs in any
 
 **This tutorial produces:**
 
-1. That the LFP or CSD proxy outputs correspond to physically measured extracellular potentials. These are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = laminar_proxy_no_pde`.
+1. That the LFP or CSD proxy outputs correspond to physically measured extracellular potentials. These are Gaussian-kernel weighted projections with no PDE solution and no conductivity calibration. `field_solver_status = linear_solver`.
 
 2. That the firing rates, synchrony values, or spectrolaminar patterns match any specific in-vivo or in-vitro experimental dataset.
 
@@ -1455,7 +1455,7 @@ This section is a required scope gate. Read it before using these outputs in any
 
 `run_status: tutorial_scaffold`
 `model_status: computational_scaffold`
-`field_solver_status: laminar_proxy_no_pde`
+`field_solver_status: linear_solver`
 `amplitude_status: false`
 """
 

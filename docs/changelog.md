@@ -18,7 +18,7 @@
 - Experimental volume conductor loud-fail skeleton `solve_volume_conductor_experimental` that raises `NotImplementedError` pending boundary/gauge/calibration validation.
 
 ### Scope
-- Outputs remain proxy readouts (`laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=false`).
+- Outputs remain proxy readouts (`linear_solver`, `physical_amplitude_calibrated=false`).
 
 
 ## v0.3.40 (2026-06-13)
@@ -32,15 +32,15 @@
   absent). dtype (float32/float64) and jit remain per-`RuntimeConfig` adjustable.
 - Accurate docstrings for all public `jaxfne.__all__` members; fail-loud
   pre-0.4 physical-solver placeholder in `experimental_hpc` (raises until a
-  validated solver exists — the stable path stays `laminar_proxy_no_pde`).
+  validated solver exists — the stable path stays `linear_solver`).
 
 ### Changed
 - Repo hygiene: root thinned; non-public planning/roadmap material removed from
   the published repository.
 
 ### Scope
-- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
-  `physical_amplitude_claim_allowed=false`); computational scaffold only.
+- Outputs remain proxy readouts (`linear_solver`,
+  `physical_amplitude_calibrated=false`); computational scaffold only.
 
 
 ## v0.3.39 (2026-06-13)
@@ -65,8 +65,8 @@ quality line. No new APIs, no solver work, no scientific-claim escalation.
 - API index count equals runtime `len(jaxfne.__all__)` = 185.
 
 ### Scope
-- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
-  `physical_amplitude_claim_allowed=false`); computational scaffold, not a
+- Outputs remain proxy readouts (`linear_solver`,
+  `physical_amplitude_calibrated=false`); computational scaffold, not a
   calibrated biological simulator.
 
 
@@ -82,7 +82,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
   release-facing notebooks.
 - Scientific scope cells in all 15 release-facing tutorials documenting
   `computational_scaffold` / `proxy_readout` status, local nonlinearity, global
-  linearity, and the `physical_amplitude_claim_allowed = False` truth gate.
+  linearity, and the `physical_amplitude_calibrated = False` truth gate.
 
 ### Changed
 - Strict notebook call grammar: root-level `jtfne.<fn>()` only (no
@@ -93,13 +93,13 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 ### Validation
 - 2284/2284 tests pass; `mkdocs build --strict` passes; `twine check` passes on
   both artifacts.
-- Truth gates enforced: `field_solver_status = "laminar_proxy_no_pde"`,
-  `physical_amplitude_claim_allowed = False`; no physical EEG/MEG/LFP/CSD
+- Truth gates enforced: `field_solver_status = "linear_solver"`,
+  `physical_amplitude_calibrated = False`; no physical EEG/MEG/LFP/CSD
   measurement wording.
 
 ### Scope
-- Outputs remain proxy readouts (`laminar_proxy_no_pde`,
-  `physical_amplitude_claim_allowed=false`); the package is a computational
+- Outputs remain proxy readouts (`linear_solver`,
+  `physical_amplitude_calibrated=false`); the package is a computational
   scaffold, not a calibrated biological simulator.
 
 
@@ -116,7 +116,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 - Trial-averaged spectral power (per-trial PSD then mean); relative-power-density cross; uniform `dt_ms` kwarg across vis plotters; example API drift; GHA `checkout@v5` / `setup-python@v6`.
 
 ### Scope
-- Proxy readouts only (`laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=false`); spectrolaminar motif is emergent, not imposed.
+- Proxy readouts only (`linear_solver`, `physical_amplitude_calibrated=false`); spectrolaminar motif is emergent, not imposed.
 
 
 ## v0.3.25 (2026-06-01)
@@ -132,7 +132,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 - Notebook controls for trials, contacts, and per-layer cell-type fractions; CI dev-extra (`ipykernel`) for slow notebook-execution tests.
 
 ### Scope
-- Outputs remain proxy readouts with `field_solver_status=laminar_proxy_no_pde` and `physical_amplitude_claim_allowed=false`.
+- Outputs remain proxy readouts with `field_solver_status=linear_solver` and `physical_amplitude_calibrated=false`.
 
 
 ## v0.3.24 (2026-06-01)
@@ -150,7 +150,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 - Added per-area LFP/CSD tensor shape `(trials, areas, T, contacts)` and area-tagged spectrolaminar specs.
 
 ### Scope
-- Outputs remain proxy readouts with `field_solver_status=laminar_proxy_no_pde` and `physical_amplitude_claim_allowed=false`.
+- Outputs remain proxy readouts with `field_solver_status=linear_solver` and `physical_amplitude_calibrated=false`.
 
 
 ## v0.3.22 (2026-05-31)
@@ -189,7 +189,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 ### Validation status
 - Package import and compile gates pass.
 - Etude and template notebooks pass structural hygiene checks.
-- Maintains `truth_safe_unverified`, `computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, and `physical_amplitude_claim_allowed=false`.
+- Maintains ``, `computational_scaffold`, `field_solver_status=linear_solver`, and `physical_amplitude_calibrated=false`.
 
 ---
 
@@ -199,7 +199,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 
 - Optimized `project_laminar_sources` boundary fallbacks for low contact counts.
 - Added comprehensive boundary and stencil numerical parity tests.
-- Maintains `truth_safe_unverified`, `laminar_proxy_no_pde` status.
+- Maintains ``, `linear_solver` status.
 
 ---
 

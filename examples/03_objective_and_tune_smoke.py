@@ -12,7 +12,7 @@ Model.tune() in v0.0.5 is a metadata-only scaffold:
 Scientific status status:
   run_status: tutorial_scaffold
   model_status: computational_scaffold
-  field_model_status: proxy_readout_only
+  field_model_status: proxy_readout
   amplitude_status: false
   empirical_validation_status: not_empirically_validated
   mechanism_status: outside_run
@@ -115,12 +115,11 @@ def main():
 
     print("\n=== Full manifest (validation metadata) ===")
     print(f"  manifest_schema_version: {full_manifest['manifest_schema_version']!r}")
-    print(f"  run_status: {full_manifest.get('run_status', full_manifest.get('truth_mode', 'tutorial_scaffold'))!r}")
     _sfs = full_manifest.get('source_field_status', {})
-    print(f"  field_model_status: {_sfs.get('field_model_status', _sfs.get('field_claim_level', 'proxy_readout_only'))!r}")
+    print(f"  field_model_status: {_sfs.get('field_model_status', _sfs.get('field_claim_level', 'proxy_readout'))!r}")
     _sfs2 = full_manifest.get('source_field_status', {})
     print(f"  amplitude_status: "
-          f"{_sfs2.get('amplitude_status', _sfs2.get('physical_amplitude_claim_allowed', False))}")
+          f"{_sfs2.get('amplitude_status', _sfs2.get('physical_amplitude_calibrated', False))}")
     print(f"  v005_statement_labels: {full_manifest.get('v005_statement_labels', {})}")
 
     manifest_json = json.dumps(full_manifest, allow_nan=False)
@@ -129,7 +128,7 @@ def main():
     print("\n=== Scientific status status ===")
     print("  run_status: tutorial_scaffold")
     print("  model_status: computational_scaffold")
-    print("  field_model_status: proxy_readout_only")
+    print("  field_model_status: proxy_readout")
     print("  amplitude_status: false")
     print("  empirical_validation_status: not_empirically_validated")
     print("  mechanism_status: outside_run")

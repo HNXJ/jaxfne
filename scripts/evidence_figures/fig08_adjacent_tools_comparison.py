@@ -159,7 +159,7 @@ def draw_figure() -> None:
     ax.text(
         0.75,
         0.62,
-        "physical_amplitude_claim_allowed: false  |  capability_comparison_not_superiority",
+        "physical_amplitude_calibrated: false  |  capability_comparison_not_superiority",
         fontsize=7,
         va="top",
         family="monospace",

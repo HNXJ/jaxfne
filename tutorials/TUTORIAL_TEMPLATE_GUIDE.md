@@ -95,7 +95,7 @@ The canonical template now uses a unified setup pattern to minimize code cells:
 ## Scope Gates
 - **run_status:** `tutorial_scaffold`
 - **model_status:** `computational_scaffold`
-- **field_solver_status:** `laminar_proxy_no_pde`
+- **field_solver_status:** `linear_solver`
 - **amplitude_status:** `False`
 ```
 

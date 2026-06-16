@@ -366,10 +366,9 @@ def main():
             "rate_improvement_hz": float(observed_best_tuned_mean_rate_hz - observed_baseline_mean_rate_hz),
             "tuning_status": tuning_status,
             "same_model_unchanged": True,
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False,
             "biological_learning_claim": False,
             "mechanism_claim_status": "not_claimed",
         }
@@ -428,10 +427,9 @@ def main():
             "tuning_status": tuning_status,
             "same_model_unchanged": True,
             "rate_improvement_hz": float(observed_best_tuned_mean_rate_hz - observed_baseline_mean_rate_hz),
-            "truth_mode": "truth_safe_unverified",
             "claim_level": "computational_scaffold",
-            "field_solver_status": "laminar_proxy_no_pde",
-            "physical_amplitude_claim_allowed": False,
+            "field_solver_status": "linear_solver",
+            "physical_amplitude_calibrated": False,
             "biological_learning_claim": False,
             "mechanism_claim_status": "not_claimed",
             # Additional context
@@ -547,10 +545,9 @@ def main():
         print(f"  Tuning status: {tuning_status}")
         print()
         print("Truth status:")
-        print(f"  truth_mode: truth_safe_unverified")
         print(f"  claim_level: computational_scaffold")
-        print(f"  field_solver_status: laminar_proxy_no_pde")
-        print(f"  physical_amplitude_claim_allowed: false")
+        print(f"  field_solver_status: linear_solver")
+        print(f"  physical_amplitude_calibrated: false")
         print(f"  biological_learning_claim: false")
         print()
         print("✓ Delta-test notebook with AGSDR validated")

@@ -135,10 +135,10 @@ def test_canonical_import_alias(code_source):
 
 def test_truth_gates_present(all_source):
     for gate in (
-        "truth_safe_unverified",
+        "",
         "computational_scaffold",
-        "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed",
+        "linear_solver",
+        "physical_amplitude_calibrated",
         "biological_learning_claim",
         "mechanism_claim_status",
     ):

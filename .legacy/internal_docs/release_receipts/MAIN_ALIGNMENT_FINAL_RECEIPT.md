@@ -105,10 +105,9 @@ Etude Labels:
   - Cell 51: ## Final Completion Message ✓
 
 Truth Gates:
-  - truth_mode: truth_safe_unverified ✓
   - claim_level: computational_scaffold ✓
-  - field_solver_status: laminar_proxy_no_pde ✓
-  - physical_amplitude_claim_allowed: False ✓
+  - field_solver_status: linear_solver ✓
+  - physical_amplitude_calibrated: False ✓
 ```
 
 ## GitHub Raw URL Note

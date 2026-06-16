@@ -230,8 +230,8 @@ class TestPoissonAdmissibilityReport:
             converged=True,
         )
         assert report["admissibility_status"] == "admissible"
-        # v0.2.15 invariant: physical_amplitude_claim_allowed is ALWAYS false (specification-only)
-        assert report["physical_amplitude_claim_allowed"] is False
+        # v0.2.15 invariant: physical_amplitude_calibrated is ALWAYS false (specification-only)
+        assert report["physical_amplitude_calibrated"] is False
         # Verify the v0215_note explains specification-only status
         assert "specification-only" in report.get("v0215_note", "").lower()
 
@@ -246,7 +246,7 @@ class TestPoissonAdmissibilityReport:
             phi_e=jnp.ones((10, 10)),
         )
         assert report["admissibility_status"] == "not_admissible"
-        assert report["physical_amplitude_claim_allowed"] is False
+        assert report["physical_amplitude_calibrated"] is False
 
     def test_report_json_safe(self):
         """Report is JSON-serializable."""
@@ -266,7 +266,7 @@ class TestPoissonAdmissibilityReport:
         assert "admissibility_status" in report
         assert "gates" in report
         assert "solver_metadata" in report
-        assert "physical_amplitude_claim_allowed" in report
+        assert "physical_amplitude_calibrated" in report
         assert report["diagnostic_kind"] == "poisson_admissibility"
 
     def test_report_gates_subfields(self):
@@ -309,7 +309,7 @@ class TestPoissonAdmissibilityReport:
         assert "specification" in report["v0215_note"]
 
     def test_report_physical_amplitude_always_false_v0215(self):
-        """v0.2.15 INVARIANT: physical_amplitude_claim_allowed is ALWAYS false.
+        """v0.2.15 INVARIANT: physical_amplitude_calibrated is ALWAYS false.
 
         v0.2.15 is specification-only (no solver implemented). Even if all gates
         pass synthetically, physical amplitude claims must remain false.
@@ -327,7 +327,7 @@ class TestPoissonAdmissibilityReport:
             converged=True,
         )
         assert report_perfect["admissibility_status"] == "admissible"
-        assert not report_perfect["physical_amplitude_claim_allowed"], \
+        assert not report_perfect["physical_amplitude_calibrated"], \
             "v0.2.15: must never allow physical amplitude claims (no solver yet)"
 
         # With failed gates, also false
@@ -335,7 +335,7 @@ class TestPoissonAdmissibilityReport:
             conductivity=jnp.array([[1.0, 0.0], [0.0, -0.1]]),
         )
         assert report_failed["admissibility_status"] == "not_admissible"
-        assert not report_failed["physical_amplitude_claim_allowed"]
+        assert not report_failed["physical_amplitude_calibrated"]
 
         # v0215_note must reference specification-only status
         assert "v0.2.15" in report_perfect["v0215_note"]

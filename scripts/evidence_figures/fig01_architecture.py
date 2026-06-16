@@ -49,7 +49,7 @@ PIPELINE_NODES = [
 METADATA_BANDS = [
     "seed / dtype / runtime",
     "source mode / calibration status",
-    "field solver status: laminar_proxy_no_pde",
+    "field solver status: linear_solver",
     "probe report / operator status",
     "finite outputs",
     "JSON-safe manifests / SHA256 hashes",
@@ -175,7 +175,7 @@ def draw_figure() -> None:
     ax.text(
         0.85,
         0.85,
-        "physical_amplitude_claim_allowed: false  |  truth_mode: truth_safe_unverified",
+        "physical_amplitude_calibrated: false",
         fontsize=7.5,
         va="top",
         family="monospace",

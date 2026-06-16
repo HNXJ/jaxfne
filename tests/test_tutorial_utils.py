@@ -124,10 +124,9 @@ class TestLaminarColumnConfig:
         """Test truth_gates property returns immutable dict."""
         cfg = make_test_config()
         gates = cfg.truth_gates
-        assert gates['truth_mode'] == "truth_safe_unverified"
         assert gates['claim_level'] == "computational_scaffold"
-        assert gates['field_solver_status'] == "laminar_proxy_no_pde"
-        assert gates['physical_amplitude_claim_allowed'] is False
+        assert gates['field_solver_status'] == "linear_solver"
+        assert gates['physical_amplitude_calibrated'] is False
 
     def test_frozen_immutability(self):
         """Test that config is frozen (immutable)."""

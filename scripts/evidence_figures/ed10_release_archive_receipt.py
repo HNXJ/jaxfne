@@ -55,7 +55,7 @@ TITLE = "Extended Data 10 - release/archive receipt (evidence panel)"
 
 SCOPE_STATUS = (
     "Release/archive evidence receipt only; no tag/release/publish/archive action; "
-    "not empirical validation; physical_amplitude_claim_allowed: false"
+    "not empirical validation; physical_amplitude_calibrated: false"
 )
 
 _dirs = ensure_evidence_dirs()
@@ -282,8 +282,8 @@ def _remaining_limitations(inventory: dict[str, Any], tag: dict[str, Any]) -> li
     summary = inventory.get("summary", {})
     limits = [
         "computational_scaffold_only; not empirical EEG/MEG validation",
-        "laminar_proxy_no_pde; no PDE solver claim",
-        "physical_amplitude_claim_allowed: false",
+        "linear_solver; no PDE solver claim",
+        "physical_amplitude_calibrated: false",
         "wheel/sdist build and PyPI publish require explicit approval",
         "archive/DOI assignment requires explicit approval",
     ]
@@ -319,7 +319,7 @@ def build_receipt_body() -> dict[str, Any]:
         "local_receipt_only": True,
         "empirical_validation_claim_allowed": False,
         "mechanism_claim_allowed": False,
-        "physical_amplitude_claim_allowed": False,
+        "physical_amplitude_calibrated": False,
         "repo_state": {
             "branch": _git_branch(),
             "commit_sha": repo_sha(),
@@ -477,7 +477,7 @@ def main() -> int:
             "receipt_json_path": str(RECEIPT_PATH.relative_to(root)),
             "receipt_json_sha256": sha256_file(RECEIPT_PATH),
             "truth_gates": truth_gates(),
-            "physical_amplitude_claim_allowed": False,
+            "physical_amplitude_calibrated": False,
         },
     )
 

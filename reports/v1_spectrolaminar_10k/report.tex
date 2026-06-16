@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx,amsmath,amssymb,booktabs,float,hyperref,xcolor,caption}
+\usepackage[T1]{fontenc}
+\captionsetup{font=small}
+\graphicspath{{figs/}}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\title{\textbf{A 10{,}000-Neuron V1 Laminar Column in \texttt{jaxfne}:\\
+Spectrolaminar Proxy Readouts under Deep-Layer Drive}}
+\author{Generated with \texttt{jaxfne} (\texttt{import jaxfne as jtfne})}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We build a single primary visual cortex (V1) laminar column of $N=10{,}000$ reduced
+Izhikevich emitters in \texttt{jaxfne}, simulate $1000~\mathrm{ms}$ at
+$\Delta t = 0.1~\mathrm{ms}$, and read out a $128$-contact laminar field with the
+package's \emph{spectrolaminar suite}. Deep layers (L5/L6) are sparser
+($\sim 3\times$ lower neuronal density), more excitatory, and receive a tunable
+constant (DC) drive; the dense recurrent connectivity propagates deep activity to
+superficial layers, where faster PV-mediated inhibition supports relatively higher
+$\gamma$ power. All field outputs are \textbf{proxy readouts}
+(\texttt{field\_solver\_status=linear\_solver}, \texttt{field\_claim\_level=proxy\_readout},
+\texttt{physical\_amplitude\_calibrated=False}); none are physical EEG/MEG/LFP/CSD
+measurements. A companion notebook reproduces every figure.
+\end{abstract}
+
+\tableofcontents
+
+\section{Model and methods}
+\textbf{Operator chain.}
+$\text{Emitter}\to\text{Source}\to\text{FieldProxy (linear\_solver)}\to\text{Probe}\to\text{Objective}$.
+The emitter is a reduced Izhikevich population; per-neuron membrane voltage evolves under
+\[
+\frac{dv}{dt}=0.04 v^2 + 5v + 140 - u + I,\qquad
+\frac{du}{dt}=a(bv-u),\qquad
+\text{if } v\ge 30~\mathrm{mV}:~v\leftarrow c,~u\leftarrow u+d .
+\]
+The time loop is integrated with \texttt{jax.lax.scan}; recurrent input is the dense
+synaptic matrix $W$. The laminar field proxy is the linear projection
+\[
+\mathrm{lfp\_proxy}_{k,c}=\sum_n S_{k,n}\,K_{c,n},\qquad
+\mathrm{csd\_proxy}_{k,c}=D_{zz}\,\mathrm{lfp\_proxy}_{k,c},
+\]
+with a Gaussian depth kernel $K$ and a finite-difference depth operator $D_{zz}$
+(\texttt{jtfne.project\_laminar\_sources}, $n_{\text{contacts}}=128$).
+
+\textbf{Laminar structure.} Five layers (L1, L2/3, L4, L5, L6). Deep layers are
+thinner/sparser and more excitatory; superficial layers carry more PV.
+Table~\ref{tab:dens} lists the realized per-layer counts and E-fractions; the constants
+appear in the companion notebook.
+
+\textbf{Deep drive.} A constant current $\mathrm{DC}_{\text{deep}}$ is added to all
+L5/L6 cells (\texttt{model.with\_emitter\_parameters(drive\_per\_neuron=\ldots)}).
+Because $W$ is dense, deep activity drives superficial populations through
+deep$\to$superficial connections.
+
+\begin{table}[H]\centering\small
+\caption{Per-layer neuron counts and excitatory fraction (realized).}\label{tab:dens}
+\begin{tabular}{lrr}\toprule
+Layer & $n$ & E-fraction \\\midrule
+L1 & 1200 & 0.50 \\
+L2/3 & 3400 & 0.72 \\
+L4 & 2000 & 0.78 \\
+L5 & 1400 & 0.90 \\
+L6 & 2000 & 0.92 \\
+\bottomrule\end{tabular}
+\end{table}
+
+\section{Cell densities per layer}
+\begin{figure}[H]\centering
+\includegraphics[width=0.7\textwidth]{10_cell_densities.png}
+\caption{Per-layer cell-type composition. Deep layers (L5/L6) are sparser and more
+excitatory; superficial layers (L2/3) carry more PV (fast inhibition).}
+\end{figure}
+
+\section{3D circuit of the 10{,}000-neuron V1 column}
+The interactive Plotly circuit is in \texttt{figs/09\_circuit3d\_10k.html}
+(pan/zoom/rotate). A static snapshot:
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{09_circuit3d_10k.png}
+\caption{3D layout of all $10{,}000$ V1 neurons, colored by cell type, arranged by
+cortical depth ($z$). Superficial (top) to deep (bottom).}
+\end{figure}
+
+\section{Firing rate and rasters}
+\begin{figure}[H]\centering
+\includegraphics[width=0.8\textwidth]{08_firing_rate.png}
+\caption{Population firing-rate proxy over the $1000~\mathrm{ms}$ run at the main deep
+drive level.}
+\end{figure}
+
+\subsection{Rasters across deep-drive levels}
+Increasing $\mathrm{DC}_{\text{deep}}$ raises deep firing and, via deep$\to$superficial
+connections, superficial activity.
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\textwidth]{03_raster_dc0.png}\\[2pt]
+\includegraphics[width=0.9\textwidth]{03_raster_dc10.png}
+\caption{Spike rasters at $\mathrm{DC}_{\text{deep}}=0$ (top, mean rate $10.8~\mathrm{Hz}$)
+and $\mathrm{DC}_{\text{deep}}=10$ (bottom, $22.0~\mathrm{Hz}$). Deep drive raises deep firing
+and, through deep$\to$superficial connections, superficial activity.}
+\end{figure}
+
+\section{LFP proxy}
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\textwidth]{01_lfp.png}
+\caption{$\mathrm{lfp\_proxy}$ across the $128$ laminar contacts (relative units).}
+\end{figure}
+
+\section{CSD proxy}
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\textwidth]{07_csd.png}
+\caption{$\mathrm{csd\_proxy}=D_{zz}\,\mathrm{lfp\_proxy}$: current-source-density proxy
+(sink/source pattern), relative units.}
+\end{figure}
+
+\section{Spectrolaminar suite (preferred readout)}
+The package spectrolaminar suite (\texttt{jtfne.vis.spectrolaminar\_suite}) summarizes the
+depth$\times$frequency relative-power structure and the $\alpha/\beta$ vs $\gamma$ laminar
+band profiles.
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{02_spectrolaminar_suite_main.png}
+\caption{Spectrolaminar suite at the main deep-drive level: $\alpha/\beta$ (8--30~Hz) and
+$\gamma$ (30--80~Hz) laminar profiles, depth$\times$frequency map.}
+\end{figure}
+
+\subsection{Spectrolaminar suites across deep-drive levels}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{04_spectrolaminar_dc0.png}\\[2pt]
+\includegraphics[width=0.85\textwidth]{04_spectrolaminar_dc10.png}
+\caption{Spectrolaminar suite at deep drive
+$\mathrm{DC}_{\text{deep}}=0$ (top) and $\mathrm{DC}_{\text{deep}}=10$ (bottom). Increasing deep drive
+concentrates low-frequency ($\alpha/\beta$) power in deep layers while superficial layers
+retain relatively higher $\gamma$, producing the spectrolaminar crossing.}
+\end{figure}
+
+\section{EEG and MEG proxies}
+\begin{figure}[H]\centering
+\includegraphics[width=0.48\textwidth]{05_eeg_proxy.png}\hfill
+\includegraphics[width=0.48\textwidth]{06_meg_proxy.png}
+\caption{Left: $\mathrm{eeg\_proxy}$ (linear leadfield projection to scalp electrodes).
+Right: $\mathrm{meg\_proxy}$ (oriented-source magnetic projection). Both are proxy
+readouts in relative units.}
+\end{figure}
+
+\section{Additional diagnostics}
+\begin{figure}[H]\centering
+\includegraphics[width=0.6\textwidth]{11_psd.png}
+\caption{Power spectral density proxy of the laminar field.}
+\end{figure}
+
+\section{Why the spectrolaminar suite is the preferred visualization}
+The spectrolaminar suite normalizes each band across depth, exposing the
+\emph{relative} laminar organization (deep $\alpha/\beta$, superficial $\gamma$) that raw
+LFP amplitude---dominated by the densest/most-driven layers---obscures. It is the standard
+readout for the laminar spectral motif and is robust to absolute-amplitude scaling, which
+is appropriate here because all outputs are uncalibrated proxies.
+
+\section*{Scope statement}
+All field outputs are computational proxies
+(\texttt{claim\_level=computational\_scaffold}, \texttt{field\_solver\_status=linear\_solver},
+\texttt{field\_claim\_level=proxy\_readout}, \texttt{physical\_amplitude\_calibrated=False}).
+They are not physical EEG/MEG/LFP/CSD measurements and carry no calibrated amplitude.
+
+\end{document}

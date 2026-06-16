@@ -167,7 +167,7 @@ class TestMetadataManifest:
 
         required_keys = [
             "scope_status",
-            "physical_amplitude_claim_allowed",
+            "physical_amplitude_calibrated",
             "readout_status",
             "n_neurons",
             "n_contacts",
@@ -181,15 +181,15 @@ class TestMetadataManifest:
             assert key in notebook_text, f"Missing manifest key: {key}"
 
     def test_notebook_physical_amplitude_false(self):
-        """Assert physical_amplitude_claim_allowed is False."""
+        """Assert physical_amplitude_calibrated is False."""
         nb_path = Path("tutorials/jaxfne_v038_lfp_csd_readout.ipynb")
         content = json.loads(nb_path.read_text(encoding='utf-8'))
         notebook_text = json.dumps(content)
 
-        assert "physical_amplitude_claim_allowed" in notebook_text, \
-            "Missing physical_amplitude_claim_allowed"
+        assert "physical_amplitude_calibrated" in notebook_text, \
+            "Missing physical_amplitude_calibrated"
         assert "False" in notebook_text or "false" in notebook_text, \
-            "physical_amplitude_claim_allowed should be False"
+            "physical_amplitude_calibrated should be False"
 
 
 class TestPublicWording:
@@ -205,8 +205,7 @@ class TestPublicWording:
             "Does NOT",
             "Does Not",
             "claim_gate",
-            "claim_level",
-            "truth_mode"
+            "claim_level"
         ]
 
         for cell in content.get("cells", []):
@@ -388,7 +387,7 @@ class TestArtifactValidation:
         required_keys = [
             "scope_status",
             "readout_status",
-            "physical_amplitude_claim_allowed",
+            "physical_amplitude_calibrated",
             "n_neurons",
             "n_contacts",
             "source_shape",
@@ -412,7 +411,7 @@ class TestArtifactValidation:
 
         assert manifest["scope_status"] == "computational_scaffold"
         assert manifest["readout_status"] == "simulated_proxy"
-        assert manifest["physical_amplitude_claim_allowed"] is False
+        assert manifest["physical_amplitude_calibrated"] is False
 
     @pytest.mark.skipif(
         not os.getenv("JAXFNE_VALIDATE_TUTORIAL_OUTPUTS"),

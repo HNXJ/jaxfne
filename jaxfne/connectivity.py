@@ -432,8 +432,8 @@ def compile_connection_rules(
         "skipped_rules": skipped,
         "seed": int(seed),
         "allow_self_connections": bool(allow_self_connections),
-        "field_solver_status": "laminar_proxy_no_pde",
-        "physical_amplitude_claim_allowed": False,
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
         "connectivity_compiled": True,
     }
     return ConnectionCompileResult(

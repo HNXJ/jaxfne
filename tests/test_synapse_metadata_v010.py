@@ -27,7 +27,7 @@ def test_receptor_synapse_metadata():
     ampa = specs["AMPA"]
     assert ampa.receptor_index == 0
     assert ampa.sign == 1
-    assert ampa.physical_amplitude_claim_allowed is False if hasattr(ampa, "physical_amplitude_claim_allowed") else True
+    assert ampa.physical_amplitude_calibrated is False if hasattr(ampa, "physical_amplitude_calibrated") else True
     
     gaba_a = specs["GABA_A"]
     assert gaba_a.sign == -1
@@ -37,7 +37,7 @@ def test_receptor_synapse_metadata():
         source_calibration_status="metadata_only_uncalibrated"
     )
     
-    assert synapse_spec.physical_amplitude_claim_allowed is False
+    assert synapse_spec.physical_amplitude_calibrated is False
     assert synapse_spec.source_calibration_status == "metadata_only_uncalibrated"
     
     # JSON serialization passes with allow_nan=False
@@ -72,11 +72,11 @@ def test_manifest_propagation():
     b_meta = manifest_data["backend_metadata"]
     assert b_meta["used_recurrent_backend"] == "edge_list"
     assert b_meta["edge_list_source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-    assert b_meta["edge_list_physical_amplitude_claim_allowed"] is False
+    assert b_meta["edge_list_physical_amplitude_calibrated"] is False
     assert b_meta["edge_count"] > 0
     
     # Check truth gates
-    assert manifest_data.get("v005_claim_labels", {}).get("physical_amplitude_claim_allowed", False) is False
+    assert manifest_data.get("v005_claim_labels", {}).get("physical_amplitude_calibrated", False) is False
 
 
 def test_dense_vs_edge_sanity():
@@ -143,7 +143,7 @@ def test_edge_path_preserves_field_truth_gates():
     manifest = model.manifest(signals=signals)
     
     assert manifest["source_projection_mode"] == "proxy_no_field_solve"
-    assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
-    assert manifest.get("v005_claim_labels", {}).get("field_claim_level", "proxy_readout_only") == "proxy_readout_only"
+    assert manifest["field_solver_status"] == "linear_solver"
+    assert manifest.get("v005_claim_labels", {}).get("field_claim_level", "proxy_readout") == "proxy_readout"
     assert manifest.get("v005_claim_labels", {}).get("empirical_validation_status", "not_empirically_validated") == "not_empirically_validated"
     assert manifest.get("v005_claim_labels", {}).get("mechanism_claim_status", "not_claimed") == "not_claimed"

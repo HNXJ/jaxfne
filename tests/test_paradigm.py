@@ -149,7 +149,6 @@ def test_no_truth_gate_expansion():
     paradigm = jtfne.standard_visual_omission()
 
     # Paradigm should not add or modify truth gates
-    assert paradigm.metadata.get("truth_mode") is None or paradigm.metadata.get("truth_mode") == "truth_safe_unverified"
     assert paradigm.metadata.get("claim_level") is None or paradigm.metadata.get("claim_level") == "computational_scaffold"
 
     # Check that no condition tries to add biological/mechanism claims

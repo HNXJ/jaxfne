@@ -6,7 +6,7 @@ Tests for removal of ghost/negative language, rule/QA language, adverbs,
 
 Classification: docs_hygiene_test
 Scope: Validate public-facing tutorial docs and notebooks meet hard-rule language standards
-Truth: truth_safe_unverified
+Truth: 
 """
 
 import json

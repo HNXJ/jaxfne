@@ -197,11 +197,10 @@ All outputs are accompanied by run metadata and scope boundaries:
     "v_mean_mV": -55.0
   },
   "scope_metadata": {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
+    "field_solver_status": "linear_solver",
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "physical_amplitude_claim_allowed": false
+    "physical_amplitude_calibrated": false
   }
 }
 ```
@@ -326,11 +325,10 @@ All simulation results are labeled with conservative metadata:
 
 ```json
 {
-  "truth_mode": "truth_safe_unverified",
   "claim_level": "computational_scaffold",
-  "field_solver_status": "laminar_proxy_no_pde",
+  "field_solver_status": "linear_solver",
   "source_calibration_status": "uncalibrated_izhikevich_native_current",
-  "physical_amplitude_claim_allowed": false
+  "physical_amplitude_calibrated": false
 }
 ```
 

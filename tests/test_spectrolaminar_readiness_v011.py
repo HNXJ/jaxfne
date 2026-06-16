@@ -288,8 +288,7 @@ def test_f_truth_gates_preserved_in_signals():
 
     # Truth gates in signals.metadata
     assert signals.metadata["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-    assert signals.metadata["field_claim_level"] == "proxy_readout_only"
-    # Note: truth_mode and physical_amplitude_claim_allowed are in manifest, not signals.metadata
+    assert signals.metadata["field_claim_level"] == "proxy_readout"
 
 
 def test_f_truth_gates_preserved_in_manifest():
@@ -305,7 +304,6 @@ def test_f_truth_gates_preserved_in_manifest():
     signals = model.simulate(sim)
     manifest = model.manifest(signals)
 
-    assert manifest["truth_mode"] == "truth_safe_unverified"
-    assert manifest["physical_amplitude_claim_allowed"] is False
+    assert manifest["physical_amplitude_calibrated"] is False
     assert manifest["claim_level"] == "computational_scaffold"
-    assert manifest["field_solver_status"] == "laminar_proxy_no_pde"
+    assert manifest["field_solver_status"] == "linear_solver"

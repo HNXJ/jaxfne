@@ -91,12 +91,11 @@ def test_manifest_preserves_truth_gates_with_v005_metadata():
     )
 
     # v0.0.4 gates
-    assert mf["truth_mode"] == "truth_safe_unverified"
     assert mf["claim_level"] == "computational_scaffold"
     assert mf["source_calibration_status"] == "uncalibrated_izhikevich_native_current"
-    assert mf["field_solver_status"] == "laminar_proxy_no_pde"
-    assert mf["source_field_status"]["field_claim_level"] == "proxy_readout_only"
-    assert mf["source_field_status"]["physical_amplitude_claim_allowed"] is False
+    assert mf["field_solver_status"] == "linear_solver"
+    assert mf["source_field_status"]["field_claim_level"] == "proxy_readout"
+    assert mf["source_field_status"]["physical_amplitude_calibrated"] is False
 
     # v0.0.5 claim labels (static label in io.py, not derived from tune report)
     labels = mf["v005_claim_labels"]
@@ -104,7 +103,7 @@ def test_manifest_preserves_truth_gates_with_v005_metadata():
     assert "tuning_status" in labels
     assert labels["empirical_validation_status"] == "not_empirically_validated"
     assert labels["mechanism_claim_status"] == "not_claimed"
-    assert labels["physical_amplitude_claim_allowed"] is False
+    assert labels["physical_amplitude_calibrated"] is False
 
 
 def _run_example(example_path: str) -> subprocess.CompletedProcess:

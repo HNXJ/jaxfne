@@ -108,6 +108,6 @@ def test_validate_projection_invariants_behavior_preserved():
 def test_make_field_solution_report_proxy_safe():
     """The report helper keeps proxy/no-PDE truth gates."""
     rep = diagnostics._make_field_solution_report()
-    assert rep["field_solver_status"] == "laminar_proxy_no_pde"
-    assert rep["physical_amplitude_claim_allowed"] is False
-    assert rep["field_claim_level"] == "proxy_readout_only"
+    assert rep["field_solver_status"] == "linear_solver"
+    assert rep["physical_amplitude_calibrated"] is False
+    assert rep["field_claim_level"] == "proxy_readout"

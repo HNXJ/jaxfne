@@ -9,7 +9,6 @@ output arrays, valid JSON serialization. Interpretation: simulated spectrolamina
 readouts (alpha/beta and gamma profiles) matched to targets under null distributions
 and synchrony constraints. Physical amplitude claims NOT allowed.
 
-truth_mode: truth_safe_unverified
 """
 
 import json
@@ -85,8 +84,7 @@ def spectrolaminar_profile_score(
         "default_evidence_path": readout.get("metadata", {}).get(
             "default_evidence_path", True
         ),
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": "truth_safe_unverified",
+        "physical_amplitude_calibrated": False,
         "bands": {
             "alpha_beta": [8.0, 25.0],
             "gamma": [40.0, 150.0],
@@ -458,8 +456,7 @@ def spectrolaminar_objective(
         "default_evidence_path": readout.get("metadata", {}).get(
             "default_evidence_path", True
         ),
-        "physical_amplitude_claim_allowed": False,
-        "truth_mode": "truth_safe_unverified",
+        "physical_amplitude_calibrated": False,
         "bands": {
             "alpha_beta": [8.0, 25.0],
             "gamma": [40.0, 150.0],

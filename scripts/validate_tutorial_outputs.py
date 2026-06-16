@@ -131,10 +131,10 @@ def validate_tutorial_output(
 
                 if "field_model_status" in data:
                     result["status_checks"]["field_model_status"] = data["field_model_status"]
-                    if data["field_model_status"] != "proxy_readout_only":
+                    if data["field_model_status"] != "proxy_readout":
                         raise ValueError(
                             f"Invalid field_model_status in manifest: {data['field_model_status']} "
-                            f"(expected: proxy_readout_only)"
+                            f"(expected: proxy_readout)"
                         )
 
             if contract_file == "validation_report.json":
