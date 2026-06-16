@@ -54,3 +54,7 @@ test_execution_output/
 # Local Cursor skill wiring (machine-specific; never commit)
 .cursor/skills/
 .cursor/local/
+
+# Local untracked etudes/figures output
+local/
+

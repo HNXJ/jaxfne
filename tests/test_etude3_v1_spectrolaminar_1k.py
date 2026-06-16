@@ -1,13 +1,15 @@
-"""Regression and structural validation test for Etude No. 3."""
+"""Regression and structural validation test for Etude No. 3 with Plotly and Local UI."""
 
 import json
+import subprocess
+import re
 from pathlib import Path
 import pytest
 import jax.numpy as jnp
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOK_PATH = REPO_ROOT / "tutorials" / "etudes" / "jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb"
-OUTPUT_DIR = REPO_ROOT / "tutorials" / "etudes" / "outputs" / "v1_spectrolaminar_1k"
+OUTPUT_DIR = REPO_ROOT / "local" / "etude3"
 
 REQUIRED_TOKENS = [
     "import jaxfne as jtfne",
@@ -17,7 +19,13 @@ REQUIRED_TOKENS = [
     "csd_proxy",
     "eeg_proxy",
     "meg_proxy",
-    "spectrolaminar_suite_proxy.png",
+    "raster_proxy.html",
+    "lfp_proxy.html",
+    "csd_proxy.html",
+    "eeg_proxy.html",
+    "meg_proxy.html",
+    "spectrolaminar_suite_proxy.html",
+    "ui.html",
 ]
 
 FORBIDDEN_PHRASES = [
@@ -61,11 +69,13 @@ def test_json_artifacts_exist_and_conform_to_contract():
     validation_path = OUTPUT_DIR / "validation.json"
     metrics_path = OUTPUT_DIR / "metrics.json"
     hashes_path = OUTPUT_DIR / "asset_hashes.json"
+    ui_path = OUTPUT_DIR / "ui.html"
 
     assert manifest_path.exists(), f"Expected manifest file at {manifest_path}"
     assert validation_path.exists(), f"Expected validation file at {validation_path}"
     assert metrics_path.exists(), f"Expected metrics file at {metrics_path}"
     assert hashes_path.exists(), f"Expected asset hashes file at {hashes_path}"
+    assert ui_path.exists(), f"Expected UI visualizer file at {ui_path}"
 
     # Verify manifest truth gates
     manifest = json.loads(manifest_path.read_text())
@@ -92,3 +102,31 @@ def test_json_artifacts_exist_and_conform_to_contract():
     for path in [manifest_path, validation_path, metrics_path, hashes_path]:
         data = json.loads(path.read_text())
         json.dumps(data, allow_nan=False)
+
+def test_git_ignored_and_no_leaks():
+    # 1. Verify target file in local/ is gitignored
+    manifest_path = OUTPUT_DIR / "manifest.json"
+    res = subprocess.run(
+        ["git", "check-ignore", "-q", str(manifest_path)],
+        cwd=str(REPO_ROOT)
+    )
+    assert res.returncode == 0, f"Output path {manifest_path} must be gitignored."
+
+    # 2. Check no newly generated .png or .html files leak outside local/ in the etude source folder
+    etudes_dir = REPO_ROOT / "tutorials" / "etudes"
+    for p in etudes_dir.glob("*.png"):
+        assert False, f"Leaked figure found in etudes source folder: {p}"
+    for p in etudes_dir.glob("*.html"):
+        assert False, f"Leaked HTML visualizer found in etudes source folder: {p}"
+
+    # 3. Check ui.html links only relative local paths
+    ui_path = OUTPUT_DIR / "ui.html"
+    ui_content = ui_path.read_text(encoding="utf-8")
+    
+    # Find all file values in the JavaScript object array definition
+    matches = re.findall(r"file:\s*'([^']+)'", ui_content)
+    assert len(matches) > 0, "No figure links found in ui.html"
+    for match in matches:
+        assert not match.startswith("/"), f"ui.html resolved absolute figure path: {match}"
+        assert not match.startswith("http"), f"ui.html resolved external figure path: {match}"
+        assert match.startswith("figures/"), f"ui.html path must be relative to figures/: {match}"
