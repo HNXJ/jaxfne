@@ -472,6 +472,46 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
             mask = jax.random.bernoulli(mask_key, p_val, (n, n)).astype(jdtype)
             W = W * mask / p_val
 
+    # Apply TCM_V1_6POP specific population-based connection mask if enabled
+    tcm_active = bool(metadata.get("tcm_v1_6pop", False)) or bool(connectivity_spec.get("tcm_v1_6pop", False))
+    if tcm_active:
+        import numpy as np
+        pop = []
+        for idx in range(n):
+            lyr = layer_labels[idx]
+            cell = cell_labels[idx]
+            is_e = (cell == "E")
+            if lyr in {"L2/3", "L2", "L3"}:
+                pop.append("SP" if is_e else "SI")
+            elif lyr == "L4":
+                pop.append("SS" if is_e else "other")
+            elif lyr == "L5":
+                pop.append("DP" if is_e else "DI")
+            elif lyr == "L6":
+                pop.append("TP" if is_e else "other")
+            else:
+                pop.append("other")
+        allowed_pairs = {
+            ("SS", "SP"),
+            ("SS", "SI"),
+            ("SP", "SP"),
+            ("SP", "SI"),
+            ("SI", "SP"),
+            ("DP", "DP"),
+            ("DP", "DI"),
+            ("DI", "DP"),
+            ("SP", "DP"),
+            ("DP", "SP"),
+            ("SP", "TP"),
+            ("TP", "DP")
+        }
+        tcm_mask = np.zeros((n, n), dtype=float)
+        for i in range(n):
+            for j in range(n):
+                if (pop[j], pop[i]) in allowed_pairs:
+                    tcm_mask[i, j] = 1.0
+        W = W * jnp.asarray(tcm_mask, dtype=jdtype)
+
     if bool(metadata.get("suite2_interarea", False)):
         pre_v1_l23 = jnp.asarray([area_labels[j] == "V1" and layer_labels[j] in {"L2", "L3", "L2/3"} and cell_labels[j] == "E" for j in range(n)], dtype=jdtype)
         post_v4_l4 = jnp.asarray([area_labels[i] == "V4" and layer_labels[i] == "L4" and cell_labels[i] == "E" for i in range(n)], dtype=jdtype)
