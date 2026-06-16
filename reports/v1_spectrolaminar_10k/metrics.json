@@ -1,0 +1,49 @@
+{
+  "N": 10000,
+  "duration_ms": 1000.0,
+  "dt_ms": 0.1,
+  "dc_levels": [
+    0.0,
+    5.0,
+    10.0
+  ],
+  "per_dc": {
+    "0": {
+      "deep_dc": 0.0,
+      "mean_rate_hz": 10.84,
+      "vm_finite": true,
+      "crossing": {
+        "deep_alpha_beta_frac": 0.5261543989181519,
+        "sup_alpha_beta_frac": 0.4738456606864929,
+        "deep_gamma_frac": 0.5254923105239868,
+        "sup_gamma_frac": 0.4745076596736908,
+        "n_contacts": 16
+      }
+    },
+    "5": {
+      "deep_dc": 5.0,
+      "mean_rate_hz": 16.59,
+      "vm_finite": true,
+      "crossing": {
+        "deep_alpha_beta_frac": 0.5065948367118835,
+        "sup_alpha_beta_frac": 0.49340516328811646,
+        "deep_gamma_frac": 0.5594717264175415,
+        "sup_gamma_frac": 0.44052833318710327,
+        "n_contacts": 16
+      }
+    },
+    "10": {
+      "deep_dc": 10.0,
+      "mean_rate_hz": 21.98,
+      "vm_finite": true,
+      "crossing": {
+        "deep_alpha_beta_frac": 0.4513174295425415,
+        "sup_alpha_beta_frac": 0.5486825704574585,
+        "deep_gamma_frac": 0.5889114141464233,
+        "sup_gamma_frac": 0.4110885560512543,
+        "n_contacts": 16
+      }
+    }
+  },
+  "plotly_snapshot": "kaleido"
+}

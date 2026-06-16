@@ -1,0 +1,55 @@
+{
+  "N": 1000,
+  "duration_ms": 1000.0,
+  "dt_ms": 0.1,
+  "n_trials": 4,
+  "n_contacts": 64,
+  "sparsity_frac": 0.5,
+  "plasticity_scale": 0.001,
+  "dc_levels": [
+    0.0,
+    5.0,
+    10.0
+  ],
+  "per_dc": {
+    "0": {
+      "deep_dc": 0.0,
+      "mean_rate_hz": 8.95,
+      "trial_rates_hz": [
+        8.95,
+        9.0,
+        8.89,
+        8.96
+      ],
+      "E_mean_rate_hz": 0.44,
+      "I_mean_rate_hz": 11.8,
+      "vm_finite": true
+    },
+    "5": {
+      "deep_dc": 5.0,
+      "mean_rate_hz": 12.32,
+      "trial_rates_hz": [
+        12.31,
+        12.31,
+        12.33,
+        12.33
+      ],
+      "E_mean_rate_hz": 9.37,
+      "I_mean_rate_hz": 13.31,
+      "vm_finite": true
+    },
+    "10": {
+      "deep_dc": 10.0,
+      "mean_rate_hz": 14.66,
+      "trial_rates_hz": [
+        14.65,
+        14.66,
+        14.66,
+        14.67
+      ],
+      "E_mean_rate_hz": 14.53,
+      "I_mean_rate_hz": 14.7,
+      "vm_finite": true
+    }
+  }
+}

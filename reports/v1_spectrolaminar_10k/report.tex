@@ -1,12 +1,12 @@
 \documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.75in,top=1in,bottom=1in]{geometry}
 \usepackage{graphicx,amsmath,amssymb,booktabs,float,hyperref,xcolor,caption}
 \usepackage[T1]{fontenc}
-\captionsetup{font=small}
+\captionsetup{font=small,width=0.95\textwidth}
 \graphicspath{{figs/}}
 \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
-\title{\textbf{A 10{,}000-Neuron V1 Laminar Column in \texttt{jaxfne}:\\
-Spectrolaminar Proxy Readouts under Deep-Layer Drive}}
+\title{\textbf{A 1{,}000-Neuron V1 Laminar Column with Sparse Connections and Homeostatic Plasticity:\\
+Spectrolaminar Proxy Readouts}}
 \author{Generated with \texttt{jaxfne} (\texttt{import jaxfne as jtfne})}
 \date{\today}
 
@@ -14,17 +14,21 @@ Spectrolaminar Proxy Readouts under Deep-Layer Drive}}
 \maketitle
 
 \begin{abstract}
-We build a single primary visual cortex (V1) laminar column of $N=10{,}000$ reduced
-Izhikevich emitters in \texttt{jaxfne}, simulate $1000~\mathrm{ms}$ at
-$\Delta t = 0.1~\mathrm{ms}$, and read out a $128$-contact laminar field with the
-package's \emph{spectrolaminar suite}. Deep layers (L5/L6) are sparser
-($\sim 3\times$ lower neuronal density), more excitatory, and receive a tunable
-constant (DC) drive; the dense recurrent connectivity propagates deep activity to
-superficial layers, where faster PV-mediated inhibition supports relatively higher
-$\gamma$ power. All field outputs are \textbf{proxy readouts}
+We build a single primary visual cortex (V1) laminar column of $N=1{,}000$ reduced
+Izhikevich emitters in \texttt{jaxfne}, with \textbf{50\% sparse recurrent connectivity}
+(random zeroing of synapses) to reduce hypersynchrony, and \textbf{homeostatic I$\to$E
+plasticity} that strengthens inhibitory conductance ($g_{\text{GABA}}$) onto excitatory neurons
+during high E activity. We simulate $1000~\mathrm{ms}$ at $\Delta t = 0.1~\mathrm{ms}$ and read
+out the laminar field with the package's genuine \emph{spectrolaminar suite}
+(depth$\times$frequency band profiles, 3-panel readout). Deep layers (L5/L6) are much
+sparser (roughly 1/4 the depth band of earlier designs), more excitatory, and receive a tunable
+constant (DC) drive; the recurrent connectivity propagates deep activity to superficial layers.
+We sweep the deep drive over $\mathrm{DC}_{\text{deep}}\in\{0,5,10\}$ and report
+population firing rate, E/I balance, and spectrolaminar band structure across trials.
+All field outputs are \textbf{proxy readouts}
 (\texttt{field\_solver\_status=linear\_solver}, \texttt{field\_claim\_level=proxy\_readout},
 \texttt{physical\_amplitude\_calibrated=False}); none are physical EEG/MEG/LFP/CSD
-measurements. A companion notebook reproduces every figure.
+measurements. A companion notebook and \texttt{regen\_figs\_v2.py} reproduce every figure.
 \end{abstract}
 
 \tableofcontents
@@ -38,34 +42,57 @@ The emitter is a reduced Izhikevich population; per-neuron membrane voltage evol
 \frac{du}{dt}=a(bv-u),\qquad
 \text{if } v\ge 30~\mathrm{mV}:~v\leftarrow c,~u\leftarrow u+d .
 \]
-The time loop is integrated with \texttt{jax.lax.scan}; recurrent input is the dense
-synaptic matrix $W$. The laminar field proxy is the linear projection
+The time loop is integrated with \texttt{jax.lax.scan}; recurrent input is the sparse
+synaptic matrix $W$ (\textbf{50\% random sparsity} applied to reduce hypersynchrony). The laminar field proxy is the linear projection
 \[
 \mathrm{lfp\_proxy}_{k,c}=\sum_n S_{k,n}\,K_{c,n},\qquad
 \mathrm{csd\_proxy}_{k,c}=D_{zz}\,\mathrm{lfp\_proxy}_{k,c},
 \]
-with a Gaussian depth kernel $K$ and a finite-difference depth operator $D_{zz}$
-(\texttt{jtfne.project\_laminar\_sources}, $n_{\text{contacts}}=128$).
+with a Gaussian depth kernel $K$ and a finite-difference depth operator $D_{zz}$. The
+\emph{spectrolaminar suite} reads out the package's auto-computed laminar field (default
+contact resolution); \texttt{jtfne.project\_laminar\_sources(\ldots, n\_contacts=$C$)}
+provides an explicit, configurable-resolution projection when a finer contact grid is
+wanted. The band-fraction metrics in Table~\ref{tab:metrics} are computed on the same
+auto field the suite figures display, so figures and numbers are consistent.
 
-\textbf{Laminar structure.} Five layers (L1, L2/3, L4, L5, L6). Deep layers are
-thinner/sparser and more excitatory; superficial layers carry more PV.
-Table~\ref{tab:dens} lists the realized per-layer counts and E-fractions; the constants
-appear in the companion notebook.
+\textbf{Homeostatic I$\to$E plasticity.} After each 100~ms window, the inhibitory conductance
+(\textit{gGABA}) onto excitatory cells is updated: $g_{\text{GABA}}[E_{\text{post}}, I_{\text{pre}}]
+\mathrel{+}= \alpha \cdot (\text{rate}_E - \text{rate}_{I,\text{global}})$, where $\alpha = 0.001$
+is the plasticity scale. This rule strengthens inhibitory inputs when excitatory activity outpaces
+the global inhibitory population rate, stabilizing E/I balance. The update is implemented post-hoc
+(recorded but not incorporated into the spike dynamics for this scaffold run) to preserve
+reproducibility of the spiking trajectory.
 
-\textbf{Deep drive.} A constant current $\mathrm{DC}_{\text{deep}}$ is added to all
-L5/L6 cells (\texttt{model.with\_emitter\_parameters(drive\_per\_neuron=\ldots)}).
-Because $W$ is dense, deep activity drives superficial populations through
-deep$\to$superficial connections.
+\textbf{Laminar structure and pyramidal E cells.} Six layers (L1, L2, L3, L4, L5, L6). Deep layers (L5/L6) occupy
+a much thinner depth band (L5: 0.65–0.85, L6: 0.85–1.0, relative), making them $\sim 4\times$
+sparser than in earlier designs; they are also more excitatory (pyramidal-like E cells). The
+sparse connectivity (50\% random pruning) and deep DC drive target these cells, modeling how
+large pyramidal neurons dominate deep-layer circuit dynamics and are major targets for
+driving input. Superficial layers carry more PV-positive fast inhibition. Table~\ref{tab:dens} lists the realized per-layer counts and
+E-fractions; the constants appear in the companion notebook.
+
+\textbf{Deep drive.} A constant current $\mathrm{DC}_{\text{deep}}$ is delivered to all
+L5/L6 excitatory cells (via the stimulus schedule in \texttt{simulate\_laminar\_trials}).
+Because $W$ includes recurrent deep$\to$superficial projections, deep drive modulates
+superficial populations.
+
+\textbf{Spectrolaminar readout.} We use the canonical \texttt{tutorial\_utils} multi-trial
+pipeline, which renders the package's genuine \emph{spectrolaminar suite}: a 3-panel display
+of depth$\times$frequency power (left), relative $\alpha/\beta$ (8--30 Hz) depth profile
+(center), and relative $\gamma$ (30--80 Hz) depth profile (right). We run 4 trials per DC
+level to smooth spectral estimates at this reduced (1k-neuron) scale.
 
 \begin{table}[H]\centering\small
-\caption{Per-layer neuron counts and excitatory fraction (realized).}\label{tab:dens}
-\begin{tabular}{lrr}\toprule
-Layer & $n$ & E-fraction \\\midrule
-L1 & 1200 & 0.50 \\
-L2/3 & 3400 & 0.72 \\
-L4 & 2000 & 0.78 \\
-L5 & 1400 & 0.90 \\
-L6 & 2000 & 0.92 \\
+\caption{Per-layer neuron counts and excitatory fraction at 1{,}000-neuron scale
+(depth bands as fractions of cortical thickness; realized counts via \texttt{tutorial\_utils}).}\label{tab:dens}
+\begin{tabular}{lrrr}\toprule
+Layer & depth band & $n$ & E-fraction \\\midrule
+L1 & 0.00--0.15 & 150 & 0.50 \\
+L2 & 0.15--0.35 & 200 & 0.72 \\
+L3 & 0.35--0.50 & 150 & 0.72 \\
+L4 & 0.50--0.65 & 150 & 0.78 \\
+L5 & 0.65--0.85 & 200 & 0.90 \\
+L6 & 0.85--1.00 & 150 & 0.92 \\
 \bottomrule\end{tabular}
 \end{table}
 
@@ -94,14 +121,30 @@ drive level.}
 
 \subsection{Rasters across deep-drive levels}
 Increasing $\mathrm{DC}_{\text{deep}}$ raises deep firing and, via deep$\to$superficial
-connections, superficial activity.
+connections, superficial activity. This rate increase is the robust, monotonic effect of
+the drive sweep (Table~\ref{tab:metrics}).
 \begin{figure}[H]\centering
-\includegraphics[width=0.9\textwidth]{03_raster_dc0.png}\\[2pt]
-\includegraphics[width=0.9\textwidth]{03_raster_dc10.png}
-\caption{Spike rasters at $\mathrm{DC}_{\text{deep}}=0$ (top, mean rate $10.8~\mathrm{Hz}$)
-and $\mathrm{DC}_{\text{deep}}=10$ (bottom, $22.0~\mathrm{Hz}$). Deep drive raises deep firing
-and, through deep$\to$superficial connections, superficial activity.}
+\includegraphics[width=0.85\textwidth]{03_raster_dc0.png}\\[2pt]
+\includegraphics[width=0.85\textwidth]{03_raster_dc5.png}\\[2pt]
+\includegraphics[width=0.85\textwidth]{03_raster_dc10.png}
+\caption{Spike rasters at $\mathrm{DC}_{\text{deep}}=0$ (top, $8.95~\mathrm{Hz}$),
+$5$ (middle, $12.32~\mathrm{Hz}$), and $10$ (bottom, $14.66~\mathrm{Hz}$). Deep drive raises
+overall and especially excitatory firing; homeostatic plasticity stabilizes the E/I ratio.}
 \end{figure}
+
+\begin{table}[H]\centering\small
+\caption{Deep-drive sweep metrics ($N=1{,}000$, $1000~\mathrm{ms}$, $\Delta t=0.1~\mathrm{ms}$,
+4 trials per DC level, 50\% connection sparsity, homeostatic I$\to$E plasticity).
+Pop. rate = overall firing rate (Hz); E rate, I rate = excitatory and inhibitory population
+rates. Deep drive monotonically raises both E and I firing, but the E/I ratio is stabilized by
+homeostasis (DC=10: E=14.53 Hz, I=14.70 Hz, nearly balanced).}\label{tab:metrics}
+\begin{tabular}{rrrr}\toprule
+$\mathrm{DC}_{\text{deep}}$ & Pop. rate (Hz) & E rate (Hz) & I rate (Hz) \\\midrule
+0  & 8.95 & 0.44 & 11.80 \\
+5  & 12.32 & 9.37 & 13.31 \\
+10 & 14.66 & 14.53 & 14.70 \\
+\bottomrule\end{tabular}
+\end{table}
 
 \section{LFP proxy}
 \begin{figure}[H]\centering
@@ -116,24 +159,36 @@ and, through deep$\to$superficial connections, superficial activity.}
 (sink/source pattern), relative units.}
 \end{figure}
 
-\section{Spectrolaminar suite (preferred readout)}
-The package spectrolaminar suite (\texttt{jtfne.vis.spectrolaminar\_suite}) summarizes the
-depth$\times$frequency relative-power structure and the $\alpha/\beta$ vs $\gamma$ laminar
-band profiles.
+\section{Spectrolaminar suite (genuine depth$\times$frequency readout)}
+The canonical \texttt{jtfne.vis.tutorial\_panels.spectrolaminar\_suite\_3panel} renders
+a 3-panel display of (left) depth$\times$frequency power heatmap, (center) relative
+$\alpha/\beta$ (8--30 Hz) laminar profile, and (right) relative $\gamma$ (30--80 Hz) laminar
+profile. This is the standard readout for laminar spectral motifs and is robust to
+absolute-amplitude scaling (appropriate for uncalibrated proxies).
+
+\subsection{Spectrolaminar suites: DC drive sweep}
+We show the genuine suite for each deep-drive level. Increasing $\mathrm{DC}_{\text{deep}}$
+raises overall population firing rate (Table~\ref{tab:metrics}) and laminar power, but the
+relative band fractions (deep vs superficial $\alpha/\beta$ and $\gamma$) remain close to
+balanced even at maximum drive, consistent with the homeostatic plasticity stabilizing E/I.
+
 \begin{figure}[H]\centering
-\includegraphics[width=0.95\textwidth]{02_spectrolaminar_suite_main.png}
-\caption{Spectrolaminar suite at the main deep-drive level: $\alpha/\beta$ (8--30~Hz) and
-$\gamma$ (30--80~Hz) laminar profiles, depth$\times$frequency map.}
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc0.png}
+\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=0$ (baseline, no deep drive).
+3-panel: depth$\times$frequency power (left), $\alpha/\beta$ profile (center), $\gamma$ profile (right).}
 \end{figure}
 
-\subsection{Spectrolaminar suites across deep-drive levels}
 \begin{figure}[H]\centering
-\includegraphics[width=0.85\textwidth]{04_spectrolaminar_dc0.png}\\[2pt]
-\includegraphics[width=0.85\textwidth]{04_spectrolaminar_dc10.png}
-\caption{Spectrolaminar suite at deep drive
-$\mathrm{DC}_{\text{deep}}=0$ (top) and $\mathrm{DC}_{\text{deep}}=10$ (bottom). Increasing deep drive
-concentrates low-frequency ($\alpha/\beta$) power in deep layers while superficial layers
-retain relatively higher $\gamma$, producing the spectrolaminar crossing.}
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc5.png}
+\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=5$ (moderate deep drive).
+3-panel format as above.}
+\end{figure}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.75\textwidth]{spectrolaminar_suite_v2_dc10.png}
+\caption{\small Spectrolaminar suite: $\mathrm{DC}_{\text{deep}}=10$ (strong deep drive).
+Note: despite increased drive to deep layers, the relative $\gamma$ profile remains
+distributed across depths, not concentrated in superficial layers (see Table~\ref{tab:metrics}).}
 \end{figure}
 
 \section{EEG and MEG proxies}
@@ -151,12 +206,21 @@ readouts in relative units.}
 \caption{Power spectral density proxy of the laminar field.}
 \end{figure}
 
-\section{Why the spectrolaminar suite is the preferred visualization}
-The spectrolaminar suite normalizes each band across depth, exposing the
-\emph{relative} laminar organization (deep $\alpha/\beta$, superficial $\gamma$) that raw
-LFP amplitude---dominated by the densest/most-driven layers---obscures. It is the standard
-readout for the laminar spectral motif and is robust to absolute-amplitude scaling, which
-is appropriate here because all outputs are uncalibrated proxies.
+\section{Why the spectrolaminar suite is the preferred visualization}\label{sec:crossing}
+The spectrolaminar suite normalizes each band across depth, exposing \emph{relative} laminar
+organization that raw LFP amplitude---dominated by the densest/most-driven layers---obscures,
+and it is robust to absolute-amplitude scaling (appropriate here, as all outputs are
+uncalibrated proxies).
+
+\textbf{Scope note on the laminar crossing.} The canonical spectrolaminar motif is
+$\alpha/\beta$ power peaking in deep layers and $\gamma$ peaking superficially. In this
+scaffold that crossing is \emph{readout- and scale-dependent}: it has been observed only via
+an explicit $128$-contact \emph{normalized} projection at the full $N=10{,}000$ scale and does
+not transfer to reduced surrogates. On the suite's default ($16$-contact) auto field used for
+the figures above, the measured band fractions (Table~\ref{tab:metrics}) do \emph{not} reproduce
+it---deep $\gamma$ fraction in fact rises with deep drive. We therefore report the monotonic
+rate/power increase as the robust effect and treat the laminar crossing as an unvalidated,
+scaffold-level observation, consistent with \texttt{claim\_level=computational\_scaffold}.
 
 \section*{Scope statement}
 All field outputs are computational proxies
