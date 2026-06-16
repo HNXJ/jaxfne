@@ -26,6 +26,8 @@ REQUIRED_TOKENS = [
     "meg_proxy.html",
     "spectrolaminar_suite_proxy.html",
     "ui.html",
+    "p_connect=0.1",
+    "cell_params",
 ]
 
 FORBIDDEN_PHRASES = [
