@@ -70,11 +70,15 @@ Criterion — a change is "visible but gradual" if the hottest synapse reaches
 `< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping, not
 learning); negative values are anti-Hebbian contrast only.
 
-> **Coupling to Q3:** scale and rate trade off. At the stable ~5–10 Hz regime
-> (Q3) coincidences drop and accumulation slows, so push scale **up** (~0.1–1.0)
-> to keep the same learning timescale. The band above is measured at ~43 Hz.
+> **Coupling to Q3 (now verified):** scale and rate trade off. Re-running the
+> sweep at the stable 9.63 Hz regime (2 nA baseline) gives a per-step STDP
+> signal **~10× smaller** than at 43 Hz, so the reasonable band shifts up to
+> **`global_stdp ≈ 0.05 – 1.0`** at ~10 Hz (vs 0.01–0.1 at 43 Hz) — exactly the
+> predicted ~10× scaling. See
+> [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md).
 
-Full sweep + invariant checks: see [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md).
+Full sweeps + invariant checks: [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md)
+(~43 Hz) and [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) (~10 Hz).
 
 ---
 
@@ -156,5 +160,6 @@ well-scaled?" answer yes.
 ## Related reports
 - [NEURON_IO_CHARACTERIZATION](NEURON_IO_CHARACTERIZATION.md) — prior F-I mapping
 - [BASELINE_DRIVE_REFERENCE](BASELINE_DRIVE_REFERENCE.md) — baseline drive reference
-- [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep
+- [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
+- [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test

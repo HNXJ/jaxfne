@@ -24,6 +24,12 @@ update once and rescaling by `global_stdp`.
 | `−1.0` | **Inverse / anti-Hebbian** | LTP ↔ LTD swapped |
 | `2.0`, `10.0`, `100.0` | **Amplified** | 2× / 10× / 100× the update |
 
+> **Regime note:** this sweep runs at **42.68 Hz mean** (10 nA baseline + 5×5
+> stimulus), which the calibration shows is ~5× over the < 10 Hz stability
+> budget. For the rate-compliant version (2 nA, 9.63 Hz) see
+> [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — the scale
+> behavior is identical but the per-step signal is ~10× smaller.
+
 ## Setup
 
 - 100-neuron canonical V1 column (71 E, 29 I), `tutorial_utils.build_laminar_column`
@@ -87,5 +93,6 @@ signal of that loop. For a reasonable scale band see
 [CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2--reasonable-plasticity-scale-global_stdp).
 
 ## Related reports
+- [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — same sweep in the rate-compliant ~10 Hz regime
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test (learning-rate sweep)
 - [CORTEX_CALIBRATION_CHECKLIST](CORTEX_CALIBRATION_CHECKLIST.md) — operating-point calibration
