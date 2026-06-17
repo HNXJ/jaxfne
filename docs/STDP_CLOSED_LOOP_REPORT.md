@@ -98,15 +98,21 @@ loop. In the real closed loop, anything above ~0.1 runs away here.
 - **For a stable closed loop in this 100-neuron config, use `global_stdp ≈ 0.1`**, or add a homeostatic / synaptic-scaling regulator before running at 1.0.
 - Runaway at ≥ 0.5 is the expected behavior of unregulated additive STDP with a positive E→E loop; it is a property of the **rule + network**, not a bug in the gain.
 
-## Scope and next step
+## Scope and resolution
 
 This is a real closed-loop run (W feeds back). It uses the streaming kernel's
 simpler synapse model, so absolute rates differ from `simulate_laminar_trials`;
-the **stability verdict** (1.0 runs away, ~0.1 stable) is the transferable
-result. Natural next step: add homeostatic plasticity (rate set-point /
-synaptic scaling) and confirm 1.0 becomes stable with regulation.
+the **stability verdict** (1.0 runs away, ~0.1 stable without regulation) is the
+transferable result.
+
+> **Resolved:** the runaway is fixed by adding the simplest homeostatic
+> regulator (synaptic scaling). With it, `global_stdp = 1.0` is stable and still
+> learns — see the canonical
+> [STDP_HOMEOSTATIC_REPORT](STDP_HOMEOSTATIC_REPORT.md). That homeostatic model
+> is the single STDP model kept going forward.
 
 ## Related reports
+- [STDP_HOMEOSTATIC_REPORT](STDP_HOMEOSTATIC_REPORT.md) — **canonical model** (homeostatic STDP, fixes the runaway)
 - [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — post-hoc scale sweep (~43 Hz)
 - [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — post-hoc scale sweep (~10 Hz)
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc weight test
