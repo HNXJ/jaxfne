@@ -308,6 +308,24 @@ def _area_layer_cell_type_map(metadata: Mapping[str, Any], area: str) -> dict[st
     return _suite2_default_layer_cell_types()
 
 
+def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, float] | None:
+    """Per-layer neuron *population* fractions (count budget, NOT thickness).
+
+    These are set by ``Configuration.population(...)`` and decouple how many
+    neurons a layer gets from how thick it is (e.g. a thin but dense L2 holding
+    more neurons than a thick but sparse L5). Resolution order: per-area override
+    (``area_layer_count_frac``) -> global ``layer_count_frac`` -> ``None`` (caller
+    falls back to the historical thickness-proportional allocation).
+    """
+    per_area = metadata.get("area_layer_count_frac", {}) or {}
+    if area in per_area:
+        return {str(k): float(v) for k, v in per_area[area].items()}
+    base = metadata.get("layer_count_frac", None)
+    if base:
+        return {str(k): float(v) for k, v in base.items()}
+    return None
+
+
 def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
@@ -358,8 +376,14 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
             continue
 
         layer_ranges = _layer_ranges_for(layers, metadata)
-        thickness = {layer: max(0.0, layer_ranges[layer][1] - layer_ranges[layer][0]) for layer in layers}
-        layer_counts = _counts_from_fractions(n_col, thickness)
+        count_frac = _area_layer_count_frac(metadata, area)
+        if count_frac is not None and sum(count_frac.get(layer, 0.0) for layer in layers) > 0.0:
+            # Population-fraction allocation (decoupled from thickness).
+            alloc = {layer: float(count_frac.get(layer, 0.0)) for layer in layers}
+        else:
+            # Historical fallback: allocate neurons proportional to layer thickness.
+            alloc = {layer: max(0.0, layer_ranges[layer][1] - layer_ranges[layer][0]) for layer in layers}
+        layer_counts = _counts_from_fractions(n_col, alloc)
         area_layer_map = _area_layer_cell_type_map(metadata, area)
         for layer_idx, layer in enumerate(layers):
             n_layer = int(layer_counts.get(layer, 0))
@@ -432,7 +456,77 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
         W = W + ff_gain * (post_v4_l4[:, None] * pre_v1_l23[None, :])
         W = W + fb_gain * (post_v1_deep_l1[:, None] * pre_v4_l23[None, :])
 
+    # Declarative inter-column connectivity (from Configuration.inter_column_connectivity).
+    # Materializes real cross-area edges using anatomical routing: feedforward
+    # from source L2/3 E-cells -> target L4; feedback from source L6 -> target
+    # L1/L5. An explicit layer_to_layer_map overrides these defaults. Proxy
+    # scaffold connectivity, not a calibrated axonal projection.
+    inter = metadata.get("inter_column_connectivity")
+    if inter:
+        specs = inter if isinstance(inter, list) else [inter]
+        for spec in specs:
+            W = W + _interarea_W(spec, area_labels, layer_labels, cell_labels, n, jdtype, seed)
+
     return replace(params, W=W)
+
+
+def _interarea_W(
+    spec: Mapping[str, Any],
+    area_labels: Sequence[str],
+    layer_labels: Sequence[str],
+    cell_labels: Sequence[str],
+    n: int,
+    jdtype: Any,
+    default_seed: int,
+) -> jax.Array:
+    """Build the additive cross-area weight contribution for one inter-column spec.
+
+    Anatomical routing rules (default-to-rules, allow override):
+      * feedforward: source L2/3 excitatory -> target L4
+      * feedback:    source L6 -> target L1/L5
+    A target layer of L4 is treated as feedforward (uses ``p_feedforward`` and
+    ``feedforward_weight_range``); any other target layer is feedback. An
+    explicit ``layer_to_layer_map`` replaces the default pairs. Edges are
+    excitatory (positive) since the projecting source is an excitatory cell.
+    """
+    src_area = str(spec.get("source_area", "V1"))
+    dst_area = str(spec.get("target_area", "V4"))
+    l2l = spec.get("layer_to_layer_map")
+    if l2l:
+        pairs = [(str(s), str(t)) for s, t in dict(l2l).items()]
+    else:
+        pairs = [("L2", "L4"), ("L3", "L4"), ("L6", "L1"), ("L6", "L5")]
+    p_ff = float(spec.get("p_feedforward", 0.3) or 0.0)
+    p_fb = float(spec.get("p_feedback", 0.2) or 0.0)
+    ff_range = tuple(spec.get("feedforward_weight_range") or (0.5, 2.0))
+    fb_range = tuple(spec.get("feedback_weight_range") or (0.3, 1.5))
+    seed = spec.get("seed")
+    seed = int(seed) if seed is not None else int(default_seed)
+    key = jax.random.PRNGKey(seed + 7777)
+    inv_sqrt = 1.0 / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
+    Wadd = jnp.zeros((n, n), dtype=jdtype)
+    for src_layer, dst_layer in pairs:
+        src_layers = {"L2", "L3"} if src_layer in {"L2/3"} else {src_layer}
+        dst_layers = {"L2", "L3"} if dst_layer in {"L2/3"} else {dst_layer}
+        is_ff = bool(dst_layers & {"L4"})
+        p = p_ff if is_ff else p_fb
+        if p <= 0.0:
+            continue
+        wlo, whi = (ff_range if is_ff else fb_range)
+        pre = jnp.asarray(
+            [area_labels[j] == src_area and layer_labels[j] in src_layers and cell_labels[j] == "E" for j in range(n)],
+            dtype=jdtype,
+        )
+        post = jnp.asarray(
+            [area_labels[i] == dst_area and layer_labels[i] in dst_layers for i in range(n)],
+            dtype=jdtype,
+        )
+        pair_mask = post[:, None] * pre[None, :]
+        key, k_bern, k_w = jax.random.split(key, 3)
+        bern = (jax.random.uniform(k_bern, (n, n), dtype=jdtype) < p).astype(jdtype)
+        wval = jax.random.uniform(k_w, (n, n), minval=float(wlo), maxval=float(whi), dtype=jdtype)
+        Wadd = Wadd + pair_mask * bern * wval * inv_sqrt
+    return Wadd
 
 
 class _ProbeDeclarations(list):
@@ -672,6 +766,93 @@ class Configuration:
     def add_column(self, name: str, layers: Sequence[str], n: int) -> "Configuration":
         """Backward-compatible alias for :meth:`column`."""
         return self.column(name=name, layers=layers, n=n)
+
+    def geometry(
+        self,
+        *,
+        layer_thickness: Mapping[str, float] | None = None,
+        layer_cell_types: Mapping[str, Mapping[str, float]] | None = None,
+    ) -> "Configuration":
+        """Declare laminar geometry from per-layer *thickness* (relative depth).
+
+        Thicknesses are normalized and accumulated into ``(z_min, z_max)`` depth
+        intervals (z = 0 at the pia/top, z = 1 at the white-matter/bottom), then
+        stored as ``layer_fractions``.  This is the ergonomic front-end for
+        :meth:`layer_fractions`: you give thicknesses, not cumulative intervals.
+
+        Geometry (where a layer sits / how thick it is) is intentionally
+        independent of population (:meth:`population`, how many neurons a layer
+        gets).  ``layer_cell_types`` is optional and only written when provided,
+        so a prior :meth:`cell_types`/:meth:`area_layer_cell_types` is preserved.
+        """
+        if layer_thickness is None:
+            layer_thickness = {"L1": 0.10, "L2": 0.15, "L3": 0.15, "L4": 0.10, "L5": 0.30, "L6": 0.20}
+        layers = [str(k) for k in layer_thickness.keys()]
+        if not layers:
+            raise ValueError("layer_thickness must not be empty")
+        values = [float(layer_thickness[k]) for k in layer_thickness.keys()]
+        if any((not math.isfinite(v)) or v <= 0.0 for v in values):
+            raise ValueError("layer thicknesses must be finite and positive")
+        total = sum(values)
+        fractions: dict[str, tuple[float, float]] = {}
+        z = 0.0
+        for layer, value in zip(layers, values):
+            dz = value / total
+            fractions[layer] = (z, min(1.0, z + dz))
+            z += dz
+        metadata = dict(self.metadata)
+        metadata["layer_fractions"] = {k: list(v) for k, v in fractions.items()}
+        metadata["layer_thickness"] = {k: float(layer_thickness[k]) for k in layer_thickness}
+        if layer_cell_types is not None:
+            metadata["layer_cell_types"] = {
+                str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in layer_cell_types.items()
+            }
+        return replace(self, metadata=metadata)
+
+    def population(
+        self,
+        N: int,
+        neurons: Mapping[str, float],
+        *,
+        name: str = "V1",
+        layers: Sequence[str] | None = None,
+    ) -> "Configuration":
+        """Declare a column's neuron population: total ``N`` + per-layer budget.
+
+        ``neurons`` maps each layer to its share of the total (any positive
+        scale — counts like ``{"L2": 250}`` or fractions like ``{"L2": 0.25}``;
+        they are normalized).  Allocation uses the same largest-remainder rule as
+        cell-type allocation, so per-layer integer counts sum exactly to ``N``.
+
+        Changing the whole column size is a single edit to ``N``; the per-layer
+        proportions stay fixed.  Per-area populations differ by calling
+        ``population(...)`` once per area with distinct ``name`` and ``N``; each
+        area's proportions are stored under ``area_layer_count_frac[name]``.
+        """
+        n_int = int(N)
+        if n_int <= 0:
+            raise ValueError(f"population N must be positive; got {N!r}")
+        if not neurons:
+            raise ValueError("neurons map must not be empty")
+        frac: dict[str, float] = {}
+        for key, value in neurons.items():
+            f = float(value)
+            if not math.isfinite(f) or f < 0.0:
+                raise ValueError(f"neuron share for {key!r} must be finite and non-negative; got {value!r}")
+            frac[str(key)] = f
+        if sum(frac.values()) <= 0.0:
+            raise ValueError("neurons map must have positive total")
+        if layers is None:
+            layers = list(frac.keys())
+        layers_list = [str(layer) for layer in layers]
+
+        metadata = dict(self.metadata)
+        per_area = dict(metadata.get("area_layer_count_frac", {}))
+        per_area[name] = dict(frac)
+        metadata["area_layer_count_frac"] = per_area
+        metadata.setdefault("layer_count_frac", dict(frac))
+        cfg = replace(self, metadata=metadata)
+        return cfg.column(name=name, layers=layers_list, n=n_int)
 
     def cell_types(self, fractions: Mapping[str, float]) -> "Configuration":
         """Set cell-type fractions for the current configuration.
@@ -1186,12 +1367,9 @@ class Configuration:
             feedforward_weight_range = (0.5, 2.0)
         if feedback_weight_range is None:
             feedback_weight_range = (0.3, 1.5)
-        if layer_to_layer_map is None:
-            layer_to_layer_map = {
-                "L2/3": "L4",
-                "L5": "L1",
-                "L5": "L2/3",
-            }
+        # layer_to_layer_map intentionally stays None when unset: the construct
+        # path then applies the canonical anatomical routing (feedforward
+        # L2/3->L4, feedback L6->L1/L5). Passing a map overrides those defaults.
         if cell_type_to_cell_type_map is None:
             cell_type_to_cell_type_map = {
                 "E": "E",
@@ -1203,7 +1381,7 @@ class Configuration:
         inter_conn_spec = {
             "source_area": str(source_area),
             "target_area": str(target_area),
-            "layer_to_layer_map": dict(layer_to_layer_map),
+            "layer_to_layer_map": dict(layer_to_layer_map) if layer_to_layer_map is not None else None,
             "cell_type_to_cell_type_map": dict(cell_type_to_cell_type_map),
             "mode": str(mode),
             "p_feedforward": float(p_feedforward),
