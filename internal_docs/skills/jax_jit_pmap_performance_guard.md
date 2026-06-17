@@ -1,1 +1,0 @@
-../../.legacy/internal_docs/skills/jax_jit_pmap_performance_guard.md

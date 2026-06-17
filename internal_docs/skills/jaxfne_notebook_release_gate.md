@@ -1,1 +1,0 @@
-../../.legacy/internal_docs/skills/jaxfne_notebook_release_gate.md

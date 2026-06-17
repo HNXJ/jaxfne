@@ -54,3 +54,10 @@ test_execution_output/
 # Local Cursor skill wiring (machine-specific; never commit)
 .cursor/skills/
 .cursor/local/
+
+# Development & local experimentation
+.cursor/
+figures/publication/
+internal_docs/
+reports/v1_spectrolaminar_10k/
+test_gpu.py
