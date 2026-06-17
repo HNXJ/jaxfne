@@ -46,7 +46,6 @@ def test_geometry_does_not_clobber_cell_types():
 
 
 def test_population_exact_per_layer_counts():
-    jtfne.enable_x64()
     model = jtfne.construct(_base())
     nt = pd.DataFrame(model.neuron_table())
     counts = nt.groupby("layer").size().to_dict()
@@ -55,7 +54,6 @@ def test_population_exact_per_layer_counts():
 
 def test_population_counts_decoupled_from_thickness():
     # L5 is the thickest (0.30) but must NOT get the most neurons
-    jtfne.enable_x64()
     model = jtfne.construct(_base())
     nt = pd.DataFrame(model.neuron_table())
     counts = nt.groupby("layer").size().to_dict()
@@ -63,7 +61,6 @@ def test_population_counts_decoupled_from_thickness():
 
 
 def test_population_single_N_change_scales_proportionally():
-    jtfne.enable_x64()
     model = jtfne.construct(_base(N=200))
     nt = pd.DataFrame(model.neuron_table())
     counts = nt.groupby("layer").size().to_dict()
@@ -72,7 +69,6 @@ def test_population_single_N_change_scales_proportionally():
 
 
 def _interarea_model(p_ff, p_fb, l2l=None):
-    jtfne.enable_x64()
     cfg = (
         _base("V1")
         .population(N=100, neurons={"L1": 10, "L2": 25, "L3": 20, "L4": 10, "L5": 20, "L6": 15}, name="V4")
@@ -124,7 +120,6 @@ def test_interarea_cross_edges_excitatory_positive():
 
 
 def test_truth_gates_not_escalated():
-    jtfne.enable_x64()
     model = jtfne.construct(_interarea_cfg())
     man = model.manifest()
     assert man.get("claim_level", "computational_scaffold") == "computational_scaffold"

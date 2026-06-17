@@ -1,7 +1,7 @@
 # Cortex Calibration Checklist — 100-Neuron V1 Column
 
 **Status:** Technical report · proxy / computational-scaffold · 2026-06-17
-**Truth gates:** `truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`. No biological-calibration or mechanism claim.
+**Truth gates:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-calibration or mechanism claim.
 
 ## Purpose
 

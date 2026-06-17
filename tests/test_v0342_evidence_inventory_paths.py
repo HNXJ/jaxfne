@@ -13,6 +13,10 @@ def test_evidence_inventory_wrapper_command_exists():
 def test_agent_context_inventory_commands_resolve():
     command_refs = []
     for path in [Path("AGENTS.md"), Path("internal_docs/loop_context/AGENT_QUICKREF.md")]:
+        # internal_docs/ is gitignored (internal-only), so it is absent in clean
+        # checkouts / CI; only assert on context files that are actually present.
+        if not path.is_file():
+            continue
         text = path.read_text(encoding="utf-8")
         if "scripts/evidence_inventory.py" in text:
             command_refs.append("scripts/evidence_inventory.py")
