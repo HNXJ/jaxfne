@@ -11,6 +11,13 @@ regulator — multiplicative synaptic scaling on both populations**. It makes th
 default `global_stdp = 1.0` stable, where unregulated STDP ran away
 ([prior closed-loop report](STDP_CLOSED_LOOP_REPORT.md)).
 
+The model also offers a **biologically-flavored inhibitory plasticity rule** —
+**Vogels–Sprekeler iSTDP** (symmetric, rate-targeting) — on the I synapses
+*specifically*. It replaces the artificial inhibitory synaptic scaling with a
+self-balancing learning rule: inhibition grows on its own to pin the
+postsynaptic rate at a target ρ₀, holding the network stable **without any
+I-side homeostatic rescaling**. See [§Vogels–Sprekeler iSTDP](#vogelssprekeler-istdp-on-inhibitory-synapses).
+
 ## Model (simplest form)
 
 1. **Neurons:** Izhikevich (E, PV, SST, VIP), per-type params from the cortex builder.
@@ -57,14 +64,20 @@ Artifacts: `cortex_100_homeostatic_stdp/{homeostatic_stdp.json, homeostatic_stdp
 
 ## Results
 
-| run | rate (Hz) | exc-W (0→25 s) | inh-W growth | E syn changed | I syn changed | stable? |
-|---|---|---|---:|---:|---:|:--:|
-| **off** (`global_stdp=0.0`) | 8.6 → 8.5 (flat) | frozen | 0% | 0 | 0 | ✅ |
-| **all-STDP 1.0, no homeostasis** | 8.6 → **12.4** (rising) | +519% | **+866%** | 6532 | 2024 | ❌ runaway |
-| **all-homeostatic STDP 1.0** | 8.6 → **8.5** (flat) | 0% | 0% | **6532** | **2675** | ✅ |
+| run | I-rule | rate (Hz) | exc-W (0→25 s) | inh-W growth | E syn changed | I syn changed | stable? |
+|---|---|---|---|---:|---:|---:|:--:|
+| **off** (`global_stdp=0.0`) | — | 8.6 → 8.5 (flat) | frozen | 0% | 0 | 0 | ✅ |
+| **all-STDP 1.0, no homeostasis** | Hebbian | 8.6 → **12.4** (rising) | +519% | **+866%** | 6532 | 2024 | ❌ runaway |
+| **all-homeostatic STDP 1.0** | Hebbian + scaling | 8.6 → **8.5** (flat) | 0% | 0% | **6532** | **2675** | ✅ |
+| **Vogels–Sprekeler iSTDP** | VS (rate-targeting) | 8.5 → **8.9** (flat) | 0% (E-scaled) | **+515%** *(by design)* | 6532 | 2178 | ✅ |
+
+In the Vogels–Sprekeler run, E synapses use Hebbian STDP + E-side scaling
+(unchanged), and the I synapses use the rate-targeting rule with **no I-side
+scaling**. The +515% inhibitory growth is *not* runaway — it is the rule
+balancing E/I to pin the rate near ρ₀; the firing rate stays flat at ~8.4 Hz.
 
 Figure: [`homeostatic_stdp.png`](../cortex_100_homeostatic_stdp/homeostatic_stdp.png) —
-rate, E+I weight magnitude, and E-vs-I synapses-changed panels.
+rate, E+I weight magnitude, and E-vs-I synapses-changed panels (4 runs).
 
 ## Verdict (all checks pass)
 
@@ -75,6 +88,10 @@ rate, E+I weight magnitude, and E-vs-I synapses-changed panels.
 | homeostatic STDP stable at `global_stdp = 1.0` | ✅ |
 | `global_stdp = 0.0` freezes W | ✅ |
 | sign preserved (Dale's law: E ≥ 0, I ≤ 0) | ✅ |
+| Vogels–Sprekeler iSTDP changes I synapses | ✅ |
+| VS rate-stable **without** I-side scaling | ✅ |
+| VS grows inhibition to balance E/I | ✅ |
+| VS sign preserved | ✅ |
 
 ## Interpretation
 
@@ -92,12 +109,50 @@ rate, E+I weight magnitude, and E-vs-I synapses-changed panels.
 This is the intended division of labor: **STDP = what pattern, synaptic
 scaling = how much total** — now for both excitation and inhibition.
 
+## Vogels–Sprekeler iSTDP on inhibitory synapses
+
+The dual-scaling model above regulates inhibition with an *artificial*
+multiplicative rescale. A biologically-flavored alternative is to give the
+inhibitory synapses their own **homeostatic plasticity rule** — the canonical
+model of inhibitory plasticity / E–I balance (Vogels et al. 2011). E synapses
+keep Hebbian STDP + E-scaling; the I synapses switch to this rule with **no
+I-side scaling**.
+
+**Rule (on inhibitory weight magnitude `m = |W|`, single symmetric trace `x`, τ = 20 ms):**
+```
+presynaptic-I spike (j):  Δm[i,j] = η_i · (x_post[i] − α)
+postsynaptic spike (i):   Δm[i,j] = η_i · x_pre[j]
+α = 2·ρ₀·τ          # depression constant sets the target postsynaptic rate ρ₀
+```
+- **Symmetric:** one trace, one time constant — pre and post are treated alike
+  (no separate τ₊/τ₋, no LTP/LTD asymmetry).
+- **Rate-targeting:** the fixed point is `ρ_post = ρ₀`. With ρ₀ = 8 Hz and
+  τ = 20 ms, `α = 2·ρ₀·τ_sec = 0.32`. When a postsynaptic neuron fires above
+  ρ₀ its inhibition is potentiated; below ρ₀ it relaxes — a self-correcting loop.
+- **Self-balancing:** inhibition grows (here **+515%**, −0.068 → −0.42 mean)
+  until E and I are balanced and the rate settles at ρ₀. That growth is the
+  *mechanism*, not instability: the population rate stays flat at **~8.4 Hz**.
+- η_i = 0.01 (per-spike), gated by `global_stdp` like every other plastic path.
+
+**Result:** the network is rate-stable at `global_stdp = 1.0` with **no
+inhibitory synaptic scaling at all** — the inhibitory plasticity rule does the
+homeostatic job that scaling did before, but as a local, spike-driven,
+biologically-motivated process. 2178 inhibitory synapses change, sign-preserved.
+
+> **When to use which.** Hebbian-I + dual scaling holds *total* inhibition
+> constant (inhibition does not adapt its set-point). Vogels–Sprekeler lets
+> inhibition *find* the level that balances excitation and targets a rate — the
+> right choice when E–I balance or rate homeostasis is the object of study.
+> Toggle via the `inhibitory_istdp_vogels` run in `cortex_100_homeostatic_stdp.py`.
+
 ## Recommendation
 
 - **Canonical model:** all-neuron closed-loop STDP + dual (E and I) synaptic scaling.
 - **Default `global_stdp = 1.0`** is safe (plasticity-on by default; `0.0` = off).
 - Homeostatic interval ~1 s, "rescale incoming E and incoming |I| weights to
   initial sums" — the minimal regulator, no rate set-point or extra state.
+- **For E–I balance / rate homeostasis studies:** use Vogels–Sprekeler iSTDP on
+  the inhibitory synapses (rate-targeting, self-balancing, no I-side scaling).
 
 ## Scope
 
