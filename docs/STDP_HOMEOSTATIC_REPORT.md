@@ -1,7 +1,7 @@
 # Homeostatic STDP — Canonical Model (100-Neuron Cortex)
 
-**Status:** Technical report · **canonical STDP model** · proxy / computational-scaffold · 2026-06-17
-**Truth gates:** `truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`. No biological-learning or mechanism claim.
+**Status:** Technical report · **canonical STDP-proxy model** · 2026-06-17
+**Truth gates:** `truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`.
 
 ## Summary
 
@@ -156,11 +156,10 @@ biologically-motivated process. 2178 inhibitory synapses change, sign-preserved.
 
 ## Scope
 
-Proxy/computational-scaffold; weights are not a calibrated biological learning
-claim. Uses the streaming kernel's simplified synapse model with a script-level
-all-synapse STDP step (the package kernel is excitatory-only). The earlier
-exploratory reports (post-hoc sweeps, unregulated/E-only closed loop) remain as
-the analysis record that motivated this model; this report is the one to build on.
+This is an **STDP-proxy** — the suffix implies computational purpose, not
+calibrated biological learning. The earlier exploratory reports (post-hoc
+sweeps, unregulated/E-only closed loop) remain as the analysis record that
+motivated this model; this report is the one to build on.
 
 ## Related reports
 - [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — unregulated closed loop (the runaway this fixes)
