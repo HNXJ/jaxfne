@@ -1,0 +1,113 @@
+# Closed-Loop Online STDP — 100-Neuron Cortex
+
+**Status:** Technical report · proxy / computational-scaffold · 2026-06-17
+**Truth gates:** `truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`. No biological-learning or mechanism claim.
+
+## Purpose
+
+Run **genuine closed-loop online STDP** via `jaxfne.streaming.run_stdp_stream`:
+the synaptic weight matrix `W` updates every timestep during the simulation and
+feeds back into the dynamics. This is the test the post-hoc reports
+([global-scale](STDP_GLOBAL_SCALE_REPORT.md), [low-rate](STDP_LOWRATE_REGIME_REPORT.md))
+could not do — it reveals whether plasticity **converges or runs away**.
+
+### Design (as specified)
+
+Plasticity is the synaptic substrate. `W` is always the plastic matrix.
+
+- `global_stdp` (== kernel `plasticity_scale`) is the **default-on** gain.
+- **`1.0` = default** (plasticity always included).
+- **`0.0` = off** (`dW · 0 = 0`, W frozen) — reproduces the static-W baseline.
+- Only **excitatory** synapses are plastic (kernel masks to exc presyn columns,
+  clips to `[w_min, w_max]`, sign-preserved) — the standard STDP convention.
+
+Reproduce:
+```bash
+python cortex_100_stdp_closedloop.py          # calibrate + run scales → JSON
+python cortex_100_stdp_closedloop_figure.py   # → PNG
+```
+Artifacts: `cortex_100_stdp_closedloop/{stdp_closedloop.json, stdp_closedloop.png}`.
+
+## Setup
+
+- 100-neuron canonical V1 column (71 E, 29 I)
+- Kernel: `run_stdp_stream`, 25,000 ms, dt = 0.1 ms, 5×5 s chunks, full-resolution raster
+- Synapse model (kernel-native): `s` decays at τ = 5 ms, `I = stim + noise + W·spike`; **no intrinsic per-type drive** — total drive injected
+- Baseline signed recurrence `W0`: exc cols +0.05, inh cols −0.05 (form `0.5/√N · sign`); only exc cols plastic
+- Rule: A_plus=0.01, A_minus=0.012, τ=20 ms, w∈[0, 1.5]
+- Drive calibrated to the rate-compliant band: **−1 nA extra-E → 8.5 Hz mean** (largest drive keeping mean ≤ 10 Hz with E active)
+
+> **Kernel note:** `run_stdp_stream` is a simpler synapse model than
+> `simulate_laminar_trials` (instantaneous `W·spike`, no intrinsic drive), so
+> this is a distinct network calibrated independently. The qualitative STDP
+> stability result is the transferable finding.
+
+## Results — `global_stdp` scale runs (25 s each)
+
+| global_stdp | mean rate | E | I | max neuron | exc-W mean (0→25 s) | LTP | LTD | stable? |
+|---:|---:|---:|---:|---:|---|---:|---:|:--:|
+| **0.0 (off)** | 8.49 | 6.98 | 12.19 | 29.3 | 0.0495 → 0.0495 (frozen) | 0 | 0 | ✅ |
+| **0.1** | 8.47 | 6.98 | 12.14 | 29.1 | 0.0495 → 0.0518 | 1332 | 5200 | ✅ |
+| **0.5** | 9.80 | 7.03 | 16.56 | 28.7 | 0.0495 → 0.0970 | 2279 | 4253 | ❌ runaway |
+| **1.0 (default)** | 11.70 | 7.00 | 23.19 | 32.4 | 0.0495 → 0.1924 | 3138 | 3394 | ❌ runaway |
+
+Per-chunk trajectories (5 s chunks) — the diagnostic:
+
+| global_stdp | chunk firing rate (Hz) | chunk mean-W |
+|---:|---|---|
+| 0.0 | 8.53 → 8.51 (flat) | 0.0208 → 0.0208 (flat) |
+| 0.1 | 8.53 → 8.48 (flat) | 0.0211 → 0.0224 (plateaus) |
+| 0.5 | 8.51 → **11.27** (rising) | 0.0229 → **0.0545** (climbing) |
+| 1.0 | 8.99 → **13.88** (rising) | 0.0370 → **0.1222** (climbing) |
+
+Figure: [`stdp_closedloop.png`](../cortex_100_stdp_closedloop/stdp_closedloop.png).
+
+## Invariant checks (design spec)
+
+| Check | Result |
+|---|:--:|
+| `global_stdp = 0.0` freezes W (== baseline) | ✅ |
+| `global_stdp = 1.0` changes W online | ✅ |
+| all weights finite across all chunks | ✅ |
+| sign preservation (exc ≥ 0, inh untouched) | ✅ |
+
+The design works exactly as asked: plasticity is on by default at 1.0, and
+setting 0.0 turns it off (frozen W).
+
+## Key finding — `1.0` runs away; max stable scale ≈ 0.1
+
+**Closed-loop reveals an instability the post-hoc analyses could not:**
+
+- At **0.0 and 0.1**, weights settle (W plateaus, rate flat at ~8.5 Hz) — **stable learning**.
+- At **0.5 and 1.0**, excitatory weights potentiate without bound (W mean 0.05 → 0.10 / 0.19) and firing rate climbs every chunk (→ 11.3 / 13.9 Hz). This is **LTP-driven positive feedback**: stronger E weights → more E firing → more potentiation. At 1.0 the network leaves the < 10 Hz band.
+- **Largest stable scale in this configuration: `global_stdp ≈ 0.1`.**
+
+This corrects the post-hoc band estimate (0.05–1.0 at 10 Hz): post-hoc measured
+the *per-step driving signal* on a fixed raster and could not see the feedback
+loop. In the real closed loop, anything above ~0.1 runs away here.
+
+> Why the difference from the LTD-dominant post-hoc counts? On the *static*
+> baseline raster LTD dominated. Once weights start potentiating, E firing rises
+> and the LTP/LTD balance shifts toward LTP (at 1.0: LTP 3138 vs LTD 3394, near
+> balance, with magnitude on the exc block driving net growth) — the loop
+> self-reinforces.
+
+## Recommendation
+
+- **Keep `global_stdp = 1.0` as the API default** (plasticity-on; `0.0` = off — the design is correct and verified).
+- **For a stable closed loop in this 100-neuron config, use `global_stdp ≈ 0.1`**, or add a homeostatic / synaptic-scaling regulator before running at 1.0.
+- Runaway at ≥ 0.5 is the expected behavior of unregulated additive STDP with a positive E→E loop; it is a property of the **rule + network**, not a bug in the gain.
+
+## Scope and next step
+
+This is a real closed-loop run (W feeds back). It uses the streaming kernel's
+simpler synapse model, so absolute rates differ from `simulate_laminar_trials`;
+the **stability verdict** (1.0 runs away, ~0.1 stable) is the transferable
+result. Natural next step: add homeostatic plasticity (rate set-point /
+synaptic scaling) and confirm 1.0 becomes stable with regulation.
+
+## Related reports
+- [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — post-hoc scale sweep (~43 Hz)
+- [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — post-hoc scale sweep (~10 Hz)
+- [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc weight test
+- [CORTEX_CALIBRATION_CHECKLIST](CORTEX_CALIBRATION_CHECKLIST.md) — operating-point calibration

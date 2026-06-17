@@ -70,6 +70,13 @@ Criterion — a change is "visible but gradual" if the hottest synapse reaches
 `< 0.001` is effectively frozen; `> 1` saturates/clips (10–100 is clipping, not
 learning); negative values are anti-Hebbian contrast only.
 
+> **Closed-loop correction (important):** post-hoc bands are an upper bound on
+> the *driving signal*. With feedback ([STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md)),
+> scales **≥ 0.5 run away** (LTP positive feedback drives rate up); the
+> **largest stable closed-loop scale is ≈ 0.1** for this 100-neuron config.
+> Keep `1.0` as the API default (plasticity-on; `0.0` = off), but run at ~0.1 —
+> or add homeostatic regulation — for closed-loop stability.
+
 > **Coupling to Q3 (now verified):** scale and rate trade off. Re-running the
 > sweep at the stable 9.63 Hz regime (2 nA baseline) gives a per-step STDP
 > signal **~10× smaller** than at 43 Hz, so the reasonable band shifts up to
@@ -162,4 +169,5 @@ well-scaled?" answer yes.
 - [BASELINE_DRIVE_REFERENCE](BASELINE_DRIVE_REFERENCE.md) — baseline drive reference
 - [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
 - [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
+- [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test

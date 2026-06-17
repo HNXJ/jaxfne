@@ -65,6 +65,7 @@ recommended in the calibration checklist; STDP statistics in a rate-compliant
 network (~2 nA baseline drive) will differ and are the appropriate next step.
 
 ## Related reports
+- [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
 - [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — `global_stdp` sweep (~43 Hz)
 - [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — `global_stdp` sweep (~10 Hz, rate-compliant)
 - [CORTEX_CALIBRATION_CHECKLIST](CORTEX_CALIBRATION_CHECKLIST.md)

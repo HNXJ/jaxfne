@@ -84,13 +84,14 @@ lower rate means you turn the gain up to keep the same learning timescale.
 
 ## Scope
 
-Post-hoc on a static-network raster (weights not fed back). For closed-loop
-online plasticity run `run_stdp_stream` with `plasticity_scale = global_stdp` in
-this 2 nA regime — the per-step update is identical, so the band above is the
-recommended closed-loop starting point. Verifying weight **convergence vs
-runaway** in that closed loop (given LTD dominance) is the natural next step.
+Post-hoc on a static-network raster (weights not fed back). The closed-loop
+verification has now been run — see
+[STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md): with feedback, scales
+above ~0.1 **run away** (LTP positive feedback), so the post-hoc band 0.05–1.0
+is an upper bound on the *driving signal*, not the safe closed-loop range.
 
 ## Related reports
+- [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
 - [CORTEX_CALIBRATION_CHECKLIST](CORTEX_CALIBRATION_CHECKLIST.md) — operating-point calibration (Q1–Q4)
 - [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) — the ~43 Hz scale sweep
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test

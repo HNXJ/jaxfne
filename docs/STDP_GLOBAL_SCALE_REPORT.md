@@ -93,6 +93,7 @@ signal of that loop. For a reasonable scale band see
 [CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2--reasonable-plasticity-scale-global_stdp).
 
 ## Related reports
+- [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)
 - [STDP_LOWRATE_REGIME_REPORT](STDP_LOWRATE_REGIME_REPORT.md) — same sweep in the rate-compliant ~10 Hz regime
 - [STDP_REAL_TEST_REPORT](STDP_REAL_TEST_REPORT.md) — post-hoc STDP weight test (learning-rate sweep)
 - [CORTEX_CALIBRATION_CHECKLIST](CORTEX_CALIBRATION_CHECKLIST.md) — operating-point calibration
