@@ -6,28 +6,36 @@
 ## Summary
 
 This is the **single STDP model kept going forward**: closed-loop online STDP
-(`jaxfne.streaming.run_stdp_stream`) plus the **simplest homeostatic regulator —
-multiplicative synaptic scaling**. It makes the default `global_stdp = 1.0`
-stable, where unregulated STDP ran away
+on **all synapses (no E/I discrimination)** plus the **simplest homeostatic
+regulator — multiplicative synaptic scaling on both populations**. It makes the
+default `global_stdp = 1.0` stable, where unregulated STDP ran away
 ([prior closed-loop report](STDP_CLOSED_LOOP_REPORT.md)).
 
 ## Model (simplest form)
 
 1. **Neurons:** Izhikevich (E, PV, SST, VIP), per-type params from the cortex builder.
 2. **Synapses:** plastic weight matrix `W` (the substrate). Recurrent signed
-   connectivity, only **excitatory** columns plastic, sign-preserved, clipped `[0, 1.5]`.
+   connectivity; **every synapse is plastic** (excitatory and inhibitory alike),
+   sign-preserved per Dale's law (E columns clipped `[0, 1.5]`, I columns `[−1.5, 0]`).
 3. **Plasticity (online):** pair-based STDP, `dW = global_stdp · (dW_LTP − dW_LTD)`,
-   applied every timestep, fed back into dynamics.
+   applied every timestep to **all off-diagonal synapses**, fed back into dynamics.
    - `global_stdp = 1.0` → **default-on**
    - `global_stdp = 0.0` → **off** (W frozen)
 4. **Homeostasis (the addition):** every 1 s, rescale each postsynaptic neuron's
-   incoming excitatory weights back to their **initial sum** `S0`:
+   incoming **excitatory** weights to their initial sum `S0_E` **and** incoming
+   **inhibitory** weights to their initial sum `S0_I`:
    ```
-   W[i, E] *= S0[i] / sum(W[i, E])
+   W[i, E] *= S0_E[i] / sum(W[i, E]);   W[i, I] *= S0_I[i] / sum(|W[i, I]|)
    ```
    STDP sets the *pattern* of weights (competition); homeostasis holds the
-   *total* excitatory input per neuron constant. This is standard synaptic
-   scaling (Turrigiano-style), the minimal mechanism that prevents runaway.
+   *total* input (both E and I) per neuron constant. Standard synaptic scaling
+   (Turrigiano-style) applied to both populations — the minimal regulator.
+
+> **All-neuron plasticity:** the package kernel `run_stdp_stream` updates
+> excitatory synapses only (hard-coded `exc_mask`). To remove that
+> discrimination, the model uses a script-level STDP step (`cortex_100_homeostatic_stdp.py`)
+> that mirrors the kernel's Izhikevich + pair-STDP math with the update mask set
+> to all off-diagonal synapses.
 
 Reproduce:
 ```bash
@@ -40,61 +48,64 @@ Artifacts: `cortex_100_homeostatic_stdp/{homeostatic_stdp.json, homeostatic_stdp
 
 - 100-neuron canonical V1 column (71 E, 29 I), 25,000 ms, dt = 0.1 ms
 - Drive: −1 nA extra-E → ~8.5 Hz regime (rate-compliant, see [calibration](CORTEX_CALIBRATION_CHECKLIST.md))
-- STDP rule: A_plus=0.01, A_minus=0.012, τ=20 ms, w∈[0, 1.5]
-- Homeostatic interval: 1 s (25 rescales over the run)
+- STDP rule: A_plus=0.01, A_minus=0.012, τ=20 ms, w∈[0, 1.5]; applied to all synapses
+- Homeostatic interval: 1 s (25 rescales over the run), both E and I
 
-> **Kernel note:** `run_stdp_stream` uses a simpler synapse than
-> `simulate_laminar_trials` (instantaneous `W·spike`, τ=5 ms, no intrinsic
-> drive). The homeostatic stability result is the transferable finding.
+> **Synapse model:** the script step uses the same simplified synapse as the
+> streaming kernel (instantaneous `W·spike`, τ=5 ms, no intrinsic drive). The
+> all-neuron + homeostatic stability result is the transferable finding.
 
 ## Results
 
-| run | rate trajectory (Hz) | exc-W mean (0→25 s) | growth | LTP | LTD | stable? |
+| run | rate (Hz) | exc-W (0→25 s) | inh-W growth | E syn changed | I syn changed | stable? |
 |---|---|---|---:|---:|---:|:--:|
-| **off** (`global_stdp=0.0`) | 8.6 → 8.5 (flat) | 0.0495 → 0.0495 (frozen) | 0% | 0 | 0 | ✅ |
-| **STDP 1.0, no homeostasis** | 8.6 → **14.8** (rising) | 0.051 → **0.209** | **+308%** | 3190 | 3342 | ❌ runaway |
-| **homeostatic STDP 1.0** | 8.6 → **8.5** (flat) | 0.0495 → 0.0495 | **0%** | 2295 | 4237 | ✅ |
+| **off** (`global_stdp=0.0`) | 8.6 → 8.5 (flat) | frozen | 0% | 0 | 0 | ✅ |
+| **all-STDP 1.0, no homeostasis** | 8.6 → **12.4** (rising) | +519% | **+866%** | 6532 | 2024 | ❌ runaway |
+| **all-homeostatic STDP 1.0** | 8.6 → **8.5** (flat) | 0% | 0% | **6532** | **2675** | ✅ |
 
 Figure: [`homeostatic_stdp.png`](../cortex_100_homeostatic_stdp/homeostatic_stdp.png) —
-rate, excitatory-weight, and LTP/LTD-count panels.
+rate, E+I weight magnitude, and E-vs-I synapses-changed panels.
 
 ## Verdict (all checks pass)
 
 | Check | Result |
 |---|:--:|
+| plasticity acts on all neurons (both E and I synapses change) | ✅ |
 | homeostasis prevents runaway (vs no-homeostasis) | ✅ |
 | homeostatic STDP stable at `global_stdp = 1.0` | ✅ |
 | `global_stdp = 0.0` freezes W | ✅ |
-| homeostatic STDP still learns (weights redistributed) | ✅ |
+| sign preserved (Dale's law: E ≥ 0, I ≤ 0) | ✅ |
 
 ## Interpretation
 
-The decisive result is the third row vs the second:
+- **Plasticity now hits both populations:** 6532 excitatory **and** 2024–2675
+  inhibitory synapses change (vs excitatory-only before), all sign-preserved.
+- **Without homeostasis, all-neuron plasticity runs away *worse*:** both E and I
+  weights explode (+519% / +866%). Freeing inhibition adds a *second* additive
+  positive-feedback loop — confirming the runaway is structural (additive STDP,
+  no normalization), not an E-specific quirk. See [why-runaway diagnostic](STDP_CLOSED_LOOP_REPORT.md).
+- **With homeostasis on both populations**, total E and total I input per neuron
+  are pinned, so firing stays flat at 8.5 Hz and weights stay bounded — **yet
+  STDP still acts** on 9000+ synapses across both types. Homeostasis removes the
+  runaway *gain* without removing the *learning*.
 
-- **Without homeostasis**, `global_stdp = 1.0` drives LTP positive feedback —
-  excitatory weights grow +308%, firing climbs 8.6 → 14.8 Hz, leaving the < 10 Hz band.
-- **With homeostasis**, the *total* excitatory input per neuron is pinned, so
-  firing stays flat at 8.5 Hz and weights stay bounded — **yet STDP still acts**:
-  LTP=2295 / LTD=4237 means synapses are continuously re-weighted relative to
-  each other. Homeostasis removes the runaway *gain* without removing the
-  *learning*.
-
-This is exactly the intended division of labor: **STDP = what pattern, synaptic
-scaling = how much total.**
+This is the intended division of labor: **STDP = what pattern, synaptic
+scaling = how much total** — now for both excitation and inhibition.
 
 ## Recommendation
 
-- **Canonical model:** closed-loop STDP + synaptic scaling, as above.
-- **Default `global_stdp = 1.0`** is now safe (plasticity-on by default; `0.0` = off).
-- Homeostatic interval ~1 s and "rescale incoming-E weights to initial sum" is
-  the minimal regulator — no rate set-point or extra state required.
+- **Canonical model:** all-neuron closed-loop STDP + dual (E and I) synaptic scaling.
+- **Default `global_stdp = 1.0`** is safe (plasticity-on by default; `0.0` = off).
+- Homeostatic interval ~1 s, "rescale incoming E and incoming |I| weights to
+  initial sums" — the minimal regulator, no rate set-point or extra state.
 
 ## Scope
 
 Proxy/computational-scaffold; weights are not a calibrated biological learning
-claim. Uses the streaming kernel's simplified synapse model. The earlier
-exploratory reports (post-hoc sweeps, unregulated closed loop) remain as the
-analysis record that motivated this model; this report is the one to build on.
+claim. Uses the streaming kernel's simplified synapse model with a script-level
+all-synapse STDP step (the package kernel is excitatory-only). The earlier
+exploratory reports (post-hoc sweeps, unregulated/E-only closed loop) remain as
+the analysis record that motivated this model; this report is the one to build on.
 
 ## Related reports
 - [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — unregulated closed loop (the runaway this fixes)
