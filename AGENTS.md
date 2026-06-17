@@ -18,6 +18,22 @@ import jaxfne as jtfne
 
 Public flow: `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export` (package computes; notebooks configure/plot/export).
 
+## Root freeze policy
+
+**[INVARIANT] Repo root is frozen as of 2026-06-17 (commit ca43c1e).**
+
+Structure is final. All future changes must:
+- **Modify existing files** in root (e.g., README.md, LICENSE, .gitignore)
+- **Add content inside existing folders** (jaxfne/, docs/, examples/, tutorials/, tests/, scripts/, .github/)
+- **NOT create new top-level folders or files** except in exceptional patches (e.g., critical security fix requiring new root artifact)
+
+This ensures:
+- Stable project surface (no structural surprises)
+- Predictable navigation (familiar structure)
+- Professional package state (no root clutter)
+
+Breaking this rule requires explicit approval. Violations: flag and revert immediately.
+
 ## Gates
 
 ```text
