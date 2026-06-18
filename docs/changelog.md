@@ -1,3 +1,22 @@
+## v0.4.0 (2026-06-18)
+
+**Fluent Configuration grammar + proxy-only probe vocabulary.**
+
+### Added
+- `Configuration.geometry(layer_thickness=...)` — declare laminar geometry from per-layer thickness (normalized to cumulative z-intervals).
+- `Configuration.population(N, neurons={...})` — per-layer neuron budget decoupled from thickness (largest-remainder allocation; one `N` per area).
+- Real inter-area edge wiring in `Configuration.inter_column_connectivity(...)`: materializes cross-area synapses with anatomical routing (feedforward L2/3→L4, feedback L6→L1/L5) and an explicit `layer_to_layer_map` override.
+
+### Changed (breaking)
+- The `*_like` probe vocabulary (`lfp_like`/`csd_like`/`eeg_like`/`meg_like`) is **fully retired with no aliases**. Use `*_proxy` names only; signal access and probe declarations reject `*_like` with a clear pointer to the `*_proxy` name.
+
+### Fixed
+- CI workflow `scope:`→`strategy:` (matrix jobs now run); retired-term doc guard; mkdocs strict-build links.
+- Updated all tutorial notebooks to execute against the current API.
+
+### Scope
+- Outputs remain proxy readouts (`field_solver_status=linear_solver`, `physical_amplitude_calibrated=false`). No scientific-claim escalation.
+
 ## v0.3.42 (2026-06-14)
 
 **Public context hardening release.**

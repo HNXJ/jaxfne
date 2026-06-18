@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+"""
+jaxfne-configuration-fluent-api — the Configuration→Model stage
+
+Demonstrates the fluent chaining pattern for Configuration:
+
+    cfg = jtfne.Configuration()
+           .runtime(...)
+           .column(...)
+           .cell_types(...)
+           .connectivity(...)
+           .probes(...)
+
+Every method returns a Configuration object, enabling inspection and composition
+at each stage without needing intermediate variables.
+"""
+
+# ============================================================================
+# LEVEL 1: ROOT CONFIGURATION OBJECT
+# ============================================================================
+
+"""
+entry = jtfne.Configuration()
+
+This is the entry point to the fluent grammar.
+"""
+
+# ============================================================================
+# FLUENT METHODS (each returns Configuration)
+# ============================================================================
+
+"""
+1. .runtime(...)
+   Set JAX runtime options, device target, compilation mode.
+
+   cfg.runtime(
+       jit=True,              # enable JIT compilation
+       x64=False,             # 32-bit floats (faster, less memory)
+       device="gpu",          # target device ("gpu", "cpu", "tpu")
+       trace_level="info",    # logging verbosity
+   )
+
+   Returns: Configuration (with runtime settings)
+
+
+2. .column(...)
+   Specify single-column dimensions: neuron count, layer fractions.
+
+   cfg.column(
+       n_neurons=1000,
+       layer_fractions={
+           "L1": (0.0, 0.1),    "L2": (0.1, 0.35),   "L3": (0.35, 0.55),
+           "L4": (0.55, 0.65),  "L5": (0.65, 0.85), "L6": (0.85, 1.0),
+       }
+   )
+
+   or use the default template:
+
+   cfg.column(n_neurons=1000)  # loads canonical fractions automatically
+
+
+3. .cell_types(...)
+   Specify cell type composition per layer.
+
+   cfg.cell_types({
+       "L1": {"E": 0.35, "PV": 0.30, "SST": 0.20, "VIP": 0.15},
+       "L2": {"E": 0.45, "PV": 0.25, "SST": 0.18, "VIP": 0.12},
+       "L3": {"E": 0.55, "PV": 0.20, "SST": 0.15, "VIP": 0.10},
+       "L4": {"E": 0.65, "PV": 0.18, "SST": 0.12, "VIP": 0.05},
+       "L5": {"E": 0.85, "PV": 0.08, "SST": 0.05, "VIP": 0.02},
+       "L6": {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},
+   })
+
+   or auto-load default:
+
+   cfg.cell_types("default")  # loads canonical E/I ratios
+
+
+4. .connectivity(...)
+   Specify connection rules and recurrent architecture.
+
+   cfg.connectivity(
+       recurrent="dense",           # W_recurrent: dense matrix
+       interlaminar="sparse",       # cross-layer edges: sparse
+       intra_layer_sparsity=0.1,   # within-layer sparsity fraction
+       feedback_sparsity=0.05,      # back-projection sparsity
+   )
+
+
+5. .probes(...)
+   Define readout points (LFP contacts, MUA recording sites, etc.).
+
+   cfg.probes({
+       "LFP": 64,        # 64-contact linear probe
+       "MUA": "all",     # record from all neurons (spike detection)
+       "CSD": "auto",    # auto-derive CSD from LFP
+   })
+
+
+6. .objectives(...)
+   Pre-declare objective specifications (optional, for readability).
+
+   cfg.objectives({
+       "rate_targets": {"L2": 10, "L5": 8, "L6": 5},
+       "band_power": {"band": "gamma", "target": 0.25},
+       "phase_locking": {"frequency_hz": 40, "target_kappa": 0.5},
+   })
+
+
+7. .optimizer(...)
+   Configure optimization method (optional, for readability).
+
+   cfg.optimizer(
+       method="AGSDR",
+       learning_rate=0.01,
+       momentum=0.9,
+       max_steps=500,
+   )
+
+
+8. .field(...)
+   Enable field-solve or proxy mode for extracellular potentials.
+
+   cfg.field(
+       mode="proxy",              # "proxy" (fast, Gaussian+CSD) or "pde" (slow, solve)
+       conductivity_sigma=0.3,    # extracellular conductivity (S/m)
+       source_type="iclamp",      # input current type (monopole)
+   )
+
+
+9. .geometry(...)
+   Specify spatial layout (layer positions, probe placements).
+
+   cfg.geometry(
+       column_diameter_um=100,
+       layer_positions_um=[0, 100, 250, 400, 550, 850, 1050],  # L1–L6 bottom positions
+       probe_positions_um=np.linspace(0, 1000, 64),  # 64-contact linear probe
+   )
+"""
+
+# ============================================================================
+# CHAINING PATTERN (complete example)
+# ============================================================================
+
+"""
+Minimal setup:
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True, x64=False)
+    .column(n_neurons=1000)
+    .cell_types("default")
+    .connectivity(recurrent="dense", interlaminar="sparse")
+    .probes({"LFP": 64, "MUA": "all"})
+)
+
+Medium setup (with spatial geometry):
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True, x64=False, device="gpu")
+    .column(n_neurons=1000)
+    .cell_types("default")
+    .connectivity(
+        recurrent="dense",
+        interlaminar="sparse",
+        intra_layer_sparsity=0.1,
+    )
+    .probes({"LFP": 64, "CSD": "auto", "MUA": "all"})
+    .field(mode="proxy", conductivity_sigma=0.3)
+    .geometry(
+        column_diameter_um=100,
+        layer_positions_um=[0, 100, 250, 400, 550, 850, 1050],
+        probe_positions_um=np.linspace(0, 1000, 64),
+    )
+)
+
+Full setup (with objectives & optimizer):
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True, x64=False, device="gpu", trace_level="info")
+    .column(n_neurons=1000)
+    .cell_types("default")
+    .connectivity(
+        recurrent="dense",
+        interlaminar="sparse",
+        intra_layer_sparsity=0.1,
+    )
+    .probes({"LFP": 64, "CSD": "auto", "MUA": "all"})
+    .field(mode="proxy", conductivity_sigma=0.3)
+    .geometry(
+        column_diameter_um=100,
+        layer_positions_um=[0, 100, 250, 400, 550, 850, 1050],
+        probe_positions_um=np.linspace(0, 1000, 64),
+    )
+    .objectives({
+        "rate_targets": {"L2": 10, "L5": 8},
+        "band_power": {"band": "gamma", "target": 0.25},
+    })
+    .optimizer(method="AGSDR", learning_rate=0.01, max_steps=500)
+)
+"""
+
+# ============================================================================
+# CONFIGURATION INSPECTION (all fluent returns are inspectable)
+# ============================================================================
+
+"""
+After any stage, you can inspect the current configuration:
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True, x64=False)
+    .column(n_neurons=1000)
+)
+
+# Inspect the runtime settings
+print(cfg.runtime_settings)
+# Output: RuntimeSettings(jit=True, x64=False, device='cpu', ...)
+
+# Inspect the column spec
+print(cfg.column_spec)
+# Output: ColumnSpec(n_neurons=1000, layer_fractions={...}, ...)
+
+# Summary of entire configuration
+print(cfg.summary())
+# Output: ConfigurationSummary(areas=1, neurons_per_column=1000, ...)
+"""
+
+# ============================================================================
+# COMPOSITION & MODIFICATION
+# ============================================================================
+
+"""
+Fluent API enables easy composition and modification:
+
+# Start with a base config
+base_cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True)
+    .column(n_neurons=1000)
+)
+
+# Create variant 1 (sparse connectivity)
+cfg_sparse = base_cfg.connectivity(recurrent="sparse", intra_layer_sparsity=0.5)
+
+# Create variant 2 (dense connectivity)
+cfg_dense = base_cfg.connectivity(recurrent="dense", intra_layer_sparsity=0.1)
+
+# They inherit all prior settings from base_cfg
+print(cfg_sparse.column_spec == cfg_dense.column_spec)  # True
+print(cfg_sparse.connectivity_spec == cfg_dense.connectivity_spec)  # False
+"""
+
+# ============================================================================
+# MULTI-AREA STACKING
+# ============================================================================
+
+"""
+The fluent API naturally extends to hierarchical multi-area models:
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True, x64=False, device="gpu")
+    .multi_area(
+        areas=["V1", "V2", "V4"],
+        n_neurons_per_area=1000,
+    )
+    .area_layer_fractions({
+        "V1": {...},  # canonical fractions
+        "V2": {...},  # same fractions (normalized)
+        "V4": {...},
+    })
+    .area_cell_types({
+        "V1": {...},  # canonical E/I ratios
+        "V2": {...},
+        "V4": {...},
+    })
+    .area_connectivity({
+        "V1_to_V2": "feedforward_L5_to_L1",
+        "V2_to_V4": "feedforward_L5_to_L1",
+        "within_area": "dense",
+    })
+    .probes({
+        "V1": {"LFP": 64},
+        "V2": {"LFP": 64},
+        "V4": {"LFP": 32},
+    })
+)
+
+model = jtfne.construct(cfg)
+"""
+
+# ============================================================================
+# VALIDATION & ERROR HANDLING
+# ============================================================================
+
+"""
+The fluent API performs early validation at each stage:
+
+cfg = (
+    jtfne.Configuration()
+    .runtime(jit=True)
+    .column(n_neurons=1000)
+    .cell_types({
+        "L1": {"E": 0.35, ...},
+        # Missing L2, L3, ... will raise validation error
+    })
+)
+# Raises: ConfigurationError("cell_types must have entries for all layers...")
+
+cfg = (
+    jtfne.Configuration()
+    .column(
+        layer_fractions={
+            "L1": (0.0, 0.1),
+            "L2": (0.15, 0.35),  # Gap from 0.1 to 0.15!
+        }
+    )
+)
+# Raises: ConfigurationError("layer_fractions must be contiguous...")
+"""
+
+# ============================================================================
+# RULE
+# ============================================================================
+
+"""
+[INVARIANT] Every jaxfne Configuration must follow fluent chaining:
+
+    ✅ CORRECT:
+    cfg = (
+        jtfne.Configuration()
+        .runtime(...)
+        .column(...)
+        .connectivity(...)
+    )
+
+    ❌ WRONG:
+    cfg = jtfne.Configuration()
+    cfg.runtime(...)
+    cfg.column(...)
+    # (modifies cfg in-place, no composition)
+
+Why?
+  - Fluent returns are immutable snapshots → no accidental state pollution
+  - Each stage is independently testable
+  - Composition enables easy variant creation
+  - Clear dependency order (runtime → column → connectivity)
+  - Natural algebraic structure (can build from fragments)
+"""

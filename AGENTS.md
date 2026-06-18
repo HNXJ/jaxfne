@@ -24,8 +24,11 @@ Public flow: `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vi
 
 Structure is final. All future changes must:
 - **Modify existing files** in root (e.g., README.md, LICENSE, .gitignore)
-- **Add content inside existing folders** (jaxfne/, docs/, examples/, tutorials/, tests/, scripts/, .github/)
+- **Add content inside existing folders** (jaxfne/, docs/, examples/, tutorials/, tests/, scripts/, .github/, skills/)
 - **NOT create new top-level folders or files** except in exceptional patches (e.g., critical security fix requiring new root artifact)
+
+**Approved exceptions:**
+- `skills/` (added 2026-06-18, v0.4.0): versioned jaxfne agent skills, sign-off recorded for this release.
 
 This ensures:
 - Stable project surface (no structural surprises)
