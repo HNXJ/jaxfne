@@ -17,6 +17,88 @@ from typing import Any, Literal, Mapping, Optional, Sequence
 
 from .core import Configuration
 
+#: Historical default builder layer set (5-layer, L2/3 merged), superficial → deep.
+DEFAULT_LAYERS: tuple[str, ...] = ("L1", "L2/3", "L4", "L5", "L6")
+
+#: Fully resolved canonical 6-layer set (L2/L3 split), superficial → deep.
+CANONICAL_LAYERS_6L: tuple[str, ...] = ("L1", "L2", "L3", "L4", "L5", "L6")
+
+#: Flat (depth-invariant) cell-type fractions — the legacy default.
+FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}
+
+#: Canonical ground-truth per-layer E:I composition (verified 2026-06-17).
+#: E-fraction rises with depth (peaks L6 ≈90%); I-fraction is highest superficial
+#: (L1 50%, no PV); PV concentrates at L4. Overall ≈77E:23I. Keys are the
+#: 6-layer names in :data:`DEFAULT_LAYERS`; a 5-layer ("L2/3" merged) variant is
+#: provided as :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
+CANONICAL_LAYER_CELL_TYPE_FRACTIONS: dict[str, dict[str, float]] = {
+    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},  # 50% I, no PV
+    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},  # 30% I, I-count peak
+    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},  # 25% I
+    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},  # 20% I, PV feedforward
+    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},  # 12% I
+    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},  # 10% I, E-fraction peak
+}
+
+#: 5-layer ("L2/3" merged) variant of the canonical composition.
+CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L: dict[str, dict[str, float]] = {
+    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
+    "L2/3": {"E": 0.75, "PV": 0.12, "SST": 0.08, "VIP": 0.05},
+    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},
+    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
+    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},
+}
+
+#: Count-proportional z-bands (depth ∝ neuron count) for the 6-layer canonical column.
+CANONICAL_Z_BANDS: dict[str, tuple[float, float]] = {
+    "L1": (0.00, 0.10), "L2": (0.10, 0.35), "L3": (0.35, 0.55),
+    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
+}
+
+#: Count-proportional z-bands for the 5-layer (L2/3 merged) canonical column.
+CANONICAL_Z_BANDS_5L: dict[str, tuple[float, float]] = {
+    "L1": (0.00, 0.10), "L2/3": (0.10, 0.55),
+    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
+}
+
+
+def _canonical_z_bands(layers: Sequence[str]) -> dict[str, tuple[float, float]] | None:
+    """Return canonical count-proportional z-bands for a known layer set, else None."""
+    s = tuple(layers)
+    if s == CANONICAL_LAYERS_6L:
+        return dict(CANONICAL_Z_BANDS)
+    if s == DEFAULT_LAYERS:
+        return dict(CANONICAL_Z_BANDS_5L)
+    return None
+
+
+def _resolve_layer_cell_types(
+    layers: Sequence[str],
+    ei_profile: Literal["flat", "canonical"],
+    cell_type_fractions: Mapping[str, float],
+) -> dict[str, dict[str, float]]:
+    """Resolve per-layer cell-type fractions for an ``ei_profile``.
+
+    ``"flat"`` repeats ``cell_type_fractions`` across every layer (legacy
+    behavior). ``"canonical"`` returns the verified ground-truth E:I gradient
+    when ``layers`` matches the 6-layer or 5-layer canonical set; otherwise it
+    raises ``ValueError`` so the caller is never silently downgraded to flat.
+    """
+    if ei_profile == "flat":
+        return {L: dict(cell_type_fractions) for L in layers}
+    if ei_profile != "canonical":
+        raise ValueError(f"ei_profile must be 'flat' or 'canonical', got {ei_profile!r}")
+    layer_set = tuple(layers)
+    if layer_set == CANONICAL_LAYERS_6L:
+        return {L: dict(CANONICAL_LAYER_CELL_TYPE_FRACTIONS[L]) for L in layers}
+    if layer_set == DEFAULT_LAYERS:  # 5-layer, L2/3 merged
+        return {L: dict(CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L[L]) for L in layers}
+    raise ValueError(
+        f"ei_profile='canonical' requires the canonical 6-layer {CANONICAL_LAYERS_6L} "
+        f"or 5-layer {DEFAULT_LAYERS} sequence; got {layer_set}. "
+        "Pass layer_cell_type_fractions explicitly for custom layers."
+    )
+
 
 def default_cortical_column_config(
     column_name: str = "single_column",
@@ -196,32 +278,70 @@ def default_spectrolaminar_config(
 
 
 def build_laminar_column(
-    name: str,
-    n: int,
+    name: str = "V1",
+    n: int = 1000,
     layers: Sequence[str] | None = None,
     layer_fractions: Mapping[str, tuple] | None = None,
     cell_type_fractions: Mapping[str, float] | None = None,
     layer_cell_type_fractions: Mapping[str, Mapping[str, float]] | None = None,
+    *,
+    ei_profile: Literal["flat", "canonical"] = "flat",
+    geometry: Literal["auto", "uniform3d", "laminar"] = "auto",
+    within_connectivity: str = "all_to_all_uniform_random",
+    within_gain: float = 0.45,
+    radius_mm: float = 0.25,
+    height_mm: float = 1.6,
+    edge_seed: int | None = None,
 ) -> Configuration:
     """Build a Configuration for a single laminar cortical column.
 
-    This builder creates a single-column Configuration with full control
-    over layer structure and cell-type distribution.
+    Single-column builder with full control over layer structure, cell-type
+    composition, and local connectivity. Every knob is defaulted so the
+    canonical column is reproducible from the call site without editing source.
 
     Parameters
     ----------
-    name : str
-        Column name (e.g., "V1", "visual_cortex").
-    n : int
-        Total number of neurons.
+    name : str, default "V1"
+        Column name (e.g., "V1", "M1", "visual_cortex").
+    n : int, default 1000
+        Total number of neurons, distributed across layers by ``layer_fractions``
+        depth widths (count ∝ thickness).
     layers : Sequence[str], optional
-        Layer names. Default: ["L1", "L2/3", "L4", "L5", "L6"].
+        Layer names. Default: the 5-layer ``DEFAULT_LAYERS``
+        ``("L1","L2/3","L4","L5","L6")``. Use :data:`CANONICAL_LAYERS_6L` for the
+        split-L2/L3 form.
     layer_fractions : dict[str, tuple], optional
-        Relative depths per layer (min, max). Default: computed evenly.
+        Relative depth band ``(z0, z1)`` per layer; band *width* sets the
+        per-layer neuron count. Default: canonical count-proportional z-bands
+        when ``layers`` is a known canonical set (:data:`CANONICAL_Z_BANDS` /
+        :data:`CANONICAL_Z_BANDS_5L`), otherwise evenly spaced bands.
     cell_type_fractions : dict[str, float], optional
-        Global E/PV/SST/VIP fractions. Default: {E:0.75, PV:0.1, SST:0.08, VIP:0.07}.
+        Global E/PV/SST/VIP fractions used when ``ei_profile="flat"`` and no
+        explicit per-layer map is given. Default: :data:`FLAT_CELL_TYPE_FRACTIONS`.
     layer_cell_type_fractions : dict[str, dict[str, float]], optional
-        Per-layer overrides. Default: same as global.
+        Explicit per-layer composition. When given it overrides ``ei_profile``.
+    ei_profile : {"flat", "canonical"}, keyword-only, default "flat"
+        ``"flat"`` repeats ``cell_type_fractions`` across layers (legacy).
+        ``"canonical"`` applies the verified ground-truth E:I gradient
+        (E peaks deep ≈90%, I peaks superficial 50%, PV at L4, ≈77E:23I) —
+        requires the canonical 6- or 5-layer set.
+    geometry : {"auto", "uniform3d", "laminar"}, keyword-only, default "auto"
+        Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder
+        (legacy; collapses layer identity to ``"uniform_3d"``, so per-layer
+        composition is *not* preserved). ``"laminar"`` places neurons in depth
+        bands so each neuron keeps its layer label and per-layer composition is
+        honored. ``"auto"`` selects ``"laminar"`` whenever a non-flat
+        composition is requested (``ei_profile="canonical"`` or an explicit
+        ``layer_cell_type_fractions``), else ``"uniform3d"`` for backward
+        compatibility.
+    within_connectivity : str, keyword-only, default "all_to_all_uniform_random"
+        Within-area connectivity rule passed to ``.connectivity``.
+    within_gain : float, keyword-only, default 0.45
+        Within-area weight gain.
+    radius_mm, height_mm : float, keyword-only
+        Column geometry (cylinder radius and depth), default 0.25 / 1.6 mm.
+    edge_seed : int, optional, keyword-only
+        Seed for connectivity edge sampling; ``None`` uses the runtime default.
 
     Returns
     -------
@@ -230,50 +350,87 @@ def build_laminar_column(
 
     Examples
     --------
-    >>> cfg = jtfne.build_laminar_column("M1", n=500, layers=["L2/3", "L5"])
-    >>> cfg = cfg.probes(["spikes", "LFP"]).objective(firing_rate_target={"E": 8.0})
+    >>> cfg = jtfne.build_laminar_column()                       # canonical-size V1, flat E:I
+    >>> cfg = jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth E:I gradient
+    >>> cfg = jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
     """
     if layers is None:
-        layers = ["L1", "L2/3", "L4", "L5", "L6"]
+        layers = list(DEFAULT_LAYERS)
+    layers = list(layers)
     if cell_type_fractions is None:
-        cell_type_fractions = {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}
+        cell_type_fractions = dict(FLAT_CELL_TYPE_FRACTIONS)
     if layer_fractions is None:
-        layer_fractions = {L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)}
+        canon_bands = _canonical_z_bands(layers)
+        if canon_bands is not None:
+            layer_fractions = canon_bands
+        else:
+            layer_fractions = {L: (i / len(layers), (i + 1) / len(layers)) for i, L in enumerate(layers)}
+    explicit_per_layer = layer_cell_type_fractions is not None
     if layer_cell_type_fractions is None:
-        layer_cell_type_fractions = {L: cell_type_fractions for L in layers}
+        layer_cell_type_fractions = _resolve_layer_cell_types(layers, ei_profile, cell_type_fractions)
+
+    if geometry == "auto":
+        geometry = "laminar" if (ei_profile == "canonical" or explicit_per_layer) else "uniform3d"
+
+    conn_kwargs: dict[str, Any] = {"within_area": within_connectivity, "within_gain": within_gain}
+    if edge_seed is not None:
+        conn_kwargs["edge_seed"] = edge_seed
 
     cfg = (
         Configuration()
         .column(name, layers=layers, n=n)
         .cell_types(cell_type_fractions)
         .layer_fractions(layer_fractions, layer_cell_type_fractions)
-        .uniform3d(radius_mm=0.25, height_mm=1.6)
-        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45)
     )
+    if geometry == "uniform3d":
+        # Legacy placement: cylinder scatter (collapses per-neuron layer label).
+        cfg = cfg.uniform3d(radius_mm=radius_mm, height_mm=height_mm)
+    cfg = cfg.connectivity(**conn_kwargs)
     return cfg
 
 
 def build_multi_area_columns(
-    areas: Sequence[str],
-    n_per_area: int,
+    areas: Sequence[str] = ("V1", "V4", "PFC"),
+    n_per_area: int = 200,
     layers: Sequence[str] | None = None,
     connectivity_mode: Literal["sparse", "all_to_all"] = "sparse",
+    *,
+    ei_profile: Literal["flat", "canonical"] = "flat",
+    cell_type_fractions: Mapping[str, float] | None = None,
+    within_connectivity: str = "all_to_all_uniform_random",
+    within_gain: float = 0.35,
+    p_feedforward: float = 0.3,
+    p_feedback: float = 0.2,
 ) -> Configuration:
     """Build a Configuration for multiple laminar areas with inter-area connectivity.
 
-    This builder creates a multi-area scaffold with declarative inter-area
-    connectivity between adjacent areas.
+    Multi-area scaffold with declarative feedforward/feedback connectivity
+    between adjacent areas. Defaults to the canonical V1→V4→PFC hierarchy so a
+    full multi-area config requires no positional arguments.
 
     Parameters
     ----------
-    areas : Sequence[str]
-        Area names (e.g., ["V1", "V4", "PFC"]).
-    n_per_area : int
+    areas : Sequence[str], default ("V1", "V4", "PFC")
+        Area names, ordered low → high in the hierarchy.
+    n_per_area : int, default 200
         Neurons per area.
     layers : Sequence[str], optional
-        Shared layer sequence. Default: ["L1", "L2/3", "L4", "L5", "L6"].
-    connectivity_mode : {"sparse", "all_to_all"}
-        Inter-area connectivity mode. Default: "sparse".
+        Shared layer sequence. Default: the 5-layer ``DEFAULT_LAYERS``.
+    connectivity_mode : {"sparse", "all_to_all"}, default "sparse"
+        Inter-area connectivity mode.
+    ei_profile : {"flat", "canonical"}, keyword-only, default "flat"
+        Per-layer cell-type composition applied to every area; ``"canonical"``
+        uses the verified ground-truth E:I gradient (see
+        :func:`build_laminar_column`).
+    cell_type_fractions : dict[str, float], optional, keyword-only
+        Global fractions for ``ei_profile="flat"``. Default:
+        :data:`FLAT_CELL_TYPE_FRACTIONS`.
+    within_connectivity : str, keyword-only, default "all_to_all_uniform_random"
+        Within-area connectivity rule.
+    within_gain : float, keyword-only, default 0.35
+        Within-area weight gain.
+    p_feedforward, p_feedback : float, keyword-only
+        Inter-area connection probabilities, default 0.3 / 0.2.
 
     Returns
     -------
@@ -282,11 +439,15 @@ def build_multi_area_columns(
 
     Examples
     --------
-    >>> cfg = jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=200)
-    >>> cfg = cfg.objective(band_definitions={"gamma": (40, 150)})
+    >>> cfg = jtfne.build_multi_area_columns()                          # V1→V4→PFC, 200/area
+    >>> cfg = jtfne.build_multi_area_columns(["V1", "V4"], ei_profile="canonical")
     """
     if layers is None:
-        layers = ["L1", "L2/3", "L4", "L5", "L6"]
+        layers = list(DEFAULT_LAYERS)
+    layers = list(layers)
+    if cell_type_fractions is None:
+        cell_type_fractions = dict(FLAT_CELL_TYPE_FRACTIONS)
+    per_layer = _resolve_layer_cell_types(layers, ei_profile, cell_type_fractions)
 
     cfg = Configuration().areas(areas)
     for area in areas:
@@ -299,12 +460,14 @@ def build_multi_area_columns(
             source_area=source_area,
             target_area=target_area,
             mode=connectivity_mode,
-            p_feedforward=0.3,
-            p_feedback=0.2,
+            p_feedforward=p_feedforward,
+            p_feedback=p_feedback,
         )
 
-    cfg = cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
-    cfg = cfg.connectivity(within_area="all_to_all_uniform_random", within_gain=0.35)
+    cfg = cfg.cell_types(cell_type_fractions)
+    for area in areas:
+        cfg = cfg.area_layer_cell_types(area, per_layer)
+    cfg = cfg.connectivity(within_area=within_connectivity, within_gain=within_gain)
     return cfg
 
 

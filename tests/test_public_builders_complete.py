@@ -81,6 +81,61 @@ class TestBuilderFunctions:
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert columns["V1"]["layers"] == ["L1", "L2/3", "L4", "L5", "L6"]
 
+    def test_build_laminar_column_no_args(self):
+        """build_laminar_column() works with zero arguments (canonical-size V1)."""
+        cfg = jtfne.build_laminar_column()
+        assert isinstance(cfg, jtfne.Configuration)
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        assert "V1" in columns
+        assert columns["V1"]["n"] == 1000
+
+    def test_build_laminar_column_canonical_profile(self):
+        """ei_profile='canonical' yields the ground-truth E:I gradient via laminar geometry."""
+        import collections
+        cfg = (
+            jtfne.build_laminar_column(n=1000, ei_profile="canonical")
+            .set_emitter("izhikevich", "cortical_eig")
+            .probes(["spikes"], n_contacts=8)
+            .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+        )
+        tbl = jtfne.construct(cfg).neuron_table()
+        by_layer = collections.defaultdict(collections.Counter)
+        for r in tbl:
+            by_layer[r["layer"]][r["cell_type"]] += 1
+        # Real laminar layers preserved (not collapsed to "uniform_3d").
+        assert set(by_layer) == set(jtfne.DEFAULT_LAYERS)
+        # E-fraction rises with depth: L1 superficial < L6 deep.
+        l1 = by_layer["L1"]; l6 = by_layer["L6"]
+        e_l1 = l1["E"] / sum(l1.values())
+        e_l6 = l6["E"] / sum(l6.values())
+        assert e_l1 < 0.6 < e_l6
+        assert l1["PV"] == 0  # no PV in L1
+
+    def test_build_laminar_column_canonical_requires_known_layers(self):
+        """ei_profile='canonical' rejects unknown layer sets instead of silent flat fallback."""
+        with pytest.raises(ValueError):
+            jtfne.build_laminar_column(layers=["A", "B"], ei_profile="canonical")
+
+    def test_build_laminar_column_flat_backward_compatible(self):
+        """Default flat profile keeps legacy uniform3d placement."""
+        import collections
+        cfg = (
+            jtfne.build_laminar_column("M1", 300)
+            .set_emitter("izhikevich", "cortical_eig")
+            .probes(["spikes"], n_contacts=8)
+            .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+        )
+        tbl = jtfne.construct(cfg).neuron_table()
+        layers = collections.Counter(r["layer"] for r in tbl)
+        assert set(layers) == {"uniform_3d"}
+
+    def test_build_multi_area_columns_no_args(self):
+        """build_multi_area_columns() defaults to the V1→V4→PFC hierarchy."""
+        cfg = jtfne.build_multi_area_columns()
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        assert {"V1", "V4", "PFC"} <= set(columns)
+        assert columns["V1"]["n"] == 200
+
     def test_build_multi_area_columns(self):
         """Test build_multi_area_columns creates multi-area Configuration."""
         cfg = jtfne.build_multi_area_columns(["V1", "V4", "PFC"], n_per_area=250)

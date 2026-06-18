@@ -315,12 +315,22 @@ def izhikevich_params_from_labels(
     )
 
 def make_eig_network(
-    n: int,
+    n: int = 128,
     cell_type_fractions: Mapping[str, float] | None = None,
     *,
     dtype: str = "float32",
 ) -> EIGNetwork:
-    """Build a minimal EIG network with laminar depth positions."""
+    """Build a minimal EIG network with laminar depth positions.
+
+    Parameters
+    ----------
+    n : int, default 128
+        Number of neurons; depth positions are spread evenly over [0, 1].
+    cell_type_fractions : Mapping[str, float], optional
+        E/PV/SST/VIP fractions. Default: ``{E:0.8, PV:0.1, SST:0.07, VIP:0.03}``.
+    dtype : str, keyword-only, default "float32"
+        Array dtype policy.
+    """
 
     if cell_type_fractions is None:
         cell_type_fractions = {"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03}

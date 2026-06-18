@@ -4,32 +4,42 @@ Provides JIT-compilable, batchable functions for calculating PSDs, bandpower
 profiles, and similarity objectives.
 """
 
+from functools import partial
 from typing import Dict
 import jax
 import jax.numpy as jnp
 
-@jax.jit
+
+@partial(jax.jit, static_argnames=("fs",))
 def spectrolaminar_psd_jax(
-    signal: jax.Array,  # (n_trials, n_steps, n_contacts)
-    fs: float,
-    freqs: jax.Array,   # (n_freqs,)
+    signal: jax.Array,          # (n_trials, n_steps, n_contacts)
+    fs: float = 1000.0,
+    freqs: jax.Array | None = None,   # (n_freqs,)
 ) -> jax.Array:
     """Compute spectrolaminar PSD averaged across trials in a JAX-native way.
+
+    Projects each contact's timeseries onto a bank of complex exponentials and
+    averages the magnitude spectrum across trials — a JIT-compilable, batchable
+    DFT at the requested target frequencies.
 
     Parameters
     ----------
     signal : jax.Array
-        Timeseries signal array of shape (n_trials, n_steps, n_contacts).
-    fs : float
-        Sampling frequency in Hz.
-    freqs : jax.Array
-        Target frequencies of shape (n_freqs,).
+        Timeseries of shape ``(n_trials, n_steps, n_contacts)``.
+    fs : float, default 1000.0
+        Sampling frequency in Hz (static under JIT). For a ``dt_ms`` timestep,
+        ``fs = 1000.0 / dt_ms``.
+    freqs : jax.Array, optional
+        Target frequencies of shape ``(n_freqs,)``. Default: 96 points linearly
+        spaced over 1–150 Hz, the canonical spectrolaminar band.
 
     Returns
     -------
     jax.Array
-        Heatmap of shape (n_freqs, n_contacts).
+        PSD heatmap of shape ``(n_freqs, n_contacts)``.
     """
+    if freqs is None:
+        freqs = jnp.linspace(1.0, 150.0, 96, dtype=jnp.float32)
     n_trials, n_steps, n_contacts = signal.shape
     sample_idx = jnp.arange(n_steps, dtype=freqs.dtype)
     # basis: (n_freqs, n_steps)
