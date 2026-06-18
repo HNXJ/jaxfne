@@ -167,10 +167,10 @@ _UNIT_SCALE: dict[str, float] = {
 }
 
 _DEFAULT_CELL_COLORS: dict[str, str] = {
-    "E":   "#e69500",
-    "PV":  "#0072ce",
-    "SST": "#ffbf00",
-    "VIP": "#7b3294",
+    "E":   "#d4a017",   # gold (filled circle)
+    "PV":  "#1fd6d6",   # cyan (diamond)
+    "SST": "#e840c8",   # magenta (square)
+    "VIP": "#ffffff",   # white (open circle) — needs the dark scene background
 }
 
 _FALLBACK_COLORS = [
@@ -611,16 +611,22 @@ def visualize_network_3d(
 
     # ── Layout ─────────────────────────────────────────────────────────────────
     ax_label = f"{display_unit}"
+    _axis = lambda t: dict(
+        title=t, backgroundcolor="black", gridcolor="#333333",
+        zerolinecolor="#444444", color="#cccccc", showbackground=True,
+    )
     fig = go.Figure(
         data=traces,
         layout=go.Layout(
-            title=dict(text=title, x=0.5),
+            title=dict(text=title, x=0.5, font=dict(color="#f0f0f0")),
             scene=dict(
-                xaxis=dict(title=f"x ({ax_label})"),
-                yaxis=dict(title=f"y ({ax_label})"),
-                zaxis=dict(title=f"z — depth ({ax_label})"),
+                xaxis=_axis(f"X ({ax_label})"),
+                yaxis=_axis(f"Y ({ax_label})"),
+                zaxis=_axis(f"Depth ({ax_label})"),
+                bgcolor="black",
             ),
-            legend=dict(title="Cell type", itemsizing="constant"),
+            paper_bgcolor="black",
+            legend=dict(title="Cell type", itemsizing="constant", font=dict(color="#e0e0e0")),
             margin=dict(l=0, r=0, b=0, t=40),
         ),
     )
