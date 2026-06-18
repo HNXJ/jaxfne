@@ -350,6 +350,7 @@ def spectrolaminar_suite_3panel(
     power_vmax: float = 0.94,
     profile_smooth_sigma: float = 1.0,
     power_smooth_sigmas: Sequence[float] | None = None,
+    freq_bin_factor: int = 3,
 ) -> dict[str, matplotlib.figure.Figure]:
     """Create 3-panel spectrolaminar suite per area.
 
@@ -379,6 +380,10 @@ def spectrolaminar_suite_3panel(
         Smoothing sigmas for panel B (mean relative power spectrum):
         [sigma_freq, sigma_depth]. Default [1.0, 1.0] applies minimal smoothing.
         [5.0, 1.0] applies 5x smoothing along frequency axis (rows).
+    freq_bin_factor : int
+        Panel B only: average groups of this many adjacent frequency bins to
+        widen the frequency resolution of the depth x frequency heatmap
+        (default 3 -> 3x wider bins). 1 disables binning.
 
     Returns
     -------
@@ -468,17 +473,27 @@ def spectrolaminar_suite_3panel(
         axA.legend(fontsize=8, loc='lower right')
 
         # ── Panel B: Depth x Frequency relative-power heatmap ─────────────────
-        is_depth_normalized = np.allclose(relative_power.sum(axis=1), 1.0, atol=1e-2)
+        # Coarsen the frequency axis (wider bins) by averaging groups of
+        # `freq_bin_factor` adjacent frequency rows — reduces over-resolution.
+        heat = relative_power
+        heat_freq = freq_hz
+        k = max(1, int(freq_bin_factor))
+        if k > 1 and heat.shape[0] >= k:
+            n_keep = heat.shape[0] - (heat.shape[0] % k)
+            heat = heat[:n_keep].reshape(n_keep // k, k, heat.shape[1]).mean(axis=1)
+            heat_freq = heat_freq[:n_keep].reshape(n_keep // k, k).mean(axis=1)
+
+        is_depth_normalized = np.allclose(heat.sum(axis=1), 1.0, atol=1e-2)
         if is_depth_normalized:
             vmin_to_use = 0.0
-            vmax_to_use = float(relative_power.max()) or 1.0
+            vmax_to_use = float(heat.max()) or 1.0
         else:
             vmin_to_use = power_vmin
             vmax_to_use = power_vmax
 
         im = axB.imshow(
-            relative_power.T, aspect='auto', origin='lower',
-            extent=[float(freq_hz[0]), float(freq_hz[-1]), pos_lo, pos_hi],
+            heat.T, aspect='auto', origin='lower',
+            extent=[float(heat_freq[0]), float(heat_freq[-1]), pos_lo, pos_hi],
             cmap='viridis', vmin=vmin_to_use, vmax=vmax_to_use,
         )
         axB.axhline(0, color=line_color, lw=1.0, alpha=0.7)
