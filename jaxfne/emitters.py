@@ -7,6 +7,7 @@ an explicit calibration bridge is supplied later.
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
 from typing import Mapping
 
@@ -978,10 +979,9 @@ def simulate_multi_area_izhikevich(
 
     # Create Izhikevich parameters from neuron metadata
     cell_types = neurons_df.get("cell_type", ["E"] * n)
-    cell_type_fractions = {}
-    for ct in set(cell_types):
-        count = sum(1 for c in cell_types if c == ct)
-        cell_type_fractions[ct] = count / max(1, n)
+    # Single O(N) pass instead of O(n_cell_types * N) set + per-type recount.
+    denom = max(1, n)
+    cell_type_fractions = {ct: count / denom for ct, count in Counter(cell_types).items()}
 
     params = izhikevich_eig_params(
         n=n,
