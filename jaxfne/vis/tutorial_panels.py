@@ -402,13 +402,24 @@ def spectrolaminar_suite_3panel(
     line_color = '#f5f5f5' if theme == "dark" else '#202020'
     figs = {}
 
+    # Canonical spectrolaminar bands (Hz).
+    ab_lo, ab_hi = 8.0, 25.0
+    gm_lo, gm_hi = 40.0, 150.0
+
     for area in areas:
         # Genuine per-area spec (specs is keyed by area name).
         spec = specs[area] if area in specs else specs
 
-        fig, axes = plt.subplots(1, 3, figsize=(14, 5), dpi=150,
-                                gridspec_kw={'width_ratios': [0.85, 1.75, 0.85]},
-                                sharey=True)
+        # Canonical 3-panel layout (matches the empirical spectrolaminar motif):
+        #   A  superficial-vs-deep relative-power spectra (own y = relative power)
+        #   B  depth x frequency relative-power heatmap   (y = laminar depth)
+        #   C  alpha-beta / gamma band power vs depth      (shares depth with B)
+        fig = plt.figure(figsize=(15, 5), dpi=150, layout='constrained')
+        grid = fig.add_gridspec(1, 3, width_ratios=[0.95, 1.7, 0.85])
+        axA = fig.add_subplot(grid[0, 0])
+        axB = fig.add_subplot(grid[0, 1])
+        axC = fig.add_subplot(grid[0, 2], sharey=axB)
+        axes = [axA, axB, axC]
 
         n_trials = int(spec.get('n_trials', getattr(cfg, 'n_trials', 0)))
         sim_pct = float(spec.get('similarity_percent', float('nan')))
@@ -418,85 +429,82 @@ def spectrolaminar_suite_3panel(
             fontsize=12,
         )
 
-        # Depth axis from the spec's contact positions (mm), shared across panels.
+        # Depth axis from the spec's contact positions (mm).
         pos_from_l4 = np.asarray(spec['pos_from_l4'], dtype=float) * 1.0e3  # m -> mm
         pos_lo, pos_hi = float(pos_from_l4.min()), float(pos_from_l4.max())
-
-        # ── Panel A: Mean Relative Dist of Cells ──────────────────────────────
-        neurons_df = model['neurons']
-        area_neurons = neurons_df[neurons_df['area'] == area]
-        bin_edges = np.linspace(pos_lo, pos_hi, density_bins + 1)
-        bin_ctrs = 0.5 * (bin_edges[:-1] + bin_edges[1:])
-        for ct in cfg.cell_types:
-            z_ct = area_neurons.loc[area_neurons['cell_type'] == ct, 'pos_from_l4'].values * 1.0e3
-            if len(z_ct) == 0:
-                continue
-            counts, _ = np.histogram(z_ct, bins=bin_edges)
-            counts = gauss1d(counts.astype(float), density_smooth_sigma)
-            if counts.max() > 0:
-                counts = counts / counts.max()
-            axes[0].plot(counts, bin_ctrs, lw=2.0,
-                         color=cfg.cell_colors.get(ct, '#808080'), label=ct)
-        axes[0].axhline(0, color=line_color, lw=1.0, alpha=0.7)
-        axes[0].set_title('A Mean Relative Dist of Cells', fontsize=10)
-        axes[0].set_xlabel('Relative Count')
-        axes[0].set_ylabel('Cortical Position from L4')
-        axes[0].legend(fontsize=8, loc='lower right')
-
-        # ── Panel B: Mean Relative Power Spectrum ─────────────────────────────
-        # spec['relative_power'] is (n_freqs, n_contacts); transpose so depth is
-        # the vertical axis and frequency the horizontal axis.
-        relative_power = np.asarray(spec['relative_power'], dtype=float)
         freq_hz = np.asarray(spec['freq_hz'], dtype=float)
+        gm_hi_eff = min(gm_hi, float(freq_hz[-1]))
 
-        # Apply smoothing to the power spectrum if requested
+        # spec['relative_power'] is (n_freqs, n_contacts): per-frequency relative
+        # power across depth. Optionally smooth.
+        relative_power = np.asarray(spec['relative_power'], dtype=float)
         if power_smooth_sigmas is not None:
             sigma_freq, sigma_depth = power_smooth_sigmas[0], power_smooth_sigmas[1]
             if sigma_freq > 0 or sigma_depth > 0:
-                relative_power = gauss1d(relative_power, sigma=sigma_freq, axis=0)  # smooth frequency axis
-                relative_power = gauss1d(relative_power, sigma=sigma_depth, axis=1)  # smooth depth axis
+                relative_power = gauss1d(relative_power, sigma=sigma_freq, axis=0)
+                relative_power = gauss1d(relative_power, sigma=sigma_depth, axis=1)
 
-        # Check if depth-normalized
+        # ── Panel A: Superficial vs Deep relative-power spectra ───────────────
+        # Superficial = contacts above L4 (pos_from_l4 < 0); deep = below (> 0).
+        sup_mask = pos_from_l4 <= np.percentile(pos_from_l4, 33.0)
+        deep_mask = pos_from_l4 >= np.percentile(pos_from_l4, 67.0)
+
+        def _curve(mask):
+            if not np.any(mask):
+                return np.zeros_like(freq_hz)
+            s = relative_power[:, mask].mean(axis=1)
+            s = gauss1d(s, max(float(profile_smooth_sigma), 0.8))
+            peak = float(s.max())
+            return s / peak if peak > 0 else s
+
+        axA.plot(freq_hz, _curve(sup_mask), color='#e8820e', lw=2.0, label='Superficial')
+        axA.plot(freq_hz, _curve(deep_mask), color='#7b2fbf', lw=2.0, label='Deep')
+        axA.axvspan(ab_lo, ab_hi, color='#1f4fe0', alpha=0.12)
+        axA.axvspan(gm_lo, gm_hi_eff, color='#e01f1f', alpha=0.10)
+        axA.set_title('Relative power spectra (superficial vs deep)', fontsize=10)
+        axA.set_xlabel('Frequency (Hz)')
+        axA.set_ylabel('Relative power')
+        axA.set_xlim(float(freq_hz[0]), float(freq_hz[-1]))
+        axA.legend(fontsize=8, loc='lower right')
+
+        # ── Panel B: Depth x Frequency relative-power heatmap ─────────────────
         is_depth_normalized = np.allclose(relative_power.sum(axis=1), 1.0, atol=1e-2)
         if is_depth_normalized:
             vmin_to_use = 0.0
-            vmax_to_use = float(relative_power.max())
-            if vmax_to_use <= 0.0:
-                vmax_to_use = 1.0
+            vmax_to_use = float(relative_power.max()) or 1.0
         else:
             vmin_to_use = power_vmin
             vmax_to_use = power_vmax
 
-        im = axes[1].imshow(
+        im = axB.imshow(
             relative_power.T, aspect='auto', origin='lower',
             extent=[float(freq_hz[0]), float(freq_hz[-1]), pos_lo, pos_hi],
             cmap='viridis', vmin=vmin_to_use, vmax=vmax_to_use,
         )
-        axes[1].axhline(0, color=line_color, lw=1.0, alpha=0.7)
-        axes[1].set_title('B Mean Relative Power Spectrum', fontsize=10)
-        axes[1].set_xlabel('Frequency (Hz)')
-        fig.colorbar(im, ax=axes[1], label='Relative Power (Normalized)')
+        axB.axhline(0, color=line_color, lw=1.0, alpha=0.7)
+        axB.set_title('Depth x frequency relative power', fontsize=10)
+        axB.set_xlabel('Frequency (Hz)')
+        axB.set_ylabel('Laminar depth from L4 (mm)')
+        fig.colorbar(im, ax=axB, label='Relative power')
 
-        # ── Panel C: Alpha-beta / Gamma cross ─────────────────────────────────
+        # ── Panel C: Alpha-beta / Gamma crossover vs depth ────────────────────
         ab_profile = np.asarray(spec['alpha_beta'], dtype=float)
         gm_profile = np.asarray(spec['gamma'], dtype=float)
         if profile_smooth_sigma and profile_smooth_sigma > 0 and ab_profile.size >= 3:
             ab_profile = gauss1d(ab_profile, profile_smooth_sigma)
             gm_profile = gauss1d(gm_profile, profile_smooth_sigma)
-        axes[2].plot(ab_profile, pos_from_l4, color='#1f4fe0', lw=2.5, label='Alpha-beta')
-        axes[2].plot(gm_profile, pos_from_l4, color='#e01f1f', lw=2.5, label='Gamma')
-        axes[2].axhline(0, color=line_color, lw=1.0, alpha=0.7)
-        axes[2].set_title('C Alpha-beta / Gamma cross', fontsize=10)
-        axes[2].set_xlabel('Relative power')
-        axes[2].legend(fontsize=8, loc='lower left')
+        axC.plot(ab_profile, pos_from_l4, color='#1f4fe0', lw=2.5, label='Alpha-beta')
+        axC.plot(gm_profile, pos_from_l4, color='#e01f1f', lw=2.5, label='Gamma')
+        axC.axhline(0, color=line_color, lw=1.0, alpha=0.7)
+        axC.set_title('Alpha-beta / gamma crossover', fontsize=10)
+        axC.set_xlabel('Relative power')
+        axC.legend(fontsize=8, loc='lower left')
 
-        # Cortical depth increases downward (superficial above L4 at top).
-        axes[0].set_ylim(pos_hi, pos_lo)
+        # Superficial (pos < 0) at top, deep (pos > 0) at bottom — shared B/C.
+        axB.set_ylim(pos_hi, pos_lo)
 
         if theme == "dark":
             _apply_dark_theme(fig, axes)
-
-        fig.tight_layout()
 
         png_path = output_dir / f"spectrolaminar_{stage}_{area}.png"
         fig.savefig(png_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())

@@ -649,11 +649,11 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
 
     if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
         im1 = axes[1].imshow(lfp_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], lfp_arr.shape[1], 0])
-        axes[1].set_title("LFP-like contacts")
+        axes[1].set_title("LFP-proxy contacts")
         fig.colorbar(im1, ax=axes[1], fraction=0.046)
     else:
         axes[1].text(0.5, 0.5, "LFP data unavailable", ha="center", va="center", transform=axes[1].transAxes)
-        axes[1].set_title("LFP-like contacts")
+        axes[1].set_title("LFP-proxy contacts")
 
     try:
         csd_arr = _signals_csd(signals)
@@ -663,11 +663,11 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
     if csd_arr is not None and np.isfinite(np.sum(csd_arr)):
         vmax = float(np.nanmax(np.abs(csd_arr))) or 1.0
         im2 = axes[2].imshow(csd_arr.T, aspect="auto", origin="upper", extent=[time_ms[0], time_ms[-1], csd_arr.shape[1], 0], vmin=-vmax, vmax=vmax)
-        axes[2].set_title("CSD-like contacts")
+        axes[2].set_title("CSD-proxy contacts")
         fig.colorbar(im2, ax=axes[2], fraction=0.046)
     else:
         axes[2].text(0.5, 0.5, "CSD data unavailable", ha="center", va="center", transform=axes[2].transAxes)
-        axes[2].set_title("CSD-like contacts")
+        axes[2].set_title("CSD-proxy contacts")
 
     if lfp_arr is not None and np.isfinite(np.sum(lfp_arr)):
         dt_ms = float(getattr(signals, "metadata", {}).get("dt_ms", 0.1)) if hasattr(signals, "metadata") else 0.1
