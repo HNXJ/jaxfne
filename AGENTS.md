@@ -84,6 +84,14 @@ model = jtfne.construct(cfg)
 sig   = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)   # sig.field auto-computed (lfp_proxy, csd_proxy)
 ```
 
+**Canonical column E:I gradient (ground truth, verified 2026-06-17; skill `jaxfne-cortical-column-default`):**
+E peaks DEEP — E-fraction rises with depth to L6 ≈ 90% E. I peaks SUPERFICIAL — L1 50% I,
+I-fraction falls monotonically 50→30→25→20→12→10% (L1→L6); the largest inhibitory neuron
+COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in L4
+(feedforward), absent in L1 (VIP/SST only). Set this per layer via
+`.area_layer_cell_types(area, {...})` — the global `cell_types=` weight produces the WRONG
+(over-inhibitory, 41:59) gradient. Verify with `construct(cfg).neuron_table()` (list of dict rows).
+
 - Per-neuron/per-layer DC drive: `model.with_emitter_parameters(drive_per_neuron=array)`
   (build a deep-layer mask from `model.neuron_table()`; recurrent `W` is dense, so deep drive reaches superficial).
   Per-cell-type DC: `baseline_drive_by_cell_type={"E":..}` in the config.

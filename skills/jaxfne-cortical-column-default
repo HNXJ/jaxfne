@@ -5,12 +5,18 @@ jaxfne-cortical-column-default — the canonical 1K-neuron reference template
 Use this as the default cortical column architecture for all jaxfne work
 unless explicitly specified otherwise (e.g., "use 10-layer thalamocortical model").
 
+GROUND TRUTH (verified 2026-06-17 via construct().neuron_table()). The two laws:
+  1. E peaks DEEP   — excitatory FRACTION rises monotonically with depth (L6 ≈ 90% E).
+  2. I peaks SUPERFICIAL — inhibitory FRACTION highest superficial (L1 50% I); the
+     largest inhibitory NEURON COUNT sits in the dense superficial L2 / L2-3.
+Overall realistic E:I ≈ 77:23 (NOT the old over-inhibitory 63:37 / 41:59).
+
 This template embodies:
   - Biologically plausible L2/3 dominance (45% of neurons)
   - Realistic layer thickness & neuron density (L2/3 densest)
+  - Realistic E:I gradient: superficial inhibitory-rich, deep excitatory-dominant
   - Normalized depth coordinates (scale-agnostic)
-  - Balanced superficial/deep coverage
-  - Tractable compute (1K neurons ≈ 120–150s/trial on CPU)
+  - Tractable compute (1K neurons; construct ~2s, simulate 1000ms ~1s on CPU JAX)
   - Scalable to 10K for full-resolution studies
 """
 
@@ -19,128 +25,124 @@ This template embodies:
 # ============================================================================
 
 """
-| Layer | Thickness | Neurons | Density (neurons/unit) |
-|-------|----------:|--------:|---------------------:|
-| L1    |      0.10 |     100 |          1000 /unit  |
-| L2    |      0.15 |     250 |          1667 /unit  |  ← densest
-| L3    |      0.15 |     200 |          1333 /unit  |  ← densest
-| L4    |      0.10 |     100 |          1000 /unit  |
-| L5    |      0.30 |     200 |           667 /unit  |
-| L6    |      0.20 |     150 |           750 /unit  |
-|-------|-----------|---------|
-| Total |      1.00 |    1000 |                      |
+| Layer | Thickness | Neurons | I-fraction | role                    |
+|-------|----------:|--------:|-----------:|-------------------------|
+| L1    |      0.10 |     100 |       50%  | interneuron-rich (no PV)|
+| L2    |      0.15 |     250 |       30%  | I-COUNT peak (dense)    |  ← densest
+| L3    |      0.15 |     200 |       25%  | mixed                   |  ← densest
+| L4    |      0.10 |     100 |       20%  | PV feedforward input    |
+| L5    |      0.30 |     200 |       12%  | E projection neurons    |
+| L6    |      0.20 |     150 |       10%  | E corticothalamic       |  ← E-frac peak
+| Total |      1.00 |    1000 |    ~23%    | 77E : 23I               |
 
 Key properties:
-  - L2/3 (superficial, output): 45% of all neurons (450/1000)
-  - L2 peak density: 1667 neurons/unit (highest)
-  - L5 thickness: 0.30 (thickest layer, prominent in motor/sensory)
-  - L5+L6 (deep): 35% of neurons (350/1000)
-  - Normalized depth [0, 1] enables layer-specific stimulus masking
-
-Use case: spectrolaminar analysis, canonical microcircuit, hierarchical models
+  - E-fraction RISES with depth: L1 50% -> L2 70% -> L3 75% -> L4 80% -> L5 88% -> L6 90%.
+  - I-fraction FALLS with depth: 50 -> 30 -> 25 -> 20 -> 12 -> 10%.
+  - I-COUNT peak is L2 (~75 interneurons) — the dense superficial layer holds the
+    biggest inhibitory pool even though L1 has the highest I-fraction.
+  - L2/3 (superficial, output): 45% of all neurons (450/1000).
+  - L5 thickness 0.30 (thickest); L5+L6 (deep) = 35% of neurons.
+  - PV concentrates in L4 (fast feedforward inhibition); L1 has NO PV (VIP/SST only).
 """
 
 # ============================================================================
-# JAXFNE LAYER FRACTIONS (normalized depth intervals)
+# JAXFNE LAYER FRACTIONS (normalized depth intervals; WIDTH ∝ neuron count)
 # ============================================================================
 
 """
-Python dict for jaxfne.Configuration:
-
 LAYER_FRACTIONS = {
     "L1": (0.0, 0.1),    # top 10%
     "L2": (0.1, 0.35),   # next 25%
     "L3": (0.35, 0.55),  # next 20%
     "L4": (0.55, 0.65),  # next 10%
-    "L5": (0.65, 0.85),  # next 30%
+    "L5": (0.65, 0.85),  # next 20%
     "L6": (0.85, 1.0),   # bottom 15%
 }
-
-Depth interpretation:
-  - L1 is superficial (top, cortical surface at depth 0)
-  - L6 is deep (bottom, approaching white matter at depth 1)
-  - All depths are relative to column thickness (arbitrary units: μm, mm, etc.)
+Band WIDTH is proportional to neuron count (count ∝ width): 100,250,200,100,200,150.
+  - L1 superficial (cortical surface at depth 0); L6 deep (white matter at depth 1).
 """
 
 # ============================================================================
-# CELL TYPE DISTRIBUTION (by layer)
+# CELL TYPE DISTRIBUTION (by layer) — GROUND TRUTH gradient
 # ============================================================================
 
 """
 LAYER_CELL_TYPE_FRAC = {
-    "L1": {"E": 0.35, "PV": 0.30, "SST": 0.20, "VIP": 0.15},  # inhibitory-heavy
-    "L2": {"E": 0.45, "PV": 0.25, "SST": 0.18, "VIP": 0.12},  # mixed
-    "L3": {"E": 0.55, "PV": 0.20, "SST": 0.15, "VIP": 0.10},  # E-biased
-    "L4": {"E": 0.65, "PV": 0.18, "SST": 0.12, "VIP": 0.05},  # E-dominant (thalamic input)
-    "L5": {"E": 0.85, "PV": 0.08, "SST": 0.05, "VIP": 0.02},  # strongly E (projection neurons)
-    "L6": {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},  # strongly E (corticothalamic)
+    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},  # 50% I (no PV; VIP/SST)
+    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},  # 30% I (I-count peak)
+    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},  # 25% I
+    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},  # 20% I (PV feedforward)
+    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},  # 12% I (E projection)
+    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},  # 10% I (E-frac peak)
 }
 
 Principle:
-  - Superficial (L1–L4): More inhibitory (PV/SST/VIP), mixed E/I circuits
-  - Deep (L5–L6): Strongly excitatory, projection-neuron dominant
-  - Matches biology: superficial layers integrate & modulate, deep layers project
+  - Superficial (L1–L3): inhibitory-RICH (50% -> 25% I), modulation/integration circuits.
+  - Deep (L5–L6): strongly excitatory (88–90% E), projection-neuron dominant.
+  - PV (fast inhibition) peaks at L4 thalamorecipient layer; absent in L1.
+  - Matches biology: superficial layers integrate & modulate, deep layers project.
 """
 
 # ============================================================================
-# QUICKSTART: MINIMAL JAXFNE SETUP
+# QUICKSTART: MINIMAL JAXFNE SETUP (fluent grammar, v0.4.0 — verified)
 # ============================================================================
 
 """
 import jaxfne as jtfne
-from jaxfne import tutorial_utils as tu
+import collections
+jtfne.enable_x64()
 
-# Layer architecture (normalized depths)
-LAYER_FRACTIONS = {
-    "L1": (0.0, 0.1),    "L2": (0.1, 0.35),   "L3": (0.35, 0.55),
-    "L4": (0.55, 0.65),  "L5": (0.65, 0.85), "L6": (0.85, 1.0),
+LAYERS = ["L1","L2","L3","L4","L5","L6"]
+
+# z-bands: WIDTH ∝ neuron count
+ZBANDS = {
+    "L1": (0.00, 0.10), "L2": (0.10, 0.35), "L3": (0.35, 0.55),
+    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
 }
 
-# Cell type composition (E/I ratio per layer)
+# Cell-type composition per layer (GROUND TRUTH gradient: E-deep, I-superficial)
 LAYER_CELL_TYPE_FRAC = {
-    "L1": {"E": 0.35, "PV": 0.30, "SST": 0.20, "VIP": 0.15},
-    "L2": {"E": 0.45, "PV": 0.25, "SST": 0.18, "VIP": 0.12},
-    "L3": {"E": 0.55, "PV": 0.20, "SST": 0.15, "VIP": 0.10},
-    "L4": {"E": 0.65, "PV": 0.18, "SST": 0.12, "VIP": 0.05},
-    "L5": {"E": 0.85, "PV": 0.08, "SST": 0.05, "VIP": 0.02},
-    "L6": {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},
+    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
+    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},
+    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},
+    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},
+    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
+    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},
 }
 
-# Build configuration
-layer_fracs_tuple = tuple(
-    (layer, LAYER_FRACTIONS[layer][0], LAYER_FRACTIONS[layer][1])
-    for layer in ("L1", "L2", "L3", "L4", "L5", "L6")
-)
+cfg = (jtfne.laminar_cortex_config(
+            seed=0, duration_ms=1000.0, dt_ms=0.5, areas=["V1"], layers=LAYERS,
+            n=1000, emitter="izhikevich",
+            baseline_drive_by_cell_type={"E":5.0,"PV":5.0,"SST":5.0,"VIP":5.0})
+       .layer_fractions(layer_fractions=ZBANDS)          # WIDTH ∝ count -> per-layer counts
+       .area_layer_cell_types("V1", LAYER_CELL_TYPE_FRAC))  # per-layer E/I composition
+model = jtfne.construct(cfg)
 
-cfg = tu.make_laminar_column_config(
-    areas=("V1",),                          # single area
-    layers=("L1", "L2", "L3", "L4", "L5", "L6"),
-    layer_fractions=layer_fracs_tuple,      # canonical normalized depths
-    layer_cell_type_frac=LAYER_CELL_TYPE_FRAC,
-    n_neuron_per_column=1000,               # 1K neurons
-    duration_ms=1000.0,
-    dt_ms=0.1,
-    n_trials=4,
-    n_contacts=64,
-    freq_count=96,
-    seed=0,
-)
+# Verify (neuron_table() returns a LIST of dict rows: neuron_id, area, layer, cell_type, x,y,z)
+lc = collections.Counter((r["layer"], r["cell_type"]) for r in model.neuron_table())
+# L1: 50E/0PV/15SST/35VIP (100)   L2: 175E/.. (250)   L3: 150E/.. (200)
+# L4: 80E/.. (100)   L5: 176E/.. (200)   L6: 135E/.. (150)   TOTAL 77E:23I
 
-model = tu.build_laminar_column(cfg)
-neurons_df = model["neurons"]
+WARNING: laminar_cortex_config(cell_types={"E":0.8,...}) GLOBAL weights produce the
+WRONG per-layer gradient (deep over-inhibitory, 41:59). ALWAYS override per layer with
+.area_layer_cell_types(area, {...}).
 
-# Verify layer counts
-for layer in ("L1", "L2", "L3", "L4", "L5", "L6"):
-    count = len(neurons_df[neurons_df["layer"] == layer])
-    print(f"{layer}: {count} neurons")
+NOTE: layer_celltype_count_table / column_density_table raise NotImplementedError on a
+Configuration — read counts from construct(cfg).neuron_table() instead.
+"""
 
-# Output:
-# L1: 100 neurons
-# L2: 250 neurons
-# L3: 200 neurons
-# L4: 100 neurons
-# L5: 200 neurons
-# L6: 150 neurons
+# ============================================================================
+# DRIVE / SANITY CALIBRATION (verified Step 3, 2026-06-17)
+# ============================================================================
+
+"""
+baseline_drive_by_cell_type = 5.0  -> mean rate ≈ 18 Hz (in 8–25 Hz band) at n=1000.
+  Drive sweep: 4 -> 12.8 Hz, 6 -> 23.4 Hz, 8 -> 32.6 Hz (hot), 0 -> silent.
+Sanity gate: Vm rest ≈ −67 mV, spike peak +30 mV (hard reset), all finite.
+  construct ~1.8 s, simulate(1000ms) ~1 s on CPU.
+Proxy fields auto-computed (linear_solver, NO PDE): lfp_proxy, csd_proxy, source_proxy,
+  each (n_steps, n_contacts), finite. eeg_proxy/meg_proxy NOT auto (need explicit lead-field).
+Signal keys are *_proxy (NO *_like, NO *_contacts).
 """
 
 # ============================================================================
@@ -148,27 +150,15 @@ for layer in ("L1", "L2", "L3", "L4", "L5", "L6"):
 # ============================================================================
 
 """
-Using normalized depths [0, 1] to apply layer-specific current injection:
+Layer-specific current injection via the neuron table (list of dict rows):
 
-# Apply 10 nA to L2/L3 E cells only
-drive_per_neuron = np.zeros(len(neurons_df), dtype=np.float32)
-
-# L2 + L3 spans depth [0.1, 0.55]
-layer_mask = (
-    (neurons_df["layer"].isin(["L2", "L3"]))
-    & (neurons_df["cell_type"] == "E")
-)
-drive_per_neuron[layer_mask.values] = 10.0
-
-# Time-gating: apply drive only during [t_on, t_off] ms
-n_steps = int(duration_ms / dt_ms)
-t_indices = np.arange(n_steps, dtype=np.float32) * dt_ms
-time_gate = (t_indices >= t_on) & (t_indices < t_off)
-stimulus = np.ones((n_steps, len(neurons_df)), dtype=np.float32) * drive_per_neuron[np.newaxis, :]
-stimulus[~time_gate] = 0
-
-# Simulate with layer-specific, time-gated drive
-signals = tu.simulate_laminar_trials(model, cfg, stimulus=stimulus, n_trials=4)
+import numpy as np
+nt = model.neuron_table()
+drive_per_neuron = np.zeros(len(nt), dtype=np.float64)
+for i, r in enumerate(nt):
+    if r["layer"] in ("L2", "L3") and r["cell_type"] == "E":
+        drive_per_neuron[i] = 10.0
+model = model.with_emitter_parameters(drive_per_neuron=drive_per_neuron)
 """
 
 # ============================================================================
@@ -176,63 +166,12 @@ signals = tu.simulate_laminar_trials(model, cfg, stimulus=stimulus, n_trials=4)
 # ============================================================================
 
 """
-The default template is optimized for spectrolaminar decomposition:
+signals = jtfne.simulate(model, jtfne.simulation(duration_ms=1000.0, dt_ms=0.5, seed=0))
+fig = jtfne.vis.spectrolaminar_suite(signals)   # preferred laminar readout
 
-signals = model.simulate(seed=0)
-scores, specs = tu.summarize_spectrolaminar_similarity(signals, cfg)
-
-# Spectrolaminar output: depth × frequency relative power
-# - L2/3 dominance at alpha-beta (~10–30 Hz)
-# - L5/L6 gamma peaks (~40–100 Hz)
-# - Depth-dependent phase lags (thalamic→L4→L2/3→L5/6 routing)
-
-from jaxfne.vis.tutorial_panels import spectrolaminar_suite_3panel
-
-figs = spectrolaminar_suite_3panel(
-    specs, model, cfg,
-    areas=["V1"],
-    stage="cortical_column_default",
-    output_dir="./figs",
-    theme="dark",
-    profile_smooth_sigma=1.0,
-)
-
-# Output: 3-panel figure (LFP, CSD, spectrolaminar heatmap)
-"""
-
-# ============================================================================
-# HIERARCHICAL MULTI-AREA STACKING
-# ============================================================================
-
-"""
-The normalized depth framework enables layer-matched stacking of multiple areas:
-
-AREAS = ["V1", "V2", "V4", "PFC"]
-
-# Each area uses the same layer_fractions, layer_cell_type_frac
-# Different area properties (connectivity, recurrent strength) can be applied per-area
-
-cfg = (
-    jtfne.Configuration()
-    .runtime(...)
-    .multi_area(areas=AREAS)
-    .area_connectivity(
-        V1_to_V2="feedforward_L5_to_L1",
-        V2_to_V4="feedforward_L5_to_L1",
-        V4_to_PFC="feedforward_L5_to_L1",
-    )
-    .area_layer_fractions(LAYER_FRACTIONS)  # shared across all areas
-    .area_cell_types(LAYER_CELL_TYPE_FRAC)  # shared across all areas
-)
-
-model = jtfne.construct(cfg)
-signals = model.simulate(seed=0)
-
-# Spectrolaminar analysis per area
-for area in AREAS:
-    area_signals = signals.extract(area)
-    scores, specs = tu.summarize_spectrolaminar_similarity(area_signals, cfg)
-    # ... plot per-area spectrolaminar profiles
+# Spectrolaminar = depth × FREQUENCY relative power:
+#   alpha-beta deep, gamma superficial (the band-crossover is SCALE-EMERGENT, present at
+#   ~10k/1000ms, absent at n<=4000). Do not conflate with field-laminar (depth × TIME).
 """
 
 # ============================================================================
@@ -240,40 +179,8 @@ for area in AREAS:
 # ============================================================================
 
 """
-To use a DIFFERENT architecture in discussions:
-  1. State explicitly: "using 10-layer thalamocortical model" or "uniform 200 neurons/layer"
-  2. Provide full layer spec (thicknesses, neuron counts, cell types)
-  3. If not stated, assume the canonical 1K template above
-
-This ensures reproducibility and prevents silent architectural drift.
-"""
-
-# ============================================================================
-# PROPERTIES OF THE DEFAULT TEMPLATE
-# ============================================================================
-
-"""
-Why this template?
-
-✅ Biologically plausible
-  - L2/3 superficial dominance (45%) matches cortical output bottleneck
-  - L5 thickness (0.30) reflects deep-layer projection neuron expansion
-  - E/I ratios match observed coronal anatomy
-
-✅ Computationally efficient
-  - 1K neurons: ~120–150s/trial on CPU JAX
-  - Scales linearly to 10K for full-resolution studies
-  - Fast enough for parameter sweeps (Phase 0–2)
-
-✅ Analytically clear
-  - Spectrolaminar analysis shows L2/3 vs L5/6 frequency segregation
-  - Layer-specific stimulation via normalized depths
-  - Canonical reference for comparing across studies
-
-✅ Extensible
-  - Layer fractions already normalized → multi-area stacking
-  - Cell type fracs are per-layer parameters → easy to adjust E/I balance
-  - No hardcoded absolute depths → works at any physical scale
-
-Use this as the default prior. If you need something else, say so explicitly.
+To use a DIFFERENT architecture:
+  1. State explicitly ("uniform 200 neurons/layer", "balanced 50/50 E/I", "10-layer model").
+  2. Provide full layer spec (thicknesses, counts, cell types).
+  3. If not stated, this canonical 1K template (77E:23I, E-deep / I-superficial) is the prior.
 """
