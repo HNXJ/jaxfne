@@ -1541,9 +1541,14 @@ def simulate_laminar_trials(
             continue
         col_sign = sign[a_idx]
         col_gain = np.where(col_sign > 0, exc_gain, inh_gain).astype(np.float32)
-        block = np.broadcast_to(
-            (0.5 / np.sqrt(na)) * (col_sign * col_gain)[None, :], (na, na)
-        ).copy()
+        # Uniform-random recurrence: every pair drawn independently from U(0,1),
+        # scaled identically so the four connection types (E->E, E->I, I->E, I->I)
+        # share the same average magnitude. Sign follows Dale's law (presynaptic
+        # sign in the column). Mean |w| = 0.5/sqrt(na) * gain (matches the prior
+        # broadcast scale). Seeded per area for reproducibility.
+        rng = np.random.default_rng(int(cfg.seed) + 911 + int(a_idx[0]))
+        rand_block = rng.uniform(0.0, 1.0, size=(na, na)).astype(np.float32)
+        block = rand_block * ((1.0 / np.sqrt(na)) * (col_sign * col_gain)[None, :])
         np.fill_diagonal(block, 0.0)
         W[np.ix_(a_idx, a_idx)] += block
     # Inter-area projections from connectivity_spec.
