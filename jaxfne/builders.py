@@ -1,8 +1,21 @@
 """Public builder and helper functions for cortical-column configuration.
 
-This module provides high-level construction helpers for common cortical-column
-and multi-area scenarios. All functions return Configuration objects with
-sensible defaults while preserving truth gates:
+High-level construction helpers for common cortical-column and multi-area
+scenarios. Every builder returns a :class:`Configuration` with all knobs
+defaulted, so canonical models are reproducible from the call site without
+editing source.
+
+Two cell-type composition paths share the builders:
+
+* ``ei_profile="flat"`` (default) — depth-invariant E/PV/SST/VIP fractions with
+  ``uniform3d`` placement. This is the legacy behavior, preserved unchanged.
+* ``ei_profile="canonical"`` — the verified ground-truth E:I gradient (E peaks
+  deep ≈90%, I peaks superficial 50%, PV at L4, ≈77E:23I), with laminar
+  placement so each neuron keeps its layer label. The gradient is exported as
+  first-class constants (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`,
+  :data:`CANONICAL_Z_BANDS`, and the 5-layer variants).
+
+All builders preserve the truth gates:
   - claim_level = computational_scaffold
   - field_solver_status = linear_solver
   - physical_amplitude_calibrated = False

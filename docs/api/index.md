@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 195 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 204 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.0` (tag `v0.4.0`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -29,29 +29,91 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (7) · **Sanity-delta** (7) · **Plasticity** (5) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (4) | 93 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (7) · **Sanity-delta** (7) · **Plasticity** (5) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (13) | 102 |
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **195**
+> signatures in the complete symbol index below. Counts sum to **204**
 > (`len(jaxfne.__all__)`). See the docs audit
 > (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
 
 ## Minimal workflow (verified)
 
+The pipeline is one linear chain: `setup → config → construct → simulate →
+visualize → tune/objective → optimize → export`.
+
 ```python
 import jaxfne as jtfne
+jtfne.enable_x64()                                       # setup
 
-cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=1000.0, dt_ms=0.1)
-model = jtfne.construct(cfg)
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)
+cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")  # config (canonical prior)
+cfg = (cfg.set_emitter("izhikevich", "cortical_eig")
+          .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=16)
+          .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
 
-vm = signals.get("vm")            # membrane voltage [T, N]
-spk = signals.get("spk")          # spikes [T, N]
+model   = jtfne.construct(cfg)                           # construct -> Model
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)  # simulate -> Signals
+
+vm = signals.get("vm")                  # membrane voltage [T, N]
+spk = signals.get("spk")                # spikes [T, N]
 e_idx = model.select(cell_type="E")     # excitatory neuron indices
 vm_e = signals.get("vm", cell_type="E") # equivalent to vm[:, e_idx]
 assert vm_e.shape[-1] == len(e_idx)
 ```
+
+---
+
+## Column builders & the canonical prior
+
+`build_laminar_column` and `build_multi_area_columns` build a `Configuration`
+with every knob defaulted, so the canonical cortex is reproducible from the call
+site. Both are partial builders — chain `.set_emitter().probes().field()` before
+`construct`.
+
+### `build_laminar_column(...) -> Configuration`
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `name` | `"V1"` | Column name. |
+| `n` | `1000` | Total neurons; per-layer count ∝ depth-band width. |
+| `layers` | `DEFAULT_LAYERS` | 5-layer set (`"L1","L2/3","L4","L5","L6"`). Use `CANONICAL_LAYERS_6L` for the split-L2/L3 form. |
+| `layer_fractions` | canonical/even bands | `(z0, z1)` depth band per layer; width sets the count. |
+| `cell_type_fractions` | `FLAT_CELL_TYPE_FRACTIONS` | Global E/PV/SST/VIP used by `ei_profile="flat"`. |
+| `layer_cell_type_fractions` | `None` | Explicit per-layer composition; overrides `ei_profile`. |
+| `ei_profile` *(kw)* | `"flat"` | `"flat"` = legacy depth-invariant; `"canonical"` = verified E:I gradient (E deep ≈90%, I superficial 50%, PV at L4, ≈77E:23I). |
+| `geometry` *(kw)* | `"auto"` | `"auto"` → `laminar` when a non-flat composition is requested, else `uniform3d`. `uniform3d` collapses layer identity. |
+| `within_connectivity` *(kw)* | `"all_to_all_uniform_random"` | Within-area rule. |
+| `within_gain` *(kw)* | `0.45` | Within-area weight gain. |
+| `radius_mm`, `height_mm` *(kw)* | `0.25`, `1.6` | Column cylinder geometry. |
+| `edge_seed` *(kw)* | `None` | Connectivity edge seed. |
+
+**Returns:** a `Configuration` (single column). **Examples:**
+
+```python
+jtfne.build_laminar_column()                        # V1, n=1000, flat E:I, uniform3d (legacy)
+jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth gradient, laminar placement
+jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
+```
+
+### `build_multi_area_columns(...) -> Configuration`
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `areas` | `("V1","V4","PFC")` | Area names, low→high in the hierarchy. |
+| `n_per_area` | `200` | Neurons per area. |
+| `layers` | `DEFAULT_LAYERS` | Shared layer sequence. |
+| `connectivity_mode` | `"sparse"` | Inter-area mode (`"sparse"`/`"all_to_all"`). |
+| `ei_profile` *(kw)* | `"flat"` | Per-layer composition applied to every area (see above). |
+| `cell_type_fractions` *(kw)* | `FLAT_CELL_TYPE_FRACTIONS` | Global fractions for `ei_profile="flat"`. |
+| `within_connectivity`, `within_gain` *(kw)* | `"all_to_all_uniform_random"`, `0.35` | Within-area rule/gain. |
+| `p_feedforward`, `p_feedback` *(kw)* | `0.3`, `0.2` | Inter-area connection probabilities. |
+
+**Returns:** a multi-area `Configuration` with declared feedforward/feedback edges.
+
+Legacy compatibility: `ei_profile="flat"` reproduces the pre-sweep behavior
+byte-for-byte (depth-invariant composition, `uniform3d` placement). Only the new
+opt-in paths (`ei_profile="canonical"` or an explicit `layer_cell_type_fractions`)
+change placement to laminar.
 
 ---
 
@@ -82,7 +144,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**195 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**204 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (69)
 
@@ -334,11 +396,20 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `make_ei_cloud_network` | func | Generates geometry and initial weights for a 100-neuron E-I cloud network. |
 
-### Builders (1)
+### Builders (10)
 
 | Symbol | Kind | Summary |
 |---|---|---|
-| `laminar_cortex_config` | func | Generalized laminar cortical configuration builder. |
+| `laminar_cortex_config` | func | Generalized multi-area laminar cortical configuration builder. |
+| `build_laminar_column` | func | Single-column builder; defaults `name="V1"`, `n=1000`; `ei_profile`/`geometry` select flat-legacy vs canonical laminar prior. |
+| `build_multi_area_columns` | func | Multi-area builder; defaults to the `V1→V4→PFC` hierarchy, 200/area, with inter-area feedforward/feedback. |
+| `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` | const | Ground-truth per-layer E:I composition (6-layer); E peaks deep, I peaks superficial. |
+| `CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L` | const | 5-layer (L2/3 merged) variant of the canonical composition. |
+| `CANONICAL_Z_BANDS` | const | Count-proportional depth bands for the canonical 6-layer column. |
+| `CANONICAL_Z_BANDS_5L` | const | Count-proportional depth bands for the 5-layer column. |
+| `CANONICAL_LAYERS_6L` | const | Canonical 6-layer name tuple `("L1".."L6")`. |
+| `FLAT_CELL_TYPE_FRACTIONS` | const | Legacy depth-invariant E/PV/SST/VIP fractions. |
+| `DEFAULT_LAYERS` | const | Historical 5-layer default `("L1","L2/3","L4","L5","L6")`. |
 
 ### Streaming (1)
 

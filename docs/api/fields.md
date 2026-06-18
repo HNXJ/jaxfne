@@ -153,22 +153,52 @@ field_dict = field.to_dict()
 
 ## Field Solvers
 
-### `probe_laminar_modes(sources, basis_spec) -> modal_amplitudes`
+### `probe_laminar_modes(field_output, modes=("source", "phi_e", "CSD", "LFP")) -> dict`
 
-Decompose source activity into spatial basis functions.
+Extract the requested proxy readouts from a `FieldOutput`.
 
 **Parameters:**
-- `sources` (jax.Array): Source signals [time, locations]
-- `basis_spec` (BasisSpec): Basis function specification
+- `field_output` (`FieldOutput`): result of `project_laminar_sources` / `project_sources_to_laminar_field`.
+- `modes` (`Sequence[str]`, default `("source", "phi_e", "CSD", "LFP")`): which
+  proxies to extract. Valid values: `"source"`/`"sources"`, `"phi_e"`, `"CSD"`,
+  `"LFP"`, `"J_e"`. The default extracts the full proxy set.
 
-**Returns:** Modal amplitudes [time, n_modes]
+**Returns:** a `dict` mapping each requested proxy to its `*_proxy` array (plus a
+`readout_metadata` entry). Requesting `"J_e"` returns a status string only —
+current density is never synthesized without a real field solver.
 
 **Description:**
-Projects spatial source patterns onto a reduced set of basis functions (e.g., Chebyshev polynomials or radial basis functions). Enables dimensionality reduction for visualization and analysis.
+A thin accessor over the laminar proxy outputs. All returned arrays are proxy
+readouts (`field_solver_status = "linear_solver"`), not physical signals.
 
 **Example:**
 ```python
-modes = jtfne.probe_laminar_modes(sources, cfg.basis_spec)
+fo = jtfne.project_laminar_sources(sources, positions)
+out = jtfne.probe_laminar_modes(fo)                  # default: source, phi_e, CSD, LFP
+csd = out["csd_proxy"]; lfp = out["lfp_proxy"]
+```
+
+---
+
+### `construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -> (array, metadata)`
+
+Assemble a proxy source tensor for laminar projection from the named `mode`.
+
+**Parameters:**
+- `mode` (str, default `"total_membrane_current_proxy"`): source basis. Also
+  `"decomposed_cap_ion_plus_synaptic_proxy"` and `"spike_proxy"`. The array the
+  chosen mode needs must be supplied (e.g. `total_membrane_current=...`).
+- `total_membrane_current`, `decomposed_cap_ion`, `synaptic_current`,
+  `spike_proxy` (`jax.Array`, optional): the per-mode source arrays.
+- `scale` (float, default `1.0`): multiplicative scale.
+
+**Returns:** `(source_array, metadata)` — the proxy source array plus a JSON-safe
+metadata dict recording the mode and proxy status. The result is a proxy source
+basis, not a physical current density.
+
+**Example:**
+```python
+src, meta = jtfne.construct_source_tensor(total_membrane_current=I_mem)  # default mode
 ```
 
 ---
