@@ -48,7 +48,7 @@ physical_amplitude_calibrated: false
 
 ## Branch policy
 
-Evidence on `cur`. Permanent branches: `main`, `dev`, `agy`, `cur`. Do not mutate `main`/`dev`/`agy` without approval. No force-push, tag, release, or publish without approval.
+Five permanent branches: `main`, `dev`, `agy`, `cur`, `ops` (kept aligned at the same SHA after integration; main is the release source-of-truth, dev the integration branch). Do not mutate any permanent branch without approval. No force-push, tag, release, or publish without approval.
 
 ## Validation
 
