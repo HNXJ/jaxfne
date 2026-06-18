@@ -52,6 +52,7 @@ nav:
   - Tutorials:
       - Atlas Overview: tutorials/index.md
       - Notebook Standard: tutorials/notebook_standard.md
+      - "Étude: Canonical Cortical Column": tutorials/13_canonical_column_etude.md
       - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
       - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
       - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
