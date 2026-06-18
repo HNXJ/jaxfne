@@ -128,6 +128,52 @@ lfp = np.asarray(signals.get("lfp_proxy"))   # (n_steps, n_contacts)
 csd = np.asarray(signals.get("csd_proxy"))
 ```
 
+### Layer-balanced drive (avoid layer-rate bias)
+
+Per-layer firing should be similar across depth, or any laminar readout is biased
+toward the hotter layers. Under uniform drive this column is intrinsically
+*superficial-hotter* (L2/L3 fire faster than L5/L6) — no layer is silent, but the
+bias is real. Flatten it with **graded per-layer drive**, applied to the **same
+constructed model** (no rebuild) via `with_emitter_parameters`. A gentle
+proportional-control loop converges in a few steps:
+
+```python
+layer_of = np.array([r["layer"] for r in model.neuron_table()])
+masks = {L: (layer_of == L) for L in LAYERS}
+drive = np.zeros(len(layer_of))
+TARGET = 10.0
+
+def per_layer_rates(layer_drive):
+    for L in LAYERS:
+        drive[masks[L]] = layer_drive[L]
+    m = model.with_emitter_parameters(drive_per_neuron=drive)   # reuse, no rebuild
+    spk = np.asarray(jtfne.simulate(m, sim).get("spikes"))      # (n_steps, N)
+    per_neuron = spk.sum(axis=0) / (1000.0 / 1000.0)            # Hz per neuron
+    return {L: float(per_neuron[masks[L]].mean()) for L in LAYERS}
+
+layer_drive = {L: 5.0 for L in LAYERS}
+for _ in range(30):
+    r = per_layer_rates(layer_drive)
+    if max(abs(r[L] - TARGET) for L in LAYERS) <= 3 and (max(r.values()) - min(r.values())) <= 4:
+        break
+    for L in LAYERS:  # gentle gain (0.35) + tight clip avoids overshoot under recurrence
+        factor = np.clip((TARGET / max(r[L], 0.3)) ** 0.35, 0.8, 1.25)
+        layer_drive[L] = float(np.clip(layer_drive[L] * factor, 0.0, 30.0))
+```
+
+Converged graded profile (superficial gets *less* drive, deep gets *more* — cancels
+the bias without altering the structural E/I gradient):
+
+```text
+layer  drive  rate_Hz
+   L1   4.79    10.6
+   L2   4.08    12.9
+   L3   4.17    12.5
+   L4   4.26    12.5
+   L5   4.47    11.7
+   L6   4.54    11.8     ->  spread ~2.3 Hz, all layers within 10 ± 5 Hz
+```
+
 ## 4. Visualize
 
 All `jtfne.vis.*` take a `Signals` object and return matplotlib figures;
