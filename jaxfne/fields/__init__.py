@@ -46,9 +46,13 @@ from .diagnostics import (
     validate_projection_invariants,
     _make_field_solution_report,
 )
+from .solvers import (
+    experimental_poisson_1d,
+)
 
 __all__ = [
     "FieldOutput",
+    "experimental_poisson_1d",
     "project_laminar_sources",
     "project_sources_to_laminar_field",
     "validate_projection_invariants",

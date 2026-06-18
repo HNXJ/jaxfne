@@ -435,6 +435,46 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         dtype=dtype,
         drive_overrides=baseline_drive,
     )
+    
+    # Compile and apply declared cell_params overrides
+    circuit = metadata.get("circuit", {})
+    cell_param_decls = circuit.get("cell_params", [])
+    if cell_param_decls:
+        import numpy as np
+        a_list = np.array(params.a)
+        b_list = np.array(params.b)
+        c_list = np.array(params.c)
+        d_list = np.array(params.d)
+        drive_list = np.array(params.drive)
+        for decl in cell_param_decls:
+            selector = decl.get("selector", {})
+            param_overrides = decl.get("params", {})
+            for i in range(len(labels)):
+                match = True
+                if "cell_type" in selector and labels[i] != selector["cell_type"]:
+                    match = False
+                if "layer" in selector and layer_labels[i] != selector["layer"]:
+                    match = False
+                if match:
+                    if "a" in param_overrides:
+                        a_list[i] = float(param_overrides["a"])
+                    if "b" in param_overrides:
+                        b_list[i] = float(param_overrides["b"])
+                    if "c" in param_overrides:
+                        c_list[i] = float(param_overrides["c"])
+                    if "d" in param_overrides:
+                        d_list[i] = float(param_overrides["d"])
+                    if "drive" in param_overrides:
+                        drive_list[i] = float(param_overrides["drive"])
+        params = replace(
+            params,
+            a=jnp.asarray(a_list, dtype=jdtype),
+            b=jnp.asarray(b_list, dtype=jdtype),
+            c=jnp.asarray(c_list, dtype=jdtype),
+            d=jnp.asarray(d_list, dtype=jdtype),
+            drive=jnp.asarray(drive_list, dtype=jdtype),
+        )
+
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
     params = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
     geometry_meta = {
@@ -461,6 +501,56 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
     eye = jnp.eye(n, dtype=jdtype)
     base_gain = float((metadata.get("connectivity", {}) or {}).get("within_gain", 0.45))
     W = base_gain * rnd * sign[None, :] * same_area * (1.0 - eye) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
+
+    # Apply sparse random connectivity if p_connect is specified and < 1.0
+    connectivity_spec = metadata.get("connectivity", {}) or {}
+    p_connect = connectivity_spec.get("p_connect")
+    if p_connect is not None:
+        p_val = float(p_connect)
+        if 0.0 < p_val < 1.0:
+            mask_key = jax.random.fold_in(key, 999)
+            mask = jax.random.bernoulli(mask_key, p_val, (n, n)).astype(jdtype)
+            W = W * mask / p_val
+
+    # Apply TCM_V1_6POP specific population-based connection mask if enabled
+    tcm_active = bool(metadata.get("tcm_v1_6pop", False)) or bool(connectivity_spec.get("tcm_v1_6pop", False))
+    if tcm_active:
+        import numpy as np
+        pop = []
+        for idx in range(n):
+            lyr = layer_labels[idx]
+            cell = cell_labels[idx]
+            is_e = (cell == "E")
+            if lyr in {"L2/3", "L2", "L3"}:
+                pop.append("SP" if is_e else "SI")
+            elif lyr == "L4":
+                pop.append("SS" if is_e else "other")
+            elif lyr == "L5":
+                pop.append("DP" if is_e else "DI")
+            elif lyr == "L6":
+                pop.append("TP" if is_e else "other")
+            else:
+                pop.append("other")
+        allowed_pairs = {
+            ("SS", "SP"),
+            ("SS", "SI"),
+            ("SP", "SP"),
+            ("SP", "SI"),
+            ("SI", "SP"),
+            ("DP", "DP"),
+            ("DP", "DI"),
+            ("DI", "DP"),
+            ("SP", "DP"),
+            ("DP", "SP"),
+            ("SP", "TP"),
+            ("TP", "DP")
+        }
+        tcm_mask = np.zeros((n, n), dtype=float)
+        for i in range(n):
+            for j in range(n):
+                if (pop[j], pop[i]) in allowed_pairs:
+                    tcm_mask[i, j] = 1.0
+        W = W * jnp.asarray(tcm_mask, dtype=jdtype)
 
     if bool(metadata.get("suite2_interarea", False)):
         pre_v1_l23 = jnp.asarray([area_labels[j] == "V1" and layer_labels[j] in {"L2", "L3", "L2/3"} and cell_labels[j] == "E" for j in range(n)], dtype=jdtype)
