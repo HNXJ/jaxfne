@@ -155,7 +155,7 @@ Bridges: `JaxleyBridge`, `JaxleyEmitterBridge`, `JaxleyTraceSpec`.
 ## Truth-plane reminders (always)
 
 - Wording: **proxy only** — EEG-proxy, MEG-proxy, LFP-proxy, CSD-proxy, spectrolaminar-proxy, field-laminar-proxy. Never "real EEG/MEG", "calibrated amplitude", "solved field", "physical CSD", "mechanism proof", "biological validation/learning".
-- Gates that ride along on dataclasses: `truth_mode=truth_safe_unverified`, `claim_level=computational_scaffold`, `field_solver_status=laminar_proxy_no_pde`, `physical_amplitude_claim_allowed=False`, `biological_learning_claim=False`, `mechanism_claim_status=not_claimed`. Read them; never escalate.
+- Gates that ride along on dataclasses (v0.4.0 canonical schema): `claim_level=computational_scaffold`, `field_solver_status=linear_solver`, `field_claim_level=proxy_readout`, `physical_amplitude_calibrated=False`, `biological_learning_claim=False`, `mechanism_claim_status=not_claimed`. Read them; never escalate. (RETIRED, do not emit: `truth_mode`/`truth_safe_unverified`, `laminar_proxy_no_pde`, `proxy_readout_only`, `physical_amplitude_claim_allowed`. Migrate legacy JSON via `jtfne.migrate_schema`.)
 
 ## Keeping this catalog honest
 
