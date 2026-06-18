@@ -111,6 +111,27 @@ figs = spectrolaminar_suite_3panel(specs, model, cfg, areas=["V1"])   # canonica
 relative-power spectra, **(B)** depth × frequency relative-power heatmap, **(C)**
 alpha-beta (deep) / gamma (superficial) band power crossing at the L4 reference.
 
+### Superficial → deep descending drive
+
+The canonical microcircuit is completed by an intra-column **L2/3 (E) → L5/6 (E)**
+descending pathway, so superficial activity drives the deep layers (countering the
+intrinsic superficial-hotter bias). It is part of the default `connectivity_spec`
+(`L23_to_deep_*` rules) and is tunable via `base_control['supra_to_deep_gain']`:
+
+```python
+cfg = tu.make_laminar_column_config(
+    areas=("V1",), area_x_rel=(0.0,),
+    layer_count_frac=LAYER_COUNT_FRAC, layer_cell_type_frac=LAYER_CELL_TYPES,
+    n_neuron_per_column=1000, dt_ms=0.1, duration_ms=1000.0,
+    n_trials=10, n_contacts=32, freq_count=96, seed=0,
+    base_control={"supra_to_deep_gain": 1.0},   # 0.0 disables; >1 strengthens
+)
+```
+
+Effect on per-layer E firing (deep / superficial rate ratio): `gain=0.0 → ~0.96`
+(deep slightly cooler); `gain=1.0 → ~1.34` (deep driven above superficial). Raise
+the gain for a stronger descending drive; deep firing scales monotonically with it.
+
 Two readout prerequisites (verify both — see the validation gates below):
 
 ```python

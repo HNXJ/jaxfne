@@ -863,6 +863,7 @@ def make_laminar_column_config(
             'local_inh_gain': 1.00,
             'feedforward_gain': 1.00,
             'feedback_gain': 1.00,
+            'supra_to_deep_gain': 1.00,
         }
 
     if cell_type_izh_params is None:
@@ -936,6 +937,28 @@ def make_laminar_column_config(
                 'src_layers': ('L5', 'L6'), 'src_cell_types': ('E',),
                 'dst_area': 'PFC', 'dst_layers': ('L2', 'L3'), 'dst_cell_types': None,
                 'weight': 12.0, 'control_key': 'feedback_gain',
+            },
+            # Intra-column L2/3 (E) -> deep (L5/6 E) descending drive. Completes
+            # the canonical L4 -> L2/3 -> L5/6 microcircuit so superficial activity
+            # drives the deep layers (counters the intrinsic superficial-hotter
+            # bias). Tunable via base_control['supra_to_deep_gain'].
+            {
+                'name': 'L23_to_deep_V1', 'src_area': 'V1',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
+                'dst_area': 'V1', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_gain',
+            },
+            {
+                'name': 'L23_to_deep_V4', 'src_area': 'V4',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
+                'dst_area': 'V4', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_gain',
+            },
+            {
+                'name': 'L23_to_deep_PFC', 'src_area': 'PFC',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
+                'dst_area': 'PFC', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_gain',
             },
         )
 
