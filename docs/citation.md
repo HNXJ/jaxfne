@@ -19,4 +19,4 @@ If using specific models or frameworks:
 
 - **Izhikevich model:** Izhikevich, E. M. (2003). Simple model of spiking neurons. IEEE Transactions on Neural Networks.
 - **JAX:** Bradbury et al. (2018). JAX: composable transformations of Python+NumPy programs. https://github.com/google/jax
-- **Jaxley (if used):** See https://github.com/google/jaxley
+- **Jaxley (if used):** See https://jaxley.readthedocs.io

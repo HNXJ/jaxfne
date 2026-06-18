@@ -210,7 +210,8 @@ For V1-V4 only. Declarative metadata; connectivity is stored as parameter dicts,
 | `conductivity` | `"proxy"` | Not calibrated |
 | `boundary` | `"mean_zero_neumann"` | Boundary convention |
 | `field_solver_status` | `"linear_solver"` | **Immutable** |
-| `amplitude_status` | `False` | **Immutable** |
+| `field_claim_level` | `"proxy_readout"` | **Immutable** |
+| `physical_amplitude_calibrated` | `False` | **Immutable** |
 | `source_projection_mode` | `"proxy_no_field_solve"` | Proxy only |
 
 ### Probe domain (`cfg.probes`)
@@ -227,7 +228,7 @@ For V1-V4 only. Declarative metadata; connectivity is stored as parameter dicts,
 | `"EMM"` | 1 | `float32 [1, T]` | Signaling-energy proxy |
 
 All probes carry `units_or_status: "proxy_relative_units"` and
-`amplitude_status: false`.
+`physical_amplitude_calibrated: false`.
 
 ### Objective domain (`cfg.objective`)
 
@@ -258,11 +259,12 @@ import jaxfne as jtfne
 cfg = jtfne.suite2_net1_config(seed=7, n=100, duration_ms=1000.0, dt_ms=0.1)
 model = jtfne.construct(cfg)
 
-# Run bundle: returns signals, report, and config
+# Run bundle: keys are simulation, signals, readout, manifest, neuron_table
 bundle = jtfne.suite2_run_bundle(model, seed=7, duration_ms=1000.0, dt_ms=0.1)
 
-signals = bundle["signals"]   # Signals namedtuple
-report  = bundle["report"]    # JSON-safe metadata dict
+signals  = bundle["signals"]    # Signals object
+manifest = bundle["manifest"]   # JSON-safe, truth-gated run manifest
+readout  = bundle["readout"]    # readout results
 ```
 
 ### Solver semantics (per timestep)
@@ -287,33 +289,29 @@ The integration uses forward Euler with fixed `dt_ms`:
 
 ### Output structure
 
-`suite2_run_bundle()` returns:
+`suite2_run_bundle()` returns a dict with keys
+`simulation`, `signals`, `readout`, `manifest`, `neuron_table`:
 
 ```python
 {
-    "signals": Signals(
-        spikes   = jnp.array([N_neurons, N_steps]),   # bool
-        V_m      = jnp.array([N_neurons, N_steps]),   # float32
-        source   = jnp.array([N_neurons, N_steps]),   # float32
-        LFP      = jnp.array([N_contacts, N_steps]),  # float32 proxy
-        CSD      = jnp.array([N_contacts, N_steps]),  # float32 proxy
-        # ...EEG, MEG, EMM if requested
+    "simulation":   Simulation(...),            # the resolved Simulation spec
+    "signals":      Signals(                     # proxy signals; access via .get(key)
+        # spikes, V_m, source_proxy, lfp_proxy, csd_proxy, (eeg_proxy/meg_proxy/emm_proxy if requested)
     ),
-    "report": {
-        "seed": 7,
-        "duration_ms": 1000.0,
-        "dt_ms": 0.1,
-        "n_steps": 10000,
-        "firing_rate_per_cell_type": {"E": ..., "PV": ..., "SST": ..., "VIP": ...},
-        "status_fields": {
-            "run_status": "tutorial_scaffold",
-            "model_status": "computational_scaffold",
-            "field_solver_status": "linear_solver",
-            "amplitude_status": False,
-        },
+    "readout":      [ReadoutResult(...), ...],   # requested readouts
+    "neuron_table": [ {...}, ... ],              # per-neuron rows (list of dicts)
+    "manifest": {                                # JSON-safe, truth-gated
+        "duration_ms": 1000.0, "dt_ms": 0.1,
+        "claim_level": "computational_scaffold",
+        "field_solver_status": "linear_solver",
+        "field_claim_level": "proxy_readout",
+        "physical_amplitude_calibrated": False,
     },
 }
 ```
+
+Signal keys are `*_proxy` (`lfp_proxy`, `csd_proxy`, `source_proxy`); the legacy
+`*_like` names are retired. Read them with `signals.get("lfp_proxy")`.
 
 ### Noise tuning
 
@@ -348,12 +346,10 @@ and outputs for auditability.
 ```python
 import jaxfne as jtfne
 
-manifest = jtfne.manifest(
-    config=cfg,
-    signals=bundle["signals"],
-    report=bundle["report"],
-    seed=7,
-)
+manifest = bundle["manifest"]          # already produced by suite2_run_bundle
+# or build one directly (cfg is positional; optional signals/readout/objective/tuning):
+manifest = jtfne.manifest(cfg, signals=bundle["signals"])
+
 # Validate manifest is JSON-safe (no NaN/Inf)
 import json
 json.dumps(manifest, allow_nan=False)  # must not raise
@@ -363,26 +359,19 @@ The manifest includes:
 
 ```json
 {
-  "version":      "0.3.14",
-  "seed":         7,
+  "version":      "0.4.0",
   "duration_ms":  1000.0,
   "dt_ms":        0.1,
   "n_steps":      10000,
-  "configuration": { "...": "..." },
   "outputs": {
-    "spikes":   {"shape": [100, 10000], "dtype": "bool"},
-    "V_m":      {"shape": [100, 10000], "dtype": "float32"},
-    "LFP":      {"shape": [16,  10000], "dtype": "float32"}
+    "spikes":     {"shape": [100, 10000], "dtype": "bool"},
+    "V_m":        {"shape": [100, 10000], "dtype": "float32"},
+    "lfp_proxy":  {"shape": [16,  10000], "dtype": "float32"}
   },
-  "statistics": {
-    "firing_rate_mean_per_cell_type": {"E": 8.3, "PV": 14.7, "SST": 3.8, "VIP": 1.9}
-  },
-  "status_fields": {
-    "run_status": "tutorial_scaffold",
-    "model_status": "computational_scaffold",
-    "field_solver_status": "linear_solver",
-    "amplitude_status": false
-  }
+  "claim_level":                   "computational_scaffold",
+  "field_solver_status":           "linear_solver",
+  "field_claim_level":             "proxy_readout",
+  "physical_amplitude_calibrated": false
 }
 ```
 
@@ -408,9 +397,11 @@ Before accepting any output:
 |---|---|---|
 | Finiteness | `jnp.all(jnp.isfinite(signals.V_m))` | Reduce drive or dt_ms |
 | Firing rate | Per-cell-type rate in `[0.1, 150]` Hz | Adjust within_gain or drive |
-| Spectral positivity | All band powers ≥ 0 | Check CSD/LFP output |
+| **Layer-rate balance** | Per-layer rates within ~10 Hz ± 5 (no layer silent vs others) | Apply graded per-layer drive via `with_emitter_parameters` (reuse the built model) |
+| **Synchrony** | `jtfne.kappa_synchrony(signals.get("spikes"), dt_ms)` ≈ 0 | If κ ≳ 0.2–0.3 the network is locked and the spectrolaminar readout is biased — add drive heterogeneity/noise to de-synchronize |
+| Spectral positivity | All band powers ≥ 0 | Check LFP-proxy output |
 | JSON-safety | `json.dumps(manifest, allow_nan=False)` | Never export NaN/Inf |
-| Status fields | `amplitude_status == False` | Never override |
+| Gate fields | `physical_amplitude_calibrated == False` | Never override |
 
 **Simulation-only outputs:** The manifest records configuration and output statistics.
 PDE residuals, convergence diagnostics, and calibration certificates are outside
@@ -433,10 +424,32 @@ If observed rates are >2× outside these ranges, the network is unstable or froz
 
 ### Expected spectrolaminar proxy power
 
-LFP power is in **proxy relative units** (not µV²):
+**Compute the spectrolaminar crossover from the LFP proxy, not the CSD proxy.**
+The depth × frequency crossover (deep alpha/beta vs superficial gamma) is an LFP
+phenomenon. CSD-proxy is the second spatial derivative of the LFP, so it sharpens
+local sinks/sources and *suppresses* the broad, slow, spatially-extended deep
+alpha/beta component — measuring the crossover on CSD yields a false "deep alpha/beta
+absent" result. Use `signal_key="lfp_contacts"` (the
+`summarize_spectrolaminar_similarity` default) for the crossover; CSD-proxy remains a
+useful complementary readout of local current sinks/sources, not the band crossover.
 
-- **Alpha/beta (8–25 Hz):** Typically highest in layers 4 and 5/6. Range `[0.1, 1.0]` proxy units.
-- **Gamma (40–150 Hz):** Often highest in superficial layers (L2/3, L4). Range `[0.02, 0.3]` proxy units.
+LFP-proxy power is in **proxy relative units** (not µV²):
+
+- **Alpha/beta (8–25 Hz):** relatively higher in deep layers (L5/L6).
+- **Gamma (40–150 Hz):** relatively higher in superficial layers (L2/3).
+
+Two prerequisites for a trustworthy readout (both checked in the validation gates):
+
+1. **Low synchrony** — `jtfne.kappa_synchrony(spikes, dt_ms)` ≈ 0. A synchronized
+   network oscillates as a whole, so the spectrum reflects one global rhythm rather
+   than per-layer band structure, masking the crossover.
+2. **Balanced per-layer rates** — no layer silent relative to others (target ~10 Hz);
+   uneven rates bias the readout toward the hotter layers.
+
+The crossover is **scale-dependent**: it is weak at small populations and sharpens with
+neuron count and trial averaging. Use the multi-trial
+`tutorial_utils.spectrolaminar_from_trials(..., signal_key="lfp_contacts")` for the
+canonical, L4-referenced relative-power profile.
 
 ### Cell-type roles
 
@@ -459,7 +472,7 @@ To confirm spectrolaminar features are not artifactual:
 Discard if any of the following:
 - Any signal contains `NaN` or `Inf`
 - Any cell-type firing rate is outside `[0.1, 150]` Hz
-- `amplitude_status` was overridden (not possible via public API)
+- `physical_amplitude_calibrated` was overridden (not possible via public API)
 - Manifest JSON serialization fails
 
 ---

@@ -1,6 +1,6 @@
 # Jaxley interoperability
 
-[Jaxley](https://github.com/google/jaxley) and jaxfne are complementary JAX-based projects:
+[Jaxley](https://jaxley.readthedocs.io) and jaxfne are complementary JAX-based projects:
 
 - **Jaxley:** Differentiable neuron and network models in JAX (compartmental, multi-compartment, conductance-based)
 - **jaxfne:** Source-to-field/readout layer for organizing outputs into tensor-field workflows
@@ -113,4 +113,4 @@ Use jaxfne when you want to:
 
 - **[Tensor-field workflows](tensor_field_workflows.md)** for pipeline overview
 - **[Tutorials](tutorials/index.md)** for end-to-end examples
-- **[Jaxley documentation](https://github.com/google/jaxley)** for Jaxley-specific topics
+- **[Jaxley documentation](https://jaxley.readthedocs.io)** for Jaxley-specific topics
