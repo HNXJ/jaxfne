@@ -864,6 +864,7 @@ def make_laminar_column_config(
             'feedforward_gain': 1.00,
             'feedback_gain': 1.00,
             'supra_to_deep_gain': 1.00,
+            'supra_to_deep_inh_gain': 1.00,
         }
 
     if cell_type_izh_params is None:
@@ -959,6 +960,28 @@ def make_laminar_column_config(
                 'src_layers': ('L2', 'L3'), 'src_cell_types': ('E',),
                 'dst_area': 'PFC', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
                 'weight': 30.0, 'control_key': 'supra_to_deep_gain',
+            },
+            # Symmetric inhibitory L2/3 (I) -> deep (L5/6 E) descending pathway.
+            # Source cell types are the interneurons (PV/SST/VIP); the presynaptic
+            # sign is negative, so this contributes inhibition. Mirrors the E->E
+            # rules above. Tunable via base_control['supra_to_deep_inh_gain'].
+            {
+                'name': 'L23_inh_to_deep_V1', 'src_area': 'V1',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('PV', 'SST', 'VIP'),
+                'dst_area': 'V1', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_inh_gain',
+            },
+            {
+                'name': 'L23_inh_to_deep_V4', 'src_area': 'V4',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('PV', 'SST', 'VIP'),
+                'dst_area': 'V4', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_inh_gain',
+            },
+            {
+                'name': 'L23_inh_to_deep_PFC', 'src_area': 'PFC',
+                'src_layers': ('L2', 'L3'), 'src_cell_types': ('PV', 'SST', 'VIP'),
+                'dst_area': 'PFC', 'dst_layers': ('L5', 'L6'), 'dst_cell_types': ('E',),
+                'weight': 30.0, 'control_key': 'supra_to_deep_inh_gain',
             },
         )
 

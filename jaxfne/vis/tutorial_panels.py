@@ -351,6 +351,7 @@ def spectrolaminar_suite_3panel(
     profile_smooth_sigma: float = 1.0,
     power_smooth_sigmas: Sequence[float] | None = None,
     freq_bin_factor: int = 3,
+    trials: dict | None = None,
 ) -> dict[str, matplotlib.figure.Figure]:
     """Create 3-panel spectrolaminar suite per area.
 
@@ -419,12 +420,23 @@ def spectrolaminar_suite_3panel(
         #   A  superficial-vs-deep relative-power spectra (own y = relative power)
         #   B  depth x frequency relative-power heatmap   (y = laminar depth)
         #   C  alpha-beta / gamma band power vs depth      (shares depth with B)
-        fig = plt.figure(figsize=(15, 5), dpi=150, layout='constrained')
-        grid = fig.add_gridspec(1, 3, width_ratios=[0.95, 1.7, 0.85])
-        axA = fig.add_subplot(grid[0, 0])
-        axB = fig.add_subplot(grid[0, 1])
-        axC = fig.add_subplot(grid[0, 2], sharey=axB)
-        axes = [axA, axB, axC]
+        have_firing = trials is not None and 'spikes' in trials
+        if have_firing:
+            fig = plt.figure(figsize=(18, 5), dpi=150, layout='constrained')
+            grid = fig.add_gridspec(1, 4, width_ratios=[0.85, 1.5, 0.7, 0.7])
+            axA = fig.add_subplot(grid[0, 0])
+            axB = fig.add_subplot(grid[0, 1])
+            axC = fig.add_subplot(grid[0, 2], sharey=axB)
+            axD = fig.add_subplot(grid[0, 3], sharey=axB)
+            axes = [axA, axB, axC, axD]
+        else:
+            fig = plt.figure(figsize=(15, 5), dpi=150, layout='constrained')
+            grid = fig.add_gridspec(1, 3, width_ratios=[0.95, 1.7, 0.85])
+            axA = fig.add_subplot(grid[0, 0])
+            axB = fig.add_subplot(grid[0, 1])
+            axC = fig.add_subplot(grid[0, 2], sharey=axB)
+            axD = None
+            axes = [axA, axB, axC]
 
         n_trials = int(spec.get('n_trials', getattr(cfg, 'n_trials', 0)))
         sim_pct = float(spec.get('similarity_percent', float('nan')))
@@ -515,7 +527,45 @@ def spectrolaminar_suite_3panel(
         axC.set_xlabel('Relative power')
         axC.legend(fontsize=8, loc='lower left')
 
-        # Superficial (pos < 0) at top, deep (pos > 0) at bottom — shared B/C.
+        # ── Panel D: Firing rate by depth (E / I / total) ─────────────────────
+        if have_firing and axD is not None:
+            neurons_df = model['neurons']
+            area_df = neurons_df[neurons_df['area'] == area]
+            gidx = area_df.index.to_numpy()
+            spk = np.asarray(trials['spikes'])           # (n_trials, n_steps, N)
+            n_tr = spk.shape[0]
+            dur_s = float(getattr(cfg, 'duration_ms', spk.shape[1] * getattr(cfg, 'dt_ms', 1.0))) / 1000.0
+            n_total = len(neurons_df)
+            if spk.shape[-1] == n_total:               # (trials, steps, N)
+                rate_pn = spk.sum(axis=(0, 1)) / (n_tr * dur_s)
+            else:                                       # (trials, N, steps)
+                rate_pn = spk.sum(axis=(0, 2)) / (n_tr * dur_s)
+            depth_mm = area_df['pos_from_l4'].to_numpy() * 1.0e3
+            ct = area_df['cell_type'].to_numpy()
+            r_area = rate_pn[gidx]
+            is_e = (ct == 'E')
+            n_bins = 20
+            edges = np.linspace(float(depth_mm.min()), float(depth_mm.max()), n_bins + 1)
+            ctrs = 0.5 * (edges[:-1] + edges[1:])
+
+            def _binned(sel_mask):
+                out = np.full(n_bins, np.nan)
+                for b in range(n_bins):
+                    sel = sel_mask & (depth_mm >= edges[b]) & (depth_mm < edges[b + 1])
+                    if np.any(sel):
+                        out[b] = float(r_area[sel].mean())
+                return out
+
+            all_mask = np.ones_like(is_e, dtype=bool)
+            axD.plot(_binned(is_e), ctrs, color='#d62728', lw=2.0, label='E')
+            axD.plot(_binned(~is_e), ctrs, color='#1f77b4', lw=2.0, label='I')
+            axD.plot(_binned(all_mask), ctrs, color='#999999', lw=1.8, ls='--', label='Total')
+            axD.axhline(0, color=line_color, lw=1.0, alpha=0.7)
+            axD.set_title('Firing rate by depth (E / I / total)', fontsize=10)
+            axD.set_xlabel('Rate (Hz)')
+            axD.legend(fontsize=8, loc='lower right')
+
+        # Superficial (pos < 0) at top, deep (pos > 0) at bottom — shared B/C(/D).
         axB.set_ylim(pos_hi, pos_lo)
 
         if theme == "dark":

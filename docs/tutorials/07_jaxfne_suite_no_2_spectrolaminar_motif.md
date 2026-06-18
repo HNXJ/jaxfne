@@ -132,6 +132,19 @@ Effect on per-layer E firing (deep / superficial rate ratio): `gain=0.0 → ~0.9
 (deep slightly cooler); `gain=1.0 → ~1.34` (deep driven above superficial). Raise
 the gain for a stronger descending drive; deep firing scales monotonically with it.
 
+A symmetric **inhibitory** L2/3 (I) → L5/6 (E) pathway (`L23_inh_to_deep_*`) mirrors
+the excitatory rules; its source cell types are the interneurons (PV/SST/VIP), so it
+contributes inhibition. Tune it with `base_control['supra_to_deep_inh_gain']`
+(default 1.0). With both pathways at gain 1.0 the deep E rate is balanced against
+superficial (the inhibition offsets the excitatory drive).
+
+Pass `trials=` to `spectrolaminar_suite_3panel` to add a fourth panel — **firing rate
+by depth** (E / I / total), per depth bin:
+
+```python
+figs = spectrolaminar_suite_3panel(specs, model, cfg, areas=["V1"], trials=trials)
+```
+
 Two readout prerequisites (verify both — see the validation gates below):
 
 ```python
