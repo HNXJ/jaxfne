@@ -45,18 +45,19 @@ def test_get_unknown_key_raises_keyerror_with_available():
 
 
 def test_probe_only_aliases_normalize_to_proxy_names():
-    assert _SIGNALS_GET_KEY_ALIASES["eeg_like"] == "eeg_proxy"
-    assert _SIGNALS_GET_KEY_ALIASES["meg_like"] == "meg_proxy"
-    assert _SIGNALS_GET_KEY_ALIASES["emm_like"] == "emm_proxy"
+    # `*_like` is fully retired (no aliases): proxy vocabulary only.
     assert _SIGNALS_GET_KEY_ALIASES["emm"] == "emm_proxy"
+    assert _SIGNALS_GET_KEY_ALIASES["eeg"] == "eeg_proxy"
+    assert _SIGNALS_GET_KEY_ALIASES["meg"] == "meg_proxy"
+    for retired in ("eeg_like", "meg_like", "emm_like", "lfp_like", "csd_like"):
+        assert retired not in _SIGNALS_GET_KEY_ALIASES
 
 
 @pytest.mark.parametrize(
     ("key", "resolved"),
     [
-        ("eeg_like", "eeg_proxy"),
-        ("meg_like", "meg_proxy"),
-        ("emm_like", "emm_proxy"),
+        ("eeg", "eeg_proxy"),
+        ("meg", "meg_proxy"),
         ("emm", "emm_proxy"),
     ],
 )
@@ -65,6 +66,14 @@ def test_probe_only_aliases_fail_explicitly_when_unavailable(key, resolved):
     _, sig = _sim()
     with pytest.raises(KeyError, match=resolved):
         sig.get(key)
+
+
+@pytest.mark.parametrize("retired", ["lfp_like", "csd_like", "eeg_like", "meg_like", "emm_like"])
+def test_retired_like_keys_raise(retired):
+    """`*_like` signal keys are fully retired and must not resolve."""
+    _, sig = _sim()
+    with pytest.raises(KeyError):
+        sig.get(retired)
 
 
 def test_get_trial_raises_not_implemented():

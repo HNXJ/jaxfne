@@ -326,6 +326,22 @@ def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, 
     return None
 
 
+def _reject_retired_like(value: Any) -> None:
+    """Reject the retired ``*_like`` probe vocabulary in favor of ``*_proxy``.
+
+    The ``lfp_like``/``csd_like``/``eeg_like``/``meg_like`` naming is fully
+    retired (no aliases): proxy readouts carry the ``*_proxy`` suffix only.
+    """
+    items = value if isinstance(value, (list, tuple)) else [value]
+    for item in items:
+        if isinstance(item, str) and item.lower().endswith("_like"):
+            proxy = item[: -len("_like")] + "_proxy"
+            raise ValueError(
+                f"Probe kind/mode {item!r} uses the retired `*_like` vocabulary; "
+                f"use {proxy!r} instead. `*_like` names are no longer accepted."
+            )
+
+
 def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
@@ -668,6 +684,9 @@ class Configuration:
         Configuration
             Updated configuration.
         """
+        for _key in ("kind", "mode", "modes"):
+            if _key in kwargs:
+                _reject_retired_like(kwargs[_key])
         return replace(self, probes=[*self.probes, dict(kwargs)])
 
     def update_metadata(self, **kwargs: Any) -> "Configuration":
@@ -2003,14 +2022,15 @@ _SIGNALS_GET_KEY_ALIASES: dict[str, str] = {
     "vm": "V_m", "v_m": "V_m", "voltage": "V_m", "V_m": "V_m",
     "spk": "spikes", "spike": "spikes", "spikes": "spikes", "raster": "spikes",
     "src": "sources", "source": "sources", "sources": "sources",
-    "lfp": "lfp_proxy", "lfp_like": "lfp_proxy", "lfp_proxy": "lfp_proxy",
-    "csd": "csd_proxy", "csd_like": "csd_proxy", "csd_proxy": "csd_proxy",
+    "lfp": "lfp_proxy", "lfp_proxy": "lfp_proxy",
+    "csd": "csd_proxy", "csd_proxy": "csd_proxy",
     "phi_e": "phi_e_proxy", "phi": "phi_e_proxy", "phi_e_proxy": "phi_e_proxy",
     "field_source": "source_proxy", "source_proxy": "source_proxy",
     # Probe-only readouts (not on FieldOutput); aliases normalize config vocabulary.
-    "eeg": "eeg_proxy", "eeg_like": "eeg_proxy", "eeg_proxy": "eeg_proxy",
-    "meg": "meg_proxy", "meg_like": "meg_proxy", "meg_proxy": "meg_proxy",
-    "emm": "emm_proxy", "emm_like": "emm_proxy", "emm_proxy": "emm_proxy",
+    # `*_like` names are fully retired (no aliases): use `*_proxy` only.
+    "eeg": "eeg_proxy", "eeg_proxy": "eeg_proxy",
+    "meg": "meg_proxy", "meg_proxy": "meg_proxy",
+    "emm": "emm_proxy", "emm_proxy": "emm_proxy",
 }
 # Signals whose neuron axis is the trailing axis (length == n_units).
 _SIGNALS_GET_NEURON_AXIS_KEYS = frozenset({"V_m", "spikes", "sources"})

@@ -781,7 +781,7 @@ def spectrolaminar_readout(
             "metadata": {
                 "readout_kind": "spectrolaminar_profile",
                 "score_computed": False,
-                "input_signal": "source_proxy_or_lfp_like",
+                "input_signal": "source_proxy_or_lfp_proxy",
                 "field_solver_status": "linear_solver",
                 "physical_amplitude_calibrated": False,
                 "units_or_status": "proxy_units",
@@ -822,7 +822,7 @@ def spectrolaminar_readout(
         "metadata": {
             "readout_kind": "spectrolaminar_profile",
             "score_computed": False,
-            "input_signal": "source_proxy_or_lfp_like",
+            "input_signal": "source_proxy_or_lfp_proxy",
             "field_solver_status": "linear_solver",
             "physical_amplitude_calibrated": False,
             "units_or_status": "proxy_units",

@@ -132,3 +132,27 @@ def _interarea_cfg():
         .population(N=100, neurons={"L1": 10, "L2": 25, "L3": 20, "L4": 10, "L5": 20, "L6": 15}, name="V4")
         .inter_column_connectivity(source_area="V1", target_area="V4", p_feedforward=0.3, p_feedback=0.3, seed=0)
     )
+
+
+@pytest.mark.parametrize("like,proxy", [
+    ("lfp_like", "lfp_proxy"), ("csd_like", "csd_proxy"),
+    ("eeg_like", "eeg_proxy"), ("meg_like", "meg_proxy"),
+])
+def test_probe_kind_rejects_retired_like(like, proxy):
+    # `*_like` is fully retired (no aliases): proxy-only vocabulary.
+    with pytest.raises(ValueError, match="retired"):
+        jtfne.Configuration().probe(kind=like)
+    assert jtfne.Configuration().probe(kind=proxy).probes[-1]["kind"] == proxy
+
+
+def test_probe_modes_reject_retired_like():
+    with pytest.raises(ValueError, match="retired"):
+        jtfne.Configuration().probes(["spikes", "csd_like"])
+
+
+def test_signal_get_rejects_retired_like():
+    model = jtfne.construct(_base())
+    sig = model.simulate(jtfne.simulation(duration_ms=20.0, dt_ms=0.5, seed=0))
+    assert sig.get("lfp_proxy") is not None
+    with pytest.raises(KeyError):
+        sig.get("lfp_like")
