@@ -366,8 +366,8 @@ def kappa_synchrony(spikes: np.ndarray, dt_ms: float = 0.1) -> float:
 
 
 def rate_synchrony_targets(
-    target_rate_hz: float,
-    target_kappa_synchrony: float,
+    target_rate_hz: float = 10.0,
+    target_kappa_synchrony: float = 0.0,
     rate_weight: float = 1.0,
     synchrony_weight: float = 0.25,
 ):
@@ -375,8 +375,11 @@ def rate_synchrony_targets(
     Create an objective specification for AGSDR tuning toward rate and synchrony targets.
 
     Args:
-        target_rate_hz: target population firing rate (Hz)
-        target_kappa_synchrony: target kappa synchrony value (typically 0.0 for asynchronous)
+        target_rate_hz: target population firing rate (Hz). Default 10.0 — the
+            canonical balanced cortical operating point.
+        target_kappa_synchrony: target kappa synchrony value. Default 0.0
+            (asynchronous-irregular), required for an unbiased spectrolaminar
+            readout (a global rhythm masks laminar band structure).
         rate_weight: weight for rate term in objective
         synchrony_weight: weight for synchrony term in objective
 

@@ -392,14 +392,15 @@ def compute_conservation_proxy_diagnostics(
 
 def probe_laminar_modes(
     field_output: FieldOutput,
-    modes: Sequence[str],
+    modes: Sequence[str] = ("source", "phi_e", "CSD", "LFP"),
 ) -> dict[str, Any]:
     """Extract requested proxy readouts from a :class:`FieldOutput`.
 
     ``modes`` selects among the available laminar proxies (``"source"``,
-    ``"phi_e"``, ``"csd"``, ``"lfp"``, ...); returns a dict mapping each to its
-    ``*_proxy`` array. All returned arrays are proxy readouts
-    (``field_solver_status = "linear_solver"``), not physical signals.
+    ``"phi_e"``, ``"CSD"``, ``"LFP"``, ``"J_e"``); returns a dict mapping each to
+    its ``*_proxy`` array. Default extracts the full proxy set. All returned
+    arrays are proxy readouts (``field_solver_status = "linear_solver"``), not
+    physical signals.
     """
     out: dict[str, Any] = {}
     if "source" in modes or "sources" in modes:
@@ -902,7 +903,7 @@ class LinearReadout:
 
 def construct_source_tensor(
     *,
-    mode: str,
+    mode: str = "total_membrane_current_proxy",
     total_membrane_current: jax.Array | None = None,
     decomposed_cap_ion: jax.Array | None = None,
     synaptic_current: jax.Array | None = None,
@@ -911,10 +912,12 @@ def construct_source_tensor(
 ) -> tuple[jax.Array, dict[str, Any]]:
     """Assemble a source tensor for laminar projection from the named ``mode``.
 
-    Selects one source basis — ``total_membrane_current``, ``decomposed_cap_ion``,
-    ``synaptic_current`` or ``spike_proxy`` — and applies ``scale``. Returns the
-    source array plus a JSON-safe metadata dict recording the mode and proxy
-    status. The result is a proxy source basis, not a physical current density.
+    Selects one source basis via ``mode`` (default
+    ``"total_membrane_current_proxy"``; also ``"decomposed_cap_ion_plus_synaptic_proxy"``
+    or ``"spike_proxy"``) and applies ``scale``. The array required by the chosen
+    mode must be supplied. Returns the source array plus a JSON-safe metadata dict
+    recording the mode and proxy status. The result is a proxy source basis, not a
+    physical current density.
     """
     if mode == "total_membrane_current_proxy":
         if total_membrane_current is None:
