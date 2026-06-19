@@ -1810,10 +1810,15 @@ Config = Configuration
 
 @dataclass(frozen=True)
 class RuntimeConfig:
-    """JAX runtime and dtype policy.
+    """JAX runtime, dtype policy, and emitter control.
 
     ``dtype='float64'`` is honored only when JAX x64 is enabled.  The manifest
     always reports both requested and actual dtype policy.
+
+    Homeostasis: when ``enable_homeostasis=True``, emitters use per-neuron
+    activity-trace feedback to balance firing rates. Pass ``homeostasis_params``
+    as a dict with keys {r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max};
+    k_gain=0 disables the feedback.
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
@@ -1826,6 +1831,16 @@ class RuntimeConfig:
     recurrent_backend: str = "dense"  # "dense" | "edge_list"
     synaptic_kernel: str = "exponential"  # "exponential" | "receptor_exponential"
     recompilation_guard: str = "warning"  # "warning" | "exception" | "off"
+    enable_homeostasis: bool = False  # Enable per-neuron homeostatic resource
+    homeostasis_params: dict = field(default_factory=lambda: {
+        "r_star": 0.05,
+        "tau_r_ms": 300.0,
+        "alpha": 1.0,
+        "k_gain": 40.0,
+        "g_min": -12.0,
+        "g_max": 8.0,
+        "r_max": 1.0,
+    })  # Homeostasis parameters; k_gain=0 disables
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None

@@ -644,6 +644,208 @@ def simulate_edge_recurrent_izhikevich(
     }
     return voltages, spikes, sources, final_state
 
+
+def simulate_edge_recurrent_izhikevich_homeostatic(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    dtype: str = "float32",
+    drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
+    # Homeostasis control parameters (all defaulted; k_gain=0 disables)
+    r_star: float = 0.05,
+    tau_r_ms: float = 300.0,
+    alpha: float = 1.0,
+    k_gain: float = 40.0,
+    g_min: float = -12.0,
+    g_max: float = 8.0,
+    r_max: float = 1.0,
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Simulate Izhikevich emitters with sparse recurrent synapses and per-neuron homeostasis.
+
+    Adds a slow activity trace `r_i` per neuron that generates a homeostatic excitability
+    bias `g_i = clip(k_gain * (r_star - r_i), g_min, g_max)` added to input current.
+
+    Behavior: firing → r_i↑ → g_i↓ (harder to fire); quiet → r_i leaks → g_i↑ (subsidy floor).
+    Never forces spikes; g_i only biases input. Unconditionally stable via exponential leak
+    and bounded clipping.
+
+    Args:
+        params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
+        dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
+        r_star: target activity trace (default 0.05, ~expected spikes/step)
+        tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
+        alpha: per-spike jump in r_i (default 1.0)
+        k_gain: homeostatic restoring gain (0 = disabled, default 40.0)
+        g_min, g_max: clipped excitability bias bounds (default [-12, 8])
+        r_max: clipped trace bound (default 1.0)
+
+    Returns:
+        (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict includes
+        "g_bias" (shape [n_steps, n_neurons]) and "r_trace" (shape [n_steps, n_neurons]).
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_ms)
+    n_neurons = params.v0.shape[0]
+
+    # Homeostasis parameters (cast to dtype)
+    r_star_arr = jnp.asarray(r_star, dtype=jdtype)
+    tau_r = jnp.asarray(tau_r_ms, dtype=jdtype)
+    decay_r = jnp.exp(-dt / tau_r)  # unconditionally stable (in (0,1))
+    alpha_arr = jnp.asarray(alpha, dtype=jdtype)
+    k_gain_arr = jnp.asarray(k_gain, dtype=jdtype)
+    g_min_arr = jnp.asarray(g_min, dtype=jdtype)
+    g_max_arr = jnp.asarray(g_max, dtype=jdtype)
+    r_max_arr = jnp.asarray(r_max, dtype=jdtype)
+
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+
+    # Carry includes r_i (activity trace)
+    init = (
+        params.v0.astype(jdtype),
+        params.u0.astype(jdtype),
+        jnp.zeros_like(params.v0, dtype=jdtype),
+        jnp.zeros((edges.n_edges,), dtype=jdtype),
+        jnp.full((n_neurons,), r_star, dtype=jdtype),  # r_i initialized to r_star
+    )
+
+    if drive_schedule is None:
+        def step(carry, noise_t):
+            """Step with homeostasis, no drive schedule."""
+            v, u, prev_spikes, syn_state, r = carry
+
+            # Synaptic current
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+
+            # Homeostatic excitability bias: tax hyperactive, subsidize silent
+            g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
+
+            # Effective input current
+            current_native = drive + syn + noise_coef * noise_t + g
+
+            # Izhikevich dynamics
+            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+            du = a * (b * v - u)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+
+            # Reset voltage and recovery variable on spike
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+
+            # Update synaptic state
+            syn_next = syn_state * decay + spikes[pre]
+
+            # Update activity trace: slow leak toward r_star, jump on spike
+            r_next = jnp.clip(
+                r_star_arr + (r - r_star_arr) * decay_r + alpha_arr * spikes,
+                0.0,
+                r_max_arr
+            )
+
+            # Proxy current for field source
+            source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+
+            return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
+
+        final, (voltages, spikes, sources, g_bias, r_trace) = jax.lax.scan(step, init, xs=bulk_noise)
+    else:
+        sched = drive_schedule.astype(jdtype)
+
+        def step_sched(carry, xs_t):
+            """Step with homeostasis and drive schedule."""
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state, r = carry
+
+            # Synaptic current
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+
+            # Homeostatic excitability bias
+            g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
+
+            # Effective input current with drive schedule
+            current_native = drive + sched_t + syn + noise_coef * noise_t + g
+
+            # Izhikevich dynamics
+            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+            du = a * (b * v - u)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+
+            # Apply silence_mask
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+
+            # Reset voltage and recovery variable on spike
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+
+            # Update synaptic state
+            syn_next = syn_state * decay + spikes[pre]
+
+            # Update activity trace
+            r_next = jnp.clip(
+                r_star_arr + (r - r_star_arr) * decay_r + alpha_arr * spikes,
+                0.0,
+                r_max_arr
+            )
+
+            # Proxy current for field source
+            source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+
+            return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
+
+        final, (voltages, spikes, sources, g_bias, r_trace) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
+
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "r_trace": final[4],
+    }
+
+    diagnostics_dict = {
+        **final_state,
+        "g_bias": g_bias,
+        "r_trace": r_trace,
+    }
+
+    return voltages, spikes, sources, diagnostics_dict
+
+
 def standard_receptor_tau_table(dtype: str = "float32") -> jax.Array:
     """Return the receptor_index → tau_ms lookup table used by v0.0.11.
 
