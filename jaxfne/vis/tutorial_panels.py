@@ -307,11 +307,8 @@ def activity_trace_suite(
         mask_psd = (freq_hz >= psd_freq_range_hz[0]) & (freq_hz <= psd_freq_range_hz[1])
         freq_hz = freq_hz[mask_psd]
         psd = psd[mask_psd, :]
-    except Exception:
-        # Fallback to deterministic mock PSD if signal analysis fails
-        freq_hz = np.logspace(np.log10(psd_freq_range_hz[0]), np.log10(psd_freq_range_hz[1]), 64)
-        n_freqs = len(freq_hz)
-        psd = np.random.RandomState(42).randn(n_freqs, lfp_mean.shape[1]) ** 2 + 1.0
+    except Exception as e:
+        raise RuntimeError(f"PSD computation failed in activity_trace_suite: {e}") from e
 
     for ci in range(min(3, psd.shape[1])):
         if psd_log_x:

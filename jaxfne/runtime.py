@@ -80,17 +80,30 @@ def set_precision_policy(dtype: str = "float32", enable_x64: bool = False) -> di
         >>> result = set_precision_policy(dtype="float32", enable_x64=False)
         >>> print(result["actual_dtype"])
     """
+    import os
+    import warnings
+    is_strict = os.environ.get("JAXFNE_STRICT", "0") in ("1", "true", "True")
+    
     if enable_x64:
         try:
             jax.config.update("jax_enable_x64", True)
             actual_x64 = jax.config.read("jax_enable_x64")
             actual_dtype = "float64" if actual_x64 else "float32"
-        except Exception:
+        except Exception as e:
             actual_x64 = False
             actual_dtype = "float32"
+            if is_strict:
+                raise RuntimeError(f"Failed to set precision policy to x64: {e}") from e
+            warnings.warn(f"Failed to enable x64 mode. Fallback to float32. Reason: {e}", RuntimeWarning)
     else:
         actual_x64 = False
         actual_dtype = "float32"
+
+    if dtype == "float64" and not actual_x64:
+        msg = "float64 requested but x64 mode is not active/enabled."
+        if is_strict:
+            raise ValueError(msg)
+        warnings.warn(msg, UserWarning)
 
     return {
         "requested_dtype": dtype,
@@ -103,48 +116,48 @@ def set_precision_policy(dtype: str = "float32", enable_x64: bool = False) -> di
 T = TypeVar("T")
 
 
-def safe_jit(fn: Callable[..., T], **jit_kwargs: Any) -> Callable[..., T]:
+def safe_jit(fn: Callable[..., T], strict: bool = False, **jit_kwargs: Any) -> Callable[..., T]:
     """Wrap a function with JAX jit, with fallback to no-op if jit is not available.
 
     Args:
         fn: Function to jit-compile.
+        strict: If True, raise exception on jit failure rather than falling back.
         **jit_kwargs: Additional keyword arguments to pass to jax.jit (e.g., static_argnums).
 
     Returns:
         jit-compiled function if jit is available; otherwise returns the original function.
-
-    Example:
-        >>> def compute(x):
-        ...     return x ** 2
-        >>> fast_compute = safe_jit(compute)
-        >>> result = fast_compute(jnp.array([1, 2, 3]))
     """
+    import os
+    import warnings
+    is_strict = strict or os.environ.get("JAXFNE_STRICT", "0") in ("1", "true", "True")
     try:
         return jax.jit(fn, **jit_kwargs)
-    except Exception:
-        # If jit fails, return the original function
+    except Exception as e:
+        if is_strict:
+            raise RuntimeError(f"JIT compilation failed in strict mode: {e}") from e
+        warnings.warn(f"JIT compilation failed, falling back to eager execution. Reason: {e}", RuntimeWarning)
         return fn
 
 
-def safe_vmap(fn: Callable[..., T], in_axes: int | None = 0, **vmap_kwargs: Any) -> Callable[..., T]:
+def safe_vmap(fn: Callable[..., T], in_axes: int | None = 0, strict: bool = False, **vmap_kwargs: Any) -> Callable[..., T]:
     """Wrap a function with JAX vmap, with fallback to no-op if vmap is not available.
 
     Args:
         fn: Function to vectorize.
         in_axes: Which axis to map over (default 0, the batch axis).
+        strict: If True, raise exception on vmap failure rather than falling back.
         **vmap_kwargs: Additional keyword arguments to pass to jax.vmap.
 
     Returns:
         vmap-vectorized function if vmap is available; otherwise returns the original function.
-
-    Example:
-        >>> def apply_to_one(x):
-        ...     return x * 2
-        >>> apply_to_batch = safe_vmap(apply_to_one, in_axes=0)
-        >>> batch_result = apply_to_batch(jnp.arange(10))
     """
+    import os
+    import warnings
+    is_strict = strict or os.environ.get("JAXFNE_STRICT", "0") in ("1", "true", "True")
     try:
         return jax.vmap(fn, in_axes=in_axes, **vmap_kwargs)
-    except Exception:
-        # If vmap fails, return the original function
+    except Exception as e:
+        if is_strict:
+            raise RuntimeError(f"VMAP vectorization failed in strict mode: {e}") from e
+        warnings.warn(f"VMAP vectorization failed, falling back to loop execution. Reason: {e}", RuntimeWarning)
         return fn
