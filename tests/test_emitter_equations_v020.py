@@ -73,10 +73,14 @@ class TestIzhikevichEquationSemantics:
 
     def test_no_spike_below_threshold(self):
         """Verify that spikes do not occur when v_next < 30."""
-        # Create simulation with low input to keep voltages below spike threshold
+        # Create simulation with low input to keep voltages below spike threshold.
+        # random_v0=False: this test checks equation semantics from a known
+        # sub-threshold start; construct now randomizes v0 ~U(-70,0) by default
+        # (onset-bias mitigation), which would start a neuron above threshold.
         cfg = (
             jaxfne.configuration()
             .network(n=2)
+            .runtime(random_v0=False)
             .emitter(family="izhikevich", preset="cortical_eig")
             .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
             .probe(name="p", n_contacts=2)

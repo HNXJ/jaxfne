@@ -62,13 +62,17 @@ def test_a_pv_preset_unchanged():
     assert all(abs(float(b) - 0.20) < 1e-6 for b in params.b)
 
 
-def test_a_sst_preset_unchanged():
-    """SST/LTS preset must remain a=0.02, b=0.25."""
+def test_a_sst_preset_intermediate():
+    """SST/LTS preset: a=0.05 (intermediate E=0.02 < SST < PV=0.10), b=0.25.
+
+    SST ``a`` was raised 0.02 -> 0.05 on 2026-06-19 so SST fastness sits between
+    excitatory (slow) and PV (fast), per the canonical cell-type biophysics.
+    """
     params = izhikevich_eig_params(
         n=10,
         cell_type_fractions={"SST": 1.0},
     )
-    assert all(abs(float(a) - 0.02) < 1e-6 for a in params.a)
+    assert all(abs(float(a) - 0.05) < 1e-6 for a in params.a)
     assert all(abs(float(b) - 0.25) < 1e-6 for b in params.b)
 
 

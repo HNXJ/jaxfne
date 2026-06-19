@@ -109,7 +109,11 @@ class TestBuilderFunctions:
         e_l1 = l1["E"] / sum(l1.values())
         e_l6 = l6["E"] / sum(l6.values())
         assert e_l1 < 0.6 < e_l6
-        assert l1["PV"] == 0  # no PV in L1
+        # 2026-06-19 reference: L1 is VIP-rich with only a small PV fraction (0.05),
+        # while the deepest layer L6 has no PV. L1 is strongly inhibitory overall.
+        assert l1["VIP"] > l1["PV"]            # L1 VIP-dominated
+        assert l6["PV"] == 0                   # no PV in the deepest layer
+        assert (sum(l1.values()) - l1["E"]) / sum(l1.values()) >= 0.4  # L1 inhibition-heavy
 
     def test_build_laminar_column_canonical_requires_known_layers(self):
         """ei_profile='canonical' rejects unknown layer sets instead of silent flat fallback."""

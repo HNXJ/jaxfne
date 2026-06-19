@@ -11,6 +11,19 @@ GROUND TRUTH (verified 2026-06-17 via construct().neuron_table()). The two laws:
      largest inhibitory NEURON COUNT sits in the dense superficial L2 / L2-3.
 Overall realistic E:I ≈ 77:23 (NOT the old over-inhibitory 63:37 / 41:59).
 
+2026-06-19 INTEGRATION — build_laminar_column(ei_profile="canonical") now applies
+canonical biophysics natively at construct time (core._apply_canonical_biophysics):
+  - Per-layer fractions = user reference FRACS_LAYER (more inhibitory superficial:
+    L1/L2/L3 are 50% I; L1 VIP-rich 0.35; L4 PV 0.20; L6 0.95 E, no PV/VIP; ~72E:28I).
+  - SST a=0.05 (intermediate E=0.02 < SST < PV=0.10).
+  - Deep-E "larger": source_scale 1.0->1.8, a 0.020->0.015, d 8->10 graded by depth Z.
+  - PV<->E local connectivity x3, distance-gated (PING feedback-inhibition loop).
+  - Random v0 ~ U(-70,0) ALWAYS (every construct; opt-out cfg.runtime(random_v0=False))
+    -- removes onset-response synchrony bias.
+  - Homeostasis size-aware: homeostasis_params={"k_gain_size_scaled":True} -> per-neuron
+    k_gain proportional to 1/source_scale (larger/deep-E taxed less).
+Effect: synchrony kappa drops ~0.040->0.016 at the same ~10 Hz mean rate.
+
 This template embodies:
   - Biologically plausible L2/3 dominance (45% of neurons)
   - Realistic layer thickness & neuron density (L2/3 densest)

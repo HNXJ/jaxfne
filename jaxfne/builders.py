@@ -43,27 +43,28 @@ CANONICAL_LAYERS_6L: tuple[str, ...] = ("L1", "L2", "L3", "L4", "L5", "L6")
 #: Flat (depth-invariant) cell-type fractions — the legacy default.
 FLAT_CELL_TYPE_FRACTIONS: dict[str, float] = {"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07}
 
-#: Canonical ground-truth per-layer E:I composition (verified 2026-06-17).
-#: E-fraction rises with depth (peaks L6 ≈90%); I-fraction is highest superficial
-#: (L1 50%, no PV); PV concentrates at L4. Overall ≈77E:23I. Keys are the
-#: 6-layer names in :data:`DEFAULT_LAYERS`; a 5-layer ("L2/3" merged) variant is
-#: provided as :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
+#: Canonical ground-truth per-layer E:I composition (user reference, 2026-06-19).
+#: E-fraction rises with depth (peaks L6 95%); I-fraction is highest superficial
+#: (L1 50% I, L2/L3 50% I); PV FRACTION peaks at L4 (feedforward); L1 is VIP-rich
+#: (those VIP specifically inhibit L1/2/3 SST); L6 has no PV/VIP. Overall ≈72E:28I.
+#: Keys are the 6-layer names in :data:`CANONICAL_LAYERS_6L`; a 5-layer ("L2/3"
+#: merged) variant is :data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L`.
 CANONICAL_LAYER_CELL_TYPE_FRACTIONS: dict[str, dict[str, float]] = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},  # 50% I, no PV
-    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},  # 30% I, I-count peak
-    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},  # 25% I
-    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},  # 20% I, PV feedforward
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},  # 12% I
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},  # 10% I, E-fraction peak
+    "L1": {"E": 0.50, "PV": 0.05, "SST": 0.10, "VIP": 0.35},  # 50% I, VIP-rich
+    "L2": {"E": 0.50, "PV": 0.25, "SST": 0.10, "VIP": 0.15},  # 50% I, PV-strong
+    "L3": {"E": 0.50, "PV": 0.25, "SST": 0.15, "VIP": 0.10},  # 50% I
+    "L4": {"E": 0.70, "PV": 0.20, "SST": 0.05, "VIP": 0.05},  # PV fraction peak
+    "L5": {"E": 0.85, "PV": 0.05, "SST": 0.05, "VIP": 0.05},  # large-E apical SST inhib
+    "L6": {"E": 0.95, "PV": 0.00, "SST": 0.05, "VIP": 0.00},  # E-fraction peak, no PV/VIP
 }
 
-#: 5-layer ("L2/3" merged) variant of the canonical composition.
+#: 5-layer ("L2/3" merged) variant of the canonical composition (L2+L3 averaged).
 CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L: dict[str, dict[str, float]] = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
-    "L2/3": {"E": 0.75, "PV": 0.12, "SST": 0.08, "VIP": 0.05},
-    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},
+    "L1": {"E": 0.50, "PV": 0.05, "SST": 0.10, "VIP": 0.35},
+    "L2/3": {"E": 0.50, "PV": 0.25, "SST": 0.13, "VIP": 0.12},
+    "L4": {"E": 0.70, "PV": 0.20, "SST": 0.05, "VIP": 0.05},
+    "L5": {"E": 0.85, "PV": 0.05, "SST": 0.05, "VIP": 0.05},
+    "L6": {"E": 0.95, "PV": 0.00, "SST": 0.05, "VIP": 0.00},
 }
 
 #: Count-proportional z-bands (depth ∝ neuron count) for the 6-layer canonical column.
@@ -403,6 +404,10 @@ def build_laminar_column(
         # Legacy placement: cylinder scatter (collapses per-neuron layer label).
         cfg = cfg.uniform3d(radius_mm=radius_mm, height_mm=height_mm)
     cfg = cfg.connectivity(**conn_kwargs)
+    if ei_profile == "canonical":
+        # Enable construct-time canonical biophysics (deep-E size grading +
+        # PV<->E local strengthening). Random v0 is always on regardless.
+        cfg = cfg.runtime(canonical_biophysics=True)
     return cfg
 
 

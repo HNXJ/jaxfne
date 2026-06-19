@@ -3718,7 +3718,7 @@ class Model:
                     r_star=hp.get("r_star", 0.05),
                     tau_r_ms=hp.get("tau_r_ms", 300.0),
                     alpha=hp.get("alpha", 1.0),
-                    k_gain=hp.get("k_gain", 1.0),
+                    k_gain=_resolve_homeostasis_k_gain(hp, emitter),
                     g_min=hp.get("g_min", -12.0),
                     g_max=hp.get("g_max", 8.0),
                     r_max=hp.get("r_max", 1.0),
@@ -3991,7 +3991,10 @@ class Model:
             diag = getattr(self, "_last_homeostasis_diag", None)
             homeo_meta: dict[str, Any] = {
                 "enabled": True,
-                "params": dict(runtime_cfg.homeostasis_params or {}),
+                "params": {
+                    k: (v if _np_isscalar_param(v) else "per_neuron_array")
+                    for k, v in dict(runtime_cfg.homeostasis_params or {}).items()
+                },
                 "claim_status": "computational_control_proxy_not_biological_mechanism",
                 "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
                                            "full per-step g_bias/r_trace via "
@@ -4089,7 +4092,7 @@ class Model:
                     emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype,
                     r_star=_hp.get("r_star", 0.05), tau_r_ms=_hp.get("tau_r_ms", 300.0),
-                    alpha=_hp.get("alpha", 1.0), k_gain=_hp.get("k_gain", 1.0),
+                    alpha=_hp.get("alpha", 1.0), k_gain=_resolve_homeostasis_k_gain(_hp, emitter),
                     g_min=_hp.get("g_min", -12.0), g_max=_hp.get("g_max", 8.0),
                     r_max=_hp.get("r_max", 1.0),
                 )[:3]
@@ -6145,6 +6148,104 @@ def simulate(
 
 
 
+def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
+    """Apply canonical cortical-column biophysics at construct time.
+
+    Three effects, all reproducible from ``cfg`` seed:
+
+    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron — ALWAYS applied. Identical
+      initial potentials cause a synchronized t=0 onset volley (raster banding);
+      randomizing removes that onset-response synchrony bias. Disable with
+      ``cfg.runtime(random_v0=False)``.
+    * **Deep-E "larger" grading** (laminar columns only): excitatory neurons get a
+      depth gradient — ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
+      (slower recovery), ``d`` 8->10 (wider/stronger). Larger deep pyramidals fire
+      sparser, slower, wider.
+    * **PV<->E local connectivity x3** (laminar columns only): the fast feedback-
+      inhibition (PING) loop is strengthened, distance-gated by laminar depth.
+
+    The two laminar effects are gated on the presence of cell-type + layer labels
+    and a non-degenerate depth axis, so non-laminar/test configs only get random v0.
+    Returns ``(emitter, edge_list)``. Proxy/scaffold truth status is unchanged.
+    """
+    import numpy as _np
+    jdtype = emitter.v0.dtype
+    n = int(emitter.v0.shape[0])
+    seed = int(cfg.metadata.get("seed", 0) or 0)
+
+    if cfg.metadata.get("random_v0", True):
+        vkey = jax.random.PRNGKey((seed * 1_000_003 + 11) % (2**31 - 1))
+        v0 = jax.random.uniform(vkey, (n,), dtype=jdtype, minval=-70.0, maxval=0.0)
+        emitter = replace(emitter, v0=v0)
+
+    # Deep-E grading + PV<->E strengthening are canonical-column features: they only
+    # apply when the canonical biophysics profile is requested (build_laminar_column
+    # ei_profile="canonical"), so generic/test configs and explicit user cell_params
+    # are left untouched. Random v0 above is always applied.
+    if not cfg.metadata.get("canonical_biophysics", False):
+        return emitter, edge_list
+
+    cts = emitter.labels
+    if cts is None or emitter.layer_labels is None:
+        return emitter, edge_list
+    lab = _np.asarray([str(x) for x in cts])
+    Z = _np.asarray(positions)[:, 2]
+    if Z.shape[0] != n or float(_np.ptp(Z)) == 0.0:
+        return emitter, edge_list
+    zd = (Z - Z.min()) / (float(_np.ptp(Z)) + 1e-9)
+    isE = lab == "E"
+
+    # Deep-E "larger" grading (E only, by depth).
+    if isE.any():
+        a = _np.asarray(emitter.a, dtype=float).copy()
+        d = _np.asarray(emitter.d, dtype=float).copy()
+        ss = _np.asarray(emitter.source_scale)
+        ss = (_np.full(n, float(ss)) if ss.ndim == 0 else _np.asarray(ss, dtype=float)).copy()
+        a[isE] = 0.020 - 0.005 * zd[isE]
+        d[isE] = 8.0 + 2.0 * zd[isE]
+        ss[isE] = 1.0 + 0.8 * zd[isE]
+        emitter = replace(emitter, a=jnp.asarray(a, dtype=jdtype),
+                          d=jnp.asarray(d, dtype=jdtype),
+                          source_scale=jnp.asarray(ss, dtype=jdtype))
+
+    # PV<->E local connectivity x3 (distance-gated by laminar depth).
+    pre = _np.asarray(edge_list.pre); post = _np.asarray(edge_list.post)
+    pc = lab[pre]; qc = lab[post]
+    pv_e = ((pc == "PV") & (qc == "E")) | ((pc == "E") & (qc == "PV"))
+    if pv_e.any():
+        w = _np.asarray(edge_list.weight, dtype=float).copy()
+        gate = _np.exp(-((_np.abs(Z[pre] - Z[post]) / 0.15) ** 2))
+        w[pv_e] = w[pv_e] * (1.0 + 2.0 * gate[pv_e])
+        edge_list = replace(edge_list, weight=jnp.asarray(w, dtype=jdtype))
+
+    return emitter, edge_list
+
+
+def _np_isscalar_param(v: Any) -> bool:
+    """True if a homeostasis param is a JSON-safe scalar (not a per-neuron array)."""
+    return isinstance(v, (int, float, bool, str)) or v is None
+
+
+def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:
+    """Resolve the homeostatic ``k_gain`` to a scalar or per-neuron array.
+
+    If ``homeostasis_params["k_gain_size_scaled"]`` is true, return a per-neuron
+    array ``k_gain_base / size`` where size is the emitter ``source_scale`` (so
+    larger/deep-E neurons are taxed less aggressively, per the canonical
+    size-aware homeostasis). Otherwise return the scalar base ``k_gain``.
+    A directly-supplied array ``k_gain`` is passed through unchanged.
+    """
+    base = hp.get("k_gain", 1.0)
+    if not hp.get("k_gain_size_scaled", False):
+        return base
+    import numpy as _np
+    n = int(emitter.v0.shape[0])
+    ss = _np.asarray(emitter.source_scale)
+    ss = _np.full(n, float(ss)) if ss.ndim == 0 else _np.asarray(ss, dtype=float)
+    return jnp.asarray(float(base) / _np.clip(ss, 1e-3, None),
+                       dtype=emitter.v0.dtype)
+
+
 def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
@@ -6205,6 +6306,13 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             )
         positions = geometry.positions_array(dtype=network.params.v0.dtype.name)
         geometry_meta = geometry.to_dict()
+
+    # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
+    # local strengthening (laminar columns). Reproducible from cfg seed.
+    emitter_params, edge_list = _apply_canonical_biophysics(
+        network.params, positions, edge_list, cfg
+    )
+    network = replace(network, params=emitter_params)
 
     n_contacts: int = 16
     if cfg.probes:
