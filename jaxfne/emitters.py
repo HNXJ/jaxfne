@@ -660,7 +660,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     r_star: float = 0.05,
     tau_r_ms: float = 300.0,
     alpha: float = 1.0,
-    k_gain: float = 40.0,
+    k_gain: float = 1.0,
     g_min: float = -12.0,
     g_max: float = 8.0,
     r_max: float = 1.0,
@@ -680,7 +680,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         r_star: target activity trace (default 0.05, ~expected spikes/step)
         tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
         alpha: per-spike jump in r_i (default 1.0)
-        k_gain: homeostatic restoring gain (0 = disabled, default 40.0)
+        k_gain: homeostatic restoring gain (0 = disabled, default 1.0 — a gentle
+            nudge that keeps rates in-band and synchrony low; raise toward 5-10 for
+            stronger rate balancing at the cost of higher synchrony / lower mean rate)
         g_min, g_max: clipped excitability bias bounds (default [-12, 8])
         r_max: clipped trace bound (default 1.0)
 

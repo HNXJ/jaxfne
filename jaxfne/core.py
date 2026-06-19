@@ -1837,11 +1837,11 @@ class RuntimeConfig:
         "r_star": 0.05,
         "tau_r_ms": 300.0,
         "alpha": 1.0,
-        "k_gain": 40.0,
+        "k_gain": 1.0,
         "g_min": -12.0,
         "g_max": 8.0,
         "r_max": 1.0,
-    })  # Homeostasis parameters; k_gain=0 disables
+    })  # Homeostasis parameters; k_gain=0 disables, default 1.0 is a gentle in-band nudge
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -3718,7 +3718,7 @@ class Model:
                     r_star=hp.get("r_star", 0.05),
                     tau_r_ms=hp.get("tau_r_ms", 300.0),
                     alpha=hp.get("alpha", 1.0),
-                    k_gain=hp.get("k_gain", 40.0),
+                    k_gain=hp.get("k_gain", 1.0),
                     g_min=hp.get("g_min", -12.0),
                     g_max=hp.get("g_max", 8.0),
                     r_max=hp.get("r_max", 1.0),
@@ -4089,7 +4089,7 @@ class Model:
                     emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype,
                     r_star=_hp.get("r_star", 0.05), tau_r_ms=_hp.get("tau_r_ms", 300.0),
-                    alpha=_hp.get("alpha", 1.0), k_gain=_hp.get("k_gain", 40.0),
+                    alpha=_hp.get("alpha", 1.0), k_gain=_hp.get("k_gain", 1.0),
                     g_min=_hp.get("g_min", -12.0), g_max=_hp.get("g_max", 8.0),
                     r_max=_hp.get("r_max", 1.0),
                 )[:3]
