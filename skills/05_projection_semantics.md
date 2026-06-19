@@ -8,6 +8,7 @@ Make proxy readouts interpretable and explicit.
 - Provide a density-preserving mode wherever row-normalized or unit-sum projection exists.
 - Do not let a default projection erase absolute scale without making that choice visible.
 - Keep proxy labels accurate in names, docs, and plots.
+- Every projection report should state what is preserved and what is discarded.
 
 ## Acceptance checks
 - Projection mode is part of the API contract.

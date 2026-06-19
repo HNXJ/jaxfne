@@ -8,6 +8,7 @@ Remove ambiguity from builder and model parameters.
 - Reject ambiguous usage in validation rather than guessing.
 - Every tunable parameter should have a default when sensible; required data inputs remain required.
 - Public docstrings should explain the effect of the parameter on the resulting model or artifact.
+- If a parameter changes allocation scope, say so in the signature or validation.
 
 ## Acceptance checks
 - Builder signatures are self-describing.

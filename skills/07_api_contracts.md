@@ -8,6 +8,7 @@ Keep public APIs finished, compatible, and unambiguous.
 - A public `NotImplementedError` is acceptable only if the surface is intentionally fenced.
 - Prefer backward-compatible extensions over breaking changes.
 - If a helper exists, its contract must be testable from the public entry point.
+- Do not leave a stable-looking surface that only works through internal knowledge.
 
 ## Acceptance checks
 - No public function appears finished while still acting as a hidden stub.
