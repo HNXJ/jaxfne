@@ -28,6 +28,7 @@ from .emitters import (
     make_eig_network,
     izhikevich_params_from_labels,
     simulate_edge_recurrent_izhikevich,
+    simulate_edge_recurrent_izhikevich_homeostatic,
     simulate_eig_izhikevich,
     simulate_receptor_exponential_izhikevich,
 )
@@ -1980,6 +1981,8 @@ class RuntimeConfig:
             "n_steps": int(self.n_steps),
             "recurrent_backend": self.recurrent_backend,
             "synaptic_kernel": self.synaptic_kernel,
+            "enable_homeostasis": bool(self.enable_homeostasis),
+            "homeostasis_params": dict(self.homeostasis_params) if self.enable_homeostasis else None,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -3690,6 +3693,73 @@ class Model:
             else:
                 emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
 
+        # Reset per-call homeostasis diagnostics (populated only when enabled).
+        object.__setattr__(self, "_last_homeostasis_diag", None)
+
+        if getattr(runtime_cfg, "enable_homeostasis", False):
+            if runtime_cfg.synaptic_kernel == "receptor_exponential":
+                raise ValueError(
+                    "enable_homeostasis is not supported with "
+                    "synaptic_kernel='receptor_exponential'; use the default "
+                    "exponential synaptic kernel."
+                )
+            # Homeostasis is sparse-edge based; edge_list always exists from construct().
+            edges: EdgeList = self.params["edge_list"]
+            if ablation_mode == "disconnected_null":
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            hp = dict(runtime_cfg.homeostasis_params or {})
+
+            def _homeo_packed(k, s):
+                """Return (V, spikes, sources, g_bias, r_trace) as a flat tuple."""
+                V, S, src, diag = simulate_edge_recurrent_izhikevich_homeostatic(
+                    emitter, edges, sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                    silence_mask=silence_mask,
+                    r_star=hp.get("r_star", 0.05),
+                    tau_r_ms=hp.get("tau_r_ms", 300.0),
+                    alpha=hp.get("alpha", 1.0),
+                    k_gain=hp.get("k_gain", 40.0),
+                    g_min=hp.get("g_min", -12.0),
+                    g_max=hp.get("g_max", 8.0),
+                    r_max=hp.get("r_max", 1.0),
+                )
+                return V, S, src, diag["g_bias"], diag["r_trace"]
+
+            effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+            if effective_jit:
+                if not hasattr(self, "_compiled_cache"):
+                    object.__setattr__(self, "_compiled_cache", {})
+                from .validation import make_recompilation_guard
+                B = 1
+                Z = int(self.static.get("n_contacts", 16))
+                C = int(emitter.n_neurons)
+                T = int(sim.n_steps)
+                guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+                cache_key = ("simulate_homeostatic", B, Z, C, T, runtime_cfg.actual_dtype,
+                             ablation_mode, runtime_cfg.selected_backend)
+                with _device_scope(runtime_cfg.selected_backend):
+                    if cache_key not in self._compiled_cache:
+                        import time
+                        target_fn = make_recompilation_guard(
+                            _homeo_packed, name="simulate_homeostatic",
+                            recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                        )
+                        self._compiled_cache[cache_key] = jax.jit(target_fn)
+                        t0 = time.perf_counter()
+                        V, S, src, g_bias, r_trace = self._compiled_cache[cache_key](key, sched)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                    else:
+                        V, S, src, g_bias, r_trace = self._compiled_cache[cache_key](key, sched)
+            else:
+                with _device_scope(runtime_cfg.selected_backend):
+                    V, S, src, g_bias, r_trace = _homeo_packed(key, sched)
+            object.__setattr__(self, "_last_homeostasis_diag",
+                               {"g_bias": g_bias, "r_trace": r_trace})
+            return V, S, src
+
         if runtime_cfg.recurrent_backend == "edge_list":
             edges: EdgeList = self.params["edge_list"]
             if ablation_mode == "disconnected_null":
@@ -3917,6 +3987,27 @@ class Model:
                 "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
                 "status": "stochastic_drive_applied",
             }
+        if getattr(runtime_cfg, "enable_homeostasis", False):
+            diag = getattr(self, "_last_homeostasis_diag", None)
+            homeo_meta: dict[str, Any] = {
+                "enabled": True,
+                "params": dict(runtime_cfg.homeostasis_params or {}),
+                "claim_status": "computational_control_proxy_not_biological_mechanism",
+                "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
+                                           "full per-step g_bias/r_trace via "
+                                           "Model.last_homeostasis_diagnostics()",
+            }
+            if diag is not None:
+                g = diag["g_bias"]; r = diag["r_trace"]
+                homeo_meta["g_bias_summary"] = {
+                    "min": float(jnp.min(g)), "max": float(jnp.max(g)),
+                    "mean": float(jnp.mean(g)), "shape": list(g.shape),
+                }
+                homeo_meta["r_trace_summary"] = {
+                    "min": float(jnp.min(r)), "max": float(jnp.max(r)),
+                    "mean": float(jnp.mean(r)), "shape": list(r.shape),
+                }
+            metadata["homeostasis"] = homeo_meta
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -3925,6 +4016,17 @@ class Model:
             field=field_output,
             metadata=metadata,
         )
+
+    def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
+        """Return the full per-step homeostasis diagnostics from the most recent
+        ``simulate(...)`` call with ``enable_homeostasis=True``.
+
+        Returns a dict with arrays ``g_bias`` and ``r_trace`` of shape
+        ``(n_steps, n_neurons)``, or ``None`` if homeostasis was not enabled on
+        the last run. These are computational-control diagnostics (proxy), not a
+        biological-mechanism claim.
+        """
+        return getattr(self, "_last_homeostasis_diag", None)
 
     def simulate_condition(
         self,
@@ -3964,14 +4066,33 @@ class Model:
         keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
         emitter: IzhikevichParams = self.params["emitter"]
 
+        homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
+        if homeo_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
+            raise ValueError(
+                "enable_homeostasis is not supported with "
+                "synaptic_kernel='receptor_exponential'."
+            )
         edge_kernel_fn = (
             simulate_receptor_exponential_izhikevich
             if runtime_cfg.synaptic_kernel == "receptor_exponential"
             else simulate_edge_recurrent_izhikevich
         )
+        _hp = dict(runtime_cfg.homeostasis_params or {})
 
         def one(k):
             """Documented public function `one`."""
+            if homeo_on:
+                # Homeostasis engages the sparse-edge homeostatic kernel; per-step
+                # g_bias/r_trace diagnostics are dropped here (batch is a seed-replicate
+                # statistics utility — use simulate() for full diagnostics passthrough).
+                return simulate_edge_recurrent_izhikevich_homeostatic(
+                    emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype,
+                    r_star=_hp.get("r_star", 0.05), tau_r_ms=_hp.get("tau_r_ms", 300.0),
+                    alpha=_hp.get("alpha", 1.0), k_gain=_hp.get("k_gain", 40.0),
+                    g_min=_hp.get("g_min", -12.0), g_max=_hp.get("g_max", 8.0),
+                    r_max=_hp.get("r_max", 1.0),
+                )[:3]
             if runtime_cfg.recurrent_backend == "edge_list":
                 return edge_kernel_fn(
                     emitter,
@@ -3996,7 +4117,7 @@ class Model:
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, runtime_cfg.selected_backend)
+            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, runtime_cfg.selected_backend)
             with _device_scope(runtime_cfg.selected_backend):
                 effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
                 if effective_jit:
@@ -4055,6 +4176,8 @@ class Model:
                 "physical_amplitude_calibrated": False,
                 "recurrent_backend": runtime_cfg.recurrent_backend,
                 "synaptic_kernel": runtime_cfg.synaptic_kernel,
+                "enable_homeostasis": homeo_on,
+                "homeostasis_params": _hp if homeo_on else None,
                 "source_model": _SOURCE_PROXY_METADATA,
             }),
         }
@@ -5973,7 +6096,8 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     """
     kw: dict[str, Any] = {}
     for k in ("dtype", "recurrent_backend", "jit", "vmap", "backend",
-              "synaptic_kernel", "precision", "device_type"):
+              "synaptic_kernel", "precision", "device_type",
+              "enable_homeostasis", "homeostasis_params"):
         v = metadata.get(k)
         if v is not None:
             kw[k] = v
