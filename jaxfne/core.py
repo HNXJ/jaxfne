@@ -5944,6 +5944,27 @@ def suite2_run_bundle(model: Model, *, seed: int = 7, duration_ms: float = 1000.
 
 
 
+def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
+    """Build a :class:`RuntimeConfig` from ``Configuration.runtime(...)`` metadata.
+
+    ``Configuration.runtime(**kwargs)`` stores its keys in ``cfg.metadata`` rather
+    than compiling a runtime object. This maps the runtime-relevant keys back onto
+    a ``RuntimeConfig`` so that ``.runtime(dtype=..., recurrent_backend=..., jit=...)``
+    set on a Configuration is actually honored by the high-level ``simulate`` path.
+    Only non-None known keys are applied, so a config without explicit runtime
+    knobs yields the default RuntimeConfig (float32, dense, eager) — unchanged
+    behavior. ``dtype="float64"`` still requires JAX x64 enabled to take effect
+    (see ``RuntimeConfig.actual_dtype``).
+    """
+    kw: dict[str, Any] = {}
+    for k in ("dtype", "recurrent_backend", "jit", "vmap", "backend",
+              "synaptic_kernel", "precision", "device_type"):
+        v = metadata.get(k)
+        if v is not None:
+            kw[k] = v
+    return RuntimeConfig(**kw)
+
+
 def simulate(
     model: Model,
     sim: Optional[Simulation] = None,
@@ -5954,10 +5975,28 @@ def simulate(
 
     Allows passing either an explicit :class:`Simulation` object, or passing
     simulation parameters (such as ``duration_ms``, ``dt_ms``, ``seed``,
-    `record_sources`, `record_fields`, `runtime`) as direct keyword
-    arguments.
+    ``record_sources``, ``record_fields``, ``runtime``, ``dtype``) as direct
+    keyword arguments.
+
+    When no explicit ``runtime``/``Simulation`` is given, the runtime declared on
+    the model's :class:`Configuration` via ``.runtime(...)`` (``dtype``,
+    ``recurrent_backend``, ``jit``, ``vmap``, ``backend``, ``synaptic_kernel``) is
+    inherited — so ``cfg.runtime(dtype="float64")`` / ``recurrent_backend="edge_list"``
+    actually take effect. A ``dtype=`` keyword overrides the inherited dtype.
     """
     if sim is None:
+        if "runtime" not in kwargs:
+            override_dtype = kwargs.pop("dtype", None)
+            cfg_meta = getattr(getattr(model, "cfg", None), "metadata", None) or {}
+            runtime_cfg = _runtime_config_from_metadata(cfg_meta)
+            if override_dtype is not None:
+                runtime_cfg = replace(runtime_cfg, dtype=str(override_dtype))
+            kwargs["runtime"] = runtime_cfg
+        elif "dtype" in kwargs:
+            raise ValueError(
+                "Specify dtype via runtime=RuntimeConfig(dtype=...), not both "
+                "runtime= and dtype=."
+            )
         sim = Simulation(**kwargs)
     elif kwargs:
         raise ValueError(
