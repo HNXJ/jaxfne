@@ -1,4 +1,8 @@
-"""Visual suites for laminar column tutorials (Etude No. 1)."""
+"""Visual suites for laminar column tutorials (Etude No. 1).
+
+Docs: ``docs/tutorials/`` + ``docs/plotly_visualization.md``
+(https://jaxfne.readthedocs.io/en/latest/tutorials/) — update when these suites change.
+"""
 from __future__ import annotations
 
 import numpy as np

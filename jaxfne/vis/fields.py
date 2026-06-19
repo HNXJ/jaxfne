@@ -1,5 +1,8 @@
 """Laminar and structural fields plotting submodules for jaxfne/vis.
 
+Docs: ``docs/api/fields.md`` + ``docs/plotly_visualization.md``
+(https://jaxfne.readthedocs.io/en/latest/) — update when these plots change.
+
 NumPy-isolated graphics for spectrolaminar power profiles, connectivity matrices,
 laminar profiles, multi-area layouts, and optimization objective histories.
 """

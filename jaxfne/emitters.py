@@ -1,5 +1,8 @@
 """Emitter kernels for :mod:`jaxfne`.
 
+Docs: ``docs/api/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/api/emitters/) —
+update that page when this module's public API changes.
+
 The current implementation is a small E/I/G-like Izhikevich scaffold.  It is a
 reduced emitter: its native drive is **not** a physical current in amperes unless
 an explicit calibration bridge is supplied later.

@@ -1,5 +1,8 @@
 """Runtime configuration and execution-report helpers for jaxfne.
 
+Docs: ``docs/api/runtime.md`` (https://jaxfne.readthedocs.io/en/latest/api/runtime/) —
+update that page when this module's public API changes.
+
 This module provides a stable import surface for runtime-related public
 objects. Runtime behavior is implemented in the core package; this module
 re-exports the public runtime contracts for user convenience.

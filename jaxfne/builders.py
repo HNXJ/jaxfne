@@ -1,5 +1,9 @@
 """Public builder and helper functions for cortical-column configuration.
 
+Docs: ``docs/api/index.md`` "Column builders & the canonical prior"
+(https://jaxfne.readthedocs.io/en/latest/api/) — update that page when these
+builders' signatures or defaults change.
+
 High-level construction helpers for common cortical-column and multi-area
 scenarios. Every builder returns a :class:`Configuration` with all knobs
 defaulted, so canonical models are reproducible from the call site without

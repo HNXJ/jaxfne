@@ -1,4 +1,9 @@
-"""Small plotting and summary helpers for tutorial notebooks."""
+"""Small plotting and summary helpers for tutorial notebooks.
+
+Docs: the laminar/spectrolaminar trial pipeline is documented in
+``docs/tutorials/`` (https://jaxfne.readthedocs.io/en/latest/tutorials/) and the
+API catalog ``docs/api/index.md`` — update those when this module changes.
+"""
 from __future__ import annotations
 
 import numpy as np

@@ -1,5 +1,8 @@
 """Source-to-field and localized laminar projection computing proxy engines.
 
+Docs: ``docs/api/fields.md`` (https://jaxfne.readthedocs.io/en/latest/api/fields/) —
+update that page when this module's public API changes.
+
 This module implements structural simulation proxy calculations under linear_solver.
 Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 """

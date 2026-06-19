@@ -1,5 +1,8 @@
 """Core object model for :mod:`jaxfne`.
 
+Docs: ``docs/api/core.md`` (https://jaxfne.readthedocs.io/en/latest/api/core/) —
+update that page when this module's public API changes.
+
 Design target: object-oriented public API, pure-JAX computational core.  The
 current package is an honest TFNE scaffold: reduced emitters plus laminar proxy
 source/readout status, a proxy field/readout scaffold.
@@ -497,7 +500,11 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
     key = jax.random.PRNGKey(seed + 4242)
     rnd = jax.random.uniform(key, (n, n), minval=0.25, maxval=1.0, dtype=jdtype)
     sign = params.sign.astype(jdtype)
-    same_area = jnp.asarray([[1.0 if area_labels[i] == area_labels[j] else 0.0 for j in range(n)] for i in range(n)], dtype=jdtype)
+    # Vectorized same-area mask: O(N^2) numpy broadcast instead of an O(N^2)
+    # pure-Python double comprehension (~100M ops at N=10k dominated construct cost).
+    import numpy as _np
+    _area_codes = _np.unique(_np.asarray(area_labels), return_inverse=True)[1]
+    same_area = jnp.asarray(_area_codes[:, None] == _area_codes[None, :], dtype=jdtype)
     eye = jnp.eye(n, dtype=jdtype)
     base_gain = float((metadata.get("connectivity", {}) or {}).get("within_gain", 0.45))
     W = base_gain * rnd * sign[None, :] * same_area * (1.0 - eye) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))

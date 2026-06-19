@@ -17,6 +17,7 @@ so the guidance that governs jaxfne code travels with the repository.
 | `jaxfne-sha256-artifact-integrity` | SHA256 content identity for configs/notebooks/models/figures/wheels |
 | `jaxfne-visualization-schema` | design/fix/audit `jaxfne.vis`; keep plotting package-level and proxy-safe |
 | `jaxfne-worker-context-router` | route a jaxfne task to the right module/API/validation lane |
+| `jaxfne-spectrolaminar-suite` | scalable spectrolaminar suite + Etude No.3 / TCM etudes; LFP-proxy/density/size/kappa caveats and the crossover-needs-oscillations result |
 
 These are reference guidance, not importable package code. The shipped Python
 package is `jaxfne/`.

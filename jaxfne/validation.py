@@ -1,5 +1,8 @@
 """Field admissibility validation for v0.2.0 theoretical gates.
 
+Docs: ``docs/api/validation.md`` (https://jaxfne.readthedocs.io/en/latest/api/validation/) —
+update that page when this module's public API changes.
+
 This module provides validation functions for conductivity tensors, field finiteness,
 source conservation, gauge/boundary metadata, and JSON-safe field admissibility reports.
 """

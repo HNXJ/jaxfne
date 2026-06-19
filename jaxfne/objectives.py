@@ -1,6 +1,9 @@
 """
 Spectrolaminar objective and null distribution functions.
 
+Docs: ``docs/api/objectives.md`` (https://jaxfne.readthedocs.io/en/latest/api/objectives/) —
+update that page when this module's public API changes.
+
 This module implements spectrolaminar profile scoring with null distributions
 and synchrony gates for multi-area neural circuits.
 
@@ -246,18 +249,17 @@ def compute_synchrony_metric(
         binned[i, :] = np.sum(spikes[start_idx:end_idx, :], axis=0)
 
     if method == "mean_pairwise_correlation":
-        # Compute pairwise correlations
-        correlations = []
-        for i in range(spikes.shape[1]):
-            for j in range(i + 1, spikes.shape[1]):
-                corr = np.corrcoef(binned[:, i], binned[:, j])[0, 1]
-                if np.isfinite(corr):
-                    correlations.append(corr)
-
-        if len(correlations) == 0:
+        # Vectorized mean pairwise correlation: one correlation-matrix solve
+        # instead of an O(N^2) Python loop of np.corrcoef per neuron pair.
+        # Identical result (mean of finite off-diagonal upper-triangle entries;
+        # constant/silent neurons yield NaN and are excluded, as before).
+        corr_matrix = np.corrcoef(binned.T)
+        iu = np.triu_indices(corr_matrix.shape[0], k=1)
+        vals = corr_matrix[iu]
+        vals = vals[np.isfinite(vals)]
+        if vals.size == 0:
             return 0.0
-
-        sync = float(np.mean(correlations))
+        sync = float(np.mean(vals))
         return float(np.clip(sync, 0.0, 1.0))
 
     elif method == "variance":
