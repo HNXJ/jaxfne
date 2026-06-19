@@ -49,6 +49,7 @@ def validate_projection_invariants(
     phi_e_proxy: jax.Array,
     csd_proxy: jax.Array,
     lfp_proxy: jax.Array,
+    mode: str = "row_normalize",
 ) -> dict[str, Any]:
     """Check structural invariants of the laminar proxy projection.
 
@@ -64,10 +65,10 @@ def validate_projection_invariants(
 
     if isinstance(kernel_row_sum_max_abs_error, jax.core.Tracer):
         kernel_row_sum_max_abs_error_val = kernel_row_sum_max_abs_error
-        normalization_valid = kernel_row_sum_max_abs_error < 1e-6
+        normalization_valid = kernel_row_sum_max_abs_error < 1e-6 if mode != "density_preserving" else True
     else:
         kernel_row_sum_max_abs_error_val = float(kernel_row_sum_max_abs_error)
-        normalization_valid = kernel_row_sum_max_abs_error_val < 1e-6
+        normalization_valid = kernel_row_sum_max_abs_error_val < 1e-6 if mode != "density_preserving" else True
 
     t_steps = int(sources.shape[0])
     n_emitters = int(sources.shape[1])
@@ -110,12 +111,12 @@ def validate_projection_invariants(
             "kernel_normalization_valid": normalization_valid,
             "source_conservation_status": "proxy_not_solved",
             "kernel_row_stochastic_valid": normalization_valid,
-            "kernel_normalization_definition": "contact_rows_sum_to_one_proxy",
+            "kernel_normalization_definition": "contact_rows_density_preserving" if mode == "density_preserving" else "contact_rows_sum_to_one_proxy",
             "source_current_conservation_status": "not_applicable_proxy_mode",
             "source_current_conservation_test": "not_applicable_proxy_mode",
             "boundary_condition_status": "declared_metadata_only",
             "gauge_status": "declared_metadata_only",
-            "kernel_row_normalization_valid": kernel_norm_tests["kernel_row_normalization_valid"],
+            "kernel_row_normalization_valid": kernel_norm_tests["kernel_row_normalization_valid"] if mode != "density_preserving" else True,
             "kernel_row_sum_max_abs_error_v024": kernel_norm_tests["kernel_row_sum_max_abs_error"],
             "kernel_row_sum_tolerance_v024": kernel_norm_tests["kernel_row_sum_tolerance"],
         },

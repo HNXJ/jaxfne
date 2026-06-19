@@ -76,6 +76,7 @@ def project_laminar_sources(
     *,
     n_contacts: int = 16,
     width: float = 0.10,
+    mode: str = "row_normalize",
     dtype: str = "float32",
 ) -> FieldOutput:
     """Project source traces to laminar proxy contacts.
@@ -91,6 +92,8 @@ def project_laminar_sources(
         Number of laminar contacts.
     width:
         Gaussian width in relative laminar-depth units.
+    mode:
+        Projection mode: 'row_normalize' (default) or 'density_preserving'.
     dtype:
         Requested dtype policy.
     """
@@ -105,7 +108,13 @@ def project_laminar_sources(
     contacts = jnp.linspace(0.0, 1.0, int(n_contacts), dtype=jdtype)
     width_value = jnp.asarray(width, dtype=jdtype)
     raw_kernel = jnp.exp(-0.5 * ((contacts[:, None] - depth[None, :]) / width_value) ** 2)
-    kernel = _row_normalize(raw_kernel)
+    
+    if mode == "row_normalize":
+        kernel = _row_normalize(raw_kernel)
+    elif mode == "density_preserving":
+        kernel = raw_kernel
+    else:
+        raise ValueError(f"Invalid projection mode: {mode!r}. Must be 'row_normalize' or 'density_preserving'.")
 
     source_proxy = sources @ kernel.T
     lfp_proxy = source_proxy
@@ -129,6 +138,7 @@ def project_laminar_sources(
         phi_e_proxy=phi_e_proxy,
         csd_proxy=csd_proxy,
         lfp_proxy=lfp_proxy,
+        mode=mode,
     )
 
     field_solution_report = _make_field_solution_report(
@@ -176,6 +186,7 @@ def project_sources_to_laminar_field(
     positions: jax.Array,
     n_contacts: int = 16,
     *,
+    mode: str = "row_normalize",
     dtype: str = "float32",
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
@@ -186,7 +197,7 @@ def project_sources_to_laminar_field(
     (``field_solver_status = "linear_solver"``); outputs are relative-unit
     proxies.
     """
-    return project_laminar_sources(sources, positions, n_contacts=n_contacts, dtype=dtype)
+    return project_laminar_sources(sources, positions, n_contacts=n_contacts, mode=mode, dtype=dtype)
 
 
 
