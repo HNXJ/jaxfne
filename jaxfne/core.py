@@ -4104,13 +4104,24 @@ class Model:
             }
         if getattr(runtime_cfg, "enable_homeostasis", False):
             diag = getattr(self, "_last_homeostasis_diag", None)
+            _hp_meta = dict(runtime_cfg.homeostasis_params or {})
+            _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
             homeo_meta: dict[str, Any] = {
                 "enabled": True,
                 "params": {
                     k: (v if _np_isscalar_param(v) else "per_neuron_array")
-                    for k, v in dict(runtime_cfg.homeostasis_params or {}).items()
+                    for k, v in _hp_meta.items()
                 },
+                # Framing: a minimal homeostatic resource/adaptation controller
+                # (intrinsic excitability bias + optional homeostatic synaptic
+                # scaling) — a COMPUTATIONAL method, NOT a biological mechanism.
+                # Mechanism support requires nulls/ablations/repeated seeds and
+                # empirical comparison; objective success alone does not imply it.
+                "method": "minimal_homeostatic_resource_adaptation_controller",
                 "claim_status": "computational_control_proxy_not_biological_mechanism",
+                "synaptic_plasticity_enabled": bool(_plastic_on),
+                "biological_learning_claim": False,
+                "mechanism_claim_status": "not_claimed",
                 "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
                                            "full per-step g_bias/r_trace via "
                                            "Model.last_homeostasis_diagnostics()",
