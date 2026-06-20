@@ -108,3 +108,24 @@ plausible mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = a dt/solver/unit bl
 10k-neuron / 1000 ms run on CPU: `construct` ≈ 40 s, `simulate` ≈ 90 s — if 5–10× slower the
 machine is thermally throttled (cool, run as a fresh subprocess), it is not hung. A real run with
 plausible numbers is the receipt; never report a simulated value you did not sanity-check.
+
+## PR review
+
+Automated review runs via **Macroscope** (comment `@macroscope-app review` on a GitHub PR;
+code review is enabled by default). Reviewers — human or bot — obey the repo skills under
+`skills/` and apply this rubric:
+
+- **Posture:** `jaxfne` is a **computational scaffold / proxy-readout** codebase, NOT a
+  physical-solver or biological-mechanism codebase. Review accordingly.
+- **Review for:** correctness, JAX efficiency (jit/vmap/scan, `N_compile ≤ 1`, stable shapes/dtypes),
+  API stability, docs/tutorial alignment (notebook grammar), and truth-gate compliance (§ Gates).
+- **Block (revise/reject):** silent fallbacks; fabricated/synthetic analysis output presented as real;
+  dense O(N²) where a sparse path is possible (all-to-all is inherently dense → warn, don't block;
+  sparse `p_connect<1` at scale should use the direct edge builder); ambiguous projection semantics
+  (normalization mode must be explicit); public stubs masquerading as finished APIs; any
+  biological/mechanistic overclaim.
+- **Homeostasis/plasticity:** keep the framing explicit —
+  `claim_status = "computational_control_proxy_not_biological_mechanism"`,
+  `biological_learning_claim = False`, `mechanism_claim_status = "not_claimed"`.
+- **Output per PR:** accept / revise / reject · exact blockers · files involved · score /100.
+  Prefer concrete file/line references and decisive recommendations.
