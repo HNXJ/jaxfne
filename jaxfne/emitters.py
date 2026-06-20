@@ -665,6 +665,14 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     g_min: float = -12.0,
     g_max: float = 8.0,
     r_max: float = 1.0,
+    # Homeostatic synaptic plasticity (off when eta == 0):
+    #   dw_{j->i} = eta * (r_star - r_i) * x_j   (homeostatic sign: inputs to an
+    #   over-active post-neuron i downscale; to a silent one upscale). x_j is a
+    #   presynaptic activity trace (tau_x_ms). Weights are clipped to [w_min, w_max].
+    eta: float = 0.0,
+    tau_x_ms: float = 100.0,
+    w_min: float = -10.0,
+    w_max: float = 10.0,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and per-neuron homeostasis.
 
@@ -752,7 +760,57 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             jnp.full((n_neurons,), r_star, dtype=jdtype),  # r_i initialized to r_star
         )
 
-    if drive_schedule is None:
+    # Homeostatic synaptic plasticity engages only when eta != 0; otherwise the
+    # existing (byte-identical) non-plastic scan runs. eta is a Python-level kwarg,
+    # so this is a trace-time branch (no jit conditional).
+    enable_plasticity = float(eta) != 0.0
+    if enable_plasticity:
+        eta_arr = jnp.asarray(eta, dtype=jdtype)
+        decay_x = jnp.exp(-dt / jnp.asarray(tau_x_ms, dtype=jdtype))
+        w_min_arr = jnp.asarray(w_min, dtype=jdtype)
+        w_max_arr = jnp.asarray(w_max, dtype=jdtype)
+        if init_state is not None and "w" in init_state:
+            w0 = jnp.asarray(init_state["w"], dtype=jdtype)
+        else:
+            w0 = weight
+        if init_state is not None and "x" in init_state:
+            x0 = jnp.asarray(init_state["x"], dtype=jdtype)
+        else:
+            x0 = jnp.zeros((n_neurons,), dtype=jdtype)
+        init_p = (*init, w0, x0)
+        sched_p = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
+                   if drive_schedule is None else drive_schedule.astype(jdtype))
+
+        def step_plastic(carry, xs_t):
+            """Homeostasis + online homeostatic synaptic plasticity."""
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state, r, w, x = carry
+            edge_current = w * syn_state                      # plastic weights
+            syn = _segment_sum(edge_current, post, n_neurons)
+            g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
+            current_native = drive + sched_t + syn + noise_coef * noise_t + g
+            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+            du = a * (b * v - u)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + spikes[pre]
+            r_next = jnp.clip(r_star_arr + (r - r_star_arr) * decay_r + alpha_arr * spikes, 0.0, r_max_arr)
+            x_next = x * decay_x + spikes                     # presynaptic trace
+            # Homeostatic synaptic scaling: dw = eta*(r* - r_post)*x_pre, clipped.
+            dw = eta_arr * (r_star_arr - r_next[post]) * x_next[pre]
+            w_next = jnp.clip(w + dt * dw, w_min_arr, w_max_arr)
+            source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
+            return (v_reset, u_reset, spikes, syn_next, r_next, w_next, x_next), \
+                   (v_reset, spikes, source_proxy, g, r_next, w_next)
+
+        final, (voltages, spikes, sources, g_bias, r_trace, w_trace) = jax.lax.scan(
+            step_plastic, init_p, xs=(sched_p, bulk_noise))
+    elif drive_schedule is None:
         def step(carry, noise_t):
             """Step with homeostasis, no drive schedule."""
             v, u, prev_spikes, syn_state, r = carry
@@ -855,6 +913,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         "syn_state": final[3],
         "r_trace": final[4],
     }
+    if enable_plasticity:
+        final_state["w"] = final[5]   # final plastic edge weights (n_edges,)
+        final_state["x"] = final[6]   # final presynaptic trace (n_neurons,)
 
     diagnostics_dict = {
         **final_state,
@@ -862,6 +923,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         "g_bias": g_bias,
         "r_trace": r_trace,    # full per-step trajectory (n_steps, n_neurons)
     }
+    if enable_plasticity:
+        diagnostics_dict["w_final"] = final[5]
+        diagnostics_dict["w_trace"] = w_trace   # (n_steps, n_edges) plastic-weight trajectory
 
     return voltages, spikes, sources, diagnostics_dict
 

@@ -3750,6 +3750,10 @@ class Model:
                     g_min=hp.get("g_min", -12.0),
                     g_max=hp.get("g_max", 8.0),
                     r_max=hp.get("r_max", 1.0),
+                    eta=hp.get("eta", 0.0),
+                    tau_x_ms=hp.get("tau_x_ms", 100.0),
+                    w_min=hp.get("w_min", -10.0),
+                    w_max=hp.get("w_max", 10.0),
                 )
                 return V, S, src, diag["g_bias"], diag["r_trace"]
 
@@ -4123,6 +4127,8 @@ class Model:
                     alpha=_hp.get("alpha", 1.0), k_gain=_resolve_homeostasis_k_gain(_hp, emitter),
                     g_min=_hp.get("g_min", -12.0), g_max=_hp.get("g_max", 8.0),
                     r_max=_hp.get("r_max", 1.0),
+                    eta=_hp.get("eta", 0.0), tau_x_ms=_hp.get("tau_x_ms", 100.0),
+                    w_min=_hp.get("w_min", -10.0), w_max=_hp.get("w_max", 10.0),
                 )[:3]
             if runtime_cfg.recurrent_backend == "edge_list":
                 return edge_kernel_fn(

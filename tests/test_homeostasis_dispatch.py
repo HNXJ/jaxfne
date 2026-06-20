@@ -118,3 +118,44 @@ def test_homeostatic_kernel_init_state_resume_matches_full_run():
     assert np.array_equal(np.asarray(Sf), Sc)
     assert np.asarray(d1["r_final"]).shape == (N,)        # final r vector for resume
     assert np.asarray(d1["r_trace"]).shape == (100, N)    # full trajectory, distinct
+
+
+def test_synaptic_plasticity_null_and_effect():
+    """eta=0 -> no plastic state; eta>0 -> bounded weight change + finite dynamics."""
+    import jax
+    from jaxfne.emitters import (IzhikevichParams, EdgeList,
+                                 simulate_edge_recurrent_izhikevich_homeostatic as hk)
+    N = 60
+    rng = np.random.default_rng(0)
+    p = IzhikevichParams(
+        a=jnp.full((N,), 0.02), b=jnp.full((N,), 0.2), c=jnp.full((N,), -65.0),
+        d=jnp.full((N,), 8.0), drive=jnp.full((N,), 8.0), sign=jnp.ones((N,)),
+        W=jnp.zeros((N, N)), v0=jnp.full((N,), -65.0), u0=jnp.full((N,), -13.0),
+        source_scale=jnp.ones((N,)), labels=tuple("E" for _ in range(N)),
+        layer_labels=tuple("L4" for _ in range(N)), source_calibration_status="x")
+    ne = N * 15
+    w0 = rng.normal(0, 0.3, ne).astype(np.float32)
+    edges = EdgeList(pre=jnp.asarray(rng.integers(0, N, ne), jnp.int32),
+                     post=jnp.asarray(rng.integers(0, N, ne), jnp.int32),
+                     weight=jnp.asarray(w0), receptor_index=jnp.zeros((ne,), jnp.int32),
+                     tau_ms=jnp.full((ne,), 5.0), source_calibration_status="x")
+    key = jax.random.PRNGKey(1)
+    # null: eta=0 -> frozen weights, no plastic diagnostics
+    _, _, _, d0 = hk(p, edges, 400, 0.5, key, eta=0.0)
+    assert "w_final" not in d0 and "w_trace" not in d0
+    # plastic: eta>0 -> weights change but stay clipped & finite
+    V, S, _, d1 = hk(p, edges, 400, 0.5, key, eta=0.05, tau_x_ms=100.0, w_min=-2.0, w_max=2.0)
+    wf = np.asarray(d1["w_final"])
+    assert not np.allclose(wf, w0)                 # weights adapted
+    assert wf.min() >= -2.0 - 1e-4 and wf.max() <= 2.0 + 1e-4   # clip held
+    assert np.asarray(d1["w_trace"]).shape == (400, ne)
+    assert bool(np.isfinite(np.asarray(V)).all())
+
+
+def test_synaptic_plasticity_via_simulate_runs():
+    """enable_homeostasis + eta in homeostasis_params engages plasticity through simulate()."""
+    model = _build({"enable_homeostasis": True,
+                    "homeostasis_params": {"k_gain": 1.0, "eta": 0.02, "w_min": -3.0, "w_max": 3.0}})
+    sig = jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+    assert sig.metadata["homeostasis"]["enabled"] is True
