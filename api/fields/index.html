@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -1658,10 +1688,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#probe_laminar_modessources-basis_spec-modal_amplitudes" class="md-nav__link">
+  <a href="#probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        probe_laminar_modes(sources, basis_spec) -&gt; modal_amplitudes
+        probe_laminar_modes(field_output, modes=("source", "phi_e", "CSD", "LFP")) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct_source_tensor-modetotal_membrane_current_proxy-array-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -&gt; (array, metadata)
       
     </span>
   </a>
@@ -2636,10 +2677,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#probe_laminar_modessources-basis_spec-modal_amplitudes" class="md-nav__link">
+  <a href="#probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict" class="md-nav__link">
     <span class="md-ellipsis">
       
-        probe_laminar_modes(sources, basis_spec) -&gt; modal_amplitudes
+        probe_laminar_modes(field_output, modes=("source", "phi_e", "CSD", "LFP")) -&gt; dict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct_source_tensor-modetotal_membrane_current_proxy-array-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -&gt; (array, metadata)
       
     </span>
   </a>
@@ -2904,7 +2956,7 @@ Transforms point-neuron currents into distributed source density using anatomica
 <tr>
 <td><code>field_solver_status</code></td>
 <td>str</td>
-<td>Solver type: <code>"laminar_proxy_no_pde"</code></td>
+<td>Solver type: <code>"linear_solver"</code></td>
 </tr>
 <tr>
 <td><code>solver_name</code></td>
@@ -2964,7 +3016,7 @@ Transforms point-neuron currents into distributed source density using anatomica
 <tr>
 <td><code>field_model_status</code></td>
 <td>str</td>
-<td>Statement authority: <code>"proxy_readout_only"</code></td>
+<td>Statement authority: <code>"proxy_readout"</code></td>
 </tr>
 <tr>
 <td><code>amplitude_status</code></td>
@@ -3001,16 +3053,39 @@ Transforms point-neuron currents into distributed source density using anatomica
 </code></pre></div></p>
 <hr />
 <h2 id="field-solvers">Field Solvers<a class="headerlink" href="#field-solvers" title="Permanent link">&para;</a></h2>
-<h3 id="probe_laminar_modessources-basis_spec-modal_amplitudes"><code>probe_laminar_modes(sources, basis_spec) -&gt; modal_amplitudes</code><a class="headerlink" href="#probe_laminar_modessources-basis_spec-modal_amplitudes" title="Permanent link">&para;</a></h3>
-<p>Decompose source activity into spatial basis functions.</p>
+<h3 id="probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict"><code>probe_laminar_modes(field_output, modes=("source", "phi_e", "CSD", "LFP")) -&gt; dict</code><a class="headerlink" href="#probe_laminar_modesfield_output-modessource-phi_e-csd-lfp-dict" title="Permanent link">&para;</a></h3>
+<p>Extract the requested proxy readouts from a <code>FieldOutput</code>.</p>
 <p><strong>Parameters:</strong>
-- <code>sources</code> (jax.Array): Source signals [time, locations]
-- <code>basis_spec</code> (BasisSpec): Basis function specification</p>
-<p><strong>Returns:</strong> Modal amplitudes [time, n_modes]</p>
+- <code>field_output</code> (<code>FieldOutput</code>): result of <code>project_laminar_sources</code> / <code>project_sources_to_laminar_field</code>.
+- <code>modes</code> (<code>Sequence[str]</code>, default <code>("source", "phi_e", "CSD", "LFP")</code>): which
+  proxies to extract. Valid values: <code>"source"</code>/<code>"sources"</code>, <code>"phi_e"</code>, <code>"CSD"</code>,
+  <code>"LFP"</code>, <code>"J_e"</code>. The default extracts the full proxy set.</p>
+<p><strong>Returns:</strong> a <code>dict</code> mapping each requested proxy to its <code>*_proxy</code> array (plus a
+<code>readout_metadata</code> entry). Requesting <code>"J_e"</code> returns a status string only —
+current density is never synthesized without a real field solver.</p>
 <p><strong>Description:</strong>
-Projects spatial source patterns onto a reduced set of basis functions (e.g., Chebyshev polynomials or radial basis functions). Enables dimensionality reduction for visualization and analysis.</p>
+A thin accessor over the laminar proxy outputs. All returned arrays are proxy
+readouts (<code>field_solver_status = "linear_solver"</code>), not physical signals.</p>
 <p><strong>Example:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">modes</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">probe_laminar_modes</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">basis_spec</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><span class="n">fo</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">project_laminar_sources</span><span class="p">(</span><span class="n">sources</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">probe_laminar_modes</span><span class="p">(</span><span class="n">fo</span><span class="p">)</span>                  <span class="c1"># default: source, phi_e, CSD, LFP</span>
+<span class="n">csd</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;csd_proxy&quot;</span><span class="p">];</span> <span class="n">lfp</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;lfp_proxy&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="construct_source_tensor-modetotal_membrane_current_proxy-array-metadata"><code>construct_source_tensor(*, mode="total_membrane_current_proxy", ...) -&gt; (array, metadata)</code><a class="headerlink" href="#construct_source_tensor-modetotal_membrane_current_proxy-array-metadata" title="Permanent link">&para;</a></h3>
+<p>Assemble a proxy source tensor for laminar projection from the named <code>mode</code>.</p>
+<p><strong>Parameters:</strong>
+- <code>mode</code> (str, default <code>"total_membrane_current_proxy"</code>): source basis. Also
+  <code>"decomposed_cap_ion_plus_synaptic_proxy"</code> and <code>"spike_proxy"</code>. The array the
+  chosen mode needs must be supplied (e.g. <code>total_membrane_current=...</code>).
+- <code>total_membrane_current</code>, <code>decomposed_cap_ion</code>, <code>synaptic_current</code>,
+  <code>spike_proxy</code> (<code>jax.Array</code>, optional): the per-mode source arrays.
+- <code>scale</code> (float, default <code>1.0</code>): multiplicative scale.</p>
+<p><strong>Returns:</strong> <code>(source_array, metadata)</code> — the proxy source array plus a JSON-safe
+metadata dict recording the mode and proxy status. The result is a proxy source
+basis, not a physical current density.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="n">src</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct_source_tensor</span><span class="p">(</span><span class="n">total_membrane_current</span><span class="o">=</span><span class="n">I_mem</span><span class="p">)</span>  <span class="c1"># default mode</span>
 </code></pre></div></p>
 <hr />
 <h2 id="boundary-conditions-constraints">Boundary Conditions &amp; Constraints<a class="headerlink" href="#boundary-conditions-constraints" title="Permanent link">&para;</a></h2>
@@ -3083,7 +3158,7 @@ Projects spatial source patterns onto a reduced set of basis functions (e.g., Ch
 <li><strong>No extracellular detail:</strong> Simplified layer-to-layer projections</li>
 <li><strong>Proxy LFP/CSD:</strong> Spatial convolution, not source localization</li>
 <li><strong>Sign convention:</strong> Positive CSD = extracellular source (inward current)</li>
-<li><strong>Field model status:</strong> <code>"proxy_readout_only"</code> — not physical amplitude</li>
+<li><strong>Field model status:</strong> <code>"proxy_readout"</code> — not physical amplitude</li>
 </ul>
 <p><strong>Use for:</strong>
 - Tutorial visualization

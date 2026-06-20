@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -1579,6 +1609,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rate-synchrony-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate + synchrony targets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#result-object" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2217,6 +2258,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rate-synchrony-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate + synchrony targets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#result-object" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2272,6 +2324,47 @@
 <h2 id="single-objective">Single objective<a class="headerlink" href="#single-objective" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="n">objective</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">objective</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;rate&quot;</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;spike_rate_hz&quot;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tune</span><span class="p">(</span><span class="n">objective</span><span class="o">=</span><span class="n">objective</span><span class="p">,</span> <span class="n">parameter</span><span class="o">=</span><span class="s2">&quot;drive_gain&quot;</span><span class="p">,</span> <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))</span>
+</code></pre></div>
+<h2 id="rate-synchrony-targets">Rate + synchrony targets<a class="headerlink" href="#rate-synchrony-targets" title="Permanent link">&para;</a></h2>
+<p><code>rate_synchrony_targets</code> builds an <code>Objective</code> with a population-rate term and a
+synchrony (kappa) term. All four arguments are defaulted to the canonical
+balanced operating point, so <code>jtfne.rate_synchrony_targets()</code> is the standard
+starting objective for laminar tuning.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>target_rate_hz</code></td>
+<td><code>10.0</code></td>
+<td>Target population firing rate (Hz).</td>
+</tr>
+<tr>
+<td><code>target_kappa_synchrony</code></td>
+<td><code>0.0</code></td>
+<td>Target synchrony. <code>0.0</code> = asynchronous-irregular; required for an <strong>unbiased spectrolaminar readout</strong> (a global rhythm masks laminar band structure).</td>
+</tr>
+<tr>
+<td><code>rate_weight</code></td>
+<td><code>1.0</code></td>
+<td>Weight of the rate term.</td>
+</tr>
+<tr>
+<td><code>synchrony_weight</code></td>
+<td><code>0.25</code></td>
+<td>Weight of the synchrony term.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> an <code>Objective</code> usable with <code>Model.evaluate</code> / <code>Model.tune</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="n">obj</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">rate_synchrony_targets</span><span class="p">()</span>                  <span class="c1"># 10 Hz, kappa 0 (canonical)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">rate_synchrony_targets</span><span class="p">(</span><span class="n">target_rate_hz</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span> <span class="n">synchrony_weight</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">tune</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;AGSDR&quot;</span><span class="p">,</span> <span class="n">steps</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="result-object">Result object<a class="headerlink" href="#result-object" title="Permanent link">&para;</a></h2>
 <p><code>TuneResult</code> exposes:</p>

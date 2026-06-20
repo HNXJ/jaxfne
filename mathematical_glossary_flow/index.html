@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2300,7 +2330,7 @@
 <p><strong>Run boundary:</strong></p>
 <ul>
 <li><strong>Physical only</strong> when <code>source_calibration_status</code> includes calibrated or empirical current evidence</li>
-<li><strong>Proxy</strong> in default laminar_proxy_no_pde path (no physical current units stated)</li>
+<li><strong>Proxy</strong> in default linear_solver path (no physical current units stated)</li>
 <li><strong>Model current</strong> (Izhikevich model current + spike impulse proxy) by default</li>
 <li><strong>No double-counting</strong> of synaptic current (forbidden pattern: using both synaptic conductance-based current and spike-based source in the same field computation)</li>
 </ul>
@@ -2325,9 +2355,9 @@
 <p><span class="arithmatex">\(\sigma_e\)</span> is the <strong>Field → Current</strong> bridge. It encodes how tissue converts electrostatic voltage gradients into current flow.</p>
 <p><strong>Run boundary:</strong></p>
 <ul>
-<li><strong>Proxy</strong> in current v0.2.24–v0.2.27 laminar_proxy_no_pde path (assumed isotropic, no PDE solve)</li>
+<li><strong>Proxy</strong> in current v0.2.24–v0.2.27 linear_solver path (assumed isotropic, no PDE solve)</li>
 <li><strong>Physical only</strong> when:</li>
-<li>Field solver is active and verified (<code>field_solver_status != laminar_proxy_no_pde</code>)</li>
+<li>Field solver is active and verified (<code>field_solver_status != linear_solver</code>)</li>
 <li>Conductivity is calibrated (<code>conductivity_status == calibrated_physical</code>)</li>
 <li>Solution satisfies conservation constraints</li>
 <li><strong>Isotropy assumed</strong> in current proxy mode (conductivity is scalar)</li>
@@ -2351,13 +2381,13 @@
 <p><span class="arithmatex">\(q\)</span> is the <strong>Source → Field</strong> boundary condition. It ensures the field solution (when computed) is compatible with declared sources.</p>
 <p><strong>Run boundary:</strong></p>
 <ul>
-<li><strong>Current default</strong>: <code>laminar_proxy_no_pde</code> — equation is declared but NOT solved</li>
+<li><strong>Current default</strong>: <code>linear_solver</code> — equation is declared but NOT solved</li>
 <li><strong>Reserved path</strong>: <code>specified_future_solver</code> for a calibrated field solver (see <a href="../limitations_and_future_plans/">Limitations and future plans</a>)</li>
 <li><strong>Not a physical status</strong> unless solver evidence exists</li>
 </ul>
 <p><strong>Implementation:</strong>
 - <code>jaxfne.fields.project_laminar_sources()</code> — declares but doesn't solve
-- Manifest: <code>field_solver_status == "laminar_proxy_no_pde"</code> means this equation is metadata only</p>
+- Manifest: <code>field_solver_status == "linear_solver"</code> means this equation is metadata only</p>
 <hr />
 <h3 id="5-current-source-density-csd">5. Current-Source Density (CSD)<a class="headerlink" href="#5-current-source-density-csd" title="Permanent link">&para;</a></h3>
 <p><strong>Formal equation:</strong></p>
@@ -2380,7 +2410,7 @@
 </ul>
 <p><strong>Implementation:</strong>
 - <code>jaxfne.fields.project_laminar_sources()</code> — computes CSD proxy directly
-- Manifest: <code>csd_sign_convention</code>, <code>field_model_status == "proxy_readout_only"</code></p>
+- Manifest: <code>csd_sign_convention</code>, <code>field_model_status == "proxy_readout"</code></p>
 <hr />
 <h3 id="6-probe-operator-general">6. Probe Operator (General)<a class="headerlink" href="#6-probe-operator-general" title="Permanent link">&para;</a></h3>
 <p><strong>Formal equation:</strong></p>

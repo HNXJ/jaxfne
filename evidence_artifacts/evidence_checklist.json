@@ -1,15 +1,14 @@
 {
   "schema_version": "jaxfne.evidence_checklist.v0.1.0",
-  "repo_sha": "9a8c7db58f588bde9f5e8c31b664d56c4982958e",
-  "branch": "pub/ed08-tutorial-atlas-coverage",
-  "jaxfne_version": "0.3.29",
-  "generated_at_utc": "2026-06-07T22:25:39Z",
+  "repo_sha": "fd23dcd543070227bd3733906611417a12468ecd",
+  "branch": "main",
+  "jaxfne_version": "0.4.0",
+  "generated_at_utc": "2026-06-20T19:05:36Z",
   "truth_gates": {
-    "truth_mode": "truth_safe_unverified",
     "claim_level": "computational_scaffold",
-    "field_solver_status": "laminar_proxy_no_pde",
-    "field_claim_level": "proxy_readout_only",
-    "physical_amplitude_claim_allowed": false
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false
   },
   "main_figures": [
     {
@@ -190,6 +189,8 @@
       "purpose": "Release/archive readiness receipt (evidence panel)",
       "status": "implemented",
       "generator_script": "scripts/evidence_figures/ed10_release_archive_receipt.py",
+      "closure_receipt_script": "scripts/ed10_release_archive_receipt.py",
+      "closure_receipt_path": "outputs/ed10_release_archive/ed10_receipt.json",
       "manifest_path": "outputs/evidence/ed10_release_archive_receipt_manifest.json",
       "figure_path": "figures/evidence/ed10_release_archive_receipt.png",
       "claim_boundary": "release_archive_evidence_receipt_only"
@@ -222,8 +223,7 @@
     "ed10_release_archive_receipt": "python scripts/evidence_figures/ed10_release_archive_receipt.py"
   },
   "required_artifacts": [
-    "docs/evidence/nature_methods_roadmap.md",
-    "docs/evidence/evidence_checklist.json",
+    "docs/evidence_artifacts/evidence_checklist.json",
     "scripts/evidence_figures_inventory.py",
     "outputs/evidence/inventory.json"
   ],
@@ -257,20 +257,6 @@
     "pypi_publish_allowed": false,
     "testpypi_publish_allowed": false,
     "github_release_approval_required": true,
-    "zenodo_doi_required": true,
     "pinned_sha_required": true
-  },
-  "submission_requirements": {
-    "code_availability": "partial",
-    "data_availability": "not_applicable_synthetic_only",
-    "software_dependencies_documented": "partial",
-    "install_instructions": "complete",
-    "test_demo_data": "partial",
-    "reproducibility_commands": "partial",
-    "llm_use_statement": "placeholder",
-    "author_contributions": "placeholder",
-    "competing_interests": "placeholder",
-    "license": "MIT",
-    "doi_placeholder": "TBD"
   }
 }

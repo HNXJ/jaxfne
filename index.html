@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2123,7 +2153,8 @@
 
 <h1 id="jaxfne">jaxfne<a class="headerlink" href="#jaxfne" title="Permanent link">&para;</a></h1>
 <p>JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.</p>
-<div class="highlight"><pre><span></span><code>Emitter -&gt; Source -&gt; Field -&gt; Probe -&gt; Objective -&gt; Optimizer
+<p>The full pipeline is one linear chain — each step returns the input to the next:</p>
+<div class="highlight"><pre><span></span><code>setup -&gt; config -&gt; construct -&gt; simulate -&gt; visualize -&gt; tune/objective -&gt; optimize -&gt; export
 </code></pre></div>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>jaxfne
@@ -2135,19 +2166,22 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 </code></pre></div>
 <h2 id="minimal-example">Minimal example<a class="headerlink" href="#minimal-example" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+<span class="n">jtfne</span><span class="o">.</span><span class="n">enable_x64</span><span class="p">()</span>
 
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">Configuration</span><span class="p">()</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">runtime</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;float32&quot;</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;single_neuron&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;L2/3&quot;</span><span class="p">],</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">cell_types</span><span class="p">({</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">connectivity</span><span class="p">()</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span><span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;MUA-proxy&quot;</span><span class="p">,</span> <span class="s2">&quot;source-proxy&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP-proxy&quot;</span><span class="p">])</span>
+<span class="c1"># Canonical laminar cortex — no arguments required for the default prior.</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="p">(</span><span class="n">jtfne</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">ei_profile</span><span class="o">=</span><span class="s2">&quot;canonical&quot;</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;spikes&quot;</span><span class="p">,</span> <span class="s2">&quot;V_m&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP&quot;</span><span class="p">,</span> <span class="s2">&quot;CSD&quot;</span><span class="p">],</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">&quot;laminar_column&quot;</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="s2">&quot;proxy&quot;</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;mean_zero_neumann&quot;</span><span class="p">))</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">signals</span><span class="o">.</span><span class="n">V_m</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">signals</span><span class="o">.</span><span class="n">spikes</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 </code></pre></div>
+<p><code>ei_profile="canonical"</code> applies the verified ground-truth E:I gradient (E peaks
+deep, I peaks superficial, ≈77E:23I); <code>ei_profile="flat"</code> (the default) keeps the
+legacy depth-invariant composition. See the <a href="quickstart/">Quickstart</a> for the
+flat path and tuning.</p>
 <h2 id="main-pages">Main pages<a class="headerlink" href="#main-pages" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="install/">Install</a></li>

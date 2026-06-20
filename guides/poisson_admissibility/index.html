@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2419,7 +2449,7 @@
 consistency) for the elliptic field regime. The regime is one of the reserved regimes in
 <a href="../../limitations_and_future_plans/">Limitations and future plans</a>; the shipped package uses
 the laminar proxy. The <code>solved_poisson</code> regime carries <code>implemented=False, status_enabled=False</code>,
-and proxy amplitudes stay relative (uncalibrated) under <code>physical_amplitude_claim_allowed = False</code>.</p>
+and proxy amplitudes stay relative (uncalibrated) under <code>physical_amplitude_calibrated = False</code>.</p>
 </blockquote>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>This document specifies the mathematical contract for the elliptic field regime in jaxfne. It defines what constitutes an "admissible" solution: a solution that is mathematically well-posed, numerically accurate, and physically consistent.</p>
@@ -2583,7 +2613,7 @@ and proxy amplitudes stay relative (uncalibrated) under <code>physical_amplitude
 <span class="w">    </span><span class="nt">&quot;csd_sign_convention&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;positive_equals_extracellular_source&quot;</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_claim_allowed=false.&quot;</span>
+<span class="w">  </span><span class="nt">&quot;note&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Specification of admissibility conditions. amplitude_status is always false; proxy amplitudes stay relative under physical_amplitude_calibrated=false.&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
 <h2 id="future-usage-separately-approved-phase">Future Usage (Separately Approved Phase)<a class="headerlink" href="#future-usage-separately-approved-phase" title="Permanent link">&para;</a></h2>

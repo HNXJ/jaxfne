@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2442,7 +2472,7 @@ source_calibration_status = &quot;uncalibrated_izhikevich_model_current&quot;
 - <span class="arithmatex">\(q\)</span> is computed as: emitter model current (Izhikevich <span class="arithmatex">\(I_k\)</span>) + spike impulse proxy (20× gain)
 - <span class="arithmatex">\(q\)</span> lacks validation against empirical synaptic or ionic current (calibration status: uncalibrated)
 - <span class="arithmatex">\(q\)</span> is spatial proxy: neuron position (in laminar_source_geometry) → spatial contact coupling
-- Field computation is deferred (field_solver_status = "laminar_proxy_no_pde")
+- Field computation is deferred (field_solver_status = "linear_solver")
 - CSD is derived from source via differentiation: <span class="arithmatex">\(\mathrm{CSD} \propto \nabla \cdot q\)</span> (proxy)</p>
 <p><strong>Code example:</strong>
 <div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
@@ -2458,7 +2488,7 @@ source_calibration_status = &quot;uncalibrated_izhikevich_model_current&quot;
 <span class="n">manifest</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">manifest</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">readouts</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;source_calibration_status&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;uncalibrated_izhikevich_model_current&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;source_projection_mode&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;proxy_no_field_solve&quot;</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;laminar_proxy_no_pde&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;linear_solver&quot;</span>
 </code></pre></div></p>
 <hr />
 <h2 id="forbidden-pattern-synaptic-double-counting">Forbidden Pattern: Synaptic Double-Counting<a class="headerlink" href="#forbidden-pattern-synaptic-double-counting" title="Permanent link">&para;</a></h2>
@@ -2534,7 +2564,7 @@ q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
 </thead>
 <tbody>
 <tr>
-<td><code>laminar_proxy_no_pde</code></td>
+<td><code>linear_solver</code></td>
 <td><strong>None</strong></td>
 <td>Proxy</td>
 <td>Proxy</td>
@@ -2552,7 +2582,7 @@ q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
 </tbody>
 </table>
 <p><strong>Current default (v0.2.24–v0.2.27):</strong>
-<div class="highlight"><pre><span></span><code>field_solver_status = &quot;laminar_proxy_no_pde&quot;
+<div class="highlight"><pre><span></span><code>field_solver_status = &quot;linear_solver&quot;
 </code></pre></div></p>
 <p><strong>What it means:</strong>
 - The field equation <span class="arithmatex">\(\nabla \cdot (-\sigma_e \nabla \phi_e) = q\)</span> is <strong>declared for reference; forward-field computation uses laminar-proxy approximation</strong>
@@ -2577,7 +2607,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 - gauge will be applied to enforce <span class="arithmatex">\(\int \phi_e \, dx = 0\)</span> (mean-zero potential)</p>
 <p><strong>Code example (current):</strong>
 <div class="highlight"><pre><span></span><code><span class="n">manifest</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">manifest</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="n">readouts</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;laminar_proxy_no_pde&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;linear_solver&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;boundary_condition&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;mean_zero_neumann&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;gauge&quot;</span><span class="p">])</span>  <span class="c1"># → &quot;mean_zero&quot;</span>
 
@@ -2694,8 +2724,8 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;source_model&quot;</span><span class="p">]</span>                 <span class="c1"># Struct: {&quot;izhikevich_model_current_plus_spike_impulse_proxy&quot;: {...}}</span>
 </code></pre></div></p>
 <p><strong>Field declaration:</strong>
-<div class="highlight"><pre><span></span><code><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">]</span>          <span class="c1"># E.g. &quot;laminar_proxy_no_pde&quot;</span>
-<span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_scope_level&quot;</span><span class="p">]</span>            <span class="c1"># E.g. &quot;proxy_readout_only&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_solver_status&quot;</span><span class="p">]</span>          <span class="c1"># E.g. &quot;linear_solver&quot;</span>
+<span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;field_scope_level&quot;</span><span class="p">]</span>            <span class="c1"># E.g. &quot;proxy_readout&quot;</span>
 <span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;boundary_condition&quot;</span><span class="p">]</span>           <span class="c1"># E.g. &quot;mean_zero_neumann&quot;</span>
 <span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;gauge&quot;</span><span class="p">]</span>                        <span class="c1"># E.g. &quot;mean_zero&quot;</span>
 <span class="n">manifest</span><span class="p">[</span><span class="s2">&quot;conductivity_status&quot;</span><span class="p">]</span>          <span class="c1"># E.g. &quot;proxy&quot; (not &quot;calibrated_physical&quot;)</span>
@@ -2757,7 +2787,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <span class="c1"># → &quot;uncalibrated_izhikevich_model_current&quot;</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field solver: </span><span class="si">{</span><span class="n">manifest</span><span class="p">[</span><span class="s1">&#39;field_solver_status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="c1"># → &quot;laminar_proxy_no_pde&quot;</span>
+<span class="c1"># → &quot;linear_solver&quot;</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CSD sign convention: </span><span class="si">{</span><span class="n">manifest</span><span class="p">[</span><span class="s1">&#39;csd_sign_convention&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="c1"># → &quot;positive_equals_extracellular_source&quot;</span>
@@ -2802,7 +2832,7 @@ gauge: Specifies mean-zero constraint (reserved solver regime)
 <ul>
 <li>[ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None</li>
 <li>[ ] Source projection mode is declared (if source_calibration_status is not None)</li>
-<li>[ ] Field solver status is declared and is either "laminar_proxy_no_pde" or a reserved solver name</li>
+<li>[ ] Field solver status is declared and is either "linear_solver" or a reserved solver name</li>
 <li>[ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)</li>
 <li>[ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)</li>
 <li>[ ] amplitude_status is False</li>

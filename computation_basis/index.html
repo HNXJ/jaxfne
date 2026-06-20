@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2534,7 +2564,7 @@ $<span class="arithmatex">\(\hat{q}_f(t) = \mathcal{F}[\sum_n \phi_f(n) \cdot I_
 <hr />
 <h2 id="proxy-field-regime">Proxy field regime<a class="headerlink" href="#proxy-field-regime" title="Permanent link">&para;</a></h2>
 <p>The shipped field regime is the laminar proxy:</p>
-<div class="highlight"><pre><span></span><code>Field solver status: laminar_proxy_no_pde
+<div class="highlight"><pre><span></span><code>Field solver status: linear_solver
 Regime: proxy readout (no PDE solve)
 Equation: CSD_proxy = nabla . q  (kernel convolution)
 Conductivity: scalar proxy (uncalibrated)
@@ -2546,8 +2576,8 @@ Boundary / gauge: metadata fields
 - Proxy LFP: <span class="arithmatex">\(\mathrm{LFP}_\mathrm{proxy} = \sum_x K_\mathrm{LFP}(x) \cdot q(x)\)</span> (spatial filter)</p>
 <p>The field potential <span class="arithmatex">\(\phi_e\)</span> and current density <span class="arithmatex">\(\mathbf{J}_e\)</span> are represented by
 proxy operators rather than a volume-conductor solve, consistent with
-<code>field_solver_status = "laminar_proxy_no_pde"</code> and
-<code>physical_amplitude_claim_allowed = False</code>. Reserved field regimes
+<code>field_solver_status = "linear_solver"</code> and
+<code>physical_amplitude_calibrated = False</code>. Reserved field regimes
 (conservation diagnostics, elliptic solver, calibrated physical field) are catalogued in
 <a href="../limitations_and_future_plans/">Limitations and future plans</a>.</p>
 <h2 id="extensibility-doctrine-adding-new-domains">Extensibility Doctrine: Adding New Domains<a class="headerlink" href="#extensibility-doctrine-adding-new-domains" title="Permanent link">&para;</a></h2>
@@ -2583,7 +2613,7 @@ Collapse rule: Can run single area with all-to-all connectivity if whole-brain i
 model_status: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
-field_solver_status: laminar_proxy_no_pde (even for 3D, still proxy in v0.2.24)
+field_solver_status: linear_solver (even for 3D, still proxy in v0.2.24)
 Validation required: None yet; this is exploratory setup
 </code></pre></div>
 <h3 id="step-5-test-collapse-and-reshape">Step 5: Test Collapse and Reshape<a class="headerlink" href="#step-5-test-collapse-and-reshape" title="Permanent link">&para;</a></h3>

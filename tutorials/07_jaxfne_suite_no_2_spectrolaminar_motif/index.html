@@ -452,6 +452,8 @@
       
         
       
+        
+      
     
     
     
@@ -521,6 +523,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -697,6 +727,34 @@
       
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#latest-canonical-network-recommended-for-the-spectrolaminar-crossover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latest canonical network (recommended for the spectrolaminar crossover)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Latest canonical network (recommended for the spectrolaminar crossover)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#superficial-deep-descending-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Superficial → deep descending drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -2782,6 +2840,34 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#latest-canonical-network-recommended-for-the-spectrolaminar-crossover" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Latest canonical network (recommended for the spectrolaminar crossover)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Latest canonical network (recommended for the spectrolaminar crossover)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#superficial-deep-descending-drive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Superficial → deep descending drive
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#figures" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3363,6 +3449,79 @@
 <div class="highlight"><pre><span></span><code><span class="n">cfg_v1v4</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">suite2_v1_v4_config</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">n_per_area</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">model_v1v4</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg_v1v4</span><span class="p">)</span>
 </code></pre></div>
+<h2 id="latest-canonical-network-recommended-for-the-spectrolaminar-crossover">Latest canonical network (recommended for the spectrolaminar crossover)<a class="headerlink" href="#latest-canonical-network-recommended-for-the-spectrolaminar-crossover" title="Permanent link">&para;</a></h2>
+<p>For the depth × frequency crossover (deep alpha/beta vs superficial gamma), use the
+canonical laminar column with a realistic E/I gradient and the multi-trial <strong>LFP</strong>
+pipeline. The column follows the ground-truth composition (E peaks deep, I peaks
+superficial; PV in L4, none in L1; ~77E:23I overall):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="kn">import</span> <span class="n">tutorial_utils</span> <span class="k">as</span> <span class="n">tu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxfne.vis.tutorial_panels</span><span class="w"> </span><span class="kn">import</span> <span class="n">spectrolaminar_suite_3panel</span>
+<span class="n">jtfne</span><span class="o">.</span><span class="n">enable_x64</span><span class="p">()</span>
+
+<span class="c1"># Per-layer neuron counts (count ∝ thickness) and the E/I gradient.</span>
+<span class="n">LAYER_COUNT_FRAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;L1&quot;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="s2">&quot;L2&quot;</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">,</span> <span class="s2">&quot;L3&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s2">&quot;L4&quot;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="s2">&quot;L5&quot;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span> <span class="s2">&quot;L6&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">}</span>
+<span class="n">LAYER_CELL_TYPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;L1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.50</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.00</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.35</span><span class="p">},</span>  <span class="c1"># 50% I (no PV in L1)</span>
+    <span class="s2">&quot;L2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.70</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.15</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">},</span>  <span class="c1"># I-count peak (dense L2)</span>
+    <span class="s2">&quot;L3&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.75</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.13</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.04</span><span class="p">},</span>
+    <span class="s2">&quot;L4&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.12</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">},</span>  <span class="c1"># PV feedforward</span>
+    <span class="s2">&quot;L5&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.88</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.06</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.04</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>
+    <span class="s2">&quot;L6&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="mf">0.03</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="mf">0.02</span><span class="p">},</span>  <span class="c1"># E-fraction peak</span>
+<span class="p">}</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">make_laminar_column_config</span><span class="p">(</span>
+    <span class="n">areas</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,),</span> <span class="n">area_x_rel</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,),</span>
+    <span class="n">layer_count_frac</span><span class="o">=</span><span class="n">LAYER_COUNT_FRAC</span><span class="p">,</span>
+    <span class="n">layer_cell_type_frac</span><span class="o">=</span><span class="n">LAYER_CELL_TYPES</span><span class="p">,</span>
+    <span class="n">n_neuron_per_column</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>        <span class="c1"># crossover is scale-emergent — scale up for sharpness</span>
+    <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span>
+    <span class="n">n_trials</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">freq_count</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span>  <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>            <span class="c1"># build ONCE</span>
+<span class="n">trials</span> <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">simulate_laminar_trials</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">n_trials</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>   <span class="c1"># reused across trials</span>
+
+<span class="c1"># Spectrolaminar from the LFP proxy (NOT CSD — CSD suppresses the deep alpha/beta band)</span>
+<span class="n">scores</span><span class="p">,</span> <span class="n">specs</span> <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">summarize_spectrolaminar_similarity</span><span class="p">(</span><span class="n">trials</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">signal_key</span><span class="o">=</span><span class="s2">&quot;lfp_contacts&quot;</span><span class="p">)</span>
+<span class="n">figs</span> <span class="o">=</span> <span class="n">spectrolaminar_suite_3panel</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;V1&quot;</span><span class="p">])</span>   <span class="c1"># canonical 3-panel suite</span>
+</code></pre></div>
+<p><code>spectrolaminar_suite_3panel</code> renders the canonical motif: <strong>(A)</strong> superficial-vs-deep
+relative-power spectra, <strong>(B)</strong> depth × frequency relative-power heatmap, <strong>(C)</strong>
+alpha-beta (deep) / gamma (superficial) band power crossing at the L4 reference.</p>
+<h3 id="superficial-deep-descending-drive">Superficial → deep descending drive<a class="headerlink" href="#superficial-deep-descending-drive" title="Permanent link">&para;</a></h3>
+<p>The canonical microcircuit is completed by an intra-column <strong>L2/3 (E) → L5/6 (E)</strong>
+descending pathway, so superficial activity drives the deep layers (countering the
+intrinsic superficial-hotter bias). It is part of the default <code>connectivity_spec</code>
+(<code>L23_to_deep_*</code> rules) and is tunable via <code>base_control['supra_to_deep_gain']</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="n">cfg</span> <span class="o">=</span> <span class="n">tu</span><span class="o">.</span><span class="n">make_laminar_column_config</span><span class="p">(</span>
+    <span class="n">areas</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,),</span> <span class="n">area_x_rel</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,),</span>
+    <span class="n">layer_count_frac</span><span class="o">=</span><span class="n">LAYER_COUNT_FRAC</span><span class="p">,</span> <span class="n">layer_cell_type_frac</span><span class="o">=</span><span class="n">LAYER_CELL_TYPES</span><span class="p">,</span>
+    <span class="n">n_neuron_per_column</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span>
+    <span class="n">n_trials</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">freq_count</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">base_control</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;supra_to_deep_gain&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>   <span class="c1"># 0.0 disables; &gt;1 strengthens</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Effect on per-layer E firing (deep / superficial rate ratio): <code>gain=0.0 → ~0.96</code>
+(deep slightly cooler); <code>gain=1.0 → ~1.34</code> (deep driven above superficial). Raise
+the gain for a stronger descending drive; deep firing scales monotonically with it.</p>
+<p>A symmetric <strong>inhibitory</strong> L2/3 (I) → L5/6 (E) pathway (<code>L23_inh_to_deep_*</code>) mirrors
+the excitatory rules; its source cell types are the interneurons (PV/SST/VIP), so it
+contributes inhibition. Tune it with <code>base_control['supra_to_deep_inh_gain']</code>
+(default 1.0). With both pathways at gain 1.0 the deep E rate is balanced against
+superficial (the inhibition offsets the excitatory drive).</p>
+<p>Pass <code>trials=</code> to <code>spectrolaminar_suite_3panel</code> to add a fourth panel — <strong>firing rate
+by depth</strong> (E / I / total), per depth bin:</p>
+<div class="highlight"><pre><span></span><code><span class="n">figs</span> <span class="o">=</span> <span class="n">spectrolaminar_suite_3panel</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">areas</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;V1&quot;</span><span class="p">],</span> <span class="n">trials</span><span class="o">=</span><span class="n">trials</span><span class="p">)</span>
+</code></pre></div>
+<p>Two readout prerequisites (verify both — see the validation gates below):</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="c1"># 1) Low synchrony: kappa ~ 0 (else a global rhythm biases the readout)</span>
+<span class="n">kappa</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">kappa_synchrony</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trials</span><span class="p">[</span><span class="s2">&quot;spikes&quot;</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cfg</span><span class="o">.</span><span class="n">dt_ms</span><span class="p">)</span>
+<span class="c1"># 2) Balanced per-layer rates (~10 Hz, no silent layer): apply graded per-layer drive</span>
+<span class="c1">#    on the SAME built model via model.with_emitter_parameters(drive_per_neuron=...)</span>
+</code></pre></div>
+<p>The crossover is <strong>scale-emergent</strong>: it is weak at small populations / few trials and
+sharpens with neuron count and trial averaging in a low-synchrony regime.</p>
 <h2 id="figures">Figures<a class="headerlink" href="#figures" title="Permanent link">&para;</a></h2>
 <p>Core figures are generated by reusable visualization functions:</p>
 <ul>
@@ -3372,7 +3531,8 @@
 <li><code>jtfne.vis.eeg(...)</code></li>
 <li><code>jtfne.vis.meg(...)</code></li>
 <li><code>jtfne.vis.emm(...)</code></li>
-<li><code>jtfne.vis.spectrolaminar_suite(...)</code></li>
+<li><code>jtfne.vis.spectrolaminar_suite(...)</code> — single-run readout overview</li>
+<li><code>jtfne.vis.tutorial_panels.spectrolaminar_suite_3panel(...)</code> — canonical depth × frequency motif (spectra | heatmap | crossover), LFP-based</li>
 <li><code>jtfne.vis.circuit3d(...)</code></li>
 </ul>
 <hr />
@@ -3813,11 +3973,16 @@ VIP has negative <code>b</code> (bistable subthreshold) and higher reset <code>c
 </tr>
 <tr>
 <td><code>field_solver_status</code></td>
-<td><code>"laminar_proxy_no_pde"</code></td>
+<td><code>"linear_solver"</code></td>
 <td><strong>Immutable</strong></td>
 </tr>
 <tr>
-<td><code>amplitude_status</code></td>
+<td><code>field_claim_level</code></td>
+<td><code>"proxy_readout"</code></td>
+<td><strong>Immutable</strong></td>
+</tr>
+<tr>
+<td><code>physical_amplitude_calibrated</code></td>
 <td><code>False</code></td>
 <td><strong>Immutable</strong></td>
 </tr>
@@ -3890,7 +4055,7 @@ VIP has negative <code>b</code> (bistable subthreshold) and higher reset <code>c
 </tbody>
 </table>
 <p>All probes carry <code>units_or_status: "proxy_relative_units"</code> and
-<code>amplitude_status: false</code>.</p>
+<code>physical_amplitude_calibrated: false</code>.</p>
 <h3 id="objective-domain-cfgobjective">Objective domain (<code>cfg.objective</code>)<a class="headerlink" href="#objective-domain-cfgobjective" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -3958,11 +4123,12 @@ VIP has negative <code>b</code> (bistable subthreshold) and higher reset <code>c
 <span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">suite2_net1_config</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
 
-<span class="c1"># Run bundle: returns signals, report, and config</span>
+<span class="c1"># Run bundle: keys are simulation, signals, readout, manifest, neuron_table</span>
 <span class="n">bundle</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">suite2_run_bundle</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-<span class="n">signals</span> <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;signals&quot;</span><span class="p">]</span>   <span class="c1"># Signals namedtuple</span>
-<span class="n">report</span>  <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">]</span>    <span class="c1"># JSON-safe metadata dict</span>
+<span class="n">signals</span>  <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;signals&quot;</span><span class="p">]</span>    <span class="c1"># Signals object</span>
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;manifest&quot;</span><span class="p">]</span>   <span class="c1"># JSON-safe, truth-gated run manifest</span>
+<span class="n">readout</span>  <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;readout&quot;</span><span class="p">]</span>    <span class="c1"># readout results</span>
 </code></pre></div>
 <h3 id="solver-semantics-per-timestep">Solver semantics (per timestep)<a class="headerlink" href="#solver-semantics-per-timestep" title="Permanent link">&para;</a></h3>
 <p>The integration uses forward Euler with fixed <code>dt_ms</code>:</p>
@@ -4007,31 +4173,26 @@ VIP has negative <code>b</code> (bistable subthreshold) and higher reset <code>c
 </tbody>
 </table>
 <h3 id="output-structure">Output structure<a class="headerlink" href="#output-structure" title="Permanent link">&para;</a></h3>
-<p><code>suite2_run_bundle()</code> returns:</p>
+<p><code>suite2_run_bundle()</code> returns a dict with keys
+<code>simulation</code>, <code>signals</code>, <code>readout</code>, <code>manifest</code>, <code>neuron_table</code>:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-    <span class="s2">&quot;signals&quot;</span><span class="p">:</span> <span class="n">Signals</span><span class="p">(</span>
-        <span class="n">spikes</span>   <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N_neurons</span><span class="p">,</span> <span class="n">N_steps</span><span class="p">]),</span>   <span class="c1"># bool</span>
-        <span class="n">V_m</span>      <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N_neurons</span><span class="p">,</span> <span class="n">N_steps</span><span class="p">]),</span>   <span class="c1"># float32</span>
-        <span class="n">source</span>   <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N_neurons</span><span class="p">,</span> <span class="n">N_steps</span><span class="p">]),</span>   <span class="c1"># float32</span>
-        <span class="n">LFP</span>      <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N_contacts</span><span class="p">,</span> <span class="n">N_steps</span><span class="p">]),</span>  <span class="c1"># float32 proxy</span>
-        <span class="n">CSD</span>      <span class="o">=</span> <span class="n">jnp</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">N_contacts</span><span class="p">,</span> <span class="n">N_steps</span><span class="p">]),</span>  <span class="c1"># float32 proxy</span>
-        <span class="c1"># ...EEG, MEG, EMM if requested</span>
+    <span class="s2">&quot;simulation&quot;</span><span class="p">:</span>   <span class="n">Simulation</span><span class="p">(</span><span class="o">...</span><span class="p">),</span>            <span class="c1"># the resolved Simulation spec</span>
+    <span class="s2">&quot;signals&quot;</span><span class="p">:</span>      <span class="n">Signals</span><span class="p">(</span>                     <span class="c1"># proxy signals; access via .get(key)</span>
+        <span class="c1"># spikes, V_m, source_proxy, lfp_proxy, csd_proxy, (eeg_proxy/meg_proxy/emm_proxy if requested)</span>
     <span class="p">),</span>
-    <span class="s2">&quot;report&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;seed&quot;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span>
-        <span class="s2">&quot;duration_ms&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span>
-        <span class="s2">&quot;dt_ms&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
-        <span class="s2">&quot;n_steps&quot;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
-        <span class="s2">&quot;firing_rate_per_cell_type&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;E&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;PV&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;SST&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="s2">&quot;VIP&quot;</span><span class="p">:</span> <span class="o">...</span><span class="p">},</span>
-        <span class="s2">&quot;status_fields&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;run_status&quot;</span><span class="p">:</span> <span class="s2">&quot;tutorial_scaffold&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;model_status&quot;</span><span class="p">:</span> <span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;field_solver_status&quot;</span><span class="p">:</span> <span class="s2">&quot;laminar_proxy_no_pde&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;amplitude_status&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="p">},</span>
+    <span class="s2">&quot;readout&quot;</span><span class="p">:</span>      <span class="p">[</span><span class="n">ReadoutResult</span><span class="p">(</span><span class="o">...</span><span class="p">),</span> <span class="o">...</span><span class="p">],</span>   <span class="c1"># requested readouts</span>
+    <span class="s2">&quot;neuron_table&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="p">{</span><span class="o">...</span><span class="p">},</span> <span class="o">...</span> <span class="p">],</span>              <span class="c1"># per-neuron rows (list of dicts)</span>
+    <span class="s2">&quot;manifest&quot;</span><span class="p">:</span> <span class="p">{</span>                                <span class="c1"># JSON-safe, truth-gated</span>
+        <span class="s2">&quot;duration_ms&quot;</span><span class="p">:</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="s2">&quot;dt_ms&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="s2">&quot;claim_level&quot;</span><span class="p">:</span> <span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;field_solver_status&quot;</span><span class="p">:</span> <span class="s2">&quot;linear_solver&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;field_claim_level&quot;</span><span class="p">:</span> <span class="s2">&quot;proxy_readout&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;physical_amplitude_calibrated&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>Signal keys are <code>*_proxy</code> (<code>lfp_proxy</code>, <code>csd_proxy</code>, <code>source_proxy</code>); the legacy
+<code>*_like</code> names are retired. Read them with <code>signals.get("lfp_proxy")</code>.</p>
 <h3 id="noise-tuning">Noise tuning<a class="headerlink" href="#noise-tuning" title="Permanent link">&para;</a></h3>
 <p>Use <code>suite2_tune_noise_agsdr_adam</code> to tune <code>noise_amplitude</code> toward the
 firing-rate target:</p>
@@ -4055,38 +4216,29 @@ and outputs for auditability.</p>
 <h3 id="manifest-structure">Manifest structure<a class="headerlink" href="#manifest-structure" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
 
-<span class="n">manifest</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">manifest</span><span class="p">(</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">,</span>
-    <span class="n">signals</span><span class="o">=</span><span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;signals&quot;</span><span class="p">],</span>
-    <span class="n">report</span><span class="o">=</span><span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">],</span>
-    <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;manifest&quot;</span><span class="p">]</span>          <span class="c1"># already produced by suite2_run_bundle</span>
+<span class="c1"># or build one directly (cfg is positional; optional signals/readout/objective/tuning):</span>
+<span class="n">manifest</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">manifest</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">signals</span><span class="o">=</span><span class="n">bundle</span><span class="p">[</span><span class="s2">&quot;signals&quot;</span><span class="p">])</span>
+
 <span class="c1"># Validate manifest is JSON-safe (no NaN/Inf)</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">allow_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># must not raise</span>
 </code></pre></div>
 <p>The manifest includes:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;0.3.14&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;seed&quot;</span><span class="p">:</span><span class="w">         </span><span class="mi">7</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w">      </span><span class="s2">&quot;0.4.0&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;duration_ms&quot;</span><span class="p">:</span><span class="w">  </span><span class="mf">1000.0</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;dt_ms&quot;</span><span class="p">:</span><span class="w">        </span><span class="mf">0.1</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;n_steps&quot;</span><span class="p">:</span><span class="w">      </span><span class="mi">10000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;configuration&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;...&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;spikes&quot;</span><span class="p">:</span><span class="w">   </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bool&quot;</span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;V_m&quot;</span><span class="p">:</span><span class="w">      </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;float32&quot;</span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;LFP&quot;</span><span class="p">:</span><span class="w">      </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="w">  </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;float32&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="nt">&quot;spikes&quot;</span><span class="p">:</span><span class="w">     </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;bool&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;V_m&quot;</span><span class="p">:</span><span class="w">        </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;float32&quot;</span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;lfp_proxy&quot;</span><span class="p">:</span><span class="w">  </span><span class="p">{</span><span class="nt">&quot;shape&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">16</span><span class="p">,</span><span class="w">  </span><span class="mi">10000</span><span class="p">],</span><span class="w"> </span><span class="nt">&quot;dtype&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;float32&quot;</span><span class="p">}</span>
 <span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;statistics&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;firing_rate_mean_per_cell_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;E&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">8.3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;PV&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">14.7</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;SST&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">3.8</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;VIP&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1.9</span><span class="p">}</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;status_fields&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;run_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tutorial_scaffold&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;field_solver_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;laminar_proxy_no_pde&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
-<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nt">&quot;claim_level&quot;</span><span class="p">:</span><span class="w">                   </span><span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;field_solver_status&quot;</span><span class="p">:</span><span class="w">           </span><span class="s2">&quot;linear_solver&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;field_claim_level&quot;</span><span class="p">:</span><span class="w">             </span><span class="s2">&quot;proxy_readout&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;physical_amplitude_calibrated&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
 <span class="p">}</span>
 </code></pre></div>
 <h3 id="reproducibility">Reproducibility<a class="headerlink" href="#reproducibility" title="Permanent link">&para;</a></h3>
@@ -4121,9 +4273,19 @@ and outputs for auditability.</p>
 <td>Adjust within_gain or drive</td>
 </tr>
 <tr>
+<td><strong>Layer-rate balance</strong></td>
+<td>Per-layer rates within ~10 Hz ± 5 (no layer silent vs others)</td>
+<td>Apply graded per-layer drive via <code>with_emitter_parameters</code> (reuse the built model)</td>
+</tr>
+<tr>
+<td><strong>Synchrony</strong></td>
+<td><code>jtfne.kappa_synchrony(signals.get("spikes"), dt_ms)</code> ≈ 0</td>
+<td>If κ ≳ 0.2–0.3 the network is locked and the spectrolaminar readout is biased — add drive heterogeneity/noise to de-synchronize</td>
+</tr>
+<tr>
 <td>Spectral positivity</td>
 <td>All band powers ≥ 0</td>
-<td>Check CSD/LFP output</td>
+<td>Check LFP-proxy output</td>
 </tr>
 <tr>
 <td>JSON-safety</td>
@@ -4131,8 +4293,8 @@ and outputs for auditability.</p>
 <td>Never export NaN/Inf</td>
 </tr>
 <tr>
-<td>Status fields</td>
-<td><code>amplitude_status == False</code></td>
+<td>Gate fields</td>
+<td><code>physical_amplitude_calibrated == False</code></td>
 <td>Never override</td>
 </tr>
 </tbody>
@@ -4176,11 +4338,31 @@ scope — the proxy field operator requires none.</p>
 </table>
 <p>If observed rates are &gt;2× outside these ranges, the network is unstable or frozen.</p>
 <h3 id="expected-spectrolaminar-proxy-power">Expected spectrolaminar proxy power<a class="headerlink" href="#expected-spectrolaminar-proxy-power" title="Permanent link">&para;</a></h3>
-<p>LFP power is in <strong>proxy relative units</strong> (not µV²):</p>
+<p><strong>Compute the spectrolaminar crossover from the LFP proxy, not the CSD proxy.</strong>
+The depth × frequency crossover (deep alpha/beta vs superficial gamma) is an LFP
+phenomenon. CSD-proxy is the second spatial derivative of the LFP, so it sharpens
+local sinks/sources and <em>suppresses</em> the broad, slow, spatially-extended deep
+alpha/beta component — measuring the crossover on CSD yields a false "deep alpha/beta
+absent" result. Use <code>signal_key="lfp_contacts"</code> (the
+<code>summarize_spectrolaminar_similarity</code> default) for the crossover; CSD-proxy remains a
+useful complementary readout of local current sinks/sources, not the band crossover.</p>
+<p>LFP-proxy power is in <strong>proxy relative units</strong> (not µV²):</p>
 <ul>
-<li><strong>Alpha/beta (8–25 Hz):</strong> Typically highest in layers 4 and 5/6. Range <code>[0.1, 1.0]</code> proxy units.</li>
-<li><strong>Gamma (40–150 Hz):</strong> Often highest in superficial layers (L2/3, L4). Range <code>[0.02, 0.3]</code> proxy units.</li>
+<li><strong>Alpha/beta (8–25 Hz):</strong> relatively higher in deep layers (L5/L6).</li>
+<li><strong>Gamma (40–150 Hz):</strong> relatively higher in superficial layers (L2/3).</li>
 </ul>
+<p>Two prerequisites for a trustworthy readout (both checked in the validation gates):</p>
+<ol>
+<li><strong>Low synchrony</strong> — <code>jtfne.kappa_synchrony(spikes, dt_ms)</code> ≈ 0. A synchronized
+   network oscillates as a whole, so the spectrum reflects one global rhythm rather
+   than per-layer band structure, masking the crossover.</li>
+<li><strong>Balanced per-layer rates</strong> — no layer silent relative to others (target ~10 Hz);
+   uneven rates bias the readout toward the hotter layers.</li>
+</ol>
+<p>The crossover is <strong>scale-dependent</strong>: it is weak at small populations and sharpens with
+neuron count and trial averaging. Use the multi-trial
+<code>tutorial_utils.spectrolaminar_from_trials(..., signal_key="lfp_contacts")</code> for the
+canonical, L4-referenced relative-power profile.</p>
 <h3 id="cell-type-roles">Cell-type roles<a class="headerlink" href="#cell-type-roles" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -4222,7 +4404,7 @@ scope — the proxy field operator requires none.</p>
 <p>Discard if any of the following:
 - Any signal contains <code>NaN</code> or <code>Inf</code>
 - Any cell-type firing rate is outside <code>[0.1, 150]</code> Hz
-- <code>amplitude_status</code> was overridden (not possible via public API)
+- <code>physical_amplitude_calibrated</code> was overridden (not possible via public API)
 - Manifest JSON serialization fails</p>
 <hr />
 <h2 id="failure-modes">Failure Modes<a class="headerlink" href="#failure-modes" title="Permanent link">&para;</a></h2>

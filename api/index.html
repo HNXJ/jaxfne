@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2093,6 +2123,45 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#column-builders-the-canonical-prior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Column builders &amp; the canonical prior
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Column builders &amp; the canonical prior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build_laminar_column-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_laminar_column(...) -&gt; Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build_multi_area_columns-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_multi_area_columns(...) -&gt; Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#export-figure-apis-root-level" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2116,10 +2185,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#core-68" class="md-nav__link">
+  <a href="#core-69" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core (68)
+        Core (69)
       
     </span>
   </a>
@@ -2281,10 +2350,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#builders-1" class="md-nav__link">
+  <a href="#builders-10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Builders (1)
+        Builders (10)
       
     </span>
   </a>
@@ -2408,19 +2477,17 @@
 <p>Canonical import:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
 </code></pre></div>
-<p>This page is the complete index of the public API (<code>jaxfne.__all__</code>, 185 names),
+<p>This page is the complete index of the public API (<code>jaxfne.__all__</code>, 204 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Current release <code>jaxfne==0.3.40</code> (tag <code>v0.3.40</code>). The six root-level export
-helpers were introduced in v0.3.37 and promoted to formal <code>__all__</code> members in
-v0.3.38.</p>
+Current release <code>jaxfne==0.4.0</code> (tag <code>v0.4.0</code>). The root-level export
+helpers introduced in the v0.3.37/v0.3.38 line remain formal <code>__all__</code> members.</p>
 <div class="admonition note">
 <p class="admonition-title">Scope &amp; truth gates</p>
-<p>All field/EEG/MEG/EMM outputs are <strong>computational proxies</strong>, not solved PDE
-or sensor-level signals (<code>field_solver_status = "laminar_proxy_no_pde"</code>,
-<code>physical_amplitude_claim_allowed = False</code>). The package is a
-<code>computational_scaffold</code> for teaching, prototyping, and validation — not a
-calibrated biological simulator. See
-<a href="../limitations_and_future_plans/">Scope and limitations</a>.</p>
+<p>All field/EEG/MEG/EMM outputs are computational proxies
+(<code>claim_level = "computational_scaffold"</code>, <code>field_solver_status = "linear_solver"</code>,
+<code>field_claim_level = "proxy_readout"</code>, <code>physical_amplitude_calibrated = False</code>).
+See <a href="../limitations_and_future_plans/">Limitations and future plans</a> for the
+scope statement.</p>
 </div>
 <h2 id="module-pages">Module pages<a class="headerlink" href="#module-pages" title="Permanent link">&para;</a></h2>
 <table>
@@ -2435,7 +2502,7 @@ calibrated biological simulator. See
 <tr>
 <td><a href="core/">Core</a></td>
 <td>Configuration, Model, Simulation, Signals, readouts, receipts, suites</td>
-<td>68</td>
+<td>69</td>
 </tr>
 <tr>
 <td><a href="emitters/">Emitters</a></td>
@@ -2469,31 +2536,178 @@ calibrated biological simulator. See
 </tr>
 <tr>
 <td><em>(no page yet)</em></td>
-<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Export &amp; figures</strong> (6) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (7) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (5) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (3) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · <strong>JAX Spectral Analysis</strong> (6) · geometry/builders/streaming/stimulus (4)</td>
-<td>93</td>
+<td><strong>Optimizers</strong> (<code>optim</code>, 15) · <strong>IO/receipts</strong> (10) · <strong>Export &amp; figures</strong> (6) · <strong>Bridges</strong> (7) · <strong>Paradigms</strong> (6) · <strong>Solvers</strong> (7) · <strong>Sanity-delta</strong> (7) · <strong>Plasticity</strong> (5) · <strong>Tutorial utils</strong> (4) · <strong>Sharding</strong> (4) · <strong>Connectivity</strong> (3) · <strong>PyNWB</strong> (2) · <strong>Experimental HPC</strong> (2) · <strong>JAX Spectral Analysis</strong> (6) · geometry/builders/streaming/stimulus (13)</td>
+<td>102</td>
 </tr>
 </tbody>
 </table>
 <blockquote>
 <p>Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 solvers) do not yet have a dedicated module page — they are listed with full
-signatures in the complete symbol index below. Counts sum to <strong>194</strong>
+signatures in the complete symbol index below. Counts sum to <strong>204</strong>
 (<code>len(jaxfne.__all__)</code>). See the docs audit
 (<code>internal_docs/docs_audit_v0330.md</code>) for the page-migration plan.</p>
 </blockquote>
 <h2 id="minimal-workflow-verified">Minimal workflow (verified)<a class="headerlink" href="#minimal-workflow-verified" title="Permanent link">&para;</a></h2>
+<p>The pipeline is one linear chain: <code>setup → config → construct → simulate →
+visualize → tune/objective → optimize → export</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+<span class="n">jtfne</span><span class="o">.</span><span class="n">enable_x64</span><span class="p">()</span>                                       <span class="c1"># setup</span>
 
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">suite2_four_celltype_config</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">ei_profile</span><span class="o">=</span><span class="s2">&quot;canonical&quot;</span><span class="p">)</span>  <span class="c1"># config (canonical prior)</span>
+<span class="n">cfg</span> <span class="o">=</span> <span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">set_emitter</span><span class="p">(</span><span class="s2">&quot;izhikevich&quot;</span><span class="p">,</span> <span class="s2">&quot;cortical_eig&quot;</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">probes</span><span class="p">([</span><span class="s2">&quot;spikes&quot;</span><span class="p">,</span> <span class="s2">&quot;V_m&quot;</span><span class="p">,</span> <span class="s2">&quot;LFP&quot;</span><span class="p">,</span> <span class="s2">&quot;CSD&quot;</span><span class="p">],</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+          <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">&quot;laminar_column&quot;</span><span class="p">,</span> <span class="n">conductivity</span><span class="o">=</span><span class="s2">&quot;proxy&quot;</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;mean_zero_neumann&quot;</span><span class="p">))</span>
 
-<span class="n">vm</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vm&quot;</span><span class="p">)</span>            <span class="c1"># membrane voltage [T, N]</span>
-<span class="n">spk</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spk&quot;</span><span class="p">)</span>          <span class="c1"># spikes [T, N]</span>
+<span class="n">model</span>   <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>                           <span class="c1"># construct -&gt; Model</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="mf">1000.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># simulate -&gt; Signals</span>
+
+<span class="n">vm</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vm&quot;</span><span class="p">)</span>                  <span class="c1"># membrane voltage [T, N]</span>
+<span class="n">spk</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spk&quot;</span><span class="p">)</span>                <span class="c1"># spikes [T, N]</span>
 <span class="n">e_idx</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">cell_type</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span>     <span class="c1"># excitatory neuron indices</span>
 <span class="n">vm_e</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vm&quot;</span><span class="p">,</span> <span class="n">cell_type</span><span class="o">=</span><span class="s2">&quot;E&quot;</span><span class="p">)</span> <span class="c1"># equivalent to vm[:, e_idx]</span>
 <span class="k">assert</span> <span class="n">vm_e</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">e_idx</span><span class="p">)</span>
 </code></pre></div>
+<hr />
+<h2 id="column-builders-the-canonical-prior">Column builders &amp; the canonical prior<a class="headerlink" href="#column-builders-the-canonical-prior" title="Permanent link">&para;</a></h2>
+<p><code>build_laminar_column</code> and <code>build_multi_area_columns</code> build a <code>Configuration</code>
+with every knob defaulted, so the canonical cortex is reproducible from the call
+site. Both are partial builders — chain <code>.set_emitter().probes().field()</code> before
+<code>construct</code>.</p>
+<h3 id="build_laminar_column-configuration"><code>build_laminar_column(...) -&gt; Configuration</code><a class="headerlink" href="#build_laminar_column-configuration" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td><code>"V1"</code></td>
+<td>Column name.</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td><code>1000</code></td>
+<td>Total neurons; per-layer count ∝ depth-band width.</td>
+</tr>
+<tr>
+<td><code>layers</code></td>
+<td><code>DEFAULT_LAYERS</code></td>
+<td>5-layer set (<code>"L1","L2/3","L4","L5","L6"</code>). Use <code>CANONICAL_LAYERS_6L</code> for the split-L2/L3 form.</td>
+</tr>
+<tr>
+<td><code>layer_fractions</code></td>
+<td>canonical/even bands</td>
+<td><code>(z0, z1)</code> depth band per layer; width sets the count.</td>
+</tr>
+<tr>
+<td><code>cell_type_fractions</code></td>
+<td><code>FLAT_CELL_TYPE_FRACTIONS</code></td>
+<td>Global E/PV/SST/VIP used by <code>ei_profile="flat"</code>.</td>
+</tr>
+<tr>
+<td><code>layer_cell_type_fractions</code></td>
+<td><code>None</code></td>
+<td>Explicit per-layer composition; overrides <code>ei_profile</code>.</td>
+</tr>
+<tr>
+<td><code>ei_profile</code> <em>(kw)</em></td>
+<td><code>"flat"</code></td>
+<td><code>"flat"</code> = legacy depth-invariant; <code>"canonical"</code> = verified E:I gradient (E deep ≈90%, I superficial 50%, PV at L4, ≈77E:23I).</td>
+</tr>
+<tr>
+<td><code>geometry</code> <em>(kw)</em></td>
+<td><code>"auto"</code></td>
+<td><code>"auto"</code> → <code>laminar</code> when a non-flat composition is requested, else <code>uniform3d</code>. <code>uniform3d</code> collapses layer identity.</td>
+</tr>
+<tr>
+<td><code>within_connectivity</code> <em>(kw)</em></td>
+<td><code>"all_to_all_uniform_random"</code></td>
+<td>Within-area rule.</td>
+</tr>
+<tr>
+<td><code>within_gain</code> <em>(kw)</em></td>
+<td><code>0.45</code></td>
+<td>Within-area weight gain.</td>
+</tr>
+<tr>
+<td><code>radius_mm</code>, <code>height_mm</code> <em>(kw)</em></td>
+<td><code>0.25</code>, <code>1.6</code></td>
+<td>Column cylinder geometry.</td>
+</tr>
+<tr>
+<td><code>edge_seed</code> <em>(kw)</em></td>
+<td><code>None</code></td>
+<td>Connectivity edge seed.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> a <code>Configuration</code> (single column). <strong>Examples:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">jtfne</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">()</span>                        <span class="c1"># V1, n=1000, flat E:I, uniform3d (legacy)</span>
+<span class="n">jtfne</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="n">ei_profile</span><span class="o">=</span><span class="s2">&quot;canonical&quot;</span><span class="p">)</span>  <span class="c1"># ground-truth gradient, laminar placement</span>
+<span class="n">jtfne</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="s2">&quot;M1&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;L2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;L5&quot;</span><span class="p">],</span> <span class="n">within_gain</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="build_multi_area_columns-configuration"><code>build_multi_area_columns(...) -&gt; Configuration</code><a class="headerlink" href="#build_multi_area_columns-configuration" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>areas</code></td>
+<td><code>("V1","V4","PFC")</code></td>
+<td>Area names, low→high in the hierarchy.</td>
+</tr>
+<tr>
+<td><code>n_per_area</code></td>
+<td><code>200</code></td>
+<td>Neurons per area.</td>
+</tr>
+<tr>
+<td><code>layers</code></td>
+<td><code>DEFAULT_LAYERS</code></td>
+<td>Shared layer sequence.</td>
+</tr>
+<tr>
+<td><code>connectivity_mode</code></td>
+<td><code>"sparse"</code></td>
+<td>Inter-area mode (<code>"sparse"</code>/<code>"all_to_all"</code>).</td>
+</tr>
+<tr>
+<td><code>ei_profile</code> <em>(kw)</em></td>
+<td><code>"flat"</code></td>
+<td>Per-layer composition applied to every area (see above).</td>
+</tr>
+<tr>
+<td><code>cell_type_fractions</code> <em>(kw)</em></td>
+<td><code>FLAT_CELL_TYPE_FRACTIONS</code></td>
+<td>Global fractions for <code>ei_profile="flat"</code>.</td>
+</tr>
+<tr>
+<td><code>within_connectivity</code>, <code>within_gain</code> <em>(kw)</em></td>
+<td><code>"all_to_all_uniform_random"</code>, <code>0.35</code></td>
+<td>Within-area rule/gain.</td>
+</tr>
+<tr>
+<td><code>p_feedforward</code>, <code>p_feedback</code> <em>(kw)</em></td>
+<td><code>0.3</code>, <code>0.2</code></td>
+<td>Inter-area connection probabilities.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Returns:</strong> a multi-area <code>Configuration</code> with declared feedforward/feedback edges.</p>
+<p>Legacy compatibility: <code>ei_profile="flat"</code> reproduces the pre-sweep behavior
+byte-for-byte (depth-invariant composition, <code>uniform3d</code> placement). Only the new
+opt-in paths (<code>ei_profile="canonical"</code> or an explicit <code>layer_cell_type_fractions</code>)
+change placement to laminar.</p>
 <hr />
 <h2 id="export-figure-apis-root-level">Export &amp; figure APIs (root-level)<a class="headerlink" href="#export-figure-apis-root-level" title="Permanent link">&para;</a></h2>
 <p>The strict-notebook export grammar introduced in <code>jaxfne==0.3.37</code> is exposed as
@@ -2546,11 +2760,11 @@ in a plotting backend.</p>
 </table>
 <p>All export helpers honor the truth gates: JSON is written with <code>allow_nan=False</code>,
 and figure/readout outputs remain proxy diagnostics
-(<code>physical_amplitude_claim_allowed = False</code>).</p>
+(<code>physical_amplitude_calibrated = False</code>).</p>
 <hr />
 <h2 id="complete-public-symbol-index">Complete public symbol index<a class="headerlink" href="#complete-public-symbol-index" title="Permanent link">&para;</a></h2>
-<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>194 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released wheel.</p>
-<h3 id="core-68">Core (68)<a class="headerlink" href="#core-68" title="Permanent link">&para;</a></h3>
+<p><code>func</code>/<code>class</code>/<code>const</code>/<code>module</code> as resolved from <code>jaxfne.__all__</code> (<strong>204 names</strong>, grouped by defining module). Summaries are the first docstring line; <code>_(undocumented)_</code> marks public callables with no docstring in the released wheel.</p>
+<h3 id="core-69">Core (69)<a class="headerlink" href="#core-69" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -2679,6 +2893,11 @@ and figure/readout outputs remain proxy diagnostics
 <td><code>MatrixParameterSpec</code></td>
 <td>class</td>
 <td>Declarative specification for a tunable weight matrix parameter.</td>
+</tr>
+<tr>
+<td><code>migrate_schema</code></td>
+<td>func</td>
+<td>Upgrade a legacy truth/metadata dict to the canonical truth-gate schema.</td>
 </tr>
 <tr>
 <td><code>Model</code></td>
@@ -3600,7 +3819,7 @@ and figure/readout outputs remain proxy diagnostics
 </tr>
 </tbody>
 </table>
-<h3 id="builders-1">Builders (1)<a class="headerlink" href="#builders-1" title="Permanent link">&para;</a></h3>
+<h3 id="builders-10">Builders (10)<a class="headerlink" href="#builders-10" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -3613,7 +3832,52 @@ and figure/readout outputs remain proxy diagnostics
 <tr>
 <td><code>laminar_cortex_config</code></td>
 <td>func</td>
-<td>Generalized laminar cortical configuration builder.</td>
+<td>Generalized multi-area laminar cortical configuration builder.</td>
+</tr>
+<tr>
+<td><code>build_laminar_column</code></td>
+<td>func</td>
+<td>Single-column builder; defaults <code>name="V1"</code>, <code>n=1000</code>; <code>ei_profile</code>/<code>geometry</code> select flat-legacy vs canonical laminar prior.</td>
+</tr>
+<tr>
+<td><code>build_multi_area_columns</code></td>
+<td>func</td>
+<td>Multi-area builder; defaults to the <code>V1→V4→PFC</code> hierarchy, 200/area, with inter-area feedforward/feedback.</td>
+</tr>
+<tr>
+<td><code>CANONICAL_LAYER_CELL_TYPE_FRACTIONS</code></td>
+<td>const</td>
+<td>Ground-truth per-layer E:I composition (6-layer); E peaks deep, I peaks superficial.</td>
+</tr>
+<tr>
+<td><code>CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L</code></td>
+<td>const</td>
+<td>5-layer (L2/3 merged) variant of the canonical composition.</td>
+</tr>
+<tr>
+<td><code>CANONICAL_Z_BANDS</code></td>
+<td>const</td>
+<td>Count-proportional depth bands for the canonical 6-layer column.</td>
+</tr>
+<tr>
+<td><code>CANONICAL_Z_BANDS_5L</code></td>
+<td>const</td>
+<td>Count-proportional depth bands for the 5-layer column.</td>
+</tr>
+<tr>
+<td><code>CANONICAL_LAYERS_6L</code></td>
+<td>const</td>
+<td>Canonical 6-layer name tuple <code>("L1".."L6")</code>.</td>
+</tr>
+<tr>
+<td><code>FLAT_CELL_TYPE_FRACTIONS</code></td>
+<td>const</td>
+<td>Legacy depth-invariant E/PV/SST/VIP fractions.</td>
+</tr>
+<tr>
+<td><code>DEFAULT_LAYERS</code></td>
+<td>const</td>
+<td>Historical 5-layer default <code>("L1","L2/3","L4","L5","L6")</code>.</td>
 </tr>
 </tbody>
 </table>

@@ -32,5 +32,5 @@
     "probe_readout": "R_k(t) = Q_k\u00b7Y(t)"
   },
   "html_output": "docs/assets/interactive/v037_source_column_3d.html",
-  "physical_amplitude_claim_allowed": false
+  "physical_amplitude_calibrated": false
 }

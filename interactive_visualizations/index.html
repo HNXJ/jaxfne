@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2373,7 +2403,7 @@
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/validate_tutorial_outputs.py<span class="w"> </span>outputs/
 </code></pre></div>
 <p>Checks: manifest.json, probe_report.json, metrics.json, validation_report.json, asset_hashes.json, figures/*.png, source_data.json.</p>
-<p>Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout_only".</p>
+<p>Status checks verified: amplitude_status=False, model_status="computational_scaffold", field_model_status="proxy_readout".</p>
 <h3 id="validate-static-png-interactive-html">Validate Static PNG + Interactive HTML<a class="headerlink" href="#validate-static-png-interactive-html" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>python<span class="w"> </span>scripts/validate_tutorial_outputs.py<span class="w"> </span>outputs/<span class="w"> </span>--require-interactive
 </code></pre></div>
@@ -2467,7 +2497,7 @@
 <ul>
 <li><code>amplitude_status</code>: Always <strong>False</strong> (no amplitude calibration)</li>
 <li><code>model_status</code>: Always <strong>"computational_scaffold"</strong> (no biological statements)</li>
-<li><code>field_model_status</code>: Always <strong>"proxy_readout_only"</strong> (simulated fields, not real)</li>
+<li><code>field_model_status</code>: Always <strong>"proxy_readout"</strong> (simulated fields, not real)</li>
 </ul>
 <p><strong>What interactive HTML shows:</strong>
 - Mathematical relationships between simulation variables (spike times, field power)

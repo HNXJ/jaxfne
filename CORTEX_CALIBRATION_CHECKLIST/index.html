@@ -1,0 +1,2742 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="JAX-based TFNE scaffold for multimodal source-to-field/readout workflows">
+      
+      
+      
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/CORTEX_CALIBRATION_CHECKLIST/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Cortex Calibration Checklist — 100-Neuron V1 Column - jaxfne</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../_theme_override.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cortex-calibration-checklist-100-neuron-v1-column" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="jaxfne" class="md-header__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            jaxfne
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Cortex Calibration Checklist — 100-Neuron V1 Column
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="orange" data-md-color-accent="gray"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="jaxfne" class="md-nav__button md-logo" aria-label="jaxfne" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    jaxfne
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/HNXJ/jaxfne" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    HNXJ/jaxfne
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href=".." class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_1" id="__nav_1_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../tutorials/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/notebook_standard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 1 (Computational Biophysics)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 2 (Corticospectrolaminar Motif)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Suite No. 3 (Low-Frequency Scaling)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial: Multi-area Laminar Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TFNE-Izhikevich Single Emitter Explorer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09: EEG/MEG/EMM Proxy Bundle
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01: Single-neuron Multimodal
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/02_two_neuron_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02: Two-neuron E/I
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/03_network_100_ei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03: 100-neuron Network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/04_v1_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04: V1 Six-layer Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05: V1-PFC Dual Column
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06: v0.3.6 Chainable Config
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07: v0.3.7 Source Bookkeeping
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08: v0.3.8 LFP/CSD Readout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../guides/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/probe_operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probe Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/tensor_field_workflows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensor-Field Workflows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/plotly_visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plotly Visualization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/poisson_admissibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Poisson Admissibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/jaxley_interop/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Jaxley Interoperability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../notes/biophysical_model_comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Biophysical Model Comparison
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/calibration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Calibration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/output_bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Core
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/emitters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Emitters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/fields/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/probes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Probes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/objectives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Objectives
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference/glossary_of_methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Glossary of Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About jaxfne
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About jaxfne
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations_and_future_plans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Limitations and future plans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../citation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Citation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_5" id="__nav_6_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_6_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.3.4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.3.4
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.2.18/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.18
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.2.10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.10
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.2.3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.3
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.2.1/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.1
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../releases/v0.2.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v0.2.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q1-drive-firing-rate-per-cell-type-single-isolated-neuron" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q1 — Drive → firing rate, per cell type (single isolated neuron)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q2-reasonable-plasticity-scale-global_stdp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q2 — Reasonable plasticity scale (global_stdp)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q3-physiological-hard-bounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q3 — Physiological hard bounds
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Q3 — Physiological hard bounds">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-single-neuron-must-never-exceed-100-hz-drive-at-which-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (a) Single neuron must never exceed 100 Hz — drive at which it does
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#b-in-network-per-neuron-rate-is-self-limited-by-recurrent-inhibition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        (b) In-network, per-neuron rate is self-limited by recurrent inhibition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q4-drive-for-target-firing-rates-sweetpoints-per-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Q4 — Drive for target firing rates (sweetpoints, per type)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#synthesis-the-stable-operating-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synthesis — the stable operating point
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related reports
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cortex-calibration-checklist-100-neuron-v1-column">Cortex Calibration Checklist — 100-Neuron V1 Column<a class="headerlink" href="#cortex-calibration-checklist-100-neuron-v1-column" title="Permanent link">&para;</a></h1>
+<p><strong>Status:</strong> Technical report · proxy / computational-scaffold · 2026-06-17
+<strong>Truth gates:</strong> <code>claim_level=computational_scaffold</code>, <code>field_claim_level=proxy_readout</code>. No biological-calibration or mechanism claim.</p>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
+<p>Answer four operating-point questions for the canonical 100-neuron laminar
+column with measured Izhikevich simulations (dt = 0.1 ms):</p>
+<ol>
+<li>How does DC drive map to firing rate, per cell type? (F-I curves)</li>
+<li>What plasticity scale (<code>global_stdp</code>) is reasonable?</li>
+<li>Physiological hard bounds: per-neuron &lt; 100 Hz; stable cortex mean &lt; 10 Hz.</li>
+<li>Drive sweetpoints for target rates (1 / 5 / 10 / 20 Hz) per cell type.</li>
+</ol>
+<p>Reproduce:
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>cortex_calibration_fi_curves.py<span class="w">      </span><span class="c1"># Q1, Q4, Q3-per-neuron</span>
+python<span class="w"> </span>cortex_calibration_network_rate.py<span class="w">   </span><span class="c1"># Q3-network</span>
+python<span class="w"> </span>cortex_100_stdp_global_sweep.py<span class="w">      </span><span class="c1"># Q2 (global_stdp scale sweep)</span>
+</code></pre></div>
+Data artifacts: <code>cortex_calibration/{fi_curves.json, network_rate.json}</code>,
+<code>cortex_100_stdp_global_sweep/stdp_global_sweep.json</code>.</p>
+<hr />
+<h2 id="q1-drive-firing-rate-per-cell-type-single-isolated-neuron">Q1 — Drive → firing rate, per cell type (single isolated neuron)<a class="headerlink" href="#q1-drive-firing-rate-per-cell-type-single-isolated-neuron" title="Permanent link">&para;</a></h2>
+<p>Firing rate (Hz) of one neuron at constant injected drive, no synapses, no
+noise. Intrinsic baseline drive (built into each type) is added on top:</p>
+<table>
+<thead>
+<tr>
+<th>cell</th>
+<th style="text-align: right;">intrinsic</th>
+<th style="text-align: right;">−100</th>
+<th style="text-align: right;">−50</th>
+<th style="text-align: right;">−20</th>
+<th style="text-align: right;">−10</th>
+<th style="text-align: right;">0</th>
+<th style="text-align: right;">10</th>
+<th style="text-align: right;">20</th>
+<th style="text-align: right;">50</th>
+<th style="text-align: right;">100</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>E</strong></td>
+<td style="text-align: right;">5.0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">10.6</td>
+<td style="text-align: right;">32.8</td>
+<td style="text-align: right;">53.9</td>
+<td style="text-align: right;">119.4</td>
+<td style="text-align: right;">232.2</td>
+</tr>
+<tr>
+<td><strong>PV</strong></td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"><strong>185</strong></td>
+<td style="text-align: right;"><strong>345</strong></td>
+<td style="text-align: right;">714</td>
+<td style="text-align: right;">1111</td>
+</tr>
+<tr>
+<td><strong>SST</strong></td>
+<td style="text-align: right;">3.5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">28.9</td>
+<td style="text-align: right;">97.8</td>
+<td style="text-align: right;">172.8</td>
+<td style="text-align: right;">376</td>
+<td style="text-align: right;">668</td>
+</tr>
+<tr>
+<td><strong>VIP</strong></td>
+<td style="text-align: right;">3.0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">5.0</td>
+<td style="text-align: right;">104</td>
+<td style="text-align: right;">272</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Negative drive (≤ −10 nA) silences every type</strong> — a cliff, not graded suppression.</li>
+<li><strong>E</strong> is the only type with a usable graded curve (10 → 54 Hz over drive 0 → 20).</li>
+<li><strong>PV is fast-spiking</strong>: 0 → 185 Hz between drive 0 and 10; no low-rate DC regime.</li>
+<li><strong>SST is tonically active</strong> (28.9 Hz at injected 0).</li>
+<li><strong>VIP is reluctant</strong>: needs ~+20 nA before firing (its <code>b = −0.1</code> resists recruitment).</li>
+</ul>
+<hr />
+<h2 id="q2-reasonable-plasticity-scale-global_stdp">Q2 — Reasonable plasticity scale (<code>global_stdp</code>)<a class="headerlink" href="#q2-reasonable-plasticity-scale-global_stdp" title="Permanent link">&para;</a></h2>
+<p><code>global_stdp</code> is the <code>plasticity_scale</code> gain on the STDP update
+<code>dW = global_stdp · (dW_LTP − dW_LTD)</code>. Per-step weight change vs scale
+(rule A_plus=0.01, A_minus=0.012; weights O(0.5), w_max=1.5; 250k-step raster):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">global_stdp</th>
+<th style="text-align: right;">dW_mean/step</th>
+<th style="text-align: right;">dW_max/step</th>
+<th>accumulated over run (hot synapse)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>frozen</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">−4.0e−6</td>
+<td style="text-align: right;">2e−5</td>
+<td>~5 (saturates)</td>
+</tr>
+<tr>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">−8.0e−6</td>
+<td style="text-align: right;">6e−5</td>
+<td>~15 (<strong>saturates hard</strong>)</td>
+</tr>
+<tr>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">−1.6e−5</td>
+<td style="text-align: right;">1.2e−4</td>
+<td>~30</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">−8.0e−5</td>
+<td style="text-align: right;">5.8e−4</td>
+<td>~145</td>
+</tr>
+<tr>
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">−8.0e−4</td>
+<td style="text-align: right;">5.8e−3</td>
+<td>~1450 (pure clipping)</td>
+</tr>
+</tbody>
+</table>
+<p>Criterion — a change is "visible but gradual" if the hottest synapse reaches
+~10% of w_max (≈ 0.15) over a useful window, not in one step and not never:</p>
+<ul>
+<li>At <strong>scale 1.0</strong>, hot synapse hits 0.15 in <strong>~250 ms</strong> → over a 25 s closed loop that is <strong>massive saturation</strong>. (The post-hoc bulk mean looked flat only because post-hoc does not accumulate.)</li>
+<li>To evolve weights over the <strong>whole multi-second run</strong>: per-step ≈ 6e−7 → <strong>scale ≈ 0.01</strong>.</li>
+<li>To evolve over <strong>~hundreds of ms</strong>: <strong>scale ≈ 0.1–1.0</strong>.</li>
+</ul>
+<p><strong>Recommended band: <code>global_stdp ≈ 0.01 – 0.1</code>.</strong>
+<code>&lt; 0.001</code> is effectively frozen; <code>&gt; 1</code> saturates/clips (10–100 is clipping, not
+learning); negative values are anti-Hebbian contrast only.</p>
+<blockquote>
+<p><strong>Closed-loop + homeostasis (resolved):</strong> post-hoc bands are an upper bound on
+the <em>driving signal</em>. With feedback (<a href="../STDP_CLOSED_LOOP_REPORT/">STDP_CLOSED_LOOP_REPORT</a>),
+unregulated scales <strong>≥ 0.5 run away</strong>. The fix — and the <strong>canonical STDP
+model</strong> — is closed-loop STDP + the simplest homeostatic regulator (synaptic
+scaling): it keeps <code>global_stdp = 1.0</code> stable <em>and</em> learning. See
+<a href="../STDP_HOMEOSTATIC_REPORT/">STDP_HOMEOSTATIC_REPORT</a>. Use that going forward.</p>
+<p><strong>Coupling to Q3 (now verified):</strong> scale and rate trade off. Re-running the
+sweep at the stable 9.63 Hz regime (2 nA baseline) gives a per-step STDP
+signal <strong>~10× smaller</strong> than at 43 Hz, so the reasonable band shifts up to
+<strong><code>global_stdp ≈ 0.05 – 1.0</code></strong> at ~10 Hz (vs 0.01–0.1 at 43 Hz) — exactly the
+predicted ~10× scaling. See
+<a href="../STDP_LOWRATE_REGIME_REPORT/">STDP_LOWRATE_REGIME_REPORT</a>.</p>
+</blockquote>
+<p>Full sweeps + invariant checks: <a href="../STDP_GLOBAL_SCALE_REPORT/">STDP_GLOBAL_SCALE_REPORT</a>
+(~43 Hz) and <a href="../STDP_LOWRATE_REGIME_REPORT/">STDP_LOWRATE_REGIME_REPORT</a> (~10 Hz).</p>
+<hr />
+<h2 id="q3-physiological-hard-bounds">Q3 — Physiological hard bounds<a class="headerlink" href="#q3-physiological-hard-bounds" title="Permanent link">&para;</a></h2>
+<h3 id="a-single-neuron-must-never-exceed-100-hz-drive-at-which-it-does">(a) Single neuron must never exceed 100 Hz — drive at which it does<a class="headerlink" href="#a-single-neuron-must-never-exceed-100-hz-drive-at-which-it-does" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>cell</th>
+<th style="text-align: center;">drive where rate &gt; 100 Hz (isolated)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>E</strong></td>
+<td style="text-align: center;">+42 nA</td>
+</tr>
+<tr>
+<td><strong>PV</strong></td>
+<td style="text-align: center;"><strong>+6 nA</strong></td>
+</tr>
+<tr>
+<td><strong>SST</strong></td>
+<td style="text-align: center;"><strong>+11 nA</strong></td>
+</tr>
+<tr>
+<td><strong>VIP</strong></td>
+<td style="text-align: center;">+50 nA</td>
+</tr>
+</tbody>
+</table>
+<p>Isolated PV/SST exceed 100 Hz at tiny drives — <strong>directly driving interneurons
+hard is the failure mode.</strong></p>
+<h3 id="b-in-network-per-neuron-rate-is-self-limited-by-recurrent-inhibition">(b) In-network, per-neuron rate is self-limited by recurrent inhibition<a class="headerlink" href="#b-in-network-per-neuron-rate-is-self-limited-by-recurrent-inhibition" title="Permanent link">&para;</a></h3>
+<p>Baseline E-drive sweep (100-neuron cortex, 2 s, noise on):</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">E-drive nA</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">E</th>
+<th style="text-align: right;">I</th>
+<th style="text-align: right;">PV</th>
+<th style="text-align: right;">SST</th>
+<th style="text-align: right;">VIP</th>
+<th style="text-align: right;">max neuron</th>
+<th style="text-align: center;">mean ≤ 10 Hz?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3.08</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">10.6</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">25.4</td>
+<td style="text-align: right;">11.4</td>
+<td style="text-align: right;">25.6</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: right;"><strong>2</strong></td>
+<td style="text-align: right;"><strong>9.46</strong></td>
+<td style="text-align: right;">7.22</td>
+<td style="text-align: right;">14.9</td>
+<td style="text-align: right;">6.7</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">14.1</td>
+<td style="text-align: right;">29.4</td>
+<td style="text-align: center;">✅</td>
+</tr>
+<tr>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">11.63</td>
+<td style="text-align: right;">9.68</td>
+<td style="text-align: right;">16.4</td>
+<td style="text-align: right;">9.1</td>
+<td style="text-align: right;">27.5</td>
+<td style="text-align: right;">15.8</td>
+<td style="text-align: right;">30.6</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">14.67</td>
+<td style="text-align: right;">12.7</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">12.0</td>
+<td style="text-align: right;">30.4</td>
+<td style="text-align: right;">19.2</td>
+<td style="text-align: right;">36.7</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">16.12</td>
+<td style="text-align: right;">14.4</td>
+<td style="text-align: right;">20.3</td>
+<td style="text-align: right;">13.2</td>
+<td style="text-align: right;">30.1</td>
+<td style="text-align: right;">20.9</td>
+<td style="text-align: right;">35.0</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">18.37</td>
+<td style="text-align: right;">17.3</td>
+<td style="text-align: right;">21.0</td>
+<td style="text-align: right;">15.5</td>
+<td style="text-align: right;">30.1</td>
+<td style="text-align: right;">19.4</td>
+<td style="text-align: right;">36.7</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">15</td>
+<td style="text-align: right;">22.71</td>
+<td style="text-align: right;">21.8</td>
+<td style="text-align: right;">24.9</td>
+<td style="text-align: right;">21.7</td>
+<td style="text-align: right;">33.1</td>
+<td style="text-align: right;">20.1</td>
+<td style="text-align: right;">42.2</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">27.74</td>
+<td style="text-align: right;">27.4</td>
+<td style="text-align: right;">28.5</td>
+<td style="text-align: right;">27.1</td>
+<td style="text-align: right;">36.8</td>
+<td style="text-align: right;">20.5</td>
+<td style="text-align: right;">53.3</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">37.43</td>
+<td style="text-align: right;">38.5</td>
+<td style="text-align: right;">34.8</td>
+<td style="text-align: right;">37.9</td>
+<td style="text-align: right;">37.4</td>
+<td style="text-align: right;">25.7</td>
+<td style="text-align: right;">75.0</td>
+<td style="text-align: center;">❌</td>
+</tr>
+<tr>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">53.74</td>
+<td style="text-align: right;">60.7</td>
+<td style="text-align: right;">36.8</td>
+<td style="text-align: right;">38.6</td>
+<td style="text-align: right;">41.9</td>
+<td style="text-align: right;">26.7</td>
+<td style="text-align: right;">79.4</td>
+<td style="text-align: center;">❌</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li><strong>Per-neuron &lt; 100 Hz holds in-network at every drive</strong> (max 79 Hz even at 50 nA): recurrent inhibition tames interneurons that hit 1000 Hz in isolation. The hard per-neuron bound is <strong>structurally respected</strong>.</li>
+<li><strong>Mean &lt; 10 Hz requires baseline E-drive ≤ ~2 nA.</strong> Using 10 nA gives ~18 Hz mean — about 2× over budget.</li>
+</ol>
+<blockquote>
+<p><strong>Action:</strong> cap baseline E-drive at ~2–3 nA; never inject DC directly into PV/SST.</p>
+</blockquote>
+<hr />
+<h2 id="q4-drive-for-target-firing-rates-sweetpoints-per-type">Q4 — Drive for target firing rates (sweetpoints, per type)<a class="headerlink" href="#q4-drive-for-target-firing-rates-sweetpoints-per-type" title="Permanent link">&para;</a></h2>
+<p>Single-neuron drive needed to reach each target rate:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">target</th>
+<th style="text-align: right;">E</th>
+<th style="text-align: right;">PV</th>
+<th style="text-align: right;">SST</th>
+<th style="text-align: right;">VIP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">1 Hz</td>
+<td style="text-align: right;">≈ −1</td>
+<td style="text-align: right;">(none)</td>
+<td style="text-align: right;">≈ −2</td>
+<td style="text-align: right;">+20</td>
+</tr>
+<tr>
+<td style="text-align: right;">5 Hz</td>
+<td style="text-align: right;">≈ −1</td>
+<td style="text-align: right;">(none)</td>
+<td style="text-align: right;">≈ −2</td>
+<td style="text-align: right;">+20</td>
+</tr>
+<tr>
+<td style="text-align: right;">10 Hz</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">(none)</td>
+<td style="text-align: right;">≈ −2</td>
+<td style="text-align: right;">+22</td>
+</tr>
+<tr>
+<td style="text-align: right;">20 Hz</td>
+<td style="text-align: right;">+4</td>
+<td style="text-align: right;">+1*</td>
+<td style="text-align: right;">−1</td>
+<td style="text-align: right;">+25</td>
+</tr>
+</tbody>
+</table>
+<p>* PV/SST collapse to a single threshold — between drive 0 and first firing they
+jump past all four targets (185 Hz at +10). <strong>They have no graded DC sweetpoints</strong>;
+their rate is set by network inhibition, not DC.</p>
+<ul>
+<li><strong>Only E has clean, separable sweetpoints</strong>: 1–5 Hz at slightly negative drive, 10 Hz at ~0, 20 Hz at +4.</li>
+<li><strong>PV/SST</strong>: control rate via the I↔E loop, not DC.</li>
+<li><strong>VIP</strong>: high-threshold knob, usable from +20 nA upward.</li>
+</ul>
+<hr />
+<h2 id="synthesis-the-stable-operating-point">Synthesis — the stable operating point<a class="headerlink" href="#synthesis-the-stable-operating-point" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>knob</th>
+<th>recommended</th>
+<th>why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Baseline E-drive</td>
+<td><strong>~2 nA</strong></td>
+<td>mean ≤ 10 Hz (Q3 network)</td>
+</tr>
+<tr>
+<td>Direct PV/SST drive</td>
+<td><strong>none</strong></td>
+<td>hit 100 Hz at 6–11 nA (Q3 single)</td>
+</tr>
+<tr>
+<td>E target rate</td>
+<td>DC ~0 nA → 10 Hz, +4 → 20 Hz</td>
+<td>only E has graded sweetpoints (Q4)</td>
+</tr>
+<tr>
+<td>I rates</td>
+<td>via E-drive + inhibition</td>
+<td>no DC sweetpoints (Q4)</td>
+</tr>
+<tr>
+<td><code>global_stdp</code></td>
+<td><strong>0.01–0.1</strong> (low rate → up to ~1.0)</td>
+<td>gradual learning, no saturation (Q2)</td>
+</tr>
+<tr>
+<td>per-neuron cap</td>
+<td>structurally safe (&lt; 80 Hz in-net)</td>
+<td>recurrent inhibition self-limits (Q3)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bottom line:</strong> the earlier 43 Hz cortex ran at ~5× the stable drive. Cap
+baseline E-drive at ~2 nA, keep DC off the interneurons, and run STDP at scale
+~0.01–0.1 — the regime where both "is the rate physiological?" and "is STDP
+well-scaled?" answer yes.</p>
+<h2 id="related-reports">Related reports<a class="headerlink" href="#related-reports" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../NEURON_IO_CHARACTERIZATION/">NEURON_IO_CHARACTERIZATION</a> — prior F-I mapping</li>
+<li><a href="../BASELINE_DRIVE_REFERENCE/">BASELINE_DRIVE_REFERENCE</a> — baseline drive reference</li>
+<li><a href="../STDP_GLOBAL_SCALE_REPORT/">STDP_GLOBAL_SCALE_REPORT</a> — <code>global_stdp</code> sweep (~43 Hz)</li>
+<li><a href="../STDP_LOWRATE_REGIME_REPORT/">STDP_LOWRATE_REGIME_REPORT</a> — <code>global_stdp</code> sweep (~10 Hz, rate-compliant)</li>
+<li><a href="../STDP_HOMEOSTATIC_REPORT/">STDP_HOMEOSTATIC_REPORT</a> — <strong>canonical STDP model</strong> (homeostatic, stable at 1.0)</li>
+<li><a href="../STDP_CLOSED_LOOP_REPORT/">STDP_CLOSED_LOOP_REPORT</a> — closed-loop online STDP (runaway verdict)</li>
+<li><a href="../STDP_REAL_TEST_REPORT/">STDP_REAL_TEST_REPORT</a> — post-hoc STDP weight test</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2401,7 +2431,7 @@
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;field_model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;proxy_readout_only&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;field_model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;proxy_readout&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;run_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;tutorial_scaffold&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;model_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;simulation_config&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
@@ -2411,7 +2441,7 @@
 <p><strong>Constraints:</strong>
 - <code>amplitude_status</code> is <strong>always False</strong> in v0.2.19
 - <code>model_status</code> must be <code>"computational_scaffold"</code>
-- <code>field_model_status</code> must be <code>"proxy_readout_only"</code>
+- <code>field_model_status</code> must be <code>"proxy_readout"</code>
 - All values must be JSON-safe (no NaN/Inf)</p>
 <h3 id="2-probe_reportjson">2. probe_report.json<a class="headerlink" href="#2-probe_reportjson" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose:</strong> All 8 multimodal operator reports.</p>
@@ -2451,7 +2481,7 @@
 <p><strong>Key fields:</strong>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;computational_scaffold&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;field_model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;proxy_readout_only&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;field_model_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;proxy_readout&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;amplitude_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;empirical_validation_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;mechanism_status&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
@@ -2549,7 +2579,7 @@
 <li><strong>Status checks frozen:</strong><ul>
 <li><code>amplitude_status</code> = False</li>
 <li><code>model_status</code> = "computational_scaffold"</li>
-<li><code>field_model_status</code> = "proxy_readout_only"</li>
+<li><code>field_model_status</code> = "proxy_readout"</li>
 </ul>
 </li>
 <li><strong>Probe report complete:</strong> All 8 operators present</li>

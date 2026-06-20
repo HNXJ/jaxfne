@@ -450,6 +450,8 @@
       
         
       
+        
+      
     
     
     
@@ -519,6 +521,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2292,10 +2322,10 @@ field/EEG/MEG/EMM/LFP/CSD output is a <strong><code>proxy_readout</code></strong
 defined by explicit proxy equations. The following gates are enforced in code and may be
 read but stay at their conservative defaults:</p>
 <ul>
-<li><strong><code>field_solver_status = "laminar_proxy_no_pde"</code></strong> — the laminar field is a
+<li><strong><code>field_solver_status = "linear_solver"</code></strong> — the laminar field is a
   Gaussian-leadfield proxy with finite-difference CSD. The proxy operator is defined by
   its kernel equation; it stands in for a volume-conductor PDE solve.</li>
-<li><strong><code>physical_amplitude_claim_allowed = False</code></strong> — amplitudes are relative (uncalibrated)
+<li><strong><code>physical_amplitude_calibrated = False</code></strong> — amplitudes are relative (uncalibrated)
   units. EEG/MEG/LFP/CSD proxy outputs are reported in proxy units.</li>
 </ul>
 <h3 id="modeling-assumptions">Modeling assumptions<a class="headerlink" href="#modeling-assumptions" title="Permanent link">&para;</a></h3>

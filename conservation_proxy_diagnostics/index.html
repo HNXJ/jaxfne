@@ -446,6 +446,8 @@
       
         
       
+        
+      
     
     
     
@@ -515,6 +517,34 @@
     
   
     Notebook Standard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/13_canonical_column_etude/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Étude: Canonical Cortical Column
   
 
     
@@ -2250,7 +2280,7 @@ and produce JSON-safe scalar summaries for source/field validation.</p>
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - <code>amplitude_status: false</code> (immutable).
 - <code>metabolism_status: false</code> (immutable).
-- <code>j_dot_e_proxy: null</code> — J_e is not computed in <code>laminar_proxy_no_pde</code> mode.
+- <code>j_dot_e_proxy: null</code> — J_e is not computed in <code>linear_solver</code> mode.
 - <code>poynting_flux_proxy: null</code> — not implemented in v0.2.x.
 - <code>poisson_solver_status: not_implemented</code>.
 - <code>maxwell_solver_status: not_implemented</code>.
@@ -2292,7 +2322,7 @@ distinguish it as a proxy analog of field energy density; it is not a physical e
 <div class="arithmatex">\[\mathbf{J} \cdot \mathbf{E} \approx -\sigma |\nabla \phi_e|^2\]</div>
 <p>This product is the local Ohmic power density. In TFNE v0.2.27:</p>
 <ul>
-<li>J_e is not computed in <code>laminar_proxy_no_pde</code> mode.</li>
+<li>J_e is not computed in <code>linear_solver</code> mode.</li>
 <li><code>j_dot_e_proxy</code> is always <code>null</code>.</li>
 <li>Computing J·E as a physical power density would require a solved field and calibrated σ.</li>
 </ul>
@@ -2332,12 +2362,12 @@ Proxy mode reports <code>poynting_flux_proxy: null</code>. Poynting flux, stress
 <tr>
 <td><code>field_solver_status</code></td>
 <td>str</td>
-<td>Passed through; <code>"laminar_proxy_no_pde"</code> by default</td>
+<td>Passed through; <code>"linear_solver"</code> by default</td>
 </tr>
 <tr>
 <td><code>field_model_status</code></td>
 <td>str</td>
-<td>Passed through; <code>"proxy_readout_only"</code> by default</td>
+<td>Passed through; <code>"proxy_readout"</code> by default</td>
 </tr>
 <tr>
 <td><code>source_calibration_status</code></td>
