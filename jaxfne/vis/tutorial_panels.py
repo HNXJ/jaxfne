@@ -337,10 +337,80 @@ def activity_trace_suite(
     return fig
 
 
+def _spectrolaminar_inputs_from_model(
+    model, *, n_trials, duration_ms, dt_ms, seed, signal, freq_min_hz, freq_max_hz,
+    freq_count, recurrent_backend, enable_homeostasis, homeostasis_params,
+    alpha_beta_range_hz, gamma_range_hz, column_height_m,
+):
+    """Build (specs, model_dict, cfg, trials) for spectrolaminar_suite_3panel from a
+    constructed (Configuration-path) Model by running ``n_trials`` simulations.
+
+    Collects the laminar proxy field contacts (CSD/LFP-proxy) and spikes per trial,
+    computes the depth x frequency relative-power profile via the shared
+    ``spectrolaminar_from_trials`` spectral routine, and assembles a neurons table
+    (depth-from-L4 per neuron) for the firing-rate-by-depth panel. Proxy readout.
+    """
+    import numpy as np
+    import pandas as pd
+    from types import SimpleNamespace
+    import jaxfne as jtfne
+    from jaxfne.tutorial_utils import spectrolaminar_from_trials
+
+    field_key = {"csd": "csd_proxy", "lfp": "lfp_proxy", "phi": "phi_e_proxy"}[signal]
+    sig_key = {"csd": "csd_contacts", "lfp": "lfp_contacts", "phi": "phi_contacts"}[signal]
+
+    rt_kwargs = dict(recurrent_backend=recurrent_backend, enable_homeostasis=enable_homeostasis)
+    if homeostasis_params is not None:
+        rt_kwargs["homeostasis_params"] = homeostasis_params
+
+    contacts, spikes = [], []
+    for i in range(int(n_trials)):
+        sig = jtfne.simulate(model, sim=jtfne.Simulation(
+            duration_ms=duration_ms, dt_ms=dt_ms, seed=int(seed) + i,
+            runtime=jtfne.RuntimeConfig(**rt_kwargs)))
+        contacts.append(np.asarray(getattr(sig.field, field_key)))   # (T, n_contacts)
+        spikes.append(np.asarray(sig.spikes))                        # (T, N)
+    contacts = np.stack(contacts)                                    # (n_trials, T, n_contacts)
+    spikes = np.stack(spikes)                                        # (n_trials, T, N)
+    n_contacts = contacts.shape[-1]
+
+    l4_ref_rel = 0.5
+    cfg = SimpleNamespace(
+        dt_ms=dt_ms, duration_ms=duration_ms, freq_min_hz=freq_min_hz,
+        freq_max_hz=freq_max_hz, freq_count=freq_count, l4_ref_rel=l4_ref_rel,
+        cz_m=column_height_m, output_dir=None, n_trials=int(n_trials),
+    )
+    trials = {sig_key: contacts, "spikes": spikes,
+              "contact_depths_m": np.linspace(0.0, column_height_m, n_contacts)}
+
+    nt = model.neuron_table()
+    areas = sorted({r["area"] for r in nt})
+    cfg.areas = areas
+    specs = {}
+    for ai, area in enumerate(areas):
+        _, prof = spectrolaminar_from_trials(
+            trials, cfg, signal_key=sig_key, area_name=area,
+            alpha_beta_range_hz=alpha_beta_range_hz, gamma_range_hz=gamma_range_hz)
+        prof["n_trials"] = int(n_trials)
+        prof["similarity_percent"] = float("nan")
+        specs[area] = prof
+
+    z = np.array([float(r["z"]) for r in nt])
+    zn = (z - z.min()) / (float(np.ptp(z)) + 1e-9)
+    pos_from_l4 = zn * column_height_m - l4_ref_rel * column_height_m
+    neurons = pd.DataFrame({
+        "area": [r["area"] for r in nt],
+        "cell_type": [r["cell_type"] for r in nt],
+        "layer": [r["layer"] for r in nt],
+        "pos_from_l4": pos_from_l4,
+    })
+    return specs, {"neurons": neurons}, cfg, trials
+
+
 def spectrolaminar_suite_3panel(
-    specs: dict,
-    model: dict,
-    cfg: object,
+    specs,
+    model: dict | None = None,
+    cfg: object | None = None,
     stage: str = "initial",
     areas: Sequence[str] | None = None,
     output_dir: str | Path | None = None,
@@ -353,17 +423,48 @@ def spectrolaminar_suite_3panel(
     power_smooth_sigmas: Sequence[float] | None = None,
     freq_bin_factor: int = 3,
     trials: dict | None = None,
+    *,
+    n_trials: int = 8,
+    duration_ms: float = 2000.0,
+    dt_ms: float = 0.5,
+    seed: int = 0,
+    signal: str = "csd",
+    freq_min_hz: float = 1.0,
+    freq_max_hz: float = 150.0,
+    freq_count: int = 96,
+    recurrent_backend: str = "edge_list",
+    enable_homeostasis: bool = False,
+    homeostasis_params: dict | None = None,
+    alpha_beta_range_hz: tuple = (10.0, 25.0),
+    gamma_range_hz: tuple = (40.0, 150.0),
+    column_height_m: float = 0.0016,
 ) -> dict[str, matplotlib.figure.Figure]:
-    """Create 3-panel spectrolaminar suite per area.
+    """Create the spectrolaminar suite per area (the standard laminar readout).
+
+    Two calling conventions:
+
+    * **Standard (Configuration path):** ``spectrolaminar_suite_3panel(model, ...)``
+      where ``model`` is a constructed :class:`~jaxfne.Model` (e.g. from
+      ``build_laminar_column(...).set_emitter(...).field(...)`` + ``construct``).
+      Runs ``n_trials`` simulations internally (keyword args ``n_trials``,
+      ``duration_ms``, ``dt_ms``, ``seed``, ``signal`` in {"csd","lfp","phi"},
+      ``freq_*``, ``recurrent_backend``, ``enable_homeostasis``,
+      ``homeostasis_params``), then builds the depth x frequency relative-power
+      specs, the per-neuron depth table, and the trials, and renders below.
+    * **Legacy (tutorial pipeline):** ``spectrolaminar_suite_3panel(specs, model_dict, cfg)``
+      with ``specs`` from ``spectrolaminar_from_trials`` / ``summarize_spectrolaminar_similarity``.
+
+    Proxy readout only (``*_proxy`` field); truth gates unchanged.
 
     Parameters
     ----------
-    specs : dict
-        Specs dict from spectrolaminar_from_trials()
-    model : dict
-        Model from build_laminar_column()
-    cfg : LaminarColumnConfig
-        Configuration
+    specs : dict | Model
+        A constructed Model (standard path) OR a specs dict (legacy path).
+    model : dict, optional
+        Legacy: model dict from the tutorial ``build_laminar_column`` (with
+        ``model['neurons']``). Ignored / auto-built in the standard path.
+    cfg : LaminarColumnConfig, optional
+        Legacy configuration. Auto-built in the standard path.
     stage : str
         Stage label
     areas : sequence or None
@@ -396,15 +497,29 @@ def spectrolaminar_suite_3panel(
     import matplotlib.pyplot as plt
     from scipy.ndimage import gaussian_filter1d as gauss1d
 
+    # Standard (Configuration-path) entry: called with a constructed Model as the
+    # first argument. Run n_trials simulations, build the depth x frequency specs,
+    # neurons table, and trials internally, then render below. Legacy callers pass
+    # (specs, model_dict, cfg) from the tutorial trial pipeline and skip this.
+    if hasattr(specs, "neuron_table") and hasattr(specs, "params"):
+        specs, model, cfg, trials = _spectrolaminar_inputs_from_model(
+            specs, n_trials=n_trials, duration_ms=duration_ms, dt_ms=dt_ms,
+            seed=seed, signal=signal, freq_min_hz=freq_min_hz,
+            freq_max_hz=freq_max_hz, freq_count=freq_count,
+            recurrent_backend=recurrent_backend, enable_homeostasis=enable_homeostasis,
+            homeostasis_params=homeostasis_params, alpha_beta_range_hz=alpha_beta_range_hz,
+            gamma_range_hz=gamma_range_hz, column_height_m=column_height_m,
+        )
+
     if areas is None:
         areas = cfg.areas
 
     if output_dir is None:
-        output_dir = Path(cfg.output_dir)
-    else:
+        output_dir = getattr(cfg, "output_dir", None)
+    # output_dir may be None (in-memory only: return figures without writing PNGs).
+    if output_dir is not None:
         output_dir = Path(output_dir)
-
-    output_dir.mkdir(parents=True, exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
 
     line_color = '#f5f5f5' if theme == "dark" else '#202020'
     figs = {}
@@ -572,9 +687,10 @@ def spectrolaminar_suite_3panel(
         if theme == "dark":
             _apply_dark_theme(fig, axes)
 
-        png_path = output_dir / f"spectrolaminar_{stage}_{area}.png"
-        fig.savefig(png_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
-        print(f"Saved: {png_path}")
+        if output_dir is not None:
+            png_path = output_dir / f"spectrolaminar_{stage}_{area}.png"
+            fig.savefig(png_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
+            print(f"Saved: {png_path}")
 
         figs[area] = fig
 

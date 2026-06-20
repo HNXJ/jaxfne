@@ -90,6 +90,21 @@ def test_pv_e_strengthened_canonical_only():
     assert pv_e_meanabs(mc) > 0.0
 
 
+def test_spectrolaminar_suite_3panel_from_model():
+    """jtfne.vis.spectrolaminar_suite_3panel accepts a constructed Model (standard path)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import jaxfne.vis as vis
+    m = jtfne.construct(_canon(n=120))
+    figs = vis.spectrolaminar_suite_3panel(
+        m, n_trials=2, duration_ms=300.0, dt_ms=0.5, seed=0, signal="csd")
+    assert isinstance(figs, dict) and len(figs) >= 1
+    area, fig = next(iter(figs.items()))
+    assert hasattr(fig, "savefig")           # a matplotlib Figure
+    import matplotlib.pyplot as plt
+    plt.close("all")
+
+
 def test_homeostasis_k_gain_size_scaled_runs_and_json_safe():
     m = jtfne.construct(_canon())
     rt = jtfne.RuntimeConfig(enable_homeostasis=True,
