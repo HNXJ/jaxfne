@@ -652,6 +652,164 @@ class JaxleyBridge:
             return signals, recordings
         return signals
 
+    def simulate_homeostatic(
+        self,
+        duration_ms: float = 400.0,
+        dt_ms: float = 0.025,
+        *,
+        record_state: str = "v",
+        solver: str = "bwd_euler",
+        window_ms: float = 20.0,
+        base_current_nA: Any = 0.01,
+        target_rate_hz: float = 40.0,
+        tau_r_ms: float = 300.0,
+        k_gain: float = 0.2,
+        g_min: float = -12.0,
+        g_max: float = 8.0,
+        bias_current_scale: float = 0.001,
+        spike_threshold_mV: float = 0.0,
+        return_diagnostics: bool = False,
+    ) -> Any:
+        """Run the Jaxley model under tfne's homeostatic excitability controller.
+
+        Wraps the Jaxley emitter in an **outer-loop windowed controller** so you keep
+        Jaxley's channel/morphology toolset *and* gain tfne's homeostasis. Per recorded
+        compartment (one per controlled cell), the controller maintains a slow activity
+        trace ``r`` and injects an excitability current bias following tfne's restoring-bias
+        law (here parameterized by firing rate in Hz, which is dt-independent — unlike the
+        Izhikevich kernel's per-step spike-fraction trace)::
+
+            rate_w = spikes / window_seconds               # per-window firing rate (Hz)
+            r      = decay_r * r + (1 - decay_r) * rate_w   # decay_r = exp(-window_ms / tau_r_ms)
+            g      = clip(k_gain * (target_rate_hz - r), g_min, g_max)  # over-active -> g<0
+            I_cell = base_current_nA + bias_current_scale * g           # injected next window
+
+        Windows are stitched with continuous state resume (Jaxley ``all_states``), and
+        per-cell current is injected via grad-safe ``data_stimulate`` (no module mutation).
+        ``k_gain=0`` disables the controller (a clean null). Because Jaxley's ``integrate``
+        is a closed scan, the feedback runs at *window* cadence, not per step — a deliberate,
+        documented approximation of the per-step Izhikevich homeostatic kernel.
+
+        The model must have at least one recording (``module.record(...)``) — recorded
+        compartments are the controlled cells. Output is a conservative proxy
+        (``field=None``, ``physical_amplitude_calibrated=False``).
+
+        Note: Jaxley single-compartment HH has a non-monotonic f-I curve (high current ->
+        depolarization block). Keep ``base_current_nA`` and the bias range inside the
+        monotonic band (roughly 0.002-0.02 nA for the default compartment) so the controller
+        operates where rate increases with current.
+
+        Parameters
+        ----------
+        duration_ms, dt_ms, record_state, solver : as in :meth:`simulate`.
+        window_ms : float
+            Controller update cadence (and Jaxley integration window).
+        base_current_nA : float or per-cell array
+            Baseline injected current per controlled cell (the controller modulates around it).
+        target_rate_hz : float
+            Homeostatic set-point firing rate the controller restores cells toward.
+        tau_r_ms, k_gain, g_min, g_max : float
+            Homeostasis controller parameters (same law as the Izhikevich kernel; ``k_gain``
+            now multiplies a Hz-valued error so it is smaller than the per-step kernel's).
+        bias_current_scale : float
+            Maps the dimensionless bias ``g`` to an nA current increment.
+        spike_threshold_mV : float
+            Upward-crossing threshold for the spike proxy used to measure activity.
+        return_diagnostics : bool
+            If True, also return a dict with per-window ``g_bias``, ``r_trace``,
+            ``rate_hz`` arrays (shape ``[n_windows, n_cells]``).
+
+        Returns
+        -------
+        Signals, or (Signals, diagnostics) if ``return_diagnostics``.
+        """
+        jx = require_jaxley()
+        import numpy as np
+        import jax.numpy as jnp
+
+        module = self.model
+        recs = getattr(module, "recordings", None)
+        if recs is None or len(recs) == 0:
+            raise ValueError(
+                "simulate_homeostatic requires recordings: call module.record('v') on the "
+                "compartments to control before running the homeostatic controller."
+            )
+        sel = recs[recs["state"] == record_state] if "state" in recs.columns else recs
+        gidx = [int(i) for i in sel["rec_index"].tolist()]
+        n_cells = len(gidx)
+        if n_cells == 0:
+            raise ValueError(f"no recordings for state {record_state!r}")
+
+        base = np.broadcast_to(np.asarray(base_current_nA, dtype=float), (n_cells,)).astype(float)
+        dt = float(dt_ms)
+        n_win_steps = max(1, int(round(float(window_ms) / dt)))
+        win_ms_eff = n_win_steps * dt
+        n_windows = max(1, int(round(float(duration_ms) / win_ms_eff)))
+        decay_r = float(np.exp(-win_ms_eff / float(tau_r_ms)))
+
+        views = [module.select(nodes=[k]) for k in gidx]
+        r = np.zeros(n_cells, dtype=float)  # slow rate trace (Hz)
+        states = None
+        v_chunks: list[Any] = []
+        g_hist: list[Any] = []
+        r_hist: list[Any] = []
+        rate_hist: list[Any] = []
+
+        for w in range(n_windows):
+            g = np.clip(k_gain * (target_rate_hz - r), g_min, g_max)
+            data = None
+            for ci, view in enumerate(views):
+                amp = float(base[ci] + bias_current_scale * g[ci])
+                cur = jnp.full(n_win_steps + 1, amp)
+                data = view.data_stimulate(cur, data_stimuli=data)
+            rec, states = jx.integrate(
+                module, delta_t=dt, t_max=win_ms_eff, solver=solver,
+                data_stimuli=data, all_states=states, return_states=True,
+            )
+            vw = np.asarray(rec)  # (n_cells, n_win_steps+1)
+            # spike proxy: upward threshold crossings -> per-window firing rate (Hz)
+            crossings = ((vw[:, :-1] < spike_threshold_mV) & (vw[:, 1:] >= spike_threshold_mV))
+            rate_w = crossings.sum(axis=1) / (win_ms_eff / 1000.0)
+            r = decay_r * r + (1.0 - decay_r) * rate_w
+            g_hist.append(g.copy())
+            r_hist.append(r.copy())
+            rate_hist.append(rate_w)
+            v_chunks.append(vw if w == 0 else vw[:, 1:])  # drop shared boundary sample
+
+        recordings = np.concatenate(v_chunks, axis=1)  # (n_cells, total_T)
+
+        from dataclasses import replace as _dc_replace
+        spec = JaxleyTraceSpec(
+            dt_ms=dt, layout="unit_by_time", spike_threshold=spike_threshold_mV,
+        )
+        homeo_meta = {
+            "homeostasis": {
+                "method": "minimal_homeostatic_resource_adaptation_controller",
+                "implementation": "jaxley_outer_loop_windowed",
+                "claim_status": "computational_control_proxy_not_biological_mechanism",
+                "biological_learning_claim": False,
+                "mechanism_claim_status": "not_claimed",
+                "window_ms": float(win_ms_eff),
+                "n_windows": int(n_windows),
+                "target_rate_hz": float(target_rate_hz), "tau_r_ms": float(tau_r_ms),
+                "k_gain": float(k_gain), "g_min": float(g_min), "g_max": float(g_max),
+                "bias_current_scale": float(bias_current_scale),
+                "controller_disabled_null": bool(k_gain == 0),
+            }
+        }
+        spec = _dc_replace(spec, metadata=homeo_meta)
+        signals = jaxley_to_signals(module, recordings, dt_ms=dt, state=record_state, spec=spec)
+
+        if return_diagnostics:
+            diagnostics = {
+                "g_bias": np.asarray(g_hist),       # [n_windows, n_cells]
+                "r_trace": np.asarray(r_hist),      # [n_windows, n_cells]
+                "rate_hz": np.asarray(rate_hist),   # [n_windows, n_cells]
+                "controlled_rec_index": gidx,
+            }
+            return signals, diagnostics
+        return signals
+
     def extract_sources(self, signals: Any) -> Any:
         """Extract source tensor from Jaxley bridge signals."""
         import jax.numpy as jnp

@@ -71,3 +71,50 @@ def test_jaxley_to_signals_carries_positions_and_layout():
     # geometry pulled from module.nodes for the recorded compartments
     pos = sig.metadata.get("recorded_positions_xyz")
     assert pos is not None and len(pos) == 2 and len(pos[0]) == 3
+
+
+def _hh_network(n_cells):
+    from jaxley.channels import HH
+    net = jaxley.Network(
+        [jaxley.Cell(jaxley.Branch(jaxley.Compartment(), ncomp=1), parents=[-1])
+         for _ in range(n_cells)]
+    )
+    net.insert(HH())
+    for c in range(n_cells):
+        net.cell(c).branch(0).comp(0).record("v")
+    return net
+
+
+def test_homeostatic_controller_stabilizes_jaxley_rates():
+    # graded drive inside the monotonic f-I band -> divergent rates without control
+    base = [0.004, 0.008, 0.013, 0.018]
+
+    def last_spread(diag):
+        last = diag["rate_hz"][-3:].mean(axis=0)
+        return float(last.max() - last.min())
+
+    _, dnull = jtfne.JaxleyBridge(model=_hh_network(4)).simulate_homeostatic(
+        duration_ms=400.0, base_current_nA=base, k_gain=0.0,
+        target_rate_hz=70.0, return_diagnostics=True)
+    sig, dctrl = jtfne.JaxleyBridge(model=_hh_network(4)).simulate_homeostatic(
+        duration_ms=400.0, base_current_nA=base, k_gain=0.3,
+        bias_current_scale=0.0008, target_rate_hz=70.0, return_diagnostics=True)
+
+    # controller pulls heterogeneous cells toward the set-point -> smaller spread
+    assert last_spread(dctrl) < last_spread(dnull)
+    # diagnostics shape + signal integrity
+    assert dctrl["g_bias"].shape[1] == 4 and dctrl["r_trace"].shape[1] == 4
+    assert sig.V_m.shape[1] == 4 and sig.field is None
+    # framing gates carried, never escalated
+    h = sig.metadata["homeostasis"]
+    assert h["implementation"] == "jaxley_outer_loop_windowed"
+    assert h["biological_learning_claim"] is False
+    assert h["mechanism_claim_status"] == "not_claimed"
+    assert sig.metadata["physical_amplitude_calibrated"] is False
+
+
+def test_homeostatic_k_gain_zero_is_null():
+    # k_gain=0 -> no bias applied -> flagged as the null control
+    sig = jtfne.JaxleyBridge(model=_hh_network(2)).simulate_homeostatic(
+        duration_ms=120.0, base_current_nA=0.01, k_gain=0.0)
+    assert sig.metadata["homeostasis"]["controller_disabled_null"] is True

@@ -44,6 +44,42 @@ sig = jtfne.jaxley_to_signals(cell, rec, dt_ms=0.025)
 sig.metadata["recorded_positions_xyz"]                 # [[x, y, z], ...] per recording
 ```
 
+### tfne homeostasis on a Jaxley emitter
+
+Keep Jaxley's channels/morphologies *and* tfne's homeostatic controller. Record the
+compartments to control, then call `simulate_homeostatic(...)`. An outer-loop windowed
+controller maintains a slow firing-rate trace per cell and injects an excitability
+current bias with tfne's restoring law `g = clip(k_gain * (target_rate_hz - r), g_min, g_max)`,
+stitching windows with continuous state resume:
+
+```python
+import jaxley as jx
+from jaxley.channels import HH
+import jaxfne as jtfne
+
+# 4 cells with graded drive -> divergent rates without control
+net = jx.Network([jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1]) for _ in range(4)])
+net.insert(HH())
+for c in range(4):
+    net.cell(c).branch(0).comp(0).record("v")
+
+sig, diag = jtfne.JaxleyBridge(model=net).simulate_homeostatic(
+    duration_ms=400.0,
+    base_current_nA=[0.004, 0.008, 0.013, 0.018],   # stay in the monotonic f-I band
+    target_rate_hz=70.0, k_gain=0.3, bias_current_scale=0.0008,
+    return_diagnostics=True,
+)
+diag["rate_hz"][-1]   # per-cell rate converges toward the set-point
+sig.metadata["homeostasis"]   # controller params + framing gates
+```
+
+`k_gain=0` is a clean null (no bias). The controller runs at *window* cadence (Jaxley's
+`integrate` is a closed scan), a documented approximation of the per-step Izhikevich
+homeostatic kernel. **Framing:** this is a computational control proxy, not a biological
+mechanism — `biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`.
+Note: Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
+depolarization block), so keep currents in the ~0.002–0.02 nA band for the default compartment.
+
 > **JAX compatibility shim.** Jaxley (≤0.13) channels call the
 > `jnp.clip(a_min=, a_max=)` keywords that recent JAX removed. Every Jaxley entry
 > point routes through `require_jaxley()`, which lazily installs a backward-compatible
