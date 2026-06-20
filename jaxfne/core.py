@@ -493,6 +493,11 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
     return params, positions, geometry_meta
 
 
+# Above this neuron count, a dense all-to-all within-area weight matrix is flagged
+# as an O(N^2) cost (memory + edges). Sparse connectivity (p_connect<1) avoids it.
+_DENSE_CONNECTIVITY_WARN_N = 5000
+
+
 def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str) -> IzhikevichParams:
     n = len(cell_labels)
     if n == 0:
@@ -513,6 +518,22 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
     # Apply sparse random connectivity if p_connect is specified and < 1.0
     connectivity_spec = metadata.get("connectivity", {}) or {}
     p_connect = connectivity_spec.get("p_connect")
+
+    # Transparency: dense all-to-all within-area connectivity materializes an (n,n)
+    # weight matrix and ~n^2 edges. That is inherent to all-to-all topology, not a
+    # bug, but it is O(N^2) in memory and edge count. Make the cost visible at scale
+    # and point to the sparse lever (p_connect < 1) rather than failing silently.
+    if n >= _DENSE_CONNECTIVITY_WARN_N and (p_connect is None or float(p_connect) >= 1.0):
+        import warnings as _warnings
+        _mb = (n * n * (8 if jdtype == jnp.float64 else 4)) / 1e6
+        _warnings.warn(
+            f"dense all-to-all within-area connectivity at N={n} materializes an "
+            f"({n}x{n}) weight matrix (~{_mb:.0f} MB) and ~{n*n} edges (O(N^2)). "
+            f"For large columns set connectivity p_connect<1 (or a sparse rule) to "
+            f"reduce memory and edge count.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     if p_connect is not None:
         p_val = float(p_connect)
         if 0.0 < p_val < 1.0:
@@ -553,11 +574,18 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
             ("SP", "TP"),
             ("TP", "DP")
         }
-        tcm_mask = np.zeros((n, n), dtype=float)
-        for i in range(n):
-            for j in range(n):
-                if (pop[j], pop[i]) in allowed_pairs:
-                    tcm_mask[i, j] = 1.0
+        # Vectorized population-pair mask (bit-identical to the prior O(N^2) Python
+        # double loop, which was ~N^2 Python-level iterations — ~1e8 at N=1e4).
+        # tcm_mask[i, j] = 1 iff (pop[j] (pre), pop[i] (post)) in allowed_pairs.
+        uniq = list(dict.fromkeys(pop))
+        code = {p: c for c, p in enumerate(uniq)}
+        K = len(uniq)
+        allowed_code = np.zeros((K, K), dtype=float)   # [src_code, dst_code]
+        for src, dst in allowed_pairs:
+            if src in code and dst in code:
+                allowed_code[code[src], code[dst]] = 1.0
+        codes = np.fromiter((code[p] for p in pop), dtype=np.intp, count=n)
+        tcm_mask = allowed_code[codes[None, :], codes[:, None]]  # [i,j] = allowed[codes[j], codes[i]]
         W = W * jnp.asarray(tcm_mask, dtype=jdtype)
 
     if bool(metadata.get("suite2_interarea", False)):
