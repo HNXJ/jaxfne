@@ -656,6 +656,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
     # Homeostasis control parameters (all defaulted; k_gain=0 disables)
     r_star: float = 0.05,
     tau_r_ms: float = 300.0,
@@ -726,14 +727,30 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
-    # Carry includes r_i (activity trace)
-    init = (
-        params.v0.astype(jdtype),
-        params.u0.astype(jdtype),
-        jnp.zeros_like(params.v0, dtype=jdtype),
-        jnp.zeros((edges.n_edges,), dtype=jdtype),
-        jnp.full((n_neurons,), r_star, dtype=jdtype),  # r_i initialized to r_star
-    )
+    # Carry includes r_i (activity trace). When ``init_state`` is given (the
+    # ``final_state`` dict returned by a previous call) the carry resumes from it,
+    # enabling exact pause/resume / continuous chunked simulation through the public
+    # API. Otherwise it starts from params.v0/u0 with zero synapses and r=r_star.
+    if init_state is not None:
+        _r0 = init_state.get("r_final")
+        if _r0 is None:
+            _rt = jnp.asarray(init_state["r_trace"], dtype=jdtype)
+            _r0 = _rt[-1] if _rt.ndim == 2 else _rt   # accept full trajectory or final vector
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+            jnp.asarray(_r0, dtype=jdtype),
+        )
+    else:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+            jnp.full((n_neurons,), r_star, dtype=jdtype),  # r_i initialized to r_star
+        )
 
     if drive_schedule is None:
         def step(carry, noise_t):
@@ -841,8 +858,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
 
     diagnostics_dict = {
         **final_state,
+        "r_final": final[4],   # final r_i (N,), distinct from the (T,N) r_trace below
         "g_bias": g_bias,
-        "r_trace": r_trace,
+        "r_trace": r_trace,    # full per-step trajectory (n_steps, n_neurons)
     }
 
     return voltages, spikes, sources, diagnostics_dict

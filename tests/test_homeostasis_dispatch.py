@@ -87,3 +87,34 @@ def test_receptor_kernel_with_homeostasis_raises():
     model = _build({"enable_homeostasis": True, "synaptic_kernel": "receptor_exponential"})
     with pytest.raises(ValueError):
         jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+
+
+def test_homeostatic_kernel_init_state_resume_matches_full_run():
+    """init_state enables exact pause/resume: two chunks == one full run (deterministic)."""
+    import jax
+    from jaxfne.emitters import (IzhikevichParams, EdgeList,
+                                 simulate_edge_recurrent_izhikevich_homeostatic as hk)
+    N = 32
+    rng = np.random.default_rng(0)
+    p = IzhikevichParams(
+        a=jnp.full((N,), 0.02), b=jnp.full((N,), 0.2), c=jnp.full((N,), -65.0),
+        d=jnp.full((N,), 8.0), drive=jnp.full((N,), 6.0), sign=jnp.ones((N,)),
+        W=jnp.zeros((N, N)), v0=jnp.full((N,), -65.0), u0=jnp.full((N,), -13.0),
+        source_scale=jnp.ones((N,)), labels=tuple("E" for _ in range(N)),
+        layer_labels=tuple("L4" for _ in range(N)), source_calibration_status="x")
+    ne = N * 8
+    edges = EdgeList(pre=jnp.asarray(rng.integers(0, N, ne), jnp.int32),
+                     post=jnp.asarray(rng.integers(0, N, ne), jnp.int32),
+                     weight=jnp.asarray(rng.normal(0, 0.3, ne), jnp.float32),
+                     receptor_index=jnp.zeros((ne,), jnp.int32),
+                     tau_ms=jnp.full((ne,), 5.0), source_calibration_status="x")
+    key = jax.random.PRNGKey(1)
+    Vf, Sf, _, _ = hk(p, edges, 200, 0.5, key, noise_scale=0.0)
+    V1, S1, _, d1 = hk(p, edges, 100, 0.5, key, noise_scale=0.0)
+    V2, S2, _, _ = hk(p, edges, 100, 0.5, key, noise_scale=0.0, init_state=d1)
+    Vc = np.concatenate([np.asarray(V1), np.asarray(V2)])
+    Sc = np.concatenate([np.asarray(S1), np.asarray(S2)])
+    assert np.allclose(np.asarray(Vf), Vc, atol=1e-4)
+    assert np.array_equal(np.asarray(Sf), Sc)
+    assert np.asarray(d1["r_final"]).shape == (N,)        # final r vector for resume
+    assert np.asarray(d1["r_trace"]).shape == (100, N)    # full trajectory, distinct
