@@ -480,7 +480,7 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         )
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
-    params = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
+    params, _prebuilt_edges = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
     geometry_meta = {
         "neuron_rows": neuron_rows,
         "area_labels": area_labels,
@@ -490,7 +490,7 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         "position_units": "mm_declared_metadata",
         "uniform_3d": bool(uniform_3d),
     }
-    return params, positions, geometry_meta
+    return params, positions, geometry_meta, _prebuilt_edges
 
 
 # Above this neuron count, a dense all-to-all within-area weight matrix is flagged
@@ -498,11 +498,93 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
 _DENSE_CONNECTIVITY_WARN_N = 5000
 
 
-def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str) -> IzhikevichParams:
+# At/above this neuron count, a SPARSE within-area connectivity request (p_connect<1
+# with no special-structure specs) is built as an edge list DIRECTLY, skipping the
+# dense (n,n) weight matrix entirely. Below it, the dense-then-mask path is kept so
+# small-N behavior (and the W-inspecting tests) stay exact.
+_SPARSE_DIRECT_N = 5000
+
+
+def _make_sparse_within_area_edges(area_labels, sign, n, *, within_gain, p_connect, seed, jdtype):
+    """Build a within-area sparse EdgeList directly (no dense (n,n) materialization).
+
+    Erdos-Renyi-style: each within-area ordered pair (j->i, i!=j) is included with
+    probability ``p_connect``. Edge weight matches the dense path's connected-edge
+    magnitude ``within_gain * U(0.25,1) * sign[pre] / (sqrt(n) * p_connect)`` so the
+    expected total input is preserved. Edges are excitatory/inhibitory by presyn
+    sign (receptor_index + tau follow make_edge_list_from_dense). Deterministic from
+    ``seed``. Statistically equivalent to the dense path; NOT bit-identical.
+    """
+    import numpy as _np
+    rng = _np.random.default_rng(int(seed) + 4242)
+    codes = _np.unique(_np.asarray(area_labels), return_inverse=True)[1]
+    sign_np = _np.asarray(sign, dtype=_np.float64)
+    sqrt_n = float(max(n, 1)) ** 0.5
+    p = float(p_connect)
+    pre_chunks, post_chunks, w_chunks = [], [], []
+    for code in _np.unique(codes):
+        idx = _np.where(codes == code)[0]
+        m = idx.size
+        if m < 2:
+            continue
+        n_edges = int(rng.binomial(m * (m - 1), p))
+        if n_edges == 0:
+            continue
+        pre_loc = rng.integers(0, m, n_edges)
+        post_loc = rng.integers(0, m, n_edges)
+        self_loop = pre_loc == post_loc
+        while self_loop.any():                      # resample i==j (no self-edges)
+            post_loc[self_loop] = rng.integers(0, m, int(self_loop.sum()))
+            self_loop = pre_loc == post_loc
+        pre_g = idx[pre_loc]
+        post_g = idx[post_loc]
+        rnd = rng.uniform(0.25, 1.0, n_edges)
+        w = within_gain * rnd * sign_np[pre_g] / (sqrt_n * p)
+        pre_chunks.append(pre_g); post_chunks.append(post_g); w_chunks.append(w)
+    if pre_chunks:
+        pre = _np.concatenate(pre_chunks); post = _np.concatenate(post_chunks)
+        w = _np.concatenate(w_chunks)
+    else:
+        pre = _np.zeros(0, int); post = _np.zeros(0, int); w = _np.zeros(0, float)
+    receptor = (w < 0).astype(_np.int32)
+    tau = _np.where(receptor == 0, 2.0, 5.0)
+    return EdgeList(
+        pre=jnp.asarray(pre, jnp.int32),
+        post=jnp.asarray(post, jnp.int32),
+        weight=jnp.asarray(w, jdtype),
+        receptor_index=jnp.asarray(receptor, jnp.int32),
+        tau_ms=jnp.asarray(tau, jdtype),
+        source_calibration_status="uncalibrated_izhikevich_native_current",
+    )
+
+
+def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str):
     n = len(cell_labels)
     if n == 0:
-        return params
+        return params, None
     jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
+    connectivity_spec = metadata.get("connectivity", {}) or {}
+    p_connect = connectivity_spec.get("p_connect")
+    base_gain = float(connectivity_spec.get("within_gain", 0.45))
+
+    # ── Sparse-direct path ────────────────────────────────────────────────────
+    # For a sparse within-area request at scale (p_connect<1, n>=threshold) with no
+    # special-structure specs (TCM / suite2-interarea / inter-column), build the
+    # EdgeList DIRECTLY and skip the dense (n,n) weight matrix entirely. Returns a
+    # (0,0) placeholder W; the model is run on the edge_list backend. This is the
+    # O(N^2)-memory escape for large sparse columns. Small-N / all-to-all / special
+    # specs keep the exact dense path below.
+    _tcm = bool(metadata.get("tcm_v1_6pop", False)) or bool(connectivity_spec.get("tcm_v1_6pop", False))
+    _interarea = bool(metadata.get("suite2_interarea", False))
+    _inter_col = bool(metadata.get("inter_column_connectivity"))
+    if (p_connect is not None and 0.0 < float(p_connect) < 1.0
+            and n >= _SPARSE_DIRECT_N and not (_tcm or _interarea or _inter_col)):
+        edges = _make_sparse_within_area_edges(
+            area_labels, params.sign, n,
+            within_gain=base_gain, p_connect=float(p_connect), seed=seed, jdtype=jdtype)
+        placeholder_W = jnp.zeros((0, 0), dtype=jdtype)
+        return replace(params, W=placeholder_W), edges
+
     key = jax.random.PRNGKey(seed + 4242)
     rnd = jax.random.uniform(key, (n, n), minval=0.25, maxval=1.0, dtype=jdtype)
     sign = params.sign.astype(jdtype)
@@ -512,12 +594,7 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
     _area_codes = _np.unique(_np.asarray(area_labels), return_inverse=True)[1]
     same_area = jnp.asarray(_area_codes[:, None] == _area_codes[None, :], dtype=jdtype)
     eye = jnp.eye(n, dtype=jdtype)
-    base_gain = float((metadata.get("connectivity", {}) or {}).get("within_gain", 0.45))
     W = base_gain * rnd * sign[None, :] * same_area * (1.0 - eye) / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
-
-    # Apply sparse random connectivity if p_connect is specified and < 1.0
-    connectivity_spec = metadata.get("connectivity", {}) or {}
-    p_connect = connectivity_spec.get("p_connect")
 
     # Transparency: dense all-to-all within-area connectivity materializes an (n,n)
     # weight matrix and ~n^2 edges. That is inherent to all-to-all topology, not a
@@ -609,7 +686,7 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
         for spec in specs:
             W = W + _interarea_W(spec, area_labels, layer_labels, cell_labels, n, jdtype, seed)
 
-    return replace(params, W=W)
+    return replace(params, W=W), None
 
 
 def _interarea_W(
@@ -3695,7 +3772,13 @@ class Model:
         n_neurons = emitter.v0.shape[0]
         jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
         ablation_mode = getattr(sim, "ablation", None)
-        
+
+        # Sparse-direct models carry a placeholder dense W (edges live only in
+        # params["edge_list"]); force the edge_list backend so the dense kernel is
+        # never handed the empty W.
+        if emitter.W.shape[0] != n_neurons and "edge_list" in self.params:
+            runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+
         if not hasattr(self, "_silence_masks"):
             object.__setattr__(self, "_silence_masks", {})
 
@@ -4100,6 +4183,10 @@ class Model:
         base_seed = sim.seed if seed is None else int(seed)
         keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
         emitter: IzhikevichParams = self.params["emitter"]
+
+        # Sparse-direct models (placeholder dense W) must use the edge_list backend.
+        if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:
+            runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
         homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
         if homeo_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
@@ -6312,8 +6399,9 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
     net = cfg.networks[0]
     n = int(net.get("n", 100))
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
+    _prebuilt_edges = None
     if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
-        params, positions, geometry_meta = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
+        params, positions, geometry_meta, _prebuilt_edges = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
         network = EIGNetwork(
             params=params,
             positions=positions,
@@ -6330,7 +6418,14 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         positions = network.positions
         geometry_meta = None
 
-    edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
+    # Sparse-direct path returns a prebuilt edge_list (and a placeholder dense W) to
+    # avoid materializing/scanning the (n,n) matrix; otherwise convert dense W.
+    if _prebuilt_edges is not None:
+        edge_list = _prebuilt_edges
+        # The dense W is a placeholder; this model must run on the edge_list backend.
+        cfg = cfg.runtime(recurrent_backend="edge_list")
+    else:
+        edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
 
     if geometry is not None:
         if geometry.n_units_total != n:

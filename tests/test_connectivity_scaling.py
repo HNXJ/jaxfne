@@ -52,3 +52,50 @@ def test_sparse_p_connect_suppresses_warning():
         warnings.simplefilter("always")
         _apply(n, {"within_gain": 0.45, "p_connect": 0.1})
     assert not any("O(N^2)" in str(x.message) for x in w)
+
+
+# ── Sparse-direct edge construction (factor 13 deep refactor) ────────────────
+from jaxfne.core import _SPARSE_DIRECT_N
+
+
+def _sparse_model(n, p, seed=1):
+    cfg = (jtfne.Configuration().runtime(seed=seed, dtype="float32", duration_ms=40.0, dt_ms=0.5)
+           .column(name="c", layers=["L4"], n=n)
+           .cell_types({"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03})
+           .connectivity(p_connect=p).set_emitter("izhikevich", "cortical_eig")
+           .probes(["spikes"])
+           .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+    return cfg, jtfne.construct(cfg)
+
+
+def test_sparse_direct_skips_dense_W_at_scale():
+    import numpy as np
+    _, m = _sparse_model(_SPARSE_DIRECT_N, 0.02)
+    W = np.asarray(m.params["emitter"].W)
+    assert W.shape == (0, 0)                       # placeholder, no (n,n) materialization
+    n_edges = int(m.params["edge_list"].n_edges)
+    expected = 0.02 * _SPARSE_DIRECT_N * (_SPARSE_DIRECT_N - 1)
+    assert 0.7 * expected <= n_edges <= 1.3 * expected   # ~Erdos-Renyi density
+
+
+def test_sparse_direct_runs_on_edge_list_backend():
+    import numpy as np
+    _, m = _sparse_model(_SPARSE_DIRECT_N, 0.02)
+    sig = jtfne.simulate(m, duration_ms=40.0, dt_ms=0.5, seed=0)
+    assert sig.metadata["recurrent_backend"] == "edge_list"
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+
+
+def test_sparse_direct_deterministic():
+    import numpy as np
+    _, m1 = _sparse_model(_SPARSE_DIRECT_N, 0.02, seed=7)
+    _, m2 = _sparse_model(_SPARSE_DIRECT_N, 0.02, seed=7)
+    assert np.array_equal(np.asarray(m1.params["edge_list"].weight),
+                          np.asarray(m2.params["edge_list"].weight))
+
+
+def test_below_threshold_keeps_dense_W():
+    import numpy as np
+    _, m = _sparse_model(_SPARSE_DIRECT_N - 1000, 0.1)
+    W = np.asarray(m.params["emitter"].W)
+    assert W.shape[0] == _SPARSE_DIRECT_N - 1000   # dense path preserved below threshold
