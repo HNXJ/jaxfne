@@ -127,7 +127,7 @@ from .export import (
 # this alias avoids confusion for tutorial users.
 build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 
-from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
+from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import analysis
 from . import vis
 from .emitters import (
@@ -348,6 +348,7 @@ __all__ = [
     "readout_spec",
     "require_jaxley",
     "jaxley_trace_to_signals",
+    "jaxley_to_signals",
     "run_receipt",
     "provenance_receipt",
     "runtime",

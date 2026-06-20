@@ -11,8 +11,54 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+_JAX_CLIP_COMPAT_INSTALLED = False
+
+
+def _install_jax_clip_compat() -> bool:
+    """Restore ``jnp.clip(a_min=/a_max=)`` keywords removed in newer JAX.
+
+    jaxley (<=0.13) channel gating calls ``jax.numpy.clip(x, a_min=..., a_max=...)``.
+    Recent JAX dropped those keyword names (use ``min=``/``max=``), so without a
+    shim jaxley's HH/channel step raises ``TypeError`` and *no* Jaxley emitter can
+    integrate. This shim is idempotent and backward compatible — positional and
+    ``min=``/``max=`` calls still work — and is installed lazily only when needed.
+
+    Returns
+    -------
+    bool
+        True if the shim is in force (installed now or previously), False if the
+        running JAX already supports ``a_max`` so no shim was needed.
+    """
+    global _JAX_CLIP_COMPAT_INSTALLED
+    if _JAX_CLIP_COMPAT_INSTALLED:
+        return True
+    import jax.numpy as jnp
+
+    orig = jnp.clip
+    try:
+        orig(jnp.asarray([0.0]), a_max=1.0)
+        return False  # native a_max support; no shim required
+    except TypeError:
+        pass
+
+    def _clip_compat(a, a_min=None, a_max=None, *, min=None, max=None, **kwargs):
+        lo = a_min if a_min is not None else min
+        hi = a_max if a_max is not None else max
+        return orig(a, lo, hi)
+
+    _clip_compat.__jaxfne_clip_compat__ = True  # marker for transparency/audit
+    jnp.clip = _clip_compat
+    _JAX_CLIP_COMPAT_INSTALLED = True
+    return True
+
+
 def require_jaxley():
-    """Import Jaxley lazily with an informative error."""
+    """Import Jaxley lazily, installing the JAX clip-compat shim before use.
+
+    The shim (`_install_jax_clip_compat`) is what makes Jaxley channel emitters
+    actually integrate on current JAX; every Jaxley entry point routes through
+    here so it is always in place before a model runs.
+    """
     try:
         import jaxley  # type: ignore
     except ImportError as exc:
@@ -20,6 +66,7 @@ def require_jaxley():
             "This optional feature requires 'Jaxley'. "
             "Install with: pip install jaxfne[jaxley]"
         ) from exc
+    _install_jax_clip_compat()
     return jaxley
 
 
@@ -315,6 +362,107 @@ def jaxley_trace_to_signals(
     )
 
 
+def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
+    """Best-effort xyz positions of a Jaxley module's recorded compartments.
+
+    Reads ``module.recordings`` (``rec_index`` = global compartment index) and
+    ``module.nodes`` (x/y/z columns). Returns an ``(n_recorded, 3)`` numpy array
+    aligned with the recordings order, or ``None`` if positions are unavailable
+    (no geometry, no matching recordings, or any structural mismatch). Never
+    raises — geometry is an optional enrichment, not a contract.
+    """
+    try:
+        recs = module.recordings
+        nodes = module.nodes
+        if not {"x", "y", "z"}.issubset(set(nodes.columns)):
+            return None
+        sel = recs[recs["state"] == state] if "state" in recs.columns else recs
+        if "rec_index" not in sel.columns:
+            return None
+        idx = [int(i) for i in sel["rec_index"].tolist()]
+        if not idx:
+            return None
+        import numpy as np
+
+        return nodes.loc[idx, ["x", "y", "z"]].to_numpy(dtype=float)
+    except Exception:
+        return None
+
+
+def jaxley_to_signals(
+    module: Any,
+    recordings: Any,
+    *,
+    dt_ms: float = 0.025,
+    state: str = "v",
+    spec: "JaxleyTraceSpec | None" = None,
+    source: Any = None,
+) -> Any:
+    """Convert a Jaxley module + ``jaxley.integrate`` output into jaxfne ``Signals``.
+
+    One-call glue so a Jaxley-based emitter is immediately usable by tfne readouts,
+    projections, and ``jaxfne.vis``. The recordings array returned by
+    ``jaxley.integrate`` has shape ``(n_recordings, n_time)`` (unit-by-time); this
+    maps it to canonical ``[T, N]`` ``V_m``, derives a threshold spike proxy, and
+    pulls the recorded compartments' xyz from ``module.nodes`` into metadata
+    (``recorded_positions_xyz``) for downstream projection.
+
+    All outputs are conservative proxies: voltage is a proxy readout, no field is
+    computed, ``physical_amplitude_calibrated`` stays ``False`` and
+    ``claim_level`` stays ``computational_scaffold``.
+
+    Parameters
+    ----------
+    module : jaxley Module/Cell/Network
+        The integrated Jaxley module (used only to read recordings layout/geometry).
+    recordings : array-like
+        ``jaxley.integrate(...)`` output, shape ``(n_recordings, n_time)`` or
+        ``(n_time,)`` for a single recording.
+    dt_ms : float
+        Integration timestep in ms (must match the ``delta_t`` used).
+    state : str
+        Recorded state name to attribute (default ``"v"``).
+    spec : JaxleyTraceSpec, optional
+        Trace spec (claim gates, spike threshold). Defaults to a voltage proxy spec.
+    source : array-like, optional
+        Explicit external source array; if None the voltage proxy is used.
+
+    Returns
+    -------
+    jaxfne.core.Signals
+        Proxy Signals (``field=None``), ready for tfne readouts/vis.
+    """
+    require_jaxley()
+    import jax.numpy as jnp
+    from dataclasses import replace as _dc_replace
+
+    rec = jnp.asarray(recordings)
+    if rec.ndim == 1:
+        rec = rec[None, :]
+    if rec.ndim != 2:
+        raise ValueError(
+            f"recordings must be 1D or 2D (n_recordings, n_time); got shape {rec.shape}"
+        )
+
+    if spec is None:
+        spec = JaxleyTraceSpec(dt_ms=dt_ms, layout="unit_by_time")
+
+    extra: dict[str, Any] = {
+        "bridge": "jaxley_module_to_signals",
+        "jaxley_recorded_state": state,
+        "jaxley_n_recordings": int(rec.shape[0]),
+        "jax_clip_compat_installed": bool(_JAX_CLIP_COMPAT_INSTALLED),
+    }
+    positions = _recorded_compartment_positions(module, state)
+    if positions is not None:
+        extra["recorded_positions_xyz"] = [[float(c) for c in row] for row in positions]
+
+    spec = _dc_replace(spec, metadata={**spec.metadata, **extra})
+    return jaxley_trace_to_signals(
+        rec, spec=spec, dt_ms=dt_ms, layout="unit_by_time", source=source
+    )
+
+
 def hh_jaxley_reference_trace(
     duration_ms: float = 500.0,
     dt_ms: float = 0.1,
@@ -334,29 +482,50 @@ def hh_jaxley_reference_trace(
     duration_ms : float
         Simulation duration in milliseconds.
     dt_ms : float
-        Time step in milliseconds.
+        Time step in milliseconds (Jaxley ``delta_t``; ~0.025 ms recommended for HH).
     current_amplitude : float
-        Injected current amplitude in μA/cm².
+        Step-current amplitude passed to ``jaxley.step_current`` (scaled to nA; the
+        default produces ~physiological spiking on the single HH compartment).
 
     Returns
     -------
     t : ndarray (n_steps,)
         Time in ms.
     V : ndarray (n_steps,)
-        Membrane potential in mV.
+        Membrane potential in mV (proxy readout; not amplitude-calibrated).
     I_inj : ndarray (n_steps,)
-        Injected current in μA/cm².
+        Injected step current (nA), aligned to ``t``.
 
     Raises
     ------
-    NotImplementedError
-        If Jaxley is not installed. Install with: pip install jaxley
+    ImportError
+        If Jaxley is not installed. Install with: pip install jaxfne[jaxley]
     """
-    require_jaxley()
-    raise NotImplementedError(
-        "TODO: implement HH reference through the optional Jaxley bridge. "
-        "Required: expose a Jaxley HH emitter trace path."
+    jx = require_jaxley()
+    from jaxley.channels import HH
+    import numpy as np
+
+    cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
+    cell.insert(HH())
+    cell.record("v")
+    i_amp_nA = float(current_amplitude) * 0.01
+    i = jx.step_current(
+        i_delay=max(10.0, 0.1 * duration_ms),
+        i_dur=0.5 * duration_ms,
+        i_amp=i_amp_nA,
+        delta_t=dt_ms,
+        t_max=duration_ms,
     )
+    cell.stimulate(i)
+    v = jx.integrate(cell, delta_t=dt_ms, solver="bwd_euler", t_max=duration_ms)
+    V = np.asarray(v).reshape(-1)
+    n = V.shape[0]
+    t = np.arange(n) * float(dt_ms)
+    I_inj = np.asarray(i).reshape(-1)
+    if I_inj.shape[0] != n:  # align stimulus length to recorded trace
+        m = min(I_inj.shape[0], n)
+        t, V, I_inj = t[:m], V[:m], I_inj[:m]
+    return t, V, I_inj
 
 
 def hh_numpy_reference_trace(
@@ -439,12 +608,49 @@ class JaxleyBridge:
         self.source_mode = source_mode
         self.compartment_axis = compartment_axis
 
-    def simulate(self, *args: Any, **kwargs: Any) -> Any:
-        """Documented public function `simulate`."""
-        require_jaxley()
-        raise NotImplementedError(
-            "TODO: implement JaxleyBridge.simulate for detailed compartment simulation rollout"
-        )
+    def simulate(
+        self,
+        duration_ms: float = 100.0,
+        dt_ms: float = 0.025,
+        *,
+        record_state: str = "v",
+        solver: str = "bwd_euler",
+        checkpoint_lengths: Any = None,
+        return_recordings: bool = False,
+    ) -> Any:
+        """Run the stored Jaxley module end-to-end and return jaxfne ``Signals``.
+
+        Installs the JAX clip-compat shim, ensures the module records ``record_state``,
+        integrates with a stable implicit solver (``bwd_euler``) at ``delta_t=dt_ms``,
+        and converts the recordings to ``Signals`` via :func:`jaxley_to_signals`.
+
+        Output is a conservative voltage proxy: ``field=None``,
+        ``physical_amplitude_calibrated=False``, ``claim_level=computational_scaffold``.
+        Pass ``checkpoint_lengths`` for long BPTT-friendly runs (see Jaxley docs).
+
+        Returns ``Signals`` (or ``(Signals, recordings)`` if ``return_recordings``).
+        """
+        jx = require_jaxley()
+        module = self.model
+        try:
+            has_rec = len(module.recordings) > 0
+        except Exception:
+            has_rec = False
+        if not has_rec:
+            module.record(record_state)
+
+        kwargs: dict[str, Any] = {
+            "delta_t": float(dt_ms),
+            "t_max": float(duration_ms),
+            "solver": solver,
+        }
+        if checkpoint_lengths is not None:
+            kwargs["checkpoint_lengths"] = checkpoint_lengths
+        recordings = jx.integrate(module, **kwargs)
+        signals = jaxley_to_signals(module, recordings, dt_ms=dt_ms, state=record_state)
+        if return_recordings:
+            return signals, recordings
+        return signals
 
     def extract_sources(self, signals: Any) -> Any:
         """Extract source tensor from Jaxley bridge signals."""

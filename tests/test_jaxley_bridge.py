@@ -61,12 +61,21 @@ def test_jaxley_bridge_extract_sources():
     assert np.allclose(bridge.extract_sources(arr_in), arr_in)
 
 
-def test_jaxley_bridge_unimplemented_fail_loudly(monkeypatch):
-    """Verify that unimplemented bridge methods (like simulate) fail loudly."""
-    import jaxfne.bridges
-    monkeypatch.setattr(jaxfne.bridges, "require_jaxley", lambda: None)
-    
-    bridge = jtfne.bridges.JaxleyBridge(model="mock_model")
-    
-    with pytest.raises(NotImplementedError, match="JaxleyBridge.simulate"):
-        bridge.simulate()
+def test_jaxley_bridge_simulate_is_implemented():
+    """JaxleyBridge.simulate is now a real end-to-end path (no longer a stub).
+
+    With Jaxley present it integrates a stimulated HH cell and returns proxy
+    Signals; without Jaxley it skips. The old NotImplementedError contract is
+    retired (see tests/test_jaxley_emitter_bridge_e2e.py for full coverage).
+    """
+    jaxley = pytest.importorskip("jaxley")
+    from jaxley.channels import HH
+
+    cell = jaxley.Cell(jaxley.Branch(jaxley.Compartment(), ncomp=1), parents=[-1])
+    cell.insert(HH())
+    cell.record("v")
+    cell.stimulate(jaxley.step_current(i_delay=5.0, i_dur=20.0, i_amp=0.1,
+                                       delta_t=0.025, t_max=40.0))
+    sig = jtfne.bridges.JaxleyBridge(model=cell).simulate(duration_ms=40.0, dt_ms=0.025)
+    assert sig.V_m.ndim == 2 and sig.field is None
+    assert sig.metadata["physical_amplitude_calibrated"] is False

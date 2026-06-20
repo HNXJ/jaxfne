@@ -9,38 +9,46 @@
 
 Jaxley builds neuron/network models; jaxfne organizes their outputs into multimodal readouts.
 
-### Example: Jaxley neuron → jaxfne readout
+### End-to-end: a Jaxley model → tfne Signals (one call)
+
+Wire channels + stimulus + recordings on a Jaxley model, then hand it to
+`JaxleyBridge.simulate(...)`. The bridge integrates with a stable implicit solver
+and returns a proxy `Signals` ready for `jaxfne.vis` and the readout/field layer:
 
 ```python
 import jaxley as jx
+from jaxley.channels import HH
 import jaxfne as jtfne
-import jax.numpy as jnp
 
-# Build a Jaxley neuron
-neuron = jx.Neuron(
-    conductances={"leak": 0.1, ...},
-    mech_params={...}
-)
+# Build a Jaxley emitter: single HH compartment, recorded and stimulated
+cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
+cell.insert(HH())
+cell.record("v")
+cell.stimulate(jx.step_current(i_delay=10, i_dur=50, i_amp=0.1, delta_t=0.025, t_max=100))
 
-# Simulate with Jaxley
-v_jax = neuron.simulate(duration=100.0, ...)  # [time, compartments]
+# One call: integrate the Jaxley model and convert to jaxfne Signals
+sig = jtfne.JaxleyBridge(model=cell).simulate(duration_ms=100.0, dt_ms=0.025)
 
-# Reshape for jaxfne (e.g., [time, neurons] where neurons=1)
-source_input = v_jax[:, -1:, None]  # soma voltage
-
-# Create jaxfne workflow
-cfg = (
-    jtfne.configuration()
-    .network(n=1)
-    .emitter(family="custom", mode="external_voltage")
-    .field(domain="point")
-    .probe(name="jaxley_soma")
-)
-
-model = jtfne.construct(cfg)
-signals = model.simulate_external(source_input, ...)
-readouts = model.compute_readout(signals, [...])
+print(sig.V_m.shape)                                   # [T, N] proxy voltage
+print(sig.metadata["physical_amplitude_calibrated"])   # False (proxy gate)
+fig = jtfne.vis.vm(sig)                                 # plot like any tfne run
 ```
+
+Already ran `jaxley.integrate(...)` yourself? Convert the recordings directly —
+recorded-compartment xyz are pulled from `module.nodes` into the metadata for
+downstream projection:
+
+```python
+rec = jx.integrate(cell, delta_t=0.025, t_max=100.0, solver="bwd_euler")  # (n_rec, n_time)
+sig = jtfne.jaxley_to_signals(cell, rec, dt_ms=0.025)
+sig.metadata["recorded_positions_xyz"]                 # [[x, y, z], ...] per recording
+```
+
+> **JAX compatibility shim.** Jaxley (≤0.13) channels call the
+> `jnp.clip(a_min=, a_max=)` keywords that recent JAX removed. Every Jaxley entry
+> point routes through `require_jaxley()`, which lazily installs a backward-compatible
+> shim so channel emitters actually integrate on current JAX — you do not need to do
+> anything. The metadata records `jax_clip_compat_installed` for transparency.
 
 ### Array-first trace bridge
 
