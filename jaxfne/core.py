@@ -3837,6 +3837,10 @@ class Model:
                     tau_x_ms=hp.get("tau_x_ms", 100.0),
                     w_min=hp.get("w_min", -10.0),
                     w_max=hp.get("w_max", 10.0),
+                    v_floor=hp.get("v_floor", -150.0),
+                    v_ceiling=hp.get("v_ceiling", 100.0),
+                    u_abs_max=hp.get("u_abs_max", 2000.0),
+                    syn_abs_max=hp.get("syn_abs_max", 1.0e4),
                 )
                 return V, S, src, diag["g_bias"], diag["r_trace"]
 
@@ -4227,6 +4231,8 @@ class Model:
                     r_max=_hp.get("r_max", 1.0),
                     eta=_hp.get("eta", 0.0), tau_x_ms=_hp.get("tau_x_ms", 100.0),
                     w_min=_hp.get("w_min", -10.0), w_max=_hp.get("w_max", 10.0),
+                    v_floor=_hp.get("v_floor", -150.0), v_ceiling=_hp.get("v_ceiling", 100.0),
+                    u_abs_max=_hp.get("u_abs_max", 2000.0), syn_abs_max=_hp.get("syn_abs_max", 1.0e4),
                 )[:3]
             if runtime_cfg.recurrent_backend == "edge_list":
                 return edge_kernel_fn(
@@ -7014,7 +7020,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.4.1"
+_JAXFNE_VERSION = "0.4.2"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"

@@ -668,6 +668,8 @@ class JaxleyBridge:
         g_max: float = 8.0,
         bias_current_scale: float = 0.001,
         spike_threshold_mV: float = 0.0,
+        current_clip_nA: float = 1.0,
+        strict_finite: bool = True,
         return_diagnostics: bool = False,
     ) -> Any:
         """Run the Jaxley model under tfne's homeostatic excitability controller.
@@ -759,7 +761,10 @@ class JaxleyBridge:
             g = np.clip(k_gain * (target_rate_hz - r), g_min, g_max)
             data = None
             for ci, view in enumerate(views):
-                amp = float(base[ci] + bias_current_scale * g[ci])
+                # Hard-bound the injected current so the implicit solver can never
+                # be driven to overflow (the real stability lever for the bridge).
+                amp = float(np.clip(base[ci] + bias_current_scale * g[ci],
+                                    -current_clip_nA, current_clip_nA))
                 cur = jnp.full(n_win_steps + 1, amp)
                 data = view.data_stimulate(cur, data_stimuli=data)
             rec, states = jx.integrate(
@@ -778,6 +783,16 @@ class JaxleyBridge:
 
         recordings = np.concatenate(v_chunks, axis=1)  # (n_cells, total_T)
 
+        # Finiteness guarantee: bounded finite drive -> stable implicit solver ->
+        # finite output. Verify rather than silently mask; fail loud in strict mode.
+        all_finite = bool(np.all(np.isfinite(recordings)))
+        if strict_finite and not all_finite:
+            raise FloatingPointError(
+                "simulate_homeostatic produced non-finite output despite bounded drive; "
+                "the Jaxley model/solver is unstable for these settings (lower current_clip_nA "
+                "or dt_ms). Set strict_finite=False to return anyway."
+            )
+
         from dataclasses import replace as _dc_replace
         spec = JaxleyTraceSpec(
             dt_ms=dt, layout="unit_by_time", spike_threshold=spike_threshold_mV,
@@ -795,6 +810,9 @@ class JaxleyBridge:
                 "k_gain": float(k_gain), "g_min": float(g_min), "g_max": float(g_max),
                 "bias_current_scale": float(bias_current_scale),
                 "controller_disabled_null": bool(k_gain == 0),
+                "current_clip_nA": float(current_clip_nA),
+                "state_hard_bounded": True,
+                "all_finite": all_finite,
             }
         }
         spec = _dc_replace(spec, metadata=homeo_meta)

@@ -673,6 +673,15 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     tau_x_ms: float = 100.0,
     w_min: float = -10.0,
     w_max: float = 10.0,
+    # Hard state bounds (numerical-stability safety net; set far outside normal
+    # Izhikevich dynamics so they never alter physiological behaviour, only catch
+    # overflow/underflow). With these, every step stays finite in float32 for any
+    # finite — or even +/-inf — input current. v upper is already caught by the
+    # spike reset; these guarantee the lower/recovery/synaptic state too.
+    v_floor: float = -150.0,
+    v_ceiling: float = 100.0,
+    u_abs_max: float = 2000.0,
+    syn_abs_max: float = 1.0e4,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and per-neuron homeostasis.
 
@@ -726,6 +735,19 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     g_min_arr = jnp.asarray(g_min, dtype=jdtype)
     g_max_arr = jnp.asarray(g_max, dtype=jdtype)
     r_max_arr = jnp.asarray(r_max, dtype=jdtype)
+    # Hard state bounds (cast once; applied to the carried state every step).
+    v_floor_arr = jnp.asarray(v_floor, dtype=jdtype)
+    v_ceiling_arr = jnp.asarray(v_ceiling, dtype=jdtype)
+    u_abs_max_arr = jnp.asarray(u_abs_max, dtype=jdtype)
+    syn_abs_max_arr = jnp.asarray(syn_abs_max, dtype=jdtype)
+
+    def _bound_state(v_s, u_s, syn_s):
+        """Clamp carried emitter state to finite hard bounds (overflow/underflow guard)."""
+        return (
+            jnp.clip(v_s, v_floor_arr, v_ceiling_arr),
+            jnp.clip(u_s, -u_abs_max_arr, u_abs_max_arr),
+            jnp.clip(syn_s, -syn_abs_max_arr, syn_abs_max_arr),
+        )
 
     if silence_mask is not None:
         s_mask = silence_mask.astype(jdtype)
@@ -804,6 +826,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             # Homeostatic synaptic scaling: dw = eta*(r* - r_post)*x_pre, clipped.
             dw = eta_arr * (r_star_arr - r_next[post]) * x_next[pre]
             w_next = jnp.clip(w + dt * dw, w_min_arr, w_max_arr)
+            v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
             return (v_reset, u_reset, spikes, syn_next, r_next, w_next, x_next), \
                    (v_reset, spikes, source_proxy, g, r_next, w_next)
@@ -849,6 +872,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
                 0.0,
                 r_max_arr
             )
+
+            # Hard state bounds: overflow/underflow guard (no effect in normal regime)
+            v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)
@@ -898,6 +924,9 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
                 0.0,
                 r_max_arr
             )
+
+            # Hard state bounds: overflow/underflow guard (no effect in normal regime)
+            v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
             source_proxy = source_scale * (current_native + jnp.asarray(20.0, dtype=jdtype) * spikes)

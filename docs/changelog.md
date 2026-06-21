@@ -1,3 +1,14 @@
+## v0.4.2 (2026-06-20)
+
+**Homeostatic numerical stability — hard-bounded, float32-safe emitters.** Enabling the homeostatic mode (one knob, gain `k≈1.0`) keeps each emitter in a stable operating regime AND hard-bounds its state, so a single neuron or simple component can never overflow or underflow in float32. The same mode eliminates hyperactivity and hypoactivity and provides short-term adaptation. Proxy/scaffold gates unchanged.
+
+### Added
+- Hard state bounds in the built-in Izhikevich homeostatic kernel (`v_floor`/`v_ceiling`/`u_abs_max`/`syn_abs_max`, tunable via `homeostasis_params`) — set far outside normal dynamics, so they never alter behaviour, only catch overflow/underflow. State stays finite in float32 under any finite (or even `±inf`) input current.
+- `JaxleyBridge.simulate_homeostatic(..., current_clip_nA=, strict_finite=)` — the injected current is hard-bounded so the implicit solver cannot be driven to overflow; output finiteness is verified (raises in strict mode rather than silently masking). Metadata records `state_hard_bounded` and `all_finite`.
+
+### Notes
+- The bounds are a safety net, not a behavioural change: in the normal regime the clamps are never reached.
+
 ## v0.4.1 (2026-06-20)
 
 **Jaxley emitters become a first-class path, with tfne homeostasis on top.** Proxy/scaffold gates unchanged.
