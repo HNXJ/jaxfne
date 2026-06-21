@@ -1,5 +1,5 @@
 {
-  "version": "0.3.39",
+  "version": "0.4.1",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -119,6 +119,7 @@
     "hh_numpy_reference_trace",
     "is_valid_signal",
     "izhikevich_params_from_labels",
+    "jaxley_to_signals",
     "jaxley_trace_to_signals",
     "json_safe",
     "kappa_synchrony",
