@@ -1,3 +1,21 @@
+## v0.4.1 (2026-06-20)
+
+**Jaxley emitters become a first-class path, with tfne homeostasis on top.** Proxy/scaffold gates unchanged.
+
+### Added
+- `jaxley_to_signals(module, recordings, dt_ms=...)` — convert a `jaxley.integrate` recordings array `(n_rec, n_time)` to a jaxfne `Signals`, pulling recorded-compartment xyz from `module.nodes` into metadata for downstream projection (exported at the root).
+- `JaxleyBridge.simulate(...)` — run a Jaxley model end-to-end (stable `bwd_euler`) and return proxy `Signals` (previously a placeholder).
+- `JaxleyBridge.simulate_homeostatic(...)` — outer-loop windowed homeostatic excitability controller around a Jaxley emitter, applying tfne's restoring-bias law `g = clip(k_gain·(target_rate_hz − r), g_min, g_max)` as a per-cell current via grad-safe `data_stimulate`, stitched with continuous state resume. Computational control proxy only (`biological_learning_claim=False`, `mechanism_claim_status="not_claimed"`).
+- `hh_jaxley_reference_trace(...)` — real single-compartment Hodgkin–Huxley reference trace (previously a placeholder).
+- ED10 release-archive receipt (`scripts/ed10_release_archive_receipt.py`) — binds release identity + truth gates to content hashes of the upstream evidence bundle (ED9), then self-hashes.
+
+### Fixed
+- `require_jaxley()` lazily installs a backward-compatible `jnp.clip(a_min=/a_max=)` shim so Jaxley (≤0.13) channel emitters integrate on current JAX (the shim self-disables when Jaxley adopts `min=/max=`). Metadata records `jax_clip_compat_installed`.
+
+### Changed
+- `jaxley` optional-dependency extra floored to `>=0.13.0` (tested version).
+- CI now installs the `jaxley` extra so the Jaxley integration is exercised (drift-tested) on every push.
+
 ## v0.4.0 (2026-06-18)
 
 **Fluent Configuration grammar + proxy-only probe vocabulary.**

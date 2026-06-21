@@ -1,6 +1,6 @@
 # Quickstart
 
-> Verified against `jaxfne==0.4.0` (`pip install "jaxfne==0.4.0"`).
+> Verified against `jaxfne==0.4.1` (`pip install "jaxfne==0.4.1"`).
 
 The pipeline is one linear chain — each step returns the input to the next:
 

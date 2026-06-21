@@ -451,7 +451,7 @@ The manifest includes:
 
 ```json
 {
-  "version":      "0.4.0",
+  "version":      "0.4.1",
   "duration_ms":  1000.0,
   "dt_ms":        0.1,
   "n_steps":      10000,
