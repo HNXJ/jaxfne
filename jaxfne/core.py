@@ -768,12 +768,14 @@ def _interarea_W(
 _CONNECTIONS_EXACT_PRODUCT_CAP = 4_000_000
 
 
-def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels):
+def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels, model_labels=None):
     """Boolean neuron mask for a ``.connections()`` source/target selector.
 
     Recognized keys: ``area`` (exact), ``layer``/``layers`` (tolerant of merged
     ``"L2/3"`` vs split ``"L2"``/``"L3"`` via :func:`_interarea_layer_set`),
-    ``cell_type``/``cell_types``. A missing key means "any" (no constraint).
+    ``cell_type``/``cell_types``. A missing key means "any" (no constraint). When
+    ``model_labels`` is supplied (the :func:`connect` ensemble path), a ``model``
+    key additionally restricts the selection to one member model by integer index.
     """
     import numpy as _np
 
@@ -793,11 +795,14 @@ def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels):
     if cts is not None:
         cts = [cts] if isinstance(cts, str) else list(cts)
         mask &= _np.isin(_np.asarray(cell_labels), [str(c) for c in cts])
+    mdl = selector.get("model")
+    if mdl is not None and model_labels is not None:
+        mask &= _np.asarray(model_labels) == int(mdl)
     return mask
 
 
 def _compile_connection_rules(
-    rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed
+    rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed, model_labels=None
 ):
     """Compile declarative ``.connections()`` rules into a sparse EdgeList.
 
@@ -827,8 +832,8 @@ def _compile_connection_rules(
     for ri, rule in enumerate(rules):
         src = rule.get("source", {}) or {}
         tgt = rule.get("target", {}) or {}
-        pre_idx = _np.where(_connection_selector_mask(src, area_labels, layer_labels, cell_labels))[0]
-        post_idx = _np.where(_connection_selector_mask(tgt, area_labels, layer_labels, cell_labels))[0]
+        pre_idx = _np.where(_connection_selector_mask(src, area_labels, layer_labels, cell_labels, model_labels))[0]
+        post_idx = _np.where(_connection_selector_mask(tgt, area_labels, layer_labels, cell_labels, model_labels))[0]
         p = rule.get("probability")
         p = 1.0 if p is None else float(p)
         if pre_idx.size == 0 or post_idx.size == 0 or p <= 0.0:
@@ -6715,6 +6720,299 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         cfg=cfg,
         params={"emitter": network.params, "positions": positions, "edge_list": edge_list},
         static=static,
+    )
+
+
+def _empty_edge_list(jdtype: Any) -> "EdgeList":
+    """An EdgeList with zero edges (no recurrence)."""
+    z_i = jnp.zeros((0,), dtype=jnp.int32)
+    z_f = jnp.zeros((0,), dtype=jdtype)
+    return EdgeList(pre=z_i, post=z_i, weight=z_f, receptor_index=z_i, tau_ms=z_f)
+
+
+def _model_edge_list(model: "Model", jdtype: Any) -> "EdgeList":
+    """Return a model's recurrence as an EdgeList.
+
+    Uses ``params["edge_list"]`` when present; otherwise converts the dense
+    ``emitter.W`` (the dense and edge_list backends are numerically equivalent),
+    or returns an empty list when the model has no real recurrence.
+    """
+    el = model.params.get("edge_list")
+    if el is not None:
+        return el
+    emitter: IzhikevichParams = model.params["emitter"]
+    W = emitter.W
+    if W.shape[0] == emitter.n_neurons and W.shape[0] > 0:
+        return make_edge_list_from_dense(W, dtype=("float64" if jdtype == jnp.float64 else "float32"))
+    return _empty_edge_list(jdtype)
+
+
+def connect(
+    *models: "Model",
+    edges: "Sequence[Mapping[str, Any]] | None" = None,
+    namespace: "Sequence[str] | None" = None,
+    layout: str = "offset_x",
+    strict: bool = True,
+    name: "str | None" = None,
+) -> "Model":
+    """Fuse two or more constructed :class:`Model` s into one ensemble Model.
+
+    This is the model-to-model composition operator of the jaxfne grammar
+    (``construct`` builds one model; ``connect`` joins several). The result is a
+    normal ``Model`` — ``simulate`` / ``tune`` / ``manifest`` / ``vis.*`` all
+    work on it unchanged. The merge is purely structural and stays on the sparse
+    edge_list backend: each member's neurons, per-neuron emitter parameters,
+    positions, and recurrence are concatenated with index offsets, and optional
+    cross-model edges are compiled from ``edges``. No simulation numerics of a
+    member change; the math/physics layer stays valid and the biological claim is
+    only ever as strong as the member configurations back.
+
+    Parameters
+    ----------
+    *models:
+        Two or more Models built by :func:`construct`. Each must use an
+        ``IzhikevichParams`` emitter (the only family supported in this version).
+    edges:
+        Optional list of cross-model connection rules using the
+        :meth:`Configuration.connections` selector grammar, extended with a
+        ``"model"`` key (integer member index). Example::
+
+            edges=[dict(source={"model": 0, "area": "V1", "cell_type": "E",
+                                "layers": ["L2/3"]},
+                        target={"model": 1, "area": "V2", "layers": ["L4"]},
+                        probability=0.1, weight=0.5, sign="excitatory")]
+
+        ``probability`` / ``weight`` / ``sign`` behave exactly as in
+        :func:`_compile_connection_rules`. Selectors match members' original
+        (pre-``namespace``) area labels, so a rule reads the same whether or not
+        ``namespace`` is set.
+    namespace:
+        Optional per-model area prefix (one string per model), e.g.
+        ``("A", "B")``. Areas become ``"A/V1"``, ``"B/V1"`` in the merged neuron
+        table so two members sharing an area name don't collide. Without it, an
+        area-label collision across members raises (``strict=True``).
+    layout:
+        ``"offset_x"`` (default) translates each member along x so columns are
+        spatially distinct for field projection (depth/z preserved). ``"keep"``
+        leaves member coordinates untouched.
+    strict:
+        When True, mismatched ``dt_ms`` / dtype / ``n_contacts`` or an
+        un-namespaced area collision raise. When False they warn and coerce
+        (take the first member's value).
+    name:
+        Optional label recorded in ``metadata["ensemble"]["name"]``.
+
+    Returns
+    -------
+    Model
+        The ensemble model. Recurrence lives entirely in ``params["edge_list"]``
+        (member-internal edges, offset, plus cross-model edges); ``emitter.W`` is
+        the ``(0, 0)`` placeholder, so the edge_list backend is auto-selected.
+    """
+    import numpy as np
+
+    if len(models) < 2:
+        raise ValueError("connect() requires at least two models")
+    for i, m in enumerate(models):
+        if not isinstance(m, Model):
+            raise TypeError(f"connect() argument {i} is not a Model (got {type(m).__name__})")
+    emitters: list[IzhikevichParams] = []
+    for i, m in enumerate(models):
+        em = m.params.get("emitter")
+        if not isinstance(em, IzhikevichParams):
+            raise TypeError(
+                f"connect() supports IzhikevichParams emitters only; model {i} has "
+                f"{type(em).__name__}"
+            )
+        emitters.append(em)
+
+    # ── reconcile runtime: dtype + dt_ms must agree (strict) ──────────────────
+    dtypes = {str(em.v0.dtype) for em in emitters}
+    if len(dtypes) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
+        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
+    jdtype = emitters[0].v0.dtype
+    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
+    if len(dts) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
+        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+
+    counts = [int(em.n_neurons) for em in emitters]
+    offsets = np.cumsum([0, *counts])[:-1]
+    n_total = int(sum(counts))
+
+    # ── namespace / area-collision handling ───────────────────────────────────
+    ns = list(namespace) if namespace is not None else None
+    if ns is not None and len(ns) != len(models):
+        raise ValueError(f"namespace must have one entry per model ({len(models)}), got {len(ns)}")
+    tables = [m.neuron_table() for m in models]
+    if ns is None:
+        seen: set[str] = set()
+        for t in tables:
+            areas_k = {str(r.get("area")) for r in t}
+            clash = seen & areas_k
+            if clash:
+                msg = (f"connect() area label collision across models ({sorted(clash)}); "
+                       f"pass namespace=(...) to disambiguate")
+                if strict:
+                    raise ValueError(msg)
+                warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            seen |= areas_k
+
+    # ── merged emitter (concat per-neuron arrays; reconcile scalars) ──────────
+    def _cat(attr: str) -> jax.Array:
+        return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
+
+    sign_cat = _cat("sign")
+    labels = tuple(lbl for em in emitters for lbl in em.labels)
+    layer_labels = tuple(
+        (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
+        for em in emitters for i in range(em.n_neurons)
+    )
+    scs = {em.source_calibration_status for em in emitters}
+    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
+    merged_emitter = IzhikevichParams(
+        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
+        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
+        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
+        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+    )
+
+    # ── merged recurrence: member edges (offset) ── block-concatenated, sparse;
+    #    members couple ONLY through explicit cross-model edges (no spurious
+    #    cross-recurrence — the sparse realization of a block-diagonal W).
+    merged_edges = _empty_edge_list(jdtype)
+    for k, m in enumerate(models):
+        el = _model_edge_list(m, jdtype)
+        off = int(offsets[k])
+        el = replace(el, pre=el.pre + off, post=el.post + off)
+        merged_edges = _concat_edge_lists(merged_edges, el)
+
+    # ── merged positions (offset_x keeps columns spatially distinct) ──────────
+    pos_parts: list[jax.Array] = []
+    xcursor = 0.0
+    for m in models:
+        p = m.params["positions"].astype(jdtype)
+        if layout == "offset_x" and p.shape[0] > 0:
+            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
+            p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
+            xcursor += (xmax - xmin) + 1.0
+        pos_parts.append(p)
+    merged_positions = jnp.concatenate(pos_parts, axis=0) if pos_parts else jnp.zeros((0, 3), dtype=jdtype)
+
+    # ── merged neuron metadata (reindex ids, namespace areas, tag model) ──────
+    merged_rows: list[dict[str, Any]] = []
+    orig_area: list[str] = []
+    layer_lab: list[str] = []
+    cell_lab: list[str] = []
+    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
+    nid = 0
+    for k, t in enumerate(tables):
+        prefix = (ns[k] + "/") if ns is not None else ""
+        for r in t:
+            row = dict(r)
+            a_orig = str(row.get("area"))
+            orig_area.append(a_orig)
+            layer_lab.append(str(row.get("layer")))
+            cell_lab.append(str(row.get("cell_type")))
+            row["neuron_id"] = nid
+            row["model"] = k
+            row["area"] = prefix + a_orig
+            merged_rows.append(row)
+            nid += 1
+
+    # ── compile cross-model edges (selectors match original area + model idx) ──
+    cross_counts: list[int] = []
+    if edges:
+        default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
+        cross_el, cross_counts = _compile_connection_rules(
+            list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
+            n_total, jdtype, default_seed, model_labels=model_labels,
+        )
+        if cross_el is not None:
+            merged_edges = _concat_edge_lists(merged_edges, cross_el)
+
+    # ── merged cfg: conservative truth gates, ensemble marker, cross rules ────
+    cfg2 = models[0].cfg
+    try:
+        cfg2 = cfg2.runtime(recurrent_backend="edge_list")
+    except Exception:
+        pass
+    md = {**cfg2.metadata}
+    md["claim_level"] = "computational_scaffold"
+    md["field_solver_status"] = "linear_solver"
+    md["physical_amplitude_calibrated"] = all(
+        bool(m.cfg.metadata.get("physical_amplitude_calibrated", False)) for m in models
+    )
+    all_area_names: list[str] = []
+    for k, m in enumerate(models):
+        for ar in (m.cfg.metadata.get("column_names") or []):
+            all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
+    if all_area_names:
+        md["column_names"] = all_area_names
+        md["column_count"] = len(all_area_names)
+    total_cross = int(sum(cross_counts)) if cross_counts else 0
+    md["ensemble"] = {
+        "name": str(name) if name is not None else None,
+        "n_models": len(models),
+        "model_sizes": [int(x) for x in counts],
+        "n_neurons_total": n_total,
+        "namespace": list(ns) if ns is not None else None,
+        "cross_model_edges": total_cross,
+        "layout": str(layout),
+    }
+    if edges:
+        circuit = {**md.get("circuit", {})}
+        conns = list(circuit.get("connections", []))
+        for i, rule in enumerate(edges):
+            c = int(cross_counts[i]) if i < len(cross_counts) else 0
+            conns.append({
+                **dict(rule),
+                "scope": "cross_model",
+                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+                "compiled_n_edges": c,
+            })
+        circuit["connections"] = conns
+        md["circuit"] = circuit
+    cfg2 = replace(cfg2, metadata=md)
+
+    # ── merged static (reconcile n_contacts, most-conservative operator_status)
+    n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
+    if len(n_contacts_set) > 1 and strict:
+        raise ValueError(
+            f"connect() models have mismatched n_contacts {sorted(n_contacts_set)}; "
+            f"field projection needs equal contacts"
+        )
+    if len(n_contacts_set) > 1:
+        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
+    rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
+    op: dict[str, str] = {}
+    for m in models:
+        for key, val in (m.static.get("operator_status") or {}).items():
+            if key not in op or rank.get(val, 1) < rank.get(op[key], 1):
+                op[key] = val
+    summary = {
+        "n_rows": len(merged_rows),
+        "areas": sorted({str(r.get("area")) for r in merged_rows}),
+        "layers": sorted({str(r.get("layer")) for r in merged_rows}),
+        "cell_types": sorted({str(r.get("cell_type")) for r in merged_rows}),
+    }
+    merged_static = {
+        **models[0].static,
+        "n_contacts": int(models[0].static.get("n_contacts", 16)),
+        "operator_status": op,
+        "geometry": {**models[0].static.get("geometry", {}), "neuron_rows": merged_rows},
+        "neuron_metadata": merged_rows,
+        "neuron_metadata_summary": summary,
+        "ensemble": md["ensemble"],
+    }
+
+    return Model(
+        cfg=cfg2,
+        params={"emitter": merged_emitter, "positions": merged_positions, "edge_list": merged_edges},
+        static=merged_static,
     )
 
 

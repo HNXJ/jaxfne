@@ -100,6 +100,7 @@
     "config_to_trial_batch",
     "config_truth_boundary",
     "configuration",
+    "connect",
     "construct",
     "construct_source_tensor",
     "coop_omission_oddball_paradigm",
