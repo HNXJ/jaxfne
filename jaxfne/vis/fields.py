@@ -509,20 +509,29 @@ def multi_area_layout(
         ax.text(cx, cy - 0.1, f"N={n_neurons}\n{layer_str}", ha="center", va="center",
                 fontsize=9, color="darkblue")
 
-    if inter_conn:
-        src_area = inter_conn.get("source_area", "")
-        tgt_area = inter_conn.get("target_area", "")
-        if src_area in col_centers and tgt_area in col_centers:
-            sx, sy = col_centers[src_area]
-            tx, ty = col_centers[tgt_area]
-            ax.annotate("", xy=(tx - col_width / 2, ty + 0.15),
-                         xytext=(sx + col_width / 2, sy + 0.15),
-                         arrowprops=dict(arrowstyle="->", color="darkorange", lw=2))
-            ax.text((sx + tx) / 2, sy + 0.22, "FF", ha="center", fontsize=9, color="darkorange")
-            ax.annotate("", xy=(sx + col_width / 2, sy - 0.15),
-                         xytext=(tx - col_width / 2, ty - 0.15),
-                         arrowprops=dict(arrowstyle="->", color="mediumpurple", lw=2))
-            ax.text((sx + tx) / 2, sy - 0.22, "FB", ha="center", fontsize=9, color="mediumpurple")
+    # inter_column_connectivity may be a single spec (legacy) or a list of specs
+    # (one per directed projection). Draw a directed arrow per spec, labelled by
+    # whether it carries feedforward (source->target into L4) or feedback (deep->L1).
+    specs = inter_conn if isinstance(inter_conn, list) else ([inter_conn] if inter_conn else [])
+    for spec in specs:
+        if not isinstance(spec, dict):
+            continue
+        src_area = spec.get("source_area", "")
+        tgt_area = spec.get("target_area", "")
+        if src_area not in col_centers or tgt_area not in col_centers:
+            continue
+        sx, sy = col_centers[src_area]
+        tx, ty = col_centers[tgt_area]
+        has_ff = float(spec.get("p_feedforward", 0) or 0) > 0
+        has_fb = float(spec.get("p_feedback", 0) or 0) > 0
+        label = "FF+FB" if (has_ff and has_fb) else ("FB" if has_fb else "FF")
+        color = "teal" if (has_ff and has_fb) else ("mediumpurple" if has_fb else "darkorange")
+        yo = -0.15 if (has_fb and not has_ff) else 0.15  # offset opposing arrows
+        ax.annotate("", xy=(tx - col_width / 2, ty + yo),
+                     xytext=(sx + col_width / 2, sy + yo),
+                     arrowprops=dict(arrowstyle="->", color=color, lw=2))
+        ax.text((sx + tx) / 2, sy + yo + (0.07 if yo > 0 else -0.07),
+                label, ha="center", fontsize=9, color=color)
 
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)

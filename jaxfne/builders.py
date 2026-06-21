@@ -475,15 +475,19 @@ def build_multi_area_columns(
     for area in areas:
         cfg = cfg.column(area, layers=layers, n=n_per_area)
 
-    # Add inter-area connectivity: each adjacent pair has ff + fb
-    for i, source_area in enumerate(areas[:-1]):
-        target_area = areas[i + 1]
+    # Inter-area connectivity for each adjacent pair, wired in BOTH directions so
+    # the hierarchy carries genuine top-down feedback (not just feedforward into
+    # deeper target layers). One spec per direction; specs accumulate:
+    #   feedforward  lo -> hi  : source L2/3 E -> target L4   (uses p_feedforward)
+    #   feedback     hi -> lo  : source L6     -> target L1/L5 (uses p_feedback)
+    for lo, hi in zip(areas[:-1], areas[1:]):
         cfg = cfg.inter_column_connectivity(
-            source_area=source_area,
-            target_area=target_area,
-            mode=connectivity_mode,
-            p_feedforward=p_feedforward,
-            p_feedback=p_feedback,
+            source_area=lo, target_area=hi, mode=connectivity_mode,
+            p_feedforward=p_feedforward, p_feedback=0.0,
+        )
+        cfg = cfg.inter_column_connectivity(
+            source_area=hi, target_area=lo, mode=connectivity_mode,
+            p_feedforward=0.0, p_feedback=p_feedback,
         )
 
     cfg = cfg.cell_types(cell_type_fractions)

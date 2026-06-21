@@ -39,7 +39,7 @@ class TestInterColumnConnectivity:
             )
         )
         assert cfg.metadata.get("inter_column_connectivity") is not None
-        spec = cfg.metadata["inter_column_connectivity"]
+        spec = cfg.metadata["inter_column_connectivity"][-1]
         assert spec["source_area"] == "V1"
         assert spec["target_area"] == "V4"
         assert spec["mode"] == "sparse"
@@ -49,7 +49,7 @@ class TestInterColumnConnectivity:
     def test_inter_column_connectivity_defaults(self):
         """Test .inter_column_connectivity() has sensible defaults."""
         cfg = jtfne.Configuration().inter_column_connectivity()
-        spec = cfg.metadata["inter_column_connectivity"]
+        spec = cfg.metadata["inter_column_connectivity"][-1]
         assert spec["source_area"] == "V1"
         assert spec["target_area"] == "V4"
         assert spec["p_feedforward"] == 0.3

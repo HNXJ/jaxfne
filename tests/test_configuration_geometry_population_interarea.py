@@ -156,3 +156,45 @@ def test_signal_get_rejects_retired_like():
     assert sig.get("lfp_proxy") is not None
     with pytest.raises(KeyError):
         sig.get("lfp_like")
+
+
+def test_inter_column_connectivity_accumulates_specs():
+    # Multiple calls accumulate (do not overwrite) -> a list of specs that all
+    # materialize. Regression: previously each call overwrote the single key so
+    # only the last adjacent pair wired.
+    cfg = (
+        jtfne.Configuration()
+        .inter_column_connectivity(source_area="V1", target_area="V2", seed=0)
+        .inter_column_connectivity(source_area="V2", target_area="V4", seed=0)
+    )
+    specs = cfg.metadata["inter_column_connectivity"]
+    assert isinstance(specs, list) and len(specs) == 2
+    assert {s["source_area"] for s in specs} == {"V1", "V2"}
+
+
+def test_build_multi_area_columns_wires_bidirectional_hierarchy():
+    # The full hierarchy must carry feedforward (lo->hi, L2/3->L4) AND genuine
+    # top-down feedback (hi->lo, L6->L1/L5) for every adjacent pair.
+    areas = ["V1", "V2", "V4"]
+    cfg = (
+        jtfne.build_multi_area_columns(areas, n_per_area=120, ei_profile="canonical",
+                                       p_feedforward=0.3, p_feedback=0.2)
+        .runtime(seed=0).set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"]).field(domain="laminar_column", conductivity="proxy")
+    )
+    model = jtfne.construct(cfg)
+    nt = pd.DataFrame(model.neuron_table())
+    area = nt["area"].values; layer = nt["layer"].values
+    el = model.params["edge_list"]; pre = np.asarray(el.pre); post = np.asarray(el.post)
+    rank = {a: i for i, a in enumerate(areas)}
+    inter = area[pre] != area[post]
+    rpre = np.array([rank[a] for a in area[pre]]); rpost = np.array([rank[a] for a in area[post]])
+    ff = inter & (rpre < rpost); fb = inter & (rpre > rpost)
+    assert int(ff.sum()) > 0 and int(fb.sum()) > 0          # both directions present
+    assert set(layer[post[ff]]) == {"L4"}                   # feedforward targets L4
+    assert set(layer[pre[ff]]) == {"L2/3"}                  # from superficial L2/3
+    assert set(layer[pre[fb]]) == {"L6"}                    # feedback from deep L6
+    assert set(layer[post[fb]]) <= {"L1", "L5"}             # to L1/L5
+    # all adjacent pairs wired in both directions
+    fwd_pairs = set(zip(area[pre[ff]].tolist(), area[post[ff]].tolist()))
+    assert ("V1", "V2") in fwd_pairs and ("V2", "V4") in fwd_pairs

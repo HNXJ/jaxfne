@@ -1,3 +1,16 @@
+## v0.4.4 (2026-06-21)
+
+**Multi-area études + a real fix to inter-area connectivity.** Études 6 and 7 are implemented (previously placeholders), built on the built-in Izhikevich emitter and the canonical E:I profile. Implementing them surfaced and fixed genuine bugs in the multi-area connectivity path.
+
+### Fixed
+- `inter_column_connectivity` now **accumulates** specs instead of overwriting — multiple calls (one per directed projection) all materialize. Previously every call replaced the single metadata key, so `build_multi_area_columns` wired only the last adjacent pair.
+- `build_multi_area_columns` wires each adjacent pair in **both directions**: feedforward lo→hi (L2/3 → L4) and genuine top-down feedback hi→lo (L6 → L1/L5). Its `p_feedback` now produces real top-down edges.
+- `_interarea_W` layer matching tolerates the merged 5-layer scheme (`"L2/3"`) as well as split `"L2"`/`"L3"` columns, so feedforward from superficial layers wires under the default `DEFAULT_LAYERS`.
+
+### Added
+- **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the scale-emergent crossover caveat.
+
 ## v0.4.3 (2026-06-21)
 
 **Jaxley emitters reach the field stage, plus the flagship Configuration Grammar guide.** A Jaxley Hodgkin–Huxley network can now drive a laminar LFP/CSD readout from a physically meaningful generator — its reconstructed transmembrane ionic current — closing `Emitter → Source → Field → Probe` for the Jaxley bridge. jaxfne is the mathematical backend; the biophysical fidelity of the readout follows the model you provide.
@@ -15,10 +28,10 @@
 
 ### Added
 - Hard state bounds in the built-in Izhikevich homeostatic kernel (`v_floor`/`v_ceiling`/`u_abs_max`/`syn_abs_max`, tunable via `homeostasis_params`) — set far outside normal dynamics, so they never alter behaviour, only catch overflow/underflow. State stays finite in float32 under any finite (or even `±inf`) input current.
-- `JaxleyBridge.simulate_homeostatic(..., current_clip_nA=, strict_finite=)` — the injected current is hard-bounded so the implicit solver cannot be driven to overflow; output finiteness is verified (raises in strict mode rather than silently masking). Metadata records `state_hard_bounded` and `all_finite`.
+- `JaxleyBridge.simulate_homeostatic(..., current_clip_nA=, strict_finite=)` — the injected current is hard-bounded to keep the implicit solver away from overflow; output finiteness is verified (raises in strict mode rather than silently masking). Metadata records `state_hard_bounded` and `all_finite`.
 
 ### Notes
-- The bounds are a safety net, not a behavioural change: in the normal regime the clamps are never reached.
+- The bounds are a safety net: in the normal regime the clamps stay inactive.
 
 ## v0.4.1 (2026-06-20)
 

@@ -52,8 +52,8 @@ class TestDefaultConfigs:
         """Test default_spectrolaminar_config includes inter-area connectivity."""
         cfg = jtfne.default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=100)
         assert cfg.metadata.get("inter_column_connectivity") is not None
-        assert cfg.metadata["inter_column_connectivity"]["source_area"] == "V1"
-        assert cfg.metadata["inter_column_connectivity"]["target_area"] == "V4"
+        assert cfg.metadata["inter_column_connectivity"][-1]["source_area"] == "V1"
+        assert cfg.metadata["inter_column_connectivity"][-1]["target_area"] == "V4"
 
     def test_default_spectrolaminar_config_objectives(self):
         """Test default_spectrolaminar_config includes spectral objectives."""
@@ -160,7 +160,7 @@ class TestBuilderFunctions:
         """Test connect_columns adds inter-area connectivity."""
         cfg = jtfne.build_multi_area_columns(["V1", "V4"], n_per_area=100)
         cfg = jtfne.connect_columns(cfg, "V1", "V4", mode="all_to_all")
-        assert cfg.metadata["inter_column_connectivity"]["mode"] == "all_to_all"
+        assert cfg.metadata["inter_column_connectivity"][-1]["mode"] == "all_to_all"
 
 
 class TestConnectivitySpecs:

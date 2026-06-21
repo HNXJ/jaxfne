@@ -689,6 +689,18 @@ def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[s
     return replace(params, W=W), None
 
 
+def _interarea_layer_set(name: str) -> set[str]:
+    """Resolve a routing layer name to the actual labels it should match.
+
+    Tolerant of the merged 5-layer scheme (``"L2/3"``) and split columns
+    (``"L2"``, ``"L3"``): any superficial name matches all superficial variants,
+    so inter-area feedforward (source L2/3 -> target L4) wires regardless of
+    whether a column declares ``"L2/3"`` or separate ``"L2"``/``"L3"`` layers.
+    """
+    superficial = {"L2", "L3", "L2/3", "L23"}
+    return set(superficial) if name in superficial else {name}
+
+
 def _interarea_W(
     spec: Mapping[str, Any],
     area_labels: Sequence[str],
@@ -714,7 +726,9 @@ def _interarea_W(
     if l2l:
         pairs = [(str(s), str(t)) for s, t in dict(l2l).items()]
     else:
-        pairs = [("L2", "L4"), ("L3", "L4"), ("L6", "L1"), ("L6", "L5")]
+        # Anatomical routing. "L2/3" matches both merged and split schemes
+        # (see _interarea_layer_set), so one feedforward pair suffices.
+        pairs = [("L2/3", "L4"), ("L6", "L1"), ("L6", "L5")]
     p_ff = float(spec.get("p_feedforward", 0.3) or 0.0)
     p_fb = float(spec.get("p_feedback", 0.2) or 0.0)
     ff_range = tuple(spec.get("feedforward_weight_range") or (0.5, 2.0))
@@ -725,8 +739,8 @@ def _interarea_W(
     inv_sqrt = 1.0 / jnp.sqrt(jnp.asarray(max(n, 1), dtype=jdtype))
     Wadd = jnp.zeros((n, n), dtype=jdtype)
     for src_layer, dst_layer in pairs:
-        src_layers = {"L2", "L3"} if src_layer in {"L2/3"} else {src_layer}
-        dst_layers = {"L2", "L3"} if dst_layer in {"L2/3"} else {dst_layer}
+        src_layers = _interarea_layer_set(src_layer)
+        dst_layers = _interarea_layer_set(dst_layer)
         is_ff = bool(dst_layers & {"L4"})
         p = p_ff if is_ff else p_fb
         if p <= 0.0:
@@ -1614,7 +1628,19 @@ class Configuration:
             "sign_policy": str(sign_policy),
             "seed": seed,
         }
-        return self.update_metadata(inter_column_connectivity=inter_conn_spec)
+        # Accumulate specs: each call adds one source->target projection. The
+        # construct path (``_suite2_apply_connectivity``) already iterates a list of
+        # specs, so multiple calls (e.g. one per adjacent area pair, or both
+        # directions of a pair) all materialize. Using a list here — rather than
+        # overwriting the single key — is what lets a full multi-area hierarchy wire.
+        existing = self.metadata.get("inter_column_connectivity")
+        if isinstance(existing, list):
+            specs = [*existing, inter_conn_spec]
+        elif existing:
+            specs = [existing, inter_conn_spec]
+        else:
+            specs = [inter_conn_spec]
+        return self.update_metadata(inter_column_connectivity=specs)
 
     def drive(
         self,
@@ -7020,7 +7046,7 @@ def enable_x64() -> dict[str, Any]:
 # v0.0.17 readout spec
 # ──────────────────────────────────────────────────────────────
 
-_JAXFNE_VERSION = "0.4.3"
+_JAXFNE_VERSION = "0.4.4"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
