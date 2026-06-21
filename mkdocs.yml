@@ -73,11 +73,13 @@ nav:
 
   - Guides:
       - Overview: guides/index.md
+      - Configuration Grammar: guides/configuration_grammar.md
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
       - Plotly Visualization: guides/plotly_visualization.md
       - Poisson Admissibility: guides/poisson_admissibility.md
       - Jaxley Interoperability: guides/jaxley_interop.md
+      - Homeostasis: guides/homeostasis.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
@@ -87,6 +89,7 @@ nav:
       - Core: api/core.md
       - Runtime: api/runtime.md
       - Emitters: api/emitters.md
+      - Bridges: api/bridges.md
       - Fields: api/fields.md
       - Probes: api/probes.md
       - Objectives: api/objectives.md
@@ -109,4 +112,4 @@ nav:
           - v0.2.0: releases/v0.2.0.md
 
 extra:
-  jaxfne_version: "0.4.2"
+  jaxfne_version: "0.4.3"

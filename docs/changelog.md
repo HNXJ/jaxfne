@@ -1,3 +1,14 @@
+## v0.4.3 (2026-06-21)
+
+**Jaxley emitters reach the field stage, plus the flagship Configuration Grammar guide.** A Jaxley Hodgkin–Huxley network can now drive a laminar LFP/CSD readout from a physically meaningful generator — its reconstructed transmembrane ionic current — closing `Emitter → Source → Field → Probe` for the Jaxley bridge. jaxfne is the mathematical backend; the biophysical fidelity of the readout follows the model you provide.
+
+### Added
+- `JaxleyBridge.simulate_laminar_field(...)` — run a Jaxley HH model and return `Signals` with a laminar `FieldOutput` (`lfp_proxy`/`csd_proxy`/...). The source is the reconstructed HH ionic current `I_Na + I_K + I_Leak` (from recorded `HH_m/HH_h/HH_n` gating states + channel params), projected via `project_laminar_sources`. `signals.get("lfp_proxy")` and `jaxfne.vis.lfp`/`csd` work directly on the result. Izhikevich/Fire are non-capacitive (zero current) and raise a clear error.
+- `normalize_depth` option (default on) min-max rescales the depth axis to `[0, 1]` so arbitrary-scale (µm) Jaxley geometry maps onto the projection's contact span instead of collapsing onto one contact; the raw range is preserved in metadata.
+- **Configuration Grammar guide** — the flagship documentation: `Configuration` framed as the compiler whose declarative specification compiles into the Emitter→Source→Field→Probe→Objective→Optimizer→Manifest chain, with each of the eleven sections mapped to its real fluent method and described as a biophysical-specificity dial.
+- **Homeostasis guide** — the homeostatic excitability controller (one parameter `k_gain`, `k_gain=0` null), covering both the built-in per-step kernel (`runtime(enable_homeostasis=True, homeostasis_params=...)`, diagnostics via `model.last_homeostasis_diagnostics()`) and the Jaxley outer-loop windowed controller.
+- **Bridges API reference** (`api/bridges.md`) — `require_jaxley`/clip shim, `jaxley_to_signals`, and all three `JaxleyBridge` run modes.
+
 ## v0.4.2 (2026-06-20)
 
 **Homeostatic numerical stability — hard-bounded, float32-safe emitters.** Enabling the homeostatic mode (one knob, gain `k≈1.0`) keeps each emitter in a stable operating regime AND hard-bounds its state, so a single neuron or simple component can never overflow or underflow in float32. The same mode eliminates hyperactivity and hypoactivity and provides short-term adaptation. Proxy/scaffold gates unchanged.

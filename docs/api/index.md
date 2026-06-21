@@ -8,7 +8,7 @@ import jaxfne as jtfne
 
 This page is the complete index of the public API (`jaxfne.__all__`, 204 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Current release `jaxfne==0.4.2` (tag `v0.4.2`). The root-level export
+Current release `jaxfne==0.4.3` (tag `v0.4.3`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 !!! note "Scope & truth gates"

@@ -118,3 +118,62 @@ def test_homeostatic_k_gain_zero_is_null():
     sig = jtfne.JaxleyBridge(model=_hh_network(2)).simulate_homeostatic(
         duration_ms=120.0, base_current_nA=0.01, k_gain=0.0)
     assert sig.metadata["homeostasis"]["controller_disabled_null"] is True
+
+
+def _hh_laminar_stack(n_cells, drive_cells=(), z_step=0.1):
+    """Laminar stack of single-compartment HH cells at increasing depth."""
+    from jaxley.channels import HH
+    net = jaxley.Network(
+        [jaxley.Cell(jaxley.Branch(jaxley.Compartment(), ncomp=1), parents=[-1])
+         for _ in range(n_cells)]
+    )
+    net.insert(HH())
+    for c in range(n_cells):
+        net.cell(c).branch(0).comp(0).set("z", float(c) * z_step)
+    for c in drive_cells:
+        net.cell(c).branch(0).comp(0).stimulate(
+            jaxley.step_current(5.0, 40.0, 0.1, 0.025, 60.0))
+    return net
+
+
+def test_simulate_laminar_field_produces_lfp_csd_from_hh_current():
+    net = _hh_laminar_stack(6, drive_cells=(4, 5))
+    sig = jtfne.JaxleyBridge(model=net).simulate_laminar_field(
+        duration_ms=60.0, dt_ms=0.025, n_contacts=12)
+    lfp = np.asarray(sig.get("lfp_proxy"))
+    csd = np.asarray(sig.get("csd_proxy"))
+    # real FieldOutput attached (unlike voltage-proxy simulate(), which is field=None)
+    assert sig.field is not None
+    assert lfp.shape[1] == 12 and csd.shape[1] == 12
+    assert bool(np.all(np.isfinite(lfp))) and bool(np.all(np.isfinite(csd)))
+    assert float(np.abs(lfp).max()) > 0.0  # driven cells generate a field
+    # source is the reconstructed HH ionic current, density-preserving projection
+    assert sig.metadata["source_mode"] == "hh_ionic_current_reconstructed"
+    assert sig.metadata["projection_mode"] == "density_preserving"
+    assert sig.metadata["n_hh_compartments"] == 6
+    # conservative proxy gates carried, never escalated
+    assert sig.metadata["physical_amplitude_calibrated"] is False
+    assert sig.metadata["claim_level"] == "computational_scaffold"
+
+
+def test_simulate_laminar_field_localizes_to_driven_depth():
+    # drive only the deep cells -> LFP power should peak at deep contacts
+    net = _hh_laminar_stack(6, drive_cells=(4, 5))
+    sig = jtfne.JaxleyBridge(model=net).simulate_laminar_field(
+        duration_ms=60.0, dt_ms=0.025, n_contacts=12)
+    lfp = np.asarray(sig.get("lfp_proxy"))
+    per_contact = np.abs(lfp).mean(axis=0)
+    # peak in the deep half (contacts 6..11), not the superficial half
+    assert per_contact[6:].max() > per_contact[:6].max()
+
+
+def test_simulate_laminar_field_requires_hh():
+    # Izhikevich is non-capacitive (zero current) -> cannot generate a field
+    from jaxley.channels import Izhikevich
+    net = jaxley.Network(
+        [jaxley.Cell(jaxley.Branch(jaxley.Compartment(), ncomp=1), parents=[-1])
+         for _ in range(3)]
+    )
+    net.insert(Izhikevich())
+    with pytest.raises(ValueError, match="HH"):
+        jtfne.JaxleyBridge(model=net).simulate_laminar_field(duration_ms=20.0)

@@ -601,6 +601,55 @@ def hh_numpy_reference_trace(
     return t, V, I_inj
 
 
+def _hh_compartment_indices(module: Any) -> list[int]:
+    """Global compartment indices carrying a Jaxley ``HH`` channel.
+
+    The HH channel is the only built-in Jaxley mechanism that exports a real
+    transmembrane ionic current (``compute_current`` is non-trivial); the
+    Izhikevich/Fire channels are non-capacitive and return zero current, so they
+    cannot generate an extracellular field. Returns the sorted global compartment
+    indices where ``HH`` is present, or ``[]`` if none / no geometry.
+    """
+    try:
+        nodes = module.nodes
+        if "HH" not in nodes.columns or "global_comp_index" not in nodes.columns:
+            return []
+        import numpy as np
+
+        mask = nodes["HH"].to_numpy()
+        # jaxley stores channel presence as bool or NaN/name; treat truthy as present
+        present = nodes.loc[np.asarray([bool(x) and x == x for x in mask]),
+                            "global_comp_index"]
+        return sorted(int(i) for i in present.tolist())
+    except Exception:
+        return []
+
+
+def _reconstruct_hh_ionic_current(v, m, h, n, params: dict[str, Any]):
+    """Reconstruct per-compartment HH ionic current density from recorded states.
+
+    Jaxley 0.13 does not track a membrane-current *state*, so the physical LFP/CSD
+    generator (the transmembrane ionic current) must be rebuilt from the recorded
+    gating states and the channel parameters stored in ``module.nodes``::
+
+        I_ionic = gNa·m³·h·(v - eNa) + gK·n⁴·(v - eK) + gLeak·(v - eLeak)
+
+    All arrays are ``(n_comp, n_time)``; ``params`` holds per-compartment
+    ``gNa/gK/gLeak`` (S/cm²) and ``eNa/eK/eLeak`` (mV), each shape ``(n_comp, 1)``.
+    Returns the biphasic ionic current density ``(n_comp, n_time)`` in µA/cm²
+    (proxy units; not amplitude-calibrated).
+    """
+    import jax.numpy as jnp
+
+    v = jnp.asarray(v); m = jnp.asarray(m); h = jnp.asarray(h); n = jnp.asarray(n)
+    gNa = params["gNa"]; gK = params["gK"]; gL = params["gLeak"]
+    eNa = params["eNa"]; eK = params["eK"]; eL = params["eLeak"]
+    i_na = gNa * (m ** 3) * h * (v - eNa)
+    i_k = gK * (n ** 4) * (v - eK)
+    i_l = gL * (v - eL)
+    return i_na + i_k + i_l
+
+
 class JaxleyBridge:
     """Jaxley-focused biophysical emitter bridge."""
     def __init__(self, model: Any, source_mode: str = "transmembrane_current", compartment_axis: str = "last"):
@@ -827,6 +876,182 @@ class JaxleyBridge:
             }
             return signals, diagnostics
         return signals
+
+    def simulate_laminar_field(
+        self,
+        duration_ms: float = 100.0,
+        dt_ms: float = 0.025,
+        *,
+        solver: str = "bwd_euler",
+        n_contacts: int = 16,
+        width: float = 0.1,
+        projection_mode: str = "density_preserving",
+        spike_threshold_mV: float = 0.0,
+        positions: Any = None,
+        normalize_depth: bool = True,
+        checkpoint_lengths: Any = None,
+    ) -> Any:
+        """Run a Jaxley HH model and return ``Signals`` with a laminar LFP/CSD field.
+
+        This is the source→field arm of the grammar for the Jaxley bridge: it closes
+        ``Emitter → Source → Field → Probe`` so a Jaxley HH network gets the *same*
+        LFP/CSD/spectrolaminar readouts as the built-in emitter, but from a physically
+        meaningful generator. The extracellular field is driven by the **reconstructed
+        HH transmembrane ionic current** (see :func:`_reconstruct_hh_ionic_current`),
+        not a voltage/spike proxy — the Izhikevich/Fire channels are non-capacitive
+        (zero current) and cannot generate a field, so this path requires HH.
+
+        Steps: install the clip shim, locate the HH compartments, record ``v`` plus the
+        ``HH_m/HH_h/HH_n`` gating states on each (grouped, compartment-aligned),
+        integrate once with a stable implicit solver, reconstruct the per-compartment
+        ionic current, and project it onto ``n_contacts`` laminar contacts via
+        :func:`project_laminar_sources`. Contact positions reuse the recorded
+        compartments' xyz from ``module.nodes`` unless ``positions`` is supplied.
+
+        ``projection_mode`` defaults to ``"density_preserving"``: ``"row_normalize"``
+        erases source density and flattens the laminar depth structure, so it is *not*
+        the default here.
+
+        The output is a conservative proxy: ``field`` is a ``FieldOutput`` proxy,
+        ``physical_amplitude_calibrated=False``, ``claim_level=computational_scaffold``.
+        ``signals.get("lfp_proxy")`` / ``"csd_proxy"`` and ``jaxfne.vis.lfp``/``csd``
+        work directly on the result.
+
+        Parameters
+        ----------
+        duration_ms, dt_ms, solver, checkpoint_lengths : as in :meth:`simulate`.
+        n_contacts : int
+            Number of laminar contacts the source is projected onto.
+        width : float
+            Gaussian projection kernel width (depth units of the compartment xyz).
+        projection_mode : str
+            ``project_laminar_sources`` mode; ``"density_preserving"`` (default)
+            preserves density, ``"row_normalize"`` does not.
+        spike_threshold_mV : float
+            Upward-crossing threshold for the membrane spike proxy.
+        positions : array-like, optional
+            Explicit ``(n_comp, 3)`` contact positions; defaults to the recorded
+            compartments' xyz.
+        normalize_depth : bool
+            Min-max normalize the depth axis (z) to ``[0, 1]`` before projection
+            (default True). ``project_laminar_sources`` fixes its contacts to
+            ``[0, 1]`` and reads the z coordinate as *relative* laminar depth, so
+            arbitrary-scale Jaxley geometry (µm) must be rescaled or all sources
+            collapse onto one contact. Set False if z is already in ``[0, 1]``.
+
+        Returns
+        -------
+        jaxfne.core.Signals
+            Proxy Signals with ``V_m``, spike proxy, the ionic-current source tensor,
+            and a laminar ``FieldOutput`` (``lfp_proxy``/``csd_proxy``/...).
+
+        Raises
+        ------
+        ValueError
+            If the module has no HH compartments (no real ionic-current generator),
+            or if compartment positions are unavailable and ``positions`` is None.
+        """
+        jx = require_jaxley()
+        import numpy as np
+        import jax.numpy as jnp
+        from .fields import project_laminar_sources
+        from .core import Signals
+
+        module = self.model
+        comps = _hh_compartment_indices(module)
+        if not comps:
+            raise ValueError(
+                "simulate_laminar_field requires Jaxley HH compartments: the laminar "
+                "field is generated from reconstructed HH transmembrane ionic current. "
+                "Insert HH (module.insert(jaxley.channels.HH())) before calling. "
+                "Non-capacitive channels (Izhikevich/Fire) export zero current and "
+                "cannot generate a field."
+            )
+        n_comp = len(comps)
+
+        # Grouped, compartment-aligned recordings: [v]*n, [HH_m]*n, [HH_h]*n, [HH_n]*n.
+        base = len(module.recordings)
+        for st in ("v", "HH_m", "HH_h", "HH_n"):
+            for c in comps:
+                module.select(nodes=[c]).record(st, verbose=False)
+
+        kwargs: dict[str, Any] = {
+            "delta_t": float(dt_ms), "t_max": float(duration_ms), "solver": solver,
+        }
+        if checkpoint_lengths is not None:
+            kwargs["checkpoint_lengths"] = checkpoint_lengths
+        rec = np.asarray(jx.integrate(module, **kwargs))  # (n_recordings, n_time)
+
+        v = rec[base + 0 * n_comp: base + 1 * n_comp]      # (n_comp, n_time)
+        m = rec[base + 1 * n_comp: base + 2 * n_comp]
+        h = rec[base + 2 * n_comp: base + 3 * n_comp]
+        ng = rec[base + 3 * n_comp: base + 4 * n_comp]
+
+        nodes = module.nodes.set_index("global_comp_index")
+        col = lambda name: jnp.asarray(
+            nodes.loc[comps, name].to_numpy(dtype=float)
+        )[:, None]
+        params = {
+            "gNa": col("HH_gNa"), "gK": col("HH_gK"), "gLeak": col("HH_gLeak"),
+            "eNa": col("HH_eNa"), "eK": col("HH_eK"), "eLeak": col("HH_eLeak"),
+        }
+        i_ionic = _reconstruct_hh_ionic_current(v, m, h, ng, params)  # (n_comp, n_time)
+
+        if positions is None:
+            xyz = nodes.loc[comps, ["x", "y", "z"]]
+            if xyz.isnull().to_numpy().any():
+                raise ValueError(
+                    "compartment positions unavailable (NaN xyz in module.nodes); "
+                    "pass positions=(n_comp, 3) explicitly."
+                )
+            positions = xyz.to_numpy(dtype=float)
+        positions = np.asarray(positions, dtype=float)
+
+        # project_laminar_sources fixes contacts to [0, 1] and reads z as relative
+        # depth; rescale the depth axis so arbitrary (µm) geometry maps onto the span.
+        depth_raw = positions[:, 2].copy()
+        if normalize_depth:
+            zmin, zmax = float(depth_raw.min()), float(depth_raw.max())
+            znorm = (depth_raw - zmin) / (zmax - zmin) if zmax > zmin \
+                else np.full_like(depth_raw, 0.5)
+            positions = positions.copy()
+            positions[:, 2] = znorm
+        positions = jnp.asarray(positions, dtype=float)
+
+        sources = jnp.asarray(i_ionic).T            # (n_time, n_comp) for projection
+        field_output = project_laminar_sources(
+            sources, positions, n_contacts=int(n_contacts), width=float(width),
+            mode=str(projection_mode),
+        )
+
+        V_m = jnp.asarray(v, dtype=jnp.float32).T   # (n_time, n_comp)
+        spikes = (V_m >= float(spike_threshold_mV)).astype(jnp.float32)
+        n_time = V_m.shape[0]
+        time_ms = jnp.arange(n_time, dtype=jnp.float32) * float(dt_ms)
+
+        positions_xyz = [[float(c) for c in row] for row in np.asarray(positions)]
+        metadata = {
+            "bridge": "jaxley_hh_laminar_field",
+            "source_mode": "hh_ionic_current_reconstructed",
+            "source_decomposition": "I_Na+I_K+I_Leak from recorded gating states",
+            "source_units_status": "uA_per_cm2_proxy_uncalibrated",
+            "projection_mode": str(projection_mode),
+            "n_contacts": int(n_contacts), "projection_width": float(width),
+            "n_hh_compartments": int(n_comp),
+            "depth_normalized": bool(normalize_depth),
+            "depth_raw_range": [float(depth_raw.min()), float(depth_raw.max())],
+            "recorded_positions_xyz": positions_xyz,
+            "field_solver_status": "linear_solver",
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
+            "claim_level": "computational_scaffold",
+            "dt_ms": float(dt_ms),
+            "jax_clip_compat_installed": bool(_JAX_CLIP_COMPAT_INSTALLED),
+        }
+        return Signals(
+            time_ms=time_ms, V_m=V_m, spikes=spikes,
+            sources=sources, field=field_output, metadata=metadata,
+        )
 
     def extract_sources(self, signals: Any) -> Any:
         """Extract source tensor from Jaxley bridge signals."""
