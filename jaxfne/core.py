@@ -1315,6 +1315,51 @@ class Configuration:
         """Backward-compatible alias for :meth:`connectivity`."""
         return self.connectivity(**kwargs)
 
+    def plasticity(self, relative_baseline: float = 1.0, **kwargs: Any) -> "Configuration":
+        """Declare a plasticity baseline in chainable configuration form (declaration only).
+
+        ``relative_baseline=1.0`` is the identity/neutral setting and is purely
+        declarative: it does not change ``simulate()`` output. The STDP weight-
+        update kernel (``update_stdp_weights_jax``) is not wired into the main
+        ``Model.simulate()`` loop today — it only runs via the separate
+        ``run_stdp_stream`` path. This verb records intent in
+        ``metadata["plasticity"]`` so it is visible in ``manifest()`` from the
+        first call; deviating from ``1.0`` does not yet activate any kernel.
+        """
+        spec = {
+            "relative_baseline": float(relative_baseline),
+            **dict(kwargs),
+            "status": "declared_not_wired_to_simulate",
+        }
+        return self.update_metadata(plasticity=spec)
+
+    def homeostasis(self, relative_baseline: float = 1.0, **kwargs: Any) -> "Configuration":
+        """Declare a homeostasis baseline in chainable configuration form.
+
+        ``relative_baseline=1.0`` is the identity/neutral setting: it leaves
+        ``RuntimeConfig.enable_homeostasis=False`` (today's default; unchanged
+        ``simulate()`` output) rather than enabling the kernel with a zeroed
+        gain, so no new code path runs at baseline. Deviating from ``1.0``
+        (or passing any ``homeostasis_params`` override, e.g. ``k_gain=``,
+        ``r_star=``) resolves ``k_gain = relative_baseline - 1.0`` (overridable
+        via an explicit ``k_gain=`` kwarg) and enables the existing per-neuron
+        homeostatic feedback kernel via ``metadata["enable_homeostasis"]`` /
+        ``metadata["homeostasis_params"]``, consumed by ``simulate()`` through
+        ``_runtime_config_from_metadata``.
+        """
+        rb = float(relative_baseline)
+        spec = {"relative_baseline": rb, **dict(kwargs)}
+        metadata = dict(self.metadata)
+        metadata["homeostasis"] = spec
+        active = rb != 1.0 or bool(kwargs)
+        metadata["enable_homeostasis"] = active
+        if active:
+            params = dict(RuntimeConfig().homeostasis_params)
+            params["k_gain"] = rb - 1.0
+            params.update(kwargs)
+            metadata["homeostasis_params"] = params
+        return replace(self, metadata=metadata)
+
     # ------------------------------------------------------------------
     # v0.3.28 completion: declarative circuit/training ownership.
     #

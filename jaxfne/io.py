@@ -101,6 +101,8 @@ def manifest(
         "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout"),
         "physical_amplitude_calibrated": cfg_metadata.get("physical_amplitude_calibrated", False),
         "operator_status": cfg_metadata.get("operator_status", {}),
+        "plasticity": cfg_metadata.get("plasticity"),
+        "homeostasis": cfg_metadata.get("homeostasis"),
         "config_hash": config_hash(cfg),
     }
     if runtime_config is not None:
