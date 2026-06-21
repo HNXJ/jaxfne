@@ -232,51 +232,60 @@ class TestOptionalDepsLazy:
 
 
 class TestVersionComparison:
-    """Test that version is consistent across all files."""
+    """Test that version is consistent across all files.
 
-    def test_version_in_core(self):
-        """Check _JAXFNE_VERSION in core.py."""
-        from jaxfne.core import _JAXFNE_VERSION
+    pyproject.toml is the single source of truth; core and mkdocs must match it.
+    These check *consistency*, not a hardcoded literal, so they do not break on
+    every release bump (the consistency contract is what matters).
+    """
 
-        assert _JAXFNE_VERSION == "0.4.0"
-
-    def test_version_in_pyproject(self):
-        """Check version in pyproject.toml."""
-        pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-        content = pyproject_path.read_text()
+    @staticmethod
+    def _pyproject_version() -> str:
         import re
 
-        match = re.search(r'version = "([^"]+)"', content)
+        content = (Path(__file__).parent.parent / "pyproject.toml").read_text()
+        match = re.search(r'^version = "([^"]+)"', content, re.MULTILINE)
         assert match, "Could not find version in pyproject.toml"
-        assert match.group(1) == "0.4.0"
+        return match.group(1)
+
+    def test_version_in_core(self):
+        """_JAXFNE_VERSION in core.py matches pyproject."""
+        from jaxfne.core import _JAXFNE_VERSION
+
+        assert _JAXFNE_VERSION == self._pyproject_version()
+
+    def test_version_in_pyproject(self):
+        """pyproject version is present and semver-shaped (X.Y.Z)."""
+        import re
+
+        assert re.match(r"^\d+\.\d+\.\d+", self._pyproject_version())
 
     def test_version_in_mkdocs(self):
-        """Check version in mkdocs.yml."""
+        """jaxfne_version in mkdocs.yml matches pyproject."""
         mkdocs_path = Path(__file__).parent.parent / "mkdocs.yml"
         content = mkdocs_path.read_text()
         import re
 
         match = re.search(r'jaxfne_version: "([^"]+)"', content)
         assert match, "Could not find jaxfne_version in mkdocs.yml"
-        assert match.group(1) == "0.4.0"
+        assert match.group(1) == self._pyproject_version()
 
     def test_all_versions_match(self):
-        """All version fields must match."""
+        """All version fields must agree with pyproject (single source of truth)."""
         from jaxfne.core import _JAXFNE_VERSION
 
         pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
         mkdocs_path = Path(__file__).parent.parent / "mkdocs.yml"
 
-        pyproject_content = pyproject_path.read_text()
         mkdocs_content = mkdocs_path.read_text()
 
         import re
 
-        pyproject_ver = re.search(r'version = "([^"]+)"', pyproject_content).group(1)
+        pyproject_ver = self._pyproject_version()
         mkdocs_ver = re.search(r'jaxfne_version: "([^"]+)"', mkdocs_content).group(1)
 
         assert (
-            _JAXFNE_VERSION == pyproject_ver == mkdocs_ver == "0.4.0"
+            _JAXFNE_VERSION == pyproject_ver == mkdocs_ver
         ), f"Version mismatch: core={_JAXFNE_VERSION}, pyproject={pyproject_ver}, mkdocs={mkdocs_ver}"
 
 
