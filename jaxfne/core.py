@@ -4072,9 +4072,10 @@ class Model:
             if ablation_mode == "disconnected_null":
                 edges = replace(edges, weight=jnp.zeros_like(edges.weight))
             hp = dict(runtime_cfg.homeostasis_params or {})
+            _plastic_active = float(hp.get("eta", 0.0) or 0.0) != 0.0
 
             def _homeo_packed(k, s):
-                """Return (V, spikes, sources, g_bias, r_trace) as a flat tuple."""
+                """Return (V, spikes, sources, g_bias, r_trace[, w_final, w_trace])."""
                 V, S, src, diag = simulate_edge_recurrent_izhikevich_homeostatic(
                     emitter, edges, sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype, drive_schedule=s,
@@ -4095,6 +4096,8 @@ class Model:
                     u_abs_max=hp.get("u_abs_max", 2000.0),
                     syn_abs_max=hp.get("syn_abs_max", 1.0e4),
                 )
+                if _plastic_active:
+                    return V, S, src, diag["g_bias"], diag["r_trace"], diag["w_final"], diag["w_trace"]
                 return V, S, src, diag["g_bias"], diag["r_trace"]
 
             effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
@@ -4108,28 +4111,37 @@ class Model:
                 T = int(sim.n_steps)
                 guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
                 cache_key = ("simulate_homeostatic", B, Z, C, T, runtime_cfg.actual_dtype,
-                             ablation_mode, runtime_cfg.selected_backend)
+                             ablation_mode, runtime_cfg.selected_backend, _plastic_active)
                 with _device_scope(runtime_cfg.selected_backend):
                     if cache_key not in self._compiled_cache:
                         import time
+                        guard_name = ("simulate_homeostatic_plastic" if _plastic_active
+                                      else "simulate_homeostatic")
                         target_fn = make_recompilation_guard(
-                            _homeo_packed, name="simulate_homeostatic",
+                            _homeo_packed, name=guard_name,
                             recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
                         )
                         self._compiled_cache[cache_key] = jax.jit(target_fn)
                         t0 = time.perf_counter()
-                        V, S, src, g_bias, r_trace = self._compiled_cache[cache_key](key, sched)
+                        result = self._compiled_cache[cache_key](key, sched)
                         t1 = time.perf_counter()
                         if not hasattr(self, "_warmup_times"):
                             object.__setattr__(self, "_warmup_times", [])
                         self._warmup_times.append(t1 - t0)
                     else:
-                        V, S, src, g_bias, r_trace = self._compiled_cache[cache_key](key, sched)
+                        result = self._compiled_cache[cache_key](key, sched)
             else:
                 with _device_scope(runtime_cfg.selected_backend):
-                    V, S, src, g_bias, r_trace = _homeo_packed(key, sched)
-            object.__setattr__(self, "_last_homeostasis_diag",
-                               {"g_bias": g_bias, "r_trace": r_trace})
+                    result = _homeo_packed(key, sched)
+            if _plastic_active:
+                V, S, src, g_bias, r_trace, w_final, w_trace = result
+                object.__setattr__(self, "_last_homeostasis_diag",
+                                   {"g_bias": g_bias, "r_trace": r_trace,
+                                    "w_final": w_final, "w_trace": w_trace})
+            else:
+                V, S, src, g_bias, r_trace = result
+                object.__setattr__(self, "_last_homeostasis_diag",
+                                   {"g_bias": g_bias, "r_trace": r_trace})
             return V, S, src
 
         if runtime_cfg.recurrent_backend == "edge_list":
@@ -4380,7 +4392,8 @@ class Model:
                 "biological_learning_claim": False,
                 "mechanism_claim_status": "not_claimed",
                 "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
-                                           "full per-step g_bias/r_trace via "
+                                           "full per-step g_bias/r_trace (and, when "
+                                           "synaptic_plasticity_enabled, w_final/w_trace) via "
                                            "Model.last_homeostasis_diagnostics()",
             }
             if diag is not None:
@@ -4393,6 +4406,12 @@ class Model:
                     "min": float(jnp.min(r)), "max": float(jnp.max(r)),
                     "mean": float(jnp.mean(r)), "shape": list(r.shape),
                 }
+                if "w_final" in diag:
+                    wf = diag["w_final"]
+                    homeo_meta["w_final_summary"] = {
+                        "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
+                        "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+                    }
             metadata["homeostasis"] = homeo_meta
         return Signals(
             time_ms=time_ms,
@@ -4409,8 +4428,11 @@ class Model:
 
         Returns a dict with arrays ``g_bias`` and ``r_trace`` of shape
         ``(n_steps, n_neurons)``, or ``None`` if homeostasis was not enabled on
-        the last run. These are computational-control diagnostics (proxy), not a
-        biological-mechanism claim.
+        the last run. When ``homeostasis_params["eta"] != 0`` (homeostatic
+        synaptic plasticity active), the dict also carries ``w_final``
+        ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)`` — the plastic
+        edge-weight trajectory. These are computational-control diagnostics
+        (proxy), not a biological-mechanism claim.
         """
         return getattr(self, "_last_homeostasis_diag", None)
 

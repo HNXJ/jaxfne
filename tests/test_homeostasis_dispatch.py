@@ -159,3 +159,52 @@ def test_synaptic_plasticity_via_simulate_runs():
     sig = jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
     assert bool(np.isfinite(np.asarray(sig.V_m)).all())
     assert sig.metadata["homeostasis"]["enabled"] is True
+
+
+def test_synaptic_plasticity_diagnostics_forwarded_via_simulate():
+    """eta>0 through the public Configuration/simulate() path must surface w_final/w_trace
+    via Model.last_homeostasis_diagnostics() and Signals.metadata -- not just the kernel
+    (the wrapper used to drop diag["w_final"]/diag["w_trace"] before they reached either)."""
+    model = _build({"enable_homeostasis": True,
+                    "homeostasis_params": {"k_gain": 1.0, "eta": 0.02, "w_min": -3.0, "w_max": 3.0}})
+    w_init = np.asarray(model.params["edge_list"].weight)
+    sig = jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag = model.last_homeostasis_diagnostics()
+    assert "w_final" in diag and "w_trace" in diag
+    w_final = np.asarray(diag["w_final"])
+    assert w_final.shape == w_init.shape
+    assert not np.allclose(w_final, w_init)               # weights adapted
+    assert w_final.min() >= -3.0 - 1e-4 and w_final.max() <= 3.0 + 1e-4  # clip held
+    n_steps = int(D / DT)
+    assert np.asarray(diag["w_trace"]).shape == (n_steps, w_init.shape[0])
+    assert "w_final_summary" in sig.metadata["homeostasis"]
+
+
+def test_no_plasticity_diagnostics_when_eta_zero_via_simulate():
+    """eta=0 (default) through simulate() must not carry w_final/w_trace -- matches the
+    kernel null (test_synaptic_plasticity_null_and_effect) at the public-API surface too."""
+    model = _build({"enable_homeostasis": True, "homeostasis_params": {"k_gain": 1.0}})
+    jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag = model.last_homeostasis_diagnostics()
+    assert "w_final" not in diag and "w_trace" not in diag
+
+
+def test_plasticity_cache_key_isolated_from_non_plastic_run():
+    """Reusing the same Model across an eta=0 call then an eta>0 call at identical
+    (n_contacts, n_neurons, n_steps, dtype, backend) must not replay a stale compiled
+    closure with the wrong output arity -- the JIT cache key includes the plasticity
+    on/off flag precisely so this transition is safe."""
+    model = _build({"enable_homeostasis": True, "jit": True,
+                    "homeostasis_params": {"k_gain": 1.0, "eta": 0.0}})
+    jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag_off = model.last_homeostasis_diagnostics()
+    assert "w_final" not in diag_off
+
+    sim_on = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                              runtime=jtfne.RuntimeConfig(
+                                  enable_homeostasis=True, jit=True,
+                                  homeostasis_params={"k_gain": 1.0, "eta": 0.02}))
+    sig_on = model.simulate(sim_on)
+    diag_on = model.last_homeostasis_diagnostics()
+    assert "w_final" in diag_on and "w_trace" in diag_on
+    assert bool(np.isfinite(np.asarray(sig_on.V_m)).all())
