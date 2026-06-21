@@ -1,3 +1,16 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/jaxfne-itxt.png" alt="jaxfne" width="200">
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI package"></a>
+  <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/pyversions/jaxfne" alt="Python versions"></a>
+  <a href="https://jaxfne.readthedocs.io/"><img src="https://img.shields.io/badge/docs-jaxfne.readthedocs.io-blue" alt="Documentation"></a>
+  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="Tests"></a>
+  <a href="https://jaxfne.readthedocs.io/contributing/"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="contributions welcome"></a>
+  <a href="https://github.com/HNXJ/jaxfne/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
+</p>
+
 # jaxfne
 
 `jaxfne` is a compact JAX package for Tensor-Field Neural Equations (TFNE): a typed computational chain from neural emitters to source tensors, field-proxy operators, probe readouts, objective reports, optimizers, and run manifests.

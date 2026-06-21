@@ -9,6 +9,8 @@ docs_dir: docs
 
 theme:
   name: material
+  logo: assets/jaxfne-img.png
+  favicon: assets/jaxfne-img.png
   features:
     - navigation.sections
     - navigation.top
