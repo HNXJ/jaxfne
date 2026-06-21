@@ -1237,10 +1237,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-jaxley-neuron-jaxfne-readout" class="md-nav__link">
+  <a href="#end-to-end-a-jaxley-model-tfne-signals-one-call" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Jaxley neuron → jaxfne readout
+        End-to-end: a Jaxley model → tfne Signals (one call)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfne-homeostasis-on-a-jaxley-emitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tfne homeostasis on a Jaxley emitter
       
     </span>
   </a>
@@ -2232,10 +2243,21 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#example-jaxley-neuron-jaxfne-readout" class="md-nav__link">
+  <a href="#end-to-end-a-jaxley-model-tfne-signals-one-call" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example: Jaxley neuron → jaxfne readout
+        End-to-end: a Jaxley model → tfne Signals (one call)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tfne-homeostasis-on-a-jaxley-emitter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        tfne homeostasis on a Jaxley emitter
       
     </span>
   </a>
@@ -2319,36 +2341,72 @@
 </ul>
 <h2 id="using-jaxley-with-jaxfne">Using Jaxley with jaxfne<a class="headerlink" href="#using-jaxley-with-jaxfne" title="Permanent link">&para;</a></h2>
 <p>Jaxley builds neuron/network models; jaxfne organizes their outputs into multimodal readouts.</p>
-<h3 id="example-jaxley-neuron-jaxfne-readout">Example: Jaxley neuron → jaxfne readout<a class="headerlink" href="#example-jaxley-neuron-jaxfne-readout" title="Permanent link">&para;</a></h3>
+<h3 id="end-to-end-a-jaxley-model-tfne-signals-one-call">End-to-end: a Jaxley model → tfne Signals (one call)<a class="headerlink" href="#end-to-end-a-jaxley-model-tfne-signals-one-call" title="Permanent link">&para;</a></h3>
+<p>Wire channels + stimulus + recordings on a Jaxley model, then hand it to
+<code>JaxleyBridge.simulate(...)</code>. The bridge integrates with a stable implicit solver
+and returns a proxy <code>Signals</code> ready for <code>jaxfne.vis</code> and the readout/field layer:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxley</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxley.channels</span><span class="w"> </span><span class="kn">import</span> <span class="n">HH</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jax.numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jnp</span>
 
-<span class="c1"># Build a Jaxley neuron</span>
-<span class="n">neuron</span> <span class="o">=</span> <span class="n">jx</span><span class="o">.</span><span class="n">Neuron</span><span class="p">(</span>
-    <span class="n">conductances</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;leak&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span> <span class="o">...</span><span class="p">},</span>
-    <span class="n">mech_params</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">}</span>
-<span class="p">)</span>
+<span class="c1"># Build a Jaxley emitter: single HH compartment, recorded and stimulated</span>
+<span class="n">cell</span> <span class="o">=</span> <span class="n">jx</span><span class="o">.</span><span class="n">Cell</span><span class="p">(</span><span class="n">jx</span><span class="o">.</span><span class="n">Branch</span><span class="p">(</span><span class="n">jx</span><span class="o">.</span><span class="n">Compartment</span><span class="p">(),</span> <span class="n">ncomp</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">cell</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">HH</span><span class="p">())</span>
+<span class="n">cell</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">)</span>
+<span class="n">cell</span><span class="o">.</span><span class="n">stimulate</span><span class="p">(</span><span class="n">jx</span><span class="o">.</span><span class="n">step_current</span><span class="p">(</span><span class="n">i_delay</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">i_dur</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">i_amp</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
 
-<span class="c1"># Simulate with Jaxley</span>
-<span class="n">v_jax</span> <span class="o">=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>  <span class="c1"># [time, compartments]</span>
+<span class="c1"># One call: integrate the Jaxley model and convert to jaxfne Signals</span>
+<span class="n">sig</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">JaxleyBridge</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">cell</span><span class="p">)</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">duration_ms</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span>
 
-<span class="c1"># Reshape for jaxfne (e.g., [time, neurons] where neurons=1)</span>
-<span class="n">source_input</span> <span class="o">=</span> <span class="n">v_jax</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># soma voltage</span>
-
-<span class="c1"># Create jaxfne workflow</span>
-<span class="n">cfg</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">jtfne</span><span class="o">.</span><span class="n">configuration</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">emitter</span><span class="p">(</span><span class="n">family</span><span class="o">=</span><span class="s2">&quot;custom&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;external_voltage&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">domain</span><span class="o">=</span><span class="s2">&quot;point&quot;</span><span class="p">)</span>
-    <span class="o">.</span><span class="n">probe</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;jaxley_soma&quot;</span><span class="p">)</span>
-<span class="p">)</span>
-
-<span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">construct</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">signals</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">simulate_external</span><span class="p">(</span><span class="n">source_input</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
-<span class="n">readouts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">compute_readout</span><span class="p">(</span><span class="n">signals</span><span class="p">,</span> <span class="p">[</span><span class="o">...</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">V_m</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>                                   <span class="c1"># [T, N] proxy voltage</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;physical_amplitude_calibrated&quot;</span><span class="p">])</span>   <span class="c1"># False (proxy gate)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">vm</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>                                 <span class="c1"># plot like any tfne run</span>
 </code></pre></div>
+<p>Already ran <code>jaxley.integrate(...)</code> yourself? Convert the recordings directly —
+recorded-compartment xyz are pulled from <code>module.nodes</code> into the metadata for
+downstream projection:</p>
+<div class="highlight"><pre><span></span><code><span class="n">rec</span> <span class="o">=</span> <span class="n">jx</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;bwd_euler&quot;</span><span class="p">)</span>  <span class="c1"># (n_rec, n_time)</span>
+<span class="n">sig</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">jaxley_to_signals</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">rec</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span>
+<span class="n">sig</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;recorded_positions_xyz&quot;</span><span class="p">]</span>                 <span class="c1"># [[x, y, z], ...] per recording</span>
+</code></pre></div>
+<h3 id="tfne-homeostasis-on-a-jaxley-emitter">tfne homeostasis on a Jaxley emitter<a class="headerlink" href="#tfne-homeostasis-on-a-jaxley-emitter" title="Permanent link">&para;</a></h3>
+<p>Keep Jaxley's channels/morphologies <em>and</em> tfne's homeostatic controller. Record the
+compartments to control, then call <code>simulate_homeostatic(...)</code>. An outer-loop windowed
+controller maintains a slow firing-rate trace per cell and injects an excitability
+current bias with tfne's restoring law <code>g = clip(k_gain * (target_rate_hz - r), g_min, g_max)</code>,
+stitching windows with continuous state resume:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxley</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">jaxley.channels</span><span class="w"> </span><span class="kn">import</span> <span class="n">HH</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
+
+<span class="c1"># 4 cells with graded drive -&gt; divergent rates without control</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">jx</span><span class="o">.</span><span class="n">Network</span><span class="p">([</span><span class="n">jx</span><span class="o">.</span><span class="n">Cell</span><span class="p">(</span><span class="n">jx</span><span class="o">.</span><span class="n">Branch</span><span class="p">(</span><span class="n">jx</span><span class="o">.</span><span class="n">Compartment</span><span class="p">(),</span> <span class="n">ncomp</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">parents</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)])</span>
+<span class="n">net</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">HH</span><span class="p">())</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+    <span class="n">net</span><span class="o">.</span><span class="n">cell</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">branch</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">comp</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">record</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">)</span>
+
+<span class="n">sig</span><span class="p">,</span> <span class="n">diag</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">JaxleyBridge</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">net</span><span class="p">)</span><span class="o">.</span><span class="n">simulate_homeostatic</span><span class="p">(</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mf">400.0</span><span class="p">,</span>
+    <span class="n">base_current_nA</span><span class="o">=</span><span class="p">[</span><span class="mf">0.004</span><span class="p">,</span> <span class="mf">0.008</span><span class="p">,</span> <span class="mf">0.013</span><span class="p">,</span> <span class="mf">0.018</span><span class="p">],</span>   <span class="c1"># stay in the monotonic f-I band</span>
+    <span class="n">target_rate_hz</span><span class="o">=</span><span class="mf">70.0</span><span class="p">,</span> <span class="n">k_gain</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">bias_current_scale</span><span class="o">=</span><span class="mf">0.0008</span><span class="p">,</span>
+    <span class="n">return_diagnostics</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">diag</span><span class="p">[</span><span class="s2">&quot;rate_hz&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>   <span class="c1"># per-cell rate converges toward the set-point</span>
+<span class="n">sig</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;homeostasis&quot;</span><span class="p">]</span>   <span class="c1"># controller params + framing gates</span>
+</code></pre></div>
+<p><code>k_gain=0</code> is a clean null (no bias). The controller runs at <em>window</em> cadence (Jaxley's
+<code>integrate</code> is a closed scan), a documented approximation of the per-step Izhikevich
+homeostatic kernel. <strong>Framing:</strong> this is a computational control proxy, not a biological
+mechanism — <code>biological_learning_claim=False</code>, <code>mechanism_claim_status="not_claimed"</code>.
+Note: Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
+depolarization block), so keep currents in the ~0.002–0.02 nA band for the default compartment.</p>
+<blockquote>
+<p><strong>JAX compatibility shim.</strong> Jaxley (≤0.13) channels call the
+<code>jnp.clip(a_min=, a_max=)</code> keywords that recent JAX removed. Every Jaxley entry
+point routes through <code>require_jaxley()</code>, which lazily installs a backward-compatible
+shim so channel emitters actually integrate on current JAX — you do not need to do
+anything. The metadata records <code>jax_clip_compat_installed</code> for transparency.</p>
+</blockquote>
 <h3 id="array-first-trace-bridge">Array-first trace bridge<a class="headerlink" href="#array-first-trace-bridge" title="Permanent link">&para;</a></h3>
 <p>jaxfne provides a minimal array-first bridge for converting Jaxley-style voltage traces to jaxfne Signals without running a full simulation:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
