@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://jaxfne.readthedocs.io/tutorials/11_multi_laminar_cortical_agsdr/">
+        <link rel="canonical" href="https://jaxfne.readthedocs.io/api/bridges/">
       
       
-        <link rel="prev" href="../08_jaxfne_suite_no_3_low_frequency_scaling/">
+        <link rel="prev" href="../emitters/">
       
       
-        <link rel="next" href="../12_izhikevich_single_emitter_explorer/">
+        <link rel="next" href="../fields/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Tutorial: Multi-area Laminar Model - jaxfne</title>
+        <title>Bridges - jaxfne</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-multi-area-laminar-model" class="md-skip">
+        <a href="#bridges-api" class="md-skip">
           Skip to content
         </a>
       
@@ -115,7 +115,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tutorial: Multi-area Laminar Model
+              Bridges
             
           </span>
         </div>
@@ -409,8 +409,6 @@
       
   
   
-    
-  
   
   
     
@@ -461,15 +459,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../" class="md-nav__link ">
+            <a href="../../tutorials/" class="md-nav__link ">
               
   
   
@@ -493,7 +491,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -513,7 +511,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../notebook_standard/" class="md-nav__link">
+      <a href="../../tutorials/notebook_standard/" class="md-nav__link">
         
   
   
@@ -541,7 +539,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../13_canonical_column_etude/" class="md-nav__link">
+      <a href="../../tutorials/13_canonical_column_etude/" class="md-nav__link">
         
   
   
@@ -569,7 +567,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
+      <a href="../../tutorials/06_jaxfne_suite_no_1_computational_biophysics/" class="md-nav__link">
         
   
   
@@ -597,7 +595,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
+      <a href="../../tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif/" class="md-nav__link">
         
   
   
@@ -625,7 +623,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
+      <a href="../../tutorials/08_jaxfne_suite_no_3_low_frequency_scaling/" class="md-nav__link">
         
   
   
@@ -650,37 +648,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial: Multi-area Laminar Model
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../tutorials/11_multi_laminar_cortical_agsdr/" class="md-nav__link">
         
   
   
@@ -696,136 +667,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#what-this-tutorial-does" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        What this tutorial does
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#run-status" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Run status
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#colab-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Colab setup
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#package-native-path" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Package-native path
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notebook-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notebook structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customization-controls" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Customization controls
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#agsdr-tuning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        AGSDR tuning
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#knock-out-experiment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Knock-out experiment
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#artifacts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Artifacts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#readthedocs-build" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ReadTheDocs build
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -838,7 +679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../12_izhikevich_single_emitter_explorer/" class="md-nav__link">
+      <a href="../../tutorials/12_izhikevich_single_emitter_explorer/" class="md-nav__link">
         
   
   
@@ -866,7 +707,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
+      <a href="../../tutorials/09_v0310_eeg_meg_emm_proxy_bundle/" class="md-nav__link">
         
   
   
@@ -894,7 +735,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../01_single_neuron_multimodal/" class="md-nav__link">
+      <a href="../../tutorials/01_single_neuron_multimodal/" class="md-nav__link">
         
   
   
@@ -922,7 +763,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../02_two_neuron_ei/" class="md-nav__link">
+      <a href="../../tutorials/02_two_neuron_ei/" class="md-nav__link">
         
   
   
@@ -950,7 +791,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../03_network_100_ei/" class="md-nav__link">
+      <a href="../../tutorials/03_network_100_ei/" class="md-nav__link">
         
   
   
@@ -978,7 +819,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../04_v1_column/" class="md-nav__link">
+      <a href="../../tutorials/04_v1_column/" class="md-nav__link">
         
   
   
@@ -1006,7 +847,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../05_v1_pfc_dual_column/" class="md-nav__link">
+      <a href="../../tutorials/05_v1_pfc_dual_column/" class="md-nav__link">
         
   
   
@@ -1034,7 +875,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../06_v036_100_neuron_ei_population/" class="md-nav__link">
+      <a href="../../tutorials/06_v036_100_neuron_ei_population/" class="md-nav__link">
         
   
   
@@ -1062,7 +903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../07_v037_source_bookkeeping/" class="md-nav__link">
+      <a href="../../tutorials/07_v037_source_bookkeeping/" class="md-nav__link">
         
   
   
@@ -1090,7 +931,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../08_v038_lfp_csd_readout/" class="md-nav__link">
+      <a href="../../tutorials/08_v038_lfp_csd_readout/" class="md-nav__link">
         
   
   
@@ -1496,6 +1337,8 @@
       
   
   
+    
+  
   
   
     
@@ -1530,15 +1373,15 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <div class="md-nav__link md-nav__container">
-            <a href="../../api/" class="md-nav__link ">
+            <a href="../" class="md-nav__link ">
               
   
   
@@ -1562,7 +1405,7 @@
             
           </div>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1582,7 +1425,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/core/" class="md-nav__link">
+      <a href="../core/" class="md-nav__link">
         
   
   
@@ -1610,7 +1453,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/runtime/" class="md-nav__link">
+      <a href="../runtime/" class="md-nav__link">
         
   
   
@@ -1638,7 +1481,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/emitters/" class="md-nav__link">
+      <a href="../emitters/" class="md-nav__link">
         
   
   
@@ -1663,10 +1506,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../api/bridges/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bridges
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1682,6 +1552,120 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#require_jaxley-and-the-jax-clip-shim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        require_jaxley() and the JAX clip shim
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jaxley_to_signalsmodule-recordings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        jaxley_to_signals(module, recordings, ...)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jaxleybridge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JaxleyBridge
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JaxleyBridge">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulate-voltage-proxy-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate(...) — voltage-proxy Signals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_laminar_field-emitter-source-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_laminar_field(...) — Emitter → Source → Field
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_homeostatic-windowed-excitability-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_homeostatic(...) — windowed excitability controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hh_jaxley_reference_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hh_jaxley_reference_trace(...)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1694,7 +1678,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/fields/" class="md-nav__link">
+      <a href="../fields/" class="md-nav__link">
         
   
   
@@ -1722,7 +1706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/probes/" class="md-nav__link">
+      <a href="../probes/" class="md-nav__link">
         
   
   
@@ -1750,7 +1734,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/objectives/" class="md-nav__link">
+      <a href="../objectives/" class="md-nav__link">
         
   
   
@@ -1778,7 +1762,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/validation/" class="md-nav__link">
+      <a href="../validation/" class="md-nav__link">
         
   
   
@@ -2346,10 +2330,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-this-tutorial-does" class="md-nav__link">
+  <a href="#require_jaxley-and-the-jax-clip-shim" class="md-nav__link">
     <span class="md-ellipsis">
       
-        What this tutorial does
+        require_jaxley() and the JAX clip shim
       
     </span>
   </a>
@@ -2357,10 +2341,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#run-status" class="md-nav__link">
+  <a href="#jaxley_to_signalsmodule-recordings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Run status
+        jaxley_to_signals(module, recordings, ...)
       
     </span>
   </a>
@@ -2368,10 +2352,60 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#colab-setup" class="md-nav__link">
+  <a href="#jaxleybridge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Colab setup
+        JaxleyBridge
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="JaxleyBridge">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simulate-voltage-proxy-signals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate(...) — voltage-proxy Signals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_laminar_field-emitter-source-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_laminar_field(...) — Emitter → Source → Field
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simulate_homeostatic-windowed-excitability-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        simulate_homeostatic(...) — windowed excitability controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hh_jaxley_reference_trace" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hh_jaxley_reference_trace(...)
       
     </span>
   </a>
@@ -2379,76 +2413,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#package-native-path" class="md-nav__link">
+  <a href="#see-also" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Package-native path
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notebook-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notebook structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customization-controls" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Customization controls
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#agsdr-tuning" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        AGSDR tuning
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#knock-out-experiment" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Knock-out experiment
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#artifacts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Artifacts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#readthedocs-build" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ReadTheDocs build
+        See also
       
     </span>
   </a>
@@ -2475,142 +2443,238 @@
   
 
 
-<h1 id="tutorial-multi-area-laminar-model">Tutorial: Multi-area Laminar Model<a class="headerlink" href="#tutorial-multi-area-laminar-model" title="Permanent link">&para;</a></h1>
-<p><a href="https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
-<p>A thin, Colab-ready, maximally customizable tutorial. Heavy computation lives in <code>jaxfne</code>; the notebook exposes the controls and runs entirely through the package engine (<code>import jaxfne as jtfne</code>) — there is no local simulator.</p>
-<h2 id="what-this-tutorial-does">What this tutorial does<a class="headerlink" href="#what-this-tutorial-does" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Explore neuron types and waveforms</strong> — E (excitatory) vs PV / SST / VIP (inhibitory) Izhikevich action potentials, with editable per-type <code>a, b, c, d, drive</code>.</li>
-<li><strong>Build a two-area laminar network</strong> — 6 layers × 4 cell types per area (extend freely), with within-area recurrence and between-area projections. Defaults: thalamic input → L4 of V1; V1 L2/3 (E) <strong>feedforward</strong> → V4 L4; V4 L2/3 (E) <strong>feedback</strong> → V1 L5/6.</li>
-<li><strong>AGSDR fine-tuning</strong> — adaptively tune control toward a target firing rate while minimizing spike synchrony (kappa).</li>
-<li><strong>Custom everything</strong> — stimulus, stimulation target, lesions, cell-type parameters, drive, connectivity.</li>
-<li><strong>Spectrolaminar motif play</strong> — manipulate cfg, cell types, ratios, densities, drives, and waveforms and watch the alpha-beta / gamma depth profile respond.</li>
-<li><strong>Knock-out experiments</strong> — lesion a layer / cell type / area and measure the downstream effect.</li>
-</ol>
-<h2 id="run-status">Run status<a class="headerlink" href="#run-status" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="nt">artifact_class</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial</span>
-<span class="nt">artifact_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">multi_area_laminar_workshop</span>
-<span class="nt">run_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tutorial_scaffold</span>
-<span class="nt">claim_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">computational_scaffold</span>
-<span class="nt">field_solver_status</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">linear_solver</span>
-<span class="nt">field_claim_level</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">proxy_readout</span>
-<span class="nt">physical_amplitude_calibrated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<h1 id="bridges-api">Bridges API<a class="headerlink" href="#bridges-api" title="Permanent link">&para;</a></h1>
+<p>Optional bridges that let external biophysical simulators participate in the
+jaxfne object grammar. The Jaxley bridge turns a Jaxley module into a first-class
+jaxfne <strong>emitter</strong>: it produces <code>Signals</code> that flow through the same probes,
+projections, objectives, and <code>jaxfne.vis.*</code> readouts as the built-in emitter.</p>
+<p>All bridge outputs are conservative proxies — <code>field</code> arrays are proxy readouts,
+<code>physical_amplitude_calibrated=False</code>, and <code>claim_level="computational_scaffold"</code>.
+Biophysical fidelity follows the Jaxley model you provide (channels, morphology):
+jaxfne is the mathematical backend; the configuration sets the detail.</p>
+<p>Jaxley is an optional dependency:</p>
+<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;jaxfne[jaxley]&quot;</span>
 </code></pre></div>
-<p>LFP/CSD outputs are laminar <strong>proxy</strong> readouts produced by a depth-dependent Gaussian leadfield over real per-neuron Izhikevich source traces. No PDE/field solver is executed, and no calibrated-amplitude claim is made. The spectrolaminar motif is <strong>emergent</strong> from the dynamics and the leadfield — it is not imposed.</p>
-<h2 id="colab-setup">Colab setup<a class="headerlink" href="#colab-setup" title="Permanent link">&para;</a></h2>
-<p>The first cell installs the package. Set <code>INSTALL_MODE</code> to <code>pypi</code>, <code>github-main</code>, <code>local-editable</code>, or <code>skip</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="s2">&quot;jaxfne[viz]&quot;</span>                                      <span class="c1"># pypi</span>
-<span class="o">%</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">q</span> <span class="s2">&quot;jaxfne[viz] @ git+https://github.com/HNXJ/jaxfne.git@main&quot;</span>  <span class="c1"># github-main</span>
+<h2 id="require_jaxley-and-the-jax-clip-shim"><code>require_jaxley()</code> and the JAX clip shim<a class="headerlink" href="#require_jaxley-and-the-jax-clip-shim" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">jx</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">bridges</span><span class="o">.</span><span class="n">require_jaxley</span><span class="p">()</span>
 </code></pre></div>
-<p>Under <code>TFNE_SMOKE=1</code> (CI / local validation) the install mode is forced to <code>skip</code> so the checked-out code is used.</p>
-<h2 id="package-native-path">Package-native path<a class="headerlink" href="#package-native-path" title="Permanent link">&para;</a></h2>
-<p>The tutorial uses the <code>jaxfne.tutorial_utils</code> helpers end to end:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">jaxfne</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jtfne</span>
-
-<span class="n">cfg</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">make_laminar_column_config</span><span class="p">(</span>
-    <span class="n">areas</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="s2">&quot;V4&quot;</span><span class="p">),</span>
-    <span class="n">layer_cell_type_frac</span><span class="o">=</span><span class="n">LAYER_CELL_TYPE_FRAC</span><span class="p">,</span>
-    <span class="n">cell_type_izh_params</span><span class="o">=</span><span class="n">CELL_TYPE_IZH</span><span class="p">,</span>     <span class="c1"># per-type waveform (wider-E default)</span>
-    <span class="n">connectivity_spec</span><span class="o">=</span><span class="n">CONNECTIVITY_SPEC</span><span class="p">,</span>    <span class="c1"># inter-area feedforward / feedback</span>
-    <span class="n">lesion_spec</span><span class="o">=</span><span class="n">LESION_SPEC</span><span class="p">,</span>                <span class="c1"># knock-out rules</span>
-<span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">build_laminar_column</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">stimulus</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">make_stimulus</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;sine&quot;</span><span class="p">,</span> <span class="n">duration_ms</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">duration_ms</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">dt_ms</span><span class="p">)</span>
-<span class="n">target</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">select_cells</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">area</span><span class="o">=</span><span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="n">layers</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;L4&quot;</span><span class="p">,),</span> <span class="n">cell_types</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,))</span>
-<span class="n">trials</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">simulate_laminar_trials</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">base_control</span><span class="p">,</span> <span class="n">stimulus</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<p>Imports Jaxley lazily and installs an idempotent <code>jax.numpy.clip(a_min=/a_max=)</code>
+compatibility shim. Jaxley (≤0.13) channel gating calls <code>jnp.clip(x, a_min=...,
+a_max=...)</code>; recent JAX removed those keyword names, so without the shim <em>no</em>
+Jaxley channel can integrate. Every Jaxley entry point routes through
+<code>require_jaxley()</code>, so the shim is always in force before a model runs. It
+self-disables when the running JAX natively supports <code>a_max</code>.</p>
+<h2 id="jaxley_to_signalsmodule-recordings"><code>jaxley_to_signals(module, recordings, ...)</code><a class="headerlink" href="#jaxley_to_signalsmodule-recordings" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">rec</span> <span class="o">=</span> <span class="n">jx</span><span class="o">.</span><span class="n">integrate</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">delta_t</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">t_max</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;bwd_euler&quot;</span><span class="p">)</span>
+<span class="n">signals</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">jaxley_to_signals</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">rec</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s2">&quot;v&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="notebook-structure">Notebook structure<a class="headerlink" href="#notebook-structure" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>1.  Install + import
-2.  Runtime / scale controls (smoke / interactive / release)
-3.  Column geometry (x, y, z, radius, L4 reference)
-4.  Layers and per-layer neuron counts
-5.  Per-layer cell-type ratios + per-cell-type Izhikevich params (CELL_TYPE_IZH)
-5b. Inter-area connectivity (CONNECTIVITY_SPEC) and lesions (LESION_SPEC)
-6.  Build the jaxfne configuration
-7.  Izhikevich control panel
-7b. Single-cell E/PV/SST/VIP waveform explorer
-8.  Build model + interactive 3D cortical scaffold
-9.  Stimulus, target cells, simulation
-10. Activity suite (raster / Vm / extracellular proxy / CSD-proxy / PSD)
-11. Spectrolaminar relative-power motif (A density / B power spectrum / C alpha-beta vs gamma)
-12. Export artifacts (manifest / metrics / validation / hashes)
-13. AGSDR fine-tuning (target firing rate + minimize kappa)
-14. Knock-out experiment
-</code></pre></div>
-<h2 id="customization-controls">Customization controls<a class="headerlink" href="#customization-controls" title="Permanent link">&para;</a></h2>
+<p>Converts a Jaxley module plus its <code>jaxley.integrate</code> output (shape
+<code>(n_recordings, n_time)</code>) into jaxfne <code>Signals</code>. Maps recordings to canonical
+<code>[T, N]</code> <code>V_m</code>, derives a threshold spike proxy, and pulls the recorded
+compartments' xyz from <code>module.nodes</code> into <code>metadata["recorded_positions_xyz"]</code>
+for downstream projection. <code>field=None</code> (no field computed here).</p>
 <table>
 <thead>
 <tr>
-<th>Control</th>
-<th>Where</th>
-<th>Effect</th>
+<th>Parameter</th>
+<th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>CELL_TYPE_IZH</code></td>
-<td>§5</td>
-<td>Per-cell-type <code>a, b, c, d, drive</code> (waveform / frequency content)</td>
+<td><code>module</code></td>
+<td>Integrated Jaxley <code>Module</code>/<code>Cell</code>/<code>Network</code> (read for layout/geometry)</td>
 </tr>
 <tr>
-<td><code>LAYER_CELL_TYPE_FRAC</code>, <code>LAYER_COUNT_FRAC</code></td>
-<td>§4–5</td>
-<td>Per-layer composition and density</td>
+<td><code>recordings</code></td>
+<td><code>jaxley.integrate(...)</code> output, <code>(n_recordings, n_time)</code> or <code>(n_time,)</code></td>
 </tr>
 <tr>
-<td><code>CONNECTIVITY_SPEC</code></td>
-<td>§5b</td>
-<td>Inter-area feedforward / feedback projections</td>
+<td><code>dt_ms</code></td>
+<td>Integration timestep in ms (must match the <code>delta_t</code> used)</td>
 </tr>
 <tr>
-<td><code>LESION_SPEC</code></td>
-<td>§5b / §14</td>
-<td>Silence a layer / cell type / area (knock-out)</td>
+<td><code>state</code></td>
+<td>Recorded state name to attribute (default <code>"v"</code>)</td>
 </tr>
 <tr>
-<td><code>STIMULUS_*</code>, <code>TARGET_*</code></td>
-<td>§9</td>
-<td>Custom stimulus and stimulation target</td>
+<td><code>spec</code></td>
+<td>Optional <code>JaxleyTraceSpec</code> (claim gates, spike threshold)</td>
 </tr>
 <tr>
-<td><code>base_control</code> gains</td>
-<td>§6</td>
-<td><code>local_exc_gain</code>, <code>local_inh_gain</code>, <code>feedforward_gain</code>, <code>feedback_gain</code></td>
-</tr>
-<tr>
-<td><code>tune_laminar_agsdr(...)</code></td>
-<td>§13</td>
-<td>AGSDR adaptive-greedy control tuning</td>
+<td><code>source</code></td>
+<td>Optional explicit source array; defaults to the voltage proxy</td>
 </tr>
 </tbody>
 </table>
-<h2 id="agsdr-tuning">AGSDR tuning<a class="headerlink" href="#agsdr-tuning" title="Permanent link">&para;</a></h2>
-<p><code>tune_laminar_agsdr</code> applies the AGSDR algorithm (adaptive greedy selection / deselection with stochastic restart) to the control vector, scoring each candidate with the real <code>population_rate_hz</code> and <code>kappa_synchrony</code> from short simulations:</p>
-<div class="highlight"><pre><span></span><code><span class="n">best_control</span><span class="p">,</span> <span class="n">history</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">tune_laminar_agsdr</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">,</span> <span class="n">cfg</span><span class="p">,</span> <span class="n">target_rate_hz</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">kappa_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;local_exc_gain&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-                <span class="s2">&quot;local_inh_gain&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span>
-                <span class="s2">&quot;feedforward_gain&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)},</span>
-    <span class="n">generations</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">population_size</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+<h2 id="jaxleybridge"><code>JaxleyBridge</code><a class="headerlink" href="#jaxleybridge" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">bridge</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">JaxleyBridge</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">module</span><span class="p">)</span>
+</code></pre></div>
+<p>Wraps a Jaxley module and exposes three run modes.</p>
+<h3 id="simulate-voltage-proxy-signals"><code>simulate(...)</code> — voltage-proxy Signals<a class="headerlink" href="#simulate-voltage-proxy-signals" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">signals</span> <span class="o">=</span> <span class="n">bridge</span><span class="o">.</span><span class="n">simulate</span><span class="p">(</span><span class="n">duration_ms</span><span class="o">=</span><span class="mf">100.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="s2">&quot;bwd_euler&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Runs the module end-to-end and returns voltage-proxy <code>Signals</code> (<code>field=None</code>).
+Ensures a recording exists, integrates with a stable implicit solver, and
+converts via <code>jaxley_to_signals</code>. Pass <code>checkpoint_lengths</code> for long
+BPTT-friendly runs; <code>return_recordings=True</code> to also get the raw recordings.</p>
+<h3 id="simulate_laminar_field-emitter-source-field"><code>simulate_laminar_field(...)</code> — Emitter → Source → Field<a class="headerlink" href="#simulate_laminar_field-emitter-source-field" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">signals</span> <span class="o">=</span> <span class="n">bridge</span><span class="o">.</span><span class="n">simulate_laminar_field</span><span class="p">(</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.025</span><span class="p">,</span> <span class="n">n_contacts</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">projection_mode</span><span class="o">=</span><span class="s2">&quot;density_preserving&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">lfp</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;lfp_proxy&quot;</span><span class="p">)</span>   <span class="c1"># [T, n_contacts]</span>
+<span class="n">csd</span> <span class="o">=</span> <span class="n">signals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;csd_proxy&quot;</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">vis</span><span class="o">.</span><span class="n">lfp</span><span class="p">(</span><span class="n">signals</span><span class="p">)</span>     <span class="c1"># vis.* read straight off signals.field</span>
+</code></pre></div>
+<p>Closes <code>Emitter → Source → Field → Probe</code> for the Jaxley bridge: a Jaxley <strong>HH</strong>
+network gets the same LFP/CSD/spectrolaminar readouts as the built-in emitter,
+but from a physically meaningful generator. The extracellular field is driven by
+the <strong>reconstructed HH transmembrane ionic current</strong></p>
+<div class="highlight"><pre><span></span><code>I_ionic = gNa·m³·h·(v − eNa) + gK·n⁴·(v − eK) + gLeak·(v − eLeak)
+</code></pre></div>
+<p>rebuilt from the recorded gating states (<code>HH_m/HH_h/HH_n</code>) and the channel
+parameters in <code>module.nodes</code>. This requires HH: the Izhikevich and Fire channels
+are non-capacitive (<code>compute_current</code> returns zero) and cannot generate a field.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>n_contacts</code></td>
+<td><code>16</code></td>
+<td>Laminar contacts the source is projected onto</td>
+</tr>
+<tr>
+<td><code>width</code></td>
+<td><code>0.1</code></td>
+<td>Gaussian projection kernel width (relative-depth units)</td>
+</tr>
+<tr>
+<td><code>projection_mode</code></td>
+<td><code>"density_preserving"</code></td>
+<td><code>"row_normalize"</code> erases source density and flattens depth structure, so it is <em>not</em> the default</td>
+</tr>
+<tr>
+<td><code>spike_threshold_mV</code></td>
+<td><code>0.0</code></td>
+<td>Upward-crossing threshold for the spike proxy</td>
+</tr>
+<tr>
+<td><code>positions</code></td>
+<td>recorded xyz</td>
+<td>Explicit <code>(n_comp, 3)</code> positions; defaults to the recorded compartments' xyz</td>
+</tr>
+<tr>
+<td><code>normalize_depth</code></td>
+<td><code>True</code></td>
+<td>Min-max rescale the z axis to <code>[0, 1]</code>; <code>project_laminar_sources</code> fixes contacts to <code>[0, 1]</code>, so µm-scale geometry must be normalized or sources collapse onto one contact</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Depth is relative</p>
+<p><code>project_laminar_sources</code> reads <code>positions[:, 2]</code> as <em>relative</em> laminar depth
+in <code>[0, 1]</code> and spans its contacts over <code>[0, 1]</code>. With <code>normalize_depth=True</code>
+(default) the bridge rescales the z axis for you; the raw range is preserved in
+<code>metadata["depth_raw_range"]</code>.</p>
+</div>
+<h3 id="simulate_homeostatic-windowed-excitability-controller"><code>simulate_homeostatic(...)</code> — windowed excitability controller<a class="headerlink" href="#simulate_homeostatic-windowed-excitability-controller" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="n">signals</span><span class="p">,</span> <span class="n">diag</span> <span class="o">=</span> <span class="n">bridge</span><span class="o">.</span><span class="n">simulate_homeostatic</span><span class="p">(</span>
+    <span class="n">duration_ms</span><span class="o">=</span><span class="mf">400.0</span><span class="p">,</span> <span class="n">base_current_nA</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">target_rate_hz</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">k_gain</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">return_diagnostics</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
-<p>This tunes the scaffold's proxy control knobs; it is distinct from <code>jtfne.agsdr</code> + <code>Model.tune</code>, which optimizes the core-engine <code>Model</code>.</p>
-<h2 id="knock-out-experiment">Knock-out experiment<a class="headerlink" href="#knock-out-experiment" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
-<span class="n">cfg_lesion</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">lesion_spec</span><span class="o">=</span><span class="p">({</span><span class="s2">&quot;area&quot;</span><span class="p">:</span> <span class="s2">&quot;V1&quot;</span><span class="p">,</span> <span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;L2&quot;</span><span class="p">,</span> <span class="s2">&quot;L3&quot;</span><span class="p">),</span> <span class="s2">&quot;cell_types&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;E&quot;</span><span class="p">,)},))</span>
-<span class="n">trials_lesion</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">tutorial_utils</span><span class="o">.</span><span class="n">simulate_laminar_trials</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">cfg_lesion</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">base_control</span><span class="p">,</span> <span class="n">stimulus</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+<p>Wraps the Jaxley emitter in an <strong>outer-loop windowed homeostatic controller</strong> so
+you keep Jaxley's channel/morphology toolset and gain jaxfne's intrinsic-plasticity
+homeostasis. Per recorded compartment, a slow rate trace <code>r</code> drives a restoring
+excitability bias injected as a per-cell current:</p>
+<div class="highlight"><pre><span></span><code>rate_w = spikes / window_seconds                       # per-window rate (Hz)
+r      = decay_r · r + (1 − decay_r) · rate_w
+g      = clip(k_gain · (target_rate_hz − r), g_min, g_max)
+I_cell = base_current_nA + bias_current_scale · g
 </code></pre></div>
-<p>The lesioned population is silenced for the run, and per-area firing rates are compared to the intact network. Inter-area projections are modulatory, so knock-out of a feedforward/feedback source shifts the downstream area's rate by a measurable amount.</p>
-<h2 id="artifacts">Artifacts<a class="headerlink" href="#artifacts" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>manifest.json, metrics.json, validation_report.json   (JSON-safe, finite)
-scaffold_3d.html                                       (interactive Plotly)
-activity_suite.png                                     (raster / Vm / proxy / CSD / PSD)
-spectrolaminar_initial_&lt;area&gt;.png                      (3-panel motif per area)
+<p>Windows are stitched with continuous state resume (<code>all_states</code>); per-cell current
+is injected via grad-safe <code>data_stimulate</code>. <code>k_gain=0</code> disables the controller
+(a clean null). Because Jaxley's <code>integrate</code> is a closed scan, the feedback runs
+at <em>window</em> cadence — a documented approximation of the per-step built-in kernel.
+The injected current is hard-bounded (<code>current_clip_nA</code>) and finiteness is
+verified (<code>strict_finite=True</code> raises rather than masking).</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>window_ms</code></td>
+<td><code>20.0</code></td>
+<td>Controller update cadence (and integration window)</td>
+</tr>
+<tr>
+<td><code>base_current_nA</code></td>
+<td><code>0.01</code></td>
+<td>Baseline injected current (scalar or per-cell array)</td>
+</tr>
+<tr>
+<td><code>target_rate_hz</code></td>
+<td><code>40.0</code></td>
+<td>Homeostatic set-point firing rate</td>
+</tr>
+<tr>
+<td><code>tau_r_ms</code></td>
+<td><code>300.0</code></td>
+<td>Rate-trace time constant</td>
+</tr>
+<tr>
+<td><code>k_gain</code></td>
+<td><code>0.2</code></td>
+<td>Controller gain (<code>0</code> = null)</td>
+</tr>
+<tr>
+<td><code>g_min</code>, <code>g_max</code></td>
+<td><code>-12.0</code>, <code>8.0</code></td>
+<td>Bias clamp range</td>
+</tr>
+<tr>
+<td><code>current_clip_nA</code></td>
+<td><code>1.0</code></td>
+<td>Hard bound on injected current (stability lever)</td>
+</tr>
+<tr>
+<td><code>strict_finite</code></td>
+<td><code>True</code></td>
+<td>Raise on non-finite output instead of masking</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Stay in the monotonic f-I band</p>
+<p>Jaxley single-compartment HH has a non-monotonic f-I curve (high current →
+depolarization block). Keep <code>base_current_nA</code> and the bias range inside the
+monotonic band (roughly 0.002–0.02 nA for the default compartment) so the
+controller operates where rate increases with current.</p>
+</div>
+<h2 id="hh_jaxley_reference_trace"><code>hh_jaxley_reference_trace(...)</code><a class="headerlink" href="#hh_jaxley_reference_trace" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="n">t</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">I_inj</span> <span class="o">=</span> <span class="n">jtfne</span><span class="o">.</span><span class="n">bridges</span><span class="o">.</span><span class="n">hh_jaxley_reference_trace</span><span class="p">(</span><span class="n">duration_ms</span><span class="o">=</span><span class="mf">500.0</span><span class="p">,</span> <span class="n">dt_ms</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div>
-<h2 id="readthedocs-build">ReadTheDocs build<a class="headerlink" href="#readthedocs-build" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>mkdocs<span class="w"> </span>build<span class="w"> </span>--strict
-</code></pre></div>
-<p>The Colab badge above opens the current <code>main</code> notebook directly.</p>
+<p>Single-compartment Hodgkin-Huxley reference trace via Jaxley (real channel
+integration). Returns time (ms), membrane potential (mV, proxy), and injected
+step current (nA). A NumPy-only equivalent, <code>hh_numpy_reference_trace</code>, is
+available without the Jaxley dependency for tutorials.</p>
+<h2 id="see-also">See also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../guides/jaxley_interop/">Jaxley Interoperability guide</a> — end-to-end usage.</li>
+<li><a href="../fields/">Fields API</a> — <code>project_laminar_sources</code> and the proxy field engine.</li>
+</ul>
 
 
 
