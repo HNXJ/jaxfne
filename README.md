@@ -15,6 +15,8 @@
 
 `jaxfne` is a compact JAX package for Tensor-Field Neural Equations (TFNE): a typed computational chain from neural emitters to source tensors, field-proxy operators, probe readouts, objective reports, optimizers, and run manifests.
 
+Built for computational and systems neuroscientists who want differentiable, JAX-native circuit models — a canonical cortical-column prior with the real laminar E:I gradient, an interactive 3D viewer for inspecting circuit structure before you simulate, and a direct bridge into [Jaxley](https://jaxley.readthedocs.io) so single- and multi-compartment biophysical (HH, conductance-based) neurons slot into the same field/readout pipeline as the native point-neuron emitters.
+
 ## Install
 
 ```bash
@@ -106,6 +108,65 @@ auto-routes to laminar placement so each neuron keeps its layer label and the
 per-layer E:I gradient is expressed. The exported constants
 `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, `jtfne.CANONICAL_Z_BANDS`, and
 `jtfne.DEFAULT_LAYERS` document the prior directly.
+
+## Interactive 3D network (dark theme)
+
+Inspect circuit geometry before you simulate: `jtfne.vis.visualize_network_3d`
+takes a constructed `Model` (or a `Signals` run) and renders an interactive
+Plotly figure — per-layer depth, per-cell-type color/symbol, optional synaptic
+edges — on a dark background by default, and exports a self-contained,
+pannable/zoomable HTML file for sharing outside a notebook.
+
+```python
+cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
+cfg = cfg.set_emitter("izhikevich", "cortical_eig").probes(["spikes", "V_m"])
+model = jtfne.construct(cfg)
+
+jtfne.vis.visualize_network_3d(
+    model,
+    title="Canonical cortical column",
+    output_html="network3d.html",   # interactive, dark-themed, open in any browser
+)
+```
+
+## Jaxley interoperability
+
+[Jaxley](https://jaxley.readthedocs.io) and jaxfne are complementary: Jaxley
+builds differentiable, multi-compartment, conductance-based neuron and network
+models (HH and other biophysical channels); jaxfne organizes the resulting
+voltages into the same source/field/readout/objective chain used by its native
+emitters — LFP-proxy, CSD-proxy, EEG-proxy, spectrolaminar readouts, manifests.
+A Jaxley model is a drop-in emitter: build the morphology and channels in
+Jaxley, then hand it to `JaxleyBridge` for one-call integration into `Signals`.
+
+```python
+import jaxley as jx
+from jaxley.channels import HH
+import jaxfne as jtfne
+
+# Build a Jaxley emitter: single HH compartment, recorded and stimulated.
+cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
+cell.insert(HH())
+cell.record("v")
+cell.stimulate(jx.step_current(i_delay=10, i_dur=50, i_amp=0.1, delta_t=0.025, t_max=100))
+
+# One call: integrate the Jaxley model and convert to jaxfne Signals.
+sig = jtfne.JaxleyBridge(model=cell).simulate(duration_ms=100.0, dt_ms=0.025)
+
+sig.V_m.shape                                         # [T, N] proxy voltage
+sig.metadata["physical_amplitude_calibrated"]         # False (proxy gate, never escalated)
+fig = jtfne.vis.vm(sig)                               # plot like any native tfne run
+```
+
+`JaxleyBridge` also exposes `.simulate_homeostatic(...)`, which keeps Jaxley's
+channels/morphology untouched while layering tfne's windowed homeostatic
+controller on top — useful for holding a population of biophysical cells near
+a target firing rate without hand-tuning per-cell drive. See
+[`docs/guides/jaxley_interop.md`](docs/guides/jaxley_interop.md) for the full
+bridge surface (manual `jx.integrate()` conversion, the array-first trace
+bridge for Jaxley-shaped data without installing Jaxley, and the homeostasis
+example). All Jaxley-bridged output stays on the same conservative truth gates
+as the rest of jaxfne: proxy voltage, not a calibrated biophysical recording.
 
 ## Tune toward a target
 
