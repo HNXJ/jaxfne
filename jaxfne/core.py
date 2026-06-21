@@ -762,6 +762,171 @@ def _interarea_W(
     return Wadd
 
 
+# Candidate (pre x post) product above which a connection rule falls back to
+# binomial sampling instead of the exact cartesian product, so an unselective
+# "any -> any" rule cannot materialize an O(N^2) index grid.
+_CONNECTIONS_EXACT_PRODUCT_CAP = 4_000_000
+
+
+def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels):
+    """Boolean neuron mask for a ``.connections()`` source/target selector.
+
+    Recognized keys: ``area`` (exact), ``layer``/``layers`` (tolerant of merged
+    ``"L2/3"`` vs split ``"L2"``/``"L3"`` via :func:`_interarea_layer_set`),
+    ``cell_type``/``cell_types``. A missing key means "any" (no constraint).
+    """
+    import numpy as _np
+
+    n = len(cell_labels)
+    mask = _np.ones(n, dtype=bool)
+    area = selector.get("area")
+    if area is not None:
+        mask &= _np.asarray(area_labels) == str(area)
+    layers = selector.get("layers", selector.get("layer"))
+    if layers is not None:
+        layers = [layers] if isinstance(layers, str) else list(layers)
+        allowed: set[str] = set()
+        for lyr in layers:
+            allowed |= _interarea_layer_set(str(lyr))
+        mask &= _np.isin(_np.asarray(layer_labels), list(allowed))
+    cts = selector.get("cell_type", selector.get("cell_types"))
+    if cts is not None:
+        cts = [cts] if isinstance(cts, str) else list(cts)
+        mask &= _np.isin(_np.asarray(cell_labels), [str(c) for c in cts])
+    return mask
+
+
+def _compile_connection_rules(
+    rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed
+):
+    """Compile declarative ``.connections()`` rules into a sparse EdgeList.
+
+    Each rule selects a source and target neuron set (see
+    :func:`_connection_selector_mask`) and adds edges source->target. ``probability``
+    is Bernoulli inclusion over candidate pairs (1.0 = full, 0.0 = none; default 1.0),
+    ``weight`` is the native edge magnitude (default ``1/sqrt(n)``), and ``sign`` maps
+    ``"excitatory"``->positive, ``"inhibitory"``->negative, ``"signed"``/unset->the
+    presynaptic neuron's intrinsic sign. Self-edges are dropped. Edge construction is
+    sparse: the exact (pre x post) product is used for selective rules, falling back to
+    binomial sampling past :data:`_CONNECTIONS_EXACT_PRODUCT_CAP` candidates so an
+    unselective rule never builds an O(N^2) grid.
+
+    Returns ``(edge_list_or_None, per_rule_edge_counts)``.
+
+    Note: a standalone mechanism-based compiler exists (``connectivity.compile_connection_rules``
+    → ``ConnectionCompileResult``); this construct-time path uses the simpler
+    ``sign``-string model (excitatory/inhibitory/signed) that ``Configuration.connections()``
+    declares, with receptor inferred from weight sign — not the mechanism-index model.
+    """
+    import numpy as _np
+
+    sign_np = _np.asarray(sign, dtype=_np.float64)
+    sqrt_n = float(max(n, 1)) ** 0.5
+    pre_all, post_all, w_all = [], [], []
+    counts: list[int] = []
+    for ri, rule in enumerate(rules):
+        src = rule.get("source", {}) or {}
+        tgt = rule.get("target", {}) or {}
+        pre_idx = _np.where(_connection_selector_mask(src, area_labels, layer_labels, cell_labels))[0]
+        post_idx = _np.where(_connection_selector_mask(tgt, area_labels, layer_labels, cell_labels))[0]
+        p = rule.get("probability")
+        p = 1.0 if p is None else float(p)
+        if pre_idx.size == 0 or post_idx.size == 0 or p <= 0.0:
+            counts.append(0)
+            continue
+        w_spec = rule.get("weight")
+        w_mag = (1.0 / sqrt_n) if w_spec is None else float(w_spec)
+        rseed = rule.get("seed")
+        rseed = int(rseed) if rseed is not None else (int(default_seed) + 7919 * (ri + 1))
+        rng = _np.random.default_rng(rseed)
+
+        n_cand = int(pre_idx.size) * int(post_idx.size)
+        if n_cand <= _CONNECTIONS_EXACT_PRODUCT_CAP:
+            # Exact cartesian product -> exact p=1 (full) / p=0 (none) semantics.
+            pre_grid, post_grid = _np.meshgrid(pre_idx, post_idx, indexing="ij")
+            pre_flat = pre_grid.ravel(); post_flat = post_grid.ravel()
+            non_self = pre_flat != post_flat
+            pre_flat, post_flat = pre_flat[non_self], post_flat[non_self]
+            keep = _np.ones(pre_flat.size, bool) if p >= 1.0 else (rng.random(pre_flat.size) < p)
+            pre_g, post_g = pre_flat[keep], post_flat[keep]
+        else:
+            # Sparse fallback for huge unselective rules (statistical, not exact).
+            import warnings as _warnings
+            _warnings.warn(
+                f"connection rule {rule.get('name')!r} has {n_cand} candidate pairs "
+                f"(> {_CONNECTIONS_EXACT_PRODUCT_CAP}); using binomial sampling instead of "
+                "the exact product (add area/layer/cell_type selectors to narrow it).",
+                RuntimeWarning, stacklevel=2,
+            )
+            n_edges = int(rng.binomial(n_cand, min(p, 1.0)))
+            pre_g = pre_idx[rng.integers(0, pre_idx.size, n_edges)]
+            post_g = post_idx[rng.integers(0, post_idx.size, n_edges)]
+            non_self = pre_g != post_g
+            pre_g, post_g = pre_g[non_self], post_g[non_self]
+
+        if pre_g.size == 0:
+            counts.append(0)
+            continue
+        sgn = rule.get("sign")
+        if sgn == "excitatory":
+            wv = _np.full(pre_g.size, abs(w_mag))
+        elif sgn == "inhibitory":
+            wv = _np.full(pre_g.size, -abs(w_mag))
+        else:  # "signed" or unset -> presynaptic intrinsic sign
+            wv = abs(w_mag) * sign_np[pre_g]
+        pre_all.append(pre_g); post_all.append(post_g); w_all.append(wv)
+        counts.append(int(pre_g.size))
+
+    if not pre_all:
+        return None, counts
+    pre = _np.concatenate(pre_all); post = _np.concatenate(post_all); w = _np.concatenate(w_all)
+    receptor = (w < 0).astype(_np.int32)
+    tau = _np.where(receptor == 0, 2.0, 5.0)
+    edges = EdgeList(
+        pre=jnp.asarray(pre, jnp.int32),
+        post=jnp.asarray(post, jnp.int32),
+        weight=jnp.asarray(w, jdtype),
+        receptor_index=jnp.asarray(receptor, jnp.int32),
+        tau_ms=jnp.asarray(tau, jdtype),
+    )
+    return edges, counts
+
+
+def _concat_edge_lists(a: "EdgeList", b: "EdgeList") -> "EdgeList":
+    """Concatenate two EdgeLists (preserving the first's calibration status)."""
+    return EdgeList(
+        pre=jnp.concatenate([a.pre, b.pre]),
+        post=jnp.concatenate([a.post, b.post]),
+        weight=jnp.concatenate([a.weight, b.weight]),
+        receptor_index=jnp.concatenate([a.receptor_index, b.receptor_index]),
+        tau_ms=jnp.concatenate([a.tau_ms, b.tau_ms.astype(a.tau_ms.dtype)]),
+        source_calibration_status=a.source_calibration_status,
+    )
+
+
+def _mark_connections_compiled(cfg: "Configuration", counts: Sequence[int]) -> "Configuration":
+    """Flip each connection rule's status from declared to compiled.
+
+    Honestly lifts the ``declared_not_compiled`` fence: a rule that produced edges
+    becomes ``"compiled"`` (with ``compiled_n_edges``); a rule that matched no
+    neurons/edges becomes ``"compiled_no_matching_edges"`` so the no-op is visible.
+    """
+    metadata = {**cfg.metadata}
+    circuit = {**metadata.get("circuit", {})}
+    conns = list(circuit.get("connections", []))
+    updated = []
+    for i, rule in enumerate(conns):
+        c = int(counts[i]) if i < len(counts) else 0
+        updated.append({
+            **rule,
+            "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+            "compiled_n_edges": c,
+        })
+    circuit["connections"] = updated
+    metadata["circuit"] = circuit
+    return replace(cfg, metadata=metadata)
+
+
 class _ProbeDeclarations(list):
     """List-like probe declaration container that also supports ``cfg.probes(...)``.
 
@@ -1193,10 +1358,22 @@ class Configuration:
         plasticity: Optional[Mapping[str, Any]] = None,
         control_key: Optional[str] = None,
     ) -> "Configuration":
-        """Declare a connection rule for the future compiler (declaration only).
+        """Declare a connection rule that ``construct()`` compiles into edges.
 
-        Distinct from :meth:`connectivity`, which records feedforward/feedback
-        bookkeeping. This appends a rule to ``metadata["circuit"]["connections"]``.
+        Appends a rule to ``metadata["circuit"]["connections"]``; at ``construct``
+        time the rule is compiled into real edges in the model's EdgeList (and the
+        rule's ``status`` flips from ``"declared_not_compiled"`` to ``"compiled"``,
+        with ``compiled_n_edges``). ``source``/``target`` are selector mappings over
+        ``area``, ``layer``/``layers`` (tolerant of merged ``"L2/3"`` vs split
+        ``"L2"``/``"L3"``), and ``cell_type``/``cell_types``; a missing key means
+        "any". ``probability`` is Bernoulli edge inclusion (1.0 = full, 0.0 = none;
+        default 1.0), ``weight`` is the native edge magnitude (default ``1/sqrt(n)``),
+        and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
+        unset follows the presynaptic neuron's intrinsic sign). When any rule
+        materializes edges the model runs on the edge_list backend so the connections
+        drive dynamics. ``mechanism``/``plasticity``/``control_key`` remain declarative
+        metadata (not yet compiled). Distinct from :meth:`connectivity`, which records
+        feedforward/feedback bookkeeping.
         """
         if not name:
             raise ValueError("connection requires a non-empty name")
@@ -6485,6 +6662,30 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         network.params, positions, edge_list, cfg
     )
     network = replace(network, params=emitter_params)
+
+    # Compile declarative .connections() rules into real edges. They append to the
+    # edge_list; because the dense backend runs on emitter.W (which does not carry
+    # these edges), force the edge_list backend whenever any rule materializes so the
+    # connections actually drive dynamics. Rule statuses flip declared->compiled.
+    _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
+    if _conn_rules:
+        import numpy as _np
+        _ep = network.params
+        _cell_labels = list(_ep.labels)
+        _layer_labels = list(getattr(_ep, "layer_labels", None) or [""] * n)
+        if geometry_meta and geometry_meta.get("area_labels"):
+            _area_labels = list(geometry_meta["area_labels"])
+        else:
+            _area_labels = [str(net.get("name", "V1"))] * n
+        _conn_edges, _counts = _compile_connection_rules(
+            _conn_rules, _area_labels, _layer_labels, _cell_labels,
+            _np.asarray(_ep.sign), n, edge_list.weight.dtype,
+            int(cfg.metadata.get("seed", 0) or 0),
+        )
+        if _conn_edges is not None and _conn_edges.n_edges > 0:
+            edge_list = _concat_edge_lists(edge_list, _conn_edges)
+            cfg = cfg.runtime(recurrent_backend="edge_list")
+        cfg = _mark_connections_compiled(cfg, _counts)
 
     n_contacts: int = 16
     if cfg.probes:

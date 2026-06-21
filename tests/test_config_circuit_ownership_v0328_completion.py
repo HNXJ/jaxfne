@@ -189,8 +189,8 @@ def test_unknown_mechanism_reference_warns_only():
 
 # --- construct/simulate compatibility ----------------------------------------
 
-def test_construct_simulate_unaffected_by_declarations():
-    """Declarations must not change construct/simulate numerics."""
+def test_construct_compiles_connections_and_stays_finite():
+    """Connection rules now compile into edges at construct, and stay finite."""
     cfg = _base_cfg().connections(
         name="E_to_E",
         source={"cell_type": "E"},
@@ -200,6 +200,8 @@ def test_construct_simulate_unaffected_by_declarations():
         sign="excitatory",
     )
     model = jtfne.construct(cfg)
+    # the fence is lifted: the rule is compiled (or honestly flagged no-match)
+    assert model.cfg.metadata["circuit"]["connections"][0]["status"].startswith("compiled")
     signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1, seed=0)
     assert jnp.isfinite(signals.get("vm")).all()
     assert jnp.isfinite(signals.get("spk")).all()
