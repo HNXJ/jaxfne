@@ -109,6 +109,50 @@ per-layer E:I gradient is expressed. The exported constants
 `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, `jtfne.CANONICAL_Z_BANDS`, and
 `jtfne.DEFAULT_LAYERS` document the prior directly.
 
+## Adjustable structure: layers, connectivity, homeostasis, plasticity
+
+Every knob below is a chainable `Configuration` call, not a source edit.
+
+```python
+# Per-layer neuron count and composition: layer_fractions sets each layer's
+# relative depth band (band width -> per-layer neuron count out of n);
+# layer_cell_type_fractions sets each layer's own E/PV/SST/VIP split.
+cfg = jtfne.build_laminar_column(
+    "V1", n=2000,
+    layers=["L1", "L2/3", "L4", "L5", "L6"],
+    layer_fractions={"L1": (0.00, 0.08), "L2/3": (0.08, 0.40), "L4": (0.40, 0.55),
+                      "L5": (0.55, 0.80), "L6": (0.80, 1.00)},
+    layer_cell_type_fractions={
+        "L1":   {"E": 0.20, "PV": 0.10, "SST": 0.10, "VIP": 0.60},
+        "L2/3": {"E": 0.45, "PV": 0.30, "SST": 0.20, "VIP": 0.05},
+        "L4":   {"E": 0.55, "PV": 0.35, "SST": 0.08, "VIP": 0.02},
+        "L5":   {"E": 0.85, "PV": 0.10, "SST": 0.04, "VIP": 0.01},
+        "L6":   {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},
+    },
+)
+
+# Explicit within-layer and between-layer connections: .connections() compiles
+# real edges at construct() time (status flips declared -> compiled, with an
+# exact edge count), distinct from the blanket within_connectivity/within_gain
+# the builder already applied above.
+cfg = (cfg
+    .connections(name="L4_recurrent", source={"layer": "L4"}, target={"layer": "L4"},
+                 probability=0.2, weight=0.5)                              # within-layer
+    .connections(name="L4_to_L23_feedforward", source={"layer": "L4"}, target={"layer": "L2/3"},
+                 probability=0.3, weight=0.4, sign="excitatory")            # between-layer
+)
+
+# Homeostasis: a real per-neuron rate-feedback kernel, active in simulate()
+# once declared (clip(k_gain * (r_star - r), g_min, g_max) intrinsic bias).
+cfg = cfg.homeostasis(relative_baseline=1.0, r_star=8.0, k_gain=1.0)
+
+# Plasticity: records intent in the manifest from the first call, but is
+# declaration-only here — simulate() does not consume it. The actual STDP
+# weight-update kernel (update_stdp_weights_jax) runs through the separate
+# run_stdp_stream entry point, not through Model.simulate().
+cfg = cfg.plasticity(relative_baseline=1.0)
+```
+
 ## Interactive 3D network (dark theme)
 
 Inspect circuit geometry before you simulate: `jtfne.vis.visualize_network_3d`
