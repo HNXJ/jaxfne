@@ -6782,17 +6782,8 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     return tuple(items)
 
 
-def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
-    """Validate a :class:`Configuration` and build a runnable :class:`Model`.
-
-    Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich kernel is implemented; an
-    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
-    than silently substituting Izhikevich). An optional
-    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
-    The returned model is a computational scaffold; its field/probe outputs are
-    proxy readouts, not calibrated physical signals.
-    """
+def _construct_validate_config(cfg: "Configuration") -> None:
+    """``construct()`` stage: validate config + fail loudly on unsupported emitter family."""
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
@@ -6811,9 +6802,14 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
                 "An explicitly declared unsupported family does not silently "
                 "fall back to another emitter."
             )
-    net = cfg.networks[0]
+
+
+def _construct_build_network(
+    cfg: "Configuration", net: Mapping[str, Any], dtype_name_cfg: str
+) -> "tuple[EIGNetwork, jax.Array, dict[str, Any] | None, int, EdgeList | None]":
+    """``construct()`` stage: build the EIGNetwork (suite2-style or plain) ->
+    ``(network, positions, geometry_meta, n, prebuilt_edges)``."""
     n = int(net.get("n", 100))
-    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
     _prebuilt_edges = None
     if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
         params, positions, geometry_meta, _prebuilt_edges = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
@@ -6832,16 +6828,30 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
         positions = network.positions
         geometry_meta = None
+    return network, positions, geometry_meta, n, _prebuilt_edges
 
-    # Sparse-direct path returns a prebuilt edge_list (and a placeholder dense W) to
-    # avoid materializing/scanning the (n,n) matrix; otherwise convert dense W.
-    if _prebuilt_edges is not None:
-        edge_list = _prebuilt_edges
+
+def _construct_resolve_edge_list(
+    cfg: "Configuration", network: "EIGNetwork", prebuilt_edges: "EdgeList | None"
+) -> "tuple[Configuration, EdgeList]":
+    """``construct()`` stage: prebuilt sparse edges OR dense-W conversion ->
+    ``(cfg, edge_list)``. Avoids materializing/scanning the (n, n) dense matrix
+    on the sparse-direct path; otherwise converts the dense ``network.params.W``.
+    """
+    if prebuilt_edges is not None:
+        edge_list = prebuilt_edges
         # The dense W is a placeholder; this model must run on the edge_list backend.
         cfg = cfg.runtime(recurrent_backend="edge_list")
     else:
         edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
+    return cfg, edge_list
 
+
+def _construct_apply_geometry_override(
+    geometry: "LaminarSourceGeometry | None", network: "EIGNetwork", positions: "jax.Array",
+    geometry_meta: "dict[str, Any] | None", n: int,
+) -> "tuple[jax.Array, dict[str, Any] | None]":
+    """``construct()`` stage: optional explicit geometry override -> ``(positions, geometry_meta)``."""
     if geometry is not None:
         if geometry.n_units_total != n:
             raise ValueError(
@@ -6850,18 +6860,19 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             )
         positions = geometry.positions_array(dtype=network.params.v0.dtype.name)
         geometry_meta = geometry.to_dict()
+    return positions, geometry_meta
 
-    # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
-    # local strengthening (laminar columns). Reproducible from cfg seed.
-    emitter_params, edge_list = _apply_canonical_biophysics(
-        network.params, positions, edge_list, cfg
-    )
-    network = replace(network, params=emitter_params)
 
-    # Compile declarative .connections() rules into real edges. They append to the
-    # edge_list; because the dense backend runs on emitter.W (which does not carry
-    # these edges), force the edge_list backend whenever any rule materializes so the
-    # connections actually drive dynamics. Rule statuses flip declared->compiled.
+def _construct_compile_connections(
+    cfg: "Configuration", network: "EIGNetwork", n: int, geometry_meta: "dict[str, Any] | None",
+    net: Mapping[str, Any], edge_list: "EdgeList",
+) -> "tuple[Configuration, EdgeList]":
+    """``construct()`` stage: compile declarative ``.connections()`` rules into
+    real edges -> ``(cfg, edge_list)``. They append to ``edge_list``; because the
+    dense backend runs on ``emitter.W`` (which does not carry these edges), force
+    the edge_list backend whenever any rule materializes so the connections
+    actually drive dynamics. Rule statuses flip declared->compiled.
+    """
     _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
     _conn_mechanisms = (cfg.metadata.get("circuit", {}) or {}).get("mechanisms", [])
     if _conn_rules:
@@ -6892,7 +6903,11 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             edge_list = _concat_edge_lists(edge_list, _conn_edges)
             cfg = cfg.runtime(recurrent_backend="edge_list")
         cfg = _mark_connections_compiled(cfg, _counts)
+    return cfg, edge_list
 
+
+def _construct_build_static(cfg: "Configuration", geometry_meta: "dict[str, Any] | None") -> "dict[str, Any]":
+    """``construct()`` stage: resolve ``n_contacts`` + assemble the model's static dict."""
     n_contacts: int = 16
     if cfg.probes:
         _nc = cfg.probes[0].get("n_contacts", 16)
@@ -6916,6 +6931,37 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
                 "layers": sorted(set(geometry_meta.get("layer_labels", []))),
                 "cell_types": sorted(set(geometry_meta.get("cell_type_labels", []))),
             }
+    return static
+
+
+def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
+    """Validate a :class:`Configuration` and build a runnable :class:`Model`.
+
+    Raises ``ValueError`` if the configuration is invalid or names an
+    unsupported emitter family (only the Izhikevich kernel is implemented; an
+    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
+    than silently substituting Izhikevich). An optional
+    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
+    The returned model is a computational scaffold; its field/probe outputs are
+    proxy readouts, not calibrated physical signals.
+    """
+    _construct_validate_config(cfg)
+    net = cfg.networks[0]
+    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
+
+    network, positions, geometry_meta, n, _prebuilt_edges = _construct_build_network(cfg, net, dtype_name_cfg)
+    cfg, edge_list = _construct_resolve_edge_list(cfg, network, _prebuilt_edges)
+    positions, geometry_meta = _construct_apply_geometry_override(geometry, network, positions, geometry_meta, n)
+
+    # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
+    # local strengthening (laminar columns). Reproducible from cfg seed.
+    emitter_params, edge_list = _apply_canonical_biophysics(
+        network.params, positions, edge_list, cfg
+    )
+    network = replace(network, params=emitter_params)
+
+    cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list)
+    static = _construct_build_static(cfg, geometry_meta)
 
     return Model(
         cfg=cfg,
