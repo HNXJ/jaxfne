@@ -318,6 +318,67 @@ flat-gain depth/dipole-size readout above (frequency-selective, not just
 depth-selective), and it composes cleanly with the existing LFP-proxy and
 EEG-/MEG-proxy readouts since all three take the same `[T, N]` source array.
 
+## The Tensor-operator family: a reliable cfg -> network -> sources -> readout chain
+
+Three named, standalone operators now exist alongside the existing
+`project_laminar_sources` / `eeg_proxy_transform` / `meg_proxy_transform`
+readouts:
+
+- **`cable_filter_tau` / `cable_filter_sources`** — depth/cell-type-graded
+  passive-cable low-pass (frequency-domain, LFP stage; see above).
+- **`csd_tensor`** — the spatial second-derivative CSD stage, factored out of
+  `project_laminar_sources` so it can be recomputed standalone from any
+  `[T, n_contacts]` potential-proxy array.
+- **`synaptic_tau_from_mechanism` / `synaptic_current_tensor`** — mechanism-name
+  (`AMPA`/`GABA_A`/`NMDA`/`GABA_B`) → tau lookup plus the standalone
+  single-exponential synaptic filter already used inline by the recurrent
+  emitter kernels. **Additive only**: `core._compile_connection_rules` still
+  infers tau from weight sign alone (hardcoded exc=2 ms/inh=5 ms) regardless of
+  any declared mechanism — that inertness fix is deferred.
+
+These compose into one chain, and — unlike the cable-filter validation above,
+which used the one canonical V1 column all session — this was verified on a
+deliberately *non-canonical* `Configuration` (3 layers instead of 6, a
+different cell-type mix, no `VIP` in the requested fractions) to confirm the
+chain is config-agnostic, not just tuned to one column:
+
+```python
+cfg = jtfne.laminar_cortex_config(
+    areas=("V1",), layers=("L1", "L4", "L6"),
+    cell_types={"E": 0.6, "PV": 0.25, "SST": 0.15}, n=180,
+    duration_ms=800.0, dt_ms=0.5, emitter="izhikevich",
+)
+model = jtfne.construct(cfg)
+sig = jtfne.simulate(model, duration_ms=800.0, dt_ms=0.5, seed=3)
+
+nt = model.neuron_table()
+cell_type = [row["cell_type"] for row in nt]
+depth_z = [row["z"] for row in nt]
+source = jtfne.get_signal(sig, "source")                       # [T, N] raw
+
+tau_syn = jtfne.synaptic_tau_from_mechanism(mechanisms)         # optional
+syn_filtered = jtfne.synaptic_current_tensor(source, tau_syn, dt_ms=0.5)
+
+tau_cable = jtfne.cable_filter_tau(cell_type, depth_z)
+cable_filtered = jtfne.cable_filter_sources(source, tau_cable, dt_ms=0.5, order=2)
+
+fo = jtfne.project_laminar_sources(cable_filtered, positions, n_contacts=24)
+eeg = jtfne.eeg_proxy_transform(fo.lfp_proxy, eeg_leadfield)
+meg = jtfne.meg_proxy_transform(fo.lfp_proxy, meg_leadfield)
+```
+
+All stages stayed finite and correctly shaped through the entire chain on the
+custom config (`tests/test_tensor_pipeline_custom_cfg.py`). One side-finding
+from this run, not yet investigated: requesting `cell_types={"E", "PV",
+"SST"}` (no `VIP`) on `laminar_cortex_config` still produced `VIP` neurons in
+the resulting `neuron_table()` — worth a separate look at how cell-type
+fractions are normalized/defaulted, not something this pipeline work fixed.
+
+**EMM stays out of this family.** `emm_proxy_transform` is a weighted
+spike-rate/source/field-potential cost functional, not a linear leadfield or
+spatial/frequency filter — it does not belong in the same `source -> tensor ->
+readout` composition as LFP/CSD/EEG/MEG above.
+
 [STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
 [Configuration Grammar](configuration_grammar.md)
