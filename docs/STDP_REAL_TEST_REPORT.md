@@ -1,7 +1,7 @@
 # Real STDP Test Report — 100-Neuron Cortex (Post-Hoc)
 
 **Status:** Technical report · proxy / computational-scaffold · 2026-06-17
-**Truth gates:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
+**Scope:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
 
 ## Purpose
 
@@ -58,7 +58,7 @@ weights would change*, not *how the network would then respond*. For closed-loop
 online plasticity use `run_stdp_stream`. The gain knob (`global_stdp` /
 `plasticity_scale`) and its reasonable range are characterized in
 [STDP_GLOBAL_SCALE_REPORT](STDP_GLOBAL_SCALE_REPORT.md) and
-[CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2--reasonable-plasticity-scale-global_stdp).
+[CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2-reasonable-plasticity-scale-global_stdp).
 
 Note: the firing rate here (~43 Hz) is above the stable < 10 Hz regime
 recommended in the calibration checklist; STDP statistics in a rate-compliant

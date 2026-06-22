@@ -6,12 +6,12 @@ as it ships today.
 
 jaxfne provides compact TFNE source, field, probe, objective, and optimizer workflows.
 
-## Truth gates
+## Scope and runtime status
 
 jaxfne is a **`computational_scaffold`** for tensor-field neural workflows. Every
 field/EEG/MEG/EMM/LFP/CSD output is a **`proxy_readout`** — a computational diagnostic
-defined by explicit proxy equations. The following gates are enforced in code and may be
-read but stay at their conservative defaults:
+defined by explicit proxy equations. The following status fields are enforced in code and
+may be read but stay at their conservative defaults:
 
 - **`field_solver_status = "linear_solver"`** — the laminar field is a
   Gaussian-leadfield proxy with finite-difference CSD. The proxy operator is defined by

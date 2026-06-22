@@ -11,7 +11,7 @@ grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
-!!! note "Scope & truth gates"
+!!! note "Scope & runtime status"
     All field/EEG/MEG/EMM outputs are computational proxies
     (`claim_level = "computational_scaffold"`, `field_solver_status = "linear_solver"`,
     `field_claim_level = "proxy_readout"`, `physical_amplitude_calibrated = False`).
@@ -35,7 +35,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Counts sum to **204**
 > (`len(jaxfne.__all__)`). See the docs audit
-> (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
+> ([Publication docs quality report](../publication/docs_quality_report.md)) for the page-migration plan.
 
 ## Minimal workflow (verified)
 
@@ -472,5 +472,5 @@ and figure/readout outputs remain proxy diagnostics
 
 ---
 
-See the docs audit & restructure notes (`internal_docs/docs_audit_v0330.md`)
+See the [publication docs quality report](../publication/docs_quality_report.md)
 for orphaned pages, duplicate cleanup, and the per-module table migration.

@@ -1,7 +1,7 @@
 # STDP in the Rate-Compliant ~10 Hz Regime — 100-Neuron Cortex
 
 **Status:** Technical report · proxy / computational-scaffold · 2026-06-17
-**Truth gates:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
+**Scope:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
 
 ## Purpose
 

@@ -1,7 +1,7 @@
 # STDP `global_stdp` Scale Report — 100-Neuron Cortex
 
 **Status:** Technical report · proxy / computational-scaffold · 2026-06-17
-**Truth gates:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
+**Scope:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`. No biological-learning or mechanism claim.
 
 ## What `global_stdp` is
 
@@ -90,7 +90,7 @@ back into dynamics. For closed-loop online plasticity (weights influencing
 subsequent spikes), run `run_stdp_stream` with `plasticity_scale = global_stdp`
 — the per-step update is identical, so these numbers are the per-step driving
 signal of that loop. For a reasonable scale band see
-[CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2--reasonable-plasticity-scale-global_stdp).
+[CORTEX_CALIBRATION_CHECKLIST §Q2](CORTEX_CALIBRATION_CHECKLIST.md#q2-reasonable-plasticity-scale-global_stdp).
 
 ## Related reports
 - [STDP_CLOSED_LOOP_REPORT](STDP_CLOSED_LOOP_REPORT.md) — closed-loop online STDP (runaway verdict)

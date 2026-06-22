@@ -2,6 +2,13 @@
 
 How-to articles and workflow documentation for jaxfne.
 
+## Theory and equations
+
+- **[Electromagnetism of brain signals](electromagnetism_brain_signals.md)** — source-to-field proxy ladder
+- **[Mathematical glossary flow](../mathematical_glossary_flow.md)** — formal equations with implementation links
+- **[Source and field equations](../source_field_equations.md)** — manifest contracts and forbidden patterns
+- **[Computation basis](../computation_basis.md)** — collapsible tensor-field scaffold
+
 ## Probe and readout workflows
 
 - **[Probe operators](../probe_operators.md)** — Using the eight readout channels

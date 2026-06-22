@@ -1,7 +1,7 @@
 # Homeostatic STDP — Canonical Model (100-Neuron Cortex)
 
 **Status:** Technical report · **canonical STDP-proxy model** · 2026-06-17
-**Truth gates:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`.
+**Scope:** `claim_level=computational_scaffold`, `field_claim_level=proxy_readout`.
 
 ## Summary
 

@@ -359,22 +359,22 @@ def gen_status_summary(manifest, output_dir):
         ("metabolism_status", manifest.get("metabolism_status", "N/A")),
     ]
 
-    text_lines = ["Statement Gates and Status Status", "=" * 50]
+    text_lines = ["Runtime status fields", "=" * 50]
     for gate_name, gate_value in gates:
         text_lines.append(f"{gate_name}: {gate_value}")
 
     text_content = "\n".join(text_lines)
     ax.text(0.1, 0.9, text_content, transform=ax.transAxes, fontfamily="monospace",
-            fontsize=10, verticalcomparison="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
+            fontsize=10, verticalalignment="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
 
-    fig.suptitle("v0.2.27 Statement Gates Summary")
+    fig.suptitle("Simulated run status summary")
     fig.tight_layout()
 
     path = output_dir / "11_status_summary.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
     plt.close(fig)
     print(f"  ✓ {path.name}")
-    return {"filename": "11_status_summary.png", "title": "Statement Gates Summary", "type": "metadata", "uses_real_data": False}
+    return {"filename": "11_status_summary.png", "title": "Runtime Status Summary", "type": "metadata", "uses_real_data": False}
 
 
 def gen_spectral_summary(signals, output_dir):

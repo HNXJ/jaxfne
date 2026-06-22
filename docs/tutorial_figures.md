@@ -1,8 +1,8 @@
-# Tutorial Figures (v0.2.28)
+# Tutorial Figures
 
 **Status:** Regenerated with visual confirmation  
-**Version:** jaxfne 0.2.27  
-**Date:** 2026-05-22
+**Version:** jaxfne 0.4.4  
+**Date:** 2026-06-22
 
 ---
 

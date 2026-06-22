@@ -97,6 +97,19 @@ nav:
 
   - Reference:
       - Glossary of Methods: reference/glossary_of_methods.md
+      - Mathematical Glossary Flow: mathematical_glossary_flow.md
+      - Source and Field Equations: source_field_equations.md
+      - Computation Basis: computation_basis.md
+      - Conservation Proxy Diagnostics: conservation_proxy_diagnostics.md
+      - Electromagnetism of Brain Signals: guides/electromagnetism_brain_signals.md
+      - Tensor Network Ancestry: tensor_network_ancestry.md
+      - Tutorial Figures: tutorial_figures.md
+      - Colab Quick Start: colab.md
+      - CI and Validation Policy: ci_policy.md
+      - Performance Baseline: performance_baseline.md
+
+  - Publication:
+      - Docs Quality Report: publication/docs_quality_report.md
 
   - About jaxfne:
       - Limitations and future plans: limitations_and_future_plans.md
