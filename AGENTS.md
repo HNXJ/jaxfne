@@ -2,11 +2,19 @@
 
 ## Read first
 
-[`internal_docs/loop_context/AGENT_QUICKREF.md`](internal_docs/loop_context/AGENT_QUICKREF.md)
+This file is the quickref. `internal_docs/` (the old home for `AGENT_QUICKREF.md` /
+`CURRENT_PUBLICATION_STATE.md` / `JAXFNE_BIOPHYSICS_GLOSSARY.md`) was deliberately
+removed from the public repo at the same commit that froze the root (`ca43c1e`,
+2026-06-17) — links into it are dead by design, not staleness; do not recreate it.
+What replaced each:
 
-Evidence snapshot (refresh SHA each session): [`internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md`](internal_docs/loop_context/CURRENT_PUBLICATION_STATE.md)
-
-Deep reference (on demand): [`internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md`](internal_docs/loop_context/JAXFNE_BIOPHYSICS_GLOSSARY.md)
+- API catalog → the `catalog-glossary-jaxfne` skill (global) — check it before writing
+  any helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/spectrolaminar logic.
+- Evidence/publication-state snapshot → `python3 scripts/evidence_inventory.py` (run
+  it; don't trust a remembered SHA).
+- Biophysics deep reference → the global `~/.claude/CLAUDE.md` "COMPUTATIONAL NEURONAL
+  BIOPHYSICS" section + the `jax-neuro-diffsim-guard` / `neuro-biophysics-units-sanity`
+  skills.
 
 ## Identity
 
@@ -68,10 +76,10 @@ Status, repo state, changed files, commands run, exact results, evidence/truth s
 ## API catalog (read before writing helpers)
 
 Before writing any jaxfne helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/
-EEG-proxy/MEG-proxy/spectrolaminar/AGSDR/manifest logic, consult the curated
-lookup table: [`internal_docs/JAXFNE_AGENT_API_CATALOG.md`](internal_docs/JAXFNE_AGENT_API_CATALOG.md).
-It lists the package-native functions (incl. the exact spectrolaminar pipeline)
-so existing APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.
+EEG-proxy/MEG-proxy/spectrolaminar/AGSDR/manifest logic, consult the
+`catalog-glossary-jaxfne` skill (global, `~/.claude/skills/`) — it lists the
+package-native functions (incl. the exact spectrolaminar pipeline) so existing
+APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.
 
 ## Verified laminar pipeline (reuse; do not rediscover)
 
@@ -96,6 +104,14 @@ COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in 
   (build a deep-layer mask from `model.neuron_table()`; recurrent `W` is dense, so deep drive reaches superficial).
   Per-cell-type DC: `baseline_drive_by_cell_type={"E":..}` in the config.
 - Explicit 128-contact projection: `jtfne.project_laminar_sources(source, positions_(N,3), n_contacts=128)`.
+  **Default `mode="row_normalize"` erases attenuation for any contact placed outside the
+  modeled population** (e.g. a probe contact beyond the cortical depth band) — row-normalizing
+  forces every contact's weights to sum to 1 regardless of how attenuated the raw Gaussian is,
+  so an off-population contact gets dominated by whichever few neurons are nearest and reads
+  as *louder*, not weaker. Verified 2026-06-21 on a 300-neuron V1 column with 2 contacts placed
+  at z=-0.15/1.15: `row_normalize` gave outside RMS *higher* than the inside mean; `mode=
+  "density_preserving"` (SUM, no row-normalize) gave the physically sensible ~9x attenuation.
+  Use `density_preserving` for any contact/probe layout that isn't fully inside the population.
 - `spectrolaminar_psd_jax` wants `(n_trials, n_steps, n_contacts)`.
 - All `jtfne.vis.*` (lfp/csd/eeg/meg/emm/raster/rate/psd/spectrolaminar_suite/layer_celltype_counts)
   take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.
@@ -108,6 +124,36 @@ plausible mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = a dt/solver/unit bl
 10k-neuron / 1000 ms run on CPU: `construct` ≈ 40 s, `simulate` ≈ 90 s — if 5–10× slower the
 machine is thermally throttled (cool, run as a fresh subprocess), it is not hung. A real run with
 plausible numbers is the receipt; never report a simulated value you did not sanity-check.
+
+## Homeostasis & plasticity (verified 2026-06-21; reuse, do not rediscover)
+
+Three distinct mechanisms share the word "plasticity" here — do not conflate them:
+
+1. `Configuration.plasticity()` — **declarative only**, `status="declared_not_wired_to_simulate"`.
+   No kernel runs; it only records intent in `metadata["plasticity"]` for `manifest()`.
+2. `Configuration.homeostasis(eta=...)` — **real and wired**. `eta != 0` engages homeostatic
+   synaptic plasticity inside `simulate_edge_recurrent_izhikevich_homeostatic`
+   (`jaxfne/emitters.py`): `dw = eta*(r_star - r_post)*x_pre`, clipped to `[w_min, w_max]`.
+   Verified: most edges' weights measurably change and stay clipped/finite. As of `86e19e0`,
+   `Model.last_homeostasis_diagnostics()` and `Signals.metadata["homeostasis"]` surface
+   `w_final`/`w_trace` when `eta != 0` (earlier commits silently dropped them after computing
+   them — check you're past `86e19e0` before relying on this).
+3. `run_stdp_stream` / `make_ei_cloud_network` — a separate STDP path, **not connected** to
+   `Model.simulate()` at all.
+
+`Configuration.homeostasis(k_gain=...)` (the `g_bias` excitability term, independent of `eta`)
+is a **one-sided damper on this canonical-column prior, not a bidirectional rate-setpoint
+controller** — verified by sweep, not assumed: at a ~10.8 Hz natural baseline, the activity
+trace `r` settles at 0.65–0.73 regardless of `r_star` in the small range you'd naively pick
+(spikes/step units), so `g=clip(k_gain*(r_star-r))` stays negative; pushing `r_star` to its
+ceiling (1.0) only ever recovers baseline, never exceeds it, and raising `g_max` past the
+default 8 does nothing (confirms it isn't a clipping-ceiling issue — `r` itself saturates near
+`r_max` within the run). If you need a rate *above* baseline, this mechanism cannot do it
+without a kernel change (none made; would need sign-off). For suppression-toward-a-lower-target
+demos it works smoothly up to about `k_gain≈1.5–2.0` (default `tau_r_ms=300`); past
+`k_gain≈2.5` the population enters a bursty bang-bang relaxation oscillation (full-silence
+windows every ~`tau_r_ms`-scale period) rather than settling — check a 20-100ms-windowed rate
+trace, not just the run mean, before calling a homeostasis result "stable."
 
 ## PR review
 
@@ -124,8 +170,12 @@ code review is enabled by default). Reviewers — human or bot — obey the repo
   sparse `p_connect<1` at scale should use the direct edge builder); ambiguous projection semantics
   (normalization mode must be explicit); public stubs masquerading as finished APIs; any
   biological/mechanistic overclaim.
-- **Homeostasis/plasticity:** keep the framing explicit —
-  `claim_status = "computational_control_proxy_not_biological_mechanism"`,
-  `biological_learning_claim = False`, `mechanism_claim_status = "not_claimed"`.
+- **Homeostasis/plasticity:** jaxfne is the mathematical backend — biophysical fidelity follows
+  the config you provide, not a fixed ceiling (decided 2026-06-20, see memory
+  `jaxfne-math-backend-framing`). Do **not** require disclaimer-triple stamping
+  (`physical_amplitude_calibrated=False`/`biological_learning_claim=False`/
+  `mechanism_claim_status=not_claimed`) in reports, changelogs, or docs prose. Block only on
+  actual overclaims — e.g. asserting a validated biological mechanism without nulls/ablations/
+  repeated-seed evidence — not on missing disclaimer language.
 - **Output per PR:** accept / revise / reject · exact blockers · files involved · score /100.
   Prefer concrete file/line references and decisive recommendations.
