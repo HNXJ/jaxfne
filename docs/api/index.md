@@ -115,6 +115,29 @@ byte-for-byte (depth-invariant composition, `uniform3d` placement). Only the new
 opt-in paths (`ei_profile="canonical"` or an explicit `layer_cell_type_fractions`)
 change placement to laminar.
 
+## The three canonical defaults
+
+The three canonical entry points, each returning a fully-specified
+`Configuration` ready for `.set_emitter().probes().field()` then `construct`:
+single laminar column (`default_cortical_column_config`), single flat
+non-laminar population (`default_nuclei_config`), and cortex+subcortex
+combined (`default_complete_configuration`). `default_spectrolaminar_config`
+(below) covers a fourth, distinct shape — two cortical areas with spectral
+objectives — and is kept as a specialized/legacy builder outside this trio.
+
+### `default_cortical_column_config(...) -> Configuration`
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `column_name` | `"single_column"` | Column name. |
+| `n` | `100` | Total neurons. |
+| `layers` | `["L1","L2/3","L4","L5","L6"]` | Layer names. |
+| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
+
+**Returns:** a single-column `Configuration` with 4 cell types (standard
+fractions), all-to-all within-area connectivity, laminar proxy field, and the
+standard probe suite (spikes, V_m, source, LFP, CSD).
+
 ### `default_nuclei_config(...) -> Configuration`
 
 A non-laminar population default. Every jaxfne emitter lives in the same 3D
@@ -144,6 +167,27 @@ cortex and subcortex in one config, via `.inter_column_connectivity()`
 | `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
 
 **Returns:** a multi-area `Configuration`: the column keeps the standard E/PV/SST/VIP composition, the nucleus is flat E/PV, and `inter_column_connectivity` wires column→nucleus feedforward / nucleus→column feedback (sparse, `p_feedforward=0.3`, `p_feedback=0.2`).
+
+## Specialized multi-area builders
+
+### `default_spectrolaminar_config(...) -> Configuration`
+
+Not one of the three canonical defaults above — covers a distinct shape:
+two (or more) *cortical* laminar areas wired together with spectral band
+objectives (e.g. a V1↔V4 comparison), which the canonical trio's single-
+column/single-nucleus/column+nucleus shapes don't reach. Kept public and
+supported for that use case.
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `areas` | `["V1", "V4"]` | Area names. |
+| `n_per_area` | `100` | Neurons per area. |
+| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
+
+**Returns:** a multi-area `Configuration`: dual laminar columns, inter-area
+feedforward/feedback connectivity, the full readout suite (spikes, LFP, CSD,
+EEG, MEG, EMM), and spectral objectives (alpha/beta `[8,25]` Hz, gamma
+`[40,150]` Hz band definitions).
 
 ---
 
@@ -426,15 +470,17 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `make_ei_cloud_network` | func | Generates geometry and initial weights for a 100-neuron E-I cloud network. |
 
-### Builders (12)
+### Builders (14)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `laminar_cortex_config` | func | Generalized multi-area laminar cortical configuration builder. |
 | `build_laminar_column` | func | Single-column builder; defaults `name="V1"`, `n=1000`; `ei_profile`/`geometry` select flat-legacy vs canonical laminar prior. |
 | `build_multi_area_columns` | func | Multi-area builder; defaults to the `V1→V4→PFC` hierarchy, 200/area, with inter-area feedforward/feedback. |
-| `default_nuclei_config` | func | Non-laminar "nucleus" default: one flat structural layer, isotropic 3D-cloud placement, no depth gradient. |
-| `default_complete_configuration` | func | Broadest default: a laminar cortical column wired to a flat nucleus via inter-area connectivity (cortex+subcortex in one config). |
+| `default_cortical_column_config` | func | One of the three canonical defaults: single laminar column, `column_name="single_column"`, `n=100`. |
+| `default_nuclei_config` | func | One of the three canonical defaults: non-laminar "nucleus", one flat structural layer, isotropic 3D-cloud placement, no depth gradient. |
+| `default_complete_configuration` | func | One of the three canonical defaults: a laminar cortical column wired to a flat nucleus via inter-area connectivity (cortex+subcortex in one config). |
+| `default_spectrolaminar_config` | func | Specialized (not one of the three canonical defaults): two cortical areas wired together with spectral band objectives. |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` | const | Ground-truth per-layer E:I composition (6-layer); E peaks deep, I peaks superficial. |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L` | const | 5-layer (L2/3 merged) variant of the canonical composition. |
 | `CANONICAL_Z_BANDS` | const | Count-proportional depth bands for the canonical 6-layer column. |

@@ -334,6 +334,12 @@ class TestPublicExports:
         assert hasattr(jaxfne, "build_laminar_column")
         assert hasattr(jaxfne, "configuration_table")
 
+    def test_default_cortical_column_config_and_spectrolaminar_in_dunder_all(self):
+        """Both were importable from jaxfne root but missing from __all__ itself
+        (so `from jaxfne import *` silently dropped them) -- regression guard."""
+        assert "default_cortical_column_config" in jtfne.__all__
+        assert "default_spectrolaminar_config" in jtfne.__all__
+
 
 class TestJSONSafety:
     """Tests for JSON-safe output."""

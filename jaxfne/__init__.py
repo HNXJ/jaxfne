@@ -282,6 +282,8 @@ __all__ = [
     "Configuration",
     "Config",
     "default_basis_spec",
+    "default_cortical_column_config",
+    "default_spectrolaminar_config",
     "default_nuclei_config",
     "default_complete_configuration",
     "laminar_cortex_config",

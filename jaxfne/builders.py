@@ -199,6 +199,14 @@ def default_spectrolaminar_config(
 ) -> Configuration:
     """Create a default multi-area spectrolaminar Configuration.
 
+    Specialized builder, not one of the three canonical defaults
+    (:func:`default_cortical_column_config`, :func:`default_nuclei_config`,
+    :func:`default_complete_configuration`) -- it covers a distinct use case
+    those three don't: two (or more) *cortical* laminar areas wired together
+    with spectral band objectives, vs. the canonical trio's single-column,
+    single-nucleus, and column+nucleus shapes. Kept public and supported for
+    that use case (e.g. a V1<->V4 spectrolaminar comparison); not deprecated.
+
     This helper sets up a V1-V4 (or custom areas) laminar scaffold with:
     - Dual laminar columns (e.g., V1 and V4)
     - 4 cell types per column with standard fractions
