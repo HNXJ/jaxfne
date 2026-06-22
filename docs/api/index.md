@@ -219,7 +219,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**204 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (69)
 
@@ -295,7 +295,7 @@ and figure/readout outputs remain proxy diagnostics
 | `validate_config` | func | Validate a `JaxFNEConfig` and return a `ConfigValidationResult`. |
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
 
-### Emitters (19)
+### Emitters (22)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -315,6 +315,9 @@ and figure/readout outputs remain proxy diagnostics
 | `simulate_receptor_exponential_izhikevich` | func | v0.0.11 receptor-indexed exponential recurrent kernel. |
 | `standard_receptor_specs` | func | Provide standard declarative receptor metadata. No biological claim. |
 | `standard_receptor_tau_table` | func | Return the receptor_index → tau_ms lookup table used by v0.0.11. |
+| `synaptic_current_tensor` | func | Standalone single-pole synaptic current tensor (Synaptic Tensor, filter stage). |
+| `synaptic_tau_from_mechanism` | func | Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stage). |
+| `synaptic_tensor_report` | func | JSON-safe truth-gate report for a `synaptic_current_tensor` call. |
 | `SynapseLayer` | class | Exponential synapse layer returning recurrent input currents. |
 | `SynapseSpec` | class | Metadata declaration for a synapse. Not a biological kernel. |
 | `SynapseState` | class | —  _(no docstring)_ |

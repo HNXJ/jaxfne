@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
-from typing import Mapping
+from typing import Any, Mapping, Sequence
 
 import jax
 import jax.numpy as jnp
@@ -997,6 +997,92 @@ def _edge_tau_from_receptor_index(
     table = standard_receptor_tau_table(dtype=dtype)
     idx = jnp.clip(receptor_index.astype(jnp.int32), 0, table.shape[0] - 1)
     return jnp.take(table, idx).astype(jdtype)
+
+
+def synaptic_tau_from_mechanism(
+    mechanism: Sequence[str], *, dtype: str = "float32"
+) -> jax.Array:
+    """Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stage).
+
+    Vectorized lookup over :func:`standard_receptor_specs` -- the same table
+    :func:`standard_receptor_tau_table`/:func:`_edge_tau_from_receptor_index`
+    use, but keyed by mechanism name (``"AMPA"``, ``"GABA_A"``, ``"NMDA"``,
+    ``"GABA_B"``) instead of an already-resolved ``receptor_index``. This is
+    additive: it does not change how ``core._compile_connection_rules`` infers
+    tau from weight sign today.
+
+    Raises ``ValueError`` on an unrecognized mechanism name -- unlike
+    :func:`cable_filter_tau`'s cell-type fallback, silently substituting the
+    wrong synaptic mechanism is worse than failing loudly.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    specs = standard_receptor_specs()
+    try:
+        tau_ms = [float(specs[m].tau_ms) for m in mechanism]
+    except KeyError as exc:
+        raise ValueError(
+            f"unrecognized receptor mechanism {exc.args[0]!r}; valid names: "
+            f"{sorted(specs)}"
+        ) from exc
+    return jnp.asarray(tau_ms, dtype=jdtype)
+
+
+def synaptic_current_tensor(
+    spikes_pre: jax.Array, tau_ms: jax.Array, dt_ms: float
+) -> jax.Array:
+    """Standalone single-pole synaptic current tensor (Synaptic Tensor, filter stage).
+
+    Factors out the exact per-edge synaptic state update used inline by
+    :func:`simulate_edge_recurrent_izhikevich`/
+    :func:`simulate_receptor_exponential_izhikevich`
+    (``syn_next = syn_state * exp(-dt/tau) + spike``) as an explicit, named,
+    reusable operator -- usable outside the full ``simulate()`` orchestration
+    for diagnostics or parameter sweeps. A single-exponential decay model
+    (no separate rise time constant), matching the kernels exactly.
+
+    Parameters:
+        spikes_pre: per-channel spike/input trace, shape ``[T, E]``.
+        tau_ms: per-channel time constant in milliseconds, shape ``[E]``.
+        dt_ms: simulation timestep in milliseconds.
+
+    Returns: synaptic state trace, shape ``[T, E]``.
+    """
+
+    if spikes_pre.shape[-1] != tau_ms.shape[0]:
+        raise ValueError(
+            f"spikes_pre channel dim {spikes_pre.shape[-1]} != tau_ms length "
+            f"{tau_ms.shape[0]}"
+        )
+    jdtype = tau_ms.dtype
+    decay = jnp.exp(-jnp.asarray(dt_ms, dtype=jdtype) / tau_ms)
+    spikes_pre = spikes_pre.astype(jdtype)
+
+    def step(syn, spk):
+        syn_next = syn * decay + spk
+        return syn_next, syn_next
+
+    syn0 = jnp.zeros_like(tau_ms)
+    _, trace = jax.lax.scan(step, syn0, spikes_pre)
+    return trace
+
+
+def synaptic_tensor_report(
+    tau_ms: jax.Array, mechanism: "Sequence[str] | None" = None
+) -> dict[str, Any]:
+    """JSON-safe truth-gate report for a :func:`synaptic_current_tensor` call."""
+
+    finite = bool(jnp.all(jnp.isfinite(tau_ms)))
+    return {
+        "tau_ms_mean": float(jnp.mean(tau_ms)) if finite else None,
+        "tau_ms_min": float(jnp.min(tau_ms)) if finite else None,
+        "tau_ms_max": float(jnp.max(tau_ms)) if finite else None,
+        "mechanism": list(mechanism) if mechanism is not None else None,
+        "finite_tau": finite,
+        "source_calibration_status": "metadata_only_uncalibrated",
+        "physical_amplitude_calibrated": False,
+        "claim_level": "computational_scaffold",
+    }
 
 
 def simulate_receptor_exponential_izhikevich(
