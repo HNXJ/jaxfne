@@ -34,9 +34,14 @@ class TestFieldProxyAdmissibilityV024:
         return sources, positions
 
     def test_kernel_row_normalization(self, minimal_setup):
-        """Test that kernel rows sum to 1.0 (row-stochastic)."""
+        """Test that kernel rows sum to 1.0 (row-stochastic) under mode="row_normalize".
+
+        density_preserving is the package default since the row_normalize mode
+        erases source density/attenuation; row_normalize remains available and
+        this test pins its row-stochastic property explicitly.
+        """
         sources, positions = minimal_setup
-        field = project_laminar_sources(sources, positions, n_contacts=16)
+        field = project_laminar_sources(sources, positions, n_contacts=16, mode="row_normalize")
         kernel = field.kernel
 
         row_sums = jnp.sum(kernel, axis=1)
@@ -117,12 +122,20 @@ class TestFieldProxyAdmissibilityV024:
         assert diag["field_claim_level"] == "proxy_readout"
 
     def test_kernel_normalization_definition_explicit(self, minimal_setup):
-        """Test that kernel normalization definition is explicit."""
+        """Test that kernel normalization definition is explicit, per mode."""
+        sources, positions = minimal_setup
+        field = project_laminar_sources(sources, positions, n_contacts=16, mode="row_normalize")
+        diag = field.diagnostics
+
+        assert diag["field_admissibility"]["kernel_normalization_definition"] == "contact_rows_sum_to_one_proxy"
+
+    def test_kernel_normalization_definition_density_preserving_default(self, minimal_setup):
+        """Default mode (density_preserving) reports its own normalization definition."""
         sources, positions = minimal_setup
         field = project_laminar_sources(sources, positions, n_contacts=16)
         diag = field.diagnostics
 
-        assert diag["field_admissibility"]["kernel_normalization_definition"] == "contact_rows_sum_to_one_proxy"
+        assert diag["field_admissibility"]["kernel_normalization_definition"] == "contact_rows_density_preserving"
 
     def test_projection_invariants_finiteness(self, minimal_setup):
         """Test that projection invariants check for NaN/Inf."""

@@ -20,12 +20,12 @@ def test_projection_output_is_finite():
     assert jnp.all(jnp.isfinite(signals.field.lfp))
 
 
-def test_projection_row_normalization():
-    """Verify projection kernel rows sum to expected values (row-stochastic check)."""
+def test_projection_density_preserving_default_on_simulated_signals():
+    """Default mode (density_preserving) does NOT make kernel rows sum to 1 --
+    that property is specific to mode="row_normalize", which is no longer the
+    default (it erases source density/attenuation; see fields/proxy.py)."""
     cfg = jtfne.suite2_net1_config(seed=42, n=8, duration_ms=10.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
-    
-    # 1. Verify kernel on simulated signals
     sim = jtfne.suite2_simulation(seed=42, duration_ms=10.0, dt_ms=0.5)
     signals = jtfne.simulate(model, sim)
     assert signals.field is not None
@@ -33,17 +33,18 @@ def test_projection_row_normalization():
     kernel = signals.field.kernel
     row_sums = jnp.sum(kernel, axis=1)
 
-    # Each row must sum exactly to 1.0 within tolerance <= 1e-6
     assert jnp.all(jnp.isfinite(row_sums))
-    assert jnp.allclose(row_sums, 1.0, atol=1e-6)
+    assert signals.field.diagnostics["field_admissibility"]["kernel_normalization_definition"] == "contact_rows_density_preserving"
 
-    # 2. Verify via direct function call
+
+def test_projection_row_normalization():
+    """Verify projection kernel rows sum to 1.0 under mode="row_normalize" (explicit opt-in)."""
     sources = jnp.ones((10, 8), dtype=jnp.float32)
     positions = jnp.zeros((8, 3), dtype=jnp.float32)
     # Give some random relative depths
     positions = positions.at[:, 2].set(jnp.linspace(0.0, 1.0, 8))
 
-    field_out = project_laminar_sources(sources, positions, n_contacts=16)
+    field_out = project_laminar_sources(sources, positions, n_contacts=16, mode="row_normalize")
     kernel_direct = field_out.kernel
     row_sums_direct = jnp.sum(kernel_direct, axis=1)
 

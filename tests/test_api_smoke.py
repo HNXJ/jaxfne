@@ -103,7 +103,9 @@ def test_source_probe_invariants():
     assert diag["lfp_proxy_shape"] == (60, 16)
     assert diag["finite_source_proxy"] is True
     assert diag["finite_csd_proxy"] is True
-    assert diag["kernel_row_sum_max_abs_error"] < 1e-5
+    # kernel_row_sum_max_abs_error is mode-dependent (density_preserving rows do
+    # not sum to 1 by design); kernel_row_stochastic_valid is the mode-aware check.
+    assert diag["field_admissibility"]["kernel_row_stochastic_valid"] is True
 
 
 def test_source_field_truth_contract():

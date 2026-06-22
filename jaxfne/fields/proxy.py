@@ -76,7 +76,7 @@ def project_laminar_sources(
     *,
     n_contacts: int = 16,
     width: float = 0.10,
-    mode: str = "row_normalize",
+    mode: str = "density_preserving",
     dtype: str = "float32",
 ) -> FieldOutput:
     """Project source traces to laminar proxy contacts.
@@ -93,7 +93,14 @@ def project_laminar_sources(
     width:
         Gaussian width in relative laminar-depth units.
     mode:
-        Projection mode: 'row_normalize' (default) or 'density_preserving'.
+        Projection mode: 'density_preserving' (default) or 'row_normalize'.
+        ``'row_normalize'`` erases source density and flattens depth
+        structure (each contact's weights always sum to 1 regardless of how
+        attenuated the raw Gaussian is, so e.g. a contact outside the
+        modeled population reads as loud as one in the densest layer) — it
+        is kept only for explicit opt-in / backward compatibility, matching
+        the stance already documented for ``JaxleyBridge.simulate_laminar_field``
+        (``docs/api/bridges.md``).
     dtype:
         Requested dtype policy.
     """
@@ -186,7 +193,7 @@ def project_sources_to_laminar_field(
     positions: jax.Array,
     n_contacts: int = 16,
     *,
-    mode: str = "row_normalize",
+    mode: str = "density_preserving",
     dtype: str = "float32",
 ) -> FieldOutput:
     """Project sources onto ``n_contacts`` laminar contacts (proxy field).
