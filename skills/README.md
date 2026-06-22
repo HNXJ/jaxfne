@@ -12,6 +12,7 @@ so the guidance that governs jaxfne code travels with the repository.
 | `jaxfne-cortical-column-default` | canonical 1K-neuron laminar column template |
 | `jaxfne-signals-probe-objective-chain` | Signals operators, probe extraction, objective composition |
 | `jaxfne-modeling-optimization-schema` | Config/Net/Paradigm/Objective/Trainer/Signals dataclass truth-gate checks |
+| `jaxfne-paradigm-design` | build task paradigms (omission, global/local, delayed-match-to-sample, explicit event lists) via `general_sequential_oddball_paradigm` |
 | `jaxfne-notebook-release-gate` | validate notebooks/tutorials/docs/artifacts before any "done" claim |
 | `jaxfne-release-mutation-guard` | guard every remote mutation (push, tag, GitHub Release, PyPI) |
 | `jaxfne-sha256-artifact-integrity` | SHA256 content identity for configs/notebooks/models/figures/wheels |
