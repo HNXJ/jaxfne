@@ -171,15 +171,35 @@ lfp_trials = jnp.stack([jtfne.simulate(model, duration_ms=2000.0, dt_ms=0.5, see
 psd = jtfne.spectrolaminar_psd_jax(lfp_trials[:, :, 2:-2], fs=2000.0)  # drop edge contacts
 ```
 
-This gives **3 real, reproducible crossings** (depth 0.387, 0.710, 0.871) —
+This gives **3 real, reproducible crossings** (depth 0.401, 0.771, 0.932) —
 not noise: the rate/κ spread across seeds is tiny (±0.4%/±2.6%), and one
-crossing (depth ≈0.71) lands at almost exactly the same place as the 10k
-single-trial run despite the very different scale and contact count. Both
-bands' depth-distributions still peak at the *same* absolute depth (≈0.81,
-deep) — expected, since the canonical column's deep-weighted dipole-size/
-density model (`_apply_canonical_biophysics`) boosts every frequency equally
-at depth; the crossings are a second-order *relative* effect riding on top
-of that shared envelope, alternating rather than a single monotonic flip.
+crossing (depth ≈0.77) lands close to the single-crossing region the 10k
+single-trial run shows at depth ≈0.71, despite the very different scale and
+contact count. Both bands' depth-distributions still peak at the *same*
+absolute depth (≈0.81, deep) — expected, since the canonical column's
+deep-weighted dipole-size/density model (`_apply_canonical_biophysics`)
+boosts every frequency equally at depth; the crossings are a second-order
+*relative* effect riding on top of that shared envelope, alternating rather
+than a single monotonic flip.
+
+**The full 3-panel suite, in the standard layout.** Cell density by type
+(left), the depth × frequency relative-power heatmap (center), and the
+alpha-beta/gamma depth-distribution crossing (right, corrected methodology),
+all referenced to cortical position relative to L4 (negative = superficial,
+positive = deep) — 100-neuron canonical V1 column, homeostasis on
+(`r_star=10, k_gain=0.1`), 32 contacts with the 2 edge contacts dropped each
+side, 20-trial average:
+
+![Spectrolaminar suite, 3-panel, corrected crossing methodology](../assets/showcases/spectrolaminar_suite_corrected.png)
+
+The cell-density panel reproduces the canonical column's E:I gradient (E
+density rising toward deep layers, I subtypes — PV/SST/VIP — concentrated
+superficial) directly from `model.neuron_table()`, independent of the
+spectral panels. The crossing panel shows the alpha/beta and gamma
+depth-distributions tracking each other closely (97% similarity by total
+overlap) while still crossing three times — consistent with the "occasionally
+uncrossed, not globally dominant" picture rather than a clean superficial/deep
+split.
 
 **Honest summary.** Crossings are real and reproducible — the earlier "no
 crossover" claim was a methodology error, not a finding about the model.
