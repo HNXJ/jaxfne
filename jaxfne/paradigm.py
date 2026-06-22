@@ -1,4 +1,11 @@
-"""Task, condition, and event paradigms for jaxfne simulations."""
+"""Task, condition, and event paradigms for jaxfne simulations.
+
+This module also carries the generic sequential-paradigm builders used to
+encode arbitrary event-structured tasks, including oddball and delayed-match
+families.
+"""
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from typing import Any, Optional, Sequence, Mapping
@@ -34,7 +41,7 @@ class ParadigmCondition:
     """A specific trial condition: sequence of stimuli and associated events."""
 
     name: str
-    sequence: tuple[str, str, str, str]
+    sequence: tuple[str, ...]
     omission_position: Optional[str] = None
     probability: Optional[float] = None
     condition_numbers: tuple[int, ...] = ()
@@ -65,6 +72,390 @@ class ParadigmCondition:
             "events": [e.to_dict() for e in self.events],
             "metadata": self.metadata,
         })
+
+
+def _normalize_window_pair(value: Any, *, label: str) -> tuple[float, float]:
+    """Convert a two-value window specification to a float pair."""
+    if isinstance(value, Mapping):
+        start = value.get("start_ms", value.get("start"))
+        end = value.get("end_ms", value.get("end"))
+        value = (start, end)
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{label} must be a numeric 2-tuple/list, not a string")
+    if not isinstance(value, Sequence) or len(value) != 2:
+        raise ValueError(f"{label} must be a 2-tuple/list of (start_ms, end_ms)")
+    start, end = value
+    return float(start), float(end)
+
+
+def _summarize_presentations(presentations: Optional[Mapping[str, Any]]) -> dict[str, Any]:
+    """Return JSON-safe summaries for token->presentation declarations.
+
+    Presentation values may be callables, numeric gains, model adapters, or any
+    other implementation detail. The paradigm object records only a safe summary
+    so the task spec remains serializable; the runtime mapping can stay outside
+    the manifest.
+    """
+    summary: dict[str, Any] = {}
+    if not presentations:
+        return summary
+    for token, spec in presentations.items():
+        if callable(spec):
+            summary[str(token)] = {
+                "kind": "callable",
+                "name": getattr(spec, "__name__", spec.__class__.__name__),
+                "module": getattr(spec, "__module__", None),
+            }
+            continue
+        try:
+            summary[str(token)] = json_safe(spec)
+        except Exception:
+            summary[str(token)] = {"kind": "repr", "repr": repr(spec)}
+    return summary
+
+
+def _coerce_paradigm_event(
+    event: Any,
+    *,
+    default_window: Optional[tuple[float, float]] = None,
+    sequence_token: Optional[str] = None,
+    omission_tokens: Sequence[str] = ("X", "omit", "omission"),
+    presentations: Optional[Mapping[str, Any]] = None,
+    static_events: Optional[Mapping[str, Any]] = None,
+) -> ParadigmEvent:
+    """Coerce one event-like object into a ParadigmEvent."""
+    if isinstance(event, ParadigmEvent):
+        return event
+    if not isinstance(event, Mapping):
+        raise TypeError(f"event specifications must be mapping-like or ParadigmEvent, got {type(event).__name__}")
+    label = str(event.get("label", sequence_token if sequence_token is not None else "event"))
+    onset_ms = event.get("onset_ms")
+    duration_ms = event.get("duration_ms")
+    if (onset_ms is None or duration_ms is None) and default_window is not None:
+        onset_ms = default_window[0] if onset_ms is None else onset_ms
+        duration_ms = (default_window[1] - default_window[0]) if duration_ms is None else duration_ms
+    stimulus = event.get("stimulus", sequence_token)
+    is_omission = bool(event.get("is_omission", False)) or (sequence_token in omission_tokens if sequence_token is not None else False)
+    metadata = dict(event.get("metadata", {}))
+    if static_events and label in static_events:
+        extra = static_events[label]
+        if isinstance(extra, Mapping):
+            metadata.update({
+                str(k): v
+                for k, v in extra.items()
+                if k not in {"label", "onset_ms", "duration_ms", "stimulus", "is_omission", "code", "metadata"}
+            })
+            metadata.update(dict(extra.get("metadata", {})))
+            if "stimulus" in extra and stimulus is None:
+                stimulus = extra.get("stimulus")
+            if "is_omission" in extra:
+                is_omission = bool(extra["is_omission"])
+            if "code" in extra and event.get("code") is None:
+                event_code = extra.get("code")
+            else:
+                event_code = event.get("code")
+        else:
+            event_code = event.get("code")
+    else:
+        event_code = event.get("code")
+    if sequence_token is not None and presentations and sequence_token in presentations:
+        metadata.setdefault("presentation", presentations[sequence_token])
+    return ParadigmEvent(
+        label=label,
+        onset_ms=float(onset_ms) if onset_ms is not None else None,
+        duration_ms=float(duration_ms) if duration_ms is not None else None,
+        code=int(event_code) if event_code is not None else None,
+        stimulus=None if is_omission else (None if stimulus is None else str(stimulus)),
+        is_omission=is_omission,
+        metadata=metadata,
+    )
+
+
+def _build_sequential_condition(
+    *,
+    name: str,
+    sequence: Sequence[Any],
+    event_windows: Mapping[str, tuple[float, float]],
+    sequence_event_labels: Sequence[str],
+    omission_tokens: Sequence[str],
+    presentations: Optional[dict[str, Any]] = None,
+    static_events: Optional[Mapping[str, Any]] = None,
+    probability: Optional[float] = None,
+    condition_numbers: Sequence[int] = (),
+    metadata: Optional[dict[str, Any]] = None,
+    omission_position: Optional[str] = None,
+) -> ParadigmCondition:
+    """Build one generic sequential condition from a token sequence."""
+    if len(sequence) != len(sequence_event_labels):
+        raise ValueError(
+            f"condition {name!r} has sequence length {len(sequence)}, "
+            f"but {len(sequence_event_labels)} sequential event labels were provided"
+        )
+    events: list[ParadigmEvent] = []
+    for label, token in zip(sequence_event_labels, sequence):
+        if label not in event_windows:
+            raise KeyError(f"event label {label!r} is missing from event_windows")
+        events.append(
+            _coerce_paradigm_event(
+                {"label": label, "stimulus": token},
+                default_window=event_windows[label],
+                sequence_token=str(token),
+                omission_tokens=omission_tokens,
+                presentations=presentations,
+                static_events=static_events,
+            )
+        )
+    inferred_omission = omission_position
+    if inferred_omission is None:
+        for evt in events:
+            if evt.is_omission:
+                inferred_omission = evt.label
+                break
+    return ParadigmCondition(
+        name=name,
+        sequence=tuple(str(x) for x in sequence),
+        omission_position=inferred_omission,
+        probability=probability,
+        condition_numbers=tuple(int(x) for x in condition_numbers),
+        events=tuple(events),
+        metadata=metadata or {},
+    )
+
+
+def _normalize_condition_specs(
+    conditions: Optional[Mapping[str, Any] | Sequence[Mapping[str, Any]]],
+) -> list[dict[str, Any]]:
+    """Normalize condition declarations into a list of dict specs."""
+    if conditions is None:
+        return []
+    if isinstance(conditions, Mapping):
+        specs: list[dict[str, Any]] = []
+        for name, value in conditions.items():
+            if isinstance(value, Mapping):
+                spec = dict(value)
+                spec.setdefault("name", name)
+                specs.append(spec)
+            else:
+                specs.append({"name": name, "sequence": tuple(value)})
+        return specs
+    return [dict(spec) for spec in conditions]
+
+
+def general_sequential_oddball_paradigm(
+    *,
+    name: str = "general_sequential_oddball",
+    event_windows: Optional[Mapping[str, Sequence[float]]] = None,
+    event_codes: Optional[Mapping[str, Sequence[float]]] = None,
+    sequence_event_labels: Optional[Sequence[str]] = None,
+    conditions: Optional[Mapping[str, Any] | Sequence[Mapping[str, Any]]] = None,
+    presentations: Optional[Mapping[str, Any]] = None,
+    static_events: Optional[Mapping[str, Any]] = None,
+    blocks: Optional[Sequence[Mapping[str, Any]]] = None,
+    analysis_windows: Optional[Mapping[str, Sequence[float]]] = None,
+    comparison_label: str = "p1",
+    comparison_code: int = 101,
+    pre_stimulus_buffer_ms: float = 1000.0,
+    omission_tokens: Sequence[str] = ("X", "omit", "omission"),
+    metadata: Optional[dict[str, Any]] = None,
+) -> Paradigm:
+    """Build a general event-structured sequential paradigm.
+
+    This is the generic backbone for any sequential task family where trial
+    structure is expressed as an ordered list of event windows and each
+    condition provides either a token sequence or a full explicit event list.
+
+    Parameters
+    ----------
+    name:
+        Paradigm name.
+    event_windows:
+        Mapping from event label to ``(start_ms, end_ms)`` windows.
+        This is the preferred spelling.
+    event_codes:
+        Alias for ``event_windows`` to match compact user-facing sketches.
+        If both are provided, ``event_windows`` wins. Distinct from
+        :attr:`Paradigm.event_codes` (the int comparison-code map), which this
+        builder still populates separately from ``sequence_event_labels``.
+    sequence_event_labels:
+        Ordered labels whose windows are populated by each condition's token
+        sequence, e.g. ``("p1", "p2", "p3")``.
+    conditions:
+        Either a mapping of condition name to sequence tokens, or a sequence of
+        explicit condition specs containing ``name`` and either ``sequence`` or
+        ``events``.
+    presentations:
+        Optional token -> presentation descriptor mapping. Callables are stored
+        only as JSON-safe summaries in the returned paradigm metadata.
+    static_events:
+        Optional mapping of non-sequence event labels to static metadata,
+        stimulus annotations, or explicit event overrides.
+    blocks:
+        Optional block declarations to carry through unchanged.
+    analysis_windows:
+        Optional analysis window mapping. Defaults to a canonical
+        baseline/event/post-event trio.
+    comparison_label / comparison_code:
+        Alignment marker metadata.
+    pre_stimulus_buffer_ms:
+        Alignment buffer metadata (ms).
+    omission_tokens:
+        Sequence tokens that should be treated as omissions.
+    metadata:
+        Additional JSON-safe metadata stored on the returned paradigm.
+
+    Returns
+    -------
+    Paradigm
+        Immutable sequential task specification.
+    """
+    windows_in = event_windows if event_windows is not None else event_codes
+    if windows_in is None:
+        raise ValueError("general_sequential_oddball_paradigm requires event_windows or event_codes")
+    normalized_windows = {str(label): _normalize_window_pair(window, label=str(label)) for label, window in windows_in.items()}
+
+    seq_labels = tuple(str(x) for x in (sequence_event_labels or tuple(normalized_windows.keys())))
+    if not seq_labels:
+        raise ValueError("general_sequential_oddball_paradigm requires at least one sequence_event_label")
+
+    presentation_summaries = _summarize_presentations(presentations)
+    specs = _normalize_condition_specs(conditions)
+    if not specs:
+        raise ValueError("general_sequential_oddball_paradigm requires at least one condition")
+
+    conds: list[ParadigmCondition] = []
+    for spec in specs:
+        cond_name = str(spec.get("name", "condition"))
+        if "events" in spec and spec["events"] is not None:
+            explicit_events = tuple(
+                _coerce_paradigm_event(
+                    ev,
+                    default_window=normalized_windows.get(str(ev.get("label"))) if isinstance(ev, Mapping) else None,
+                    sequence_token=str(ev.get("stimulus")) if isinstance(ev, Mapping) and ev.get("stimulus") is not None else None,
+                    omission_tokens=omission_tokens,
+                    presentations=presentation_summaries,
+                    static_events=static_events,
+                )
+                for ev in spec["events"]
+            )
+            sequence = spec.get("sequence")
+            if sequence is None:
+                sequence = tuple(
+                    str(evt.stimulus if evt.stimulus is not None else evt.label)
+                    for evt in explicit_events
+                    if evt.label in seq_labels
+                )
+            omission_position = spec.get("omission_position")
+            if omission_position is None:
+                for evt in explicit_events:
+                    if evt.is_omission:
+                        omission_position = evt.label
+                        break
+            conds.append(
+                ParadigmCondition(
+                    name=cond_name,
+                    sequence=tuple(str(x) for x in sequence),
+                    omission_position=omission_position,
+                    probability=spec.get("probability"),
+                    condition_numbers=tuple(int(x) for x in spec.get("condition_numbers", ()) or ()),
+                    events=explicit_events,
+                    metadata=dict(spec.get("metadata", {})),
+                )
+            )
+            continue
+
+        sequence = spec.get("sequence")
+        if sequence is None:
+            raise ValueError(f"condition {cond_name!r} must provide either 'sequence' or 'events'")
+        conds.append(
+            _build_sequential_condition(
+                name=cond_name,
+                sequence=tuple(sequence),
+                event_windows=normalized_windows,
+                sequence_event_labels=seq_labels,
+                omission_tokens=omission_tokens,
+                presentations=presentation_summaries if presentation_summaries else None,
+                static_events=static_events,
+                probability=spec.get("probability"),
+                condition_numbers=spec.get("condition_numbers", ()),
+                metadata=dict(spec.get("metadata", {})),
+                omission_position=spec.get("omission_position"),
+            )
+        )
+
+    merged_metadata = dict(metadata or {})
+    merged_metadata.setdefault("task_kind", "sequential_oddball")
+    merged_metadata["sequence_event_labels"] = list(seq_labels)
+    merged_metadata["event_windows"] = {label: [start, end] for label, (start, end) in normalized_windows.items()}
+    if presentation_summaries:
+        merged_metadata["presentations"] = presentation_summaries
+    if static_events is not None:
+        try:
+            merged_metadata["static_events"] = json_safe(static_events)
+        except Exception:
+            merged_metadata["static_events"] = {str(k): repr(v) for k, v in static_events.items()}
+
+    if analysis_windows is None:
+        analysis_windows = {
+            "baseline": (-500.0, 0.0),
+            "event": (0.0, 500.0),
+            "post_event": (500.0, 1000.0),
+        }
+
+    event_code_map = {
+        "fx": 10,
+        **{str(label): int(100 + idx) for idx, label in enumerate(seq_labels, start=1)},
+    }
+    event_code_map[str(comparison_label)] = int(comparison_code)
+
+    return Paradigm(
+        name=name,
+        blocks=list(blocks or []),
+        conditions=tuple(conds),
+        comparison_code=comparison_code,
+        comparison_label=comparison_label,
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        analysis_windows={str(k): _normalize_window_pair(v, label=str(k)) for k, v in analysis_windows.items()},
+        event_codes=event_code_map,
+        metadata=merged_metadata,
+    )
+
+
+def general_delayed_match_to_sample_paradigm(
+    *,
+    name: str = "general_delayed_match_to_sample",
+    event_windows: Optional[Mapping[str, Sequence[float]]] = None,
+    event_codes: Optional[Mapping[str, Sequence[float]]] = None,
+    sequence_event_labels: Optional[Sequence[str]] = None,
+    conditions: Optional[Mapping[str, Any] | Sequence[Mapping[str, Any]]] = None,
+    presentations: Optional[Mapping[str, Any]] = None,
+    static_events: Optional[Mapping[str, Any]] = None,
+    blocks: Optional[Sequence[Mapping[str, Any]]] = None,
+    analysis_windows: Optional[Mapping[str, Sequence[float]]] = None,
+    comparison_label: str = "sample",
+    comparison_code: int = 101,
+    pre_stimulus_buffer_ms: float = 1000.0,
+    omission_tokens: Sequence[str] = ("X", "omit", "omission"),
+    metadata: Optional[dict[str, Any]] = None,
+) -> Paradigm:
+    """Build a general delayed-match-to-sample paradigm on the same backbone."""
+    merged_metadata = dict(metadata or {})
+    merged_metadata.setdefault("task_kind", "delayed_match_to_sample")
+    return general_sequential_oddball_paradigm(
+        name=name,
+        event_windows=event_windows,
+        event_codes=event_codes,
+        sequence_event_labels=sequence_event_labels,
+        conditions=conditions,
+        presentations=presentations,
+        static_events=static_events,
+        blocks=blocks,
+        analysis_windows=analysis_windows,
+        comparison_label=comparison_label,
+        comparison_code=comparison_code,
+        pre_stimulus_buffer_ms=pre_stimulus_buffer_ms,
+        omission_tokens=omission_tokens,
+        metadata=merged_metadata,
+    )
 
 
 @dataclass(frozen=True)

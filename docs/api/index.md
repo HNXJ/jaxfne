@@ -394,12 +394,14 @@ and figure/readout outputs remain proxy diagnostics
 | `JaxleyTraceSpec` | class | Metadata specification for Jaxley-style voltage trace arrays. |
 | `require_jaxley` | func | Import Jaxley lazily with an informative error. |
 
-### Paradigms (6)
+### Paradigms (8)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `coop_omission_oddball_paradigm` | func | Create a Continuous Omission Oddball Paradigm (COOP) stimulus sequence. |
 | `omission_oddball_paradigm` | func | Create an omission/oddball detection paradigm. |
+| `general_sequential_oddball_paradigm` | func | Generic backbone for any sequential task family: per-condition token sequence or explicit event list over declared event windows. |
+| `general_delayed_match_to_sample_paradigm` | func | Delayed-match-to-sample wrapper over `general_sequential_oddball_paradigm`. |
 | `Paradigm` | class | —  _(dataclass; fields in signature)_ |
 | `paradigm` | module | _(constant; see source)_ |
 | `ParadigmCondition` | class | A specific trial condition: sequence of stimuli and associated events. |

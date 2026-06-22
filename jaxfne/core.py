@@ -2734,6 +2734,8 @@ from .paradigm import (
     evoked_l4_drive_paradigm,
     omission_oddball_paradigm,
     coop_omission_oddball_paradigm,
+    general_sequential_oddball_paradigm,
+    general_delayed_match_to_sample_paradigm,
 )
 
 

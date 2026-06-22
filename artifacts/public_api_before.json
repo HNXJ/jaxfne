@@ -117,6 +117,8 @@
     "euler_step",
     "export_report",
     "export_tutorial_artifacts",
+    "general_delayed_match_to_sample_paradigm",
+    "general_sequential_oddball_paradigm",
     "get_sharding_context",
     "get_signal",
     "gsdr",
