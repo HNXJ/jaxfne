@@ -699,8 +699,18 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
         tau_r_ms: slow leak timescale in ms (default 300, >> dt for stability)
         alpha: per-spike jump in r_i (default 1.0)
         k_gain: homeostatic restoring gain (0 = disabled, default 1.0 — a gentle
-            nudge that keeps rates in-band and synchrony low; raise toward 5-10 for
-            stronger rate balancing at the cost of higher synchrony / lower mean rate)
+            nudge that keeps rates in-band and synchrony low). This is a one-sided
+            damper, not a bidirectional rate-setpoint controller: it can suppress
+            firing below baseline but cannot reliably drive it above baseline
+            (verified: the activity trace r settles well above any small r_star,
+            so g=clip(k_gain*(r_star-r)) stays negative in practice; raising
+            r_star/g_max doesn't change this). At the default tau_r_ms=300,
+            suppression stays smooth up to about k_gain~1.5-2.0; beyond
+            k_gain~2.5 the population enters a bursty bang-bang relaxation
+            oscillation (full-silence windows recurring on a tau_r_ms-scale
+            period) rather than settling to a lower mean rate. Check a
+            20-100ms-windowed rate trace, not just the mean, before treating a
+            high-k_gain result as a smooth target.
         g_min, g_max: clipped excitability bias bounds (default [-12, 8])
         r_max: clipped trace bound (default 1.0)
 
