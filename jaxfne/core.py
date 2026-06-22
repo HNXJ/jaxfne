@@ -4474,46 +4474,7 @@ class Model:
             }
         if getattr(runtime_cfg, "enable_homeostasis", False):
             diag = getattr(self, "_last_homeostasis_diag", None)
-            _hp_meta = dict(runtime_cfg.homeostasis_params or {})
-            _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
-            homeo_meta: dict[str, Any] = {
-                "enabled": True,
-                "params": {
-                    k: (v if _np_isscalar_param(v) else "per_neuron_array")
-                    for k, v in _hp_meta.items()
-                },
-                # Framing: a minimal homeostatic resource/adaptation controller
-                # (intrinsic excitability bias + optional homeostatic synaptic
-                # scaling) — a COMPUTATIONAL method, NOT a biological mechanism.
-                # Mechanism support requires nulls/ablations/repeated seeds and
-                # empirical comparison; objective success alone does not imply it.
-                "method": "minimal_homeostatic_resource_adaptation_controller",
-                "claim_status": "computational_control_proxy_not_biological_mechanism",
-                "synaptic_plasticity_enabled": bool(_plastic_on),
-                "biological_learning_claim": False,
-                "mechanism_claim_status": "not_claimed",
-                "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
-                                           "full per-step g_bias/r_trace (and, when "
-                                           "synaptic_plasticity_enabled, w_final/w_trace) via "
-                                           "Model.last_homeostasis_diagnostics()",
-            }
-            if diag is not None:
-                g = diag["g_bias"]; r = diag["r_trace"]
-                homeo_meta["g_bias_summary"] = {
-                    "min": float(jnp.min(g)), "max": float(jnp.max(g)),
-                    "mean": float(jnp.mean(g)), "shape": list(g.shape),
-                }
-                homeo_meta["r_trace_summary"] = {
-                    "min": float(jnp.min(r)), "max": float(jnp.max(r)),
-                    "mean": float(jnp.mean(r)), "shape": list(r.shape),
-                }
-                if "w_final" in diag:
-                    wf = diag["w_final"]
-                    homeo_meta["w_final_summary"] = {
-                        "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
-                        "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
-                    }
-            metadata["homeostasis"] = homeo_meta
+            metadata["homeostasis"] = _simulate_homeostasis_metadata(runtime_cfg, diag)
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -6739,6 +6700,55 @@ def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
 def _np_isscalar_param(v: Any) -> bool:
     """True if a homeostasis param is a JSON-safe scalar (not a per-neuron array)."""
     return isinstance(v, (int, float, bool, str)) or v is None
+
+
+def _simulate_homeostasis_metadata(
+    runtime_cfg: "RuntimeConfig", diag: "dict[str, Any] | None"
+) -> dict[str, Any]:
+    """``Model.simulate()`` helper: the homeostasis metadata sub-block.
+
+    Called only when ``runtime_cfg.enable_homeostasis`` is True. Framing: a
+    minimal homeostatic resource/adaptation controller (intrinsic
+    excitability bias + optional homeostatic synaptic scaling) -- a
+    COMPUTATIONAL method, NOT a biological mechanism. Mechanism support
+    requires nulls/ablations/repeated seeds and empirical comparison;
+    objective success alone does not imply it.
+    """
+    _hp_meta = dict(runtime_cfg.homeostasis_params or {})
+    _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
+    homeo_meta: dict[str, Any] = {
+        "enabled": True,
+        "params": {
+            k: (v if _np_isscalar_param(v) else "per_neuron_array")
+            for k, v in _hp_meta.items()
+        },
+        "method": "minimal_homeostatic_resource_adaptation_controller",
+        "claim_status": "computational_control_proxy_not_biological_mechanism",
+        "synaptic_plasticity_enabled": bool(_plastic_on),
+        "biological_learning_claim": False,
+        "mechanism_claim_status": "not_claimed",
+        "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
+                                   "full per-step g_bias/r_trace (and, when "
+                                   "synaptic_plasticity_enabled, w_final/w_trace) via "
+                                   "Model.last_homeostasis_diagnostics()",
+    }
+    if diag is not None:
+        g = diag["g_bias"]; r = diag["r_trace"]
+        homeo_meta["g_bias_summary"] = {
+            "min": float(jnp.min(g)), "max": float(jnp.max(g)),
+            "mean": float(jnp.mean(g)), "shape": list(g.shape),
+        }
+        homeo_meta["r_trace_summary"] = {
+            "min": float(jnp.min(r)), "max": float(jnp.max(r)),
+            "mean": float(jnp.mean(r)), "shape": list(r.shape),
+        }
+        if "w_final" in diag:
+            wf = diag["w_final"]
+            homeo_meta["w_final_summary"] = {
+                "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
+                "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+            }
+    return homeo_meta
 
 
 def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:
