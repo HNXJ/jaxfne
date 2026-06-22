@@ -1,0 +1,28 @@
+name: Trigger Macroscope Review
+
+# Macroscope (macroscope-app) reviews a PR when someone comments
+# "@macroscope-app review" on it. This workflow posts that comment
+# automatically on every PR so review is requested without a manual step.
+# See AGENTS.md "PR review" section for the rubric Macroscope is expected to apply.
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  trigger-macroscope:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment to trigger Macroscope review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: '@macroscope-app review',
+            });
