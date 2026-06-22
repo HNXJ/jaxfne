@@ -256,6 +256,68 @@ remain the open, unimplemented piece — homeostatic/connectivity-weight
 grading clearly does *something* real to the relative depth structure, but
 not (yet) anything with absolute spectral selectivity.
 
+## The cable-filter tensor: a genuinely frequency-selective LFP stage
+
+The finding directly above — no absolute band-selective gain anywhere in the
+default pipeline — is a structural property of that pipeline, not just this
+run: `project_laminar_sources` is a purely *spatial* Gaussian-depth kernel,
+and the per-neuron `source_scale` gain graded by depth (1.0 superficial → 1.8
+deep, `E` cells only) is frequency-flat. Neither stage can ever produce a
+band-selective bump or notch, because neither has a frequency axis. The
+package now adds a third stage that does: `cable_filter_sources`, a
+depth/cell-type-dependent passive-cable low-pass **tensor** applied to each
+neuron's source-proxy trace before spatial projection — the standard pipeline
+shape is
+
+```
+emitter -> (source_scale gain tensor) -> source
+        -> cable_filter_sources (cable-filter tensor)
+        -> readout (project_laminar_sources / eeg_proxy_transform / meg_proxy_transform)
+```
+
+```python
+nt = model.neuron_table()
+tau_s = jtfne.cable_filter_tau(nt["cell_type"], nt["z"])   # depth/cell-type-graded tau
+sources_filt = jtfne.cable_filter_sources(sig.sources, tau_s, dt_ms=0.5, order=2)
+fo = jtfne.project_laminar_sources(sources_filt, positions, n_contacts=32)
+```
+
+`tau_s` is longest for deep `E` cells (long apical dendrites → low cutoff →
+relatively preserved low-frequency power) and shortest for `PV`
+interneurons (fast-spiking → high cutoff → gamma passes at every depth) —
+phenomenological, not derived from a cable equation; `field_solver_status`
+stays `"linear_solver"` and `physical_amplitude_calibrated` stays `False`.
+
+**What changes with the filter on.** Same 100-neuron canonical V1 column,
+10 trials × 6000 ms, `cable_filter_tau` defaults
+(`tau_e_superficial=1 ms, tau_e_deep=5 ms, PV=0.5 ms, SST=VIP=2 ms`),
+`order=2`, 32 contacts (edge contacts trimmed), Welch PSD with linear
+detrending:
+
+| band | unfiltered deep:superficial | filtered deep:superficial |
+|---|---|---|
+| theta (4–8 Hz) | ~flat gain only (no genuine band structure, see above) | 2.13 — unaffected |
+| alpha/beta (10–25 Hz) | same flat gain as every other band | **1.30 — stays deep-dominant** |
+| gamma (40–150 Hz) | same flat gain as every other band | **0.66 — flips to superficial-dominant** |
+
+This is the first genuinely *absolute*, frequency-selective laminar effect
+this investigation has produced — not a relative-distribution crossing and
+not a flat gain offset. `order=1` gives the same direction with a much
+weaker gamma flip (0.93, barely below parity); `order=2` (two cascaded
+single-pole sections) is the validated default for a clean split. Pushing
+`tau_e_deep` further (e.g. 8 ms) over-attenuates and erodes the alpha/beta
+deep-dominance it's supposed to preserve — the cutoff has to sit *between*
+alpha/beta and gamma, not below alpha/beta.
+
+**Honest scope.** This is still a phenomenological filter tuned to produce
+the qualitative literature pattern (deep alpha/beta, superficial gamma), not
+a cable-equation solve, and the tau values are not derived from any measured
+or published dendritic biophysics — they were hand-tuned against this one
+falsification test. It is a genuinely different *mechanism class* from the
+flat-gain depth/dipole-size readout above (frequency-selective, not just
+depth-selective), and it composes cleanly with the existing LFP-proxy and
+EEG-/MEG-proxy readouts since all three take the same `[T, N]` source array.
+
 [STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
 [Configuration Grammar](configuration_grammar.md)

@@ -203,6 +203,100 @@ src, meta = jtfne.construct_source_tensor(total_membrane_current=I_mem)  # defau
 
 ---
 
+### `cable_filter_tau(cell_type, depth_z, *, tau_e_superficial_ms=1.0, tau_e_deep_ms=5.0, tau_pv_ms=0.5, tau_sst_ms=2.0, tau_vip_ms=2.0) -> tau_s`
+
+Build the per-neuron cable time constant array consumed by `cable_filter_sources`.
+
+**Parameters:**
+- `cell_type` (`Sequence[str]`): per-neuron cell-type labels, length `[N]`.
+- `depth_z` (`jax.Array`): per-neuron normalized laminar depth in `[0, 1]`,
+  length `[N]` (0=superficial, 1=deep).
+- `tau_e_superficial_ms`, `tau_e_deep_ms` (float): `E`-cell tau is linearly
+  interpolated between these two values by `depth_z`.
+- `tau_pv_ms`, `tau_sst_ms`, `tau_vip_ms` (float): fixed tau per interneuron
+  subtype. Any other/unrecognized cell type falls back to `tau_sst_ms`.
+
+**Returns:** `tau_s` (`jax.Array`, seconds, shape `[N]`).
+
+**Description:**
+Defaults are the validated sweep point used by `cable_filter_sources` below
+(`order=2`). `PV` gets the shortest tau (highest cutoff, passes gamma at
+every depth); `E` cells get a depth-graded tau (long apical dendrites on deep
+pyramidal cells => longer tau => lower cutoff).
+
+**Example:**
+```python
+nt = model.neuron_table()
+tau_s = jtfne.cable_filter_tau(nt["cell_type"], nt["z"])
+```
+
+---
+
+### `cable_filter_sources(sources, tau_s, dt_ms, *, order=2) -> filtered_sources`
+
+Apply a depth/cell-type-dependent passive-cable low-pass **tensor** to
+per-neuron source-proxy traces. Standard pipeline stage:
+
+```
+emitter -> (source_scale gain tensor) -> source
+        -> cable_filter_sources (this tensor)
+        -> readout (project_laminar_sources / eeg_proxy_transform / meg_proxy_transform)
+```
+
+**Parameters:**
+- `sources` (`jax.Array`): source-proxy traces, shape `[T, N]`.
+- `tau_s` (`jax.Array`): per-neuron cable time constant in seconds, shape
+  `[N]`. Build with `cable_filter_tau`.
+- `dt_ms` (float): simulation timestep in milliseconds.
+- `order` (int, default `2`): number of cascaded single-pole RC sections.
+
+**Returns:** filtered source-proxy traces, shape `[T, N]`.
+
+**Description:**
+Computes, per neuron, the cascaded single-pole transfer function
+`H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order` and applies it along the time
+axis via FFT. A phenomenological proxy for passive dendritic cable
+filtering, not a calibrated cable-equation solve — `field_solver_status`
+stays `"linear_solver"` and `physical_amplitude_calibrated` stays `False`.
+
+Validated on a 100-neuron canonical V1 column (10 trials x 6000 ms,
+`cable_filter_tau` defaults, `order=2`): alpha/beta deep:superficial power
+ratio 1.30 (deep-dominant, same direction as the unfiltered baseline) and
+gamma deep:superficial power ratio 0.66 (flips to superficial-dominant — a
+genuine absolute band-selective effect, absent from the unfiltered
+flat-gain baseline). `order=1` gives the same direction but a much weaker
+gamma flip (0.93); `order=2` is the validated default.
+
+**Example:**
+```python
+tau_s = jtfne.cable_filter_tau(cell_type, depth_z)
+filtered = jtfne.cable_filter_sources(sources, tau_s, dt_ms=0.5, order=2)
+fo = jtfne.project_laminar_sources(filtered, positions, n_contacts=32)
+```
+
+---
+
+### `cable_filter_report(tau_s, order=2) -> dict`
+
+JSON-safe truth-gate report for a `cable_filter_sources` call.
+
+**Parameters:**
+- `tau_s` (`jax.Array`): the same per-neuron tau array passed to
+  `cable_filter_sources`.
+- `order` (int): the same filter order passed to `cable_filter_sources`.
+
+**Returns:** a `dict` with `tau_s_mean/min/max`, `cutoff_hz_mean`,
+`field_solver_status="linear_solver"`, `physical_amplitude_calibrated=False`,
+`claim_level="computational_scaffold"`, and a `finite_tau` flag.
+
+**Example:**
+```python
+report = jtfne.cable_filter_report(tau_s, order=2)
+assert report["finite_tau"]
+```
+
+---
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint

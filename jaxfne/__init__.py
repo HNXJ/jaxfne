@@ -196,6 +196,9 @@ from .fields import (
     validate_projection_invariants,
     validate_source_field_status,
     LinearReadout,
+    cable_filter_tau,
+    cable_filter_sources,
+    cable_filter_report,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
 from .optim import (
@@ -425,6 +428,9 @@ __all__ = [
     "validate_source_field_status",
     "construct_source_tensor",
     "LinearReadout",
+    "cable_filter_tau",
+    "cable_filter_sources",
+    "cable_filter_report",
     "config_hash",
     "json_safe",
     "manifest",

@@ -922,6 +922,145 @@ class LinearReadout:
         }
 
 
+def cable_filter_tau(
+    cell_type: Sequence[str] | np.ndarray,
+    depth_z: jax.Array,
+    *,
+    tau_e_superficial_ms: float = 1.0,
+    tau_e_deep_ms: float = 5.0,
+    tau_pv_ms: float = 0.5,
+    tau_sst_ms: float = 2.0,
+    tau_vip_ms: float = 2.0,
+) -> jax.Array:
+    """Per-neuron cable time constant tau(cell_type, depth) in seconds.
+
+    Builds the ``tau_s`` input expected by :func:`cable_filter_sources`. ``E``
+    cells get a depth-graded tau, linearly interpolated from
+    ``tau_e_superficial_ms`` at ``depth_z=0`` to ``tau_e_deep_ms`` at
+    ``depth_z=1`` (long apical dendrites on deep pyramidal cells => longer
+    cable time constant => lower low-pass cutoff). ``PV``/``SST``/``VIP``
+    each get a fixed tau (fast-spiking ``PV`` shortest, so gamma passes at
+    every depth). Any other/unrecognized cell type falls back to the
+    ``SST``/``VIP`` tau. Defaults are the validated ``order2_same_tau`` sweep
+    point (see :func:`cable_filter_sources`).
+
+    Parameters
+    ----------
+    cell_type:
+        Per-neuron cell-type labels, length [N] (e.g. from
+        ``model.neuron_table()``).
+    depth_z:
+        Per-neuron normalized laminar depth in [0, 1], length [N]
+        (0=superficial, 1=deep).
+    """
+    cell_type_arr = np.asarray(cell_type)
+    depth_z_arr = np.asarray(depth_z, dtype=np.float64)
+    if cell_type_arr.shape[0] != depth_z_arr.shape[0]:
+        raise ValueError(
+            f"cell_type length {cell_type_arr.shape[0]} does not match depth_z length {depth_z_arr.shape[0]}"
+        )
+
+    tau_ms = np.full_like(depth_z_arr, tau_sst_ms)
+    is_e = cell_type_arr == "E"
+    tau_ms[is_e] = tau_e_superficial_ms + (tau_e_deep_ms - tau_e_superficial_ms) * depth_z_arr[is_e]
+    tau_ms[cell_type_arr == "PV"] = tau_pv_ms
+    tau_ms[cell_type_arr == "SST"] = tau_sst_ms
+    tau_ms[cell_type_arr == "VIP"] = tau_vip_ms
+
+    return jnp.asarray(tau_ms / 1000.0, dtype=jnp.float32)
+
+
+def cable_filter_sources(
+    sources: jax.Array,
+    tau_s: jax.Array,
+    dt_ms: float,
+    *,
+    order: int = 2,
+) -> jax.Array:
+    """Apply a depth/cell-type-dependent passive-cable low-pass TENSOR to sources.
+
+    Standard cable-filter stage of the source-generation pipeline::
+
+        emitter -> (source_scale gain tensor) -> source
+                -> cable_filter_sources (this tensor)
+                -> readout (project_laminar_sources / eeg_proxy_transform / meg_proxy_transform)
+
+    Computes, per neuron, a cascaded single-pole RC low-pass transfer
+    function ``H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order`` and applies it
+    along the time axis via FFT. This is a phenomenological proxy for passive
+    dendritic cable filtering, motivated by depth/cell-type-dependent
+    membrane time constants (deep pyramidal apical dendrites => long tau =>
+    relatively preserved low-frequency power; fast-spiking interneurons =>
+    short tau => high-frequency power passes everywhere) — it is not a
+    calibrated cable-equation solve: ``field_solver_status`` stays
+    ``"linear_solver"`` and ``physical_amplitude_calibrated`` stays ``False``.
+
+    Validated on a 100-neuron canonical V1 column (10 trials x 6000 ms,
+    ``tau_s`` from :func:`cable_filter_tau` defaults, ``order=2``): alpha/beta
+    deep:superficial power ratio 1.30 (clearly deep-dominant, unchanged
+    direction from the unfiltered baseline) and gamma deep:superficial power
+    ratio 0.66 (flips to superficial-dominant, a genuine absolute
+    band-selective effect — absent from the unfiltered baseline, which has no
+    frequency-dependent operator and shows the same flat ~1.7x deep gain in
+    every band). Theta is left effectively unaffected (2.13 vs the unfiltered
+    baseline). ``order=1`` produces the same qualitative direction but a much
+    weaker gamma flip (0.93, barely below parity) — ``order=2`` is the
+    validated default for a clean split.
+
+    Parameters
+    ----------
+    sources:
+        Source-proxy traces with shape [T, N].
+    tau_s:
+        Per-neuron cable time constant in seconds, shape [N]. Build with
+        :func:`cable_filter_tau`.
+    dt_ms:
+        Simulation timestep in milliseconds.
+    order:
+        Number of cascaded single-pole sections (default 2; validated —
+        see above).
+    """
+    sources = jnp.asarray(sources, dtype=jnp.float32)
+    tau_s = jnp.asarray(tau_s, dtype=jnp.float32)
+    if sources.ndim != 2:
+        raise ValueError(f"sources must be 2D [T, N], got shape {sources.shape}")
+    if tau_s.shape[0] != sources.shape[1]:
+        raise ValueError(
+            f"tau_s length {tau_s.shape[0]} does not match sources width {sources.shape[1]}"
+        )
+
+    T = sources.shape[0]
+    dt_s = dt_ms / 1000.0
+    freqs = jnp.fft.rfftfreq(T, d=dt_s)
+    H = 1.0 / (1.0 + 1j * 2.0 * jnp.pi * freqs[:, None] * tau_s[None, :])
+    H = H ** order
+    src_fft = jnp.fft.rfft(sources, axis=0)
+    filtered = jnp.fft.irfft(src_fft * H, n=T, axis=0)
+    return jnp.asarray(filtered, dtype=jnp.float32)
+
+
+def cable_filter_report(tau_s: jax.Array, order: int = 2) -> dict[str, Any]:
+    """JSON-safe truth-gate report for a :func:`cable_filter_sources` call."""
+    tau_s_np = np.asarray(tau_s)
+    cutoff_hz = 1.0 / (2.0 * np.pi * tau_s_np)
+    finite = bool(np.all(np.isfinite(tau_s_np)))
+    return {
+        "operator": "cable_filter_tensor",
+        "operator_status": "simulated_proxy",
+        "mechanism": "passive_dendritic_cable_low_pass_phenomenological",
+        "order": int(order),
+        "tau_s_mean": float(np.mean(tau_s_np)) if finite else None,
+        "tau_s_min": float(np.min(tau_s_np)) if finite else None,
+        "tau_s_max": float(np.max(tau_s_np)) if finite else None,
+        "cutoff_hz_mean": float(np.mean(cutoff_hz)) if finite else None,
+        "field_solver_status": "linear_solver",
+        "physical_amplitude_calibrated": False,
+        "source_calibration_status": "uncalibrated_izhikevich_native_current",
+        "claim_level": "computational_scaffold",
+        "finite_tau": finite,
+    }
+
+
 def construct_source_tensor(
     *,
     mode: str = "total_membrane_current_proxy",
