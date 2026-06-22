@@ -6948,6 +6948,250 @@ def _model_edge_list(model: "Model", jdtype: Any) -> "EdgeList":
     return _empty_edge_list(jdtype)
 
 
+def _connect_validate_models(models: "tuple[Model, ...]") -> "list[IzhikevichParams]":
+    """``connect()`` stage: argument validation -> per-model emitter list."""
+    if len(models) < 2:
+        raise ValueError("connect() requires at least two models")
+    for i, m in enumerate(models):
+        if not isinstance(m, Model):
+            raise TypeError(f"connect() argument {i} is not a Model (got {type(m).__name__})")
+    emitters: list[IzhikevichParams] = []
+    for i, m in enumerate(models):
+        em = m.params.get("emitter")
+        if not isinstance(em, IzhikevichParams):
+            raise TypeError(
+                f"connect() supports IzhikevichParams emitters only; model {i} has "
+                f"{type(em).__name__}"
+            )
+        emitters.append(em)
+    return emitters
+
+
+def _connect_reconcile_runtime(
+    models: "tuple[Model, ...]", emitters: "list[IzhikevichParams]", strict: bool
+) -> Any:
+    """``connect()`` stage: dtype + dt_ms must agree (strict) -> merged jdtype."""
+    dtypes = {str(em.v0.dtype) for em in emitters}
+    if len(dtypes) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
+        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
+    jdtype = emitters[0].v0.dtype
+    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
+    if len(dts) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
+        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+    return jdtype
+
+
+def _connect_resolve_namespace(
+    models: "tuple[Model, ...]", namespace: "Sequence[str] | None", strict: bool
+) -> "tuple[list[str] | None, list[list[dict[str, Any]]]]":
+    """``connect()`` stage: namespace validation + area-collision check -> (ns, tables)."""
+    ns = list(namespace) if namespace is not None else None
+    if ns is not None and len(ns) != len(models):
+        raise ValueError(f"namespace must have one entry per model ({len(models)}), got {len(ns)}")
+    tables = [m.neuron_table() for m in models]
+    if ns is None:
+        seen: set[str] = set()
+        for t in tables:
+            areas_k = {str(r.get("area")) for r in t}
+            clash = seen & areas_k
+            if clash:
+                msg = (f"connect() area label collision across models ({sorted(clash)}); "
+                       f"pass namespace=(...) to disambiguate")
+                if strict:
+                    raise ValueError(msg)
+                warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            seen |= areas_k
+    return ns, tables
+
+
+def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "IzhikevichParams":
+    """``connect()`` stage: concat per-neuron arrays, reconcile scalars -> merged emitter."""
+    def _cat(attr: str) -> jax.Array:
+        return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
+
+    sign_cat = _cat("sign")
+    labels = tuple(lbl for em in emitters for lbl in em.labels)
+    layer_labels = tuple(
+        (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
+        for em in emitters for i in range(em.n_neurons)
+    )
+    scs = {em.source_calibration_status for em in emitters}
+    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
+    return IzhikevichParams(
+        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
+        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
+        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
+        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+    )
+
+
+def _connect_merge_edges(models: "tuple[Model, ...]", offsets: Any, jdtype: Any) -> "EdgeList":
+    """``connect()`` stage: member edges (offset), block-concatenated, sparse.
+
+    Members couple ONLY through explicit cross-model edges (no spurious
+    cross-recurrence -- the sparse realization of a block-diagonal W).
+    """
+    merged_edges = _empty_edge_list(jdtype)
+    for k, m in enumerate(models):
+        el = _model_edge_list(m, jdtype)
+        off = int(offsets[k])
+        el = replace(el, pre=el.pre + off, post=el.post + off)
+        merged_edges = _concat_edge_lists(merged_edges, el)
+    return merged_edges
+
+
+def _connect_merge_positions(models: "tuple[Model, ...]", layout: str, jdtype: Any) -> "jax.Array":
+    """``connect()`` stage: merged positions (offset_x keeps columns spatially distinct)."""
+    pos_parts: list[jax.Array] = []
+    xcursor = 0.0
+    for m in models:
+        p = m.params["positions"].astype(jdtype)
+        if layout == "offset_x" and p.shape[0] > 0:
+            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
+            p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
+            xcursor += (xmax - xmin) + 1.0
+        pos_parts.append(p)
+    return jnp.concatenate(pos_parts, axis=0) if pos_parts else jnp.zeros((0, 3), dtype=jdtype)
+
+
+def _connect_merge_neuron_metadata(
+    tables: "list[list[dict[str, Any]]]", ns: "list[str] | None", counts: "list[int]"
+) -> "tuple[list[dict[str, Any]], list[str], list[str], list[str], Any]":
+    """``connect()`` stage: reindex ids, namespace areas, tag model index.
+
+    Returns ``(merged_rows, orig_area, layer_lab, cell_lab, model_labels)``.
+    """
+    import numpy as np
+
+    merged_rows: list[dict[str, Any]] = []
+    orig_area: list[str] = []
+    layer_lab: list[str] = []
+    cell_lab: list[str] = []
+    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
+    nid = 0
+    for k, t in enumerate(tables):
+        prefix = (ns[k] + "/") if ns is not None else ""
+        for r in t:
+            row = dict(r)
+            a_orig = str(row.get("area"))
+            orig_area.append(a_orig)
+            layer_lab.append(str(row.get("layer")))
+            cell_lab.append(str(row.get("cell_type")))
+            row["neuron_id"] = nid
+            row["model"] = k
+            row["area"] = prefix + a_orig
+            merged_rows.append(row)
+            nid += 1
+    return merged_rows, orig_area, layer_lab, cell_lab, model_labels
+
+
+def _connect_compile_cross_edges(
+    edges: "Sequence[Mapping[str, Any]] | None",
+    models: "tuple[Model, ...]",
+    orig_area: "list[str]", layer_lab: "list[str]", cell_lab: "list[str]",
+    sign_cat: Any, n_total: int, jdtype: Any, model_labels: Any,
+) -> "tuple['EdgeList | None', list[int]]":
+    """``connect()`` stage: compile cross-model edges (selectors match original area + model idx)."""
+    import numpy as np
+
+    if not edges:
+        return None, []
+    default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
+    return _compile_connection_rules(
+        list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
+        n_total, jdtype, default_seed, model_labels=model_labels,
+    )
+
+
+def _connect_merge_cfg(
+    models: "tuple[Model, ...]", ns: "list[str] | None", name: "str | None", layout: str,
+    counts: "list[int]", n_total: int, edges: "Sequence[Mapping[str, Any]] | None",
+    cross_counts: "list[int]",
+) -> "Configuration":
+    """``connect()`` stage: merged cfg -- conservative truth gates, ensemble marker, cross rules."""
+    cfg2 = models[0].cfg
+    try:
+        cfg2 = cfg2.runtime(recurrent_backend="edge_list")
+    except Exception:
+        pass
+    md = {**cfg2.metadata}
+    md["claim_level"] = "computational_scaffold"
+    md["field_solver_status"] = "linear_solver"
+    md["physical_amplitude_calibrated"] = all(
+        bool(m.cfg.metadata.get("physical_amplitude_calibrated", False)) for m in models
+    )
+    all_area_names: list[str] = []
+    for k, m in enumerate(models):
+        for ar in (m.cfg.metadata.get("column_names") or []):
+            all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
+    if all_area_names:
+        md["column_names"] = all_area_names
+        md["column_count"] = len(all_area_names)
+    total_cross = int(sum(cross_counts)) if cross_counts else 0
+    md["ensemble"] = {
+        "name": str(name) if name is not None else None,
+        "n_models": len(models),
+        "model_sizes": [int(x) for x in counts],
+        "n_neurons_total": n_total,
+        "namespace": list(ns) if ns is not None else None,
+        "cross_model_edges": total_cross,
+        "layout": str(layout),
+    }
+    if edges:
+        circuit = {**md.get("circuit", {})}
+        conns = list(circuit.get("connections", []))
+        for i, rule in enumerate(edges):
+            c = int(cross_counts[i]) if i < len(cross_counts) else 0
+            conns.append({
+                **dict(rule),
+                "scope": "cross_model",
+                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+                "compiled_n_edges": c,
+            })
+        circuit["connections"] = conns
+        md["circuit"] = circuit
+    return replace(cfg2, metadata=md)
+
+
+def _connect_merge_static(
+    models: "tuple[Model, ...]", merged_rows: "list[dict[str, Any]]", strict: bool, ensemble: dict,
+) -> "dict[str, Any]":
+    """``connect()`` stage: merged static -- reconcile n_contacts, most-conservative operator_status."""
+    n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
+    if len(n_contacts_set) > 1 and strict:
+        raise ValueError(
+            f"connect() models have mismatched n_contacts {sorted(n_contacts_set)}; "
+            f"field projection needs equal contacts"
+        )
+    if len(n_contacts_set) > 1:
+        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
+    rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
+    op: dict[str, str] = {}
+    for m in models:
+        for key, val in (m.static.get("operator_status") or {}).items():
+            if key not in op or rank.get(val, 1) < rank.get(op[key], 1):
+                op[key] = val
+    summary = {
+        "n_rows": len(merged_rows),
+        "areas": sorted({str(r.get("area")) for r in merged_rows}),
+        "layers": sorted({str(r.get("layer")) for r in merged_rows}),
+        "cell_types": sorted({str(r.get("cell_type")) for r in merged_rows}),
+    }
+    return {
+        **models[0].static,
+        "n_contacts": int(models[0].static.get("n_contacts", 16)),
+        "operator_status": op,
+        "geometry": {**models[0].static.get("geometry", {}), "neuron_rows": merged_rows},
+        "neuron_metadata": merged_rows,
+        "neuron_metadata_summary": summary,
+        "ensemble": ensemble,
+    }
+
+
 def connect(
     *models: "Model",
     edges: "Sequence[Mapping[str, Any]] | None" = None,
@@ -7012,203 +7256,30 @@ def connect(
     """
     import numpy as np
 
-    if len(models) < 2:
-        raise ValueError("connect() requires at least two models")
-    for i, m in enumerate(models):
-        if not isinstance(m, Model):
-            raise TypeError(f"connect() argument {i} is not a Model (got {type(m).__name__})")
-    emitters: list[IzhikevichParams] = []
-    for i, m in enumerate(models):
-        em = m.params.get("emitter")
-        if not isinstance(em, IzhikevichParams):
-            raise TypeError(
-                f"connect() supports IzhikevichParams emitters only; model {i} has "
-                f"{type(em).__name__}"
-            )
-        emitters.append(em)
-
-    # ── reconcile runtime: dtype + dt_ms must agree (strict) ──────────────────
-    dtypes = {str(em.v0.dtype) for em in emitters}
-    if len(dtypes) > 1:
-        if strict:
-            raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
-        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
-    jdtype = emitters[0].v0.dtype
-    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
-    if len(dts) > 1:
-        if strict:
-            raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
-        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+    emitters = _connect_validate_models(models)
+    jdtype = _connect_reconcile_runtime(models, emitters, strict)
 
     counts = [int(em.n_neurons) for em in emitters]
     offsets = np.cumsum([0, *counts])[:-1]
     n_total = int(sum(counts))
 
-    # ── namespace / area-collision handling ───────────────────────────────────
-    ns = list(namespace) if namespace is not None else None
-    if ns is not None and len(ns) != len(models):
-        raise ValueError(f"namespace must have one entry per model ({len(models)}), got {len(ns)}")
-    tables = [m.neuron_table() for m in models]
-    if ns is None:
-        seen: set[str] = set()
-        for t in tables:
-            areas_k = {str(r.get("area")) for r in t}
-            clash = seen & areas_k
-            if clash:
-                msg = (f"connect() area label collision across models ({sorted(clash)}); "
-                       f"pass namespace=(...) to disambiguate")
-                if strict:
-                    raise ValueError(msg)
-                warnings.warn(msg, RuntimeWarning, stacklevel=2)
-            seen |= areas_k
-
-    # ── merged emitter (concat per-neuron arrays; reconcile scalars) ──────────
-    def _cat(attr: str) -> jax.Array:
-        return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
-
-    sign_cat = _cat("sign")
-    labels = tuple(lbl for em in emitters for lbl in em.labels)
-    layer_labels = tuple(
-        (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
-        for em in emitters for i in range(em.n_neurons)
-    )
-    scs = {em.source_calibration_status for em in emitters}
-    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
-    merged_emitter = IzhikevichParams(
-        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
-        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
-        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
-        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+    ns, tables = _connect_resolve_namespace(models, namespace, strict)
+    merged_emitter = _connect_merge_emitter(emitters, jdtype)
+    sign_cat = merged_emitter.sign
+    merged_edges = _connect_merge_edges(models, offsets, jdtype)
+    merged_positions = _connect_merge_positions(models, layout, jdtype)
+    merged_rows, orig_area, layer_lab, cell_lab, model_labels = _connect_merge_neuron_metadata(
+        tables, ns, counts
     )
 
-    # ── merged recurrence: member edges (offset) ── block-concatenated, sparse;
-    #    members couple ONLY through explicit cross-model edges (no spurious
-    #    cross-recurrence — the sparse realization of a block-diagonal W).
-    merged_edges = _empty_edge_list(jdtype)
-    for k, m in enumerate(models):
-        el = _model_edge_list(m, jdtype)
-        off = int(offsets[k])
-        el = replace(el, pre=el.pre + off, post=el.post + off)
-        merged_edges = _concat_edge_lists(merged_edges, el)
-
-    # ── merged positions (offset_x keeps columns spatially distinct) ──────────
-    pos_parts: list[jax.Array] = []
-    xcursor = 0.0
-    for m in models:
-        p = m.params["positions"].astype(jdtype)
-        if layout == "offset_x" and p.shape[0] > 0:
-            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
-            p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
-            xcursor += (xmax - xmin) + 1.0
-        pos_parts.append(p)
-    merged_positions = jnp.concatenate(pos_parts, axis=0) if pos_parts else jnp.zeros((0, 3), dtype=jdtype)
-
-    # ── merged neuron metadata (reindex ids, namespace areas, tag model) ──────
-    merged_rows: list[dict[str, Any]] = []
-    orig_area: list[str] = []
-    layer_lab: list[str] = []
-    cell_lab: list[str] = []
-    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
-    nid = 0
-    for k, t in enumerate(tables):
-        prefix = (ns[k] + "/") if ns is not None else ""
-        for r in t:
-            row = dict(r)
-            a_orig = str(row.get("area"))
-            orig_area.append(a_orig)
-            layer_lab.append(str(row.get("layer")))
-            cell_lab.append(str(row.get("cell_type")))
-            row["neuron_id"] = nid
-            row["model"] = k
-            row["area"] = prefix + a_orig
-            merged_rows.append(row)
-            nid += 1
-
-    # ── compile cross-model edges (selectors match original area + model idx) ──
-    cross_counts: list[int] = []
-    if edges:
-        default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
-        cross_el, cross_counts = _compile_connection_rules(
-            list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
-            n_total, jdtype, default_seed, model_labels=model_labels,
-        )
-        if cross_el is not None:
-            merged_edges = _concat_edge_lists(merged_edges, cross_el)
-
-    # ── merged cfg: conservative truth gates, ensemble marker, cross rules ────
-    cfg2 = models[0].cfg
-    try:
-        cfg2 = cfg2.runtime(recurrent_backend="edge_list")
-    except Exception:
-        pass
-    md = {**cfg2.metadata}
-    md["claim_level"] = "computational_scaffold"
-    md["field_solver_status"] = "linear_solver"
-    md["physical_amplitude_calibrated"] = all(
-        bool(m.cfg.metadata.get("physical_amplitude_calibrated", False)) for m in models
+    cross_el, cross_counts = _connect_compile_cross_edges(
+        edges, models, orig_area, layer_lab, cell_lab, sign_cat, n_total, jdtype, model_labels
     )
-    all_area_names: list[str] = []
-    for k, m in enumerate(models):
-        for ar in (m.cfg.metadata.get("column_names") or []):
-            all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
-    if all_area_names:
-        md["column_names"] = all_area_names
-        md["column_count"] = len(all_area_names)
-    total_cross = int(sum(cross_counts)) if cross_counts else 0
-    md["ensemble"] = {
-        "name": str(name) if name is not None else None,
-        "n_models": len(models),
-        "model_sizes": [int(x) for x in counts],
-        "n_neurons_total": n_total,
-        "namespace": list(ns) if ns is not None else None,
-        "cross_model_edges": total_cross,
-        "layout": str(layout),
-    }
-    if edges:
-        circuit = {**md.get("circuit", {})}
-        conns = list(circuit.get("connections", []))
-        for i, rule in enumerate(edges):
-            c = int(cross_counts[i]) if i < len(cross_counts) else 0
-            conns.append({
-                **dict(rule),
-                "scope": "cross_model",
-                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
-                "compiled_n_edges": c,
-            })
-        circuit["connections"] = conns
-        md["circuit"] = circuit
-    cfg2 = replace(cfg2, metadata=md)
+    if cross_el is not None:
+        merged_edges = _concat_edge_lists(merged_edges, cross_el)
 
-    # ── merged static (reconcile n_contacts, most-conservative operator_status)
-    n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
-    if len(n_contacts_set) > 1 and strict:
-        raise ValueError(
-            f"connect() models have mismatched n_contacts {sorted(n_contacts_set)}; "
-            f"field projection needs equal contacts"
-        )
-    if len(n_contacts_set) > 1:
-        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
-    rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
-    op: dict[str, str] = {}
-    for m in models:
-        for key, val in (m.static.get("operator_status") or {}).items():
-            if key not in op or rank.get(val, 1) < rank.get(op[key], 1):
-                op[key] = val
-    summary = {
-        "n_rows": len(merged_rows),
-        "areas": sorted({str(r.get("area")) for r in merged_rows}),
-        "layers": sorted({str(r.get("layer")) for r in merged_rows}),
-        "cell_types": sorted({str(r.get("cell_type")) for r in merged_rows}),
-    }
-    merged_static = {
-        **models[0].static,
-        "n_contacts": int(models[0].static.get("n_contacts", 16)),
-        "operator_status": op,
-        "geometry": {**models[0].static.get("geometry", {}), "neuron_rows": merged_rows},
-        "neuron_metadata": merged_rows,
-        "neuron_metadata_summary": summary,
-        "ensemble": md["ensemble"],
-    }
+    cfg2 = _connect_merge_cfg(models, ns, name, layout, counts, n_total, edges, cross_counts)
+    merged_static = _connect_merge_static(models, merged_rows, strict, cfg2.metadata["ensemble"])
 
     return Model(
         cfg=cfg2,
