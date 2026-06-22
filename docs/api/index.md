@@ -219,7 +219,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**219 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (69)
 
@@ -322,12 +322,16 @@ and figure/readout outputs remain proxy diagnostics
 | `SynapseSpec` | class | Metadata declaration for a synapse. Not a biological kernel. |
 | `SynapseState` | class | —  _(no docstring)_ |
 
-### Fields (12)
+### Fields (16)
 
 | Symbol | Kind | Summary |
 |---|---|---|
+| `cable_filter_report` | func | JSON-safe truth-gate report for a `cable_filter_sources` call. |
+| `cable_filter_sources` | func | Apply a depth/cell-type-dependent passive-cable low-pass tensor to per-neuron source-proxy traces. |
+| `cable_filter_tau` | func | Build the per-neuron cable time constant array consumed by `cable_filter_sources`. |
 | `compute_conservation_proxy_diagnostics` | func | Compute conservation-inspired proxy diagnostics over existing source/field arrays. |
 | `construct_source_tensor` | func | —  _(undocumented)_ |
+| `csd_tensor` | func | Spatial second-derivative CSD tensor (readout family, depth-axis stage). |
 | `eeg_proxy_transform` | func | Compute EEG-proxy readout via linear leadfield projection. |
 | `emm_proxy_transform` | func | Compute EMM-proxy (normalized activity/source/field cost) readout. |
 | `FieldOutput` | class | Container for laminar proxy field/readout arrays. |

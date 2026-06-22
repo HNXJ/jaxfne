@@ -127,15 +127,9 @@ def project_laminar_sources(
     lfp_proxy = source_proxy
     phi_e_proxy = lfp_proxy
 
-    # CSD proxy via vectorized second-derivative stencil
+    # CSD proxy: spatial second-derivative tensor (see csd_tensor)
     dz = contacts[1] - contacts[0] if n_contacts > 1 else jnp.asarray(1.0, dtype=jdtype)
-    
-    if n_contacts >= 3:
-        # Central difference for interior + one-sided boundaries via padding
-        padded = jnp.pad(phi_e_proxy, ((0, 0), (1, 1)), mode='edge')
-        csd_proxy = -(padded[:, 2:] - 2.0 * padded[:, 1:-1] + padded[:, :-2]) / (dz * dz)
-    else:
-        csd_proxy = jnp.zeros_like(phi_e_proxy)
+    csd_proxy = csd_tensor(phi_e_proxy, dz)
 
     diagnostics = validate_projection_invariants(
         sources=sources,
@@ -920,6 +914,38 @@ class LinearReadout:
             "units_or_status": self.units_or_status,
             "physical_amplitude_calibrated": False,
         }
+
+
+def csd_tensor(phi_e_proxy: jax.Array, dz: jax.Array | float) -> jax.Array:
+    """Spatial second-derivative CSD tensor (readout family, depth-axis stage).
+
+    ``csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`` along the
+    contact axis, edge-padded at the boundaries. Standard pipeline shape:
+
+    ``source -> project_laminar_sources (-> phi_e_proxy) -> csd_tensor -> csd_proxy``
+
+    Factored out of :func:`project_laminar_sources` (which still calls this
+    function internally) so CSD can be recomputed standalone from any
+    ``[T, n_contacts]`` potential-proxy array without re-running the full
+    projection. Unlike :func:`cable_filter_sources`, this is a purely spatial
+    (depth-axis) operator, not a frequency-domain one -- CSD is the 2nd
+    spatial derivative of whatever LFP-proxy it is given, nothing more.
+
+    Parameters:
+        phi_e_proxy: extracellular-potential proxy, shape ``[T, n_contacts]``.
+        dz: contact spacing in the same relative-depth units as the contact
+            axis (scalar).
+
+    Returns: CSD proxy, shape ``[T, n_contacts]``. Returns zeros when
+    ``n_contacts < 3`` (the stencil is undefined with fewer than 3 points).
+    """
+    phi_e_proxy = jnp.asarray(phi_e_proxy)
+    n_contacts = phi_e_proxy.shape[-1]
+    if n_contacts < 3:
+        return jnp.zeros_like(phi_e_proxy)
+    dz = jnp.asarray(dz, dtype=phi_e_proxy.dtype)
+    padded = jnp.pad(phi_e_proxy, ((0, 0), (1, 1)), mode="edge")
+    return -(padded[:, 2:] - 2.0 * padded[:, 1:-1] + padded[:, :-2]) / (dz * dz)
 
 
 def cable_filter_tau(

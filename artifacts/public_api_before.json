@@ -107,6 +107,7 @@
     "construct",
     "construct_source_tensor",
     "coop_omission_oddball_paradigm",
+    "csd_tensor",
     "dataset_spec",
     "default_basis_spec",
     "default_complete_configuration",

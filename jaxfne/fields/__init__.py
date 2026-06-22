@@ -29,6 +29,7 @@ from .proxy import (
     cable_filter_tau,
     cable_filter_sources,
     cable_filter_report,
+    csd_tensor,
 )
 from .probes import (
     ProbeReadout,
@@ -80,6 +81,7 @@ __all__ = [
     "cable_filter_tau",
     "cable_filter_sources",
     "cable_filter_report",
+    "csd_tensor",
     "_make_field_solution_report",
     "create_probe",
     "ProbeReadout",

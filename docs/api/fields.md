@@ -297,6 +297,35 @@ assert report["finite_tau"]
 
 ---
 
+### `csd_tensor(phi_e_proxy, dz) -> csd_proxy`
+
+Spatial second-derivative CSD tensor (readout family, depth-axis stage).
+
+**Parameters:**
+- `phi_e_proxy` (`jax.Array`): extracellular-potential proxy, shape `[T, n_contacts]`.
+- `dz` (`jax.Array | float`): contact spacing in the same relative-depth units
+  as the contact axis.
+
+**Returns:** CSD proxy, shape `[T, n_contacts]`. Returns zeros when `n_contacts < 3`.
+
+**Description:**
+`csd_proxy[c] = -(phi[c+1] - 2*phi[c] + phi[c-1]) / dz**2`, edge-padded at the
+boundaries. Factored out of `project_laminar_sources` (which still calls this
+function internally — confirmed byte-identical via regression test) so CSD
+can be recomputed standalone from any `[T, n_contacts]` potential-proxy array
+without re-running the full projection. Unlike `cable_filter_sources`, this is
+a purely spatial operator, not a frequency-domain one — CSD is the 2nd
+spatial derivative of whatever LFP-proxy it is given, nothing more.
+
+**Example:**
+```python
+fo = jtfne.project_laminar_sources(sources, positions, n_contacts=16)
+dz = fo.contact_depths[1] - fo.contact_depths[0]
+csd = jtfne.csd_tensor(fo.phi_e_proxy, dz)  # == fo.csd_proxy
+```
+
+---
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint

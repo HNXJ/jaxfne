@@ -202,6 +202,7 @@ from .fields import (
     cable_filter_tau,
     cable_filter_sources,
     cable_filter_report,
+    csd_tensor,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
 from .optim import (
@@ -437,6 +438,7 @@ __all__ = [
     "cable_filter_tau",
     "cable_filter_sources",
     "cable_filter_report",
+    "csd_tensor",
     "config_hash",
     "json_safe",
     "manifest",
