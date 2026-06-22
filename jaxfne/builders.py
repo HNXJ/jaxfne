@@ -125,6 +125,8 @@ def default_cortical_column_config(
     seed: int | None = None,
     duration_ms: float = 1000.0,
     dt_ms: float = 0.1,
+    *,
+    synaptic_kernel: Literal["exponential", "receptor_exponential"] = "exponential",
 ) -> Configuration:
     """Create a default laminar cortical column Configuration.
 
@@ -134,6 +136,16 @@ def default_cortical_column_config(
     - All-to-all uniform random local connectivity
     - Laminar proxy field with declarative metadata
     - Standard probe suite (spikes, V_m, source, LFP, CSD)
+
+    All native (non-Jaxley) builds use the same Izhikevich emitter --
+    ``construct()`` only supports ``family="izhikevich"``
+    (``_SUPPORTED_EMITTER_FAMILIES``); ``set_emitter()``'s ``preset=`` kwarg is
+    metadata only and has no behavioral effect. The one real behavioral
+    choice within the native pipeline is ``synaptic_kernel``, exposed here.
+    Biophysical (HH/Jaxley) neurons are not reachable through this builder at
+    all -- they go through the separate ``JaxleyBridge`` entry point, which
+    integrates a Jaxley model directly rather than building one from a
+    ``Configuration``.
 
     Parameters
     ----------
@@ -149,6 +161,11 @@ def default_cortical_column_config(
         Simulation duration in milliseconds. Default: 1000.0.
     dt_ms : float
         Timestep in milliseconds. Default: 0.1.
+    synaptic_kernel : {"exponential", "receptor_exponential"}, default "exponential"
+        Which native synaptic kernel the edge-list recurrent path uses.
+        ``"receptor_exponential"`` requires (and sets) ``recurrent_backend=
+        "edge_list"`` -- it is not supported on the dense backend, and not
+        supported together with ``enable_homeostasis``.
 
     Returns
     -------
@@ -171,10 +188,16 @@ def default_cortical_column_config(
     """
     if layers is None:
         layers = ["L1", "L2/3", "L4", "L5", "L6"]
+    if synaptic_kernel not in ("exponential", "receptor_exponential"):
+        raise ValueError(
+            f"synaptic_kernel must be 'exponential' or 'receptor_exponential'; got {synaptic_kernel!r}"
+        )
+    recurrent_backend = "edge_list" if synaptic_kernel == "receptor_exponential" else "dense"
 
     cfg = (
         Configuration()
-        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32",
+                  synaptic_kernel=synaptic_kernel, recurrent_backend=recurrent_backend)
         .column(column_name, layers=layers, n=n)
         .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
         .layer_fractions(

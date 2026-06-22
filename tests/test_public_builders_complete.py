@@ -30,6 +30,33 @@ class TestDefaultConfigs:
         assert len(cfg.networks) > 0
         assert len(cfg.emitters) > 0
 
+    def test_default_cortical_column_config_synaptic_kernel_choice(self):
+        """synaptic_kernel is the one real behavioral choice in the native
+        pipeline (preset= is metadata-only, never read back); defaults to
+        'exponential'/dense, 'receptor_exponential' requires+sets edge_list."""
+        cfg_default = jtfne.default_cortical_column_config(n=20, seed=0)
+        assert cfg_default.metadata["synaptic_kernel"] == "exponential"
+        assert cfg_default.metadata["recurrent_backend"] == "dense"
+
+        cfg_re = jtfne.default_cortical_column_config(n=20, seed=0, synaptic_kernel="receptor_exponential")
+        assert cfg_re.metadata["synaptic_kernel"] == "receptor_exponential"
+        assert cfg_re.metadata["recurrent_backend"] == "edge_list"
+
+        with pytest.raises(ValueError):
+            jtfne.default_cortical_column_config(synaptic_kernel="bogus")
+
+    def test_default_cortical_column_config_synaptic_kernel_constructs_and_differs(self):
+        """Both kernel choices construct+simulate to finite output, and differ."""
+        import numpy as np
+        cfg_exp = jtfne.default_cortical_column_config(n=30, duration_ms=20.0, dt_ms=0.5, seed=0)
+        cfg_re = jtfne.default_cortical_column_config(n=30, duration_ms=20.0, dt_ms=0.5, seed=0,
+                                                       synaptic_kernel="receptor_exponential")
+        sig_exp = jtfne.simulate(jtfne.construct(cfg_exp), duration_ms=20.0, dt_ms=0.5, seed=0)
+        sig_re = jtfne.simulate(jtfne.construct(cfg_re), duration_ms=20.0, dt_ms=0.5, seed=0)
+        assert bool(np.isfinite(np.asarray(sig_exp.get("V_m"))).all())
+        assert bool(np.isfinite(np.asarray(sig_re.get("V_m"))).all())
+        assert not np.array_equal(np.asarray(sig_exp.get("V_m")), np.asarray(sig_re.get("V_m")))
+
     def test_default_cortical_column_config_defaults(self):
         """Test default_cortical_column_config works with minimal arguments."""
         cfg = jtfne.default_cortical_column_config()

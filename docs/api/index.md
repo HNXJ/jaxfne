@@ -133,6 +133,7 @@ objectives — and is kept as a specialized/legacy builder outside this trio.
 | `n` | `100` | Total neurons. |
 | `layers` | `["L1","L2/3","L4","L5","L6"]` | Layer names. |
 | `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
+| `synaptic_kernel` *(kw)* | `"exponential"` | The one real emitter-behavior choice in the built-in pipeline. `"receptor_exponential"` requires + sets `recurrent_backend="edge_list"`. `set_emitter()`'s `preset=` is metadata only (never read back) — not a real choice; `construct()` only supports `family="izhikevich"` (Jaxley/HH goes through the separate `JaxleyBridge`, not `Configuration`). |
 
 **Returns:** a single-column `Configuration` with 4 cell types (standard
 fractions), all-to-all within-area connectivity, laminar proxy field, and the
