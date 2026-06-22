@@ -115,6 +115,36 @@ byte-for-byte (depth-invariant composition, `uniform3d` placement). Only the new
 opt-in paths (`ei_profile="canonical"` or an explicit `layer_cell_type_fractions`)
 change placement to laminar.
 
+### `default_nuclei_config(...) -> Configuration`
+
+A non-laminar population default. Every jaxfne emitter lives in the same 3D
+space — "laminar" is a depth label some configs apply, not a different
+coordinate system. This builder skips depth banding entirely.
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `nucleus_name` | `"thalamus"` | Name (label only — no biological-nucleus-identity claim). |
+| `n` | `80` | Total neurons. |
+| `cell_type_fractions` | `{"E": 0.70, "PV": 0.30}` | Plain E/I split using the native `PV` inhibitory preset (no generic `"I"` label exists). |
+| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
+
+**Returns:** a `Configuration` with one flat structural layer (`"core"`), `uniform3d` placement, all-to-all within-area connectivity, and `spikes`/`V_m`/`source` probes (no LFP/CSD — a flat nucleus has no depth axis for a laminar readout).
+
+### `default_complete_configuration(...) -> Configuration`
+
+The broadest default: a laminar cortical column wired to a flat nucleus —
+cortex and subcortex in one config, via `.inter_column_connectivity()`
+(declarative metadata only; no mechanism claim from the area/layer names).
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `column_name`, `nucleus_name` | `"V1"`, `"thalamus"` | Area names. |
+| `n_column`, `n_nucleus` | `100`, `60` | Neurons per area. |
+| `layers` | `DEFAULT_LAYERS` | Cortical column layer set. |
+| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
+
+**Returns:** a multi-area `Configuration`: the column keeps the standard E/PV/SST/VIP composition, the nucleus is flat E/PV, and `inter_column_connectivity` wires column→nucleus feedforward / nucleus→column feedback (sparse, `p_feedforward=0.3`, `p_feedback=0.2`).
+
 ---
 
 ## Export & figure APIs (root-level)
@@ -396,13 +426,15 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `make_ei_cloud_network` | func | Generates geometry and initial weights for a 100-neuron E-I cloud network. |
 
-### Builders (10)
+### Builders (12)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `laminar_cortex_config` | func | Generalized multi-area laminar cortical configuration builder. |
 | `build_laminar_column` | func | Single-column builder; defaults `name="V1"`, `n=1000`; `ei_profile`/`geometry` select flat-legacy vs canonical laminar prior. |
 | `build_multi_area_columns` | func | Multi-area builder; defaults to the `V1→V4→PFC` hierarchy, 200/area, with inter-area feedforward/feedback. |
+| `default_nuclei_config` | func | Non-laminar "nucleus" default: one flat structural layer, isotropic 3D-cloud placement, no depth gradient. |
+| `default_complete_configuration` | func | Broadest default: a laminar cortical column wired to a flat nucleus via inter-area connectivity (cortex+subcortex in one config). |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` | const | Ground-truth per-layer E:I composition (6-layer); E peaks deep, I peaks superficial. |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L` | const | 5-layer (L2/3 merged) variant of the canonical composition. |
 | `CANONICAL_Z_BANDS` | const | Count-proportional depth bands for the canonical 6-layer column. |

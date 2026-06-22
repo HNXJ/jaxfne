@@ -106,6 +106,8 @@
     "coop_omission_oddball_paradigm",
     "dataset_spec",
     "default_basis_spec",
+    "default_complete_configuration",
+    "default_nuclei_config",
     "eeg_proxy_transform",
     "emm_proxy_transform",
     "enable_x64",

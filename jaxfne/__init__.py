@@ -160,6 +160,8 @@ from .presets import (
 from .builders import (
     default_cortical_column_config,
     default_spectrolaminar_config,
+    default_nuclei_config,
+    default_complete_configuration,
     laminar_cortex_config,
     build_laminar_column,
     build_multi_area_columns,
@@ -280,6 +282,8 @@ __all__ = [
     "Configuration",
     "Config",
     "default_basis_spec",
+    "default_nuclei_config",
+    "default_complete_configuration",
     "laminar_cortex_config",
     "build_laminar_column",
     "build_multi_area_columns",

@@ -64,6 +64,76 @@ class TestDefaultConfigs:
         assert obj["band_definitions"]["gamma"] == (40.0, 150.0)
 
 
+class TestThreeDefaultArchitecture:
+    """default_nuclei_config / default_complete_configuration: the non-laminar
+    nucleus default and the cortex+subcortex "complete" default, alongside the
+    existing default_cortical_column_config."""
+
+    def test_default_nuclei_config_creates_valid_configuration(self):
+        cfg = jtfne.default_nuclei_config("thalamus", n=80, seed=42)
+        assert isinstance(cfg, jtfne.Configuration)
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        assert columns["thalamus"]["n"] == 80
+        assert columns["thalamus"]["layers"] == ["core"]
+        assert cfg.metadata["seed"] == 42
+
+    def test_default_nuclei_config_is_flat_not_laminar(self):
+        """A nucleus has exactly one structural layer -- no depth banding."""
+        cfg = jtfne.default_nuclei_config("LGN", n=50)
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        assert columns["LGN"]["layers"] == ["core"]
+
+    def test_default_nuclei_config_constructs_and_simulates(self):
+        import numpy as np
+        cfg = jtfne.default_nuclei_config("thalamus", n=30, duration_ms=20.0, dt_ms=0.5, seed=0)
+        model = jtfne.construct(cfg)
+        assert model.params["emitter"].n_neurons == 30
+        sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
+        assert bool(np.isfinite(np.asarray(sig.get("V_m"))).all())
+
+    def test_default_nuclei_config_truth_gates_not_escalated(self):
+        cfg = jtfne.default_nuclei_config()
+        assert cfg.metadata["claim_level"] == "computational_scaffold"
+        assert cfg.metadata["field_solver_status"] == "linear_solver"
+        assert cfg.metadata["physical_amplitude_calibrated"] is False
+
+    def test_default_complete_configuration_creates_valid_configuration(self):
+        cfg = jtfne.default_complete_configuration("V1", "thalamus", n_column=80, n_nucleus=40, seed=7)
+        assert isinstance(cfg, jtfne.Configuration)
+        columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
+        assert columns["V1"]["n"] == 80
+        assert columns["thalamus"]["n"] == 40
+        assert columns["thalamus"]["layers"] == ["core"]
+        assert columns["V1"]["layers"] == ["L1", "L2/3", "L4", "L5", "L6"]
+
+    def test_default_complete_configuration_wires_inter_area_connectivity(self):
+        cfg = jtfne.default_complete_configuration("V1", "thalamus")
+        assert cfg.metadata.get("inter_column_connectivity") is not None
+        spec = cfg.metadata["inter_column_connectivity"][-1]
+        assert spec["source_area"] == "V1"
+        assert spec["target_area"] == "thalamus"
+
+    def test_default_complete_configuration_constructs_and_simulates(self):
+        import numpy as np
+        cfg = jtfne.default_complete_configuration(
+            "V1", "thalamus", n_column=60, n_nucleus=30, duration_ms=20.0, dt_ms=0.5, seed=0)
+        model = jtfne.construct(cfg)
+        assert model.params["emitter"].n_neurons == 90
+        sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
+        assert bool(np.isfinite(np.asarray(sig.get("V_m"))).all())
+
+    def test_default_complete_configuration_truth_gates_not_escalated(self):
+        cfg = jtfne.default_complete_configuration()
+        assert cfg.metadata["claim_level"] == "computational_scaffold"
+        assert cfg.metadata["field_solver_status"] == "linear_solver"
+        assert cfg.metadata["physical_amplitude_calibrated"] is False
+
+    def test_three_defaults_importable_from_jaxfne_root(self):
+        assert callable(jtfne.default_complete_configuration)
+        assert callable(jtfne.default_cortical_column_config)
+        assert callable(jtfne.default_nuclei_config)
+
+
 class TestBuilderFunctions:
     """Tests for column builder functions."""
 

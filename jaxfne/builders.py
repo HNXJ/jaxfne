@@ -295,6 +295,178 @@ def default_spectrolaminar_config(
     return cfg
 
 
+def default_nuclei_config(
+    nucleus_name: str = "thalamus",
+    n: int = 80,
+    cell_type_fractions: Mapping[str, float] | None = None,
+    seed: int | None = None,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+) -> Configuration:
+    """Create a default non-laminar 'nucleus' Configuration.
+
+    Every jaxfne emitter lives in the same 3D space; "laminar" is a depth
+    label some configs choose to apply, not a different coordinate system.
+    This builder is the no-depth-banding case: one flat structural layer
+    (``"core"``), an isotropic 3D-cloud placement, and uniform (non-gradient)
+    cell-type fractions — in contrast to :func:`default_cortical_column_config`'s
+    depth-banded layers and (optionally) canonical E:I depth gradient.
+
+    Parameters
+    ----------
+    nucleus_name : str, default "thalamus"
+        Name of the nucleus (e.g., "thalamus", "LGN", "striatum"). The name
+        is a label only — no biological-nucleus-identity claim is made; the
+        structure is a flat, isotropically-placed population regardless of
+        name.
+    n : int, default 80
+        Total number of neurons.
+    cell_type_fractions : Mapping[str, float], optional
+        Cell-type composition. Default: ``{"E": 0.70, "PV": 0.30}`` — a plain
+        excitatory/inhibitory split using the native fast-spiking-inhibitory
+        emitter ("PV" is the package's generic inhibitory Izhikevich preset,
+        not a cortical-interneuron-subtype claim for a non-cortical population).
+        Valid labels are the package's native Izhikevich cell-type presets
+        (``E``, ``PV``, ``Inl``, ``SST``, ``Ing``, ``VIP``) — there is no
+        generic ``"I"`` label.
+    seed : int, optional
+        Random seed. Default: None (uses 42).
+    duration_ms : float, default 1000.0
+        Simulation duration in milliseconds.
+    dt_ms : float, default 0.1
+        Timestep in milliseconds.
+
+    Returns
+    -------
+    Configuration
+        Configuration for a flat (single-layer), isotropically-placed nucleus.
+
+    Examples
+    --------
+    >>> import jaxfne as jtfne
+    >>> cfg = jtfne.default_nuclei_config("thalamus", n=80)
+    >>> model = jtfne.construct(cfg)
+
+    Notes
+    -----
+    - All truth gates preserved: claim_level=computational_scaffold,
+      field_solver_status=linear_solver, physical_amplitude_calibrated=False.
+    - No field/LFP/CSD probes by default (a flat nucleus has no depth axis
+      for a laminar readout); request "spikes"/"V_m"/"source" explicitly,
+      or add field probes yourself if you wire it into a laminar field.
+    """
+    if cell_type_fractions is None:
+        cell_type_fractions = {"E": 0.70, "PV": 0.30}
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .column(nucleus_name, layers=["core"], n=n)
+        .cell_types(dict(cell_type_fractions))
+        .uniform3d(radius_mm=0.25, height_mm=0.25)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42)
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source"], n_contacts=16)
+    )
+    return cfg
+
+
+def default_complete_configuration(
+    column_name: str = "V1",
+    nucleus_name: str = "thalamus",
+    n_column: int = 100,
+    n_nucleus: int = 60,
+    layers: Sequence[str] | None = None,
+    seed: int | None = None,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+) -> Configuration:
+    """Create the broadest default Configuration: a laminar cortical column
+    wired to a non-laminar nucleus — cortex and subcortex in one config.
+
+    Combines what :func:`default_cortical_column_config` and
+    :func:`default_nuclei_config` each declare into a single multi-area
+    Configuration (``.column()`` calls accumulate; see
+    ``Configuration.column()``'s docstring), then wires them with inter-area
+    connectivity: feedforward column→nucleus from its superficial layer,
+    feedback nucleus→column into its first layer. The FF/FB direction is a
+    structural choice mirroring how :func:`default_spectrolaminar_config`
+    wires two cortical areas — it is not a thalamocortical-circuit claim;
+    no biological-mechanism status is implied by the layer/area names.
+
+    Parameters
+    ----------
+    column_name : str, default "V1"
+        Name of the cortical column.
+    nucleus_name : str, default "thalamus"
+        Name of the nucleus.
+    n_column : int, default 100
+        Neurons in the cortical column.
+    n_nucleus : int, default 60
+        Neurons in the nucleus.
+    layers : Sequence[str], optional
+        Cortical column layer names. Default: ``["L1", "L2/3", "L4", "L5", "L6"]``.
+    seed : int, optional
+        Random seed. Default: None (uses 42).
+    duration_ms : float, default 1000.0
+        Simulation duration in milliseconds.
+    dt_ms : float, default 0.1
+        Timestep in milliseconds.
+
+    Returns
+    -------
+    Configuration
+        Multi-area Configuration with one laminar column, one flat nucleus,
+        and declarative inter-area connectivity between them.
+
+    Examples
+    --------
+    >>> import jaxfne as jtfne
+    >>> cfg = jtfne.default_complete_configuration("V1", "thalamus")
+    >>> model = jtfne.construct(cfg)
+
+    Notes
+    -----
+    - All truth gates preserved.
+    - Inter-area connectivity is declarative metadata only (no PDE solve,
+      no mechanism claim); the nucleus carries no biological-nucleus-identity
+      claim from its name alone.
+    """
+    if layers is None:
+        layers = ["L1", "L2/3", "L4", "L5", "L6"]
+    layers = list(layers)
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .areas([column_name, nucleus_name])
+        .column(column_name, layers=layers, n=n_column)
+        .column(nucleus_name, layers=["core"], n=n_nucleus)
+        .cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
+        .area_layer_cell_types(
+            column_name,
+            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in layers},
+        )
+        .area_layer_cell_types(nucleus_name, {"core": {"E": 0.70, "PV": 0.30}})
+        .uniform3d(radius_mm=0.25, height_mm=1.6)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.40, edge_seed=seed or 42)
+        .inter_column_connectivity(
+            source_area=column_name,
+            target_area=nucleus_name,
+            mode="sparse",
+            layer_to_layer_map={"L2/3": "core"},
+            p_feedforward=0.3,
+            p_feedback=0.2,
+            feedforward_weight_range=(0.5, 2.0),
+            feedback_weight_range=(0.3, 1.5),
+        )
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    return cfg
+
+
 def build_laminar_column(
     name: str = "V1",
     n: int = 1000,
