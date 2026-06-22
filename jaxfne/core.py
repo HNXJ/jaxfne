@@ -818,10 +818,14 @@ def _compile_connection_rules(
 
     Returns ``(edge_list_or_None, per_rule_edge_counts)``.
 
-    Note: a standalone mechanism-based compiler exists (``connectivity.compile_connection_rules``
-    → ``ConnectionCompileResult``); this construct-time path uses the simpler
-    ``sign``-string model (excitatory/inhibitory/signed) that ``Configuration.connections()``
-    declares, with receptor inferred from weight sign — not the mechanism-index model.
+    This is the sign-only fallback compiler: receptor inferred from weight
+    sign, tau hardcoded exc=2 ms/inh=5 ms, ignoring any declared ``mechanism``.
+    ``construct()`` calls this only when the rule set does NOT fully resolve
+    against declared ``.mechanisms()`` (see
+    :func:`_all_connection_rules_declare_resolvable_mechanism`); when it does,
+    :func:`_compile_mechanism_aware_connection_rules` runs instead, wrapping
+    ``connectivity.compile_connection_rules`` → ``ConnectionCompileResult``
+    for real per-edge tau from the declared mechanism.
     """
     import numpy as _np
 
@@ -894,6 +898,81 @@ def _compile_connection_rules(
         receptor_index=jnp.asarray(receptor, jnp.int32),
         tau_ms=jnp.asarray(tau, jdtype),
     )
+    return edges, counts
+
+
+def _all_connection_rules_declare_resolvable_mechanism(rules, mechanisms):
+    """Gate for the mechanism-aware connection-rule compiler.
+
+    True only when every rule has a non-None ``mechanism`` that resolves
+    against a declared name in ``mechanisms`` -- the same requirement
+    :func:`connectivity.compile_connection_rules`/``_resolve_mechanism``
+    enforces (it raises on an unresolvable/missing mechanism). Mixed or
+    partially-declared rule sets fall back to the sign-only compiler so this
+    switch never silently changes simulated dynamics for a model that did
+    not fully opt in via ``.mechanisms()`` + ``.connections(mechanism=...)``.
+    """
+    if not rules or not mechanisms:
+        return False
+    known = {m.get("name") for m in mechanisms}
+    return all(rule.get("mechanism") in known and rule.get("mechanism") is not None for rule in rules)
+
+
+def _compile_mechanism_aware_connection_rules(
+    rules, mechanisms, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed
+):
+    """Mechanism-aware connection-rule compiler (Synaptic Tensor switch, gated path).
+
+    Selected by :func:`construct` instead of :func:`_compile_connection_rules`
+    only when :func:`_all_connection_rules_declare_resolvable_mechanism` is
+    True. Wraps :func:`connectivity.compile_connection_rules` +
+    :meth:`ConnectionCompileResult.to_edge_list` for mechanism-correct
+    ``receptor_index``/``tau_ms``, then applies the SAME sign semantics as
+    :func:`_compile_connection_rules` (excitatory/inhibitory/signed) on top --
+    ``compile_connection_rules`` itself stores a rule's declared ``sign`` as
+    metadata only and never applies it to ``edge_weight`` (verified: an
+    inhibitory-mechanism rule otherwise keeps a positive weight), so without
+    this post-correction the switch would silently break inhibition.
+
+    Validated for exact parity with :func:`_compile_connection_rules` when a
+    declared mechanism's tau mirrors the legacy hardcoded default (AMPA-like
+    exc=2ms, GABA_A-like inh=5ms) at ``probability=1.0`` -- see
+    ``tests/test_mechanism_aware_connection_compiler.py``.
+    """
+    from .connectivity import compile_connection_rules
+
+    import numpy as _np
+
+    neuron_rows = [
+        {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i]}
+        for i in range(n)
+    ]
+    dtype_name = "float64" if jdtype == jnp.float64 else "float32"
+    result = compile_connection_rules(
+        neuron_rows, rules, mechanisms, seed=int(default_seed), allow_empty=True, dtype=dtype_name
+    )
+    counts = [int(row.get("n_edges", 0)) for row in result.connection_table]
+    if result.n_edges == 0:
+        return None, counts
+
+    edges = result.to_edge_list(dtype=dtype_name)
+    edge_rule_id = _np.asarray(result.edge_rule_id)
+    pre_np = _np.asarray(edges.pre)
+    raw_weight = _np.asarray(edges.weight, dtype=_np.float64)
+    out_weight = raw_weight.copy()
+    sign_np = _np.asarray(sign, dtype=_np.float64)
+    for ri, rule in enumerate(rules):
+        mask = edge_rule_id == ri
+        if not _np.any(mask):
+            continue
+        sgn = rule.get("sign")
+        if sgn == "excitatory":
+            out_weight[mask] = _np.abs(raw_weight[mask])
+        elif sgn == "inhibitory":
+            out_weight[mask] = -_np.abs(raw_weight[mask])
+        else:  # "signed" or unset -> presynaptic intrinsic sign
+            out_weight[mask] = _np.abs(raw_weight[mask]) * sign_np[pre_np[mask]]
+    edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
     return edges, counts
 
 
@@ -1421,8 +1500,16 @@ class Configuration:
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
         materializes edges the model runs on the edge_list backend so the connections
-        drive dynamics. ``mechanism``/``plasticity``/``control_key`` remain declarative
-        metadata (not yet compiled). Distinct from :meth:`connectivity`, which records
+        drive dynamics. ``mechanism`` is resolved into real per-edge tau/receptor_index
+        at ``construct()`` time **only when every declared rule** in the
+        configuration has a resolvable ``mechanism=`` reference into a
+        ``.mechanisms()`` declaration (see
+        ``core._all_connection_rules_declare_resolvable_mechanism``); a config
+        with no mechanisms, or a mixed rule set where even one rule omits
+        ``mechanism=``, compiles entirely through the sign-only fallback
+        (receptor inferred from weight sign, tau hardcoded exc=2 ms/inh=5 ms)
+        as before. ``plasticity``/``control_key`` remain declarative metadata
+        (not yet compiled). Distinct from :meth:`connectivity`, which records
         feedforward/feedback bookkeeping.
         """
         if not name:
@@ -6765,6 +6852,7 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
     # these edges), force the edge_list backend whenever any rule materializes so the
     # connections actually drive dynamics. Rule statuses flip declared->compiled.
     _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
+    _conn_mechanisms = (cfg.metadata.get("circuit", {}) or {}).get("mechanisms", [])
     if _conn_rules:
         import numpy as _np
         _ep = network.params
@@ -6774,11 +6862,21 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             _area_labels = list(geometry_meta["area_labels"])
         else:
             _area_labels = [str(net.get("name", "V1"))] * n
-        _conn_edges, _counts = _compile_connection_rules(
-            _conn_rules, _area_labels, _layer_labels, _cell_labels,
-            _np.asarray(_ep.sign), n, edge_list.weight.dtype,
-            int(cfg.metadata.get("seed", 0) or 0),
-        )
+        # Mechanism-aware path only when EVERY rule fully opts in via a
+        # resolvable .mechanisms() declaration; otherwise the sign-only
+        # compiler runs unchanged (see _all_connection_rules_declare_resolvable_mechanism).
+        if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
+            _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
+                _conn_rules, _conn_mechanisms, _area_labels, _layer_labels, _cell_labels,
+                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
+                int(cfg.metadata.get("seed", 0) or 0),
+            )
+        else:
+            _conn_edges, _counts = _compile_connection_rules(
+                _conn_rules, _area_labels, _layer_labels, _cell_labels,
+                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
+                int(cfg.metadata.get("seed", 0) or 0),
+            )
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(edge_list, _conn_edges)
             cfg = cfg.runtime(recurrent_backend="edge_list")

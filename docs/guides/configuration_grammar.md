@@ -102,6 +102,19 @@ source→target rules with probability, weight, sign, and synaptic mechanism;
 Richer, sign- and mechanism-resolved connectivity is what produces emergent
 oscillations and the band-localized structure spectrolaminar readouts depend on.
 
+**Mechanism resolution now drives simulated tau when fully declared.**
+`construct()` compiles `.connections()` rules through one of two compilers: a
+sign-only fallback (receptor inferred from weight sign, tau hardcoded
+exc=2 ms/inh=5 ms — the only path that ever ran before this switch) or a
+mechanism-aware path that resolves each rule's `mechanism=` against a
+declared `.mechanisms(name=, kind=, tau_ms=, sign=)` entry for real
+per-edge tau. The mechanism-aware path is selected **only when every**
+declared connection rule has a resolvable mechanism reference; a model with
+no mechanisms, or a mixed rule set where even one rule omits `mechanism=`,
+runs entirely on the unchanged sign-only path. See
+`tests/test_mechanism_aware_connection_compiler.py` for the parity and
+divergence proof.
+
 ## Emitters
 
 `.set_emitter(family="izhikevich", preset="cortical_eig")` / `.emitter(**)`,
