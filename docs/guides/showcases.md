@@ -129,26 +129,68 @@ model = jtfne.construct(cfg)
 sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
-**What this run actually shows (honest result, not a fabricated success).**
-10,000 neurons, 1000 ms, dt=0.5 ms: Vm stays sane (rest ≈ −87 mV, peak ≈ +30 mV),
-global synchrony stays low (κ ≈ 0.020, asynchronous-irregular), and overall
-rate is ≈36 Hz (elevated by the same homeostasis-kick effect documented above).
+**What this run actually shows.** 10,000 neurons, 1000 ms, dt=0.5 ms: Vm
+stays sane (rest ≈ −87 mV, peak ≈ +30 mV), global synchrony stays low
+(κ ≈ 0.020, asynchronous-irregular), and overall rate is ≈36 Hz (elevated by
+the same homeostasis-kick effect documented above).
 
 ![Spectrolaminar suite, slow-deep homeostasis](../assets/showcases/spectrolaminar_slow_homeostasis_suite.png)
-![Depth profile: alpha/beta vs gamma relative power](../assets/showcases/spectrolaminar_slow_homeostasis_depth_profile.png)
 
-Depth-graded slow homeostasis **does not, by itself, reproduce the full
-deep-dominant-α/β vs superficial-dominant-γ crossover**: in this run α/β
-relative power exceeds γ at every depth (no sign flip). It does produce a
-real, depth-graded *shift in the α/β–γ balance in the documented direction* —
-α/β relative power rises from 0.0136 (superficial) to 0.0151 (deep), while γ
-falls from 0.0076 to 0.0075 over the same range — a small but consistent
-effect, not noise. This matches the project's existing finding that the
-crossover is a regime property requiring deliberately engineered band-limited
-oscillatory loops (a fast superficial PV↔E gamma-PING loop and a slower
-resonant deep E-I loop) — homeostatic or connectivity-weight grading alone,
-even depth-graded, does not manufacture that regime. This run is reported as
-a partial, directionally-consistent replication, not a complete one.
+**A methodology correction.** An earlier version of this page normalized each
+*depth contact's* spectrum across frequency and compared α/β vs γ within that
+normalization — which mostly measures the generic 1/f spectral shape, not
+laminar structure, and wrongly read as "no crossover anywhere." The right
+test treats each band's own power-by-depth as a distribution over depth
+(normalized to sum to 1 across depth, separately per band) and asks where
+*that* distribution sits relative to the other band's. Two distinct
+distributions over the same domain with equal total mass cannot dominate
+each other everywhere — they must cross at least once if they're not
+identical. Re-run with that test, the 10k single-trial data shows **2 real
+crossings** (depth 0.065 and 0.710): α/β leads at the very-superficial and
+deep extremes, γ leads in between.
+
+![Depth-distribution crossings, 10k vs 100-neuron](../assets/showcases/spectrolaminar_depth_distribution_crossings.png)
+
+**A cleaner, trial-averaged check.** Single-trial spectral estimates are
+noisy, so a second, simpler run isolates the question: 100-neuron canonical
+V1 column, 32 LFP-proxy contacts with the top 2 and bottom 2 dropped before
+analysis (boundary artifacts from the projection kernel), homeostasis on but
+gentle (`k_gain=0.1`, chosen so rate stays contained — 14.3±0.06 Hz across 20
+seeds vs. a 10.2 Hz no-homeostasis baseline, κ=0.0114±0.0003), averaged over
+20 trials/seeds:
+
+```python
+cfg = (jtfne.build_laminar_column("V1", n=100, ei_profile="canonical")
+       .homeostasis(relative_baseline=1.0, r_star=10.0, k_gain=0.1)
+       .set_emitter("izhikevich", "cortical_eig")
+       .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=32)
+       .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
+model = jtfne.construct(cfg)
+lfp_trials = jnp.stack([jtfne.simulate(model, duration_ms=2000.0, dt_ms=0.5, seed=s)
+                        .field.lfp_proxy for s in range(20)])
+psd = jtfne.spectrolaminar_psd_jax(lfp_trials[:, :, 2:-2], fs=2000.0)  # drop edge contacts
+```
+
+This gives **3 real, reproducible crossings** (depth 0.387, 0.710, 0.871) —
+not noise: the rate/κ spread across seeds is tiny (±0.4%/±2.6%), and one
+crossing (depth ≈0.71) lands at almost exactly the same place as the 10k
+single-trial run despite the very different scale and contact count. Both
+bands' depth-distributions still peak at the *same* absolute depth (≈0.81,
+deep) — expected, since the canonical column's deep-weighted dipole-size/
+density model (`_apply_canonical_biophysics`) boosts every frequency equally
+at depth; the crossings are a second-order *relative* effect riding on top
+of that shared envelope, alternating rather than a single monotonic flip.
+
+**Honest summary.** Crossings are real and reproducible — the earlier "no
+crossover" claim was a methodology error, not a finding about the model.
+What's **not** yet reproduced is the literature's specific textbook pattern
+(a single flip, γ-dominant superficial / α/β-dominant deep): both runs show
+an *alternating*, multi-crossing structure instead. Whether that's a genuine
+model property or still missing the deliberately-engineered oscillatory
+loops this project's prior work says the clean dichotomy needs (a fast
+superficial PV↔E gamma-PING loop, a slower resonant deep E-I loop) is open —
+homeostatic/connectivity-weight grading clearly does *something* real to the
+depth structure, just not (yet) the textbook shape.
 
 [STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
