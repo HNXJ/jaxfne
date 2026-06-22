@@ -15,7 +15,7 @@
 
 `jaxfne` is a compact JAX package for Tensor-Field Neural Equations (TFNE): a typed computational chain from neural emitters to source tensors, field-proxy operators, probe readouts, objective reports, optimizers, and run manifests.
 
-Built for computational and systems neuroscientists who want differentiable, JAX-native circuit models — a canonical cortical-column prior with the real laminar E:I gradient, an interactive 3D viewer for inspecting circuit structure before you simulate, and a direct bridge into [Jaxley](https://jaxley.readthedocs.io) so single- and multi-compartment biophysical (HH, conductance-based) neurons slot into the same field/readout pipeline as the native point-neuron emitters.
+Built for computational and systems neuroscientists who want differentiable, JAX-based circuit models — a canonical cortical-column prior with the real laminar E:I gradient, an interactive 3D viewer for inspecting circuit structure before you simulate, and a direct bridge into [Jaxley](https://jaxley.readthedocs.io) so single- and multi-compartment biophysical (HH, conductance-based) neurons slot into the same field/readout pipeline as the built-in point-neuron emitters.
 
 ## Install
 
@@ -134,7 +134,7 @@ jtfne.vis.visualize_network_3d(
 [Jaxley](https://jaxley.readthedocs.io) and jaxfne are complementary: Jaxley
 builds differentiable, multi-compartment, conductance-based neuron and network
 models (HH and other biophysical channels); jaxfne organizes the resulting
-voltages into the same source/field/readout/objective chain used by its native
+voltages into the same source/field/readout/objective chain used by its built-in
 emitters — LFP-proxy, CSD-proxy, EEG-proxy, spectrolaminar readouts, manifests.
 A Jaxley model is a drop-in emitter: build the morphology and channels in
 Jaxley, then hand it to `JaxleyBridge` for one-call integration into `Signals`.

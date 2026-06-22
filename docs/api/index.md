@@ -125,7 +125,7 @@ coordinate system. This builder skips depth banding entirely.
 |---|---|---|
 | `nucleus_name` | `"thalamus"` | Name (label only — no biological-nucleus-identity claim). |
 | `n` | `80` | Total neurons. |
-| `cell_type_fractions` | `{"E": 0.70, "PV": 0.30}` | Plain E/I split using the native `PV` inhibitory preset (no generic `"I"` label exists). |
+| `cell_type_fractions` | `{"E": 0.70, "PV": 0.30}` | Plain E/I split using the built-in `PV` inhibitory preset (no generic `"I"` label exists). |
 | `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
 
 **Returns:** a `Configuration` with one flat structural layer (`"core"`), `uniform3d` placement, all-to-all within-area connectivity, and `spikes`/`V_m`/`source` probes (no LFP/CSD — a flat nucleus has no depth axis for a laminar readout).
