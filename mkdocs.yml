@@ -73,6 +73,7 @@ nav:
 
   - Guides:
       - Overview: guides/index.md
+      - Showcases: guides/showcases.md
       - Configuration Grammar: guides/configuration_grammar.md
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md

@@ -2,6 +2,10 @@
 
 How-to articles and workflow documentation for jaxfne.
 
+## Showcases
+
+- **[Showcases](showcases.md)** — runnable demonstrations: interactive 3D multi-area network, homeostasis firing-rate change + full raster, closed-loop plasticity under random stimulation, spectrolaminar motif with depth-graded homeostasis
+
 ## Probe and readout workflows
 
 - **[Probe operators](../probe_operators.md)** — Using the eight readout channels
