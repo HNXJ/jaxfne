@@ -70,6 +70,47 @@ def _row_normalize(kernel: jax.Array, eps: float = 1e-8) -> jax.Array:
     return kernel / (jnp.sum(kernel, axis=1, keepdims=True) + eps)
 
 
+def _proxy_truth_gate_fragment(
+    *,
+    field_solver_status: str = "linear_solver",
+    physical_amplitude_calibrated: bool = False,
+    source_calibration_status: str | None = None,
+    claim_level: str | None = None,
+) -> dict[str, Any]:
+    """Common truth-gate key/value fragment repeated across this module's
+    report/metadata dicts. Merge into a caller's dict via
+    ``**_proxy_truth_gate_fragment(...)`` -- each caller keeps its own unique
+    fields; this only centralizes the constant trio/quartet so a future
+    truth-gate-default change can't silently drift between call sites.
+    """
+    fragment: dict[str, Any] = {
+        "field_solver_status": field_solver_status,
+        "physical_amplitude_calibrated": physical_amplitude_calibrated,
+    }
+    if source_calibration_status is not None:
+        fragment["source_calibration_status"] = source_calibration_status
+    if claim_level is not None:
+        fragment["claim_level"] = claim_level
+    return fragment
+
+
+def _spectrolaminar_readout_metadata() -> dict[str, Any]:
+    """Metadata dict for :func:`spectrolaminar_readout`, identical across its
+    empty-area and populated-area branches -- factored to a single definition.
+    """
+    return {
+        "readout_kind": "spectrolaminar_profile",
+        "score_computed": False,
+        "input_signal": "source_proxy_or_lfp_proxy",
+        **_proxy_truth_gate_fragment(),
+        "units_or_status": "proxy_units",
+        "bands": {
+            "alpha_beta": [8.0, 25.0],
+            "gamma": [40.0, 150.0],
+        },
+    }
+
+
 def project_laminar_sources(
     sources: jax.Array,
     positions: jax.Array,
@@ -606,9 +647,7 @@ def filtered_spike_source(
         "dynamics_derived": True,
         "spectrolaminar_profile_injected": False,
         "default_evidence_path": True,
-        "source_calibration_status": "uncalibrated_spike_only_toy_scale_a",
-        "field_solver_status": "linear_solver",
-        "physical_amplitude_calibrated": False,
+        **_proxy_truth_gate_fragment(source_calibration_status="uncalibrated_spike_only_toy_scale_a"),
         "tau_ms": float(tau_ms),
         "n_neurons": int(spikes.shape[1]),
         "n_steps": int(spikes.shape[0]),
@@ -681,9 +720,7 @@ def teaching_control_spectrolaminar_resonance_source(
         "spectrolaminar_profile_injected": True,
         "default_evidence_path": False,
         "teaching_control_source": True,
-        "source_calibration_status": "toy_scale_a_per_native_not_empirical",
-        "field_solver_status": "linear_solver",
-        "physical_amplitude_calibrated": False,
+        **_proxy_truth_gate_fragment(source_calibration_status="toy_scale_a_per_native_not_empirical"),
         "alpha_beta_freq_hz": float(alpha_beta_freq),
         "gamma_freq_hz": float(gamma_freq),
         "n_neurons": int(n),
@@ -794,18 +831,7 @@ def spectrolaminar_readout(
             "gamma": np.array([], dtype=np.float32),
             "pos_from_l4": np.array([], dtype=np.float32),
             "contact_depths_m": np.array([], dtype=np.float32),
-            "metadata": {
-                "readout_kind": "spectrolaminar_profile",
-                "score_computed": False,
-                "input_signal": "source_proxy_or_lfp_proxy",
-                "field_solver_status": "linear_solver",
-                "physical_amplitude_calibrated": False,
-                "units_or_status": "proxy_units",
-                "bands": {
-                    "alpha_beta": [8.0, 25.0],
-                    "gamma": [40.0, 150.0],
-                },
-            },
+            "metadata": _spectrolaminar_readout_metadata(),
         }
 
     area_signal = signal_arr[:, area_indices]
@@ -835,18 +861,7 @@ def spectrolaminar_readout(
         "gamma": np.asarray(bandpower.get("gamma", np.zeros(len(contact_indices))), dtype=np.float32),
         "pos_from_l4": np.asarray(pos_contacts, dtype=np.float32),
         "contact_depths_m": np.asarray(pos_contacts, dtype=np.float32) * 0.5,
-        "metadata": {
-            "readout_kind": "spectrolaminar_profile",
-            "score_computed": False,
-            "input_signal": "source_proxy_or_lfp_proxy",
-            "field_solver_status": "linear_solver",
-            "physical_amplitude_calibrated": False,
-            "units_or_status": "proxy_units",
-            "bands": {
-                "alpha_beta": [8.0, 25.0],
-                "gamma": [40.0, 150.0],
-            },
-        },
+        "metadata": _spectrolaminar_readout_metadata(),
     }
 
     return readout
@@ -1079,10 +1094,10 @@ def cable_filter_report(tau_s: jax.Array, order: int = 2) -> dict[str, Any]:
         "tau_s_min": float(np.min(tau_s_np)) if finite else None,
         "tau_s_max": float(np.max(tau_s_np)) if finite else None,
         "cutoff_hz_mean": float(np.mean(cutoff_hz)) if finite else None,
-        "field_solver_status": "linear_solver",
-        "physical_amplitude_calibrated": False,
-        "source_calibration_status": "uncalibrated_izhikevich_native_current",
-        "claim_level": "computational_scaffold",
+        **_proxy_truth_gate_fragment(
+            source_calibration_status="uncalibrated_izhikevich_native_current",
+            claim_level="computational_scaffold",
+        ),
         "finite_tau": finite,
     }
 
