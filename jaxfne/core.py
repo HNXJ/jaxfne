@@ -4111,7 +4111,8 @@ class Model:
                 T = int(sim.n_steps)
                 guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
                 cache_key = ("simulate_homeostatic", B, Z, C, T, runtime_cfg.actual_dtype,
-                             ablation_mode, runtime_cfg.selected_backend, _plastic_active)
+                             ablation_mode, runtime_cfg.selected_backend, _plastic_active,
+                             _homeostasis_params_cache_fingerprint(hp))
                 with _device_scope(runtime_cfg.selected_backend):
                     if cache_key not in self._compiled_cache:
                         import time
@@ -4533,7 +4534,8 @@ class Model:
             Z = int(self.static.get("n_contacts", 16))
             C = int(emitter.n_neurons)
             T = int(sim.n_steps)
-            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, runtime_cfg.selected_backend)
+            cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, runtime_cfg.selected_backend,
+                         _homeostasis_params_cache_fingerprint(_hp) if homeo_on else ())
             with _device_scope(runtime_cfg.selected_backend):
                 effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
                 if effective_jit:
@@ -6657,6 +6659,27 @@ def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:
     ss = _np.full(n, float(ss)) if ss.ndim == 0 else _np.asarray(ss, dtype=float)
     return jnp.asarray(float(base) / _np.clip(ss, 1e-3, None),
                        dtype=emitter.v0.dtype)
+
+
+def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
+    """Build a hashable fingerprint of ``homeostasis_params`` for a JIT
+    cache key, so a reused ``Model`` that varies any homeostasis parameter
+    (``r_star``, ``k_gain``, ``eta``, ...) at identical shapes never replays a
+    stale compiled closure built for different parameter values. Scalars pass
+    through as-is; array-valued params (e.g. a directly-supplied per-neuron
+    ``k_gain``) are reduced to (shape, dtype, content-hash) since arrays
+    aren't hashable.
+    """
+    import numpy as _np
+    items: list[tuple] = []
+    for k in sorted(hp.keys()):
+        v = hp[k]
+        if isinstance(v, (bool, int, float, str)) or v is None:
+            items.append((k, v))
+        else:
+            arr = _np.asarray(v)
+            items.append((k, "array", arr.shape, str(arr.dtype), hash(arr.tobytes())))
+    return tuple(items)
 
 
 def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:

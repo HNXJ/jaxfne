@@ -208,3 +208,59 @@ def test_plasticity_cache_key_isolated_from_non_plastic_run():
     diag_on = model.last_homeostasis_diagnostics()
     assert "w_final" in diag_on and "w_trace" in diag_on
     assert bool(np.isfinite(np.asarray(sig_on.V_m)).all())
+
+
+def test_cache_key_isolated_across_r_star_on_reused_model():
+    """A reused Model switching r_star (eta=0 both times, identical shapes) must
+    not replay a stale compiled closure built for the first r_star -- the JIT
+    cache key now folds in a fingerprint of homeostasis_params, not just the
+    plasticity on/off flag."""
+    model = _build({"jit": True})
+    sim_a = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_homeostasis=True, jit=True,
+                                 homeostasis_params={"k_gain": 1.0, "r_star": 0.01}))
+    sig_a = model.simulate(sim_a)
+    sim_b = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_homeostasis=True, jit=True,
+                                 homeostasis_params={"k_gain": 1.0, "r_star": 0.5}))
+    sig_b = model.simulate(sim_b)
+    assert not np.array_equal(np.asarray(sig_a.V_m), np.asarray(sig_b.V_m))
+    assert len([k for k in model._compiled_cache if k[0] == "simulate_homeostatic"]) == 2
+
+
+def test_cache_key_isolated_across_k_gain_array_on_reused_model():
+    """An array-valued k_gain (k_gain_size_scaled) must fingerprint by content,
+    not silently collide with a different array or a scalar at the same shape."""
+    model = _build({"jit": True})
+    sim_scalar = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                                  runtime=jtfne.RuntimeConfig(
+                                      enable_homeostasis=True, jit=True,
+                                      homeostasis_params={"k_gain": 2.0}))
+    sig_scalar = model.simulate(sim_scalar)
+    sim_scaled = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                                  runtime=jtfne.RuntimeConfig(
+                                      enable_homeostasis=True, jit=True,
+                                      homeostasis_params={"k_gain": 2.0, "k_gain_size_scaled": True}))
+    sig_scaled = model.simulate(sim_scaled)
+    assert not np.array_equal(np.asarray(sig_scalar.V_m), np.asarray(sig_scaled.V_m))
+    assert len([k for k in model._compiled_cache if k[0] == "simulate_homeostatic"]) == 2
+
+
+def test_simulate_batch_cache_key_isolated_across_r_star_on_reused_model():
+    """simulate_batch's vmap cache key must also fingerprint homeostasis_params,
+    not just the homeostasis on/off flag."""
+    model = _build({"jit": True, "vmap": True})
+    sim_a = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_homeostasis=True, jit=True, vmap=True,
+                                 homeostasis_params={"k_gain": 1.0, "r_star": 0.01}))
+    b_a = model.simulate_batch(sim_a, n_seeds=2)
+    sim_b = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_homeostasis=True, jit=True, vmap=True,
+                                 homeostasis_params={"k_gain": 1.0, "r_star": 0.5}))
+    b_b = model.simulate_batch(sim_b, n_seeds=2)
+    assert not np.array_equal(np.asarray(b_a["V_m"]), np.asarray(b_b["V_m"]))
+    assert len([k for k in model._compiled_cache if k[0] == "simulate_batch"]) == 2
