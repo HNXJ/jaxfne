@@ -801,6 +801,27 @@ def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels, 
     return mask
 
 
+def _apply_edge_sign_policy(sign_str, magnitude, pre_idx, sign_intrinsic):
+    """Resolve a connection rule's declared ``sign`` into signed edge weight(s).
+
+    Shared by :func:`_compile_connection_rules` (sign-only fallback) and
+    :func:`_compile_mechanism_aware_connection_rules` so the
+    excitatory/inhibitory/signed policy is defined exactly once instead of
+    twice. ``magnitude`` is the per-edge weight magnitude (sign discarded via
+    ``abs``); ``pre_idx`` indexes into ``sign_intrinsic`` (each neuron's
+    intrinsic +1/-1 sign) for the ``"signed"``/unset case.
+    """
+    import numpy as _np
+
+    magnitude = _np.abs(_np.asarray(magnitude, dtype=_np.float64))
+    if sign_str == "excitatory":
+        return magnitude
+    elif sign_str == "inhibitory":
+        return -magnitude
+    else:  # "signed" or unset -> presynaptic intrinsic sign
+        return magnitude * _np.asarray(sign_intrinsic)[pre_idx]
+
+
 def _compile_connection_rules(
     rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed, model_labels=None
 ):
@@ -877,12 +898,7 @@ def _compile_connection_rules(
             counts.append(0)
             continue
         sgn = rule.get("sign")
-        if sgn == "excitatory":
-            wv = _np.full(pre_g.size, abs(w_mag))
-        elif sgn == "inhibitory":
-            wv = _np.full(pre_g.size, -abs(w_mag))
-        else:  # "signed" or unset -> presynaptic intrinsic sign
-            wv = abs(w_mag) * sign_np[pre_g]
+        wv = _apply_edge_sign_policy(sgn, _np.full(pre_g.size, w_mag), pre_g, sign_np)
         pre_all.append(pre_g); post_all.append(post_g); w_all.append(wv)
         counts.append(int(pre_g.size))
 
@@ -966,12 +982,7 @@ def _compile_mechanism_aware_connection_rules(
         if not _np.any(mask):
             continue
         sgn = rule.get("sign")
-        if sgn == "excitatory":
-            out_weight[mask] = _np.abs(raw_weight[mask])
-        elif sgn == "inhibitory":
-            out_weight[mask] = -_np.abs(raw_weight[mask])
-        else:  # "signed" or unset -> presynaptic intrinsic sign
-            out_weight[mask] = _np.abs(raw_weight[mask]) * sign_np[pre_np[mask]]
+        out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
     edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
     return edges, counts
 
