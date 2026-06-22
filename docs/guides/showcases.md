@@ -201,16 +201,60 @@ overlap) while still crossing three times — consistent with the "occasionally
 uncrossed, not globally dominant" picture rather than a clean superficial/deep
 split.
 
+**A second correction: the relative crossings are real, but there is no
+absolute alpha/beta bump.** The crossing test above is entirely about
+*relative* power — each band's own depth-distribution, separately
+normalized to sum to 1. It says nothing about whether deep cortex actually
+generates *more total power* in the alpha/beta band, or whether superficial
+cortex actively *suppresses* it. Both are real, distinct mechanistic claims
+in the literature (deep band-pass filter/resonator vs. superficial
+absorption/notch), and the right way to tell them apart is to compare
+**absolute** power, not relative power, against the **1/f background**
+every layer shares:
+
+![Absolute superficial vs deep power spectra, 1/f background check](../assets/showcases/spectrolaminar_absolute_power_1f_check.png)
+
+Fitting each group's own background trend (log-log slope, alpha/beta
+excluded from the fit) shows superficial and deep have **the same spectral
+shape** — slopes differ by only 0.02 (100-neuron run) and 0.07 (10k run), an
+order of magnitude smaller than the slopes themselves (≈−0.8 and ≈−0.6).
+Deep sits uniformly above superficial by a roughly frequency-independent
+gain factor (mean ratio 1.56× and 1.39×, std 0.17 and 0.24 — flat across the
+whole spectrum, not peaked in-band). And critically: in **both** groups, the
+alpha/beta band sits **at or below** that group's own extrapolated 1/f
+trend (residuals −0.15 to −0.22 log10-units, i.e. 60-70% of trend, in both
+superficial and deep) — not above it. There is no absolute deep bump and no
+absolute superficial notch isolated to 10-25 Hz in either run.
+
+Read against the decision tree this finding is checked against: deep is
+**not** a band-pass filter or resonator (no band-selective gain, no
+narrowband departure from the shared 1/f trend), and superficial is **not**
+isolating an absorption notch either (it dips by about the same amount as
+deep does, not more). What the model currently produces is closer to "flat
+depth-dependent gain on top of an ordinary 1/f spectrum, same shape at every
+depth" — exactly what's expected from an asynchronous-irregular (broadband,
+κ≈0) regime with a depth-weighted dipole-size/density readout, and exactly
+why the project's standing finding is that real band-limited laminar
+structure needs deliberately-engineered layer-localized oscillations (a fast
+superficial PV↔E gamma-PING loop, a slower resonant deep E-I loop), not
+parameter grading alone. The small relative crossings documented above are
+real in the strict mathematical sense, but they are second-order ripples
+riding on a spectrum with no genuine absolute band-selectivity — treat them
+as exactly that, not as evidence of a deep resonator or superficial filter.
+
 **Honest summary.** Crossings are real and reproducible — the earlier "no
-crossover" claim was a methodology error, not a finding about the model.
-What's **not** yet reproduced is the literature's specific textbook pattern
-(a single flip, γ-dominant superficial / α/β-dominant deep): both runs show
-an *alternating*, multi-crossing structure instead. Whether that's a genuine
-model property or still missing the deliberately-engineered oscillatory
-loops this project's prior work says the clean dichotomy needs (a fast
-superficial PV↔E gamma-PING loop, a slower resonant deep E-I loop) is open —
-homeostatic/connectivity-weight grading clearly does *something* real to the
-depth structure, just not (yet) the textbook shape.
+crossover" claim was a methodology error, not a finding about the model. But
+the absolute-power test above shows those crossings are not backed by any
+genuine band-selective mechanism: no absolute deep bump, no absolute
+superficial notch, same 1/f shape at every depth. What's **not** yet
+reproduced is the literature's specific textbook pattern (a single flip,
+γ-dominant superficial / α/β-dominant deep, backed by a real resonance or
+filter): both runs show an *alternating*, multi-crossing structure riding on
+a flat-gain broadband background instead. The deliberately-engineered
+oscillatory loops this project's prior work says the clean dichotomy needs
+remain the open, unimplemented piece — homeostatic/connectivity-weight
+grading clearly does *something* real to the relative depth structure, but
+not (yet) anything with absolute spectral selectivity.
 
 [STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
