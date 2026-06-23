@@ -40,6 +40,7 @@ class TestPublicDocsHardRules:
         "docs/guides/showcases.md",
         "docs/guides/configuration_grammar.md",
         "docs/guides/objective_grammar.md",
+        "docs/guides/operator_composition.md",
         "docs/notes/biophysical_model_comparison.md",
         "docs/guides/probe_operators.md",
         "docs/guides/tensor_field_workflows.md",

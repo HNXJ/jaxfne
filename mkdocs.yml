@@ -76,6 +76,7 @@ nav:
       - Showcases: guides/showcases.md
       - Configuration Grammar: guides/configuration_grammar.md
       - Objective Grammar: guides/objective_grammar.md
+      - Operator Composition: guides/operator_composition.md
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
       - Plotly Visualization: guides/plotly_visualization.md
