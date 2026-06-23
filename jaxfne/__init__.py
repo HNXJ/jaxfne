@@ -84,7 +84,6 @@ from .core import (
     trial_batch,
     validate_config,
     with_emitter_parameters,
-    _KNOWN_METRICS,
     default_basis_spec,
 )
 
@@ -397,7 +396,6 @@ __all__ = [
     "select_neurons",
     "kappa_synchrony",
     "rate_synchrony_targets",
-    "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",
     "IzhikevichParams",

@@ -321,5 +321,5 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — v0.2.29 conceptual context: basis-transform doctrine and historical parallels
-- [Probe Operators](probe_operators.md) — Readout operators and their statement boundaries
+- [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
 - [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to

@@ -48,7 +48,7 @@ flat path and tuning.
 
 - [Install](install.md)
 - [Quickstart](quickstart.md)
-- [Probe operators](probe_operators.md)
+- [Probe operators](guides/probe_operators.md)
 - [Tutorials](tutorials/index.md)
 - [API reference](api/index.md)
 - [Changelog](changelog.md)

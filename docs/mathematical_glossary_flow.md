@@ -236,7 +236,7 @@ $P_c$ is the **Field → Probe** bridge. It extracts spatially localized measure
   - Field is solved (not proxy)
   - Validation against empirical data exists
 - **Eight multimodal operators** in jaxfne: SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy
-- See [Probe Operators](probe_operators.md) for operator-specific statement boundaries
+- See [Probe Operators](guides/probe_operators.md) for operator-specific statement boundaries
 
 **Implementation:**
 - `jaxfne.fields.probe_laminar_modes()` — operator definitions
@@ -274,7 +274,7 @@ EMM-proxy is a **relative within-run cost/activity index**, not biological metab
 **Implementation:**
 - `jaxfne.fields.probe_laminar_modes()` → EMM-proxy operator
 - Manifest: `source_model` includes EMM-proxy definition
-- See [Probe Operators](probe_operators.md) for full details
+- See [Probe Operators](guides/probe_operators.md) for full details
 
 ---
 
@@ -336,5 +336,5 @@ When adding a new equation to jaxfne documentation:
 
 - [Source-Field Equations](source_field_equations.md) — source bookkeeping, forbidden patterns
 - [Computation Basis](computation_basis.md) — extensibility doctrine
-- [Probe Operators](probe_operators.md) — detailed operator statements
+- [Probe Operators](guides/probe_operators.md) — detailed operator statements
 - [Scope and Limitations](limitations_and_future_plans.md) — boundary conditions

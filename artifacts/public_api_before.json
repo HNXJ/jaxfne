@@ -1,5 +1,5 @@
 {
-  "version": "0.4.1",
+  "version": "0.4.4",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -81,7 +81,6 @@
     "TrialResult",
     "TrialSpec",
     "TuneResult",
-    "_KNOWN_METRICS",
     "agsdr",
     "agsdr_transform",
     "asset_hashes",

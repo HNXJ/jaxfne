@@ -411,6 +411,6 @@ Before releasing a model, verify:
 ## See Also
 
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Formal equations, term glossaries, bridge terms, statement boundaries
-- [Probe Operators](probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
-- [Output Bundles](output_bundles.md) — Manifest and report schema
+- [Probe Operators](guides/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
+- [Output Bundles](guides/output_bundles.md) — Manifest and report schema
 - [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to

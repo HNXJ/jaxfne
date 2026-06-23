@@ -44,7 +44,7 @@ Here, we outline the foundational equations defining the readout projection:
 * **Worded equation:**
   The channel signal is the weighted sum of source activity across the modeled source population.
 * **Implementation location:**
-  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+  `jaxfne/fields/proxy.py` (`project_laminar_sources`)
 * **Scope boundary:**
   This is a proxy source-to-readout projection unless a run supplies physical geometry, calibrated source units, conductivity, boundary conditions, gauge handling, a physical field solver, and validation evidence.
 

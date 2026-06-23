@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 204 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 218 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -219,7 +219,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**219 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (69)
 
@@ -549,11 +549,10 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `vis` | module | Visualization package for jaxfne. |
 
-### Constants (4)
+### Constants (3)
 
 | Symbol | Kind | Summary |
 |---|---|---|
-| `_KNOWN_METRICS` | const | ⚠ private name leaking into `__all__` — see docs audit (remove). |
 | `CELL_TYPE_PRESETS` | const | Mapping of cell-type label → preset Izhikevich parameters. |
 | `DEFAULT_SPIKE_IMPULSE_GAIN` | const | Default spike-impulse gain for the source proxy. |
 | `RECEPTOR_KINETICS` | const | Mapping of receptor name → kinetic time constants. |

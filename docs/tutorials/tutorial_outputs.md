@@ -1,7 +1,6 @@
 # Tutorial Output Contract
 
-**Status:** v0.2.19 Specification  
-**Date:** 2026-05-21  
+**Status:** Stable specification, introduced in jaxfne 0.2.19/2026-05-21, still in effect (current package: 0.4.4)  
 **run_status:** tutorial_scaffold
 
 ---
@@ -329,6 +328,6 @@ python scripts/validate_tutorial_outputs.py outputs/
 ## Related Documentation
 
 - [../guides/output_bundles.md](../guides/output_bundles.md) — General output bundle structure
-- [probe_operators.md](../probe_operators.md) — 8-operator contract and specifications
+- [probe_operators.md](../guides/probe_operators.md) — 8-operator contract and specifications
 - [tutorials/index.md](index.md) — Tutorial progression and links
 - [GitHub jaxfne releases](https://github.com/HNXJ/jaxfne/releases) — Version history and downloads

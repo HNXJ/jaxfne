@@ -219,4 +219,4 @@ After tutorials:
 
 - **[Guides](../guides/index.md)** for how-to articles and workflow tips
 - **[API reference](../api/index.md)** for full class/function documentation
-- **[Jaxley interoperability](../jaxley_interop.md)** for using external models
+- **[Jaxley interoperability](../guides/jaxley_interop.md)** for using external models

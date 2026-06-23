@@ -338,7 +338,7 @@ NaN or Inf values in signals will fail serialization.
 
 ## See also
 
-- [Probe Operators Guide](../probe_operators.md) — Detailed mathematical descriptions
+- [Probe Operators Guide](../guides/probe_operators.md) — Detailed mathematical descriptions
 - [Fields API](fields.md) — Source projection and field computation
 - [Core API](core.md) — Signal and readout containers
 - [API reference](index.md)
