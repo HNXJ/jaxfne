@@ -1,7 +1,5 @@
 # Étude: Canonical Cortical Column
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/13_canonical_column_etude.md)
-
 A single end-to-end étude that walks the full objective grammar on one model:
 **Configuration → Construct → Simulate → Visualize → Tune → Post-tune.** It builds
 the canonical 1000-neuron laminar column, drives it into a plausible firing regime,

@@ -17,7 +17,7 @@ turn into a runnable TFNE graph.
 
 This is the central idea of the package: **jaxfne is the mathematical backend,
 and the configuration is the biophysical specification.** How biophysical the
-output is — calibrated amplitudes, real morphology, channel detail — is
+output is — amplitude calibration, real morphology, channel detail — is
 determined by how much detail you put into the `Configuration` (and any
 [Jaxley](jaxley_interop.md) models you bridge in), not by a fixed ceiling in the
 backend. Every method below adds biophysical specificity to the same chain.
@@ -101,6 +101,19 @@ source→target rules with probability, weight, sign, and synaptic mechanism;
 (feedforward L2/3→L4, feedback L6→L1/L5). Prefer sparse construction at scale.
 Richer, sign- and mechanism-resolved connectivity is what produces emergent
 oscillations and the band-localized structure spectrolaminar readouts depend on.
+
+**Mechanism resolution now drives simulated tau when fully declared.**
+`construct()` compiles `.connections()` rules through one of two compilers: a
+sign-only fallback (receptor inferred from weight sign, tau hardcoded
+exc=2 ms/inh=5 ms — the only path that ever ran before this switch) or a
+mechanism-aware path that resolves each rule's `mechanism=` against a
+declared `.mechanisms(name=, kind=, tau_ms=, sign=)` entry for real
+per-edge tau. The mechanism-aware path is selected **only when every**
+declared connection rule has a resolvable mechanism reference; a model with
+no mechanisms, or a mixed rule set where even one rule omits `mechanism=`,
+runs entirely on the unchanged sign-only path. See
+`tests/test_mechanism_aware_connection_compiler.py` for the parity and
+divergence proof.
 
 ## Emitters
 
@@ -191,6 +204,8 @@ why `Configuration` is the deepest, most important surface in the package.
 
 ## See also
 
+- [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
+- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
 - [Bridges API](../api/bridges.md) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)

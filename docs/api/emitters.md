@@ -253,6 +253,85 @@ print(receptors["AMPA"])
 
 ---
 
+### `synaptic_tau_from_mechanism(mechanism, *, dtype="float32") -> tau_ms`
+
+Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stage).
+
+**Parameters:**
+- `mechanism` (`Sequence[str]`): per-edge mechanism names, e.g. `["AMPA", "NMDA", ...]`.
+  Valid names match `standard_receptor_specs()`: `AMPA`, `GABA_A`, `NMDA`, `GABA_B`.
+
+**Returns:** `tau_ms` (`jax.Array`, milliseconds, shape `[E]`).
+
+**Description:**
+Vectorized lookup over `standard_receptor_specs()` / `standard_receptor_tau_table()`
+keyed by mechanism name. **Additive only** — this does not change how
+`core._compile_connection_rules` infers tau today (it still derives receptor type
+from weight sign only, hardcoding `tau=2.0` for excitatory / `5.0` for inhibitory
+edges regardless of any declared `mechanism` string — a known, separately-tracked
+inertness). Raises `ValueError` on an unrecognized mechanism name rather than
+silently substituting the wrong kinetics.
+
+**Example:**
+```python
+tau_ms = jtfne.synaptic_tau_from_mechanism(["AMPA", "GABA_A", "NMDA", "GABA_B"])
+# -> [2.0, 5.0, 100.0, 150.0]
+```
+
+---
+
+### `synaptic_current_tensor(spikes_pre, tau_ms, dt_ms) -> filtered`
+
+Standalone single-pole synaptic current tensor (Synaptic Tensor, filter stage).
+
+**Parameters:**
+- `spikes_pre` (`jax.Array`): per-channel spike/input trace, shape `[T, E]`.
+- `tau_ms` (`jax.Array`): per-channel time constant in milliseconds, shape `[E]`.
+  Build with `synaptic_tau_from_mechanism`.
+- `dt_ms` (float): simulation timestep in milliseconds.
+
+**Returns:** synaptic state trace, shape `[T, E]`.
+
+**Description:**
+Factors out the exact per-edge synaptic state update used inline by
+`simulate_edge_recurrent_izhikevich` / `simulate_receptor_exponential_izhikevich`
+(`syn_next = syn_state * exp(-dt/tau) + spike`) as an explicit, named, reusable
+operator — usable outside the full `simulate()` orchestration for diagnostics or
+parameter sweeps. Single-exponential decay only (no separate rise time constant),
+matching the kernels exactly.
+
+Validated falsification (500 ms, periodic 20 Hz input, `order` n/a — single pole):
+NMDA (tau=100 ms) sustains a mean current ~37.6x AMPA's (tau=2 ms) under identical
+input, confirming the tensor is genuinely mechanism-selective.
+
+**Example:**
+```python
+tau_ms = jtfne.synaptic_tau_from_mechanism(["AMPA", "NMDA"])
+trace = jtfne.synaptic_current_tensor(spikes_pre, tau_ms, dt_ms=0.5)
+```
+
+---
+
+### `synaptic_tensor_report(tau_ms, mechanism=None) -> dict`
+
+JSON-safe truth-gate report for a `synaptic_current_tensor` call.
+
+**Parameters:**
+- `tau_ms` (`jax.Array`): the same per-channel tau array passed to `synaptic_current_tensor`.
+- `mechanism` (`Sequence[str] | None`): the mechanism names used, if any.
+
+**Returns:** a `dict` with `tau_ms_mean/min/max`, `mechanism`, `finite_tau`,
+`source_calibration_status="metadata_only_uncalibrated"`,
+`physical_amplitude_calibrated=False`, `claim_level="computational_scaffold"`.
+
+**Example:**
+```python
+report = jtfne.synaptic_tensor_report(tau_ms, mechanism=["AMPA", "NMDA"])
+assert report["finite_tau"]
+```
+
+---
+
 ## Scope Notes
 
 - **Izhikevich model is phenomenological:** Not a detailed Hodgkin-Huxley model; suitable for tutorial and prototyping workflows

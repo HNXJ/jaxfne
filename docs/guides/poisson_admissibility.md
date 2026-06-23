@@ -235,7 +235,7 @@ When a elliptic field solver is separately approved and implemented:
 2. **Validate:** Run all five admissibility gates
 3. **Report:** Build and emit admissibility report
 4. **Gate:** Only pass solution downstream if `admissibility_status == "admissible"`
-5. **Statement:** Physical amplitude amplitudes stay native-unscaled until calibration is validated
+5. **Statement:** Physical amplitudes stay unscaled until calibration is validated
 
 ## Current Status (v0.2.27)
 

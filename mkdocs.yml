@@ -75,6 +75,7 @@ nav:
       - Overview: guides/index.md
       - Showcases: guides/showcases.md
       - Configuration Grammar: guides/configuration_grammar.md
+      - Objective Grammar: guides/objective_grammar.md
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
       - Plotly Visualization: guides/plotly_visualization.md
@@ -95,6 +96,17 @@ nav:
       - Probes: api/probes.md
       - Objectives: api/objectives.md
       - Validation: api/validation.md
+      - Tensor Operator Registry: api/tensor_operators.md
+      - Operator Inventory (generated): _generated/operator_inventory.md
+
+  - Theory:
+      - Operator Doctrine: operator_doctrine.md
+      - Tensor-Network Ancestry: tensor_network_ancestry.md
+      - Mathematical Glossary Flow: mathematical_glossary_flow.md
+      - Computation Basis: computation_basis.md
+      - Source/Field Equations: source_field_equations.md
+      - Conservation Proxy Diagnostics: conservation_proxy_diagnostics.md
+      - Tensor Electromagnetics Scope: tensor_electromagnetics_scope.md
 
   - Reference:
       - Glossary of Methods: reference/glossary_of_methods.md

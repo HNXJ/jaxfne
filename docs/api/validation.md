@@ -176,11 +176,9 @@ Get status declarations for all computational operators.
 
 **Returns:** Dictionary mapping operator names to status strings
 
-**Status values:**
-- `"prototype_api"`: Preliminary implementation, subject to change
-- `"stable_api"`: Core functionality, stable interface
-- `"deprecated"`: Scheduled for removal; migration path provided
-- `"reserved"`: Not yet implemented
+**Status values (current registry):**
+- `"prototype_api"`: implemented, preliminary interface, subject to change
+- `"not_implemented"`: declared in the registry, no implementation yet (e.g. `C_mu_nu`)
 
 **Example:**
 ```python
@@ -208,30 +206,21 @@ except ValueError as e:
 
 ### Manual Check
 
+`jtfne.is_valid_signal(signals)` checks `V_m` and `spikes` for finite values and
+returns `False` on any missing array, NaN, or Inf:
+
 ```python
-import jax.numpy as jnp
-
-def is_valid_signal(signals):
-    """Check if signals contain only finite values."""
-    finite_checks = [
-        jnp.isfinite(signals.V_m).all(),
-        jnp.isfinite(signals.spikes).all(),
-    ]
-    if signals.source is not None:
-        finite_checks.append(jnp.isfinite(signals.source).all())
-    return all(finite_checks)
-
-if is_valid_signal(signals):
-    print("✓ All signal values are finite")
+if jtfne.is_valid_signal(signals):
+    print("✓ All required signal values are finite")
 else:
-    print("✗ Signal contains NaN or Inf")
+    print("✗ Signal contains NaN, Inf, or a missing required array")
 ```
 
 ---
 
 ## Metadata Validation
 
-### `config_status_boundary(cfg: Configuration) -> dict`
+### `config_truth_boundary(cfg: Configuration) -> dict`
 
 Get status/statement boundaries for a configuration.
 
@@ -242,7 +231,7 @@ Get status/statement boundaries for a configuration.
 
 **Example:**
 ```python
-boundaries = jtfne.config_status_boundary(cfg)
+boundaries = jtfne.config_truth_boundary(cfg)
 print(f"Model status: {boundaries['model_status']}")
 print(f"Run status: {boundaries['run_status']}")
 print(f"Field solver status: {boundaries['field_solver_status']}")

@@ -801,6 +801,27 @@ def _connection_selector_mask(selector, area_labels, layer_labels, cell_labels, 
     return mask
 
 
+def _apply_edge_sign_policy(sign_str, magnitude, pre_idx, sign_intrinsic):
+    """Resolve a connection rule's declared ``sign`` into signed edge weight(s).
+
+    Shared by :func:`_compile_connection_rules` (sign-only fallback) and
+    :func:`_compile_mechanism_aware_connection_rules` so the
+    excitatory/inhibitory/signed policy is defined exactly once instead of
+    twice. ``magnitude`` is the per-edge weight magnitude (sign discarded via
+    ``abs``); ``pre_idx`` indexes into ``sign_intrinsic`` (each neuron's
+    intrinsic +1/-1 sign) for the ``"signed"``/unset case.
+    """
+    import numpy as _np
+
+    magnitude = _np.abs(_np.asarray(magnitude, dtype=_np.float64))
+    if sign_str == "excitatory":
+        return magnitude
+    elif sign_str == "inhibitory":
+        return -magnitude
+    else:  # "signed" or unset -> presynaptic intrinsic sign
+        return magnitude * _np.asarray(sign_intrinsic)[pre_idx]
+
+
 def _compile_connection_rules(
     rules, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed, model_labels=None
 ):
@@ -818,10 +839,14 @@ def _compile_connection_rules(
 
     Returns ``(edge_list_or_None, per_rule_edge_counts)``.
 
-    Note: a standalone mechanism-based compiler exists (``connectivity.compile_connection_rules``
-    → ``ConnectionCompileResult``); this construct-time path uses the simpler
-    ``sign``-string model (excitatory/inhibitory/signed) that ``Configuration.connections()``
-    declares, with receptor inferred from weight sign — not the mechanism-index model.
+    This is the sign-only fallback compiler: receptor inferred from weight
+    sign, tau hardcoded exc=2 ms/inh=5 ms, ignoring any declared ``mechanism``.
+    ``construct()`` calls this only when the rule set does NOT fully resolve
+    against declared ``.mechanisms()`` (see
+    :func:`_all_connection_rules_declare_resolvable_mechanism`); when it does,
+    :func:`_compile_mechanism_aware_connection_rules` runs instead, wrapping
+    ``connectivity.compile_connection_rules`` → ``ConnectionCompileResult``
+    for real per-edge tau from the declared mechanism.
     """
     import numpy as _np
 
@@ -873,12 +898,7 @@ def _compile_connection_rules(
             counts.append(0)
             continue
         sgn = rule.get("sign")
-        if sgn == "excitatory":
-            wv = _np.full(pre_g.size, abs(w_mag))
-        elif sgn == "inhibitory":
-            wv = _np.full(pre_g.size, -abs(w_mag))
-        else:  # "signed" or unset -> presynaptic intrinsic sign
-            wv = abs(w_mag) * sign_np[pre_g]
+        wv = _apply_edge_sign_policy(sgn, _np.full(pre_g.size, w_mag), pre_g, sign_np)
         pre_all.append(pre_g); post_all.append(post_g); w_all.append(wv)
         counts.append(int(pre_g.size))
 
@@ -894,6 +914,76 @@ def _compile_connection_rules(
         receptor_index=jnp.asarray(receptor, jnp.int32),
         tau_ms=jnp.asarray(tau, jdtype),
     )
+    return edges, counts
+
+
+def _all_connection_rules_declare_resolvable_mechanism(rules, mechanisms):
+    """Gate for the mechanism-aware connection-rule compiler.
+
+    True only when every rule has a non-None ``mechanism`` that resolves
+    against a declared name in ``mechanisms`` -- the same requirement
+    :func:`connectivity.compile_connection_rules`/``_resolve_mechanism``
+    enforces (it raises on an unresolvable/missing mechanism). Mixed or
+    partially-declared rule sets fall back to the sign-only compiler so this
+    switch never silently changes simulated dynamics for a model that did
+    not fully opt in via ``.mechanisms()`` + ``.connections(mechanism=...)``.
+    """
+    if not rules or not mechanisms:
+        return False
+    known = {m.get("name") for m in mechanisms}
+    return all(rule.get("mechanism") in known and rule.get("mechanism") is not None for rule in rules)
+
+
+def _compile_mechanism_aware_connection_rules(
+    rules, mechanisms, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed
+):
+    """Mechanism-aware connection-rule compiler (Synaptic Tensor switch, gated path).
+
+    Selected by :func:`construct` instead of :func:`_compile_connection_rules`
+    only when :func:`_all_connection_rules_declare_resolvable_mechanism` is
+    True. Wraps :func:`connectivity.compile_connection_rules` +
+    :meth:`ConnectionCompileResult.to_edge_list` for mechanism-correct
+    ``receptor_index``/``tau_ms``, then applies the SAME sign semantics as
+    :func:`_compile_connection_rules` (excitatory/inhibitory/signed) on top --
+    ``compile_connection_rules`` itself stores a rule's declared ``sign`` as
+    metadata only and never applies it to ``edge_weight`` (verified: an
+    inhibitory-mechanism rule otherwise keeps a positive weight), so without
+    this post-correction the switch would silently break inhibition.
+
+    Validated for exact parity with :func:`_compile_connection_rules` when a
+    declared mechanism's tau mirrors the legacy hardcoded default (AMPA-like
+    exc=2ms, GABA_A-like inh=5ms) at ``probability=1.0`` -- see
+    ``tests/test_mechanism_aware_connection_compiler.py``.
+    """
+    from .connectivity import compile_connection_rules
+
+    import numpy as _np
+
+    neuron_rows = [
+        {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i]}
+        for i in range(n)
+    ]
+    dtype_name = "float64" if jdtype == jnp.float64 else "float32"
+    result = compile_connection_rules(
+        neuron_rows, rules, mechanisms, seed=int(default_seed), allow_empty=True, dtype=dtype_name
+    )
+    counts = [int(row.get("n_edges", 0)) for row in result.connection_table]
+    if result.n_edges == 0:
+        return None, counts
+
+    edges = result.to_edge_list(dtype=dtype_name)
+    edge_rule_id = _np.asarray(result.edge_rule_id)
+    pre_np = _np.asarray(edges.pre)
+    raw_weight = _np.asarray(edges.weight, dtype=_np.float64)
+    out_weight = raw_weight.copy()
+    sign_np = _np.asarray(sign, dtype=_np.float64)
+    for ri, rule in enumerate(rules):
+        mask = edge_rule_id == ri
+        if not _np.any(mask):
+            continue
+        sgn = rule.get("sign")
+        out_weight[mask] = _apply_edge_sign_policy(sgn, raw_weight[mask], pre_np[mask], sign_np)
+    edges = replace(edges, weight=jnp.asarray(out_weight, dtype=jdtype))
     return edges, counts
 
 
@@ -1421,8 +1511,16 @@ class Configuration:
         and ``sign`` is ``"excitatory"``/``"inhibitory"``/``"signed"`` (``"signed"`` or
         unset follows the presynaptic neuron's intrinsic sign). When any rule
         materializes edges the model runs on the edge_list backend so the connections
-        drive dynamics. ``mechanism``/``plasticity``/``control_key`` remain declarative
-        metadata (not yet compiled). Distinct from :meth:`connectivity`, which records
+        drive dynamics. ``mechanism`` is resolved into real per-edge tau/receptor_index
+        at ``construct()`` time **only when every declared rule** in the
+        configuration has a resolvable ``mechanism=`` reference into a
+        ``.mechanisms()`` declaration (see
+        ``core._all_connection_rules_declare_resolvable_mechanism``); a config
+        with no mechanisms, or a mixed rule set where even one rule omits
+        ``mechanism=``, compiles entirely through the sign-only fallback
+        (receptor inferred from weight sign, tau hardcoded exc=2 ms/inh=5 ms)
+        as before. ``plasticity``/``control_key`` remain declarative metadata
+        (not yet compiled). Distinct from :meth:`connectivity`, which records
         feedforward/feedback bookkeeping.
         """
         if not name:
@@ -4376,46 +4474,7 @@ class Model:
             }
         if getattr(runtime_cfg, "enable_homeostasis", False):
             diag = getattr(self, "_last_homeostasis_diag", None)
-            _hp_meta = dict(runtime_cfg.homeostasis_params or {})
-            _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
-            homeo_meta: dict[str, Any] = {
-                "enabled": True,
-                "params": {
-                    k: (v if _np_isscalar_param(v) else "per_neuron_array")
-                    for k, v in _hp_meta.items()
-                },
-                # Framing: a minimal homeostatic resource/adaptation controller
-                # (intrinsic excitability bias + optional homeostatic synaptic
-                # scaling) — a COMPUTATIONAL method, NOT a biological mechanism.
-                # Mechanism support requires nulls/ablations/repeated seeds and
-                # empirical comparison; objective success alone does not imply it.
-                "method": "minimal_homeostatic_resource_adaptation_controller",
-                "claim_status": "computational_control_proxy_not_biological_mechanism",
-                "synaptic_plasticity_enabled": bool(_plastic_on),
-                "biological_learning_claim": False,
-                "mechanism_claim_status": "not_claimed",
-                "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
-                                           "full per-step g_bias/r_trace (and, when "
-                                           "synaptic_plasticity_enabled, w_final/w_trace) via "
-                                           "Model.last_homeostasis_diagnostics()",
-            }
-            if diag is not None:
-                g = diag["g_bias"]; r = diag["r_trace"]
-                homeo_meta["g_bias_summary"] = {
-                    "min": float(jnp.min(g)), "max": float(jnp.max(g)),
-                    "mean": float(jnp.mean(g)), "shape": list(g.shape),
-                }
-                homeo_meta["r_trace_summary"] = {
-                    "min": float(jnp.min(r)), "max": float(jnp.max(r)),
-                    "mean": float(jnp.mean(r)), "shape": list(r.shape),
-                }
-                if "w_final" in diag:
-                    wf = diag["w_final"]
-                    homeo_meta["w_final_summary"] = {
-                        "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
-                        "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
-                    }
-            metadata["homeostasis"] = homeo_meta
+            metadata["homeostasis"] = _simulate_homeostasis_metadata(runtime_cfg, diag)
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -6643,6 +6702,55 @@ def _np_isscalar_param(v: Any) -> bool:
     return isinstance(v, (int, float, bool, str)) or v is None
 
 
+def _simulate_homeostasis_metadata(
+    runtime_cfg: "RuntimeConfig", diag: "dict[str, Any] | None"
+) -> dict[str, Any]:
+    """``Model.simulate()`` helper: the homeostasis metadata sub-block.
+
+    Called only when ``runtime_cfg.enable_homeostasis`` is True. Framing: a
+    minimal homeostatic resource/adaptation controller (intrinsic
+    excitability bias + optional homeostatic synaptic scaling) -- a
+    COMPUTATIONAL method, NOT a biological mechanism. Mechanism support
+    requires nulls/ablations/repeated seeds and empirical comparison;
+    objective success alone does not imply it.
+    """
+    _hp_meta = dict(runtime_cfg.homeostasis_params or {})
+    _plastic_on = float(_hp_meta.get("eta", 0.0) or 0.0) != 0.0
+    homeo_meta: dict[str, Any] = {
+        "enabled": True,
+        "params": {
+            k: (v if _np_isscalar_param(v) else "per_neuron_array")
+            for k, v in _hp_meta.items()
+        },
+        "method": "minimal_homeostatic_resource_adaptation_controller",
+        "claim_status": "computational_control_proxy_not_biological_mechanism",
+        "synaptic_plasticity_enabled": bool(_plastic_on),
+        "biological_learning_claim": False,
+        "mechanism_claim_status": "not_claimed",
+        "diagnostics_passthrough": "Signals.metadata['homeostasis'] summary; "
+                                   "full per-step g_bias/r_trace (and, when "
+                                   "synaptic_plasticity_enabled, w_final/w_trace) via "
+                                   "Model.last_homeostasis_diagnostics()",
+    }
+    if diag is not None:
+        g = diag["g_bias"]; r = diag["r_trace"]
+        homeo_meta["g_bias_summary"] = {
+            "min": float(jnp.min(g)), "max": float(jnp.max(g)),
+            "mean": float(jnp.mean(g)), "shape": list(g.shape),
+        }
+        homeo_meta["r_trace_summary"] = {
+            "min": float(jnp.min(r)), "max": float(jnp.max(r)),
+            "mean": float(jnp.mean(r)), "shape": list(r.shape),
+        }
+        if "w_final" in diag:
+            wf = diag["w_final"]
+            homeo_meta["w_final_summary"] = {
+                "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
+                "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+            }
+    return homeo_meta
+
+
 def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:
     """Resolve the homeostatic ``k_gain`` to a scalar or per-neuron array.
 
@@ -6684,17 +6792,8 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     return tuple(items)
 
 
-def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
-    """Validate a :class:`Configuration` and build a runnable :class:`Model`.
-
-    Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich kernel is implemented; an
-    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
-    than silently substituting Izhikevich). An optional
-    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
-    The returned model is a computational scaffold; its field/probe outputs are
-    proxy readouts, not calibrated physical signals.
-    """
+def _construct_validate_config(cfg: "Configuration") -> None:
+    """``construct()`` stage: validate config + fail loudly on unsupported emitter family."""
     validation = cfg.validate()
     if not validation["valid"]:
         raise ValueError(f"Invalid jaxfne configuration: {validation['issues']}")
@@ -6713,9 +6812,14 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
                 "An explicitly declared unsupported family does not silently "
                 "fall back to another emitter."
             )
-    net = cfg.networks[0]
+
+
+def _construct_build_network(
+    cfg: "Configuration", net: Mapping[str, Any], dtype_name_cfg: str
+) -> "tuple[EIGNetwork, jax.Array, dict[str, Any] | None, int, EdgeList | None]":
+    """``construct()`` stage: build the EIGNetwork (suite2-style or plain) ->
+    ``(network, positions, geometry_meta, n, prebuilt_edges)``."""
     n = int(net.get("n", 100))
-    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
     _prebuilt_edges = None
     if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
         params, positions, geometry_meta, _prebuilt_edges = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
@@ -6734,16 +6838,30 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
         positions = network.positions
         geometry_meta = None
+    return network, positions, geometry_meta, n, _prebuilt_edges
 
-    # Sparse-direct path returns a prebuilt edge_list (and a placeholder dense W) to
-    # avoid materializing/scanning the (n,n) matrix; otherwise convert dense W.
-    if _prebuilt_edges is not None:
-        edge_list = _prebuilt_edges
+
+def _construct_resolve_edge_list(
+    cfg: "Configuration", network: "EIGNetwork", prebuilt_edges: "EdgeList | None"
+) -> "tuple[Configuration, EdgeList]":
+    """``construct()`` stage: prebuilt sparse edges OR dense-W conversion ->
+    ``(cfg, edge_list)``. Avoids materializing/scanning the (n, n) dense matrix
+    on the sparse-direct path; otherwise converts the dense ``network.params.W``.
+    """
+    if prebuilt_edges is not None:
+        edge_list = prebuilt_edges
         # The dense W is a placeholder; this model must run on the edge_list backend.
         cfg = cfg.runtime(recurrent_backend="edge_list")
     else:
         edge_list = make_edge_list_from_dense(network.params.W, dtype=network.params.v0.dtype.name)
+    return cfg, edge_list
 
+
+def _construct_apply_geometry_override(
+    geometry: "LaminarSourceGeometry | None", network: "EIGNetwork", positions: "jax.Array",
+    geometry_meta: "dict[str, Any] | None", n: int,
+) -> "tuple[jax.Array, dict[str, Any] | None]":
+    """``construct()`` stage: optional explicit geometry override -> ``(positions, geometry_meta)``."""
     if geometry is not None:
         if geometry.n_units_total != n:
             raise ValueError(
@@ -6752,19 +6870,21 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             )
         positions = geometry.positions_array(dtype=network.params.v0.dtype.name)
         geometry_meta = geometry.to_dict()
+    return positions, geometry_meta
 
-    # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
-    # local strengthening (laminar columns). Reproducible from cfg seed.
-    emitter_params, edge_list = _apply_canonical_biophysics(
-        network.params, positions, edge_list, cfg
-    )
-    network = replace(network, params=emitter_params)
 
-    # Compile declarative .connections() rules into real edges. They append to the
-    # edge_list; because the dense backend runs on emitter.W (which does not carry
-    # these edges), force the edge_list backend whenever any rule materializes so the
-    # connections actually drive dynamics. Rule statuses flip declared->compiled.
+def _construct_compile_connections(
+    cfg: "Configuration", network: "EIGNetwork", n: int, geometry_meta: "dict[str, Any] | None",
+    net: Mapping[str, Any], edge_list: "EdgeList",
+) -> "tuple[Configuration, EdgeList]":
+    """``construct()`` stage: compile declarative ``.connections()`` rules into
+    real edges -> ``(cfg, edge_list)``. They append to ``edge_list``; because the
+    dense backend runs on ``emitter.W`` (which does not carry these edges), force
+    the edge_list backend whenever any rule materializes so the connections
+    actually drive dynamics. Rule statuses flip declared->compiled.
+    """
     _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
+    _conn_mechanisms = (cfg.metadata.get("circuit", {}) or {}).get("mechanisms", [])
     if _conn_rules:
         import numpy as _np
         _ep = network.params
@@ -6774,16 +6894,30 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
             _area_labels = list(geometry_meta["area_labels"])
         else:
             _area_labels = [str(net.get("name", "V1"))] * n
-        _conn_edges, _counts = _compile_connection_rules(
-            _conn_rules, _area_labels, _layer_labels, _cell_labels,
-            _np.asarray(_ep.sign), n, edge_list.weight.dtype,
-            int(cfg.metadata.get("seed", 0) or 0),
-        )
+        # Mechanism-aware path only when EVERY rule fully opts in via a
+        # resolvable .mechanisms() declaration; otherwise the sign-only
+        # compiler runs unchanged (see _all_connection_rules_declare_resolvable_mechanism).
+        if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
+            _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
+                _conn_rules, _conn_mechanisms, _area_labels, _layer_labels, _cell_labels,
+                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
+                int(cfg.metadata.get("seed", 0) or 0),
+            )
+        else:
+            _conn_edges, _counts = _compile_connection_rules(
+                _conn_rules, _area_labels, _layer_labels, _cell_labels,
+                _np.asarray(_ep.sign), n, edge_list.weight.dtype,
+                int(cfg.metadata.get("seed", 0) or 0),
+            )
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(edge_list, _conn_edges)
             cfg = cfg.runtime(recurrent_backend="edge_list")
         cfg = _mark_connections_compiled(cfg, _counts)
+    return cfg, edge_list
 
+
+def _construct_build_static(cfg: "Configuration", geometry_meta: "dict[str, Any] | None") -> "dict[str, Any]":
+    """``construct()`` stage: resolve ``n_contacts`` + assemble the model's static dict."""
     n_contacts: int = 16
     if cfg.probes:
         _nc = cfg.probes[0].get("n_contacts", 16)
@@ -6807,6 +6941,37 @@ def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = 
                 "layers": sorted(set(geometry_meta.get("layer_labels", []))),
                 "cell_types": sorted(set(geometry_meta.get("cell_type_labels", []))),
             }
+    return static
+
+
+def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
+    """Validate a :class:`Configuration` and build a runnable :class:`Model`.
+
+    Raises ``ValueError`` if the configuration is invalid or names an
+    unsupported emitter family (only the Izhikevich kernel is implemented; an
+    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
+    than silently substituting Izhikevich). An optional
+    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
+    The returned model is a computational scaffold; its field/probe outputs are
+    proxy readouts, not calibrated physical signals.
+    """
+    _construct_validate_config(cfg)
+    net = cfg.networks[0]
+    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
+
+    network, positions, geometry_meta, n, _prebuilt_edges = _construct_build_network(cfg, net, dtype_name_cfg)
+    cfg, edge_list = _construct_resolve_edge_list(cfg, network, _prebuilt_edges)
+    positions, geometry_meta = _construct_apply_geometry_override(geometry, network, positions, geometry_meta, n)
+
+    # Canonical-column biophysics: random v0 (always) + deep-E grading and PV<->E
+    # local strengthening (laminar columns). Reproducible from cfg seed.
+    emitter_params, edge_list = _apply_canonical_biophysics(
+        network.params, positions, edge_list, cfg
+    )
+    network = replace(network, params=emitter_params)
+
+    cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list)
+    static = _construct_build_static(cfg, geometry_meta)
 
     return Model(
         cfg=cfg,
@@ -6837,6 +7002,250 @@ def _model_edge_list(model: "Model", jdtype: Any) -> "EdgeList":
     if W.shape[0] == emitter.n_neurons and W.shape[0] > 0:
         return make_edge_list_from_dense(W, dtype=("float64" if jdtype == jnp.float64 else "float32"))
     return _empty_edge_list(jdtype)
+
+
+def _connect_validate_models(models: "tuple[Model, ...]") -> "list[IzhikevichParams]":
+    """``connect()`` stage: argument validation -> per-model emitter list."""
+    if len(models) < 2:
+        raise ValueError("connect() requires at least two models")
+    for i, m in enumerate(models):
+        if not isinstance(m, Model):
+            raise TypeError(f"connect() argument {i} is not a Model (got {type(m).__name__})")
+    emitters: list[IzhikevichParams] = []
+    for i, m in enumerate(models):
+        em = m.params.get("emitter")
+        if not isinstance(em, IzhikevichParams):
+            raise TypeError(
+                f"connect() supports IzhikevichParams emitters only; model {i} has "
+                f"{type(em).__name__}"
+            )
+        emitters.append(em)
+    return emitters
+
+
+def _connect_reconcile_runtime(
+    models: "tuple[Model, ...]", emitters: "list[IzhikevichParams]", strict: bool
+) -> Any:
+    """``connect()`` stage: dtype + dt_ms must agree (strict) -> merged jdtype."""
+    dtypes = {str(em.v0.dtype) for em in emitters}
+    if len(dtypes) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
+        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
+    jdtype = emitters[0].v0.dtype
+    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
+    if len(dts) > 1:
+        if strict:
+            raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
+        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+    return jdtype
+
+
+def _connect_resolve_namespace(
+    models: "tuple[Model, ...]", namespace: "Sequence[str] | None", strict: bool
+) -> "tuple[list[str] | None, list[list[dict[str, Any]]]]":
+    """``connect()`` stage: namespace validation + area-collision check -> (ns, tables)."""
+    ns = list(namespace) if namespace is not None else None
+    if ns is not None and len(ns) != len(models):
+        raise ValueError(f"namespace must have one entry per model ({len(models)}), got {len(ns)}")
+    tables = [m.neuron_table() for m in models]
+    if ns is None:
+        seen: set[str] = set()
+        for t in tables:
+            areas_k = {str(r.get("area")) for r in t}
+            clash = seen & areas_k
+            if clash:
+                msg = (f"connect() area label collision across models ({sorted(clash)}); "
+                       f"pass namespace=(...) to disambiguate")
+                if strict:
+                    raise ValueError(msg)
+                warnings.warn(msg, RuntimeWarning, stacklevel=2)
+            seen |= areas_k
+    return ns, tables
+
+
+def _connect_merge_emitter(emitters: "list[IzhikevichParams]", jdtype: Any) -> "IzhikevichParams":
+    """``connect()`` stage: concat per-neuron arrays, reconcile scalars -> merged emitter."""
+    def _cat(attr: str) -> jax.Array:
+        return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
+
+    sign_cat = _cat("sign")
+    labels = tuple(lbl for em in emitters for lbl in em.labels)
+    layer_labels = tuple(
+        (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
+        for em in emitters for i in range(em.n_neurons)
+    )
+    scs = {em.source_calibration_status for em in emitters}
+    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
+    return IzhikevichParams(
+        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
+        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
+        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
+        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+    )
+
+
+def _connect_merge_edges(models: "tuple[Model, ...]", offsets: Any, jdtype: Any) -> "EdgeList":
+    """``connect()`` stage: member edges (offset), block-concatenated, sparse.
+
+    Members couple ONLY through explicit cross-model edges (no spurious
+    cross-recurrence -- the sparse realization of a block-diagonal W).
+    """
+    merged_edges = _empty_edge_list(jdtype)
+    for k, m in enumerate(models):
+        el = _model_edge_list(m, jdtype)
+        off = int(offsets[k])
+        el = replace(el, pre=el.pre + off, post=el.post + off)
+        merged_edges = _concat_edge_lists(merged_edges, el)
+    return merged_edges
+
+
+def _connect_merge_positions(models: "tuple[Model, ...]", layout: str, jdtype: Any) -> "jax.Array":
+    """``connect()`` stage: merged positions (offset_x keeps columns spatially distinct)."""
+    pos_parts: list[jax.Array] = []
+    xcursor = 0.0
+    for m in models:
+        p = m.params["positions"].astype(jdtype)
+        if layout == "offset_x" and p.shape[0] > 0:
+            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
+            p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
+            xcursor += (xmax - xmin) + 1.0
+        pos_parts.append(p)
+    return jnp.concatenate(pos_parts, axis=0) if pos_parts else jnp.zeros((0, 3), dtype=jdtype)
+
+
+def _connect_merge_neuron_metadata(
+    tables: "list[list[dict[str, Any]]]", ns: "list[str] | None", counts: "list[int]"
+) -> "tuple[list[dict[str, Any]], list[str], list[str], list[str], Any]":
+    """``connect()`` stage: reindex ids, namespace areas, tag model index.
+
+    Returns ``(merged_rows, orig_area, layer_lab, cell_lab, model_labels)``.
+    """
+    import numpy as np
+
+    merged_rows: list[dict[str, Any]] = []
+    orig_area: list[str] = []
+    layer_lab: list[str] = []
+    cell_lab: list[str] = []
+    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
+    nid = 0
+    for k, t in enumerate(tables):
+        prefix = (ns[k] + "/") if ns is not None else ""
+        for r in t:
+            row = dict(r)
+            a_orig = str(row.get("area"))
+            orig_area.append(a_orig)
+            layer_lab.append(str(row.get("layer")))
+            cell_lab.append(str(row.get("cell_type")))
+            row["neuron_id"] = nid
+            row["model"] = k
+            row["area"] = prefix + a_orig
+            merged_rows.append(row)
+            nid += 1
+    return merged_rows, orig_area, layer_lab, cell_lab, model_labels
+
+
+def _connect_compile_cross_edges(
+    edges: "Sequence[Mapping[str, Any]] | None",
+    models: "tuple[Model, ...]",
+    orig_area: "list[str]", layer_lab: "list[str]", cell_lab: "list[str]",
+    sign_cat: Any, n_total: int, jdtype: Any, model_labels: Any,
+) -> "tuple['EdgeList | None', list[int]]":
+    """``connect()`` stage: compile cross-model edges (selectors match original area + model idx)."""
+    import numpy as np
+
+    if not edges:
+        return None, []
+    default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
+    return _compile_connection_rules(
+        list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
+        n_total, jdtype, default_seed, model_labels=model_labels,
+    )
+
+
+def _connect_merge_cfg(
+    models: "tuple[Model, ...]", ns: "list[str] | None", name: "str | None", layout: str,
+    counts: "list[int]", n_total: int, edges: "Sequence[Mapping[str, Any]] | None",
+    cross_counts: "list[int]",
+) -> "Configuration":
+    """``connect()`` stage: merged cfg -- conservative truth gates, ensemble marker, cross rules."""
+    cfg2 = models[0].cfg
+    try:
+        cfg2 = cfg2.runtime(recurrent_backend="edge_list")
+    except Exception:
+        pass
+    md = {**cfg2.metadata}
+    md["claim_level"] = "computational_scaffold"
+    md["field_solver_status"] = "linear_solver"
+    md["physical_amplitude_calibrated"] = all(
+        bool(m.cfg.metadata.get("physical_amplitude_calibrated", False)) for m in models
+    )
+    all_area_names: list[str] = []
+    for k, m in enumerate(models):
+        for ar in (m.cfg.metadata.get("column_names") or []):
+            all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
+    if all_area_names:
+        md["column_names"] = all_area_names
+        md["column_count"] = len(all_area_names)
+    total_cross = int(sum(cross_counts)) if cross_counts else 0
+    md["ensemble"] = {
+        "name": str(name) if name is not None else None,
+        "n_models": len(models),
+        "model_sizes": [int(x) for x in counts],
+        "n_neurons_total": n_total,
+        "namespace": list(ns) if ns is not None else None,
+        "cross_model_edges": total_cross,
+        "layout": str(layout),
+    }
+    if edges:
+        circuit = {**md.get("circuit", {})}
+        conns = list(circuit.get("connections", []))
+        for i, rule in enumerate(edges):
+            c = int(cross_counts[i]) if i < len(cross_counts) else 0
+            conns.append({
+                **dict(rule),
+                "scope": "cross_model",
+                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
+                "compiled_n_edges": c,
+            })
+        circuit["connections"] = conns
+        md["circuit"] = circuit
+    return replace(cfg2, metadata=md)
+
+
+def _connect_merge_static(
+    models: "tuple[Model, ...]", merged_rows: "list[dict[str, Any]]", strict: bool, ensemble: dict,
+) -> "dict[str, Any]":
+    """``connect()`` stage: merged static -- reconcile n_contacts, most-conservative operator_status."""
+    n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
+    if len(n_contacts_set) > 1 and strict:
+        raise ValueError(
+            f"connect() models have mismatched n_contacts {sorted(n_contacts_set)}; "
+            f"field projection needs equal contacts"
+        )
+    if len(n_contacts_set) > 1:
+        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
+    rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
+    op: dict[str, str] = {}
+    for m in models:
+        for key, val in (m.static.get("operator_status") or {}).items():
+            if key not in op or rank.get(val, 1) < rank.get(op[key], 1):
+                op[key] = val
+    summary = {
+        "n_rows": len(merged_rows),
+        "areas": sorted({str(r.get("area")) for r in merged_rows}),
+        "layers": sorted({str(r.get("layer")) for r in merged_rows}),
+        "cell_types": sorted({str(r.get("cell_type")) for r in merged_rows}),
+    }
+    return {
+        **models[0].static,
+        "n_contacts": int(models[0].static.get("n_contacts", 16)),
+        "operator_status": op,
+        "geometry": {**models[0].static.get("geometry", {}), "neuron_rows": merged_rows},
+        "neuron_metadata": merged_rows,
+        "neuron_metadata_summary": summary,
+        "ensemble": ensemble,
+    }
 
 
 def connect(
@@ -6903,203 +7312,30 @@ def connect(
     """
     import numpy as np
 
-    if len(models) < 2:
-        raise ValueError("connect() requires at least two models")
-    for i, m in enumerate(models):
-        if not isinstance(m, Model):
-            raise TypeError(f"connect() argument {i} is not a Model (got {type(m).__name__})")
-    emitters: list[IzhikevichParams] = []
-    for i, m in enumerate(models):
-        em = m.params.get("emitter")
-        if not isinstance(em, IzhikevichParams):
-            raise TypeError(
-                f"connect() supports IzhikevichParams emitters only; model {i} has "
-                f"{type(em).__name__}"
-            )
-        emitters.append(em)
-
-    # ── reconcile runtime: dtype + dt_ms must agree (strict) ──────────────────
-    dtypes = {str(em.v0.dtype) for em in emitters}
-    if len(dtypes) > 1:
-        if strict:
-            raise ValueError(f"connect() models have mismatched dtypes: {sorted(dtypes)}")
-        warnings.warn(f"connect() mismatched dtypes {sorted(dtypes)}; using the first.", RuntimeWarning, stacklevel=2)
-    jdtype = emitters[0].v0.dtype
-    dts = {float(m.cfg.metadata.get("dt_ms")) for m in models if m.cfg.metadata.get("dt_ms") is not None}
-    if len(dts) > 1:
-        if strict:
-            raise ValueError(f"connect() models have mismatched dt_ms: {sorted(dts)}")
-        warnings.warn(f"connect() mismatched dt_ms {sorted(dts)}; sim uses the duration/dt passed to simulate().", RuntimeWarning, stacklevel=2)
+    emitters = _connect_validate_models(models)
+    jdtype = _connect_reconcile_runtime(models, emitters, strict)
 
     counts = [int(em.n_neurons) for em in emitters]
     offsets = np.cumsum([0, *counts])[:-1]
     n_total = int(sum(counts))
 
-    # ── namespace / area-collision handling ───────────────────────────────────
-    ns = list(namespace) if namespace is not None else None
-    if ns is not None and len(ns) != len(models):
-        raise ValueError(f"namespace must have one entry per model ({len(models)}), got {len(ns)}")
-    tables = [m.neuron_table() for m in models]
-    if ns is None:
-        seen: set[str] = set()
-        for t in tables:
-            areas_k = {str(r.get("area")) for r in t}
-            clash = seen & areas_k
-            if clash:
-                msg = (f"connect() area label collision across models ({sorted(clash)}); "
-                       f"pass namespace=(...) to disambiguate")
-                if strict:
-                    raise ValueError(msg)
-                warnings.warn(msg, RuntimeWarning, stacklevel=2)
-            seen |= areas_k
-
-    # ── merged emitter (concat per-neuron arrays; reconcile scalars) ──────────
-    def _cat(attr: str) -> jax.Array:
-        return jnp.concatenate([getattr(em, attr).astype(jdtype) for em in emitters], axis=0)
-
-    sign_cat = _cat("sign")
-    labels = tuple(lbl for em in emitters for lbl in em.labels)
-    layer_labels = tuple(
-        (em.layer_labels[i] if em.layer_labels is not None else "unspecified")
-        for em in emitters for i in range(em.n_neurons)
-    )
-    scs = {em.source_calibration_status for em in emitters}
-    source_cal = emitters[0].source_calibration_status if len(scs) == 1 else "mixed_uncalibrated_proxy"
-    merged_emitter = IzhikevichParams(
-        a=_cat("a"), b=_cat("b"), c=_cat("c"), d=_cat("d"),
-        drive=_cat("drive"), sign=sign_cat, W=jnp.zeros((0, 0), dtype=jdtype),
-        v0=_cat("v0"), u0=_cat("u0"), source_scale=emitters[0].source_scale,
-        labels=labels, layer_labels=layer_labels, source_calibration_status=source_cal,
+    ns, tables = _connect_resolve_namespace(models, namespace, strict)
+    merged_emitter = _connect_merge_emitter(emitters, jdtype)
+    sign_cat = merged_emitter.sign
+    merged_edges = _connect_merge_edges(models, offsets, jdtype)
+    merged_positions = _connect_merge_positions(models, layout, jdtype)
+    merged_rows, orig_area, layer_lab, cell_lab, model_labels = _connect_merge_neuron_metadata(
+        tables, ns, counts
     )
 
-    # ── merged recurrence: member edges (offset) ── block-concatenated, sparse;
-    #    members couple ONLY through explicit cross-model edges (no spurious
-    #    cross-recurrence — the sparse realization of a block-diagonal W).
-    merged_edges = _empty_edge_list(jdtype)
-    for k, m in enumerate(models):
-        el = _model_edge_list(m, jdtype)
-        off = int(offsets[k])
-        el = replace(el, pre=el.pre + off, post=el.post + off)
-        merged_edges = _concat_edge_lists(merged_edges, el)
-
-    # ── merged positions (offset_x keeps columns spatially distinct) ──────────
-    pos_parts: list[jax.Array] = []
-    xcursor = 0.0
-    for m in models:
-        p = m.params["positions"].astype(jdtype)
-        if layout == "offset_x" and p.shape[0] > 0:
-            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
-            p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
-            xcursor += (xmax - xmin) + 1.0
-        pos_parts.append(p)
-    merged_positions = jnp.concatenate(pos_parts, axis=0) if pos_parts else jnp.zeros((0, 3), dtype=jdtype)
-
-    # ── merged neuron metadata (reindex ids, namespace areas, tag model) ──────
-    merged_rows: list[dict[str, Any]] = []
-    orig_area: list[str] = []
-    layer_lab: list[str] = []
-    cell_lab: list[str] = []
-    model_labels = np.concatenate([np.full(c, k, dtype=int) for k, c in enumerate(counts)]) if counts else np.zeros(0, int)
-    nid = 0
-    for k, t in enumerate(tables):
-        prefix = (ns[k] + "/") if ns is not None else ""
-        for r in t:
-            row = dict(r)
-            a_orig = str(row.get("area"))
-            orig_area.append(a_orig)
-            layer_lab.append(str(row.get("layer")))
-            cell_lab.append(str(row.get("cell_type")))
-            row["neuron_id"] = nid
-            row["model"] = k
-            row["area"] = prefix + a_orig
-            merged_rows.append(row)
-            nid += 1
-
-    # ── compile cross-model edges (selectors match original area + model idx) ──
-    cross_counts: list[int] = []
-    if edges:
-        default_seed = int(models[0].cfg.metadata.get("seed", 0) or 0)
-        cross_el, cross_counts = _compile_connection_rules(
-            list(edges), orig_area, layer_lab, cell_lab, np.asarray(sign_cat),
-            n_total, jdtype, default_seed, model_labels=model_labels,
-        )
-        if cross_el is not None:
-            merged_edges = _concat_edge_lists(merged_edges, cross_el)
-
-    # ── merged cfg: conservative truth gates, ensemble marker, cross rules ────
-    cfg2 = models[0].cfg
-    try:
-        cfg2 = cfg2.runtime(recurrent_backend="edge_list")
-    except Exception:
-        pass
-    md = {**cfg2.metadata}
-    md["claim_level"] = "computational_scaffold"
-    md["field_solver_status"] = "linear_solver"
-    md["physical_amplitude_calibrated"] = all(
-        bool(m.cfg.metadata.get("physical_amplitude_calibrated", False)) for m in models
+    cross_el, cross_counts = _connect_compile_cross_edges(
+        edges, models, orig_area, layer_lab, cell_lab, sign_cat, n_total, jdtype, model_labels
     )
-    all_area_names: list[str] = []
-    for k, m in enumerate(models):
-        for ar in (m.cfg.metadata.get("column_names") or []):
-            all_area_names.append((ns[k] + "/" + str(ar)) if ns is not None else str(ar))
-    if all_area_names:
-        md["column_names"] = all_area_names
-        md["column_count"] = len(all_area_names)
-    total_cross = int(sum(cross_counts)) if cross_counts else 0
-    md["ensemble"] = {
-        "name": str(name) if name is not None else None,
-        "n_models": len(models),
-        "model_sizes": [int(x) for x in counts],
-        "n_neurons_total": n_total,
-        "namespace": list(ns) if ns is not None else None,
-        "cross_model_edges": total_cross,
-        "layout": str(layout),
-    }
-    if edges:
-        circuit = {**md.get("circuit", {})}
-        conns = list(circuit.get("connections", []))
-        for i, rule in enumerate(edges):
-            c = int(cross_counts[i]) if i < len(cross_counts) else 0
-            conns.append({
-                **dict(rule),
-                "scope": "cross_model",
-                "status": "compiled" if c > 0 else "compiled_no_matching_edges",
-                "compiled_n_edges": c,
-            })
-        circuit["connections"] = conns
-        md["circuit"] = circuit
-    cfg2 = replace(cfg2, metadata=md)
+    if cross_el is not None:
+        merged_edges = _concat_edge_lists(merged_edges, cross_el)
 
-    # ── merged static (reconcile n_contacts, most-conservative operator_status)
-    n_contacts_set = {int(m.static.get("n_contacts", 16)) for m in models}
-    if len(n_contacts_set) > 1 and strict:
-        raise ValueError(
-            f"connect() models have mismatched n_contacts {sorted(n_contacts_set)}; "
-            f"field projection needs equal contacts"
-        )
-    if len(n_contacts_set) > 1:
-        warnings.warn(f"connect() mismatched n_contacts {sorted(n_contacts_set)}; using the first.", RuntimeWarning, stacklevel=2)
-    rank = {"not_implemented": 0, "prototype_api": 1, "experimental": 2, "validated": 3}
-    op: dict[str, str] = {}
-    for m in models:
-        for key, val in (m.static.get("operator_status") or {}).items():
-            if key not in op or rank.get(val, 1) < rank.get(op[key], 1):
-                op[key] = val
-    summary = {
-        "n_rows": len(merged_rows),
-        "areas": sorted({str(r.get("area")) for r in merged_rows}),
-        "layers": sorted({str(r.get("layer")) for r in merged_rows}),
-        "cell_types": sorted({str(r.get("cell_type")) for r in merged_rows}),
-    }
-    merged_static = {
-        **models[0].static,
-        "n_contacts": int(models[0].static.get("n_contacts", 16)),
-        "operator_status": op,
-        "geometry": {**models[0].static.get("geometry", {}), "neuron_rows": merged_rows},
-        "neuron_metadata": merged_rows,
-        "neuron_metadata_summary": summary,
-        "ensemble": md["ensemble"],
-    }
+    cfg2 = _connect_merge_cfg(models, ns, name, layout, counts, n_total, edges, cross_counts)
+    merged_static = _connect_merge_static(models, merged_rows, strict, cfg2.metadata["ensemble"])
 
     return Model(
         cfg=cfg2,

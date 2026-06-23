@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 204 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 218 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -33,9 +33,10 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **204**
-> (`len(jaxfne.__all__)`). See the docs audit
-> (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
+> signatures in the complete symbol index below. Per-module counts above are
+> indicative groupings, not an exact partition; the authoritative count is the
+> live `len(jaxfne.__all__)` (**218**) checked against the complete symbol index
+> below.
 
 ## Minimal workflow (verified)
 
@@ -219,7 +220,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**204 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (69)
 
@@ -295,7 +296,7 @@ and figure/readout outputs remain proxy diagnostics
 | `validate_config` | func | Validate a `JaxFNEConfig` and return a `ConfigValidationResult`. |
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
 
-### Emitters (19)
+### Emitters (22)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -315,16 +316,23 @@ and figure/readout outputs remain proxy diagnostics
 | `simulate_receptor_exponential_izhikevich` | func | v0.0.11 receptor-indexed exponential recurrent kernel. |
 | `standard_receptor_specs` | func | Provide standard declarative receptor metadata. No biological claim. |
 | `standard_receptor_tau_table` | func | Return the receptor_index → tau_ms lookup table used by v0.0.11. |
+| `synaptic_current_tensor` | func | Standalone single-pole synaptic current tensor (Synaptic Tensor, filter stage). |
+| `synaptic_tau_from_mechanism` | func | Map declared receptor-mechanism names to per-edge tau (Synaptic Tensor, tau stage). |
+| `synaptic_tensor_report` | func | JSON-safe truth-gate report for a `synaptic_current_tensor` call. |
 | `SynapseLayer` | class | Exponential synapse layer returning recurrent input currents. |
 | `SynapseSpec` | class | Metadata declaration for a synapse. Not a biological kernel. |
 | `SynapseState` | class | —  _(no docstring)_ |
 
-### Fields (12)
+### Fields (16)
 
 | Symbol | Kind | Summary |
 |---|---|---|
+| `cable_filter_report` | func | JSON-safe truth-gate report for a `cable_filter_sources` call. |
+| `cable_filter_sources` | func | Apply a depth/cell-type-dependent passive-cable low-pass tensor to per-neuron source-proxy traces. |
+| `cable_filter_tau` | func | Build the per-neuron cable time constant array consumed by `cable_filter_sources`. |
 | `compute_conservation_proxy_diagnostics` | func | Compute conservation-inspired proxy diagnostics over existing source/field arrays. |
 | `construct_source_tensor` | func | —  _(undocumented)_ |
+| `csd_tensor` | func | Spatial second-derivative CSD tensor (readout family, depth-axis stage). |
 | `eeg_proxy_transform` | func | Compute EEG-proxy readout via linear leadfield projection. |
 | `emm_proxy_transform` | func | Compute EMM-proxy (normalized activity/source/field cost) readout. |
 | `FieldOutput` | class | Container for laminar proxy field/readout arrays. |
@@ -542,16 +550,16 @@ and figure/readout outputs remain proxy diagnostics
 |---|---|---|
 | `vis` | module | Visualization package for jaxfne. |
 
-### Constants (4)
+### Constants (3)
 
 | Symbol | Kind | Summary |
 |---|---|---|
-| `_KNOWN_METRICS` | const | ⚠ private name leaking into `__all__` — see docs audit (remove). |
 | `CELL_TYPE_PRESETS` | const | Mapping of cell-type label → preset Izhikevich parameters. |
 | `DEFAULT_SPIKE_IMPULSE_GAIN` | const | Default spike-impulse gain for the source proxy. |
 | `RECEPTOR_KINETICS` | const | Mapping of receptor name → kinetic time constants. |
 
 ---
 
-See the docs audit & restructure notes (`internal_docs/docs_audit_v0330.md`)
-for orphaned pages, duplicate cleanup, and the per-module table migration.
+See [TFNE Operator Doctrine](../operator_doctrine.md) and
+[Tensor Operator Registry](tensor_operators.md) for the per-stage operator
+contract layered on top of this symbol index.

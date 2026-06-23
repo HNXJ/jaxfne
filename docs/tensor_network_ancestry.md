@@ -222,6 +222,7 @@ This path is **deferred and not promised.** If pursued, it would:
 - **[Computation Basis](computation_basis.md)** — Collapsible tensor-field scaffold and dimension contracts
 - **[Mathematical Glossary Flow](mathematical_glossary_flow.md)** — Seven core TFNE equations with statement boundaries
 - **[Source/Field Equations](source_field_equations.md)** — Source bookkeeping and field proxy details
+- **[TFNE Operator Doctrine](operator_doctrine.md)** — Per-stage contract table built on this basis-transform cascade
 
 ---
 

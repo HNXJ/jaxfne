@@ -127,5 +127,5 @@ Each notebook teaches a progressively more complex workflow using the same sourc
 ## Next Steps
 
 - **[Tutorials Overview](index.md)** — All tutorial notebooks
-- **[Calibration](../calibration.md)** — Preparing outputs for validation
+- **[Calibration](../guides/calibration.md)** — Preparing outputs for validation
 - **[Guides](../guides/index.md)** — Detailed documentation

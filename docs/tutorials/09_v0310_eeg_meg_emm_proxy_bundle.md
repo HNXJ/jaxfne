@@ -43,7 +43,7 @@ Here, we outline the foundational equations defining the distinct sensor paths:
 * **Worded description:**
   Scalp potential is the linear leadfield projection of source currents onto scalp sensors.
 * **Implementation location:**
-  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+  `jaxfne/fields/probes.py`
 
 ### 2. MEG-Proxy Sensor Equation
 
@@ -55,7 +55,7 @@ Here, we outline the foundational equations defining the distinct sensor paths:
 * **Worded description:**
   Magnetic field is the linear projection of intracellular dipole current onto magnetometer sensors.
 * **Implementation location:**
-  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+  `jaxfne/fields/probes.py`
 
 ### 3. EMM-Proxy Metabolism Equation
 
@@ -64,7 +64,7 @@ Here, we outline the foundational equations defining the distinct sensor paths:
 * **Worded description:**
   The metabolism estimate is the mean absolute source activity cost over time.
 * **Implementation location:**
-  [fields.py](file:///Users/hamednejat/workspace/main/jaxfne/jaxfne/fields.py)
+  `jaxfne/fields/probes.py`
 
 ---
 

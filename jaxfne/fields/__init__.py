@@ -26,6 +26,10 @@ from .proxy import (
     combined_multi_area_source,
     spectrolaminar_similarity,
     spectrolaminar_objective,
+    cable_filter_tau,
+    cable_filter_sources,
+    cable_filter_report,
+    csd_tensor,
 )
 from .probes import (
     ProbeReadout,
@@ -74,6 +78,10 @@ __all__ = [
     "combined_multi_area_source",
     "spectrolaminar_similarity",
     "spectrolaminar_objective",
+    "cable_filter_tau",
+    "cable_filter_sources",
+    "cable_filter_report",
+    "csd_tensor",
     "_make_field_solution_report",
     "create_probe",
     "ProbeReadout",

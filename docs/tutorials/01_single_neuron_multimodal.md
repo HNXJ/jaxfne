@@ -8,7 +8,7 @@ Extract spikes, voltage, field readouts, and reproducible output bundles.
 
 **Recommended:** Open the full interactive tutorial in Colab:
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/dev/.legacy/notebooks/01_single_neuron_multimodal.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/.legacy/notebooks/01_single_neuron_multimodal.ipynb)
 
 Or download and run locally: `.legacy/notebooks/01_single_neuron_multimodal.ipynb`
 
@@ -101,5 +101,5 @@ plt.show()
 
 ## Further reading
 
-- [Probe operators](../probe_operators.md)
-- [Output bundles](../output_bundles.md)
+- [Probe operators](../guides/probe_operators.md)
+- [Output bundles](../guides/output_bundles.md)

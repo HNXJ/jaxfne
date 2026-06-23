@@ -1,8 +1,6 @@
-# Tutorial Figures (v0.2.28)
+# Tutorial Figures
 
-**Status:** Regenerated with visual confirmation  
-**Version:** jaxfne 0.2.27  
-**Date:** 2026-05-22
+**Status:** Stable contract, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current package: 0.4.4).
 
 ---
 

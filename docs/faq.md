@@ -22,21 +22,21 @@ A: See [Quickstart](quickstart.md) for a minimal example. It takes ~5 lines of c
 
 **Q: Can I use jaxfne with Jaxley models?**
 
-A: Yes. See [Jaxley interoperability](jaxley_interop.md) for how to mount Jaxley-style outputs as source tensors.
+A: Yes. See [Jaxley interoperability](guides/jaxley_interop.md) for how to mount Jaxley-style outputs as source tensors.
 
 **Q: What readout operators are available?**
 
-A: Eight operators: SPK (spikes), Vm (voltage), source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy. See [Probe operators](probe_operators.md).
+A: Eight operators: SPK (spikes), Vm (voltage), source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy. See [Probe operators](guides/probe_operators.md).
 
 ## Advanced workflows
 
 **Q: How do I calibrate outputs to physical units?**
 
-A: Default readouts are computational proxies. Calibration requires empirical data, geometry specifications, and solver validation. See [Calibration](calibration.md) for the calibration-ready design, and [Limitations and future plans](limitations_and_future_plans.md) for the declared field regimes.
+A: Default readouts are computational proxies. Calibration requires empirical data, geometry specifications, and solver validation. See [Calibration](guides/calibration.md) for the calibration-ready design, and [Limitations and future plans](limitations_and_future_plans.md) for the declared field regimes.
 
 **Q: What metadata does jaxfne attach to outputs?**
 
-A: All outputs include JSON-safe manifests with operator status, units, assumptions, and validation metadata. See [Output bundles](output_bundles.md).
+A: All outputs include JSON-safe manifests with operator status, units, assumptions, and validation metadata. See [Output bundles](guides/output_bundles.md).
 
 **Q: Can I use custom emitter models?**
 

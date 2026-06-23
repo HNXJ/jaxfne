@@ -84,7 +84,6 @@ from .core import (
     trial_batch,
     validate_config,
     with_emitter_parameters,
-    _KNOWN_METRICS,
     default_basis_spec,
 )
 
@@ -147,6 +146,9 @@ from .emitters import (
     simulate_receptor_exponential_izhikevich,
     standard_receptor_specs,
     standard_receptor_tau_table,
+    synaptic_tau_from_mechanism,
+    synaptic_current_tensor,
+    synaptic_tensor_report,
     Emitter,
     IzhikevichEmitter,
     GLIFEmitter,
@@ -196,6 +198,10 @@ from .fields import (
     validate_projection_invariants,
     validate_source_field_status,
     LinearReadout,
+    cable_filter_tau,
+    cable_filter_sources,
+    cable_filter_report,
+    csd_tensor,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
 from .optim import (
@@ -390,7 +396,6 @@ __all__ = [
     "select_neurons",
     "kappa_synchrony",
     "rate_synchrony_targets",
-    "_KNOWN_METRICS",
     "EdgeList",
     "EIGNetwork",
     "IzhikevichParams",
@@ -410,6 +415,9 @@ __all__ = [
     "simulate_receptor_exponential_izhikevich",
     "standard_receptor_specs",
     "standard_receptor_tau_table",
+    "synaptic_tau_from_mechanism",
+    "synaptic_current_tensor",
+    "synaptic_tensor_report",
     "CELL_TYPE_PRESETS",
     "DEFAULT_SPIKE_IMPULSE_GAIN",
     "RECEPTOR_KINETICS",
@@ -425,6 +433,10 @@ __all__ = [
     "validate_source_field_status",
     "construct_source_tensor",
     "LinearReadout",
+    "cable_filter_tau",
+    "cable_filter_sources",
+    "cable_filter_report",
+    "csd_tensor",
     "config_hash",
     "json_safe",
     "manifest",

@@ -182,6 +182,7 @@ Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and str
 - [Computation Basis](computation_basis.md) — Field regime gating doctrine
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Source/field equations
 - [Source/Field Equations](source_field_equations.md) — Source modes and bookkeeping
-- [Probe Operators](probe_operators.md) — Readout operator statement boundaries
-- [Elliptic Field Equation Specification](poisson_admissibility.md) — admissibility mathematics
+- [Probe Operators](guides/probe_operators.md) — Readout operator statement boundaries
+- [Elliptic Field Equation Specification](guides/poisson_admissibility.md) — admissibility mathematics
 - [Limitations and future plans](limitations_and_future_plans.md) — scope boundaries and reserved regimes
+- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — reserved field-solver stages, including the P5 external-validation stage these reserved fields anticipate
