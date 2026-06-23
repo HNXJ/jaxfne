@@ -150,3 +150,5 @@ this page does not duplicate it.
 - [Validation](validation.md) — `operator_status()`, `config_truth_boundary()`, `is_valid_signal()`
 - [Probe Operators](../guides/probe_operators.md) — the eight readout operators in full
 - [Configuration Grammar](../guides/configuration_grammar.md) — the fluent/operator grammar reconciliation
+- [Objective Grammar](../guides/objective_grammar.md) — the user-facing run sequence, stage by stage
+- [Operator Inventory (generated)](../_generated/operator_inventory.md) — every export, regenerated from `jaxfne.__all__`

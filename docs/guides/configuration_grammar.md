@@ -17,7 +17,7 @@ turn into a runnable TFNE graph.
 
 This is the central idea of the package: **jaxfne is the mathematical backend,
 and the configuration is the biophysical specification.** How biophysical the
-output is — calibrated amplitudes, real morphology, channel detail — is
+output is — amplitude calibration, real morphology, channel detail — is
 determined by how much detail you put into the `Configuration` (and any
 [Jaxley](jaxley_interop.md) models you bridge in), not by a fixed ceiling in the
 backend. Every method below adds biophysical specificity to the same chain.
@@ -204,6 +204,7 @@ why `Configuration` is the deepest, most important surface in the package.
 
 ## See also
 
+- [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
 - [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.

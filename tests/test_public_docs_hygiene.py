@@ -37,6 +37,9 @@ class TestPublicDocsHardRules:
         "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
         "docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md",
         "docs/guides/index.md",
+        "docs/guides/configuration_grammar.md",
+        "docs/guides/objective_grammar.md",
+        "docs/notes/biophysical_model_comparison.md",
         "docs/guides/probe_operators.md",
         "docs/guides/tensor_field_workflows.md",
         "docs/guides/plotly_visualization.md",
@@ -63,6 +66,7 @@ class TestPublicDocsHardRules:
         "docs/mathematical_glossary_flow.md",
         "docs/source_field_equations.md",
         "docs/conservation_proxy_diagnostics.md",
+        "docs/_generated/operator_inventory.md",
     ]
 
     PUBLIC_ACTIVE_NOTEBOOKS = [
