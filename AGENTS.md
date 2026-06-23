@@ -117,6 +117,44 @@ COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in 
   take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.
   3D circuit: `vis.visualize_network_3d(model.neuron_table(), output_html=...)`.
 
+## Two paths to a laminar run — pick before you start, don't mix mid-task
+
+There are two independent ways to build+run a laminar column. Both are real
+and supported; they are not interchangeable mid-script because they hand back
+different object types (`Model`/`Signals` vs a plain trial `dict`).
+
+| | **Config-path** (`jtfne.laminar_cortex_config` → `construct` → `simulate`) | **tutorial_utils-path** (`jtfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`) |
+|---|---|---|
+| Use when | single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive | multi-trial spectrolaminar sweeps, `summarize_spectrolaminar_similarity` |
+| Returns | `Model` / `Signals` | plain `dict` of trial arrays |
+| Per-event drive targeting | `StimulusSchedule(target_indices=[...])` — see below | not exposed; drive is column-wide |
+| Noise control | kernel-dependent — see caveat below | `cell_type_izh_params[ct]["noise"]`, swept directly |
+| Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired |
+
+**Noise-scale caveat (verified, not uniform across kernels):** `simulate_eig_izhikevich`,
+`simulate_edge_recurrent_izhikevich`, and `simulate_edge_recurrent_izhikevich_homeostatic`
+all accept `noise_scale=` (`None` keeps the historical `0.5` scalar; pass a scalar or
+`(n_neurons,)` array to override). `simulate_receptor_exponential_izhikevich`
+(`jaxfne/emitters.py:1088`) has **no** `noise_scale` parameter at all — its noise
+coefficient is hardcoded to `0.5` inline (lines 1159/1186). Check which kernel
+`construct()`/`simulate()` actually dispatches to for your config before assuming
+noise is or isn't sweepable.
+
+**Per-event, per-neuron-subset drive (`target_indices`):** `StimulusSchedule` takes an
+optional `target_indices: Sequence[int]` (`jaxfne/paradigm.py:726`) that restricts a
+stimulus event to a specific neuron subset (e.g. L4-E-only) rather than the whole
+column — wired through `jaxfne/core.py` (search `target_indices`). Build the index
+list from `model.neuron_table()` (filter by `layer`/`cell_type`), e.g.:
+
+```python
+nt = model.neuron_table()
+l4e_idx = [i for i, row in enumerate(nt) if row["layer"] == "L4" and row["cell_type"] == "E"]
+sched = jtfne.StimulusSchedule(events=[...], target_indices=l4e_idx)
+```
+
+This is the real mechanism for "stimulate only this cell-type/layer subset on this
+event" — don't hand-roll a per-neuron drive mask for that case.
+
 ## Self-check before claiming a result is real
 
 Reduced Izhikevich, native units: Vm rest ≈ −66 mV, spike peak ≈ +30 mV (hard reset),
