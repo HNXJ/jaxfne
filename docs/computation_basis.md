@@ -312,7 +312,7 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 | `reserved_admittive` | Declared reserved (v0.3.x) | **False** | **False** |
 | `reserved_maxwell` | Declared reserved (v0.3.x) | **False** | **False** |
 
-`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. A Poisson solver requires separate approval before any implementation begins.
+`solved_poisson`, `reserved_maxwell`, and `reserved_admittive` are **reserved markers** — they are named reserved-doctrine markers only. `implemented=False`, `status_enabled=False` are structurally enforced and cannot be escalated. An elliptic-equation field solve for this regime requires separate approval before any implementation begins.
 
 ---
 
@@ -323,3 +323,5 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 - [Tensor-Network Ancestry](tensor_network_ancestry.md) — v0.2.29 conceptual context: basis-transform doctrine and historical parallels
 - [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
 - [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to
+- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage contract table built on these tensor shapes
+- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — Reserved field-solver stages referenced by the reserved markers above

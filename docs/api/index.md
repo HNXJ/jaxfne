@@ -33,9 +33,10 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
-> signatures in the complete symbol index below. Counts sum to **204**
-> (`len(jaxfne.__all__)`). See the docs audit
-> (`internal_docs/docs_audit_v0330.md`) for the page-migration plan.
+> signatures in the complete symbol index below. Per-module counts above are
+> indicative groupings, not an exact partition; the authoritative count is the
+> live `len(jaxfne.__all__)` (**218**) checked against the complete symbol index
+> below.
 
 ## Minimal workflow (verified)
 
@@ -559,5 +560,6 @@ and figure/readout outputs remain proxy diagnostics
 
 ---
 
-See the docs audit & restructure notes (`internal_docs/docs_audit_v0330.md`)
-for orphaned pages, duplicate cleanup, and the per-module table migration.
+See [TFNE Operator Doctrine](../operator_doctrine.md) and
+[Tensor Operator Registry](tensor_operators.md) for the per-stage operator
+contract layered on top of this symbol index.

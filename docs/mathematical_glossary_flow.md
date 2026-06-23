@@ -262,7 +262,7 @@ $$\boxed{\mathrm{EMM\text{-proxy}} = \text{weighted normalized source activity +
 
 **Critical bridge term:**
 
-EMM-proxy is a **relative within-run cost/activity index**, not biological metabolism. It combines source, field-gradient, and current-density norms to measure "computational cost" or "activity intensity."
+EMM-proxy is a **relative within-run cost/activity index**, not a biological energy-consumption measurement. It combines source, field-gradient, and current-density norms to measure "computational cost" or "activity intensity."
 
 **Run boundary:**
 
@@ -328,7 +328,7 @@ When adding a new equation to jaxfne documentation:
 - [ ] Identify critical bridge term and pipeline location
 - [ ] State run boundary (computational scaffold? proxy? calibrated physical?)
 - [ ] Link to code location and manifest fields
-- [ ] Verify no forbidden phrasing (real EEG, biological metabolism, mechanism proof)
+- [ ] Verify no forbidden phrasing (`real EEG`, `biological metabolism`, `mechanism proof`)
 
 ---
 
@@ -338,3 +338,4 @@ When adding a new equation to jaxfne documentation:
 - [Computation Basis](computation_basis.md) — extensibility doctrine
 - [Probe Operators](guides/probe_operators.md) — detailed operator statements
 - [Scope and Limitations](limitations_and_future_plans.md) — boundary conditions
+- [TFNE Operator Doctrine](operator_doctrine.md) — per-stage contract table indexing these equations

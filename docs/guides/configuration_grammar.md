@@ -205,5 +205,6 @@ why `Configuration` is the deepest, most important surface in the package.
 ## See also
 
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
+- [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
 - [Bridges API](../api/bridges.md) · [Fields API](../api/fields.md) · [Objectives API](../api/objectives.md)

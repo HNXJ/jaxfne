@@ -55,6 +55,14 @@ class TestPublicDocsHardRules:
         "docs/changelog.md",
         "docs/citation.md",
         "docs/contributing.md",
+        "docs/operator_doctrine.md",
+        "docs/api/tensor_operators.md",
+        "docs/tensor_electromagnetics_scope.md",
+        "docs/computation_basis.md",
+        "docs/tensor_network_ancestry.md",
+        "docs/mathematical_glossary_flow.md",
+        "docs/source_field_equations.md",
+        "docs/conservation_proxy_diagnostics.md",
     ]
 
     PUBLIC_ACTIVE_NOTEBOOKS = [

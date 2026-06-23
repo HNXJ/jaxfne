@@ -26,7 +26,7 @@ A jaxfne model declares **exactly one** source mode per simulation run. All othe
 |------|----------|--------|-----------------|
 | **total_membrane_current** | $q = I_\mathrm{mem}(z, t)$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
 | **decomposed_cap_ion_syn** | $q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
-| **proxy_no_field_solve** | $q = \text{declared proxy} \approx I_\mathrm{native}$ | **Active (current default)** | `jaxfne.fields.project_laminar_sources()` |
+| **proxy_no_field_solve** | $q = \text{declared proxy} \approx I_\mathrm{model}$ | **Active (current default)** | `jaxfne.fields.project_laminar_sources()` |
 | (none declared) | Signals.sources = None | Allowed (no source) | Field=None, no readouts |
 
 **Rule:** Declare source_projection_mode and source_calibration_status in Manifest. If both are None, Signals.sources remains None.
@@ -251,7 +251,7 @@ This immutable field means:
 
 **Equation chain:**
 
-$$z(t) \xrightarrow{\text{Emitter}} \text{state} \xrightarrow{\text{Native current}} I(t) \xrightarrow{\text{Source projection}} q(x,t) \xrightarrow{\text{Readout}} \mathrm{CSD}(x,t)$$
+$$z(t) \xrightarrow{\text{Emitter}} \text{state} \xrightarrow{\text{Model current}} I(t) \xrightarrow{\text{Source projection}} q(x,t) \xrightarrow{\text{Readout}} \mathrm{CSD}(x,t)$$
 
 **Implementation mapping:**
 
@@ -414,3 +414,4 @@ Before releasing a model, verify:
 - [Probe Operators](guides/probe_operators.md) — Readout modalities (SPK, Vm, source, LFP, CSD, EEG, MEG, EMM)
 - [Output Bundles](guides/output_bundles.md) — Manifest and report schema
 - [Scope and Limitations](limitations_and_future_plans.md) — What jaxfne statements and stays scoped to
+- [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage contract table for the Source and Field stages defined here

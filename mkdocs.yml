@@ -95,6 +95,16 @@ nav:
       - Probes: api/probes.md
       - Objectives: api/objectives.md
       - Validation: api/validation.md
+      - Tensor Operator Registry: api/tensor_operators.md
+
+  - Theory:
+      - Operator Doctrine: operator_doctrine.md
+      - Tensor-Network Ancestry: tensor_network_ancestry.md
+      - Mathematical Glossary Flow: mathematical_glossary_flow.md
+      - Computation Basis: computation_basis.md
+      - Source/Field Equations: source_field_equations.md
+      - Conservation Proxy Diagnostics: conservation_proxy_diagnostics.md
+      - Tensor Electromagnetics Scope: tensor_electromagnetics_scope.md
 
   - Reference:
       - Glossary of Methods: reference/glossary_of_methods.md

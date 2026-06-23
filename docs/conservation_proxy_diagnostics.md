@@ -185,3 +185,4 @@ Elliptic (Poisson) and volumetric (Maxwell) field solvers, Poynting-flux and str
 - [Probe Operators](guides/probe_operators.md) — Readout operator statement boundaries
 - [Elliptic Field Equation Specification](guides/poisson_admissibility.md) — admissibility mathematics
 - [Limitations and future plans](limitations_and_future_plans.md) — scope boundaries and reserved regimes
+- [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md) — reserved field-solver stages, including the P5 external-validation stage these reserved fields anticipate
