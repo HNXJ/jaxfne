@@ -37,6 +37,7 @@ class TestPublicDocsHardRules:
         "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
         "docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md",
         "docs/guides/index.md",
+        "docs/guides/showcases.md",
         "docs/guides/configuration_grammar.md",
         "docs/guides/objective_grammar.md",
         "docs/notes/biophysical_model_comparison.md",
