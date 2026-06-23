@@ -99,11 +99,13 @@ different object types, so pick one per task rather than mixing mid-script:
 | Multi-trial spectrolaminar sweeps, similarity scoring across trials | `jaxfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | plain `dict` of trial arrays |
 
 Per-neuron-subset stimulus targeting (e.g. drive only L4 E cells on one event)
-goes through `StimulusSchedule(events=..., target_indices=[...])`, built from
+goes through a per-event `target_indices` key on the event dict passed to
+`StimulusSchedule(events=...)`, built from
 `model.neuron_table()` — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)
 § "Two paths to a laminar run" and the
 [Objective Grammar](https://jaxfne.readthedocs.io/en/latest/guides/objective_grammar/)
-guide for the full pipeline this feeds into.
+guide for the full pipeline this feeds into. Worked example end to end:
+[`tutorials/jaxfne_v040_continuous_omission_oddball.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb).
 
 ## Canonical cortex (default prior)
 

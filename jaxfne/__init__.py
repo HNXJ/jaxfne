@@ -113,6 +113,7 @@ from .tutorial_utils import (
     select_cells,
     simulate_laminar_trials,
     spectrolaminar_from_trials,
+    spectrolaminar_motif_score,
     summarize_spectrolaminar_similarity,
 )
 from .export import (
@@ -498,6 +499,7 @@ __all__ = [
     "spectrolaminar_similarity_kernel_jax",
     "spectrolaminar_similarity_candidates_jax",
     "spectrolaminar_similarity_candidates_seeds_jax",
+    "spectrolaminar_motif_score",
     "compile_connection_rules_jax",
     "update_stdp_weights_jax",
     "solve_volume_conductor_experimental",

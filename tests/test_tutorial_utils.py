@@ -18,6 +18,7 @@ from jaxfne.tutorial_utils import (
     make_stimulus,
     simulate_laminar_trials,
     spectrolaminar_from_trials,
+    spectrolaminar_motif_score,
     summarize_spectrolaminar_similarity,
     export_tutorial_artifacts,
     LaminarColumnConfig,
@@ -626,6 +627,31 @@ class TestSpectrolaminar:
         assert 'area' in scores.columns
         assert 'similarity_percent' in scores.columns
         assert len(scores) == len(cfg.areas)
+
+    def test_spectrolaminar_motif_score_matches_inlined_formula(self):
+        """summarize_spectrolaminar_similarity must delegate to this scorer, not duplicate it."""
+        cfg = make_test_config(n_neuron_per_column=12)
+        model = build_laminar_column(cfg)
+        trials = simulate_laminar_trials(model, cfg)
+        scores, specs = summarize_spectrolaminar_similarity(trials, cfg)
+        for area in cfg.areas:
+            spec = specs[area]
+            expected = spectrolaminar_motif_score(spec['alpha_beta'], spec['gamma'])
+            actual = scores.loc[scores['area'] == area, 'similarity_percent'].iloc[0]
+            assert actual == pytest.approx(expected)
+
+    def test_spectrolaminar_motif_score_bounds_and_degeneracy(self):
+        """Anti-correlated -> 100, correlated -> 0, degenerate (size<2 or zero-std) -> 50."""
+        ab_anti = np.array([1.0, 2.0, 3.0])
+        gm_anti = np.array([3.0, 2.0, 1.0])
+        assert spectrolaminar_motif_score(ab_anti, gm_anti) == pytest.approx(100.0)
+
+        ab_corr = np.array([1.0, 2.0, 3.0])
+        gm_corr = np.array([1.0, 2.0, 3.0])
+        assert spectrolaminar_motif_score(ab_corr, gm_corr) == pytest.approx(0.0)
+
+        assert spectrolaminar_motif_score([1.0], [1.0]) == pytest.approx(50.0)
+        assert spectrolaminar_motif_score([1.0, 1.0], [1.0, 2.0]) == pytest.approx(50.0)
 
 
 class TestExportArtifacts:
