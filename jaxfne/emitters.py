@@ -1033,6 +1033,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     u_abs_max: float = 2000.0,
     syn_abs_max: float = 1.0e4,
     record_dH_components: bool = False,
+    record_edge_current: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -1168,6 +1169,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
             "dH_ctrl_trace"/"dH_barrier_trace" (each (n_steps, n_neurons))
             in diagnostics_dict. Default False (no extra compute/memory);
             for isolating which term drives an observed H/weight runaway.
+        record_edge_current: if True, also return the per-step, per-edge
+            synaptic current contribution ``w * syn_state`` (the summand
+            that ``segment_sum`` aggregates by post-neuron into ``syn``,
+            i.e. into ``dH_income``'s ``alpha*I_syn`` term) as
+            "edge_current_trace" (n_steps, n_edges) in diagnostics_dict.
+            Default False; combine with edges.pre/edges.post and cell-type
+            labels post-hoc to decompose I_syn by connection class
+            (E->E, E->PV, PV->E, ...) and find which synaptic pathway
+            drives an income-term runaway.
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
@@ -1308,6 +1318,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
         outputs = (v_reset, spikes, source_proxy, H_final, w_next)
         if record_dH_components:
             outputs = outputs + (dH_income, dH_rate, dH_weight, dH_ctrl, barrier_force)
+        if record_edge_current:
+            outputs = outputs + (edge_current,)
         return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
 
     final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
@@ -1326,8 +1338,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
         "H_trace": H_trace,
         "w_trace": w_trace,
     }
+    tail = scan_outputs[5:]
     if record_dH_components:
-        dH_income_trace, dH_rate_trace, dH_weight_trace, dH_ctrl_trace, dH_barrier_trace = scan_outputs[5:]
+        dH_income_trace, dH_rate_trace, dH_weight_trace, dH_ctrl_trace, dH_barrier_trace = tail[:5]
         diagnostics_dict.update({
             "dH_income_trace": dH_income_trace,
             "dH_rate_trace": dH_rate_trace,
@@ -1335,6 +1348,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             "dH_ctrl_trace": dH_ctrl_trace,
             "dH_barrier_trace": dH_barrier_trace,
         })
+        tail = tail[5:]
+    if record_edge_current:
+        diagnostics_dict["edge_current_trace"] = tail[0]
     return voltages, spikes, sources, diagnostics_dict
 
 
