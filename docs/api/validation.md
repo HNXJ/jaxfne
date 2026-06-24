@@ -14,38 +14,29 @@ The validation module provides tools to:
 
 ## Configuration Validation
 
-### `validate_config(cfg: Configuration) -> ConfigValidationResult`
+### `validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult`
 
-Validate a Configuration for structural consistency and completeness.
+Validate a `JaxFNEConfig` (the dict-backed config produced by `load_config`/the
+config-path APIs — not the fluent `Configuration` builder) for structural
+consistency and completeness. Does not raise for normal validation failures;
+escalated truth claims and missing required sections are returned as blocking
+issues.
 
 **Parameters:**
-- `cfg` (Configuration): Configuration to validate
+- `cfg` (JaxFNEConfig): Config to validate
 
-**Returns:** `ConfigValidationResult` with validation status and error messages
-
-**Checks:**
-- All required fields are present (networks, emitters, fields, probes)
-- Parameter ranges are valid
-- No conflicting declarations
-- Geometry is consistent
+**Returns:** `ConfigValidationResult` with validation status and issue messages
 
 **Example:**
 ```python
 import jaxfne as jtfne
 
-cfg = jtfne.Configuration()
-cfg = cfg.runtime(seed=7, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
-cfg = cfg.column("V1", layers=["L2/3"], n=100)
-cfg = cfg.cell_types({"E": 0.8, "I": 0.2})
-cfg = cfg.connectivity()
-cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-cfg = cfg.probes(["SPK", "Vm", "LFP-proxy"])
-
+cfg = jtfne.JaxFNEConfig(...)
 result = jtfne.validate_config(cfg)
 if result.valid:
     print("✓ Configuration is valid")
 else:
-    print(f"✗ Validation failed: {result.errors}")
+    print(f"✗ Validation failed: {result.issues}")
 ```
 
 ---
@@ -56,25 +47,27 @@ else:
 jaxfne.ConfigValidationResult
 ```
 
-Result container from configuration validation.
+Frozen dataclass container from configuration validation.
 
 ### Attributes
 
 - `valid` (bool): True if configuration passes all checks
-- `errors` (list[str]): List of error messages (empty if valid)
-- `warnings` (list[str]): Non-critical warnings
-- `readout_status` (dict): Operator status declarations
+- `issues` (tuple[str, ...]): Blocking issue messages (empty if valid)
+- `warnings` (tuple[str, ...]): Non-critical warnings
+- `truth_boundary` (dict): Declared truth/claim-level section
+- `schema_version` (str): Schema version the config was validated against
 
 ### Methods
 
-#### `print_summary()`
+#### `to_dict() -> dict`
 
-Print human-readable validation summary.
+Return a JSON-safe dict of the result (`valid`, `issues`, `warnings`,
+`truth_boundary`, `schema_version`).
 
 **Example:**
 ```python
 result = jtfne.validate_config(cfg)
-result.print_summary()
+print(result.to_dict())
 ```
 
 ---
@@ -98,7 +91,7 @@ Validate field output for numerical consistency.
 
 **Example:**
 ```python
-field = jtfne.project_sources_to_laminar_field(sources, geometry)
+field = jtfne.project_sources_to_laminar_field(sources, positions)
 status = jtfne.validate_source_field_status(field)
 
 if status["all_finite"]:
@@ -111,59 +104,54 @@ else:
 
 ---
 
-### `validate_projection_invariants(sources: jax.Array, field: FieldOutput) -> bool`
+### `validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -> dict`
 
-Check that field respects source-field relationships.
+Check structural invariants of the laminar proxy projection: kernel
+row-normalization (row-stochastic to `tol=1e-6`, skipped when
+`mode="density_preserving"`) and finiteness/shape consistency of the proxy
+arrays. This checks the proxy operator's internal consistency only — it makes
+no claim of physical correctness.
 
-**Parameters:**
-- `sources` (jax.Array): Original source signals [time, locations]
-- `field` (FieldOutput): Computed field output
+**Parameters (all keyword-only):**
+- `sources` (jax.Array): Original source signals `[time, n_emitters]`
+- `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
+- `kernel` (jax.Array): Projection kernel `[n_contacts, n_emitters]`
+- `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` (jax.Array): Proxy outputs to check
+- `mode` (str): Projection mode used (`"row_normalize"` or `"density_preserving"`)
 
-**Returns:** Boolean (True if valid)
-
-**Invariants checked:**
-- Field magnitude proportional to source magnitude
-- No unphysical amplification/attenuation
-- CSD sign convention consistent
-- Spatial relationships preserved
+**Returns:** JSON-safe `dict` of per-invariant pass/fail diagnostics (not a bool)
 
 **Example:**
 ```python
-is_valid = jtfne.validate_projection_invariants(sources, field)
-assert is_valid, "Field does not respect source relationship"
+report = jtfne.validate_projection_invariants(
+    sources=sources, positions=positions, kernel=kernel,
+    source_proxy=source_proxy, phi_e_proxy=phi_e_proxy,
+    csd_proxy=csd_proxy, lfp_proxy=lfp_proxy, mode="density_preserving",
+)
+assert not report["warnings"], f"Projection invariants failed: {report['warnings']}"
 ```
 
 ---
 
 ## Conservation Diagnostics
 
-### `compute_conservation_proxy_diagnostics(sources, field) -> dict`
+### `compute_conservation_proxy_diagnostics(*, source=None, phi_e=None, csd=None, lfp=None, field_solution=None, source_calibration_status=..., field_solver_status=..., field_claim_level=...) -> dict`
 
-Compute conservation-inspired diagnostic metrics.
+Compute conservation-inspired proxy diagnostics over existing source/field
+arrays. All array parameters are optional and keyword-only — pass whichever of
+`source`/`phi_e`/`csd`/`lfp` you have, or a `field_solution: FieldOutput`.
 
-**Parameters:**
-- `sources` (jax.Array): Source signals [time, locations]
-- `field` (FieldOutput): Field output
+**Parameters (all keyword-only, all optional):**
+- `source`, `phi_e`, `csd`, `lfp` (jax.Array): Arrays to diagnose
+- `field_solution` (FieldOutput, optional): Alternative to passing the arrays individually
+- `source_calibration_status`, `field_solver_status`, `field_claim_level` (str): Truth-gate metadata carried through into the report, conservative defaults
 
-**Returns:** Dictionary of diagnostic metrics
-
-**Metrics:**
-- `total_source_power`: Sum of |source|² over all locations and times
-- `field_energy`: Sum of |LFP|² + |CSD|² over all locations and times
-- `energy_ratio`: field_energy / total_source_power
-- `source_moments`: Spatial center of mass and variance over time
-- `field_moments`: Field center of mass over time
+**Returns:** Dictionary of diagnostic metrics (raises `ValueError` on a non-finite diagnostic value rather than returning one)
 
 **Example:**
 ```python
-diag = jtfne.compute_conservation_proxy_diagnostics(sources, field)
-
-print(f"Source power: {diag['total_source_power']:.3e}")
-print(f"Field energy: {diag['field_energy']:.3e}")
-print(f"Energy ratio: {diag['energy_ratio']:.3f}")
-
-# Should be <1.0 (field has lower energy than source in proxy mode)
-assert diag['energy_ratio'] < 1.0
+diag = jtfne.compute_conservation_proxy_diagnostics(source=sources, lfp=signals.LFP, csd=signals.CSD)
+print(diag["source_norm_l1"], diag["warnings"])
 ```
 
 ---
@@ -220,12 +208,14 @@ else:
 
 ## Metadata Validation
 
-### `config_truth_boundary(cfg: Configuration) -> dict`
+### `config_truth_boundary(cfg: JaxFNEConfig) -> dict`
 
-Get status/statement boundaries for a configuration.
+Reporting/passthrough helper — returns a JSON-safe copy of `cfg.truth` exactly
+as stored, without re-validating it. Call `validate_config` first to confirm
+the truth section is structurally correct.
 
 **Parameters:**
-- `cfg` (Configuration): Configuration to check
+- `cfg` (JaxFNEConfig): Config to check
 
 **Returns:** Dictionary with status for each operator
 
@@ -252,37 +242,40 @@ print(f"Field solver status: {boundaries['field_solver_status']}")
 ```python
 import jaxfne as jtfne
 
-# 1. Validate configuration
+# 1. Build and construct (fluent Configuration -> Model)
 cfg = jtfne.Configuration()
 # ... configure ...
-cfg_result = jtfne.validate_config(cfg)
-assert cfg_result.valid, f"Config invalid: {cfg_result.errors}"
-
-# 2. Construct and simulate
 model = jtfne.construct(cfg)
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
 
-# 3. Validate signals are finite
+# 2. Validate signals are finite
 assert jtfne.is_valid_signal(signals), "Signals contain NaN/Inf"
 
-# 4. Validate field relationships (if field was computed)
+# 3. Validate field relationships (if field was computed) — validate_projection_invariants
+#    operates on the raw proxy arrays, not a FieldOutput, and is keyword-only
 if signals.source is not None and signals.LFP is not None:
-    field_valid = jtfne.validate_projection_invariants(
-        signals.source, 
-        FieldOutput(LFP=signals.LFP, CSD=signals.CSD, source=signals.source)
+    report = jtfne.validate_projection_invariants(
+        sources=signals.source, positions=positions, kernel=kernel,
+        source_proxy=signals.source, phi_e_proxy=signals.phi_e,
+        csd_proxy=signals.CSD, lfp_proxy=signals.LFP, mode="density_preserving",
     )
-    assert field_valid, "Field does not respect source relationship"
+    assert not report["warnings"], f"Projection invariants failed: {report['warnings']}"
 
-# 5. Check conservation diagnostics
+# 4. Check conservation diagnostics
 if signals.source is not None and signals.LFP is not None:
     diag = jtfne.compute_conservation_proxy_diagnostics(
-        signals.source,
-        FieldOutput(LFP=signals.LFP, CSD=signals.CSD, source=signals.source)
+        source=signals.source, lfp=signals.LFP, csd=signals.CSD,
     )
-    print(f"Energy ratio: {diag['energy_ratio']:.3f}")
+    print(diag["warnings"])
 
 print("✓ All validation checks passed")
 ```
+
+Note: `validate_config(cfg: JaxFNEConfig)` validates the separate dict-backed
+`JaxFNEConfig` produced by `load_config(...)`, not the fluent `Configuration`
+object used above with `construct()` — the two config representations are not
+interchangeable; see `AGENTS.md` for the config-path vs fluent-builder
+distinction.
 
 ---
 

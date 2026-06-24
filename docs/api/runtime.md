@@ -11,63 +11,40 @@ The runtime module provides configuration objects for controlling JAX execution 
 ## RuntimeConfig
 
 ```python
-jaxfne.RuntimeConfig(seed=None, dtype='float32', **kwargs)
+jaxfne.RuntimeConfig(
+    backend="auto", dtype="float32", jit=False, vmap=False,
+    precision="default", seed=0, n_steps=0, recurrent_backend="dense",
+    synaptic_kernel="exponential", recompilation_guard="warning",
+    enable_homeostasis=False, homeostasis_params={...},
+)
 ```
 
-Execution backend and device settings for simulations.
+A plain frozen-by-convention dataclass (no fluent `with_*` methods) holding
+JAX execution/backend/dtype policy and emitter control. `dtype='float64'` is
+honored only when JAX x64 is enabled globally; the manifest reports both the
+requested and actual dtype policy.
 
-### Attributes
+### Fields
 
-- `seed` (int, optional): Random seed for JAX PRNG
-- `dtype` (str): JAX dtype ('float32', 'float64')
-- `device` (str, optional): Compute device ('cpu', 'gpu', 'tpu')
-- `enable_x64` (bool): Enable 64-bit precision (default: False)
-- `xla_flags` (dict, optional): XLA compiler flags
+- `backend` (str): `"auto"` | `"cpu"` | `"gpu"` | `"tpu"`
+- `dtype` (str): `"float32"` | `"float64"`
+- `jit` (bool | str): `True`/`False`/`"auto"`
+- `vmap` (bool | str): `True`/`False`/`"auto"`
+- `precision` (str): `"default"` | `"high"`
+- `seed` (int): default `0`
+- `n_steps` (int): default `0`
+- `recurrent_backend` (str): `"dense"` | `"edge_list"`
+- `synaptic_kernel` (str): `"exponential"` | `"receptor_exponential"`
+- `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
+- `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
+- `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables
 
-### Methods
-
-#### `with_seed(seed: int) -> RuntimeConfig`
-
-Create a new RuntimeConfig with specified seed.
-
-**Parameters:**
-- `seed` (int): New random seed
-
-**Returns:** Updated `RuntimeConfig`
+To change a setting, construct a new `RuntimeConfig(...)` with the desired
+fields — there is no `with_seed`/`with_dtype`/`with_device` mutator API.
 
 **Example:**
 ```python
-runtime_cfg = jtfne.RuntimeConfig(seed=42)
-runtime_cfg_new = runtime_cfg.with_seed(100)
-```
-
-#### `with_dtype(dtype: str) -> RuntimeConfig`
-
-Create a new RuntimeConfig with specified dtype.
-
-**Parameters:**
-- `dtype` (str): JAX dtype ('float32' or 'float64')
-
-**Returns:** Updated `RuntimeConfig`
-
-**Example:**
-```python
-runtime_cfg = jtfne.RuntimeConfig(dtype='float32')
-runtime_cfg_f64 = runtime_cfg.with_dtype('float64')
-```
-
-#### `with_device(device: str) -> RuntimeConfig`
-
-Create a new RuntimeConfig with specified device.
-
-**Parameters:**
-- `device` (str): Device type ('cpu', 'gpu', 'tpu')
-
-**Returns:** Updated `RuntimeConfig`
-
-**Example:**
-```python
-runtime_cfg = runtime_cfg.with_device('gpu')
+runtime_cfg = jtfne.RuntimeConfig(seed=42, dtype="float32")
 ```
 
 ---
@@ -242,26 +219,6 @@ report = jtfne.runtime_report()
 print(f"JAX version: {report['jax_version']}")
 print(f"Available devices: {report['available_devices']}")
 ```
-
----
-
-## XLA Compiler Flags
-
-Advanced: Control JAX/XLA compiler behavior:
-
-```python
-runtime_cfg = jtfne.RuntimeConfig(
-    xla_flags={
-        'xla_force_host_platform_device_count': 4,  # Simulate multi-device
-        'xla_gpu_autotune_level': 2,  # Autotuning aggressiveness
-    }
-)
-```
-
-**Common flags:**
-- `xla_gpu_autotune_level`: Autotuning (0-4, higher = more thorough)
-- `xla_dump_to`: Debug output directory
-- `xla_force_host_platform_device_count`: Virtual device count
 
 ---
 

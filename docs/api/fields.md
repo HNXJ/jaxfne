@@ -53,46 +53,47 @@ geom = jtfne.LaminarSourceGeometry.from_dict({
 
 ---
 
-### `project_laminar_sources(currents, geometry) -> source_signals`
+### `project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -> FieldOutput`
 
-Project neural currents into laminar space.
+Project emitter sources into laminar contact space.
 
-**Parameters:**
-- `currents` (jax.Array): Emitter transmembrane currents [time, neurons]
-- `geometry` (LaminarSourceGeometry): Spatial geometry
+**Parameters (keyword-only after `positions`):**
+- `sources` (jax.Array): Emitter source signals `[time, n_emitters]`
+- `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
+- `n_contacts` (int): Number of laminar contacts, default `16`
+- `width` (float): Gaussian kernel width, default `0.10`
+- `mode` (str): `"density_preserving"` (default) preserves absolute scale; `"row_normalize"` erases attenuation for contacts outside the modeled population
+- `dtype` (str): Output dtype, default `"float32"`
 
-**Returns:** Source signals [time, locations]
+**Returns:** `FieldOutput`
 
 **Description:**
-Transforms point-neuron currents into distributed source density using anatomical position mapping. Current values are assigned to nearest spatial locations; not a full dipole solve.
+Transforms point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.
 
 **Example:**
 ```python
-source = jtfne.project_laminar_sources(I_mem, geometry)
+field = jtfne.project_laminar_sources(sources, positions, n_contacts=16)
 ```
 
 ---
 
-### `project_sources_to_laminar_field(sources, geometry, ...) -> field_output`
+### `project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -> FieldOutput`
 
-Project laminar sources to field readouts (LFP, CSD).
+Convenience wrapper over `project_laminar_sources` with `n_contacts` as a
+positional parameter.
 
 **Parameters:**
-- `sources` (jax.Array): Source density [time, locations]
-- `geometry` (LaminarSourceGeometry): Spatial geometry
-- `conductivity_mode` (str, optional): Field approximation mode
+- `sources` (jax.Array): Source density `[time, n_emitters]`
+- `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
+- `n_contacts` (int, positional): Number of laminar contacts, default `16`
+- `mode` (str, keyword-only): `"density_preserving"` (default) | `"row_normalize"`
+- `dtype` (str, keyword-only): Output dtype, default `"float32"`
 
-**Returns:** `FieldOutput` containing LFP and CSD arrays
-
-**Modes:**
-- `"proxy_convolution"`: Spatial convolution approximation (default)
-- `"mean_zero_projection"`: Mean-zero constraint
+**Returns:** `FieldOutput` containing LFP and CSD proxy arrays
 
 **Example:**
 ```python
-field = jtfne.project_sources_to_laminar_field(
-    sources, geometry, conductivity_mode="proxy_convolution"
-)
+field = jtfne.project_sources_to_laminar_field(sources, positions, n_contacts=16, mode="density_preserving")
 ```
 
 ---
@@ -219,7 +220,7 @@ Build the per-neuron cable time constant array consumed by `cable_filter_sources
 **Returns:** `tau_s` (`jax.Array`, seconds, shape `[N]`).
 
 **Description:**
-Defaults are the validated sweep point used by `cable_filter_sources` below
+Defaults are the numerically-swept operating point used by `cable_filter_sources` below
 (`order=2`). `PV` gets the shortest tau (highest cutoff, passes gamma at
 every depth); `E` cells get a depth-graded tau (long apical dendrites on deep
 pyramidal cells => longer tau => lower cutoff).
@@ -265,7 +266,7 @@ ratio 1.30 (deep-dominant, same direction as the unfiltered baseline) and
 gamma deep:superficial power ratio 0.66 (flips to superficial-dominant — a
 genuine absolute band-selective effect, absent from the unfiltered
 flat-gain baseline). `order=1` gives the same direction but a much weaker
-gamma flip (0.93); `order=2` is the validated default.
+gamma flip (0.93); `order=2` is the sweep-selected default.
 
 **Example:**
 ```python
@@ -376,24 +377,21 @@ status = jtfne.validate_source_field_status(field)
 assert status["all_finite"]
 ```
 
-### `validate_projection_invariants(sources, field_output) -> bool`
+### `validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -> dict`
 
-Check that field respects source-field relationships.
-
-**Parameters:**
-- `sources` (jax.Array): Original sources
-- `field_output` (FieldOutput): Computed field
-
-**Returns:** Boolean (valid=True)
-
-**Invariants:**
-- Field sign convention consistency
-- No unphysical amplification
-- Conservation properties (relative)
+Check structural invariants of the laminar proxy projection (kernel
+row-normalization, finiteness, shape consistency). See
+[Validation API](validation.md#validate_projection_invariantssources-jaxarray-field-fieldoutput---bool)
+for the full parameter list — all keyword-only, returns a `dict` of
+pass/fail diagnostics, not a `bool`.
 
 **Example:**
 ```python
-is_valid = jtfne.validate_projection_invariants(sources, field)
+report = jtfne.validate_projection_invariants(
+    sources=sources, positions=positions, kernel=kernel,
+    source_proxy=source_proxy, phi_e_proxy=phi_e_proxy,
+    csd_proxy=csd_proxy, lfp_proxy=lfp_proxy,
+)
 ```
 
 ### `compute_conservation_proxy_diagnostics(sources, field) -> dict`

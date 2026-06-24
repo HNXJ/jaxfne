@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 218 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 219 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -35,7 +35,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**218**) checked against the complete symbol index
+> live `len(jaxfne.__all__)` (**219**) checked against the complete symbol index
 > below.
 
 ## Minimal workflow (verified)
@@ -220,9 +220,9 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**219 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (69)
+### Core (70)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -237,6 +237,7 @@ and figure/readout outputs remain proxy diagnostics
 | `Configuration` | class | Declarative TFNE model configuration. |
 | `configuration` | func | —  _(undocumented)_ |
 | `ConfigValidationResult` | class | Report container for configuration validation. |
+| `connect` | func | Fuse two or more constructed `Model`s into one ensemble Model. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
 | `DatasetSpec` | class | Manifest-safe dataset/comparison declaration for observed data. |
@@ -390,12 +391,13 @@ and figure/readout outputs remain proxy diagnostics
 | `save_figure` | func | Save a matplotlib figure to disk. |
 | `save_figures` | func | Save multiple figures to an output directory. |
 
-### Bridges — Jaxley (7)
+### Bridges — Jaxley (8)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `BridgeSpec` | class | JSON-safe optional-backend bridge declaration. |
 | `hh_numpy_reference_trace` | func | Standalone tutorial/reference Hodgkin-Huxley single-compartment trace. |
+| `jaxley_to_signals` | func | Convert a Jaxley module + `jaxley.integrate` output into jaxfne `Signals`. |
 | `jaxley_trace_to_signals` | func | Convert Jaxley-style voltage trace array to jaxfne Signals. |
 | `JaxleyBridge` | class | Jaxley-focused biophysical emitter bridge. |
 | `JaxleyEmitterBridge` | class | Jaxley bridge contract for reserved compartment emitters. |
@@ -449,7 +451,7 @@ and figure/readout outputs remain proxy diagnostics
 | `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
 | `update_stdp_weights_jax` | func | JAX-optimized plasticity weight update kernel (STDP). |
 
-### Tutorial utils (4)
+### Tutorial utils (5)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -457,6 +459,7 @@ and figure/readout outputs remain proxy diagnostics
 | `kappa_synchrony` | func | Compute spike synchrony measure (kappa statistic) across neurons. |
 | `rate_synchrony_targets` | func | Create an objective specification for AGSDR tuning toward rate and synchrony targets. |
 | `select_neurons` | func | Select neuron indices matching given criteria (area, layer, cell_type). |
+| `spectrolaminar_motif_score` | func | Anti-correlation motif score between a deep alpha/beta and a superficial gamma band. |
 
 ### Sharding (4)
 
