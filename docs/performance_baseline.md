@@ -24,8 +24,9 @@ jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to doc
 - GPU/TPU acceleration factors
 - Comparative performance vs. other simulators (no comparative statements)
 - Biological accuracy or empirical correspondence
-- Scalability beyond tested network sizes (50, 100 neurons)
 - Real-time performance or hardware-general conclusions
+
+Network-size scaling up to 10,000 neurons IS now measured; see "Scaling Evidence" below.
 
 ---
 
@@ -56,6 +57,43 @@ jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to doc
 | Objective evaluation | 2–5 ms | Same objective |
 | Manifest generation | 1–3 ms | Same as Case 1 |
 | **Total** | **~330–560 ms** | Single-run wall-clock |
+
+---
+
+## Scaling Evidence (N=100 / 1,000 / 10,000)
+
+**Added:** measured, not assumed. `benchmarks/scaling_benchmark.py` runs construct+simulate+probe
+at three network sizes with `duration_ms`/`dt_ms` held fixed, each case in its own subprocess
+(so `peak_rss_mb` is per-case, not a cumulative process maximum). Receipt:
+`outputs/benchmarks_scaling/scaling_report.json`.
+
+| N | construct (ms) | simulate (ms) | peak RSS (MB) |
+|---|---|---|---|
+| 100 | 1,021 | 873 | 390 |
+| 1,000 | 1,058 | 864 | 482 |
+| 10,000 | 1,305 | 17,783 | 4,211 |
+
+Growth ratio per 10x step in N (single run, Apple Silicon CPU, jax 0.10.1):
+
+| N step | construct ratio | simulate ratio | RSS ratio |
+|---|---|---|---|
+| 100 → 1,000 | 1.0x | 1.0x | 1.2x |
+| 1,000 → 10,000 | 1.2x | 20.6x | 8.7x |
+
+**Reading this honestly:** `construct` stays flat across all three sizes in this configuration —
+the measured cost here is dominated by fixed JAX/JIT setup overhead, not network-size-dependent
+work, at least up to N=10,000. `simulate` and `peak_rss_mb` are a different story: going from
+N=1,000 to N=10,000 (a 10x step) costs ~20.6x more simulate wall-clock and ~8.7x more peak memory.
+Both ratios are well above the ~10x a linear-in-N path would show, and are in the direction
+consistent with the dense (`recurrent_backend="dense"`) O(N²) recurrent weight matrix documented
+in `jaxfne/core.py` (search `O(N^2)` there for the exact call sites). This is **evidence that the
+dense path is currently the dominant cost at N=10,000 in wall-clock and memory**, not a closed-form
+complexity proof — the script measures three points, not a continuous curve, and runs on one
+machine, one time.
+
+**What this changes about the "Statement Boundaries" below:** "Time scales linearly with neuron
+count and duration (within tested range)" no longer holds once the tested range is extended to
+N=10,000 — see the corrected statement boundaries.
 
 ---
 
@@ -112,14 +150,18 @@ Device: CpuDevice(id=0)
 ### What CAN be stated:
 
 ✓ "jaxfne simulates 50 neurons for 100 ms in ~150 ms wall-clock on CPU" (with hardware/date caveat)  
-✓ "Time scales linearly with neuron count and duration" (within tested range)  
-✓ "Core simulation dominates total time; overhead phases are ~10% of total"  
-✓ "Configuration and construction are negligible overhead"
+✓ "Time scales roughly linearly with neuron count up to N=1,000 on the dense backend" (measured)  
+✓ "Simulate cost and peak memory grow faster than linearly between N=1,000 and N=10,000 on the
+  dense recurrent backend (measured ~20.6x time, ~8.7x memory for a 10x step in N)"  
+✓ "Core simulation dominates total time at large N; overhead phases are negligible by comparison"  
+✓ "Configuration and construction are negligible overhead at the tested sizes"
 
 ### What CANNOT be stated:
 
+✗ "Time scales linearly with neuron count at all tested sizes" (false above N≈1,000; see Scaling
+  Evidence above — corrects the prior, narrower-range version of this claim)  
 ✗ "jaxfne is faster than X simulator" (no comparative analysis)  
-✗ "jaxfne scales to 1M neurons efficiently" (untested, extrapolation forbidden)  
+✗ "jaxfne scales to 1M neurons efficiently" (untested beyond N=10,000, extrapolation forbidden)  
 ✗ "Real-time factor = X" (depends on hardware, stimulus properties, and objective)  
 ✗ "This reflects biological simulation accuracy" (computational_scaffold, proxy-field only)  
 ✗ "GPU acceleration would be dramatic" (unvalidated; Apple GPU is not integrated)
@@ -132,6 +174,13 @@ Device: CpuDevice(id=0)
 ```bash
 python scripts/benchmark_jaxfne.py
 # Outputs: outputs/benchmarks_v030/benchmark_report.json
+```
+
+**To regenerate the N=100/1,000/10,000 scaling evidence:**
+```bash
+PYTHONPATH=. python benchmarks/scaling_benchmark.py
+# Outputs: outputs/benchmarks_scaling/scaling_report.json
+# Takes roughly 20-30s on Apple Silicon CPU; dominated by the N=10,000 simulate phase.
 ```
 
 **Expected variability:**
@@ -171,6 +220,7 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 - `docs/tutorials/tutorial_outputs.md` — tutorial runtime contracts
 - `docs/jax_compatibility.md` — JAX baseline and device fallback
 - `scripts/benchmark_jaxfne.py` — benchmark source code
+- `benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
 - `scripts/validate_json_safe.py` — JSON safety validator
 - `tests/test_performance_reports_v030.py` — performance report schema validation
 - `CHANGELOG.md` — version history and release notes
