@@ -13,7 +13,9 @@ def build_cylinder_cortex(
     height_mm: float = 1.0,
 ):
     cfg = (
-        jtfne.build_laminar_column("V1", n=n, ei_profile="canonical")
+        jtfne.build_laminar_column(
+            "V1", n=n, ei_profile="canonical", layers=jtfne.CANONICAL_LAYERS_6L,
+        )
         .update_metadata(column_radius_mm=radius_mm, column_height_mm=height_mm)
         .set_emitter("izhikevich", "cortical_eig")
         .probes(["spikes", "V_m"])
@@ -31,8 +33,12 @@ def main() -> None:
         coordinate_unit="mm",
         display_unit="um",
         show_layers=True,
+        layer_plane_opacity=0.16,
+        show_layer_annotations=True,
         show_column_shells=True,
         column_shape="cylinder",
+        depth_multiplier=2.0,
+        point_size=4.0,
         output_html=OUT,
     )
     print(f"wrote {OUT}")
