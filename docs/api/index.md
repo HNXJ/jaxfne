@@ -320,11 +320,11 @@ and figure/readout outputs remain proxy diagnostics
 | `EdgeList` | class | Sparse recurrent connectivity as a JAX pytree. |
 | `EIGNetwork` | class | Lightweight description of an E/PV/SST/VIP-like reduced network. |
 | `Emitter` | class | Base class for package-level emitter facades. |
-| `GLIFEmitter` | class | Base class for package-level emitter facades. |
+| `GLIFEmitter` | class | Fenced emitter facade stub; construction raises `NotImplementedError`. |
 | `izhikevich_params_from_labels` | func | Create reduced Izhikevich parameters from explicit cell labels. |
 | `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with a JAX step function. |
 | `IzhikevichParams` | class | Parameter container for a reduced Izhikevich population. |
-| `LIFEmitter` | class | Base class for package-level emitter facades. |
+| `LIFEmitter` | class | Fenced emitter facade stub; construction raises `NotImplementedError`. |
 | `make_edge_list_from_dense` | func | Convert a dense recurrent weight matrix into a sparse EdgeList. |
 | `make_eig_network` | func | Build a minimal EIG network with laminar depth positions. |
 | `ReceptorSpec` | class | Metadata declaration for a synaptic receptor. Not a biological kernel. |
