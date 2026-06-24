@@ -33,9 +33,13 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not slow" --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
 
-      - name: Run all tests (including slow)
+      # Real notebook execution (the `notebook` marker) is covered by the
+      # dedicated, scheduled/manual notebook_execution.yml workflow instead
+      # of every main push -- 28 release-facing notebooks can take well over
+      # an hour combined. Other `slow` tests still run here on main.
+      - name: Run all tests (including slow, excluding notebook execution)
         if: github.ref == 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not notebook" --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
 
       - name: Run examples
         run: |
