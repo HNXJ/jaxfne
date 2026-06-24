@@ -90,6 +90,9 @@ def build_config() -> dict[str, Any]:
         # Longer duration used only for the final spectrolaminar-motif cell,
         # where frequency resolution benefits from more samples.
         "spectro_duration_ms": 2000.0,
+        # Shorter duration for the K_HDP x tau_0_ms stability map (24 runs
+        # at the grid sizes below) -- diagnostic only, not the tuned point.
+        "stability_duration_ms": 500.0,
         # --- Field/probe (objective-grammar Configuration requires both) ---
         "field_kwargs": dict(
             domain="laminar_column", conductivity="proxy",
@@ -226,6 +229,98 @@ def _in_target_band(rate_by_type_hz: dict[str, float], band: tuple[float, float]
     return all(lo <= r <= hi for r in rate_by_type_hz.values())
 
 
+# %% [3b] HDP state-trajectory diagnostics (H_trace/w_trace are already
+# returned by the kernel -- no kernel change needed). This directly answers
+# the unresolved question raised in review: when an overactive cell type's
+# rate sits outside the target band, is H not tracking it (estimator-blind,
+# mean(H-1) ~= 0) or is H tracking it but the weight update isn't correcting
+# it (controller-ineffective, |H-1| >> 0)? A single final-state snapshot
+# cannot distinguish "H never moves" / "H moves but weights saturate" / "H
+# oscillates" -- only the full time series can.
+
+
+def compute_hdp_state_diagnostics(
+    model: "jtfne.core.Model", cfg: dict[str, Any], run: dict[str, Any], *, bin_ms: float = 20.0
+) -> dict[str, dict[str, np.ndarray]]:
+    """Per-cell-type time series: mean_H, var_H, mean_weight (full res) + binned rate/pressure."""
+
+    labels = np.asarray(model.params["emitter"].labels)
+    diagnostics = run["diagnostics"]
+    H_trace = np.asarray(diagnostics["H_trace"])  # (n_steps, n_neurons)
+    w_trace = np.asarray(diagnostics["w_trace"])  # (n_steps, n_edges)
+    spikes = np.asarray(run["spikes"])  # (n_steps, n_neurons)
+    pre = np.asarray(model.params["edge_list"].pre)
+    dt_ms = cfg["dt_ms"]
+    n_steps = H_trace.shape[0]
+    t_ms = np.arange(n_steps) * dt_ms
+
+    bin_steps = max(1, int(round(bin_ms / dt_ms)))
+    n_bins = n_steps // bin_steps
+
+    per_type: dict[str, dict[str, np.ndarray]] = {}
+    for cell_type in sorted(set(labels.tolist())):
+        mask = labels == cell_type
+        if not mask.any():
+            continue
+        H_ct = H_trace[:, mask]  # (n_steps, n_ct)
+        mean_H_t = H_ct.mean(axis=1)
+        var_H_t = H_ct.var(axis=1)
+
+        edge_mask = mask[pre]
+        w_ct = w_trace[:, edge_mask] if edge_mask.any() else np.full((n_steps, 0), np.nan)
+        mean_weight_t = np.abs(w_ct).mean(axis=1) if w_ct.shape[1] else np.full(n_steps, np.nan)
+
+        spikes_ct = spikes[:, mask][: n_bins * bin_steps]
+        rate_binned_hz = (
+            spikes_ct.reshape(n_bins, bin_steps, -1).sum(axis=(1, 2))
+            / (mask.sum() * (bin_steps * dt_ms / 1000.0))
+        )
+        H_binned = mean_H_t[: n_bins * bin_steps].reshape(n_bins, bin_steps).mean(axis=1)
+        t_bin_ms = (np.arange(n_bins) * bin_steps + bin_steps / 2.0) * dt_ms
+
+        per_type[cell_type] = {
+            "t_ms": t_ms,
+            "mean_H_t": mean_H_t,
+            "var_H_t": var_H_t,
+            "mean_weight_t": mean_weight_t,
+            "t_bin_ms": t_bin_ms,
+            "rate_binned_hz": rate_binned_hz,
+            "pressure_binned": H_binned - 1.0,
+        }
+    return per_type
+
+
+def classify_hdp_state(per_type: dict[str, dict[str, np.ndarray]], band: tuple[float, float], *, pressure_eps: float = 0.05) -> dict[str, dict[str, Any]]:
+    """Steady-state (second-half) rate/pressure classification per cell type.
+
+    Operationalizes the estimator-blind vs. controller-ineffective question:
+    if a cell type's rate is out of band, low |H-1| means H is not encoding
+    the overactivity (estimator-blind); large |H-1| means H sees it but the
+    weight update isn't correcting it (controller-ineffective).
+    """
+
+    classification: dict[str, dict[str, Any]] = {}
+    for cell_type, d in per_type.items():
+        n_bins = d["rate_binned_hz"].shape[0]
+        half = n_bins // 2
+        steady_rate = float(np.mean(d["rate_binned_hz"][half:])) if n_bins else float("nan")
+        steady_pressure = float(np.mean(d["pressure_binned"][half:])) if n_bins else float("nan")
+        in_band = band[0] <= steady_rate <= band[1]
+        if in_band:
+            label = "in_band"
+        elif abs(steady_pressure) < pressure_eps:
+            label = "estimator_blind"  # rate out of band, H not tracking it
+        else:
+            label = "controller_ineffective"  # H tracking it, weight update not correcting it
+        classification[cell_type] = {
+            "steady_rate_hz": steady_rate,
+            "steady_pressure_H_minus_1": steady_pressure,
+            "in_band": in_band,
+            "classification": label,
+        }
+    return classification
+
+
 # %% [4] K_HDP sweep -- at fixed tau_0_ms, scan the global plasticity gain.
 
 
@@ -263,6 +358,43 @@ def sweep_tau_0_ms(model: "jtfne.core.Model", cfg: dict[str, Any], K_HDP: float)
             f"sat={summary['weight_saturation_fraction']:.3f}  "
             f"in_band={summary['in_target_band']}"
         )
+    return results
+
+
+# %% [5b] K_HDP x tau_0_ms stability map -- distinguishes a genuine
+# tuning problem from a feedback-control instability. max_var_H / max_var_w
+# are population-variance proxies for a runaway/oscillatory controller: if
+# instability (high max_var_H, high weight_saturation) appears below a
+# critical tau_0_ms regardless of K_HDP, that's a controller-bandwidth
+# limit, not evidence that more gain (or per-cell-type gain) is needed.
+
+
+def sweep_stability_map(model: "jtfne.core.Model", cfg: dict[str, Any]) -> list[dict[str, Any]]:
+    duration_ms = cfg.get("stability_duration_ms", cfg["duration_ms"])
+    results = []
+    for k in cfg["K_HDP_GRID"]:
+        for tau in cfg["TAU0_GRID_MS"]:
+            run = run_hdp(model, cfg, seed=cfg["seed"], duration_ms=duration_ms, overrides={"K_HDP": k, "tau_0_ms": tau})
+            summary = summarize_run(model, cfg, run)
+            H_trace = np.asarray(run["diagnostics"]["H_trace"])
+            w_trace = np.asarray(run["diagnostics"]["w_trace"])
+            max_var_H = float(H_trace.var(axis=1).max())
+            max_var_w = float(w_trace.var(axis=1).max())
+            point = {
+                "K_HDP": k,
+                "tau_0_ms": tau,
+                "mean_rate_hz": summary["overall_rate_hz"],
+                "weight_saturation_fraction": summary["weight_saturation_fraction"],
+                "kappa_synchrony": summary["kappa_synchrony"],
+                "max_var_H": max_var_H,
+                "max_var_w": max_var_w,
+            }
+            results.append(point)
+            print(
+                f"K_HDP={k:>5.2f} tau_0_ms={tau:>6.1f}  rate={point['mean_rate_hz']:.2f}Hz  "
+                f"sat={point['weight_saturation_fraction']:.3f}  max_var_H={max_var_H:.4f}  "
+                f"max_var_w={max_var_w:.4f}"
+            )
     return results
 
 
@@ -425,6 +557,84 @@ def _plot_waveforms(waveforms: dict[str, np.ndarray], dt_ms: float, out_path: Pa
     plt.close(fig)
 
 
+def _plot_H_trajectories(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    for cell_type, d in per_type.items():
+        ax.plot(d["t_ms"], d["mean_H_t"], label=cell_type)
+    ax.axhline(1.0, color="k", ls="--", lw=0.8, label="H=1 (equilibrium)")
+    ax.set_xlabel("time (ms)")
+    ax.set_ylabel("mean H")
+    ax.set_title("HDP master state H_i over time (per cell type)")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def _plot_pressure_trajectories(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    for cell_type, d in per_type.items():
+        ax.plot(d["t_ms"], d["mean_H_t"] - 1.0, label=cell_type)
+    ax.axhline(0.0, color="k", ls="--", lw=0.8)
+    ax.set_xlabel("time (ms)")
+    ax.set_ylabel("mean(H-1)  [controller error]")
+    ax.set_title("HDP pressure (error signal) over time")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def _plot_rate_vs_pressure(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+    for cell_type, d in per_type.items():
+        ax.scatter(d["pressure_binned"], d["rate_binned_hz"], s=10, alpha=0.5, label=cell_type)
+    ax.axvline(0.0, color="k", ls="--", lw=0.5)
+    ax.set_xlabel("mean(H-1)  [controller error]")
+    ax.set_ylabel("binned firing rate (Hz)")
+    ax.set_title("Rate vs. controller error (healthy controller -> monotonic)")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+def _plot_stability_map(results: list[dict[str, Any]], cfg: dict[str, Any], out_path: Path) -> None:
+    import matplotlib.pyplot as plt
+
+    ks = cfg["K_HDP_GRID"]
+    taus = cfg["TAU0_GRID_MS"]
+    by_point = {(r["K_HDP"], r["tau_0_ms"]): r for r in results}
+
+    fields = [
+        ("mean_rate_hz", "mean rate (Hz)"),
+        ("weight_saturation_fraction", "weight saturation frac."),
+        ("max_var_H", "max var(H)"),
+    ]
+    fig, axes = plt.subplots(1, 3, figsize=(13, 3.5))
+    for ax, (key, title) in zip(axes, fields):
+        grid = np.array([[by_point[(k, t)][key] for t in taus] for k in ks])
+        im = ax.imshow(grid, aspect="auto", cmap="viridis")
+        ax.set_xticks(range(len(taus)))
+        ax.set_xticklabels([f"{t:g}" for t in taus])
+        ax.set_yticks(range(len(ks)))
+        ax.set_yticklabels([f"{k:g}" for k in ks])
+        ax.set_xlabel("tau_0_ms")
+        ax.set_ylabel("K_HDP")
+        ax.set_title(title)
+        fig.colorbar(im, ax=ax, fraction=0.046)
+    fig.suptitle("K_HDP x tau_0_ms stability map")
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     cfg = build_config()
@@ -446,6 +656,19 @@ def main() -> None:
 
     tuned_overrides = {"K_HDP": best_K_HDP, "tau_0_ms": best_tau_0_ms}
 
+    print("\n=== [3b] HDP state-trajectory diagnostics (at tuned point) ===")
+    diag_run = run_hdp(model, cfg, seed=cfg["seed"], overrides=tuned_overrides)
+    per_type_diag = compute_hdp_state_diagnostics(model, cfg, diag_run)
+    state_classification = classify_hdp_state(per_type_diag, cfg["target_rate_hz"])
+    for cell_type, c in state_classification.items():
+        print(
+            f"{cell_type:>5s}: steady_rate={c['steady_rate_hz']:.2f}Hz  "
+            f"H-1={c['steady_pressure_H_minus_1']:+.4f}  -> {c['classification']}"
+        )
+
+    print("\n=== [5b] K_HDP x tau_0_ms stability map ===")
+    stability_results = sweep_stability_map(model, cfg)
+
     print("\n=== [6] Spectrolaminar motif at tuned operating point ===")
     motif = compute_spectrolaminar_motif(model, cfg, tuned_overrides)
     print(f"tuned-point summary: {motif['summary']}")
@@ -463,6 +686,10 @@ def main() -> None:
     _plot_sweep(tau_results, "tau_0_ms", cfg["target_rate_hz"], OUTPUT_DIR / "tau_0_ms_sweep.png", "tau_0_ms (ms)")
     _plot_spectrolaminar_motif(motif, OUTPUT_DIR / "spectrolaminar_motif.png")
     _plot_waveforms(waveforms, cfg["dt_ms"], OUTPUT_DIR / "ei_waveform_proxy.png")
+    _plot_H_trajectories(per_type_diag, OUTPUT_DIR / "hdp_H_trajectories.png")
+    _plot_pressure_trajectories(per_type_diag, OUTPUT_DIR / "hdp_pressure_trajectories.png")
+    _plot_rate_vs_pressure(per_type_diag, OUTPUT_DIR / "hdp_rate_vs_pressure.png")
+    _plot_stability_map(stability_results, cfg, OUTPUT_DIR / "hdp_stability_map.png")
 
     receipt = {
         "claim_level": "computational_scaffold",
@@ -473,6 +700,8 @@ def main() -> None:
         "tuned_operating_point_summary": final_summary,
         "spike_triggered_fwhm_ms_proxy": widths,
         "spectrolaminar_summary": motif["summary"],
+        "hdp_state_classification": state_classification,
+        "hdp_stability_map": stability_results,
     }
     with open(OUTPUT_DIR / "receipt.json", "w") as f:
         json.dump(receipt, f, indent=2, allow_nan=False)
