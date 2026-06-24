@@ -187,6 +187,7 @@
     "simulation",
     "solve_ode",
     "solve_volume_conductor_experimental",
+    "spectrolaminar_motif_score",
     "spectrolaminar_psd_jax",
     "spectrolaminar_readout_kernel_jax",
     "spectrolaminar_similarity_candidates_jax",
