@@ -1452,6 +1452,33 @@ class Configuration:
             metadata["homeostasis_params"] = params
         return replace(self, metadata=metadata)
 
+    def hdp(self, relative_baseline: float = 1.0, **kwargs: Any) -> "Configuration":
+        """Declare an HDP (Homeostasis-Dependent Plasticity) baseline, mirroring
+        :meth:`homeostasis`.
+
+        ``relative_baseline=1.0`` is the identity/neutral setting: it leaves
+        ``RuntimeConfig.enable_hdp=False`` (unchanged ``simulate()`` output).
+        Deviating from ``1.0`` (or passing any ``hdp_params`` override, e.g.
+        ``K_HDP=``, ``alpha=``) resolves ``K_HDP = relative_baseline - 1.0``
+        (overridable via an explicit ``K_HDP=`` kwarg) and enables the HDP
+        kernel via ``metadata["enable_hdp"]`` / ``metadata["hdp_params"]``,
+        consumed by ``simulate()`` through ``_runtime_config_from_metadata``.
+        Mutually exclusive with :meth:`homeostasis` at the ``RuntimeConfig``
+        level (enforced in ``RuntimeConfig.__post_init__``).
+        """
+        rb = float(relative_baseline)
+        spec = {"relative_baseline": rb, **dict(kwargs)}
+        metadata = dict(self.metadata)
+        metadata["hdp"] = spec
+        active = rb != 1.0 or bool(kwargs)
+        metadata["enable_hdp"] = active
+        if active:
+            params = dict(RuntimeConfig().hdp_params)
+            params["K_HDP"] = rb - 1.0
+            params.update(kwargs)
+            metadata["hdp_params"] = params
+        return replace(self, metadata=metadata)
+
     # ------------------------------------------------------------------
     # v0.3.28 completion: declarative circuit/training ownership.
     #

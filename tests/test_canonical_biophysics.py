@@ -117,3 +117,21 @@ def test_homeostasis_k_gain_size_scaled_runs_and_json_safe():
     json.dumps(jtfne.manifest(_canon(), signals=sig))
     # diagnostics present
     assert m.last_homeostasis_diagnostics()["g_bias"].shape[0] == int(600.0 / 0.5)
+
+
+def test_hdp_runs_on_canonical_column_and_json_safe():
+    """HDP engages on the canonical column (mirrors
+    test_homeostasis_k_gain_size_scaled_runs_and_json_safe)."""
+    m = jtfne.construct(_canon())
+    rt = jtfne.RuntimeConfig(
+        enable_hdp=True,
+        hdp_params={"K_HDP": 0.01, "alpha": 0.05, "gamma": 0.5, "K_ctrl": 0.15},
+    )
+    sig = jtfne.simulate(m, sim=jtfne.Simulation(duration_ms=600.0, dt_ms=0.5, seed=0, runtime=rt))
+    assert bool(np.isfinite(np.asarray(sig.V_m)).all())
+    # metadata params stay JSON-safe (no raw arrays)
+    import json
+    json.dumps(sig.metadata["hdp"]["params"])
+    json.dumps(jtfne.manifest(_canon(), signals=sig))
+    # diagnostics present
+    assert m.last_hdp_diagnostics()["H_trace"].shape[0] == int(600.0 / 0.5)

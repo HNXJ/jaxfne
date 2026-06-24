@@ -88,3 +88,24 @@ def test_receptor_kernel_with_hdp_raises():
 def test_enable_homeostasis_and_enable_hdp_mutually_exclusive():
     with pytest.raises(ValueError, match="mutually exclusive"):
         jtfne.RuntimeConfig(enable_homeostasis=True, enable_hdp=True)
+
+
+def test_cache_key_isolated_across_hdp_params_on_reused_model():
+    """A reused Model switching K_HDP (identical shapes) must not replay a stale
+    compiled closure built for the first K_HDP -- mirrors
+    test_cache_key_isolated_across_r_star_on_reused_model for homeostasis."""
+    model = _build({"jit": True})
+    sim_a = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_hdp=True, jit=True,
+                                 hdp_params={"alpha": 0.05, "gamma": 0.5,
+                                             "K_ctrl": 0.15, "K_HDP": 0.01}))
+    sig_a = model.simulate(sim_a)
+    sim_b = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                             runtime=jtfne.RuntimeConfig(
+                                 enable_hdp=True, jit=True,
+                                 hdp_params={"alpha": 0.05, "gamma": 0.5,
+                                             "K_ctrl": 0.15, "K_HDP": 0.5}))
+    sig_b = model.simulate(sim_b)
+    assert not np.array_equal(np.asarray(sig_a.V_m), np.asarray(sig_b.V_m))
+    assert len([k for k in model._compiled_cache if k[0] == "simulate_hdp"]) == 2

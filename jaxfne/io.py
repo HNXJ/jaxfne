@@ -103,6 +103,7 @@ def manifest(
         "operator_status": cfg_metadata.get("operator_status", {}),
         "plasticity": cfg_metadata.get("plasticity"),
         "homeostasis": cfg_metadata.get("homeostasis"),
+        "hdp": cfg_metadata.get("hdp"),
         "config_hash": config_hash(cfg),
     }
     if runtime_config is not None:
