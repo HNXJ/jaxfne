@@ -92,6 +92,7 @@ def test_suite_no4_notebook_content_validation():
 
 
 @pytest.mark.slow
+@pytest.mark.notebook
 def test_suite_no4_notebook_execution():
     """Execute Suite No. 4 notebook using nbclient.
 
@@ -117,39 +118,7 @@ def test_suite_no4_notebook_execution():
     inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
     nb.cells.insert(1, inject_cell)
 
-    from contextlib import contextmanager
-    import sys
-    import tempfile
-    import json
-    import shutil
-    from jupyter_client.kernelspec import KernelSpecManager
-
-    @contextmanager
-    def portable_kernel_context():
-        spec = {
-            "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
-            "display_name": "JAXFNE Portable Test Kernel",
-            "language": "python",
-        }
-        temp_dir = tempfile.mkdtemp()
-        try:
-            spec_path = Path(temp_dir) / "kernel.json"
-            with open(spec_path, "w") as f:
-                json.dump(spec, f)
-            ksm = KernelSpecManager()
-            kernel_name = "jaxfne_test_kernel"
-            ksm.install_kernel_spec(temp_dir, kernel_name, user=True, replace=True)
-            yield kernel_name
-        finally:
-            try:
-                ksm = KernelSpecManager()
-                ksm.remove_kernel_spec("jaxfne_test_kernel")
-            except Exception:
-                pass
-            try:
-                shutil.rmtree(temp_dir)
-            except Exception:
-                pass
+    from _notebook_exec_helpers import portable_kernel_context
 
     try:
         with portable_kernel_context() as kernel_name:

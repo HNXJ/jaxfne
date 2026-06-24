@@ -182,7 +182,7 @@ def test_core_import_does_not_require_plotly():
     import jaxfne.vis  # noqa: F401
     # No plotly in the module's top-level namespace check
     vis_mod = sys.modules.get("jaxfne.vis")
-    assert vis_mod is not None
+    assert vis_mod is jaxfne.vis
     # The function should be importable without triggering plotly
     from jaxfne.vis import visualize_network_3d  # noqa: F401
 

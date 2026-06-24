@@ -36,6 +36,7 @@ from .emitters import (
 _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
+from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
 
 # v0.3.29: canonical selector/identity types live in experimental_hpc.contracts.
 # Re-export (do not duplicate) so the stable API exposes one definition.
@@ -7881,11 +7882,14 @@ _OBJECTIVE_REPORT_SCHEMA_VERSION = "objective_report.v0.0.18"
 # v0.0.21: explicit source proxy metadata.
 # Documents what the current Izhikevich scaffold computes as the "source" field.
 # Reading the edge/dense kernels: source_proxy = source_scale * (current_native
-# + 20.0 * spikes), where current_native = drive + recurrent_syn + noise. The
-# 20.0 gain is hardcoded in simulate_edge_recurrent_izhikevich (and the dense
-# variant). No physical-amplitude claim is made; this remains an uncalibrated
-# proxy. The double-count guard records that synaptic current enters the source
-# only via the single proxy expression, not as a separate additive term.
+# + DEFAULT_SPIKE_IMPULSE_GAIN * spikes), where current_native = drive +
+# recurrent_syn + noise. The gain constant lives in presets.py and is shared by
+# every kernel variant in emitters.py (simulate_edge_recurrent_izhikevich and
+# the dense variants) -- they must stay in sync or the double-count guard
+# below breaks. No physical-amplitude claim is made; this remains an
+# uncalibrated proxy. The double-count guard records that synaptic current
+# enters the source only via the single proxy expression, not as a separate
+# additive term.
 _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "source_model": "izhikevich_native_current_plus_spike_impulse_proxy",
     "source_mode": "native_current_plus_spike_impulse_proxy",
@@ -7894,7 +7898,7 @@ _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "includes_recurrent_synaptic_current": True,
     "includes_noise_current": True,
     "includes_spike_impulse": True,
-    "spike_impulse_gain": 20.0,
+    "spike_impulse_gain": DEFAULT_SPIKE_IMPULSE_GAIN,
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "physical_amplitude_calibrated": False,
     "double_count_synaptic_current_guard": (

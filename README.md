@@ -88,6 +88,25 @@ spk = signals.get("spk")                             # (n_steps, n_neurons) spik
 vm_e = signals.get("vm", cell_type="E")              # membrane voltage for E cells
 ```
 
+## Which workflow should I use?
+
+There are two independent ways to build and run a laminar column. They return
+different object types, so pick one per task rather than mixing mid-script:
+
+| Goal | Path | Returns |
+|---|---|---|
+| Single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive | `jtfne.laminar_cortex_config` → `jtfne.construct` → `jtfne.simulate` (above) | `Model` / `Signals` |
+| Multi-trial spectrolaminar sweeps, similarity scoring across trials | `jaxfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | plain `dict` of trial arrays |
+
+Per-neuron-subset stimulus targeting (e.g. drive only L4 E cells on one event)
+goes through a per-event `target_indices` key on the event dict passed to
+`StimulusSchedule(events=...)`, built from
+`model.neuron_table()` — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)
+§ "Two paths to a laminar run" and the
+[Objective Grammar](https://jaxfne.readthedocs.io/en/latest/guides/objective_grammar/)
+guide for the full pipeline this feeds into. Worked example end to end:
+[`tutorials/jaxfne_v040_continuous_omission_oddball.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb).
+
 ## Canonical cortex (default prior)
 
 The verified ground-truth laminar prior is a first-class API surface — no source

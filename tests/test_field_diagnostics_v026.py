@@ -71,7 +71,7 @@ class TestSourceBalanceDiagnosticV026:
             operator_path="physical_candidate", residual=1e-6
         )
         json_str = json.dumps(diag)
-        assert json_str is not None
+        assert json.loads(json_str) == diag
 
 
 class TestGaugeDiagnosticV026:
@@ -113,7 +113,7 @@ class TestGaugeDiagnosticV026:
         """Test that gauge diagnostic is JSON-serializable."""
         diag = make_gauge_diagnostic(operator_path="proxy")
         json_str = json.dumps(diag)
-        assert json_str is not None
+        assert json.loads(json_str) == diag
 
 
 class TestBoundaryDiagnosticV026:
@@ -144,7 +144,7 @@ class TestBoundaryDiagnosticV026:
         """Test that boundary diagnostic is JSON-serializable."""
         diag = make_boundary_diagnostic(operator_path="proxy")
         json_str = json.dumps(diag)
-        assert json_str is not None
+        assert json.loads(json_str) == diag
 
 
 class TestManufacturedResidualDiagnosticV026:
@@ -183,7 +183,7 @@ class TestManufacturedResidualDiagnosticV026:
             operator_path="physical_candidate", residual_l2_relative=0.01
         )
         json_str = json.dumps(diag)
-        assert json_str is not None
+        assert json.loads(json_str) == diag
 
 
 class TestFieldOperatorStatusV026:
@@ -218,7 +218,7 @@ class TestFieldOperatorStatusV026:
         """Test that operator status is JSON-serializable."""
         status = make_field_operator_status(operator_path="proxy")
         json_str = json.dumps(status)
-        assert json_str is not None
+        assert json.loads(json_str) == status
 
 
 class TestDiagnosticIntegrationV026:

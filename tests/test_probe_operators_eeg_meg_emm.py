@@ -318,8 +318,9 @@ class TestProbeIntegration:
         signals = model.simulate(sim)
 
         # Verify standard probes work
-        assert signals.spikes is not None
-        assert signals.V_m is not None
+        assert signals.spikes.shape == (100, 8)
+        assert signals.V_m.shape == (100, 8)
+        assert bool(jnp.all(jnp.isfinite(signals.V_m)))
 
     def test_no_output_labels_claim_real_eeg_meg(self):
         """Proxy operator reports must not claim real EEG/MEG."""

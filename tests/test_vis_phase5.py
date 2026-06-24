@@ -11,9 +11,17 @@ Covers:
 
 import numpy as np
 import pytest
+from matplotlib.figure import Figure
 
 import jaxfne as jtfne
 from jaxfne import vis
+
+
+def _assert_real_figure(fig):
+    """A returned vis figure must be a real matplotlib Figure with content."""
+    assert isinstance(fig, Figure)
+    assert len(fig.axes) > 0
+    assert hasattr(fig, "savefig")
 
 
 @pytest.fixture(autouse=True)
@@ -58,7 +66,7 @@ class TestBandpower:
     def test_custom_bands(self):
         signals = _make_minimal_signals()
         fig = vis.bandpower(signals, band_definitions={"gamma": (40.0, 80.0)})
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_proxy_title_present(self):
         signals = _make_minimal_signals()
@@ -71,7 +79,7 @@ class TestBandpower:
         """bandpower does not raise on signals with finite LFP."""
         signals = _make_minimal_signals()
         fig = vis.bandpower(signals)
-        assert fig is not None
+        _assert_real_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -88,7 +96,7 @@ class TestLaminarProfile:
     def test_alias_layer_celltype_counts(self):
         signals = _make_minimal_signals()
         fig = vis.layer_celltype_counts(signals)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_proxy_safe_title(self):
         signals = _make_minimal_signals()
@@ -110,7 +118,7 @@ class TestLaminarProfile:
             metadata={},  # no neuron_metadata key
         )
         fig = vis.laminar_profile(sparse_signals)
-        assert fig is not None
+        _assert_real_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -127,20 +135,20 @@ class TestConnectivity:
     def test_alias_connectivity_matrix(self):
         W = np.random.randn(10, 10).astype(np.float32)
         fig = vis.connectivity_matrix(W)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_with_cell_type_labels(self):
         W = np.random.randn(4, 4).astype(np.float32)
         labels = ["E", "PV", "SST", "VIP"]
         fig = vis.connectivity(W, cell_type_labels=labels)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_no_weight_matrix_fallback(self):
         """Returns placeholder figure when weight matrix is not accessible."""
         class FakeModel:
             params = {}  # no 'W' key
         fig = vis.connectivity(FakeModel())
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_proxy_title(self):
         W = np.eye(5, dtype=np.float32)
@@ -163,7 +171,7 @@ class TestGeometry3d:
     def test_alias_column_geometry(self):
         cfg = _make_configuration()
         fig = vis.column_geometry(cfg)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_proxy_safe_title(self):
         cfg = _make_configuration()
@@ -174,12 +182,12 @@ class TestGeometry3d:
     def test_from_signals(self):
         signals = _make_minimal_signals()
         fig = vis.geometry3d(signals)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_area_filter(self):
         cfg = _make_configuration()
         fig = vis.geometry3d(cfg, areas=["V1"])
-        assert fig is not None
+        _assert_real_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -214,12 +222,12 @@ class TestMultiAreaLayout:
             metadata={},  # no columns key
         )
         fig = vis.multi_area_layout(sparse_signals)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_area_filter(self):
         cfg = _make_configuration()
         fig = vis.multi_area_layout(cfg, areas=["V1"])
-        assert fig is not None
+        _assert_real_figure(fig)
 
 
 # ---------------------------------------------------------------------------
@@ -236,12 +244,12 @@ class TestObjectiveReport:
     def test_from_dict(self):
         data = {"score_history": [2.0, 1.5, 1.2, 0.9, 0.7]}
         fig = vis.objective_report(data)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_no_history_fallback(self):
         """Returns placeholder when history not extractable."""
         fig = vis.objective_report(None)
-        assert fig is not None
+        _assert_real_figure(fig)
 
     def test_proxy_safe_suptitle(self):
         fig = vis.objective_report([1.0, 0.5, 0.3])
@@ -252,7 +260,7 @@ class TestObjectiveReport:
         """objective_report handles NaN gracefully."""
         history = [1.0, 0.8, float("nan"), 0.5, 0.4]
         fig = vis.objective_report(history)
-        assert fig is not None
+        _assert_real_figure(fig)
 
 
 # ---------------------------------------------------------------------------

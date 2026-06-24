@@ -53,6 +53,15 @@ Every row's validation status is reported at runtime by `jaxfne.operator_status(
 See [Tensor Operator Registry](api/tensor_operators.md) for the live registry and
 its symbol-to-stage mapping — this page does not duplicate that registry.
 
+**On the name "Validation" for the final stage:** some external descriptions of this
+pipeline label the seventh stage "Validation" rather than "Manifest". The codebase
+has one final stage, `Manifest`, in the "bookkeeping / truth gate" class above; it
+already includes the field-admissibility/source-conservation checks that live in
+`jaxfne/validation.py` (`validate_source_field_status`, `make_field_operator_status`,
+etc. — see [Field Validation](api/validation.md)) as part of producing that report.
+There is no separate eighth "Validation" stage to implement; "Validation" and
+"Manifest" name the same stage.
+
 ---
 
 ## Operator classes

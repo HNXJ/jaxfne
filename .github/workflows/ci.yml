@@ -33,9 +33,13 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not slow" --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
 
-      - name: Run all tests (including slow)
+      # Real notebook execution (the `notebook` marker) is covered by the
+      # dedicated, scheduled/manual notebook_execution.yml workflow instead
+      # of every main push -- 28 release-facing notebooks can take well over
+      # an hour combined. Other `slow` tests still run here on main.
+      - name: Run all tests (including slow, excluding notebook execution)
         if: github.ref == 'refs/heads/main'
-        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
+        run: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest -q --tb=short -m "not notebook" --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py
 
       - name: Run examples
         run: |
@@ -43,7 +47,12 @@ jobs:
                     examples/01_generalized_readout_smoke.py examples/02_generalized_vis_smoke.py \
                     examples/02_omission_scaffold.py examples/03_objective_and_tune_smoke.py \
                     examples/04_blackbox_tuning_loop.py examples/05_dataset_bridge_manifest.py \
-                    examples/06_edge_list_recurrent_backend.py examples/07_jaxley_trace_bridge.py; do
+                    examples/06_edge_list_recurrent_backend.py examples/07_jaxley_trace_bridge.py \
+                    examples/00_generalized_izhikevich_3d_smoke.py examples/02_spectrolaminar_oddball_scaffold.py \
+                    examples/03_jaxley_bridge_smoke.py examples/03_single_neuron_multimodal_probe.py \
+                    examples/04_two_neuron_ei_multimodal.py examples/05_network_100_ei_multimodal.py \
+                    examples/v031_single_izhikevich_neuron.py examples/v032_single_neuron_parameter_sweep.py \
+                    examples/v033_two_neuron_ei_multimodal.py; do
             PYTHONPATH=. python "$ex" > /dev/null && echo "PASS: $ex" || { echo "FAIL: $ex"; exit 1; }
           done
 

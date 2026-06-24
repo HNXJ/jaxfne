@@ -153,7 +153,8 @@ def test_probe_modes_reject_retired_like():
 def test_signal_get_rejects_retired_like():
     model = jtfne.construct(_base())
     sig = model.simulate(jtfne.simulation(duration_ms=20.0, dt_ms=0.5, seed=0))
-    assert sig.get("lfp_proxy") is not None
+    lfp = sig.get("lfp_proxy")
+    assert lfp.ndim == 2
     with pytest.raises(KeyError):
         sig.get("lfp_like")
 

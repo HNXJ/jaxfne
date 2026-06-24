@@ -24,13 +24,15 @@ import pytest
 nbclient = pytest.importorskip("nbclient")
 nbformat = pytest.importorskip("nbformat")
 
+from _notebook_exec_helpers import execute_notebook_via_nbclient, format_cell_errors
+
 NOTEBOOK_PATH = (
     Path(__file__).parent.parent
     / "tutorials"
     / "jaxfne_suite_no_1_computational_biophysics.ipynb"
 )
 
-pytestmark = [pytest.mark.slow]
+pytestmark = [pytest.mark.slow, pytest.mark.notebook]
 
 
 @pytest.mark.slow
@@ -47,78 +49,10 @@ def test_suite_no1_notebook_executes(tmp_path):
 
     assert NOTEBOOK_PATH.exists(), f"Notebook not found: {NOTEBOOK_PATH}"
 
-    nb = nbformat.read(str(NOTEBOOK_PATH), as_version=4)
-
-    # Inject FIG_DIR override and sys.path setup so notebook imports local jaxfne.
-    import nbformat as _nbf
-
-    repo_root = Path(__file__).parent.parent.resolve()
-    inject_source = f'import sys\nsys.path.insert(0, "{repo_root}")\nFIG_DIR = "{tmp_path}"\n'
-    inject_cell = _nbf.v4.new_code_cell(source=inject_source)
-    inject_cell.metadata["tags"] = ["injected-by-smoke-test"]
-
-    # Prepend after the first cell (setup cell stays first).
-    nb.cells.insert(1, inject_cell)
-
-    from nbclient import NotebookClient
-    from contextlib import contextmanager
-    import sys
-    import tempfile
-    import json
-    import shutil
-    from jupyter_client.kernelspec import KernelSpecManager
-
-    @contextmanager
-    def portable_kernel_context():
-        spec = {
-            "argv": [sys.executable, "-m", "ipykernel_launcher", "-f", "{connection_file}"],
-            "display_name": "JAXFNE Portable Test Kernel",
-            "language": "python",
-        }
-        temp_dir = tempfile.mkdtemp()
-        try:
-            spec_path = Path(temp_dir) / "kernel.json"
-            with open(spec_path, "w") as f:
-                json.dump(spec, f)
-            ksm = KernelSpecManager()
-            kernel_name = "jaxfne_test_kernel"
-            ksm.install_kernel_spec(temp_dir, kernel_name, user=True, replace=True)
-            yield kernel_name
-        finally:
-            try:
-                ksm = KernelSpecManager()
-                ksm.remove_kernel_spec("jaxfne_test_kernel")
-            except Exception:
-                pass
-            try:
-                shutil.rmtree(temp_dir)
-            except Exception:
-                pass
-
-    with portable_kernel_context() as kernel_name:
-        client = NotebookClient(
-            nb,
-            timeout=900,
-            kernel_name=kernel_name,
-            resources={"metadata": {"path": str(tmp_path)}},
-        )
-        client.execute()
-
-    # Assert no cell produced a kernel error output.
-    error_cells = []
-    for i, cell in enumerate(nb.cells):
-        if cell.get("cell_type") != "code":
-            continue
-        for output in cell.get("outputs", []):
-            if output.get("output_type") == "error":
-                ename = output.get("ename", "UnknownError")
-                evalue = output.get("evalue", "")
-                error_cells.append((i, ename, evalue))
-
-    assert error_cells == [], (
-        f"Notebook cells produced errors:\n"
-        + "\n".join(f"  cell {i}: {e}: {v}" for i, e, v in error_cells)
+    errors = execute_notebook_via_nbclient(
+        NOTEBOOK_PATH, tmp_path, timeout=900, extra_inject=f'FIG_DIR = "{tmp_path}"\n'
     )
+    assert errors == [], format_cell_errors(errors)
 
 
 if __name__ == "__main__":

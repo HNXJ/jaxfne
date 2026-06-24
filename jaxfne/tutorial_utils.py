@@ -1951,6 +1951,24 @@ def spectrolaminar_from_trials(
     }
 
 
+def spectrolaminar_motif_score(alpha_beta, gamma) -> float:
+    """Anti-correlation motif score between a deep alpha/beta and a
+    superficial gamma depth profile (0-100; 100 = perfect anti-correlation).
+
+    Scores a profile against itself, not against an external target — see
+    `spectrolaminar_similarity_kernel_jax` (jaxfne.analysis.spectral) for the
+    target-based scorer; the two are not interchangeable.
+    """
+    ab = np.asarray(alpha_beta, dtype=np.float64)
+    gm = np.asarray(gamma, dtype=np.float64)
+    if ab.size >= 2 and np.std(ab) > 1e-9 and np.std(gm) > 1e-9:
+        corr = float(np.corrcoef(ab, gm)[0, 1])
+    else:
+        corr = 0.0
+    # Anti-correlation (corr = -1) maps to 100%; corr = +1 maps to 0%.
+    return float(np.clip((1.0 - corr) * 50.0, 0.0, 100.0))
+
+
 def summarize_spectrolaminar_similarity(
     trials: dict,
     cfg: LaminarColumnConfig,
@@ -2011,14 +2029,7 @@ def summarize_spectrolaminar_similarity(
         # the spectrolaminar motif is an alpha-beta deep / gamma superficial
         # gradient, so score the anti-correlation between the two depth
         # profiles. Finite, JSON-safe, reproducible (no RNG).
-        ab = np.asarray(spec['alpha_beta'], dtype=np.float64)
-        gm = np.asarray(spec['gamma'], dtype=np.float64)
-        if ab.size >= 2 and np.std(ab) > 1e-9 and np.std(gm) > 1e-9:
-            corr = float(np.corrcoef(ab, gm)[0, 1])
-        else:
-            corr = 0.0
-        # Anti-correlation (corr = -1) maps to 100%; corr = +1 maps to 0%.
-        similarity_pct = float(np.clip((1.0 - corr) * 50.0, 0.0, 100.0))
+        similarity_pct = spectrolaminar_motif_score(spec['alpha_beta'], spec['gamma'])
 
         scores.append({
             'area': area,

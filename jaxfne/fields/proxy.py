@@ -1257,11 +1257,20 @@ def spectrolaminar_similarity(
     return float(score)
 
 
-class spectrolaminar_objective:
-    """Legacy multi-area spectrolaminar objective wrapper."""
+class LegacyMultiAreaSpectrolaminarObjective:
+    """Legacy multi-area spectrolaminar objective wrapper.
+
+    Distinct from the active :func:`jaxfne.objectives.spectrolaminar_objective`
+    function (the maintained scoring path, called by
+    :func:`jaxfne.objectives.spectrolaminar_objective_factory`). This class
+    predates that function and is retained for backward compatibility under
+    its original name :data:`spectrolaminar_objective` (this module); prefer
+    importing it as ``LegacyMultiAreaSpectrolaminarObjective`` in new code to
+    avoid the name collision with ``jaxfne.objectives.spectrolaminar_objective``.
+    """
     def __init__(self, target_profiles: Optional[dict] = None):
         self.target_profiles = target_profiles or {}
-        
+
     def score(self, readouts: dict[str, dict], spikes: Optional[dict] = None) -> float:
         """Documented public function `score`."""
         scores = []
@@ -1279,3 +1288,10 @@ class spectrolaminar_objective:
         if not scores:
             return 50.0
         return float(np.mean(scores))
+
+
+# Backward-compatible alias: this is the original public name. Existing
+# imports of `spectrolaminar_objective` from this module/`jaxfne.fields`
+# continue to work unchanged; new code should prefer the disambiguated name
+# above to avoid colliding with `jaxfne.objectives.spectrolaminar_objective`.
+spectrolaminar_objective = LegacyMultiAreaSpectrolaminarObjective

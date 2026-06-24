@@ -17,10 +17,15 @@ class TestRuntimeModule:
     """Test suite for runtime module imports and contracts."""
 
     def test_runtime_module_import(self):
-        """Test that jaxfne.runtime module can be imported."""
-        # Import locally to avoid module-level namespace pollution
+        """Test that jaxfne.runtime module can be imported.
+
+        ``jaxfne.runtime`` the *attribute* resolves to the top-level
+        ``runtime()`` function (CustomModuleType collision), so the
+        submodule import is checked via sys.modules instead.
+        """
+        import sys
         import jaxfne.runtime
-        assert jaxfne.runtime is not None
+        assert isinstance(sys.modules["jaxfne.runtime"], type(sys))
 
     def test_runtime_config_import(self):
         """Test that RuntimeConfig can be imported from jaxfne.runtime."""

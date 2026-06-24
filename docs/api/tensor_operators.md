@@ -100,7 +100,7 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 
 ### Optimizer operators
 
-- `agsdr(...)`, `gsdr(...)`, `optax_adam(...)`, `random_search(...)`.
+- `agsdr(...)`, `gsdr(...)`, `gsgd(...)`, `optax_adam(...)`, `random_search(...)`.
 
 ### Validation / bookkeeping operators
 

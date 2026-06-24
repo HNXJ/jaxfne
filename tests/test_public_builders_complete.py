@@ -251,7 +251,11 @@ class TestBuilderFunctions:
         """Test build_multi_area_columns includes inter-area connectivity."""
         cfg = jtfne.build_multi_area_columns(["V1", "V4"], n_per_area=100)
         # Should have inter-area connectivity between V1 and V4
-        assert cfg.metadata.get("inter_column_connectivity") is not None
+        links = cfg.metadata.get("inter_column_connectivity")
+        assert isinstance(links, list) and len(links) > 0
+        area_pairs = {(link["source_area"], link["target_area"]) for link in links}
+        assert ("V1", "V4") in area_pairs
+        assert ("V4", "V1") in area_pairs
 
     def test_connect_columns(self):
         """Test connect_columns adds inter-area connectivity."""

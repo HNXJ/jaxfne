@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 218 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 222 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -35,7 +35,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**218**) checked against the complete symbol index
+> live `len(jaxfne.__all__)` (**222**) checked against the complete symbol index
 > below.
 
 ## Minimal workflow (verified)
@@ -95,6 +95,22 @@ jtfne.build_laminar_column()                        # V1, n=1000, flat E:I, unif
 jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth gradient, laminar placement
 jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
 ```
+
+> **Distinct from `build_tutorial_laminar_column`.** This function is the
+> established, fluent-grammar API, returning a `Configuration` for the
+> `Configuration → construct → simulate` pipeline. `build_tutorial_laminar_column`
+> is a separate, older tutorial-notebook scaffold builder (lives at
+> `jaxfne.tutorial_utils.build_laminar_column` internally, exposed at root under
+> this disambiguated alias) — it takes a `LaminarColumnConfig` (built via
+> `make_laminar_column_config(...)`) and returns a plain `dict` with keys
+> `neurons`, `positions_m`, `W_parts`, `truth_gates`. Prefer `build_laminar_column`
+> for new code; the tutorial variant is kept for backward compatibility with
+> existing notebooks.
+>
+> ```python
+> cfg = jtfne.make_laminar_column_config(n_neuron_per_column=500)
+> model_dict = jtfne.build_tutorial_laminar_column(cfg)  # plain dict result
+> ```
 
 ### `build_multi_area_columns(...) -> Configuration`
 
@@ -220,9 +236,9 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**218 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**222 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (69)
+### Core (70)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -237,6 +253,7 @@ and figure/readout outputs remain proxy diagnostics
 | `Configuration` | class | Declarative TFNE model configuration. |
 | `configuration` | func | —  _(undocumented)_ |
 | `ConfigValidationResult` | class | Report container for configuration validation. |
+| `connect` | func | Fuse two or more constructed `Model`s into one ensemble Model. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
 | `DatasetSpec` | class | Manifest-safe dataset/comparison declaration for observed data. |
@@ -303,11 +320,11 @@ and figure/readout outputs remain proxy diagnostics
 | `EdgeList` | class | Sparse recurrent connectivity as a JAX pytree. |
 | `EIGNetwork` | class | Lightweight description of an E/PV/SST/VIP-like reduced network. |
 | `Emitter` | class | Base class for package-level emitter facades. |
-| `GLIFEmitter` | class | Base class for package-level emitter facades. |
+| `GLIFEmitter` | class | Fenced emitter facade stub; construction raises `NotImplementedError`. |
 | `izhikevich_params_from_labels` | func | Create reduced Izhikevich parameters from explicit cell labels. |
 | `IzhikevichEmitter` | class | Reduced Izhikevich emitter facade with a JAX step function. |
 | `IzhikevichParams` | class | Parameter container for a reduced Izhikevich population. |
-| `LIFEmitter` | class | Base class for package-level emitter facades. |
+| `LIFEmitter` | class | Fenced emitter facade stub; construction raises `NotImplementedError`. |
 | `make_edge_list_from_dense` | func | Convert a dense recurrent weight matrix into a sparse EdgeList. |
 | `make_eig_network` | func | Build a minimal EIG network with laminar depth positions. |
 | `ReceptorSpec` | class | Metadata declaration for a synaptic receptor. Not a biological kernel. |
@@ -344,7 +361,7 @@ and figure/readout outputs remain proxy diagnostics
 | `validate_projection_invariants` | func | —  _(undocumented)_ |
 | `validate_source_field_status` | func | Return truth-preserving status for source-field readouts. |
 
-### Optimizers — `optim` (15)
+### Optimizers — `optim` (18)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -356,6 +373,9 @@ and figure/readout outputs remain proxy diagnostics
 | `gsdr` | func | Return an OptimizerSpec for the GSDR (Genetic Stochastic Delta Rule) optimizer. |
 | `gsdr_transform` | func | Return an Optax-compatible GradientTransformation for Genetic SDR. |
 | `GSDRState` | class | Genetic Stochastic Delta Rule optimizer state. |
+| `gsgd` | func | Return an OptimizerSpec for GSGD (jaxfne's built-in gradient descent kernel). |
+| `GSGDState` | class | State for GSGD optimization step. |
+| `step_gsgd_transform` | func | Integrates generalized stochastic gradient updates with adaptive step scaling. |
 | `optax_adam` | func | Return an OptimizerSpec for Optax Adam. |
 | `optax_sgd` | func | Return an OptimizerSpec for Optax SGD. |
 | `OptimizerSpec` | class | Declarative optimizer specification with differentiability metadata. |
@@ -390,12 +410,13 @@ and figure/readout outputs remain proxy diagnostics
 | `save_figure` | func | Save a matplotlib figure to disk. |
 | `save_figures` | func | Save multiple figures to an output directory. |
 
-### Bridges — Jaxley (7)
+### Bridges — Jaxley (8)
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `BridgeSpec` | class | JSON-safe optional-backend bridge declaration. |
 | `hh_numpy_reference_trace` | func | Standalone tutorial/reference Hodgkin-Huxley single-compartment trace. |
+| `jaxley_to_signals` | func | Convert a Jaxley module + `jaxley.integrate` output into jaxfne `Signals`. |
 | `jaxley_trace_to_signals` | func | Convert Jaxley-style voltage trace array to jaxfne Signals. |
 | `JaxleyBridge` | class | Jaxley-focused biophysical emitter bridge. |
 | `JaxleyEmitterBridge` | class | Jaxley bridge contract for reserved compartment emitters. |
@@ -449,7 +470,7 @@ and figure/readout outputs remain proxy diagnostics
 | `summarize_stdp_adaptation` | func | Computes synapse-by-synapse adaptation statistics. |
 | `update_stdp_weights_jax` | func | JAX-optimized plasticity weight update kernel (STDP). |
 
-### Tutorial utils (4)
+### Tutorial utils (5)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -457,6 +478,7 @@ and figure/readout outputs remain proxy diagnostics
 | `kappa_synchrony` | func | Compute spike synchrony measure (kappa statistic) across neurons. |
 | `rate_synchrony_targets` | func | Create an objective specification for AGSDR tuning toward rate and synchrony targets. |
 | `select_neurons` | func | Select neuron indices matching given criteria (area, layer, cell_type). |
+| `spectrolaminar_motif_score` | func | Anti-correlation motif score between a deep alpha/beta and a superficial gamma band. |
 
 ### Sharding (4)
 

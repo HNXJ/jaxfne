@@ -309,15 +309,17 @@ Build a compiled Model from Configuration.
 model = jtfne.construct(cfg)
 ```
 
-### `simulate(model: Model, duration_ms: float, dt_ms: float, seed: int) -> Signals`
+### `simulate(model: Model, sim: Simulation | None = None, paradigm: Any | None = None, **kwargs) -> Signals`
 
-Run simulation on a Model.
+Run simulation on a Model. Either pass an explicit `Simulation` object via `sim=`,
+or pass simulation parameters (`duration_ms`, `dt_ms`, `seed`, `record_sources`,
+`record_fields`, `runtime`, `dtype`, ...) directly as keyword arguments.
 
 **Parameters:**
 - `model` (Model): Constructed model
-- `duration_ms` (float): Duration in milliseconds
-- `dt_ms` (float): Timestep in milliseconds
-- `seed` (int): Random seed
+- `sim` (Simulation, optional): Explicit simulation spec; mutually exclusive with the kwarg form
+- `paradigm` (Any, optional): Task/condition/event paradigm to drive stimulus generation
+- `**kwargs`: `duration_ms` (float), `dt_ms` (float), `seed` (int), and other simulation parameters
 
 **Returns:** `Signals` object
 

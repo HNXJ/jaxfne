@@ -53,46 +53,47 @@ geom = jtfne.LaminarSourceGeometry.from_dict({
 
 ---
 
-### `project_laminar_sources(currents, geometry) -> source_signals`
+### `project_laminar_sources(sources, positions, *, n_contacts=16, width=0.10, mode="density_preserving", dtype="float32") -> FieldOutput`
 
-Project neural currents into laminar space.
+Project emitter sources into laminar contact space.
 
-**Parameters:**
-- `currents` (jax.Array): Emitter transmembrane currents [time, neurons]
-- `geometry` (LaminarSourceGeometry): Spatial geometry
+**Parameters (keyword-only after `positions`):**
+- `sources` (jax.Array): Emitter source signals `[time, n_emitters]`
+- `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
+- `n_contacts` (int): Number of laminar contacts, default `16`
+- `width` (float): Gaussian kernel width, default `0.10`
+- `mode` (str): `"density_preserving"` (default) preserves absolute scale; `"row_normalize"` erases attenuation for contacts outside the modeled population
+- `dtype` (str): Output dtype, default `"float32"`
 
-**Returns:** Source signals [time, locations]
+**Returns:** `FieldOutput`
 
 **Description:**
-Transforms point-neuron currents into distributed source density using anatomical position mapping. Current values are assigned to nearest spatial locations; not a full dipole solve.
+Transforms point-emitter sources into distributed laminar-contact density via a Gaussian-kernel proxy projection — not a full dipole/PDE solve.
 
 **Example:**
 ```python
-source = jtfne.project_laminar_sources(I_mem, geometry)
+field = jtfne.project_laminar_sources(sources, positions, n_contacts=16)
 ```
 
 ---
 
-### `project_sources_to_laminar_field(sources, geometry, ...) -> field_output`
+### `project_sources_to_laminar_field(sources, positions, n_contacts=16, *, mode="density_preserving", dtype="float32") -> FieldOutput`
 
-Project laminar sources to field readouts (LFP, CSD).
+Convenience wrapper over `project_laminar_sources` with `n_contacts` as a
+positional parameter.
 
 **Parameters:**
-- `sources` (jax.Array): Source density [time, locations]
-- `geometry` (LaminarSourceGeometry): Spatial geometry
-- `conductivity_mode` (str, optional): Field approximation mode
+- `sources` (jax.Array): Source density `[time, n_emitters]`
+- `positions` (jax.Array): Emitter positions `[n_emitters, 3]`
+- `n_contacts` (int, positional): Number of laminar contacts, default `16`
+- `mode` (str, keyword-only): `"density_preserving"` (default) | `"row_normalize"`
+- `dtype` (str, keyword-only): Output dtype, default `"float32"`
 
-**Returns:** `FieldOutput` containing LFP and CSD arrays
-
-**Modes:**
-- `"proxy_convolution"`: Spatial convolution approximation (default)
-- `"mean_zero_projection"`: Mean-zero constraint
+**Returns:** `FieldOutput` containing LFP and CSD proxy arrays
 
 **Example:**
 ```python
-field = jtfne.project_sources_to_laminar_field(
-    sources, geometry, conductivity_mode="proxy_convolution"
-)
+field = jtfne.project_sources_to_laminar_field(sources, positions, n_contacts=16, mode="density_preserving")
 ```
 
 ---
@@ -219,7 +220,7 @@ Build the per-neuron cable time constant array consumed by `cable_filter_sources
 **Returns:** `tau_s` (`jax.Array`, seconds, shape `[N]`).
 
 **Description:**
-Defaults are the validated sweep point used by `cable_filter_sources` below
+Defaults are the numerically-swept operating point used by `cable_filter_sources` below
 (`order=2`). `PV` gets the shortest tau (highest cutoff, passes gamma at
 every depth); `E` cells get a depth-graded tau (long apical dendrites on deep
 pyramidal cells => longer tau => lower cutoff).
@@ -265,7 +266,7 @@ ratio 1.30 (deep-dominant, same direction as the unfiltered baseline) and
 gamma deep:superficial power ratio 0.66 (flips to superficial-dominant — a
 genuine absolute band-selective effect, absent from the unfiltered
 flat-gain baseline). `order=1` gives the same direction but a much weaker
-gamma flip (0.93); `order=2` is the validated default.
+gamma flip (0.93); `order=2` is the sweep-selected default.
 
 **Example:**
 ```python
@@ -326,6 +327,57 @@ csd = jtfne.csd_tensor(fo.phi_e_proxy, dz)  # == fo.csd_proxy
 
 ---
 
+### `jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -> (phi, residual, manifest)`
+
+An actual 1D Poisson PDE solve — distinct from the proxy operators above and
+from the fenced multi-dimensional placeholder below.
+
+**Where this sits in the field-solver layer:**
+- **Proxy layer** (`project_laminar_sources`, `csd_tensor`, etc., above): Gaussian-kernel
+  / finite-difference approximations, no PDE assembled or solved. `field_solver_status`
+  stays `"linear_solver"`.
+- **`experimental_poisson_1d` (this function):** assembles and solves a real
+  1D linear system `d/dx (conductivity * d/dx phi) = -sources` via
+  `jnp.linalg.lstsq`, declaring `field_solver_status="experimental_pde_solver"`
+  in its returned manifest. It is a minimal, single-dimension PDE solve — not
+  the calibrated multi-dimensional volume-conductor solver the package's
+  longer-term scope describes.
+- **`solve_volume_conductor_experimental` / `PhysicalFieldSolverSpec`**
+  (`jaxfne/experimental_hpc/`): a loud-fail skeleton for that
+  multi-dimensional solver. Construction is inert; `.validate()` /
+  `solve_physical_field()` raise `NotImplementedError` pending
+  boundary/gauge/calibration validation (see
+  [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md)).
+
+**Parameters:**
+- `sources` (`jax.Array`): 1D array of current/charge sources.
+- `conductivity` (float): conductivity scalar.
+- `dx` (float): grid spacing.
+- `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
+- `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
+  minimum-norm least-squares solution, which satisfies the mean-zero gauge.
+
+**Returns:** `(phi, residual, manifest)` —
+- `phi` (`jax.Array`): solved potential array.
+- `residual` (`jax.Array`): `A @ phi - b` residual of the assembled linear system.
+- `manifest` (`dict`): `claim_level="computational_scaffold"`,
+  `field_solver_status="experimental_pde_solver"`, `boundary_condition`,
+  `gauge_choice`, `residual_norm`, `convergence_status`
+  (`"converged"` if `residual_norm < 1e-3` else `"failed"`),
+  `physical_amplitude_calibrated=False`.
+
+**Example:**
+```python
+import jax.numpy as jnp
+# Pure-Neumann Poisson is only solvable for zero-net-flux sources;
+# a single nonzero entry violates that compatibility condition.
+sources = jnp.zeros(32).at[8].set(1.0).at[24].set(-1.0)
+phi, residual, manifest = jtfne.fields.experimental_poisson_1d(sources, conductivity=1.0, dx=0.1)
+assert manifest["convergence_status"] == "converged"
+```
+
+---
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint
@@ -376,24 +428,21 @@ status = jtfne.validate_source_field_status(field)
 assert status["all_finite"]
 ```
 
-### `validate_projection_invariants(sources, field_output) -> bool`
+### `validate_projection_invariants(*, sources, positions, kernel, source_proxy, phi_e_proxy, csd_proxy, lfp_proxy, mode="row_normalize") -> dict`
 
-Check that field respects source-field relationships.
-
-**Parameters:**
-- `sources` (jax.Array): Original sources
-- `field_output` (FieldOutput): Computed field
-
-**Returns:** Boolean (valid=True)
-
-**Invariants:**
-- Field sign convention consistency
-- No unphysical amplification
-- Conservation properties (relative)
+Check structural invariants of the laminar proxy projection (kernel
+row-normalization, finiteness, shape consistency). See
+[Validation API](validation.md#validate_projection_invariantssources-jaxarray-field-fieldoutput---bool)
+for the full parameter list — all keyword-only, returns a `dict` of
+pass/fail diagnostics, not a `bool`.
 
 **Example:**
 ```python
-is_valid = jtfne.validate_projection_invariants(sources, field)
+report = jtfne.validate_projection_invariants(
+    sources=sources, positions=positions, kernel=kernel,
+    source_proxy=source_proxy, phi_e_proxy=phi_e_proxy,
+    csd_proxy=csd_proxy, lfp_proxy=lfp_proxy,
+)
 ```
 
 ### `compute_conservation_proxy_diagnostics(sources, field) -> dict`

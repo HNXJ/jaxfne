@@ -24,6 +24,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | **Suite 3** | Low-Frequency Scaling | Runnable Notebook | Scale-dependent low-frequency proxy readouts and boundary validation | v0.3.9+ |
 | **09** | EEG/MEG/EMM Proxy Bundle | Runnable Notebook | Separate sensor pathways for scalp potential, magnetic field, and metabolic proxy | v0.3.10+ |
 | **10** | Sensory Omission & Oddball | Runnable Notebook | Expected sensory stimuli, unexpected deviants, and sensory omissions | v0.3.13+ |
+| — | Continuous Sequential Omission Oddball | Runnable Notebook | `general_sequential_oddball_paradigm` backbone + per-event `target_indices` L4-E-only targeting in a 100-neuron V1 column | v0.4.0+ |
 | **06** | Chainable Configuration (100-neuron E/I) | Runnable notebook | New Configuration API: method chaining, E/I population dynamics | v0.3.6+ |
 | **07** | v0.3.7 Source Bookkeeping | Interactive HTML | 3D visualization of source/field/probe workflow | v0.3.7+ |
 | **08** | v0.3.8 LFP/CSD Readout | Runnable notebook | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
@@ -116,6 +117,32 @@ A comprehensive tutorial covering:
 **Five plots** and structured validation manifests.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v0313_omission_oddball.ipynb)
+
+---
+
+## Featured: jaxfne v0.4.0 Continuous Sequential Omission Oddball
+
+**[`jaxfne_v040_continuous_omission_oddball.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb)**
+(runnable notebook) — the current reference example for the
+`general_sequential_oddball_paradigm` backbone (see `jaxfne-paradigm-design`),
+run end to end on a 100-neuron V1 column:
+
+- Part 1: 4-slot sequential paradigm timing (fixation + p1-p4 + delays), one
+  slot declared as the omission via `omission_tokens`
+- Part 2: a per-event `target_indices` key, built from `model.neuron_table()`,
+  stamped onto each event dict passed to `StimulusSchedule(events=...)` to
+  drive only L4 E cells per slot — the worked example for per-neuron-subset
+  stimulus targeting referenced from
+  [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md) and the
+  README's "Which workflow should I use?" section
+- Part 3: Epoch-aligned population spiking and laminar LFP/CSD-proxy readouts
+  across expected, deviant, and omission conditions
+- Part 4: JSON-safe paradigm + validation manifest export
+
+Computational scaffold throughout: `claim_level=computational_scaffold`,
+`field_solver_status=linear_solver`, `physical_amplitude_calibrated=False`.
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb)
 
 ---
 
