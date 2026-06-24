@@ -43,7 +43,7 @@ class TestManifestStructure:
         # If we loaded it successfully, it's already JSON-safe
         # Double-check by re-dumping
         json_str = json.dumps(manifest, allow_nan=False)
-        assert json_str is not None
+        assert json.loads(json_str) == manifest
 
     def test_manifest_has_required_keys(self, manifest):
         """Manifest must have all required top-level keys."""

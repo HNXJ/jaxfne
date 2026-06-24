@@ -214,7 +214,9 @@ def test_spectrolaminar_power_returns_at_least_64_freqs():
     t = np.linspace(0, 100, 1000)
     signal = np.random.default_rng(0).normal(size=(1000, 4))
     fig = plot_spectrolaminar_power(t, signal, freq_min=1.0, freq_max=80.0, n_freqs=64, show=False)
-    assert fig is not None
+    assert isinstance(fig, matplotlib.figure.Figure)
+    n_freq_bins = fig.axes[0].images[0].get_array().shape[0]
+    assert n_freq_bins >= 64
 
 
 def test_save_png_creates_parent_dirs(tmp_path):

@@ -59,7 +59,8 @@ class TestLaminarCortexConfig:
         # Valid: sums to 1.0
         valid = {"E": 0.7, "PV": 0.3}
         cfg = jtfne.laminar_cortex_config(cell_types=valid, n=16)
-        assert cfg is not None
+        assert isinstance(cfg, jtfne.Configuration)
+        assert cfg.metadata["cell_types"] == valid
 
         # Invalid: sums to 0.5
         invalid = {"E": 0.3, "PV": 0.2}
@@ -91,8 +92,12 @@ class TestLaminarCortexConfig:
     def test_default_parameters(self):
         """Test default parameter behavior."""
         cfg = jtfne.laminar_cortex_config()
-        assert cfg is not None
+        assert isinstance(cfg, jtfne.Configuration)
         # Defaults: seed=0, duration_ms=1000.0, dt_ms=0.1, areas=["V1"], layers=6, n=128
+        assert cfg.metadata["seed"] == 0
+        assert cfg.metadata["duration_ms"] == 1000.0
+        assert cfg.metadata["dt_ms"] == 0.1
+        assert cfg.metadata["column_count"] == 1
 
     def test_custom_emitter_izhikevich(self):
         """Izhikevich emitter selection."""

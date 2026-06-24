@@ -106,7 +106,7 @@ class TestActivityTraceSuite:
     def test_returns_figure(self, trials, config):
         """Test function returns Figure."""
         fig = activity_trace_suite(trials, config)
-        assert fig is not None
+        assert hasattr(fig, "get_axes") and len(fig.get_axes()) >= 4
 
     def test_saves_png(self, trials, config, tmp_path):
         """Test PNG output is written."""
@@ -132,7 +132,7 @@ class TestActivityTraceSuite:
             trials, config,
             duration_window_ms=(0.0, 20.0)
         )
-        assert fig is not None
+        assert hasattr(fig, "get_axes") and len(fig.get_axes()) >= 4
 
     def test_psd_parameters(self, trials, config):
         """Test PSD-related parameters."""
@@ -142,7 +142,7 @@ class TestActivityTraceSuite:
             psd_log_x=True,
             psd_smooth_sigma=1.5,
         )
-        assert fig is not None
+        assert hasattr(fig, "get_axes") and len(fig.get_axes()) >= 4
 
     def test_lfp_gain_parameter(self, trials, config):
         """Test LFP gain parameter."""
@@ -150,7 +150,7 @@ class TestActivityTraceSuite:
             trials, config,
             lfp_gain=10.0,
         )
-        assert fig is not None
+        assert hasattr(fig, "get_axes") and len(fig.get_axes()) >= 4
 
 
 class TestSpectrolaminarSuite3Panel:

@@ -204,7 +204,8 @@ class TestSimulateRuntimePrecedence:
         model = jtfne.construct(cfg)
 
         signals = jtfne.simulate(model, duration_ms=10, dt_ms=0.1, seed=0)
-        assert signals is not None
+        assert isinstance(signals, jtfne.Signals)
+        assert signals.V_m.shape[0] == 100
 
 
 class TestOptionalDepsLazy:

@@ -80,6 +80,8 @@ def test_suite2_visualization_facade_smoke():
         jtfne.vis.spectrolaminar_suite(signals),
         jtfne.vis.circuit3d(signals),
     ]
-    assert all(fig is not None for fig in figs)
+    for fig in figs:
+        assert isinstance(fig, plt.Figure)
+        assert len(fig.axes) > 0
     for fig in figs:
         plt.close(fig)

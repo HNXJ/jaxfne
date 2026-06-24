@@ -34,10 +34,10 @@ def _finite(a):
 
 def test_config_builder_stage():
     cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=10.0, dt_ms=0.1)
-    assert cfg is not None
+    assert isinstance(cfg, jtfne.Configuration)
     # fluent builder reachable too
     fluent = jtfne.configuration().runtime(seed=0).column(name="c", layers=["L4"], n=8)
-    assert fluent is not None
+    assert isinstance(fluent, jtfne.Configuration)
 
 
 def test_construct_and_simulate_stage(signals):
@@ -82,7 +82,9 @@ def test_objective_evaluate_stage(model, signals):
 def test_optimizer_tune_stage():
     # Optimizer specs reachable; black-box path is gradient-safe by construction.
     for spec_fn in (jtfne.agsdr, jtfne.gsdr, jtfne.optax_adam, jtfne.random_search):
-        assert spec_fn() is not None
+        spec = spec_fn()
+        assert isinstance(spec, jtfne.OptimizerSpec)
+        assert spec.optimizer_class in ("blackbox", "differentiable", "multiparameter_blackbox")
 
 
 def test_manifest_receipt_export_stage(model, signals):

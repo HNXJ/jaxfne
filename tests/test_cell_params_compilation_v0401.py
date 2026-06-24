@@ -1,6 +1,7 @@
 """Runtime verification of cell parameter compilation (cell_params)."""
 
 import numpy as np
+import jax.numpy as jnp
 import jaxfne as jtfne
 
 def test_cell_params_compilation():
@@ -59,5 +60,6 @@ def test_cell_params_simulation_smoke():
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1)
     
-    assert signals is not None
-    assert signals.spikes is not None
+    assert isinstance(signals, jtfne.Signals)
+    assert signals.spikes.shape == (100, 100)
+    assert bool(jnp.all(jnp.isfinite(signals.spikes)))

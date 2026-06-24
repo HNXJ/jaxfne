@@ -78,6 +78,9 @@ class TestTaskCRuntimeSpecValidation:
         # Should succeed but generate warnings in metadata
         sim = jtfne.config_to_simulation(cfg)
         assert sim.runtime is not None
+        from jaxfne.core import _CONFIG_RUNTIME_WARNINGS
+        rt_warnings = _CONFIG_RUNTIME_WARNINGS.get(cfg.config_hash, ())
+        assert any("unknown_planned_key" in w for w in rt_warnings), rt_warnings
 
     def test_truth_transfer_forces_defaults(self):
         """Conservative truth transfer forces values to defaults."""
@@ -374,8 +377,9 @@ class TestTaskJSchemaVersions:
         signals = model.simulate(sim)
         receipt = model.run_receipt(signals)
         # Receipt should exist and be valid
-        assert receipt is not None
-        assert receipt.receipt_id is not None
+        assert isinstance(receipt, jtfne.RunReceipt)
+        assert isinstance(receipt.receipt_id, str) and len(receipt.receipt_id) > 0
+        assert receipt.claim_labels["receipt_status"] == "run_receipt_v0.0.21"
 
 
 class TestTruthGatesFrozen:

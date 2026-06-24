@@ -2,6 +2,7 @@
 
 import json
 import numpy as np
+import jax.numpy as jnp
 from pathlib import Path
 import pytest
 import jaxfne as jtfne
@@ -91,5 +92,6 @@ def test_tcm_v1_6pop_simulation_smoke():
         
     model = jtfne.construct(cfg)
     signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1)
-    assert signals is not None
-    assert signals.spikes is not None
+    assert isinstance(signals, jtfne.Signals)
+    assert signals.spikes.shape == (100, 100)
+    assert bool(jnp.all(jnp.isfinite(signals.spikes)))

@@ -679,7 +679,7 @@ class TestExportArtifacts:
         text = manifest_path.read_text()
         data = json.loads(text)
         json_text = json.dumps(data, allow_nan=False)  # Should not raise
-        assert json_text is not None
+        assert json.loads(json_text) == data
 
 
 class TestEmitterNoiseScale:

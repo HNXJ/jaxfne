@@ -274,8 +274,8 @@ class TestManifestFieldAdmissibilityIntegration:
         model, signals = _model_and_signals()
         manifest = model.manifest(signals=signals)
         field_adm = manifest["backend_metadata"]["field_admissibility"]
-        assert field_adm["boundary_condition"] is not None
-        assert field_adm["gauge"] is not None
+        assert field_adm["boundary_condition"] == "mean_zero_neumann"
+        assert field_adm["gauge"] == "mean_zero"
 
 
 class TestFieldDiagnosticsInSignals:

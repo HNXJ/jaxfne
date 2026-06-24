@@ -254,7 +254,7 @@ def test_d_presets_are_json_safe():
 
     safe_presets = json_safe(CELL_TYPE_PRESETS)
     json_str = json.dumps(safe_presets, allow_nan=False)
-    assert json_str is not None
+    assert json.loads(json_str) == safe_presets
 
 
 # ─── E. Version assertion ─────────────────────────────────────────────────

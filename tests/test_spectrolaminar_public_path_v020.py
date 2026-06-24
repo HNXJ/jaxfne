@@ -26,10 +26,11 @@ class TestSpectrolaminarExampleRuns:
         import importlib.util
 
         example_path = pathlib.Path(__file__).parent.parent / "examples" / "02_spectrolaminar_oddball_scaffold.py"
+        assert example_path.exists(), f"Example script not found: {example_path}"
         spec = importlib.util.spec_from_file_location("example", example_path)
         module = importlib.util.module_from_spec(spec)
-        # Should not raise
-        assert module is not None
+        import types
+        assert isinstance(module, types.ModuleType)
 
     def test_example_main_callable(self):
         """Example script has a main() function."""

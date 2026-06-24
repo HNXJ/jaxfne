@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import matplotlib
 import jaxfne as jtfne
 from jaxfne.vis import FigureResult
 
@@ -41,11 +42,13 @@ def test_raster_with_sort_by_parameter():
 
     # Should work with sort_by=None (default)
     fig1 = jtfne.vis.raster(signals, sort_by=None)
-    assert fig1 is not None
+    assert isinstance(fig1, matplotlib.figure.Figure)
+    assert len(fig1.axes) > 0
 
     # Should work with sort_by="z"
     fig2 = jtfne.vis.raster(signals, sort_by="z")
-    assert fig2 is not None
+    assert isinstance(fig2, matplotlib.figure.Figure)
+    assert len(fig2.axes) > 0
 
 
 def test_eeg_meg_emm_exist_and_callable():
