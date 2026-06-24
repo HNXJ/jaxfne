@@ -1008,23 +1008,20 @@ def simulate_edge_recurrent_izhikevich_hdp(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
-    # Homeostasis-Dependent Plasticity (HDP) parameters. All defaulted so that
-    # k_E=k_I=0.0 and S_fire below S_min (the default) reduce this kernel to
-    # plain recurrent Izhikevich dynamics with inert resource bookkeeping --
-    # the null control.
-    S_min: float = 0.0,
-    S_max: float = 2.0,
-    S_star: float = 1.0,
-    S_fire: float = -1.0e9,
+    # Homeostasis-Dependent Plasticity (HDP) parameters. alpha=beta=gamma=
+    # delta=C_spike=0.0 (the default) hold H_i fixed at its 1.0 initial value
+    # forever, which makes the K_HDP-scaled weight term identically zero
+    # regardless of K_HDP -- the null control.
+    H_min: float = 0.1,
+    H_max: float = 10.0,
     tau_0_ms: float = 100.0,
     size_scale_by_cell_type: "Mapping[str, float] | None" = None,
-    I_base: float = 0.0,
-    k_in: float = 0.0,
+    alpha: float = 0.0,
+    beta: float = 0.0,
+    gamma: float = 0.0,
+    delta: float = 0.0,
     C_spike: float = 0.0,
-    c_w: float = 0.0,
-    c_p: float = 0.0,
-    k_E: float = 0.0,
-    k_I: float = 0.0,
+    K_HDP: float = 1.0,
     w_floor: float = 1.0e-3,
     w_ceiling: float = 50.0,
     v_floor: float = -150.0,
@@ -1034,36 +1031,56 @@ def simulate_edge_recurrent_izhikevich_hdp(
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
-    Homeostasis-Dependent Plasticity (HDP) gives each neuron a bounded
-    resource-capacity state ``S_i`` (default 1.0, clamped to
-    ``[S_min, S_max]``) that tracks a per-neuron income/spending balance and
-    gates both firing and synaptic plasticity:
+    Homeostasis-Dependent Plasticity (HDP) is a single per-neuron master
+    state ``H_i`` (default 1.0, clamped to ``[H_min, H_max]``) that all of a
+    neuron's incoming excitatory/inhibitory weight updates read from, and
+    that both synaptic drive and the neuron's own spiking feed back into:
 
-        I_syn_i    = sum_j w_ji * x_j                          (incoming synaptic current; this module's existing ``syn``)
-        income_i   = I_base + k_in * I_syn_i
-        C_syn_i    = c_w * sum_j |w_ij|                          (cost of maintaining i's own outgoing edges)
-        C_plastic_i= c_p * sum_j |dw_ij/dt|                      (cost of this step's plasticity on i's outgoing edges)
-        tau_i * dS_i/dt = income_i - C_syn_i - C_plastic_i       (rate terms only; tau_i = tau_0_ms * size_i**2)
-        S_i <- S_i - C_spike                                     (discrete per-spike-event drain, not a rate)
-        fires_i  = (V_i >= 30 mV) AND (S_i > S_fire)             (resource-gated firing: depleted neurons cannot spike)
-        dw_E^ij/dt = +k_E * (S_i - S_star) * w_E^ij              (excitatory incoming edges)
-        dw_I^ij/dt = +k_I * (S_star - S_i) * w_I^ij              (inhibitory incoming edges)
+        I_syn_i = sum_j w_ji * x_j                              (incoming synaptic current; this module's existing ``syn``)
+        W_i     = sum_j |w_ij|                                  (i's own outgoing synaptic burden)
+        tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*r_i - delta*W_i   (r_i = previous step's spike indicator)
+        H_i    <- H_i - C_spike                                 (discrete drain on H_i when i itself spikes)
+        dw_E^ij/dt = +K_HDP * (H_i - 1) * w_E^ij                (excitatory incoming edges)
+        dw_I^ij/dt = -K_HDP * (H_i - 1) * w_I^ij                (inhibitory incoming edges)
 
-    ``i`` indexes the postsynaptic neuron in both weight ODEs and in the
-    firing gate (matching the existing homeostatic-plasticity sign convention
-    elsewhere in this module). Sign check for stability: an overactive neuron
-    spends faster than it earns, so ``S_i`` falls below ``S_star``; this must
-    *weaken* its excitatory weights and *strengthen* its inhibitory weights to
-    correct the overactivity. With the signs above, ``S_i < S_star`` gives
-    ``dw_E/dt < 0`` (weakens) and ``dw_I/dt > 0`` (strengthens) -- the
-    restoring direction. (A literal ``dw_E/dt = +k_E*(S_star-S_i)*w_E`` /
-    ``dw_I/dt = +k_I*(S_i-S_star)*w_I`` reading would invert both signs and
-    diverge, mirroring the same sign trap found and corrected in the
-    superseded H_i/Ibar_i draft of this kernel.) Note that an overactive
-    neuron's higher spend is mostly transmitted forward as synaptic current
-    to its postsynaptic targets, raising *their* income -- the
-    resource-redistribution property falls out of ``income_j = I_base +
-    k_in * sum_i w_ij * x_i`` without any extra bookkeeping.
+    ``i`` indexes the postsynaptic neuron in both weight ODEs (matching the
+    existing homeostatic-plasticity sign convention elsewhere in this
+    module). ``K_HDP`` is a single global gain so HDP composes additively
+    with any future plasticity rule applied to the same edges
+    (``dw/dt = dw/dt_other + K_HDP * dw/dt_HDP``): ``K_HDP=1`` is normal
+    stabilization, ``K_HDP=0`` disables HDP outright, ``K_HDP<0`` is an
+    explicit anti-homeostatic stress-test mode, and ``|K_HDP|>1``/``<1``
+    over/under-weights the stabilizing term relative to other rules.
+
+    H_i is a resource-capacity reading, not a stress accumulator: synaptic
+    *input* (``alpha*I_syn_i``) raises it (income), while the neuron's own
+    *output* -- its recent firing (``gamma*r_i``) and the synaptic weight it
+    must maintain (``delta*W_i``) -- drains it (spending), plus the discrete
+    ``C_spike`` drain on a spike. Sign check for stability: an overactive
+    neuron spends faster than it earns, so ``H_i`` falls below 1; this must
+    *weaken* its excitatory weights and *strengthen* its inhibitory weights
+    to correct the overactivity. With the signs above, ``H_i < 1`` gives
+    ``dw_E/dt < 0`` (weakens, since ``K_HDP*(H_i-1)`` is negative) and
+    ``dw_I/dt > 0`` (strengthens, since ``-K_HDP*(H_i-1)`` is positive) -- the
+    restoring direction. (A literal ``dw_E/dt = -K_HDP*(H_i-1)*w_E`` /
+    ``dw_I/dt = +K_HDP*(H_i-1)*w_I`` reading -- i.e. copying the sign
+    convention from an H_i ODE that *rises* with overactivity onto an H_i
+    ODE that *falls* with overactivity -- inverts both signs and diverges;
+    this is the same sign trap found and corrected twice already in earlier
+    drafts of this kernel, here arising from a mismatch between the income/
+    spending convention of the H_i ODE and a weight-ODE sign pair carried
+    over unchanged from an earlier draft that used the opposite convention.)
+    An overactive neuron's higher spend is mostly transmitted forward as
+    synaptic current to its postsynaptic targets, raising *their* income --
+    the resource-redistribution property falls out of ``I_syn_j = sum_i
+    w_ij * x_i`` without any extra bookkeeping.
+
+    Update order per step (as specified): (1) synaptic current, (2) update
+    H_i, (3) update plastic weights from the updated H_i, (4) integrate the
+    neuron (Izhikevich + spike detection), (5) spikes consume H_i. Step 2
+    uses the *previous* step's spikes for ``r_i`` so the H_i update and the
+    weight update (steps 2-3) do not depend on this step's own spike
+    outcome, which is only known after step 4.
 
     jaxfne's native synapse model is current-based: each edge carries one
     signed scalar weight (``edges.weight``) added directly to input current,
@@ -1075,32 +1092,29 @@ def simulate_edge_recurrent_izhikevich_hdp(
     weight class is therefore ``receptor_index == 0`` (the AMPA+NMDA role) and
     its inhibitory weight class is ``receptor_index == 1`` (the GABA_A+GABA_B
     role) -- the weight ODEs operate on the edge's existing signed native
-    weight, not on a separately-modeled conductance. ``C_syn``/``C_plastic``
-    are attributed to a neuron's *outgoing* edges (``edges.pre == i``); income
-    is computed from a neuron's *incoming* edges (``edges.post == i``, the
-    existing ``syn`` term).
+    weight, not on a separately-modeled conductance. ``W_i`` is computed from
+    a neuron's *outgoing* edges (``edges.pre == i``); ``I_syn_i`` from its
+    *incoming* edges (``edges.post == i``, the existing ``syn`` term).
 
     Args:
         params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
         dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
-        S_min, S_max: clamp bounds for S_i (default [0.0, 2.0])
-        S_star: plasticity equilibrium / target resource level (default 1.0)
-        S_fire: firing-gate threshold; a neuron with S_i <= S_fire cannot
-            spike this step even if V_i >= 30 mV (default -1e9, i.e.
-            disabled -- the null control, since S_i >= S_min > S_fire always)
-        tau_0_ms: base resource integration time constant (default 100 ms);
+        H_min, H_max: clamp bounds for H_i (default [0.1, 10.0])
+        tau_0_ms: base H_i integration time constant (default 100 ms);
             per-neuron tau_i = tau_0_ms * size_i**2 (larger/slower for E,
             faster for PV, matching the existing size-scaling table)
         size_scale_by_cell_type: override the default per-cell-type relative
             size table (see DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
-        I_base, k_in: resource income baseline and synaptic-income gain
-            (default 0.0 for both -- no income, part of the null control)
-        C_spike: resource cost charged per spike, subtracted directly from
-            S_i (not scaled by tau_i; default 0.0)
-        c_w: per-unit-weight cost of maintaining outgoing synapses (default 0.0)
-        c_p: per-unit-|dw/dt| cost of this step's plasticity (default 0.0)
-        k_E, k_I: excitatory/inhibitory weight-plasticity gains (0 = disabled;
-            default 0.0 for both -- the null control)
+        alpha: H_i income gain on incoming synaptic current (default 0.0)
+        beta: constant H_i bias term (default 0.0)
+        gamma: H_i spending gain on the neuron's own (previous-step) firing
+            (default 0.0)
+        delta: H_i spending gain on the neuron's own outgoing synaptic
+            weight burden W_i (default 0.0)
+        C_spike: discrete H_i drain charged when the neuron itself spikes,
+            not scaled by tau_i (default 0.0)
+        K_HDP: global plasticity gain shared by both weight ODEs (default
+            1.0; 0.0 disables HDP, negative is anti-homeostatic)
         w_floor, w_ceiling: clip bounds for edge weight magnitude (default
             [1e-3, 50.0]; prevents collapse-to-zero and unbounded divergence)
         v_floor, v_ceiling, u_abs_max, syn_abs_max: hard numerical-stability
@@ -1108,7 +1122,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
-        includes "S_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges),
+        includes "H_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges),
         and "*_final" vectors.
     """
 
@@ -1133,17 +1147,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
     tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr
     tau_i = jnp.maximum(tau_i, jnp.asarray(1e-6, dtype=jdtype))
 
-    S_min_arr = jnp.asarray(S_min, dtype=jdtype)
-    S_max_arr = jnp.asarray(S_max, dtype=jdtype)
-    S_star_arr = jnp.asarray(S_star, dtype=jdtype)
-    S_fire_arr = jnp.asarray(S_fire, dtype=jdtype)
-    I_base_arr = jnp.asarray(I_base, dtype=jdtype)
-    k_in_arr = jnp.asarray(k_in, dtype=jdtype)
+    H_min_arr = jnp.asarray(H_min, dtype=jdtype)
+    H_max_arr = jnp.asarray(H_max, dtype=jdtype)
+    alpha_arr = jnp.asarray(alpha, dtype=jdtype)
+    beta_arr = jnp.asarray(beta, dtype=jdtype)
+    gamma_arr = jnp.asarray(gamma, dtype=jdtype)
+    delta_arr = jnp.asarray(delta, dtype=jdtype)
     C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
-    c_w_arr = jnp.asarray(c_w, dtype=jdtype)
-    c_p_arr = jnp.asarray(c_p, dtype=jdtype)
-    k_E_arr = jnp.asarray(k_E, dtype=jdtype)
-    k_I_arr = jnp.asarray(k_I, dtype=jdtype)
+    K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     w_floor_arr = jnp.asarray(w_floor, dtype=jdtype)
     w_ceiling_arr = jnp.asarray(w_ceiling, dtype=jdtype)
     v_floor_arr = jnp.asarray(v_floor, dtype=jdtype)
@@ -1170,14 +1181,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
              if drive_schedule is None else drive_schedule.astype(jdtype))
 
     if init_state is not None:
-        S0 = jnp.asarray(init_state.get("S_final", jnp.ones((n_neurons,), dtype=jdtype)), dtype=jdtype)
+        H0 = jnp.asarray(init_state.get("H_final", jnp.ones((n_neurons,), dtype=jdtype)), dtype=jdtype)
         w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
         init = (
             jnp.asarray(init_state["v"], dtype=jdtype),
             jnp.asarray(init_state["u"], dtype=jdtype),
             jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
             jnp.asarray(init_state["syn_state"], dtype=jdtype),
-            S0, w0,
+            H0, w0,
         )
     else:
         init = (
@@ -1185,58 +1196,59 @@ def simulate_edge_recurrent_izhikevich_hdp(
             params.u0.astype(jdtype),
             jnp.zeros_like(params.v0, dtype=jdtype),
             jnp.zeros((edges.n_edges,), dtype=jdtype),
-            jnp.ones((n_neurons,), dtype=jdtype),     # S_i(0) = 1.0
+            jnp.ones((n_neurons,), dtype=jdtype),     # H_i(0) = 1.0
             edges.weight.astype(jdtype),              # w(0) = native edge weight
         )
 
     def step(carry, xs_t):
-        """HDP step: Izhikevich dynamics gated by resource state S, plus income/spending and edge-weight ODEs."""
+        """HDP step: (1) synaptic current, (2) update H, (3) update weights from H, (4) integrate neuron, (5) spikes consume H."""
         sched_t, noise_t = xs_t
-        v, u, prev_spikes, syn_state, S, w = carry
+        v, u, prev_spikes, syn_state, H, w = carry
 
+        # (1) Synaptic current.
         edge_current = w * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
         current_native = drive + sched_t + syn + noise_coef * noise_t
 
+        # (2) Update H_i: income from incoming synaptic current, spending
+        # from the neuron's own previous-step firing and outgoing weight
+        # burden (prev_spikes avoids circularity with this step's spikes,
+        # which are only known after step 4).
+        wmag = jnp.abs(w)
+        W_burden = _segment_sum(wmag, pre, n_neurons)
+        dH = alpha_arr * syn + beta_arr - gamma_arr * prev_spikes - delta_arr * W_burden
+        H_next = jnp.clip(H + (dt / tau_i) * dH, H_min_arr, H_max_arr)
+
+        # (3) Update plastic weights from the updated H_i (postsynaptic-indexed).
+        H_post = H_next[post]
+        factor = H_post - 1.0
+        dw_exc = K_HDP_arr * factor * wmag
+        dw_inh = -K_HDP_arr * factor * wmag
+        dw = jnp.where(exc_mask, dw_exc, dw_inh)
+        wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+        w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+
+        # (4) Integrate the neuron (Izhikevich) and detect spikes.
         dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
         du = a * (b * v - u)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
-        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5) & (S > S_fire_arr)
+        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
         spikes = spikes_bool.astype(jdtype)
         v_reset = jnp.where(spikes_bool, c, v_next)
         u_reset = jnp.where(spikes_bool, u_next + d, u_next)
         syn_next = syn_state * decay + spikes[pre]
 
-        # Resource-gated weight plasticity on incoming excitatory vs
-        # inhibitory edges, driven by the postsynaptic neuron's resource
-        # state S (evaluated before this step's S update, to avoid a
-        # circular dependency between the plasticity cost and S itself).
-        S_post = S[post]
-        wmag = jnp.abs(w)
-        dw_exc = k_E_arr * (S_post - S_star_arr) * wmag
-        dw_inh = k_I_arr * (S_star_arr - S_post) * wmag
-        dw = jnp.where(exc_mask, dw_exc, dw_inh)
-        wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
-        w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
-
-        # Income/spending resource bookkeeping (per-neuron). Income comes
-        # from incoming synaptic current (this neuron's "I_syn"); spending
-        # is the cost of maintaining and updating this neuron's own outgoing
-        # edges, plus a discrete per-spike-event drain.
-        income = I_base_arr + k_in_arr * syn
-        C_syn = c_w_arr * _segment_sum(wmag, pre, n_neurons)
-        C_plastic = c_p_arr * _segment_sum(jnp.abs(dw), pre, n_neurons)
-        S_next = S + (dt / tau_i) * (income - C_syn - C_plastic) - C_spike_arr * spikes
-        S_next = jnp.clip(S_next, S_min_arr, S_max_arr)
+        # (5) Spikes consume H_i (discrete drain on neurons that just fired).
+        H_final = jnp.clip(H_next - C_spike_arr * spikes, H_min_arr, H_max_arr)
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
         source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
-        return (v_reset, u_reset, spikes, syn_next, S_next, w_next), \
-               (v_reset, spikes, source_proxy, S_next, w_next)
+        return (v_reset, u_reset, spikes, syn_next, H_final, w_next), \
+               (v_reset, spikes, source_proxy, H_final, w_next)
 
-    final, (voltages, spikes, sources, S_trace, w_trace) = jax.lax.scan(
+    final, (voltages, spikes, sources, H_trace, w_trace) = jax.lax.scan(
         step, init, xs=(sched, bulk_noise))
 
     final_state = {
@@ -1244,12 +1256,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
         "u": final[1],
         "prev_spikes": final[2],
         "syn_state": final[3],
-        "S_final": final[4],
+        "H_final": final[4],
         "w_final": final[5],
     }
     diagnostics_dict = {
         **final_state,
-        "S_trace": S_trace,
+        "H_trace": H_trace,
         "w_trace": w_trace,
     }
     return voltages, spikes, sources, diagnostics_dict
