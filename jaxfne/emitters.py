@@ -1034,6 +1034,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     syn_abs_max: float = 1.0e4,
     record_dH_components: bool = False,
     record_edge_current: bool = False,
+    H_boost_gain: float = 0.0,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -1178,6 +1179,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
             labels post-hoc to decompose I_syn by connection class
             (E->E, E->PV, PV->E, ...) and find which synaptic pathway
             drives an income-term runaway.
+        H_boost_gain: homeostatic drive compensation -- scales each
+            neuron's (drive + sched_t) input by
+            ``1 + H_boost_gain * max(0, 1 - H)`` using the carry's
+            incoming (previous-step) H_i, so a neuron starved below its
+            H=1.0 equilibrium receives a proportionally larger drive.
+            Default 0.0 reproduces existing (unboosted) behavior exactly.
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
@@ -1224,6 +1231,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     v_ceiling_arr = jnp.asarray(v_ceiling, dtype=jdtype)
     u_abs_max_arr = jnp.asarray(u_abs_max, dtype=jdtype)
     syn_abs_max_arr = jnp.asarray(syn_abs_max, dtype=jdtype)
+    H_boost_gain_arr = jnp.asarray(H_boost_gain, dtype=jdtype)
 
     def _bound_state(v_s, u_s, syn_s):
         """Clamp carried emitter state to finite hard bounds (overflow/underflow guard)."""
@@ -1271,7 +1279,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # (1) Synaptic current.
         edge_current = w * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
-        current_native = drive + sched_t + syn + noise_coef * noise_t
+        boost = 1.0 + H_boost_gain_arr * jnp.maximum(0.0, 1.0 - H)
+        current_native = (drive + sched_t) * boost + syn + noise_coef * noise_t
 
         # (2) Update H_i: income from incoming synaptic current, spending
         # from the neuron's own previous-step firing and outgoing weight
