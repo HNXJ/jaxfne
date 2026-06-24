@@ -1016,6 +1016,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     H_max: float = 10.0,
     tau_0_ms: float = 100.0,
     size_scale_by_cell_type: "Mapping[str, float] | None" = None,
+    size_scale_override: "jax.Array | None" = None,
     alpha: float = 0.0,
     beta: float = 0.0,
     gamma: float = 0.0,
@@ -1137,6 +1138,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
             faster for PV, matching the existing size-scaling table)
         size_scale_by_cell_type: override the default per-cell-type relative
             size table (see DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
+        size_scale_override: optional explicit per-neuron size array
+            (n_neurons,), e.g. computed by the caller from each neuron's
+            (layer, cell_type) so size can vary by layer (the cell-type-only
+            table above cannot express that, since params.labels carries
+            only cell-type identity). When given, takes precedence over
+            size_scale_by_cell_type entirely.
         alpha: H_i income gain on incoming synaptic current (default 0.0)
         beta: constant H_i bias term (default 0.0)
         gamma: H_i spending gain on the neuron's own (previous-step) firing
@@ -1209,7 +1216,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
     n_neurons = params.v0.shape[0]
     exc_mask = (edges.receptor_index.astype(jnp.int32) == 0)
 
-    size_arr = _hdp_size_scale_array(params.labels, size_scale_by_cell_type, jdtype)
+    if size_scale_override is not None:
+        size_arr = jnp.asarray(size_scale_override, dtype=jdtype)
+    else:
+        size_arr = _hdp_size_scale_array(params.labels, size_scale_by_cell_type, jdtype)
     tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr
     tau_i = jnp.maximum(tau_i, jnp.asarray(1e-6, dtype=jdtype))
 
