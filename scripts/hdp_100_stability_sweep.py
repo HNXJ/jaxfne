@@ -28,11 +28,14 @@ With that stationary baseline, K_HDP was re-swept jointly with K_ctrl/
 barrier_c/barrier_d (the H-restoring-force terms): the original
 K_ctrl=0.5/barrier=0.01 pair never holds past ~5-10s at any K_HDP>0;
 K_ctrl=5.0 does. RECOMMENDED_K_HDP=0.01 with K_ctrl=5.0 is verified stable
-over 20s: rates flat in-band, H pinned at ~1.0000-1.0006, weight
-saturation ~10.5% (not pinned to floor/ceiling).
+over 20s (and over a 5-seed multi-seed gate): rates flat in-band, H pinned
+at ~1.0000-1.0029, weight saturation ~10.5% (not pinned to floor/ceiling).
+These are exactly jaxfne.hdp_network.DEFAULT_HDP -- the proposed 0.4.6
+freeze point.
 
-This sweep uses N=250 (same canonical layer/cell-type structure, scaled
-down from N=1000) so each run is fast, to cheaply screen K_HDP x tau_0_ms
+N=250 (same canonical layer/cell-type structure, scaled down from N=1000
+via the shared jaxfne.hdp_network builder -- not a separate hand-copied
+build function) so each run is fast, to cheaply screen K_HDP x tau_0_ms
 before committing to an expensive 1000-neuron run with these parameters.
 
 Stability metric: compare early-window vs late-window rate-by-type and H
@@ -48,38 +51,14 @@ import json
 from pathlib import Path
 from typing import Any
 
-import jax
-import jax.numpy as jnp
 import numpy as np
 
-import jaxfne as jtfne
-from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
+from jaxfne.hdp_network import (
+    HDPColumnConfig, build_model, apply_drive_correction, run,
+    BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
+)
 
 OUTPUT_DIR = Path("outputs/hdp_100_stability_sweep")
-
-LAYERS = ["L1", "L2", "L3", "L4", "L5", "L6"]
-ZBANDS = {
-    "L1": (0.00, 0.10), "L2": (0.10, 0.35), "L3": (0.35, 0.55),
-    "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
-}
-LAYER_CELL_TYPE_FRAC = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
-    "L2": {"E": 0.65, "PV": 0.20, "SST": 0.10, "VIP": 0.05},
-    "L3": {"E": 0.80, "PV": 0.08, "SST": 0.08, "VIP": 0.04},
-    "L4": {"E": 0.75, "PV": 0.18, "SST": 0.04, "VIP": 0.03},
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},
-}
-BASE_DRIVE_BY_CELL_TYPE = {"E": 4.0, "PV": 4.0, "SST": 4.0, "VIP": 4.0}
-
-# Re-derived at N=250 (the old N=1000-tuned {'PV':0.45,'SST':0.09,'VIP':5.6}
-# does NOT generalize -- see module docstring). Found by per-cell-type
-# bisection search against a 10s window with K_HDP=0 (HDP off, plasticity
-# frozen): verified STATIONARY (no drift) over a 20s window at K_HDP=0 --
-# this is the prerequisite fixed point HDP is layered on top of.
-DRIVE_CORRECTION_BY_CELL_TYPE = {
-    "E": 1.0, "PV": 0.8757734374999999, "SST": 0.06492187500000002, "VIP": 5.7509375,
-}
 
 N_NEURONS = 250
 SEED = 0
@@ -90,50 +69,20 @@ LATE_WINDOW_MS = 1000.0    # steps [DURATION_MS - LATE_WINDOW_MS, DURATION_MS)
 TARGET_RATE_HZ = 5.0
 TARGET_RATE_TOL_HZ = 2.5
 
-# K_ctrl/barrier_c/barrier_d re-derived alongside K_HDP below: the original
-# K_ctrl=0.5, barrier=0.01 pair (from the 1000-neuron 1000ms-window build)
-# is NOT long-term stable at ANY K_HDP>0 tested here -- it always drifts
-# into runaway by 5-10s. K_ctrl=5.0 (10x stronger H-restoring force) is
-# what makes K_HDP=0.01 hold flat over 20s (see module docstring).
-BASE_HDP_KWARGS = dict(
-    H_min=0.1, H_max=10.0,
-    alpha=0.01, beta=0.0, gamma=0.0, delta=0.0, C_spike=0.0,
-    K_ctrl=5.0, barrier_c=0.01, barrier_d=0.01, barrier_eps=1.0e-3,
-    w_floor=0.01, w_ceiling=10.0, H_boost_gain=4.0,
-)
+CFG = HDPColumnConfig(n_neurons=N_NEURONS, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED,
+                       probe_name="hdp_100_probe")
 
-# Verified long-term stable (20s, flat rates in-band, H pinned at ~1.0000-
-# 1.0006, weight_saturation_fraction~0.105 not pinned to floor/ceiling):
-# K_HDP=0.01 with K_ctrl=5.0, barrier_c=barrier_d=0.01 above.
+# Re-exported for any callers/notebooks that still import these names
+# directly from this module (kept identical to jaxfne.hdp_network's
+# defaults -- this script no longer hand-maintains its own copy).
+DRIVE_CORRECTION_BY_CELL_TYPE = dict(CFG.drive_correction_by_cell_type)
 RECOMMENDED_K_HDP = 0.01
+
+BASE_HDP_KWARGS = dict(BASE_HDP_KWARGS_DEFAULT)
+BASE_HDP_KWARGS.update({k: v for k, v in DEFAULT_HDP.items() if k != "K_HDP" and k != "tau_0_ms"})
 
 SWEEP_K_HDP = [0.0, 0.01, 0.02, 0.05, 0.1, 0.3, 1.0]
 SWEEP_TAU0_MS = [200.0]
-
-
-def build_model() -> "jtfne.core.Model":
-    builder = (
-        jtfne.laminar_cortex_config(
-            areas=["V1"], layers=LAYERS, n=N_NEURONS,
-            duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED, emitter="izhikevich",
-            baseline_drive_by_cell_type=BASE_DRIVE_BY_CELL_TYPE,
-        )
-        .layer_fractions(layer_fractions=ZBANDS)
-        .area_layer_cell_types("V1", LAYER_CELL_TYPE_FRAC)
-        .field(domain="laminar_column", conductivity="proxy",
-               boundary="mean_zero_neumann", gauge="mean_zero")
-        .probe(name="hdp_100_probe", modes=["spikes", "V_m"])
-    )
-    return jtfne.construct(builder)
-
-
-def apply_drive_correction(model: "jtfne.core.Model") -> "jtfne.core.Model":
-    labels = np.asarray(model.params["emitter"].labels)
-    base_drive = np.asarray(model.params["emitter"].drive)
-    corrected = base_drive.copy()
-    for ct, factor in DRIVE_CORRECTION_BY_CELL_TYPE.items():
-        corrected[labels == ct] = base_drive[labels == ct] * factor
-    return model.with_emitter_parameters(drive_per_neuron=jnp.asarray(corrected))
 
 
 def window_summary(labels: np.ndarray, spikes: np.ndarray, H_trace: np.ndarray,
@@ -159,15 +108,11 @@ def run_one(model: "jtfne.core.Model", K_HDP: float, tau_0_ms: float) -> dict[st
     hdp_kwargs = dict(BASE_HDP_KWARGS)
     hdp_kwargs["K_HDP"] = K_HDP
     hdp_kwargs["tau_0_ms"] = tau_0_ms
-    n_steps = int(round(DURATION_MS / DT_MS))
-    key = jax.random.PRNGKey(SEED)
-    _, spikes, _, diagnostics = simulate_edge_recurrent_izhikevich_hdp(
-        model.params["emitter"], model.params["edge_list"], n_steps, DT_MS, key, **hdp_kwargs,
-    )
+    out = run(model, CFG, duration_ms=DURATION_MS, seed=SEED, hdp_kwargs=hdp_kwargs)
     labels = np.asarray(model.params["emitter"].labels)
-    spikes_np = np.asarray(spikes)
-    H_trace = np.asarray(diagnostics["H_trace"])
-    w_trace = np.asarray(diagnostics["w_trace"])
+    spikes_np = np.asarray(out["spikes"])
+    H_trace = np.asarray(out["diagnostics"]["H_trace"])
+    w_trace = np.asarray(out["diagnostics"]["w_trace"])
 
     early_n = int(round(EARLY_WINDOW_MS / DT_MS))
     late_n = int(round(LATE_WINDOW_MS / DT_MS))
@@ -192,9 +137,9 @@ def run_one(model: "jtfne.core.Model", K_HDP: float, tau_0_ms: float) -> dict[st
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    print(f"=== Building {N_NEURONS}-neuron laminar column ===")
-    model = build_model()
-    model = apply_drive_correction(model)
+    print(f"=== Building {N_NEURONS}-neuron laminar column (via jaxfne.hdp_network) ===")
+    model = build_model(CFG)
+    model = apply_drive_correction(model, CFG)
 
     results = []
     print(f"\n=== HDP stability sweep, duration={DURATION_MS}ms ===")
