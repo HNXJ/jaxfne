@@ -163,11 +163,11 @@ sharpens with neuron count and trial averaging in a low-synchrony regime.
 The two readout prerequisites above — low synchrony and balanced per-layer rates —
 get harder to hold by hand as run duration grows: a drive correction tuned at a short
 window can drift out of the target rate band over a longer one, and weight plasticity
-without a restoring force can run away. **Homeostasis-Dependent Plasticity (HDP)** is
+left unconstrained can run away. **Homeostasis-Dependent Plasticity (HDP)** is
 a per-neuron master state `H_i` (default 1.0) that all of a neuron's incoming
 excitatory/inhibitory weight updates read from, and that synaptic drive and the
 neuron's own spiking feed back into — keeping a population stationary over many
-seconds without re-tuning the drive correction by hand.
+seconds via automatic feedback rather than hand-retuning the drive correction.
 
 ```python
 I_syn_i = sum_j w_ji * x_j                                 # incoming synaptic current
@@ -181,9 +181,9 @@ dw_I^ij/dt = -K_HDP * (H_i - 1) * w_I^ij                   # inhibitory incoming
 slowly. Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. A
 single config-driven builder for HDP-ready laminar columns of any size lives in
 `jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
-size is a config field, not a per-N function.
+size is a config field rather than a per-N function.
 
-**HDP is not yet wired into `core.py`/`RuntimeConfig`** (an open task), so it is driven
+**HDP integration into `core.py`/`RuntimeConfig` remains an open task**, so it is driven
 directly against a `jtfne.construct()`-built `Model`'s `emitter`/`edge_list` params,
 then hand-assembled into a `jtfne.Signals` container for `jtfne.vis.spectrolaminar_suite`:
 
@@ -208,14 +208,14 @@ spikes, H_trace, w_trace = out["spikes"], out["diagnostics"]["H_trace"], out["di
 
 `DEFAULT_HDP` (`K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=barrier_d=0.01`) is a
 5-seed, 20-second-validated stability point: rates stay flat in-band, `H` pins at
-~1.0000-1.0029, weight saturation ~10.5% (not pinned to the floor/ceiling). It is the
+~1.0000-1.0029, weight saturation ~10.5% (active, away from the floor/ceiling). It is the
 config to reach for when the goal is a **long, stationary** run.
 
 ### Avoiding HDP-induced oversynchrony
 
 `DEFAULT_HDP`'s strong restoring force (`K_ctrl=5.0`) combined with `tau_i =
 tau_0_ms * size_i**2` (E cells default to `size=5`, so `tau_i=5000` ms) makes `H_i`
-almost static (`H_std ≈ 0.0006`). With no per-neuron variability driver, population
+almost static (`H_std ≈ 0.0006`). Lacking a per-neuron variability driver, population
 spiking reads as near-regular ("ECG-like") rather than async-irregular — exactly the
 high-synchrony failure mode the **low synchrony** prerequisite above warns about.
 `jaxfne.hdp_network.DEFAULT_HDP_DESYNC` (paired with `DRIVE_SCALE_DESYNC=1.2`) trades
@@ -235,16 +235,17 @@ hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP_DESYNC
 ```
 
 Verified (N=500, 2000ms): overall rate 7.3 → 12.8 Hz, per-neuron rate std 0.99 → 6.13 Hz,
-`H` fluctuates genuinely (`H=1.035±0.036`, range `[0.96, 1.47]`) without any neuron
-hitting the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays at 0.046 (still
-async-irregular). `H`'s range does not yet symmetrically span `[0.8, 1.2]` — treat this
-as the current best candidate from one search pass over `alpha`/`K_ctrl`/`tau_0_ms`,
-not a frozen point like `DEFAULT_HDP`.
+`H` fluctuates genuinely (`H=1.035±0.036`, range `[0.96, 1.47]`) while every neuron
+stays clear of the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays at 0.046
+(still async-irregular). `H`'s range has yet to symmetrically span `[0.8, 1.2]` — treat
+this as the current best candidate from one search pass over `alpha`/`K_ctrl`/
+`tau_0_ms`, a still-open candidate unlike the frozen `DEFAULT_HDP`.
 
 ### Two distinct, intentionally-separate operating modes
 
-`DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` answer different questions and should **not**
-be collapsed into one "better" default — pick the preset that matches the question:
+`DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` answer different questions and should stay
+separate rather than collapse into one "better" default — pick the preset that
+matches the question:
 
 | Parameter / outcome | `DEFAULT_HDP` (Stable) | `DEFAULT_HDP_DESYNC` (Desync) |
 |---|---|---|
@@ -261,7 +262,7 @@ be collapsed into one "better" default — pick the preset that matches the ques
 | `H` behavior | Pinned (`H_mean≈1.001-1.003`, `H_std≈0.0006`) | Fluctuating (`H=1.035±0.036`, range `[0.96, 1.47]`) |
 | `kappa_synchrony` | ~0.04-0.05 | ~0.046 |
 | Validation evidence | 5-seed × 20s stability gate | One 12-point grid search, N=500, 2000ms |
-| Status | Frozen (0.4.6 candidate) | Best-of-one-pass; not frozen |
+| Status | Frozen (0.4.6 candidate) | Best-of-one-pass; still open |
 
 ## Figures
 
