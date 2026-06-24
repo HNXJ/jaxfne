@@ -1032,6 +1032,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     v_ceiling: float = 100.0,
     u_abs_max: float = 2000.0,
     syn_abs_max: float = 1.0e4,
+    record_dH_components: bool = False,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -1159,6 +1160,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
             [1e-3, 50.0]; prevents collapse-to-zero and unbounded divergence)
         v_floor, v_ceiling, u_abs_max, syn_abs_max: hard numerical-stability
             bounds, as in simulate_edge_recurrent_izhikevich_homeostatic
+        record_dH_components: if True, also return per-step, per-neuron
+            decomposition of dH_i/dt's five additive terms -- income
+            (alpha*I_syn), rate-spending (-gamma*r), weight-spending
+            (-delta*W), K_ctrl*(1-H), and the barrier force -- as
+            "dH_income_trace"/"dH_rate_trace"/"dH_weight_trace"/
+            "dH_ctrl_trace"/"dH_barrier_trace" (each (n_steps, n_neurons))
+            in diagnostics_dict. Default False (no extra compute/memory);
+            for isolating which term drives an observed H/weight runaway.
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
@@ -1263,10 +1272,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
         dist_floor = jnp.clip(H - H_min_arr, barrier_eps_arr, None)
         dist_ceil = jnp.clip(H_max_arr - H, barrier_eps_arr, None)
         barrier_force = barrier_c_arr / (dist_floor * dist_floor) - barrier_d_arr / (dist_ceil * dist_ceil)
-        dH = (
-            alpha_arr * syn + beta_arr - gamma_arr * prev_spikes - delta_arr * W_burden
-            + K_ctrl_arr * (1.0 - H) + barrier_force
-        )
+        dH_income = alpha_arr * syn + beta_arr
+        dH_rate = -gamma_arr * prev_spikes
+        dH_weight = -delta_arr * W_burden
+        dH_ctrl = K_ctrl_arr * (1.0 - H)
+        dH = dH_income + dH_rate + dH_weight + dH_ctrl + barrier_force
         H_next = jnp.clip(H + (dt / tau_i) * dH, H_min_arr, H_max_arr)
 
         # (3) Update plastic weights from the updated H_i (postsynaptic-indexed).
@@ -1295,11 +1305,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
         source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
-        return (v_reset, u_reset, spikes, syn_next, H_final, w_next), \
-               (v_reset, spikes, source_proxy, H_final, w_next)
+        outputs = (v_reset, spikes, source_proxy, H_final, w_next)
+        if record_dH_components:
+            outputs = outputs + (dH_income, dH_rate, dH_weight, dH_ctrl, barrier_force)
+        return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
 
-    final, (voltages, spikes, sources, H_trace, w_trace) = jax.lax.scan(
-        step, init, xs=(sched, bulk_noise))
+    final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
+    voltages, spikes, sources, H_trace, w_trace = scan_outputs[:5]
 
     final_state = {
         "v": final[0],
@@ -1314,6 +1326,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
         "H_trace": H_trace,
         "w_trace": w_trace,
     }
+    if record_dH_components:
+        dH_income_trace, dH_rate_trace, dH_weight_trace, dH_ctrl_trace, dH_barrier_trace = scan_outputs[5:]
+        diagnostics_dict.update({
+            "dH_income_trace": dH_income_trace,
+            "dH_rate_trace": dH_rate_trace,
+            "dH_weight_trace": dH_weight_trace,
+            "dH_ctrl_trace": dH_ctrl_trace,
+            "dH_barrier_trace": dH_barrier_trace,
+        })
     return voltages, spikes, sources, diagnostics_dict
 
 
