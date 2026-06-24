@@ -776,10 +776,18 @@ def _run_agsdr_optimization_loop(
 # Transform state dataclasses for Optax-compatible gradient optimization paths.
 # These are PyTree-compatible (frozen=True, all JAX arrays) and hold no hidden
 # global random state. Explicit PRNG keys required for stochasticity.
+#
+# Named with a `_Transform` prefix (not the bare `SDRState`/`GSDRState`/
+# `AGSDRState` names) to avoid colliding with the unrelated, separately
+# exported `BaseSDRState`-based classes of the same bare names in
+# `optim/sdr.py`/`gsdr.py`/`agsdr.py` (the public `jaxfne.optim.SDRState`
+# etc.). These classes back the parallel `sdr_transform`/`gsdr_transform`/
+# `agsdr_transform` entry points below, not `step_sdr_transform`/
+# `step_gsdr_transform`/`step_agsdr_transform`.
 
 
 @dataclass(frozen=True)
-class SDRState:
+class _TransformSDRState:
     """Stochastic Delta Rule optimizer state.
 
     Holds best-loss tracking, reset counter, and EMA variance estimates
@@ -796,10 +804,10 @@ class SDRState:
 
 
 @dataclass(frozen=True)
-class GSDRState:
+class _TransformGSDRState:
     """Genetic Stochastic Delta Rule optimizer state.
 
-    Similar to SDRState, with additional tracking for genetic deselection.
+    Similar to _TransformSDRState, with additional tracking for genetic deselection.
     """
 
     step: int = 0
@@ -813,7 +821,7 @@ class GSDRState:
 
 
 @dataclass(frozen=True)
-class AGSDRState:
+class _TransformAGSDRState:
     """Adaptive Genetic Stochastic Delta Rule optimizer state.
 
     Combines genetic deselection with adaptive alpha for two-phase search.
@@ -858,7 +866,7 @@ def sdr_transform(
     Returns
     -------
     optax.GradientTransformation-compatible object
-        init(params) -> SDRState
+        init(params) -> _TransformSDRState
         update(updates, state, params=None, key=None) -> (updates, new_state)
     """
     optax = require_optax()
@@ -866,10 +874,10 @@ def sdr_transform(
     if inner_optimizer is None:
         inner_optimizer = optax.adam(learning_rate=1e-3)
 
-    def init(params: Any) -> tuple[SDRState, Any]:
+    def init(params: Any) -> tuple[_TransformSDRState, Any]:
         """Initialize SDR state and inner optimizer state."""
         inner_state = inner_optimizer.init(params)
-        sdr_state = SDRState(
+        sdr_state = _TransformSDRState(
             step=0,
             best_loss=float("inf"),
             best_param=params,
@@ -882,11 +890,11 @@ def sdr_transform(
 
     def update(
         updates: Any,
-        state: tuple[SDRState, Any],
+        state: tuple[_TransformSDRState, Any],
         params: Optional[Any] = None,
         key: Optional[Any] = None,
         loss: Optional[float] = None,
-    ) -> tuple[Any, tuple[SDRState, Any]]:
+    ) -> tuple[Any, tuple[_TransformSDRState, Any]]:
         """Apply SDR update step.
 
         Requires explicit PRNG key for stochastic delta term.
@@ -934,7 +942,7 @@ def sdr_transform(
             new_var_sup_ema = sdr_state.ema_decay * sdr_state.var_sup_ema + (1.0 - sdr_state.ema_decay) * var_sup
             new_var_unsup_ema = sdr_state.ema_decay * sdr_state.var_unsup_ema + (1.0 - sdr_state.ema_decay) * var_unsup
 
-            new_sdr_state = SDRState(
+            new_sdr_state = _TransformSDRState(
                 step=sdr_state.step + 1,
                 best_loss=float(new_best_loss),
                 best_param=new_best_param,
@@ -987,10 +995,10 @@ def gsdr_transform(
     if inner_optimizer is None:
         inner_optimizer = optax.adam(learning_rate=1e-3)
 
-    def init(params: Any) -> tuple[GSDRState, Any]:
+    def init(params: Any) -> tuple[_TransformGSDRState, Any]:
         """Documented public function `init`."""
         inner_state = inner_optimizer.init(params)
-        gsdr_state = GSDRState(
+        gsdr_state = _TransformGSDRState(
             step=0,
             best_loss=float("inf"),
             best_param=params,
@@ -1004,11 +1012,11 @@ def gsdr_transform(
 
     def update(
         updates: Any,
-        state: tuple[GSDRState, Any],
+        state: tuple[_TransformGSDRState, Any],
         params: Optional[Any] = None,
         key: Optional[Any] = None,
         loss: Optional[float] = None,
-    ) -> tuple[Any, tuple[GSDRState, Any]]:
+    ) -> tuple[Any, tuple[_TransformGSDRState, Any]]:
         """Documented public function `update`."""
         if key is None:
             raise ValueError("GSDR transform requires explicit PRNG key")
@@ -1046,7 +1054,7 @@ def gsdr_transform(
             new_var_sup_ema = gsdr_state.ema_decay * gsdr_state.var_sup_ema + (1.0 - gsdr_state.ema_decay) * var_sup
             new_var_unsup_ema = gsdr_state.ema_decay * gsdr_state.var_unsup_ema + (1.0 - gsdr_state.ema_decay) * var_unsup
 
-            new_gsdr_state = GSDRState(
+            new_gsdr_state = _TransformGSDRState(
                 step=gsdr_state.step + 1,
                 best_loss=float(new_best_loss),
                 best_param=new_best_param,
@@ -1110,10 +1118,10 @@ def agsdr_transform(
     if inner_optimizer is None:
         inner_optimizer = optax.adam(learning_rate=1e-3)
 
-    def init(params: Any) -> tuple[AGSDRState, Any]:
+    def init(params: Any) -> tuple[_TransformAGSDRState, Any]:
         """Documented public function `init`."""
         inner_state = inner_optimizer.init(params)
-        agsdr_state = AGSDRState(
+        agsdr_state = _TransformAGSDRState(
             step=0,
             best_loss=float("inf"),
             best_param=params,
@@ -1136,11 +1144,11 @@ def agsdr_transform(
 
     def update(
         updates: Any,
-        state: tuple[AGSDRState, Any],
+        state: tuple[_TransformAGSDRState, Any],
         params: Optional[Any] = None,
         key: Optional[Any] = None,
         loss: Optional[float] = None,
-    ) -> tuple[Any, tuple[AGSDRState, Any]]:
+    ) -> tuple[Any, tuple[_TransformAGSDRState, Any]]:
         """Documented public function `update`."""
         if key is None:
             raise ValueError("AGSDR transform requires explicit PRNG key")
@@ -1193,7 +1201,7 @@ def agsdr_transform(
             var_total_stable = new_var_unsup_ema + new_var_sup_ema + 2.0 * epsilon
             alpha_next = (new_var_unsup_ema + epsilon) / var_total_stable
 
-            new_agsdr_state = AGSDRState(
+            new_agsdr_state = _TransformAGSDRState(
                 step=agsdr_state.step + 1,
                 best_loss=float(new_best_loss),
                 best_param=new_best_param,
