@@ -29,6 +29,7 @@ from .emitters import (
     izhikevich_params_from_labels,
     simulate_edge_recurrent_izhikevich,
     simulate_edge_recurrent_izhikevich_homeostatic,
+    simulate_edge_recurrent_izhikevich_hdp,
     simulate_eig_izhikevich,
     simulate_receptor_exponential_izhikevich,
 )
@@ -1451,6 +1452,33 @@ class Configuration:
             metadata["homeostasis_params"] = params
         return replace(self, metadata=metadata)
 
+    def hdp(self, relative_baseline: float = 1.0, **kwargs: Any) -> "Configuration":
+        """Declare an HDP (Homeostasis-Dependent Plasticity) baseline, mirroring
+        :meth:`homeostasis`.
+
+        ``relative_baseline=1.0`` is the identity/neutral setting: it leaves
+        ``RuntimeConfig.enable_hdp=False`` (unchanged ``simulate()`` output).
+        Deviating from ``1.0`` (or passing any ``hdp_params`` override, e.g.
+        ``K_HDP=``, ``alpha=``) resolves ``K_HDP = relative_baseline - 1.0``
+        (overridable via an explicit ``K_HDP=`` kwarg) and enables the HDP
+        kernel via ``metadata["enable_hdp"]`` / ``metadata["hdp_params"]``,
+        consumed by ``simulate()`` through ``_runtime_config_from_metadata``.
+        Mutually exclusive with :meth:`homeostasis` at the ``RuntimeConfig``
+        level (enforced in ``RuntimeConfig.__post_init__``).
+        """
+        rb = float(relative_baseline)
+        spec = {"relative_baseline": rb, **dict(kwargs)}
+        metadata = dict(self.metadata)
+        metadata["hdp"] = spec
+        active = rb != 1.0 or bool(kwargs)
+        metadata["enable_hdp"] = active
+        if active:
+            params = dict(RuntimeConfig().hdp_params)
+            params["K_HDP"] = rb - 1.0
+            params.update(kwargs)
+            metadata["hdp_params"] = params
+        return replace(self, metadata=metadata)
+
     # ------------------------------------------------------------------
     # v0.3.28 completion: declarative circuit/training ownership.
     #
@@ -2277,6 +2305,15 @@ class RuntimeConfig:
     activity-trace feedback to balance firing rates. Pass ``homeostasis_params``
     as a dict with keys {r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max};
     k_gain=0 disables the feedback.
+
+    HDP (Homeostasis-Dependent Plasticity): when ``enable_hdp=True``, emitters
+    use a per-neuron master state H_i driving excitatory/inhibitory weight
+    ODEs (see ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp``).
+    Pass ``hdp_params`` as a dict with keys {K_HDP, tau_0_ms, alpha, beta,
+    gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d}; all income/spending/
+    control gains default to 0.0 (the null control: H pinned at 1.0, no
+    weight change). ``jaxfne.hdp_network.DEFAULT_HDP`` / ``DEFAULT_HDP_DESYNC``
+    are tuned presets. Mutually exclusive with ``enable_homeostasis``.
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
@@ -2299,6 +2336,17 @@ class RuntimeConfig:
         "g_max": 8.0,
         "r_max": 1.0,
     })  # Homeostasis parameters; k_gain=0 disables, default 1.0 is a gentle in-band nudge
+    enable_hdp: bool = False  # Enable Homeostasis-Dependent Plasticity (per-neuron
+    # master state H_i driving excitatory/inhibitory weight ODEs); see
+    # jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp and
+    # jaxfne.hdp_network.DEFAULT_HDP / DEFAULT_HDP_DESYNC for tuned presets.
+    # Mutually exclusive with enable_homeostasis (distinct controllers).
+    hdp_params: dict = field(default_factory=lambda: {
+        "K_HDP": 1.0, "tau_0_ms": 100.0, "alpha": 0.0, "beta": 0.0,
+        "gamma": 0.0, "delta": 0.0, "C_spike": 0.0, "K_ctrl": 0.0,
+        "barrier_c": 0.0, "barrier_d": 0.0,
+    })  # All income/spending/control gains default to 0.0 -- the documented
+    # null control (H_i pinned at 1.0, weight term identically zero).
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
     device_type: Optional[str] = None
     dtype_primary: Optional[str] = None
@@ -2325,6 +2373,11 @@ class RuntimeConfig:
         if vmap_str not in {"true", "false", "auto", "1", "0"}:
             raise ValueError(
                 f"vmap must be a boolean or 'auto'; got {self.vmap!r}"
+            )
+        if self.enable_homeostasis and self.enable_hdp:
+            raise ValueError(
+                "enable_homeostasis and enable_hdp are mutually exclusive "
+                "controllers; enable only one."
             )
 
     def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
@@ -2440,6 +2493,8 @@ class RuntimeConfig:
             "synaptic_kernel": self.synaptic_kernel,
             "enable_homeostasis": bool(self.enable_homeostasis),
             "homeostasis_params": dict(self.homeostasis_params) if self.enable_homeostasis else None,
+            "enable_hdp": bool(self.enable_hdp),
+            "hdp_params": dict(self.hdp_params) if self.enable_hdp else None,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,
@@ -4158,8 +4213,9 @@ class Model:
             else:
                 emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
 
-        # Reset per-call homeostasis diagnostics (populated only when enabled).
+        # Reset per-call homeostasis/HDP diagnostics (populated only when enabled).
         object.__setattr__(self, "_last_homeostasis_diag", None)
+        object.__setattr__(self, "_last_hdp_diag", None)
 
         if getattr(runtime_cfg, "enable_homeostasis", False):
             if runtime_cfg.synaptic_kernel == "receptor_exponential":
@@ -4244,6 +4300,78 @@ class Model:
                 V, S, src, g_bias, r_trace = result
                 object.__setattr__(self, "_last_homeostasis_diag",
                                    {"g_bias": g_bias, "r_trace": r_trace})
+            return V, S, src
+
+        if getattr(runtime_cfg, "enable_hdp", False):
+            if runtime_cfg.synaptic_kernel == "receptor_exponential":
+                raise ValueError(
+                    "enable_hdp is not supported with "
+                    "synaptic_kernel='receptor_exponential'; use the default "
+                    "exponential synaptic kernel."
+                )
+            # HDP is sparse-edge based; edge_list always exists from construct().
+            edges: EdgeList = self.params["edge_list"]
+            if ablation_mode == "disconnected_null":
+                edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+            hp = dict(runtime_cfg.hdp_params or {})
+
+            def _hdp_packed(k, s):
+                """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
+                V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
+                    emitter, edges, sim.n_steps, sim.dt_ms, k,
+                    dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                    silence_mask=silence_mask,
+                    H_min=hp.get("H_min", 0.1), H_max=hp.get("H_max", 10.0),
+                    tau_0_ms=hp.get("tau_0_ms", 100.0),
+                    alpha=hp.get("alpha", 0.0), beta=hp.get("beta", 0.0),
+                    gamma=hp.get("gamma", 0.0), delta=hp.get("delta", 0.0),
+                    C_spike=hp.get("C_spike", 0.0), K_HDP=hp.get("K_HDP", 1.0),
+                    K_ctrl=hp.get("K_ctrl", 0.0),
+                    barrier_c=hp.get("barrier_c", 0.0), barrier_d=hp.get("barrier_d", 0.0),
+                    barrier_eps=hp.get("barrier_eps", 1.0e-3),
+                    w_floor=hp.get("w_floor", 1.0e-3), w_ceiling=hp.get("w_ceiling", 50.0),
+                    v_floor=hp.get("v_floor", -150.0), v_ceiling=hp.get("v_ceiling", 100.0),
+                    u_abs_max=hp.get("u_abs_max", 2000.0), syn_abs_max=hp.get("syn_abs_max", 1.0e4),
+                    H_boost_gain=hp.get("H_boost_gain", 0.0),
+                )
+                return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
+
+            effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+            if effective_jit:
+                if not hasattr(self, "_compiled_cache"):
+                    object.__setattr__(self, "_compiled_cache", {})
+                from .validation import make_recompilation_guard
+                B = 1
+                Z = int(self.static.get("n_contacts", 16))
+                C = int(emitter.n_neurons)
+                T = int(sim.n_steps)
+                guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+                cache_key = ("simulate_hdp", B, Z, C, T, runtime_cfg.actual_dtype,
+                             ablation_mode, runtime_cfg.selected_backend,
+                             _homeostasis_params_cache_fingerprint(hp))
+                with _device_scope(runtime_cfg.selected_backend):
+                    if cache_key not in self._compiled_cache:
+                        import time
+                        target_fn = make_recompilation_guard(
+                            _hdp_packed, name="simulate_hdp",
+                            recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                        )
+                        self._compiled_cache[cache_key] = jax.jit(target_fn)
+                        t0 = time.perf_counter()
+                        result = self._compiled_cache[cache_key](key, sched)
+                        t1 = time.perf_counter()
+                        if not hasattr(self, "_warmup_times"):
+                            object.__setattr__(self, "_warmup_times", [])
+                        self._warmup_times.append(t1 - t0)
+                    else:
+                        result = self._compiled_cache[cache_key](key, sched)
+            else:
+                with _device_scope(runtime_cfg.selected_backend):
+                    result = _hdp_packed(key, sched)
+            V, S, src, H_final, H_trace, w_final, w_trace = result
+            object.__setattr__(self, "_last_hdp_diag",
+                               {"H_final": H_final, "H_trace": H_trace,
+                                "w_final": w_final, "w_trace": w_trace})
             return V, S, src
 
         if runtime_cfg.recurrent_backend == "edge_list":
@@ -4476,6 +4604,9 @@ class Model:
         if getattr(runtime_cfg, "enable_homeostasis", False):
             diag = getattr(self, "_last_homeostasis_diag", None)
             metadata["homeostasis"] = _simulate_homeostasis_metadata(runtime_cfg, diag)
+        if getattr(runtime_cfg, "enable_hdp", False):
+            diag = getattr(self, "_last_hdp_diag", None)
+            metadata["hdp"] = _simulate_hdp_metadata(runtime_cfg, diag)
         return Signals(
             time_ms=time_ms,
             V_m=voltages.astype(runtime_cfg.jnp_dtype),
@@ -4498,6 +4629,20 @@ class Model:
         (proxy), not a biological-mechanism claim.
         """
         return getattr(self, "_last_homeostasis_diag", None)
+
+    def last_hdp_diagnostics(self) -> "Optional[dict[str, Any]]":
+        """Return the full per-step HDP diagnostics from the most recent
+        ``simulate(...)`` call with ``enable_hdp=True``.
+
+        Returns a dict with ``H_final``/``H_trace`` ``(n_steps, n_neurons)``
+        and ``w_final``/``w_trace`` ``(n_steps, n_edges)``, or ``None`` if HDP
+        was not enabled on the last run. See
+        ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`` for the
+        underlying kernel and ``jaxfne.hdp_network.DEFAULT_HDP`` /
+        ``DEFAULT_HDP_DESYNC`` for tuned presets. Computational-control
+        diagnostics (proxy), not a biological-mechanism claim.
+        """
+        return getattr(self, "_last_hdp_diag", None)
 
     def simulate_condition(
         self,
@@ -6577,7 +6722,8 @@ def _runtime_config_from_metadata(metadata: Mapping[str, Any]) -> RuntimeConfig:
     kw: dict[str, Any] = {}
     for k in ("dtype", "recurrent_backend", "jit", "vmap", "backend",
               "synaptic_kernel", "precision", "device_type",
-              "enable_homeostasis", "homeostasis_params"):
+              "enable_homeostasis", "homeostasis_params",
+              "enable_hdp", "hdp_params"):
         v = metadata.get(k)
         if v is not None:
             kw[k] = v
@@ -6750,6 +6896,45 @@ def _simulate_homeostasis_metadata(
                 "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
             }
     return homeo_meta
+
+
+def _simulate_hdp_metadata(
+    runtime_cfg: "RuntimeConfig", diag: "dict[str, Any] | None"
+) -> dict[str, Any]:
+    """``Model.simulate()`` helper: the HDP metadata sub-block.
+
+    Called only when ``runtime_cfg.enable_hdp`` is True. Framing: a single
+    per-neuron master-state (H_i) plasticity controller -- a COMPUTATIONAL
+    method, NOT a biological mechanism, matching the homeostasis controller's
+    claim discipline.
+    """
+    _hp_meta = dict(runtime_cfg.hdp_params or {})
+    hdp_meta: dict[str, Any] = {
+        "enabled": True,
+        "params": {
+            k: (v if _np_isscalar_param(v) else "per_neuron_array")
+            for k, v in _hp_meta.items()
+        },
+        "method": "homeostasis_dependent_plasticity_master_state_controller",
+        "claim_status": "computational_control_proxy_not_biological_mechanism",
+        "biological_learning_claim": False,
+        "mechanism_claim_status": "not_claimed",
+        "diagnostics_passthrough": "Signals.metadata['hdp'] summary; full "
+                                    "per-step H_trace/w_trace via "
+                                    "Model.last_hdp_diagnostics()",
+    }
+    if diag is not None:
+        H = diag["H_trace"]; wf = diag["w_final"]
+        hdp_meta["H_trace_summary"] = {
+            "min": float(jnp.min(H)), "max": float(jnp.max(H)),
+            "mean": float(jnp.mean(H)), "std": float(jnp.std(H)),
+            "shape": list(H.shape),
+        }
+        hdp_meta["w_final_summary"] = {
+            "min": float(jnp.min(wf)), "max": float(jnp.max(wf)),
+            "mean": float(jnp.mean(wf)), "shape": list(wf.shape),
+        }
+    return hdp_meta
 
 
 def _resolve_homeostasis_k_gain(hp: Mapping[str, Any], emitter) -> Any:

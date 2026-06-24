@@ -615,6 +615,15 @@ def visualize_network_3d(
         title=t, backgroundcolor="black", gridcolor="#333333",
         zerolinecolor="#444444", color="#cccccc", showbackground=True,
     )
+    # Relative laminar depth (z_m / the proxy z coordinate) is 0=superficial
+    # (L1) -> 1=deep (L6) throughout jaxfne (see project_laminar_sources'
+    # "relative laminar depth in [0,1]" convention and every
+    # layer_fractions z-band table). Plotly's default 3D z-axis plots
+    # increasing z upward, which would put deep layers visually on top --
+    # anatomically backwards. Reverse the depth axis so superficial (z=0)
+    # renders at the top and deep (z=1) at the bottom, matching a real
+    # cortical column.
+    _depth_axis = dict(_axis(f"Depth ({ax_label})"), autorange="reversed")
     fig = go.Figure(
         data=traces,
         layout=go.Layout(
@@ -622,7 +631,7 @@ def visualize_network_3d(
             scene=dict(
                 xaxis=_axis(f"X ({ax_label})"),
                 yaxis=_axis(f"Y ({ax_label})"),
-                zaxis=_axis(f"Depth ({ax_label})"),
+                zaxis=_depth_axis,
                 bgcolor="black",
             ),
             paper_bgcolor="black",

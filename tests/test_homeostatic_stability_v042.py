@@ -56,6 +56,47 @@ def test_native_homeostasis_does_not_perturb_normal_regime():
     assert -90.0 < V.min() and V.max() < 60.0
 
 
+@pytest.mark.parametrize("drive", [1.0e6, -1.0e6, np.inf, -np.inf])
+def test_native_izhikevich_hdp_hard_bounded_float32(drive):
+    """HDP emitter (per-neuron master state H_i + weight ODEs) stays finite +
+    bounded under extreme drive, mirroring the homeostasis hard-bound guarantee."""
+    cfg = (
+        jtfne.build_laminar_column(n=24, ei_profile="canonical")
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=8)
+    )
+    model = jtfne.construct(cfg)
+    n = int(model.params["emitter"].v0.shape[0])
+    model = jtfne.with_emitter_parameters(model, drive_per_neuron=jnp.full(n, drive, dtype=jnp.float32))
+    rt = jtfne.RuntimeConfig(
+        enable_hdp=True,
+        hdp_params={"K_HDP": 0.01, "alpha": 0.05, "gamma": 0.5, "K_ctrl": 0.15},
+    )
+    sig = jtfne.simulate(model, sim=jtfne.Simulation(duration_ms=150.0, dt_ms=0.5, seed=0, runtime=rt))
+
+    V = np.asarray(sig.V_m)
+    assert sig.V_m.dtype == _F32, f"expected float32, got {sig.V_m.dtype}"
+    assert _bounds_ok(V), f"V_m not finite/bounded under drive={drive}: range {V.min()}..{V.max()}"
+
+
+def test_native_hdp_does_not_perturb_normal_regime():
+    """The hard bounds are a pure safety net: normal-regime HDP dynamics are physiological."""
+    cfg = (
+        jtfne.build_laminar_column(n=24, ei_profile="canonical")
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=8)
+    )
+    model = jtfne.construct(cfg)
+    rt = jtfne.RuntimeConfig(
+        enable_hdp=True,
+        hdp_params={"K_HDP": 0.01, "alpha": 0.05, "gamma": 0.5, "K_ctrl": 0.15},
+    )
+    sig = jtfne.simulate(model, sim=jtfne.Simulation(duration_ms=200.0, dt_ms=0.5, seed=0, runtime=rt))
+    V = np.asarray(sig.V_m)
+    assert np.isfinite(V).all()
+    assert -90.0 < V.min() and V.max() < 60.0
+
+
 def test_jaxley_homeostatic_single_neuron_float32_no_overflow():
     """Single HH neuron under absurd drive stays finite: current is hard-bounded."""
     jaxley = pytest.importorskip("jaxley")

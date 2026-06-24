@@ -381,4 +381,5 @@ readout` composition as LFP/CSD/EEG/MEG above.
 
 [STDP_CLOSED_LOOP_REPORT](../STDP_CLOSED_LOOP_REPORT.md) ·
 [Homeostasis guide](homeostasis.md) ·
+[HDP guide](hdp.md) ·
 [Configuration Grammar](configuration_grammar.md)
