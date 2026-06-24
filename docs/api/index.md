@@ -96,6 +96,22 @@ jtfne.build_laminar_column(ei_profile="canonical")  # ground-truth gradient, lam
 jtfne.build_laminar_column("M1", 500, layers=["L2/3", "L5"], within_gain=0.6)
 ```
 
+> **Distinct from `build_tutorial_laminar_column`.** This function is the
+> established, fluent-grammar API, returning a `Configuration` for the
+> `Configuration → construct → simulate` pipeline. `build_tutorial_laminar_column`
+> is a separate, older tutorial-notebook scaffold builder (lives at
+> `jaxfne.tutorial_utils.build_laminar_column` internally, exposed at root under
+> this disambiguated alias) — it takes a `LaminarColumnConfig` (built via
+> `make_laminar_column_config(...)`) and returns a plain `dict` with keys
+> `neurons`, `positions_m`, `W_parts`, `truth_gates`. Prefer `build_laminar_column`
+> for new code; the tutorial variant is kept for backward compatibility with
+> existing notebooks.
+>
+> ```python
+> cfg = jtfne.make_laminar_column_config(n_neuron_per_column=500)
+> model_dict = jtfne.build_tutorial_laminar_column(cfg)  # plain dict result
+> ```
+
 ### `build_multi_area_columns(...) -> Configuration`
 
 | Parameter | Default | Meaning |
