@@ -971,6 +971,290 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
     return voltages, spikes, sources, diagnostics_dict
 
 
+# Default per-cell-type relative size used by HDP's size-scaled input-current
+# time constant (tau_i = tau_0_ms * size_i**2). Matches the canonical E:I size
+# ratio used elsewhere in jaxfne (large E somas integrate slower than small
+# interneurons); not a calibrated morphological measurement.
+DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE: dict[str, float] = {
+    "E": 5.0,
+    "PV": 1.0,
+    "Inl": 1.0,
+    "SST": 1.5,
+    "Ing": 1.5,
+    "VIP": 1.5,
+}
+
+
+def _hdp_size_scale_array(
+    labels: tuple[str, ...],
+    size_scale_by_cell_type: "Mapping[str, float] | None",
+    dtype: jnp.dtype,
+) -> jax.Array:
+    table = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
+    if size_scale_by_cell_type:
+        table.update(size_scale_by_cell_type)
+    return jnp.asarray([float(table.get(name, 1.0)) for name in labels], dtype=dtype)
+
+
+def simulate_edge_recurrent_izhikevich_hdp(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    dtype: str = "float32",
+    drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
+    # Homeostasis-Dependent Plasticity (HDP) parameters. All defaulted so that
+    # k_E=k_I=0.0 and S_fire below S_min (the default) reduce this kernel to
+    # plain recurrent Izhikevich dynamics with inert resource bookkeeping --
+    # the null control.
+    S_min: float = 0.0,
+    S_max: float = 2.0,
+    S_star: float = 1.0,
+    S_fire: float = -1.0e9,
+    tau_0_ms: float = 100.0,
+    size_scale_by_cell_type: "Mapping[str, float] | None" = None,
+    I_base: float = 0.0,
+    k_in: float = 0.0,
+    C_spike: float = 0.0,
+    c_w: float = 0.0,
+    c_p: float = 0.0,
+    k_E: float = 0.0,
+    k_I: float = 0.0,
+    w_floor: float = 1.0e-3,
+    w_ceiling: float = 50.0,
+    v_floor: float = -150.0,
+    v_ceiling: float = 100.0,
+    u_abs_max: float = 2000.0,
+    syn_abs_max: float = 1.0e4,
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
+
+    Homeostasis-Dependent Plasticity (HDP) gives each neuron a bounded
+    resource-capacity state ``S_i`` (default 1.0, clamped to
+    ``[S_min, S_max]``) that tracks a per-neuron income/spending balance and
+    gates both firing and synaptic plasticity:
+
+        I_syn_i    = sum_j w_ji * x_j                          (incoming synaptic current; this module's existing ``syn``)
+        income_i   = I_base + k_in * I_syn_i
+        C_syn_i    = c_w * sum_j |w_ij|                          (cost of maintaining i's own outgoing edges)
+        C_plastic_i= c_p * sum_j |dw_ij/dt|                      (cost of this step's plasticity on i's outgoing edges)
+        tau_i * dS_i/dt = income_i - C_syn_i - C_plastic_i       (rate terms only; tau_i = tau_0_ms * size_i**2)
+        S_i <- S_i - C_spike                                     (discrete per-spike-event drain, not a rate)
+        fires_i  = (V_i >= 30 mV) AND (S_i > S_fire)             (resource-gated firing: depleted neurons cannot spike)
+        dw_E^ij/dt = +k_E * (S_i - S_star) * w_E^ij              (excitatory incoming edges)
+        dw_I^ij/dt = +k_I * (S_star - S_i) * w_I^ij              (inhibitory incoming edges)
+
+    ``i`` indexes the postsynaptic neuron in both weight ODEs and in the
+    firing gate (matching the existing homeostatic-plasticity sign convention
+    elsewhere in this module). Sign check for stability: an overactive neuron
+    spends faster than it earns, so ``S_i`` falls below ``S_star``; this must
+    *weaken* its excitatory weights and *strengthen* its inhibitory weights to
+    correct the overactivity. With the signs above, ``S_i < S_star`` gives
+    ``dw_E/dt < 0`` (weakens) and ``dw_I/dt > 0`` (strengthens) -- the
+    restoring direction. (A literal ``dw_E/dt = +k_E*(S_star-S_i)*w_E`` /
+    ``dw_I/dt = +k_I*(S_i-S_star)*w_I`` reading would invert both signs and
+    diverge, mirroring the same sign trap found and corrected in the
+    superseded H_i/Ibar_i draft of this kernel.) Note that an overactive
+    neuron's higher spend is mostly transmitted forward as synaptic current
+    to its postsynaptic targets, raising *their* income -- the
+    resource-redistribution property falls out of ``income_j = I_base +
+    k_in * sum_i w_ij * x_i`` without any extra bookkeeping.
+
+    jaxfne's native synapse model is current-based: each edge carries one
+    signed scalar weight (``edges.weight``) added directly to input current,
+    with a binary ``edges.receptor_index`` (0 = excitatory, 1 = inhibitory).
+    The four declarative :func:`standard_receptor_specs` receptor classes
+    (AMPA, NMDA, GABA_A, GABA_B) are metadata only and are not instantiated as
+    separate synapse populations in the constructed network, and there is no
+    conductance/reversal-potential term in the dynamics. HDP's excitatory
+    weight class is therefore ``receptor_index == 0`` (the AMPA+NMDA role) and
+    its inhibitory weight class is ``receptor_index == 1`` (the GABA_A+GABA_B
+    role) -- the weight ODEs operate on the edge's existing signed native
+    weight, not on a separately-modeled conductance. ``C_syn``/``C_plastic``
+    are attributed to a neuron's *outgoing* edges (``edges.pre == i``); income
+    is computed from a neuron's *incoming* edges (``edges.post == i``, the
+    existing ``syn`` term).
+
+    Args:
+        params, edges, n_steps, dt_ms, key: as in simulate_edge_recurrent_izhikevich
+        dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
+        S_min, S_max: clamp bounds for S_i (default [0.0, 2.0])
+        S_star: plasticity equilibrium / target resource level (default 1.0)
+        S_fire: firing-gate threshold; a neuron with S_i <= S_fire cannot
+            spike this step even if V_i >= 30 mV (default -1e9, i.e.
+            disabled -- the null control, since S_i >= S_min > S_fire always)
+        tau_0_ms: base resource integration time constant (default 100 ms);
+            per-neuron tau_i = tau_0_ms * size_i**2 (larger/slower for E,
+            faster for PV, matching the existing size-scaling table)
+        size_scale_by_cell_type: override the default per-cell-type relative
+            size table (see DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
+        I_base, k_in: resource income baseline and synaptic-income gain
+            (default 0.0 for both -- no income, part of the null control)
+        C_spike: resource cost charged per spike, subtracted directly from
+            S_i (not scaled by tau_i; default 0.0)
+        c_w: per-unit-weight cost of maintaining outgoing synapses (default 0.0)
+        c_p: per-unit-|dw/dt| cost of this step's plasticity (default 0.0)
+        k_E, k_I: excitatory/inhibitory weight-plasticity gains (0 = disabled;
+            default 0.0 for both -- the null control)
+        w_floor, w_ceiling: clip bounds for edge weight magnitude (default
+            [1e-3, 50.0]; prevents collapse-to-zero and unbounded divergence)
+        v_floor, v_ceiling, u_abs_max, syn_abs_max: hard numerical-stability
+            bounds, as in simulate_edge_recurrent_izhikevich_homeostatic
+
+    Returns:
+        (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
+        includes "S_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges),
+        and "*_final" vectors.
+    """
+
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (jnp.asarray(0.5, dtype=jdtype) if noise_scale is None
+                  else jnp.asarray(noise_scale, dtype=jdtype))
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    tau_syn_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_syn_ms)
+    n_neurons = params.v0.shape[0]
+    exc_mask = (edges.receptor_index.astype(jnp.int32) == 0)
+
+    size_arr = _hdp_size_scale_array(params.labels, size_scale_by_cell_type, jdtype)
+    tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr
+    tau_i = jnp.maximum(tau_i, jnp.asarray(1e-6, dtype=jdtype))
+
+    S_min_arr = jnp.asarray(S_min, dtype=jdtype)
+    S_max_arr = jnp.asarray(S_max, dtype=jdtype)
+    S_star_arr = jnp.asarray(S_star, dtype=jdtype)
+    S_fire_arr = jnp.asarray(S_fire, dtype=jdtype)
+    I_base_arr = jnp.asarray(I_base, dtype=jdtype)
+    k_in_arr = jnp.asarray(k_in, dtype=jdtype)
+    C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
+    c_w_arr = jnp.asarray(c_w, dtype=jdtype)
+    c_p_arr = jnp.asarray(c_p, dtype=jdtype)
+    k_E_arr = jnp.asarray(k_E, dtype=jdtype)
+    k_I_arr = jnp.asarray(k_I, dtype=jdtype)
+    w_floor_arr = jnp.asarray(w_floor, dtype=jdtype)
+    w_ceiling_arr = jnp.asarray(w_ceiling, dtype=jdtype)
+    v_floor_arr = jnp.asarray(v_floor, dtype=jdtype)
+    v_ceiling_arr = jnp.asarray(v_ceiling, dtype=jdtype)
+    u_abs_max_arr = jnp.asarray(u_abs_max, dtype=jdtype)
+    syn_abs_max_arr = jnp.asarray(syn_abs_max, dtype=jdtype)
+
+    def _bound_state(v_s, u_s, syn_s):
+        """Clamp carried emitter state to finite hard bounds (overflow/underflow guard)."""
+        return (
+            jnp.clip(v_s, v_floor_arr, v_ceiling_arr),
+            jnp.clip(u_s, -u_abs_max_arr, u_abs_max_arr),
+            jnp.clip(syn_s, -syn_abs_max_arr, syn_abs_max_arr),
+        )
+
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+    sched = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
+             if drive_schedule is None else drive_schedule.astype(jdtype))
+
+    if init_state is not None:
+        S0 = jnp.asarray(init_state.get("S_final", jnp.ones((n_neurons,), dtype=jdtype)), dtype=jdtype)
+        w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+            S0, w0,
+        )
+    else:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+            jnp.ones((n_neurons,), dtype=jdtype),     # S_i(0) = 1.0
+            edges.weight.astype(jdtype),              # w(0) = native edge weight
+        )
+
+    def step(carry, xs_t):
+        """HDP step: Izhikevich dynamics gated by resource state S, plus income/spending and edge-weight ODEs."""
+        sched_t, noise_t = xs_t
+        v, u, prev_spikes, syn_state, S, w = carry
+
+        edge_current = w * syn_state
+        syn = _segment_sum(edge_current, post, n_neurons)
+        current_native = drive + sched_t + syn + noise_coef * noise_t
+
+        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+        du = a * (b * v - u)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        v_next = jnp.where(s_mask > 0.5, v_next, c)
+        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5) & (S > S_fire_arr)
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        syn_next = syn_state * decay + spikes[pre]
+
+        # Resource-gated weight plasticity on incoming excitatory vs
+        # inhibitory edges, driven by the postsynaptic neuron's resource
+        # state S (evaluated before this step's S update, to avoid a
+        # circular dependency between the plasticity cost and S itself).
+        S_post = S[post]
+        wmag = jnp.abs(w)
+        dw_exc = k_E_arr * (S_post - S_star_arr) * wmag
+        dw_inh = k_I_arr * (S_star_arr - S_post) * wmag
+        dw = jnp.where(exc_mask, dw_exc, dw_inh)
+        wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
+        w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
+
+        # Income/spending resource bookkeeping (per-neuron). Income comes
+        # from incoming synaptic current (this neuron's "I_syn"); spending
+        # is the cost of maintaining and updating this neuron's own outgoing
+        # edges, plus a discrete per-spike-event drain.
+        income = I_base_arr + k_in_arr * syn
+        C_syn = c_w_arr * _segment_sum(wmag, pre, n_neurons)
+        C_plastic = c_p_arr * _segment_sum(jnp.abs(dw), pre, n_neurons)
+        S_next = S + (dt / tau_i) * (income - C_syn - C_plastic) - C_spike_arr * spikes
+        S_next = jnp.clip(S_next, S_min_arr, S_max_arr)
+
+        v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
+        source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        return (v_reset, u_reset, spikes, syn_next, S_next, w_next), \
+               (v_reset, spikes, source_proxy, S_next, w_next)
+
+    final, (voltages, spikes, sources, S_trace, w_trace) = jax.lax.scan(
+        step, init, xs=(sched, bulk_noise))
+
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "S_final": final[4],
+        "w_final": final[5],
+    }
+    diagnostics_dict = {
+        **final_state,
+        "S_trace": S_trace,
+        "w_trace": w_trace,
+    }
+    return voltages, spikes, sources, diagnostics_dict
+
+
 def standard_receptor_tau_table(dtype: str = "float32") -> jax.Array:
     """Return the receptor_index → tau_ms lookup table used by v0.0.11.
 
