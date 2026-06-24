@@ -52,9 +52,23 @@ import pandas as pd
 
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
+from jaxfne.hdp_network import build_model as _hdp_build_model
+from jaxfne.hdp_network import apply_drive_correction as _hdp_apply_drive_correction
 from jaxfne.tutorial_utils import spectrolaminar_from_trials
 
 import scripts.hdp_1000_laminar_column_boosted as base
+
+
+def build_model() -> "jtfne.core.Model":
+    """Thin wrapper: hdp_1000_laminar_column_boosted.py's build_model/
+    apply_drive_correction were consolidated into the generic
+    jaxfne.hdp_network builder (base.CFG carries the same config this
+    script previously hardcoded)."""
+    return _hdp_build_model(base.CFG)
+
+
+def apply_drive_correction(model: "jtfne.core.Model") -> "jtfne.core.Model":
+    return _hdp_apply_drive_correction(model, base.CFG)
 
 OUTPUT_DIR = Path("outputs/hdp_suite2_visualizations")
 
@@ -118,8 +132,8 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=== Building 1000-neuron laminar column (reused from hdp_1000_laminar_column_boosted) ===")
-    model = base.build_model()
-    model = base.apply_drive_correction(model)
+    model = build_model()
+    model = apply_drive_correction(model)
     positions_rescaled = rescaled_positions(model)
 
     # --- 1. 3D network visualization (pre-existing function) ---
