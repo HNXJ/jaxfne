@@ -90,9 +90,13 @@ def build_config() -> dict[str, Any]:
         # Longer duration used only for the final spectrolaminar-motif cell,
         # where frequency resolution benefits from more samples.
         "spectro_duration_ms": 2000.0,
-        # Shorter duration for the K_HDP x tau_0_ms stability map (24 runs
-        # at the grid sizes below) -- diagnostic only, not the tuned point.
-        "stability_duration_ms": 500.0,
+        # Stability-map duration. Previously 500ms (a 4x shorter window than
+        # duration_ms) produced false negatives: the gain-ratio sweep
+        # (hdp_bifurcation_trace.py) showed tau_0_ms=20 looks stable at 500ms
+        # (kappa~0.05) but runs away into pathological synchrony (kappa~0.93)
+        # by 1000ms -- a slow positive-feedback mode invisible to a short
+        # window. Match duration_ms so the map can't miss this failure class.
+        "stability_duration_ms": 1000.0,
         # --- Field/probe (objective-grammar Configuration requires both) ---
         "field_kwargs": dict(
             domain="laminar_column", conductivity="proxy",
