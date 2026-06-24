@@ -16,6 +16,7 @@ jaxfne.RuntimeConfig(
     precision="default", seed=0, n_steps=0, recurrent_backend="dense",
     synaptic_kernel="exponential", recompilation_guard="warning",
     enable_homeostasis=False, homeostasis_params={...},
+    enable_hdp=False, hdp_params={...},
 )
 ```
 
@@ -38,6 +39,8 @@ requested and actual dtype policy.
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
 - `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
 - `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables
+- `enable_hdp` (bool): per-neuron master-state (H) plasticity controller, default `False`; mutually exclusive with `enable_homeostasis`
+- `hdp_params` (dict): `{K_HDP, tau_0_ms, alpha, beta, gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d}`; all gains default `0.0` (the null). See [the HDP guide](../guides/hdp.md)
 
 To change a setting, construct a new `RuntimeConfig(...)` with the desired
 fields — there is no `with_seed`/`with_dtype`/`with_device` mutator API.
