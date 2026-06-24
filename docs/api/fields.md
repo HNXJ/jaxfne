@@ -327,6 +327,57 @@ csd = jtfne.csd_tensor(fo.phi_e_proxy, dz)  # == fo.csd_proxy
 
 ---
 
+### `jaxfne.fields.experimental_poisson_1d(sources, conductivity, dx, boundary="mean_zero_neumann", gauge="mean_zero") -> (phi, residual, manifest)`
+
+An actual 1D Poisson PDE solve — distinct from the proxy operators above and
+from the fenced multi-dimensional placeholder below.
+
+**Where this sits in the field-solver layer:**
+- **Proxy layer** (`project_laminar_sources`, `csd_tensor`, etc., above): Gaussian-kernel
+  / finite-difference approximations, no PDE assembled or solved. `field_solver_status`
+  stays `"linear_solver"`.
+- **`experimental_poisson_1d` (this function):** assembles and solves a real
+  1D linear system `d/dx (conductivity * d/dx phi) = -sources` via
+  `jnp.linalg.lstsq`, declaring `field_solver_status="experimental_pde_solver"`
+  in its returned manifest. It is a minimal, single-dimension PDE solve — not
+  the calibrated multi-dimensional volume-conductor solver the package's
+  longer-term scope describes.
+- **`solve_volume_conductor_experimental` / `PhysicalFieldSolverSpec`**
+  (`jaxfne/experimental_hpc/`): a loud-fail skeleton for that
+  multi-dimensional solver. Construction is inert; `.validate()` /
+  `solve_physical_field()` raise `NotImplementedError` pending
+  boundary/gauge/calibration validation (see
+  [Tensor Electromagnetics Scope](../tensor_electromagnetics_scope.md)).
+
+**Parameters:**
+- `sources` (`jax.Array`): 1D array of current/charge sources.
+- `conductivity` (float): conductivity scalar.
+- `dx` (float): grid spacing.
+- `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
+- `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
+  minimum-norm least-squares solution, which satisfies the mean-zero gauge.
+
+**Returns:** `(phi, residual, manifest)` —
+- `phi` (`jax.Array`): solved potential array.
+- `residual` (`jax.Array`): `A @ phi - b` residual of the assembled linear system.
+- `manifest` (`dict`): `claim_level="computational_scaffold"`,
+  `field_solver_status="experimental_pde_solver"`, `boundary_condition`,
+  `gauge_choice`, `residual_norm`, `convergence_status`
+  (`"converged"` if `residual_norm < 1e-3` else `"failed"`),
+  `physical_amplitude_calibrated=False`.
+
+**Example:**
+```python
+import jax.numpy as jnp
+# Pure-Neumann Poisson is only solvable for zero-net-flux sources;
+# a single nonzero entry violates that compatibility condition.
+sources = jnp.zeros(32).at[8].set(1.0).at[24].set(-1.0)
+phi, residual, manifest = jtfne.fields.experimental_poisson_1d(sources, conductivity=1.0, dx=0.1)
+assert manifest["convergence_status"] == "converged"
+```
+
+---
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint
