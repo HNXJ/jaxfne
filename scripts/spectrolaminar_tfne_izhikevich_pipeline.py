@@ -113,6 +113,14 @@ def build_config() -> dict[str, Any]:
             "delta": 0.0,
             "C_spike": 0.0,
             "K_HDP": 0.2,
+            # Linear equilibrium controller + asymmetric safety barrier (see
+            # emitters.py docstring): K_ctrl pulls H to exactly 1.0; barrier_c/d
+            # only repel H from H_min/H_max. d/c=100 places the barrier minimum
+            # at H*=1 for H_min=0.1/H_max=10.0; starting stiffness per user spec.
+            "K_ctrl": 1.0,
+            "barrier_c": 0.01,
+            "barrier_d": 1.0,
+            "barrier_eps": 1.0e-3,
             "w_floor": 1.0e-3,
             "w_ceiling": 50.0,
         },
@@ -605,6 +613,39 @@ def _plot_rate_vs_pressure(per_type: dict[str, dict[str, np.ndarray]], out_path:
     plt.close(fig)
 
 
+def _plot_H_occupancy(
+    model: "jtfne.core.Model", run: dict[str, Any], out_path: Path, *, bins: int = 60
+) -> None:
+    """Histogram of H_i values across all timesteps and neurons, per cell type.
+
+    Distinguishes "H sits at equilibrium" from "H rails against H_min/H_max"
+    in a way the trajectory mean (which can hide bimodal/rail-clipped
+    populations) cannot.
+    """
+    import matplotlib.pyplot as plt
+
+    labels = np.asarray(model.params["emitter"].labels)
+    H_trace = np.asarray(run["diagnostics"]["H_trace"])  # (n_steps, n_neurons)
+
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    for cell_type in sorted(set(labels.tolist())):
+        mask = labels == cell_type
+        if not mask.any():
+            continue
+        ax.hist(
+            H_trace[:, mask].ravel(), bins=bins, histtype="step", density=True,
+            label=cell_type,
+        )
+    ax.axvline(1.0, color="k", ls="--", lw=0.8, label="H=1 (equilibrium)")
+    ax.set_xlabel("H_i")
+    ax.set_ylabel("density (over time x neurons)")
+    ax.set_title("HDP master-state occupancy (per cell type)")
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
 def _plot_stability_map(results: list[dict[str, Any]], cfg: dict[str, Any], out_path: Path) -> None:
     import matplotlib.pyplot as plt
 
@@ -690,6 +731,7 @@ def main() -> None:
     _plot_pressure_trajectories(per_type_diag, OUTPUT_DIR / "hdp_pressure_trajectories.png")
     _plot_rate_vs_pressure(per_type_diag, OUTPUT_DIR / "hdp_rate_vs_pressure.png")
     _plot_stability_map(stability_results, cfg, OUTPUT_DIR / "hdp_stability_map.png")
+    _plot_H_occupancy(model, diag_run, OUTPUT_DIR / "hdp_H_occupancy.png")
 
     receipt = {
         "claim_level": "computational_scaffold",
