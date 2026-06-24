@@ -23,7 +23,7 @@ import jax
 import jax.numpy as jnp
 
 _BLACKBOX_OPTIMIZERS: frozenset[str] = frozenset({"GSDR", "AGSDR", "random_search"})
-_DIFFERENTIABLE_OPTIMIZERS: frozenset[str] = frozenset({"optax_adam", "optax_sgd"})
+_DIFFERENTIABLE_OPTIMIZERS: frozenset[str] = frozenset({"optax_adam", "optax_sgd", "GSGD"})
 _ALL_KNOWN_OPTIMIZERS: frozenset[str] = _BLACKBOX_OPTIMIZERS | _DIFFERENTIABLE_OPTIMIZERS
 
 _VALID_DIFFERENTIABILITY: frozenset[str] = frozenset({
@@ -376,6 +376,30 @@ def optax_sgd(
     )
 
 
+def gsgd(
+    learning_rate: float = 0.01,
+    differentiability_status: str = "not_checked",
+    surrogate_status: str = "none",
+    metadata: Optional[dict[str, Any]] = None,
+) -> OptimizerSpec:
+    """Return an OptimizerSpec for GSGD (jaxfne's built-in gradient descent kernel).
+
+    Unlike GSDR/AGSDR (black-box, gradient-free), GSGD consumes an explicit
+    gradient via :func:`jaxfne.optim.gsgd.step_gsgd_transform` and is declared
+    on the differentiable path. Same differentiability warning as optax_adam:
+    ``differentiability_status`` must be set to ``"differentiable"`` or
+    ``"declared_surrogate"`` before Model.tune() will allow the gradient path.
+    """
+    return OptimizerSpec(
+        optimizer="GSGD",
+        optimizer_class="differentiable",
+        differentiability_status=differentiability_status,
+        surrogate_status=surrogate_status,
+        learning_rate=learning_rate,
+        metadata=metadata or {},
+    )
+
+
 def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
     """Convert string shorthand or optimizer-spec objects into OptimizerSpec."""
     if isinstance(optimizer, OptimizerSpec):
@@ -411,6 +435,8 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
             return optax_adam()
         if name in {"SGD", "OPTAX_SGD"}:
             return optax_sgd()
+        if name in {"GSGD"}:
+            return gsgd()
         # Unknown string: treat as blackbox / not_checked
         return OptimizerSpec(
             optimizer=optimizer,

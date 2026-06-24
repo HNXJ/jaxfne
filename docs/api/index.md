@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 219 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 222 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -35,7 +35,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**219**) checked against the complete symbol index
+> live `len(jaxfne.__all__)` (**222**) checked against the complete symbol index
 > below.
 
 ## Minimal workflow (verified)
@@ -220,7 +220,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**219 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**222 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (70)
 
@@ -345,7 +345,7 @@ and figure/readout outputs remain proxy diagnostics
 | `validate_projection_invariants` | func | —  _(undocumented)_ |
 | `validate_source_field_status` | func | Return truth-preserving status for source-field readouts. |
 
-### Optimizers — `optim` (15)
+### Optimizers — `optim` (18)
 
 | Symbol | Kind | Summary |
 |---|---|---|
@@ -357,6 +357,9 @@ and figure/readout outputs remain proxy diagnostics
 | `gsdr` | func | Return an OptimizerSpec for the GSDR (Genetic Stochastic Delta Rule) optimizer. |
 | `gsdr_transform` | func | Return an Optax-compatible GradientTransformation for Genetic SDR. |
 | `GSDRState` | class | Genetic Stochastic Delta Rule optimizer state. |
+| `gsgd` | func | Return an OptimizerSpec for GSGD (jaxfne's built-in gradient descent kernel). |
+| `GSGDState` | class | State for GSGD optimization step. |
+| `step_gsgd_transform` | func | Integrates generalized stochastic gradient updates with adaptive step scaling. |
 | `optax_adam` | func | Return an OptimizerSpec for Optax Adam. |
 | `optax_sgd` | func | Return an OptimizerSpec for Optax SGD. |
 | `OptimizerSpec` | class | Declarative optimizer specification with differentiability metadata. |

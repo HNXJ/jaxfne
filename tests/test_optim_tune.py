@@ -25,7 +25,7 @@ def _model():
 
 def test_optimizer_spec_json_safe():
     """OptimizerSpec.to_dict() must produce a JSON-safe dict with no callables."""
-    for spec in [jtfne.gsdr(), jtfne.agsdr(), jtfne.random_search(), jtfne.optax_adam(), jtfne.optax_sgd()]:
+    for spec in [jtfne.gsdr(), jtfne.agsdr(), jtfne.random_search(), jtfne.optax_adam(), jtfne.optax_sgd(), jtfne.gsgd()]:
         d = spec.to_dict()
         assert isinstance(d, dict)
         for v in d.values():
@@ -64,6 +64,60 @@ def test_random_search_status():
     assert spec.optimizer_class == "blackbox"
     assert spec.differentiability_status == "non_differentiable"
     assert spec.surrogate_status == "not_applicable"
+
+
+def test_gsgd_status_differentiable():
+    """GSGD spec must declare optimizer_class=differentiable, default not_checked."""
+    spec = jtfne.gsgd()
+    assert spec.optimizer == "GSGD"
+    assert spec.optimizer_class == "differentiable"
+    assert spec.differentiability_status == "not_checked"
+    assert spec.surrogate_status == "none"
+    assert spec.learning_rate == 0.01
+    assert not spec.is_blackbox()
+    assert spec.is_differentiable_path()
+    assert not spec.gradient_path_safe()
+
+
+def test_gsgd_resolved_from_string():
+    """Model.tune(optimizer='GSGD') must resolve to the gsgd() spec via _resolve_optimizer."""
+    from jaxfne.optim.core import _resolve_optimizer
+
+    spec = _resolve_optimizer("GSGD")
+    assert spec.optimizer == "GSGD"
+    assert spec.optimizer_class == "differentiable"
+
+    spec_lower = _resolve_optimizer("gsgd")
+    assert spec_lower.optimizer == "GSGD"
+
+
+def test_gsgd_path_requires_differentiable_or_surrogate():
+    """gsgd() with default not_checked status must report blocked path, like optax_adam."""
+    model = _model()
+    obj = jtfne.objective().loss("rate_loss", target=20.0, metric="spike_rate_hz_mean")
+    spec = jtfne.gsgd(learning_rate=0.02)  # differentiability_status="not_checked"
+
+    same_model, report = model.tune(obj, optimizer=spec, steps=10)
+    assert same_model is model
+    assert report["tuning_status"] == "blocked_non_differentiable_path"
+    assert report["acceptance_decision"] == "REVISE"
+    assert any("differentiable" in w for w in report["warnings"])
+
+
+def test_step_gsgd_transform_direct():
+    """Direct unit test of the GSGD kernel: u_next = u_t - eta * grad_l."""
+    import jax.numpy as jnp
+
+    u_t = jnp.array([1.0, 2.0, 3.0], dtype=jnp.float32)
+    grad_l = jnp.array([0.5, -1.0, 2.0], dtype=jnp.float32)
+    state = jtfne.GSGDState(count=jnp.array(0), step_size=jnp.array(0.1))
+    hyperparams = {"eta": 0.1}
+
+    u_next, new_state = jtfne.step_gsgd_transform(u_t, grad_l, state, hyperparams)
+
+    expected = u_t - 0.1 * grad_l
+    assert jnp.allclose(u_next, expected)
+    assert new_state is state  # kernel is stateless pass-through at this scaffold stage
 
 
 def test_optax_guarded_import_no_top_level_dependency():
