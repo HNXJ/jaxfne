@@ -68,6 +68,44 @@ BASE_HDP_KWARGS_DEFAULT = dict(
     barrier_eps=1.0e-3, w_floor=0.01, w_ceiling=10.0, H_boost_gain=4.0,
 )
 
+# Faster, less-overdamped H dynamics: DEFAULT_HDP's tau_0_ms=200 combined
+# with size**2 scaling (E size=5 -> tau_i=5000ms) makes H_i nearly static
+# (H_std~0.0006), which in turn keeps every neuron's spiking near-regular
+# ("ECG-like") -- low population-level rate variance even though overall
+# rate is in-band. This profile trades that overdamping for faster H
+# integration (tau_0_ms=5, 40x faster) plus a rate-drain term (gamma=0.3,
+# previously 0.0) so H genuinely responds to each neuron's own activity
+# instead of being pinned by K_ctrl alone. Found via grid search over
+# alpha x K_ctrl at tau_0_ms=5/gamma=0.3/C_spike=0 (12-point final sweep,
+# N=500, 2000ms, drive_scale=1.2x BASE_DRIVE_BY_CELL_TYPE_DEFAULT):
+# alpha=0.07/K_ctrl=0.15 was the highest-H_std point that did NOT hit the
+# H_min/H_max clamp rails (those configs read as runaway, not fluctuation,
+# e.g. K_ctrl=0.08 saturates some neurons to H=0.10/10.00). Verified
+# (N=500, 2000ms, drive_scale=1.2): rate=12.8Hz, H=1.035+-0.036 in
+# [0.96,1.47], rate_std=6.13Hz (vs 0.99Hz at DEFAULT_HDP), kappa=0.046
+# (still async-irregular, not pathologically synchronized). H's range does
+# not yet symmetrically span the requested [0.8,1.2] -- it undershoots the
+# floor and overshoots the ceiling -- so treat this as the current best
+# candidate from one search pass, not a finished/frozen point like
+# DEFAULT_HDP.
+DEFAULT_HDP_DESYNC = dict(
+    K_HDP=0.01,
+    tau_0_ms=5.0,
+    K_ctrl=0.15,
+    barrier_c=0.01,
+    barrier_d=0.01,
+    alpha=0.07,
+    gamma=0.3,
+    C_spike=0.0,
+)
+
+# Drive scale paired with DEFAULT_HDP_DESYNC: x1.2 on
+# BASE_DRIVE_BY_CELL_TYPE_DEFAULT raises overall rate from ~7.3Hz to
+# ~12.6Hz while keeping H pinned (H_mean=1.001) at DEFAULT_HDP -- found by
+# sweeping drive_scale in {1.0,1.2,1.4,...} and picking the point with the
+# best variance/rate tradeoff before H itself was made faster.
+DRIVE_SCALE_DESYNC = 1.2
+
 # Deep-layer size inflation, per user spec: makes deep layers appear
 # visually less dense and (via tau_i = tau_0_ms * size_i**2 in
 # jaxfne.emitters) makes deep-layer H integrate slower. Multiplies

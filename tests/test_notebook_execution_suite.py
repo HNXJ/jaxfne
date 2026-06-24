@@ -63,6 +63,21 @@ RELEASE_FACING_NOTEBOOKS = [
 
 pytestmark = [pytest.mark.slow, pytest.mark.notebook]
 
+# Étude 8-12 are intentional skeleton placeholders: every code cell raises
+# NotImplementedError("... is a planned placeholder.") by design (verified
+# by reading the notebooks). They are not yet implemented Etudes, so "executes
+# cleanly" is the wrong bar -- xfail them (matching the same pattern already
+# used for Etude No. 1's placeholder phase) rather than block CI on planned-
+# but-unbuilt content. Re-parametrize to a real execution test once each
+# Etude gets a real implementation.
+PLACEHOLDER_NOTEBOOKS = {
+    "etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
+    "etudes/jaxfne_etude_no_9_local_oddball.ipynb",
+    "etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
+    "etudes/jaxfne_etude_no_11_omission_local.ipynb",
+    "etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
+}
+
 
 @pytest.mark.parametrize("notebook_rel_path", RELEASE_FACING_NOTEBOOKS)
 def test_release_notebook_executes_cleanly(notebook_rel_path, tmp_path):
@@ -72,6 +87,29 @@ def test_release_notebook_executes_cleanly(notebook_rel_path, tmp_path):
 
     nb_path = TUTORIALS_DIR / notebook_rel_path
     assert nb_path.exists(), f"Notebook not found: {nb_path}"
+
+    if notebook_rel_path in PLACEHOLDER_NOTEBOOKS:
+        # execute_notebook_via_nbclient's NotebookClient.execute() raises
+        # CellExecutionError on the first failing cell (nbclient's default
+        # error-stops-execution behavior) rather than returning it in the
+        # error list -- catch it directly here instead of relying on the
+        # helper's "empty list = clean" contract, which only holds for
+        # notebooks that genuinely execute with zero errors.
+        from nbclient.exceptions import CellExecutionError
+
+        try:
+            execute_notebook_via_nbclient(nb_path, tmp_path, timeout=900)
+        except CellExecutionError as exc:
+            assert "NotImplementedError" in str(exc), (
+                "Placeholder notebook failed for an unexpected reason "
+                f"(expected NotImplementedError): {exc}"
+            )
+            pytest.xfail("Skeleton-only Etude: implementation pending (see notebook plan cell).")
+        else:
+            pytest.fail(
+                "Placeholder notebook executed with zero errors -- it has been "
+                "implemented; remove it from PLACEHOLDER_NOTEBOOKS."
+            )
 
     errors = execute_notebook_via_nbclient(nb_path, tmp_path, timeout=900)
     assert errors == [], format_cell_errors(errors)
