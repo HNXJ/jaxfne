@@ -232,12 +232,11 @@ def main():
 
     # === 9. Validation metadata audit ===
     status_fields = {
-        "run_status": manifest.get("run_status"),
-        "model_status": manifest.get("model_status"),
+        "claim_level": manifest.get("claim_level"),
         "source_calibration_status": manifest.get("source_calibration_status"),
         "field_solver_status": manifest.get("field_solver_status"),
-        "field_model_status": manifest.get("field_model_status"),
-        "amplitude_status": manifest.get("amplitude_status"),
+        "field_claim_level": manifest.get("field_claim_level"),
+        "physical_amplitude_calibrated": manifest.get("physical_amplitude_calibrated"),
     }
 
     validation_report = {
@@ -262,10 +261,10 @@ def main():
             "synchrony": objective_report["regularizers"][0]["name"] if objective_report["regularizers"] else None,
         },
         "assertions": {
-            "amplitude_status_is_false": manifest.get("amplitude_status") is False,
+            "physical_amplitude_calibrated_is_false": manifest.get("physical_amplitude_calibrated") is False,
             "source_calibration_uncalibrated": manifest.get("source_calibration_status") == "uncalibrated_izhikevich_native_current",
-            "field_statement_proxy_readout": manifest.get("field_model_status") == "proxy_readout",
-            "run_status_safe_unverified": manifest.get("run_status") == "tutorial_scaffold",
+            "field_statement_proxy_readout": manifest.get("field_claim_level") == "proxy_readout",
+            "claim_level_is_computational_scaffold": manifest.get("claim_level") == "computational_scaffold",
         }
     }
 
