@@ -220,7 +220,7 @@ spiking reads as near-regular ("ECG-like") rather than async-irregular — exact
 high-synchrony failure mode the **low synchrony** prerequisite above warns about.
 `jaxfne.hdp_network.DEFAULT_HDP_DESYNC` (paired with `DRIVE_SCALE_DESYNC=1.2`) trades
 some of that overdamping for faster `H` integration (`tau_0_ms=5`, 40x faster) plus a
-genuine rate-drain term (`gamma=0.3`), so `H_i` fluctuates instead of sitting pinned:
+genuine rate-drain term (`gamma=0.5`), so `H_i` fluctuates instead of sitting pinned:
 
 ```python
 from jaxfne.hdp_network import (
@@ -234,12 +234,18 @@ cfg = HDPColumnConfig(n_neurons=500, duration_ms=2000.0, dt_ms=0.5, seed=0,
 hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP_DESYNC)
 ```
 
-Verified (N=500, 2000ms): overall rate 7.3 → 12.8 Hz, per-neuron rate std 0.99 → 6.13 Hz,
-`H` fluctuates genuinely (`H=1.035±0.036`, range `[0.96, 1.47]`) while every neuron
-stays clear of the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays at 0.046
-(still async-irregular). `H`'s range has yet to symmetrically span `[0.8, 1.2]` — treat
-this as the current best candidate from one search pass over `alpha`/`K_ctrl`/
-`tau_0_ms`, a still-open candidate unlike the frozen `DEFAULT_HDP`.
+Verified, 5-seed stable (N=500, 2000ms): overall rate 7.3 → 12.6 Hz, per-neuron rate std
+0.99 → 6.0 Hz, `H` fluctuates genuinely (`H=1.028±0.023`, range `[0.953, 1.227]`) while
+every neuron stays clear of the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays
+at 0.044 (still async-irregular). This is a second-pass refinement of an earlier, wider
+and more skewed candidate (`H=[0.96, 1.47]`) -- raising `gamma` from 0.3 to 0.5 tightened
+both tails since the rate-drain term is rate-bounded rather than weight-multiplicative,
+so it does not amplify the H>1 weight-growth feedback loop the way `alpha` does;
+`gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried.
+`H`'s range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) appears
+structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not by these three
+gains, so treat this as the current best candidate, a still-open point unlike the frozen
+`DEFAULT_HDP`.
 
 ### Two distinct, intentionally-separate operating modes
 
@@ -253,16 +259,16 @@ matches the question:
 | `K_HDP` | `0.01` | `0.01` |
 | `tau_0_ms` | `200.0` | `5.0` |
 | `K_ctrl` | `5.0` | `0.15` |
-| `alpha` | `0.01` (from `BASE_HDP_KWARGS_DEFAULT`) | `0.07` |
-| `gamma` | `0.0` | `0.3` |
+| `alpha` | `0.01` (from `BASE_HDP_KWARGS_DEFAULT`) | `0.05` |
+| `gamma` | `0.0` | `0.5` |
 | `barrier_c` / `barrier_d` | `0.01` / `0.01` | `0.01` / `0.01` |
 | Drive scale | `1.0` (`BASE_DRIVE_BY_CELL_TYPE_DEFAULT` as-is) | `1.2` (`DRIVE_SCALE_DESYNC`) |
-| Validated overall rate | ~7.3-7.8 Hz | ~12.8 Hz |
-| Per-neuron rate std | 0.99 Hz | 6.13 Hz |
-| `H` behavior | Pinned (`H_mean≈1.001-1.003`, `H_std≈0.0006`) | Fluctuating (`H=1.035±0.036`, range `[0.96, 1.47]`) |
-| `kappa_synchrony` | ~0.04-0.05 | ~0.046 |
-| Validation evidence | 5-seed × 20s stability gate | One 12-point grid search, N=500, 2000ms |
-| Status | Frozen (0.4.6 candidate) | Best-of-one-pass; still open |
+| Validated overall rate | ~7.3-7.8 Hz | ~12.6 Hz |
+| Per-neuron rate std | 0.99 Hz | 6.0 Hz |
+| `H` behavior | Pinned (`H_mean≈1.001-1.003`, `H_std≈0.0006`) | Fluctuating (`H=1.028±0.023`, range `[0.953, 1.227]`) |
+| `kappa_synchrony` | ~0.04-0.05 | ~0.044 |
+| Validation evidence | 5-seed × 20s stability gate | 5-seed × 2s grid-search refinement, N=500 |
+| Status | Frozen (0.4.6 candidate) | Best-of-two-pass; still open |
 
 ## Figures
 
