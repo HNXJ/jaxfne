@@ -4315,12 +4315,32 @@ class Model:
                 edges = replace(edges, weight=jnp.zeros_like(edges.weight))
             hp = dict(runtime_cfg.hdp_params or {})
 
+            # Optional caller-supplied initial HDP state (Model.with_hdp_initial_state).
+            # Absent by default -> init_state=None, the exact prior behavior
+            # (kernel's own equilibrium H=1.0, native edge weight).
+            _hdp_H0 = self.params.get("hdp_initial_H")
+            _hdp_w0 = self.params.get("hdp_initial_w")
+            init_state = None
+            if _hdp_H0 is not None or _hdp_w0 is not None:
+                _idt = runtime_cfg.actual_dtype
+                init_state = {
+                    "v": emitter.v0.astype(_idt),
+                    "u": emitter.u0.astype(_idt),
+                    "prev_spikes": jnp.zeros_like(emitter.v0, dtype=_idt),
+                    "syn_state": jnp.zeros_like(edges.weight, dtype=_idt),
+                }
+                if _hdp_H0 is not None:
+                    init_state["H_final"] = jnp.asarray(_hdp_H0, dtype=_idt)
+                if _hdp_w0 is not None:
+                    init_state["w_final"] = jnp.asarray(_hdp_w0, dtype=_idt)
+
             def _hdp_packed(k, s):
                 """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
                 V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
                     emitter, edges, sim.n_steps, sim.dt_ms, k,
                     dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                     silence_mask=silence_mask,
+                    init_state=init_state,
                     H_min=hp.get("H_min", 0.1), H_max=hp.get("H_max", 10.0),
                     tau_0_ms=hp.get("tau_0_ms", 100.0),
                     alpha=hp.get("alpha", 0.0), beta=hp.get("beta", 0.0),
@@ -5841,6 +5861,37 @@ class Model:
         new_emitter = replace(emitter, **updates)
         new_params = dict(self.params)
         new_params["emitter"] = new_emitter
+        return replace(self, params=new_params)
+
+    def with_hdp_initial_state(
+        self,
+        *,
+        H0: "jax.Array | None" = None,
+        w0: "jax.Array | None" = None,
+    ) -> "Model":
+        """Return a new Model with a custom initial HDP controller state.
+
+        Only takes effect when HDP is separately enabled via
+        ``Configuration.hdp(...)`` (``RuntimeConfig.enable_hdp=True``); stored
+        but inert otherwise, mirroring :meth:`with_emitter_parameters`'s
+        additive-override pattern.
+
+        Args:
+            H0: Per-neuron initial homeostatic factor (shape: [n_neurons]).
+                Defaults to the HDP kernel's own equilibrium value (1.0 for
+                every neuron) when not provided.
+            w0: Per-edge initial weight (shape: [n_edges], aligned to
+                ``self.params["edge_list"]``). Defaults to the edge list's
+                native ``weight`` when not provided.
+
+        Returns:
+            New Model — original is not mutated.
+        """
+        new_params = dict(self.params)
+        if H0 is not None:
+            new_params["hdp_initial_H"] = jnp.asarray(H0, dtype=jnp.float32)
+        if w0 is not None:
+            new_params["hdp_initial_w"] = jnp.asarray(w0, dtype=jnp.float32)
         return replace(self, params=new_params)
 
     def with_recurrent_coupling(

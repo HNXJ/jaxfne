@@ -358,6 +358,16 @@ def construct_neuronal_tensor(
     in ``model.static["neuron_metadata"]``) so field/LFP/EEG/MEG proxy
     readouts — which read positions from there — see the real layout.
 
+    Each connection's ``PlasticParams.H`` is aggregated (mean, across every
+    connection whose target layer/cell_type touches a given neuron;
+    untouched neurons default to the HDP equilibrium ``1.0``) into a
+    per-neuron initial homeostatic state, applied via
+    :meth:`Model.with_hdp_initial_state`. This is stored but inert unless
+    the caller separately enables HDP (``cfg.hdp(...)`` before
+    :func:`jaxfne.construct`, or via a post-hoc ``RuntimeConfig`` override at
+    :func:`jaxfne.simulate` time) — matching ``RuntimeConfig.enable_hdp``'s
+    default of ``False``.
+
     Still does not wire ``AreaConnection``/``InterConnection`` into recurrent
     dynamics (see :func:`neuronal_tensor_to_configuration`'s docstring).
     """
@@ -366,6 +376,28 @@ def construct_neuronal_tensor(
     )
     model = construct(cfg)
     rows = model.neuron_table()
+
+    h_sum: dict[tuple[str, str, str], float] = {}
+    h_count: dict[tuple[str, str, str], int] = {}
+
+    def _accumulate_h(conn: "InterConnection | AreaConnection", area_name: str) -> None:
+        key = (area_name, conn.target_layer, conn.target_neuron_type)
+        h_sum[key] = h_sum.get(key, 0.0) + float(conn.plastic.H)
+        h_count[key] = h_count.get(key, 0) + 1
+
+    for area in tensor.areas:
+        for ic in area.inter_connections:
+            _accumulate_h(ic, area.name)
+    for ac in tensor.area_connections:
+        _accumulate_h(ac, ac.target_area)
+
+    if h_count:
+        h_mean = {key: h_sum[key] / h_count[key] for key in h_count}
+        H0 = jnp.asarray(
+            [h_mean.get((row["area"], row["layer"], row["cell_type"]), 1.0) for row in rows],
+            dtype=jnp.float32,
+        )
+        model = model.with_hdp_initial_state(H0=H0)
 
     layer_by_key = {(a.name, l.name): l for a in tensor.areas for l in a.layers}
     pose_by_area = {a.name: a.pose for a in tensor.areas}
@@ -444,7 +476,16 @@ def _wire_connection(
     mech_name = declared_mechanisms.get(mech_key)
     if mech_name is None:
         mech_name = f"{conn.mechanism}__dt{conn.static.dT_ms:g}__{len(declared_mechanisms)}"
-        cfg = cfg.mechanisms(name=mech_name, kind=conn.mechanism, params={"tau_ms": float(conn.static.dT_ms)})
+        mech_params: dict[str, object] = {"tau_ms": float(conn.static.dT_ms)}
+        reversal_mV = conn.static.reversal_potentials_mV.get(conn.mechanism)
+        if reversal_mV is not None:
+            # Declared metadata only: jaxfne's compiled edges are
+            # current-based (Izhikevich-style), with no conductance/
+            # reversal-potential term anywhere in the dynamics — this value
+            # is surfaced into cfg.metadata["circuit"]["mechanisms"] for
+            # inspection/provenance, never consumed by simulate().
+            mech_params["reversal_mV"] = float(reversal_mV)
+        cfg = cfg.mechanisms(name=mech_name, kind=conn.mechanism, params=mech_params)
         declared_mechanisms[mech_key] = mech_name
 
     sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
@@ -502,12 +543,20 @@ def neuronal_tensor_to_configuration(
       if you need pose-correct/declared-geometry 3D placement — it bridges
       via this function then overwrites positions from each ``Layer.geometry``
       + ``Area.pose``.
-    - ``PlasticParams.H`` (homeostatic charge-balance factor) is carried in
-      the tensor/JSON but has no consumer here — no Configuration hook
-      currently reads a per-connection ``H`` term. Declared metadata only.
-    - ``StaticParams.reversal_potentials_mV`` has no consumer here either —
-      the compiled edges are native-current-based (Izhikevich-style), not a
-      conductance/reversal-potential scheme. Declared metadata only.
+    - ``StaticParams.reversal_potentials_mV`` is surfaced into each declared
+      mechanism's ``params["reversal_mV"]`` (visible in
+      ``cfg.metadata["circuit"]["mechanisms"]``) but still has no numeric
+      consumer in jaxfne's dynamics — the compiled edges are native
+      current-based (Izhikevich-style), not a conductance/reversal-potential
+      scheme. Declared, inspectable metadata only; does not affect
+      ``simulate()`` output.
+    - ``PlasticParams.H`` (homeostatic charge-balance factor) seeds the HDP
+      controller's initial per-neuron state, but ONLY when the caller
+      separately enables HDP via ``Configuration.hdp(...)`` — see
+      :func:`construct_neuronal_tensor`, which aggregates per-neuron ``H``
+      from every connection touching that neuron and applies it via
+      ``Model.with_hdp_initial_state``. Stored but inert when HDP is
+      disabled (jaxfne's default).
 
     Returns
     -------
