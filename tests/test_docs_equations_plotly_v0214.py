@@ -22,7 +22,7 @@ def test_mkdocs_yml_includes_arithmatex_extension():
     mkdocs_path = Path("mkdocs.yml")
     assert mkdocs_path.exists(), "mkdocs.yml not found"
 
-    with open(mkdocs_path, "r") as f:
+    with open(mkdocs_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "pymdownx.arithmatex" in content, "arithmatex extension not found in mkdocs.yml"
@@ -32,7 +32,7 @@ def test_mkdocs_yml_includes_arithmatex_extension():
 def test_mkdocs_yml_includes_mathjax_cdn():
     """mkdocs.yml must include MathJax CDN in extra_javascript."""
     mkdocs_path = Path("mkdocs.yml")
-    with open(mkdocs_path, "r") as f:
+    with open(mkdocs_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "extra_javascript:" in content, "extra_javascript section not found"
@@ -47,7 +47,7 @@ def test_probe_operators_has_equation_section():
     doc_path = Path("docs/guides/probe_operators.md")
     assert doc_path.exists(), "probe_operators.md not found"
 
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "Mathematical Forms" in content or "mathematical form" in content.lower(), \
@@ -57,7 +57,7 @@ def test_probe_operators_has_equation_section():
 def test_probe_operators_has_all_eight_operators():
     """probe_operators.md must document equations for all 8 operators."""
     doc_path = Path("docs/guides/probe_operators.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     operators = ["SPK", "Vm", "Source", "LFP", "CSD", "EEG", "MEG", "EMM"]
@@ -68,7 +68,7 @@ def test_probe_operators_has_all_eight_operators():
 def test_probe_operators_has_latex_math():
     """probe_operators.md must contain LaTeX math delimiters."""
     doc_path = Path("docs/guides/probe_operators.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Check for $...$ or $$...$$ delimiters
@@ -85,7 +85,7 @@ def test_tensor_field_workflows_has_math_notation():
     doc_path = Path("docs/guides/tensor_field_workflows.md")
     assert doc_path.exists(), "tensor_field_workflows.md not found"
 
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "Mathematical notation" in content or "mathematical notation" in content.lower(), \
@@ -95,7 +95,7 @@ def test_tensor_field_workflows_has_math_notation():
 def test_tensor_field_workflows_has_projection_equations():
     """tensor_field_workflows.md must explain source-to-field projection."""
     doc_path = Path("docs/guides/tensor_field_workflows.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Check for key concepts (phi_proxy may appear as LaTeX \phi_{\mathrm{proxy}})
@@ -116,7 +116,7 @@ def test_fields_api_is_not_placeholder():
     doc_path = Path("docs/api/fields.md")
     assert doc_path.exists(), "fields.md not found"
 
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Should have substantial content, not just "Placeholder page"
@@ -128,7 +128,7 @@ def test_fields_api_is_not_placeholder():
 def test_fields_api_has_contract():
     """docs/api/fields.md must document FieldOutput contract."""
     doc_path = Path("docs/api/fields.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "FieldOutput" in content, "FieldOutput not documented"
@@ -141,7 +141,7 @@ def test_probes_api_is_not_placeholder():
     doc_path = Path("docs/api/probes.md")
     assert doc_path.exists(), "probes.md not found"
 
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert len(content) > 500, "probes.md appears to be mostly empty"
@@ -152,7 +152,7 @@ def test_probes_api_is_not_placeholder():
 def test_probes_api_has_report_contract():
     """docs/api/probes.md must document ProbeReport contract."""
     doc_path = Path("docs/api/probes.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "ProbeReport" in content, "ProbeReport not documented"
@@ -170,7 +170,7 @@ def test_plotly_visualization_guide_exists():
 def test_plotly_guide_states_optional():
     """Plotly guide must clearly state Plotly is optional, not required."""
     doc_path = Path("docs/guides/plotly_visualization.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "optional" in content.lower(), "Plotly guide does not state it is optional"
@@ -180,7 +180,7 @@ def test_plotly_guide_states_optional():
 def test_plotly_guide_has_code_examples():
     """Plotly guide must include runnable code examples."""
     doc_path = Path("docs/guides/plotly_visualization.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Check for code blocks
@@ -191,7 +191,7 @@ def test_plotly_guide_has_code_examples():
 def test_plotly_guide_documents_output_structure():
     """Plotly guide must document outputs/<run>/figures/ directory structure."""
     doc_path = Path("docs/guides/plotly_visualization.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "outputs/" in content, "Output directory structure not documented"
@@ -202,7 +202,7 @@ def test_plotly_guide_documents_output_structure():
 def test_plotly_guide_documents_write_html():
     """Plotly guide must show write_html with CDN option."""
     doc_path = Path("docs/guides/plotly_visualization.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "write_html" in content, "write_html method not documented"
@@ -221,7 +221,7 @@ def test_visual_outputs_skill_exists():
 def test_visual_outputs_skill_has_code_examples():
     """Visual outputs skill must include code examples for each operator (now in internal_docs)."""
     doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Check for plot functions
@@ -233,7 +233,7 @@ def test_visual_outputs_skill_has_code_examples():
 def test_visual_outputs_skill_documents_naming_conventions():
     """Visual outputs skill must document file naming conventions."""
     doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "naming" in content.lower() or ".html" in content, \
@@ -243,7 +243,7 @@ def test_visual_outputs_skill_documents_naming_conventions():
 def test_visual_outputs_skill_has_validation_commands():
     """Visual outputs skill must include validation commands."""
     doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
-    with open(doc_path, "r") as f:
+    with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "Validation" in content or "validation" in content, \
@@ -256,7 +256,7 @@ def test_visual_outputs_skill_has_validation_commands():
 def test_mkdocs_nav_includes_plotly_guide():
     """mkdocs.yml navigation must include Plotly visualization guide."""
     mkdocs_path = Path("mkdocs.yml")
-    with open(mkdocs_path, "r") as f:
+    with open(mkdocs_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "plotly_visualization" in content, "Plotly guide not in navigation"
@@ -288,7 +288,7 @@ def test_pyproject_toml_not_modified_for_plotly():
     pyproject_path = Path("pyproject.toml")
     assert pyproject_path.exists(), "pyproject.toml not found"
 
-    with open(pyproject_path, "r") as f:
+    with open(pyproject_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Plotly should not be a core dependency
@@ -322,7 +322,7 @@ def test_no_like_terminology_in_new_docs():
 
     for doc in new_docs:
         if Path(doc).exists():
-            with open(doc, "r") as f:
+            with open(doc, "r", encoding="utf-8") as f:
                 content = f.read()
 
             for pattern in forbidden_patterns:
@@ -340,7 +340,7 @@ def test_operator_terminology_uses_proxy():
 
     for doc in docs_to_check:
         if Path(doc).exists():
-            with open(doc, "r") as f:
+            with open(doc, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Check for canonical names
@@ -357,7 +357,7 @@ def test_gitignore_has_outputs():
     gitignore_path = Path(".gitignore")
     assert gitignore_path.exists(), ".gitignore not found"
 
-    with open(gitignore_path, "r") as f:
+    with open(gitignore_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "outputs/" in content or "outputs" in content, \
@@ -367,7 +367,7 @@ def test_gitignore_has_outputs():
 def test_gitignore_has_site():
     """site/ directory (mkdocs build output) must be in .gitignore."""
     gitignore_path = Path(".gitignore")
-    with open(gitignore_path, "r") as f:
+    with open(gitignore_path, "r", encoding="utf-8") as f:
         content = f.read()
 
     assert "site/" in content or "site" in content, \
@@ -385,7 +385,7 @@ def test_equation_latex_syntax():
 
     for doc in doc_paths:
         if Path(doc).exists():
-            with open(doc, "r") as f:
+            with open(doc, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Extract math blocks and check for basic syntax
