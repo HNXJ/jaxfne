@@ -213,11 +213,15 @@ from .neuronal_tensor import (
     InterConnection,
     NeuronType,
     Geometry3D,
+    Pose3D,
     StaticParams,
     PlasticParams,
     save_neuronal_tensor,
     load_neuronal_tensor,
     default_relative_size,
+    neuronal_tensor_to_configuration,
+    merge_neuronal_tensors,
+    construct_neuronal_tensor,
 )
 from .optim import (
     AGSDR,
@@ -472,6 +476,7 @@ __all__ = [
     "save_neuronal_tensor",
     "load_neuronal_tensor",
     "default_relative_size",
+    "neuronal_tensor_to_configuration",
     "sha256_text",
     "validation_report",
     "probe_report",
