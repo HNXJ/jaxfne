@@ -4,14 +4,34 @@
     {
       "inter_connections": [
         {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 1.5
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {},
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "PV"
+        },
+        {
           "mechanism": "GABA_A",
           "plastic": {
-            "H": 3.5,
+            "H": 1.0,
             "value_tag": "relative",
             "w_mech": 2.0
           },
           "source_layer": "L4",
-          "source_neuron_type": "E",
+          "source_neuron_type": "PV",
           "static": {
             "dT_ms": 5.0,
             "g_mech": {
@@ -23,7 +43,7 @@
             "value_tag": "relative"
           },
           "target_layer": "L4",
-          "target_neuron_type": "PV"
+          "target_neuron_type": "E"
         }
       ],
       "layers": [
@@ -44,7 +64,7 @@
               1.0
             ]
           },
-          "n_neurons": 60,
+          "n_neurons": 80,
           "name": "L4",
           "neuron_types": [
             {
@@ -73,5 +93,6 @@
       }
     }
   ],
-  "name": "homeostatic_h_override_demo"
+  "name": "default_column",
+  "schema_version": "neuronal_tensor_v1"
 }

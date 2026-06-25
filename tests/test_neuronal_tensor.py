@@ -201,9 +201,10 @@ def test_merge_neuronal_tensors_flattens_and_renames_collisions():
 
 
 def test_canonical_json_config_library_loads_and_constructs():
-    """examples/neuronal_tensor_configs/*.json (the canonical config library,
-    see scripts/build_canonical_neuronal_tensor_configs.py) all load + construct."""
-    config_dir = Path(__file__).parent.parent / "examples" / "neuronal_tensor_configs"
+    """jaxfne/configs/*.json (the canonical, package-shipped config library,
+    see scripts/build_canonical_neuronal_tensor_configs.py) all load + construct
+    and declare the current schema version."""
+    config_dir = jtfne.configs_dir()
     json_files = sorted(config_dir.glob("*.json"))
     assert len(json_files) >= 4, f"Expected the canonical config library in {config_dir}"
     for path in json_files:
@@ -211,6 +212,55 @@ def test_canonical_json_config_library_loads_and_constructs():
         model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
         sig = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
         assert bool(jnp.all(jnp.isfinite(sig.spikes))), f"{path.name} produced non-finite spikes"
+
+
+def test_canonical_configs_declare_current_schema_version():
+    import json
+    for path in sorted(jtfne.configs_dir().glob("*.json")):
+        raw = json.loads(path.read_text())
+        assert raw.get("schema_version") == nt.NEURONAL_TENSOR_SCHEMA_VERSION, (
+            f"{path.name} missing/stale schema_version"
+        )
+
+
+def test_load_canonical_neuronal_tensor_by_name():
+    names = jtfne.list_canonical_neuronal_tensors()
+    assert "default-column" in names
+    tensor = jtfne.load_canonical_neuronal_tensor("default-column")
+    assert tensor.name == "default_column"
+    # also accepts the .json suffix
+    tensor2 = jtfne.load_canonical_neuronal_tensor("default-column.json")
+    assert tensor2.name == tensor.name
+    with pytest.raises(FileNotFoundError):
+        jtfne.load_canonical_neuronal_tensor("does-not-exist")
+
+
+def test_schema_version_mismatch_warns_not_raises(tmp_path):
+    tensor = _single_area_tensor()
+    path = tmp_path / "legacy.json"
+    nt.save_neuronal_tensor(tensor, path)
+    import json
+    raw = json.loads(path.read_text())
+    raw["schema_version"] = "neuronal_tensor_v999_future"
+    path.write_text(json.dumps(raw))
+    with pytest.warns(UserWarning, match="schema_version"):
+        reloaded = nt.load_neuronal_tensor(path)
+    assert reloaded.name == tensor.name
+
+
+def test_legacy_json_without_schema_version_loads_silently(tmp_path):
+    tensor = _single_area_tensor()
+    path = tmp_path / "legacy_no_version.json"
+    nt.save_neuronal_tensor(tensor, path)
+    import json
+    raw = json.loads(path.read_text())
+    del raw["schema_version"]
+    path.write_text(json.dumps(raw))
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        reloaded = nt.load_neuronal_tensor(path)  # must NOT warn/raise
+    assert reloaded.name == tensor.name
 
 
 def test_example_08_neuronal_tensor_first_runs():

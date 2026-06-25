@@ -43,6 +43,7 @@ along x with no rotation, so this step happens post-construct).
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Literal, Optional, Sequence
@@ -185,10 +186,46 @@ class NeuronalTensor:
         return asdict(self)
 
 
+# Versioned JSON schema for saved NeuronalTensor configs. Bump on any
+# breaking change to the on-disk shape (field rename/removal, not additive
+# fields); load_neuronal_tensor accepts files with no "schema_version" key
+# (pre-versioning saves) as implicitly "neuronal_tensor_v1".
+NEURONAL_TENSOR_SCHEMA_VERSION = "neuronal_tensor_v1"
+
+
+def configs_dir() -> Path:
+    """Return the path to the package's canonical NeuronalTensor JSON library
+    (``jaxfne/configs/``), shipped as package data. See
+    :func:`load_canonical_neuronal_tensor` to load one by name."""
+    return Path(__file__).resolve().parent / "configs"
+
+
+def list_canonical_neuronal_tensors() -> list[str]:
+    """Return the names (without ``.json``) of every canonical config in
+    :func:`configs_dir`."""
+    return sorted(p.stem for p in configs_dir().glob("*.json"))
+
+
+def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor:
+    """Load a canonical NeuronalTensor by name from :func:`configs_dir`.
+
+    ``name`` may be given with or without the ``.json`` suffix, e.g.
+    ``load_canonical_neuronal_tensor("default-column")``.
+    """
+    stem = name[:-5] if name.endswith(".json") else name
+    path = configs_dir() / f"{stem}.json"
+    if not path.exists():
+        available = ", ".join(list_canonical_neuronal_tensors())
+        raise FileNotFoundError(f"No canonical config named {stem!r} in {configs_dir()}. Available: {available}")
+    return load_neuronal_tensor(path)
+
+
 def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
     """Save a NeuronalTensor as a JSON config file. Configs are data, never code."""
     path = Path(path)
-    save_json(tensor.to_dict(), path)
+    payload = dict(tensor.to_dict())
+    payload["schema_version"] = NEURONAL_TENSOR_SCHEMA_VERSION
+    save_json(payload, path)
     return str(path)
 
 
@@ -200,8 +237,23 @@ def _load_pose(area_raw: dict) -> "Pose3D":
 
 
 def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
-    """Load a NeuronalTensor from a JSON config file."""
+    """Load a NeuronalTensor from a JSON config file.
+
+    Validates ``schema_version`` if present (missing = legacy pre-versioning
+    save, treated as ``neuronal_tensor_v1`` implicitly). An unrecognized
+    *future* version is accepted with a warning, not an error -- this loader
+    targets forward-readability of additive fields, not strict lockstep.
+    """
     raw = load_json(path)
+    schema_version = raw.get("schema_version", NEURONAL_TENSOR_SCHEMA_VERSION)
+    if schema_version != NEURONAL_TENSOR_SCHEMA_VERSION:
+        warnings.warn(
+            f"NeuronalTensor JSON at {path} declares schema_version="
+            f"{schema_version!r}, expected {NEURONAL_TENSOR_SCHEMA_VERSION!r}. "
+            "Loading anyway; fields may be silently dropped if the schema "
+            "diverged.",
+            stacklevel=2,
+        )
     areas = [
         Area(
             name=a["name"],

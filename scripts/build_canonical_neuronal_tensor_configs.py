@@ -3,7 +3,8 @@
 Rule 1 ("configs are data, not code") calls for "numerous saved JSON files"
 as the canonical way to declare circuits -- not just a JSON loader existing
 in principle. This script builds a handful of representative NeuronalTensor
-circuits and saves them to examples/neuronal_tensor_configs/*.json.
+circuits and saves them to jaxfne/configs/*.json -- shipped as package data
+(see jaxfne.configs_dir()), not just a repo-local example directory.
 
 Run with: python3 scripts/build_canonical_neuronal_tensor_configs.py
 Each output file is verified loadable + constructible before being kept.
@@ -12,7 +13,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OUT_DIR = REPO_ROOT / "examples" / "neuronal_tensor_configs"
+OUT_DIR = REPO_ROOT / "jaxfne" / "configs"
 
 sys.path.insert(0, str(REPO_ROOT))
 
@@ -110,10 +111,10 @@ def homeostatic_h_override_demo() -> NeuronalTensor:
 
 
 BUILDERS = {
-    "default_column.json": default_column,
-    "laminar_column_4layer.json": laminar_column_4layer,
-    "two_area_feedforward.json": two_area_feedforward,
-    "homeostatic_h_override_demo.json": homeostatic_h_override_demo,
+    "default-column.json": default_column,
+    "laminar-column-4layer.json": laminar_column_4layer,
+    "two-area-feedforward.json": two_area_feedforward,
+    "homeostatic-h-override-demo.json": homeostatic_h_override_demo,
 }
 
 

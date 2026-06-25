@@ -295,5 +295,6 @@
       }
     }
   ],
-  "name": "laminar_column_4layer"
+  "name": "laminar_column_4layer",
+  "schema_version": "neuronal_tensor_v1"
 }

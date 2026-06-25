@@ -222,6 +222,10 @@ from .neuronal_tensor import (
     neuronal_tensor_to_configuration,
     merge_neuronal_tensors,
     construct_neuronal_tensor,
+    configs_dir,
+    list_canonical_neuronal_tensors,
+    load_canonical_neuronal_tensor,
+    NEURONAL_TENSOR_SCHEMA_VERSION,
 )
 from .optim import (
     AGSDR,
@@ -480,6 +484,10 @@ __all__ = [
     "neuronal_tensor_to_configuration",
     "merge_neuronal_tensors",
     "construct_neuronal_tensor",
+    "configs_dir",
+    "list_canonical_neuronal_tensors",
+    "load_canonical_neuronal_tensor",
+    "NEURONAL_TENSOR_SCHEMA_VERSION",
     "sha256_text",
     "validation_report",
     "probe_report",
