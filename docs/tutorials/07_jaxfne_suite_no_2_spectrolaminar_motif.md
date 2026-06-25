@@ -158,6 +158,118 @@ kappa = jtfne.kappa_synchrony(np.asarray(trials["spikes"])[0], cfg.dt_ms)
 The crossover is **scale-emergent**: it is weak at small populations / few trials and
 sharpens with neuron count and trial averaging in a low-synchrony regime.
 
+## Homeostasis-Dependent Plasticity (HDP) for long-duration spectrolaminar runs
+
+The two readout prerequisites above — low synchrony and balanced per-layer rates —
+get harder to hold by hand as run duration grows: a drive correction tuned at a short
+window can drift out of the target rate band over a longer one, and weight plasticity
+left unconstrained can run away. **Homeostasis-Dependent Plasticity (HDP)** is
+a per-neuron master state `H_i` (default 1.0) that all of a neuron's incoming
+excitatory/inhibitory weight updates read from, and that synaptic drive and the
+neuron's own spiking feed back into — keeping a population stationary over many
+seconds via automatic feedback rather than hand-retuning the drive correction.
+
+```python
+I_syn_i = sum_j w_ji * x_j                                 # incoming synaptic current
+tau_i * dH_i/dt = alpha*I_syn_i - gamma*r_i - delta*W_i + K_ctrl*(1 - H_i) - dC/dH_i
+dw_E^ij/dt = +K_HDP * (H_i - 1) * w_E^ij                   # excitatory incoming edges
+dw_I^ij/dt = -K_HDP * (H_i - 1) * w_I^ij                   # inhibitory incoming edges
+```
+
+`K_ctrl*(1-H_i)` is the linear restoring force that pins the equilibrium at `H_i=1`;
+`tau_i = tau_0_ms * size_i**2` makes larger (e.g. E) cells integrate `H_i` more
+slowly. Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. A
+single config-driven builder for HDP-ready laminar columns of any size lives in
+`jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
+size is a config field rather than a per-N function.
+
+**HDP integration into `core.py`/`RuntimeConfig` remains an open task**, so it is driven
+directly against a `jtfne.construct()`-built `Model`'s `emitter`/`edge_list` params,
+then hand-assembled into a `jtfne.Signals` container for `jtfne.vis.spectrolaminar_suite`:
+
+```python
+import jax, jax.numpy as jnp, numpy as np
+import jaxfne as jtfne
+from jaxfne.hdp_network import (
+    HDPColumnConfig, build_model, apply_drive_correction,
+    layer_size_scale_override, run, BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
+)
+
+cfg = HDPColumnConfig(n_neurons=1000, duration_ms=5000.0, dt_ms=0.5, seed=0)
+model = build_model(cfg)                          # build ONCE
+model = apply_drive_correction(model, cfg)
+size_override = layer_size_scale_override(model, cfg)   # deep-layer (L5/L6) size inflation
+
+hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP)
+out = run(model, cfg, duration_ms=5000.0, seed=0,
+          hdp_kwargs=hdp_kwargs, size_scale_override=size_override)
+spikes, H_trace, w_trace = out["spikes"], out["diagnostics"]["H_trace"], out["diagnostics"]["w_trace"]
+```
+
+`DEFAULT_HDP` (`K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=barrier_d=0.01`) is a
+5-seed, 20-second-validated stability point: rates stay flat in-band, `H` pins at
+~1.0000-1.0029, weight saturation ~10.5% (active, away from the floor/ceiling). It is the
+config to reach for when the goal is a **long, stationary** run.
+
+### Avoiding HDP-induced oversynchrony
+
+`DEFAULT_HDP`'s strong restoring force (`K_ctrl=5.0`) combined with `tau_i =
+tau_0_ms * size_i**2` (E cells default to `size=5`, so `tau_i=5000` ms) makes `H_i`
+almost static (`H_std ≈ 0.0006`). Lacking a per-neuron variability driver, population
+spiking reads as near-regular ("ECG-like") rather than async-irregular — exactly the
+high-synchrony failure mode the **low synchrony** prerequisite above warns about.
+`jaxfne.hdp_network.DEFAULT_HDP_DESYNC` (paired with `DRIVE_SCALE_DESYNC=1.2`) trades
+some of that overdamping for faster `H` integration (`tau_0_ms=5`, 40x faster) plus a
+genuine rate-drain term (`gamma=0.5`), so `H_i` fluctuates instead of sitting pinned:
+
+```python
+from jaxfne.hdp_network import (
+    DEFAULT_HDP_DESYNC, DRIVE_SCALE_DESYNC, BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
+)
+
+scaled_drive = {ct: v * DRIVE_SCALE_DESYNC for ct, v in BASE_DRIVE_BY_CELL_TYPE_DEFAULT.items()}
+cfg = HDPColumnConfig(n_neurons=500, duration_ms=2000.0, dt_ms=0.5, seed=0,
+                       base_drive_by_cell_type=scaled_drive)
+# ... build_model / apply_drive_correction / layer_size_scale_override as above ...
+hdp_kwargs = dict(BASE_HDP_KWARGS_DEFAULT); hdp_kwargs.update(DEFAULT_HDP_DESYNC)
+```
+
+Verified, 5-seed stable (N=500, 2000ms): overall rate 7.3 → 12.6 Hz, per-neuron rate std
+0.99 → 6.0 Hz, `H` fluctuates genuinely (`H=1.028±0.023`, range `[0.953, 1.227]`) while
+every neuron stays clear of the `H_min`/`H_max` clamp rails, and `kappa_synchrony` stays
+at 0.044 (still async-irregular). This is a second-pass refinement of an earlier, wider
+and more skewed candidate (`H=[0.96, 1.47]`) -- raising `gamma` from 0.3 to 0.5 tightened
+both tails since the rate-drain term is rate-bounded rather than weight-multiplicative,
+so it does not amplify the H>1 weight-growth feedback loop the way `alpha` does;
+`gamma>=0.55` hits a stability cliff (weight runaway) at every `K_ctrl`/`alpha` tried.
+`H`'s range has yet to symmetrically span `[0.8, 1.2]` — the floor (~0.95) appears
+structurally bottlenecked by E neurons' large `tau_i` (size=5 for E), not by these three
+gains, so treat this as the current best candidate, a still-open point unlike the frozen
+`DEFAULT_HDP`.
+
+### Two distinct, intentionally-separate operating modes
+
+`DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` answer different questions and should stay
+separate rather than collapse into one "better" default — pick the preset that
+matches the question:
+
+| Parameter / outcome | `DEFAULT_HDP` (Stable) | `DEFAULT_HDP_DESYNC` (Desync) |
+|---|---|---|
+| Purpose | Maximum stability, long-duration validation, canonical freeze candidate | Increased H dynamics, larger per-neuron variability, exploration/research mode |
+| `K_HDP` | `0.01` | `0.01` |
+| `tau_0_ms` | `200.0` | `5.0` |
+| `K_ctrl` | `5.0` | `0.15` |
+| `alpha` | `0.01` (from `BASE_HDP_KWARGS_DEFAULT`) | `0.05` |
+| `gamma` | `0.0` | `0.5` |
+| `barrier_c` / `barrier_d` | `0.01` / `0.01` | `0.01` / `0.01` |
+| Drive scale | `1.0` (`BASE_DRIVE_BY_CELL_TYPE_DEFAULT` as-is) | `1.2` (`DRIVE_SCALE_DESYNC`) |
+| Validated overall rate | ~7.3-7.8 Hz | ~12.6 Hz |
+| Per-neuron rate std | 0.99 Hz | 6.0 Hz |
+| `H` behavior | Pinned (`H_mean≈1.001-1.003`, `H_std≈0.0006`) | Fluctuating (`H=1.028±0.023`, range `[0.953, 1.227]`) |
+| `kappa_synchrony` | ~0.04-0.05 | ~0.044 |
+| Validation evidence | 5-seed × 20s stability gate | 5-seed × 2s grid-search refinement, N=500 |
+| Status | Frozen (0.4.6 candidate) | Best-of-two-pass; still open |
+
 ## Figures
 
 Core figures are generated by reusable visualization functions:

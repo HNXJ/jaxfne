@@ -83,6 +83,7 @@ nav:
       - Poisson Admissibility: guides/poisson_admissibility.md
       - Jaxley Interoperability: guides/jaxley_interop.md
       - Homeostasis: guides/homeostasis.md
+      - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md

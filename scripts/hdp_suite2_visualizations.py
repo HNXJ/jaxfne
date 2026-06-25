@@ -52,9 +52,23 @@ import pandas as pd
 
 import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
+from jaxfne.hdp_network import build_model as _hdp_build_model
+from jaxfne.hdp_network import apply_drive_correction as _hdp_apply_drive_correction
 from jaxfne.tutorial_utils import spectrolaminar_from_trials
 
 import scripts.hdp_1000_laminar_column_boosted as base
+
+
+def build_model() -> "jtfne.core.Model":
+    """Thin wrapper: hdp_1000_laminar_column_boosted.py's build_model/
+    apply_drive_correction were consolidated into the generic
+    jaxfne.hdp_network builder (base.CFG carries the same config this
+    script previously hardcoded)."""
+    return _hdp_build_model(base.CFG)
+
+
+def apply_drive_correction(model: "jtfne.core.Model") -> "jtfne.core.Model":
+    return _hdp_apply_drive_correction(model, base.CFG)
 
 OUTPUT_DIR = Path("outputs/hdp_suite2_visualizations")
 
@@ -118,8 +132,8 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("=== Building 1000-neuron laminar column (reused from hdp_1000_laminar_column_boosted) ===")
-    model = base.build_model()
-    model = base.apply_drive_correction(model)
+    model = build_model()
+    model = apply_drive_correction(model)
     positions_rescaled = rescaled_positions(model)
 
     # --- 1. 3D network visualization (pre-existing function) ---
@@ -214,6 +228,17 @@ def main() -> None:
     figs["V1"].savefig(OUTPUT_DIR / "spectrolaminar_3panel_suite.png", dpi=150)
     print(f"Saved {OUTPUT_DIR / 'spectrolaminar_3panel_suite.png'}")
 
+    # --- 4. Extended A-F panel grid (cell density, heatmap, crossing line,
+    # LFP/raster last-1000ms, E/I rate table); G is the depth-corrected 3D
+    # scatter from step [1] (kept as its own interactive HTML, not embedded
+    # -- Plotly 3D and a static matplotlib grid can't share one figure). ---
+    print("\n=== [4] Extended A-F panel grid ===")
+    build_etude2_panel_grid(
+        nt=nt, prof=prof, signals_long=signals_long,
+        last_window_ms=1000.0, out_path=OUTPUT_DIR / "etude2_panel_grid_AF.png",
+    )
+    print(f"Saved {OUTPUT_DIR / 'etude2_panel_grid_AF.png'}")
+
     payload = {
         "K_HDP_user_specified_default": K_HDP_DEFAULT,
         "K_HDP_used_for_runs": K_HDP_STABLE,
@@ -249,6 +274,165 @@ def _plot_lfp_traces_by_depth(signals: "jtfne.Signals", out_path: Path) -> None:
     ax.set_title(f"LFP-proxy traces, {len(order)} channels, Z-sorted by depth (offset stacked)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+
+
+LAYER_ORDER = ["L1", "L2", "L3", "L4", "L5", "L6"]
+_CT_COLORS = {"E": "#1f77b4", "PV": "#d62728", "SST": "#2ca02c", "VIP": "#9467bd"}
+
+
+def build_etude2_panel_grid(
+    *, nt: list[dict], prof: dict, signals_long: "jtfne.Signals",
+    last_window_ms: float, out_path: Path,
+) -> None:
+    """Etude No. 2 extended A-F static panel grid (dark theme).
+
+    A: cell-type relative density per layer (stacked, fractions sum to 1
+       per layer; L1 top -> L6 bottom, matching the package's depth
+       convention -- see jaxfne.vis.visualize_network_3d's z-axis fix).
+    B: spectrolaminar relative power, depth x frequency heatmap (Gaussian-
+       smoothed), reusing the same `prof` spec the 3-panel suite uses.
+    C: alpha-beta (blue) / gamma (red) band-power vs depth crossing line.
+    D: 32-channel LFP-proxy traces, last `last_window_ms` of the long trial,
+       offset-stacked by depth (superficial top -> deep bottom).
+    E: spike raster, last `last_window_ms`, z-sorted by depth.
+    F: E/I mean firing-rate table per layer (2 rows x 6 layers); I = PV+
+       SST+VIP combined.
+
+    G (3D column scatter, E/PV/SST/VIP colored) is NOT part of this grid --
+    it is the separate interactive Plotly HTML from visualize_network_3d
+    (step [1] of main()); an interactive 3D scene can't be embedded as a
+    static matplotlib subplot.
+    """
+    import matplotlib.pyplot as plt
+    from scipy.ndimage import gaussian_filter1d as gauss1d
+
+    BG, LINE = "#1a1a1a", "#f5f5f5"
+
+    dt_ms = float(np.asarray(signals_long.time_ms)[1] - np.asarray(signals_long.time_ms)[0])
+    win_steps = int(round(last_window_ms / dt_ms))
+    spikes_full = np.asarray(signals_long.spikes)         # (T, N)
+    lfp_full = np.asarray(signals_long.field.lfp_proxy)   # (T, n_contacts)
+    spikes_win = spikes_full[-win_steps:]
+    lfp_win = lfp_full[-win_steps:]
+    time_win_ms = np.asarray(signals_long.time_ms)[-win_steps:]
+
+    layers = [r["layer"] for r in nt]
+    cell_types = [r["cell_type"] for r in nt]
+    z = np.array([float(r["z"]) for r in nt])
+    contact_depths = np.asarray(signals_long.field.contact_depths)
+    ct_order = sorted(set(cell_types), key=lambda ct: ["E", "PV", "SST", "VIP"].index(ct) if ct in ("E", "PV", "SST", "VIP") else 99)
+
+    fig = plt.figure(figsize=(20, 11), dpi=150, facecolor=BG)
+    grid = fig.add_gridspec(2, 3, height_ratios=[1, 1], width_ratios=[0.8, 1.3, 0.8])
+    axA = fig.add_subplot(grid[0, 0]); axB = fig.add_subplot(grid[0, 1])
+    axC = fig.add_subplot(grid[0, 2], sharey=axB)
+    axD = fig.add_subplot(grid[1, 0]); axE = fig.add_subplot(grid[1, 1])
+    axF = fig.add_subplot(grid[1, 2])
+    for ax in (axA, axB, axC, axD, axE, axF):
+        ax.set_facecolor(BG)
+        for sp in ax.spines.values():
+            sp.set_color("#555555")
+        ax.tick_params(colors=LINE, labelsize=8)
+        ax.xaxis.label.set_color(LINE); ax.yaxis.label.set_color(LINE)
+        ax.title.set_color(LINE)
+
+    # ── A: cell-type relative density per layer (stacked, L1 top -> L6 bottom) ──
+    layer_idx = {l: i for i, l in enumerate(LAYER_ORDER)}
+    bottoms = np.zeros(len(LAYER_ORDER))
+    for ct in ct_order:
+        fracs = np.zeros(len(LAYER_ORDER))
+        for li, layer in enumerate(LAYER_ORDER):
+            layer_mask = [lyr == layer for lyr in layers]
+            n_layer = sum(layer_mask)
+            if n_layer == 0:
+                continue
+            n_ct = sum(1 for lyr, c in zip(layers, cell_types) if lyr == layer and c == ct)
+            fracs[li] = n_ct / n_layer
+        axA.barh(range(len(LAYER_ORDER)), fracs, left=bottoms, height=0.7,
+                 color=_CT_COLORS.get(ct, "#888888"), label=ct)
+        bottoms += fracs
+    axA.set_yticks(range(len(LAYER_ORDER)))
+    axA.set_yticklabels(LAYER_ORDER)
+    axA.invert_yaxis()  # L1 (index 0) at top, L6 at bottom
+    axA.set_xlabel("Relative density (fraction of layer)")
+    axA.set_title("A: Cell-type relative density per layer", fontsize=10)
+    axA.legend(fontsize=7, loc="lower right", facecolor="#2a2a2a", edgecolor="#555555", labelcolor=LINE)
+
+    # ── B: depth x frequency relative-power heatmap (smoothed) ──────────────────
+    freq_hz = np.asarray(prof["freq_hz"], dtype=float)
+    relative_power = np.asarray(prof["relative_power"], dtype=float)  # (n_freq, n_contacts)
+    pos_from_l4 = np.asarray(prof["pos_from_l4"], dtype=float) * 1.0e3  # m -> mm
+    heat = gauss1d(gauss1d(relative_power, sigma=1.0, axis=0), sigma=1.0, axis=1)
+    im = axB.imshow(
+        heat.T, aspect="auto", cmap="magma", origin="upper",
+        extent=[freq_hz[0], freq_hz[-1], pos_from_l4[-1], pos_from_l4[0]],
+    )
+    axB.set_xlabel("Frequency (Hz)")
+    axB.set_ylabel("Depth from L4 (mm, superficial top)")
+    axB.set_title("B: Spectrolaminar relative power (smoothed)", fontsize=10)
+    cb = fig.colorbar(im, ax=axB, fraction=0.04)
+    cb.ax.tick_params(colors=LINE, labelsize=7)
+
+    # ── C: alpha-beta (blue) / gamma (red) crossing line vs depth ───────────────
+    ab_profile = gauss1d(np.asarray(prof["alpha_beta"], dtype=float), sigma=1.0)
+    gm_profile = gauss1d(np.asarray(prof["gamma"], dtype=float), sigma=1.0)
+    axC.plot(ab_profile, pos_from_l4, color="#3b82f6", lw=2.5, label="Alpha-beta")
+    axC.plot(gm_profile, pos_from_l4, color="#ef4444", lw=2.5, label="Gamma")
+    axC.axhline(0, color=LINE, lw=1.0, alpha=0.6)
+    axC.set_xlabel("Relative power")
+    axC.set_title("C: Alpha-beta / gamma crossing", fontsize=10)
+    axC.legend(fontsize=7, loc="lower left", facecolor="#2a2a2a", edgecolor="#555555", labelcolor=LINE)
+
+    # ── D: 32-channel LFP traces, last window, offset-stacked by depth ──────────
+    order = np.argsort(contact_depths)
+    scale = np.nanstd(lfp_win) or 1.0
+    for rank, ci in enumerate(order):
+        axD.plot(time_win_ms, lfp_win[:, ci] / scale + rank, lw=0.5, color="#4fc3f7")
+    axD.set_yticks(range(len(order)))
+    axD.set_yticklabels([f"{contact_depths[ci]:.2f}" for ci in order], fontsize=6)
+    axD.set_xlabel("Time (ms)")
+    axD.set_ylabel("Contact relative depth (superficial->deep)")
+    axD.set_title(f"D: LFP-proxy, last {last_window_ms:.0f} ms ({len(order)} ch)", fontsize=10)
+
+    # ── E: spike raster, last window, z-sorted by depth ─────────────────────────
+    neuron_order = np.argsort(z)
+    spk_sorted = spikes_win[:, neuron_order]
+    t_idx, n_idx = np.where(spk_sorted)
+    axE.scatter(time_win_ms[t_idx], n_idx, s=1.0, c="#f5f5f5", alpha=0.7, rasterized=True)
+    axE.set_xlabel("Time (ms)")
+    axE.set_ylabel("Neuron rank (z-sorted, superficial->deep)")
+    axE.set_title(f"E: Raster, last {last_window_ms:.0f} ms (z-sorted)", fontsize=10)
+    axE.set_xlim(time_win_ms[0], time_win_ms[-1])
+
+    # ── F: E/I mean firing-rate table per layer (2 x 6) ──────────────────────────
+    dur_s = win_steps * dt_ms / 1000.0
+    rate_table = np.zeros((2, len(LAYER_ORDER)))  # row0=E, row1=I (PV+SST+VIP)
+    for li, layer in enumerate(LAYER_ORDER):
+        e_idx = [i for i, (lyr, ct) in enumerate(zip(layers, cell_types)) if lyr == layer and ct == "E"]
+        i_idx = [i for i, (lyr, ct) in enumerate(zip(layers, cell_types)) if lyr == layer and ct != "E"]
+        rate_table[0, li] = float(spikes_win[:, e_idx].sum() / (len(e_idx) * dur_s)) if e_idx else float("nan")
+        rate_table[1, li] = float(spikes_win[:, i_idx].sum() / (len(i_idx) * dur_s)) if i_idx else float("nan")
+    axF.axis("off")
+    cell_text = [[f"{v:.2f}" if np.isfinite(v) else "-" for v in row] for row in rate_table]
+    tbl = axF.table(
+        cellText=cell_text, rowLabels=["E (Hz)", "I (Hz)"], colLabels=LAYER_ORDER,
+        loc="center", cellLoc="center",
+    )
+    tbl.auto_set_font_size(False)
+    tbl.set_fontsize(9)
+    for (row, col), cell in tbl.get_celld().items():
+        cell.set_facecolor("#2a2a2a" if row > 0 else "#3a3a3a")
+        cell.set_text_props(color=LINE)
+        cell.set_edgecolor("#555555")
+    axF.set_title("F: E/I mean firing rate per layer", fontsize=10, color=LINE)
+
+    fig.suptitle(
+        f"Etude No. 2 extended panels A-F (HDP, K_HDP={K_HDP_STABLE}) -- "
+        f"G (3D column scatter) is the separate network_3d.html",
+        fontsize=11, color=LINE,
+    )
+    fig.savefig(out_path, dpi=150, facecolor=BG, bbox_inches="tight")
     plt.close(fig)
 
 

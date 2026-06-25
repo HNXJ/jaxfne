@@ -68,6 +68,51 @@ BASE_HDP_KWARGS_DEFAULT = dict(
     barrier_eps=1.0e-3, w_floor=0.01, w_ceiling=10.0, H_boost_gain=4.0,
 )
 
+# Faster, less-overdamped H dynamics: DEFAULT_HDP's tau_0_ms=200 combined
+# with size**2 scaling (E size=5 -> tau_i=5000ms) makes H_i nearly static
+# (H_std~0.0006), which in turn keeps every neuron's spiking near-regular
+# ("ECG-like") -- low population-level rate variance even though overall
+# rate is in-band. This profile trades that overdamping for faster H
+# integration (tau_0_ms=5, 40x faster) plus a rate-drain term (gamma>0,
+# previously 0.0) so H genuinely responds to each neuron's own activity
+# instead of being pinned by K_ctrl alone.
+#
+# Second-pass refinement (gamma/alpha/K_ctrl re-swept around the first
+# candidate, N=500, 2000ms, drive_scale=1.2x BASE_DRIVE_BY_CELL_TYPE_DEFAULT):
+# raising gamma from 0.3 to 0.5 tightened BOTH tails (the rate-drain term
+# is rate-bounded, not weight-multiplicative, so it doesn't amplify the
+# H>1 weight-growth feedback loop the way alpha does); gamma>=0.55 hits a
+# stability cliff (weight runaway, H pinned to the H_max clamp) at every
+# K_ctrl/alpha tried. Lowering alpha from 0.07 to 0.05 at gamma=0.5 then
+# tightened the upper tail further (alpha>=0.08 also hits the same
+# runaway cliff). The lower tail (~0.95) did not move further down across
+# the K_ctrl range tried (0.08-0.15) -- it appears structurally bottlenecked
+# by E neurons' large tau_i (tau_0_ms*size**2, size=5 for E) keeping the
+# majority population's H sluggish, not by these three gains. Verified
+# 5-seed stable (N=500, 2000ms): rate=12.6Hz, H=1.028+-0.023 in
+# [0.953,1.227] (vs the first-pass [0.96,1.47]), rate_std~6.0Hz (vs 0.99Hz
+# at DEFAULT_HDP), kappa~0.044 (still async-irregular). Tighter and more
+# symmetric than the first pass but still does not reach the requested
+# [0.8,1.2] floor -- treat as the current best candidate, not a finished/
+# frozen point like DEFAULT_HDP.
+DEFAULT_HDP_DESYNC = dict(
+    K_HDP=0.01,
+    tau_0_ms=5.0,
+    K_ctrl=0.15,
+    barrier_c=0.01,
+    barrier_d=0.01,
+    alpha=0.05,
+    gamma=0.5,
+    C_spike=0.0,
+)
+
+# Drive scale paired with DEFAULT_HDP_DESYNC: x1.2 on
+# BASE_DRIVE_BY_CELL_TYPE_DEFAULT raises overall rate from ~7.3Hz to
+# ~12.6Hz while keeping H pinned (H_mean=1.001) at DEFAULT_HDP -- found by
+# sweeping drive_scale in {1.0,1.2,1.4,...} and picking the point with the
+# best variance/rate tradeoff before H itself was made faster.
+DRIVE_SCALE_DESYNC = 1.2
+
 # Deep-layer size inflation, per user spec: makes deep layers appear
 # visually less dense and (via tau_i = tau_0_ms * size_i**2 in
 # jaxfne.emitters) makes deep-layer H integrate slower. Multiplies
