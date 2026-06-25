@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 222 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 238 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -29,13 +29,17 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Solvers** (7) · **Sanity-delta** (7) · **Plasticity** (5) · **Tutorial utils** (4) · **Sharding** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (13) | 102 |
+| [Neuronal tensor](neuronal_tensor.md) | `NeuronalTensor`, `Area`, `AreaConnection`, `Layer`, `NeuronType`, `Pose3D`, mergers/bridges into `Configuration` | 18 |
+| [Plasticity](plasticity.md) | `STDPPlasticityConfig`, `STDPState`, `update_stdp_weights_jax`, `summarize_stdp_adaptation` | 5 |
+| [Solvers](solvers.md) | `SolverConfig`, `EulerSolver`, `DiffraxSolver`, `solve_ode` | 7 |
+| [Sharding](sharding.md) | `get_sharding_context`, `make_population_mesh`, `make_candidate_sharding`, `make_replicated_sharding` | 4 |
+| _(no page yet)_ | **Optimizers** (`optim`, 15) · **IO/receipts** (10) · **Export & figures** (6) · **Bridges** (7) · **Paradigms** (6) · **Sanity-delta** (7) · **Tutorial utils** (4) · **Connectivity** (3) · **PyNWB** (2) · **Experimental HPC** (2) · **JAX Spectral Analysis** (6) · geometry/builders/streaming/stimulus (13) | 86 |
 
 > Several public names (optimizers, IO, export, bridges, paradigms, sharding,
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**222**) checked against the complete symbol index
+> live `len(jaxfne.__all__)` (**238**) checked against the complete symbol index
 > below.
 
 ## Minimal workflow (verified)
@@ -236,7 +240,7 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**222 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**238 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
 ### Core (70)
 
