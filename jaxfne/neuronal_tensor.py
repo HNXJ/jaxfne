@@ -26,9 +26,11 @@ Configs are saved/loaded as JSON via :func:`save_neuronal_tensor` /
 build a :class:`NeuronalTensor` once, then keep variants as JSON files.
 
 This is additive: the existing :class:`jaxfne.core.Configuration` /
-:func:`jaxfne.builders.laminar_cortex_config` path is untouched. Use
-:func:`neuronal_tensor_to_configuration` to bridge into the existing
-``construct``/``simulate`` pipeline.
+:func:`jaxfne.builders.laminar_cortex_config` path is untouched.
+:func:`neuronal_tensor_to_configuration` bridges a NeuronalTensor into that
+existing ``construct``/``simulate`` pipeline (with a documented fidelity gap:
+Configuration only supports one global cell-type fraction map, so per-area/
+per-layer cell-type heterogeneity is flattened at construct time).
 """
 from __future__ import annotations
 
@@ -37,6 +39,7 @@ from pathlib import Path
 from typing import Literal, Optional, Sequence
 
 from .io import save_json, load_json
+from .core import Configuration
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
 
@@ -189,3 +192,64 @@ def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
         for ac in raw.get("area_connections", [])
     ]
     return NeuronalTensor(areas=areas, area_connections=area_connections, name=raw.get("name", "untitled"))
+
+
+def neuronal_tensor_to_configuration(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Configuration:
+    """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
+
+    Known fidelity gap: :class:`jaxfne.core.Configuration` only supports a
+    single global cell-type fraction map (set by :meth:`Configuration.cell_types`)
+    shared across every declared column, whereas a NeuronalTensor allows distinct
+    per-layer ``NeuronType`` membership per area. This bridge aggregates the
+    declared neuron types across all layers/areas (weighted by ``Layer.n_neurons``,
+    split evenly across the types declared on that layer) into one global
+    fraction map. Per-area/per-layer cell-type heterogeneity is therefore
+    flattened at construct time — this is a Configuration-grammar limitation,
+    not a NeuronalTensor one. Static/plastic synaptic parameters
+    (``g_mech``/reversal potentials/``w_mech``/``H``) on ``InterConnection``/
+    ``AreaConnection`` are not yet wired to ``Configuration`` and are dropped.
+
+    Returns
+    -------
+    Configuration
+        A configuration buildable via :func:`jaxfne.construct`.
+    """
+    if not tensor.areas:
+        raise ValueError("NeuronalTensor must declare at least one area to bridge")
+
+    type_weight: dict[str, float] = {}
+    for area in tensor.areas:
+        for layer in area.layers:
+            type_names = [nt.name for nt in layer.neuron_types] or ["E"]
+            share = float(layer.n_neurons) / len(type_names)
+            for name in type_names:
+                type_weight[name] = type_weight.get(name, 0.0) + share
+    total_weight = sum(type_weight.values()) or 1.0
+    cell_type_fractions = {name: weight / total_weight for name, weight in type_weight.items()}
+
+    cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+    for area in tensor.areas:
+        layer_names = [layer.name for layer in area.layers] or ["single"]
+        area_n = sum(layer.n_neurons for layer in area.layers) or 1
+        cfg = cfg.column(area.name, layers=layer_names, n=area_n)
+    cfg = cfg.cell_types(cell_type_fractions)
+
+    if emitter == "izhikevich":
+        cfg = cfg.set_emitter("izhikevich", "cortical_eig")
+    elif emitter == "lif":
+        cfg = cfg.set_emitter("lif")
+    elif emitter == "glif":
+        cfg = cfg.set_emitter("glif")
+    else:
+        raise ValueError(f"Unknown emitter: {emitter}. Choose from: izhikevich, lif, glif")
+
+    cfg = cfg.probes(["spikes", "V_m"], n_contacts=16)
+    cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    return cfg
