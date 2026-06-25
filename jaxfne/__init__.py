@@ -121,8 +121,6 @@ from .export import (
     save_figures,
     export_report,
     export_tutorial_artifacts,
-    plot_raster,
-    plot_spectrolaminar_suite,
 )
 
 # Unambiguous root-level alias for the tutorial scaffold builder. Root-level
@@ -133,6 +131,8 @@ build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import analysis
 from . import vis
+from .vis import plot_raster, plot_stdp_adaptation_suite
+from .vis import spectrolaminar_suite as plot_spectrolaminar_suite
 from .emitters import (
     EdgeList,
     EIGNetwork,
@@ -263,7 +263,6 @@ from .plasticity import (
     STDPPlasticityConfig,
     STDPState,
     summarize_stdp_adaptation,
-    plot_stdp_adaptation_suite,
     update_stdp_weights_jax,
 )
 from .analysis.spectral import (

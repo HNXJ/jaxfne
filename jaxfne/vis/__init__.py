@@ -58,6 +58,33 @@ from .tutorial_panels import (
     activity_trace_suite,
     spectrolaminar_suite_3panel,
 )
+from .raster_arrays import raster_from_arrays
+from .plasticity_viz import plot_stdp_adaptation_suite
+from .layout import cumulative_stack_offsets, cumulative_panel_extents
+from .tutorial_array_plots import (
+    plot_population_raster,
+    plot_population_rate_array,
+    plot_voltage_samples_array,
+    plot_connectivity_matrix_array,
+    plot_laminar_readout_array,
+    plot_spectrolaminar_power_array,
+)
+from . import plotly
+from .canonical import (
+    plot_network_3d,
+    plot_raster,
+    plot_population_rate,
+    plot_membrane_potentials,
+    plot_lfp,
+    plot_csd,
+    plot_psd,
+    plot_spectrogram,
+    plot_band_power,
+    plot_depth_profile,
+    plot_connectivity,
+    plot_objective_history,
+)
+from .exporters import export_figure, export_figures, FigureBundle
 
 __all__ = [
     "FigureResult",
@@ -107,4 +134,31 @@ __all__ = [
     "visualize_laminar_column_3d",
     "activity_trace_suite",
     "spectrolaminar_suite_3panel",
+    "raster_from_arrays",
+    "plot_stdp_adaptation_suite",
+    "cumulative_stack_offsets",
+    "cumulative_panel_extents",
+    "plot_population_raster",
+    "plot_population_rate_array",
+    "plot_voltage_samples_array",
+    "plot_connectivity_matrix_array",
+    "plot_laminar_readout_array",
+    "plot_spectrolaminar_power_array",
+    # Canonical backend-dispatching entry points (default backend="plotly")
+    "plotly",
+    "plot_network_3d",
+    "plot_raster",
+    "plot_population_rate",
+    "plot_membrane_potentials",
+    "plot_lfp",
+    "plot_csd",
+    "plot_psd",
+    "plot_spectrogram",
+    "plot_band_power",
+    "plot_depth_profile",
+    "plot_connectivity",
+    "plot_objective_history",
+    "export_figure",
+    "export_figures",
+    "FigureBundle",
 ]

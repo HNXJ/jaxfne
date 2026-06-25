@@ -11,57 +11,28 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Mapping, Sequence, Tuple, Optional
+from typing import Mapping, Sequence, Optional
 import numpy as np
 
 
 def save_figure(fig, path: str | Path, dpi: int = 150, bbox_inches: str = "tight") -> str:
-    """Save a matplotlib figure to disk.
+    """DEPRECATED: use ``jaxfne.vis.export_figure`` (handles matplotlib + plotly).
 
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-        Figure object to save
-    path : str or Path
-        Output file path (e.g., 'outputs/my_figure.png')
-    dpi : int
-        Resolution in dots per inch
-    bbox_inches : str
-        Bounding box setting ('tight', 'standard')
-
-    Returns
-    -------
-    str
-        Path where figure was saved
+    Thin matplotlib-only wrapper kept for back-compat; closes ``fig`` after
+    saving (the canonical exporter does not).
     """
+    from .vis.exporters import export_figure
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(path, dpi=dpi, bbox_inches=bbox_inches)
+    fmt = path.suffix.lstrip(".") or "png"
+    written = export_figure(fig, path.with_suffix(""), formats=(fmt,), dpi=dpi)
     import matplotlib.pyplot as plt
     plt.close(fig)
-    return str(path)
+    return written[fmt]
 
 
 def save_figures(figures: Mapping[str, object], output_dir: str | Path,
                 dpi: int = 150, prefix: str = "", suffix: str = "") -> Mapping[str, str]:
-    """Save multiple figures to an output directory.
-
-    Parameters
-    ----------
-    figures : dict[str -> matplotlib.figure.Figure]
-        Dictionary mapping names to figure objects
-    output_dir : str or Path
-        Output directory path
-    dpi : int
-        Resolution in dots per inch
-    prefix, suffix : str
-        Filename prefix/suffix
-
-    Returns
-    -------
-    dict[str -> str]
-        Mapping of names to saved paths
-    """
+    """DEPRECATED: use ``jaxfne.vis.export_figures`` (handles matplotlib + plotly)."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -155,64 +126,6 @@ def export_tutorial_artifacts(
         Paths to saved JSON files
     """
     return export_report(output_dir, manifest, metrics, validation, figures=None)
-
-
-def plot_raster(spike_times: np.ndarray, spike_ids: np.ndarray,
-                time_ms: np.ndarray, figsize: Tuple[float, float] = (10, 4),
-                title: str = "Spike Raster") -> object:
-    """Plot a spike raster.
-
-    Parameters
-    ----------
-    spike_times : ndarray
-        Spike times in milliseconds
-    spike_ids : ndarray
-        Neuron IDs for each spike
-    time_ms : ndarray
-        Time axis for axis limits
-    figsize : tuple
-        Figure size
-    title : str
-        Plot title
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-        Figure object (use jtfne.save_figure(...) to save)
-    """
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots(figsize=figsize)
-    ax.scatter(spike_times, spike_ids, s=2, alpha=0.6)
-    ax.set_xlabel("Time (ms)")
-    ax.set_ylabel("Neuron ID")
-    ax.set_title(title)
-    ax.set_xlim(time_ms.min(), time_ms.max())
-    return fig
-
-
-def plot_spectrolaminar_suite(signals: object = None, **kwargs) -> object:
-    """Plot spectrolaminar suite from signals object.
-
-    Root-level wrapper for jtfne.vis.spectrolaminar_suite. Accepts Signals object
-    or dict-like signals, returns matplotlib figure for saving with jtfne.save_figure.
-
-    Parameters
-    ----------
-    signals : Signals or dict or None
-        Signals object (from jtfne.simulate) or dict with signal arrays
-    **kwargs
-        Additional arguments passed to jtfne.vis.spectrolaminar_suite
-
-    Returns
-    -------
-    matplotlib.figure.Figure
-        Figure object (use jtfne.save_figure(...) to save)
-    """
-    try:
-        from .vis import spectrolaminar_suite as _vis_spectrolaminar_suite
-        return _vis_spectrolaminar_suite(signals, **kwargs)
-    except ImportError:
-        raise RuntimeError("vis module not available; cannot create spectrolaminar plot")
 
 
 def _safe_json_write(data: object, path: Path) -> None:
