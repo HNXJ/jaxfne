@@ -28,24 +28,45 @@ build a :class:`NeuronalTensor` once, then keep variants as JSON files.
 This is additive: the existing :class:`jaxfne.core.Configuration` /
 :func:`jaxfne.builders.laminar_cortex_config` path is untouched.
 :func:`neuronal_tensor_to_configuration` bridges a NeuronalTensor into that
-existing ``construct``/``simulate`` pipeline (with a documented fidelity gap:
-Configuration only supports one global cell-type fraction map, so per-area/
-per-layer cell-type heterogeneity is flattened at construct time).
+existing ``construct``/``simulate`` pipeline.
+
+Multi-area placement: each :class:`Area` carries a :class:`Pose3D` (plane +
+rotation + translation) controlling where its layer stack sits in global 3D
+space — e.g. orthogonal to xy/xz/yz, tilted 45 degrees, offset anywhere.
+:func:`merge_neuronal_tensors` is the "unifier": it takes several existing
+NeuronalTensor configs and concatenates their areas/area_connections into one
+NeuronalTensor (renaming on name collision). :func:`construct_neuronal_tensor`
+bridges + constructs + then overwrites the model's positions with the
+pose-correct global placement (jaxfne's own construct() only offsets columns
+along x with no rotation, so this step happens post-construct).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Literal, Optional, Sequence
 
+import jax
+import jax.numpy as jnp
+
 from .io import save_json, load_json
-from .core import Configuration
+from .core import Configuration, Model, construct
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
+Plane = Literal["xy", "xz", "yz"]
 
 DEFAULT_RELATIVE_SIZE = {"E": 2.0}
 DEFAULT_OTHER_RELATIVE_SIZE = 1.0
 DEFAULT_AREA_CONNECTION_MECHANISM = "monotonic_cable_synapse"
+
+#: Maps a Pose3D.plane to (global_axis_for_local_x, global_axis_for_local_y,
+#: global_axis_for_local_depth). "xy" is the canonical default (depth=z, the
+#: same orientation jaxfne's own column sampler already uses).
+_PLANE_AXIS_MAP: dict[str, tuple[int, int, int]] = {
+    "xy": (0, 1, 2),
+    "xz": (0, 2, 1),
+    "yz": (2, 0, 1),
+}
 
 
 def default_relative_size(neuron_type: str) -> float:
@@ -114,10 +135,28 @@ class InterConnection:
 
 
 @dataclass
+class Pose3D:
+    """Where an Area's layer stack sits in global 3D space.
+
+    ``plane`` selects which two global axes hold the layer's local (x, y)
+    spread and which global axis holds its local depth (z): "xy" (default,
+    depth along global z) / "xz" (depth along global y) / "yz" (depth along
+    global x) — i.e. "orthogonal to xy/xz/yz". ``rotation_deg`` then twists
+    the in-plane (x, y) spread by that many degrees around the depth axis
+    (e.g. 45.0 for a 45-degree tilt). ``translation`` shifts the whole area.
+    """
+    plane: Plane = "xy"
+    rotation_deg: float = 0.0
+    translation: tuple[float, float, float] = (0.0, 0.0, 0.0)
+    value_tag: ValueTag = "relative"
+
+
+@dataclass
 class Area:
     name: str
     layers: Sequence[Layer] = field(default_factory=tuple)
     inter_connections: Sequence[InterConnection] = field(default_factory=tuple)
+    pose: Pose3D = field(default_factory=Pose3D)
 
 
 @dataclass
@@ -152,6 +191,13 @@ def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
     return str(path)
 
 
+def _load_pose(area_raw: dict) -> "Pose3D":
+    pose_raw = dict(area_raw.get("pose", {}))
+    if "translation" in pose_raw:
+        pose_raw["translation"] = tuple(pose_raw["translation"])
+    return Pose3D(**pose_raw)
+
+
 def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
     """Load a NeuronalTensor from a JSON config file."""
     raw = load_json(path)
@@ -177,6 +223,7 @@ def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
                 )
                 for ic in a.get("inter_connections", [])
             ],
+            pose=_load_pose(a),
         )
         for a in raw.get("areas", [])
     ]
@@ -192,6 +239,168 @@ def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
         for ac in raw.get("area_connections", [])
     ]
     return NeuronalTensor(areas=areas, area_connections=area_connections, name=raw.get("name", "untitled"))
+
+
+def merge_neuronal_tensors(
+    tensors: Sequence[NeuronalTensor],
+    poses: Optional[Sequence[Pose3D]] = None,
+    *,
+    name: str = "merged",
+) -> NeuronalTensor:
+    """The "unifier": concatenate several NeuronalTensors' areas into one.
+
+    From the simulator's perspective N areas across M input tensors become one
+    flat list of areas (effectively one big layer stack), each individually
+    placed via its ``Pose3D``. Area name collisions across inputs are resolved
+    by suffixing (``"V1"`` -> ``"V1_1"``); any ``AreaConnection`` inside a given
+    input tensor has its ``source_area``/``target_area`` renamed to match.
+
+    Parameters
+    ----------
+    tensors : Sequence[NeuronalTensor]
+        The configs to merge, in order.
+    poses : Sequence[Pose3D], optional
+        If given, one pose per area in flattened encounter order (area 0 of
+        tensor 0, area 1 of tensor 0, ..., area 0 of tensor 1, ...) — overrides
+        that area's existing ``pose``. Must have exactly as many entries as
+        the total area count across all tensors. If omitted, every area keeps
+        its own declared ``pose`` (default: stacked at the same origin).
+
+    Returns
+    -------
+    NeuronalTensor
+        One merged NeuronalTensor; ``area_connections`` from every input are
+        preserved (with area names rewritten where collisions were resolved).
+        Cross-tensor ``AreaConnection``s are NOT inferred — only declare those
+        explicitly on the result if you want areas from different inputs wired
+        together.
+    """
+    total_areas = sum(len(t.areas) for t in tensors)
+    if poses is not None and len(poses) != total_areas:
+        raise ValueError(f"poses must have one entry per area; got {len(poses)} for {total_areas} areas")
+
+    merged_areas: list[Area] = []
+    merged_connections: list[AreaConnection] = []
+    seen_names: set[str] = set()
+    pose_idx = 0
+    for tensor in tensors:
+        rename_map: dict[str, str] = {}
+        for area in tensor.areas:
+            new_name = area.name
+            suffix = 1
+            while new_name in seen_names:
+                new_name = f"{area.name}_{suffix}"
+                suffix += 1
+            seen_names.add(new_name)
+            rename_map[area.name] = new_name
+            pose = poses[pose_idx] if poses is not None else area.pose
+            pose_idx += 1
+            merged_areas.append(replace(area, name=new_name, pose=pose))
+        for ac in tensor.area_connections:
+            merged_connections.append(replace(
+                ac,
+                source_area=rename_map.get(ac.source_area, ac.source_area),
+                target_area=rename_map.get(ac.target_area, ac.target_area),
+            ))
+    return NeuronalTensor(areas=merged_areas, area_connections=merged_connections, name=name)
+
+
+def _sample_local_positions(geometry: Geometry3D, n: int, key: "jax.Array") -> "jax.Array":
+    """Sample ``n`` local (x, y, z) points inside a layer's declared Geometry3D ranges."""
+    if geometry.distribution != "uniform_random":
+        raise NotImplementedError(
+            f"Geometry3D.distribution={geometry.distribution!r} is not implemented yet; "
+            "only 'uniform_random' is supported."
+        )
+    if n <= 0:
+        return jnp.zeros((0, 3))
+    x_key, y_key, z_key = jax.random.split(key, 3)
+    x = jax.random.uniform(x_key, (n,), minval=geometry.x_range[0], maxval=geometry.x_range[1])
+    y = jax.random.uniform(y_key, (n,), minval=geometry.y_range[0], maxval=geometry.y_range[1])
+    z = jax.random.uniform(z_key, (n,), minval=geometry.z_range[0], maxval=geometry.z_range[1])
+    return jnp.stack([x, y, z], axis=1)
+
+
+def _apply_pose(local_xyz: "jax.Array", pose: Pose3D) -> "jax.Array":
+    """Map local (x, y, depth) points into global space per a Pose3D."""
+    ax_x, ax_y, ax_depth = _PLANE_AXIS_MAP[pose.plane]
+    global_xyz = jnp.zeros_like(local_xyz)
+    global_xyz = global_xyz.at[:, ax_x].set(local_xyz[:, 0])
+    global_xyz = global_xyz.at[:, ax_y].set(local_xyz[:, 1])
+    global_xyz = global_xyz.at[:, ax_depth].set(local_xyz[:, 2])
+
+    theta = jnp.deg2rad(pose.rotation_deg)
+    a = global_xyz[:, ax_x]
+    b = global_xyz[:, ax_y]
+    a_rot = a * jnp.cos(theta) - b * jnp.sin(theta)
+    b_rot = a * jnp.sin(theta) + b * jnp.cos(theta)
+    global_xyz = global_xyz.at[:, ax_x].set(a_rot).at[:, ax_y].set(b_rot)
+
+    return global_xyz + jnp.asarray(pose.translation, dtype=global_xyz.dtype)
+
+
+def construct_neuronal_tensor(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Model:
+    """Bridge + construct + apply each Area's Pose3D placement, in one call.
+
+    :func:`jaxfne.construct` only offsets columns along x with no rotation, so
+    this samples each layer's local positions from its own declared
+    ``Geometry3D`` and re-derives the global placement from each area's
+    ``Pose3D`` (plane + rotation + translation) afterward, overwriting
+    ``model.params["positions"]`` (and the matching ``x``/``y``/``z`` entries
+    in ``model.static["neuron_metadata"]``) so field/LFP/EEG/MEG proxy
+    readouts — which read positions from there — see the real layout.
+
+    Still does not wire ``AreaConnection``/``InterConnection`` into recurrent
+    dynamics (see :func:`neuronal_tensor_to_configuration`'s docstring).
+    """
+    cfg = neuronal_tensor_to_configuration(
+        tensor, seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter,
+    )
+    model = construct(cfg)
+    rows = model.neuron_table()
+
+    layer_by_key = {(a.name, l.name): l for a in tensor.areas for l in a.layers}
+    pose_by_area = {a.name: a.pose for a in tensor.areas}
+
+    base_key = jax.random.PRNGKey(seed)
+    position_chunks: list["jax.Array"] = []
+    group_index = 0
+    i = 0
+    n_rows = len(rows)
+    while i < n_rows:
+        area_name, layer_name = rows[i]["area"], rows[i]["layer"]
+        j = i
+        while j < n_rows and rows[j]["area"] == area_name and rows[j]["layer"] == layer_name:
+            j += 1
+        count = j - i
+        layer_obj = layer_by_key.get((area_name, layer_name), Layer(name=layer_name))
+        pose = pose_by_area.get(area_name, Pose3D())
+        sub_key = jax.random.fold_in(base_key, group_index)
+        local = _sample_local_positions(layer_obj.geometry, count, sub_key)
+        position_chunks.append(_apply_pose(local, pose))
+        group_index += 1
+        i = j
+
+    positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3))
+    updated_rows = [
+        dict(row, x=float(positions[idx, 0]), y=float(positions[idx, 1]), z=float(positions[idx, 2]))
+        for idx, row in enumerate(rows)
+    ]
+
+    new_static = dict(model.static)
+    new_static["neuron_metadata"] = updated_rows
+    if "geometry" in new_static:
+        new_static["geometry"] = dict(new_static["geometry"], neuron_rows=updated_rows)
+    new_params = dict(model.params)
+    new_params["positions"] = positions
+    return replace(model, params=new_params, static=new_static)
 
 
 def neuronal_tensor_to_configuration(
