@@ -6821,6 +6821,30 @@ def simulate(
     return model.simulate(sim, paradigm=paradigm)
 
 
+def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
+    """Canonical field-stage entry point: ``fields = jtfne.compute_fields(model, signals)``.
+
+    This is a thin accessor, not a new computation -- ``simulate()`` already
+    builds ``signals.field`` internally (via :func:`project_laminar_sources`)
+    whenever field-capable probe modes (``"source"``, ``"CSD"``, ``"LFP"``)
+    were declared on the model's :class:`Configuration`. ``compute_fields``
+    validates presence and returns that existing :class:`FieldOutput` rather
+    than fabricating one; it raises if no field was computed, instead of
+    silently returning ``None`` or synthesizing a placeholder.
+
+    ``model`` is accepted (not just ``signals``) to match the canonical
+    pipeline signature; the current thin-accessor implementation does not
+    read it.
+    """
+    if signals.field is None:
+        raise ValueError(
+            "signals.field is None -- no field-capable probe modes (e.g. "
+            "'source', 'CSD', 'LFP') were declared before simulate(). "
+            "compute_fields() is a thin accessor over the field already "
+            "computed inside simulate(); it does not synthesize a new one."
+        )
+    return signals.field
+
 
 def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
     """Apply canonical cortical-column biophysics at construct time.
@@ -7181,7 +7205,61 @@ def _construct_build_static(cfg: "Configuration", geometry_meta: "dict[str, Any]
     return static
 
 
-def construct(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
+def construct(
+    cfg: "Configuration | Any",
+    runtime: "Any | None" = None,
+    *,
+    geometry: "LaminarSourceGeometry | None" = None,
+) -> Model:
+    """Construct a runnable :class:`Model`. Two call forms:
+
+    - ``construct(cfg)`` / ``construct(cfg, geometry=...)`` -- the
+      :class:`Configuration`-based path (unchanged; this is the original
+      signature and remains fully backward compatible).
+    - ``construct(tensor, runtime)`` -- the canonical NeuronalTensor path
+      (0.4.7+): ``tensor`` is a :class:`jaxfne.neuronal_tensor.NeuronalTensor`,
+      ``runtime`` a :class:`jaxfne.neuronal_tensor.RuntimeConfiguration`
+      (defaults to ``RuntimeConfiguration()`` if omitted). This is the same
+      construction logic as the compatibility wrapper
+      :func:`jaxfne.neuronal_tensor.construct_neuronal_tensor` -- both reach
+      the same internal implementation.
+
+    The returned model is a computational scaffold; its field/probe outputs
+    are proxy readouts, not calibrated physical signals.
+    """
+    from .neuronal_tensor import NeuronalTensor, RuntimeConfiguration, _construct_neuronal_tensor_impl
+
+    if isinstance(cfg, NeuronalTensor):
+        if runtime is None:
+            runtime = RuntimeConfiguration()
+        elif not isinstance(runtime, RuntimeConfiguration):
+            raise TypeError(
+                "construct(tensor, runtime) requires a RuntimeConfiguration "
+                f"for the second argument when the first is a NeuronalTensor; "
+                f"got {type(runtime).__name__}"
+            )
+        if geometry is not None:
+            raise ValueError(
+                "geometry= is not supported on the NeuronalTensor path -- "
+                "geometry comes from each Layer's declared Geometry3D + "
+                "Area.pose instead."
+            )
+        return _construct_neuronal_tensor_impl(
+            cfg, seed=runtime.seed, duration_ms=runtime.duration_ms,
+            dt_ms=runtime.dt_ms, emitter=runtime.emitter,
+        )
+
+    if runtime is not None:
+        raise ValueError(
+            "construct(cfg, runtime=...) is not supported for a Configuration "
+            "-- a Configuration already carries its own runtime via "
+            ".runtime(...). runtime= is only used with a NeuronalTensor "
+            "first argument."
+        )
+    return _construct_from_configuration(cfg, geometry=geometry)
+
+
+def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an

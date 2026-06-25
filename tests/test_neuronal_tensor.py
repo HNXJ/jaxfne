@@ -276,3 +276,96 @@ def test_example_08_neuronal_tensor_first_runs():
     assert "Saved + reloaded NeuronalTensor JSON" in result.stdout
     assert "recurrent_backend: edge_list" in result.stdout
     assert "spikes finite: True" in result.stdout
+
+
+# -- 0.4.7 unified API surface: load() / RuntimeConfiguration / construct(tensor, runtime) / compute_fields() --
+
+def test_load_is_canonical_and_load_neuronal_tensor_is_a_wrapper(tmp_path):
+    tensor = _single_area_tensor()
+    path = tmp_path / "t.json"
+    nt.save_neuronal_tensor(tensor, path)
+    via_load = jtfne.load(path)
+    via_wrapper = jtfne.load_neuronal_tensor(path)
+    assert via_load.name == via_wrapper.name == tensor.name
+
+
+def test_load_rejects_non_tensor_json(tmp_path):
+    path = tmp_path / "not_a_tensor.json"
+    path.write_text('{"network": {}, "emitter": {}}')
+    with pytest.raises(ValueError, match="areas"):
+        jtfne.load(path)
+
+
+def test_runtime_configuration_has_no_biology_fields():
+    runtime = jtfne.RuntimeConfiguration()
+    biology_terms = {"areas", "layers", "populations", "neuron_types", "mechanism", "connections"}
+    field_names = {f.name for f in __import__("dataclasses").fields(runtime)}
+    assert not (field_names & biology_terms), f"RuntimeConfiguration leaked biology fields: {field_names & biology_terms}"
+
+
+def test_construct_tensor_runtime_matches_construct_neuronal_tensor():
+    tensor = _single_area_tensor()
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=0.5)
+    model_new = jtfne.construct(tensor, runtime)
+    model_old = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
+    sig_new = jtfne.simulate(model_new, duration_ms=20.0, dt_ms=0.5, seed=0)
+    sig_old = jtfne.simulate(model_old, duration_ms=20.0, dt_ms=0.5, seed=0)
+    assert bool(jnp.array_equal(sig_new.spikes, sig_old.spikes))
+
+
+def test_construct_tensor_defaults_runtime_when_omitted():
+    tensor = _single_area_tensor()
+    model = jtfne.construct(tensor)
+    assert model.params["emitter"].n_neurons == 20
+
+
+def test_construct_tensor_with_wrong_runtime_type_raises():
+    tensor = _single_area_tensor()
+    with pytest.raises(TypeError, match="RuntimeConfiguration"):
+        jtfne.construct(tensor, "not_a_runtime_config")
+
+
+def test_construct_configuration_with_runtime_raises():
+    cfg = jtfne.build_laminar_column(n=10, ei_profile="canonical").set_emitter("izhikevich", "cortical_eig")
+    with pytest.raises(ValueError, match="runtime"):
+        jtfne.construct(cfg, jtfne.RuntimeConfiguration())
+
+
+def test_construct_configuration_path_unaffected():
+    """The original Configuration-based construct(cfg) / construct(cfg, geometry=...) path is untouched."""
+    cfg = (
+        jtfne.build_laminar_column(n=30, ei_profile="canonical")
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m"], n_contacts=4)
+    )
+    model = jtfne.construct(cfg)
+    sig = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
+    assert bool(jnp.all(jnp.isfinite(sig.spikes)))
+
+
+def test_compute_fields_returns_existing_field_unchanged():
+    cfg = (
+        jtfne.build_laminar_column(n=30, ei_profile="canonical")
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=8)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+    )
+    model = jtfne.construct(cfg)
+    signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
+    fields = jtfne.compute_fields(model, signals)
+    assert fields is signals.field
+
+
+def test_compute_fields_raises_when_field_absent():
+    cfg = (
+        jtfne.build_laminar_column(n=10, ei_profile="canonical")
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes"], n_contacts=4)
+    )
+    model = jtfne.construct(cfg)
+    fieldless_signals = jtfne.Signals(
+        time_ms=jnp.zeros((1,)), V_m=jnp.zeros((1, 10)), spikes=jnp.zeros((1, 10)),
+        sources=None, field=None, metadata={},
+    )
+    with pytest.raises(ValueError, match="signals.field is None"):
+        jtfne.compute_fields(model, fieldless_signals)

@@ -236,15 +236,37 @@ def _load_pose(area_raw: dict) -> "Pose3D":
     return Pose3D(**pose_raw)
 
 
-def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
-    """Load a NeuronalTensor from a JSON config file.
+def load(path: str | Path) -> NeuronalTensor:
+    """Canonical loader: load a NeuronalTensor from its JSON config file.
 
-    Validates ``schema_version`` if present (missing = legacy pre-versioning
+    This is the recommended entry point for the tensor-first workflow
+    (``tensor = jtfne.load(path)``). Raises ``ValueError`` if ``path`` does
+    not look like a NeuronalTensor JSON config (no top-level ``"areas"``
+    key) -- legacy ``Configuration``-style ``.jcfg.json`` files still use
+    :func:`jaxfne.load_config`, a distinct format this function does not
+    auto-convert.
+    """
+    raw = load_json(path)
+    if "areas" not in raw:
+        raise ValueError(
+            f"{path} does not look like a NeuronalTensor JSON config (no "
+            "top-level 'areas' key). For legacy Configuration-style "
+            "'.jcfg.json' files, use jaxfne.load_config(...) instead."
+        )
+    return _load_neuronal_tensor_impl(path, raw)
+
+
+def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
+    """Compatibility wrapper. Prefer :func:`load`."""
+    return load(path)
+
+
+def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
+    """Validates ``schema_version`` if present (missing = legacy pre-versioning
     save, treated as ``neuronal_tensor_v1`` implicitly). An unrecognized
     *future* version is accepted with a warning, not an error -- this loader
     targets forward-readability of additive fields, not strict lockstep.
     """
-    raw = load_json(path)
     schema_version = raw.get("schema_version", NEURONAL_TENSOR_SCHEMA_VERSION)
     if schema_version != NEURONAL_TENSOR_SCHEMA_VERSION:
         warnings.warn(
@@ -392,7 +414,56 @@ def _apply_pose(local_xyz: "jax.Array", pose: Pose3D) -> "jax.Array":
     return global_xyz + jnp.asarray(pose.translation, dtype=global_xyz.dtype)
 
 
+@dataclass(frozen=True)
+class RuntimeConfiguration:
+    """Execution-only configuration for the tensor-first workflow
+    (``jtfne.construct(tensor, runtime)``). Contains no biological structure
+    -- areas, layers, populations, geometry, mechanisms, and plastic
+    parameters all belong on :class:`NeuronalTensor`, never here.
+
+    **Wired** (actually consumed by :func:`jaxfne.construct` /
+    :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
+    ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
+    ``jit``, ``vmap``.
+
+    **Reserved, declared but not yet consumed** (forward-compatible
+    placeholders for the TFNE-grammar stages they name; setting them has no
+    effect today -- not silently ignored, just honestly not wired yet):
+    ``solver``, ``probes``, ``n_contacts``, ``outputs``, ``optimizer``.
+    """
+    duration_ms: float = 1000.0
+    dt_ms: float = 0.1
+    seed: int = 0
+    dtype: str = "float32"
+    emitter: str = "izhikevich"
+    device: str = "auto"
+    jit: "bool | str" = False
+    vmap: "bool | str" = False
+    solver: "str | None" = None
+    probes: "Sequence[str] | None" = None
+    n_contacts: int = 16
+    outputs: "dict | None" = None
+    optimizer: "Any | None" = None
+
+
 def construct_neuronal_tensor(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Model:
+    """Compatibility wrapper around :func:`jaxfne.construct`.
+
+    Prefer ``jtfne.construct(tensor, RuntimeConfiguration(seed=..., ...))``
+    for new code -- this kwarg-style call remains supported unchanged.
+    """
+    runtime = RuntimeConfiguration(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter)
+    return construct(tensor, runtime)
+
+
+def _construct_neuronal_tensor_impl(
     tensor: NeuronalTensor,
     *,
     seed: int = 0,
