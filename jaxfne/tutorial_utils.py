@@ -75,56 +75,6 @@ def display_run_summary(label: str, spikes: np.ndarray, V_m: np.ndarray,
     print(f"  Voltage: [{v_min:.1f}, {v_max:.1f}] mV | Finite: {finite}")
 
 
-def plot_raster(spike_times_list, spike_neuron_ids_list, t, figsize=(10, 4),
-               title="Population Raster", show: bool = True):
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_population_raster``."""
-    from .vis.tutorial_array_plots import plot_population_raster as _impl
-    return _impl(spike_times_list, spike_neuron_ids_list, t, figsize=figsize, title=title, show=show)
-
-
-def plot_population_rate(t, spikes, bin_ms=25.0, dt_ms=0.1, figsize=(10, 3),
-                         title="Population Rate", show: bool = True) -> Tuple:
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_population_rate_array``."""
-    from .vis.tutorial_array_plots import plot_population_rate_array as _impl
-    return _impl(t, spikes, bin_ms=bin_ms, dt_ms=dt_ms, figsize=figsize, title=title, show=show)
-
-
-def plot_voltage_samples(t, V_m, title="Voltage trajectory", figsize=(10, 3),
-                         max_neurons=10, show: bool = True):
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_voltage_samples_array``."""
-    from .vis.tutorial_array_plots import plot_voltage_samples_array as _impl
-    return _impl(t, V_m, title=title, figsize=figsize, max_neurons=max_neurons, show=show)
-
-
-def plot_connectivity_matrix(W, title="Connectivity matrix", figsize=(5, 5), show: bool = True):
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_connectivity_matrix_array``."""
-    from .vis.tutorial_array_plots import plot_connectivity_matrix_array as _impl
-    return _impl(W, title=title, figsize=figsize, show=show)
-
-
-def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, figsize=(12, 4),
-                         title="Laminar Readout", show: bool = True):
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_laminar_readout_array``."""
-    from .vis.tutorial_array_plots import plot_laminar_readout_array as _impl
-    return _impl(t, lfp_proxy, csd_proxy=csd_proxy, figsize=figsize, title=title, show=show)
-
-
-def plot_spectrolaminar_power(
-    t: np.ndarray,
-    signal: np.ndarray,
-    freq_min: float = 1.0,
-    freq_max: float = 120.0,
-    n_freqs: int = 96,
-    title: str = "Spectrolaminar Power",
-    figsize: tuple = (10, 5),
-    show: bool = True,
-) -> object:
-    """DEPRECATED: use ``jaxfne.vis.tutorial_array_plots.plot_spectrolaminar_power_array``."""
-    from .vis.tutorial_array_plots import plot_spectrolaminar_power_array as _impl
-    return _impl(t, signal, freq_min=freq_min, freq_max=freq_max, n_freqs=n_freqs,
-                 title=title, figsize=figsize, show=show)
-
-
 def hh_reference_trace_jaxley(duration_ms: float = 500.0, dt_ms: float = 0.1,
                               current_amplitude: float = 10.0) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Hodgkin-Huxley reference trace via optional Jaxley bridge.
