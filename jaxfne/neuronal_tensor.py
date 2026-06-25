@@ -204,17 +204,30 @@ def neuronal_tensor_to_configuration(
 ) -> Configuration:
     """Bridge a :class:`NeuronalTensor` into the existing construct/simulate pipeline.
 
-    Known fidelity gap: :class:`jaxfne.core.Configuration` only supports a
-    single global cell-type fraction map (set by :meth:`Configuration.cell_types`)
-    shared across every declared column, whereas a NeuronalTensor allows distinct
-    per-layer ``NeuronType`` membership per area. This bridge aggregates the
-    declared neuron types across all layers/areas (weighted by ``Layer.n_neurons``,
-    split evenly across the types declared on that layer) into one global
-    fraction map. Per-area/per-layer cell-type heterogeneity is therefore
-    flattened at construct time — this is a Configuration-grammar limitation,
-    not a NeuronalTensor one. Static/plastic synaptic parameters
-    (``g_mech``/reversal potentials/``w_mech``/``H``) on ``InterConnection``/
-    ``AreaConnection`` are not yet wired to ``Configuration`` and are dropped.
+    Per-area/per-layer cell-type fractions ARE preserved, via
+    :meth:`Configuration.area_layer_cell_types` — each layer's declared
+    ``NeuronType`` list is split into even fractions (the tensor stores
+    membership, not population fractions, so an even split is the most
+    neutral reading) and recorded per area/layer, not flattened globally.
+
+    Known fidelity gaps still open (not yet wired to ``Configuration``):
+
+    - ``Layer.geometry`` (per-layer ``distribution``/``x_range``/``y_range``/
+      ``z_range``) is dropped; positions instead come from jaxfne's default
+      uniform-random column radius/height. Areas still get distinct,
+      non-overlapping 3D coordinate blocks (offset per area index), so areas
+      are not geometrically merged — they just don't use the declared geometry.
+    - ``AreaConnection`` (between-area links) is dropped entirely. jaxfne's
+      default recurrent connectivity is same-area-masked
+      (see ``_suite2_apply_connectivity`` in ``core.py``), so bridged areas
+      are dynamically ISOLATED — zero coupling between e.g. V1 and V4 — until
+      inter-column connectivity is declared separately. No plasticity can act
+      on a between-area connection that doesn't exist yet.
+    - ``InterConnection`` mechanism specificity (layer x type -> layer x type,
+      AMPA/GABA/etc.) is dropped; within-area connectivity is a generic
+      random same-area ``W``, not the declared motif.
+    - Static/plastic params (``g_mech``, reversal potentials, ``dT``,
+      ``w_mech``, ``H``) are not wired to any Configuration hook.
 
     Returns
     -------
@@ -224,22 +237,25 @@ def neuronal_tensor_to_configuration(
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
 
-    type_weight: dict[str, float] = {}
-    for area in tensor.areas:
-        for layer in area.layers:
-            type_names = [nt.name for nt in layer.neuron_types] or ["E"]
-            share = float(layer.n_neurons) / len(type_names)
-            for name in type_names:
-                type_weight[name] = type_weight.get(name, 0.0) + share
-    total_weight = sum(type_weight.values()) or 1.0
-    cell_type_fractions = {name: weight / total_weight for name, weight in type_weight.items()}
-
     cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+    fallback_weight: dict[str, float] = {}
     for area in tensor.areas:
         layer_names = [layer.name for layer in area.layers] or ["single"]
         area_n = sum(layer.n_neurons for layer in area.layers) or 1
         cfg = cfg.column(area.name, layers=layer_names, n=area_n)
-    cfg = cfg.cell_types(cell_type_fractions)
+
+        layer_cell_types: dict[str, dict[str, float]] = {}
+        for layer in area.layers:
+            type_names = [nt.name for nt in layer.neuron_types] or ["E"]
+            frac = 1.0 / len(type_names)
+            layer_cell_types[layer.name] = {name: frac for name in type_names}
+            for name in type_names:
+                fallback_weight[name] = fallback_weight.get(name, 0.0) + float(layer.n_neurons) * frac
+        if layer_cell_types:
+            cfg = cfg.area_layer_cell_types(area.name, layer_cell_types)
+
+    total_weight = sum(fallback_weight.values()) or 1.0
+    cfg = cfg.cell_types({name: weight / total_weight for name, weight in fallback_weight.items()})
 
     if emitter == "izhikevich":
         cfg = cfg.set_emitter("izhikevich", "cortical_eig")
