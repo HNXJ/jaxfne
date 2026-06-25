@@ -42,6 +42,7 @@ along x with no rotation, so this step happens post-construct).
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Literal, Optional, Sequence
@@ -403,6 +404,62 @@ def construct_neuronal_tensor(
     return replace(model, params=new_params, static=new_static)
 
 
+def _connection_edge_weight(conn: "InterConnection | AreaConnection", total_n: int) -> float:
+    """Native edge magnitude for one InterConnection/AreaConnection.
+
+    ``w_mech`` (plastic gain) is scaled by ``g_mech`` (static conductance for
+    this connection's mechanism, default 1.0 if undeclared) and normalized by
+    ``1/sqrt(total_n)``, matching the native-weight convention used elsewhere
+    in ``core.py`` (e.g. ``_suite2_apply_connectivity``'s ``base_gain * rnd /
+    sqrt(n)``) so bridged edges sit on the same magnitude scale as the rest
+    of the network instead of dominating or vanishing relative to it.
+    """
+    g_scale = conn.static.g_mech.get(conn.mechanism, 1.0)
+    return abs(float(conn.plastic.w_mech) * float(g_scale)) / math.sqrt(max(total_n, 1))
+
+
+def _wire_connection(
+    cfg: Configuration,
+    conn: "InterConnection | AreaConnection",
+    *,
+    rule_name: str,
+    source_area: str,
+    target_area: str,
+    total_n: int,
+    declared_mechanisms: dict[tuple[str, float], str],
+) -> Configuration:
+    """Declare one real edge rule (mechanism + connection) for an Inter/AreaConnection.
+
+    Uses the generic, selector-based :meth:`Configuration.connections` +
+    :meth:`Configuration.mechanisms` hooks (source/target by area/layer/
+    cell_type) rather than the same-area-masked dense ``W`` in
+    ``_suite2_apply_connectivity`` — selectors carry no same-area restriction,
+    so this is what actually couples two different areas (or two specific
+    layer x cell-type populations within one area) into the simulated
+    dynamics. ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``;
+    mechanisms are deduplicated by (name, dT_ms) so repeated connections
+    sharing both don't raise on ``Configuration``'s duplicate-name guard.
+    """
+    mech_key = (conn.mechanism, float(conn.static.dT_ms))
+    mech_name = declared_mechanisms.get(mech_key)
+    if mech_name is None:
+        mech_name = f"{conn.mechanism}__dt{conn.static.dT_ms:g}__{len(declared_mechanisms)}"
+        cfg = cfg.mechanisms(name=mech_name, kind=conn.mechanism, params={"tau_ms": float(conn.static.dT_ms)})
+        declared_mechanisms[mech_key] = mech_name
+
+    sign = "excitatory" if conn.source_neuron_type == "E" else "inhibitory"
+    cfg = cfg.connections(
+        name=rule_name,
+        source={"area": source_area, "layer": conn.source_layer, "cell_type": conn.source_neuron_type},
+        target={"area": target_area, "layer": conn.target_layer, "cell_type": conn.target_neuron_type},
+        probability=1.0,
+        weight=_connection_edge_weight(conn, total_n),
+        sign=sign,
+        mechanism=mech_name,
+    )
+    return cfg
+
+
 def neuronal_tensor_to_configuration(
     tensor: NeuronalTensor,
     *,
@@ -419,24 +476,38 @@ def neuronal_tensor_to_configuration(
     membership, not population fractions, so an even split is the most
     neutral reading) and recorded per area/layer, not flattened globally.
 
+    Cross-area / within-area wiring: every ``InterConnection`` (within an
+    area) and ``AreaConnection`` (between areas) is compiled into a REAL edge
+    rule via :meth:`Configuration.connections` + :meth:`Configuration.mechanisms`
+    (selector-based: ``area``/``layer``/``cell_type``), which carries no
+    same-area restriction — this is what actually couples two areas (jaxfne's
+    own default recurrent ``W`` in ``_suite2_apply_connectivity`` is
+    same-area-masked and would leave bridged areas dynamically isolated).
+    ``mechanism`` resolves to a real per-edge ``tau_ms`` (from
+    ``static.dT_ms``); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``
+    (see :func:`_connection_edge_weight`); sign follows the source neuron
+    type (E -> excitatory, else inhibitory). Each rule connects with
+    ``probability=1.0`` (full bipartite between the selected populations) —
+    the tensor model declares connection membership, not a separate density
+    parameter, so full density between the declared layer x cell-type pair
+    is the most neutral reading, mirroring the even-split reading used for
+    cell-type fractions above.
+
     Known fidelity gaps still open (not yet wired to ``Configuration``):
 
     - ``Layer.geometry`` (per-layer ``distribution``/``x_range``/``y_range``/
-      ``z_range``) is dropped; positions instead come from jaxfne's default
-      uniform-random column radius/height. Areas still get distinct,
-      non-overlapping 3D coordinate blocks (offset per area index), so areas
-      are not geometrically merged — they just don't use the declared geometry.
-    - ``AreaConnection`` (between-area links) is dropped entirely. jaxfne's
-      default recurrent connectivity is same-area-masked
-      (see ``_suite2_apply_connectivity`` in ``core.py``), so bridged areas
-      are dynamically ISOLATED — zero coupling between e.g. V1 and V4 — until
-      inter-column connectivity is declared separately. No plasticity can act
-      on a between-area connection that doesn't exist yet.
-    - ``InterConnection`` mechanism specificity (layer x type -> layer x type,
-      AMPA/GABA/etc.) is dropped; within-area connectivity is a generic
-      random same-area ``W``, not the declared motif.
-    - Static/plastic params (``g_mech``, reversal potentials, ``dT``,
-      ``w_mech``, ``H``) are not wired to any Configuration hook.
+      ``z_range``) is dropped by THIS function; positions instead come from
+      jaxfne's default uniform-random column radius/height. Use
+      :func:`construct_neuronal_tensor` instead of calling this bridge alone
+      if you need pose-correct/declared-geometry 3D placement — it bridges
+      via this function then overwrites positions from each ``Layer.geometry``
+      + ``Area.pose``.
+    - ``PlasticParams.H`` (homeostatic charge-balance factor) is carried in
+      the tensor/JSON but has no consumer here — no Configuration hook
+      currently reads a per-connection ``H`` term. Declared metadata only.
+    - ``StaticParams.reversal_potentials_mV`` has no consumer here either —
+      the compiled edges are native-current-based (Izhikevich-style), not a
+      conductance/reversal-potential scheme. Declared metadata only.
 
     Returns
     -------
@@ -448,9 +519,11 @@ def neuronal_tensor_to_configuration(
 
     cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
     fallback_weight: dict[str, float] = {}
+    area_n_by_name: dict[str, int] = {}
     for area in tensor.areas:
         layer_names = [layer.name for layer in area.layers] or ["single"]
         area_n = sum(layer.n_neurons for layer in area.layers) or 1
+        area_n_by_name[area.name] = area_n
         cfg = cfg.column(area.name, layers=layer_names, n=area_n)
 
         layer_cell_types: dict[str, dict[str, float]] = {}
@@ -465,6 +538,24 @@ def neuronal_tensor_to_configuration(
 
     total_weight = sum(fallback_weight.values()) or 1.0
     cfg = cfg.cell_types({name: weight / total_weight for name, weight in fallback_weight.items()})
+
+    total_n = sum(area_n_by_name.values()) or 1
+    declared_mechanisms: dict[tuple[str, float], str] = {}
+    for area in tensor.areas:
+        for idx, ic in enumerate(area.inter_connections):
+            cfg = _wire_connection(
+                cfg, ic,
+                rule_name=f"interconn_{area.name}_{idx}",
+                source_area=area.name, target_area=area.name,
+                total_n=total_n, declared_mechanisms=declared_mechanisms,
+            )
+    for idx, ac in enumerate(tensor.area_connections):
+        cfg = _wire_connection(
+            cfg, ac,
+            rule_name=f"areaconn_{idx}",
+            source_area=ac.source_area, target_area=ac.target_area,
+            total_n=total_n, declared_mechanisms=declared_mechanisms,
+        )
 
     if emitter == "izhikevich":
         cfg = cfg.set_emitter("izhikevich", "cortical_eig")
