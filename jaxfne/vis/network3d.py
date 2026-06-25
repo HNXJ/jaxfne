@@ -178,13 +178,14 @@ _FALLBACK_COLORS = [
     "#59a14f", "#edc948", "#b07aa1", "#ff9da7",
 ]
 
-# Per-cell-type marker glyphs (Plotly Scatter3d supports a limited symbol set).
-# E = filled circle, PV = diamond, SST = square, VIP = open circle.
+# Per-cell-type marker glyphs. All cell types render as filled circle markers
+# (a sphere-like single-point soma body, distinguished by color only) rather
+# than per-type glyph shapes.
 _DEFAULT_CELL_SYMBOLS: dict[str, str] = {
     "E":   "circle",
-    "PV":  "diamond",
-    "SST": "square",
-    "VIP": "circle-open",
+    "PV":  "circle",
+    "SST": "circle",
+    "VIP": "circle",
 }
 _FALLBACK_SYMBOL = "circle"
 
@@ -378,12 +379,16 @@ def visualize_network_3d(
     coordinate_unit: str = "m",
     display_unit: str = "um",
     show_layers: bool = False,
+    layer_plane_opacity: float = 0.16,
+    show_layer_annotations: bool = True,
     show_column_shells: bool = False,
     column_shape: str = "cylinder",
     column_segments: int = 48,
     show_edges: bool = False,
     max_edges: int = 500,
     seed: int = 0,
+    depth_multiplier: float = 1.0,
+    point_size: float = 4.0,
     output_html: str | Path | None = None,
     return_node_table: bool = False,
     cell_type_colors: dict[str, str] | None = None,
@@ -406,6 +411,12 @@ def visualize_network_3d(
         Unit for display axes (``"m"``, ``"mm"``, ``"um"``, ``"nm"``).
     show_layers : bool
         Draw translucent horizontal planes at inferred layer z-boundaries.
+    layer_plane_opacity : float
+        Opacity of the layer-slicing planes (default ``0.16``; higher = more
+        visible).
+    show_layer_annotations : bool
+        Label each layer plane with its layer name (e.g. "L1"..."L6") when
+        ``show_layers=True``.
     show_column_shells : bool
         Draw wireframe shells per area/column. Shape set by ``column_shape``.
     column_shape : str
@@ -420,6 +431,13 @@ def visualize_network_3d(
         Maximum number of edges to render (capped for performance).
     seed : int
         PRNG seed for deterministic duplicate-position jitter.
+    depth_multiplier : float
+        Display-only multiplier applied to the plotted depth (z) values
+        (default ``1.0`` = no change). Does not rescale or mutate the
+        underlying neuron positions/data — only the rendered depth axis
+        (e.g. ``2.0`` displays a 0..1000 µm range as 0..2000).
+    point_size : float
+        Marker size (pixels) for the single-point neuron soma body.
     output_html : str | Path | None
         If provided, write an interactive HTML file to this path.
     return_node_table : bool
@@ -454,7 +472,9 @@ def visualize_network_3d(
 
     x_disp = np.array([r["x_m"] for r in rows]) * scale
     y_disp = np.array([r["y_m"] for r in rows]) * scale
-    z_disp = np.array([r["z_m"] for r in rows]) * scale
+    # depth_multiplier is display-only: it stretches the plotted z axis
+    # (e.g. 0..1000 -> 0..2000) without rescaling the underlying data.
+    z_disp = np.array([r["z_m"] for r in rows]) * scale * float(depth_multiplier)
 
     cell_types_in_data = sorted({r["cell_type"] for r in rows})
     areas_in_data      = sorted({r["area"] for r in rows})
@@ -492,10 +512,11 @@ def visualize_network_3d(
             x=x_disp[mask], y=y_disp[mask], z=z_disp[mask],
             mode="markers",
             marker=dict(
-                size=3,
+                size=point_size,
                 color=colors.get(ct, "#888888"),
                 symbol=symbols.get(ct, _FALLBACK_SYMBOL),
-                opacity=0.75,
+                opacity=0.85,
+                line=dict(width=0),
             ),
             name=ct,
             text=hover,
@@ -524,6 +545,7 @@ def visualize_network_3d(
             ))
 
     # ── Optional: layer planes ─────────────────────────────────────────────────
+    layer_annotations: list[dict[str, Any]] = []
     if show_layers and len(rows) > 1:
         unique_layers = sorted({r["layer"] for r in rows if r["layer"]})
         for lyr in unique_layers:
@@ -537,12 +559,21 @@ def visualize_network_3d(
                 x=[x_range[0], x_range[1], x_range[1], x_range[0]],
                 y=[y_range[0], y_range[0], y_range[1], y_range[1]],
                 z=[z_mid, z_mid, z_mid, z_mid],
-                opacity=0.08,
+                opacity=layer_plane_opacity,
                 color="lightblue",
                 name=f"layer {lyr}",
                 showlegend=False,
                 hoverinfo="skip",
             ))
+            if show_layer_annotations:
+                layer_annotations.append(dict(
+                    x=x_range[1], y=y_range[1], z=z_mid,
+                    text=f"<b>{lyr}</b>",
+                    showarrow=False,
+                    font=dict(color="#f0f0f0", size=13),
+                    xanchor="left",
+                    bgcolor="rgba(0,0,0,0.35)",
+                ))
 
     # ── Optional: column shells (cylinder wireframe per area, "cylindric rule") ─
     if show_column_shells:
@@ -633,6 +664,7 @@ def visualize_network_3d(
                 yaxis=_axis(f"Y ({ax_label})"),
                 zaxis=_depth_axis,
                 bgcolor="black",
+                annotations=layer_annotations,
             ),
             paper_bgcolor="black",
             legend=dict(title="Cell type", itemsizing="constant", font=dict(color="#e0e0e0")),

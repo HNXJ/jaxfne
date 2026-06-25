@@ -206,14 +206,14 @@ def test_poisson_drive_output_is_finite():
 
 
 def test_spectrolaminar_power_returns_at_least_64_freqs():
-    """plot_spectrolaminar_power returns a figure and uses at least 64 freq bins."""
+    """plot_spectrolaminar_power_array returns a figure and uses at least 64 freq bins."""
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
-    from jaxfne.tutorial_utils import plot_spectrolaminar_power
+    from jaxfne.vis import plot_spectrolaminar_power_array
     t = np.linspace(0, 100, 1000)
     signal = np.random.default_rng(0).normal(size=(1000, 4))
-    fig = plot_spectrolaminar_power(t, signal, freq_min=1.0, freq_max=80.0, n_freqs=64, show=False)
+    fig = plot_spectrolaminar_power_array(t, signal, freq_min=1.0, freq_max=80.0, n_freqs=64, show=False)
     assert isinstance(fig, matplotlib.figure.Figure)
     n_freq_bins = fig.axes[0].images[0].get_array().shape[0]
     assert n_freq_bins >= 64

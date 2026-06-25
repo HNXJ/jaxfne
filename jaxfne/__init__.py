@@ -121,8 +121,6 @@ from .export import (
     save_figures,
     export_report,
     export_tutorial_artifacts,
-    plot_raster,
-    plot_spectrolaminar_suite,
 )
 
 # Unambiguous root-level alias for the tutorial scaffold builder. Root-level
@@ -133,6 +131,8 @@ build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import analysis
 from . import vis
+from .vis import plot_raster, plot_stdp_adaptation_suite
+from .vis import spectrolaminar_suite as plot_spectrolaminar_suite
 from .emitters import (
     EdgeList,
     EIGNetwork,
@@ -205,6 +205,20 @@ from .fields import (
     csd_tensor,
 )
 from .io import config_hash, json_safe, manifest, save_json, save_receipt, sha256_file, sha256_text, validation_report, probe_report, asset_hashes
+from .neuronal_tensor import (
+    NeuronalTensor,
+    Area,
+    AreaConnection,
+    Layer,
+    InterConnection,
+    NeuronType,
+    Geometry3D,
+    StaticParams,
+    PlasticParams,
+    save_neuronal_tensor,
+    load_neuronal_tensor,
+    default_relative_size,
+)
 from .optim import (
     AGSDR,
     AGSDROptimizerSpec,
@@ -263,7 +277,6 @@ from .plasticity import (
     STDPPlasticityConfig,
     STDPState,
     summarize_stdp_adaptation,
-    plot_stdp_adaptation_suite,
     update_stdp_weights_jax,
 )
 from .analysis.spectral import (
@@ -447,6 +460,18 @@ __all__ = [
     "save_json",
     "save_receipt",
     "sha256_file",
+    "NeuronalTensor",
+    "Area",
+    "AreaConnection",
+    "Layer",
+    "InterConnection",
+    "NeuronType",
+    "Geometry3D",
+    "StaticParams",
+    "PlasticParams",
+    "save_neuronal_tensor",
+    "load_neuronal_tensor",
+    "default_relative_size",
     "sha256_text",
     "validation_report",
     "probe_report",
