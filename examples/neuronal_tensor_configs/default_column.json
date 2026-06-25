@@ -1,0 +1,97 @@
+{
+  "area_connections": [],
+  "areas": [
+    {
+      "inter_connections": [
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 1.5
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {},
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 2.0
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 5.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "E"
+        }
+      ],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 80,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "V1",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    }
+  ],
+  "name": "default_column"
+}
