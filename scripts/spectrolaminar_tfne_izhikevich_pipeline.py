@@ -497,124 +497,49 @@ def waveform_width_ms(waveform: np.ndarray, dt_ms: float, half_max_ref: float = 
 
 
 def _plot_rate_histogram(summary: dict[str, Any], band: tuple[float, float], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(5, 3))
-    types = list(summary["rate_by_type_hz"].keys())
-    rates = [summary["rate_by_type_hz"][t] for t in types]
-    ax.bar(types, rates, color="steelblue")
-    ax.axhspan(band[0], band[1], color="green", alpha=0.15, label="target band")
-    ax.set_ylabel("firing rate (Hz)")
-    ax.set_title("Per-cell-type firing rate (HDP-tuned operating point)")
-    ax.legend()
-    fig.tight_layout()
+    fig = jtfne.vis.rate_histogram_by_celltype(summary["rate_by_type_hz"], band)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_sweep(results: list[dict[str, Any]], x_key: str, band: tuple[float, float], out_path: Path, xlabel: str) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(5, 3.5))
     xs = [r[x_key] for r in results]
-    cell_types = sorted({t for r in results for t in r["rate_by_type_hz"]})
-    for cell_type in cell_types:
-        ys = [r["rate_by_type_hz"].get(cell_type, np.nan) for r in results]
-        ax.plot(xs, ys, marker="o", label=cell_type)
-    ax.axhspan(band[0], band[1], color="green", alpha=0.1)
-    if x_key == "K_HDP" or x_key == "tau_0_ms":
-        ax.set_xscale("symlog" if 0 in xs else "log")
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel("firing rate (Hz)")
-    ax.legend()
-    fig.tight_layout()
+    rate_by_type_per_point = [r["rate_by_type_hz"] for r in results]
+    x_key_is_log = x_key in ("K_HDP", "tau_0_ms")
+    fig = jtfne.vis.sweep_rate_lines(xs, rate_by_type_per_point, band, xlabel, x_key_is_log=x_key_is_log)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_spectrolaminar_motif(motif: dict[str, Any], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    power = motif["power"]
-    depths = motif["contact_depths"]
-    fig, ax = plt.subplots(figsize=(6, 4))
-    im = ax.imshow(
-        power, aspect="auto", origin="lower",
-        extent=[0, power.shape[1], depths.min(), depths.max()] if power.ndim == 2 else None,
-        cmap="magma",
-    )
-    ax.set_xlabel("frequency bin")
-    ax.set_ylabel("relative laminar depth")
-    ax.set_title("Spectrolaminar motif (depth x frequency power, proxy)")
-    fig.colorbar(im, ax=ax, label="power (a.u.)")
-    fig.tight_layout()
+    fig = jtfne.vis.spectrolaminar_motif_heatmap(motif["power"], motif["contact_depths"])
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_waveforms(waveforms: dict[str, np.ndarray], dt_ms: float, out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(5, 3.5))
-    for cell_type, wf in waveforms.items():
-        t_ms = np.arange(wf.shape[0]) * dt_ms
-        width = waveform_width_ms(wf, dt_ms)
-        ax.plot(t_ms, wf, label=f"{cell_type} (FWHM~{width:.1f} ms)")
-    ax.set_xlabel("time (ms)")
-    ax.set_ylabel("V_m (mV, spike-triggered avg)")
-    ax.set_title("E vs. I spike-triggered waveform proxy (not a calibrated AP shape)")
-    ax.legend()
-    fig.tight_layout()
+    widths = {ct: waveform_width_ms(wf, dt_ms) for ct, wf in waveforms.items()}
+    fig = jtfne.vis.spike_triggered_waveforms_plot(waveforms, dt_ms, widths)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_H_trajectories(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(6, 3.5))
-    for cell_type, d in per_type.items():
-        ax.plot(d["t_ms"], d["mean_H_t"], label=cell_type)
-    ax.axhline(1.0, color="k", ls="--", lw=0.8, label="H=1 (equilibrium)")
-    ax.set_xlabel("time (ms)")
-    ax.set_ylabel("mean H")
-    ax.set_title("HDP master state H_i over time (per cell type)")
-    ax.legend()
-    fig.tight_layout()
+    fig = jtfne.vis.hdp_state_trajectories(per_type, mode="H")
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_pressure_trajectories(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(6, 3.5))
-    for cell_type, d in per_type.items():
-        ax.plot(d["t_ms"], d["mean_H_t"] - 1.0, label=cell_type)
-    ax.axhline(0.0, color="k", ls="--", lw=0.8)
-    ax.set_xlabel("time (ms)")
-    ax.set_ylabel("mean(H-1)  [controller error]")
-    ax.set_title("HDP pressure (error signal) over time")
-    ax.legend()
-    fig.tight_layout()
+    fig = jtfne.vis.hdp_state_trajectories(per_type, mode="pressure")
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_rate_vs_pressure(per_type: dict[str, dict[str, np.ndarray]], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots(figsize=(5, 5))
-    for cell_type, d in per_type.items():
-        ax.scatter(d["pressure_binned"], d["rate_binned_hz"], s=10, alpha=0.5, label=cell_type)
-    ax.axvline(0.0, color="k", ls="--", lw=0.5)
-    ax.set_xlabel("mean(H-1)  [controller error]")
-    ax.set_ylabel("binned firing rate (Hz)")
-    ax.set_title("Rate vs. controller error (healthy controller -> monotonic)")
-    ax.legend()
-    fig.tight_layout()
+    fig = jtfne.vis.rate_vs_pressure_scatter(per_type)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_H_occupancy(
@@ -626,58 +551,33 @@ def _plot_H_occupancy(
     in a way the trajectory mean (which can hide bimodal/rail-clipped
     populations) cannot.
     """
-    import matplotlib.pyplot as plt
-
     labels = np.asarray(model.params["emitter"].labels)
     H_trace = np.asarray(run["diagnostics"]["H_trace"])  # (n_steps, n_neurons)
 
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    H_by_celltype = {}
     for cell_type in sorted(set(labels.tolist())):
         mask = labels == cell_type
         if not mask.any():
             continue
-        ax.hist(
-            H_trace[:, mask].ravel(), bins=bins, histtype="step", density=True,
-            label=cell_type,
-        )
-    ax.axvline(1.0, color="k", ls="--", lw=0.8, label="H=1 (equilibrium)")
-    ax.set_xlabel("H_i")
-    ax.set_ylabel("density (over time x neurons)")
-    ax.set_title("HDP master-state occupancy (per cell type)")
-    ax.legend(fontsize=8)
-    fig.tight_layout()
+        H_by_celltype[cell_type] = H_trace[:, mask]
+
+    fig = jtfne.vis.hdp_H_occupancy_histogram(H_by_celltype, bins=bins)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def _plot_stability_map(results: list[dict[str, Any]], cfg: dict[str, Any], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
     ks = cfg["K_HDP_GRID"]
     taus = cfg["TAU0_GRID_MS"]
     by_point = {(r["K_HDP"], r["tau_0_ms"]): r for r in results}
 
-    fields = [
-        ("mean_rate_hz", "mean rate (Hz)"),
-        ("weight_saturation_fraction", "weight saturation frac."),
-        ("max_var_H", "max var(H)"),
-    ]
-    fig, axes = plt.subplots(1, 3, figsize=(13, 3.5))
-    for ax, (key, title) in zip(axes, fields):
-        grid = np.array([[by_point[(k, t)][key] for t in taus] for k in ks])
-        im = ax.imshow(grid, aspect="auto", cmap="viridis")
-        ax.set_xticks(range(len(taus)))
-        ax.set_xticklabels([f"{t:g}" for t in taus])
-        ax.set_yticks(range(len(ks)))
-        ax.set_yticklabels([f"{k:g}" for k in ks])
-        ax.set_xlabel("tau_0_ms")
-        ax.set_ylabel("K_HDP")
-        ax.set_title(title)
-        fig.colorbar(im, ax=ax, fraction=0.046)
-    fig.suptitle("K_HDP x tau_0_ms stability map")
-    fig.tight_layout()
+    grids = {
+        key: np.array([[by_point[(k, t)][key] for t in taus] for k in ks])
+        for key in ("mean_rate_hz", "weight_saturation_fraction", "max_var_H")
+    }
+    fig = jtfne.vis.hdp_stability_map(grids, ks, taus)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 def main() -> None:

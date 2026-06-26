@@ -19,6 +19,7 @@ from typing import Any
 
 import numpy as np
 
+import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
 from spectrolaminar_tfne_izhikevich_pipeline import build_config, build_model
 
@@ -110,25 +111,14 @@ def main() -> None:
 
 
 def _plot(points: list[dict[str, Any]], departures: dict[str, int | None], classes: list[str], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-    import matplotlib.cm as cm
-
     t = [p["t_ms"] for p in points]
-    fig, ax = plt.subplots(figsize=(9, 6))
-    colors = cm.tab20(np.linspace(0, 1, len(classes)))
-    for cls, color in zip(classes, colors):
-        ax.plot(t, [p[cls] for p in points], label=cls, color=color)
-        idx = departures.get(cls)
-        if idx is not None:
-            ax.axvline(points[idx]["t_ms"], color=color, ls=":", lw=0.8, alpha=0.6)
-    ax.axhline(0.0, color="k", ls="--", lw=0.5)
-    ax.set_xlabel("time (ms)")
-    ax.set_ylabel("mean per-step channel current contribution")
-    ax.set_title(f"Synaptic-channel decomposition, {WINDOW_START_MS:.0f}-{WINDOW_END_MS:.0f}ms, bin={BIN_MS:.0f}ms")
-    ax.legend(fontsize=7, ncol=2)
-    fig.tight_layout()
+    series_by_class = {cls: [p[cls] for p in points] for cls in classes}
+    fig = jtfne.vis.synaptic_channel_decomposition_trace(
+        t, series_by_class, departures,
+        window_start_ms=WINDOW_START_MS, window_end_ms=WINDOW_END_MS, bin_ms=BIN_MS,
+    )
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 if __name__ == "__main__":

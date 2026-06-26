@@ -33,6 +33,8 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+import jaxfne as jtfne
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RUN_ID = "delta_test_01"
 OUT_DIR = REPO_ROOT / "outputs" / RUN_ID
@@ -199,56 +201,15 @@ def gather() -> dict:
 # PDF report
 # --------------------------------------------------------------------------- #
 def _text_page(pdf, lines: list[str], title: str | None = None):
-    plt = sys.modules["matplotlib.pyplot"]
-    fig = plt.figure(figsize=(8.5, 11))
-    fig.subplots_adjust(left=0.08, right=0.95, top=0.93, bottom=0.05)
-    ax = fig.add_subplot(111)
-    ax.axis("off")
-    y = 0.98
-    if title:
-        ax.text(0.0, y, title, fontsize=18, fontweight="bold",
-                va="top", transform=ax.transAxes)
-        y -= 0.045
-    for ln in lines:
-        if ln.startswith("## "):
-            y -= 0.012
-            ax.text(0.0, y, ln[3:], fontsize=13, fontweight="bold",
-                    va="top", transform=ax.transAxes)
-            y -= 0.028
-        else:
-            ax.text(0.0, y, ln, fontsize=10, va="top", family="monospace",
-                    transform=ax.transAxes)
-            y -= 0.022
-        if y < 0.05:  # spill protection
-            break
-    pdf.savefig(fig)
-    plt.close(fig)
+    jtfne.vis.pdf_text_page(pdf, lines, title=title)
 
 
 def _figure_page(pdf, fig_path: Path, caption: str):
-    plt = sys.modules["matplotlib.pyplot"]
-    import matplotlib.image as mpimg
-
-    img = mpimg.imread(str(fig_path))
-    fig = plt.figure(figsize=(8.5, 11))
-    fig.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.06)
-    ax = fig.add_subplot(111)
-    ax.imshow(img)
-    ax.axis("off")
-    ax.set_title(caption, fontsize=13, fontweight="bold")
-    fig.text(0.5, 0.03,
-             "computational_scaffold / proxy_readout / no physical amplitude claim",
-             ha="center", fontsize=8, style="italic", color="#555555")
-    pdf.savefig(fig)
-    plt.close(fig)
+    jtfne.vis.pdf_figure_page(pdf, fig_path, caption)
 
 
 def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict | None = None) -> None:
     _require("matplotlib")
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt  # noqa: F401  (registered in sys.modules)
-    from matplotlib.backends.backend_pdf import PdfPages
 
     m = data["metrics"]
     opt = data["optimizer"]
@@ -262,7 +223,7 @@ def build_pdf(data: dict, figure_records: list[dict], spectrolaminar_audit: dict
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     md_lines: list[str] = []
 
-    with PdfPages(PDF_PATH) as pdf:
+    with jtfne.vis.open_pdf_pages(PDF_PATH) as pdf:
         # 1. Title page
         title_lines = [
             "",

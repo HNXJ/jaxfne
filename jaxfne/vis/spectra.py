@@ -136,3 +136,47 @@ def spectrogram_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
     """Plot spectrogram with JSON-safe metadata container."""
     fig = spectrogram(signals, **kwargs)
     return FigureResult(fig, {"plot_type": "spectrogram", "proxy_safe": True})
+
+
+def windowed_band_power(
+    window_labels: Any,
+    band_values: dict,
+    **kwargs: Any,
+) -> Any:
+    """Plot a grouped bar chart of named proxy band-power values across labeled windows.
+
+    Parameters
+    ----------
+    window_labels:
+        Sequence of window names (e.g. ``["baseline", "event", "post"]``).
+    band_values:
+        Mapping of band name -> sequence of proxy power values aligned with
+        ``window_labels`` (e.g. ``{"alpha_beta_proxy_power": [...], "gamma_proxy_power": [...]}``).
+        One subplot is generated per band.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    figsize = kwargs.pop("figsize", (6 * max(len(band_values), 1), 5))
+    colors = kwargs.pop("colors", None)
+
+    labels = list(window_labels)
+    band_names = list(band_values.keys())
+    n_bands = max(len(band_names), 1)
+
+    fig, axes = plt.subplots(1, n_bands, figsize=figsize)
+    if n_bands == 1:
+        axes = [axes]
+
+    default_colors = ["steelblue", "coral", "seagreen", "purple"]
+    for i, band_name in enumerate(band_names):
+        ax = axes[i]
+        values = prepare_static_plot_matrix(np.asarray(band_values[band_name], dtype=float))
+        color = colors[i] if colors else default_colors[i % len(default_colors)]
+        ax.bar(labels, values, color=color, alpha=0.7)
+        ax.set_ylabel(band_name)
+        ax.set_title(f"Windowed proxy power: {band_name}")
+        ax.tick_params(axis="x", rotation=45)
+
+    fig.tight_layout()
+    return fig

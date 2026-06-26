@@ -5,7 +5,7 @@ Fully de-allocated from the active JAX tracer tree.
 """
 from __future__ import annotations
 
-from .core import FigureResult, require_matplotlib, prepare_static_plot_matrix
+from .core import FigureResult, require_matplotlib, prepare_static_plot_matrix, close_all
 from .rasters import plot_spike_rasters, raster, raster_with_meta
 from .traces import (
     plot_continuous_traces,
@@ -26,6 +26,11 @@ from .traces import (
     emm,
     summary,
     summary_with_meta,
+    parameter_sweep_heatmap,
+    parameter_sweep_lines,
+    multi_trace,
+    dual_voltage_panel,
+    coupled_vs_uncoupled_ei,
 )
 from .spectra import (
     plot_spectrogram_profiles,
@@ -33,6 +38,7 @@ from .spectra import (
     psd_with_meta,
     spectrogram,
     spectrogram_with_meta,
+    windowed_band_power,
 )
 from .fields import (
     plot_laminar_field_interpolation,
@@ -45,6 +51,7 @@ from .fields import (
     connectivity_matrix,
     multi_area_layout,
     objective_report,
+    ei_circuit_diagram,
 )
 from .network3d import (
     circuit3d,
@@ -85,11 +92,60 @@ from .canonical import (
     plot_objective_history,
 )
 from .exporters import export_figure, export_figures, FigureBundle
+from .script_reports import (
+    column_network_3d_scatter,
+    column_readout_panels,
+    rate_histogram_by_celltype,
+    sweep_rate_lines,
+    spectrolaminar_motif_heatmap,
+    spike_triggered_waveforms_plot,
+    hdp_state_trajectories,
+    rate_vs_pressure_scatter,
+    hdp_H_occupancy_histogram,
+    hdp_stability_map,
+    tutorial_spike_raster,
+    tutorial_voltage_traces,
+    tutorial_matrix_heatmap,
+    tutorial_lfp_proxy_trace,
+    tutorial_conservation_bar,
+    tutorial_contact_depths_barh,
+    tutorial_status_text_panel,
+    tutorial_spectral_summary,
+    spike_raster_plotly,
+    spectrolaminar_profile_bars_plotly,
+    tutorial_spike_raster_vlines_plotly,
+    tutorial_voltage_trace_plotly,
+    tutorial_firing_rate_plotly,
+)
+from .hdp_diagnostics import (
+    synaptic_channel_decomposition_trace,
+    dH_component_trace_panels,
+    bifurcation_state_trace_panels,
+    gain_ratio_sweep_panels,
+    balance_sweep_by_network_size,
+    lfp_traces_stacked_by_depth,
+    etude2_extended_panel_grid,
+    voltage_trace_with_spikes_by_celltype,
+)
+from .report_plots import (
+    dual_raster_comparison,
+    optimization_progress_line,
+    spike_grid_heatmap,
+    signed_heatmap_with_colorbar,
+    grouped_bar_comparison,
+    agsdr_rate_tuning_panel_grid,
+    open_pdf_pages,
+    pdf_text_page,
+    pdf_figure_page,
+    gain_matrix_heatmap,
+    celltype_sweep_heatmap_grid,
+)
 
 __all__ = [
     "FigureResult",
     "require_matplotlib",
     "prepare_static_plot_matrix",
+    "close_all",
     "plot_spike_rasters",
     "raster",
     "raster_with_meta",
@@ -111,11 +167,17 @@ __all__ = [
     "emm",
     "summary",
     "summary_with_meta",
+    "parameter_sweep_heatmap",
+    "parameter_sweep_lines",
+    "multi_trace",
+    "dual_voltage_panel",
+    "coupled_vs_uncoupled_ei",
     "plot_spectrogram_profiles",
     "psd",
     "psd_with_meta",
     "spectrogram",
     "spectrogram_with_meta",
+    "windowed_band_power",
     "plot_laminar_field_interpolation",
     "spectrolaminar",
     "spectrolaminar_suite",
@@ -126,6 +188,7 @@ __all__ = [
     "connectivity_matrix",
     "multi_area_layout",
     "objective_report",
+    "ei_circuit_diagram",
     "circuit3d",
     "geometry3d",
     "column_geometry",
@@ -161,4 +224,48 @@ __all__ = [
     "export_figure",
     "export_figures",
     "FigureBundle",
+    # script_reports (scripts/*.py rendering helpers)
+    "column_network_3d_scatter",
+    "column_readout_panels",
+    "rate_histogram_by_celltype",
+    "sweep_rate_lines",
+    "spectrolaminar_motif_heatmap",
+    "spike_triggered_waveforms_plot",
+    "hdp_state_trajectories",
+    "rate_vs_pressure_scatter",
+    "hdp_H_occupancy_histogram",
+    "hdp_stability_map",
+    "tutorial_spike_raster",
+    "tutorial_voltage_traces",
+    "tutorial_matrix_heatmap",
+    "tutorial_lfp_proxy_trace",
+    "tutorial_conservation_bar",
+    "tutorial_contact_depths_barh",
+    "tutorial_status_text_panel",
+    "tutorial_spectral_summary",
+    "spike_raster_plotly",
+    "spectrolaminar_profile_bars_plotly",
+    "tutorial_spike_raster_vlines_plotly",
+    "tutorial_voltage_trace_plotly",
+    "tutorial_firing_rate_plotly",
+    # hdp_diagnostics (scripts/hdp_*.py + scripts/{find,verify}_5hz_*.py rendering helpers)
+    "synaptic_channel_decomposition_trace",
+    "dH_component_trace_panels",
+    "bifurcation_state_trace_panels",
+    "gain_ratio_sweep_panels",
+    "balance_sweep_by_network_size",
+    "lfp_traces_stacked_by_depth",
+    "etude2_extended_panel_grid",
+    "voltage_trace_with_spikes_by_celltype",
+    "dual_raster_comparison",
+    "optimization_progress_line",
+    "spike_grid_heatmap",
+    "signed_heatmap_with_colorbar",
+    "grouped_bar_comparison",
+    "agsdr_rate_tuning_panel_grid",
+    "open_pdf_pages",
+    "pdf_text_page",
+    "pdf_figure_page",
+    "gain_matrix_heatmap",
+    "celltype_sweep_heatmap_grid",
 ]

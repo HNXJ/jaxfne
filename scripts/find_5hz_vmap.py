@@ -7,9 +7,6 @@ Find exact parameters (constant drive and noise amplitude) via a high-resolution
 
 import json
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne

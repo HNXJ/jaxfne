@@ -212,13 +212,14 @@ def _generate_plotly_html(
         with open(source_data_path, "r") as f:
             source_data = json.load(f)
 
-        # Try to import Plotly
+        # Try to import Plotly (jaxfne.vis script_reports helpers require it)
         try:
-            import plotly.graph_objects as go
             import plotly.io as pio
         except ImportError:
             result["reason"] = "Plotly not installed (optional dependency)"
             return result
+
+        import jaxfne as jtfne
 
         # Generate HTML based on source data kind
         html_figure = None
@@ -229,20 +230,9 @@ def _generate_plotly_html(
             time_ms = source_data.get("time_ms", [])
             unit_id = source_data.get("unit_id", [])
 
-            html_figure = go.Figure(data=go.Scatter(
-                x=time_ms,
-                y=unit_id,
-                mode='markers',
-                marker=dict(size=3, color='black', opacity=0.6),
-                name='spikes',
-            ))
-            html_figure.update_layout(
+            html_figure = jtfne.vis.spike_raster_plotly(
+                time_ms, unit_id,
                 title=f"Spike Raster: {source_data.get('tutorial_id', 'unknown')}",
-                xaxis_title="Time (timestep)",
-                yaxis_title="Unit ID",
-                height=500,
-                width=1200,
-                hovermode='closest',
             )
             html_filename = "raster.html"
 
@@ -252,31 +242,10 @@ def _generate_plotly_html(
             alpha_profile = source_data.get("alpha_beta_profile", [])
             gamma_profile = source_data.get("gamma_profile", [])
 
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                x=layers,
-                y=alpha_profile,
-                name='Alpha/Beta power',
-                marker_color='steelblue',
-                opacity=0.7,
-            ))
-            fig.add_trace(go.Bar(
-                x=layers,
-                y=gamma_profile,
-                name='Gamma power',
-                marker_color='coral',
-                opacity=0.7,
-            ))
-            fig.update_layout(
+            html_figure = jtfne.vis.spectrolaminar_profile_bars_plotly(
+                layers, alpha_profile, gamma_profile,
                 title=f"Spectrolaminar Profile: {source_data.get('tutorial_id', 'unknown')}",
-                xaxis_title="Window",
-                yaxis_title="Power (relative units)",
-                barmode='group',
-                height=500,
-                width=1200,
-                hovermode='x unified',
             )
-            html_figure = fig
             html_filename = "spectrolaminar_profile.html"
 
         else:

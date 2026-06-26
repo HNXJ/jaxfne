@@ -14,7 +14,6 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 import jax.random as jr
-import matplotlib.pyplot as plt
 from PIL import Image
 import jaxfne as jtfne
 
@@ -116,79 +115,75 @@ def main():
             times_ds = np.arange(traj["spk"].shape[0]) * dt_ds / 1000.0
             
             # vm.png
-            fig, ax = plt.subplots(figsize=(11, 6))
-            ax.plot(times_ds[:2000], traj["vm"][:2000, :5])
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("Membrane Potential (mV)")
-            ax.set_title("Membrane Potentials (vm, first 5 neurons, first 10s)")
-            plt.savefig(fig_dir / "vm.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.multi_trace(
+                times_ds[:2000],
+                {f"n{i}": traj["vm"][:2000, i] for i in range(5)},
+                ylabel="Membrane Potential (mV)",
+                title="Membrane Potentials (vm, first 5 neurons, first 10s)",
+                figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "vm.png", dpi=100)
+            jtfne.vis.close_all()
+
             # spk.png
-            fig, ax = plt.subplots(figsize=(11, 6))
-            ax.imshow(traj["spk"][:2000, :50].T, aspect="auto", cmap="binary", extent=[0, 10.0, 0, 50])
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("Neuron ID")
-            ax.set_title("Spike Grid (spk, first 50 neurons, first 10s)")
-            plt.savefig(fig_dir / "spk.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.spike_grid_heatmap(
+                traj["spk"][:2000, :50], duration_s=10.0,
+                title="Spike Grid (spk, first 50 neurons, first 10s)", figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "spk.png", dpi=100)
+            jtfne.vis.close_all()
+
             # lfp_proxy.png
-            fig, ax = plt.subplots(figsize=(11, 6))
             lfp = np.dot(traj["vm"], W_lfp)
-            ax.plot(times_ds[:2000], lfp[:2000, :5])
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("LFP Proxy (mV)")
-            ax.set_title("LFP Proxy Traces (first 5 channels)")
-            plt.savefig(fig_dir / "lfp_proxy.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.multi_trace(
+                times_ds[:2000],
+                {f"ch{i}": lfp[:2000, i] for i in range(5)},
+                ylabel="LFP Proxy (mV)", title="LFP Proxy Traces (first 5 channels)", figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "lfp_proxy.png", dpi=100)
+            jtfne.vis.close_all()
+
             # csd_proxy.png
-            fig, ax = plt.subplots(figsize=(11, 6))
             csd = np.dot(traj["vm"], W_csd)
-            im = ax.imshow(csd[:2000].T, aspect="auto", cmap="RdBu_r", extent=[0, 10.0, 0, 20])
-            fig.colorbar(im, ax=ax, label="CSD Proxy")
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("Channel")
-            ax.set_title("CSD Proxy Heatmap")
-            plt.savefig(fig_dir / "csd_proxy.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.signed_heatmap_with_colorbar(
+                csd[:2000], extent=[0, 10.0, 0, 20], title="CSD Proxy Heatmap",
+                ylabel="Channel", cbar_label="CSD Proxy", figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "csd_proxy.png", dpi=100)
+            jtfne.vis.close_all()
+
             # eeg_proxy.png
-            fig, ax = plt.subplots(figsize=(11, 6))
             eeg = np.dot(traj["vm"], W_eeg)
-            ax.plot(times_ds[:2000], eeg[:2000, :5])
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("EEG Proxy (uV)")
-            ax.set_title("EEG Proxy Traces (first 5 channels)")
-            plt.savefig(fig_dir / "eeg_proxy.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.multi_trace(
+                times_ds[:2000],
+                {f"ch{i}": eeg[:2000, i] for i in range(5)},
+                ylabel="EEG Proxy (uV)", title="EEG Proxy Traces (first 5 channels)", figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "eeg_proxy.png", dpi=100)
+            jtfne.vis.close_all()
+
             # meg_proxy.png
-            fig, ax = plt.subplots(figsize=(11, 6))
             meg = np.dot(traj["vm"], W_meg)
-            ax.plot(times_ds[:2000], meg[:2000, :5])
-            ax.set_xlabel("Time (s)")
-            ax.set_ylabel("MEG Proxy (fT)")
-            ax.set_title("MEG Proxy Traces (first 5 channels)")
-            plt.savefig(fig_dir / "meg_proxy.png", dpi=100)
-            plt.close()
-            
+            fig = jtfne.vis.multi_trace(
+                times_ds[:2000],
+                {f"ch{i}": meg[:2000, i] for i in range(5)},
+                ylabel="MEG Proxy (fT)", title="MEG Proxy Traces (first 5 channels)", figsize=(11, 6),
+            )
+            fig.savefig(fig_dir / "meg_proxy.png", dpi=100)
+            jtfne.vis.close_all()
+
     # Plasticity sweep summary figure
-    fig, ax = plt.subplots(figsize=(11, 6))
     ltps = [sweep_results[str(k)]["ltp_count"] for k in plasticity_scales]
     ltds = [sweep_results[str(k)]["ltd_count"] for k in plasticity_scales]
-    ax.bar(np.arange(len(plasticity_scales)) - 0.2, ltps, width=0.4, label="LTP Counts", color="g")
-    ax.bar(np.arange(len(plasticity_scales)) + 0.2, ltds, width=0.4, label="LTD Counts", color="r")
-    ax.set_xticks(range(len(plasticity_scales)))
-    ax.set_xticklabels([str(k) for k in plasticity_scales])
-    ax.set_xlabel("Plasticity Scale")
-    ax.set_ylabel("Synaptic Update Count")
-    ax.set_title("LTP/LTD Count Sweep")
-    ax.legend()
-    plt.savefig(fig_dir / "plasticity_sweep_summary.png", dpi=100)
-    plt.close()
-    
+    fig = jtfne.vis.grouped_bar_comparison(
+        [str(k) for k in plasticity_scales],
+        {"LTP Counts": ltps, "LTD Counts": ltds},
+        xlabel="Plasticity Scale", ylabel="Synaptic Update Count",
+        title="LTP/LTD Count Sweep", colors=["g", "r"], figsize=(11, 6),
+    )
+    fig.savefig(fig_dir / "plasticity_sweep_summary.png", dpi=100)
+    jtfne.vis.close_all()
+
     # AGSDR matrix/curve if optax available, else dummy optimization data
     optax_available = False
     try:
@@ -196,8 +191,7 @@ def main():
         optax_available = True
     except ImportError:
         pass
-        
-    fig, ax = plt.subplots(figsize=(11, 6))
+
     if optax_available:
         # Run a real parameter optimization step using optax
         print("Optax is available. Running a parameter tuning optimization...")
@@ -214,28 +208,31 @@ def main():
             grad = 2.0 * (param[0] - 5.0)
             updates, opt_state = optimizer.update(jnp.array([grad]), opt_state)
             param = optax.apply_updates(param, updates)
-        ax.plot(range(10), loss_hist, label="Loss Objective", color="red")
+        epochs, loss_curve = list(range(10)), loss_hist
         print(f"Tuned parameter to: {float(param[0])}")
     else:
-        ax.plot([0, 1, 2, 3, 4], [0.175, 0.174, 0.173, 0.173, 0.173], label="Loss Objective", color="red")
-        
-    ax.set_xlabel("Optimization Epoch")
-    ax.set_ylabel("Loss")
-    ax.set_title("AGSDR Matrix-Gain Optimization Curve")
-    plt.savefig(fig_dir / "agsdr_matrix_gain.png", dpi=100)
-    plt.close()
-    
+        epochs, loss_curve = [0, 1, 2, 3, 4], [0.175, 0.174, 0.173, 0.173, 0.173]
+
+    fig = jtfne.vis.optimization_progress_line(
+        epochs, loss_curve, xlabel="Optimization Epoch", ylabel="Loss",
+        title="AGSDR Matrix-Gain Optimization Curve", color="red", figsize=(11, 6),
+    )
+    fig.savefig(fig_dir / "agsdr_matrix_gain.png", dpi=100)
+    jtfne.vis.close_all()
+
     # Save final reports
     with open(out_dir / "plasticity_report.json", "w") as f:
         json.dump(sweep_results, f, indent=2)
     print("Saved plasticity report.")
-    
+
     # Rendered docs figures (spectrolaminar dummy for docs)
-    fig, ax = plt.subplots(figsize=(11, 6))
-    ax.imshow(np.random.default_rng(42).random((64, 20)), aspect="auto", cmap="viridis")
-    ax.set_title("Spectrolaminar Proxy (documentation reference)")
-    plt.savefig(fig_dir / "spectrolaminar_proxy.png", dpi=100)
-    plt.close()
+    fig = jtfne.vis.signed_heatmap_with_colorbar(
+        np.random.default_rng(42).random((64, 20)), transpose=False, cmap="viridis",
+        title="Spectrolaminar Proxy (documentation reference)",
+        xlabel="", ylabel="", cbar_label="", figsize=(11, 6),
+    )
+    fig.savefig(fig_dir / "spectrolaminar_proxy.png", dpi=100)
+    jtfne.vis.close_all()
     
     # Verify all generated images meet size requirements
     all_meet_size_gate = True

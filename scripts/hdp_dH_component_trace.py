@@ -23,6 +23,7 @@ from typing import Any
 
 import numpy as np
 
+import jaxfne as jtfne
 from jaxfne.emitters import simulate_edge_recurrent_izhikevich_hdp
 from spectrolaminar_tfne_izhikevich_pipeline import build_config, build_model
 
@@ -123,42 +124,21 @@ def main() -> None:
 
 
 def _plot(points: list[dict[str, Any]], departures: dict[str, int | None], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
     t = [p["t_ms"] for p in points]
-    fig, axes = plt.subplots(3, 1, figsize=(8, 9), sharex=True)
-
-    axes[0].plot(t, [p["H_mean"] for p in points], label="H_mean")
-    ax0b = axes[0].twinx()
-    ax0b.plot(t, [p["var_H"] for p in points], color="tab:green", label="var(H)")
-    axes[0].axhline(1.0, color="k", ls="--", lw=0.5)
-    axes[0].set_ylabel("H_mean")
-    ax0b.set_ylabel("var(H)", color="tab:green")
-    axes[0].set_title(f"dH-component trace, {WINDOW_START_MS:.0f}-{WINDOW_END_MS:.0f}ms, bin={BIN_MS:.0f}ms")
-
-    axes[1].plot(t, [p["mean_abs_w"] for p in points], label="mean|w|")
-    ax1b = axes[1].twinx()
-    ax1b.plot(t, [p["var_w"] for p in points], color="tab:orange", label="var(w)")
-    axes[1].set_ylabel("mean|w|")
-    ax1b.set_ylabel("var(w)", color="tab:orange")
-
-    axes[2].plot(t, [p["dH_income_mean"] for p in points], label="dH_income (alpha*I_syn)")
-    axes[2].plot(t, [p["dH_rate_mean"] for p in points], label="dH_rate (-gamma*r)")
-    axes[2].plot(t, [p["dH_weight_mean"] for p in points], label="dH_weight (-delta*W, =0)")
-    axes[2].axhline(0.0, color="k", ls="--", lw=0.5)
-    axes[2].set_ylabel("mean dH term")
-    axes[2].set_xlabel("time (ms)")
-    axes[2].legend(fontsize=8)
-
-    colors = {"H_mean": "tab:blue", "var_H": "tab:green", "var_w": "tab:orange", "dH_income": "tab:purple", "dH_rate": "tab:red"}
-    ax_for = {"H_mean": axes[0], "var_H": axes[0], "var_w": axes[1], "dH_income": axes[2], "dH_rate": axes[2]}
-    for key, idx in departures.items():
-        if idx is not None:
-            ax_for[key].axvline(points[idx]["t_ms"], color=colors[key], ls=":", lw=1.0)
-
-    fig.tight_layout()
+    fig = jtfne.vis.dH_component_trace_panels(
+        t,
+        [p["H_mean"] for p in points],
+        [p["var_H"] for p in points],
+        [p["mean_abs_w"] for p in points],
+        [p["var_w"] for p in points],
+        [p["dH_income_mean"] for p in points],
+        [p["dH_rate_mean"] for p in points],
+        [p["dH_weight_mean"] for p in points],
+        departures,
+        window_start_ms=WINDOW_START_MS, window_end_ms=WINDOW_END_MS, bin_ms=BIN_MS,
+    )
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 if __name__ == "__main__":

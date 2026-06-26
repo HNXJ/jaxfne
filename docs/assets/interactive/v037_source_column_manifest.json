@@ -2,6 +2,7 @@
   "scope_status": "computational_scaffold",
   "readout_status": "simulated_proxy",
   "field_mode": "proxy_convolution_no_pde",
+  "physical_amplitude_calibrated": false,
   "visualizer": "plotly_standalone_html",
   "duration_ms": 1000.0,
   "dt_ms": 0.1,
@@ -20,10 +21,10 @@
     "SST": 0.1,
     "VIP": 0.05
   },
-  "mean_population_rate_hz": 0.0011,
+  "mean_population_rate_hz": 0.0013,
   "voltage_range_mv_like": [
-    -86.21,
-    29.95
+    -87.83,
+    29.98
   ],
   "all_outputs_finite": true,
   "equations": {
@@ -31,6 +32,5 @@
     "field_handoff": "Y(t) = P\u00b7S(t)",
     "probe_readout": "R_k(t) = Q_k\u00b7Y(t)"
   },
-  "html_output": "docs/assets/interactive/v037_source_column_3d.html",
-  "physical_amplitude_calibrated": false
+  "html_output": "docs/assets/interactive/v037_source_column_3d.html"
 }

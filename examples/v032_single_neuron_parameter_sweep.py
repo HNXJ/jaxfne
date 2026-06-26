@@ -28,9 +28,6 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import jax.numpy as jnp
 
 # Canonical import
@@ -287,61 +284,56 @@ def main(update_canonical: bool = False):
     print("Generating figures...")
 
     # Figure 1: Firing rate heatmap with regime annotation
-    fig, ax = plt.subplots(figsize=(9, 5))
-    im = ax.imshow(
-        firing_grid, aspect="auto", origin="upper", cmap="viridis",
-        vmin=0, vmax=max(rate_max, 30.0),
+    cell_markers = [
+        ["★" if label == "target_regime" else "✗" for label in row]
+        for row in label_grid
+    ]
+    fig = jtfne.vis.parameter_sweep_heatmap(
+        firing_grid,
+        [f"{a:.2f}" for a in A_VALUES],
+        [f"{d:.1f}" for d in D_VALUES],
+        cmap="viridis",
+        vmin=0,
+        vmax=max(rate_max, 30.0),
+        cbar_label="Firing rate (Hz)",
+        cell_labels=cell_markers,
+        figsize=(9, 5),
     )
-    ax.set_xticks(range(len(D_VALUES)))
-    ax.set_xticklabels([f"{d:.1f}" for d in D_VALUES])
-    ax.set_yticks(range(len(A_VALUES)))
-    ax.set_yticklabels([f"{a:.2f}" for a in A_VALUES])
+    ax = fig.axes[0]
     ax.set_xlabel("d — after-spike reset (proxy units)")
     ax.set_ylabel("a — recovery time scale (proxy units)")
     ax.set_title(
         "v0.3.2: Izhikevich Parameter Sweep — Firing Rate (Hz)\n"
         "(★ = target regime 2–25 Hz  |  ✗ = out-of-target high-rate)"
     )
-    cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label("Firing rate (Hz)")
-    # Annotate cells with rate + regime marker
-    for i in range(len(A_VALUES)):
-        for j in range(len(D_VALUES)):
-            hz = firing_grid[i, j]
-            label = label_grid[i][j]
-            marker = "★" if label == "target_regime" else "✗"
-            ax.text(
-                j, i, f"{hz:.0f}\n{marker}",
-                ha="center", va="center", fontsize=8,
-                color="white" if hz < rate_max * 0.6 else "black",
-            )
-    # Gate line annotation
-    plt.tight_layout()
+    fig.tight_layout()
     heatmap_path = OUT / "figures" / "v0302_sweep_heatmap.png"
-    plt.savefig(heatmap_path, dpi=150, bbox_inches="tight")
-    plt.close()
+    fig.savefig(heatmap_path, dpi=150, bbox_inches="tight")
+    jtfne.vis.close_all()
     print(f"  Saved: {heatmap_path}")
 
     # Figure 2: Firing rate vs d (per a), with gate band
-    fig, ax = plt.subplots(figsize=(9, 4))
-    for i, a_val in enumerate(A_VALUES):
-        rates_row = firing_grid[i, :]
-        ax.plot(D_VALUES, rates_row, marker="o", label=f"a={a_val:.2f}")
-    ax.axhspan(RATE_GATE_LOW_HZ, RATE_GATE_HIGH_HZ, alpha=0.10, color="green", label="Target regime (2–25 Hz)")
-    ax.axhline(RATE_GATE_LOW_HZ, color="green", linestyle="--", linewidth=0.8, alpha=0.7)
-    ax.axhline(RATE_GATE_HIGH_HZ, color="green", linestyle="--", linewidth=0.8, alpha=0.7)
+    line_groups = {
+        f"a={a_val:.2f}": firing_grid[i, :] for i, a_val in enumerate(A_VALUES)
+    }
+    fig = jtfne.vis.parameter_sweep_lines(
+        D_VALUES,
+        line_groups,
+        gate_band=(RATE_GATE_LOW_HZ, RATE_GATE_HIGH_HZ),
+        gate_band_label="Target regime (2–25 Hz)",
+        figsize=(9, 4),
+    )
+    ax = fig.axes[0]
     ax.set_xlabel("d — after-spike reset (proxy units)")
     ax.set_ylabel("Firing rate (Hz)")
     ax.set_title(
         "v0.3.2: Firing Rate vs. d (per a)\n"
         "(Green band = target regime 2–25 Hz | Above band = high-rate out-of-target)"
     )
-    ax.legend(fontsize=9)
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
+    fig.tight_layout()
     regime_path = OUT / "figures" / "v0302_regime_lines.png"
-    plt.savefig(regime_path, dpi=150, bbox_inches="tight")
-    plt.close()
+    fig.savefig(regime_path, dpi=150, bbox_inches="tight")
+    jtfne.vis.close_all()
     print(f"  Saved: {regime_path}")
 
     # Copy to docs-stable _static/figures

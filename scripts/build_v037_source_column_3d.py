@@ -28,7 +28,6 @@ except ImportError:
 
 try:
     import plotly.graph_objects as go
-    from plotly.subplots import make_subplots
 except ImportError:
     raise ImportError("plotly not found. Install: pip install plotly")
 
@@ -203,8 +202,6 @@ def create_3d_column_plot(
     Returns:
         Plotly Figure object
     """
-    fig = go.Figure()
-
     # 3D neuron scatter
     # Generate spatial coordinates (simple grid)
     x_coords = []
@@ -223,96 +220,39 @@ def create_3d_column_plot(
             y_coords.append(y)
             z_coords.append(z)
 
-    # Create scatter trace
-    fig.add_trace(go.Scatter3d(
-        x=x_coords,
-        y=y_coords,
-        z=z_coords,
-        mode='markers',
-        marker=dict(
-            size=5,
-            color=neuron_metadata["rates_hz"],  # Color by firing rate
-            colorscale='Viridis',
-            showscale=True,
-            colorbar=dict(
-                title="Rate (Hz)",
-                thickness=15,
-                len=0.7,
-            ),
-            line=dict(width=0.5, color='rgba(200, 200, 200, 0.5)'),
-        ),
-        text=[
-            f"<b>Neuron {nid}</b><br>"
-            f"Layer: {layer}<br>"
-            f"Cell type: {ct}<br>"
-            f"Depth: {d:.0f} µm<br>"
-            f"Rate: {r:.2f} Hz<br>"
-            f"Source index: {si}"
-            for nid, layer, ct, d, r, si in zip(
-                neuron_metadata["neuron_ids"],
-                neuron_metadata["layers"],
-                neuron_metadata["cell_types"],
-                neuron_metadata["depths"],
-                neuron_metadata["rates_hz"],
-                neuron_metadata["source_indices"],
-            )
-        ],
-        hovertemplate='%{text}<extra></extra>',
-        name='Neurons',
-    ))
+    hover_text = [
+        f"<b>Neuron {nid}</b><br>"
+        f"Layer: {layer}<br>"
+        f"Cell type: {ct}<br>"
+        f"Depth: {d:.0f} µm<br>"
+        f"Rate: {r:.2f} Hz<br>"
+        f"Source index: {si}"
+        for nid, layer, ct, d, r, si in zip(
+            neuron_metadata["neuron_ids"],
+            neuron_metadata["layers"],
+            neuron_metadata["cell_types"],
+            neuron_metadata["depths"],
+            neuron_metadata["rates_hz"],
+            neuron_metadata["source_indices"],
+        )
+    ]
 
-    # Update layout with equation annotations
-    fig.update_layout(
-        title=dict(
-            text=(
-                "<b>Interactive 3D Source/Field/Probe Cortical Column</b><br>"
-                "<sub>v0.3.7: Source Bookkeeping, Field Handoff, Probe Readout</sub>"
-            ),
-            font=dict(size=16),
-        ),
-        scene=dict(
-            xaxis=dict(
-                title='X (µm)',
-                backgroundcolor='rgb(230, 230, 230)',
-                gridcolor='white',
-            ),
-            yaxis=dict(
-                title='Y (µm)',
-                backgroundcolor='rgb(230, 230, 230)',
-                gridcolor='white',
-            ),
-            zaxis=dict(
-                title='Depth (µm)',
-                backgroundcolor='rgb(230, 230, 230)',
-                gridcolor='white',
-            ),
-            camera=dict(
-                eye=dict(x=1.5, y=1.5, z=1.3),
-            ),
+    return jtfne.vis.column_network_3d_scatter(
+        x_coords,
+        y_coords,
+        z_coords,
+        neuron_metadata["rates_hz"],
+        hover_text,
+        title="Interactive 3D Source/Field/Probe Cortical Column",
+        subtitle="v0.3.7: Source Bookkeeping, Field Handoff, Probe Readout",
+        equation_note=(
+            "<b>Source Bookkeeping:</b> S(t) ∈ ℝ^{T×N} | "
+            "<b>Field Handoff:</b> Y(t) = P·S(t) | "
+            "<b>Probe Readout:</b> R_k(t) = Q_k·Y(t)"
         ),
         width=1200,
         height=700,
-        hovermode='closest',
-        showlegend=False,
-        font=dict(size=11),
-        annotations=[
-            # Equation annotations
-            dict(
-                text=(
-                    "<b>Source Bookkeeping:</b> S(t) ∈ ℝ^{T×N} | "
-                    "<b>Field Handoff:</b> Y(t) = P·S(t) | "
-                    "<b>Probe Readout:</b> R_k(t) = Q_k·Y(t)"
-                ),
-                xref='paper', yref='paper',
-                x=0.5, y=-0.05,
-                showarrow=False,
-                align='center',
-                font=dict(size=11, color='gray'),
-            ),
-        ],
     )
-
-    return fig
 
 
 def create_readout_panels(signals: Any) -> go.Figure:
@@ -330,29 +270,10 @@ def create_readout_panels(signals: Any) -> go.Figure:
     sources = np.asarray(signals.sources) if hasattr(signals, 'sources') else np.zeros_like(spikes)
     t = np.asarray(signals.time_ms)
 
-    # Create 2x2 subplots
-    fig = make_subplots(
-        rows=2, cols=2,
-        subplot_titles=(
-            "Source Summary",
-            "Population Firing Rate",
-            "LFP-Proxy (sample contact)",
-            "Mean Voltage by Layer",
-        ),
-        specs=[
-            [{"type": "scatter"}, {"type": "scatter"}],
-            [{"type": "scatter"}, {"type": "scatter"}],
-        ],
-    )
-
     # 1. Source summary (mean source over time)
+    source_mean = None
     if sources.size > 0:
         source_mean = sources.mean(axis=1) if len(sources.shape) > 1 else sources
-        fig.add_trace(
-            go.Scatter(x=t, y=source_mean, mode='lines', name='Source mean',
-                      line=dict(color='steelblue', width=1)),
-            row=1, col=1
-        )
 
     # 2. Population firing rate (binned)
     bin_size_ms = 50.0
@@ -366,54 +287,31 @@ def create_readout_panels(signals: Any) -> go.Figure:
             rates.append(rate)
             bin_times.append(0.5 * (lo + hi))
 
-    fig.add_trace(
-        go.Scatter(x=bin_times, y=rates, mode='lines', name='Population rate',
-                  line=dict(color='darkgreen', width=2)),
-        row=1, col=2
-    )
-
-    # 3. LFP-proxy (if available)
-    # Use voltage as proxy (simplified)
+    # 3. LFP-proxy (if available) -- use voltage as proxy (simplified)
+    lfp_proxy = None
     if V_m.size > 0:
         lfp_proxy = V_m.mean(axis=1) if len(V_m.shape) > 1 else V_m
-        fig.add_trace(
-            go.Scatter(x=t, y=lfp_proxy, mode='lines', name='LFP-proxy',
-                      line=dict(color='purple', width=1)),
-            row=2, col=1
-        )
 
     # 4. Mean voltage by layer (sample neurons from each layer)
     n_per_layer = spikes.shape[1] // 4
+    layer_voltage_means = {}
     for layer_idx, layer in enumerate(LAYERS):
         start_idx = layer_idx * n_per_layer
         end_idx = start_idx + n_per_layer
-        layer_v_mean = V_m[:, start_idx:end_idx].mean(axis=1)
-        fig.add_trace(
-            go.Scatter(x=t, y=layer_v_mean, mode='lines', name=layer,
-                      line=dict(color=LAYER_COLORS[layer])),
-            row=2, col=2
-        )
+        layer_voltage_means[layer] = V_m[:, start_idx:end_idx].mean(axis=1)
 
-    # Update axes labels
-    fig.update_xaxes(title_text="Time (ms)", row=1, col=1)
-    fig.update_yaxes(title_text="Mean source", row=1, col=1)
-
-    fig.update_xaxes(title_text="Time (ms)", row=1, col=2)
-    fig.update_yaxes(title_text="Rate (Hz)", row=1, col=2)
-
-    fig.update_xaxes(title_text="Time (ms)", row=2, col=1)
-    fig.update_yaxes(title_text="LFP proxy", row=2, col=1)
-
-    fig.update_xaxes(title_text="Time (ms)", row=2, col=2)
-    fig.update_yaxes(title_text="Mean voltage", row=2, col=2)
-
-    fig.update_layout(
-        title_text="Readout Panels: Source / Field / Probe",
+    return jtfne.vis.column_readout_panels(
+        t,
+        source_mean,
+        bin_times,
+        rates,
+        lfp_proxy,
+        LAYERS,
+        layer_voltage_means,
+        LAYER_COLORS,
+        title="Readout Panels: Source / Field / Probe",
         height=700,
-        showlegend=True,
     )
-
-    return fig
 
 
 # ============================================================================

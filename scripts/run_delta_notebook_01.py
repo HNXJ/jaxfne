@@ -447,74 +447,30 @@ def main():
         # Step 9: Generate AGSDR rate tuning figure
         print("Step 9: Generating AGSDR rate tuning figure...")
         try:
-            import matplotlib.pyplot as plt
-
-            fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-            fig.suptitle("AGSDR Connectivity-Gain Tuning toward Spike-Rate Target", fontsize=14)
-
-            # Panel A: candidate gain vs objective score
             gains = [r["candidate_gain"] for r in results]
             scores = [r["score"] for r in results]
-            axes[0, 0].plot(gains, scores, "o-", linewidth=2, markersize=8)
-            axes[0, 0].axhline(y=best_result["score"], color="r", linestyle="--", label="best")
-            axes[0, 0].set_xlabel("Connectivity Gain")
-            axes[0, 0].set_ylabel("Objective Score")
-            axes[0, 0].set_title("A. Candidate Gain vs Objective Score")
-            axes[0, 0].grid(True, alpha=0.3)
-            axes[0, 0].legend()
-
-            # Panel B: candidate gain vs mean firing rate
             mean_rates = [r["mean_rate_hz"] for r in results]
-            axes[0, 1].plot(gains, mean_rates, "o-", linewidth=2, markersize=8, color="green")
-            axes[0, 1].axhline(y=GLOBAL["agsdr_target_mean_rate_hz"], color="orange", linestyle="--", label="target")
-            axes[0, 1].axhline(y=GLOBAL["agsdr_target_mean_rate_hz"] + GLOBAL["agsdr_mean_rate_tolerance_hz"],
-                              color="orange", linestyle=":", alpha=0.5)
-            axes[0, 1].axhline(y=GLOBAL["agsdr_target_mean_rate_hz"] - GLOBAL["agsdr_mean_rate_tolerance_hz"],
-                              color="orange", linestyle=":", alpha=0.5)
-            axes[0, 1].axvline(x=best_result["candidate_gain"], color="r", linestyle="--", label="best gain")
-            axes[0, 1].set_xlabel("Connectivity Gain")
-            axes[0, 1].set_ylabel("Mean Firing Rate (Hz)")
-            axes[0, 1].set_title("B. Candidate Gain vs Mean Firing Rate")
-            axes[0, 1].grid(True, alpha=0.3)
-            axes[0, 1].legend()
-
-            # Panel C: baseline vs tuned mean/min firing rate
-            categories = ["Mean Rate", "Min Rate"]
-            baseline_vals = [baseline_mean_rate_hz, baseline_min_rate_hz]
-            tuned_vals = [best_result["mean_rate_hz"], best_result["min_rate_hz"]]
-            x_pos = np.arange(len(categories))
-            width = 0.35
-            axes[1, 0].bar(x_pos - width/2, baseline_vals, width, label="baseline")
-            axes[1, 0].bar(x_pos + width/2, tuned_vals, width, label="tuned")
-            axes[1, 0].axhline(y=GLOBAL["agsdr_min_neuron_rate_hz"], color="r", linestyle="--", label="min gate (1.0 Hz)")
-            axes[1, 0].set_ylabel("Firing Rate (Hz)")
-            axes[1, 0].set_title("C. Baseline vs Tuned Rates")
-            axes[1, 0].set_xticks(x_pos)
-            axes[1, 0].set_xticklabels(categories)
-            axes[1, 0].legend()
-            axes[1, 0].grid(True, alpha=0.3, axis="y")
-
-            # Panel D: tuned per-neuron rate histogram with min gate
             tuned_rates_for_histogram = baseline_rates_all * best_result["candidate_gain"]
-            axes[1, 1].hist(tuned_rates_for_histogram, bins=20, edgecolor="black", alpha=0.7)
-            axes[1, 1].axvline(x=GLOBAL["agsdr_min_neuron_rate_hz"], color="r", linestyle="--",
-                              linewidth=2, label="min gate (1.0 Hz)")
-            axes[1, 1].set_xlabel("Firing Rate (Hz)")
-            axes[1, 1].set_ylabel("Count")
-            axes[1, 1].set_title("D. Tuned Per-Neuron Firing Rate")
-            axes[1, 1].legend()
-            axes[1, 1].grid(True, alpha=0.3, axis="y")
 
-            plt.tight_layout()
+            fig = jtfne.vis.agsdr_rate_tuning_panel_grid(
+                gains=gains, scores=scores, mean_rates=mean_rates,
+                best_score=best_result["score"], best_gain=best_result["candidate_gain"],
+                target_rate_hz=GLOBAL["agsdr_target_mean_rate_hz"],
+                rate_tolerance_hz=GLOBAL["agsdr_mean_rate_tolerance_hz"],
+                baseline_vals=[baseline_mean_rate_hz, baseline_min_rate_hz],
+                tuned_vals=[best_result["mean_rate_hz"], best_result["min_rate_hz"]],
+                min_neuron_rate_gate_hz=GLOBAL["agsdr_min_neuron_rate_hz"],
+                tuned_rates_histogram=tuned_rates_for_histogram,
+            )
 
             # Create figures directory
             figures_dir = OUTPUT_DIR / "figures"
             figures_dir.mkdir(parents=True, exist_ok=True)
 
             fig_path = figures_dir / "agsdr_rate_tuning.png"
-            plt.savefig(fig_path, dpi=100, bbox_inches="tight")
+            fig.savefig(fig_path, dpi=100, bbox_inches="tight")
             print(f"  ✓ AGSDR rate tuning figure: {fig_path}")
-            plt.close()
+            jtfne.vis.close_all()
         except ImportError:
             print("  ⚠ matplotlib not available, skipping AGSDR figure")
 

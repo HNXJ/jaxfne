@@ -15,9 +15,6 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")  # CPU-safe, non-interactive
-import matplotlib.pyplot as plt
 
 import jaxfne as jtfne
 
@@ -77,23 +74,11 @@ def gen_spike_raster(signals, output_dir):
     if spikes.size == 0:
         return None
 
-    time_steps, n_units = spikes.shape
-    fig, ax = plt.subplots(figsize=(12, 4))
-
-    for unit_idx in range(n_units):
-        spike_times = np.where(spikes[:, unit_idx] > 0.5)[0]
-        ax.vlines(spike_times, unit_idx - 0.4, unit_idx + 0.4, colors="black", linewidth=0.5)
-
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Unit index")
-    ax.set_title("Spike Raster (Izhikevich Simulation)")
-    ax.set_ylim(-1, n_units)
-    ax.set_xlim(0, time_steps)
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_spike_raster(spikes, title="Spike Raster (Izhikevich Simulation)")
 
     path = output_dir / "01_spike_raster.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "01_spike_raster.png", "title": "Spike Raster", "type": "behavioral", "uses_real_data": True}
 
@@ -104,27 +89,13 @@ def gen_voltage_traces(signals, output_dir):
     if v_m.size == 0:
         return None
 
-    time_steps, n_units = v_m.shape
-    n_display = min(6, n_units)  # Show up to 6 units
-
-    fig, axes = plt.subplots(n_display, 1, figsize=(12, 2 * n_display), sharex=True)
-    if n_display == 1:
-        axes = [axes]
-
-    unit_indices = np.linspace(0, n_units - 1, n_display, dtype=int)
-    for i, ax in enumerate(axes):
-        unit_idx = unit_indices[i]
-        ax.plot(v_m[:, unit_idx], linewidth=0.5, color="steelblue")
-        ax.set_ylabel(f"Unit {unit_idx}\n(mV)")
-        ax.grid(alpha=0.3)
-
-    axes[-1].set_xlabel("Time step")
-    fig.suptitle("Membrane Voltage Traces (Izhikevich Native)")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_voltage_traces(
+        v_m, n_display=6, title="Membrane Voltage Traces (Izhikevich Native)"
+    )
 
     path = output_dir / "02_voltage_traces.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "02_voltage_traces.png", "title": "Voltage Traces", "type": "state", "uses_real_data": True}
 
@@ -135,20 +106,17 @@ def gen_source_proxy_heatmap(signals, output_dir):
     if sources.size == 0:
         return None
 
-    time_steps, n_units = sources.shape
-    fig, ax = plt.subplots(figsize=(12, 5))
-
-    im = ax.imshow(sources.T, aspect="auto", cmap="RdBu_r", interpolation="nearest")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Unit index")
-    ax.set_title("Source Proxy (Synaptic Current Model)")
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Proxy amplitude (nA)")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_matrix_heatmap(
+        sources,
+        cmap="RdBu_r",
+        title="Source Proxy (Synaptic Current Model)",
+        colorbar_label="Proxy amplitude (nA)",
+        figsize=(12, 5),
+    )
 
     path = output_dir / "03_source_proxy_heatmap.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "03_source_proxy_heatmap.png", "title": "Source Proxy Heatmap", "type": "field_source", "uses_real_data": True}
 
@@ -165,17 +133,11 @@ def gen_lfp_proxy_trace(signals, output_dir):
     time_steps, n_contacts = lfp_proxy.shape
     lfp_mean = np.mean(lfp_proxy, axis=1)
 
-    fig, ax = plt.subplots(figsize=(12, 3))
-    ax.plot(lfp_mean, linewidth=0.8, color="steelblue")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Proxy amplitude")
-    ax.set_title("LFP Proxy (Averaged Across Contacts)")
-    ax.grid(alpha=0.3)
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_lfp_proxy_trace(lfp_mean, title="LFP Proxy (Averaged Across Contacts)")
 
     path = output_dir / "04_lfp_proxy_trace.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "04_lfp_proxy_trace.png", "title": "LFP Proxy Trace", "type": "readout_scalar", "uses_real_data": True}
 
@@ -189,18 +151,19 @@ def gen_csd_proxy_heatmap(signals, output_dir):
     except:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 4))
-    im = ax.imshow(csd_proxy.T, aspect="auto", cmap="seismic", interpolation="nearest")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Contact index")
-    ax.set_title("CSD Proxy (Spatial Derivative Proxy)")
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Proxy amplitude")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_matrix_heatmap(
+        csd_proxy,
+        cmap="seismic",
+        xlabel="Time step",
+        ylabel="Contact index",
+        title="CSD Proxy (Spatial Derivative Proxy)",
+        colorbar_label="Proxy amplitude",
+        figsize=(12, 4),
+    )
 
     path = output_dir / "05_csd_proxy_heatmap.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "05_csd_proxy_heatmap.png", "title": "CSD Proxy Heatmap", "type": "readout_spatial", "uses_real_data": True}
 
@@ -214,18 +177,19 @@ def gen_phi_e_proxy_heatmap(signals, output_dir):
     except:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 4))
-    im = ax.imshow(phi_e_proxy.T, aspect="auto", cmap="viridis", interpolation="nearest")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Contact index")
-    ax.set_title("Extracellular Potential Proxy (φ_e Proxy)")
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Proxy amplitude (mV)")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_matrix_heatmap(
+        phi_e_proxy,
+        cmap="viridis",
+        xlabel="Time step",
+        ylabel="Contact index",
+        title="Extracellular Potential Proxy (φ_e Proxy)",
+        colorbar_label="Proxy amplitude (mV)",
+        figsize=(12, 4),
+    )
 
     path = output_dir / "06_phi_e_proxy_heatmap.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "06_phi_e_proxy_heatmap.png", "title": "φ_e Proxy Heatmap", "type": "field_potential", "uses_real_data": True}
 
@@ -239,18 +203,19 @@ def gen_source_proxy_spatial(signals, output_dir):
     except:
         return None
 
-    fig, ax = plt.subplots(figsize=(12, 4))
-    im = ax.imshow(source_proxy.T, aspect="auto", cmap="RdBu_r", interpolation="nearest")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Contact index")
-    ax.set_title("Source Proxy Spatial (Kernel-Weighted Source)")
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Proxy amplitude")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_matrix_heatmap(
+        source_proxy,
+        cmap="RdBu_r",
+        xlabel="Time step",
+        ylabel="Contact index",
+        title="Source Proxy Spatial (Kernel-Weighted Source)",
+        colorbar_label="Proxy amplitude",
+        figsize=(12, 4),
+    )
 
     path = output_dir / "07_source_proxy_spatial.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "07_source_proxy_spatial.png", "title": "Source Proxy Spatial", "type": "field_source", "uses_real_data": True}
 
@@ -271,20 +236,11 @@ def gen_conservation_diagnostics(manifest, output_dir):
         "Conserv. res.": abs(float(diag.get("conservation_residual", 0.0))),
     }
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    names = list(metrics.keys())
-    values = list(metrics.values())
-    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
-    ax.bar(names, values, color=colors, alpha=0.7, edgecolor="black", linewidth=1)
-    ax.set_ylabel("Magnitude")
-    ax.set_title("Conservation Proxy Diagnostics (Laminar Field)")
-    ax.set_yscale("log")
-    ax.grid(axis="y", alpha=0.3)
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_conservation_bar(metrics, title="Conservation Proxy Diagnostics (Laminar Field)")
 
     path = output_dir / "08_conservation_diagnostics.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "08_conservation_diagnostics.png", "title": "Conservation Diagnostics", "type": "diagnostics", "uses_real_data": True}
 
@@ -298,18 +254,11 @@ def gen_contact_depths_profile(signals, output_dir):
     except:
         return None
 
-    n_contacts = len(contact_depths)
-    fig, ax = plt.subplots(figsize=(8, 6))
-    ax.barh(np.arange(n_contacts), contact_depths, color="steelblue", alpha=0.7, edgecolor="black")
-    ax.set_ylabel("Contact index")
-    ax.set_xlabel("Depth (μm, proxy)")
-    ax.set_title("Laminar Profile (Contact Depths)")
-    ax.invert_yaxis()
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_contact_depths_barh(contact_depths, title="Laminar Profile (Contact Depths)")
 
     path = output_dir / "09_laminar_profile_depths.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "09_laminar_profile_depths.png", "title": "Laminar Profile Depths", "type": "geometry", "uses_real_data": True}
 
@@ -329,27 +278,24 @@ def gen_firing_rate_raster(signals, output_dir):
         firing_rate.append(rate)
     firing_rate = np.array(firing_rate)
 
-    fig, ax = plt.subplots(figsize=(12, 5))
-    im = ax.imshow(firing_rate.T, aspect="auto", cmap="hot", interpolation="nearest")
-    ax.set_xlabel("Time step")
-    ax.set_ylabel("Unit index")
-    ax.set_title("Firing Rate Proxy (Smoothed Spike Count)")
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label("Smoothed rate")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_matrix_heatmap(
+        firing_rate,
+        transpose=True,
+        cmap="hot",
+        title="Firing Rate Proxy (Smoothed Spike Count)",
+        colorbar_label="Smoothed rate",
+        figsize=(12, 5),
+    )
 
     path = output_dir / "10_firing_rate_raster.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "10_firing_rate_raster.png", "title": "Firing Rate Proxy", "type": "behavioral", "uses_real_data": True}
 
 
 def gen_status_summary(manifest, output_dir):
     """Status checks and status status (text-based figure)."""
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.axis("off")
-
     gates = [
         ("run_status", manifest.get("run_status", "N/A")),
         ("model_status", manifest.get("model_status", "N/A")),
@@ -364,15 +310,11 @@ def gen_status_summary(manifest, output_dir):
         text_lines.append(f"{gate_name}: {gate_value}")
 
     text_content = "\n".join(text_lines)
-    ax.text(0.1, 0.9, text_content, transform=ax.transAxes, fontfamily="monospace",
-            fontsize=10, verticalcomparison="top", bbox=dict(boxstyle="round", facecolor="wheat", alpha=0.5))
-
-    fig.suptitle("v0.2.27 Statement Gates Summary")
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_status_text_panel(text_content, suptitle="v0.2.27 Statement Gates Summary")
 
     path = output_dir / "11_status_summary.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "11_status_summary.png", "title": "Statement Gates Summary", "type": "metadata", "uses_real_data": False}
 
@@ -394,17 +336,13 @@ def gen_spectral_summary(signals, output_dir):
     freqs_pos = freqs[positive_idx]
     power_pos = power[positive_idx]
 
-    fig, ax = plt.subplots(figsize=(10, 5))
-    ax.semilogy(freqs_pos, power_pos + 1e-10, linewidth=0.8, color="steelblue")
-    ax.set_xlabel("Frequency (normalized)")
-    ax.set_ylabel("Power (log scale)")
-    ax.set_title("Spectral Summary (Network Activity FFT)")
-    ax.grid(alpha=0.3)
-    fig.tight_layout()
+    fig = jtfne.vis.tutorial_spectral_summary(
+        freqs_pos, power_pos, title="Spectral Summary (Network Activity FFT)"
+    )
 
     path = output_dir / "12_spectral_summary.png"
     fig.savefig(path, dpi=100, bbox_inches="tight")
-    plt.close(fig)
+    jtfne.vis.close_all()
     print(f"  ✓ {path.name}")
     return {"filename": "12_spectral_summary.png", "title": "Spectral Summary", "type": "analysis", "uses_real_data": True}
 

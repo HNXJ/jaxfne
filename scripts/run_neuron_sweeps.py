@@ -9,9 +9,6 @@ import os
 import json
 import hashlib
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
@@ -88,55 +85,17 @@ def run_sweep(cell_type, get_drive, get_noise, get_key):
     return grid
 
 def plot_heatmaps(grids, title, ylabel, xlabel, xticklabels, yticklabels, filename):
-    fig, axes = plt.subplots(2, 2, figsize=(14, 12), dpi=150)
-    axes = axes.flatten()
-    cell_types = ["E", "PV", "SST", "VIP"]
-    
-    # Custom vibrant color palettes for each cell type
-    colormaps = {
-        "E": "Blues",
-        "PV": "Oranges",
-        "SST": "Greens",
-        "VIP": "Purples"
-    }
-    
-    for idx, cell_type in enumerate(cell_types):
-        ax = axes[idx]
-        grid = grids[cell_type]
-        cmap = colormaps[cell_type]
-        
-        im = ax.imshow(grid, origin="lower", cmap=cmap, aspect="auto")
-        
-        # Add labels and titles
-        ax.set_title(f"{cell_type} Neuron Spikes (1000 ms)", fontsize=14, fontweight="bold", pad=10)
-        ax.set_ylabel(ylabel, fontsize=12)
-        ax.set_xlabel(xlabel, fontsize=12)
-        
-        # Set ticks
-        ax.set_xticks(np.arange(11))
-        ax.set_yticks(np.arange(11))
-        ax.set_xticklabels([f"{x:.1f}" for x in xticklabels], fontsize=10)
-        ax.set_yticklabels([f"{y:.1f}" for y in yticklabels], fontsize=10)
-        
-        # Annotate each cell with the spike count
-        for i in range(11):
-            for j in range(11):
-                val = grid[i, j]
-                # Determine text color based on background intensity
-                text_color = "white" if val > np.max(grid) * 0.6 else "black"
-                ax.text(j, i, str(val), ha="center", va="center", color=text_color, fontsize=9, fontweight="bold")
-                
-        fig.colorbar(im, ax=ax, shrink=0.8, label="Spike Count")
-        
-    plt.suptitle(title, fontsize=16, fontweight="bold", y=0.98)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-    
+    fig = jtfne.vis.celltype_sweep_heatmap_grid(
+        grids, title=title, ylabel=ylabel, xlabel=xlabel,
+        xticklabels=xticklabels, yticklabels=yticklabels,
+    )
+
     # Save to outputs and artifacts
     p1 = OUT_DIR / filename
     p2 = ARTIFACTS_DIR / filename
-    plt.savefig(p1, bbox_inches="tight")
-    plt.savefig(p2, bbox_inches="tight")
-    plt.close()
+    fig.savefig(p1, bbox_inches="tight")
+    fig.savefig(p2, bbox_inches="tight")
+    jtfne.vis.close_all()
     print(f"Saved figure to {p1} and {p2}")
 
 # --- SWEEP A: Absolute Native Sweep ---
