@@ -131,9 +131,12 @@ build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 
 from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace
 from . import analysis
-from . import vis
-from .vis import plot_raster, plot_stdp_adaptation_suite
-from .vis import spectrolaminar_suite as plot_spectrolaminar_suite
+# `vis` (and its plot_* convenience re-exports) is NOT imported here -- it
+# pulls in the full jaxfne.vis.plotly tree (matplotlib/plotly). Importing it
+# eagerly would mean `import jaxfne.core` alone loads graphics libraries,
+# which test_v0321_migration_boundaries.py::test_simulation_engine_has_zero_graphics_overhead
+# enforces against. It is resolved lazily on first attribute access via
+# _RuntimeModuleWrapper.__getattr__ below instead.
 from .emitters import (
     EdgeList,
     EIGNetwork,
@@ -589,11 +592,24 @@ class _RuntimeModuleWrapper(_ModuleType):
         super().__setattr__(name, value)
 
     def __getattr__(self, name):
-        """Dynamically resolve attributes to handle the runtime name collision."""
+        """Dynamically resolve attributes to handle the runtime name collision
+        and to defer the graphics-heavy `vis` import until actually used."""
         if name == "runtime":
             # Return the runtime function from core, not the module
             from .core import runtime as _runtime_fn
             return _runtime_fn
+        if name in ("vis", "plot_raster", "plot_stdp_adaptation_suite", "plot_spectrolaminar_suite"):
+            # importlib.import_module (not `from . import vis`) deliberately --
+            # `from . import vis` triggers hasattr(self, "vis") internally,
+            # which re-enters this __getattr__ and recurses infinitely since
+            # "vis" isn't in __dict__ yet.
+            import importlib
+            _vis_mod = importlib.import_module(".vis", __name__)
+            if name == "vis":
+                return _vis_mod
+            if name == "plot_spectrolaminar_suite":
+                return _vis_mod.spectrolaminar_suite
+            return getattr(_vis_mod, name)
         # Delegate to the original module's __dict__ for other attributes
         if name in self.__dict__:
             return self.__dict__[name]
