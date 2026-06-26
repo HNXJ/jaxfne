@@ -448,6 +448,76 @@ def connectivity_matrix(model_or_W: Any, **kwargs: Any) -> Any:
     return connectivity(model_or_W, **kwargs)
 
 
+def ei_circuit_diagram(
+    g_e_to_i: float,
+    g_i_to_e: float,
+    firing_rate_e_hz: float,
+    firing_rate_i_hz: float,
+    **kwargs: Any,
+) -> Any:
+    """Plot a minimal two-node E/I circuit schematic with coupling-conductance labels.
+
+    Draws an excitatory (E) and inhibitory (I) node with curved directional arrows
+    annotated with coupling conductance, and each node's firing rate.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+
+    figsize = kwargs.pop("figsize", (8, 6))
+    e_label = kwargs.pop("e_label", "E")
+    i_label = kwargs.pop("i_label", "I")
+    fig, ax = plt.subplots(figsize=figsize)
+
+    x_e, y_e = 0.3, 0.5
+    x_i, y_i = 0.7, 0.5
+    radius = 0.08
+
+    e_circle = patches.Circle((x_e, y_e), radius, color='blue', alpha=0.7)
+    ax.add_patch(e_circle)
+    ax.text(x_e, y_e, e_label, ha='center', va='center',
+            color='white', fontsize=14, fontweight='bold')
+    ax.text(x_e, y_e - 0.14, f'{firing_rate_e_hz:.1f} Hz',
+            ha='center', va='center', fontsize=10, color='blue')
+
+    i_circle = patches.Circle((x_i, y_i), radius, color='red', alpha=0.7)
+    ax.add_patch(i_circle)
+    ax.text(x_i, y_i, i_label, ha='center', va='center',
+            color='white', fontsize=14, fontweight='bold')
+    ax.text(x_i, y_i - 0.14, f'{firing_rate_i_hz:.1f} Hz',
+            ha='center', va='center', fontsize=10, color='red')
+
+    arrow_ei = patches.FancyArrowPatch(
+        (x_e + radius, y_e), (x_i - radius, y_i),
+        arrowstyle='->', mutation_scale=25,
+        color='green', linewidth=2.0, alpha=0.8,
+        connectionstyle="arc3,rad=0.25"
+    )
+    ax.add_patch(arrow_ei)
+    ax.text(0.5, y_e + 0.10, f'g_EtoI={g_e_to_i:.1f}\n(excitatory)',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+    arrow_ie = patches.FancyArrowPatch(
+        (x_i - radius, y_i), (x_e + radius, y_e),
+        arrowstyle='->', mutation_scale=25,
+        color='darkred', linewidth=2.0, alpha=0.8,
+        connectionstyle="arc3,rad=0.25"
+    )
+    ax.add_patch(arrow_ie)
+    ax.text(0.5, y_e - 0.10, f'g_ItoE={g_i_to_e:.1f}\n(inhibitory)',
+            ha='center', fontsize=9,
+            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
+
+    ax.set_xlim(0.1, 0.9)
+    ax.set_ylim(0.25, 0.75)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title("Recurrent E/I circuit (coupling conductances shown)", fontsize=13)
+    fig.tight_layout()
+    return fig
+
+
 def multi_area_layout(
     signals_or_cfg: Any,
     *,

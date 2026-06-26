@@ -21,9 +21,6 @@ from datetime import datetime
 from typing import Any
 
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import jax.numpy as jnp
 
 # Canonical import
@@ -312,33 +309,44 @@ def main(update_canonical: bool = False):
     figures_dir.mkdir(exist_ok=True)
 
     # Figure 1: Voltage trace
-    fig, ax = plt.subplots(figsize=(12, 4))
-    ax.plot(t, V_m[:, 0], linewidth=0.8, color='blue')
+    fig = jtfne.vis.vm({"V_m": V_m[:, :1], "time_ms": t}, figsize=(12, 4))
+    ax = fig.axes[0]
+    ax.get_lines()[0].set_color('blue')
+    ax.get_lines()[0].set_linewidth(0.8)
+    if ax.get_legend() is not None:
+        ax.get_legend().remove()
     ax.set_xlabel('Time (ms)')
     ax.set_ylabel('Voltage (mV)')
     ax.set_title(
         'v0.3.1: Single Izhikevich Neuron - Voltage Trace\n'
         '(Proxy readout, not biological validation)'
     )
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
+    fig.tight_layout()
     voltage_fig_path = figures_dir / "v0301_single_neuron_voltage.png"
-    plt.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+    fig.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
+    jtfne.vis.close_all()
 
     # Figure 2: Spike raster
-    fig, ax = plt.subplots(figsize=(12, 3))
     spike_times = t[spike_indices]
-    ax.scatter(spike_times, [0] * len(spike_times), marker='|', s=500, color='red')
+    single_neuron_spikes = np.zeros((len(t), 1), dtype=np.float32)
+    single_neuron_spikes[spike_indices, 0] = 1.0
+    fig = jtfne.vis.raster(
+        {"spikes": single_neuron_spikes, "time_ms": t},
+        sort_by=None,
+        marker_size=500.0,
+        figsize=(12, 3),
+    )
+    ax = fig.axes[0]
+    for coll in ax.collections:
+        coll.set_color('red')
     ax.set_xlabel('Time (ms)')
     ax.set_ylabel('Neuron ID')
     ax.set_title(f'v0.3.1: Single Izhikevich Neuron - Spikes\n(Firing rate: {firing_rate_hz:.2f} Hz)')
     ax.set_ylim(-0.5, 0.5)
-    ax.grid(True, alpha=0.3, axis='x')
-    plt.tight_layout()
+    fig.tight_layout()
     raster_fig_path = figures_dir / "v0301_single_neuron_raster.png"
-    plt.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
-    plt.close()
+    fig.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
+    jtfne.vis.close_all()
 
     print(f"  Saved: {voltage_fig_path}")
     print(f"  Saved: {raster_fig_path}")

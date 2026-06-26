@@ -71,8 +71,7 @@ def main():
     fig_summary.savefig("outputs/summary_smoke.png")
     
     # Clean up plots
-    import matplotlib.pyplot as plt
-    plt.close("all")
+    jtfne.vis.close_all()
     
     # 4. Generate JSON-safe manifest
     manifest = {

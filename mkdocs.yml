@@ -49,6 +49,7 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
       - FAQ: faq.md
 
   - Tutorials:

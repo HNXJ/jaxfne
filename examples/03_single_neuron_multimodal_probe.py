@@ -200,28 +200,14 @@ def main():
     # === 10. Generate spike raster figure ===
     raster_path = None
     try:
-        import matplotlib
-        matplotlib.use('Agg')  # Non-interactive backend
-        import matplotlib.pyplot as plt
-
         figures_dir = output_dir / "figures"
         figures_dir.mkdir(parents=True, exist_ok=True)
 
         # Spike raster figure
-        fig, ax = plt.subplots(figsize=(12, 4))
-        spikes = signals.spikes.T  # Transpose to (neurons, timesteps)
-        timesteps = jnp.arange(spikes.shape[1])
-        for neuron_idx in range(spikes.shape[0]):
-            spike_times = timesteps[spikes[neuron_idx] > 0.5]
-            ax.vlines(spike_times, neuron_idx - 0.4, neuron_idx + 0.4, colors='black', linewidth=0.5)
-        ax.set_xlabel("Timestep")
-        ax.set_ylabel("Neuron")
-        ax.set_title("Single-neuron spike activity")
-        ax.set_ylim(-0.5, spikes.shape[0] - 0.5)
-
+        fig = jtfne.vis.raster({"spikes": signals.spikes}, sort_by=None, figsize=(12, 4))
         raster_path = figures_dir / "raster.png"
         fig.savefig(raster_path, dpi=100, bbox_inches='tight')
-        plt.close(fig)
+        jtfne.vis.close_all()
 
     except ImportError:
         pass

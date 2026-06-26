@@ -16,16 +16,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import hashlib
 import os
 
+import jaxfne as jtfne
 
 # Try to import Plotly; continue if unavailable
 try:
-    import plotly.graph_objects as go
-    import plotly.express as px
+    import plotly  # noqa: F401  (presence check only; rendering lives in jaxfne.vis)
     PLOTLY_AVAILABLE = True
 except ImportError:
     PLOTLY_AVAILABLE = False
-    go = None
-    px = None
 
 
 def plotly_available() -> bool:
@@ -87,25 +85,7 @@ def create_spike_raster_figure(
 
     # Generate HTML if Plotly available and requested
     if as_html and PLOTLY_AVAILABLE and output_path:
-        fig = go.Figure()
-
-        for neuron_id, spike_times_i in enumerate(spike_times):
-            for spike_time in spike_times_i:
-                fig.add_vline(
-                    x=spike_time,
-                    line_dash="dash",
-                    line_color="gray",
-                    annotation_text=f"Neuron {neuron_id}",
-                    annotation_position="top",
-                )
-
-        fig.update_layout(
-            title=title,
-            xaxis_title="Time (ms)",
-            yaxis_title="Neuron",
-            hovermode="x unified",
-            height=400 + len(spike_times) * 5,
-        )
+        fig = jtfne.vis.tutorial_spike_raster_vlines_plotly(spike_times, title=title)
 
         # Save HTML
         fig.write_html(output_path)
@@ -153,25 +133,7 @@ def create_voltage_trace_figure(
     }
 
     if as_html and PLOTLY_AVAILABLE and output_path:
-        fig = go.Figure()
-
-        for neuron_id, voltages in voltage_traces.items():
-            fig.add_trace(go.Scatter(
-                x=time_ms,
-                y=voltages,
-                mode='lines',
-                name=f'Neuron {neuron_id}',
-                hovertemplate='<b>Neuron %{fullData.name}</b><br>Time: %{x:.1f} ms<br>V_m: %{y:.1f} mV<extra></extra>',
-            ))
-
-        fig.update_layout(
-            title=title,
-            xaxis_title="Time (ms)",
-            yaxis_title="Membrane Potential (mV)",
-            hovermode="x unified",
-            height=500,
-        )
-
+        fig = jtfne.vis.tutorial_voltage_trace_plotly(time_ms, voltage_traces, title=title)
         fig.write_html(output_path)
 
         with open(output_path, 'rb') as f:
@@ -219,25 +181,7 @@ def create_firing_rate_figure(
     }
 
     if as_html and PLOTLY_AVAILABLE and output_path:
-        fig = go.Figure()
-
-        fig.add_trace(go.Scatter(
-            x=time_ms,
-            y=firing_rate_hz,
-            mode='lines',
-            name='Population firing rate',
-            fill='tozeroy',
-            hovertemplate='Time: %{x:.1f} ms<br>Rate: %{y:.1f} Hz<extra></extra>',
-        ))
-
-        fig.update_layout(
-            title=title,
-            xaxis_title="Time (ms)",
-            yaxis_title="Firing Rate (Hz)",
-            hovermode="x unified",
-            height=400,
-        )
-
+        fig = jtfne.vis.tutorial_firing_rate_plotly(time_ms, firing_rate_hz, title=title)
         fig.write_html(output_path)
 
         with open(output_path, 'rb') as f:

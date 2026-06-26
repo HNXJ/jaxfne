@@ -2,6 +2,9 @@ import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
 
+# Configuration-path circuit definition (below). For the declarative
+# Areas/Layers/NeuronTypes alternative, see examples/08_neuronal_tensor_first.py.
+
 # Build configuration with metadata gates
 cfg = jtfne.configuration()
 cfg = cfg.network(

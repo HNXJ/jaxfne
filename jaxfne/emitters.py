@@ -972,7 +972,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
 
 
 # Default per-cell-type relative size used by HDP's size-scaled input-current
-# time constant (tau_i = tau_0_ms * size_i**2). Matches the canonical E:I size
+# time constant (tau_i = tau_0_ms * size_i**3). Matches the canonical E:I size
 # ratio used elsewhere in jaxfne (large E somas integrate slower than small
 # interneurons); not a calibrated morphological measurement.
 DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE: dict[str, float] = {
@@ -1134,8 +1134,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
         dtype, drive_schedule, silence_mask, noise_scale: as in simulate_edge_recurrent_izhikevich
         H_min, H_max: clamp bounds for H_i (default [0.1, 10.0])
         tau_0_ms: base H_i integration time constant (default 100 ms);
-            per-neuron tau_i = tau_0_ms * size_i**2 (larger/slower for E,
-            faster for PV, matching the existing size-scaling table)
+            per-neuron tau_i = tau_0_ms * size_i**3 (larger/slower for E,
+            faster for PV, matching the existing size-scaling table; e.g.
+            size_i=2.0 -> tau_i = 8 * tau_0_ms)
         size_scale_by_cell_type: override the default per-cell-type relative
             size table (see DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
         size_scale_override: optional explicit per-neuron size array
@@ -1220,7 +1221,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         size_arr = jnp.asarray(size_scale_override, dtype=jdtype)
     else:
         size_arr = _hdp_size_scale_array(params.labels, size_scale_by_cell_type, jdtype)
-    tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr
+    tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr * size_arr
     tau_i = jnp.maximum(tau_i, jnp.asarray(1e-6, dtype=jdtype))
 
     H_min_arr = jnp.asarray(H_min, dtype=jdtype)

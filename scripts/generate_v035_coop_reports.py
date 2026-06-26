@@ -12,7 +12,6 @@ from pathlib import Path
 import numpy as np
 import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
 import jaxfne as jtfne
 
 def calculate_stability_score(spikes, target_rate=10.0, dt_ms=0.5):
@@ -133,30 +132,22 @@ def main():
     time_points = np.arange(spikes_dummy_base.shape[0]) * dt_ms / 1000.0
     
     # Fig 1: Raster Comparison
-    fig, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
-    axes[0].imshow(spikes_dummy_base.T, aspect="auto", cmap="binary", origin="lower", extent=[0, duration_ms/1000.0, 0, 10])
-    axes[0].set_title("10-Neuron Dummy Model Raster (Baseline)")
-    axes[0].set_ylabel("Neuron ID")
-    
-    axes[1].imshow(spikes_conn.T, aspect="auto", cmap="binary", origin="lower", extent=[0, duration_ms/1000.0, 0, 20])
-    axes[1].set_title("Connected Model Raster")
-    axes[1].set_xlabel("Time (s)")
-    axes[1].set_ylabel("Neuron ID")
-    plt.tight_layout()
-    plt.savefig(fig_dir / "raster.png", dpi=100)
-    plt.close()
-    
+    fig = jtfne.vis.dual_raster_comparison(
+        spikes_dummy_base, spikes_conn, duration_s=duration_ms / 1000.0,
+        title_a="10-Neuron Dummy Model Raster (Baseline)", title_b="Connected Model Raster",
+    )
+    fig.savefig(fig_dir / "raster.png", dpi=100)
+    jtfne.vis.close_all()
+
     # Fig 2: Stability score comparison / adaptation steps
-    fig, ax = plt.subplots(figsize=(8, 5))
     steps = [s["step"] for s in tuning_steps]
     scores = [s["stability_score"] for s in tuning_steps]
-    ax.plot(steps, scores, "o-", color="purple", label="Stability Score")
-    ax.set_xlabel("Tuning Step")
-    ax.set_ylabel("Stability Score")
-    ax.set_title("PID-style Stability Optimization Progress")
-    ax.grid(True)
-    plt.savefig(fig_dir / "stability_adaptation.png", dpi=100)
-    plt.close()
+    fig = jtfne.vis.optimization_progress_line(
+        steps, scores, xlabel="Tuning Step", ylabel="Stability Score",
+        title="PID-style Stability Optimization Progress",
+    )
+    fig.savefig(fig_dir / "stability_adaptation.png", dpi=100)
+    jtfne.vis.close_all()
     
     # Write JSON report
     report = {

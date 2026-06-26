@@ -109,41 +109,16 @@ def main() -> None:
 
 
 def _plot(results: dict[str, list[dict[str, Any]]], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
+    K_ctrl_by_window = {w: [p["K_ctrl"] for p in pts] for w, pts in results.items()}
+    mean_H_minus_1_by_window = {w: [p["mean_H_minus_1"] for p in pts] for w, pts in results.items()}
+    SST_rate_by_window = {w: [p["rate_by_type_hz"].get("SST", float("nan")) for p in pts] for w, pts in results.items()}
+    kappa_synchrony_by_window = {w: [p["kappa_synchrony"] for p in pts] for w, pts in results.items()}
 
-    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
-    for window, marker in (("short", "o"), ("full", "s")):
-        pts = results[window]
-        K_ctrl_vals = [p["K_ctrl"] for p in pts]
-        axes[0].plot(K_ctrl_vals, [p["mean_H_minus_1"] for p in pts], marker=marker, label=window)
-        axes[1].plot(K_ctrl_vals, [p["rate_by_type_hz"].get("SST", float("nan")) for p in pts], marker=marker, label=window)
-        axes[2].plot(K_ctrl_vals, [p["kappa_synchrony"] for p in pts], marker=marker, label=window)
-
-    axes[0].axhline(0.0, color="k", ls="--", lw=0.5)
-    axes[0].set_xscale("symlog", linthresh=0.01)
-    axes[0].set_xlabel("K_ctrl")
-    axes[0].set_ylabel("mean(H-1)")
-    axes[0].set_title("controller signal vs. K_ctrl")
-    axes[0].legend()
-
-    axes[1].axhspan(5.0, 15.0, color="g", alpha=0.1, label="target band")
-    axes[1].set_xscale("symlog", linthresh=0.01)
-    axes[1].set_xlabel("K_ctrl")
-    axes[1].set_ylabel("SST rate (Hz)")
-    axes[1].set_title("SST rate vs. K_ctrl")
-    axes[1].legend()
-
-    axes[2].axhline(0.3, color="r", ls="--", lw=0.5, label="kappa_stable_max")
-    axes[2].set_xscale("symlog", linthresh=0.01)
-    axes[2].set_xlabel("K_ctrl")
-    axes[2].set_ylabel("kappa_synchrony")
-    axes[2].set_title("synchrony vs. K_ctrl")
-    axes[2].legend()
-
-    fig.suptitle("HDP gain-ratio sweep (R = K_ctrl / (alpha+gamma+delta)), short vs. full window")
-    fig.tight_layout()
+    fig = jtfne.vis.gain_ratio_sweep_panels(
+        K_ctrl_by_window, mean_H_minus_1_by_window, SST_rate_by_window, kappa_synchrony_by_window,
+    )
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 if __name__ == "__main__":

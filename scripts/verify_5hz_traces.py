@@ -5,9 +5,6 @@ Plots the voltage traces for the four cell types.
 """
 
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
@@ -33,7 +30,6 @@ params_5hz = {
     "VIP": {"drive": 23.030, "noise": 0.000}
 }
 
-fig, axes = plt.subplots(4, 1, figsize=(12, 10), sharex=True, dpi=150)
 time_ms = np.arange(N_STEPS) * DT_MS
 
 colors = {
@@ -45,17 +41,21 @@ colors = {
 
 print("Running verification simulations:")
 
-for idx, (cell_type, p) in enumerate(params_5hz.items()):
+voltages_by_celltype = {}
+spikes_by_celltype = {}
+params_by_celltype = {}
+
+for cell_type, p in params_5hz.items():
     preset_name = {
         "E": "E_RS",
         "PV": "PV_FS",
         "SST": "SST_LTS",
         "VIP": "VIP_IS"
     }[cell_type]
-    
+
     preset = PRESETS[preset_name]
     a_val, b_val, c_val, d_val = preset["a"], preset["b"], preset["c"], preset["d"]
-    
+
     # Manually configure IzhikevichParams
     params = jtfne.IzhikevichParams(
         a=jnp.array([a_val], dtype=jnp.float32),
@@ -70,41 +70,32 @@ for idx, (cell_type, p) in enumerate(params_5hz.items()):
         source_scale=jnp.array([1.0], dtype=jnp.float32),
         labels=(cell_type,),
     )
-    
+
     key = jax.random.PRNGKey(SEED)
     noise_seq = jax.random.normal(key, shape=(N_STEPS, 1)) * float(p["noise"])
-    
+
     voltages, spikes, _ = jtfne.simulate_eig_izhikevich(
         params, N_STEPS, DT_MS, key, drive_schedule=noise_seq
     )
-    
+
     voltages_np = np.array(voltages[:, 0])
     spikes_np = np.array(spikes[:, 0])
     spike_count = int(np.sum(spikes_np))
-    
-    print(f"  {cell_type}: Drive={p['drive']:.3f}, Noise={p['noise']:.3f} -> Spikes={spike_count}")
-    
-    # Plot voltage trace
-    ax = axes[idx]
-    ax.plot(time_ms, voltages_np, color=colors[cell_type], linewidth=1.5, label=f"{cell_type} Voltage")
-    
-    # Draw spikes on top as vertical ticks or dots
-    spike_times = time_ms[spikes_np > 0.5]
-    ax.plot(spike_times, np.ones_like(spike_times) * 35.0, "|", color="red", markersize=12, markeredgewidth=2, label="Spikes")
-    
-    ax.set_ylabel("Voltage (mV)", fontsize=11)
-    ax.set_title(f"{cell_type} Neuron (Drive = {p['drive']:.3f}, Noise = {p['noise']:.3f}) | Spikes: {spike_count} (5.0 Hz)", fontsize=12, fontweight="bold", pad=5)
-    ax.grid(True, linestyle="--", alpha=0.5)
-    ax.set_ylim([-90, 45])
 
-axes[-1].set_xlabel("Time (ms)", fontsize=12)
-plt.suptitle("Verification of 5.0 Hz (5 spikes / 1000ms) Firing Rates across Cell Types\nTruth Mode:  | Status: computational_scaffold", fontsize=14, fontweight="bold", y=0.98)
-plt.tight_layout(rect=[0, 0, 1, 0.96])
+    print(f"  {cell_type}: Drive={p['drive']:.3f}, Noise={p['noise']:.3f} -> Spikes={spike_count}")
+
+    voltages_by_celltype[cell_type] = voltages_np
+    spikes_by_celltype[cell_type] = spikes_np
+    params_by_celltype[cell_type] = {"drive": p["drive"], "noise": p["noise"], "spike_count": spike_count}
+
+fig = jtfne.vis.voltage_trace_with_spikes_by_celltype(
+    time_ms, voltages_by_celltype, spikes_by_celltype, params_by_celltype, colors=colors,
+)
 
 p1 = OUT_DIR / "sweep_d_5hz_verification.png"
 p2 = ARTIFACTS_DIR / "sweep_d_5hz_verification.png"
-plt.savefig(p1, bbox_inches="tight")
-plt.savefig(p2, bbox_inches="tight")
-plt.close()
+fig.savefig(p1, bbox_inches="tight")
+fig.savefig(p2, bbox_inches="tight")
+jtfne.vis.close_all()
 
 print("Verification plots saved successfully!")

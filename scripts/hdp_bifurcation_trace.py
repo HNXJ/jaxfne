@@ -118,43 +118,24 @@ def main() -> None:
 
 
 def _plot(points: list[dict[str, Any]], departures: dict[str, int | None], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
     t = [p["t_ms"] for p in points]
-    fig, axes = plt.subplots(4, 1, figsize=(8, 11), sharex=True)
-
-    for cell_type in sorted(points[0]["rate_by_type_hz"].keys()):
-        axes[0].plot(t, [p["rate_by_type_hz"].get(cell_type, float("nan")) for p in points], label=cell_type)
-    axes[0].set_ylabel("rate (Hz)")
-    axes[0].legend(fontsize=8)
-    axes[0].set_title("Bifurcation trace: K_ctrl=0, tau_0_ms=20")
-
-    axes[1].plot(t, [p["kappa_synchrony"] for p in points], color="tab:red")
-    axes[1].set_ylabel("kappa_synchrony")
-
-    axes[2].plot(t, [p["mean_weight"] for p in points], label="mean|w|")
-    ax2b = axes[2].twinx()
-    ax2b.plot(t, [p["weight_variance"] for p in points], color="tab:orange", label="var(w)")
-    axes[2].set_ylabel("mean|w|")
-    ax2b.set_ylabel("var(w)", color="tab:orange")
-
-    axes[3].plot(t, [p["H_mean"] for p in points], label="H_mean")
-    ax3b = axes[3].twinx()
-    ax3b.plot(t, [p["H_variance"] for p in points], color="tab:green", label="var(H)")
-    axes[3].axhline(1.0, color="k", ls="--", lw=0.5)
-    axes[3].set_ylabel("H_mean")
-    ax3b.set_ylabel("var(H)", color="tab:green")
-    axes[3].set_xlabel("time (ms)")
-
-    colors = {"kappa_synchrony": "tab:red", "weight_variance": "tab:orange", "H_variance": "tab:green", "SST_rate": "tab:blue"}
-    ax_for = {"kappa_synchrony": axes[1], "weight_variance": axes[2], "H_variance": axes[3], "SST_rate": axes[0]}
-    for key, idx in departures.items():
-        if idx is not None:
-            ax_for[key].axvline(points[idx]["t_ms"], color=colors[key], ls=":", lw=1.2)
-
-    fig.tight_layout()
+    rate_by_type_hz = {
+        cell_type: [p["rate_by_type_hz"].get(cell_type, float("nan")) for p in points]
+        for cell_type in sorted(points[0]["rate_by_type_hz"].keys())
+    }
+    fig = jtfne.vis.bifurcation_state_trace_panels(
+        t,
+        rate_by_type_hz,
+        [p["kappa_synchrony"] for p in points],
+        [p["mean_weight"] for p in points],
+        [p["weight_variance"] for p in points],
+        [p["H_mean"] for p in points],
+        [p["H_variance"] for p in points],
+        departures,
+        title="Bifurcation trace: K_ctrl=0, tau_0_ms=20",
+    )
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 if __name__ == "__main__":

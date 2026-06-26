@@ -38,6 +38,7 @@ def raster(signals: Any, **kwargs: Any) -> Any:
 
     sort_by = kwargs.pop("sort_by", "z")
     marker_size = float(kwargs.pop("marker_size", 2.0))
+    neuron_colors = kwargs.pop("neuron_colors", None)
     kwargs.pop("dt_ms", None)  # rasters use time_ms; accept dt_ms for API parity
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
@@ -78,7 +79,12 @@ def raster(signals: Any, **kwargs: Any) -> Any:
         y_idx = n_idx
         ylabel = "Neuron index"
 
-    ax.scatter(time_ms[t_idx], y_idx, s=marker_size, marker="|")
+    if neuron_colors is not None:
+        colors_arr = np.asarray(neuron_colors, dtype=object)
+        point_colors = colors_arr[n_idx]
+        ax.scatter(time_ms[t_idx], y_idx, s=marker_size * 4, c=point_colors, marker="|")
+    else:
+        ax.scatter(time_ms[t_idx], y_idx, s=marker_size, marker="|")
     ax.set_title("Spike raster proxy sorted by depth" if sort_by == "z" else "Spike raster proxy")
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel(ylabel)

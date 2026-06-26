@@ -31,6 +31,20 @@ def require_matplotlib() -> None:
         )
 
 
+def close_all() -> None:
+    """Close all open matplotlib figures (``plt.close("all")``).
+
+    The one matplotlib call every caller needs that isn't "render a figure" --
+    exists so scripts/examples never need a raw ``import matplotlib.pyplot``
+    just for cleanup. Lazily imports matplotlib; no-op if it's not installed.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return
+    plt.close("all")
+
+
 def prepare_static_plot_matrix(arr: Any) -> Any:
     """Extracts JAX or NumPy arrays safely to a static NumPy array on the host.
 

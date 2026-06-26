@@ -64,6 +64,28 @@ def test_hdp_engages_and_exposes_diagnostics():
     assert bool(np.isfinite(np.asarray(sig.V_m)).all())
 
 
+def test_size_scale_by_cell_type_forwarded_through_dispatch():
+    """hdp_params["size_scale_by_cell_type"] must reach the kernel's tau_i
+    (cube law, 0.4.7): a cell type declared 2x size must show ~8x smaller H
+    deviation than a 1x-size type under identical income/spending gains,
+    exactly mirroring the standalone-kernel cube-law test but exercised
+    through the full Configuration/RuntimeConfig dispatch path (this was a
+    real gap -- size_scale_by_cell_type/size_scale_override were silently
+    dropped by _hdp_packed before being wired)."""
+    model = _build({"enable_hdp": True,
+                    "hdp_params": {"alpha": 0.0, "beta": 0.02, "K_HDP": 0.0,
+                                   "tau_0_ms": 50.0,
+                                   "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0,
+                                                                "SST": 1.0, "VIP": 1.0}}})
+    jtfne.simulate(model, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag = model.last_hdp_diagnostics()
+    labels = np.asarray(model.params["emitter"].labels)
+    H_dev = np.asarray(diag["H_trace"])[-1] - 1.0
+    e_dev = float(H_dev[labels == "E"].mean())
+    pv_dev = float(H_dev[labels == "PV"].mean())
+    assert pv_dev / e_dev == pytest.approx(8.0, rel=0.05)
+
+
 def test_default_run_has_no_hdp_metadata():
     sig = jtfne.simulate(_build({"recurrent_backend": "edge_list"}),
                          duration_ms=D, dt_ms=DT, seed=SEED)

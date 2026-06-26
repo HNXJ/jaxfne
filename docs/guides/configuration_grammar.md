@@ -193,6 +193,27 @@ a result reproducible and auditable — the closing operator of the chain.
 
 ---
 
+## NeuronalTensor: a second on-ramp into the same chain
+
+`Configuration` is not the only way onto the `construct()` compiler.
+`NeuronalTensor` — a declarative `Areas x Layers x NeuronTypes` data model
+(see [`docs/api/neuronal_tensor.md`](../api/neuronal_tensor.md)) — is a second,
+explicit circuit-definition surface that converges on the same `Model` and the
+same downstream Emitter→Source→Field→Probe→Objective→Optimizer→Manifest chain:
+
+```python
+tensor = jtfne.NeuronalTensor(areas=[...])               # the declarative spec
+model  = jtfne.construct(tensor, jtfne.RuntimeConfiguration(...))  # same compiler
+```
+
+Pick `Configuration` for the fluent-builder style above; pick `NeuronalTensor`
+when you want an explicit, JSON-round-trippable Areas/Layers/NeuronTypes object
+(e.g. for HDP homeostatic plasticity — see [HDP](hdp.md) § "Tensor-first").
+`RuntimeConfiguration` (the tensor path's runtime object) is distinct from the
+`RuntimeConfig` used by `.runtime(...)` above — see HDP guide for the override
+pattern that lets a tensor-built `Model` still use `RuntimeConfig`'s
+`enable_hdp` field.
+
 ## Why this matters
 
 Reading `Configuration` as a compiler reframes the whole package: the object
@@ -205,6 +226,7 @@ why `Configuration` is the deepest, most important surface in the package.
 ## See also
 
 - [Objective Grammar](objective_grammar.md) — the user-facing run sequence (construct/simulate/probe/tune/validate/export) this builder feeds into.
+- [NeuronalTensor API reference](../api/neuronal_tensor.md) · [HDP](hdp.md) — the second, tensor-first on-ramp into `construct()`.
 - [Tensor-Field Workflows](tensor_field_workflows.md) — the operator chain in depth.
 - [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table for this same operator chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.

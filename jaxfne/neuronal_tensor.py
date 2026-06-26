@@ -43,6 +43,7 @@ along x with no rotation, so this step happens post-construct).
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
 from typing import Literal, Optional, Sequence
@@ -89,13 +90,15 @@ class Geometry3D:
 class NeuronType:
     name: str
     relative_size: float = 1.0
+    fraction: Optional[float] = None
     value_tag: ValueTag = "relative"
 
     @classmethod
     def make(cls, name: str, relative_size: Optional[float] = None,
+             fraction: Optional[float] = None,
              value_tag: ValueTag = "relative") -> "NeuronType":
         return cls(name=name, relative_size=relative_size if relative_size is not None
-                    else default_relative_size(name), value_tag=value_tag)
+                    else default_relative_size(name), fraction=fraction, value_tag=value_tag)
 
 
 @dataclass
@@ -185,10 +188,46 @@ class NeuronalTensor:
         return asdict(self)
 
 
+# Versioned JSON schema for saved NeuronalTensor configs. Bump on any
+# breaking change to the on-disk shape (field rename/removal, not additive
+# fields); load_neuronal_tensor accepts files with no "schema_version" key
+# (pre-versioning saves) as implicitly "neuronal_tensor_v1".
+NEURONAL_TENSOR_SCHEMA_VERSION = "neuronal_tensor_v1"
+
+
+def configs_dir() -> Path:
+    """Return the path to the package's canonical NeuronalTensor JSON library
+    (``jaxfne/configs/``), shipped as package data. See
+    :func:`load_canonical_neuronal_tensor` to load one by name."""
+    return Path(__file__).resolve().parent / "configs"
+
+
+def list_canonical_neuronal_tensors() -> list[str]:
+    """Return the names (without ``.json``) of every canonical config in
+    :func:`configs_dir`."""
+    return sorted(p.stem for p in configs_dir().glob("*.json"))
+
+
+def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor:
+    """Load a canonical NeuronalTensor by name from :func:`configs_dir`.
+
+    ``name`` may be given with or without the ``.json`` suffix, e.g.
+    ``load_canonical_neuronal_tensor("default-column")``.
+    """
+    stem = name[:-5] if name.endswith(".json") else name
+    path = configs_dir() / f"{stem}.json"
+    if not path.exists():
+        available = ", ".join(list_canonical_neuronal_tensors())
+        raise FileNotFoundError(f"No canonical config named {stem!r} in {configs_dir()}. Available: {available}")
+    return load_neuronal_tensor(path)
+
+
 def save_neuronal_tensor(tensor: NeuronalTensor, path: str | Path) -> str:
     """Save a NeuronalTensor as a JSON config file. Configs are data, never code."""
     path = Path(path)
-    save_json(tensor.to_dict(), path)
+    payload = dict(tensor.to_dict())
+    payload["schema_version"] = NEURONAL_TENSOR_SCHEMA_VERSION
+    save_json(payload, path)
     return str(path)
 
 
@@ -199,9 +238,46 @@ def _load_pose(area_raw: dict) -> "Pose3D":
     return Pose3D(**pose_raw)
 
 
-def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
-    """Load a NeuronalTensor from a JSON config file."""
+def load(path: str | Path) -> NeuronalTensor:
+    """Canonical loader: load a NeuronalTensor from its JSON config file.
+
+    This is the recommended entry point for the tensor-first workflow
+    (``tensor = jtfne.load(path)``). Raises ``ValueError`` if ``path`` does
+    not look like a NeuronalTensor JSON config (no top-level ``"areas"``
+    key) -- legacy ``Configuration``-style ``.jcfg.json`` files still use
+    :func:`jaxfne.load_config`, a distinct format this function does not
+    auto-convert.
+    """
     raw = load_json(path)
+    if "areas" not in raw:
+        raise ValueError(
+            f"{path} does not look like a NeuronalTensor JSON config (no "
+            "top-level 'areas' key). For legacy Configuration-style "
+            "'.jcfg.json' files, use jaxfne.load_config(...) instead."
+        )
+    return _load_neuronal_tensor_impl(path, raw)
+
+
+def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
+    """Compatibility wrapper. Prefer :func:`load`."""
+    return load(path)
+
+
+def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
+    """Validates ``schema_version`` if present (missing = legacy pre-versioning
+    save, treated as ``neuronal_tensor_v1`` implicitly). An unrecognized
+    *future* version is accepted with a warning, not an error -- this loader
+    targets forward-readability of additive fields, not strict lockstep.
+    """
+    schema_version = raw.get("schema_version", NEURONAL_TENSOR_SCHEMA_VERSION)
+    if schema_version != NEURONAL_TENSOR_SCHEMA_VERSION:
+        warnings.warn(
+            f"NeuronalTensor JSON at {path} declares schema_version="
+            f"{schema_version!r}, expected {NEURONAL_TENSOR_SCHEMA_VERSION!r}. "
+            "Loading anyway; fields may be silently dropped if the schema "
+            "diverged.",
+            stacklevel=2,
+        )
     areas = [
         Area(
             name=a["name"],
@@ -340,7 +416,56 @@ def _apply_pose(local_xyz: "jax.Array", pose: Pose3D) -> "jax.Array":
     return global_xyz + jnp.asarray(pose.translation, dtype=global_xyz.dtype)
 
 
+@dataclass(frozen=True)
+class RuntimeConfiguration:
+    """Execution-only configuration for the tensor-first workflow
+    (``jtfne.construct(tensor, runtime)``). Contains no biological structure
+    -- areas, layers, populations, geometry, mechanisms, and plastic
+    parameters all belong on :class:`NeuronalTensor`, never here.
+
+    **Wired** (actually consumed by :func:`jaxfne.construct` /
+    :func:`jaxfne.simulate` today): ``duration_ms``, ``dt_ms``, ``seed``,
+    ``dtype``, ``emitter``, ``device`` (mapped to ``RuntimeConfig.backend``),
+    ``jit``, ``vmap``.
+
+    **Reserved, declared but not yet consumed** (forward-compatible
+    placeholders for the TFNE-grammar stages they name; setting them has no
+    effect today -- not silently ignored, just honestly not wired yet):
+    ``solver``, ``probes``, ``n_contacts``, ``outputs``, ``optimizer``.
+    """
+    duration_ms: float = 1000.0
+    dt_ms: float = 0.1
+    seed: int = 0
+    dtype: str = "float32"
+    emitter: str = "izhikevich"
+    device: str = "auto"
+    jit: "bool | str" = False
+    vmap: "bool | str" = False
+    solver: "str | None" = None
+    probes: "Sequence[str] | None" = None
+    n_contacts: int = 16
+    outputs: "dict | None" = None
+    optimizer: "Any | None" = None
+
+
 def construct_neuronal_tensor(
+    tensor: NeuronalTensor,
+    *,
+    seed: int = 0,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+    emitter: str = "izhikevich",
+) -> Model:
+    """Compatibility wrapper around :func:`jaxfne.construct`.
+
+    Prefer ``jtfne.construct(tensor, RuntimeConfiguration(seed=..., ...))``
+    for new code -- this kwarg-style call remains supported unchanged.
+    """
+    runtime = RuntimeConfiguration(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter)
+    return construct(tensor, runtime)
+
+
+def _construct_neuronal_tensor_impl(
     tensor: NeuronalTensor,
     *,
     seed: int = 0,
@@ -577,10 +702,22 @@ def neuronal_tensor_to_configuration(
 
         layer_cell_types: dict[str, dict[str, float]] = {}
         for layer in area.layers:
-            type_names = [nt.name for nt in layer.neuron_types] or ["E"]
-            frac = 1.0 / len(type_names)
-            layer_cell_types[layer.name] = {name: frac for name in type_names}
-            for name in type_names:
+            neuron_types = list(layer.neuron_types) or [NeuronType.make("E")]
+            type_names = [nt.name for nt in neuron_types]
+            if all(nt.fraction is not None for nt in neuron_types):
+                # Every NeuronType in this layer declares its own population
+                # fraction -- use those (normalized) instead of the even
+                # split, so a layer's declared E:I composition (e.g. the
+                # canonical column's deep-E/superficial-I gradient) survives
+                # the bridge instead of being flattened to 1/len(types).
+                raw = {nt.name: float(nt.fraction) for nt in neuron_types}
+                total = sum(raw.values()) or 1.0
+                fracs = {name: v / total for name, v in raw.items()}
+            else:
+                even = 1.0 / len(type_names)
+                fracs = {name: even for name in type_names}
+            layer_cell_types[layer.name] = fracs
+            for name, frac in fracs.items():
                 fallback_weight[name] = fallback_weight.get(name, 0.0) + float(layer.n_neurons) * frac
         if layer_cell_types:
             cfg = cfg.area_layer_cell_types(area.name, layer_cell_types)

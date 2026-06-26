@@ -53,7 +53,8 @@ DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT = {
 
 # Verified long-term stable (20s, 5-seed gate, flat rates in-band, H pinned
 # ~1.0000-1.0029, weight_saturation_fraction~0.105). Freeze candidate for
-# 0.4.6 per project memory; tau_0_ms multiplies the per-neuron size**2 term.
+# 0.4.6 per project memory; tau_0_ms multiplies the per-neuron size**3 term
+# (cube law, 0.4.7: size=2.0 -> 8x tau_0_ms, larger neurons adapt slower).
 DEFAULT_HDP = dict(
     K_HDP=0.01,
     tau_0_ms=200.0,
@@ -69,7 +70,7 @@ BASE_HDP_KWARGS_DEFAULT = dict(
 )
 
 # Faster, less-overdamped H dynamics: DEFAULT_HDP's tau_0_ms=200 combined
-# with size**2 scaling (E size=5 -> tau_i=5000ms) makes H_i nearly static
+# with size**3 scaling (E size=5 -> tau_i=25000ms) makes H_i nearly static
 # (H_std~0.0006), which in turn keeps every neuron's spiking near-regular
 # ("ECG-like") -- low population-level rate variance even though overall
 # rate is in-band. This profile trades that overdamping for faster H
@@ -87,7 +88,7 @@ BASE_HDP_KWARGS_DEFAULT = dict(
 # tightened the upper tail further (alpha>=0.08 also hits the same
 # runaway cliff). The lower tail (~0.95) did not move further down across
 # the K_ctrl range tried (0.08-0.15) -- it appears structurally bottlenecked
-# by E neurons' large tau_i (tau_0_ms*size**2, size=5 for E) keeping the
+# by E neurons' large tau_i (tau_0_ms*size**3, size=5 for E) keeping the
 # majority population's H sluggish, not by these three gains. Verified
 # 5-seed stable (N=500, 2000ms): rate=12.6Hz, H=1.028+-0.023 in
 # [0.953,1.227] (vs the first-pass [0.96,1.47]), rate_std~6.0Hz (vs 0.99Hz
@@ -114,7 +115,7 @@ DEFAULT_HDP_DESYNC = dict(
 DRIVE_SCALE_DESYNC = 1.2
 
 # Deep-layer size inflation, per user spec: makes deep layers appear
-# visually less dense and (via tau_i = tau_0_ms * size_i**2 in
+# visually less dense and (via tau_i = tau_0_ms * size_i**3 in
 # jaxfne.emitters) makes deep-layer H integrate slower. Multiplies
 # whatever cell-type size the neuron already has; 1.0 = no change.
 LAYER_SIZE_SCALE_DEFAULT = {
@@ -186,7 +187,7 @@ def layer_size_scale_override(model: "jtfne.core.Model", cfg: HDPColumnConfig) -
     size table (jaxfne.emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE) with
     `cfg.layer_size_scale` (a per-layer multiplier, e.g. deep layers
     inflated to read less dense and integrate H more slowly via
-    tau_i = tau_0_ms * size_i**2). Returns None if cfg.layer_size_scale is
+    tau_i = tau_0_ms * size_i**3). Returns None if cfg.layer_size_scale is
     unset, so callers can pass it straight through to
     `simulate_edge_recurrent_izhikevich_hdp(size_scale_override=...)`.
     """

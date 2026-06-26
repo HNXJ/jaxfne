@@ -11,6 +11,9 @@ SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy.
 Scope metadata: All operators are simulated proxies with frozen
 validation metadata. Simulated mechanism-readout outputs. No empirical validation.
 
+Builds the network via Configuration. For the declarative
+Areas/Layers/NeuronTypes alternative, see examples/08_neuronal_tensor_first.py.
+
 Usage:
     python examples/05_network_100_ei_multimodal.py
 
@@ -219,33 +222,27 @@ def main():
     # === 10. Generate spike raster figure ===
     raster_path = None
     try:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-
         figures_dir = output_dir / "figures"
         figures_dir.mkdir(parents=True, exist_ok=True)
 
-        # Spike raster for 100-neuron network
-        fig, ax = plt.subplots(figsize=(14, 6))
-        spikes = signals.spikes.T  # Transpose to (neurons, timesteps)
-        timesteps = jnp.arange(spikes.shape[1])
-
-        # Plot E neurons in blue, I neurons in red
-        for neuron_idx in range(spikes.shape[0]):
-            spike_times = timesteps[spikes[neuron_idx] > 0.5]
-            color = 'blue' if neuron_idx < 75 else 'red'
-            ax.vlines(spike_times, neuron_idx - 0.4, neuron_idx + 0.4, colors=color, linewidth=0.3, alpha=0.7)
-
+        # Spike raster for 100-neuron network (E neurons in blue, I neurons in red)
+        n_neurons = signals.spikes.shape[1]
+        fig = jtfne.vis.raster(
+            {"spikes": signals.spikes},
+            sort_by=None,
+            marker_size=0.6,
+            figsize=(14, 6),
+        )
+        ax = fig.axes[0]
         ax.set_xlabel("Timestep")
         ax.set_ylabel("Neuron (E: blue, I: red)")
         ax.set_title("100-neuron E/I network spike raster")
-        ax.set_ylim(-0.5, spikes.shape[0] - 0.5)
+        ax.set_ylim(-0.5, n_neurons - 0.5)
         ax.axhline(y=74.5, color='gray', linestyle='--', linewidth=0.5, alpha=0.5)
 
         raster_path = figures_dir / "raster.png"
         fig.savefig(raster_path, dpi=100, bbox_inches='tight')
-        plt.close(fig)
+        jtfne.vis.close_all()
 
     except ImportError:
         pass

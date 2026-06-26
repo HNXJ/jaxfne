@@ -501,3 +501,254 @@ def summary_with_meta(signals: Any, **kwargs: Any) -> FigureResult:
     fig = summary(signals, **kwargs)
     return FigureResult(fig, {"plot_type": "summary", "proxy_safe": True})
 
+
+def parameter_sweep_heatmap(
+    value_grid: Any,
+    row_labels: Any,
+    col_labels: Any,
+    **kwargs: Any,
+) -> Any:
+    """Plot a 2D parameter-sweep heatmap with per-cell value + regime-marker annotation.
+
+    Parameters
+    ----------
+    value_grid:
+        2D array of shape (n_rows, n_cols) with the scalar metric (e.g. firing rate Hz).
+    row_labels, col_labels:
+        Tick labels for rows/columns (e.g. swept parameter values).
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    cmap = kwargs.pop("cmap", "viridis")
+    vmin = kwargs.pop("vmin", None)
+    vmax = kwargs.pop("vmax", None)
+    cbar_label = kwargs.pop("cbar_label", "Value")
+    cell_labels = kwargs.pop("cell_labels", None)  # optional 2D list of marker strings
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+
+    grid = prepare_static_plot_matrix(value_grid)
+    n_rows, n_cols = grid.shape
+
+    im = ax.imshow(grid, aspect="auto", origin="upper", cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.set_xticks(range(n_cols))
+    ax.set_xticklabels([str(c) for c in col_labels])
+    ax.set_yticks(range(n_rows))
+    ax.set_yticklabels([str(r) for r in row_labels])
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label(cbar_label)
+
+    grid_max = float(np.nanmax(grid)) if grid.size else 1.0
+    for i in range(n_rows):
+        for j in range(n_cols):
+            text = f"{grid[i, j]:.0f}"
+            if cell_labels is not None:
+                text += f"\n{cell_labels[i][j]}"
+            ax.text(
+                j, i, text, ha="center", va="center", fontsize=8,
+                color="white" if grid[i, j] < grid_max * 0.6 else "black",
+            )
+
+    ax.set_title("Parameter sweep heatmap")
+    return fig
+
+
+def multi_trace(
+    time_ms: Any,
+    traces: dict,
+    **kwargs: Any,
+) -> Any:
+    """Plot an arbitrary set of named time-series traces on one axis.
+
+    Parameters
+    ----------
+    time_ms:
+        Shared time axis.
+    traces:
+        Mapping of trace label -> (values, color) or values. ``color`` is optional.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    ylabel = kwargs.pop("ylabel", "Amplitude (proxy units)")
+    title = kwargs.pop("title", "Multi-trace proxy readout")
+    zero_line = kwargs.pop("zero_line", False)
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+
+    t = prepare_static_plot_matrix(np.asarray(time_ms, dtype=float))
+    for label, spec in traces.items():
+        if isinstance(spec, tuple):
+            values, color = spec
+        else:
+            values, color = spec, None
+        y = prepare_static_plot_matrix(np.asarray(values, dtype=float))
+        if color is not None:
+            ax.plot(t, y, linewidth=0.7, alpha=0.8, label=str(label), color=color)
+        else:
+            ax.plot(t, y, linewidth=0.7, alpha=0.8, label=str(label))
+
+    if zero_line:
+        ax.axhline(0, color="black", linestyle="--", linewidth=0.5, alpha=0.5)
+
+    ax.set_xlabel("Time (ms)")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="upper right", fontsize=8)
+    return fig
+
+
+def dual_voltage_panel(
+    time_ms: Any,
+    v_e: Any,
+    v_i: Any,
+    **kwargs: Any,
+) -> Any:
+    """Plot a two-row stacked voltage trace panel for an E/I neuron pair."""
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    figsize = kwargs.pop("figsize", (14, 6))
+    e_label = kwargs.pop("e_label", "E neuron")
+    i_label = kwargs.pop("i_label", "I neuron")
+    e_title = kwargs.pop("e_title", "Excitatory neuron voltage trace")
+    i_title = kwargs.pop("i_title", "Inhibitory neuron voltage trace")
+    ylim = kwargs.pop("ylim", None)
+
+    fig, axes = plt.subplots(2, 1, figsize=figsize, sharex=True)
+
+    t = prepare_static_plot_matrix(np.asarray(time_ms, dtype=float))
+    v_e_arr = prepare_static_plot_matrix(np.asarray(v_e, dtype=float))
+    v_i_arr = prepare_static_plot_matrix(np.asarray(v_i, dtype=float))
+
+    axes[0].plot(t, v_e_arr, linewidth=0.6, color="blue", label=e_label)
+    axes[0].set_ylabel("Voltage (mV)")
+    axes[0].set_title(e_title)
+    axes[0].grid(True, alpha=0.3)
+    axes[0].legend(loc="upper right")
+    if ylim is not None:
+        axes[0].set_ylim(ylim)
+
+    axes[1].plot(t, v_i_arr, linewidth=0.6, color="red", label=i_label)
+    axes[1].set_xlabel("Time (ms)")
+    axes[1].set_ylabel("Voltage (mV)")
+    axes[1].set_title(i_title)
+    axes[1].grid(True, alpha=0.3)
+    axes[1].legend(loc="upper right")
+    if ylim is not None:
+        axes[1].set_ylim(ylim)
+
+    fig.tight_layout()
+    return fig
+
+
+def coupled_vs_uncoupled_ei(
+    time_ms: Any,
+    spikes_coupled: Any,
+    spikes_uncoupled: Any,
+    v_m_coupled: Any,
+    v_m_uncoupled: Any,
+    **kwargs: Any,
+) -> Any:
+    """Plot a 4-panel coupling-ablation comparison (coupled vs. uncoupled E/I dynamics).
+
+    Expects spikes/V_m arrays of shape (n_steps, 2) with column 0 = E, column 1 = I.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    figsize = kwargs.pop("figsize", (12, 6))
+    ylim = kwargs.pop("ylim", [-80, 40])
+    fig, axes = plt.subplots(2, 2, figsize=figsize, sharex=True)
+
+    t = prepare_static_plot_matrix(np.asarray(time_ms, dtype=float))
+    spk_c = prepare_static_plot_matrix(np.asarray(spikes_coupled, dtype=float))
+    spk_u = prepare_static_plot_matrix(np.asarray(spikes_uncoupled, dtype=float))
+    v_c = prepare_static_plot_matrix(np.asarray(v_m_coupled, dtype=float))
+    v_u = prepare_static_plot_matrix(np.asarray(v_m_uncoupled, dtype=float))
+
+    ax_spk_c, ax_vm_c = axes[0, 0], axes[0, 1]
+    spike_times_e_c = t[spk_c[:, 0] > 0.5]
+    spike_times_i_c = t[spk_c[:, 1] > 0.5]
+    ax_spk_c.scatter(spike_times_e_c, [0] * len(spike_times_e_c), color='blue', s=15, alpha=0.7, label='E')
+    ax_spk_c.scatter(spike_times_i_c, [1] * len(spike_times_i_c), color='red', s=15, alpha=0.7, label='I')
+    ax_spk_c.set_ylabel("Neuron (Coupled)")
+    ax_spk_c.set_yticks([0, 1])
+    ax_spk_c.set_yticklabels(['E', 'I'])
+    ax_spk_c.set_title("With coupling -- spikes")
+    ax_spk_c.grid(True, alpha=0.3)
+
+    ax_vm_c.plot(t, v_c[:, 0], label='E', color='blue', linewidth=0.8)
+    ax_vm_c.plot(t, v_c[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_c.set_ylabel("V_m (mV)")
+    ax_vm_c.set_ylim(ylim)
+    ax_vm_c.set_title("With coupling -- voltage")
+    ax_vm_c.legend(fontsize=8)
+    ax_vm_c.grid(True, alpha=0.3)
+
+    ax_spk_u, ax_vm_u = axes[1, 0], axes[1, 1]
+    spike_times_e_u = t[spk_u[:, 0] > 0.5]
+    spike_times_i_u = t[spk_u[:, 1] > 0.5]
+    ax_spk_u.scatter(spike_times_e_u, [0] * len(spike_times_e_u), color='blue', s=15, alpha=0.7, label='E')
+    ax_spk_u.scatter(spike_times_i_u, [1] * len(spike_times_i_u), color='red', s=15, alpha=0.7, label='I')
+    ax_spk_u.set_xlabel("Time (ms)")
+    ax_spk_u.set_ylabel("Neuron (Uncoupled)")
+    ax_spk_u.set_yticks([0, 1])
+    ax_spk_u.set_yticklabels(['E', 'I'])
+    ax_spk_u.set_title("Without coupling -- spikes")
+    ax_spk_u.grid(True, alpha=0.3)
+
+    ax_vm_u.plot(t, v_u[:, 0], label='E', color='blue', linewidth=0.8)
+    ax_vm_u.plot(t, v_u[:, 1], label='I', color='red', linewidth=0.8)
+    ax_vm_u.set_xlabel("Time (ms)")
+    ax_vm_u.set_ylabel("V_m (mV)")
+    ax_vm_u.set_ylim(ylim)
+    ax_vm_u.set_title("Without coupling -- voltage")
+    ax_vm_u.legend(fontsize=8)
+    ax_vm_u.grid(True, alpha=0.3)
+
+    fig.suptitle("Coupling effect comparison (coupled vs. uncoupled)", fontsize=13)
+    fig.tight_layout()
+    return fig
+
+
+def parameter_sweep_lines(
+    x_values: Any,
+    line_groups: dict,
+    **kwargs: Any,
+) -> Any:
+    """Plot one line per group across a swept parameter, with an optional gate band.
+
+    Parameters
+    ----------
+    x_values:
+        Sequence of x-axis (swept parameter) values.
+    line_groups:
+        Mapping of group label -> sequence of y-values aligned with ``x_values``.
+    """
+    require_matplotlib()
+    import matplotlib.pyplot as plt
+
+    gate_band = kwargs.pop("gate_band", None)  # optional (low, high) tuple
+    gate_band_label = kwargs.pop("gate_band_label", "Target regime")
+    fig = plt.figure(**kwargs)
+    ax = fig.add_subplot(111)
+
+    x = prepare_static_plot_matrix(np.asarray(x_values, dtype=float))
+    for label, y_values in line_groups.items():
+        y = prepare_static_plot_matrix(np.asarray(y_values, dtype=float))
+        ax.plot(x, y, marker="o", label=str(label))
+
+    if gate_band is not None:
+        low, high = gate_band
+        ax.axhspan(low, high, alpha=0.10, color="green", label=gate_band_label)
+        ax.axhline(low, color="green", linestyle="--", linewidth=0.8, alpha=0.7)
+        ax.axhline(high, color="green", linestyle="--", linewidth=0.8, alpha=0.7)
+
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+    ax.set_title("Parameter sweep diagnostic")
+    return fig
+

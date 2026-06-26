@@ -1,0 +1,114 @@
+{
+  "area_connections": [
+    {
+      "mechanism": "monotonic_cable_synapse",
+      "plastic": {
+        "H": 1.0,
+        "value_tag": "relative",
+        "w_mech": 1.0
+      },
+      "source_area": "V1",
+      "source_layer": "L4",
+      "source_neuron_type": "E",
+      "static": {
+        "dT_ms": 3.0,
+        "g_mech": {},
+        "reversal_potentials_mV": {},
+        "value_tag": "relative"
+      },
+      "target_area": "MT",
+      "target_layer": "L4",
+      "target_neuron_type": "E"
+    }
+  ],
+  "areas": [
+    {
+      "inter_connections": [],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 60,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "V1",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    },
+    {
+      "inter_connections": [],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 60,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "MT",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          500.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    }
+  ],
+  "name": "two_area_feedforward",
+  "schema_version": "neuronal_tensor_v1"
+}

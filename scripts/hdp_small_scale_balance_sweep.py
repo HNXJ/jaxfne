@@ -27,6 +27,8 @@ from typing import Any
 
 import numpy as np
 
+import jaxfne as jtfne
+
 OUTPUT_DIR = Path("outputs/hdp_small_scale_balance_sweep")
 
 N_LIST = [10, 30, 70, 100]
@@ -160,28 +162,11 @@ def main() -> None:
 
 
 def _plot(results: dict[int, dict[float, list[dict[str, float]]]], summary: list[dict[str, Any]], out_path: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
-    for n in N_LIST:
-        means = [np.mean([r["H_mean"] for r in results[n][k]]) for k in K_GRID]
-        varz = [np.mean([r["H_var"] for r in results[n][k]]) for k in K_GRID]
-        axes[0].plot(K_GRID, means, marker="o", label=f"N={n}")
-        axes[1].plot(K_GRID, varz, marker="o", label=f"N={n}")
-    axes[0].axhline(1.0, color="k", ls="--", lw=0.5)
-    axes[0].set_xscale("log")
-    axes[0].set_xlabel("K_ctrl")
-    axes[0].set_ylabel("H_mean (avg over 10 networks, tail window)")
-    axes[0].legend(fontsize=8)
-    axes[1].set_xscale("log")
-    axes[1].set_yscale("log")
-    axes[1].set_xlabel("K_ctrl")
-    axes[1].set_ylabel("H_var (avg over 10 networks, tail window)")
-    axes[1].legend(fontsize=8)
-    fig.suptitle("H-dynamics balance vs K_ctrl, by network size (10 all-to-all networks/size)")
-    fig.tight_layout()
+    H_mean_by_n = {n: [np.mean([r["H_mean"] for r in results[n][k]]) for k in K_GRID] for n in N_LIST}
+    H_var_by_n = {n: [np.mean([r["H_var"] for r in results[n][k]]) for k in K_GRID] for n in N_LIST}
+    fig = jtfne.vis.balance_sweep_by_network_size(K_GRID, H_mean_by_n, H_var_by_n)
     fig.savefig(out_path, dpi=150)
-    plt.close(fig)
+    jtfne.vis.close_all()
 
 
 if __name__ == "__main__":

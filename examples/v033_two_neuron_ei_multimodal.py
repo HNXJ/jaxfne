@@ -106,124 +106,6 @@ def classify_neuron_regime(firing_rate_hz: float, finite: bool) -> str:
     return "target_regime"
 
 
-def plot_coupled_vs_uncoupled(time_ms, spikes_coupled, spikes_uncoupled,
-                               v_m_coupled, v_m_uncoupled):
-    """Plot effect of coupling: coupled vs. uncoupled comparison (4-panel)."""
-    import matplotlib.pyplot as plt
-
-    fig, axes = plt.subplots(2, 2, figsize=(12, 6), sharex=True)
-
-    ax_spk_c = axes[0, 0]
-    ax_vm_c = axes[0, 1]
-
-    spike_times_e_c = time_ms[spikes_coupled[:, 0] > 0.5]
-    spike_times_i_c = time_ms[spikes_coupled[:, 1] > 0.5]
-
-    ax_spk_c.scatter(spike_times_e_c, [0] * len(spike_times_e_c),
-                     color='blue', s=15, alpha=0.7, label='E')
-    ax_spk_c.scatter(spike_times_i_c, [1] * len(spike_times_i_c),
-                     color='red', s=15, alpha=0.7, label='I')
-    ax_spk_c.set_ylabel("Neuron (Coupled)")
-    ax_spk_c.set_yticks([0, 1])
-    ax_spk_c.set_yticklabels(['E', 'I'])
-    ax_spk_c.set_title("With Coupling — Spikes")
-    ax_spk_c.grid(True, alpha=0.3)
-
-    ax_vm_c.plot(time_ms, v_m_coupled[:, 0], label='E', color='blue', linewidth=0.8)
-    ax_vm_c.plot(time_ms, v_m_coupled[:, 1], label='I', color='red', linewidth=0.8)
-    ax_vm_c.set_ylabel("V_m (mV)")
-    ax_vm_c.set_ylim([-80, 40])
-    ax_vm_c.set_title("With Coupling — Voltage")
-    ax_vm_c.legend(fontsize=8)
-    ax_vm_c.grid(True, alpha=0.3)
-
-    ax_spk_u = axes[1, 0]
-    ax_vm_u = axes[1, 1]
-
-    spike_times_e_u = time_ms[spikes_uncoupled[:, 0] > 0.5]
-    spike_times_i_u = time_ms[spikes_uncoupled[:, 1] > 0.5]
-
-    ax_spk_u.scatter(spike_times_e_u, [0] * len(spike_times_e_u),
-                     color='blue', s=15, alpha=0.7, label='E')
-    ax_spk_u.scatter(spike_times_i_u, [1] * len(spike_times_i_u),
-                     color='red', s=15, alpha=0.7, label='I')
-    ax_spk_u.set_xlabel("Time (ms)")
-    ax_spk_u.set_ylabel("Neuron (Uncoupled)")
-    ax_spk_u.set_yticks([0, 1])
-    ax_spk_u.set_yticklabels(['E', 'I'])
-    ax_spk_u.set_title("Without Coupling — Spikes")
-    ax_spk_u.grid(True, alpha=0.3)
-
-    ax_vm_u.plot(time_ms, v_m_uncoupled[:, 0], label='E', color='blue', linewidth=0.8)
-    ax_vm_u.plot(time_ms, v_m_uncoupled[:, 1], label='I', color='red', linewidth=0.8)
-    ax_vm_u.set_xlabel("Time (ms)")
-    ax_vm_u.set_ylabel("V_m (mV)")
-    ax_vm_u.set_ylim([-80, 40])
-    ax_vm_u.set_title("Without Coupling — Voltage")
-    ax_vm_u.legend(fontsize=8)
-    ax_vm_u.grid(True, alpha=0.3)
-
-    fig.suptitle("Coupling Effect Comparison (Coupled vs. Uncoupled)", fontsize=13)
-    fig.tight_layout()
-    return fig
-
-
-def plot_circuit_schematic(g_ei, g_ie, firing_rate_e, firing_rate_i):
-    """Plot E/I circuit schematic with coupling conductance labels."""
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-
-    x_e, y_e = 0.3, 0.5
-    x_i, y_i = 0.7, 0.5
-    radius = 0.08
-
-    e_circle = patches.Circle((x_e, y_e), radius, color='blue', alpha=0.7)
-    ax.add_patch(e_circle)
-    ax.text(x_e, y_e, 'E', ha='center', va='center',
-            color='white', fontsize=14, fontweight='bold')
-    ax.text(x_e, y_e - 0.14, f'{firing_rate_e:.1f} Hz',
-            ha='center', va='center', fontsize=10, color='blue')
-
-    i_circle = patches.Circle((x_i, y_i), radius, color='red', alpha=0.7)
-    ax.add_patch(i_circle)
-    ax.text(x_i, y_i, 'I', ha='center', va='center',
-            color='white', fontsize=14, fontweight='bold')
-    ax.text(x_i, y_i - 0.14, f'{firing_rate_i:.1f} Hz',
-            ha='center', va='center', fontsize=10, color='red')
-
-    arrow_ie = patches.FancyArrowPatch(
-        (x_e + radius, y_e), (x_i - radius, y_i),
-        arrowstyle='->', mutation_scale=25,
-        color='green', linewidth=2.0, alpha=0.8,
-        connectionstyle="arc3,rad=0.25"
-    )
-    ax.add_patch(arrow_ie)
-    ax.text(0.5, y_e + 0.10, f'g_EtoI={g_ei:.1f}' + chr(10) + '(excitatory)',
-            ha='center', fontsize=9,
-            bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-
-    arrow_ei = patches.FancyArrowPatch(
-        (x_i - radius, y_i), (x_e + radius, y_e),
-        arrowstyle='->', mutation_scale=25,
-        color='darkred', linewidth=2.0, alpha=0.8,
-        connectionstyle="arc3,rad=0.25"
-    )
-    ax.add_patch(arrow_ei)
-    ax.text(0.5, y_e - 0.10, f'g_ItoE={g_ie:.1f}' + chr(10) + '(inhibitory)',
-            ha='center', fontsize=9,
-            bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.5))
-
-    ax.set_xlim(0.1, 0.9)
-    ax.set_ylim(0.25, 0.75)
-    ax.set_aspect('equal')
-    ax.axis('off')
-    ax.set_title("Recurrent E/I Circuit (Coupling Conductances Shown)", fontsize=13)
-    fig.tight_layout()
-    return fig
-
-
 def main(update_canonical: bool = False):
     """Main tutorial execution.
 
@@ -237,9 +119,7 @@ def main(update_canonical: bool = False):
     """
 
     try:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
+        jtfne.vis.require_matplotlib()
         HAS_MATPLOTLIB = True
     except ImportError:
         HAS_MATPLOTLIB = False
@@ -606,40 +486,27 @@ def main(update_canonical: bool = False):
         i_spike_times = t[i_spike_indices]
 
         # Figure 1: Voltage traces for E and PV neurons (two-row panel)
-        fig, axes = plt.subplots(2, 1, figsize=(14, 6), sharex=True)
-
-        axes[0].plot(t, V_m[:, E_INDEX], linewidth=0.6, color='blue', label='E neuron')
-        axes[0].set_ylabel('Voltage (mV)')
-        axes[0].set_title(
-            f'v0.3.3: Excitatory Neuron Voltage Trace\n'
-            f'(Firing rate: {e_firing_rate_hz:.2f} Hz, Proxy readout)'
+        fig = jtfne.vis.dual_voltage_panel(
+            t, V_m[:, E_INDEX], V_m[:, I_INDEX],
+            figsize=(14, 6),
+            e_label='E neuron', i_label='PV neuron',
+            e_title=f'v0.3.3: Excitatory Neuron Voltage Trace\n(Firing rate: {e_firing_rate_hz:.2f} Hz, Proxy readout)',
+            i_title=f'v0.3.3: PV (Inhibitory) Neuron Voltage Trace\n(Firing rate: {i_firing_rate_hz:.2f} Hz, Proxy readout)',
         )
-        axes[0].grid(True, alpha=0.3)
-        axes[0].legend(loc='upper right')
-
-        axes[1].plot(t, V_m[:, I_INDEX], linewidth=0.6, color='red', label='PV neuron')
-        axes[1].set_xlabel('Time (ms)')
-        axes[1].set_ylabel('Voltage (mV)')
-        axes[1].set_title(
-            f'v0.3.3: PV (Inhibitory) Neuron Voltage Trace\n'
-            f'(Firing rate: {i_firing_rate_hz:.2f} Hz, Proxy readout)'
-        )
-        axes[1].grid(True, alpha=0.3)
-        axes[1].legend(loc='upper right')
-
-        plt.tight_layout()
         voltage_fig_path = figures_dir / "v0303_two_neuron_ei_voltage.png"
-        plt.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(voltage_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 2: Spike raster (two neurons)
-        fig, ax = plt.subplots(figsize=(14, 4))
-
-        ax.scatter(e_spike_times, [0] * len(e_spike_times), marker='|', s=500, color='blue',
-                   linewidth=2, label=f'E spikes (n={e_n_spikes})')
-        ax.scatter(i_spike_times, [1] * len(i_spike_times), marker='|', s=500, color='red',
-                   linewidth=2, label=f'PV spikes (n={i_n_spikes})')
-
+        neuron_colors = ['blue', 'red']
+        fig = jtfne.vis.raster(
+            {"spikes": spikes_arr, "time_ms": t},
+            sort_by=None,
+            neuron_colors=neuron_colors,
+            marker_size=125.0,
+            figsize=(14, 4),
+        )
+        ax = fig.axes[0]
         ax.set_xlabel('Time (ms)')
         ax.set_ylabel('Neuron')
         ax.set_yticks([0, 1])
@@ -649,116 +516,103 @@ def main(update_canonical: bool = False):
             f'(Dynamic coupling: E→PV g={G_EI}, PV→E g={G_IE})'
         )
         ax.set_ylim(-0.5, 1.5)
-        ax.grid(True, alpha=0.3, axis='x')
-        ax.legend(loc='upper right')
 
-        plt.tight_layout()
         raster_fig_path = figures_dir / "v0303_two_neuron_ei_raster.png"
-        plt.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(raster_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 3: Dynamic synaptic coupling currents (from lax.scan carry, NOT post-hoc)
-        fig, ax = plt.subplots(figsize=(14, 4))
-        ax.plot(t, syn_currents[:, E_INDEX], linewidth=0.8, color='orange',
-                label=f'I→E inhibitory current (g={G_IE})', alpha=0.8)
-        ax.plot(t, syn_currents[:, I_INDEX], linewidth=0.8, color='green',
-                label=f'E→PV excitatory current (g={G_EI})', alpha=0.8)
-        ax.axhline(0, color='black', linestyle='--', linewidth=0.5, alpha=0.5)
-        ax.set_xlabel('Time (ms)')
-        ax.set_ylabel('Synaptic current (proxy units)')
-        ax.set_title(
-            'v0.3.3: Dynamic E/PV Synaptic Currents (lax.scan carry state)\n'
-            '(Dynamic injection during simulation, not post-hoc, computational scaffold)'
+        fig = jtfne.vis.multi_trace(
+            t,
+            {
+                f'I→E inhibitory current (g={G_IE})': (syn_currents[:, E_INDEX], 'orange'),
+                f'E→PV excitatory current (g={G_EI})': (syn_currents[:, I_INDEX], 'green'),
+            },
+            figsize=(14, 4),
+            ylabel='Synaptic current (proxy units)',
+            title=(
+                'v0.3.3: Dynamic E/PV Synaptic Currents (lax.scan carry state)\n'
+                '(Dynamic injection during simulation, not post-hoc, computational scaffold)'
+            ),
+            zero_line=True,
         )
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc='upper right')
-
-        plt.tight_layout()
         coupling_fig_path = figures_dir / "v0303_two_neuron_ei_coupling_currents.png"
-        plt.savefig(coupling_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(coupling_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 4: Source aggregation (E vs PV contribution)
         e_source_ts = sources[:, E_INDEX]
         i_source_ts = sources[:, I_INDEX]
 
-        fig, ax = plt.subplots(figsize=(14, 4))
-        ax.plot(t, e_source_ts, linewidth=0.6, color='blue', label='E source (aggregated)', alpha=0.7)
-        ax.plot(t, i_source_ts, linewidth=0.6, color='red', label='PV source (aggregated)', alpha=0.7)
-        ax.set_xlabel('Time (ms)')
-        ax.set_ylabel('Source (proxy units)')
-        ax.set_title(
-            'v0.3.3: E/PV Source Aggregation\n'
-            '(Proxy readout, uncalibrated Izhikevich native current)'
+        fig = jtfne.vis.multi_trace(
+            t,
+            {
+                'E source (aggregated)': (e_source_ts, 'blue'),
+                'PV source (aggregated)': (i_source_ts, 'red'),
+            },
+            figsize=(14, 4),
+            ylabel='Source (proxy units)',
+            title=(
+                'v0.3.3: E/PV Source Aggregation\n'
+                '(Proxy readout, uncalibrated Izhikevich native current)'
+            ),
         )
-        ax.grid(True, alpha=0.3)
-        ax.legend(loc='upper right')
-
-        plt.tight_layout()
         source_fig_path = figures_dir / "v0303_two_neuron_ei_source.png"
-        plt.savefig(source_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(source_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 5: LFP-like proxy
-        fig, ax = plt.subplots(figsize=(14, 4))
-        for contact_idx in range(min(4, lfp_proxy.shape[1])):
-            ax.plot(t, lfp_proxy[:, contact_idx], linewidth=0.5,
-                    label=f'Contact {contact_idx}', alpha=0.7)
-        ax.set_xlabel('Time (ms)')
+        fig = jtfne.vis.lfp_traces(
+            {"lfp_proxy": lfp_proxy, "time_ms": t},
+            max_contacts=4,
+            figsize=(14, 4),
+        )
+        ax = fig.axes[0]
         ax.set_ylabel('LFP-like proxy')
         ax.set_title(
             'v0.3.3: Simulated LFP-like Proxy (first 4 contacts)\n'
             '(Proxy readout, no physical amplitude status)'
         )
-        ax.grid(True, alpha=0.3)
         ax.legend(loc='upper right', fontsize=8)
-
-        plt.tight_layout()
         lfp_fig_path = figures_dir / "v0303_two_neuron_ei_lfp_proxy.png"
-        plt.savefig(lfp_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(lfp_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 6: CSD-like proxy
-        fig, ax = plt.subplots(figsize=(14, 4))
-        for contact_idx in range(min(4, csd_proxy.shape[1])):
-            ax.plot(t, csd_proxy[:, contact_idx], linewidth=0.5,
-                    label=f'Layer {contact_idx}', alpha=0.7)
-        ax.set_xlabel('Time (ms)')
+        fig = jtfne.vis.csd_traces(
+            {"csd_proxy": csd_proxy, "time_ms": t},
+            max_contacts=4,
+            figsize=(14, 4),
+        )
+        ax = fig.axes[0]
         ax.set_ylabel('CSD-like proxy')
         ax.set_title(
             'v0.3.3: Simulated CSD-like Proxy (first 4 layers)\n'
             '(Proxy readout, no PDE solve)'
         )
-        ax.grid(True, alpha=0.3)
         ax.legend(loc='upper right', fontsize=8)
-
-        plt.tight_layout()
         csd_fig_path = figures_dir / "v0303_two_neuron_ei_csd_proxy.png"
-        plt.savefig(csd_fig_path, dpi=150, bbox_inches='tight')
-        plt.close()
+        fig.savefig(csd_fig_path, dpi=150, bbox_inches='tight')
+        jtfne.vis.close_all()
 
         # Figure 7: Coupled vs. uncoupled comparison (ablation figure)
-        fig_cvu = plot_coupled_vs_uncoupled(
-            time_ms=t,
-            spikes_coupled=spikes_arr,
-            spikes_uncoupled=spikes_arr_unc,
-            v_m_coupled=V_m,
-            v_m_uncoupled=V_m_unc,
+        fig_cvu = jtfne.vis.coupled_vs_uncoupled_ei(
+            t, spikes_arr, spikes_arr_unc, V_m, V_m_unc,
         )
         coupled_vs_uncoupled_fig_path = figures_dir / "v0303_two_neuron_ei_coupled_vs_uncoupled.png"
         fig_cvu.savefig(coupled_vs_uncoupled_fig_path, dpi=150, bbox_inches='tight')
-        plt.close(fig_cvu)
+        jtfne.vis.close_all()
 
         # Figure 8: Circuit schematic (connectivity diagram)
-        fig_cs = plot_circuit_schematic(
-            g_ei=G_EI,
-            g_ie=G_IE,
-            firing_rate_e=e_firing_rate_hz,
-            firing_rate_i=i_firing_rate_hz,
+        fig_cs = jtfne.vis.ei_circuit_diagram(
+            g_e_to_i=G_EI,
+            g_i_to_e=G_IE,
+            firing_rate_e_hz=e_firing_rate_hz,
+            firing_rate_i_hz=i_firing_rate_hz,
         )
         circuit_schematic_fig_path = figures_dir / "v0303_two_neuron_ei_circuit_schematic.png"
         fig_cs.savefig(circuit_schematic_fig_path, dpi=150, bbox_inches='tight')
-        plt.close(fig_cs)
+        jtfne.vis.close_all()
 
         print(f"  Saved: {voltage_fig_path}")
         print(f"  Saved: {raster_fig_path}")
