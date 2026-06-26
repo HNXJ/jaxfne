@@ -1985,3 +1985,39 @@ def export_tutorial_artifacts(
         paths[f'{name}_path'] = str(path)
 
     return paths
+
+
+# Forward-compatibility wrappers for vis.tutorial_array_plots functions
+def plot_population_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs):
+    """Forward to vis.tutorial_array_plots.plot_population_raster."""
+    from .vis import plot_population_raster
+    return plot_population_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs)
+
+
+def plot_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs):
+    """Raw-array raster (spike times / neuron IDs from lists)."""
+    return plot_population_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs)
+
+
+def plot_population_rate(t, spikes, **kwargs):
+    """Time-binned population firing rate from raw spike/time arrays."""
+    from .vis import plot_population_rate_array
+    return plot_population_rate_array(t, spikes, **kwargs)
+
+
+def plot_voltage_samples(t, V_m, **kwargs):
+    """Forward to vis.tutorial_array_plots.plot_voltage_samples_array."""
+    from .vis import plot_voltage_samples_array
+    return plot_voltage_samples_array(t, V_m, **kwargs)
+
+
+def plot_connectivity_matrix(W, **kwargs):
+    """Forward to vis.tutorial_array_plots.plot_connectivity_matrix_array."""
+    from .vis import plot_connectivity_matrix_array
+    return plot_connectivity_matrix_array(W, **kwargs)
+
+
+def plot_laminar_readout(t, lfp_proxy, csd_proxy=None, **kwargs):
+    """Forward to vis.tutorial_array_plots.plot_laminar_readout_array."""
+    from .vis import plot_laminar_readout_array
+    return plot_laminar_readout_array(t, lfp_proxy, csd_proxy=csd_proxy, **kwargs)
