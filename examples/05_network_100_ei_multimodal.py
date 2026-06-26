@@ -227,11 +227,9 @@ def main():
 
         # Spike raster for 100-neuron network (E neurons in blue, I neurons in red)
         n_neurons = signals.spikes.shape[1]
-        neuron_colors = ['blue' if i < 75 else 'red' for i in range(n_neurons)]
         fig = jtfne.vis.raster(
             {"spikes": signals.spikes},
             sort_by=None,
-            neuron_colors=neuron_colors,
             marker_size=0.6,
             figsize=(14, 6),
         )

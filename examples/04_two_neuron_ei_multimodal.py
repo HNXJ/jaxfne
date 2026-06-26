@@ -199,11 +199,9 @@ def main():
 
         # Spike raster for 2-neuron network (E: blue, I: red)
         n_neurons = signals.spikes.shape[1]
-        neuron_colors = ['blue' if i == 0 else 'red' for i in range(n_neurons)]
         fig = jtfne.vis.raster(
             {"spikes": signals.spikes},
             sort_by=None,
-            neuron_colors=neuron_colors,
             figsize=(12, 4),
         )
         ax = fig.axes[0]
