@@ -147,7 +147,7 @@ def test_init_state_resume_matches_full_run():
 
 def test_size_scale_override_changes_tau_and_dynamics():
     """An explicit per-neuron size_scale_override changes tau_i = tau_0_ms *
-    size_i**2 and therefore the resulting H trajectory vs. the default
+    size_i**3 and therefore the resulting H trajectory vs. the default
     cell-type-only size table."""
     N, ne = 32, 256
     p, edges = _make_params_edges(N, ne)
@@ -161,6 +161,31 @@ def test_size_scale_override_changes_tau_and_dynamics():
     H_default = np.asarray(d_default["H_trace"])
     H_override = np.asarray(d_override["H_trace"])
     assert not np.allclose(H_default, H_override, atol=1e-5)
+
+
+def test_size_scale_is_cube_law_not_square_law():
+    """tau_i = tau_0_ms * size_i**3 (0.4.7 cube-law adaptation rate): a
+    neuron with relative size 2.0 must integrate H exactly 8x slower than
+    a size-1.0 neuron under a pure constant-income forcing (beta only, no
+    spiking/weight feedback), isolating tau_i from everything else in the
+    dH/dt expression. dH/dt = beta/tau_i => H(t) - 1 = beta*t/tau_i, so the
+    size-2.0 neuron's H deviation after n steps must equal exactly 1/8th
+    of the size-1.0 neuron's deviation (linear regime, far from H_min/H_max
+    clamps and K_ctrl/barrier forces, which are all zero here)."""
+    N, ne = 4, 8
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(0)
+    kw = dict(alpha=0.0, beta=0.02, gamma=0.0, delta=0.0, C_spike=0.0,
+              K_ctrl=0.0, barrier_c=0.0, barrier_d=0.0, K_HDP=0.0,
+              tau_0_ms=100.0, noise_scale=0.0,
+              drive_schedule=jnp.zeros((20, N)))
+    size_arr = np.array([1.0, 2.0, 1.0, 2.0], dtype=np.float32)
+    _, _, _, d = hdp_kernel(
+        p, edges, 20, 0.5, key, size_scale_override=jnp.asarray(size_arr), **kw)
+    H_dev = np.asarray(d["H_trace"])[-1] - 1.0
+    np.testing.assert_allclose(H_dev[0], H_dev[2], rtol=1e-5)
+    np.testing.assert_allclose(H_dev[1], H_dev[3], rtol=1e-5)
+    np.testing.assert_allclose(H_dev[0] / H_dev[1], 8.0, rtol=5e-3)
 
 
 def test_negative_K_HDP_is_anti_homeostatic_and_still_finite():

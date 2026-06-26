@@ -90,13 +90,15 @@ class Geometry3D:
 class NeuronType:
     name: str
     relative_size: float = 1.0
+    fraction: Optional[float] = None
     value_tag: ValueTag = "relative"
 
     @classmethod
     def make(cls, name: str, relative_size: Optional[float] = None,
+             fraction: Optional[float] = None,
              value_tag: ValueTag = "relative") -> "NeuronType":
         return cls(name=name, relative_size=relative_size if relative_size is not None
-                    else default_relative_size(name), value_tag=value_tag)
+                    else default_relative_size(name), fraction=fraction, value_tag=value_tag)
 
 
 @dataclass
@@ -700,10 +702,22 @@ def neuronal_tensor_to_configuration(
 
         layer_cell_types: dict[str, dict[str, float]] = {}
         for layer in area.layers:
-            type_names = [nt.name for nt in layer.neuron_types] or ["E"]
-            frac = 1.0 / len(type_names)
-            layer_cell_types[layer.name] = {name: frac for name in type_names}
-            for name in type_names:
+            neuron_types = list(layer.neuron_types) or [NeuronType.make("E")]
+            type_names = [nt.name for nt in neuron_types]
+            if all(nt.fraction is not None for nt in neuron_types):
+                # Every NeuronType in this layer declares its own population
+                # fraction -- use those (normalized) instead of the even
+                # split, so a layer's declared E:I composition (e.g. the
+                # canonical column's deep-E/superficial-I gradient) survives
+                # the bridge instead of being flattened to 1/len(types).
+                raw = {nt.name: float(nt.fraction) for nt in neuron_types}
+                total = sum(raw.values()) or 1.0
+                fracs = {name: v / total for name, v in raw.items()}
+            else:
+                even = 1.0 / len(type_names)
+                fracs = {name: even for name in type_names}
+            layer_cell_types[layer.name] = fracs
+            for name, frac in fracs.items():
                 fallback_weight[name] = fallback_weight.get(name, 0.0) + float(layer.n_neurons) * frac
         if layer_cell_types:
             cfg = cfg.area_layer_cell_types(area.name, layer_cell_types)

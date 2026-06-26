@@ -117,11 +117,11 @@ COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in 
   take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.
   3D circuit: `vis.visualize_network_3d(model.neuron_table(), output_html=...)`.
 
-## Two paths to a laminar run — pick before you start, don't mix mid-task
+## Two (now three) paths to a laminar run — pick before you start, don't mix mid-task
 
-There are two independent ways to build+run a laminar column. Both are real
-and supported; they are not interchangeable mid-script because they hand back
-different object types (`Model`/`Signals` vs a plain trial `dict`).
+There are three independent ways to build+run a laminar column/circuit. All
+are real and supported; they are not interchangeable mid-script because they
+hand back different object types (`Model`/`Signals` vs a plain trial `dict`).
 
 | | **Config-path** (`jtfne.laminar_cortex_config` → `construct` → `simulate`) | **tutorial_utils-path** (`jtfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`) |
 |---|---|---|
@@ -130,6 +130,18 @@ different object types (`Model`/`Signals` vs a plain trial `dict`).
 | Per-event drive targeting | per-event `target_indices` key — see below | not exposed; drive is column-wide |
 | Noise control | kernel-dependent — see caveat below | `cell_type_izh_params[ct]["noise"]`, swept directly |
 | Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired |
+
+**NeuronalTensor-path (0.4.7, declarative `Areas x Layers x NeuronTypes`):**
+`jtfne.NeuronalTensor` → `jtfne.construct(tensor, jtfne.RuntimeConfiguration(...))`
+→ `jtfne.simulate` — also returns `Model`/`Signals`. `RuntimeConfiguration`
+(tensor path, frozen) has **no** HDP field; `RuntimeConfig` (Config-path,
+above) does. To enable **HDP homeostatic plasticity** (synaptic + H-factor
+adaptation, cube-law `tau_i = tau_0_ms * size_i**3`) on a tensor-built `Model`,
+pass an explicit `runtime=RuntimeConfig(enable_hdp=True, hdp_params={...})`
+to `simulate()` — it overrides any `Configuration`-derived metadata, so this
+needs zero new public API. Full pattern + verified test receipts:
+[`docs/guides/hdp.md`](docs/guides/hdp.md) § "Tensor-first" and
+[`docs/api/neuronal_tensor.md`](docs/api/neuronal_tensor.md).
 
 **Noise-scale caveat (verified, not uniform across kernels):** `simulate_eig_izhikevich`,
 `simulate_edge_recurrent_izhikevich`, and `simulate_edge_recurrent_izhikevich_homeostatic`

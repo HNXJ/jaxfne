@@ -70,12 +70,73 @@ Config
   -> Validation(finite_outputs, strict_json, png_assets, notebook_receipts, optional_dependency_laziness)
 ```
 
-## Minimal workflow
+## Minimal workflow (preferred: NeuronalTensor + RuntimeConfiguration)
+
+`NeuronalTensor` — a declarative `Areas x Layers x NeuronTypes` data model with
+per-layer `InterConnection`/`AreaConnection` wiring — is the canonical, preferred
+way to define a circuit as of 0.4.7. Load a packaged canonical circuit (or build
+one inline, see below), construct, simulate:
 
 ```python
 import jaxfne as jtfne
 
-jtfne.enable_x64()                                   # setup: x64 before arrays
+jtfne.enable_x64()                                              # setup: x64 before arrays
+
+tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")  # or jtfne.load("path/to.json")
+runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)
+model   = jtfne.construct(tensor, runtime)                      # construct: NeuronalTensor -> Model
+signals = jtfne.simulate(model)                                 # simulate -> Signals
+spk = signals.get("spk")                                        # (n_steps, n_neurons) spike raster
+vm_e = signals.get("vm", cell_type="E")                         # membrane voltage for E cells
+```
+
+Define your own circuit inline instead of loading a canonical one:
+
+```python
+E  = jtfne.NeuronType.make("E", fraction=0.9)    # explicit population fraction
+PV = jtfne.NeuronType.make("PV", fraction=0.1)   # (omit fraction on any type -> even split)
+L4 = jtfne.Layer(name="L4", n_neurons=100, neuron_types=[E, PV])
+v1 = jtfne.Area(name="V1", layers=[L4])
+tensor = jtfne.NeuronalTensor(areas=[v1])
+
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+```
+
+This is the path for explicit, declarative circuit definitions (JSON
+round-trippable via `jtfne.save_neuronal_tensor`/`load_neuronal_tensor`, or one
+of the packaged canonical circuits via `jtfne.list_canonical_neuronal_tensors()`)
+and for **HDP homeostatic plasticity** (synaptic + H-factor adaptation with a
+per-cell-type time constant). HDP is enabled by passing an explicit
+`runtime=` override to `simulate()` — this works on a tensor-built `Model`
+with no new API:
+
+```python
+runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
+    "K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
+    "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0},   # tau_i = tau_0_ms * size_i**3
+})
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0, runtime=runtime_hdp)
+diag = model.last_hdp_diagnostics()   # H_trace, weight trace, per-edge receptor_index
+```
+
+Full worked example: [`examples/08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)
+· runnable notebook: [`tutorials/jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)
+· API reference: [`docs/api/neuronal_tensor.md`](https://github.com/HNXJ/jaxfne/blob/main/docs/api/neuronal_tensor.md)
+· coming from `Configuration`? see the [migration guide](https://github.com/HNXJ/jaxfne/blob/main/docs/migration_guide.md).
+
+## Configuration workflow (supported, compatibility)
+
+`Configuration` — the original fluent-builder path — remains fully supported.
+It is no longer the primary teaching path, but every `Configuration` capability
+(AGSDR tuning, homeostasis, custom connection rules, etc.) keeps working
+unchanged, and `Configuration`-built circuits converge on the same `Model` via
+`construct()`:
+
+```python
+import jaxfne as jtfne
+
+jtfne.enable_x64()
 
 cfg = jtfne.build_laminar_column()                   # config: V1, n=1000, flat E:I (legacy default)
 cfg = (cfg.set_emitter("izhikevich", "cortical_eig")
@@ -84,19 +145,26 @@ cfg = (cfg.set_emitter("izhikevich", "cortical_eig")
 
 model   = jtfne.construct(cfg)                        # construct: Configuration -> Model
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)  # simulate -> Signals
-spk = signals.get("spk")                             # (n_steps, n_neurons) spike raster
-vm_e = signals.get("vm", cell_type="E")              # membrane voltage for E cells
 ```
+
+See the [Configuration Grammar guide](https://github.com/HNXJ/jaxfne/blob/main/docs/guides/configuration_grammar.md) for the full fluent API.
 
 ## Which workflow should I use?
 
-There are two independent ways to build and run a laminar column. They return
-different object types, so pick one per task rather than mixing mid-script:
+There are three independent ways to build and run a laminar column/circuit.
+They return different object types, so pick one per task rather than mixing
+mid-script:
 
-| Goal | Path | Returns |
-|---|---|---|
-| Single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive | `jtfne.laminar_cortex_config` → `jtfne.construct` → `jtfne.simulate` (above) | `Model` / `Signals` |
-| Multi-trial spectrolaminar sweeps, similarity scoring across trials | `jaxfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | plain `dict` of trial arrays |
+| Status | Goal | Path | Returns |
+|---|---|---|---|
+| **Preferred** | Explicit Areas/Layers/NeuronTypes circuit, HDP synaptic+H-factor plasticity, any new code | `jtfne.NeuronalTensor` (or `jtfne.load`/`load_canonical_neuronal_tensor`) → `jtfne.construct(tensor, RuntimeConfiguration)` → `jtfne.simulate` (above) | `Model` / `Signals` |
+| Supported | Single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive (existing code, or the fluent builder style) | `jtfne.laminar_cortex_config` → `jtfne.construct` → `jtfne.simulate` (above) | `Model` / `Signals` |
+| Supported | Multi-trial spectrolaminar sweeps, similarity scoring across trials | `jaxfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | plain `dict` of trial arrays |
+
+`AGSDR` tuning, homeostasis, and custom per-neuron drive all work identically
+on a `NeuronalTensor`-built `Model` too — `Model.tune()`/`with_emitter_parameters()`
+are methods on `Model`, independent of which path built it. The "Preferred"
+row isn't capability-restricted; it's the recommended default for new code.
 
 Per-neuron-subset stimulus targeting (e.g. drive only L4 E cells on one event)
 goes through a per-event `target_indices` key on the event dict passed to

@@ -11,6 +11,9 @@ SPK, Vm, source, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, EMM-proxy.
 Scope metadata: All operators are simulated proxies with frozen
 validation metadata. Simulated mechanism-readout outputs. No empirical validation.
 
+Builds the network via Configuration. For the declarative
+Areas/Layers/NeuronTypes alternative, see examples/08_neuronal_tensor_first.py.
+
 Usage:
     python examples/05_network_100_ei_multimodal.py
 

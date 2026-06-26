@@ -186,6 +186,44 @@ def test_backward_bridge_does_not_affect_existing_configuration_pipeline():
     assert bool(jnp.all(jnp.isfinite(sig.spikes)))
 
 
+def test_neuron_type_fraction_overrides_even_split():
+    """NeuronType.fraction (0.4.7 addition) lets a layer declare a
+    non-uniform E:I composition instead of being flattened to 1/len(types)
+    by the bridge -- e.g. a canonical deep-E-heavy layer (90% E, 10% I) must
+    survive into Configuration.area_layer_cell_types as 0.9/0.1, not 0.5/0.5."""
+    layer = nt.Layer(
+        name="L6", n_neurons=100,
+        neuron_types=[nt.NeuronType.make("E", fraction=0.9),
+                      nt.NeuronType.make("PV", fraction=0.1)],
+    )
+    area = nt.Area(name="V1", layers=[layer])
+    tensor = nt.NeuronalTensor(areas=[area], name="fraction_test")
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
+    layer_cell_types = cfg.metadata["area_layer_cell_types"]["V1"]["L6"]
+    assert layer_cell_types["E"] == pytest.approx(0.9)
+    assert layer_cell_types["PV"] == pytest.approx(0.1)
+    model = jtfne.construct(cfg)
+    labels = model.params["emitter"].labels
+    e_count = sum(1 for l in labels if l == "E")
+    assert e_count == 90
+
+
+def test_neuron_type_fraction_absent_keeps_even_split():
+    """Backward compatibility: a layer with no declared fractions (the
+    pre-0.4.7 shape, and every existing canonical jaxfne/configs/*.json)
+    must still bridge to an even split, unchanged."""
+    layer = nt.Layer(
+        name="L4", n_neurons=20,
+        neuron_types=[nt.NeuronType.make("E"), nt.NeuronType.make("PV")],
+    )
+    area = nt.Area(name="V1", layers=[layer])
+    tensor = nt.NeuronalTensor(areas=[area], name="even_split_test")
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
+    layer_cell_types = cfg.metadata["area_layer_cell_types"]["V1"]["L4"]
+    assert layer_cell_types["E"] == pytest.approx(0.5)
+    assert layer_cell_types["PV"] == pytest.approx(0.5)
+
+
 def test_default_relative_size():
     assert nt.default_relative_size("E") == pytest.approx(2.0)
     assert nt.default_relative_size("PV") == pytest.approx(1.0)

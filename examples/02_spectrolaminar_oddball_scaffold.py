@@ -8,6 +8,9 @@ Emitter -> Source -> Field -> Probe -> Objective -> Manifest
 Focus: manifest-first JSON evidence. Simulated mechanism-readout outputs.
 Status fields remain frozen throughout.
 
+Builds the circuit via Configuration. For the declarative
+Areas/Layers/NeuronTypes alternative, see examples/08_neuronal_tensor_first.py.
+
 Usage:
     python examples/02_spectrolaminar_oddball_scaffold.py
 

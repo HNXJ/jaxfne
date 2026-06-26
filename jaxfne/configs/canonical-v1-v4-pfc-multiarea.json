@@ -1,0 +1,946 @@
+{
+  "area_connections": [
+    {
+      "mechanism": "monotonic_cable_synapse",
+      "plastic": {
+        "H": 1.0,
+        "value_tag": "relative",
+        "w_mech": 1.0
+      },
+      "source_area": "V1",
+      "source_layer": "L4",
+      "source_neuron_type": "E",
+      "static": {
+        "dT_ms": 3.0,
+        "g_mech": {},
+        "reversal_potentials_mV": {},
+        "value_tag": "relative"
+      },
+      "target_area": "V4",
+      "target_layer": "L4",
+      "target_neuron_type": "E"
+    },
+    {
+      "mechanism": "monotonic_cable_synapse",
+      "plastic": {
+        "H": 1.0,
+        "value_tag": "relative",
+        "w_mech": 1.0
+      },
+      "source_area": "V4",
+      "source_layer": "L4",
+      "source_neuron_type": "E",
+      "static": {
+        "dT_ms": 3.0,
+        "g_mech": {},
+        "reversal_potentials_mV": {},
+        "value_tag": "relative"
+      },
+      "target_area": "PFC",
+      "target_layer": "L4",
+      "target_neuron_type": "E"
+    },
+    {
+      "mechanism": "monotonic_cable_synapse",
+      "plastic": {
+        "H": 1.0,
+        "value_tag": "relative",
+        "w_mech": 0.5
+      },
+      "source_area": "PFC",
+      "source_layer": "L6",
+      "source_neuron_type": "E",
+      "static": {
+        "dT_ms": 3.0,
+        "g_mech": {},
+        "reversal_potentials_mV": {},
+        "value_tag": "relative"
+      },
+      "target_area": "V4",
+      "target_layer": "L1",
+      "target_neuron_type": "E"
+    },
+    {
+      "mechanism": "monotonic_cable_synapse",
+      "plastic": {
+        "H": 1.0,
+        "value_tag": "relative",
+        "w_mech": 0.5
+      },
+      "source_area": "V4",
+      "source_layer": "L6",
+      "source_neuron_type": "E",
+      "static": {
+        "dT_ms": 3.0,
+        "g_mech": {},
+        "reversal_potentials_mV": {},
+        "value_tag": "relative"
+      },
+      "target_area": "V1",
+      "target_layer": "L1",
+      "target_neuron_type": "E"
+    }
+  ],
+  "areas": [
+    {
+      "inter_connections": [],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L1",
+          "neuron_types": [
+            {
+              "fraction": 0.5,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.15,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.35,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 250,
+          "name": "L2",
+          "neuron_types": [
+            {
+              "fraction": 0.648,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.2,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.1,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.052,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L3",
+          "neuron_types": [
+            {
+              "fraction": 0.8,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "fraction": 0.75,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.18,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.03,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L5",
+          "neuron_types": [
+            {
+              "fraction": 0.88,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.06,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 150,
+          "name": "L6",
+          "neuron_types": [
+            {
+              "fraction": 0.9,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.05333333333333334,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02666666666666667,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "V1",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    },
+    {
+      "inter_connections": [],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L1",
+          "neuron_types": [
+            {
+              "fraction": 0.5,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.15,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.35,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 250,
+          "name": "L2",
+          "neuron_types": [
+            {
+              "fraction": 0.648,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.2,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.1,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.052,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L3",
+          "neuron_types": [
+            {
+              "fraction": 0.8,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "fraction": 0.75,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.18,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.03,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L5",
+          "neuron_types": [
+            {
+              "fraction": 0.88,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.06,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 150,
+          "name": "L6",
+          "neuron_types": [
+            {
+              "fraction": 0.9,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.05333333333333334,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02666666666666667,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "V4",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    },
+    {
+      "inter_connections": [],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L1",
+          "neuron_types": [
+            {
+              "fraction": 0.5,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.15,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.35,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 250,
+          "name": "L2",
+          "neuron_types": [
+            {
+              "fraction": 0.648,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.2,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.1,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.052,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L3",
+          "neuron_types": [
+            {
+              "fraction": 0.8,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "fraction": 0.75,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.18,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.03,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L5",
+          "neuron_types": [
+            {
+              "fraction": 0.88,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.06,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              1.0
+            ]
+          },
+          "n_neurons": 150,
+          "name": "L6",
+          "neuron_types": [
+            {
+              "fraction": 0.9,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.05333333333333334,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02666666666666667,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "PFC",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    }
+  ],
+  "name": "canonical-v1-v4-pfc-multiarea",
+  "schema_version": "neuronal_tensor_v1"
+}

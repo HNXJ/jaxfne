@@ -1,6 +1,6 @@
 # Notebook Status and Classification
 
-**Total notebooks: 35** (release-facing: 28, archived: 6, template: 1)
+**Total notebooks: 36** (release-facing: 29, archived: 6, template: 1)
 
 ## Release-facing notebooks (28)
 
@@ -34,6 +34,7 @@ Release-facing notebooks are part of the standard tutorial suite and subject to 
 - **jaxfne_v038_lfp_csd_readout.ipynb** — Version tutorial; LFP/CSD proxy readout mechanics
 - **jaxfne_v040_continuous_omission_oddball.ipynb** — Version tutorial; v0.4.0 continuous sequential omission oddball paradigm
 - **jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb** — Version tutorial; v0.4.0 homeostasis/plasticity DC-noise sweep
+- **jaxfne_neuronal_tensor_first.ipynb** — Version tutorial; 0.4.7 NeuronalTensor-first circuit definition (Areas/Layers/NeuronTypes), JSON round-trip, HDP homeostatic plasticity via explicit `RuntimeConfig` override; executed with `nbclient` 2026-06-25 (outputs are real captured run results, not placeholders)
 
 ## Archived notebooks (6)
 
@@ -54,4 +55,4 @@ Archived notebooks are excluded from strict validation. They may use legacy patt
 
 - Release-facing: strict grammar, export API, scientific scope, tensor-field consistency
 - Archived: documented exceptions, not subject to strict rules
-- Of the 29 release-facing notebooks, only 2 (Suite No. 1, Suite No. 4) have a real `nbclient`-based execution test that runs in CI today (gated behind `@pytest.mark.slow`, executed in the CI workflow's second "Run all tests (including slow)" step in `.github/workflows/ci.yml`). The remaining 27 have no CI execution coverage.
+- All 29 release-facing notebooks have real `nbclient`-based execution coverage (verified 2026-06-25, corrects an earlier wrong claim in this doc): Suite No. 1 and Suite No. 4 each have a dedicated test file; `jaxfne_neuronal_tensor_first.ipynb` has `tests/test_neuronal_tensor_notebook_execution.py` (added 2026-06-25); the remaining 26 are parametrized in `tests/test_notebook_execution_suite.py` (5 of those 26 -- Étude 8-12 -- are intentional skeleton placeholders and correctly `xfail`). All of the above are gated `@pytest.mark.slow`/`@pytest.mark.notebook` and run via `.github/workflows/notebook_execution.yml` (nightly 03:00 UTC + manual dispatch), not the push-triggered fast lane.

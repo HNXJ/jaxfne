@@ -124,3 +124,4 @@ units recovering) to the controller. Report the null alongside the result.
 - [Bridges API](../api/bridges.md) — `simulate_homeostatic` parameters in full.
 - [Configuration Grammar](configuration_grammar.md) — where the runtime and emitter fit in the chain.
 - [Jaxley Interoperability](jaxley_interop.md) — real channels/morphology as emitters.
+- [HDP](hdp.md) — the more structured per-neuron `H_i` controller (also works tensor-first, on a `NeuronalTensor`-built `Model`) if a single `k_gain` dial here isn't enough.

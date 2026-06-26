@@ -4353,6 +4353,8 @@ class Model:
                     v_floor=hp.get("v_floor", -150.0), v_ceiling=hp.get("v_ceiling", 100.0),
                     u_abs_max=hp.get("u_abs_max", 2000.0), syn_abs_max=hp.get("syn_abs_max", 1.0e4),
                     H_boost_gain=hp.get("H_boost_gain", 0.0),
+                    size_scale_by_cell_type=hp.get("size_scale_by_cell_type"),
+                    size_scale_override=hp.get("size_scale_override"),
                 )
                 return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
 
@@ -7047,6 +7049,8 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
         v = hp[k]
         if isinstance(v, (bool, int, float, str)) or v is None:
             items.append((k, v))
+        elif isinstance(v, Mapping):
+            items.append((k, tuple(sorted(v.items()))))
         else:
             arr = _np.asarray(v)
             items.append((k, "array", arr.shape, str(arr.dtype), hash(arr.tobytes())))

@@ -52,7 +52,7 @@ jobs:
                     examples/03_jaxley_bridge_smoke.py examples/03_single_neuron_multimodal_probe.py \
                     examples/04_two_neuron_ei_multimodal.py examples/05_network_100_ei_multimodal.py \
                     examples/v031_single_izhikevich_neuron.py examples/v032_single_neuron_parameter_sweep.py \
-                    examples/v033_two_neuron_ei_multimodal.py; do
+                    examples/v033_two_neuron_ei_multimodal.py examples/08_neuronal_tensor_first.py; do
             PYTHONPATH=. python "$ex" > /dev/null && echo "PASS: $ex" || { echo "FAIL: $ex"; exit 1; }
           done
 

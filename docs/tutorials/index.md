@@ -33,6 +33,7 @@ The tutorial progression teaches the source-to-field/readout workflow, from sing
 | **03** | 100-neuron Network | Runnable notebook | Population dynamics, stability | v0.2.10+ |
 | **04** | V1 Six-layer Column | Documentation guide | Laminar anatomy, depth-specific readouts | v0.2.11+ |
 | **05** | V1-PFC Dual Column | Documentation guide | Cross-area interaction, traveling waves | v0.2.14+ |
+| — | NeuronalTensor (tensor-first circuits) | Runnable notebook | Declarative Areas/Layers/NeuronTypes, HDP homeostatic plasticity | 0.4.7+ |
 
 
 ## Featured: jaxfne Suite No. 1
@@ -161,6 +162,29 @@ cfg = (jtfne.Configuration()
     .set_emitter(family="izhikevich", preset="cortical_eig")
     .probes(["SPK", "Vm", "source", "LFP-proxy", "CSD-proxy"]))
 ```
+
+---
+
+## Featured: NeuronalTensor (tensor-first circuits)
+
+**[jaxfne_neuronal_tensor_first.ipynb](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)** (runnable notebook, `nbclient`-executed; see also the standalone script version: [08_neuronal_tensor_first.py](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py))
+
+`NeuronalTensor` is a second, declarative way to define a circuit — an
+explicit `Areas x Layers x NeuronTypes` data model that JSON round-trips and
+converges on the same `Model`/`Signals` as the `Configuration` path used by
+every tutorial above:
+
+```python
+tensor = jtfne.NeuronalTensor(areas=[...])
+model  = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
+```
+
+It also carries the package's canonical 1000-neuron V1 column
+(`jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")`) and is
+the path to use for **HDP homeostatic plasticity** (per-cell-type cube-law
+adaptation time constant) — see [HDP guide](../guides/hdp.md) § "Tensor-first"
+and the [API reference](../api/neuronal_tensor.md).
 
 A comprehensive tutorial covering:
 - Part 1: Biological question (balanced E/I coupling)

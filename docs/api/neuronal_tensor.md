@@ -18,6 +18,7 @@ from jaxfne import (
     InterConnection, save_neuronal_tensor, load_neuronal_tensor,
     merge_neuronal_tensors, neuronal_tensor_to_configuration,
     construct_neuronal_tensor, default_relative_size,
+    list_canonical_neuronal_tensors, load_canonical_neuronal_tensor,
 )
 ```
 
@@ -309,6 +310,47 @@ Deserialise a `NeuronalTensor` from a previously saved JSON file.
 ```python
 tensor = load_neuronal_tensor("circuits/v1_mt.json")
 ```
+
+---
+
+### `list_canonical_neuronal_tensors` / `load_canonical_neuronal_tensor`
+
+```python
+def list_canonical_neuronal_tensors() -> list[str]
+def load_canonical_neuronal_tensor(name: str) -> NeuronalTensor
+```
+
+Package-shipped canonical circuits, stored as JSON under `jaxfne/configs/`
+and loaded with the same `load_neuronal_tensor` deserializer above:
+
+```python
+names = list_canonical_neuronal_tensors()
+# ['canonical-v1-column-1000n', 'canonical-v1-v4-pfc-multiarea', 'default-column',
+#  'homeostatic-h-override-demo', 'laminar-column-4layer', 'two-area-feedforward']
+tensor = load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+```
+
+`canonical-v1-column-1000n` is the verified ground-truth 1000-neuron V1 column
+(6 layers L1-L6, full E/PV/SST/VIP composition, the same depth-graded E:I
+gradient documented in the cortical-column-default skill — E peaks deep,
+I peaks superficial). `canonical-v1-v4-pfc-multiarea` tiles that same column
+composition across 3 areas (V1, V4, PFC; 3000 neurons total) with L4-to-L4
+feedforward and L6-to-L1 feedback `AreaConnection`s, matching the
+`jtfne.build_multi_area_columns(["V1","V4","PFC"], ei_profile="canonical")`
+hierarchy already used elsewhere in the docs. The remaining four are smaller
+synthetic demos for specific features (homeostatic H-override, multi-area
+feedforward, a minimal 4-layer column) — use `canonical-v1-column-1000n` or
+`canonical-v1-v4-pfc-multiarea` when you want a realistic reference composition
+rather than a feature-isolation demo.
+
+**On species-scaled variants:** jaxfne has no calibrated species-specific
+connectivity or composition data — any "mouse"/"macaque"/"human" canonical
+config would necessarily be an arbitrary neuron-count rescaling of the same
+generic column template, not a calibrated biological difference. Per the
+project's own claim-language rule (no biological overclaims without
+evidence), no such configs are shipped; if you need one, build it explicitly
+via `NeuronalTensor(...)` with a documented, named scale factor rather than
+treating a renamed copy of `canonical-v1-column-1000n` as species-accurate.
 
 ---
 
