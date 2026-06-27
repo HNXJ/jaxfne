@@ -1,16 +1,19 @@
-# jaxfne skills bundle
+# DEPRECATED — use repo-root `skills/` instead
 
-This bundle turns the repo review into enforceable skills.
+This folder (`jaxfne/skills/`) is a legacy duplicate of the enforcement bundle
+now maintained at **`skills/`** (repo root). File numbering differs (e.g.
+`01_analysis_integrity.md` here vs `01_repo_orientation.md` at root).
 
-Files:
-- `01_analysis_integrity.md`
-- `02_sparse_connectivity.md`
-- `03_batch_first_simulation.md`
-- `04_projection_semantics.md`
-- `05_runtime_fallback_transparency.md`
-- `06_api_contracts.md`
-- `07_parameter_semantics.md`
-- `08_experimental_fence.md`
-- `ANTIGRAVITY_PROMPT.md`
+**Do not edit files here.** Canonical location:
 
-Apply them together. The goal is not just guidance; the goal is to make the repo harder to misuse, harder to scale badly, and harder to misread.
+```text
+skills/00_INDEX.md
+skills/01_repo_orientation.md
+…
+skills/README.md
+skills/FRICTIONS_STACK.md
+skills/*/SKILL.md
+```
+
+See `skills/FRICTIONS_STACK.md` F-006. Scheduled for removal after one release
+once all references are migrated.

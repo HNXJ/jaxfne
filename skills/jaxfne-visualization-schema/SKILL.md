@@ -35,17 +35,30 @@ network3d
 trained_vs_initial_comparison
 ```
 
-## Module ownership
+## Module ownership (actual `jaxfne/vis/` layout)
 
 ```text
-rasters.py          -> spike rasters and event plots
-traces.py           -> Vm/rate/source/LFP/CSD/EEG/MEG/EMM traces
-spectra.py          -> PSD and spectrogram
-spectrolaminar.py   -> laminar depth-frequency suites and profile crossing
-connectivity.py     -> weight maps, edge tables, graph views
-network3d.py        -> Plotly 3D scaffold and camera/axis controls
-tutorial_panels.py  -> high-level tutorial suites only
+rasters.py            -> spike rasters and event plots
+raster_arrays.py      -> raw-array raster helpers
+traces.py             -> Vm/rate/source/LFP/CSD/EEG/MEG/EMM traces
+spectra.py            -> PSD, spectrogram, windowed_band_power
+fields.py             -> spectrolaminar(), spectrolaminar_suite(), laminar field plots
+canonical.py          -> canonical/report plot wrappers (incl. plot_band_power)
+tutorial_panels.py    -> spectrolaminar_suite_3panel, activity_trace_suite (trial/specs-driven)
+tutorial_array_plots.py -> array-driven quick plots (also wrapped in tutorial_utils)
+network3d.py          -> Plotly 3D scaffold and camera/axis controls
+plotly/*              -> interactive Plotly dashboards, manuscript figures
+report_plots.py       -> script/report figure helpers
+script_reports.py     -> batch report generation
+hdp_diagnostics.py    -> HDP-specific diagnostic plots
+plasticity_viz.py     -> plasticity/homeostasis visualization
+exporters.py          -> figure export helpers
+core.py               -> require_matplotlib, close_all, prepare_static_plot_matrix
 ```
+
+There is **no** top-level `spectrolaminar.py` or `connectivity.py` under `vis/`.
+`spectrolaminar_suite_3panel` is defined in `tutorial_panels.py` and re-exported from
+`jtfne.vis`.
 
 ## Required package options
 

@@ -31,10 +31,12 @@ Memory: run trials in chunks; keep only `lfp_contacts`/`source`+`spikes`.
 ## The spectrolaminar readout — proxy caveats (do not get these wrong)
 - **Signal = LFP proxy** (`signal_key="lfp_contacts"` / `sig.field.lfp_proxy`), NOT CSD
   (CSD is a 2nd spatial derivative that suppresses broad deep alpha/beta).
-- **Density bug:** `project_laminar_sources` ROW-NORMALIZES the kernel (each contact =
-  weighted AVERAGE) -> erases neuron-density -> artificially FLAT depth power. The LFP
-  is physically a SUM. For cross-depth power, project with an UNNORMALIZED Gaussian
-  (density-preserving) so dense L2/3 contributes more.
+- **Projection mode (default fixed):** `project_laminar_sources` now defaults to
+  **`mode="density_preserving"`** (SUM-like; dense superficial layers contribute more).
+  **`mode="row_normalize"`** is explicit opt-in only — each contact's weights sum to 1,
+  which erases neuron-density and can flatten depth power (or invert attenuation for
+  off-population contacts). Do not assume row-normalize is still the default; see
+  `skills/FRICTIONS_STACK.md` F-003.
 - **Size (dipole):** weight each neuron's contribution by size (deep E pyramidal >>
   superficial >> interneurons); deep cells dominate magnitude (power ~ a*f^2).
 - **kappa gate:** report `jtfne.kappa_synchrony` every run; the readout is only

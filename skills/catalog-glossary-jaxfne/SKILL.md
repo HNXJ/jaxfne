@@ -16,7 +16,7 @@ description: >-
 
 # jaxfne API Catalog & Glossary
 
-**jaxfne has ~120 public functions + ~60 public classes at the top level, plus a
+**jaxfne has ~210 public functions + ~85 public classes at the top level (verified 2026-06-25; was ~120/~60, grown substantially with NeuronalTensor/HDP — re-run the inventory snippet at the bottom of this file before trusting either number), plus a
 laminar-column tutorial pipeline (`jaxfne.tutorial_utils`) and a visualization
 package (`jaxfne.vis`). Do not reinvent any of it.** This catalog exists so you
 recognize what is already built instead of "rediscovering" it.
@@ -44,6 +44,33 @@ if you need exact kwargs — the name itself is confirmed present on disk.
 - Connectivity: `connect_columns(cfg, src, tgt, mode, ...)`, `all_to_all_intercolumn_connectivity(...)`, `sparse_intercolumn_connectivity(...)`, `build_laminar_connections(model, cfg)`, `compile_connection_rules(...)`, `make_edge_list_from_dense(weights, ...)`.
 - Cells/emitters: `make_cell_dist`, `make_cell_type_catalog`, `make_eig_network`, `izhikevich_params_from_labels(labels, *, drive_overrides=...)`, `with_emitter_parameters(model, ...)`, `standard_receptor_specs`, `standard_receptor_tau_table`.
 - `.jcfg.json` files: `load_config(path)`, `config_to_configuration`, `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`, `validate_config`, `validate_configuration`.
+
+### 1b. NeuronalTensor (0.4.7) — tensor-first build path (`jtfne.NeuronalTensor`, `jtfne.NeuronType`, etc. are top-level, no submodule import needed)
+
+`NeuronalTensor = [Areas, AreaConnections]`, `Area = [Layers x NeuronTypes, InterConnections]`.
+This is a SEPARATE build path from `Configuration` — both converge on the same
+`Model` type via `construct()`:
+
+- `NeuronalTensor(areas=[...], name=...)`, `Area(name, layers=[...])`, `Layer(name, n_neurons, neuron_types=[...])`, `InterConnection(...)`, `AreaConnection(...)`.
+- `NeuronType.make(name, *, relative_size=None, fraction=None, value_tag=...)` — `fraction` (0.4.7 addition, default `None`) declares an explicit population fraction; if **every** type in a `Layer` declares one, those normalized fractions populate `Configuration.metadata["area_layer_cell_types"][area][layer]`; if any type omits it, the whole layer falls back to an even split (backward-compatible).
+- `neuronal_tensor_to_configuration(tensor, *, seed, duration_ms, dt_ms)` → `Configuration` — the internal bridge `construct()` uses.
+- `construct(tensor, runtime_configuration)` → `Model` — same top-level `construct` as the `Configuration` path, dispatches on input type.
+- `RuntimeConfiguration` (`neuronal_tensor.py`, frozen, execution-only: seed/duration_ms/dt_ms/etc.) — **distinct from** `RuntimeConfig` (`core.py`, has `enable_hdp`/`hdp_params`). `RuntimeConfiguration` has NO HDP field.
+- `load`, `load_neuronal_tensor`, `load_canonical_neuronal_tensor`, `list_canonical_neuronal_tensors`, `merge_neuronal_tensors`, `construct_neuronal_tensor`.
+- `DEFAULT_RELATIVE_SIZE = {"E": 2.0}`, `DEFAULT_OTHER_RELATIVE_SIZE = 1.0` (note: inconsistent with `emitters.py`'s internal `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` E=5.0 default — known, not yet reconciled, treat each module's default as authoritative for that module).
+
+**Enabling HDP on a tensor-built Model (no new public API needed):** build via
+`construct(tensor, RuntimeConfiguration(...))`, then pass an explicit
+`runtime=RuntimeConfig(enable_hdp=True, hdp_params={...})` to `simulate()` —
+the explicit `runtime=` kwarg overrides any `Configuration`-derived config.
+See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau formula.
+
+### 1c. HDP homeostatic plasticity module (`jaxfne/hdp_network.py`) — generic config-driven builder, no per-N functions
+
+- `DEFAULT_HDP = dict(K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=0.01, barrier_d=0.01)`.
+- `BASE_HDP_KWARGS_DEFAULT` (H_min=0.1, H_max=10.0, alpha=0.01, beta=0.0, gamma=0.0, delta=0.0, C_spike=0.0, ...), `BASE_DRIVE_BY_CELL_TYPE_DEFAULT = {"E":4.0,"PV":4.0,"SST":4.0,"VIP":4.0}`, `DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT`.
+- Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `core.py`'s `_hdp_packed`; any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/core.py` before trusting a new `hdp_params` key reaches the kernel.
+- `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge `receptor_index`.
 
 ## 2. Laminar-column TRIAL pipeline — `jtfne.tutorial_utils` (the one most often rediscovered)
 
@@ -79,12 +106,14 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 - Kernels (advanced): `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, `simulate_receptor_exponential_izhikevich`.
 - `run_trials(model, batch, sim, ...)` → `TrialBatchResult`.
 - ODE: `euler_scan(y_init, t_start, dt, n_steps, dydt_fn)`, `euler_step(...)` (use `lax.scan`-based `euler_scan` for grad-through-time).
-- Stimulus: `make_stimulus(*, kind, duration_ms, dt_ms, amplitude, frequency_hz, ...)`, `stimulus_schedule(events, n_neurons, ...)`.
+- Stimulus: `make_stimulus(*, kind, duration_ms, dt_ms, amplitude, frequency_hz, ...)`, `stimulus_schedule(events, n_neurons, ...)`. **Per-neuron-subset targeting:** `target_indices` is a per-event dict key (not a `StimulusSchedule` constructor kwarg), read by `StimulusSchedule.to_array`/`to_array_jax` (`StimulusSchedule` class at `jaxfne/core.py:3185`) to restrict that event to a specific neuron subset (e.g. only L4 E cells) instead of the whole column — build the index list from `model.neuron_table()` filtered by `layer`/`cell_type` and put it on each event dict, e.g. `StimulusSchedule(events=({"onset_ms":0.0,"duration_ms":50.0,"amplitude":5.0,"target_indices":l4e_idx},), n_neurons=model.n_neurons)`. Don't hand-roll a per-neuron drive mask for this; see `jaxfne-paradigm-design` for the full pattern.
+- Noise control on the Config-path is **kernel-dependent**, not uniform: `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, and the homeostatic variant accept `noise_scale=` (`None` = historical `0.5`); `simulate_receptor_exponential_izhikevich` hardcodes `0.5` inline with no override kwarg at all.
 - Read a signal: `Signals.get(key)` or free fn `get_signal(obj, key)`. Keys accept aliases: `"V_m"`/`"vm"`, `"spikes"`/`"spk"`, `"lfp_contacts"`, `"csd_contacts"`, `"source_native"`.
 
 ## 4. Readouts, projections, fields (all PROXY — no PDE solve)
 
-- `project_laminar_sources(sources, positions, *, n_contacts, width)` → `FieldOutput`; `project_sources_to_laminar_field(...)`; `probe_laminar_modes(field_output, modes)`.
+- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003).
+- `project_sources_to_laminar_field(...)`, `probe_laminar_modes(field_output, modes)`.
 - Lead-field proxies: `eeg_proxy_transform(source, leadfield)`, `meg_proxy_transform(source_oriented, leadfield)`, `emm_proxy_transform(...)`.
 - `construct_source_tensor(*, mode, ...)`, `compute_conservation_proxy_diagnostics(...)`, `validate_projection_invariants(...)`, `validate_source_field_status(...)`.
 
@@ -104,6 +133,7 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 
 - `kappa_synchrony(spikes, dt_ms)`, `tutorial_utils.population_rate_hz(spikes, dt_ms)`.
 - `column_density_table(cfg)`, `layer_celltype_count_table(cfg)`, `configuration_table(cfg)`, `config_summary_frame(cfg)`, `cell_catalog_frame(catalog)`.
+- `spectrolaminar_motif_score(alpha_beta, gamma)` — anti-correlation score (0-100) between a deep alpha/beta and superficial gamma depth profile; `summarize_spectrolaminar_similarity` calls this internally per area. Distinct from `spectrolaminar_similarity_kernel_jax`, which scores against an explicit external target — see `jaxfne-spectrolaminar-suite` for the full distinction.
 
 ## 8. Visualization — `jtfne.vis.*` (signal-driven, proxy-safe)
 
@@ -114,7 +144,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 - `vis.visualize_laminar_column_3d(model, cfg, ...)`.
 
 ### `jtfne.vis.tutorial_panels.*` (trial/specs-driven suites)
-- `spectrolaminar_suite_3panel(specs, model, cfg, areas=..., output_dir=..., theme="dark")` → `{area: Figure}` — the genuine depth×freq + band-crossover template.
+- `spectrolaminar_suite_3panel(specs, model, cfg, areas=..., output_dir=..., theme="dark")` → `{area: Figure}` — also re-exported as `jtfne.vis.spectrolaminar_suite_3panel`.
 - `activity_trace_suite(trials, cfg, ...)` — raster + LFP + CSD + PSD.
 - `visualize_laminar_column_3d(model, cfg, ...)`.
 
@@ -143,7 +173,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 
 ## Key classes (recognize, don't redefine)
 
-Config/model: `Configuration`, `Config`, `JaxFNEConfig`, `LaminarColumnConfig`, `RuntimeConfig`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`.
+Config/model: `Configuration`, `Config`, `JaxFNEConfig`, `LaminarColumnConfig`, `RuntimeConfig`, `RuntimeConfiguration`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`.
 Emitters: `Emitter`, `IzhikevichEmitter`, `IzhikevichParams`, `LIFEmitter`, `GLIFEmitter`.
 Edges/synapses: `EdgeList`, `SynapseLayer`, `SynapseSpec`, `SynapseState`, `ReceptorSpec`, `ConnectionCompileResult`.
 Signals/probes/fields: `Signals`, `Signal`, `Probe`, `ReadoutSpec`, `ReadoutResult`, `LinearReadout`, `FieldOutput`.
@@ -151,6 +181,7 @@ Optimize: `Objective`, `ObjectiveReport`, `OptimizerSpec`, `AGSDR`/`AGSDROptimiz
 Paradigm/trials: `Paradigm`, `ParadigmCondition`, `ParadigmEvent`, `TrialBatch`/`TrialBatchResult`/`TrialResult`/`TrialSpec`, `StimulusSchedule`, `Simulation`.
 Receipts: `RunReceipt`, `RuntimeConfig`, `CellTypePreset`, `NodeIdentity`.
 Bridges: `JaxleyBridge`, `JaxleyEmitterBridge`, `JaxleyTraceSpec`.
+Tensor: `NeuronalTensor`, `Area`, `Layer`, `NeuronType`, `InterConnection`, `AreaConnection`.
 
 ## Truth-plane reminders (always)
 

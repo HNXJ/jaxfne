@@ -39,19 +39,24 @@ Before adding or changing an API, inspect existing names:
 grep -R "def <name>\|class <name>" -n jaxfne tests docs examples tutorials scripts
 ```
 
-## Ownership map
+## Ownership map (verified on disk — no jaxfne/config.py or net.py)
 
 ```text
-Config/schema/specs          -> jaxfne/config.py or current core compatibility layer
-Net/construct/introspection  -> jaxfne/net.py, builders.py, current core wrappers
-Paradigm/task/stimulus       -> jaxfne/paradigm.py
-Objective/metrics/gates      -> jaxfne/objective.py, objectives.py
-Trainer/AGSDR/tuning         -> jaxfne/optim/trainer.py, optim/*
-Signals/layout/query         -> jaxfne/signals.py
-Source/field/probe/readout   -> jaxfne/fields/*
-Visualization                -> jaxfne/vis/* only
-Notebook glue                -> jaxfne/tutorial_utils.py or scripts/*
-Release/package mutation     -> release skills and scripts only
+Config/Model/Signals/Simulation  -> jaxfne/core.py (primary monolith)
+Builders / canonical columns     -> jaxfne/builders.py
+NeuronalTensor / tensor bridge   -> jaxfne/neuronal_tensor.py
+HDP builder / defaults           -> jaxfne/hdp_network.py
+Paradigm/task/stimulus           -> jaxfne/paradigm.py, jaxfne/stimulus.py
+Objective/metrics                -> jaxfne/objectives.py (+ Objective in core.py)
+Trainer/AGSDR/tuning             -> jaxfne/optim/*
+Emitters/kernels                 -> jaxfne/emitters.py
+Source/field/probe/readout       -> jaxfne/fields/*, jaxfne/bridges.py
+Connectivity                     -> jaxfne/connectivity.py
+Validation/manifest              -> jaxfne/validation.py, jaxfne/io.py
+Visualization                    -> jaxfne/vis/* only
+Notebook glue                    -> jaxfne/tutorial_utils.py, scripts/*
+Agent skills (reference)         -> skills/* (this folder), NOT jaxfne/skills/
+Release/package mutation         -> release skills and scripts only
 ```
 
 ## Routing rules
@@ -86,6 +91,14 @@ Treat test counts as unverified unless the exact commands and receipts are shown
 
 **Levers:** contract-first not discovery-first · skills are the cache (run the skill, don't re-reason its checklist) · receipts beat justification (command + `N passed`) · verify-before-call (grep `__all__`/the contract before naming any symbol, flag, path, or skill — never invoke by remembered name).
 
-**The 7 real active skills** (never invoke archived/old names): `jaxfne-worker-context-router` (this, use first) · `jaxfne-modeling-optimization-schema` · `jax-jit-pmap-performance-guard` · `jaxfne-notebook-release-gate` · `jaxfne-release-mutation-guard` · `jaxfne-sha256-artifact-integrity` · `jaxfne-visualization-schema`.
+**Repo skills index:** see `skills/README.md`. Use first on most tasks:
+
+`jaxfne-worker-context-router` (this) · `catalog-glossary-jaxfne` · `jaxfne-cortical-column-default` · `jaxfne-objective-grammar` · `jaxfne-configuration-fluent-api` · `jaxfne-signals-probe-objective-chain` · `jaxfne-modeling-optimization-schema` · `jaxfne-paradigm-design` · `jaxfne-spectrolaminar-suite` · `jaxfne-visualization-schema` · `jaxfne-notebook-release-gate` · `jaxfne-release-mutation-guard` · `jaxfne-sha256-artifact-integrity`.
+
+Flat enforcement checklist: `skills/00_INDEX.md` → `01_–11_` markdown files.
+
+Open contradictions: `skills/FRICTIONS_STACK.md` (check before claiming API/science ground truth).
+
+Global-only (not in repo): `jax-jit-pmap-performance-guard`, `jax-neuro-diffsim-guard`, `neuro-biophysics-units-sanity`.
 
 **Route by altitude:** Opus → architecture/contract authoring/truth-gate review. Sonnet → implement against a frozen contract + the relevant skill. Gemini → large-context cross-file synthesis + repo-scale batch edits. Frozen contracts + skills + the §11 invariants are what make the cheaper tiers safe.

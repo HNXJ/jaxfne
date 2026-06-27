@@ -8,8 +8,9 @@ removed from the public repo at the same commit that froze the root (`ca43c1e`,
 2026-06-17) — links into it are dead by design, not staleness; do not recreate it.
 What replaced each:
 
-- API catalog → the `catalog-glossary-jaxfne` skill (global) — check it before writing
+- API catalog → the `catalog-glossary-jaxfne` skill (`skills/catalog-glossary-jaxfne/SKILL.md`) — check it before writing
   any helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/spectrolaminar logic.
+- Known skill/doc contradictions → `skills/FRICTIONS_STACK.md` (resolve before escalating claims).
 - Evidence/publication-state snapshot → `python3 scripts/evidence_inventory.py` (run
   it; don't trust a remembered SHA).
 - Biophysics deep reference → the global `~/.claude/CLAUDE.md` "COMPUTATIONAL NEURONAL
@@ -123,23 +124,20 @@ There are three independent ways to build+run a laminar column/circuit. All
 are real and supported; they are not interchangeable mid-script because they
 hand back different object types (`Model`/`Signals` vs a plain trial `dict`).
 
-| | **Config-path** (`jtfne.laminar_cortex_config` → `construct` → `simulate`) | **tutorial_utils-path** (`jtfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`) |
-|---|---|---|
-| Use when | single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive | multi-trial spectrolaminar sweeps, `summarize_spectrolaminar_similarity` |
-| Returns | `Model` / `Signals` | plain `dict` of trial arrays |
-| Per-event drive targeting | per-event `target_indices` key — see below | not exposed; drive is column-wide |
-| Noise control | kernel-dependent — see caveat below | `cell_type_izh_params[ct]["noise"]`, swept directly |
-| Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired |
+| | **Config-path** (`laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate`) | **tutorial_utils-path** (`make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`) | **NeuronalTensor-path** (`NeuronalTensor` → `construct(tensor, RuntimeConfiguration(...))` → `simulate`) |
+|---|---|---|---|
+| Use when | single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive, HDP via `RuntimeConfig` | multi-trial spectrolaminar sweeps, `summarize_spectrolaminar_similarity` | declarative Areas×Layers×Types, canonical JSON tensors, multi-area merge |
+| Returns | `Model` / `Signals` | plain `dict` of trial arrays | `Model` / `Signals` |
+| Per-event drive targeting | per-event `target_indices` key — see below | not exposed; drive is column-wide | same as Config-path after bridge |
+| Noise control | kernel-dependent — see caveat below | `cell_type_izh_params[ct]["noise"]`, swept directly | same as Config-path after bridge |
+| Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired | HDP: pass `runtime=RuntimeConfig(enable_hdp=True, ...)` to `simulate()` |
+| Docs | this file, `catalog-glossary-jaxfne` §1 | `catalog-glossary-jaxfne` §2 | `docs/guides/hdp.md`, `docs/api/neuronal_tensor.md` |
 
-**NeuronalTensor-path (0.4.7, declarative `Areas x Layers x NeuronTypes`):**
-`jtfne.NeuronalTensor` → `jtfne.construct(tensor, jtfne.RuntimeConfiguration(...))`
-→ `jtfne.simulate` — also returns `Model`/`Signals`. `RuntimeConfiguration`
-(tensor path, frozen) has **no** HDP field; `RuntimeConfig` (Config-path,
-above) does. To enable **HDP homeostatic plasticity** (synaptic + H-factor
-adaptation, cube-law `tau_i = tau_0_ms * size_i**3`) on a tensor-built `Model`,
-pass an explicit `runtime=RuntimeConfig(enable_hdp=True, hdp_params={...})`
-to `simulate()` — it overrides any `Configuration`-derived metadata, so this
-needs zero new public API. Full pattern + verified test receipts:
+**NeuronalTensor-path detail (0.4.7):** `RuntimeConfiguration` (tensor path, frozen) has **no**
+HDP field; `RuntimeConfig` (Config-path) does. To enable **HDP homeostatic plasticity**
+(synaptic + H-factor adaptation, cube-law `tau_i = tau_0_ms * size_i**3`) on a tensor-built
+`Model`, pass an explicit `runtime=RuntimeConfig(enable_hdp=True, hdp_params={...})`
+to `simulate()` — it overrides any `Configuration`-derived metadata. Full pattern:
 [`docs/guides/hdp.md`](docs/guides/hdp.md) § "Tensor-first" and
 [`docs/api/neuronal_tensor.md`](docs/api/neuronal_tensor.md).
 
