@@ -14,7 +14,7 @@ from jaxfne import (
 )
 
 # -- Define cell types -------------------------------------------------------
-E = NeuronType.make("E")    # relative_size=2.0
+E = NeuronType.make("E")    # relative_size=5.0 (default)
 PV = NeuronType.make("PV")  # relative_size=1.0
 
 # -- Define one cortical area with within-area (InterConnection) wiring -----

@@ -53,11 +53,14 @@ import jax.numpy as jnp
 
 from .io import save_json, load_json
 from .core import Configuration, Model, construct
+from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
 Plane = Literal["xy", "xz", "yz"]
 
-DEFAULT_RELATIVE_SIZE = {"E": 2.0}
+# Single source of truth for NeuronType relative sizes — same table as HDP
+# tau_i = tau_0_ms * size_i**3 scaling (emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE).
+DEFAULT_RELATIVE_SIZE = DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 DEFAULT_OTHER_RELATIVE_SIZE = 1.0
 DEFAULT_AREA_CONNECTION_MECHANISM = "monotonic_cable_synapse"
 
@@ -72,8 +75,8 @@ _PLANE_AXIS_MAP: dict[str, tuple[int, int, int]] = {
 
 
 def default_relative_size(neuron_type: str) -> float:
-    """E defaults to 2.0; every other neuron type (PV/SST/VIP/...) defaults to 1.0."""
-    return DEFAULT_RELATIVE_SIZE.get(neuron_type, DEFAULT_OTHER_RELATIVE_SIZE)
+    """Default relative soma size by cell type; matches HDP size-scaling table."""
+    return float(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE.get(neuron_type, DEFAULT_OTHER_RELATIVE_SIZE))
 
 
 @dataclass

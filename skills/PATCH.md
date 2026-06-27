@@ -18,7 +18,7 @@ This bundle is a structural cleanup of the earlier skill package.
   - experimental fencing
 
 ## How this should be applied
-- copy the markdown files into `jaxfne/skills/`
+- copy the markdown files into repo-root `skills/` (not `jaxfne/skills/`)
 - keep the bundle flat in the repository as well
 - update the repo README or agent docs only if a path or rule changed
 - run the relevant tests after each meaningful edit

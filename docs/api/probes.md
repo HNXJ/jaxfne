@@ -100,7 +100,8 @@ cfg = cfg.probes(["lfp_proxy"])
 
 **Math form:** $\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$
 
-where $W_{cn}$ is row-normalized source-to-contact mapping.
+Default `project_laminar_sources` uses **`mode="density_preserving"`** (raw Gaussian weights).
+Optional **`mode="row_normalize"`** enforces $\sum_n W_{cn} = 1$ per contact (explicit opt-in).
 
 **Output:** Potential at recording contacts [time, contacts]
 

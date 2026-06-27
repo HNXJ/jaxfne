@@ -95,7 +95,7 @@ cfg = tu.make_laminar_column_config(
     areas=("V1",), area_x_rel=(0.0,),
     layer_count_frac=LAYER_COUNT_FRAC,
     layer_cell_type_frac=LAYER_CELL_TYPES,
-    n_neuron_per_column=1000,        # crossover is scale-emergent — scale up for sharpness
+    n_neuron_per_column=1000,        # 1k is tutorial-scale; crossover needs oscillatory regime + low κ
     dt_ms=0.1, duration_ms=1000.0,
     n_trials=10, n_contacts=32, freq_count=96, seed=0,
 )
@@ -155,8 +155,11 @@ kappa = jtfne.kappa_synchrony(np.asarray(trials["spikes"])[0], cfg.dt_ms)
 #    on the SAME built model via model.with_emitter_parameters(drive_per_neuron=...)
 ```
 
-The crossover is **scale-emergent**: it is weak at small populations / few trials and
-sharpens with neuron count and trial averaging in a low-synchrony regime.
+The crossover is **not guaranteed by column geometry or N alone**: in an
+asynchronous-irregular regime the LFP is broadband at every depth. A deep-α/β vs
+superficial-γ crossing requires band-limited **oscillations** localized by layer
+while global κ stays low — see `skills/jaxfne-spectrolaminar-suite/SKILL.md`.
+Multi-trial averaging and ≥1k neurons help **estimate** the readout, not create the regime.
 
 ## Homeostasis-Dependent Plasticity (HDP) for long-duration spectrolaminar runs
 
@@ -768,19 +771,22 @@ Scope boundary: Proxy relative units. Physical amplitude calibration is outside 
 
 ### Geometric projection tensor (laminar approximation)
 
-Formal equation:
+**Package default:** `mode="density_preserving"` — raw Gaussian weights (no row sum constraint):
+
+$$K_{cn} = e^{-\frac{1}{2} \left( \frac{z_c - z_n}{\sigma} \right)^2}$$
+
+**Opt-in:** `mode="row_normalize"` — row-stochastic kernel:
 
 $$\mathbf{M}_{cn} = \frac{e^{-\frac{1}{2} \left( \frac{z_c - z_n}{\sigma} \right)^2}}{\sum_{m=1}^{N} e^{-\frac{1}{2} \left( \frac{z_c - z_m}{\sigma} \right)^2}}$$
 
 Terms:
-- $\mathbf{M}_{cn}$: entry of the row-normalized geometric projection tensor (mapping contact $c$ to emitter $n$)
-- $z_c$: relative laminar depth coordinate of contact $c$
-- $z_n$: relative laminar depth coordinate of emitter $n$
-- $\sigma$: declared standard deviation (width parameter) of the Gaussian profile
+- $K_{cn}$ / $\mathbf{M}_{cn}$: contact $c$ to emitter $n$ weight
+- $z_c$, $z_n$: relative laminar depth coordinates
+- $\sigma$: Gaussian width parameter
 
-Worded equation: the geometric projection operator is a row-normalized Gaussian weight matrix representing a homogeneous, isotropic infinite-medium proxy operator design note, not current calibrated field-solver evidence.
+Worded equation: default projection preserves source density (SUM-like); row-normalized mode is explicit opt-in and can flatten depth structure for off-population contacts.
 
-Implementation location: `jaxfne.fields._row_normalize` and `jaxfne.fields.project_laminar_sources`
+Implementation location: `jaxfne.fields.proxy._row_normalize` and `jaxfne.fields.proxy.project_laminar_sources`
 
 Scope boundary: Homogeneous isotropic infinite-medium proxy operator. Calibrated field-solver evidence is outside scope; this is a proxy operator design only.
 
@@ -794,10 +800,10 @@ $$\text{LFP}[t, c] = \sum_{n=1}^{N} K_{cn} \cdot S[t, n]$$
 
 Terms:
 - $\text{LFP}[t, c]$: LFP-proxy at contact $c$
-- $K_{cn}$: row-normalized Gaussian kernel (contact $c$ to emitter $n$)
+- $K_{cn}$: Gaussian projection kernel (default `density_preserving`; optional `row_normalize`)
 - $S[t, n]$: source proxy from emitter $n$
 
-Worded equation: LFP-proxy is a weighted sum of source-proxy traces, with weights from a row-stochastic contact kernel.
+Worded equation: LFP-proxy is a weighted sum of source-proxy traces. Default kernel preserves density; row-normalized mode is opt-in.
 
 Implementation location: `jaxfne.fields.project_laminar_sources`
 

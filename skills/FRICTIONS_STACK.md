@@ -12,12 +12,12 @@ Last audited: 2026-06-27 (skills realignment pass).
 
 | ID | Severity | Topic | Contradiction / friction | Authoritative source (today) | Suggested resolution |
 |----|----------|-------|--------------------------|----------------------------|----------------------|
-| F-001 | high | HDP E size default | `NeuronalTensor.DEFAULT_RELATIVE_SIZE` E=2.0 vs `emitters.py` `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` E=5.0 | Each module's own default until reconciled (`catalog-glossary-jaxfne` §1b) | Single public constant + migration note in `neuronal_tensor.py` / `emitters.py` |
+| F-001 | high | HDP E size default | ~~E=2.0 prose in docs/scripts~~ | `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` single source | **Resolved 2026-06-27** — spot-check notebooks/tutorials for stale 2.0 comments |
 | F-002 | high | Layer naming | 5-layer `L2/3` merged (`DEFAULT_LAYERS`, `laminar_cortex_config` examples) vs 6-layer `L1…L6` (`CANONICAL_LAYERS_6L`, `ei_profile="canonical"`) | `builders.py`: canonical E:I requires 6-layer set; 5-layer has merged fractions | Skills/docs must state **which layer set** per builder; add cross-link table in `jaxfne-cortical-column-default` |
 | F-003 | medium | Projection semantics history | Older docs/skills said row-normalize was default; code default is `density_preserving` since proxy fix | `jaxfne/fields/proxy.py:120`, `tests/test_fields_projection_finite_and_normalization.py` | Resolved in skills 2026-06-27; grep repo for stale "row-normalize default" prose |
-| F-004 | medium | Spectrolaminar crossover | Old claim: crossover "scale-emergent at 10k". Verified: crossover needs **oscillatory regime**, not N alone | `jaxfne-spectrolaminar-suite/SKILL.md`, etude sweeps | Resolved in `jaxfne-cortical-column-default` 2026-06-27; verify notebooks don't repeat scale-emergent |
+| F-004 | medium | Spectrolaminar crossover | ~~scale-emergent at 10k~~ | Regime/oscillations (`jaxfne-spectrolaminar-suite`) | **Resolved 2026-06-27** in skills + docs/étude7; spot-check other notebooks |
 | F-005 | medium | Global vs repo doctrine gates | Workspace `AGENTS.md` (Gamma) JAX §11 still cites `field_solver_status = "laminar_proxy_no_pde"` | Repo + catalog: `linear_solver`; `laminar_proxy_no_pde` RETIRED | Update global `AGENTS.md` JAX section outside this repo |
-| F-006 | medium | Dual skill trees | `skills/` (canonical) vs `jaxfne/skills/` (older numbering) | `AGENTS.md` → `skills/` only | Deprecate `jaxfne/skills/` or delete after one release; grep for imports |
+| F-006 | medium | Dual skill trees | ~~`jaxfne/skills/` duplicate~~ | `skills/` only | **Resolved 2026-06-27** — `jaxfne/skills/` removed |
 | F-007 | low | Config fluent API surface | `Configuration()` bare constructor vs builder-first (`laminar_cortex_config`, `build_laminar_column`) | Both exist; builders preferred in tutorials | `jaxfne-configuration-fluent-api` documents **verified** methods only |
 | F-008 | low | Objective composition | `Objective.compose()` exists; no top-level `jtfne.band_power` / `phase_locking` | `core.py` Objective, `objectives.py`, `Model.tune` | Keep objective skill on verified `rate_targets`, `readout_spec`, `Model.tune` |
 | F-009 | low | Signals trial axis | `Signals.get(..., trial=)` raises `NotImplementedError` | `core.py` Signals.get docstring | Document in signals skill; use `run_trials` / tutorial_utils for multi-trial |
@@ -38,8 +38,10 @@ Last audited: 2026-06-27 (skills realignment pass).
 | F-010 | Worker router skill list aligned with `skills/README.md` | 2026-06-27 |
 | — | Extensionless Python "skills" replaced with verified `SKILL.md` files | 2026-06-27 |
 | — | `jaxfne-visualization-schema` module map matches `jaxfne/vis/*.py` | 2026-06-27 |
-| — | Repo `catalog-glossary-jaxfne` synced (NeuronalTensor, HDP, projection default) | 2026-06-27 |
-| — | `AGENTS.md` laminar-path table expanded to three columns | 2026-06-27 |
+| — | F-001 doc/script sweep (hdp.md, neuronal_tensor.md, hdp script, tutorial 07 equations) | 2026-06-27 |
+| — | F-004 doc sweep (étude7, showcases, tutorial 07, changelog) | 2026-06-27 |
+| — | F-003 doc sweep (fields.md, probes.md, tensor_field_workflows, v038 tutorial) | 2026-06-27 |
+| — | `jaxfne/skills/` removed; global `~/.claude/skills/` synced from repo | 2026-06-27 |
 
 ---
 

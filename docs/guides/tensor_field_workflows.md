@@ -96,17 +96,20 @@ Source tensor from emitter: $T$ time steps, $N$ neurons, optional $L$ layers/dep
 
 $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
-Potential at contact $c$ via row-normalized kernel $W$:
+Potential at contact $c$ via kernel $W$. **Package default:** `density_preserving`
+(raw Gaussian — no row sum constraint). **Opt-in:** `row_normalize` enforces:
 
 $$\sum_{n=1}^{N} W_{cn} = 1 \quad \forall c$$
 
 Declarative projection-based computation; PDE solving deferred to physical solver path.
 
-### Row-normalized Gaussian kernel (example)
+### Gaussian kernel (density-preserving default)
+
+$$W_{cn} = \exp\left(-\frac{\|z_c - z_n\|^2}{2\sigma^2}\right)$$
+
+### Row-normalized variant (explicit `mode="row_normalize"`)
 
 $$W_{cn} = \frac{\exp\left(-\frac{\|z_c - z_n\|^2}{2\sigma^2}\right)}{\sum_{k=1}^{N} \exp\left(-\frac{\|z_c - z_k\|^2}{2\sigma^2}\right)}$$
-
-Kernel centered at contact depth $z_c$, localized by $\sigma$. Normalization enforces row sum = 1.
 
 ### Field-to-probe readout (generic operator form)
 

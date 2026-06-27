@@ -57,7 +57,9 @@ This is a SEPARATE build path from `Configuration` — both converge on the same
 - `construct(tensor, runtime_configuration)` → `Model` — same top-level `construct` as the `Configuration` path, dispatches on input type.
 - `RuntimeConfiguration` (`neuronal_tensor.py`, frozen, execution-only: seed/duration_ms/dt_ms/etc.) — **distinct from** `RuntimeConfig` (`core.py`, has `enable_hdp`/`hdp_params`). `RuntimeConfiguration` has NO HDP field.
 - `load`, `load_neuronal_tensor`, `load_canonical_neuronal_tensor`, `list_canonical_neuronal_tensors`, `merge_neuronal_tensors`, `construct_neuronal_tensor`.
-- `DEFAULT_RELATIVE_SIZE = {"E": 2.0}`, `DEFAULT_OTHER_RELATIVE_SIZE = 1.0` (note: inconsistent with `emitters.py`'s internal `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` E=5.0 default — known, not yet reconciled, treat each module's default as authoritative for that module).
+- `DEFAULT_RELATIVE_SIZE` re-exports `emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`
+  (E=5.0, PV=1.0, SST/VIP=1.5, …) — single source of truth for NeuronType sizes and
+  HDP `tau_i = tau_0_ms * size_i**3` scaling.
 
 **Enabling HDP on a tensor-built Model (no new public API needed):** build via
 `construct(tensor, RuntimeConfiguration(...))`, then pass an explicit

@@ -26,9 +26,6 @@ docs, and code. Check before claiming ground truth.
 These are reference guidance, not importable package code. The shipped Python
 package is `jaxfne/`. Each first-class skill is a `skill-name/SKILL.md` folder.
 
-**Deprecated:** `jaxfne/skills/` — older duplicate bundle with different file
-numbering. Use `skills/` at repo root only (see `FRICTIONS_STACK.md` F-006).
-
 ## Repo-hardening enforcement skills (flat)
 
 A second, flat set of enforcement skills lives at the root of this folder as

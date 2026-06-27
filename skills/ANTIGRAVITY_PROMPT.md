@@ -1,6 +1,6 @@
 # Antigravity prompt for jaxfne skills
 
-Install the markdown skills from this bundle into `jaxfne/skills/` as flat root-level files.
+Install the markdown skills from this bundle into repo-root `skills/` as flat root-level files and `*/SKILL.md` folders (see `skills/README.md`).
 Do not recreate nested skill folders inside the bundle or in the repo copy.
 
 ## Goal

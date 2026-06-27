@@ -14,8 +14,9 @@ Configuration.connections()/.mechanisms() bridge.
 
 HDP is enabled via an explicit RuntimeConfig override at simulate() time
 (RuntimeConfig.hdp_params is already a free-form dict -- no new public API),
-with size_scale_by_cell_type matching the tensor's own declared
-NeuronType.relative_size (E=2.0, PV/SST/VIP=1.0), so tau_i = tau_0_ms *
+with size_scale_by_cell_type matching the tensor's declared
+NeuronType.relative_size (defaults from `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`:
+E=5.0, PV=1.0, SST/VIP=1.5), so tau_i = tau_0_ms *
 size_i**3 differentiates E's homeostatic adaptation rate from interneurons'
 exactly as declared on the tensor.
 
@@ -63,12 +64,11 @@ ZBANDS = {
     "L4": (0.55, 0.65), "L5": (0.65, 0.85), "L6": (0.85, 1.00),
 }
 
-# Relative size declared explicitly on the tensor (NeuronType.relative_size
-# defaults: E=2.0, everything else=1.0 -- see default_relative_size). Reused
-# verbatim as RuntimeConfig.hdp_params["size_scale_by_cell_type"] so the
-# *declared* tensor sizes (not jaxfne.emitters' separate internal default of
-# E=5.0) are what drives the cube-law tau_i = tau_0_ms * size_i**3.
-RELATIVE_SIZE = {"E": 2.0, "PV": 1.0, "SST": 1.0, "VIP": 1.0}
+from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+
+# Relative sizes aligned with HDP kernel table (same as NeuronType.make defaults).
+RELATIVE_SIZE = {ct: float(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE.get(ct, 1.0))
+                 for ct in ("E", "PV", "SST", "VIP")}
 
 AMPA_TAU_MS, AMPA_REV_MV = 2.0, 0.0
 GABA_TAU_MS, GABA_REV_MV = 5.0, -80.0

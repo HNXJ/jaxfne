@@ -473,7 +473,9 @@ print(f"Energy ratio: {diag['energy_ratio']:.3f}")
 
 $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
-where $W$ is row-normalized ($\sum_n W_{cn} = 1$).
+**Default (`mode="density_preserving"`):** $W_{cn} = \exp(-\|z_c - z_n\|^2 / 2\sigma^2)$ — preserves source density.
+
+**Optional (`mode="row_normalize"`):** row-stochastic $W$ with $\sum_n W_{cn} = 1$ for all contacts $c$.
 
 $$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
 

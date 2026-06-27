@@ -225,9 +225,9 @@ def test_neuron_type_fraction_absent_keeps_even_split():
 
 
 def test_default_relative_size():
-    assert nt.default_relative_size("E") == pytest.approx(2.0)
+    assert nt.default_relative_size("E") == pytest.approx(5.0)
     assert nt.default_relative_size("PV") == pytest.approx(1.0)
-    assert nt.default_relative_size("SST") == pytest.approx(1.0)
+    assert nt.default_relative_size("SST") == pytest.approx(1.5)
 
 
 def test_merge_neuronal_tensors_flattens_and_renames_collisions():

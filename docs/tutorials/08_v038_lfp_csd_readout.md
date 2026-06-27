@@ -14,7 +14,7 @@ This tutorial documents the jaxfne **source-to-field-to-readout workflow** for l
 The core concepts:
 
 1. **Source Declaration (Implicit):** Emitter type + neuron count determine available sources
-2. **Spatial Projection (Gaussian Kernel):** Sources spread to contacts via a fixed, row-normalized convolution kernel (not PDE-solved)
+2. **Spatial Projection (Gaussian Kernel):** Sources spread to contacts via a Gaussian kernel; default **`density_preserving`** mode (not row-normalized). Use `mode="row_normalize"` only when explicitly intended (not PDE-solved)
 3. **LFP-proxy:** The spatially-smoothed source projection represents local field potential
 4. **CSD-proxy:** The second spatial derivative of LFP-proxy approximates current-source density
 5. **Probe Readout:** Eight multimodal operators extract spikes, voltage, sources, LFP-proxy, CSD-proxy, EEG-proxy, MEG-proxy, and EMM-proxy

@@ -9,7 +9,7 @@
 
 ### Added
 - **Étude 6 — Multi-Area Network**: V1→V2→V4→PFC hierarchy with feedforward + feedback, inter-areal connectivity census, interactive 3D layout, per-area depth rasters, and an async-irregular (κ) gate.
-- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the scale-emergent crossover caveat.
+- **Étude 7 — Multi-Trial Spectrolaminar Motif**: multi-trial depth × frequency relative power on a 1k canonical column, with the synchrony (κ) trust gate and the regime-based crossover caveat (oscillatory layers + low κ — not N alone).
 
 ## v0.4.3 (2026-06-21)
 

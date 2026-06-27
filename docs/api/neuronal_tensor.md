@@ -87,7 +87,7 @@ Convenience constructor that auto-fills `relative_size` from
 `default_relative_size(name)` when `relative_size` is `None`.
 
 ```python
-e  = NeuronType.make("E")    # relative_size=2.0
+e  = NeuronType.make("E")    # relative_size=5.0 (default)
 pv = NeuronType.make("PV")   # relative_size=1.0
 ```
 
@@ -272,9 +272,11 @@ what `save_neuronal_tensor` serialises to JSON.
 def default_relative_size(neuron_type: str) -> float
 ```
 
-Returns the default `relative_size` for a neuron type:
-- `"E"` → `2.0`
-- all other types (PV, SST, VIP, …) → `1.0`
+Returns the default `relative_size` for a neuron type (from
+`emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`, shared with HDP `tau_i` scaling):
+- `"E"` → `5.0`
+- `"PV"` / `"Inl"` → `1.0`
+- `"SST"` / `"VIP"` / `"Ing"` → `1.5`
 
 Used internally by `NeuronType.make`.
 
@@ -481,7 +483,7 @@ from jaxfne import (
 )
 
 # ── Define cell types ────────────────────────────────────────────────────────
-E  = NeuronType.make("E")    # relative_size=2.0
+E  = NeuronType.make("E")    # relative_size=5.0 (default)
 PV = NeuronType.make("PV")   # relative_size=1.0
 
 # ── Define layers ───────────────────────────────────────────────────────────

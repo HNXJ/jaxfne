@@ -21,9 +21,9 @@ tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*r_i - delta*W_i
 ```
 
 `tau_i = tau_0_ms * size_i**3` (cube law, verified 2026-06-25; size depends on
-cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override`
-— a `relative_size=2.0` neuron integrates `H` exactly 8x slower than
-`relative_size=1.0`). The five terms are: synaptic income (`alpha`), a
+cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override` —
+default E `relative_size=5.0` integrates `H` exactly $5^3/1^3 = 125$ times slower
+than `relative_size=1.0`). The five terms are: synaptic income (`alpha`), a
 constant bias (`beta`), an activity drain (`gamma`), a weight-budget drain
 (`delta`), and a restoring control term (`K_ctrl`) plus an optional barrier
 term. `H_i` then drives excitatory/inhibitory weight ODEs:
