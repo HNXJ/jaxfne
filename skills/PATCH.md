@@ -19,6 +19,7 @@ This bundle is a structural cleanup of the earlier skill package.
 
 ## How this should be applied
 - copy the markdown files into repo-root `skills/` (not `jaxfne/skills/`)
+- after editing repo `skills/*/SKILL.md`, run `bash skills/SYNC_GLOBAL.sh` to refresh `~/.claude/skills/` and `~/.agents/skills/`
 - keep the bundle flat in the repository as well
 - update the repo README or agent docs only if a path or rule changed
 - run the relevant tests after each meaningful edit

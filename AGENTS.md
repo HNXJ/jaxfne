@@ -105,14 +105,17 @@ COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in 
   (build a deep-layer mask from `model.neuron_table()`; recurrent `W` is dense, so deep drive reaches superficial).
   Per-cell-type DC: `baseline_drive_by_cell_type={"E":..}` in the config.
 - Explicit 128-contact projection: `jtfne.project_laminar_sources(source, positions_(N,3), n_contacts=128)`.
-  **Default `mode="row_normalize"` erases attenuation for any contact placed outside the
-  modeled population** (e.g. a probe contact beyond the cortical depth band) — row-normalizing
-  forces every contact's weights to sum to 1 regardless of how attenuated the raw Gaussian is,
-  so an off-population contact gets dominated by whichever few neurons are nearest and reads
-  as *louder*, not weaker. Verified 2026-06-21 on a 300-neuron V1 column with 2 contacts placed
-  at z=-0.15/1.15: `row_normalize` gave outside RMS *higher* than the inside mean; `mode=
-  "density_preserving"` (SUM, no row-normalize) gave the physically sensible ~9x attenuation.
-  Use `density_preserving` for any contact/probe layout that isn't fully inside the population.
+  **Default `mode="density_preserving"`** (`jaxfne/fields/proxy.py`) — SUM weights, no row-normalize.
+  Opt-in **`mode="row_normalize"`** only for pedagogy or when every contact lies inside the
+  modeled population; row-normalizing erases attenuation for off-population contacts (e.g. a probe
+  beyond the depth band): weights sum to 1 regardless of Gaussian falloff, so outside contacts can
+  read *louder*, not weaker. Verified 2026-06-21 on a 300-neuron V1 column with 2 contacts at
+  z=-0.15/1.15: `row_normalize` gave outside RMS *higher* than the inside mean;
+  `density_preserving` gave ~9× attenuation. Skill: `jaxfne-cortical-column-default` § Projection.
+- **Layer naming (F-002):** 5-layer (`L1,L2/3,L4,L5,L6`) in `laminar_cortex_config` examples vs
+  **6-layer** (`L1…L6`) required by `build_laminar_column(..., ei_profile="canonical")` /
+  `CANONICAL_LAYERS_6L`. Pick one set per script; canonical E:I fractions in
+  `jaxfne-cortical-column-default` are verified on **6-layer** names.
 - `spectrolaminar_psd_jax` wants `(n_trials, n_steps, n_contacts)`.
 - All `jtfne.vis.*` (lfp/csd/eeg/meg/emm/raster/rate/psd/spectrolaminar_suite/layer_celltype_counts)
   take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.

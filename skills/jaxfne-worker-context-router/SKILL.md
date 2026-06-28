@@ -102,3 +102,18 @@ Open contradictions: `skills/FRICTIONS_STACK.md` (check before claiming API/scie
 Global-only (not in repo): `jax-jit-pmap-performance-guard`, `jax-neuro-diffsim-guard`, `neuro-biophysics-units-sanity`.
 
 **Route by altitude:** Opus → architecture/contract authoring/truth-gate review. Sonnet → implement against a frozen contract + the relevant skill. Gemini → large-context cross-file synthesis + repo-scale batch edits. Frozen contracts + skills + the §11 invariants are what make the cheaper tiers safe.
+
+## Cursor subagent routing (Task tool)
+
+When spawning subagents, pick by task shape — do not default everything to `generalPurpose`:
+
+| Subagent | Use when |
+|----------|----------|
+| `explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation) |
+| `shell` | Git branch alignment, validation commands, sync scripts |
+| `generalPurpose` | Multi-step implementation with unclear file ownership |
+| `ci-investigator` | One failing PR check — root cause only |
+| `bugbot` / `security-review` | User explicitly asks for review of local diff |
+| `gemini-worker` | Repo-scale mechanical edits across many files |
+
+Always pass repo path, branch/SHA, and which skill contract applies. Subagents do not inherit chat context.

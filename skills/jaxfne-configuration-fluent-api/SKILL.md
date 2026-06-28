@@ -68,7 +68,7 @@ See `skills/FRICTIONS_STACK.md` F-002.
 
 ```python
 model = jtfne.construct(cfg)
-nt = model.neuron_table()  # authoritative counts — not layer_celltype_count_table on raw cfg
+nt = model.neuron_table()  # row-level detail; or jtfne.layer_celltype_count_table(cfg/model) for aggregates
 ```
 
 ## Related skills

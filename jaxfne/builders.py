@@ -30,6 +30,7 @@ solver or calibration engine.
 
 from __future__ import annotations
 
+import math
 from typing import Any, Literal, Mapping, Optional, Sequence
 
 from .core import Configuration
@@ -799,73 +800,114 @@ def all_to_all_intercolumn_connectivity(
     }
 
 
+def _metadata_for_table(obj: Configuration | Any) -> dict[str, Any]:
+    """Resolve configuration metadata from a Configuration or Model-like object."""
+    if hasattr(obj, "cfg") and hasattr(obj.cfg, "metadata"):
+        return dict(obj.cfg.metadata)
+    if isinstance(obj, Configuration):
+        return dict(obj.metadata)
+    meta = getattr(obj, "metadata", None)
+    if isinstance(meta, Mapping):
+        return dict(meta)
+    return {}
+
+
+def _neuron_rows_for_table(obj: Configuration | Any) -> list[dict[str, Any]]:
+    """Return neuron_table rows for Configuration (via construct) or Model."""
+    if hasattr(obj, "neuron_table") and callable(getattr(obj, "neuron_table")):
+        if not isinstance(obj, Configuration):
+            return [dict(row) for row in obj.neuron_table()]
+    if isinstance(obj, Configuration):
+        from .core import construct
+
+        return construct(obj).neuron_table()
+    raise TypeError(
+        "Expected Configuration or Model with neuron_table(); "
+        f"got {type(obj).__name__!r}"
+    )
+
+
+def _layer_thickness_mm(layer: str, metadata: Mapping[str, Any]) -> float:
+    """Layer thickness in mm from declared z-bands and column height."""
+    height_mm = float(metadata.get("column_height_mm", 1.60))
+    if str(layer) == "uniform_3d":
+        return height_mm
+    fractions = metadata.get("layer_fractions") or {}
+    if str(layer) in fractions:
+        z0, z1 = fractions[str(layer)]
+        return max(0.0, float(z1) - float(z0)) * height_mm
+    columns = metadata.get("columns") or []
+    if columns:
+        layers = [str(x) for x in columns[0].get("layers", [])]
+        if layers and str(layer) in layers:
+            idx = layers.index(str(layer))
+            n = len(layers)
+            return height_mm / max(n, 1)
+    return height_mm
+
+
 def layer_celltype_count_table(cfg: Configuration | Any) -> dict[str, dict[str, int]]:
     """Generate a table of neuron counts by layer and cell type.
 
     Parameters
     ----------
     cfg : Configuration or Model
-        Configuration or Model object.
+        Configuration (compiled via :func:`construct`) or an existing Model.
 
     Returns
     -------
     dict[str, dict[str, int]]
         Nested dict: {layer_name: {cell_type: count, ...}, ...}.
 
-    Raises
-    ------
-    NotImplementedError
-        This function requires integration with the Model's neuron_table() method
-        and is not yet implemented for Configuration objects.
-
     Examples
     --------
     >>> table = jtfne.layer_celltype_count_table(cfg)
     >>> table["L4"]["E"]
     75
-
-    Notes
-    -----
-    TODO: Implement layer_celltype_count_table to extract neuron counts from
-    Configuration metadata or Model.neuron_table(). Requires understanding
-    layer boundaries and cell-type fractions per layer.
     """
-    raise NotImplementedError(
-        "layer_celltype_count_table requires integration with Model.neuron_table() "
-        "and layer-specific cell-type distributions; not yet implemented for Configuration objects. "
-        "This is a v0.3.15+ feature candidate."
-    )
+    rows = _neuron_rows_for_table(cfg)
+    table: dict[str, dict[str, int]] = {}
+    for row in rows:
+        layer = str(row.get("layer", "unspecified"))
+        cell_type = str(row.get("cell_type", "unspecified"))
+        table.setdefault(layer, {})
+        table[layer][cell_type] = table[layer].get(cell_type, 0) + 1
+    return table
 
 
 def column_density_table(cfg: Configuration | Any) -> dict[str, float]:
-    """Generate a table of neuronal density per layer (neurons / mm³).
+    """Generate neuronal density per layer (neurons / mm³).
+
+    Uses declared column geometry (``column_radius_mm``, ``column_height_mm``,
+    ``layer_fractions``) and neuron counts from :meth:`Model.neuron_table`.
+    Cylindrical layer volume: ``π r² × thickness_mm`` with ``thickness_mm``
+    from the layer's normalized z-band × column height.
 
     Parameters
     ----------
     cfg : Configuration or Model
-        Configuration or Model object.
+        Configuration or Model (same resolution path as
+        :func:`layer_celltype_count_table`).
 
     Returns
     -------
     dict[str, float]
-        Density per layer: {layer_name: density_per_mm³, ...}.
-
-    Raises
-    ------
-    NotImplementedError
-        This function requires geometry integration and is not yet implemented.
-
-    Notes
-    -----
-    TODO: Implement column_density_table to compute neuronal density per layer
-    from Configuration geometry (x_size_mm, y_size_mm, z_size_mm, dz_mm, layer_boundaries)
-    and neuron counts. Requires layer-specific boundaries and total counts.
+        Density per layer: {layer_name: neurons_per_mm³, ...}.
     """
-    raise NotImplementedError(
-        "column_density_table requires geometry integration (3D volume calculation) "
-        "and layer-specific neuron counts; not yet implemented. "
-        "This is a v0.3.15+ feature candidate."
-    )
+    rows = _neuron_rows_for_table(cfg)
+    metadata = _metadata_for_table(cfg)
+    radius_mm = float(metadata.get("column_radius_mm", 0.25))
+    layer_counts: dict[str, int] = {}
+    for row in rows:
+        layer = str(row.get("layer", "unspecified"))
+        layer_counts[layer] = layer_counts.get(layer, 0) + 1
+
+    out: dict[str, float] = {}
+    for layer, count in layer_counts.items():
+        thickness_mm = _layer_thickness_mm(layer, metadata)
+        volume_mm3 = math.pi * radius_mm ** 2 * thickness_mm
+        out[layer] = float(count) / volume_mm3 if volume_mm3 > 0.0 else 0.0
+    return out
 
 
 def configuration_table(cfg: Configuration) -> dict[str, Any]:

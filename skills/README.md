@@ -1,8 +1,12 @@
 # jaxfne skills
 
 Versioned agent skills committed with the repository (`skills/`). Global copies
-may also live in each contributor's `~/.claude/skills/` — **the repo copy is
-source-of-truth for jaxfne work**; sync global when they diverge.
+may also live in each contributor's `~/.claude/skills/` and `~/.agents/skills/` —
+**the repo copy is source-of-truth for jaxfne work**; sync global when they diverge:
+
+```bash
+bash skills/SYNC_GLOBAL.sh
+```
 
 **Friction ledger:** `FRICTIONS_STACK.md` — open contradictions between skills,
 docs, and code. Check before claiming ground truth.

@@ -13,11 +13,13 @@ Make the agent understand the repo before it edits the repo.
 ## What to inspect first
 1. `jaxfne/__init__.py` and root exports.
 2. `jaxfne/core.py` for configuration, construction, simulation, batching, and connectivity.
-3. `jaxfne/fields/proxy.py` for source/field/probe semantics and projections.
-4. `jaxfne/runtime.py` for precision, JIT, and VMAP helpers.
-5. `jaxfne/vis/tutorial_panels.py` for plotting and analysis glue.
-6. `jaxfne/builders.py` for canonical builders and parameter semantics.
-7. `tests/` for the actual contract surface.
+3. `jaxfne/fields/proxy.py` for source/field/probe semantics and projections (default `density_preserving`).
+4. `jaxfne/neuronal_tensor.py` for tensor-first column construction.
+5. `jaxfne/runtime.py` for precision, JIT, and VMAP helpers.
+6. `jaxfne/builders.py` for canonical builders, layer sets (`CANONICAL_LAYERS_6L`), parameter semantics.
+7. `jaxfne/vis/` for plotting (not `tutorial_panels.py` alone).
+8. `skills/catalog-glossary-jaxfne/SKILL.md` before inventing helpers.
+9. `tests/` for the actual contract surface.
 
 ## Working rules
 - Use package-native APIs before writing notebook-local engines.

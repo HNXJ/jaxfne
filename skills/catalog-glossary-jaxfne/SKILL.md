@@ -134,7 +134,8 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 ## 7. Metrics & summaries
 
 - `kappa_synchrony(spikes, dt_ms)`, `tutorial_utils.population_rate_hz(spikes, dt_ms)`.
-- `column_density_table(cfg)`, `layer_celltype_count_table(cfg)`, `configuration_table(cfg)`, `config_summary_frame(cfg)`, `cell_catalog_frame(catalog)`.
+- `layer_celltype_count_table(cfg_or_model)`, `column_density_table(cfg_or_model)` — accept `Configuration` (via `construct`) or `Model`; counts/densities from `neuron_table()`.
+- `configuration_table(cfg)`, `config_summary_frame(cfg)`, `cell_catalog_frame(catalog)`.
 - `spectrolaminar_motif_score(alpha_beta, gamma)` — anti-correlation score (0-100) between a deep alpha/beta and superficial gamma depth profile; `summarize_spectrolaminar_similarity` calls this internally per area. Distinct from `spectrolaminar_similarity_kernel_jax`, which scores against an explicit external target — see `jaxfne-spectrolaminar-suite` for the full distinction.
 
 ## 8. Visualization — `jtfne.vis.*` (signal-driven, proxy-safe)
@@ -184,6 +185,16 @@ Paradigm/trials: `Paradigm`, `ParadigmCondition`, `ParadigmEvent`, `TrialBatch`/
 Receipts: `RunReceipt`, `RuntimeConfig`, `CellTypePreset`, `NodeIdentity`.
 Bridges: `JaxleyBridge`, `JaxleyEmitterBridge`, `JaxleyTraceSpec`.
 Tensor: `NeuronalTensor`, `Area`, `Layer`, `NeuronType`, `InterConnection`, `AreaConnection`.
+
+## Plasticity word overload (disambiguate before editing)
+
+Three mechanisms share "plasticity" — do not conflate:
+
+1. `Configuration.plasticity()` — declarative metadata only (`declared_not_wired_to_simulate`).
+2. `Configuration.homeostasis(eta=...)` — wired synaptic homeostasis in `simulate_edge_recurrent_izhikevich_homeostatic`.
+3. `run_stdp_stream` / `make_ei_cloud_network` — separate STDP path, not connected to `Model.simulate()`.
+
+`homeostasis(k_gain=...)` is a one-sided excitability damper, not a bidirectional rate setpoint (see repo `AGENTS.md`).
 
 ## Truth-plane reminders (always)
 

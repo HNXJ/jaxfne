@@ -163,6 +163,19 @@ truth_gates
 seed/search budget
 ```
 
+## Homeostasis vs plasticity (do not conflate)
+
+| Mechanism | API | Wired to `simulate()`? |
+|-----------|-----|------------------------|
+| Declarative plasticity intent | `cfg.plasticity(...)` | No — manifest metadata only |
+| Homeostatic synaptic plasticity | `cfg.homeostasis(eta=..., r_star=...)` | Yes — edge kernel when `eta != 0` |
+| STDP stream | `run_stdp_stream`, `make_ei_cloud_network` | No — separate entry point |
+
+`homeostasis(k_gain=...)` adjusts excitability via `g_bias`; it **cannot** push mean rate above the
+column's natural baseline on this kernel — use for suppression demos, not bidirectional setpoint control.
+Diagnostics: `Model.last_homeostasis_diagnostics()`, `Signals.metadata["homeostasis"]` when `eta != 0`.
+HDP (tensor path): `RuntimeConfig(enable_hdp=True, ...)` passed to `simulate()` — see `docs/guides/hdp.md`.
+
 ## Simulation truth gate
 
 Default status:

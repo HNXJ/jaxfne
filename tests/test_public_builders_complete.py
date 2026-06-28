@@ -8,8 +8,8 @@ This test suite validates all 11 public builders in jaxfne.builders:
 - connect_columns
 - sparse_intercolumn_connectivity
 - all_to_all_intercolumn_connectivity
-- layer_celltype_count_table (raises NotImplementedError)
-- column_density_table (raises NotImplementedError)
+- layer_celltype_count_table (Configuration or Model → counts by layer/cell_type)
+- column_density_table (Configuration or Model → neurons/mm³ per layer)
 - configuration_table
 - validate_configuration
 """
@@ -294,17 +294,24 @@ class TestConnectivitySpecs:
 class TestAnalysisFunctions:
     """Tests for analysis/introspection functions."""
 
-    def test_layer_celltype_count_table_raises_not_implemented(self):
-        """Test layer_celltype_count_table raises NotImplementedError."""
+    def test_layer_celltype_count_table(self):
+        """Test layer_celltype_count_table returns nested count dict."""
         cfg = jtfne.default_cortical_column_config(n=100)
-        with pytest.raises(NotImplementedError, match="layer_celltype_count_table"):
-            jtfne.layer_celltype_count_table(cfg)
+        table = jtfne.layer_celltype_count_table(cfg)
+        assert isinstance(table, dict)
+        total = sum(sum(ct.values()) for ct in table.values())
+        assert total == 100
+        for layer_counts in table.values():
+            assert isinstance(layer_counts, dict)
+            assert all(isinstance(v, int) and v >= 0 for v in layer_counts.values())
 
-    def test_column_density_table_raises_not_implemented(self):
-        """Test column_density_table raises NotImplementedError."""
+    def test_column_density_table(self):
+        """Test column_density_table returns positive density per layer."""
         cfg = jtfne.default_cortical_column_config(n=100)
-        with pytest.raises(NotImplementedError, match="column_density_table"):
-            jtfne.column_density_table(cfg)
+        table = jtfne.column_density_table(cfg)
+        assert isinstance(table, dict)
+        assert table
+        assert all(isinstance(v, float) and v > 0.0 for v in table.values())
 
     def test_configuration_table(self):
         """Test configuration_table returns summary dict."""
