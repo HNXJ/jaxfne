@@ -74,7 +74,7 @@ Config
 
 `NeuronalTensor` — a declarative `Areas x Layers x NeuronTypes` data model with
 per-layer `InterConnection`/`AreaConnection` wiring — is the canonical, preferred
-way to define a circuit as of 0.4.7. Load a packaged canonical circuit (or build
+way to define a circuit. Load a packaged canonical circuit (or build
 one inline, see below), construct, simulate:
 
 ```python

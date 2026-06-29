@@ -25,7 +25,7 @@ jaxfne is a compact JAX-native TFNE scaffold.
 import jaxfne as jtfne
 ```
 
-Public flow: `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export` (package computes; notebooks configure/plot/export).
+Public flow (shorthand): `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export` (package computes; notebooks configure/plot/export). For the full typed chain see README § "Object grammar".
 
 ## Root freeze policy
 
@@ -81,6 +81,8 @@ EEG-proxy/MEG-proxy/spectrolaminar/AGSDR/manifest logic, consult the
 `catalog-glossary-jaxfne` skill (global, `~/.claude/skills/`) — it lists the
 package-native functions (incl. the exact spectrolaminar pipeline) so existing
 APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.
+
+**Stub warning:** `GLIFEmitter` and `LIFEmitter` are exported in `__all__` but raise `NotImplementedError` on use — do not reference them in examples or tutorials. `write_nwb` / `read_nwb` are similarly exported but not implemented.
 
 ## Verified laminar pipeline (reuse; do not rediscover)
 
