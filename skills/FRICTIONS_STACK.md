@@ -15,7 +15,7 @@ Last audited: 2026-06-27 (skills realignment pass).
 | F-007 | low | Config fluent API surface | `Configuration()` bare constructor vs builder-first | Both exist; builders preferred | Documented in `jaxfne-configuration-fluent-api` — keep builder-first in tutorials |
 | F-008 | low | Objective composition | No top-level `jtfne.band_power` / `phase_locking` | `Objective`, `Model.tune` | Use verified objective skill APIs only |
 | F-009 | low | Signals trial axis | `Signals.get(..., trial=)` raises `NotImplementedError` | `core.py` Signals.get | Use `run_trials` / tutorial_utils for multi-trial |
-| F-014 | low | v038 projection pedagogy | ~~Notebook equation text describes row-normalized kernel without label~~ | Default API: `density_preserving` | **Resolved 2026-06-27** — manifest notes pedagogy vs package default |
+| F-016 | low | `export.save_figure` deprecation | `export.save_figure` has no `DeprecationWarning`; audit recommends routing to `vis.export_figure` | `jaxfne/export.py` | Emit `warnings.warn(..., DeprecationWarning)` in `save_figure`; update any tutorial that calls it |
 
 ---
 
@@ -31,6 +31,7 @@ Last audited: 2026-06-27 (skills realignment pass).
 | F-011 | `layer_celltype_count_table` / `column_density_table` implemented in `builders.py` | 2026-06-27 |
 | F-012 | Homeostasis disambiguation in modeling skill | 2026-06-27 |
 | F-013 | Plasticity overload in catalog | 2026-06-27 |
+| F-014 | v038 projection pedagogy: row-normalize label added to notebook; default confirmed `density_preserving` | 2026-06-27 |
 | F-015 | Objective evaluation path in skills | 2026-06-27 |
 | — | Extensionless Python "skills" replaced with verified `SKILL.md` files | 2026-06-27 |
 | — | `jaxfne-visualization-schema` module map matches `jaxfne/vis/*.py` | 2026-06-27 |
