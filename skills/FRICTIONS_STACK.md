@@ -4,7 +4,7 @@
 external doctrine. Resolve items here before claiming a skill is authoritative.
 **Do not delete rows** — mark `status: resolved` with SHA/date when fixed.
 
-Last audited: 2026-06-27 (skills realignment pass).
+Last audited: 2026-06-29 (HDP v2 patch — passive income, hdp_rule families).
 
 ---
 
@@ -16,6 +16,8 @@ Last audited: 2026-06-27 (skills realignment pass).
 | F-008 | low | Objective composition | No top-level `jtfne.band_power` / `phase_locking` | `Objective`, `Model.tune` | Use verified objective skill APIs only |
 | F-009 | low | Signals trial axis | `Signals.get(..., trial=)` raises `NotImplementedError` | `core.py` Signals.get | Use `run_trials` / tutorial_utils for multi-trial |
 | F-016 | low | `export.save_figure` deprecation | `export.save_figure` has no `DeprecationWarning`; audit recommends routing to `vis.export_figure` | `jaxfne/export.py` | Emit `warnings.warn(..., DeprecationWarning)` in `save_figure`; update any tutorial that calls it |
+| F-017 | medium | HDP v2 presets not retuned | `DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` in `hdp_network.py` carry `K_ctrl` values (5.0 and 0.15) that are now no-ops; `rho_passive=0.0` means no passive-income restoring force is active in any preset — net effect: existing stable configs silently lost their equilibrium-defining term | `jaxfne/hdp_network.py` lines 66, 109 | Re-sweep `rho_passive` for both presets at verified N (250 for `DEFAULT_HDP`, 500 for `DEFAULT_HDP_DESYNC`); target H_mean≈1.0, H_std<0.05 over 20s; freeze new values and update comments |
+| F-018 | low | HDP v2 sign orientation undocumented at API level | `signed_linear` and `signed_quadratic` use `H_post - H_pre` (flipped from naive spec `H_pre - H_post`) to preserve postsynaptic-indexing invariant; flip is noted in inline comments but not in any skill or top-level API doc | `jaxfne/emitters.py` line 1332 | Add one-paragraph note to the HDP section of `AGENTS.md` explaining the postsynaptic-indexing convention and the direction of each rule |
 
 ---
 
