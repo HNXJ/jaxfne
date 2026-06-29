@@ -1,0 +1,323 @@
+{
+  "networks": [
+    {
+      "name": "V1_V4_motif",
+      "kind": "multi_column",
+      "n": 200,
+      "columns": [
+        {
+          "name": "V1",
+          "layers": [
+            "L1",
+            "L2/3",
+            "L4",
+            "L5",
+            "L6"
+          ],
+          "n": 100,
+          "start_index": 0,
+          "stop_index": 100
+        },
+        {
+          "name": "V4",
+          "layers": [
+            "L1",
+            "L2/3",
+            "L4",
+            "L5",
+            "L6"
+          ],
+          "n": 100,
+          "start_index": 100,
+          "stop_index": 200
+        }
+      ],
+      "layers": [
+        "L1",
+        "L2/3",
+        "L4",
+        "L5",
+        "L6"
+      ],
+      "cell_types": {
+        "E": 0.75,
+        "PV": 0.1,
+        "SST": 0.08,
+        "VIP": 0.07
+      },
+      "connectivity": {
+        "within_area": "all_to_all_uniform_random",
+        "within_gain": 0.35,
+        "edge_seed": 42
+      }
+    }
+  ],
+  "emitters": [
+    {
+      "family": "izhikevich",
+      "preset": "cortical_eig"
+    }
+  ],
+  "fields": [
+    {
+      "domain": "laminar_column",
+      "conductivity": "proxy",
+      "boundary": "mean_zero_neumann",
+      "gauge": "mean_zero"
+    },
+    {
+      "domain": "laminar_column",
+      "conductivity": "proxy",
+      "boundary": "mean_zero_neumann"
+    }
+  ],
+  "probes": [
+    {
+      "name": "multimodal_probe",
+      "modes": [
+        "spikes",
+        "V_m",
+        "source",
+        "LFP",
+        "CSD",
+        "EEG",
+        "MEG",
+        "EMM"
+      ],
+      "operator_status": "simulated_proxy",
+      "field_solver_status": "linear_solver",
+      "physical_amplitude_calibrated": false,
+      "n_contacts": 16
+    }
+  ],
+  "metadata": {
+    "claim_level": "computational_scaffold",
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_projection_mode": "proxy_no_field_solve",
+    "source_decomposition": "proxy_reduced_emitter",
+    "boundary_condition": "mean_zero_neumann",
+    "gauge": "mean_zero",
+    "csd_sign_convention": "positive_equals_extracellular_source",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false,
+    "manifest_schema_version": "0.0.4",
+    "operator_status": {
+      "E_theta": "prototype_api",
+      "S_WDR": "prototype_api",
+      "C_mu_nu": "not_implemented",
+      "Q_eta_alpha": "prototype_api",
+      "F_field": "prototype_api",
+      "P_probe": "prototype_api",
+      "A_objective": "prototype_api",
+      "O_optimizer": "prototype_api",
+      "C_constraints": "prototype_api"
+    },
+    "connectivity_status": "declared_metadata_proxy",
+    "geometry_mode": "declared_uniform_3d_metadata_not_solved_pde_grid",
+    "seed": 42,
+    "duration_ms": 1000.0,
+    "dt_ms": 0.1,
+    "dtype": "float32",
+    "areas": [
+      "V1",
+      "V4"
+    ],
+    "columns": [
+      {
+        "name": "V1",
+        "layers": [
+          "L1",
+          "L2/3",
+          "L4",
+          "L5",
+          "L6"
+        ],
+        "n": 100,
+        "start_index": 0,
+        "stop_index": 100
+      },
+      {
+        "name": "V4",
+        "layers": [
+          "L1",
+          "L2/3",
+          "L4",
+          "L5",
+          "L6"
+        ],
+        "n": 100,
+        "start_index": 100,
+        "stop_index": 200
+      }
+    ],
+    "column_names": [
+      "V1",
+      "V4"
+    ],
+    "column_count": 2,
+    "layout_mode": "unified_multi_column_vertical_slice",
+    "dx_mm": 0.01,
+    "dy_mm": 0.01,
+    "dz_mm": 0.01,
+    "cell_types": {
+      "E": 0.75,
+      "PV": 0.1,
+      "SST": 0.08,
+      "VIP": 0.07
+    },
+    "area_layer_cell_types": {
+      "V1": {
+        "L1": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L2/3": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L4": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L5": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L6": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        }
+      },
+      "V4": {
+        "L1": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L2/3": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L4": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L5": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        },
+        "L6": {
+          "E": 0.75,
+          "PV": 0.1,
+          "SST": 0.08,
+          "VIP": 0.07
+        }
+      }
+    },
+    "uniform_3d": true,
+    "column_radius_mm": 0.25,
+    "column_height_mm": 1.6,
+    "connectivity": {
+      "within_area": "all_to_all_uniform_random",
+      "within_gain": 0.35,
+      "edge_seed": 42
+    },
+    "inter_column_connectivity": [
+      {
+        "source_area": "V1",
+        "target_area": "V4",
+        "layer_to_layer_map": null,
+        "cell_type_to_cell_type_map": {
+          "E": "E",
+          "PV": "PV",
+          "SST": "SST",
+          "VIP": "VIP"
+        },
+        "mode": "sparse",
+        "p_feedforward": 0.3,
+        "p_feedback": 0.2,
+        "feedforward_weight_range": [
+          0.5,
+          2.0
+        ],
+        "feedback_weight_range": [
+          0.3,
+          1.5
+        ],
+        "delay_ms_or_status": null,
+        "sign_policy": "intrinsic",
+        "seed": null
+      }
+    ],
+    "objective": {
+      "firing_rate_target": {
+        "E": 8.0,
+        "PV": 15.0,
+        "SST": 4.0,
+        "VIP": 2.0
+      },
+      "spectrolaminar_profile_target": {
+        "alpha_beta": [
+          0.3,
+          0.5
+        ],
+        "gamma": [
+          0.1,
+          0.3
+        ]
+      },
+      "band_definitions": {
+        "alpha_beta": [
+          8.0,
+          25.0
+        ],
+        "gamma": [
+          40.0,
+          150.0
+        ]
+      },
+      "synchrony_metrics": [
+        "pairwise_spike_distance",
+        "lfp_cross_correlation"
+      ],
+      "null_controls": {
+        "null_type": "shuffled_spike_times",
+        "n_null_trials": 10
+      },
+      "ablations": {
+        "E_ablation": false,
+        "PV_ablation": false,
+        "SST_ablation": false,
+        "VIP_ablation": false
+      },
+      "rejection_gates": {
+        "max_firing_rate": [
+          0.0,
+          200.0
+        ],
+        "min_synchrony": [
+          -1.0,
+          1.0
+        ]
+      }
+    }
+  }
+}
