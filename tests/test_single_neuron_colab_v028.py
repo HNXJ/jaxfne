@@ -184,8 +184,8 @@ class TestSingleNeuronNotebook:
         )
         content = doc_path.read_text(encoding="utf-8")
         assert (
-            "01_single_neuron_multimodal.ipynb" in content
-        ), "Tutorial documentation must link to the notebook"
+            "jaxfne_v031_single_neuron.ipynb" in content
+        ), "Tutorial documentation must link to the canonical notebook"
 
     def test_notebook_follows_standard_structure(self):
         """Test that notebook follows v0.2.7 standard structure."""

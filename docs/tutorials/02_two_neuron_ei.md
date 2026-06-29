@@ -7,9 +7,9 @@ Observe coupling, dynamics, and multimodal readouts on a small network.
 
 **Recommended:** Open the full interactive tutorial in Colab:
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/.legacy/notebooks/02_two_neuron_ei_multimodal.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v033_two_neuron_ei.ipynb)
 
-Or download and run locally: `.legacy/notebooks/02_two_neuron_ei_multimodal.ipynb`
+Or run headless: `python examples/v033_two_neuron_ei_multimodal.py`
 
 ## Network configuration
 
