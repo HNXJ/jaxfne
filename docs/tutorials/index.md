@@ -229,16 +229,16 @@ Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-ar
 
 ## Running tutorials
 
-Tutorials are available as Jupyter notebooks in the `.legacy/notebooks/` directory:
+Tutorials live under `tutorials/` as Jupyter notebooks. Headless CI runners live under `examples/` (e.g. `v031_*`, `v033_*`).
 
 ```bash
-jupyter notebook .legacy/notebooks/01_single_neuron_multimodal.ipynb
+jupyter notebook tutorials/jaxfne_v031_single_neuron.ipynb
 ```
 
-Or run directly with nbconvert:
+Or execute headless:
 
 ```bash
-nbconvert --execute .legacy/notebooks/01_single_neuron_multimodal.ipynb
+python examples/v031_single_izhikevich_neuron.py
 ```
 
 ## Quick example: Single-neuron primer
@@ -246,22 +246,13 @@ nbconvert --execute .legacy/notebooks/01_single_neuron_multimodal.ipynb
 ```python
 import jaxfne as jtfne
 
-# Configure
-cfg = (
-    jtfne.configuration()
-    .network(n=1)
-    .emitter(family="izhikevich", preset="regular_spiking")
-    .field(domain="point")
-    .probe(name="single", modes=["spikes", "V_m"])
-)
-
-# Build and simulate
+cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=100.0, dt_ms=0.1)
 model = jtfne.construct(cfg)
-signals = model.simulate(jtfne.simulation(duration_ms=100.0))
+signals = jtfne.simulate(model, duration_ms=100.0, dt_ms=0.1, seed=0)
 
-# Inspect
-print(f"Spike count: {signals.spikes.sum()}")
-print(f"Voltage shape: {signals.V_m.shape}")
+idx_e = model.select(cell_type="E")
+spk = signals.get("spk", cell_type="E")
+print(f"E spike count: {int(spk.sum())}")
 ```
 
 ## Next steps

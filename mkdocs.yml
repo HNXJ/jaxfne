@@ -58,7 +58,9 @@ nav:
       - "Étude: Canonical Cortical Column": tutorials/13_canonical_column_etude.md
       - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
       - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+      - Suite No. 2 (Evoked L4 Drive): tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
       - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+      - "v0.3.13: Sensory Omission Oddball": tutorials/10_v0313_omission_oddball.md
       - "Tutorial: Multi-area Laminar Model": tutorials/11_multi_laminar_cortical_agsdr.md
       - TFNE-Izhikevich Single Emitter Explorer: tutorials/12_izhikevich_single_emitter_explorer.md
       - "09: EEG/MEG/EMM Proxy Bundle": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
@@ -99,6 +101,10 @@ nav:
       - Probes: api/probes.md
       - Objectives: api/objectives.md
       - Validation: api/validation.md
+      - NeuronalTensor: api/neuronal_tensor.md
+      - Plasticity: api/plasticity.md
+      - Solvers: api/solvers.md
+      - Sharding: api/sharding.md
       - Tensor Operator Registry: api/tensor_operators.md
       - Operator Inventory (generated): _generated/operator_inventory.md
 
@@ -116,6 +122,7 @@ nav:
 
   - About jaxfne:
       - Limitations and future plans: limitations_and_future_plans.md
+      - v0.4.7 Refactor Audit: v047_refactor_audit.md
       - Changelog: changelog.md
       - Citation: citation.md
       - Contributing: contributing.md

@@ -79,3 +79,6 @@ tutorials/suite_no*_*_receipt.json
 
 # Local untracked etudes/figures output
 local/
+
+# Script-generated visualization artifacts (regenerate via scripts/)
+scripts/out/

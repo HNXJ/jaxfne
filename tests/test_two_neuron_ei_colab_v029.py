@@ -18,6 +18,7 @@ Tests that:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -34,9 +35,11 @@ _EXAMPLE_OUTPUT_REL = Path("outputs/v029_two_neuron_ei_multimodal")
 def example_output_dir(tmp_path_factory):
     """Run the example script in an isolated temp cwd and return its output bundle."""
     workdir = tmp_path_factory.mktemp("two_neuron_ei_run")
+    env = {**os.environ, "PYTHONPATH": str(_REPO_ROOT)}
     result = subprocess.run(
         [sys.executable, str(_EXAMPLE_SCRIPT)],
         cwd=workdir,
+        env=env,
         capture_output=True,
         text=True,
         timeout=60,
@@ -227,8 +230,8 @@ class TestTwoNeuronEINotebook:
         )
         content = doc_path.read_text(encoding="utf-8")
         assert (
-            "02_two_neuron_ei_multimodal.ipynb" in content
-        ), "Tutorial documentation must link to the notebook"
+            "jaxfne_v033_two_neuron_ei.ipynb" in content
+        ), "Tutorial documentation must link to the canonical notebook"
 
     def test_example_script_exists(self):
         """Test that examples/04_two_neuron_ei_multimodal.py exists."""
