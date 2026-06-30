@@ -128,3 +128,54 @@ def test_initialize_dynamic_state_is_independent_copy():
     # rebinding is).
     fresh = _pipeline.initialize_dynamic_state(model)
     assert jnp.allclose(fresh["emitter"].v0, model.params["emitter"].v0)
+
+
+def test_dynamic_state_from_model_shapes():
+    model = _small_model()
+    state = _pipeline.dynamic_state_from_model(model)
+    n_neurons = model.params["emitter"].n_neurons
+    n_edges = model.params["edge_list"].n_edges
+    assert isinstance(state, _pipeline.DynamicState)
+    assert state.v.shape == (n_neurons,)
+    assert state.u.shape == (n_neurons,)
+    assert state.prev_spikes.shape == (n_neurons,)
+    assert state.H.shape == (n_neurons,)
+    assert state.syn_state.shape == (n_edges,)
+    assert state.w.shape == (n_edges,)
+
+
+def test_compile_step_fn_shape_via_eval_shape():
+    model = _small_model()
+    step_fn, init = _pipeline.compile_step_fn(model, dt_ms=0.5)
+    assert isinstance(init, _pipeline.DynamicState)
+    n_neurons = model.params["emitter"].n_neurons
+
+    sched_t = jnp.zeros((n_neurons,), dtype=init.v.dtype)
+    key_t = jax.random.PRNGKey(0)
+    out_carry, out_outputs = jax.eval_shape(step_fn, init, (sched_t, key_t))
+
+    assert isinstance(out_carry, _pipeline.DynamicState)
+    assert out_carry.v.shape == init.v.shape
+    assert out_carry.H.shape == init.H.shape
+    assert out_carry.w.shape == init.w.shape
+    assert len(out_outputs) == 5  # (v, spikes, sources, H_trace, w_trace) base arity
+
+
+def test_scan_network_shape_via_eval_shape():
+    model = _small_model()
+    step_fn, init = _pipeline.compile_step_fn(model, dt_ms=0.5)
+    n_neurons = model.params["emitter"].n_neurons
+    n_steps = 10
+
+    sched = jnp.zeros((n_steps, n_neurons), dtype=init.v.dtype)
+    keys = jax.random.split(jax.random.PRNGKey(0), n_steps)
+
+    final_carry, outputs = jax.eval_shape(
+        lambda i, s, k: _pipeline.scan_network(step_fn, i, s, k), init, sched, keys
+    )
+
+    assert isinstance(final_carry, _pipeline.DynamicState)
+    assert final_carry.v.shape == init.v.shape
+    assert final_carry.w.shape == init.w.shape
+    for leaf in outputs:
+        assert leaf.shape[0] == n_steps

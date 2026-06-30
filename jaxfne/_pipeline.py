@@ -13,17 +13,18 @@ Deliberately NOT implemented here:
     - configuration_to_tensor / tensor_to_graph / select_signal -- would
       require fabricating unverified logic against Model/EIGNetwork internals
       not yet read in full.
-    - compile_step_fn / scan_network -- audited and confirmed NOT a clean
-      extraction. ``Model._simulate_arrays`` is a five-way Python-side
-      dispatcher (homeostasis / HDP / edge_list / dense, each further split
-      by ablation_mode) that builds a per-branch closure *then* JIT-wraps it;
-      ``jax.lax.scan`` itself lives one level deeper inside five different
-      ``emitters.py`` kernel functions with different carry shapes (HDP
-      carries H_final/w_final/syn_state; homeostasis carries g_bias/r_trace;
-      dense/edge_list carry neither). A generic compile_step_fn/scan_network
-      pair cannot exist without either picking one canonical execution mode
-      or re-implementing this same five-way dispatch -- deferred to Phase 2
-      pending that explicit mode decision.
+
+Phase 2 (compile_step_fn / scan_network) note: ``Model._simulate_arrays`` is
+a five-way Python-side dispatcher (homeostasis / HDP / edge_list / dense,
+each further split by ablation_mode) -- confirmed NOT a clean single
+extraction. Rather than re-implement that dispatch, Phase 2 targets ONE
+canonical execution mode explicitly: HDP, edge-list backend, wrapping
+``emitters.simulate_edge_recurrent_izhikevich_hdp`` directly (NOT
+``Model._simulate_arrays``) -- this is also what the repo's actual canonical
+HDP workflow (``hdp_network.py``) already does in practice. Homeostasis,
+dense, and the Model._simulate_arrays dispatcher remain un-wrapped; calling
+``compile_step_fn``/``scan_network`` on a model without ``params["edge_list"]``
+raises.
 
 # DEFERRED: JaxFNEConfig deletion (case-2 live-in-tests-only format).
 # 21 tests in test_config_schema_v015.py, test_config_runtime_hardening_v028.py,
@@ -37,7 +38,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import jax
 import jax.numpy as jnp
@@ -52,6 +53,28 @@ from .neuronal_tensor import (
     neuronal_tensor_to_configuration,
     save_neuronal_tensor,
 )
+
+
+class DynamicState(NamedTuple):
+    """Canonical HDP edge-list carry tuple (Phase 2 canonical execution mode,
+    confirmed against the verified scan call site in
+    ``emitters.simulate_edge_recurrent_izhikevich_hdp`` -- not inferred from
+    diagnostic output keys).
+
+    Slot order matches the kernel's ``init``/in-carry unpack exactly:
+    ``v, u, prev_spikes, syn_state, H, w``. Slot 2 (``prev_spikes``) holds
+    spikes from the prior step on entry but is overwritten with *this*
+    step's spikes on exit -- the carry is intentionally NOT positionally
+    symmetric in/out; that asymmetry is how "previous" rolls forward each
+    step, not a bug to fix.
+    """
+
+    v: jax.Array            # (n_neurons,)  membrane voltage
+    u: jax.Array            # (n_neurons,)  recovery variable
+    prev_spikes: jax.Array  # (n_neurons,)  spikes from t-1 on entry
+    syn_state: jax.Array    # (n_edges,)    synaptic gating variable
+    H: jax.Array            # (n_neurons,)  homeostatic potential
+    w: jax.Array            # (n_edges,)    synaptic weights
 
 
 def load_tensor(path: str | Path) -> NeuronalTensor:
@@ -177,3 +200,143 @@ def restore_state(path: str | Path) -> tuple[list, dict]:
         leaves = [jnp.array(arrays_npz[str(i)]) for i in range(meta["n_leaves"])]
     static = meta["static"]
     return leaves, static
+
+
+def dynamic_state_from_model(model: Model) -> DynamicState:
+    """Build a cold-start :class:`DynamicState` from ``model.params``.
+
+    Mirrors the ``init_state=None`` branch of
+    ``simulate_edge_recurrent_izhikevich_hdp`` exactly (verified at the scan
+    call site, not inferred): ``H_i(0)=1.0``, ``w(0)`` = native edge weight,
+    ``prev_spikes``/``syn_state`` start at zero. Requires
+    ``model.params["edge_list"]`` -- the canonical Phase 2 execution mode is
+    HDP edge-list; a model built without an edge list (dense-only) cannot
+    produce a valid DynamicState.
+    """
+    emitter = model.params["emitter"]
+    if "edge_list" not in model.params:
+        raise ValueError(
+            "dynamic_state_from_model requires model.params['edge_list'] -- "
+            "the canonical Phase 2 execution mode is HDP edge-list; this "
+            "model was not built with a sparse edge list."
+        )
+    edges = model.params["edge_list"]
+    n_neurons = emitter.n_neurons
+    n_edges = edges.n_edges
+    dtype = emitter.v0.dtype
+    H0 = model.params.get("hdp_initial_H")
+    H0 = jnp.asarray(H0, dtype=dtype) if H0 is not None else jnp.ones((n_neurons,), dtype=dtype)
+    w0 = model.params.get("hdp_initial_w")
+    w0 = jnp.asarray(w0, dtype=dtype) if w0 is not None else edges.weight.astype(dtype)
+    return DynamicState(
+        v=emitter.v0.astype(dtype),
+        u=emitter.u0.astype(dtype),
+        prev_spikes=jnp.zeros((n_neurons,), dtype=dtype),
+        syn_state=jnp.zeros((n_edges,), dtype=dtype),
+        H=H0,
+        w=w0,
+    )
+
+
+def compile_step_fn(
+    model: Model,
+    *,
+    dt_ms: float,
+    record_dH_components: bool = False,
+    record_edge_current: bool = False,
+    **hdp_kwargs: Any,
+) -> "tuple[callable, DynamicState]":
+    """Build a JIT-compiled single-step function over the canonical HDP
+    edge-list carry, plus the model's cold-start :class:`DynamicState`.
+
+    DEVIATION FROM SPEC, surfaced explicitly rather than papered over:
+    ``simulate_edge_recurrent_izhikevich_hdp``'s inner ``step`` closure
+    (emitters.py line ~1298) is a local closure, not exported -- confirmed
+    via ``grep -n 'def step' jaxfne/emitters.py``, which shows it nested
+    inside the kernel function, not module-level. Per instruction, that
+    closure is NOT extracted by monkey-patching (Option A rejected).
+    Instead (Option B) this wraps the full kernel with ``n_steps=1`` per
+    call and unwraps the length-1 trace.
+
+    A consequence of Option B: the kernel generates its Gaussian noise
+    INTERNALLY from a ``jax.Array`` PRNG ``key`` (via
+    ``jax.random.split``/``normal`` inside the kernel) -- it has no
+    parameter that accepts a pre-generated noise array. So the returned
+    ``step_fn``'s second ``xs_t`` element is a **per-step PRNGKey**, not a
+    pre-sampled noise array: ``xs_t = (sched_t, key_t)``, not
+    ``(sched_t, noise_t)``. ``scan_network`` must be driven with a
+    ``(n_steps, ...)`` array of keys (e.g. ``jax.random.split(key, n_steps)``),
+    not a noise array -- documented at the call site there too.
+
+    All HDP hyperparameters (``H_min``, ``K_HDP``, ``rho_passive``, etc, via
+    ``**hdp_kwargs``) and the two record flags are captured by Python
+    closure, not passed through ``lax.scan``'s carry/xs -- they are static
+    for the lifetime of this compiled ``step_fn``; changing them requires
+    calling ``compile_step_fn`` again (a new compile), exactly like
+    ``Model._simulate_arrays``'s own recompilation-on-static-change behavior.
+    """
+    emitter = model.params["emitter"]
+    edges = model.params["edge_list"]
+    n_neurons = emitter.n_neurons
+    silence_mask = jnp.ones((n_neurons,), dtype=emitter.v0.dtype)
+
+    from .emitters import simulate_edge_recurrent_izhikevich_hdp
+
+    def step_fn(carry: DynamicState, xs_t: tuple) -> "tuple[DynamicState, tuple]":
+        sched_t, key_t = xs_t
+        init_state = {
+            "v": carry.v, "u": carry.u,
+            "prev_spikes": carry.prev_spikes, "syn_state": carry.syn_state,
+            "H_final": carry.H, "w_final": carry.w,
+        }
+        _, _, sources, diag = simulate_edge_recurrent_izhikevich_hdp(
+            emitter, edges, n_steps=1, dt_ms=dt_ms, key=key_t,
+            dtype=str(emitter.v0.dtype),
+            drive_schedule=sched_t[None, :],
+            silence_mask=silence_mask,
+            init_state=init_state,
+            record_dH_components=record_dH_components,
+            record_edge_current=record_edge_current,
+            **hdp_kwargs,
+        )
+        new_carry = DynamicState(
+            v=diag["v"], u=diag["u"],
+            prev_spikes=diag["prev_spikes"], syn_state=diag["syn_state"],
+            H=diag["H_final"], w=diag["w_final"],
+        )
+        # Matches the verified per-step output tuple at the real scan call
+        # site (emitters.py line ~1368): (v_reset, spikes, source_proxy,
+        # H_final, w_next).
+        outputs = (diag["v"], diag["prev_spikes"], sources[0], diag["H_trace"][0], diag["w_trace"][0])
+        if record_dH_components:
+            outputs = outputs + (
+                diag["dH_income_trace"][0], diag["dH_rate_trace"][0],
+                diag["dH_weight_trace"][0], diag["dH_passive_trace"][0],
+                diag["dH_barrier_trace"][0],
+            )
+        if record_edge_current:
+            outputs = outputs + (diag["edge_current_trace"][0],)
+        return new_carry, outputs
+
+    init = dynamic_state_from_model(model)
+    return jax.jit(step_fn), init
+
+
+def scan_network(
+    step_fn: "callable",
+    init: DynamicState,
+    drive_schedule: jax.Array,
+    keys: jax.Array,
+) -> "tuple[DynamicState, tuple]":
+    """Thin, pure wrapper over ``jax.lax.scan`` -- no branching, no
+    Python-side dispatch, no kwargs. All static config was captured at
+    ``compile_step_fn`` time.
+
+    ``keys`` is a ``(n_steps, 2)`` array of per-step PRNGKeys (e.g.
+    ``jax.random.split(key, n_steps)``), NOT a pre-sampled noise array --
+    see :func:`compile_step_fn`'s docstring for why: the wrapped kernel
+    generates its own Gaussian noise internally from a key per call.
+    """
+    xs = (drive_schedule, keys)
+    final_carry, outputs = jax.lax.scan(step_fn, init, xs)
+    return DynamicState(*final_carry), outputs
