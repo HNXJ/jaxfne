@@ -11,6 +11,10 @@ What replaced each:
 - API catalog → the `catalog-glossary-jaxfne` skill (`skills/catalog-glossary-jaxfne/SKILL.md`) — check it before writing
   any helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/spectrolaminar logic.
 - Known skill/doc contradictions → `skills/FRICTIONS_STACK.md` (resolve before escalating claims).
+- Per-file completeness/status tracker → `artifacts/developer/progress.json` (path, purpose, score/100,
+  TBI/TBD/warnings, evidence). **Check it before claiming a file is done, broken, or untouched, and before
+  trusting a score/finding recalled from a prior session — verify against current state, then update the
+  entry.** Session-scoped, not a repo-wide sweep; grow it incrementally, don't backfill unverified rows.
 - Evidence/publication-state snapshot → `python3 scripts/evidence_inventory.py` (run
   it; don't trust a remembered SHA).
 - Biophysics deep reference → the global `~/.claude/CLAUDE.md` "COMPUTATIONAL NEURONAL

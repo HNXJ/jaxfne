@@ -1,7 +1,150 @@
 {
   "schema_version": "1",
-  "description": "Per-file completeness/status tracker. Score=100 means fully implemented, tested, and verified with no known gaps. TBI = ToBeImplemented (placeholder/spec is known, code is not written). TBD = ToBeDetermined (design question still open, no spec yet). Warnings = anything flagged for attention that isn't a TBI/TBD. Scope: session-touched files only (2026-06-29/06-30 HDP v2 + 4-object pipeline work) -- not a repo-wide sweep. Grow incrementally; do not backfill unverified rows.",
+  "description": "Per-file completeness/status tracker. Score=100 means fully implemented, tested, and verified with no known gaps. score=null means UNREVIEWED -- a placeholder added 2026-06-30 for full-repo .py coverage tracking, not a real assessment; do not treat null as 0 or as 'broken'. TBI = ToBeImplemented (placeholder/spec is known, code is not written). TBD = ToBeDetermined (design question still open, no spec yet). Warnings = anything flagged for attention that isn't a TBI/TBD. Coverage: all 387 .py files in the repo have an entry (16 reviewed with real scores/evidence from the 2026-06-29/06-30 HDP v2 + 4-object pipeline session, 374 unreviewed placeholders). Non-.py files (configs, notebooks) are added selectively, not exhaustively. Do not backfill a null score without actually reviewing the file -- a fabricated number is worse than an honest null.",
   "last_updated": "2026-06-30",
+  "meta_corrections": [
+    "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed."
+  ],
+  "function_merger_analysis": {
+    "description": "2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, incomparable inputs -> merge into y3=f1(x1,x2)). Method: parsed all 387 .py files via Python's ast module, extracted every function/async function with an EXPLICIT return type annotation (1182 functions; unannotated functions excluded -- no fabricated type inference), grouped by exact annotation string match. 96 distinct return types were shared by 2+ functions; most are false positives (coincidental generic types like dict[str, str]/Any/bool shared by unrelated functions). Verdict on the strongest candidates, each individually checked against actual source, not just the type-match heuristic:",
+    "real_candidate": "build_model/apply_drive_correction -> Model: jaxfne/hdp_network.py's OWN docstring claims it consolidated this exact duplicate pattern from 2 older scripts, but scripts/hdp_1000_neuronal_tensor_column.py, scripts/hdp_suite2_visualizations.py, and scripts/spectrolaminar_tfne_izhikevich_pipeline.py still have their own un-migrated copies the original consolidation missed. Tracked as planned item merge-build_model-apply_drive_correction.",
+    "already_solved_confirmed": "construct(cfg_or_tensor, runtime=None) in core.py is ALREADY the merged form of the Configuration-path and NeuronalTensor-path Model construction (dispatches via isinstance) -- this is the user's exact merge pattern, already implemented, not a gap.",
+    "investigated_and_rejected": "simulate_edge_recurrent_izhikevich{,_homeostatic,_hdp,_receptor_exponential} (4 kernels, same output shape) -- this is the exact five-way dispatch problem already audited in this session's Phase 2 work and confirmed NOT cleanly mergeable (different jax.lax.scan carry shapes per mode).",
+    "false_positives_confirmed": [
+      "load() vs load_neuronal_tensor(): load_neuronal_tensor is already a literal 1-line compat alias of load() -- not a duplicate.",
+      "EmitterState.initial_state/step (x2 each): two classes implementing the same Protocol/interface -- intentional polymorphism, not duplication.",
+      "module-level run_trials/run_receipt vs Model.run_trials/run_receipt methods: standard free-function + thin-delegating-method pattern already used throughout this codebase, not duplicated logic.",
+      "step_{agsdr,gsdr,gsgd,sdr}_transform (4 optimizer steps, identical signature): inputs are actually COMPARABLE (same shape already), not incomparable -- already a clean strategy pattern behind OptimizerSpec; merging would add indirection without removing real duplication (did not verify internal logic for true duplication, only the signature)."
+    ],
+    "limitation": "Only functions with explicit `-> Type` annotations were scanned (1182 of an unknown larger total). Functions relying on inferred/implicit return types are NOT covered by this pass -- absence from this analysis does not mean a function has no merge candidate, only that it wasn't checked."
+  },
+  "planned": {
+    "description": "Skeleton of identified-but-not-yet-built work. Each item traces back to a tbi/tbd entry above or an explicit deferral decision made this session -- nothing here is newly invented. status: not_started | in_progress | blocked. Update status and link a commit when work begins; do not pre-write implementation detail before the work is actually scoped at start time.",
+    "items": [
+      {
+        "id": "P3b",
+        "title": "Model.checkpoint() / Model.restore() methods",
+        "target_files": [
+          "jaxfne/core.py"
+        ],
+        "depends_on_functions": [
+          "_pipeline.checkpoint_state",
+          "_pipeline.restore_state"
+        ],
+        "shape": "Two thin delegating methods on Model: Model.checkpoint(path) calls _pipeline.checkpoint_state(self, path); Model.restore(path) is likely a classmethod or module function (restore_state returns raw leaves+static, not a Model -- needs a fresh Model's treedef to reassemble, per _pipeline.py's own restore_state docstring) -- exact signature TBD at implementation time, not pre-decided here.",
+        "status": "not_started",
+        "source": "User-specified Phase 3b in the Phase-3 ruling message"
+      },
+      {
+        "id": "P3c",
+        "title": "Document the canonical HDP call pattern (AGENTS.md or equivalent)",
+        "target_files": [
+          "AGENTS.md"
+        ],
+        "depends_on_functions": [],
+        "shape": "A short section showing the real, verified HDP workflow: simulate_edge_recurrent_izhikevich_hdp called directly (not through Model.simulate), using DynamicState/compile_step_fn/scan_network from _pipeline.py where applicable. Discoverability fix -- this pattern is currently only documented in conversation history and _pipeline.py docstrings, not in any file a future cold-start agent would read first.",
+        "status": "not_started",
+        "source": "User-specified Phase 3c in the Phase-3 ruling message"
+      },
+      {
+        "id": "pipeline-configuration_to_tensor",
+        "title": "configuration_to_tensor(cfg) -> NeuronalTensor",
+        "target_files": [
+          "jaxfne/_pipeline.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "No existing converter in either direction except neuronal_tensor_to_configuration (tensor->config). Needs design: which Configuration fields map to which NeuronalTensor fields, and what happens to information Configuration carries that NeuronalTensor has no slot for (or vice versa) -- this is a TBD on field mapping, not just a TBI on code.",
+        "status": "not_started",
+        "source": "_pipeline.py TBI list"
+      },
+      {
+        "id": "pipeline-tensor_to_graph",
+        "title": "tensor_to_graph(tensor) -> internal flattened graph",
+        "target_files": [
+          "jaxfne/_pipeline.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "Internal flattening pass currently embedded inside construct()/EIGNetwork compilation, not extracted as a standalone pure function. Extraction would need to walk Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior.",
+        "status": "not_started",
+        "source": "_pipeline.py TBI list"
+      },
+      {
+        "id": "pipeline-select_signal",
+        "title": "select_signal(signal, selector) -> ArrayView",
+        "target_files": [
+          "jaxfne/_pipeline.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "Thin wrapper over the existing Signals.get(area=, layer=, cell_type=, ids=) selector logic (core.py ~line 2696) -- lowest-effort item in this list since the underlying logic already exists and is tested; just needs a pure-function-style entry point in _pipeline.py.",
+        "status": "not_started",
+        "source": "_pipeline.py TBI list"
+      },
+      {
+        "id": "F-019",
+        "title": "rho_passive/H^2 passive-income formula redesign",
+        "target_files": [
+          "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
+          "jaxfne/hdp_network.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "F-017's sweep found a hard bifurcation with no working rho_passive window (wild H oscillation <0.24, neuron silencing >=0.36). Needs a different restoring-force formula, not a re-tune of the existing one. Not yet opened as a friction item per explicit user instruction (feature-flag list needs a cleanup pass first) -- do not open F-019 without checking that instruction is still current.",
+        "status": "blocked",
+        "blocked_reason": "User explicitly deferred opening this friction item; needs go-ahead before scoping starts",
+        "source": "F-017 sweep results + explicit deferral instruction"
+      },
+      {
+        "id": "jaxfneconfig-test-migration",
+        "title": "Migrate or delete the 21 JaxFNEConfig-dependent tests",
+        "target_files": [
+          "tests/test_config_schema_v015.py",
+          "tests/test_config_runtime_hardening_v028.py",
+          "tests/test_v021_config_runtime_source_fidelity.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "Confirmed case-2 (live only in tests, never a real .jcfg.json asset anywhere in scripts/tutorials/docs). Path A: migrate to the NeuronalTensor load path, then delete JaxFNEConfig/config_to_configuration/config_to_simulation/config_to_geometry/load_config/validate_config/config_truth_boundary from core.py. Path B: decide JaxFNEConfig is worth keeping as a third config format and leave as-is. Decision not made yet.",
+        "status": "not_started",
+        "source": "JaxFNEConfig blast-radius audit"
+      },
+      {
+        "id": "stale-test-fixture-fix",
+        "title": "Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config",
+        "target_files": [
+          "tests/test_public_builders_complete.py",
+          "tests/test_vis_phase5.py",
+          "tests/test_etude1_agsdr_convergence.py",
+          "etudes/jaxfne_etude_no_1_base.ipynb"
+        ],
+        "depends_on_functions": [],
+        "shape": "CORRECTED 2026-06-30: 26 failures (13+7+5+1) trace to FOUR independent call sites, not one shared fixture -- test_public_builders_complete.py, test_vis_phase5.py's _make_configuration() helper, test_etude1_agsdr_convergence.py's own _small_model_and_sim() helper, and the published etudes/jaxfne_etude_no_1_base.ipynb notebook itself. The notebook should be prioritized first since it's real user-facing content, not test infrastructure. Fix for all four likely means swapping to jtfne.load_config('jaxfne/configs/spectrolaminar_default.json') + config_to_configuration(), or rewriting each call site to build a minimal Configuration inline -- four fix points, not one.",
+        "status": "not_started",
+        "source": "Root-cause trace via a COMPLETE (untruncated) pytest run this session -- the original 'single shared fixture, 19 failures' claim was wrong due to a tail-20 truncated test run; see meta_corrections"
+      },
+      {
+        "id": "configs-dir-schema-assumption-fix",
+        "title": "Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema",
+        "target_files": [
+          "tests/test_neuronal_tensor.py"
+        ],
+        "depends_on_functions": [],
+        "shape": "2 tests (test_canonical_json_config_library_loads_and_constructs, test_canonical_configs_declare_current_schema_version) iterate every file in jaxfne/configs/ assuming NeuronalTensor schema, but nuclei_default.json/spectrolaminar_default.json are legacy Configuration-schema. Fix: either filter the test's directory scan to exclude known-legacy files, or move the legacy JSON files to a separate jaxfne/configs/legacy/ subdirectory (root-freeze compliant, inside an existing folder) so the directory-scan assumption holds again.",
+        "status": "not_started",
+        "source": "Root-cause trace via a complete pytest run this session"
+      },
+      {
+        "id": "merge-build_model-apply_drive_correction",
+        "title": "Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions",
+        "target_files": [
+          "scripts/hdp_1000_neuronal_tensor_column.py",
+          "scripts/hdp_suite2_visualizations.py",
+          "scripts/spectrolaminar_tfne_izhikevich_pipeline.py"
+        ],
+        "depends_on_functions": ["jaxfne.hdp_network.build_model", "jaxfne.hdp_network.apply_drive_correction"],
+        "shape": "All return Model from incomparable inputs (HDPColumnConfig vs dict vs no-arg) -- the y3=f1(x1,x2) merge pattern. jaxfne/hdp_network.py's own module docstring already claims to have consolidated 'the near-duplicate build_model/apply_drive_correction pairs previously copy-pasted across scripts/hdp_1000_laminar_column_boosted.py and scripts/hdp_100_stability_sweep.py' -- but a repo-wide AST scan (2026-06-30) found 3 MORE scripts with their own un-migrated copies that the original consolidation missed. Fix: each script's build_model/apply_drive_correction should construct an HDPColumnConfig from its local parameters and delegate to hdp_network.build_model/apply_drive_correction, deleting the local duplicate body.",
+        "status": "not_started",
+        "source": "Repo-wide AST return-type analysis this session (see function_merger_analysis)"
+      }
+    ]
+  },
   "entries": [
     {
       "path": "jaxfne/_pipeline.py",
@@ -81,27 +224,28 @@
     {
       "path": "jaxfne/builders.py",
       "purpose": "Configuration builder functions (laminar_cortex_config, etc). default_spectrolaminar_config/default_nuclei_config were archived to JSON + removed from here.",
-      "score": 60,
+      "score": 45,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "default_spectrolaminar_config and default_nuclei_config are confirmed REMOVED from this file (0 grep matches) and their JSON equivalents exist at jaxfne/configs/{spectrolaminar,nuclei}_default.json -- but 19 tests across tests/test_public_builders_complete.py and tests/test_vis_phase5.py still call the old function names and fail with AttributeError. This is stale test debt from a real (not fabricated) archival, not an incomplete refactor -- the fix is updating/removing those 19 tests, not restoring the functions.",
+        "CORRECTED 2026-06-30 (see meta_corrections): default_spectrolaminar_config/default_nuclei_config removal has a WIDER blast radius than first documented. 4 call sites still reference the removed functions, not 2: tests/test_public_builders_complete.py (13 tests, not 12), tests/test_vis_phase5.py (7 tests), tests/test_etude1_agsdr_convergence.py (5 tests, its own private _small_model_and_sim() helper), AND the real published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb (1 notebook-execution test fails via a live CellExecutionError, not just a test-file issue) -- this is broken user-facing content, not only internal test debt. Severity raised accordingly.",
+        "Separately, placing the legacy-schema JSON files (jaxfne/configs/{nuclei,spectrolaminar}_default.json) inside jaxfne/configs/ broke 2 more tests in tests/test_neuronal_tensor.py that assume every file in that directory is NeuronalTensor-schema (checks for a top-level 'areas' key / a schema_version field) -- a second, distinct consequence of the same archival decision.",
         "An earlier session in this same conversation reported a commit (1715ec2) landing this exact archival that did NOT actually exist in the repo at the time (confirmed fabrication, caught by the user). The archival shown here as 'real' was independently verified this session via grep+test output, not assumed from that prior fabricated claim -- do not conflate the two."
       ],
       "last_verified": "2026-06-30",
-      "evidence": "grep -n 'def default_spectrolaminar_config|def default_nuclei_config' jaxfne/builders.py -> 0 matches; jaxfne/configs/{spectrolaminar,nuclei}_default.json confirmed present; 19/29 known suite failures traced to this exact root cause via a live pytest run"
+      "evidence": "grep -n 'def default_spectrolaminar_config|def default_nuclei_config' jaxfne/builders.py -> 0 matches; grep -rl 'default_spectrolaminar_config' tests/ etudes/ -> 4 files, not 2; 26/30 known suite failures traced to this exact root cause + 2 more to the configs/ directory-assumption consequence, via a complete (not tail-truncated) pytest run"
     },
     {
       "path": "tests/test_public_builders_complete.py",
       "purpose": "Tests for default_spectrolaminar_config/default_nuclei_config and related public builder exports.",
-      "score": 30,
+      "score": 25,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "12 of its tests fail because they import/call jtfne.default_spectrolaminar_config and jtfne.default_nuclei_config, which are confirmed removed from the public API. Needs a decision: migrate these tests to load the JSON configs via jtfne.load_config()/jtfne.load() instead, or delete the tests if the JSON-config replacement makes them redundant."
+        "CORRECTED 2026-06-30: 13 of its tests fail (not 12 -- test_default_spectrolaminar_config itself was missed in the earlier truncated count), all because they import/call jtfne.default_spectrolaminar_config and jtfne.default_nuclei_config, which are confirmed removed from the public API. Needs a decision: migrate these tests to load the JSON configs via jtfne.load_config()/jtfne.load() instead, or delete the tests if the JSON-config replacement makes them redundant."
       ],
       "last_verified": "2026-06-30",
-      "evidence": "Full suite run 3x this session, same 12 failures every time, root cause confirmed via direct pytest -k run with traceback"
+      "evidence": "Complete (untruncated) full-suite pytest run, 13 FAILED lines for this file confirmed via grep '^FAILED' on raw output, not piped through tail"
     },
     {
       "path": "tests/test_vis_phase5.py",
@@ -114,6 +258,64 @@
       ],
       "last_verified": "2026-06-30",
       "evidence": "Direct pytest run on TestGeometry3d::test_from_configuration confirms identical AttributeError root cause as the builders test file"
+    },
+    {
+      "path": "tests/test_etude1_agsdr_convergence.py",
+      "purpose": "AGSDR convergence/synchrony tests for the Etude 1 notebook pipeline.",
+      "score": 25,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "NEW FINDING 2026-06-30 (missed by the earlier truncated suite run): all 5 tests in this file fail via the same default_spectrolaminar_config root cause, through this file's own private _small_model_and_sim() helper -- a third independent call site, not previously documented."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Direct pytest run on this file shows all 5 failing with the identical AttributeError traceback as the other two files"
+    },
+    {
+      "path": "etudes/jaxfne_etude_no_1_base.ipynb",
+      "purpose": "Published tutorial notebook (Etude 1) -- real user-facing content, not test infrastructure.",
+      "score": 20,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "NEW FINDING 2026-06-30 (missed by the earlier truncated suite run): this notebook calls jtfne.default_spectrolaminar_config(**CFG_KWARGS) directly in an executable cell and fails with a live CellExecutionError when run via tests/test_notebook_execution_suite.py. This is the most severe consequence of the builder archival found so far -- it is published, user-facing content that no longer runs, not internal test debt. Should be prioritized above the test-file fixes."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "PYTHONPATH=. pytest 'tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_1_base.ipynb]' -- real nbclient CellExecutionError with full traceback captured"
+    },
+    {
+      "path": "tests/test_neuronal_tensor.py",
+      "purpose": "Tests for the NeuronalTensor schema, canonical config library, and tensor->Configuration bridge.",
+      "score": 75,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "NEW FINDING 2026-06-30 (missed by the earlier truncated suite run): 2 of 79 tests fail (test_canonical_json_config_library_loads_and_constructs, test_canonical_configs_declare_current_schema_version) -- a DIFFERENT root cause than the other failures. These tests assume every JSON file in jaxfne/configs/ is NeuronalTensor-schema (checks for a top-level 'areas' key and a matching schema_version). jaxfne/configs/{nuclei,spectrolaminar}_default.json are legacy Configuration-schema, added to that directory by the same archival work, and break this assumption. 77/79 tests in this file pass."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Direct pytest run: 2 failed, 77 passed; traceback confirms ValueError on missing 'areas' key, not an AttributeError -- genuinely distinct from the default_spectrolaminar_config failures"
+    },
+    {
+      "path": "tests/test_public_api_snapshot_v034.py",
+      "purpose": "Frozen public-API snapshot test (artifacts/public_api_before.json) -- catches unintentional jtfne.__all__ drift.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "FIXED this session: failed because Phase 3a added 4 names (DynamicState, dynamic_state_from_model, checkpoint_state, restore_state) to __all__ without regenerating the frozen snapshot -- a real regression I introduced and initially missed because earlier full-suite runs were piped through `tail -20` and never showed this failure. Regenerated artifacts/public_api_before.json from the current jtfne.__all__ (247 names, version bumped 0.4.4->0.4.7); 2/2 tests pass now."
+    },
+    {
+      "path": "tests/test_agent_context_hygiene.py",
+      "purpose": "Repository hygiene checks (e.g. no agent/model-name leakage in public-facing docs).",
+      "score": 60,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "1 test fails: outputs/ff_fb_hypothesis_bundle/README.md:98 contains the word 'claude' in a heading. Confirmed unrelated to any file touched this session -- pre-existing, not investigated further (outside this session's scope)."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Direct pytest run shows the exact violating file/line via the hygiene script's own stderr output"
     },
     {
       "path": "scripts/hdp_v2_rho_sweep.py",
@@ -148,6 +350,3746 @@
       ],
       "last_verified": "2026-06-30",
       "evidence": "Files present on disk; test_config_json_roundtrip.py (2 tests) passes against them"
+    },
+    {
+      "path": ".legacy/internal_docs/scratch_archive/build_notebook.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/scratch_archive/generate_suite_no_2.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v030_docs_audit.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v030_plotly_artifacts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v030_tutorial_structure.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v031_single_neuron_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v032_parameter_sweep_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": ".legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "benchmarks/scaling_benchmark.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/00_generalized_izhikevich_3d_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/00_minimal_column.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/01_generalized_readout_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/01_source_field_manifest.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/02_generalized_vis_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/02_omission_scaffold.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/02_spectrolaminar_oddball_scaffold.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/03_jaxley_bridge_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/03_objective_and_tune_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/03_single_neuron_multimodal_probe.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/04_blackbox_tuning_loop.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/04_two_neuron_ei_multimodal.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/05_dataset_bridge_manifest.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/05_network_100_ei_multimodal.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/06_edge_list_recurrent_backend.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/07_jaxley_trace_bridge.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/08_neuronal_tensor_first.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/v031_single_izhikevich_neuron.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/v032_single_neuron_parameter_sweep.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "examples/v033_two_neuron_ei_multimodal.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/analysis/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/analysis/metrics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/analysis/spectral.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/bridges.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/connectivity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/experimental_hpc/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/experimental_hpc/contracts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/experimental_hpc/physical_field_solver_v040.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/export.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/fields/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/fields/diagnostics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/fields/probes.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/fields/proxy.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/fields/solvers.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/geometry.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/io.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/neuronal_tensor.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/objectives.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/agsdr.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/base.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/bounds.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/core.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/gsdr.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/gsgd.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/manifests.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/optim/sdr.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/paradigm.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/plasticity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/presets.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/pynwb_compat.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/runtime.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/sanity_delta.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/sanity_runtime.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/sharding_utils.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/solvers.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/stimulus.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/streaming.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/tutorial_utils.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/validation.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/canonical.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/core.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/exporters.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/fields.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/hdp_diagnostics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/layout.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/network3d.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plasticity_viz.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/_common.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/connectivity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/csd.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/dashboard.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/exporters.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/lfp.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/__init__.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/figure0.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/figure1.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/figure2.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/figure3.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/manuscript/figure4.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/metrics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/network.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/raster.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/plotly/spectra.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/raster_arrays.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/rasters.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/report_plots.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/script_reports.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/spectra.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/traces.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/tutorial_array_plots.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "jaxfne/vis/tutorial_panels.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "local/extract.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "local/gen_test_data_100n_1000ms.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "local/verify_plotly_pipeline.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "outputs/ff_fb_hypothesis_bundle/run_analysis.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/audit_notebook_grammar.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/audit_notebooks_and_assets.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/benchmark_jaxfne.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/benchmark_scan_backends.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/build_canonical_neuronal_tensor_configs.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/build_v037_source_column_3d.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/characterize_neuron_io_curves.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/ed10_release_archive_receipt.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/ed9_hdp_evidence.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/ed9_homeostasis_evidence.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/_figure_common.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed01_api_stability_snapshot.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed02_json_schema_validation.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed03_notebook_execution_receipts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed04_optional_dependency_laziness.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed05_manifest_hashes.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed06_benchmark_scaling_tables.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed07_probe_operator_contracts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed08_tutorial_atlas_coverage.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed09_failure_modes_and_nulls.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/ed10_release_archive_receipt.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig01_architecture.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig02_contracts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig03_backend.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig04_minimal_install_run.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig05_runtime_scaling.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig06_readout_family_panel.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_figures_inventory.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/evidence_inventory.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/find_5hz_vmap.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/generate_operator_inventory.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/generate_tutorial_figures.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_1000_laminar_column_boosted.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_1000_neuronal_tensor_column.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_100_stability_sweep.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_bifurcation_trace.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_dH_component_trace.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_fi_calibration_curves.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_gain_ratio_sweep.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_small_scale_balance_sweep.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_suite2_visualizations.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/hdp_synaptic_channel_trace.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/make_delta_test_01_report.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/release/assert_release_freeze.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/release/reconcile_release_target.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/release/validate_release_artifacts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/repair_notebooks.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/report_hygiene_check.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/run_agsdr_gain_optimization.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/run_all_tutorials.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/run_delta_notebook_01.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/run_neuron_sweeps.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/run_tutorial_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/snapshot_public_api.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/spectrolaminar_drive_sweep_l23_l4_l56.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/spectrolaminar_tfne_izhikevich_pipeline.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/sync_docs_version.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/sync_release_metadata.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/tutorial_plotly_utils.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/validate_json_safe.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/validate_tutorial_outputs.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/verify_5hz_traces.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "scripts/visualize_cylinder_cortex_1000.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/_notebook_exec_helpers.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_agent_api_catalog.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_agsdr_multilaminar_api.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_analysis_metrics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_api_smoke.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_artifact_json_safety_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_backend_parity_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_cable_filter_tensor.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_calibration_contracts_v025.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_canonical_biophysics.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_cell_params_compilation_v0401.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_compact_facade_v034.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_computation_basis_v026.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_config_circuit_ownership_v0328_completion.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_config_json_roundtrip.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_config_plasticity_homeostasis_baseline.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_config_runtime_hardening_v028.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_config_schema_v015.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_configuration_domains_complete.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_configuration_geometry_population_interarea.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connect_ensemble.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connect_golden_snapshot.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connection_rule_compile_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connection_rule_mechanisms_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connection_weight_modes_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connections_compiler.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_connectivity_scaling.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_conservation_proxy_diagnostics_v027.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_construct_golden_snapshot.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_coop_v035.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_core_class_hygiene.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_csd_tensor.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_delta_notebook_01_receipt.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_delta_notebook_01_static.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_docs_equations_plotly_v0214.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_docs_links_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_docs_version_alignment.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_ed10_release_archive.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_ed9_evidence.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_ed9_hdp_evidence.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_edge_backend_v009.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_emitter_equations_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_emitter_family_validation_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_emitters_generalized.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_etude1_notebook_thinness.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_etude3_v1_spectrolaminar_1k.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_evoked_l4_drive.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_experimental_hpc_contracts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_field_admissibility_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_field_diagnostics_v026.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_field_proxy_admissibility_v024.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_field_solution_metadata_v0213.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_fields_helper_dedup_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_fields_projection_finite_and_normalization.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_general_sequential_paradigm.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_global_superposition.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_hdp_dispatch.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_hdp_kernel_standalone.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_homeostasis_dispatch.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_homeostatic_stability_v042.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_identity_v0329.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_interactive_tutorial_artifacts_v0221.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_is_valid_signal.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_jaxley_bridge.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_jaxley_emitter_bridge_e2e.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_jaxley_optional_dependency.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_jaxley_trace_bridge.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_jit_equivalence_v036.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_kappa_synchrony_vectorized.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_laminar_geometry_v013.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_linear_readouts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_manifest_readout_compat.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_manifest_v005.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_mechanism_aware_connection_compiler.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_multi_area_config.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_multi_area_emitter_runtime.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_multi_area_source_projector.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_multi_area_spectrolaminar_objective.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_multi_area_spectrolaminar_readout.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_network3d_visualize.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_network_100_ei_colab_v0210.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_neuronal_tensor_notebook_execution.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_notebook_execution_suite.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_notebook_standard_v027.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_notebook_status_doc_consistency.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_notebook_structure_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_numerical_stability.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_objective_null_reproducibility_v0330.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_objective_report_v018.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_objectives.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_objectives_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_operator_stage_coverage_v04.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_optim_jax_native_audit.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_optim_report_hardening.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_optim_tune.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_package_version_alignment.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_paradigm.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_performance_reports_v030.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_physical_field_solver_v040_placeholder.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_plasticity_v034.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_poisson_admissibility_v0215.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_probe_operators_eeg_meg_emm.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_probe_operators_v021.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_probe_report_contract_v0212.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_public_api_compatibility.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_public_docs_hygiene.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_readout_spec_v017.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_release_scripts.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_root_export_api_v0338.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_root_import_lightweight.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_run_receipt_v016.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_runtime_backend_device_v0340.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_runtime_dtype_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_runtime_module_v0211.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_backup_resume.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_full_runtime_mode.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_hierarchical_oddball_config.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_optional_imports.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_plasticity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_plasticity_report_full.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_proxy_readout_names.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_report_schema_full.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_resume_equivalence_full.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_runtime_architecture.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sanity_delta_task_schedule.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_scaling_benchmark.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_scan_backends_v012.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_schema_migration_v0342.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_selectors_v0329.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_semantic_correctness_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_signals_get_v0329.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_simulate_homeostasis_metadata_helper.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_simulate_runtime_propagation.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_single_neuron_colab_v028.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_single_neuron_multimodal_v023.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_solver_smoke_v0401.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_solvers.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_source_bookkeeping.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_source_bookkeeping_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_sparse_connectivity_v0401.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_spectrolaminar_objectives.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_spectrolaminar_public_path_v020.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_spectrolaminar_readiness_v011.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_spectrolaminar_readout.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_spectrolaminar_sources.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_stimulus_injection_v012.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_streaming.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no1_agsdr_public_api.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no1_notebook_execution.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no1_public_grammar.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no1_public_grammar_validation.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no1_runtime_static_guards.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no2_upgrade.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no3_low_frequency_scaling_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no4_notebook_execution.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no4_public_grammar.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_suite_no4_runtime_static_guards.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_synapse_connectivity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_synapse_metadata_v010.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_synaptic_kernel_v011.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_synaptic_tensor.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tcm_v1_6pop.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tensor_pipeline_custom_cfg.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tfne_global_assumptions.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tfne_izhikevich_3d.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_trial_runner_v014.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tune_parameter_propagation.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tutorial_figure_contract_v0219.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tutorial_figure_manifest_v028.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tutorial_panels.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tutorial_smoke_runner_v0217.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_tutorial_utils.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_two_neuron_ei_colab_v029.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v006_v008.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v021_config_runtime_source_fidelity.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0310_eeg_meg_emm_proxy_bundle_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0313_omission_oddball_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0314_ablation_controls.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0317_dtype_invariants.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0318_sharding_stubs.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0320_recompilation_guards.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0321_migration_boundaries.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0331_euler_solver.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0331_jaxley_lazy.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0331_laminar_config.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0331_output_bundles.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0331_pynwb_placeholder.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v033_api_extensions.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v033_two_neuron_ei.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0341_kernels.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v0342_evidence_inventory_paths.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v036_100_neuron_ei_population_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v037_interactive_column_docs.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_v038_lfp_csd_readout_tutorial.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vectorized_equivalence.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vis_deduplication.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vis_network3d_public_api.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vis_proxy_safe_titles.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vis_psd_spectrogram.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_vis_suite.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
+    },
+    {
+      "path": "tests/test_with_emitter_parameters.py",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified"
     }
   ]
 }
