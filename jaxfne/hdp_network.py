@@ -55,11 +55,9 @@ DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT = {
 # ~1.0000-1.0029, weight_saturation_fraction~0.105). Freeze candidate for
 # 0.4.6 per project memory; tau_0_ms multiplies the per-neuron size**3 term
 # (cube law, 0.4.7: size=2.0 -> 8x tau_0_ms, larger neurons adapt slower).
-# Note (0.4.7 HDP v2): K_ctrl is now a no-op; use rho_passive for passive-income
-# restoring instead. The verified configuration above used K_ctrl=5.0; this has
-# not yet been re-tuned for the new passive-income mechanism (rho_passive/H^2).
-# For backward compatibility, K_ctrl=5.0 is preserved here but inactive; set
-# rho_passive > 0 to use the new restoring mechanism.
+# Note (0.4.7 HDP v2 blocking F-017): rho_passive/H^2 restoring tested and
+# rejected — sweep revealed regime bifurcation (wild oscillation at rho<0.24,
+# neuron silencing at rho>=0.36; no tuning window). K_ctrl=5.0 remains canonical.
 DEFAULT_HDP = dict(
     K_HDP=0.01,
     tau_0_ms=200.0,
@@ -102,7 +100,7 @@ BASE_HDP_KWARGS_DEFAULT = dict(
 # symmetric than the first pass but still does not reach the requested
 # [0.8,1.2] floor -- treat as the current best candidate, not a finished/
 # frozen point like DEFAULT_HDP.
-# Note (0.4.7 HDP v2): K_ctrl is now a no-op; rho_passive=0.0 by default.
+# Note (0.4.7 HDP v2 blocking F-017): K_ctrl=0.15 remains active; rho_passive abandoned.
 DEFAULT_HDP_DESYNC = dict(
     K_HDP=0.01,
     tau_0_ms=5.0,
