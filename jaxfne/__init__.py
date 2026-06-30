@@ -231,6 +231,7 @@ from .neuronal_tensor import (
     load_canonical_neuronal_tensor,
     NEURONAL_TENSOR_SCHEMA_VERSION,
 )
+from ._pipeline import DynamicState, dynamic_state_from_model, checkpoint_state, restore_state
 from .optim import (
     AGSDR,
     AGSDROptimizerSpec,
@@ -471,6 +472,10 @@ __all__ = [
     "save_json",
     "save_receipt",
     "sha256_file",
+    "DynamicState",
+    "dynamic_state_from_model",
+    "checkpoint_state",
+    "restore_state",
     "NeuronalTensor",
     "Area",
     "AreaConnection",
