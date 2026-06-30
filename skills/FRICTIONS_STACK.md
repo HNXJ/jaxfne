@@ -4,7 +4,7 @@
 external doctrine. Resolve items here before claiming a skill is authoritative.
 **Do not delete rows** — mark `status: resolved` with SHA/date when fixed.
 
-Last audited: 2026-06-27 (skills realignment pass).
+Last audited: 2026-06-29 (HDP v2 patch blocking — rho_passive creates regime bifurcation, K_ctrl restored).
 
 ---
 
@@ -16,6 +16,7 @@ Last audited: 2026-06-27 (skills realignment pass).
 | F-008 | low | Objective composition | No top-level `jtfne.band_power` / `phase_locking` | `Objective`, `Model.tune` | Use verified objective skill APIs only |
 | F-009 | low | Signals trial axis | `Signals.get(..., trial=)` raises `NotImplementedError` | `core.py` Signals.get | Use `run_trials` / tutorial_utils for multi-trial |
 | F-016 | low | `export.save_figure` deprecation | `export.save_figure` has no `DeprecationWarning`; audit recommends routing to `vis.export_figure` | `jaxfne/export.py` | Emit `warnings.warn(..., DeprecationWarning)` in `save_figure`; update any tutorial that calls it |
+| F-018 | low | HDP v2 sign orientation undocumented at API level | `signed_linear` and `signed_quadratic` use `H_post - H_pre` (flipped from naive spec `H_pre - H_post`) to preserve postsynaptic-indexing invariant; flip is noted in inline comments but not in any skill or top-level API doc | `jaxfne/emitters.py` line 1332 | Add one-paragraph note to the HDP section of `AGENTS.md` explaining the postsynaptic-indexing convention and the direction of each rule |
 
 ---
 
@@ -23,6 +24,7 @@ Last audited: 2026-06-27 (skills realignment pass).
 
 | ID | Resolution | Date |
 |----|------------|------|
+| F-017 | BLOCKED: rho_passive/H^2 mechanism creates regime bifurcation (wild H oscillation at rho<0.24, neuron silencing at rho≥0.36). K_ctrl=5.0/0.15 restored as canonical restoring term; rho_passive abandoned. Requires formula redesign (F-019) | 2026-06-29 |
 | F-001 | HDP E size: code + docs aligned to `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` | 2026-06-27 |
 | F-002 | Layer naming table in `AGENTS.md` + cortical-column skill | 2026-06-27 |
 | F-005 | Global `AGENTS.md` JAX §11 gate strings updated | 2026-06-27 |

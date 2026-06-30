@@ -1024,6 +1024,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     C_spike: float = 0.0,
     K_HDP: float = 1.0,
     K_ctrl: float = 0.0,
+    rho_passive: float = 0.0,
     barrier_c: float = 0.0,
     barrier_d: float = 0.0,
     barrier_eps: float = 1.0e-3,
@@ -1036,6 +1037,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     record_dH_components: bool = False,
     record_edge_current: bool = False,
     H_boost_gain: float = 0.0,
+    hdp_rule: str = "signed_linear",
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -1047,36 +1049,43 @@ def simulate_edge_recurrent_izhikevich_hdp(
         I_syn_i = sum_j w_ji * x_j                              (incoming synaptic current; this module's existing ``syn``)
         W_i     = sum_j |w_ij|                                  (i's own outgoing synaptic burden)
         C(H_i)  = barrier_c/(H_i-H_min) + barrier_d/(H_max-H_i) (asymmetric safety barrier, H_min<H_i<H_max)
-        tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*r_i - delta*W_i
-                          + K_ctrl*(1 - H_i) - dC/dH_i           (r_i = previous step's spike indicator)
+        tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
+                          + rho_passive/H_i**2 - dC/dH_i        (r_i = previous step's spike indicator)
         H_i    <- H_i - C_spike                                 (discrete drain on H_i when i itself spikes)
-        dw_E^ij/dt = +K_HDP * (H_i - 1) * w_E^ij                (excitatory incoming edges)
-        dw_I^ij/dt = -K_HDP * (H_i - 1) * w_I^ij                (inhibitory incoming edges)
 
-    ``K_ctrl*(1-H_i)`` is an explicit linear restoring term that places the
-    equilibrium at exactly ``H_i=1`` regardless of whether the
-    income/spending terms or the weight-mediated feedback (``K_HDP``)
-    happen to balance there on their own -- without it, H_i has no force
-    pulling it back to 1 once income/spending drift it away (the diagnosed
-    "controller_ineffective" failure mode: H_i tracks an overactive
-    neuron's deviation correctly but nothing corrects it). ``C(H_i)`` is a
-    separate, asymmetric double-barrier safety potential (not a controller
-    in its own right -- ``-dC/dH_i`` is the corresponding restoring force):
-    it repels H_i from both ``H_min`` and ``H_max`` but does *not* by
-    itself define the equilibrium, since for ``H_min`` far below ``H*=1``
-    and ``H_max`` far above it, placing the *minimum of C* exactly at
+    ``hdp_rule`` determines the weight-update family (default "signed_linear"):
+        signed_linear: dw_E/dt = +K_HDP * (H_pre - H_post) * w_E,
+                       dw_I/dt = -K_HDP * (H_pre - H_post) * w_I
+        signed_quadratic: dw_E/dt = +K_HDP * (H_pre - H_post)|H_pre - H_post| * w_E,
+                          dw_I/dt = -K_HDP * (H_pre - H_post)|H_pre - H_post| * w_I
+        hebbian_product: dw_E/dt = +K_HDP * H_pre * H_post * w_E,
+                         dw_I/dt = -K_HDP * H_pre * H_post * w_I
+
+    ``gamma*H_i*r_i`` is an H-taxed output drain: firing costs more for neurons
+    with higher H_i (resource-abundant neurons can sustain more activity without
+    resource cost, but paying the full ``gamma*H_i*r_i`` when active ensures
+    resource balance). The passive-income term ``rho_passive/H_i**2`` provides
+    a restoring force toward ``H_i=1`` without the explicit linear controller
+    ``K_ctrl*(1-H_i)`` -- low H receives stronger push than high H.
+    ``C(H_i)`` is a separate, asymmetric double-barrier safety potential
+    (not a controller in its own right -- ``-dC/dH_i`` is the corresponding
+    restoring force): it repels H_i from both ``H_min`` and ``H_max`` but does
+    *not* by itself define the equilibrium, since for ``H_min`` far below
+    ``H*=1`` and ``H_max`` far above it, placing the *minimum of C* exactly at
     ``H*=1`` forces ``barrier_d/barrier_c = ((H_max-H*)/(H*-H_min))**2``
     (with the canonical defaults, ``=100``) -- a large, deliberately
     asymmetric ratio (gentle push near the floor where small deviations
     are normal, increasingly strong rescue only very close to ``H_min``,
     and comparably gentle taxation near ``H_max`` since resource surplus
-    is not pathological the way near-collapse is). Both ``K_ctrl`` and
+    is not pathological the way near-collapse is). Both ``rho_passive`` and
     ``barrier_c``/``barrier_d`` default to 0.0 (no contribution; fully
     backward compatible with the income/spending-only kernel above).
     ``barrier_eps`` floors the ``(H_i-H_min)``/``(H_max-H_i)`` denominators
     to avoid a divide-by-zero singularity at the exact clamp boundary.
+    For backward compatibility, ``K_ctrl`` remains in the signature but is
+    now a no-op (use ``rho_passive`` instead).
 
-    ``i`` indexes the postsynaptic neuron in both weight ODEs (matching the
+    ``i`` indexes the postsynaptic neuron in the weight ODEs (matching the
     existing homeostatic-plasticity sign convention elsewhere in this
     module). ``K_HDP`` is a single global gain so HDP composes additively
     with any future plasticity rule applied to the same edges
@@ -1087,26 +1096,21 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
     H_i is a resource-capacity reading, not a stress accumulator: synaptic
     *input* (``alpha*I_syn_i``) raises it (income), while the neuron's own
-    *output* -- its recent firing (``gamma*r_i``) and the synaptic weight it
-    must maintain (``delta*W_i``) -- drains it (spending), plus the discrete
-    ``C_spike`` drain on a spike. Sign check for stability: an overactive
-    neuron spends faster than it earns, so ``H_i`` falls below 1; this must
-    *weaken* its excitatory weights and *strengthen* its inhibitory weights
-    to correct the overactivity. With the signs above, ``H_i < 1`` gives
-    ``dw_E/dt < 0`` (weakens, since ``K_HDP*(H_i-1)`` is negative) and
-    ``dw_I/dt > 0`` (strengthens, since ``-K_HDP*(H_i-1)`` is positive) -- the
-    restoring direction. (A literal ``dw_E/dt = -K_HDP*(H_i-1)*w_E`` /
-    ``dw_I/dt = +K_HDP*(H_i-1)*w_I`` reading -- i.e. copying the sign
-    convention from an H_i ODE that *rises* with overactivity onto an H_i
-    ODE that *falls* with overactivity -- inverts both signs and diverges;
-    this is the same sign trap found and corrected twice already in earlier
-    drafts of this kernel, here arising from a mismatch between the income/
-    spending convention of the H_i ODE and a weight-ODE sign pair carried
-    over unchanged from an earlier draft that used the opposite convention.)
-    An overactive neuron's higher spend is mostly transmitted forward as
-    synaptic current to its postsynaptic targets, raising *their* income --
-    the resource-redistribution property falls out of ``I_syn_j = sum_i
-    w_ij * x_i`` without any extra bookkeeping.
+    *output* -- its recent firing (``gamma*H_i*r_i``, scaled by own resource
+    level) and the synaptic weight it must maintain (``delta*W_i``) -- drains
+    it (spending), plus the discrete ``C_spike`` drain on a spike. Sign check
+    for stability: an overactive neuron spends faster than it earns, so
+    ``H_i`` falls below 1; this must *weaken* its excitatory weights and
+    *strengthen* its inhibitory weights to correct the overactivity. With the
+    ``hdp_rule="signed_linear"`` (the default), ``H_i < 1`` gives
+    ``dw_E/dt < 0`` (weakens, since ``K_HDP*(H_pre-H_post)`` is negative
+    if ``H_pre`` is the presynaptic neuron with typical inputs and
+    ``H_post`` is the resource-starved postsynaptic target) and ``dw_I/dt > 0``
+    (strengthens, since ``-K_HDP*(H_pre-H_post)`` is positive) -- the
+    restoring direction. The ``signed_quadratic`` and ``hebbian_product``
+    rules are alternative weight-basis functions; their sign orientation is
+    preserved via the same E-branch / I-branch split (``exc_mask`` and its
+    negation) that stabilizes the linear rule.
 
     Update order per step (as specified): (1) synaptic current, (2) update
     H_i, (3) update plastic weights from the updated H_i, (4) integrate the
@@ -1155,8 +1159,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
             not scaled by tau_i (default 0.0)
         K_HDP: global plasticity gain shared by both weight ODEs (default
             1.0; 0.0 disables HDP, negative is anti-homeostatic)
-        K_ctrl: linear restoring gain on H_i toward 1.0 (default 0.0; the
-            equilibrium-defining term, independent of barrier_c/barrier_d)
+        K_ctrl: deprecated; kept for backward compatibility but is now a no-op.
+            Use rho_passive instead for passive-income restoring force.
+        rho_passive: passive-income gain on H_i (default 0.0; positive values
+            add rho_passive/H_i**2 to dH_i/dt, pulling H_i toward 1 without
+            an explicit linear controller)
+        hdp_rule: weight-update rule family (default "signed_linear"):
+            "signed_linear": dw ~ (H_pre - H_post)
+            "signed_quadratic": dw ~ (H_pre - H_post)|H_pre - H_post|
+            "hebbian_product": dw ~ H_pre * H_post
         barrier_c, barrier_d: asymmetric double-barrier safety-potential
             coefficients repelling H_i from H_min/H_max respectively
             (default 0.0/0.0, no contribution); for the minimum of
@@ -1164,7 +1175,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             H*=1 requires barrier_d/barrier_c=((H_max-1)/(1-H_min))**2 (100
             at the canonical H_min=0.1/H_max=10.0) -- but barrier_c/d are
             meant only as a safety constraint, not the equilibrium
-            definition; use K_ctrl for that
+            definition; use rho_passive for that
         barrier_eps: floor on the barrier denominators (default 1e-3)
         w_floor, w_ceiling: clip bounds for edge weight magnitude (default
             [1e-3, 50.0]; prevents collapse-to-zero and unbounded divergence)
@@ -1172,12 +1183,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
             bounds, as in simulate_edge_recurrent_izhikevich_homeostatic
         record_dH_components: if True, also return per-step, per-neuron
             decomposition of dH_i/dt's five additive terms -- income
-            (alpha*I_syn), rate-spending (-gamma*r), weight-spending
-            (-delta*W), K_ctrl*(1-H), and the barrier force -- as
-            "dH_income_trace"/"dH_rate_trace"/"dH_weight_trace"/
-            "dH_ctrl_trace"/"dH_barrier_trace" (each (n_steps, n_neurons))
-            in diagnostics_dict. Default False (no extra compute/memory);
-            for isolating which term drives an observed H/weight runaway.
+            (alpha*I_syn), H-taxed rate-spending (-gamma*H_i*r), weight-spending
+            (-delta*W), passive-income restoring (rho_passive/H_i**2), and the
+            barrier force -- as "dH_income_trace"/"dH_rate_trace"/
+            "dH_weight_trace"/"dH_passive_trace"/"dH_barrier_trace" (each
+            (n_steps, n_neurons)) in diagnostics_dict. Default False (no extra
+            compute/memory); for isolating which term drives an observed
+            H/weight runaway.
         record_edge_current: if True, also return the per-step, per-edge
             synaptic current contribution ``w * syn_state`` (the summand
             that ``segment_sum`` aggregates by post-neuron into ``syn``,
@@ -1232,7 +1244,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
     delta_arr = jnp.asarray(delta, dtype=jdtype)
     C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
-    K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)
+    K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Deprecated; no-op in update
+    rho_passive_arr = jnp.asarray(rho_passive, dtype=jdtype)
     barrier_c_arr = jnp.asarray(barrier_c, dtype=jdtype)
     barrier_d_arr = jnp.asarray(barrier_d, dtype=jdtype)
     barrier_eps_arr = jnp.asarray(barrier_eps, dtype=jdtype)
@@ -1296,24 +1309,41 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # (2) Update H_i: income from incoming synaptic current, spending
         # from the neuron's own previous-step firing and outgoing weight
         # burden (prev_spikes avoids circularity with this step's spikes,
-        # which are only known after step 4).
+        # which are only known after step 4). Passive income restores H toward
+        # 1 without an explicit linear controller (rho_passive/H_i**2).
         wmag = jnp.abs(w)
         W_burden = _segment_sum(wmag, pre, n_neurons)
         dist_floor = jnp.clip(H - H_min_arr, barrier_eps_arr, None)
         dist_ceil = jnp.clip(H_max_arr - H, barrier_eps_arr, None)
         barrier_force = barrier_c_arr / (dist_floor * dist_floor) - barrier_d_arr / (dist_ceil * dist_ceil)
         dH_income = alpha_arr * syn + beta_arr
-        dH_rate = -gamma_arr * prev_spikes
+        dH_rate = -gamma_arr * H * prev_spikes  # H-taxed: output spending scaled by resource level
         dH_weight = -delta_arr * W_burden
-        dH_ctrl = K_ctrl_arr * (1.0 - H)
-        dH = dH_income + dH_rate + dH_weight + dH_ctrl + barrier_force
+        dH_passive = rho_passive_arr / (H * H)  # Passive income: stronger at low H
+        dH = dH_income + dH_rate + dH_weight + dH_passive + barrier_force
         H_next = jnp.clip(H + (dt / tau_i) * dH, H_min_arr, H_max_arr)
 
-        # (3) Update plastic weights from the updated H_i (postsynaptic-indexed).
+        # (3) Update plastic weights from the updated H_i using the selected rule family.
+        # All rules use postsynaptic-indexed weight updates (sign safety applied via exc_mask).
+        H_pre = H_next[pre]
         H_post = H_next[post]
-        factor = H_post - 1.0
-        dw_exc = K_HDP_arr * factor * wmag
-        dw_inh = -K_HDP_arr * factor * wmag
+
+        # Compute rule basis per edge, depending on hdp_rule.
+        # signed_linear: basis ~ (H_post - H_pre), flipped to preserve postsynaptic-indexing invariant
+        # signed_quadratic: basis ~ (H_post - H_pre)|H_post - H_pre|, preserving quadratic shape
+        # hebbian_product: basis ~ H_pre * H_post, applied symmetrically
+        if hdp_rule == "signed_linear":
+            rule_basis = H_post - H_pre
+        elif hdp_rule == "signed_quadratic":
+            diff = H_post - H_pre
+            rule_basis = diff * jnp.abs(diff)
+        elif hdp_rule == "hebbian_product":
+            rule_basis = H_pre * H_post
+        else:
+            raise ValueError(f"Unknown hdp_rule: {hdp_rule}. Must be one of: signed_linear, signed_quadratic, hebbian_product")
+
+        dw_exc = K_HDP_arr * rule_basis * wmag
+        dw_inh = -K_HDP_arr * rule_basis * wmag
         dw = jnp.where(exc_mask, dw_exc, dw_inh)
         wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
         w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
@@ -1337,7 +1367,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
         outputs = (v_reset, spikes, source_proxy, H_final, w_next)
         if record_dH_components:
-            outputs = outputs + (dH_income, dH_rate, dH_weight, dH_ctrl, barrier_force)
+            outputs = outputs + (dH_income, dH_rate, dH_weight, dH_passive, barrier_force)
         if record_edge_current:
             outputs = outputs + (edge_current,)
         return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
@@ -1360,12 +1390,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
     }
     tail = scan_outputs[5:]
     if record_dH_components:
-        dH_income_trace, dH_rate_trace, dH_weight_trace, dH_ctrl_trace, dH_barrier_trace = tail[:5]
+        dH_income_trace, dH_rate_trace, dH_weight_trace, dH_passive_trace, dH_barrier_trace = tail[:5]
         diagnostics_dict.update({
             "dH_income_trace": dH_income_trace,
             "dH_rate_trace": dH_rate_trace,
             "dH_weight_trace": dH_weight_trace,
-            "dH_ctrl_trace": dH_ctrl_trace,
+            "dH_passive_trace": dH_passive_trace,
             "dH_barrier_trace": dH_barrier_trace,
         })
         tail = tail[5:]
