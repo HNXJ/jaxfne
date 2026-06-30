@@ -142,6 +142,31 @@
         "shape": "All return Model from incomparable inputs (HDPColumnConfig vs dict vs no-arg) -- the y3=f1(x1,x2) merge pattern. jaxfne/hdp_network.py's own module docstring already claims to have consolidated 'the near-duplicate build_model/apply_drive_correction pairs previously copy-pasted across scripts/hdp_1000_laminar_column_boosted.py and scripts/hdp_100_stability_sweep.py' -- but a repo-wide AST scan (2026-06-30) found 3 MORE scripts with their own un-migrated copies that the original consolidation missed. Fix: each script's build_model/apply_drive_correction should construct an HDPColumnConfig from its local parameters and delegate to hdp_network.build_model/apply_drive_correction, deleting the local duplicate body.",
         "status": "not_started",
         "source": "Repo-wide AST return-type analysis this session (see function_merger_analysis)"
+      },
+      {
+        "id": "file-by-file-review",
+        "title": "Systematic file-by-file review of the 374 score=null placeholder entries",
+        "target_files": [],
+        "depends_on_functions": [],
+        "shape": "374 of 390 entries are unreviewed placeholders (score=null, added 2026-06-30 for full .py coverage tracking). Plan: review in batches, package code (jaxfne/) before scripts/ before tests/ before tutorials/examples, since jaxfne/ is the highest-leverage surface (public API + core simulation logic). For each file: (1) read it, (2) run/identify its associated test(s) if any and capture real pass/fail counts (no tail-truncated runs -- see meta_corrections for why that's unsafe), (3) write purpose/score/tbi/tbd/warnings/evidence following the same evidence-based standard as the 16 already-reviewed entries, (4) set last_verified to the actual review date. Do not batch-assign scores without reading each file -- a fabricated number is explicitly called out in the schema description as worse than an honest null. Suggested batch order: jaxfne/core.py submodules and jaxfne/fields/ first (largest, most-depended-on), then jaxfne/vis/ (18 files, partially spot-verified already), then jaxfne/optim/, then scripts/evidence_figures/ (large but lower-risk, used for release receipts not runtime correctness), then tests/ and tutorials/examples last.",
+        "status": "not_started",
+        "source": "Direct consequence of the 2026-06-30 full .py coverage expansion -- coverage (entry exists) is not the same as review (entry is verified)"
+      },
+      {
+        "id": "test-1000n-fast-laminar-lfp-csd-hdp",
+        "title": "1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test",
+        "target_files": ["tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py)"],
+        "depends_on_functions": [
+          "jtfne.load (or jtfne.load_canonical_neuronal_tensor('canonical-v1-column-1000n'))",
+          "jaxfne.neuronal_tensor.RuntimeConfiguration",
+          "jtfne.construct",
+          "jtfne.simulation / Model.simulate",
+          "jaxfne.hdp_network (DEFAULT_HDP preset, or RuntimeConfig(enable_hdp=True, hdp_params=...))",
+          "jtfne.vis.lfp_traces / jtfne.vis.laminar_profile (CSD)"
+        ],
+        "shape": "Exact spec as given: N=1000 neurons, dtype=float32, dt_ms=0.1, duration_ms=1000.0, laminar default cortex column (jaxfne/configs/canonical-v1-column-1000n.json is the verified-this-session 1000-neuron V1 tensor config -- confirmed loadable via jtfne.load() with correct count), record_fields=True for LFP-proxy + CSD-proxy readout, HDP enabled (DEFAULT_HDP preset from hdp_network.py, K_ctrl=5.0/tau_0_ms=200.0/rho_passive=0.0 per the F-017 resolution this session -- NOT the abandoned rho_passive-only path). 'Fast' likely means jit=True/vmap as appropriate and asserting on wall-clock as a smoke-test bound, not just correctness -- needs a concrete time budget decided at implementation time (jaxfne-perf-10k project memory has 10k-neuron timings as a reference point: construct ~39s, sim 1000ms ~90s CPU at that scale; 1000 neurons should be well under that). Assertions: finite Vm/spikes/LFP/CSD arrays, Vm rest range sane (~-66 to -80mV per project memory), HDP H pinned near 1.0 for the DEFAULT_HDP null-control-adjacent regime, kappa_synchrony low enough to be async-irregular (per low-synchrony-kappa-for-spectrolaminar project memory). Exact assertion thresholds not yet decided -- this is a shape spec, not a finished test.",
+        "status": "not_started",
+        "source": "User-specified test spec"
       }
     ]
   },
