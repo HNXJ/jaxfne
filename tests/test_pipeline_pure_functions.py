@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import jax
+import jax.numpy as jnp
 import pytest
 
 from jaxfne import _pipeline
@@ -79,3 +81,50 @@ def test_run_network_matches_direct_simulate():
     sig = _pipeline.run_network(model, duration_ms=50.0, dt_ms=0.5, seed=5)
     assert isinstance(sig, Signals)
     assert sig.spikes.shape[0] > 0
+
+
+def _small_model() -> Model:
+    tensor = _pipeline.load_tensor(SMALL_TENSOR_PATH)
+    cfg = _pipeline.tensor_to_configuration(tensor, seed=1, duration_ms=50.0, dt_ms=0.5)
+    return _pipeline.build_network(cfg)
+
+
+def test_checkpoint_restore_roundtrip(tmp_path):
+    model = _small_model()
+    ckpt_path = tmp_path / "ckpt"
+    written = _pipeline.checkpoint_state(model, ckpt_path)
+    assert written.with_suffix(".npz").exists()
+    assert written.with_suffix(".json").exists()
+
+    leaves, _static = _pipeline.restore_state(ckpt_path)
+    original_leaves = jax.tree_util.tree_leaves(model.params)
+    assert len(leaves) == len(original_leaves)
+    for restored, original in zip(leaves, original_leaves):
+        assert jnp.allclose(jnp.asarray(restored), jnp.asarray(original))
+
+
+def test_initialize_static_state_matches_model_static():
+    model = _small_model()
+    static_copy = _pipeline.initialize_static_state(model)
+    assert set(static_copy.keys()) == set(model.static.keys())
+    for key, value in model.static.items():
+        if isinstance(value, (int, float, str, bool)) or value is None:
+            assert static_copy[key] == value
+
+
+def test_initialize_dynamic_state_is_independent_copy():
+    model = _small_model()
+    dynamic = _pipeline.initialize_dynamic_state(model)
+
+    # Independent container: mutating the returned dict (e.g. adding a key,
+    # or rebinding "emitter") must not affect model.params.
+    assert dynamic is not model.params
+    dynamic["emitter"] = "overwritten"
+    assert "emitter" in model.params and model.params["emitter"] != "overwritten"
+
+    # Leaf values are unaffected by the rebinding above and still match the
+    # original model's emitter array values (JAX arrays are immutable, so
+    # leaf-level identity is not the independence question -- container
+    # rebinding is).
+    fresh = _pipeline.initialize_dynamic_state(model)
+    assert jnp.allclose(fresh["emitter"].v0, model.params["emitter"].v0)
