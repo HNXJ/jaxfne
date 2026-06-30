@@ -1,0 +1,153 @@
+{
+  "schema_version": "1",
+  "description": "Per-file completeness/status tracker. Score=100 means fully implemented, tested, and verified with no known gaps. TBI = ToBeImplemented (placeholder/spec is known, code is not written). TBD = ToBeDetermined (design question still open, no spec yet). Warnings = anything flagged for attention that isn't a TBI/TBD. Scope: session-touched files only (2026-06-29/06-30 HDP v2 + 4-object pipeline work) -- not a repo-wide sweep. Grow incrementally; do not backfill unverified rows.",
+  "last_updated": "2026-06-30",
+  "entries": [
+    {
+      "path": "jaxfne/_pipeline.py",
+      "purpose": "Internal pure-function layer (Phase 0-3a): Configuration/Tensor/Model/Signals pipeline wrappers + HDP edge-list DynamicState/compile_step_fn/scan_network. Not yet a public NeuralNetwork/NeuralSignal API.",
+      "score": 65,
+      "tbi": [
+        "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists",
+        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork",
+        "select_signal -- thin wrapper over Signals.get() selector logic, not yet written"
+      ],
+      "tbd": [
+        "Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out of scope; no decision made on if/when)"
+      ],
+      "warnings": [
+        "compile_step_fn uses Option-B (n_steps=1 wrap-and-unwrap per scan step) because the kernel's real step closure is nested/non-exported -- this re-traces/re-dispatches per step inside simulate_edge_recurrent_izhikevich_hdp; perf cost at scale (e.g. n_steps=10000) not benchmarked",
+        "step_fn's second xs_t element is a per-step PRNGKey, not a noise array -- deviates from the original Phase-2 spec because the kernel generates Gaussian noise internally from a key; documented in-file but easy to miss if not read"
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "12/12 own tests pass (tests/test_pipeline_pure_functions.py); 1 real (non-traced) 20-step scan run confirmed numerics execute correctly"
+    },
+    {
+      "path": "tests/test_pipeline_pure_functions.py",
+      "purpose": "Tests for _pipeline.py -- behavioral-equivalence checks (not just import success) for all Phase 0-3a functions.",
+      "score": 90,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "No test exercises compile_step_fn/scan_network with record_dH_components=True or record_edge_current=True (the variable-arity output paths) -- only the base 5-output-tuple case is covered"
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "12/12 pass locally; full repo suite run 3x this session, no regressions attributable to this file"
+    },
+    {
+      "path": "jaxfne/hdp_network.py",
+      "purpose": "Generic, size-agnostic config-driven builder for HDP laminar columns (DEFAULT_HDP / DEFAULT_HDP_DESYNC presets). No per-N functions.",
+      "score": 75,
+      "tbi": [],
+      "tbd": [
+        "F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-017 sweep found a hard regime bifurcation (wild H oscillation rho<0.24, neuron silencing rho>=0.36) with no working window. K_ctrl restored as canonical in the meantime."
+      ],
+      "warnings": [
+        "DEFAULT_HDP_DESYNC's own in-file comment still says 'treat as the current best candidate, not a finished/frozen point like DEFAULT_HDP' -- this preset has never been declared stable"
+      ],
+      "last_verified": "2026-06-29",
+      "evidence": "F-017 blocked + K_ctrl restoration committed (73a6e3d); 13 HDP kernel tests pass in tests/test_hdp_kernel_standalone.py"
+    },
+    {
+      "path": "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
+      "purpose": "Canonical HDP edge-list simulation kernel -- the verified reference step function for the Phase 2 pipeline work.",
+      "score": 80,
+      "tbi": [],
+      "tbd": [
+        "rho_passive formula redesign (same open item as hdp_network.py F-019)"
+      ],
+      "warnings": [
+        "The inner step closure is local/nested, not exported -- any future direct-extraction work (vs. the Option-B n_steps=1 wrap used in _pipeline.py) requires an emitters.py change, not just a _pipeline.py change"
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Carry shape and scan call site read directly (not inferred from diagnostic keys) this session; used successfully as the Phase 2 reference kernel"
+    },
+    {
+      "path": "jaxfne/core.py::Model / Configuration / JaxFNEConfig",
+      "purpose": "Core dataclasses: Model (frozen, params/static dict pytree), Configuration (declarative builder-first API), JaxFNEConfig (.jcfg.json loader, separate format).",
+      "score": 55,
+      "tbi": [],
+      "tbd": [
+        "JaxFNEConfig fate: absorb as Configuration.load(format='jcfg') vs. delete -- confirmed 'live only in tests' (21 tests across 3 files, never produced as a real asset in scripts/tutorials/docs); deferred, not decided",
+        "Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever unified, or permanently stays mode-specific via _pipeline.py-style targeted wrappers"
+      ],
+      "warnings": [
+        "_compiled_cache and _warmup_times are mutated via object.__setattr__ on a frozen dataclass (Model) -- works but is a fragile pattern if anyone adds new mutable cache state without following the same convention",
+        "8805 lines in one file -- any future read of this file should target line ranges via grep first, not load it in full"
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Full Model/_simulate_arrays dispatch read directly (lines 4045-4400+); JaxFNEConfig usage grepped across tests/scripts/tutorials/docs"
+    },
+    {
+      "path": "jaxfne/builders.py",
+      "purpose": "Configuration builder functions (laminar_cortex_config, etc). default_spectrolaminar_config/default_nuclei_config were archived to JSON + removed from here.",
+      "score": 60,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "default_spectrolaminar_config and default_nuclei_config are confirmed REMOVED from this file (0 grep matches) and their JSON equivalents exist at jaxfne/configs/{spectrolaminar,nuclei}_default.json -- but 19 tests across tests/test_public_builders_complete.py and tests/test_vis_phase5.py still call the old function names and fail with AttributeError. This is stale test debt from a real (not fabricated) archival, not an incomplete refactor -- the fix is updating/removing those 19 tests, not restoring the functions.",
+        "An earlier session in this same conversation reported a commit (1715ec2) landing this exact archival that did NOT actually exist in the repo at the time (confirmed fabrication, caught by the user). The archival shown here as 'real' was independently verified this session via grep+test output, not assumed from that prior fabricated claim -- do not conflate the two."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "grep -n 'def default_spectrolaminar_config|def default_nuclei_config' jaxfne/builders.py -> 0 matches; jaxfne/configs/{spectrolaminar,nuclei}_default.json confirmed present; 19/29 known suite failures traced to this exact root cause via a live pytest run"
+    },
+    {
+      "path": "tests/test_public_builders_complete.py",
+      "purpose": "Tests for default_spectrolaminar_config/default_nuclei_config and related public builder exports.",
+      "score": 30,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "12 of its tests fail because they import/call jtfne.default_spectrolaminar_config and jtfne.default_nuclei_config, which are confirmed removed from the public API. Needs a decision: migrate these tests to load the JSON configs via jtfne.load_config()/jtfne.load() instead, or delete the tests if the JSON-config replacement makes them redundant."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Full suite run 3x this session, same 12 failures every time, root cause confirmed via direct pytest -k run with traceback"
+    },
+    {
+      "path": "tests/test_vis_phase5.py",
+      "purpose": "Tests for jaxfne.vis Geometry3d / MultiAreaLayout figure builders.",
+      "score": 50,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "7 of its tests fail via the same root cause as test_public_builders_complete.py -- a shared _make_configuration() test helper calls the removed jtfne.default_spectrolaminar_config(). Not an independent vis.py defect; fixing the shared helper likely fixes all 7 at once."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Direct pytest run on TestGeometry3d::test_from_configuration confirms identical AttributeError root cause as the builders test file"
+    },
+    {
+      "path": "scripts/hdp_v2_rho_sweep.py",
+      "purpose": "F-017 hyperparameter sweep script: find rho_passive for DEFAULT_HDP/DEFAULT_HDP_DESYNC.",
+      "score": 70,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Full-duration (20s, 5-seed) sweep was never completed end-to-end for either preset -- both background runs were stopped/killed mid-run. Only a 2s/2-seed smoke test summary and partial CSVs exist. The script itself is verified working (it's how the regime bifurcation was discovered), but its own stated deliverable (a final summary.txt with Recommendations) never landed."
+      ],
+      "last_verified": "2026-06-29",
+      "evidence": "artifacts/hdp_v2_rho_sweep/results_default.csv contains the full rho sweep grid with real per-seed H_mean/H_std values that directly produced the bifurcation finding"
+    },
+    {
+      "path": "jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,laminar-column-4layer,two-area-feedforward}.json",
+      "purpose": "NeuronalTensor-format canonical/example network configs (load via jtfne.load()).",
+      "score": 95,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "All 6 loaded successfully via jtfne.load() this session with correct area/neuron counts; default-column.json additionally used end-to-end in a real construct->simulate->vis.raster/vis.lfp_traces run that produced real output figures"
+    },
+    {
+      "path": "jaxfne/configs/{nuclei_default,spectrolaminar_default}.json",
+      "purpose": "Legacy Configuration-schema (networks/emitters/fields/probes) JSON archival of the removed default_nuclei_config/default_spectrolaminar_config builder functions.",
+      "score": 55,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "These exist and are structurally valid (confirmed via tests/test_config_json_roundtrip.py, which passes), but nothing in the current public API consumes them automatically in place of the old function calls -- there is no Configuration.load_default('nuclei') convenience path, so the 19 stale tests calling the old functions cannot simply swap to these JSON files without also changing their call pattern to jtfne.load_config()+config_to_configuration()."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "Files present on disk; test_config_json_roundtrip.py (2 tests) passes against them"
+    }
+  ]
+}
