@@ -1,0 +1,27 @@
+F-017 rho_passive sweep — summary
+============================================================
+Date: 2026-06-29 20:09 UTC
+Acceptance: |H_mean-1.0|<=0.03, H_std<=0.05
+
+Recommendations
+----------------------------------------
+  DEFAULT_HDP: rho_passive = 0.00500
+    seed=0  H_mean=1.0169  H_std=0.0342  H=[1.001,1.146]  rate=10.5Hz
+    seed=1  H_mean=1.0169  H_std=0.0342  H=[1.001,1.146]  rate=10.6Hz
+
+Post-sweep steps (coder agent)
+----------------------------------------
+  1. In jaxfne/hdp_network.py:
+     - Set DEFAULT_HDP['rho_passive']       = <value from above>
+     - Set DEFAULT_HDP_DESYNC['rho_passive'] = <value from above>
+     - Replace the K_ctrl transition comment with a freeze comment:
+       '# Verified (HDP v2, F-017): rho_passive=X.XXXXX,
+       #  H_mean≈1.0, H_std<0.05 over 20s, 5 seeds. SHA: <commit>'
+  2. In skills/FRICTIONS_STACK.md:
+     - Move F-017 from Open to Resolved with today's date and SHA.
+  3. Commit:
+     git add jaxfne/hdp_network.py skills/FRICTIONS_STACK.md
+     git commit -m 'fix(hdp): retune rho_passive; resolve F-017'
+  4. Run full test suite: python -m pytest tests/ -q
+  5. Report audit: paste exact git log --oneline -3 and
+     grep -n rho_passive jaxfne/hdp_network.py as evidence.
