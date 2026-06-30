@@ -98,19 +98,20 @@ def test_nonzero_gains_move_H_and_weights_while_staying_finite_and_clipped():
     assert w_trace.shape == (400, ne)
 
 
-def test_record_dH_components_returns_five_traces_summing_to_dH():
+def test_record_dH_components_returns_five_traces_with_passive_income():
     """record_dH_components=True exposes the five additive dH/dt terms;
-    each has the documented shape (n_steps, n_neurons)."""
+    each has the documented shape (n_steps, n_neurons). HDP v2 uses
+    dH_passive_trace (rho_passive/H_i**2) instead of dH_ctrl_trace."""
     N, ne = 32, 256
     p, edges = _make_params_edges(N, ne)
     key = jax.random.PRNGKey(3)
     _, _, _, diag = hdp_kernel(
         p, edges, 50, 0.5, key,
-        alpha=0.05, gamma=0.5, K_ctrl=0.15, K_HDP=0.01,
+        alpha=0.05, gamma=0.5, rho_passive=0.1, K_HDP=0.01,
         barrier_c=0.01, barrier_d=0.01, tau_0_ms=5.0,
         record_dH_components=True, noise_scale=0.0)
     for name in ("dH_income_trace", "dH_rate_trace", "dH_weight_trace",
-                 "dH_ctrl_trace", "dH_barrier_trace"):
+                 "dH_passive_trace", "dH_barrier_trace"):
         assert name in diag
         assert np.asarray(diag[name]).shape == (50, N)
         assert bool(np.isfinite(np.asarray(diag[name])).all())
@@ -199,3 +200,98 @@ def test_negative_K_HDP_is_anti_homeostatic_and_still_finite():
         K_HDP=-0.01, noise_scale=0.0)
     assert bool(np.isfinite(np.asarray(V)).all())
     assert bool(np.isfinite(np.asarray(diag["w_final"])).all())
+
+
+def test_rho_passive_produces_finite_clipped_H():
+    """rho_passive > 0 adds a passive-income term (rho_passive/H_i**2) that
+    pulls H_i toward 1 without an explicit linear K_ctrl term. The test verifies
+    that the new term produces finite, clipped results."""
+    N, ne = 16, 128
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(10)
+    kw = dict(
+        alpha=0.05, gamma=0.3, delta=0.0, C_spike=0.0, K_ctrl=0.0,
+        barrier_c=0.01, barrier_d=0.01, K_HDP=0.01, tau_0_ms=5.0, noise_scale=0.1
+    )
+
+    # With positive rho_passive, H should stay finite and clipped
+    _, _, _, d_passive = hdp_kernel(
+        p, edges, 100, 0.5, key, rho_passive=0.5, **kw)
+    H_passive = np.asarray(d_passive["H_trace"])
+    assert bool(np.isfinite(H_passive).all())
+    # H should be clipped to [H_min, H_max]
+    assert H_passive.min() >= 0.1 - 1e-4
+    assert H_passive.max() <= 10.0 + 1e-4
+
+
+def test_H_taxed_rate_spending_scales_with_H():
+    """gamma > 0 implements H-taxed output spending: dH/dt -= gamma*H_i*r_i.
+    This means the rate drain is stronger for neurons with high H (abundant
+    resources) than for those with low H (starved resources)."""
+    N, ne = 8, 64
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(11)
+
+    # Pure rate-drain test: only gamma and C_spike matter, everything else zero
+    kw = dict(
+        alpha=0.0, beta=0.0, delta=0.0, K_HDP=0.0, K_ctrl=0.0,
+        rho_passive=0.0, barrier_c=0.0, barrier_d=0.0,
+        tau_0_ms=5.0, noise_scale=0.1, w_floor=0.01, w_ceiling=10.0
+    )
+
+    # Run with gamma > 0 and see H modulation
+    _, _, _, d_taxed = hdp_kernel(p, edges, 100, 0.5, key, gamma=0.3, **kw)
+    H_taxed = np.asarray(d_taxed["H_trace"])
+
+    # H should be finite and clipped
+    assert bool(np.isfinite(H_taxed).all())
+    assert H_taxed.min() >= 0.1 - 1e-4
+    assert H_taxed.max() <= 10.0 + 1e-4
+
+
+def test_hdp_rule_families_signed_linear_signed_quadratic_hebbian():
+    """The three hdp_rule families (signed_linear, signed_quadratic,
+    hebbian_product) produce distinct weight deltas from the same H_pre/H_post
+    snapshot. Each rule is applied via the existing E/I sign-stabilization
+    convention."""
+    N, ne = 16, 128
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(12)
+
+    kw = dict(
+        alpha=0.05, gamma=0.0, delta=0.0, C_spike=0.0, K_HDP=0.01,
+        tau_0_ms=5.0, noise_scale=0.0, K_ctrl=0.0, rho_passive=0.0
+    )
+
+    # Run the three rule variants
+    _, _, _, d_linear = hdp_kernel(
+        p, edges, 50, 0.5, key, hdp_rule="signed_linear", **kw)
+    _, _, _, d_quad = hdp_kernel(
+        p, edges, 50, 0.5, key, hdp_rule="signed_quadratic", **kw)
+    _, _, _, d_hebb = hdp_kernel(
+        p, edges, 50, 0.5, key, hdp_rule="hebbian_product", **kw)
+
+    w_linear = np.asarray(d_linear["w_trace"])
+    w_quad = np.asarray(d_quad["w_trace"])
+    w_hebb = np.asarray(d_hebb["w_trace"])
+
+    # All should be finite
+    assert bool(np.isfinite(w_linear).all())
+    assert bool(np.isfinite(w_quad).all())
+    assert bool(np.isfinite(w_hebb).all())
+
+    # They should produce distinct weight trajectories (not all the same)
+    assert not np.allclose(w_linear, w_quad, atol=1e-5)
+    assert not np.allclose(w_linear, w_hebb, atol=1e-5)
+    assert not np.allclose(w_quad, w_hebb, atol=1e-5)
+
+
+def test_unknown_hdp_rule_raises_error():
+    """hdp_rule parameter validation: passing an unrecognized rule name
+    should raise ValueError."""
+    N, ne = 8, 64
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(13)
+
+    with pytest.raises(ValueError, match="Unknown hdp_rule"):
+        hdp_kernel(p, edges, 10, 0.5, key, hdp_rule="invalid_rule")

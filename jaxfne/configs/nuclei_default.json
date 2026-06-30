@@ -1,0 +1,121 @@
+{
+  "networks": [
+    {
+      "name": "thalamus_motif",
+      "kind": "multi_column",
+      "n": 80,
+      "columns": [
+        {
+          "name": "thalamus",
+          "layers": [
+            "core"
+          ],
+          "n": 80,
+          "start_index": 0,
+          "stop_index": 80
+        }
+      ],
+      "layers": [
+        "core"
+      ],
+      "cell_types": {
+        "E": 0.7,
+        "PV": 0.3
+      },
+      "connectivity": {
+        "within_area": "all_to_all_uniform_random",
+        "within_gain": 0.45,
+        "edge_seed": 42
+      }
+    }
+  ],
+  "emitters": [
+    {
+      "family": "izhikevich",
+      "preset": "cortical_eig"
+    }
+  ],
+  "fields": [
+    {
+      "domain": "laminar_column",
+      "conductivity": "proxy",
+      "boundary": "mean_zero_neumann",
+      "gauge": "mean_zero"
+    }
+  ],
+  "probes": [
+    {
+      "name": "multimodal_probe",
+      "modes": [
+        "spikes",
+        "V_m",
+        "source"
+      ],
+      "operator_status": "simulated_proxy",
+      "field_solver_status": "linear_solver",
+      "physical_amplitude_calibrated": false,
+      "n_contacts": 16
+    }
+  ],
+  "metadata": {
+    "claim_level": "computational_scaffold",
+    "source_calibration_status": "uncalibrated_izhikevich_native_current",
+    "source_projection_mode": "proxy_no_field_solve",
+    "source_decomposition": "proxy_reduced_emitter",
+    "boundary_condition": "mean_zero_neumann",
+    "gauge": "mean_zero",
+    "csd_sign_convention": "positive_equals_extracellular_source",
+    "field_solver_status": "linear_solver",
+    "field_claim_level": "proxy_readout",
+    "physical_amplitude_calibrated": false,
+    "manifest_schema_version": "0.0.4",
+    "operator_status": {
+      "E_theta": "prototype_api",
+      "S_WDR": "prototype_api",
+      "C_mu_nu": "not_implemented",
+      "Q_eta_alpha": "prototype_api",
+      "F_field": "prototype_api",
+      "P_probe": "prototype_api",
+      "A_objective": "prototype_api",
+      "O_optimizer": "prototype_api",
+      "C_constraints": "prototype_api"
+    },
+    "connectivity_status": "declared_metadata_proxy",
+    "geometry_mode": "declared_uniform_3d_metadata_not_solved_pde_grid",
+    "seed": 42,
+    "duration_ms": 1000.0,
+    "dt_ms": 0.1,
+    "dtype": "float32",
+    "columns": [
+      {
+        "name": "thalamus",
+        "layers": [
+          "core"
+        ],
+        "n": 80,
+        "start_index": 0,
+        "stop_index": 80
+      }
+    ],
+    "column_names": [
+      "thalamus"
+    ],
+    "column_count": 1,
+    "layout_mode": "unified_multi_column_vertical_slice",
+    "dx_mm": 0.01,
+    "dy_mm": 0.01,
+    "dz_mm": 0.01,
+    "cell_types": {
+      "E": 0.7,
+      "PV": 0.3
+    },
+    "uniform_3d": true,
+    "column_radius_mm": 0.25,
+    "column_height_mm": 0.25,
+    "connectivity": {
+      "within_area": "all_to_all_uniform_random",
+      "within_gain": 0.45,
+      "edge_seed": 42
+    }
+  }
+}
