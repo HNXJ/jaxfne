@@ -16,6 +16,107 @@ This test suite validates all 11 public builders in jaxfne.builders:
 
 import pytest
 import jaxfne as jtfne
+from jaxfne.builders import Configuration
+
+
+def _default_spectrolaminar_config(
+    areas=None,
+    n_per_area: int = 100,
+    seed=None,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+) -> Configuration:
+    """Local replacement for the removed jtfne.default_spectrolaminar_config.
+
+    default_spectrolaminar_config and default_nuclei_config were removed
+    from jaxfne/builders.py (archived as legacy-schema JSON at
+    jaxfne/configs/legacy/spectrolaminar_default.json) but this test suite
+    still needs the exact Configuration the old function built. Reproduced
+    here verbatim from the pre-removal source (commit 1715ec2^) using the
+    still-public Configuration fluent API -- not re-exposed on jaxfne's
+    public surface.
+    """
+    if areas is None:
+        areas = ["V1", "V4"]
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .areas(areas)
+    )
+
+    for area in areas:
+        cfg = cfg.column(area, layers=["L1", "L2/3", "L4", "L5", "L6"], n=n_per_area)
+
+    cfg = (
+        cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
+        .area_layer_cell_types(
+            "V1",
+            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
+        )
+    )
+
+    if len(areas) > 1:
+        cfg = cfg.area_layer_cell_types(
+            areas[1],
+            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
+        )
+
+    cfg = (
+        cfg.uniform3d(radius_mm=0.25, height_mm=1.6)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.35, edge_seed=seed or 42)
+    )
+
+    if len(areas) >= 2:
+        cfg = cfg.inter_column_connectivity(
+            source_area=areas[0],
+            target_area=areas[1],
+            mode="sparse",
+            p_feedforward=0.3,
+            p_feedback=0.2,
+            feedforward_weight_range=(0.5, 2.0),
+            feedback_weight_range=(0.3, 1.5),
+        )
+
+    cfg = (
+        cfg.set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source", "LFP", "CSD", "EEG", "MEG", "EMM"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+        .objective(
+            firing_rate_target={"E": 8.0, "PV": 15.0, "SST": 4.0, "VIP": 2.0},
+            band_definitions={"alpha_beta": (8.0, 25.0), "gamma": (40.0, 150.0)},
+        )
+    )
+    return cfg
+
+
+def _default_nuclei_config(
+    nucleus_name: str = "thalamus",
+    n: int = 80,
+    cell_type_fractions=None,
+    seed=None,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+) -> Configuration:
+    """Local replacement for the removed jtfne.default_nuclei_config.
+
+    See _default_spectrolaminar_config docstring above -- reproduced
+    verbatim from commit 1715ec2^.
+    """
+    if cell_type_fractions is None:
+        cell_type_fractions = {"E": 0.70, "PV": 0.30}
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .column(nucleus_name, layers=["core"], n=n)
+        .cell_types(dict(cell_type_fractions))
+        .uniform3d(radius_mm=0.25, height_mm=0.25)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45, edge_seed=seed or 42)
+        .set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source"], n_contacts=16)
+    )
+    return cfg
 
 
 class TestDefaultConfigs:
@@ -67,7 +168,7 @@ class TestDefaultConfigs:
 
     def test_default_spectrolaminar_config(self):
         """Test default_spectrolaminar_config creates valid multi-area Configuration."""
-        cfg = jtfne.default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=200, seed=7)
+        cfg = _default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=200, seed=7)
         assert isinstance(cfg, jtfne.Configuration)
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert "V1" in columns
@@ -77,14 +178,14 @@ class TestDefaultConfigs:
 
     def test_default_spectrolaminar_config_inter_area_connectivity(self):
         """Test default_spectrolaminar_config includes inter-area connectivity."""
-        cfg = jtfne.default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=100)
+        cfg = _default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=100)
         assert cfg.metadata.get("inter_column_connectivity") is not None
         assert cfg.metadata["inter_column_connectivity"][-1]["source_area"] == "V1"
         assert cfg.metadata["inter_column_connectivity"][-1]["target_area"] == "V4"
 
     def test_default_spectrolaminar_config_objectives(self):
         """Test default_spectrolaminar_config includes spectral objectives."""
-        cfg = jtfne.default_spectrolaminar_config()
+        cfg = _default_spectrolaminar_config()
         assert cfg.metadata.get("objective") is not None
         obj = cfg.metadata["objective"]
         assert "band_definitions" in obj
@@ -97,7 +198,7 @@ class TestThreeDefaultArchitecture:
     existing default_cortical_column_config."""
 
     def test_default_nuclei_config_creates_valid_configuration(self):
-        cfg = jtfne.default_nuclei_config("thalamus", n=80, seed=42)
+        cfg = _default_nuclei_config("thalamus", n=80, seed=42)
         assert isinstance(cfg, jtfne.Configuration)
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert columns["thalamus"]["n"] == 80
@@ -106,20 +207,20 @@ class TestThreeDefaultArchitecture:
 
     def test_default_nuclei_config_is_flat_not_laminar(self):
         """A nucleus has exactly one structural layer -- no depth banding."""
-        cfg = jtfne.default_nuclei_config("LGN", n=50)
+        cfg = _default_nuclei_config("LGN", n=50)
         columns = {col["name"]: col for col in cfg.metadata.get("columns", [])}
         assert columns["LGN"]["layers"] == ["core"]
 
     def test_default_nuclei_config_constructs_and_simulates(self):
         import numpy as np
-        cfg = jtfne.default_nuclei_config("thalamus", n=30, duration_ms=20.0, dt_ms=0.5, seed=0)
+        cfg = _default_nuclei_config("thalamus", n=30, duration_ms=20.0, dt_ms=0.5, seed=0)
         model = jtfne.construct(cfg)
         assert model.params["emitter"].n_neurons == 30
         sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
         assert bool(np.isfinite(np.asarray(sig.get("V_m"))).all())
 
     def test_default_nuclei_config_truth_gates_not_escalated(self):
-        cfg = jtfne.default_nuclei_config()
+        cfg = _default_nuclei_config()
         assert cfg.metadata["claim_level"] == "computational_scaffold"
         assert cfg.metadata["field_solver_status"] == "linear_solver"
         assert cfg.metadata["physical_amplitude_calibrated"] is False
@@ -156,9 +257,12 @@ class TestThreeDefaultArchitecture:
         assert cfg.metadata["physical_amplitude_calibrated"] is False
 
     def test_three_defaults_importable_from_jaxfne_root(self):
+        """default_nuclei_config was intentionally removed from the public
+        API (archived as legacy JSON); only the two still-public defaults
+        are asserted here."""
         assert callable(jtfne.default_complete_configuration)
         assert callable(jtfne.default_cortical_column_config)
-        assert callable(jtfne.default_nuclei_config)
+        assert not hasattr(jtfne, "default_nuclei_config")
 
 
 class TestBuilderFunctions:
@@ -315,7 +419,7 @@ class TestAnalysisFunctions:
 
     def test_configuration_table(self):
         """Test configuration_table returns summary dict."""
-        cfg = jtfne.default_spectrolaminar_config()
+        cfg = _default_spectrolaminar_config()
         table = jtfne.configuration_table(cfg)
         assert isinstance(table, dict)
         assert "runtime" in table
@@ -349,10 +453,14 @@ class TestPublicExports:
     """Tests for public API exports."""
 
     def test_builders_importable_from_jaxfne_root(self):
-        """Test all builders are importable from jaxfne."""
+        """Test all still-public builders are importable from jaxfne.
+
+        default_spectrolaminar_config and default_nuclei_config were
+        intentionally removed from the public API (archived as legacy-schema
+        JSON at jaxfne/configs/legacy/) -- not part of this contract anymore.
+        """
         # These should not raise ImportError
         assert callable(jtfne.default_cortical_column_config)
-        assert callable(jtfne.default_spectrolaminar_config)
         assert callable(jtfne.build_laminar_column)
         assert callable(jtfne.build_multi_area_columns)
         assert callable(jtfne.connect_columns)
@@ -368,15 +476,22 @@ class TestPublicExports:
         import jaxfne
         # All builder functions should be at module level
         assert hasattr(jaxfne, "default_cortical_column_config")
-        assert hasattr(jaxfne, "default_spectrolaminar_config")
+        assert not hasattr(jaxfne, "default_spectrolaminar_config"), (
+            "default_spectrolaminar_config was intentionally removed from "
+            "the public API (archived as legacy JSON); this asserts it "
+            "stays removed"
+        )
         assert hasattr(jaxfne, "build_laminar_column")
         assert hasattr(jaxfne, "configuration_table")
 
-    def test_default_cortical_column_config_and_spectrolaminar_in_dunder_all(self):
-        """Both were importable from jaxfne root but missing from __all__ itself
-        (so `from jaxfne import *` silently dropped them) -- regression guard."""
+    def test_default_cortical_column_config_in_dunder_all(self):
+        """default_cortical_column_config was importable from jaxfne root but
+        missing from __all__ itself (so `from jaxfne import *` silently
+        dropped it) -- regression guard. default_spectrolaminar_config was
+        intentionally removed from the public API entirely (see
+        test_builders_in_all) so it is no longer asserted here."""
         assert "default_cortical_column_config" in jtfne.__all__
-        assert "default_spectrolaminar_config" in jtfne.__all__
+        assert "default_spectrolaminar_config" not in jtfne.__all__
 
 
 class TestJSONSafety:
@@ -385,7 +500,7 @@ class TestJSONSafety:
     def test_configuration_table_json_safe(self):
         """Test configuration_table output is JSON-safe."""
         import json
-        cfg = jtfne.default_spectrolaminar_config()
+        cfg = _default_spectrolaminar_config()
         table = jtfne.configuration_table(cfg)
         # Should not raise on JSON serialization with allow_nan=False
         try:

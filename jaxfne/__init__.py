@@ -232,6 +232,16 @@ from .neuronal_tensor import (
     NEURONAL_TENSOR_SCHEMA_VERSION,
 )
 from ._pipeline import DynamicState, dynamic_state_from_model, checkpoint_state, restore_state
+from .util import (
+    validate_runtime_config,
+    runtime_config_diff,
+    merge_runtime_configs,
+    validate_neuronal_tensor,
+    tensor_summary,
+    validate_model,
+    model_diff,
+    configuration_diff,
+)
 from .optim import (
     AGSDR,
     AGSDROptimizerSpec,
@@ -305,6 +315,14 @@ from .stimulus import triangular_drive
 from .streaming import run_stdp_stream
 
 __all__ = [
+    "validate_runtime_config",
+    "runtime_config_diff",
+    "merge_runtime_configs",
+    "validate_neuronal_tensor",
+    "tensor_summary",
+    "validate_model",
+    "model_diff",
+    "configuration_diff",
     "STDPPlasticityConfig",
     "STDPState",
     "summarize_stdp_adaptation",

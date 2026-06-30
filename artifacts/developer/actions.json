@@ -1,0 +1,16 @@
+{
+  "schema_version": "1",
+  "description": "Simple, mechanical, low-risk actions derived from progress.json that don't need a full task scope or an agent dispatch -- a single edit + a single verification command, done inline by whichever agent is touching this file. Once executed, mark status='done' here AND update the corresponding progress.json/review.json entry; do not leave an action 'done' here while progress.json still shows the old score.",
+  "last_updated": "2026-06-30",
+  "actions": [
+    {
+      "id": "hygiene-claude-heading-rename",
+      "target_file": "outputs/ff_fb_hypothesis_bundle/README.md",
+      "action": "Rename heading '## For Claude Code Agents' -> '## For Automated Agents' (line 98) to clear the agent-name-leakage hygiene check.",
+      "verify": "python3 -m pytest tests/test_agent_context_hygiene.py -q",
+      "status": "done",
+      "result": "16 passed (was 1 failed, 15 passed). tests/test_agent_context_hygiene.py entry moved progress.json->review.json at score 100.",
+      "done_on": "2026-06-30"
+    }
+  ]
+}

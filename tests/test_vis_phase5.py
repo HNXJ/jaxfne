@@ -15,6 +15,7 @@ from matplotlib.figure import Figure
 
 import jaxfne as jtfne
 from jaxfne import vis
+from jaxfne.builders import Configuration
 
 
 def _assert_real_figure(fig):
@@ -47,9 +48,78 @@ def _make_minimal_signals(n_neurons: int = 8, n_steps: int = 50, n_contacts: int
     return model.simulate(sim)
 
 
+def _default_spectrolaminar_config(
+    areas=None,
+    n_per_area: int = 100,
+    seed=None,
+    duration_ms: float = 1000.0,
+    dt_ms: float = 0.1,
+) -> Configuration:
+    """Local replacement for the removed jtfne.default_spectrolaminar_config.
+
+    default_spectrolaminar_config was removed from jaxfne/builders.py
+    (archived as legacy-schema JSON at
+    jaxfne/configs/legacy/spectrolaminar_default.json). Reproduced here
+    verbatim from the pre-removal source (commit 1715ec2^) using the
+    still-public Configuration fluent API.
+    """
+    if areas is None:
+        areas = ["V1", "V4"]
+
+    cfg = (
+        Configuration()
+        .runtime(seed=seed or 42, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+        .areas(areas)
+    )
+
+    for area in areas:
+        cfg = cfg.column(area, layers=["L1", "L2/3", "L4", "L5", "L6"], n=n_per_area)
+
+    cfg = (
+        cfg.cell_types({"E": 0.75, "PV": 0.10, "SST": 0.08, "VIP": 0.07})
+        .area_layer_cell_types(
+            "V1",
+            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
+        )
+    )
+
+    if len(areas) > 1:
+        cfg = cfg.area_layer_cell_types(
+            areas[1],
+            {L: {"E": 0.75, "PV": 0.1, "SST": 0.08, "VIP": 0.07} for L in ["L1", "L2/3", "L4", "L5", "L6"]},
+        )
+
+    cfg = (
+        cfg.uniform3d(radius_mm=0.25, height_mm=1.6)
+        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.35, edge_seed=seed or 42)
+    )
+
+    if len(areas) >= 2:
+        cfg = cfg.inter_column_connectivity(
+            source_area=areas[0],
+            target_area=areas[1],
+            mode="sparse",
+            p_feedforward=0.3,
+            p_feedback=0.2,
+            feedforward_weight_range=(0.5, 2.0),
+            feedback_weight_range=(0.3, 1.5),
+        )
+
+    cfg = (
+        cfg.set_emitter("izhikevich", "cortical_eig")
+        .probes(["spikes", "V_m", "source", "LFP", "CSD", "EEG", "MEG", "EMM"], n_contacts=16)
+        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+        .objective(
+            firing_rate_target={"E": 8.0, "PV": 15.0, "SST": 4.0, "VIP": 2.0},
+            band_definitions={"alpha_beta": (8.0, 25.0), "gamma": (40.0, 150.0)},
+        )
+    )
+    return cfg
+
+
 def _make_configuration():
     """Return a multi-area Configuration with 2 columns."""
-    return jtfne.default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=50)
+    return _default_spectrolaminar_config(areas=["V1", "V4"], n_per_area=50)
 
 
 # ---------------------------------------------------------------------------

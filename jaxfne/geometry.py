@@ -16,11 +16,12 @@ def make_ei_cloud_network(n_neurons: int = 100, seed: int = 42) -> Tuple[jnp.nda
     """
     key = jr.PRNGKey(seed)
     pos_key, w_key = jr.split(key)
-    
+    phi_key, costheta_key, u_key = jr.split(pos_key, 3)
+
     # Generate positions inside a unit sphere
-    phi = jr.uniform(pos_key, (n_neurons,), minval=0.0, maxval=2 * jnp.pi)
-    costheta = jr.uniform(pos_key, (n_neurons,), minval=-1.0, maxval=1.0)
-    u = jr.uniform(pos_key, (n_neurons,), minval=0.0, maxval=1.0)
+    phi = jr.uniform(phi_key, (n_neurons,), minval=0.0, maxval=2 * jnp.pi)
+    costheta = jr.uniform(costheta_key, (n_neurons,), minval=-1.0, maxval=1.0)
+    u = jr.uniform(u_key, (n_neurons,), minval=0.0, maxval=1.0)
     
     theta = jnp.arccos(costheta)
     r = u ** (1.0 / 3.0)

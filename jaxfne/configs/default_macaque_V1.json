@@ -1,0 +1,1944 @@
+{
+  "schema_version": "neuronal_tensor_v1",
+  "name": "default_macaque_V1",
+  "area_connections": [],
+  "areas": [
+    {
+      "inter_connections": [
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "VIP"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "SST",
+          "static": {
+            "dT_ms": 25.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "VIP",
+          "static": {
+            "dT_ms": 12.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "SST"
+        },
+        {
+          "mechanism": "GABA_A",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "PV",
+          "static": {
+            "dT_ms": 6.0,
+            "g_mech": {
+              "GABA_A": 1.0
+            },
+            "reversal_potentials_mV": {
+              "GABA_A": -80.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "PV"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L1",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L2",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L4",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L3",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L2",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L3",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L5",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L5",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L6",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L4",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "AMPA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.45
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 2.0,
+            "g_mech": {
+              "AMPA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "AMPA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "E"
+        },
+        {
+          "mechanism": "NMDA",
+          "plastic": {
+            "H": 1.0,
+            "value_tag": "relative",
+            "w_mech": 0.27
+          },
+          "source_layer": "L6",
+          "source_neuron_type": "E",
+          "static": {
+            "dT_ms": 100.0,
+            "g_mech": {
+              "NMDA": 1.0
+            },
+            "reversal_potentials_mV": {
+              "NMDA": 0.0
+            },
+            "value_tag": "relative"
+          },
+          "target_layer": "L1",
+          "target_neuron_type": "E"
+        }
+      ],
+      "layers": [
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.0,
+              0.1
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L1",
+          "neuron_types": [
+            {
+              "fraction": 0.5,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.15,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.35,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.1,
+              0.35
+            ]
+          },
+          "n_neurons": 250,
+          "name": "L2",
+          "neuron_types": [
+            {
+              "fraction": 0.648,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.2,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.1,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.052,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.35,
+              0.55
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L3",
+          "neuron_types": [
+            {
+              "fraction": 0.8,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.08,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.55,
+              0.65
+            ]
+          },
+          "n_neurons": 100,
+          "name": "L4",
+          "neuron_types": [
+            {
+              "fraction": 0.75,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.18,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.03,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.65,
+              0.85
+            ]
+          },
+          "n_neurons": 200,
+          "name": "L5",
+          "neuron_types": [
+            {
+              "fraction": 0.88,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.06,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.04,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        },
+        {
+          "geometry": {
+            "distribution": "uniform_random",
+            "value_tag": "relative",
+            "x_range": [
+              0.0,
+              1.0
+            ],
+            "y_range": [
+              0.0,
+              1.0
+            ],
+            "z_range": [
+              0.85,
+              1.0
+            ]
+          },
+          "n_neurons": 150,
+          "name": "L6",
+          "neuron_types": [
+            {
+              "fraction": 0.9,
+              "name": "E",
+              "relative_size": 2.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.05333333333333334,
+              "name": "PV",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02666666666666667,
+              "name": "SST",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            },
+            {
+              "fraction": 0.02,
+              "name": "VIP",
+              "relative_size": 1.0,
+              "value_tag": "relative"
+            }
+          ]
+        }
+      ],
+      "name": "V1",
+      "pose": {
+        "plane": "xy",
+        "rotation_deg": 0.0,
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "value_tag": "relative"
+      }
+    }
+  ],
+  "_provenance": {
+    "source": "LAP Manuscript - AM 12.2025.pdf (Mulvey, Lichtenfeld, Nejat, Xiong, Carlson, Mitchell, Mendoza-Halliday, Westerberg, Desimone, Maier, Duque, Bastos -- conserved cell-type architecture / spectrolaminar motif manuscript), read 2026-06-30.",
+    "cell_type_mapping": "E=NG(pyramidal marker), PV=PV, SST~=CB(calbindin), VIP~=CR(calretinin) -- an explicit, user-authorized approximation (CB/SST and CR/VIP are commonly associated but not strictly identical interneuron populations in the literature), not a literal anatomical identity.",
+    "area_in_dataset": true,
+    "dataset_areas": [
+      "V1",
+      "V3",
+      "V4",
+      "MT",
+      "DP",
+      "MST",
+      "LIP",
+      "TEO",
+      "PMD",
+      "7A",
+      "8A",
+      "PFC"
+    ],
+    "fraction_basis": "Per-layer E/PV/SST/VIP fractions are inherited unchanged from the existing verified jaxfne/configs/canonical-v1-column-1000n.json template (cross-checked against this manuscript's qualitative V1 description -- PV bimodal L3/L4 peak (L4 dominant), CB/CR superficial unimodal peak declining into deep layers, NG primary peak superficial L3 + secondary attenuated deep L5/6 peak -- found qualitatively consistent on inspection of Figure 2A/3A, 2026-06-30). NOT an independent pixel-level digitization of the manuscript's density plots.",
+    "synapse_tau_basis": "AMPA dT_ms=2.0 unchanged from existing template. NMDA dT_ms=100.0 (matches jaxfne.emitters.ReceptorSpec NMDA default) added as a co-released component mirroring every AMPA (E-source) connection, weight=0.6x the AMPA w_mech (standard co-release ratio approximation, not measured). GABA_A dT_ms varied by source cell type using literature-typical IPSC decay time constants: PV(fast-spiking,perisomatic)=6.0ms, SST(dendritic)=25.0ms, VIP(disinhibitory)=12.0ms -- approximate literature-grounded values, not fit to this manuscript's data (which does not report synaptic kinetics).",
+    "hdp": "Not baked into this JSON -- enable via RuntimeConfig(enable_hdp=True, hdp_params=...) at jtfne.simulate() time, per jaxfne's NeuronalTensor+HDP doctrine."
+  }
+}

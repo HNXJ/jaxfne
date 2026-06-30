@@ -16,7 +16,7 @@ import jaxfne as jtfne
 
 def test_spectrolaminar_config_json_roundtrip():
     """Verify spectrolaminar_default.json deserializes correctly."""
-    config_path = Path(__file__).parent.parent / "jaxfne" / "configs" / "spectrolaminar_default.json"
+    config_path = Path(__file__).parent.parent / "jaxfne" / "configs" / "legacy" / "spectrolaminar_default.json"
     assert config_path.exists(), f"Config file not found: {config_path}"
 
     # Load from JSON
@@ -41,7 +41,7 @@ def test_spectrolaminar_config_json_roundtrip():
 
 def test_nuclei_config_json_roundtrip():
     """Verify nuclei_default.json deserializes correctly."""
-    config_path = Path(__file__).parent.parent / "jaxfne" / "configs" / "nuclei_default.json"
+    config_path = Path(__file__).parent.parent / "jaxfne" / "configs" / "legacy" / "nuclei_default.json"
     assert config_path.exists(), f"Config file not found: {config_path}"
 
     # Load from JSON

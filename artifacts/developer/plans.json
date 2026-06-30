@@ -1,0 +1,251 @@
+{
+  "schema_version": "1",
+  "description": "Stage 3 of the 3-file pipeline: planned/not-yet-started work and open brainstorm/analysis findings. Nothing here is in progress -- an item moves OUT of plans.json into progress.json (as a new or updated entry) the moment any code/test work actually starts on it, with status set to 'open' there. items[]: discrete, scoped, actionable work units (status: not_started | blocked). brainstorm[]: raw analysis findings / ideas not yet scoped into an actionable item -- read before starting new work to avoid re-deriving something already investigated (e.g. the function-merger AST scan).",
+  "last_updated": "2026-06-30",
+  "items": [
+    {
+      "id": "P3b",
+      "title": "Model.checkpoint() / Model.restore() methods",
+      "target_files": [
+        "jaxfne/core.py"
+      ],
+      "depends_on_functions": [
+        "_pipeline.checkpoint_state",
+        "_pipeline.restore_state"
+      ],
+      "shape": "Two thin delegating methods on Model: Model.checkpoint(path) calls _pipeline.checkpoint_state(self, path); Model.restore(path) is likely a classmethod or module function (restore_state returns raw leaves+static, not a Model -- needs a fresh Model's treedef to reassemble, per _pipeline.py's own restore_state docstring) -- exact signature TBD at implementation time, not pre-decided here.",
+      "status": "not_started",
+      "source": "User-specified Phase 3b in the Phase-3 ruling message"
+    },
+    {
+      "id": "P3c",
+      "title": "Document the canonical HDP call pattern (AGENTS.md or equivalent)",
+      "target_files": [
+        "AGENTS.md"
+      ],
+      "depends_on_functions": [],
+      "shape": "A short section showing the real, verified HDP workflow: simulate_edge_recurrent_izhikevich_hdp called directly (not through Model.simulate), using DynamicState/compile_step_fn/scan_network from _pipeline.py where applicable. Discoverability fix -- this pattern is currently only documented in conversation history and _pipeline.py docstrings, not in any file a future cold-start agent would read first.",
+      "status": "not_started",
+      "source": "User-specified Phase 3c in the Phase-3 ruling message"
+    },
+    {
+      "id": "pipeline-configuration_to_tensor",
+      "title": "configuration_to_tensor(cfg) -> NeuronalTensor",
+      "target_files": [
+        "jaxfne/_pipeline.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "No existing converter in either direction except neuronal_tensor_to_configuration (tensor->config). Needs design: which Configuration fields map to which NeuronalTensor fields, and what happens to information Configuration carries that NeuronalTensor has no slot for (or vice versa) -- this is a TBD on field mapping, not just a TBI on code.",
+      "status": "not_started",
+      "source": "_pipeline.py TBI list"
+    },
+    {
+      "id": "pipeline-tensor_to_graph",
+      "title": "tensor_to_graph(tensor) -> internal flattened graph",
+      "target_files": [
+        "jaxfne/_pipeline.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Internal flattening pass currently embedded inside construct()/EIGNetwork compilation, not extracted as a standalone pure function. Extraction would need to walk Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior.",
+      "status": "not_started",
+      "source": "_pipeline.py TBI list"
+    },
+    {
+      "id": "pipeline-select_signal",
+      "title": "select_signal(signal, selector) -> ArrayView",
+      "target_files": [
+        "jaxfne/_pipeline.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Thin wrapper over the existing Signals.get(area=, layer=, cell_type=, ids=) selector logic (core.py ~line 2696) -- lowest-effort item in this list since the underlying logic already exists and is tested; just needs a pure-function-style entry point in _pipeline.py.",
+      "status": "not_started",
+      "source": "_pipeline.py TBI list"
+    },
+    {
+      "id": "F-019",
+      "title": "rho_passive/H^2 passive-income formula redesign",
+      "target_files": [
+        "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
+        "jaxfne/hdp_network.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "F-017's sweep found a hard bifurcation with no working rho_passive window (wild H oscillation <0.24, neuron silencing >=0.36). Needs a different restoring-force formula, not a re-tune of the existing one. Not yet opened as a friction item per explicit user instruction (feature-flag list needs a cleanup pass first) -- do not open F-019 without checking that instruction is still current.",
+      "status": "blocked",
+      "blocked_reason": "User explicitly deferred opening this friction item; needs go-ahead before scoping starts",
+      "source": "F-017 sweep results + explicit deferral instruction"
+    },
+    {
+      "id": "jaxfneconfig-test-migration",
+      "title": "Migrate or delete the 21 JaxFNEConfig-dependent tests",
+      "target_files": [
+        "tests/test_config_schema_v015.py",
+        "tests/test_config_runtime_hardening_v028.py",
+        "tests/test_v021_config_runtime_source_fidelity.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Confirmed case-2 (live only in tests, never a real .jcfg.json asset anywhere in scripts/tutorials/docs). Path A: migrate to the NeuronalTensor load path, then delete JaxFNEConfig/config_to_configuration/config_to_simulation/config_to_geometry/load_config/validate_config/config_truth_boundary from core.py. Path B: decide JaxFNEConfig is worth keeping as a third config format and leave as-is. Decision not made yet.",
+      "status": "not_started",
+      "source": "JaxFNEConfig blast-radius audit"
+    },
+    {
+      "id": "stale-test-fixture-fix",
+      "title": "Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config",
+      "target_files": [
+        "tests/test_public_builders_complete.py",
+        "tests/test_vis_phase5.py",
+        "tests/test_etude1_agsdr_convergence.py",
+        "etudes/jaxfne_etude_no_1_base.ipynb"
+      ],
+      "depends_on_functions": [],
+      "shape": "CORRECTED 2026-06-30: 26 failures (13+7+5+1) trace to FOUR independent call sites, not one shared fixture -- test_public_builders_complete.py, test_vis_phase5.py's _make_configuration() helper, test_etude1_agsdr_convergence.py's own _small_model_and_sim() helper, and the published etudes/jaxfne_etude_no_1_base.ipynb notebook itself. The notebook should be prioritized first since it's real user-facing content, not test infrastructure. Fix for all four likely means swapping to jtfne.load_config('jaxfne/configs/spectrolaminar_default.json') + config_to_configuration(), or rewriting each call site to build a minimal Configuration inline -- four fix points, not one.",
+      "status": "done",
+      "source": "Root-cause trace via a COMPLETE (untruncated) pytest run this session -- the original 'single shared fixture, 19 failures' claim was wrong due to a tail-20 truncated test run; see meta_corrections",
+      "completed_on": "2026-06-30",
+      "completion_note": "All 4 call sites fixed (tests/test_public_builders_complete.py, tests/test_vis_phase5.py, tests/test_etude1_agsdr_convergence.py, etudes/jaxfne_etude_no_1_base.ipynb). All real pytest runs confirm 0 related failures remaining. NOTE: 2 additional notebooks (jaxfne_etude_no_2_spectrolaminar_power.ipynb, tutorials/templates/jaxfne_notebook_template.ipynb) were discovered to still call the removed jtfne.default_spectrolaminar_config but were out of this item's declared 4-site scope -- not fixed, flagged separately."
+    },
+    {
+      "id": "configs-dir-schema-assumption-fix",
+      "title": "Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema",
+      "target_files": [
+        "tests/test_neuronal_tensor.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "2 tests (test_canonical_json_config_library_loads_and_constructs, test_canonical_configs_declare_current_schema_version) iterate every file in jaxfne/configs/ assuming NeuronalTensor schema, but nuclei_default.json/spectrolaminar_default.json are legacy Configuration-schema. Fix: either filter the test's directory scan to exclude known-legacy files, or move the legacy JSON files to a separate jaxfne/configs/legacy/ subdirectory (root-freeze compliant, inside an existing folder) so the directory-scan assumption holds again. DONE 2026-06-30: moved the 2 legacy files to jaxfne/configs/legacy/, updated tests/test_config_json_roundtrip.py path references. Both previously-failing tests now pass.",
+      "status": "done",
+      "source": "Root-cause trace via a complete pytest run this session"
+    },
+    {
+      "id": "merge-build_model-apply_drive_correction",
+      "title": "Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions",
+      "target_files": [
+        "scripts/hdp_1000_neuronal_tensor_column.py",
+        "scripts/hdp_suite2_visualizations.py",
+        "scripts/spectrolaminar_tfne_izhikevich_pipeline.py"
+      ],
+      "depends_on_functions": [
+        "jaxfne.hdp_network.build_model",
+        "jaxfne.hdp_network.apply_drive_correction"
+      ],
+      "shape": "All return Model from incomparable inputs (HDPColumnConfig vs dict vs no-arg) -- the y3=f1(x1,x2) merge pattern. jaxfne/hdp_network.py's own module docstring already claims to have consolidated 'the near-duplicate build_model/apply_drive_correction pairs previously copy-pasted across scripts/hdp_1000_laminar_column_boosted.py and scripts/hdp_100_stability_sweep.py' -- but a repo-wide AST scan (2026-06-30) found 3 MORE scripts with their own un-migrated copies that the original consolidation missed. Fix: each script's build_model/apply_drive_correction should construct an HDPColumnConfig from its local parameters and delegate to hdp_network.build_model/apply_drive_correction, deleting the local duplicate body.",
+      "status": "not_started",
+      "source": "Repo-wide AST return-type analysis this session (see function_merger_analysis)"
+    },
+    {
+      "id": "file-by-file-review",
+      "title": "Systematic file-by-file review of the 374 score=null placeholder entries",
+      "target_files": [],
+      "depends_on_functions": [],
+      "shape": "374 of 390 entries are unreviewed placeholders (score=null, added 2026-06-30 for full .py coverage tracking). Plan: review in batches, package code (jaxfne/) before scripts/ before tests/ before tutorials/examples, since jaxfne/ is the highest-leverage surface (public API + core simulation logic). For each file: (1) read it, (2) run/identify its associated test(s) if any and capture real pass/fail counts (no tail-truncated runs -- see meta_corrections for why that's unsafe), (3) write purpose/score/tbi/tbd/warnings/evidence following the same evidence-based standard as the 16 already-reviewed entries, (4) set last_verified to the actual review date. Do not batch-assign scores without reading each file -- a fabricated number is explicitly called out in the schema description as worse than an honest null. Suggested batch order: jaxfne/core.py submodules and jaxfne/fields/ first (largest, most-depended-on), then jaxfne/vis/ (18 files, partially spot-verified already), then jaxfne/optim/, then scripts/evidence_figures/ (large but lower-risk, used for release receipts not runtime correctness), then tests/ and tutorials/examples last. PROGRESS 2026-06-30: 5/373 null-score entries reviewed directly this session (local/extract.py, local/gen_test_data_100n_1000ms.py, local/verify_plotly_pipeline.py, benchmarks/scaling_benchmark.py, outputs/ff_fb_hypothesis_bundle/run_analysis.py -- the latter found non-functional: dispatches to 4 scripts that do not exist on disk). agy/GPT-OSS-120B delegation attempted for the bulk (5 separate batch attempts across .legacy/scripts/examples) but reliably failed on this multi-file structured-review task (see memory: feedback-agy-large-prompt-failure) -- do not re-attempt the same large-batch-prompt approach without changing strategy (e.g. one file per agy call). 295 entries remain null.",
+      "status": "not_started",
+      "source": "Direct consequence of the 2026-06-30 full .py coverage expansion -- coverage (entry exists) is not the same as review (entry is verified)"
+    },
+    {
+      "id": "test-1000n-fast-laminar-lfp-csd-hdp",
+      "title": "1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test",
+      "target_files": [
+        "tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py)"
+      ],
+      "depends_on_functions": [
+        "jtfne.load (or jtfne.load_canonical_neuronal_tensor('canonical-v1-column-1000n'))",
+        "jaxfne.neuronal_tensor.RuntimeConfiguration",
+        "jtfne.construct",
+        "jtfne.simulation / Model.simulate",
+        "jaxfne.hdp_network (DEFAULT_HDP preset, or RuntimeConfig(enable_hdp=True, hdp_params=...))",
+        "jtfne.vis.lfp_traces / jtfne.vis.laminar_profile (CSD)"
+      ],
+      "shape": "Exact spec as given: N=1000 neurons, dtype=float32, dt_ms=0.1, duration_ms=1000.0, laminar default cortex column (jaxfne/configs/canonical-v1-column-1000n.json is the verified-this-session 1000-neuron V1 tensor config -- confirmed loadable via jtfne.load() with correct count), record_fields=True for LFP-proxy + CSD-proxy readout, HDP enabled (DEFAULT_HDP preset from hdp_network.py, K_ctrl=5.0/tau_0_ms=200.0/rho_passive=0.0 per the F-017 resolution this session -- NOT the abandoned rho_passive-only path). 'Fast' likely means jit=True/vmap as appropriate and asserting on wall-clock as a smoke-test bound, not just correctness -- needs a concrete time budget decided at implementation time (jaxfne-perf-10k project memory has 10k-neuron timings as a reference point: construct ~39s, sim 1000ms ~90s CPU at that scale; 1000 neurons should be well under that). Assertions: finite Vm/spikes/LFP/CSD arrays, Vm rest range sane (~-66 to -80mV per project memory), HDP H pinned near 1.0 for the DEFAULT_HDP null-control-adjacent regime, kappa_synchrony low enough to be async-irregular (per low-synchrony-kappa-for-spectrolaminar project memory). Exact assertion thresholds not yet decided -- this is a shape spec, not a finished test.",
+      "status": "not_started",
+      "source": "User-specified test spec"
+    },
+    {
+      "id": "stale-fixture-remaining-notebooks",
+      "title": "Fix 2 more notebooks still calling the removed default_spectrolaminar_config/default_nuclei_config",
+      "target_files": [
+        "tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb",
+        "tutorials/templates/jaxfne_notebook_template.ipynb"
+      ],
+      "depends_on_functions": [],
+      "shape": "Same root cause and same fix pattern as stale-test-fixture-fix (now done): both notebooks still call the removed jtfne.default_spectrolaminar_config/default_nuclei_config directly in a cell. Confirmed via grep -n on both files this session (live calls, not just doc text). Apply the same inline-reproduction-from-archived-JSON pattern used for jaxfne_etude_no_1_base.ipynb. IN PROGRESS 2026-06-30: jaxfne_notebook_template.ipynb fixed and verified executing cleanly via direct nbclient run. jaxfne_etude_no_2_spectrolaminar_power.ipynb fixed (same pattern, documented 2-area-cell-types limitation inherited from the original removed function which never genuinely supported 3+ areas despite its docstring), verification run in progress (longer notebook). DONE 2026-06-30: both notebooks verified executing cleanly via direct nbclient runs (not via the automated test suite, which does not include these 2 notebooks in its parametrize list -- that omission itself could be a follow-up item).",
+      "status": "done",
+      "source": "Found by the stale-test-fixture-fix agent as explicitly out-of-scope; confirmed still present via grep this session"
+    },
+    {
+      "id": "optim-bounds-duplicate-functions",
+      "title": "Merge enforce_parameter_bounds/apply_parameter_constraints (jaxfne/optim/bounds.py) -- byte-identical logic, different names",
+      "target_files": [
+        "jaxfne/optim/bounds.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Confirmed via inspect.getsource this session: both functions have IDENTICAL bodies (clip proposals to [lows,highs] broadcast), only function name and docstring differ. One should delegate to the other, or be a documented alias.",
+      "status": "done",
+      "source": "jaxfne/optim batch-review agent finding, independently re-verified",
+      "completed_on": "2026-06-30",
+      "completion_note": "apply_parameter_constraints now delegates to enforce_parameter_bounds. Verified via direct call comparison + 25 passing tests (test_tune_parameter_propagation.py, test_v0317_dtype_invariants.py). Entry moved progress.json -> review.json at score 100."
+    },
+    {
+      "id": "optim-sdr-family-misleading-docstrings",
+      "title": "step_sdr_transform/step_gsdr_transform/step_agsdr_transform docstrings claim distinct algorithms but are byte-identical plain gradient descent",
+      "target_files": [
+        "jaxfne/optim/sdr.py",
+        "jaxfne/optim/gsdr.py",
+        "jaxfne/optim/agsdr.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Docstrings claim delta rule / genetic deselection / adaptive GSDR respectively, but all three functions are identical plain gradient descent (u_t - eta*grad_l). The richer deselection_counter/alpha_adaptive state fields exist but are never read or written by these functions -- the REAL distinct stochastic/EMA/deselection logic lives only in core.py under separately-named internals (_TransformSDRState/sdr_transform family). Same public names (SDR/GSDR/AGSDR) resolve to two unrelated implementations depending on entry point -- a real correctness/discoverability risk, not yet verified end-to-end which entry point production code actually uses.",
+      "status": "not_started",
+      "source": "jaxfne/optim batch-review agent finding -- needs scoping before a fix is attempted (which implementation is canonical?)"
+    },
+    {
+      "id": "vis-dead-stub-plotting-functions",
+      "title": "Fix or remove 4 dead-stub plotting functions, publicly exported, zero test coverage",
+      "target_files": [
+        "jaxfne/vis/fields.py",
+        "jaxfne/vis/rasters.py",
+        "jaxfne/vis/traces.py",
+        "jaxfne/vis/spectra.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Confirmed via direct grep+read this session: plot_laminar_field_interpolation, plot_spike_rasters, plot_continuous_traces, plot_spectrogram_profiles all share the same broken pattern -- build a matplotlib figure, set ONLY title/xlabel/ylabel, never call any data-plotting method (no imshow/plot/scatter/pcolormesh on the actual input data), then plt.close(fig) and return None. All 4 are in jaxfne/vis/__init__.py __all__ (confirmed via grep), so they are part of the public API contract but silently do nothing useful. Zero test coverage anywhere in tests/. Each file has a working sibling function (e.g. raster() near plot_spike_rasters) that does the real job -- likely these 4 are abandoned early drafts that were never finished but got exported anyway. Fix: either implement the real plotting logic (mirroring the working sibling pattern) or remove from __all__ and deprecate/delete.",
+      "status": "not_started",
+      "source": "jaxfne/vis batch-review agent finding, independently re-verified via direct grep+Read this session (not trusted from agent claim alone)"
+    },
+    {
+      "id": "connectivity-dense-on2-jax-compiler",
+      "title": "compile_connection_rules_jax builds a dense O(n_pre*n_post) grid via jnp.tile, contradicting sparse-first design",
+      "target_files": [
+        "jaxfne/connectivity.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Confirmed via direct read this session (jaxfne/connectivity.py:452-476): pre_grid/post_grid are materialized via jnp.tile to full (n_pre, n_post) shape BEFORE probability-masking and max_edges truncation -- a real dense O(n_pre*n_post) memory/compute pattern. Only call site found is tests/test_v0341_kernels.py (1 test) -- the production sparse path is the separate compile_connection_rules (non-_jax suffix), so this is a lower-traffic public API, not on the hot path, but it IS exported in __all__ and contradicts jaxfne-harden-sparse-connectivity doctrine if a user calls it at scale (e.g. 10k x 10k = 100M elements, several hundred MB). Fix: either rewrite to sample sparsely (segment-based or rejection sampling without the dense intermediate), or add an explicit docstring warning about O(n^2) memory scaling if rewriting is out of scope.",
+      "status": "not_started",
+      "source": "jaxfne/optim+vis-adjacent batch-review agent finding, independently re-verified via direct Read this session"
+    },
+    {
+      "id": "streaming-jit-redefined-in-loop",
+      "title": "run_stdp_stream applies @jax.jit to a closure (run_chunk_scan) redefined fresh inside the per-chunk for-loop",
+      "target_files": [
+        "jaxfne/streaming.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Confirmed via direct read this session (jaxfne/streaming.py:115-137): the for chunk_idx in range(n_chunks) loop defines a fresh @jax.jit-decorated run_chunk_scan function object on every iteration. jax.jit caches by function identity by default -- a new function object per iteration means a new compile target per chunk, i.e. N_compile likely scales with n_chunks, directly violating this repo doctrine recompilation is the silent killer; assert N_compile <= 1. Not yet trace-verified with an actual compile counter (e.g. via runtime_report() or a jax compile-count hook) -- that verification is the next step before claiming the severity, since JAX may still cache by trace signature in some cases. Fix if confirmed: hoist run_chunk_scan definition outside the loop, parameterize via static_argnums or closures over loop-invariant values only. VERIFICATION ATTEMPTED 2026-06-30, INCONCLUSIVE: tried to count actual XLA compile events via a real run (3 vs 6 vs 1 chunk) with stderr logging capture, but the JAX version installed in this env did not emit log lines matching the expected \"Compiling jit(run_chunk_scan)\" pattern (0 matches across all chunk counts, including with the dtype bug in my test harness fixed). This does NOT confirm the code is fine -- it means my logging-based detection method did not work in this JAX version, not that no extra compiles happened. The static-code finding (fresh function object defined per loop iteration, no static_argnums/cache hoisting) remains true regardless and is still the real concern. Next attempt should use jax.jit(...).lower(...).compile() with an explicit per-call object identity check, or jax.clear_caches() + a hit-count monkeypatch on jax.jit itself.",
+      "status": "not_started",
+      "source": "jaxfne/optim+vis-adjacent batch-review agent finding, independently re-verified via direct Read this session -- NOT yet trace-verified for actual recompile count"
+    }
+  ],
+  "brainstorm": [
+    {
+      "id": "function_merger_analysis_2026-06-30",
+      "description": "2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, incomparable inputs -> merge into y3=f1(x1,x2)). Method: parsed all 387 .py files via Python's ast module, extracted every function/async function with an EXPLICIT return type annotation (1182 functions; unannotated functions excluded -- no fabricated type inference), grouped by exact annotation string match. 96 distinct return types were shared by 2+ functions; most are false positives (coincidental generic types like dict[str, str]/Any/bool shared by unrelated functions). Verdict on the strongest candidates, each individually checked against actual source, not just the type-match heuristic:",
+      "real_candidate": "build_model/apply_drive_correction -> Model: jaxfne/hdp_network.py's OWN docstring claims it consolidated this exact duplicate pattern from 2 older scripts, but scripts/hdp_1000_neuronal_tensor_column.py, scripts/hdp_suite2_visualizations.py, and scripts/spectrolaminar_tfne_izhikevich_pipeline.py still have their own un-migrated copies the original consolidation missed. Tracked as planned item merge-build_model-apply_drive_correction.",
+      "already_solved_confirmed": "construct(cfg_or_tensor, runtime=None) in core.py is ALREADY the merged form of the Configuration-path and NeuronalTensor-path Model construction (dispatches via isinstance) -- this is the user's exact merge pattern, already implemented, not a gap.",
+      "investigated_and_rejected": "simulate_edge_recurrent_izhikevich{,_homeostatic,_hdp,_receptor_exponential} (4 kernels, same output shape) -- this is the exact five-way dispatch problem already audited in this session's Phase 2 work and confirmed NOT cleanly mergeable (different jax.lax.scan carry shapes per mode).",
+      "false_positives_confirmed": [
+        "load() vs load_neuronal_tensor(): load_neuronal_tensor is already a literal 1-line compat alias of load() -- not a duplicate.",
+        "EmitterState.initial_state/step (x2 each): two classes implementing the same Protocol/interface -- intentional polymorphism, not duplication.",
+        "module-level run_trials/run_receipt vs Model.run_trials/run_receipt methods: standard free-function + thin-delegating-method pattern already used throughout this codebase, not duplicated logic.",
+        "step_{agsdr,gsdr,gsgd,sdr}_transform (4 optimizer steps, identical signature): inputs are actually COMPARABLE (same shape already), not incomparable -- already a clean strategy pattern behind OptimizerSpec; merging would add indirection without removing real duplication (did not verify internal logic for true duplication, only the signature)."
+      ],
+      "limitation": "Only functions with explicit `-> Type` annotations were scanned (1182 of an unknown larger total). Functions relying on inferred/implicit return types are NOT covered by this pass -- absence from this analysis does not mean a function has no merge candidate, only that it wasn't checked."
+    }
+  ]
+}

@@ -21,11 +21,10 @@ def enforce_parameter_bounds(proposals: jnp.ndarray, lows: jnp.ndarray, highs: j
 
 
 def apply_parameter_constraints(proposals: jnp.ndarray, lows: jnp.ndarray, highs: jnp.ndarray) -> jnp.ndarray:
-    """Clips optimization candidates using JAX-native primitive broadcasting rules.
+    """Alias of :func:`enforce_parameter_bounds`, kept for public API compatibility.
 
-    Guarantees type matching against active population matrices.
+    Both names were previously independent implementations with byte-identical
+    bodies; this delegates rather than duplicates so there is a single source
+    of truth for the clipping logic.
     """
-    target_dtype = proposals.dtype
-    l_bound = jnp.array(lows, dtype=target_dtype)
-    h_bound = jnp.array(highs, dtype=target_dtype)
-    return jnp.clip(proposals, l_bound[None, :], h_bound[None, :])
+    return enforce_parameter_bounds(proposals, lows, highs)
