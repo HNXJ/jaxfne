@@ -13,23 +13,34 @@ from scipy import signal
 from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
 
 
-def plot_spectrogram_profiles(lfp_signals_tensor: jax.Array, time_steps: np.ndarray) -> None:
-    """Extracts accelerator tensors onto the host context prior to plotting execution.
+def plot_spectrogram_profiles(lfp_signals_tensor: jax.Array, time_steps: np.ndarray) -> Any:
+    """Renders a real spectrogram computed from a raw LFP-proxy tensor.
 
-    Protects the active JAX trace context via standard host-device transfer.
+    ``lfp_signals_tensor`` is expected as ``(n_steps,)`` or ``(n_channels,
+    n_steps)`` (the first channel is used if multi-channel). ``time_steps``
+    gives the sample times in ms, used to derive the sampling rate for
+    :func:`scipy.signal.spectrogram`.
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    # Force immediate host-device transfer to protect the active trace context
     static_lfp_matrix = np.asarray(jax.device_get(lfp_signals_tensor))
+    trace = static_lfp_matrix if static_lfp_matrix.ndim == 1 else static_lfp_matrix[0]
+
+    time_arr = np.asarray(time_steps)
+    dt_ms = float(np.median(np.diff(time_arr))) if time_arr.size > 1 else 1.0
+    fs_hz = 1000.0 / dt_ms if dt_ms > 0 else 1000.0
+
+    nperseg = min(256, max(8, trace.shape[0] // 4))
+    freqs, times_s, sxx = signal.spectrogram(trace, fs=fs_hz, nperseg=nperseg)
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    # Process and plot spectrogram profiles cleanly...
-    ax.set_title("Simulated LFP Spectrogram Profiles")
+    pcm = ax.pcolormesh(times_s * 1000.0, freqs, 10 * np.log10(sxx + 1e-20), shading="auto", cmap="viridis")
+    fig.colorbar(pcm, ax=ax, label="Power (dB, proxy)")
+    ax.set_title("Simulated LFP Spectrogram Profiles (proxy)")
     ax.set_xlabel("Time (ms)")
     ax.set_ylabel("Frequency (Hz)")
-    plt.close(fig)
+    return fig
 
 
 def _get_time_ms(signals: Any, default_len: int) -> np.ndarray:

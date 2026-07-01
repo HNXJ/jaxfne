@@ -9,11 +9,10 @@
     {
       "path": "jaxfne/_pipeline.py",
       "purpose": "Internal pure-function layer (Phase 0-3a): Configuration/Tensor/Model/Signals pipeline wrappers + HDP edge-list DynamicState/compile_step_fn/scan_network. Not yet a public NeuralNetwork/NeuralSignal API.",
-      "score": 65,
+      "score": 78,
       "tbi": [
-        "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists",
-        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork",
-        "select_signal -- thin wrapper over Signals.get() selector logic, not yet written"
+        "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists. NOT resolved this pass -- this is a real field-mapping design decision (which Configuration fields map to which NeuronalTensor fields, what happens to info Configuration carries that NeuronalTensor has no slot for), not a mechanical wrapper.",
+        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork. NOT resolved this pass -- extraction requires walking Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior, a non-trivial refactor."
       ],
       "tbd": [
         "Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out of scope; no decision made on if/when)"
@@ -23,7 +22,7 @@
         "step_fn's second xs_t element is a per-step PRNGKey, not a noise array -- deviates from the original Phase-2 spec because the kernel generates Gaussian noise internally from a key; documented in-file but easy to miss if not read"
       ],
       "last_verified": "2026-06-30",
-      "evidence": "12/12 own tests pass (tests/test_pipeline_pure_functions.py); 1 real (non-traced) 20-step scan run confirmed numerics execute correctly",
+      "evidence": "12/12 pre-existing tests pass. RESOLVED this pass: added select_signal(signal, key, **get_kwargs) as a thin wrapper over Signals.get() (jaxfne/_pipeline.py), the lowest-effort of the 3 original TBIs per this entry's own prior note. Added 2 new tests (test_select_signal_matches_direct_get, test_select_signal_forwards_selector_kwargs) verifying behavioral equivalence with the direct Signals.get() call and correct KeyError propagation. Full pytest tests/test_pipeline_pure_functions.py -q: 14 passed (12 pre-existing + 2 new). configuration_to_tensor and tensor_to_graph remain unresolved -- both are real design/refactor work, not mechanical fixes, deliberately not rushed.",
       "status": "open"
     },
     {
@@ -70,23 +69,6 @@
       "status": "open"
     },
     {
-      "path": "jaxfne/core.py::Model / Configuration / JaxFNEConfig",
-      "purpose": "Core dataclasses: Model (frozen, params/static dict pytree), Configuration (declarative builder-first API), JaxFNEConfig (.jcfg.json loader, separate format).",
-      "score": 55,
-      "tbi": [],
-      "tbd": [
-        "JaxFNEConfig fate: absorb as Configuration.load(format='jcfg') vs. delete -- confirmed 'live only in tests' (21 tests across 3 files, never produced as a real asset in scripts/tutorials/docs); deferred, not decided",
-        "Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever unified, or permanently stays mode-specific via _pipeline.py-style targeted wrappers"
-      ],
-      "warnings": [
-        "_compiled_cache and _warmup_times are mutated via object.__setattr__ on a frozen dataclass (Model) -- works but is a fragile pattern if anyone adds new mutable cache state without following the same convention",
-        "8805 lines in one file -- any future read of this file should target line ranges via grep first, not load it in full"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "Full Model/_simulate_arrays dispatch read directly (lines 4045-4400+); JaxFNEConfig usage grepped across tests/scripts/tutorials/docs",
-      "status": "open"
-    },
-    {
       "path": "scripts/hdp_v2_rho_sweep.py",
       "purpose": "F-017 hyperparameter sweep script: find rho_passive for DEFAULT_HDP/DEFAULT_HDP_DESYNC.",
       "score": 70,
@@ -108,19 +90,6 @@
       "warnings": [],
       "last_verified": "2026-06-30",
       "evidence": "All 6 loaded successfully via jtfne.load() this session with correct area/neuron counts; default-column.json additionally used end-to-end in a real construct->simulate->vis.raster/vis.lfp_traces run that produced real output figures",
-      "status": "open"
-    },
-    {
-      "path": "jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json",
-      "purpose": "Legacy Configuration-schema (networks/emitters/fields/probes) JSON archival of the removed default_nuclei_config/default_spectrolaminar_config builder functions.",
-      "score": 55,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "Moved into jaxfne/configs/legacy/ this session to resolve the directory-scan schema assumption (configs-dir-schema-assumption-fix). Still not consumable via a Configuration.load_default() convenience path -- that gap remains."
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "Files present on disk; test_config_json_roundtrip.py (2 tests) passes against them",
       "status": "open"
     },
     {
@@ -676,34 +645,6 @@
       "status": "unreviewed"
     },
     {
-      "path": "jaxfne/optim/__init__.py",
-      "purpose": "Package namespace for jaxfne.optim: re-exports SDR/GSDR/AGSDR/GSGD state+step functions, bounds helpers, manifest serializer, and core.py's optimizer-spec constructors/internals into one flat __all__.",
-      "score": 70,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "__all__ contains 5 leading-underscore names (_agsdr_candidates_from_noise, _run_agsdr_optimization_loop, _quadratic_target_loss, _resolve_optimizer, _tune_matrix_agsdr_optax) re-exported as if public API; underscore-prefixed names being part of a public __all__ is an API-contract smell (these read as internal helpers, not stable public surface)",
-        "Re-exports two same-named-shape pairs (e.g. SDRState from .sdr vs an unrelated _TransformSDRState in .core) without disambiguation at the __init__ level -- core.py's own comment block documents the naming collision risk, but a user reading only __init__.py's __all__ would not see that warning"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -c \"import jaxfne.optim as o; missing=[n for n in o.__all__ if not hasattr(o,n)]; print(missing)\" -> [] (all 32 __all__ names resolve); covered indirectly by tests/test_optim_jax_native_audit.py, tests/test_optim_tune.py (82 passed together, see core.py entry) -- no dedicated __init__-only test file found via grep",
-      "status": "open"
-    },
-    {
-      "path": "jaxfne/optim/agsdr.py",
-      "purpose": "Defines AGSDRState (adds deselection_counter, alpha_adaptive fields on BaseSDRState) and step_agsdr_transform, the low-level AGSDR per-step update function.",
-      "score": 55,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "step_agsdr_transform's implementation is plain gradient descent (u_t - eta*grad_l) -- identical line-for-line to step_sdr_transform (sdr.py) and step_gsdr_transform (gsdr.py). The docstring claims 'adaptive GSDR steps' but neither the genetic deselection (deselection_counter) nor the adaptive alpha (alpha_adaptive) fields on AGSDRState are read or updated anywhere in this function -- the state fields exist but are dead weight in this code path",
-        "No grep hit found for a test exercising step_agsdr_transform (lowercase 'step_' prefix) directly by name; tune()-level AGSDR coverage in tests/test_optim_tune.py and tests/test_optim_jax_native_audit.py exercises the unrelated core.py AGSDR path (_agsdr_candidates_from_noise / OptimizerSpec), not this file's step_agsdr_transform function"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "grep -rn 'step_agsdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep",
-      "status": "open"
-    },
-    {
       "path": "jaxfne/optim/base.py",
       "purpose": "Shared frozen-dataclass base state (BaseSDRState) for the SDR/GSDR/AGSDR step-function family: step counter, best-loss/best-param tracking, reset counter, EMA variance fields.",
       "score": 80,
@@ -732,33 +673,6 @@
       "status": "open"
     },
     {
-      "path": "jaxfne/optim/gsdr.py",
-      "purpose": "Defines GSDRState (adds deselection_counter to BaseSDRState) and step_gsdr_transform, the low-level GSDR per-step update function.",
-      "score": 55,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "step_gsdr_transform's implementation is plain gradient descent (u_t - eta*grad_l), byte-identical to step_sdr_transform in sdr.py and step_agsdr_transform in agsdr.py despite the docstring claiming 'genetic deselection' -- GSDRState.deselection_counter is never read or incremented by this function",
-        "No grep hit found for a test exercising step_gsdr_transform directly; tune()-level GSDR coverage in tests/test_optim_tune.py exercises the unrelated core.py gsdr() spec-constructor / propose_blackbox_candidates path, not this file's step function"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "grep -rn 'step_gsdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep",
-      "status": "open"
-    },
-    {
-      "path": "jaxfne/optim/gsgd.py",
-      "purpose": "Defines GSGDState (NamedTuple: count, step_size) and step_gsgd_transform, the differentiable-path GSGD per-step update function consumed by Model.tune() when an explicit gradient is available.",
-      "score": 68,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "step_gsgd_transform's implementation is plain gradient descent (u_t - eta*grad_l), same body as step_sdr_transform/step_gsdr_transform/step_agsdr_transform, despite the docstring claiming 'adaptive step scaling' -- GSGDState.step_size is carried in the state NamedTuple but never read or updated by this function; the 'adaptive' behavior is not implemented here"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_optim_tune.py::test_step_gsgd_transform_direct -q -> 1 passed (verified by running the full file set: 'tests/test_optim_tune.py ... 82 passed' includes this test by name per grep -n in test_optim_tune.py:107)",
-      "status": "open"
-    },
-    {
       "path": "jaxfne/optim/manifests.py",
       "purpose": "serialize_optimization_manifest converts an optimizer state object (dataclass or NamedTuple) and a hyperparams dict into a JSON-safe dict, handling JAX/NumPy array-to-list conversion and skipping callables.",
       "score": 78,
@@ -770,20 +684,6 @@
       ],
       "last_verified": "2026-06-30",
       "evidence": "grep -rn 'serialize_optimization_manifest' tests/ -> no matches; read directly, no dedicated test file found via grep",
-      "status": "open"
-    },
-    {
-      "path": "jaxfne/optim/sdr.py",
-      "purpose": "Defines SDRState (no extra fields beyond BaseSDRState) and step_sdr_transform, the low-level Stochastic Delta Rule per-step update function -- a plain JAX-native gradient-descent step (u_t - eta*grad_l).",
-      "score": 55,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "step_sdr_transform contains no 'delta rule' or stochastic-perturbation logic beyond standard gradient descent -- the actual stochastic-delta-term + EMA variance machinery lives only in core.py's parallel sdr_transform()/_TransformSDRState (a completely separate implementation), so the public name 'SDR' resolves to two different behaviors depending on which entry point (step_sdr_transform vs sdr_transform) is used",
-        "No grep hit found for a test exercising step_sdr_transform directly by name"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "grep -rn 'step_sdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep",
       "status": "open"
     },
     {
@@ -893,19 +793,6 @@
       "status": "unreviewed"
     },
     {
-      "path": "jaxfne/stimulus.py",
-      "purpose": "triangular_drive: generates a triangular-wave drive trace (numpy phase computation wrapped to jnp.array) for use as a periodic stimulus input, e.g. in plasticity demos.",
-      "score": 70,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "the documented seed parameter is accepted but never used anywhere in the function body -- triangular_drive is fully deterministic given duration/dt/freq/amplitude, so seed is dead/misleading API surface"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "1/1 passed: python3 -m pytest tests/test_plasticity_v034.py -q -k triangular",
-      "status": "unreviewed"
-    },
-    {
       "path": "jaxfne/streaming.py",
       "purpose": "Memory-safe chunked streaming simulation runner: simulate_stdp_euler_step (single Izhikevich+STDP Euler step, dense W) and run_stdp_stream (chunks the full simulation into chunk_size_ms windows, runs a JIT+scan kernel per chunk, downsamples trajectories, returns final state + per-chunk finite/rate/weight summaries) to avoid holding the full (T,N) trajectory in memory at once.",
       "score": 75,
@@ -956,22 +843,6 @@
       "warnings": [],
       "last_verified": "2026-06-30",
       "evidence": "Read directly, no dedicated test found. Error paths are explicit (ValueError on html-for-matplotlib, ValueError on unsupported plotly format) -- no silent failure. Not run against a real figure this session since no test harness imports it.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/fields.py",
-      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation.",
-      "score": 55,
-      "tbi": [
-        "plot_laminar_field_interpolation (line 20) is a non-functional stub: builds a figure, sets only axis labels/title (no actual data plotted despite taking field_potential_tensor + grid_coords as args), then calls plt.close(fig) and returns None (return type annotation is `-> None`). It is exported publicly via jaxfne.vis.__init__ (line 44/181) with no test coverage anywhere in tests/ (grep confirmed zero references outside jaxfne/vis/__init__.py and the definition itself). Either implement it for real or remove/deprecate the public export.",
-        "spectrolaminar_suite's return type annotation `-> matplotlib.figure.Figure` and the `signals: Signals | dict[str, Any]` parameter annotation reference undefined names `matplotlib` and `Signals` (neither imported in this file). Works at runtime only because of `from __future__ import annotations` (PEP 563 lazy string evaluation); will raise NameError under typing.get_type_hints() or any tool that resolves annotations eagerly (e.g. some IDE introspection, dataclass-adjacent tooling, or sphinx-autodoc). Add `from typing import TYPE_CHECKING` + `if TYPE_CHECKING: import matplotlib.figure; from ..core import Signals` or fix the annotation string."
-      ],
-      "tbd": [],
-      "warnings": [
-        "_geometry3d_from_config (defined here AND duplicated verbatim in network3d.py) is dead code in this file -- not called by anything in fields.py itself; looks like a copy-paste leftover from network3d.py."
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_suite_no2_upgrade.py tests/test_objective_report_v018.py tests/test_vis_phase5.py -q -> 43 passed (covers spectrolaminar_suite, objective_report, bandpower, laminar_profile, connectivity, multi_area_layout -- all real, working). plot_laminar_field_interpolation has zero test coverage (grep -rn plot_laminar_field_interpolation tests/ -> no hits) and is confirmed non-functional by direct read.",
       "status": "reviewed"
     },
     {
@@ -1213,19 +1084,6 @@
       "status": "reviewed"
     },
     {
-      "path": "jaxfne/vis/rasters.py",
-      "purpose": "matplotlib spike raster (raster/raster_with_meta, sortable by declared z-depth) plus a dead stub plot_spike_rasters.",
-      "score": 55,
-      "tbi": [
-        "plot_spike_rasters (line 15) is the same dead-stub pattern as fields.py's plot_laminar_field_interpolation: takes spike_signals_tensor + config_params, transfers to host, builds a figure with only title/axis labels set (no actual raster scatter plotted), calls plt.close(fig), returns None (`-> None` annotation). Publicly exported via jaxfne.vis.__init__ (line 9/149) with zero test coverage (grep -rn plot_spike_rasters tests/ -> no hits). The real, working implementation is the separate `raster()` function 19 lines below it in the same file -- plot_spike_rasters looks like an abandoned earlier draft that was never deleted after raster() superseded it."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_vis_deduplication.py -q -k raster -> 3 passed (covers raster/raster_with_meta only). grep -rn plot_spike_rasters tests/ jaxfne/ -> only the definition and the __init__.py re-export/__all__ entry, no callers or tests.",
-      "status": "reviewed"
-    },
-    {
       "path": "jaxfne/vis/report_plots.py",
       "purpose": "11 one-off matplotlib report/diagnostic figure helpers for scripts/ tooling (COOP/plasticity gate reports, delta-test notebooks, AGSDR sweeps): dual_raster_comparison, optimization_progress_line, spike_grid_heatmap, signed_heatmap_with_colorbar, grouped_bar_comparison, agsdr_rate_tuning_panel_grid, open_pdf_pages/pdf_text_page/pdf_figure_page (PdfPages wrapper trio), gain_matrix_heatmap, celltype_sweep_heatmap_grid.",
       "score": 90,
@@ -1251,32 +1109,6 @@
       "warnings": [],
       "last_verified": "2026-06-30",
       "evidence": "Read directly (708 lines), no dedicated test found. Notable: tutorial_status_text_panel's docstring honestly documents and fixes a pre-existing bug in the original script (generate_tutorial_figures.py::gen_status_summary called ax.text(verticalcomparison=...), an invalid kwarg typo for verticalalignment that always raised AttributeError, silently swallowed by a try/except, so figure 11 was never produced) -- this migration uses the correct kwarg, a genuine improvement honestly called out rather than silently changed.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/spectra.py",
-      "purpose": "matplotlib PSD (psd/psd_with_meta), spectrogram (spectrogram/spectrogram_with_meta), windowed_band_power bar chart. Plus a dead stub plot_spectrogram_profiles.",
-      "score": 60,
-      "tbi": [
-        "plot_spectrogram_profiles (line 16) is the fourth instance of the same dead-stub pattern: takes lfp_signals_tensor + time_steps, transfers to host, sets only title/axis labels (no spectrogram actually computed or plotted), plt.close(fig), returns None. Publicly exported via __init__.py (line 36/175) with zero test coverage (grep confirmed no references in tests/). Same root cause as the other 3 stubs -- looks like a systematic leftover pattern across rasters.py/traces.py/spectra.py/fields.py, all four sharing near-identical 'Extracts accelerator tensors...protects the active trace context' docstrings and the same close-and-discard structure -- worth a single pass to either implement or remove all four together rather than fixing file-by-file."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_vis_psd_spectrogram.py -q -> 2 passed (covers the real psd/spectrogram functions). plot_spectrogram_profiles has zero test coverage (grep -rn plot_spectrogram_profiles tests/ -> no hits).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/traces.py",
-      "purpose": "matplotlib time-series traces: vm/rate/source/lfp/csd/lfp_traces/csd_traces/eeg/meg/emm/summary (+ *_with_meta variants), parameter_sweep_heatmap, multi_trace, dual_voltage_panel, coupled_vs_uncoupled_ei, parameter_sweep_lines. Plus a dead stub plot_continuous_traces.",
-      "score": 60,
-      "tbi": [
-        "plot_continuous_traces (line 16) is the same dead-stub pattern found in rasters.py and fields.py: takes traces_tensor + config_params, transfers to host, sets only title/axis labels (no data plotted), plt.close(fig), returns None. Publicly exported via __init__.py (line 10-11/152) with zero test coverage (grep confirmed no references in tests/)."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_vis_suite.py tests/test_vis_deduplication.py tests/test_vis_proxy_safe_titles.py -q -> 11 passed (covers vm/rate/source/lfp/csd/eeg/meg/emm/summary -- the real, working functions). plot_continuous_traces has no test coverage anywhere (grep -rn plot_continuous_traces tests/ -> no hits).",
       "status": "reviewed"
     },
     {

@@ -247,16 +247,17 @@ def load(path: str | Path) -> NeuronalTensor:
     This is the recommended entry point for the tensor-first workflow
     (``tensor = jtfne.load(path)``). Raises ``ValueError`` if ``path`` does
     not look like a NeuronalTensor JSON config (no top-level ``"areas"``
-    key) -- legacy ``Configuration``-style ``.jcfg.json`` files still use
-    :func:`jaxfne.load_config`, a distinct format this function does not
-    auto-convert.
+    key). The legacy ``.jcfg.json``/``JaxFNEConfig`` format (and its
+    ``load_config``/``validate_config`` loaders) was removed 2026-06-30 --
+    it lived only in tests, never as a real asset outside this package; use
+    this function for the NeuronalTensor-schema path, or the
+    :class:`Configuration` fluent builder for the Configuration-schema path.
     """
     raw = load_json(path)
     if "areas" not in raw:
         raise ValueError(
             f"{path} does not look like a NeuronalTensor JSON config (no "
-            "top-level 'areas' key). For legacy Configuration-style "
-            "'.jcfg.json' files, use jaxfne.load_config(...) instead."
+            "top-level 'areas' key)."
         )
     return _load_neuronal_tensor_impl(path, raw)
 

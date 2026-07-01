@@ -9,17 +9,18 @@ def triangular_drive(
     dt_ms: float,
     freq_hz: float = 6.0,
     amplitude: float = 5.0,
-    seed: int | None = None
 ) -> jnp.ndarray:
     """Generates a triangular drive trace.
-    
+
+    Fully deterministic given ``duration_ms``/``dt_ms``/``freq_hz``/``amplitude``
+    -- there is no stochastic element, so this takes no PRNG key or seed.
+
     Args:
         duration_ms: Total stimulus duration in milliseconds.
         dt_ms: Simulation timestep in milliseconds.
         freq_hz: Wave frequency in Hz (default 6.0 Hz).
         amplitude: Peak amplitude.
-        seed: Optional random seed.
-        
+
     Returns:
         jnp.ndarray: Triangular drive signal.
     """

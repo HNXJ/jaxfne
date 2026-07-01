@@ -5,7 +5,13 @@ Outputs:
   figures/evidence/ed02_json_schema_validation.png
   outputs/evidence/ed02_json_schema_validation_manifest.json
 
-Uses validate_config fixtures aligned with tests/test_config_schema_v015.py.
+REDESIGNED 2026-06-30: previously validated the legacy .jcfg.json/JaxFNEConfig
+format (load_config/validate_config), which was deleted (lived only in tests,
+never a real asset outside this package). Repurposed to validate the current
+NeuronalTensor JSON schema instead, exercising jtfne.load()'s real
+raise-on-invalid / warn-on-version-drift behavior plus a JSON-safe round-trip
+check on NeuronalTensor.to_dict() -- the same evidence-receipt spirit
+(schema validation receipts), on the format that's actually current.
 """
 
 from __future__ import annotations
@@ -13,6 +19,7 @@ from __future__ import annotations
 import json
 import platform
 import tempfile
+import warnings
 from pathlib import Path
 
 import matplotlib
@@ -22,7 +29,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch
 
 import jaxfne as jtfne
-from jaxfne.core import _JAXFNE_CONFIG_SCHEMA_VERSION
+from jaxfne.neuronal_tensor import Area, Layer, NeuronalTensor, NeuronType
 
 from _figure_common import (
     ensure_evidence_dirs,
@@ -38,64 +45,50 @@ from _figure_common import (
 SOURCE_FILES = [
     "scripts/evidence_figures/ed02_json_schema_validation.py",
     "scripts/evidence_figures/_figure_common.py",
-    "tests/test_config_schema_v015.py",
-    "jaxfne/core.py",
+    "tests/test_neuronal_tensor.py",
+    "jaxfne/neuronal_tensor.py",
 ]
 
-TITLE = "JSON schema and config validation receipts (JaxFNEConfig)"
+TITLE = "JSON schema and NeuronalTensor validation receipts"
 
 SCOPE_STATUS = (
-    "Evidence-local validation panel from validate_config fixtures; "
-    "blocking issues for missing sections, unsupported schema_version, and truth escalation; "
-    "JSON-safe dict emission checked with allow_nan=False"
+    "Evidence-local validation panel exercising jtfne.load()'s real schema checks "
+    "(missing top-level 'areas' key raises ValueError, schema_version drift warns but "
+    "still loads -- forward-readability, not strict lockstep) plus a JSON-safe "
+    "NeuronalTensor.to_dict() round-trip check with allow_nan=False"
 )
 
-_VALID_TRUTH = {
-    "claim_level": "computational_scaffold",
-    "source_calibration_status": "uncalibrated_izhikevich_native_current",
-    "field_solver_status": "linear_solver",
-    "physical_amplitude_calibrated": False,
-    "empirical_validation_status": "not_empirically_validated",
-    "mechanism_claim_status": "not_claimed",
-}
-
-_MINIMAL_CONFIG = {
-    "schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
-    "run": {"duration_ms": 50.0, "dt_ms": 0.5, "seed": 42},
-    "truth": dict(_VALID_TRUTH),
-    "network": {"n": 10},
-    "emitter": {"family": "izhikevich", "preset": "cortical_eig"},
-    "field": {
-        "domain": "laminar_column",
-        "conductivity": "proxy",
-        "boundary": "mean_zero_neumann",
-        "gauge": "mean_zero",
-    },
-    "probes": [{"name": "laminar_probe", "n_contacts": 16}],
+_MINIMAL_TENSOR_DICT = {
+    "schema_version": jtfne.NEURONAL_TENSOR_SCHEMA_VERSION,
+    "areas": [
+        {
+            "name": "ED2TestArea",
+            "layers": [
+                {
+                    "name": "L1",
+                    "n_neurons": 10,
+                    "neuron_types": [{"name": "E", "fraction": 1.0}],
+                }
+            ],
+            "inter_connections": [],
+        }
+    ],
+    "area_connections": [],
 }
 
 VALIDATION_FIXTURES: list[tuple[str, dict, bool, str]] = [
-    ("valid_minimal", _MINIMAL_CONFIG, True, "baseline .jcfg.json"),
+    ("valid_minimal", _MINIMAL_TENSOR_DICT, True, "baseline NeuronalTensor JSON"),
     (
-        "missing_network",
-        {k: v for k, v in _MINIMAL_CONFIG.items() if k != "network"},
+        "missing_areas_key",
+        {"schema_version": jtfne.NEURONAL_TENSOR_SCHEMA_VERSION},
         False,
-        "required_section_missing:network",
+        "does not look like a NeuronalTensor JSON config",
     ),
     (
-        "truth_escalation_blocked",
-        {
-            **_MINIMAL_CONFIG,
-            "truth": {**_VALID_TRUTH, "physical_amplitude_calibrated": True},
-        },
-        False,
-        "physical_amplitude_calibrated",
-    ),
-    (
-        "unsupported_schema_version",
-        {**_MINIMAL_CONFIG, "schema_version": "unsupported.version"},
-        False,
-        "schema_version_unsupported",
+        "schema_version_drift_warns_not_errors",
+        {**_MINIMAL_TENSOR_DICT, "schema_version": "future_version_not_yet_released"},
+        True,
+        "declares schema_version=",
     ),
 ]
 
@@ -109,61 +102,59 @@ def _write_config(config_dict: dict, path: Path) -> None:
 
 
 def run_validation_fixtures() -> list[dict]:
-    """Execute validate_config fixtures and return receipt rows."""
+    """Execute jtfne.load() schema fixtures and return receipt rows."""
     rows: list[dict] = []
     with tempfile.TemporaryDirectory() as tmp_dir:
         tmp = Path(tmp_dir)
-        for fixture_id, config_dict, expected_valid, expected_issue_hint in VALIDATION_FIXTURES:
-            path = tmp / f"{fixture_id}.jcfg.json"
+        for fixture_id, config_dict, expected_loadable, expected_message_hint in VALIDATION_FIXTURES:
+            path = tmp / f"{fixture_id}.json"
             _write_config(config_dict, path)
-            cfg = jtfne.load_config(path)
-            result = jtfne.validate_config(cfg)
-            issue_text = "; ".join(result.issues[:3]) if result.issues else ""
-            warning_text = "; ".join(result.warnings[:2]) if result.warnings else ""
-            passed = result.valid is expected_valid
-            if expected_valid:
-                issue_ok = len(result.issues) == 0
-            else:
-                issue_ok = expected_issue_hint in issue_text or any(
-                    expected_issue_hint in issue for issue in result.issues
-                )
+            observed_loadable = True
+            issue_text = ""
+            warning_text = ""
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                try:
+                    tensor = jtfne.load(str(path))
+                    observed_loadable = tensor is not None
+                except ValueError as exc:
+                    observed_loadable = False
+                    issue_text = str(exc)
+                if caught:
+                    warning_text = "; ".join(str(w.message) for w in caught[:2])
+            message_text = issue_text or warning_text
+            message_ok = expected_message_hint in message_text if message_text else expected_loadable
+            passed = (observed_loadable is expected_loadable) and message_ok
             rows.append(
                 {
                     "fixture_id": fixture_id,
-                    "expected_valid": expected_valid,
-                    "observed_valid": result.valid,
-                    "issues": list(result.issues),
-                    "warnings": list(result.warnings),
-                    "issue_sample": issue_text,
-                    "warning_sample": warning_text,
-                    "expected_issue_hint": expected_issue_hint,
-                    "fixture_pass": passed and issue_ok,
-                    "schema_version": result.schema_version,
-                    "truth_boundary_physical_amplitude": result.truth_boundary.get(
-                        "physical_amplitude_calibrated"
-                    ),
+                    "expected_loadable": expected_loadable,
+                    "observed_loadable": observed_loadable,
+                    "issue_sample": issue_text[:120],
+                    "warning_sample": warning_text[:120],
+                    "expected_message_hint": expected_message_hint,
+                    "fixture_pass": passed,
                 }
             )
     return rows
 
 
 def json_safe_roundtrip_check() -> dict:
-    """Verify ConfigValidationResult and JaxFNEConfig dicts are strict JSON-safe."""
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        path = Path(tmp_dir) / "roundtrip.jcfg.json"
-        _write_config(_MINIMAL_CONFIG, path)
-        cfg = jtfne.load_config(path)
-        result = jtfne.validate_config(cfg)
-        cfg_dict = cfg.to_dict()
-        result_dict = result.to_dict()
-        json.dumps(cfg_dict, allow_nan=False)
-        json.dumps(result_dict, allow_nan=False)
-        return {
-            "cfg_to_dict_keys": sorted(cfg_dict.keys()),
-            "validation_valid": result.valid,
-            "json_strict_allow_nan_false": True,
-            "config_hash": cfg.config_hash,
-        }
+    """Verify NeuronalTensor.to_dict() is strict JSON-safe (allow_nan=False)."""
+    tensor = NeuronalTensor(
+        areas=[
+            Area(
+                name="ED2RoundtripArea",
+                layers=[Layer(name="L1", n_neurons=10, neuron_types=[NeuronType(name="E", fraction=1.0)])],
+            )
+        ]
+    )
+    tensor_dict = tensor.to_dict()
+    json.dumps(tensor_dict, allow_nan=False)
+    return {
+        "tensor_to_dict_keys": sorted(tensor_dict.keys()),
+        "json_strict_allow_nan_false": True,
+    }
 
 
 def _runtime_receipt() -> dict:
@@ -186,7 +177,7 @@ def _runtime_receipt() -> dict:
         "platform": platform.platform(),
         "jax_version": jax_version,
         "jaxlib_version": jaxlib_version,
-        "config_schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
+        "neuronal_tensor_schema_version": jtfne.NEURONAL_TENSOR_SCHEMA_VERSION,
     }
 
 
@@ -221,13 +212,13 @@ def draw_figure(rows: list[dict], json_check: dict, receipt: dict) -> None:
     ax.text(
         0.75,
         7.35,
-        "Panel A - validate_config fixture receipts",
+        "Panel A - jtfne.load() NeuronalTensor schema fixture receipts",
         fontsize=9,
         fontweight="bold",
         va="top",
     )
 
-    headers = ["fixture", "expected", "observed", "pass", "issue sample"]
+    headers = ["fixture", "expected", "observed", "pass", "message sample"]
     col_x = [0.75, 3.0, 4.3, 5.5, 6.3]
     y = 6.95
     for x, header in zip(col_x, headers):
@@ -237,10 +228,10 @@ def draw_figure(rows: list[dict], json_check: dict, receipt: dict) -> None:
     for row in rows:
         color = "#2E7D32" if row["fixture_pass"] else "#C62828"
         ax.text(col_x[0], y, row["fixture_id"], fontsize=6.5, va="top", family="monospace")
-        ax.text(col_x[1], y, str(row["expected_valid"]), fontsize=6.5, va="top", family="monospace")
-        ax.text(col_x[2], y, str(row["observed_valid"]), fontsize=6.5, va="top", family="monospace")
+        ax.text(col_x[1], y, str(row["expected_loadable"]), fontsize=6.5, va="top", family="monospace")
+        ax.text(col_x[2], y, str(row["observed_loadable"]), fontsize=6.5, va="top", family="monospace")
         ax.text(col_x[3], y, str(row["fixture_pass"]), fontsize=6.5, va="top", family="monospace", color=color)
-        sample = row["issue_sample"] or "(none)"
+        sample = row["issue_sample"] or row["warning_sample"] or "(none)"
         ax.text(col_x[4], y, sample[:58], fontsize=6, va="top", family="monospace")
         y -= 0.55
 
@@ -257,12 +248,10 @@ def draw_figure(rows: list[dict], json_check: dict, receipt: dict) -> None:
     ax.text(0.75, 2.35, "Panel B - JSON/schema receipt / scope", fontsize=9, fontweight="bold", va="top")
     ax.text(0.85, 1.95, SCOPE_STATUS, fontsize=7, va="top", color="#333333")
     lines = [
-        f"schema_version: {receipt['config_schema_version']}",
+        f"neuronal_tensor_schema_version: {receipt['neuronal_tensor_schema_version']}",
         f"json_strict_roundtrip: {json_check['json_strict_allow_nan_false']}",
-        f"validation_valid_baseline: {json_check['validation_valid']}",
-        f"config_hash_prefix: {str(json_check['config_hash'])[:16]}",
+        f"tensor_to_dict_keys: {', '.join(json_check['tensor_to_dict_keys'])}",
         f"jaxfne: {receipt['jaxfne_version']}  repo_sha: {receipt['repo_sha'][:12]}",
-        "physical_amplitude_calibrated: false  |  blocking truth escalation enforced",
     ]
     for i, line in enumerate(lines):
         ax.text(0.85, 1.55 - i * 0.22, line, fontsize=6.5, va="top", family="monospace", color="#444444")
@@ -280,7 +269,7 @@ def main() -> int:
 
     if not all(row["fixture_pass"] for row in rows):
         failed = [r["fixture_id"] for r in rows if not r["fixture_pass"]]
-        raise RuntimeError(f"validate_config fixture failures: {failed}")
+        raise RuntimeError(f"jtfne.load() schema fixture failures: {failed}")
     if not json_check["json_strict_allow_nan_false"]:
         raise RuntimeError("JSON strict round-trip check failed")
 
@@ -306,15 +295,14 @@ def main() -> int:
         extra={
             "scope_status": SCOPE_STATUS,
             "generator_command": "python scripts/evidence_figures/ed02_json_schema_validation.py",
-            "claim_boundary": "config_schema_validation_receipt",
-            "config_schema_version": _JAXFNE_CONFIG_SCHEMA_VERSION,
+            "claim_boundary": "neuronal_tensor_schema_validation_receipt",
+            "neuronal_tensor_schema_version": jtfne.NEURONAL_TENSOR_SCHEMA_VERSION,
             "validation_fixtures": rows,
             "json_check": json_check,
             "runtime_receipt": receipt,
             "receipt_json_path": receipt_rel,
             "receipt_json_sha256": sha256_file(RECEIPT_JSON_PATH),
             "truth_gates": truth_gates(),
-            "physical_amplitude_calibrated": False,
         },
     )
 

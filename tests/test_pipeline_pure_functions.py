@@ -89,6 +89,21 @@ def _small_model() -> Model:
     return _pipeline.build_network(cfg)
 
 
+def test_select_signal_matches_direct_get():
+    model = _small_model()
+    sig = _pipeline.run_network(model, duration_ms=50.0, dt_ms=0.5, seed=1)
+    via_pipeline = _pipeline.select_signal(sig, "spikes")
+    via_direct = sig.get("spikes")
+    assert jnp.array_equal(via_pipeline, via_direct)
+
+
+def test_select_signal_forwards_selector_kwargs():
+    model = _small_model()
+    sig = _pipeline.run_network(model, duration_ms=50.0, dt_ms=0.5, seed=1)
+    with pytest.raises(KeyError):
+        _pipeline.select_signal(sig, "not_a_real_key")
+
+
 def test_checkpoint_restore_roundtrip(tmp_path):
     model = _small_model()
     ckpt_path = tmp_path / "ckpt"

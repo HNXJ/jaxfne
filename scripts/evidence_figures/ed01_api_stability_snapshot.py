@@ -52,16 +52,13 @@ API_GROUPS = {
             "configuration",
             "Configuration",
             "Config",
-            "validate_config",
-            "load_config",
             "runtime",
             "RuntimeConfig",
-            "config_truth_boundary",
         ),
     },
     "construct": {
         "label": "construct",
-        "members": ("construct", "Model", "config_to_configuration"),
+        "members": ("construct", "Model"),
     },
     "simulate": {
         "label": "simulate",

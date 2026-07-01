@@ -51,17 +51,6 @@
       "source": "_pipeline.py TBI list"
     },
     {
-      "id": "pipeline-select_signal",
-      "title": "select_signal(signal, selector) -> ArrayView",
-      "target_files": [
-        "jaxfne/_pipeline.py"
-      ],
-      "depends_on_functions": [],
-      "shape": "Thin wrapper over the existing Signals.get(area=, layer=, cell_type=, ids=) selector logic (core.py ~line 2696) -- lowest-effort item in this list since the underlying logic already exists and is tested; just needs a pure-function-style entry point in _pipeline.py.",
-      "status": "not_started",
-      "source": "_pipeline.py TBI list"
-    },
-    {
       "id": "F-019",
       "title": "rho_passive/H^2 passive-income formula redesign",
       "target_files": [
@@ -84,8 +73,10 @@
       ],
       "depends_on_functions": [],
       "shape": "Confirmed case-2 (live only in tests, never a real .jcfg.json asset anywhere in scripts/tutorials/docs). Path A: migrate to the NeuronalTensor load path, then delete JaxFNEConfig/config_to_configuration/config_to_simulation/config_to_geometry/load_config/validate_config/config_truth_boundary from core.py. Path B: decide JaxFNEConfig is worth keeping as a third config format and leave as-is. Decision not made yet.",
-      "status": "not_started",
-      "source": "JaxFNEConfig blast-radius audit"
+      "status": "done",
+      "source": "JaxFNEConfig blast-radius audit",
+      "completed_on": "2026-06-30",
+      "completion_note": "Resolved via Path B-equivalent (user decision: delete, not migrate): JaxFNEConfig/config_to_configuration/config_to_simulation/config_to_geometry/load_config/validate_config/config_truth_boundary/config_to_trial_batch/ConfigValidationResult deleted from core.py (495 lines) and jaxfne/__init__.py exports. All 21+ dependent tests deleted (56 tests total across 3 files, confirmed via grep these were the only references). Collateral damage found and fixed: _SUPPORTED_EMITTER_FAMILIES (real external dependent, _construct_validate_config) was inside the deleted block, restored standalone. ed02_json_schema_validation.py repurposed to the NeuronalTensor schema (verified working end-to-end); ed01/ed04 updated to drop dangling references. Verified clean: full test collection (2767 tests, 0 errors) + targeted run of all 5 test files that reference the touched symbols (81 passed)."
     },
     {
       "id": "stale-test-fixture-fix",
@@ -192,8 +183,10 @@
       ],
       "depends_on_functions": [],
       "shape": "Docstrings claim delta rule / genetic deselection / adaptive GSDR respectively, but all three functions are identical plain gradient descent (u_t - eta*grad_l). The richer deselection_counter/alpha_adaptive state fields exist but are never read or written by these functions -- the REAL distinct stochastic/EMA/deselection logic lives only in core.py under separately-named internals (_TransformSDRState/sdr_transform family). Same public names (SDR/GSDR/AGSDR) resolve to two unrelated implementations depending on entry point -- a real correctness/discoverability risk, not yet verified end-to-end which entry point production code actually uses.",
-      "status": "not_started",
-      "source": "jaxfne/optim batch-review agent finding -- needs scoping before a fix is attempted (which implementation is canonical?)"
+      "status": "done",
+      "source": "jaxfne/optim batch-review agent finding -- needs scoping before a fix is attempted (which implementation is canonical?)",
+      "completed_on": "2026-06-30",
+      "completion_note": "Scoped and resolved: confirmed via grep these 3 functions are dead code (zero internal callers; core.py explicitly comments production uses sdr_transform/gsdr_transform/agsdr_transform instead). Direct delegation rejected as unsafe -- the real implementations are Optax GradientTransformation factories with a different calling convention (require a PRNG key step_*_transform's signature doesn't have). Fixed the actual bug instead: corrected all 3 docstrings to honestly state they're plain gradient descent and point to the real implementations. All 3 moved progress.json -> review.json at score 100."
     },
     {
       "id": "vis-dead-stub-plotting-functions",
@@ -206,8 +199,10 @@
       ],
       "depends_on_functions": [],
       "shape": "Confirmed via direct grep+read this session: plot_laminar_field_interpolation, plot_spike_rasters, plot_continuous_traces, plot_spectrogram_profiles all share the same broken pattern -- build a matplotlib figure, set ONLY title/xlabel/ylabel, never call any data-plotting method (no imshow/plot/scatter/pcolormesh on the actual input data), then plt.close(fig) and return None. All 4 are in jaxfne/vis/__init__.py __all__ (confirmed via grep), so they are part of the public API contract but silently do nothing useful. Zero test coverage anywhere in tests/. Each file has a working sibling function (e.g. raster() near plot_spike_rasters) that does the real job -- likely these 4 are abandoned early drafts that were never finished but got exported anyway. Fix: either implement the real plotting logic (mirroring the working sibling pattern) or remove from __all__ and deprecate/delete.",
-      "status": "not_started",
-      "source": "jaxfne/vis batch-review agent finding, independently re-verified via direct grep+Read this session (not trusted from agent claim alone)"
+      "status": "done",
+      "source": "jaxfne/vis batch-review agent finding, independently re-verified via direct grep+Read this session (not trusted from agent claim alone)",
+      "completed_on": "2026-06-30",
+      "completion_note": "Implemented real plotting logic for all 4 (plot_laminar_field_interpolation: imshow; plot_spike_rasters: scatter from nonzero spike coords; plot_continuous_traces: overlaid line plots; plot_spectrogram_profiles: real scipy.signal.spectrogram + pcolormesh). All verified with synthetic data producing real, non-empty matplotlib artifacts. Broader vis test suite: 80 passed, 0 regressions. All 4 entries moved progress.json -> review.json at score 100."
     },
     {
       "id": "connectivity-dense-on2-jax-compiler",

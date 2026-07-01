@@ -17,23 +17,33 @@ from scipy import signal
 from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
 
 
-def plot_laminar_field_interpolation(field_potential_tensor: jax.Array, grid_coords: dict) -> None:
-    """Extracts accelerator tensors onto the host context prior to plotting execution.
+def plot_laminar_field_interpolation(field_potential_tensor: jax.Array, grid_coords: dict) -> Any:
+    """Renders a 2D interpolation map of a laminar field-potential tensor.
 
-    Coordinates the 2D spatial interpolation maps for laminar potentials across multi-contact grids.
+    ``field_potential_tensor`` is expected as ``(n_channels, n_time)`` (or
+    ``(n_time,)`` for a single channel, promoted to a 1-row matrix).
+    ``grid_coords`` may set ``figsize`` and ``cmap``.
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    # Force immediate host-device transfer to protect the active trace context
     static_field_matrix = np.asarray(jax.device_get(field_potential_tensor))
+    if static_field_matrix.ndim == 1:
+        static_field_matrix = static_field_matrix[None, :]
 
     fig, ax = plt.subplots(figsize=grid_coords.get("figsize", (10, 5)))
-    # Renders spatial interpolation maps cleanly...
-    ax.set_title("Laminar Field Interpolation Map")
-    ax.set_xlabel("Laminar Channels")
-    ax.set_ylabel("Normalized Depth")
-    plt.close(fig)
+    im = ax.imshow(
+        static_field_matrix,
+        aspect="auto",
+        origin="upper",
+        cmap=grid_coords.get("cmap", "RdBu_r"),
+        interpolation="bilinear",
+    )
+    fig.colorbar(im, ax=ax, label="Field potential (proxy, a.u.)")
+    ax.set_title("Laminar Field Interpolation Map (proxy)")
+    ax.set_xlabel("Time / Samples")
+    ax.set_ylabel("Channel (depth-ordered)")
+    return fig
 
 
 def _neuron_rows(signals: Any) -> list[dict[str, Any]]:

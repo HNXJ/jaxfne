@@ -42,7 +42,6 @@ SOURCE_FILES = [
     "scripts/evidence_figures/ed04_optional_dependency_laziness.py",
     "scripts/evidence_figures/_figure_common.py",
     "tests/test_root_import_lightweight.py",
-    "tests/test_config_runtime_hardening_v028.py",
     "tests/test_v0321_migration_boundaries.py",
     "jaxfne/__init__.py",
     "jaxfne/vis/core.py",

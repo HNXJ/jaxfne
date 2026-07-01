@@ -13,23 +13,31 @@ import numpy as np
 from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
 
 
-def plot_continuous_traces(traces_tensor: jax.Array, config_params: dict) -> None:
-    """Extracts accelerator tensors onto the host context prior to plotting execution.
+def plot_continuous_traces(traces_tensor: jax.Array, config_params: dict) -> Any:
+    """Renders overlaid line traces from a raw continuous-signal tensor.
 
-    Protects the active JAX trace context via standard host-device transfer.
+    ``traces_tensor`` is expected as ``(n_traces, n_steps)`` (or ``(n_steps,)``
+    for a single trace, promoted to a 1-row matrix). At most
+    ``config_params.get("max_traces", 16)`` traces are drawn to keep dense
+    populations legible.
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    # Force immediate host-device transfer to protect the active trace context
     static_traces = np.asarray(jax.device_get(traces_tensor))
+    if static_traces.ndim == 1:
+        static_traces = static_traces[None, :]
+
+    max_traces = config_params.get("max_traces", 16)
+    n_traces = min(static_traces.shape[0], max_traces)
 
     fig, ax = plt.subplots(figsize=config_params.get("figsize", (10, 4)))
-    # Process and plot static trace tracks cleanly...
+    for i in range(n_traces):
+        ax.plot(static_traces[i], linewidth=0.8, alpha=0.8)
     ax.set_title("Simulated Continuous Signal Profile")
     ax.set_xlabel("Time Step Index")
     ax.set_ylabel("Signal Amplitude")
-    plt.close(fig)
+    return fig
 
 
 def _get_time_ms(signals: Any, default_len: int) -> np.ndarray:

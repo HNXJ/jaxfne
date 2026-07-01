@@ -26,12 +26,11 @@ dense, and the Model._simulate_arrays dispatcher remain un-wrapped; calling
 ``compile_step_fn``/``scan_network`` on a model without ``params["edge_list"]``
 raises.
 
-# DEFERRED: JaxFNEConfig deletion (case-2 live-in-tests-only format).
-# 21 tests in test_config_schema_v015.py, test_config_runtime_hardening_v028.py,
-# test_v021_config_runtime_source_fidelity.py must be migrated to NeuronalTensor
-# load path before JaxFNEConfig / config_to_configuration / config_to_simulation /
-# config_to_geometry / load_config / validate_config / config_truth_boundary can
-# be deleted. Do not touch those tests in Phase 1.
+# RESOLVED 2026-06-30: JaxFNEConfig (case-2 live-in-tests-only format) and its
+# 21 dependent tests (test_config_schema_v015.py, test_config_runtime_hardening_v028.py,
+# test_v021_config_runtime_source_fidelity.py) were deleted -- JaxFNEConfig /
+# config_to_configuration / config_to_simulation / config_to_geometry / load_config /
+# validate_config / config_truth_boundary / config_to_trial_batch no longer exist.
 """
 
 from __future__ import annotations
@@ -126,6 +125,14 @@ def run_network(model: Model, **simulate_kwargs: Any) -> Signals:
     from .core import simulate
 
     return simulate(model, **simulate_kwargs)
+
+
+def select_signal(signal: Signals, key: str, **get_kwargs: Any) -> Any:
+    """Return a named, optionally-filtered signal array. Pure wrapper over
+    ``Signals.get`` -- see that method's docstring for ``key`` aliases and
+    the ``selector``/``area``/``layer``/``cell_type``/``ids`` filtering
+    fields (``**get_kwargs``)."""
+    return signal.get(key, **get_kwargs)
 
 
 def initialize_dynamic_state(model: Model) -> dict:

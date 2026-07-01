@@ -272,6 +272,151 @@
       "last_verified": "2026-06-30",
       "evidence": "Fixed: hardcoded '/Users/hamednejat/Downloads/skills.zip' replaced with required positional zip_path arg + --out-dir flag. Verified end-to-end: built a real temp zip, ran the script as a subprocess, confirmed extracted file content matches (exit 0, content 'hi' round-tripped). | RE-CONFIRMED 2026-06-30 ('proceed with review' pass 2): Re-checked --help output renders correctly with the new argparse interface; no other file in the repo imports/depends on this script (grep confirmed it's a standalone CLI, not a library import site).",
       "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/fields.py",
+      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation. FIXED 2026-06-30: plot_laminar_field_interpolation was a dead stub (built a fig/ax, set only title/labels, never plotted data, closed the fig, returned None). Now: real np.ndim normalization, ax.imshow() of the field matrix with a colorbar, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_suite_no2_upgrade.py tests/test_objective_report_v018.py tests/test_vis_phase5.py -q -> 43 passed (covers spectrolaminar_suite, objective_report, bandpower, laminar_profile, connectivity, multi_area_layout -- all real, working). plot_laminar_field_interpolation has zero test coverage (grep -rn plot_laminar_field_interpolation tests/ -> no hits) and is confirmed non-functional by direct read. | FIX VERIFIED 2026-06-30: Direct call with a synthetic (8,100) random field tensor: fig is not None, len(fig.axes[0].images) == 1 (a real image was drawn). Also ran the broader vis test suite (pytest -k vis): 80 passed, 0 regressions. py_compile clean.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/rasters.py",
+      "purpose": "matplotlib spike raster (raster/raster_with_meta, sortable by declared z-depth) plus a dead stub plot_spike_rasters. FIXED 2026-06-30: plot_spike_rasters was a dead stub (same broken pattern). Now: auto-detects neuron axis, computes np.nonzero() spike coordinates, ax.scatter() of real spike markers, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_vis_deduplication.py -q -k raster -> 3 passed (covers raster/raster_with_meta only). grep -rn plot_spike_rasters tests/ jaxfne/ -> only the definition and the __init__.py re-export/__all__ entry, no callers or tests. | FIX VERIFIED 2026-06-30: Direct call with a synthetic (20,500) random binary spike tensor: fig is not None, scatter collection has 208 real spike markers plotted. Also ran the broader vis test suite (pytest -k vis): 80 passed, 0 regressions. py_compile clean.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/traces.py",
+      "purpose": "matplotlib time-series traces: vm/rate/source/lfp/csd/lfp_traces/csd_traces/eeg/meg/emm/summary (+ *_with_meta variants), parameter_sweep_heatmap, multi_trace, dual_voltage_panel, coupled_vs_uncoupled_ei, parameter_sweep_lines. Plus a dead stub plot_continuous_traces. FIXED 2026-06-30: plot_continuous_traces was a dead stub. Now: plots up to max_traces=16 rows as overlaid ax.plot() line traces, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_vis_suite.py tests/test_vis_deduplication.py tests/test_vis_proxy_safe_titles.py -q -> 11 passed (covers vm/rate/source/lfp/csd/eeg/meg/emm/summary -- the real, working functions). plot_continuous_traces has no test coverage anywhere (grep -rn plot_continuous_traces tests/ -> no hits). | FIX VERIFIED 2026-06-30: Direct call with a synthetic (5,200) random trace tensor: fig is not None, exactly 5 real Line2D objects drawn (one per input trace row). Also ran the broader vis test suite (pytest -k vis): 80 passed, 0 regressions. py_compile clean.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/spectra.py",
+      "purpose": "matplotlib PSD (psd/psd_with_meta), spectrogram (spectrogram/spectrogram_with_meta), windowed_band_power bar chart. Plus a dead stub plot_spectrogram_profiles. FIXED 2026-06-30: plot_spectrogram_profiles was a dead stub. Now: computes a real scipy.signal.spectrogram from the input trace (sample rate derived from time_steps spacing), renders via ax.pcolormesh(), returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_vis_psd_spectrogram.py -q -> 2 passed (covers the real psd/spectrogram functions). plot_spectrogram_profiles has zero test coverage (grep -rn plot_spectrogram_profiles tests/ -> no hits). | FIX VERIFIED 2026-06-30: Direct call with a synthetic 1000-sample 10Hz sine + noise trace: fig is not None, pcolormesh collection drawn (1 real QuadMesh). Also ran the broader vis test suite (pytest -k vis): 80 passed, 0 regressions. py_compile clean.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/sdr.py",
+      "purpose": "Defines SDRState (no extra fields beyond BaseSDRState) and step_sdr_transform, the low-level Stochastic Delta Rule per-step update function -- a plain JAX-native gradient-descent step (u_t - eta*grad_l).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "grep -rn 'step_sdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep | FIX VERIFIED 2026-06-30: step_sdr_transform's docstring claimed Stochastic Delta Rule behavior it never had (plain gradient descent only, state passed through unchanged). Confirmed via grep this function is never called internally -- core.py has an explicit comment warning production code (Model.tune) uses sdr_transform (Optax factory) instead. Real fix scoped: direct delegation isn't possible (sdr_transform is a GradientTransformation factory requiring init()/update() with a PRNG key -- a different calling convention, not signature-compatible with step_sdr_transform's (u_t, grad_l, state, hyperparams) shape). Fixed the actual bug: corrected the docstring to honestly state what the function does and point to the real sdr_transform for the actual SDR algorithm. py_compile clean. pytest -k optim: 59 passed, 0 regressions.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/gsdr.py",
+      "purpose": "Defines GSDRState (adds deselection_counter to BaseSDRState) and step_gsdr_transform, the low-level GSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "grep -rn 'step_gsdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep | FIX VERIFIED 2026-06-30: Same issue/fix as sdr.py, for GSDR/genetic deselection: docstring corrected, confirmed deselection_counter is never read/written by this function, pointed to the real gsdr_transform. py_compile clean. pytest -k optim: 59 passed, 0 regressions.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/agsdr.py",
+      "purpose": "Defines AGSDRState (adds deselection_counter, alpha_adaptive fields on BaseSDRState) and step_agsdr_transform, the low-level AGSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "grep -rn 'step_agsdr_transform' tests/ -> no matches; read directly, no dedicated test file found via grep | FIX VERIFIED 2026-06-30: Same issue/fix as sdr.py, for AGSDR/adaptive alpha: docstring corrected, confirmed deselection_counter/alpha_adaptive are never read/written by this function, pointed to the real agsdr_transform. py_compile clean. pytest -k optim: 59 passed, 0 regressions.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/core.py::Model / Configuration / JaxFNEConfig",
+      "purpose": "Core dataclasses: Model (frozen, params/static dict pytree), Configuration (declarative builder-first API). JaxFNEConfig (.jcfg.json loader, separate format) DELETED 2026-06-30.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever unified, or permanently stays mode-specific via _pipeline.py-style targeted wrappers -- NOT resolved this pass, out of scope for the JaxFNEConfig deletion."
+      ],
+      "warnings": [
+        "_compiled_cache and _warmup_times are mutated via object.__setattr__ on a frozen dataclass (Model) -- works but is a fragile pattern if anyone adds new mutable cache state without following the same convention",
+        "8310 lines in core.py (down from 8805 after deletion) -- any future read of this file should target line ranges via grep first, not load it in full"
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "RESOLVED 2026-06-30 (user decision: delete): removed JaxFNEConfig, ConfigValidationResult, load_config, validate_config, config_to_configuration, config_to_geometry, config_to_simulation, config_to_trial_batch, config_truth_boundary, _conservative_truth_transfer, _config_section_warnings, _runtime_from_spec, _CONFIG_RUNTIME_WARNINGS (495 lines, jaxfne/core.py 8311-8805) and their exports from jaxfne/__init__.py. Deleted the 3 test files that tested only this surface (tests/test_config_schema_v015.py, tests/test_config_runtime_hardening_v028.py, tests/test_v021_config_runtime_source_fidelity.py, 56 tests total). Found and fixed real collateral damage: _SUPPORTED_EMITTER_FAMILIES was defined inside the deleted block but had 2 real external dependents (_construct_validate_config at line 7060) -- restored it standalone before that function. Updated jaxfne/neuronal_tensor.py docstrings (jtfne.load()) and jaxfne/_pipeline.py comment to stop referencing the deleted symbols. Repurposed scripts/evidence_figures/ed02_json_schema_validation.py (its entire purpose was validating JaxFNEConfig fixtures) to validate the NeuronalTensor JSON schema instead via jtfne.load()'s real raise-on-invalid/warn-on-version-drift behavior; ran it end-to-end, 3/3 fixtures passed, real PNG + receipt JSON produced and verified before cleanup. Updated ed01_api_stability_snapshot.py and ed04_optional_dependency_laziness.py to drop references to the deleted symbols/test file; ran ed01 end-to-end (246 public names, succeeded). Verification: pytest tests/test_emitter_family_validation_v0330.py tests/test_public_builders_complete.py tests/test_root_import_lightweight.py tests/test_public_api_compatibility.py tests/test_neuronal_tensor.py -q -- 81 passed (the complete set of test files that actually reference the touched symbols, per grep, plus root-import/API-compatibility sanity checks). Full pytest tests/ -q --collect-only: 2767 tests collected, 0 collection errors (confirms no other file references anything deleted).",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/gsgd.py",
+      "purpose": "Defines GSGDState (NamedTuple: count, step_size) and step_gsgd_transform, the differentiable-path GSGD per-step update function consumed by Model.tune() when an explicit gradient is available.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Not currently on Model.tune()'s real call path (the differentiable-optimizer branch is a metadata-only guard, optax_guarded_path_no_loop_v0.0.8, that never enters a gradient loop) -- kept for direct/manual use, same reasoning as the sdr/gsdr/agsdr trio fixed earlier this session."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_optim_tune.py::test_step_gsgd_transform_direct -q -> 1 passed (verified by running the full file set: 'tests/test_optim_tune.py ... 82 passed' includes this test by name per grep -n in test_optim_tune.py:107) | FIX VERIFIED 2026-06-30: corrected the misleading 'adaptive step scaling' docstring (same pattern as sdr/gsdr/agsdr) to honestly state this is plain gradient descent with state passed through unchanged, and documented that Model.tune()'s differentiable branch doesn't actually invoke it yet (confirmed via direct read of core.py's tune() differentiable-path guard, which returns REVISE/ACCEPT_CANDIDATE without a loop). py_compile clean. pytest tests/test_optim_tune.py -q: 35 passed, 0 regressions.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json",
+      "purpose": "Legacy Configuration-schema (networks/emitters/fields/probes) JSON archival of the removed default_nuclei_config/default_spectrolaminar_config builder functions.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "Files present on disk; test_config_json_roundtrip.py (2 tests) passes against them | RESOLVED 2026-06-30 (user decision): these are correctly archive-only historical reference files, not meant for programmatic loading -- the 3 dependent tests already reproduce the config inline via the Configuration builder rather than loading the JSON directly (established by the earlier stale-test-fixture-fix work). No Configuration.load_default() convenience path is needed. pytest tests/test_config_json_roundtrip.py -q: 2 passed.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/stimulus.py",
+      "purpose": "triangular_drive: generates a triangular-wave drive trace (numpy phase computation wrapped to jnp.array) for use as a periodic stimulus input, e.g. in plasticity demos.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "1/1 passed: python3 -m pytest tests/test_plasticity_v034.py -q -k triangular | FIX VERIFIED 2026-06-30: Removed the dead/misleading seed parameter from triangular_drive (function is fully deterministic, seed was accepted but never used anywhere in the body). Confirmed via grep no caller passes seed= (jaxfne/__init__.py export, tests/test_plasticity_v034.py's only call site). pytest tests/test_plasticity_v034.py -q: 4 passed.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/__init__.py",
+      "purpose": "Package namespace for jaxfne.optim: re-exports SDR/GSDR/AGSDR/GSGD state+step functions, bounds helpers, manifest serializer, and core.py's optimizer-spec constructors/internals into one flat __all__.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -c \"import jaxfne.optim as o; missing=[n for n in o.__all__ if not hasattr(o,n)]; print(missing)\" -> [] (all 32 __all__ names resolve); covered indirectly by tests/test_optim_jax_native_audit.py, tests/test_optim_tune.py (82 passed together, see core.py entry) -- no dedicated __init__-only test file found via grep | FIX VERIFIED 2026-06-30: Fixed both warnings: (1) removed the 5 underscore-prefixed names (_agsdr_candidates_from_noise, _run_agsdr_optimization_loop, _quadratic_target_loss, _resolve_optimizer, _tune_matrix_agsdr_optax) from __all__ -- they remain directly importable (from jaxfne.optim import _resolve_optimizer still works, confirmed via hasattr check + the real call sites in core.py and tests/test_v0317_dtype_invariants.py) but are no longer advertised as public API surface via __all__/import *. (2) Added an explicit module-docstring naming-collision warning documenting that SDRState/GSDRState/AGSDRState (from .sdr/.gsdr/.agsdr) are unrelated to core.py's private _TransformSDRState family used by the real sdr_transform/gsdr_transform/agsdr_transform factories. pytest tests/test_v0317_dtype_invariants.py tests/test_optim_jax_native_audit.py tests/test_optim_tune.py -q: 54 passed. Root `import jaxfne` still succeeds.",
+      "status": "done"
     }
   ]
 }

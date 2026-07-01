@@ -29,7 +29,18 @@ def step_agsdr_transform(
     state: Any,
     hyperparams: dict,
 ) -> tuple[jnp.ndarray, Any]:
-    """Evaluates adaptive GSDR steps with strict precision and JAX compilation safety."""
+    """Plain gradient-descent step: ``u_t - eta * grad_l``.
+
+    Despite the ``AGSDRState``/``AGSDR`` naming and ``deselection_counter``/
+    ``alpha_adaptive`` fields, this does NOT implement genetic deselection or
+    adaptive two-phase search -- ``state`` is passed through unchanged, none
+    of its extra fields are read or updated. The real Adaptive Genetic SDR
+    optimizer is :func:`jaxfne.optim.core.agsdr_transform`, which production
+    code (``Model.tune(optimizer="AGSDR", ...)``) actually uses -- this
+    function is not on that call path. Kept for backward compatibility with
+    any caller using the lower-level ``step(u_t, grad_l, state,
+    hyperparams)`` signature.
+    """
     target_dtype = u_t.dtype
     eta = jnp.array(hyperparams.get("eta", 0.01), dtype=target_dtype)
     u_next = u_t - eta * grad_l

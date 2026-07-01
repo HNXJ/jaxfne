@@ -12,23 +12,36 @@ import numpy as np
 from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
 
 
-def plot_spike_rasters(spike_signals_tensor: jax.Array, config_params: dict) -> None:
-    """Extracts accelerator tensors onto the host context prior to plotting execution.
+def plot_spike_rasters(spike_signals_tensor: jax.Array, config_params: dict) -> Any:
+    """Renders a spike raster from a raw binary spike tensor.
 
-    Protects the active JAX trace context via standard host-device transfer.
+    ``spike_signals_tensor`` is expected as ``(n_neurons, n_steps)`` (or
+    ``(n_steps, n_neurons)``, auto-detected by which axis is larger when
+    ``n_neurons_axis`` isn't given) with nonzero entries marking spikes.
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    # Force immediate host-device transfer to protect the active trace context
     static_spike_matrix = np.asarray(jax.device_get(spike_signals_tensor))
+    if static_spike_matrix.ndim == 1:
+        static_spike_matrix = static_spike_matrix[None, :]
+
+    neurons_axis = config_params.get("n_neurons_axis")
+    if neurons_axis is None:
+        # Default: assume the smaller dimension is the neuron axis (more time
+        # steps than neurons is the common case for a smoke/test run).
+        neurons_axis = 0 if static_spike_matrix.shape[0] <= static_spike_matrix.shape[1] else 1
+    if neurons_axis == 1:
+        static_spike_matrix = static_spike_matrix.T
+
+    neuron_ids, time_idx = np.nonzero(static_spike_matrix)
 
     fig, ax = plt.subplots(figsize=config_params.get("figsize", (10, 4)))
-    # Process and plot static raster tracks cleanly...
+    ax.scatter(time_idx, neuron_ids, s=4, marker="|", color="black")
     ax.set_title("Simulated Population Spike Raster Profile")
     ax.set_xlabel("Time Step Index")
     ax.set_ylabel("Neuron Identifier")
-    plt.close(fig)
+    return fig
 
 
 def raster(signals: Any, **kwargs: Any) -> Any:

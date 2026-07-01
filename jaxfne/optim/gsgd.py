@@ -22,7 +22,20 @@ def step_gsgd_transform(
     state: Any,
     hyperparams: dict,
 ) -> tuple[jnp.ndarray, Any]:
-    """Integrates generalized stochastic gradient updates with adaptive step scaling."""
+    """Plain gradient-descent step: ``u_t - eta * grad_l``.
+
+    Despite the "adaptive step scaling" claimed in earlier revisions of this
+    docstring, ``state`` (including ``GSGDState.step_size``) is passed
+    through unchanged, never read or updated -- there is no adaptive
+    behavior here. Also NOT currently on ``Model.tune()``'s real call path:
+    the differentiable-optimizer branch of ``tune()`` (``optax_guarded_path``)
+    is a metadata-only guard that returns without ever entering a gradient
+    loop, so this function is not invoked by production tuning as of this
+    writing even though ``jaxfne.optim.core.gsgd()`` declares "GSGD" as a
+    differentiable ``OptimizerSpec`` and its docstring names this function.
+    Kept for direct/manual use via the lower-level ``step(u_t, grad_l,
+    state, hyperparams)`` signature.
+    """
     target_dtype = u_t.dtype
     eta = jnp.array(hyperparams.get("eta", 0.01), dtype=target_dtype)
     u_next = u_t - eta * grad_l
