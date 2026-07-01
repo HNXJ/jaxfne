@@ -99,7 +99,7 @@ model = jtfne.construct(cfg)
 sig   = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)   # sig.field auto-computed (lfp_proxy, csd_proxy)
 ```
 
-**Canonical column E:I gradient (ground truth, verified 2026-06-17; skill `jaxfne-cortical-column-default`):**
+**Canonical column E:I gradient (ground truth, verified 2026-06-17; skill `jaxfne-config`):**
 E peaks DEEP — E-fraction rises with depth to L6 ≈ 90% E. I peaks SUPERFICIAL — L1 50% I,
 I-fraction falls monotonically 50→30→25→20→12→10% (L1→L6); the largest inhibitory neuron
 COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in L4
@@ -117,11 +117,11 @@ COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in 
   beyond the depth band): weights sum to 1 regardless of Gaussian falloff, so outside contacts can
   read *louder*, not weaker. Verified 2026-06-21 on a 300-neuron V1 column with 2 contacts at
   z=-0.15/1.15: `row_normalize` gave outside RMS *higher* than the inside mean;
-  `density_preserving` gave ~9× attenuation. Skill: `jaxfne-cortical-column-default` § Projection.
+  `density_preserving` gave ~9× attenuation. Skill: `jaxfne-config` § Projection.
 - **Layer naming (F-002):** 5-layer (`L1,L2/3,L4,L5,L6`) in `laminar_cortex_config` examples vs
   **6-layer** (`L1…L6`) required by `build_laminar_column(..., ei_profile="canonical")` /
   `CANONICAL_LAYERS_6L`. Pick one set per script; canonical E:I fractions in
-  `jaxfne-cortical-column-default` are verified on **6-layer** names.
+  `jaxfne-config` are verified on **6-layer** names.
 - `spectrolaminar_psd_jax` wants `(n_trials, n_steps, n_contacts)`.
 - All `jtfne.vis.*` (lfp/csd/eeg/meg/emm/raster/rate/psd/spectrolaminar_suite/layer_celltype_counts)
   take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.

@@ -1,61 +1,36 @@
 ---
 name: jaxfne-modeling-optimization-schema
-summary: Design or modify jaxfne Config, Net, Paradigm, Objective, Trainer, Signals, selectors, connectivity, welding, trainables, and AGSDR objectives.
-trigger: Use whenever the task mentions config, cfg, Configuration, Config, Net, Model, circuit, cell params, mechanisms, connections, connectivity, quartet, selector, area, layer, cell_type, weld, join, clone, construct, reconstruct, Signals, get_signal, layout, paradigm, stimulus, task, objective, trainable, AGSDR, trainer, optimizer, tune, metric, source, field, probe, LFP, CSD, EEG, MEG, EMM, rate, kappa, truth, or manifest.
+summary: >-
+  Deep schema/truth-gate reference for jaxfne Config, connectivity, selectors,
+  and objective/trainer conventions. Condensed 2026-06-30 — Model/Signals/tune
+  content moved to jaxfne-neural-network, NeuronalTensor/HDP content moved to
+  jaxfne-neural-tensor (both to avoid duplication). CORRECTED 2026-06-30: the
+  "Canonical Config structure" (cfg.circuit/.paradigm/.objective/.optimizer
+  typed sub-specs) and "Welding semantics" (jtfne.weld()) sections below were
+  found to be aspirational/fictional on verification — Configuration's real
+  dataclass fields are networks/emitters/fields/probes/metadata
+  (dataclasses.fields(Configuration)), and jtfne.weld does not exist. Kept
+  here as an explicit warning, not removed silently, so nobody re-adds them
+  from memory.
+trigger: >-
+  Use for connectivity rule schemas, node-identity/selector conventions, or
+  objective/trainer path conventions. For Model/Signals/tune, use
+  jaxfne-neural-network. For NeuronalTensor/HDP, use jaxfne-neural-tensor.
 ---
 
 # jaxfne Modeling and Optimization Schema
 
-## Purpose
+## FICTIONAL — do not use (verified false 2026-06-30)
 
-Use this for almost every modeling, simulation, configuration, objective, and training change.
-
-## Canonical objects
-
-```text
-Config: bio-circuit PCB sketch
-Net: compiled biophysical circuit
-Paradigm: task/trial/stimulus software
-Objective: programmer's measure
-Trainer: programmer/tuner
-Signals: typed/queryable simulation output
+```python
+jtfne.weld(cfg_a, cfg_b, duplicate_policy="suffix")   # jtfne.weld does not exist
+cfg.circuit; cfg.paradigm; cfg.objective; cfg.optimizer  # not real fields
 ```
 
-## Canonical Config structure
+`Configuration`'s real fields (verified via `dataclasses.fields`):
+`networks, emitters, fields, probes, metadata`. See `jaxfne-config`.
 
-Prefer typed sub-specs, not a metadata God object:
-
-```text
-Config(
-  schema_version,
-  runtime,
-  geometry,
-  circuit,
-  probes,
-  paradigm,
-  objective,
-  optimizer,
-  metadata,
-)
-```
-
-Compatibility:
-
-```text
-Configuration is an alias/wrapper for Config.
-cfg.metadata["circuit"] is compatibility export only.
-New implementation should use cfg.circuit, cfg.paradigm, cfg.objective, cfg.optimizer.
-```
-
-## Schema rules
-
-- Include `schema_version` in serialized configs.
-- Add migration helpers before changing schema shape.
-- All config/manifest/training result data must be strict JSON-safe.
-- Raw arrays inside config must be encoded or referenced through `artifact_ref` with path, array_name, and sha256.
-- Negative noise and nonfinite drive/a/b/c/d must fail loudly.
-
-## Identity and selector rules
+## Identity and selector rules (verified: `quartet`/id selector exists in `jaxfne/connectivity.py`)
 
 Canonical node identity:
 
@@ -63,23 +38,15 @@ Canonical node identity:
 area_id:local_id:layer:cell_type
 ```
 
-Use six-digit local IDs:
+Six-digit local IDs, e.g. `V1:000042:L4:PV`. Every node row (from
+`model.neuron_table()`) carries `neuron_id, area, layer, cell_type, x, y, z`
+— verify exact field names against `neuron_table()` output before assuming
+`global_id`/`area_id`/`quartet` are literal dict keys; `quartet` is the
+selector-resolution concept in `connectivity.py`, not necessarily a dict key
+name. Empty selectors fail unless `allow_empty=True` is explicit
+(`compile_connection_rules(..., allow_empty=False)`).
 
-```text
-V1:000042:L4:PV
-```
-
-Every node must carry:
-
-```text
-global_id, area, area_id, local_id, layer, cell_type, quartet
-```
-
-Empty selectors fail unless `allow_empty=True` is explicit.
-
-## Connectivity rules
-
-Connection rules are a list of named rules:
+## Connectivity rule schema (real: `compile_connection_rules(neurons, connections, mechanisms, ...)`)
 
 ```python
 {
@@ -90,56 +57,27 @@ Connection rules are a list of named rules:
   "pattern": {"mode": "bernoulli", "probability": 0.10, "seed": 101},
   "weight": {"mode": "random_uniform", "low": 0.0, "high": 1.0, "scale": 0.25, "seed": 102},
   "plasticity": {"enabled": False, "rule": "none", "rate": 0.0},
-  "control_key": "feedforward_gain"
 }
 ```
 
-Required pattern modes:
+Required pattern modes: `all_to_all`, `bernoulli`, `fixed_indegree`,
+`fixed_outdegree`, `matrix`, `artifact_ref`. Weight artifact paths resolve
+relative to the config file or a declared `artifact_root`; missing artifact
+files fail at compile time unless `lazy=True` is explicit. Verify exact kwarg
+names against `jaxfne/connectivity.py::compile_connection_rules` before
+trusting this shape verbatim — it documents the concept, not a frozen contract.
 
-```text
-all_to_all
-bernoulli
-fixed_indegree
-fixed_outdegree
-matrix
-artifact_ref
-```
+## Schema rules
 
-Weight artifact paths resolve relative to the config file or a declared `artifact_root`. Missing artifact files fail at compile time unless `lazy=True` is explicit.
+- Include `schema_version` in serialized configs.
+- Add migration helpers (`jtfne.migrate_schema`) before changing schema shape.
+- All config/manifest/training result data must be strict JSON-safe (`allow_nan=False`).
+- Raw arrays inside config must be encoded or referenced through `artifact_ref` with path, array_name, and sha256.
+- Negative noise and nonfinite drive/a/b/c/d must fail loudly.
 
-## Welding semantics
+## Objective and Trainer path conventions
 
-Config welding is primary:
-
-```python
-cfg2 = jtfne.weld(cfg_a, cfg_b, duplicate_policy="suffix")
-```
-
-Self-weld behavior:
-
-```text
-V1 + V1 -> V1, V1_2
-```
-
-Welding preserves each component's internal connections only. It does not create cross-connections between welded components unless the user adds explicit connection rules after welding.
-
-## Paradigm minimum
-
-A minimal Paradigm must exist before construct/simulate gates:
-
-```text
-ConstantDCParadigm
-EventSpec
-ConditionSpec
-TrialScheduleSpec
-StimulusMappingSpec
-```
-
-A direct drive array is allowed as a compatibility input, but the future API is `net.simulate(paradigm=...)`.
-
-## Objective and Trainer rules
-
-Trainables use paths:
+Trainable parameter paths:
 
 ```text
 cell.E.drive
@@ -149,36 +87,13 @@ mechanism.AMPA.g
 ```
 
 Objective outputs declare source, metric, target/gate, weight, and selector.
+Training results should save `best_parameters`, `best_score`, `history`,
+`metrics`/`validation`, `truth_gates`, `seed`/search budget — see
+`jaxfne-neural-network` for the real `Model.tune()`/`TuneResult` call shape,
+including the caveat that the differentiable-optimizer branch is currently a
+no-op guard.
 
-Training results must save:
-
-```text
-best_config
-best_parameters
-best_score
-history
-metrics
-validation
-truth_gates
-seed/search budget
-```
-
-## Homeostasis vs plasticity (do not conflate)
-
-| Mechanism | API | Wired to `simulate()`? |
-|-----------|-----|------------------------|
-| Declarative plasticity intent | `cfg.plasticity(...)` | No — manifest metadata only |
-| Homeostatic synaptic plasticity | `cfg.homeostasis(eta=..., r_star=...)` | Yes — edge kernel when `eta != 0` |
-| STDP stream | `run_stdp_stream`, `make_ei_cloud_network` | No — separate entry point |
-
-`homeostasis(k_gain=...)` adjusts excitability via `g_bias`; it **cannot** push mean rate above the
-column's natural baseline on this kernel — use for suppression demos, not bidirectional setpoint control.
-Diagnostics: `Model.last_homeostasis_diagnostics()`, `Signals.metadata["homeostasis"]` when `eta != 0`.
-HDP (tensor path): `RuntimeConfig(enable_hdp=True, ...)` passed to `simulate()` — see `docs/guides/hdp.md`.
-
-## Simulation truth gate
-
-Default status:
+## Simulation truth gate (default status, do not escalate)
 
 ```yaml
 claim_level: computational_scaffold
@@ -193,24 +108,20 @@ Use one source mode per run. Do not double-count synaptic current:
 Forbidden: q = chi*(I_cap + I_ion + I_syn) + q_syn + q_ext
 ```
 
-Required checks:
+Required checks: finite arrays, explicit PRNG, runtime dtype respected,
+readout shapes declared, source calibration status exported, field solver
+status exported, mean firing rate in declared range unless null/instability
+lesson.
 
-```text
-finite arrays
-explicit PRNG
-runtime dtype respected
-readout shapes declared
-source calibration status exported
-field solver status exported
-mean firing rate in declared range unless null/instability lesson
-```
+## Homeostasis / HDP / plasticity — see the detailed skills
+
+Full behavior and wiring status: `jaxfne-config` (`.homeostasis`/`.plasticity`
+fluent methods) and `jaxfne-neural-tensor` (HDP module, tau-law, `RuntimeConfig`).
 
 ## Stop conditions
 
-Stop and report when any appear:
-
 ```text
-invented public API
+invented public API (weld/circuit/paradigm/objective/optimizer typed sub-specs — see above)
 hidden local scientific engine
 NaN/Inf export
 proxy path described as solved field

@@ -37,13 +37,13 @@ if you need exact kwargs — the name itself is confirmed present on disk.
 ## 1. Build & configure a model (Configuration → Model)
 
 - `laminar_cortex_config(*, seed, duration_ms, dt_ms, areas, layers, cell_types, n, emitter, baseline_drive_by_cell_type)` → `Configuration` — **the** multi-area laminar builder; `baseline_drive_by_cell_type` injects native Izhikevich drive (eliminates silent neurons at the ODE source).
-- `default_cortical_column_config(...)`, `default_spectrolaminar_config(areas, n_per_area, ...)`, `build_multi_area_columns(areas, n_per_area, layers, connectivity_mode)` — ready-made `Configuration`s.
+- `default_cortical_column_config(...)`, `build_multi_area_columns(areas, n_per_area, layers, connectivity_mode)` — ready-made `Configuration`s. **`default_spectrolaminar_config`/`default_nuclei_config` were REMOVED** (2026-06-30) — their JSON output is archived read-only at `jaxfne/configs/legacy/{spectrolaminar_default,nuclei_default}.json` (reproduce inline via the fluent builder if you need the shape, don't try to call the removed functions).
 - `construct(cfg, *, geometry=None)` → `Model` — turn a Configuration into a runnable Model.
 - `build_laminar_column(name, n, ...)` → `Configuration` (single column; top-level).
 - Suite No. 2 configs: `suite2_single_neuron_config`, `suite2_four_celltype_config`, `suite2_net1_config`, `suite2_v1_v4_config`, `suite2_simulation`, `suite2_run_bundle`, `suite2_celltype_presets`.
 - Connectivity: `connect_columns(cfg, src, tgt, mode, ...)`, `all_to_all_intercolumn_connectivity(...)`, `sparse_intercolumn_connectivity(...)`, `build_laminar_connections(model, cfg)`, `compile_connection_rules(...)`, `make_edge_list_from_dense(weights, ...)`.
 - Cells/emitters: `make_cell_dist`, `make_cell_type_catalog`, `make_eig_network`, `izhikevich_params_from_labels(labels, *, drive_overrides=...)`, `with_emitter_parameters(model, ...)`, `standard_receptor_specs`, `standard_receptor_tau_table`.
-- `.jcfg.json` files: `load_config(path)`, `config_to_configuration`, `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`, `validate_config`, `validate_configuration`.
+- **`.jcfg.json`/`JaxFNEConfig` format DELETED (2026-06-30)**: `load_config`, `validate_config`, `config_to_configuration`, `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`, `config_truth_boundary`, `ConfigValidationResult`, `JaxFNEConfig` no longer exist — legacy format lived only in tests, never a real asset. `validate_configuration` (the `Configuration`-native validator, distinct name) still exists.
 
 ### 1b. NeuronalTensor (0.4.7) — tensor-first build path (`jtfne.NeuronalTensor`, `jtfne.NeuronType`, etc. are top-level, no submodule import needed)
 
@@ -176,7 +176,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 
 ## Key classes (recognize, don't redefine)
 
-Config/model: `Configuration`, `Config`, `JaxFNEConfig`, `LaminarColumnConfig`, `RuntimeConfig`, `RuntimeConfiguration`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`.
+Config/model: `Configuration`, `Config`, `LaminarColumnConfig`, `RuntimeConfig`, `RuntimeConfiguration`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`. (`JaxFNEConfig` DELETED 2026-06-30.)
 Emitters: `Emitter`, `IzhikevichEmitter`, `IzhikevichParams`, `LIFEmitter`, `GLIFEmitter`.
 Edges/synapses: `EdgeList`, `SynapseLayer`, `SynapseSpec`, `SynapseState`, `ReceptorSpec`, `ConnectionCompileResult`.
 Signals/probes/fields: `Signals`, `Signal`, `Probe`, `ReadoutSpec`, `ReadoutResult`, `LinearReadout`, `FieldOutput`.

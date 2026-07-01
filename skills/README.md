@@ -11,19 +11,25 @@ bash skills/SYNC_GLOBAL.sh
 **Friction ledger:** `FRICTIONS_STACK.md` — open contradictions between skills,
 docs, and code. Check before claiming ground truth.
 
+**Consolidated 2026-06-30** (17 → 13 skills; see `PATCH.md` for the merge log).
+Merged-away names (content absorbed, do not look for these folders anymore):
+`jaxfne-configuration-fluent-api` + `jaxfne-cortical-column-default` → `jaxfne-config`;
+`jaxfne-visualization-schema` → `jaxfne-vis-modules`;
+`jaxfne-signals-probe-objective-chain` → `jaxfne-neural-network`.
+
 | skill | role |
 |-------|------|
 | `catalog-glossary-jaxfne` | flat catalog of the public jaxfne API — check before writing any helper |
-| `jaxfne-objective-grammar` | verified chain: Configuration → Model → Signals → probe/tune → manifest |
-| `jaxfne-configuration-fluent-api` | verified Configuration chaining (`.runtime`, `.layer_fractions`, …) |
-| `jaxfne-cortical-column-default` | canonical 1K-neuron laminar column template (6-layer ground truth) |
-| `jaxfne-signals-probe-objective-chain` | Signals.get, model.probe, vis.*, objectives — no invented Signals methods |
-| `jaxfne-modeling-optimization-schema` | Config/Net/Paradigm/Objective/Trainer/Signals dataclass truth-gate checks |
+| `jaxfne-objective-grammar` | top-level chain: Configuration/NeuronalTensor → Model → Signals → probe/tune → manifest; routes into the 4 below |
+| `jaxfne-config` | verified `Configuration` fluent chaining + the canonical 1K-neuron laminar column template |
+| `jaxfne-neural-tensor` | `NeuronalTensor` build path (Areas × Layers × NeuronTypes) + HDP homeostatic-plasticity module |
+| `jaxfne-neural-network` | `construct → simulate → Signals`, probe/objective/tune, manifest/receipt — no invented Signals methods |
+| `jaxfne-vis-modules` | design/fix/audit `jaxfne.vis`; keep plotting package-level and proxy-safe |
+| `jaxfne-modeling-optimization-schema` | deep schema/truth-gate reference: connectivity rules, selectors, objective/trainer path conventions |
 | `jaxfne-paradigm-design` | build task paradigms (omission, global/local, delayed-match-to-sample, explicit event lists) via `general_sequential_oddball_paradigm` |
 | `jaxfne-notebook-release-gate` | validate notebooks/tutorials/docs/artifacts before any "done" claim |
 | `jaxfne-release-mutation-guard` | guard every remote mutation (push, tag, GitHub Release, PyPI) |
 | `jaxfne-sha256-artifact-integrity` | SHA256 content identity for configs/notebooks/models/figures/wheels |
-| `jaxfne-visualization-schema` | design/fix/audit `jaxfne.vis`; keep plotting package-level and proxy-safe |
 | `jaxfne-worker-context-router` | route a jaxfne task to the right module/API/validation lane |
 | `jaxfne-spectrolaminar-suite` | scalable spectrolaminar suite + Etude No.3 / TCM etudes; LFP-proxy/density/size/kappa caveats and the crossover-needs-oscillations result |
 
@@ -55,5 +61,7 @@ provenance and apply-prompt.
 These overlap, at a shorter "rule" altitude, with the first-class skills above
 (`jaxfne-objective-grammar`, `catalog-glossary-jaxfne`, `jaxfne-worker-context-router`);
 the flat set is the enforceable checklist, the folders are the full guidance.
+The numbered files were not touched in the 2026-06-30 consolidation pass (they
+predate and are independent of the `SKILL.md` folder set above).
 
 Keep this set flat — do not recreate nested skill folders for it in the repo.

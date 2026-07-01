@@ -5,7 +5,7 @@ description: Build and interpret the jaxfne laminar/spectrolaminar suite and the
 
 # jaxfne Spectrolaminar Suite & Etudes
 
-USE FIRST: `catalog-glossary-jaxfne` (API), `jaxfne-cortical-column-default` (canonical column), `jaxfne-visualization-schema` (plots).
+USE FIRST: `catalog-glossary-jaxfne` (API), `jaxfne-config` (canonical column), `jaxfne-vis-modules` (plots).
 
 ## Scalable pipeline (>=1k neurons) — use the CORE path, not the dense tutorial pipeline
 `jaxfne.tutorial_utils` spectrolaminar pipeline builds FOUR dense NxN weight

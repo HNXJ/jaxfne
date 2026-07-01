@@ -91,9 +91,21 @@ Treat test counts as unverified unless the exact commands and receipts are shown
 
 **Levers:** contract-first not discovery-first · skills are the cache (run the skill, don't re-reason its checklist) · receipts beat justification (command + `N passed`) · verify-before-call (grep `__all__`/the contract before naming any symbol, flag, path, or skill — never invoke by remembered name).
 
-**Repo skills index:** see `skills/README.md`. Use first on most tasks:
+**Repo skills index (consolidated 2026-06-30, 17→13 skills):** see `skills/README.md`.
+Use first on most tasks:
 
-`jaxfne-worker-context-router` (this) · `catalog-glossary-jaxfne` · `jaxfne-cortical-column-default` · `jaxfne-objective-grammar` · `jaxfne-configuration-fluent-api` · `jaxfne-signals-probe-objective-chain` · `jaxfne-modeling-optimization-schema` · `jaxfne-paradigm-design` · `jaxfne-spectrolaminar-suite` · `jaxfne-visualization-schema` · `jaxfne-notebook-release-gate` · `jaxfne-release-mutation-guard` · `jaxfne-sha256-artifact-integrity`.
+`jaxfne-worker-context-router` (this) · `catalog-glossary-jaxfne` · `jaxfne-objective-grammar`
+(top-level chain, routes into the 4 below) · `jaxfne-config` (Configuration fluent API +
+canonical column template) · `jaxfne-neural-tensor` (NeuronalTensor build path + HDP) ·
+`jaxfne-neural-network` (construct/simulate/Signals/probe/objective/tune) ·
+`jaxfne-vis-modules` (jaxfne.vis) · `jaxfne-modeling-optimization-schema` (deep
+schema/truth-gate reference) · `jaxfne-paradigm-design` · `jaxfne-spectrolaminar-suite` ·
+`jaxfne-notebook-release-gate` · `jaxfne-release-mutation-guard` · `jaxfne-sha256-artifact-integrity`.
+
+Merged away 2026-06-30 (content absorbed into the skills above, do not look for these
+names): `jaxfne-configuration-fluent-api` → `jaxfne-config`, `jaxfne-cortical-column-default`
+→ `jaxfne-config`, `jaxfne-visualization-schema` → `jaxfne-vis-modules`,
+`jaxfne-signals-probe-objective-chain` → `jaxfne-neural-network`.
 
 Flat enforcement checklist: `skills/00_INDEX.md` → `01_–11_` markdown files.
 
