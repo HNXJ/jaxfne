@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 3 of the 3-file pipeline: planned/not-yet-started work and open brainstorm/analysis findings. Nothing here is in progress -- an item moves OUT of plans.json into progress.json (as a new or updated entry) the moment any code/test work actually starts on it, with status set to 'open' there. items[]: discrete, scoped, actionable work units (status: not_started | blocked). brainstorm[]: raw analysis findings / ideas not yet scoped into an actionable item -- read before starting new work to avoid re-deriving something already investigated (e.g. the function-merger AST scan).",
-  "last_updated": "2026-06-30",
+  "last_updated": "2026-07-01",
   "items": [
     {
       "id": "P3b",
@@ -223,8 +223,83 @@
       ],
       "depends_on_functions": [],
       "shape": "Confirmed via direct read this session (jaxfne/streaming.py:115-137): the for chunk_idx in range(n_chunks) loop defines a fresh @jax.jit-decorated run_chunk_scan function object on every iteration. jax.jit caches by function identity by default -- a new function object per iteration means a new compile target per chunk, i.e. N_compile likely scales with n_chunks, directly violating this repo doctrine recompilation is the silent killer; assert N_compile <= 1. Not yet trace-verified with an actual compile counter (e.g. via runtime_report() or a jax compile-count hook) -- that verification is the next step before claiming the severity, since JAX may still cache by trace signature in some cases. Fix if confirmed: hoist run_chunk_scan definition outside the loop, parameterize via static_argnums or closures over loop-invariant values only. VERIFICATION ATTEMPTED 2026-06-30, INCONCLUSIVE: tried to count actual XLA compile events via a real run (3 vs 6 vs 1 chunk) with stderr logging capture, but the JAX version installed in this env did not emit log lines matching the expected \"Compiling jit(run_chunk_scan)\" pattern (0 matches across all chunk counts, including with the dtype bug in my test harness fixed). This does NOT confirm the code is fine -- it means my logging-based detection method did not work in this JAX version, not that no extra compiles happened. The static-code finding (fresh function object defined per loop iteration, no static_argnums/cache hoisting) remains true regardless and is still the real concern. Next attempt should use jax.jit(...).lower(...).compile() with an explicit per-call object identity check, or jax.clear_caches() + a hit-count monkeypatch on jax.jit itself.",
-      "status": "not_started",
+      "status": "done",
       "source": "jaxfne/optim+vis-adjacent batch-review agent finding, independently re-verified via direct Read this session -- NOT yet trace-verified for actual recompile count"
+    },
+    {
+      "id": "cowork-goal-etude3-1k-replication",
+      "title": "Cowork /goal: run+verify etude 3 (V1 1k spectrolaminar) notebook, low-effort Sonnet 5",
+      "target_files": [
+        "tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
+        "tests/test_etude3_v1_spectrolaminar_1k.py",
+        "local/etude3/",
+        "artifacts/developer/progress.json"
+      ],
+      "depends_on_functions": [],
+      "shape": "A single Cowork /goal invocation (Sonnet 5, low reasoning effort) that executes the already-designed etude 3 notebook and verifies it via the existing pytest gate -- run-and-verify only, no new parameter search or physics discovery. Full /goal prompt text stored in `source` below so it can be pasted into Cowork verbatim without re-deriving scope.",
+      "status": "proposed",
+      "source": "Run tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb end-to-end at n=1000 in the jaxfne repo. Before touching anything, read skills/jaxfne-spectrolaminar-suite/SKILL.md -- it has the verified pipeline (sparse edge_list backend, LFP proxy not CSD, density_preserving projection default) and documented dead-ends (F-017 in skills/FRICTIONS_STACK.md: rho_passive/H^2 homeostasis causes regime bifurcation, already abandoned in favor of K_ctrl -- do not reintroduce rho_passive if a homeostasis knob seems tempting). Do not redesign the pipeline or search for new physics; execute what's already there. Populate local/etude3/ with the notebook's output artifacts, then run python3 -m pytest tests/test_etude3_v1_spectrolaminar_1k.py -q. Done = that test passes with no NaN/Inf in the artifacts. If it fails, report the exact failure -- do not modify scientific parameters to force a pass; only fix genuine bugs (import errors, path issues, API drift). On completion (pass or fail), update the tests/test_etude3_v1_spectrolaminar_1k.py entry in artifacts/developer/progress.json per ~/.claude/skills/progress-review-plan/SKILL.md (real score, evidence = exact command + output, last_verified = run date), then run python3 scripts/prp_to_markdown.py to sync progress.md. Report back: pass/fail, wall-clock time, and whether kappa_synchrony landed near the asynchronous-irregular range the skill calls trustworthy."
+    },
+    {
+      "id": "vis-smoke-test-coverage-gap",
+      "title": "Add tests/test_vis_smoke_all.py: parametrized smoke coverage for 18 untested vis/vis.plotly modules",
+      "target_files": [
+        "jaxfne/vis/exporters.py",
+        "jaxfne/vis/hdp_diagnostics.py",
+        "jaxfne/vis/plasticity_viz.py",
+        "jaxfne/vis/plotly/connectivity.py",
+        "jaxfne/vis/plotly/csd.py",
+        "jaxfne/vis/plotly/dashboard.py",
+        "jaxfne/vis/plotly/manuscript/__init__.py",
+        "jaxfne/vis/plotly/manuscript/figure0.py",
+        "jaxfne/vis/plotly/manuscript/figure1.py",
+        "jaxfne/vis/plotly/manuscript/figure2.py",
+        "jaxfne/vis/plotly/manuscript/figure3.py",
+        "jaxfne/vis/plotly/manuscript/figure4.py",
+        "jaxfne/vis/plotly/metrics.py",
+        "jaxfne/vis/plotly/spectra.py",
+        "jaxfne/vis/raster_arrays.py",
+        "jaxfne/vis/report_plots.py",
+        "jaxfne/vis/script_reports.py",
+        "jaxfne/vis/tutorial_array_plots.py",
+        "tests/test_vis_smoke_all.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "One parametrized test module, not 18 separate files. A table of (module_path, callable_name, minimal_kwargs_or_synthetic_fixture) entries, one row per function currently flagged 'No dedicated test file found' in progress.json (confirmed via grep -rln against tests/ for each name individually during the 2026-06-30 review pass -- all 18 are real working implementations by inspection, none are dead stubs, they've simply never been executed by CI). Each row: call the function/build() with small synthetic data (few neurons, few timesteps) or a minimal Figure/data fixture, assert no exception and a non-empty return (go.Figure with >=1 trace, or equivalent for matplotlib Figure/Axes). This is deliberately a smoke test, not a pixel/value regression test -- goal is catching import/API drift and dead-stub regressions cheaply, not validating plot correctness. The jaxfne/vis/plotly/manuscript/ subpackage (__init__ + figure0-4) is the single largest gap: an entire publicly-exported 6-file subpackage with zero test references anywhere in tests/.",
+      "status": "proposed",
+      "source": "Brainstorm session 2026-07-01, following a Proceed-with-Review pass that found review.json empty. Surfaced by re-reading progress.json's 'tbd' fields: 18 entries share the literal note 'No dedicated test file found' despite grep confirming real, working implementations (no dead-stub pattern) -- this is a coverage gap, not a bug list. Grouping into one parametrized test file (rather than 18 near-duplicate files) is the deliberate design choice: same coverage, much less maintenance surface. On completion, update each of the 18 progress.json entries' evidence/last_verified per ~/.claude/skills/progress-review-plan/SKILL.md, then run scripts/prp_to_markdown.py."
+    },
+    {
+      "id": "smart-test-matrix-configs-2-5",
+      "title": "4 remaining configs of the small-network smart-test matrix (config #1 done)",
+      "target_files": [
+        "tests/test_epv_2neuron_pipeline_smoke.py",
+        "tests/test_ei_jaxley_hh_parity.py",
+        "tests/test_ei_hdp_hebbian_angle.py",
+        "tests/test_ei_hdp_stability_rho_passive_sweep.py",
+        "tests/test_ei_20neuron_population_smoke.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Config #1 (2-neuron E-PV, native Izhikevich, 5-contact LFP, dt=0.1ms/100ms, full Configuration->construct->simulate->Signals->vis chain) is DONE -- tests/test_epv_2neuron_pipeline_smoke.py, 6/6 passing (verified 2026-07-01). Use its `.network(n=..., cell_types=...)` construction pattern for all 4 remaining configs, NOT `.population()`/`.geometry()`/`.cell_types()` -- that chain has a confirmed bug at N=2 (tracked in progress.json as jaxfne/core.py::Configuration.population). Remaining configs: (2) same E-PV connectivity graph, jaxley-HH bridge emitter instead of native Izhikevich, intrinsic params left native to each model (no forced parameter parity, per user decision 2026-07-01) -- via JaxleyEmitterBridge/hh_jaxley_reference_trace in jaxfne/bridges.py; (3) izhikevich_hdp emitter, Hebbian-angle: alpha/beta/gamma/delta nonzero, rho_passive=0.0, assert H_i tracks spike-rate-dependent drift as expected; (4) izhikevich_hdp emitter, stability-angle: deliberately sweep rho_passive across the documented F-017 bifurcation boundary (0.24/0.36 in skills/FRICTIONS_STACK.md) and assert the pipeline reports the bifurcation (finite but qualitatively different H trace) rather than silently NaN-ing; (5) same E-PV motif at N=20 (population scale-up sanity, same emitter/probe config as #1, just larger n).",
+      "status": "proposed",
+      "source": "User-designed test matrix, 2026-07-01: 'making 5 configs with two neurons each ... json -> cfg -> NeuralTensor -> NeuralNetwork -> signal -> vis -> match'. Corrected during design: jaxley only bridges HH-style models (no jaxley-Izhikevich combination exists), and HDP-hebbian/HDP-stability are two test angles on the single existing izhikevich_hdp kernel, not separate mechanisms. User confirmed via AskUserQuestion: build config #1 first before staging the rest (done), and jaxley-HH parity should match connectivity/weights exactly but let each emitter use its own native intrinsic parameters."
+    },
+    {
+      "id": "bf16-quantized-tfne-izhikevich-mode",
+      "title": "bf16 quantized-compute mode for TFNE-Izhikevich/HDP networks (not HH) + jaxfne.units.py dtype-aware defaults",
+      "target_files": [
+        "jaxfne/core.py::RuntimeConfig",
+        "jaxfne/core.py::Model.with_hdp_initial_state",
+        "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
+        "jaxfne/units.py",
+        "jaxfne/_pipeline.py::checkpoint_state",
+        "jaxfne/_pipeline.py::restore_state",
+        "tests/test_ei_hdp_stability_rho_passive_sweep.py"
+      ],
+      "depends_on_functions": [],
+      "shape": "Brainstormed 2026-07-01 across several turns; consolidating into one staged design. Scope is explicitly TFNE-Izhikevich+HDP, NOT jaxley-HH -- HH gating exponentials have a real overflow risk in low precision that Izhikevich+HDP's bounded state variables don't share, per the K_ctrl restoring-term argument confirmed below.\n\n1. FEASIBILITY (verified, not assumed): dtype resolution is narrow -- only 2 call sites (jaxfne/core.py:368,567) do `jdtype = float64-if-x64-else-float32`. Adding a bfloat16 branch there is small and contained (rule 6 compliant: one shared resolution point).\n2. BUG to fix as a precondition: `Model.with_hdp_initial_state()` (core.py:5868) hardcodes `jnp.asarray(H0, dtype=jnp.float32)` -- silently force-casts away from the model's configured dtype. Must key off the model's actual dtype instead.\n3. GAP to fix as a precondition: `RuntimeConfig.dtype`'s docstring/validation is exhaustively 'float32'|'float64' -- passing any other string (e.g. 'bfloat16') today is not rejected, it silently falls through to float32 in the ternary. Must add explicit bfloat16 support + reject/warn on truly unknown values, not extend the silent fallback.\n4. DESIGN (not naive full-bf16 compute): mixed precision -- compute each step's delta (dv, du, dH, dW) in float32, cast state to bf16 only at the storage/transmission boundary. Naive full-bf16 arithmetic risks *increment underflow* on a fixed-dt Euler step (dt*dv can round to exactly zero relative to v's magnitude at bf16's ~0.8% relative precision) -- a silent stall/bias, not the benign 'natural noise floor' originally hoped for. Mixed precision avoids this while keeping bf16's memory/bandwidth win.\n5. jaxfne/units.py (NEW MODULE, does not exist yet -- confirmed via ls): dtype-keyed declarative defaults (epsilon primarily; NOT dt_ms/dxyz -- those are physical/discretization choices independent of storage dtype, silently changing them based on dtype selection would break run reproducibility. Emit an explicit warning instead if a config's dt/dxyz looks mismatched for its chosen dtype, never auto-adjust silently).\n6. Barrier mechanism ALREADY EXISTS and matches the user's proposed 'sudden breakage near the floor' idea: jaxfne/emitters.py:1316-1318, `barrier_force = barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2`, denominators floored by `barrier_eps` (default 1e-3). Currently DISABLED by default (barrier_c=barrier_d=0.0) and only exercised standalone in tests/test_hdp_kernel_standalone.py -- never in a full pipeline run, never validated specifically for bf16-stall mitigation. Action: enable it in the config #4 HDP-stability test (tests/test_ei_hdp_stability_rho_passive_sweep.py, already staged in plans.json item smart-test-matrix-configs-2-5) and sweep H near H_min under bf16 specifically to confirm it produces the intended 'sharp discharge' rather than a stall. Note: this only fixes stall AT the H_min/H_max boundary -- it does NOT address interior-of-range stall (H mid-range, no boundary nearby), which is what item 4's mixed-precision design covers instead.\n7. Dither-noise design (scoped, not universal): add a `dither_scale(dtype)` helper to jaxfne/units.py (~half machine-epsilon at the relevant magnitude), applied ONLY at the bf16 cast boundary for quantities that are strictly positive by construction (H, tau_i, barrier denominators -- domain already excludes 0). Explicitly NOT applied to signed state that legitimately crosses zero (V_m, u, weight deltas, synaptic current) -- a hard 'never exactly zero' floor on those would inject a permanent bias into dynamics meant to pass through zero cleanly, which is a correctness bug, not a stability feature. Existing seeded jax.random.split/normal plumbing (e.g. emitters.py:397-398) is the PRNG source to reuse -- don't invent a second noise-generation path.\n8. Save/load already works, confirmed no new work needed: jaxfne/_pipeline.py::checkpoint_state/restore_state (existing, schema-versioned 'checkpoint_v1') round-trips model.params/model.static via np.asarray/jnp.array, which is already dtype-transparent (numpy's ml_dtypes extension handles bfloat16 natively). Verify this holds once bfloat16 models actually exist (not yet re-verified with a real bf16 array -- confirmed only by reading the code path, not by running it).",
+      "status": "proposed",
+      "source": "Multi-turn brainstorm 2026-07-01, following the smart-test-matrix design and the streaming.py jit-hoist fix. User's core argument (verified correct): HDP's K_ctrl restoring term (dH/dt ~ K*(baseline-activity)) bounds H by construction, making Izhikevich+HDP a much safer bf16 candidate than HH (which has uncontrolled gating exponentials). User proposed a 'sudden breakage'/singularity-based discharge term near H's floor, independently converging on the same shape as the codebase's existing (but disabled) barrier_c/barrier_d mechanism. User then proposed a hard non-zero floor for numerical safety, refined during discussion to dither noise scoped to strictly-positive quantities only (not a universal floor) after flagging that signed zero-crossing state must NOT be floored."
     }
   ],
   "brainstorm": [

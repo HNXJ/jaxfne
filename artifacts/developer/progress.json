@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
-  "last_updated": "2026-06-30",
+  "last_updated": "2026-07-01",
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed."
   ],
@@ -12,7 +12,8 @@
       "score": 78,
       "tbi": [
         "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists. NOT resolved this pass -- this is a real field-mapping design decision (which Configuration fields map to which NeuronalTensor fields, what happens to info Configuration carries that NeuronalTensor has no slot for), not a mechanical wrapper.",
-        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork. NOT resolved this pass -- extraction requires walking Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior, a non-trivial refactor."
+        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork. NOT resolved this pass -- extraction requires walking Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior, a non-trivial refactor.",
+        "Believed dtype-transparent for bfloat16 (ml_dtypes-backed np.asarray/jnp.array round-trip) but not re-verified with a real bf16 array yet -- precondition check for plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01)."
       ],
       "tbd": [
         "Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out of scope; no decision made on if/when)"
@@ -21,7 +22,7 @@
         "compile_step_fn uses Option-B (n_steps=1 wrap-and-unwrap per scan step) because the kernel's real step closure is nested/non-exported -- this re-traces/re-dispatches per step inside simulate_edge_recurrent_izhikevich_hdp; perf cost at scale (e.g. n_steps=10000) not benchmarked",
         "step_fn's second xs_t element is a per-step PRNGKey, not a noise array -- deviates from the original Phase-2 spec because the kernel generates Gaussian noise internally from a key; documented in-file but easy to miss if not read"
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "12/12 pre-existing tests pass. RESOLVED this pass: added select_signal(signal, key, **get_kwargs) as a thin wrapper over Signals.get() (jaxfne/_pipeline.py), the lowest-effort of the 3 original TBIs per this entry's own prior note. Added 2 new tests (test_select_signal_matches_direct_get, test_select_signal_forwards_selector_kwargs) verifying behavioral equivalence with the direct Signals.get() call and correct KeyError propagation. Full pytest tests/test_pipeline_pure_functions.py -q: 14 passed (12 pre-existing + 2 new). configuration_to_tensor and tensor_to_graph remain unresolved -- both are real design/refactor work, not mechanical fixes, deliberately not rushed.",
       "status": "open"
     },
@@ -535,7 +536,8 @@
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "save_figure/save_figures are explicitly marked DEPRECATED in favor of jaxfne.vis.export_figure/export_figures but still present and tested -- fine as a compat shim, just flag for eventual removal"
+        "save_figure/save_figures are explicitly marked DEPRECATED in favor of jaxfne.vis.export_figure/export_figures but still present and tested -- fine as a compat shim, just flag for eventual removal",
+        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): contains direct visualization calls (matplotlib/plotly) outside jaxfne/vis/. Confirmed via grep 2026-07-01."
       ],
       "last_verified": "2026-06-30",
       "evidence": "61/61 passed: python3 -m pytest tests/test_root_export_api_v0338.py tests/test_tutorial_utils.py -q",
@@ -733,7 +735,8 @@
       "tbd": [],
       "warnings": [
         "safe_jit/safe_vmap only catch exceptions raised by the jax.jit()/jax.vmap() WRAP call itself, which is lazy and essentially never raises -- real compile/trace errors surface later on first call, outside the try/except, so the documented \"fallback to eager/loop execution\" rarely actually triggers; this is a runtime-fallback-transparency gap per jaxfne-harden-runtime-fallback-transparency",
-        "JAXFNE_STRICT env var is read independently in 3 different functions (set_precision_policy, safe_jit, safe_vmap) via os.environ.get each time rather than a single shared accessor -- minor duplication, not a correctness bug"
+        "JAXFNE_STRICT env var is read independently in 3 different functions (set_precision_policy, safe_jit, safe_vmap) via os.environ.get each time rather than a single shared accessor -- minor duplication, not a correctness bug",
+        "jaxfne-modular-grammar rule 3 (AGENTS.md) requires GPU -> jax-metal -> CPU fallback order; jax.devices() is called here but no explicit priority-ordered fallback utility exists yet (confirmed 2026-07-01)."
       ],
       "last_verified": "2026-06-30",
       "evidence": "6 passed, 1 xfailed: python3 -m pytest tests/test_runtime_module_v0211.py -q",
@@ -795,16 +798,16 @@
     {
       "path": "jaxfne/streaming.py",
       "purpose": "Memory-safe chunked streaming simulation runner: simulate_stdp_euler_step (single Izhikevich+STDP Euler step, dense W) and run_stdp_stream (chunks the full simulation into chunk_size_ms windows, runs a JIT+scan kernel per chunk, downsamples trajectories, returns final state + per-chunk finite/rate/weight summaries) to avoid holding the full (T,N) trajectory in memory at once.",
-      "score": 75,
+      "score": 85,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "@jax.jit is applied to run_chunk_scan INSIDE the chunk for-loop (a fresh closure defined on every iteration of run_stdp_stream) -- this is exactly the recompilation-guard concern in CLAUDE.md/jax-jit-pmap-performance-guard (N_compile<=1 per signature); JAX may or may not dedupe by code+shape across these fresh closures depending on cache behavior, not verified with a trace/compile-count check in this pass",
-        "simulate_stdp_euler_step duplicates the dense-matrix STDP update logic already in plasticity.update_stdp_weights_jax (same LTP/LTD/clip/no-self-connection pattern) rather than reusing it -- two independent implementations of the same rule to keep in sync"
+        "simulate_stdp_euler_step duplicates the dense-matrix STDP update logic already in plasticity.update_stdp_weights_jax (same LTP/LTD/clip/no-self-connection pattern) rather than reusing it -- two independent implementations of the same rule to keep in sync",
+        "FIXED 2026-07-01: run_chunk_scan hoisted out of the per-chunk for-loop in run_stdp_stream (now defined once, closing only over loop-invariant a/b/c/d/masks/dt_ms/plasticity constants). Measured wall-time on n=20, 8 chunks, 400 total steps: 0.458s before -> 0.295s after (~36% faster), python3 direct timing script, run 2026-07-01. Second warning (duplicate STDP logic vs plasticity.update_stdp_weights_jax) still open, not addressed by this fix."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "4/4 passed: python3 -m pytest tests/test_streaming.py -q",
-      "status": "unreviewed"
+      "last_verified": "2026-07-01",
+      "evidence": "8/8 passed: python3 -m pytest tests/test_streaming.py tests/test_plasticity_v034.py -v; before/after timing script confirms ~36% wall-time reduction at n=20/8 chunks.",
+      "status": "done"
     },
     {
       "path": "jaxfne/tutorial_utils.py",
@@ -812,7 +815,9 @@
       "score": null,
       "tbi": [],
       "tbd": [],
-      "warnings": [],
+      "warnings": [
+        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): contains direct visualization calls (matplotlib/plotly) outside jaxfne/vis/. Confirmed via grep 2026-07-01."
+      ],
       "last_verified": null,
       "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
       "status": "unreviewed"
@@ -836,7 +841,9 @@
       "path": "jaxfne/vis/exporters.py",
       "purpose": "Canonical figure export (export_figure/export_figures/FigureBundle) -- single entry point detecting matplotlib vs plotly figure type and writing to disk in the appropriate format(s); plotly/exporters.py is a thin back-compat shim re-exporting these same 3 names.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests/ returned no hits). The logic is simple and the matplotlib/plotly branch detection (_is_plotly_figure via type(fig).__module__.startswith('plotly.')) is reasonable, but it has never been exercised by an automated test -- only read-verified."
       ],
@@ -849,7 +856,9 @@
       "path": "jaxfne/vis/hdp_diagnostics.py",
       "purpose": "8 matplotlib rendering helpers for the HDP homeostatic-plasticity diagnostic scripts (scripts/hdp_*.py, scripts/{find,verify}_5hz_*.py): synaptic-channel decomposition, dH-component panels, bifurcation-state panels, gain-ratio sweep, balance-sweep-by-network-size, LFP-stacked-by-depth, etude2 extended A-F grid, voltage-trace-with-spikes-by-celltype.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despite being publicly exported via __init__.py (lines 120-129/251-259). All 8 functions are plain, take pre-extracted host arrays, and follow a consistent correct pattern by inspection (prepare_static_plot_matrix on every array, axhline/axvline reference lines, departures-marker overlay logic is consistent across functions) -- but none has ever been run this session."
       ],
@@ -877,7 +886,9 @@
       "path": "jaxfne/vis/plasticity_viz.py",
       "purpose": "Single function plot_stdp_adaptation_suite: generates and SAVES 4 PNGs directly to disk (raster, population rate, stimulus trace, W-before/after/delta heatmaps) for STDP plasticity diagnostics; deliberately returns None (legacy save-to-disk behavior preserved from jaxfne.plasticity, not a Figure-returning API).",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code -- 4 real plots with real data slicing, no stubs -- but never exercised by an automated test this session."
       ],
@@ -892,7 +903,9 @@
       "path": "jaxfne/vis/plotly/connectivity.py",
       "purpose": "plot_connectivity: dense weight-matrix heatmap reconstructed from a model's sparse edge_list, neurons ordered by (area, layer, cell_type) for visible block structure; subsamples to max_neurons=300 for large columns (dense NxN reconstruction explicitly documented as visualization-only, never used in the sim itself -- correct sparse/dense separation per jaxfne-harden-sparse-connectivity doctrine).",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'plotly.connectivity\\|plot_connectivity' tests/ -> no hits against this specific plotly submodule). Used by figure0.py (also untested) and canonical.py's plotly dispatch path."
       ],
@@ -905,7 +918,9 @@
       "path": "jaxfne/vis/plotly/csd.py",
       "purpose": "Depth x time Plotly heatmap of the CSD proxy field (plot_csd) -- backend for canonical.plot_csd(backend='plotly').",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'plotly.csd\\|plot_csd' tests/ found no hits referencing this specific module's function directly -- it is exercised only indirectly via figure2.py's manuscript build and canonical.py's dispatch path, neither of which has a direct invocation test in the suites run this session)."
       ],
@@ -918,7 +933,9 @@
       "path": "jaxfne/vis/plotly/dashboard.py",
       "purpose": "create_dashboard: assembles a synchronized 3x3 multi-panel standalone Plotly dashboard (network/raster/rates/lfp/csd/psd/depth_profile) from the individual plotly primitives; optional output_html write.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-level API (jaxfne.vis.plotly.create_dashboard)."
       ],
@@ -944,7 +961,9 @@
       "path": "jaxfne/vis/plotly/manuscript/__init__.py",
       "purpose": "manuscript_figures(signals, model, ...): assembles the full 5-figure manuscript FigureBundle (figure0 background, figure1 model validation, figure2 spectrolaminar motif, figure3 cell-type perturbations, figure4 hierarchical manipulations) from figure0-4.build() calls.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|figure0|figure1|figure2|figure3|figure4|manuscript.build' tests/ -> no hits across the entire tests/ tree). This is the largest test-coverage gap found in this batch -- an entire 6-file subpackage (init + 5 figures) with zero automated test coverage despite being a publicly exported, documented API."
       ],
@@ -957,7 +976,9 @@
       "path": "jaxfne/vis/plotly/manuscript/figure0.py",
       "purpose": "Figure 0 (Background): 1x2 subplot combining plot_network_3d (with edges) + plot_connectivity into one composite Plotly figure.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage)."
       ],
@@ -970,7 +991,9 @@
       "path": "jaxfne/vis/plotly/manuscript/figure1.py",
       "purpose": "Figure 1 (Model validation): 2x2 subplot combining plot_raster + plot_population_rates + plot_membrane_potentials + plot_lfp into one composite Plotly figure (basic simulated-activity sanity checks).",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (see manuscript/__init__.py entry)."
       ],
@@ -983,7 +1006,9 @@
       "path": "jaxfne/vis/plotly/manuscript/figure2.py",
       "purpose": "Figure 2 (Spectrolaminar motif): 1x3 subplot combining plot_csd + plot_band_power + plot_depth_profile into one composite Plotly figure.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (see manuscript/__init__.py entry)."
       ],
@@ -996,7 +1021,9 @@
       "path": "jaxfne/vis/plotly/manuscript/figure3.py",
       "purpose": "Figure 3 (Cell-type perturbations): overlays plot_depth_profile across multiple {condition_label: Signals} conditions on one Plotly figure (e.g. PV/SST/VIP suppression sweeps); falls back to a single 'baseline' trace if only one Signals object is passed.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (see manuscript/__init__.py entry)."
       ],
@@ -1009,7 +1036,9 @@
       "path": "jaxfne/vis/plotly/manuscript/figure4.py",
       "purpose": "Figure 4 (Hierarchical manipulations): side-by-side subplot grid (one column per condition) of plot_band_power across {condition_label: Signals} (e.g. FF/FB gain sweeps); falls back to a single 'baseline' column if only one Signals object is passed.",
       "score": 85,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (see manuscript/__init__.py entry)."
       ],
@@ -1022,7 +1051,9 @@
       "path": "jaxfne/vis/plotly/metrics.py",
       "purpose": "plot_objective_history: optimizer loss/objective trajectory plot from a TuneResult-like object (reads .history or .loss_history, or a plain dict/list) -- backend for canonical.plot_objective_history(backend='plotly').",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'plotly.metrics\\|plot_objective_history' tests/ -> no hits against this plotly submodule)."
       ],
@@ -1061,7 +1092,9 @@
       "path": "jaxfne/vis/plotly/spectra.py",
       "purpose": "4 Plotly spectral functions: plot_psd (per-contact PSD via Welch), plot_spectrogram (time x freq heatmap, one contact), plot_band_power (relative band power vs depth, multi-band), plot_depth_profile (single-band relative power vs depth, the spectrolaminar-style readout) -- backends for canonical.py's plotly dispatch and manuscript figure2/3/4.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule specifically). Used by figure2.py/figure3.py/figure4.py (also untested) and canonical.py (whose dispatch tests in test_vis_deduplication.py exercise the matplotlib backend by default, not necessarily this plotly path)."
       ],
@@ -1074,7 +1107,9 @@
       "path": "jaxfne/vis/raster_arrays.py",
       "purpose": "Single function raster_from_arrays: spike raster plotted directly from raw spike_times/spike_ids/time_ms arrays (no Signals/Model object needed); moved from jaxfne.export.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-level vis.* function. Real, working implementation by inspection (plain scatter + axis labels + xlim from time_ms) -- just never run by an automated test."
       ],
@@ -1087,7 +1122,9 @@
       "path": "jaxfne/vis/report_plots.py",
       "purpose": "11 one-off matplotlib report/diagnostic figure helpers for scripts/ tooling (COOP/plasticity gate reports, delta-test notebooks, AGSDR sweeps): dual_raster_comparison, optimization_progress_line, spike_grid_heatmap, signed_heatmap_with_colorbar, grouped_bar_comparison, agsdr_rate_tuning_panel_grid, open_pdf_pages/pdf_text_page/pdf_figure_page (PdfPages wrapper trio), gain_matrix_heatmap, celltype_sweep_heatmap_grid.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly exported via vis.__init__. All 11 are real, working matplotlib code by inspection -- correct figure/axes construction, real data plotted, no dead-stub pattern -- just never run by an automated test."
       ],
@@ -1102,7 +1139,9 @@
       "path": "jaxfne/vis/script_reports.py",
       "purpose": "22 rendering helpers for scripts/*.py CLIs across 4 source scripts (build_v037_source_column_3d, spectrolaminar_tfne_izhikevich_pipeline, generate_tutorial_figures, run_all_tutorials): mix of matplotlib and Plotly figures (3D scatter, readout panel grids, HDP state trajectories/histograms/stability maps, tutorial raster/voltage/heatmap/spectral-summary plots, Plotly raster/spectrolaminar-bars/voltage/firing-rate variants).",
       "score": 95,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raster, hdp_state_trajectories, hdp_stability_map -- in tests/ -> no hits) despite all 22 being publicly exported via vis.__init__. All real, working code -- no dead-stub pattern found anywhere in this file."
       ],
@@ -1115,7 +1154,9 @@
       "path": "jaxfne/vis/tutorial_array_plots.py",
       "purpose": "6 raw-array tutorial plot helpers (no Signals/Model object required), cloned from jaxfne.tutorial_utils which now forwards to these as source of truth: plot_population_raster, plot_population_rate_array, plot_voltage_samples_array (with optional anti-overlap stacking via vis.layout), plot_connectivity_matrix_array, plot_laminar_readout_array, plot_spectrolaminar_power_array.",
       "score": 90,
-      "tbi": [],
+      "tbi": [
+        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
+      ],
       "tbd": [
         "No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_population_rate_array/plot_voltage_samples_array/plot_laminar_readout_array/plot_spectrolaminar_power_array in tests/ -> no hits directly against this module, though tests/test_tutorial_utils.py exists and likely exercises the jaxfne.tutorial_utils forwarding wrapper around these -- not confirmed by a passing run this session since -k filtering on plausible keywords returned 0 matches)."
       ],
@@ -2395,14 +2436,18 @@
     },
     {
       "path": "tests/test_etude3_v1_spectrolaminar_1k.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
+      "purpose": "Structural + regression gate for etude 3 notebook: checks required tokens present in the .ipynb, and (once local/etude3/ is populated) validates output artifacts.",
+      "score": 55,
+      "tbi": [
+        "Blocked on the notebook actually being run -- self-skips (or only structurally checks) while local/etude3/ is empty. Execution is staged as plans.json item cowork-goal-etude3-1k-replication (Cowork /goal, Sonnet 5 low-effort)."
+      ],
       "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
+      "warnings": [
+        "Do not mark this 'done' on structural-token-check pass alone -- the real gate is the artifact/NaN-Inf check path, which only runs once local/etude3/ has content."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "Read tests/test_etude3_v1_spectrolaminar_1k.py source (REQUIRED_TOKENS list, REPO_ROOT/OUTPUT_DIR paths) 2026-07-01; not re-executed this pass.",
+      "status": "open"
     },
     {
       "path": "tests/test_evoked_l4_drive.py",
@@ -4136,6 +4181,467 @@
       ],
       "last_verified": "2026-06-30",
       "evidence": "Ran `python3 scripts/macaque_v1_n_parametrized_smoke.py --n 10`: exit 0, printed 'N=10 -> per-layer counts: {L1:1, L2:2, L3:2, L4:1, L5:2, L6:2}' (sums to 10, 0-neuron-layer edge case from the original spec did not occur at N=10 specifically but L1/L4 are down to 1 neuron each), 'n_spikes=89 has_lfp_proxy=True'. Output files (raster_n10.png, spectrolaminar_suite_n10.png, summary_n10.json) written to tutorial_outputs/macaque_v1_smoke/ and visually confirmed non-empty.",
+      "status": "open"
+    },
+    {
+      "path": "tests/test_public_api_snapshot_v034.py",
+      "purpose": "Frozen public-API snapshot test (artifacts/public_api_before.json) -- catches unintentional jtfne.__all__ drift.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  (regenerated artifacts/public_api_before.json \u2014 stale snapshot still listed deleted JaxFNEConfig-family symbols)  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/util.py + tests/test_util_config_tensor.py",
+      "purpose": "RuntimeConfig/NeuronalTensor/Model/Configuration consistency helpers: validate_runtime_config, runtime_config_diff, merge_runtime_configs, validate_neuronal_tensor, tensor_summary, validate_model, model_diff, configuration_diff. New ground only -- does not duplicate Model.summary(), Configuration.validate(), or RuntimeConfig.runtime_report() (all pre-existing).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "tests/test_neuronal_tensor.py",
+      "purpose": "Tests for the NeuronalTensor schema, canonical config library, and tensor->Configuration bridge.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_neuronal_tensor.py tests/test_agent_context_hygiene.py -q  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "tests/test_agent_context_hygiene.py",
+      "purpose": "Repository hygiene checks (e.g. no agent/model-name leakage in public-facing docs).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_neuronal_tensor.py tests/test_agent_context_hygiene.py -q  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/builders.py",
+      "purpose": "Configuration builder functions (laminar_cortex_config, etc). default_spectrolaminar_config/default_nuclei_config were archived to JSON + removed from here.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "tests/test_public_builders_complete.py",
+      "purpose": "Tests for default_spectrolaminar_config/default_nuclei_config and related public builder exports.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "tests/test_vis_phase5.py",
+      "purpose": "Tests for jaxfne.vis Geometry3d / MultiAreaLayout figure builders.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "tests/test_etude1_agsdr_convergence.py",
+      "purpose": "AGSDR convergence/synchrony tests for the Etude 1 notebook pipeline.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "etudes/jaxfne_etude_no_1_base.ipynb",
+      "purpose": "Published tutorial notebook (Etude 1) -- real user-facing content, not test infrastructure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/pynwb_compat.py",
+      "purpose": "Intentional placeholder/fence module for future NWB (Neurodata Without Borders) file I/O: write_nwb/read_nwb both always raise NotImplementedError with a clear message pointing to the current manifest.json + Signals workaround. No NWB I/O is implemented.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_v0331_pynwb_placeholder.py -q  [PASSED]",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/geometry.py",
+      "purpose": "make_ei_cloud_network: generates a 100-neuron (default) E-I cloud test/demo network -- uniform-in-unit-sphere 3D positions, 70/30 E/I split mask, and a dense signed initial weight matrix (no self-connections) for use in plasticity/streaming demos.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/__init__.py",
+      "purpose": "Package entry point re-exporting the full matplotlib + plotly + canonical-dispatch + script_reports/hdp_diagnostics/report_plots vis API.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/core.py",
+      "purpose": "Core dataclass (FigureResult) + 3 shared helpers: require_matplotlib guard, close_all cleanup, prepare_static_plot_matrix (device->host transfer).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/layout.py",
+      "purpose": "Two pure-numpy layout helpers (cumulative_stack_offsets, cumulative_panel_extents) implementing the package-wide anti-overlap stacking rule used by plotly/lfp.py and others.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/canonical.py",
+      "purpose": "Backend-dispatching entry points (plot_raster/plot_lfp/plot_psd/etc., backend='plotly'|'matplotlib') layered on top of the existing matplotlib and plotly submodules; _apply_layout applies uniform cosmetic overrides without changing backend defaults unless requested.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/plotly/_common.py",
+      "purpose": "Shared (non-public) helpers for the plotly pipeline: require_plotly guard, neuron_table_arrays/field_proxy/contact_depths_mm/time_ms/dt_ms extraction, population_rate_hz binning, cell-type color map.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/plotly/__init__.py",
+      "purpose": "Plotly subpackage entry point; re-exports network/raster/lfp/csd/spectra/connectivity/metrics/dashboard/exporters/manuscript. Docstring states proxy-readout claim discipline (field_solver_status='linear_solver', field_claim_level='proxy_readout') explicitly for the whole subpackage.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/plotly/exporters.py",
+      "purpose": "Back-compat shim re-exporting export_figure/export_figures/FigureBundle from jaxfne.vis.exporters (the canonical location).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/bounds.py",
+      "purpose": "Parameter bounds/clipping operator for jaxfne.optim -- enforce_parameter_bounds is the canonical jnp.clip-based implementation; apply_parameter_constraints is now a delegating alias (was a byte-identical duplicate).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "local/extract.py",
+      "purpose": "CLI utility: extracts a zip archive into local/skills_extracted/ (or a caller-specified --out-dir). Now argparse-driven, no longer hardcodes a personal Downloads path.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/fields.py",
+      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation. FIXED 2026-06-30: plot_laminar_field_interpolation was a dead stub (built a fig/ax, set only title/labels, never plotted data, closed the fig, returned None). Now: real np.ndim normalization, ax.imshow() of the field matrix with a colorbar, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/rasters.py",
+      "purpose": "matplotlib spike raster (raster/raster_with_meta, sortable by declared z-depth) plus a dead stub plot_spike_rasters. FIXED 2026-06-30: plot_spike_rasters was a dead stub (same broken pattern). Now: auto-detects neuron axis, computes np.nonzero() spike coordinates, ax.scatter() of real spike markers, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/traces.py",
+      "purpose": "matplotlib time-series traces: vm/rate/source/lfp/csd/lfp_traces/csd_traces/eeg/meg/emm/summary (+ *_with_meta variants), parameter_sweep_heatmap, multi_trace, dual_voltage_panel, coupled_vs_uncoupled_ei, parameter_sweep_lines. Plus a dead stub plot_continuous_traces. FIXED 2026-06-30: plot_continuous_traces was a dead stub. Now: plots up to max_traces=16 rows as overlaid ax.plot() line traces, returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/spectra.py",
+      "purpose": "matplotlib PSD (psd/psd_with_meta), spectrogram (spectrogram/spectrogram_with_meta), windowed_band_power bar chart. Plus a dead stub plot_spectrogram_profiles. FIXED 2026-06-30: plot_spectrogram_profiles was a dead stub. Now: computes a real scipy.signal.spectrogram from the input trace (sample rate derived from time_steps spacing), renders via ax.pcolormesh(), returns the Figure.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/sdr.py",
+      "purpose": "Defines SDRState (no extra fields beyond BaseSDRState) and step_sdr_transform, the low-level Stochastic Delta Rule per-step update function -- a plain JAX-native gradient-descent step (u_t - eta*grad_l).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/gsdr.py",
+      "purpose": "Defines GSDRState (adds deselection_counter to BaseSDRState) and step_gsdr_transform, the low-level GSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/agsdr.py",
+      "purpose": "Defines AGSDRState (adds deselection_counter, alpha_adaptive fields on BaseSDRState) and step_agsdr_transform, the low-level AGSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/core.py::Model / Configuration / JaxFNEConfig",
+      "purpose": "Core dataclasses: Model (frozen, params/static dict pytree), Configuration (declarative builder-first API). JaxFNEConfig (.jcfg.json loader, separate format) DELETED 2026-06-30.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever unified, or permanently stays mode-specific via _pipeline.py-style targeted wrappers -- NOT resolved this pass, out of scope for the JaxFNEConfig deletion.",
+        "RuntimeConfig.dtype silently falls through to float32 for any value other than 'float32'/'float64' (no bfloat16 support, no rejection of unknown strings) -- confirmed via the 2 jdtype-resolution ternaries at core.py:368,567. Model.with_hdp_initial_state() (core.py:5868) hardcodes H0/w0 to jnp.float32 regardless of the model's configured dtype. Both are preconditions for plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01)."
+      ],
+      "warnings": [
+        "_compiled_cache and _warmup_times are mutated via object.__setattr__ on a frozen dataclass (Model) -- works but is a fragile pattern if anyone adds new mutable cache state without following the same convention",
+        "8310 lines in core.py (down from 8805 after deletion) -- any future read of this file should target line ranges via grep first, not load it in full"
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/gsgd.py",
+      "purpose": "Defines GSGDState (NamedTuple: count, step_size) and step_gsgd_transform, the differentiable-path GSGD per-step update function consumed by Model.tune() when an explicit gradient is available.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Not currently on Model.tune()'s real call path (the differentiable-optimizer branch is a metadata-only guard, optax_guarded_path_no_loop_v0.0.8, that never enters a gradient loop) -- kept for direct/manual use, same reasoning as the sdr/gsdr/agsdr trio fixed earlier this session."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json",
+      "purpose": "Legacy Configuration-schema (networks/emitters/fields/probes) JSON archival of the removed default_nuclei_config/default_spectrolaminar_config builder functions.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -c \"json.load(open(f))\" for both legacy config files [valid JSON]",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/stimulus.py",
+      "purpose": "triangular_drive: generates a triangular-wave drive trace (numpy phase computation wrapped to jnp.array) for use as a periodic stimulus input, e.g. in plasticity demos.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/optim/__init__.py",
+      "purpose": "Package namespace for jaxfne.optim: re-exports SDR/GSDR/AGSDR/GSGD state+step functions, bounds helpers, manifest serializer, and core.py's optimizer-spec constructors/internals into one flat __all__.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
+      "purpose": "Etude 3: V1 1k-neuron column, spectrolaminar motif replication (LFP/CSD/EEG/MEG proxies, raster, HDP UI).",
+      "score": 40,
+      "tbi": [
+        "Never executed end-to-end this session or prior -- confirmed via empty local/etude3/ output dir. Notebook file exists (31274 bytes, last modified 2026-06-27) and contains the required tokens (v1_column_1k, N_NEURONS=1000, lfp_proxy/csd_proxy/eeg_proxy/meg_proxy, p_connect=0.1) per tests/test_etude3_v1_spectrolaminar_1k.py's structural checks, but structural presence != a real run."
+      ],
+      "tbd": [],
+      "warnings": [
+        "Score reflects 'structurally complete, functionally unverified' -- do not read 40 as 'partially broken', read it as 'unrun'."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "ls -la tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb (exists); ls local/etude3/ (empty, confirmed 2026-07-01); grep of required tokens performed by tests/test_etude3_v1_spectrolaminar_1k.py's own structural checks (not independently re-run here).",
+      "status": "open"
+    },
+    {
+      "path": "tests/test_vis_smoke_all.py",
+      "purpose": "Planned parametrized smoke-test module for the 18 vis/vis.plotly functions confirmed to have zero test coverage (see plans.json: vis-smoke-test-coverage-gap).",
+      "score": 0,
+      "tbi": [
+        "File does not exist yet -- to be created per the shape described in plans.json item vis-smoke-test-coverage-gap: one (module, callable, minimal_kwargs) table, smoke-only (no exception + non-empty return), not a pixel/value regression test."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "ls tests/test_vis_smoke_all.py -> No such file (confirmed 2026-07-01).",
+      "status": "open"
+    },
+    {
+      "path": "scripts/evidence_figures/",
+      "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10).",
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): all scripts in this directory make direct matplotlib/plotly calls outside jaxfne/vis/. Confirmed via grep 2026-07-01 across 19 files (fig01-fig08, ed01-ed10)."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py -> all 19 files matched.",
+      "status": "open"
+    },
+    {
+      "path": "tests/test_epv_2neuron_pipeline_smoke.py",
+      "purpose": "Config #1 of the jaxfne-modular-grammar smoke-test matrix: 2-neuron E-PV, native Izhikevich, dt=0.1ms/100ms, full Configuration->construct->simulate->Signals->vis chain, 5-contact LFP + manually-derived EEG proxy.",
+      "score": 90,
+      "tbi": [],
+      "tbd": [
+        "4 more configs from the matrix still not built: jaxley-HH parity (same connectivity, different intrinsic params), Izhikevich-HDP Hebbian-angle, Izhikevich-HDP stability-angle (deliberate rho_passive sweep across the F-017 boundary), 20-neuron population scale-up. Staged as follow-on plans.json items."
+      ],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 -m pytest tests/test_epv_2neuron_pipeline_smoke.py -v -> 6 passed in 3.07s",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/core.py::Configuration.population",
+      "purpose": "Configuration.population(N, neurons={...}) fluent verb for per-layer neuron counts (jaxfne-config canonical column builder).",
+      "score": 55,
+      "tbi": [],
+      "tbd": [
+        "BUG (found 2026-07-01, reproduced twice): Configuration().geometry(layer_thickness={'L4': 1.0}).population(N=2, neurons={'L4': 2}).cell_types({'E': 0.5, 'PV': 0.5}) produces neuron_table() cell_types ['PV', 'VIP'] instead of the declared ['E', 'PV'] -- even though cfg.metadata['cell_types'] correctly holds exactly {'E': 0.5, 'PV': 0.5} with no layer_cell_types override. Something at construct-time appears to fall back to a canonical per-layer default fraction table (keyed by recognized layer name 'L4') instead of the flat cell_types metadata, at least at very small N. The workaround (confirmed working) is the `.network(name=..., kind='cortical_column', n=2, cell_types={...})` construction path instead (see tests/test_epv_2neuron_pipeline_smoke.py), which correctly produces E+PV at N=2. Root cause not yet isolated -- only the workaround is verified, not the fix."
+      ],
+      "warnings": [
+        "Only reproduced at N=2 with a single named canonical layer ('L4'); not yet checked at other small N or non-canonical layer names -- may be narrower or broader than stated."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 -c reproduction: cfg.metadata['cell_types'] == {'E': 0.5, 'PV': 0.5} (correct) but jtfne.construct(cfg).neuron_table() cell_types == ['PV', 'VIP'] (wrong), run 2026-07-01.",
+      "status": "open"
+    },
+    {
+      "path": "jaxfne/emitters.py",
+      "purpose": "Native recurrent emitter kernels: plain/homeostatic/HDP Izhikevich variants (simulate_edge_recurrent_izhikevich{,_homeostatic,_hdp}).",
+      "score": 80,
+      "tbi": [],
+      "tbd": [
+        "simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2, lines ~1316-1318) is disabled by default (barrier_c=barrier_d=0.0) and only exercised standalone in tests/test_hdp_kernel_standalone.py -- never in a full construct->simulate pipeline, never validated for its intended stall/discharge behavior under real dynamics. Follow-on action tracked in plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01): enable it in the staged HDP-stability config (tests/test_ei_hdp_stability_rho_passive_sweep.py) and sweep H near H_min."
+      ],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "",
+      "status": "unreviewed"
+    },
+    {
+      "path": "jaxfne/units.py",
+      "purpose": "Planned dtype-keyed declarative defaults module (epsilon, dither_scale) for jaxfne-modular-grammar rule 3/6 compliance -- see plans.json bf16-quantized-tfne-izhikevich-mode.",
+      "score": 0,
+      "tbi": [
+        "File does not exist yet (confirmed via ls 2026-07-01). To be created per plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01): dtype-keyed epsilon defaults + a dither_scale(dtype) helper (~half machine-epsilon), applied only to strictly-positive quantities (H, tau_i, barrier denominators) at their bf16 cast boundary. Explicitly must NOT floor/dither signed zero-crossing state (V_m, u, weight deltas, synaptic current) -- would inject a correctness bug. dt_ms/dxyz get an explicit warning on dtype mismatch, never silent auto-adjustment."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "ls jaxfne/units.py -> No such file (confirmed 2026-07-01).",
       "status": "open"
     }
   ]

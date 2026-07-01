@@ -50,6 +50,35 @@ This ensures:
 
 Breaking this rule requires explicit approval. Violations: flag and revert immediately.
 
+## jaxfne-modular-grammar
+
+**[INVARIANT, added 2026-07-01] The standing architecture rule set for this repo** — not
+enforced by tooling yet, but every future change should be checked against it before landing:
+
+1. **Maximum modularity** — 5 main modules, each ~5 object rule (desired target, not a hard cap).
+2. **All visualization lives under `jaxfne/vis/*`** — not one plotting call anywhere else.
+   **Known violations as of 2026-07-01** (not yet fixed, tracked in `progress.json`):
+   `jaxfne/export.py`, `jaxfne/tutorial_utils.py`, and all of `scripts/evidence_figures/*.py`
+   contain direct `matplotlib`/`plotly` calls outside `jaxfne/vis/`.
+3. **Computation is jax-maximal, jax-parallel, `float32` by default.** Device order is always
+   GPU → jax-metal → CPU. `float32` is already the practical default in `core.py`'s dtype
+   handling (verified 2026-07-01); the GPU→metal→CPU fallback order is **not yet an enforced
+   utility** — `jax.devices()` is called in several places (`sharding_utils.py`, `runtime.py`,
+   `core.py`) but none encode this specific priority order.
+4. **Every observed flaw goes straight into `progress.json`** on the file's existing row
+   (`warnings`/`tbd`) or a new row if the file isn't tracked yet — immediately, not batched into
+   a separate report. This is the same discipline the `progress-review-plan` skill already
+   enforces; this rule just says "don't wait for a formal Review pass to log something you
+   noticed in passing."
+5. **Maximum borrowing** — prefer `jax`/`jaxlib`/`jaxley`/`plotly`/`scipy`/`sklearn`/`torch`/
+   `torchvision` primitives over hand-rolled logic; jax gets priority when multiple libraries
+   offer the same primitive.
+6. **`NeuronalTensor` and the network/`Model` object must stay one identical format for any
+   config** — no new bespoke construction function per config variant; new configs merge into
+   the existing objects (`Configuration`, `NeuronalTensor`, `Model`) rather than growing parallel
+   one-off helpers. `construct(cfg_or_tensor, runtime=None)` in `core.py` is the existing
+   dispatch point for this — extend it, don't bypass it.
+
 ## Gates
 
 ```text

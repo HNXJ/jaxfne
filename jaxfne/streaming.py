@@ -111,17 +111,37 @@ def run_stdp_stream(
     vm_collected = []
     spk_collected = []
     chunk_summaries = []
-    
+
+    # Hoisted out of the per-chunk loop: previously this @jax.jit closure was
+    # redefined as a fresh function object on every chunk_idx iteration, which
+    # defeats jax.jit's identity-based cache and forces a recompile per chunk
+    # even when consecutive chunks share the same input shape. Defining it once
+    # (closing only over the loop-invariant a/b/c/d/masks/dt_ms/plasticity
+    # constants) lets JAX cache by trace signature: same chunk_steps shape
+    # across chunks -> one compile, reused; only the final (possibly shorter)
+    # chunk triggers a second compile for its own shape.
+    @jax.jit
+    def run_chunk_scan(st, ip):
+        """Documented public function `run_chunk_scan`."""
+        def step_wrapper(state, inputs):
+            """Documented public function `step_wrapper`."""
+            return simulate_stdp_euler_step(
+                state, inputs, a, b, c, d, exc_mask, inh_mask, dt_ms,
+                plasticity_scale, plasticity_config.w_min, plasticity_config.w_max,
+                plasticity_config.tau_plus, plasticity_config.tau_minus
+            )
+        return jax.lax.scan(step_wrapper, st, ip)
+
     for chunk_idx in range(n_chunks):
         start_step = chunk_idx * chunk_steps
         end_step = min(start_step + chunk_steps, total_steps)
         n_steps_curr = end_step - start_step
         if n_steps_curr <= 0:
             break
-            
+
         stim_chunk = stim_drive[start_step:end_step]
         noise_chunk = noise[start_step:end_step]
-        
+
         # Prepare inputs for scan
         inputs_in = (
             stim_chunk,
@@ -129,22 +149,9 @@ def run_stdp_stream(
             jnp.full((n_steps_curr,), plasticity_config.A_plus),
             jnp.full((n_steps_curr,), plasticity_config.A_minus)
         )
-        
+
         state_init = (v, u, s, trace_pre, trace_post, W)
-        
-        # JIT-compiled scanner loop for the current chunk
-        @jax.jit
-        def run_chunk_scan(st, ip):
-            """Documented public function `run_chunk_scan`."""
-            def step_wrapper(state, inputs):
-                """Documented public function `step_wrapper`."""
-                return simulate_stdp_euler_step(
-                    state, inputs, a, b, c, d, exc_mask, inh_mask, dt_ms,
-                    plasticity_scale, plasticity_config.w_min, plasticity_config.w_max,
-                    plasticity_config.tau_plus, plasticity_config.tau_minus
-                )
-            return jax.lax.scan(step_wrapper, st, ip)
-            
+
         state_final, (vm_traj, spk_traj) = run_chunk_scan(state_init, inputs_in)
         v, u, s, trace_pre, trace_post, W = state_final
         

@@ -20,7 +20,11 @@
 | optim-sdr-family-misleading-docstrings | step_sdr_transform/step_gsdr_transform/step_agsdr_transform docstrings claim distinct algorithms but are byte-identical  | done | jaxfne/optim/sdr.py; jaxfne/optim/gsdr.py; jaxfne/optim/agsdr.py |
 | vis-dead-stub-plotting-functions | Fix or remove 4 dead-stub plotting functions, publicly exported, zero test coverage | done | jaxfne/vis/fields.py; jaxfne/vis/rasters.py; jaxfne/vis/traces.py; jaxfne/vis/spectra.py |
 | connectivity-dense-on2-jax-compiler | compile_connection_rules_jax builds a dense O(n_pre*n_post) grid via jnp.tile, contradicting sparse-first design | not_started | jaxfne/connectivity.py |
-| streaming-jit-redefined-in-loop | run_stdp_stream applies @jax.jit to a closure (run_chunk_scan) redefined fresh inside the per-chunk for-loop | not_started | jaxfne/streaming.py |
+| streaming-jit-redefined-in-loop | run_stdp_stream applies @jax.jit to a closure (run_chunk_scan) redefined fresh inside the per-chunk for-loop | done | jaxfne/streaming.py |
+| cowork-goal-etude3-1k-replication | Cowork /goal: run+verify etude 3 (V1 1k spectrolaminar) notebook, low-effort Sonnet 5 | proposed | tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb; tests/test_etude3_v1_spectrolaminar_1k.py; local/etude3/; |
+| vis-smoke-test-coverage-gap | Add tests/test_vis_smoke_all.py: parametrized smoke coverage for 18 untested vis/vis.plotly modules | proposed | jaxfne/vis/exporters.py; jaxfne/vis/hdp_diagnostics.py; jaxfne/vis/plasticity_viz.py; jaxfne/vis/plotly/connectivity.py; |
+| smart-test-matrix-configs-2-5 | 4 remaining configs of the small-network smart-test matrix (config #1 done) | proposed | tests/test_epv_2neuron_pipeline_smoke.py; tests/test_ei_jaxley_hh_parity.py; tests/test_ei_hdp_hebbian_angle.py; tests/t |
+| bf16-quantized-tfne-izhikevich-mode | bf16 quantized-compute mode for TFNE-Izhikevich/HDP networks (not HH) + jaxfne.units.py dtype-aware defaults | proposed | jaxfne/core.py::RuntimeConfig; jaxfne/core.py::Model.with_hdp_initial_state; jaxfne/emitters.py::simulate_edge_recurrent |
 
 ## brainstorm
 

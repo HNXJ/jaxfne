@@ -25,8 +25,9 @@ Legacy names remain compatibility aliases for one release line:
 ```text
 Configuration -> Config
 Model -> Net
-FlatModel -> FlatNet
 ```
+(Verified 2026-07-01: `jtfne.Config is jtfne.Configuration` and `jtfne.Net is jtfne.Model` are both `True`.
+No `FlatModel`/`FlatNet` names exist anywhere in the package — don't invent that pair.)
 
 ## Required preflight
 
