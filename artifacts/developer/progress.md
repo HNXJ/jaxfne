@@ -301,18 +301,17 @@
 | jaxfne/units.py | 0 | open | File does not exist yet (confirmed via ls 2026-07-01). To be created per plans.json item bf16-quantized-tfne-izhikevich- |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 15 | open | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-06-30 |
 | tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb | 40 | open | Never executed end-to-end this session or prior -- confirmed via empty local/etude3/ output dir. Notebook file exists (3 |  | 2026-07-01 |
+| jaxfne/hdp_network.py | 55 | open | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | local/verify_plotly_pipeline.py | 55 | open |  |  | 2026-06-30 |
 | tests/test_etude3_v1_spectrolaminar_1k.py | 55 | open | Blocked on the notebook actually being run -- self-skips (or only structurally checks) while local/etude3/ is empty. Exe |  | 2026-07-01 |
-| jaxfne/core.py::Configuration.population | 55 | open |  | BUG (found 2026-07-01, reproduced twice): Configuration().geometry(layer_thickness={'L4': 1.0}).population(N=2, neurons= | 2026-07-01 |
-| scripts/hdp_v2_rho_sweep.py | 70 | open |  |  | 2026-06-29 |
+| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 65 | open |  | rho_passive formula redesign (same open item as hdp_network.py F-019); CONFIRMED 2026-07-01 (code-level, not docstring): | 2026-07-01 |
+| scripts/hdp_v2_rho_sweep.py | 70 | done |  |  | 2026-07-01 |
 | local/gen_test_data_100n_1000ms.py | 70 | open |  |  | 2026-06-30 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
 | jaxfne/optim/core.py | 72 | open |  |  | 2026-06-30 |
-| jaxfne/hdp_network.py | 75 | open |  | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-06-29 |
 | jaxfne/_pipeline.py | 78 | open | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-01 |
 | jaxfne/optim/manifests.py | 78 | open |  |  | 2026-06-30 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 80 | open |  | rho_passive formula redesign (same open item as hdp_network.py F-019) | 2026-06-30 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/__init__.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
@@ -337,7 +336,7 @@
 | jaxfne/vis/plotly/network.py | 85 | reviewed |  | No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and tes | 2026-06-30 |
 | jaxfne/vis/tutorial_panels.py | 85 | reviewed | visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's  |  | 2026-06-30 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
-| jaxfne/connectivity.py | 88 | unreviewed |  |  | 2026-06-30 |
+| jaxfne/connectivity.py | 88 | unreviewed |  | No distance-decay/radius-limited connectivity rule exists -- the only randomized rule ('probability') is flat Erdos-Reny | 2026-07-01 |
 | jaxfne/paradigm.py | 88 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sharding_utils.py | 88 | unreviewed |  | Full multi-device AGSDR integration is explicitly deferred per module docstring ("planned for v0.3.20+") -- correctly fe | 2026-06-30 |
 | jaxfne/vis/plotly/lfp.py | 88 | unreviewed |  |  | 2026-06-30 |
@@ -358,6 +357,9 @@
 | jaxfne/vis/report_plots.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly expor | 2026-06-30 |
 | jaxfne/vis/tutorial_array_plots.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_popul | 2026-06-30 |
 | tests/test_epv_2neuron_pipeline_smoke.py | 90 | done |  | 4 more configs from the matrix still not built: jaxley-HH parity (same connectivity, different intrinsic params), Izhike | 2026-07-01 |
+| jaxfne/core.py::Configuration.uniform3d | 90 | done |  |  | 2026-07-01 |
+| tests/test_ei_jaxley_izhikevich_parity.py | 90 | done |  | Config #2b (jaxley+HH via simulate_laminar_field, 5-contact LFP/CSD) not yet built -- staged in plans.json smart-test-ma | 2026-07-01 |
+| skills/FRICTIONS_STACK.md | 90 | done |  |  | 2026-07-01 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/diagnostics.py | 93 | unreviewed |  |  | 2026-06-30 |

@@ -35,6 +35,7 @@ from .emitters import (
 )
 
 _ALLOWED_SYNAPTIC_KERNELS = ("exponential", "receptor_exponential")
+_ALLOWED_DTYPES = ("float32", "float64", "bfloat16")
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
@@ -311,6 +312,21 @@ def _area_layer_cell_type_map(metadata: Mapping[str, Any], area: str) -> dict[st
     base = metadata.get("layer_cell_types", None)
     if base:
         return {str(k): {str(kk): float(vv) for kk, vv in v.items()} for k, v in base.items()}
+    # A flat cell_types() declaration (metadata["cell_types"]) was previously
+    # invisible here -- Configuration.cell_types() writes that key, but this
+    # resolver only ever checked area_layer_cell_types/layer_cell_types, so a
+    # bare .cell_types({...}) after .population()/.geometry() silently fell
+    # through to the hardcoded _suite2_default_layer_cell_types() table below
+    # instead (confirmed regression: {"E":0.5,"PV":0.5} at N=2 on layer "L4"
+    # produced ["PV","VIP"], not ["E","PV"], because L4's hardcoded default is
+    # {"E":0.25,"PV":0.45,"SST":0.15,"VIP":0.15}). Broadcasting the flat
+    # declaration to every layer here closes that gap without touching
+    # cell_types()'s own write behavior.
+    flat = metadata.get("cell_types", None)
+    if flat:
+        clean = {str(k): float(v) for k, v in flat.items()}
+        layers = metadata.get("layer_fractions") or _SUITE2_LAYER_FRACTIONS
+        return {str(layer): dict(clean) for layer in layers}
     return _suite2_default_layer_cell_types()
 
 
@@ -2379,6 +2395,13 @@ class RuntimeConfig:
                 "enable_homeostasis and enable_hdp are mutually exclusive "
                 "controllers; enable only one."
             )
+        requested = self.dtype_primary or self.dtype
+        if requested not in _ALLOWED_DTYPES:
+            raise ValueError(
+                f"dtype must be one of {_ALLOWED_DTYPES}; got {requested!r}. "
+                f"Previously any unrecognized value silently fell back to float32 -- "
+                f"that silent fallback is now an explicit error."
+            )
 
     def resolve_jit(self, n_steps: int, n_units: int, batch: int = 1) -> bool:
         """Resolve the effective JIT compilation status based on policy and parameters."""
@@ -2413,12 +2436,18 @@ class RuntimeConfig:
         """Documented public function `actual_dtype`."""
         if self.requested_dtype == "float64" and bool(jax.config.read("jax_enable_x64")):
             return "float64"
+        if self.requested_dtype == "bfloat16":
+            return "bfloat16"
         return "float32"
 
     @property
     def jnp_dtype(self) -> jnp.dtype:
         """Documented public function `jnp_dtype`."""
-        return jnp.float64 if self.actual_dtype == "float64" else jnp.float32
+        if self.actual_dtype == "float64":
+            return jnp.float64
+        if self.actual_dtype == "bfloat16":
+            return jnp.bfloat16
+        return jnp.float32
 
     def runtime_report(self) -> dict[str, Any]:
         """Compile a summary of JAX system runtime, backend, and device topology.
@@ -5889,11 +5918,12 @@ class Model:
         Returns:
             New Model — original is not mutated.
         """
+        jdtype = _runtime_config_from_metadata(self.cfg.metadata).jnp_dtype
         new_params = dict(self.params)
         if H0 is not None:
-            new_params["hdp_initial_H"] = jnp.asarray(H0, dtype=jnp.float32)
+            new_params["hdp_initial_H"] = jnp.asarray(H0, dtype=jdtype)
         if w0 is not None:
-            new_params["hdp_initial_w"] = jnp.asarray(w0, dtype=jnp.float32)
+            new_params["hdp_initial_w"] = jnp.asarray(w0, dtype=jdtype)
         return replace(self, params=new_params)
 
     def with_recurrent_coupling(

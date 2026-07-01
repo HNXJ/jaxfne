@@ -23,8 +23,11 @@
 | streaming-jit-redefined-in-loop | run_stdp_stream applies @jax.jit to a closure (run_chunk_scan) redefined fresh inside the per-chunk for-loop | done | jaxfne/streaming.py |
 | cowork-goal-etude3-1k-replication | Cowork /goal: run+verify etude 3 (V1 1k spectrolaminar) notebook, low-effort Sonnet 5 | proposed | tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb; tests/test_etude3_v1_spectrolaminar_1k.py; local/etude3/; |
 | vis-smoke-test-coverage-gap | Add tests/test_vis_smoke_all.py: parametrized smoke coverage for 18 untested vis/vis.plotly modules | proposed | jaxfne/vis/exporters.py; jaxfne/vis/hdp_diagnostics.py; jaxfne/vis/plasticity_viz.py; jaxfne/vis/plotly/connectivity.py; |
-| smart-test-matrix-configs-2-5 | 4 remaining configs of the small-network smart-test matrix (config #1 done) | proposed | tests/test_epv_2neuron_pipeline_smoke.py; tests/test_ei_jaxley_hh_parity.py; tests/test_ei_hdp_hebbian_angle.py; tests/t |
+| smart-test-matrix-configs-2-5 | 4 remaining configs of the small-network smart-test matrix (config #1 done) | proposed | tests/test_epv_2neuron_pipeline_smoke.py; tests/test_ei_jaxley_izhikevich_parity.py; tests/test_ei_jaxley_hh_field_reado |
 | bf16-quantized-tfne-izhikevich-mode | bf16 quantized-compute mode for TFNE-Izhikevich/HDP networks (not HH) + jaxfne.units.py dtype-aware defaults | proposed | jaxfne/core.py::RuntimeConfig; jaxfne/core.py::Model.with_hdp_initial_state; jaxfne/emitters.py::simulate_edge_recurrent |
+| hdp-universal-default-kernel-consolidation | Make HDP a default property of every TFNE emitter (K_HDP coefficient, not a separate opt-in kernel) | proposed | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich; jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_homeostat |
+| localized-distance-limited-connectivity-rule | New connectivity rule: distance/radius-limited sampling with constant target in-degree (not %-of-N^2) | proposed | jaxfne/connectivity.py |
+| cortical-column-scaleup-ladder-100-to-1M | Scale-up ladder for a TFNE-Izhikevich+HDP cortical column: 100 -> 1k -> 10k -> 100k -> 1M neurons | proposed | jaxfne/connectivity.py; jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/core.py::Configuration.unifor |
 
 ## brainstorm
 

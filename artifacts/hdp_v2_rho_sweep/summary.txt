@@ -1,13 +1,11 @@
 F-017 rho_passive sweep — summary
 ============================================================
-Date: 2026-06-29 20:09 UTC
+Date: 2026-07-01 15:46 UTC
 Acceptance: |H_mean-1.0|<=0.03, H_std<=0.05
 
 Recommendations
 ----------------------------------------
-  DEFAULT_HDP: rho_passive = 0.00500
-    seed=0  H_mean=1.0169  H_std=0.0342  H=[1.001,1.146]  rate=10.5Hz
-    seed=1  H_mean=1.0169  H_std=0.0342  H=[1.001,1.146]  rate=10.6Hz
+  DEFAULT_HDP: NO CANDIDATE FOUND
 
 Post-sweep steps (coder agent)
 ----------------------------------------

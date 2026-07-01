@@ -24,7 +24,7 @@ Last audited: 2026-06-29 (HDP v2 patch blocking — rho_passive creates regime b
 
 | ID | Resolution | Date |
 |----|------------|------|
-| F-017 | BLOCKED: rho_passive/H^2 mechanism creates regime bifurcation (wild H oscillation at rho<0.24, neuron silencing at rho≥0.36). K_ctrl=5.0/0.15 restored as canonical restoring term; rho_passive abandoned. Requires formula redesign (F-019) | 2026-06-29 |
+| F-017 | STILL BLOCKED, corrected 2026-07-01: rho_passive/H^2 mechanism fails a full 20s/5-seed geomspace(0.005,2.0) sweep at every candidate (`scripts/hdp_v2_rho_sweep.py --preset default`, 75/75 rows fail H_std<=0.05; script's own verdict: "NO candidate passed all seeds"). Prior text here ("K_ctrl=5.0/0.15 restored as canonical restoring term") does NOT match the code: `K_ctrl_arr` (jaxfne/emitters.py:1247) is computed and never used in dH/dt -- confirmed dead code, not a restoring term. DEFAULT_HDP/DEFAULT_HDP_DESYNC currently have NO working restoring mechanism (K_ctrl inert; rho_passive=0.0 inert-by-default and unfixable within the swept range). Requires formula redesign (F-019, still not its own ledger row) | 2026-06-29, corrected 2026-07-01 |
 | F-001 | HDP E size: code + docs aligned to `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE` | 2026-06-27 |
 | F-002 | Layer naming table in `AGENTS.md` + cortical-column skill | 2026-06-27 |
 | F-005 | Global `AGENTS.md` JAX §11 gate strings updated | 2026-06-27 |

@@ -317,18 +317,24 @@ def main() -> None:
         print("[--fast] 2s duration, 2 seeds per candidate.")
 
     keys = ["default", "desync"] if args.preset == "both" else [args.preset]
+    # --fast writes to a distinct suffix -- a full run and a --fast run at
+    # different durations produce different acceptance verdicts for the same
+    # rho_passive (short transients can look stable before a slow runaway
+    # develops), so they must never share a filename and silently clobber
+    # each other's evidence.
+    suffix = "_fast" if args.fast else ""
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     all_rows: list[dict] = []
     for pk in keys:
-        rows = sweep_preset(pk, overrides, OUT_DIR / f"results_{pk}.csv")
+        rows = sweep_preset(pk, overrides, OUT_DIR / f"results_{pk}{suffix}.csv")
         all_rows.extend(rows)
 
     print("\n" + "=" * 60)
     print("Recommendations")
     print("=" * 60)
     rec = recommend(all_rows)
-    write_summary(all_rows, rec, OUT_DIR / "summary.txt")
+    write_summary(all_rows, rec, OUT_DIR / f"summary{suffix}.txt")
 
 
 if __name__ == "__main__":
