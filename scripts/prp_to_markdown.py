@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""Render artifacts/developer/{plans,progress,review}.json as markdown tables
+in the same folder. Run once, or with --watch to regenerate on every save.
+"""
+import json
+import sys
+import time
+from pathlib import Path
+
+DEV_DIR = Path(__file__).resolve().parent.parent / "artifacts" / "developer"
+
+TABLES = {
+    "progress.json": ("progress.md", ["path", "score", "status", "tbi", "tbd", "last_verified"]),
+    "review.json": ("review.md", ["path", "score", "review_status", "moved_from_progress_on", "review_command"]),
+    "plans.json": ("plans.md", None),  # handled specially: items + brainstorm
+}
+
+
+def cell(v):
+    if v is None:
+        return ""
+    if isinstance(v, bool):
+        return "yes" if v else ""
+    if isinstance(v, list):
+        return "; ".join(str(x) for x in v)[:120]
+    return str(v)[:120].replace("\n", " ").replace("|", "\\|")
+
+
+def render_table(entries, cols):
+    lines = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
+    for e in sorted(entries, key=lambda x: (x.get("score") if x.get("score") is not None else -1)):
+        lines.append("| " + " | ".join(cell(e.get(c)) for c in cols) + " |")
+    return "\n".join(lines)
+
+
+def render_plans(data):
+    out = ["## items\n"]
+    items = data.get("items", [])
+    cols = ["id", "title", "status", "target_files"]
+    out.append(render_table(items, cols))
+    out.append("\n## brainstorm\n")
+    for b in data.get("brainstorm", []):
+        out.append(f"- **{b.get('id','')}**: {cell(b.get('description', b))}")
+    return "\n".join(out)
+
+
+def regenerate():
+    if not DEV_DIR.exists():
+        print(f"no such dir: {DEV_DIR}", file=sys.stderr)
+        return
+    for src_name, (out_name, cols) in TABLES.items():
+        src = DEV_DIR / src_name
+        if not src.exists():
+            continue
+        data = json.loads(src.read_text())
+        if src_name == "plans.json":
+            body = render_plans(data)
+        else:
+            body = render_table(data.get("entries", []), cols)
+        header = f"<!-- auto-generated from {src_name} by scripts/prp_to_markdown.py — do not hand-edit -->\n\n"
+        (DEV_DIR / out_name).write_text(header + body + "\n")
+    print(f"regenerated markdown in {DEV_DIR}")
+
+
+def watch():
+    import subprocess
+    print(f"watching {DEV_DIR} for changes (Ctrl-C to stop)...")
+    regenerate()
+    proc = subprocess.Popen(
+        ["fswatch", "-o", str(DEV_DIR)] + [str(DEV_DIR / n) for n in TABLES],
+        stdout=subprocess.PIPE,
+    )
+    try:
+        for _ in proc.stdout:
+            regenerate()
+    except KeyboardInterrupt:
+        proc.terminate()
+
+
+if __name__ == "__main__":
+    if "--watch" in sys.argv:
+        watch()
+    else:
+        regenerate()

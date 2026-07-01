@@ -59,6 +59,60 @@ field_claim_level: proxy_readout
 physical_amplitude_calibrated: false
 ```
 
+**[INVARIANT] = non-negotiable.** Rules, exact code locations, and what each prevents (moved
+here 2026-06-30 from the global `~/.claude/CLAUDE.md`, which now only states the generic
+truth-gate pattern):
+
+| Rule | Code location | What it prevents |
+|------|---|---|
+| **Never escalate claim gates upward** | `core.py`, all dataclasses | `claim_level`, `field_solver_status`, `physical_amplitude_calibrated` stay at conservative defaults; code may read, never flip |
+| **Proxy ≠ PDE** | `fields.py` | Laminar proxy (Gaussian kernel + FD CSD) is not a field solve; carry the `*_proxy` suffix and `field_solver_status` at its conservative default (`linear_solver`); never synthesize J_e |
+| **Receipts write-once** | `core.py` `save_receipt()` | refuses overwrite without explicit flag; never hand-edit truth files |
+| **x64 before arrays** | session start | `jax.config.update('jax_enable_x64', True)` before array construction; verify `runtime_report()["actual_dtype"]` |
+| **Explicit PRNG only** | all stochastic paths | every SDR/GSDR/AGSDR call takes an explicit `jax.random.PRNGKey`; raises if `key=None`; no numpy.random in reproducible code |
+| **Hard spike reset non-differentiable** | `core.py`, `Model.tune()` (guard = `gradient_path_safe()`; confirm `grep -n gradient_path_safe jaxfne/core.py`) | `Model.tune()` blocks Optax unless `gradient_path_safe()` is true; do not remove the guard. (The "+30" is the +30 mV spike threshold, not a version.) |
+
+**JAX execution defaults:** time = `jax.lax.scan` · edges = `jax.ops.segment_sum` (double-count
+guard) · batch = `jax.vmap` over PRNG keys · compile = `jit=True` in RuntimeConfig only on
+repeat runs. Perf debug order (cheapest first): confirm jit/vmap via `runtime_report()` → check
+`recurrent_backend` (sparse > dense for large W) → reduce `n_steps` before profiling → keep
+shapes/dtypes stable to avoid recompilation. Finiteness gates: reuse `_finite_or_none`,
+`_finite_bool`, `validate_*`; JSON uses `allow_nan=False`.
+
+**Claim language:** use "simulated"/"proxy"/"scaffold"/"computational diagnostic"; avoid
+"validated"/"physical"/"proved"/"mechanism" without a manifest+hashes receipt. No real
+EEG/MEG/LFP/CSD or calibrated-amplitude language for proxy readouts unless
+`physical_amplitude_calibrated=True` with evidence. TFNE claim source-of-truth: `hnyxj/rules/`
+(in `/Users/hamednejat/workspace/main/hnyxj/rules/`).
+
+## Known fragilities (track, don't just warn)
+
+1. **`jaxfne/__init__.py` runtime wrapper** — CustomModuleType intercepts function/submodule collision; brittle. FIX: refactor public `runtime()` surface + regression tests.
+2. **`_CONFIG_RUNTIME_WARNINGS` global in `core.py`** — not thread-safe; couples `config_to_simulation`/`config_to_configuration`. FIX: return warnings instead of a global.
+3. **Hardcoded 20.0 spike gain in source proxy** — dense + edge kernels must stay in sync or the double-count guard breaks. FIX: parameterize + automated sync check.
+
+## Docs-migration status (snapshot, not a standing fact — re-check before citing)
+
+As of 2026-06-25: `docs/api/neuronal_tensor.md` + `docs/api/index.md` described NeuronalTensor
+correctly; `README.md`, `docs/quickstart.md`, `docs/guides/hdp.md`, and `tutorials/` still
+taught Configuration-only. **Standing rule:** when a code change introduces or fixes a new
+top-level API path, update this file in the same pass — don't let docs drift the way
+README/quickstart did.
+
+**Schema-state note:** the v0.4.0 gate schema (`linear_solver` / `proxy_readout` /
+`physical_amplitude_calibrated` / `migrate_schema`, api 195) is canonical; releases since
+(v0.4.1+) build on it without changing it. Legacy JSON/manifests upgrade via
+`jtfne.migrate_schema(old_dict)`. A clone with `git grep -I laminar_proxy_no_pde | wc -l > 0`
+predates the v0.4.0 migration and is stale.
+
+## Backlog protocol
+
+`artifacts/developer/{plans,progress,review}.json` is run via the global `progress-review-plan`
+skill (Plan/Progress/Review/Brainstorm) — see `~/.claude/skills/progress-review-plan/SKILL.md`
+for the mechanism. This repo's specifics: `review_command` for a `.py` file entry is usually
+`python3 -m py_compile <path>` plus the nearest test in `tests/`; prioritize entries touching
+`core.py`/`fields.py`/`emitters.py` first (truth-gate-adjacent code) unless told otherwise.
+
 ## Branch policy
 
 Five permanent branches: `main`, `dev`, `agy`, `cur`, `ops` (kept aligned at the same SHA after integration; main is the release source-of-truth, dev the integration branch). Do not mutate any permanent branch without approval. No force-push, tag, release, or publish without approval.

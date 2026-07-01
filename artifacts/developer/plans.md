@@ -1,0 +1,27 @@
+<!-- auto-generated from plans.json by scripts/prp_to_markdown.py — do not hand-edit -->
+
+## items
+
+| id | title | status | target_files |
+|---|---|---|---|
+| P3b | Model.checkpoint() / Model.restore() methods | not_started | jaxfne/core.py |
+| P3c | Document the canonical HDP call pattern (AGENTS.md or equivalent) | not_started | AGENTS.md |
+| pipeline-configuration_to_tensor | configuration_to_tensor(cfg) -> NeuronalTensor | not_started | jaxfne/_pipeline.py |
+| pipeline-tensor_to_graph | tensor_to_graph(tensor) -> internal flattened graph | not_started | jaxfne/_pipeline.py |
+| F-019 | rho_passive/H^2 passive-income formula redesign | blocked | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/hdp_network.py |
+| jaxfneconfig-test-migration | Migrate or delete the 21 JaxFNEConfig-dependent tests | done | tests/test_config_schema_v015.py; tests/test_config_runtime_hardening_v028.py; tests/test_v021_config_runtime_source_fid |
+| stale-test-fixture-fix | Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config | done | tests/test_public_builders_complete.py; tests/test_vis_phase5.py; tests/test_etude1_agsdr_convergence.py; etudes/jaxfne_ |
+| configs-dir-schema-assumption-fix | Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema | done | tests/test_neuronal_tensor.py |
+| merge-build_model-apply_drive_correction | Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions | not_started | scripts/hdp_1000_neuronal_tensor_column.py; scripts/hdp_suite2_visualizations.py; scripts/spectrolaminar_tfne_izhikevich |
+| file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | not_started |  |
+| test-1000n-fast-laminar-lfp-csd-hdp | 1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test | not_started | tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py) |
+| stale-fixture-remaining-notebooks | Fix 2 more notebooks still calling the removed default_spectrolaminar_config/default_nuclei_config | done | tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb; tutorials/templates/jaxfne_notebook_template.ipynb |
+| optim-bounds-duplicate-functions | Merge enforce_parameter_bounds/apply_parameter_constraints (jaxfne/optim/bounds.py) -- byte-identical logic, different n | done | jaxfne/optim/bounds.py |
+| optim-sdr-family-misleading-docstrings | step_sdr_transform/step_gsdr_transform/step_agsdr_transform docstrings claim distinct algorithms but are byte-identical  | done | jaxfne/optim/sdr.py; jaxfne/optim/gsdr.py; jaxfne/optim/agsdr.py |
+| vis-dead-stub-plotting-functions | Fix or remove 4 dead-stub plotting functions, publicly exported, zero test coverage | done | jaxfne/vis/fields.py; jaxfne/vis/rasters.py; jaxfne/vis/traces.py; jaxfne/vis/spectra.py |
+| connectivity-dense-on2-jax-compiler | compile_connection_rules_jax builds a dense O(n_pre*n_post) grid via jnp.tile, contradicting sparse-first design | not_started | jaxfne/connectivity.py |
+| streaming-jit-redefined-in-loop | run_stdp_stream applies @jax.jit to a closure (run_chunk_scan) redefined fresh inside the per-chunk for-loop | not_started | jaxfne/streaming.py |
+
+## brainstorm
+
+- **function_merger_analysis_2026-06-30**: 2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, inco

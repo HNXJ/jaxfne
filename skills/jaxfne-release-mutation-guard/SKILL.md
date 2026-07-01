@@ -1,7 +1,12 @@
 ---
 name: jaxfne-release-mutation-guard
-summary: Guard every remote mutation: push to main/dev, tag create/delete, GitHub Release, TestPyPI/PyPI upload, release freeze, SHA reconciliation, and version identity.
-trigger: Use before any task that mentions push, merge, main, dev, tag, retag, delete tag, version bump, release, GitHub Release, PyPI, TestPyPI, twine upload, publish, CI, headSha, origin/main, release freeze, or mutation.
+description: >-
+  Guard every remote mutation: push to main/dev, tag create/delete, GitHub
+  Release, TestPyPI/PyPI upload, release freeze, SHA reconciliation, and
+  version identity. Use before any task that mentions push, merge, main,
+  dev, tag, retag, delete tag, version bump, release, GitHub Release,
+  PyPI, TestPyPI, twine upload, publish, CI, headSha, origin/main, release
+  freeze, or mutation.
 ---
 
 # jaxfne Release Mutation Guard

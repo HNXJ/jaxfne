@@ -17,7 +17,7 @@ cfg = (jtfne.build_laminar_column(n=10000, ei_profile="canonical", within_gain=0
        .connectivity(within_area="all_to_all_uniform_random", within_gain=0.45, p_connect=0.1)
        .runtime(seed=0, duration_ms=1000.0, dt_ms=0.5, recurrent_backend="edge_list")  # <- sparse
        .set_emitter("izhikevich","cortical_eig")
-       .probes(["spikes","V_m","LFP","CSD","source"], n_contacts=32)
+       .set_probes(["spikes","V_m","LFP","CSD","source"], n_contacts=32)
        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
 model = jtfne.construct(cfg)                                   # ~40 s @10k (build ONCE, reuse)
 sig   = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=i)   # ~19 s/trial @10k sparse

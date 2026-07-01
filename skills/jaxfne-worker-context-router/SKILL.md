@@ -1,7 +1,11 @@
 ---
 name: jaxfne-worker-context-router
-summary: Route any jaxfne repo task to the correct module, current API, branch state, and validation lane before editing.
-trigger: Use whenever the task mentions jaxfne, repo, file, module, codebase, refactor, API, branch, SHA, worker, handoff, tests, docs, tutorial, notebook, or release.
+description: >-
+  Route any jaxfne repo task to the correct module, current API, branch
+  state, and validation lane before editing. Use at the start of jaxfne
+  work — orienting in the repo, picking which module/skill applies,
+  checking branch/SHA state — before diving into a refactor, API change,
+  test, doc, tutorial, or release task.
 ---
 
 # jaxfne Worker Context Router
@@ -113,19 +117,18 @@ Open contradictions: `skills/FRICTIONS_STACK.md` (check before claiming API/scie
 
 Global-only (not in repo): `jax-jit-pmap-performance-guard`, `jax-neuro-diffsim-guard`, `neuro-biophysics-units-sanity`.
 
-**Route by altitude:** Opus → architecture/contract authoring/truth-gate review. Sonnet → implement against a frozen contract + the relevant skill. Gemini → large-context cross-file synthesis + repo-scale batch edits. Frozen contracts + skills + the §11 invariants are what make the cheaper tiers safe.
+**Route by altitude:** Opus → architecture/contract authoring/truth-gate review. Sonnet → implement against a frozen contract + the relevant skill. Gemini → large-context cross-file synthesis + repo-scale batch edits. Frozen contracts + skills + the truth-gate principle (global `~/.claude/CLAUDE.md`) are what make the cheaper tiers safe.
 
-## Cursor subagent routing (Task tool)
+## Claude Code subagent routing (`Agent` tool)
 
-When spawning subagents, pick by task shape — do not default everything to `generalPurpose`:
+When spawning subagents, pick `subagent_type` by task shape — do not default everything to `general-purpose`. Confirm current names with `ToolSearch`/the Agent tool's own listing before invoking, since the roster can change:
 
 | Subagent | Use when |
 |----------|----------|
-| `explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation) |
-| `shell` | Git branch alignment, validation commands, sync scripts |
-| `generalPurpose` | Multi-step implementation with unclear file ownership |
-| `ci-investigator` | One failing PR check — root cause only |
-| `bugbot` / `security-review` | User explicitly asks for review of local diff |
-| `gemini-worker` | Repo-scale mechanical edits across many files |
+| `Explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation), read-only |
+| `general-purpose` | Multi-step implementation or research with unclear file ownership |
+| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files |
+| `Plan` | Design an implementation strategy before editing |
+| `code-reviewer` (if present) | User explicitly asks for review of a local diff |
 
-Always pass repo path, branch/SHA, and which skill contract applies. Subagents do not inherit chat context.
+Always pass repo path, branch/SHA, and which skill contract applies. Subagents do not inherit chat context — brief them like a colleague who just walked in.

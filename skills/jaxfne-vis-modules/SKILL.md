@@ -58,6 +58,7 @@ canonical.py           -> canonical/report plot wrappers (incl. plot_band_power)
 tutorial_panels.py     -> spectrolaminar_suite_3panel, activity_trace_suite (trial/specs-driven)
 tutorial_array_plots.py -> array-driven quick plots (also wrapped in tutorial_utils)
 network3d.py           -> Plotly 3D scaffold and camera/axis controls
+layout.py              -> shared figure layout/grid helpers
 plotly/*               -> interactive Plotly dashboards, manuscript figures
 report_plots.py        -> script/report figure helpers
 script_reports.py      -> batch report generation

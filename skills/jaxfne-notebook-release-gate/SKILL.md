@@ -1,7 +1,12 @@
 ---
 name: jaxfne-notebook-release-gate
-summary: Validate jaxfne notebooks, tutorials, docs, artifacts, JSON manifests, tests, package builds, and worker reports before declaring success.
-trigger: Use whenever the task mentions notebook, tutorial, Colab, markdown, docs, mkdocs, artifact, manifest, validation_report, metrics, figures, PNG, Plotly, smoke, full execution, pytest, audit, release, version, build, twine, TestPyPI, PyPI, GitHub Release, or worker report.
+description: >-
+  Validate jaxfne notebooks, tutorials, docs, artifacts, JSON manifests,
+  tests, package builds, and worker reports before declaring success. Use
+  whenever the task mentions notebook, tutorial, Colab, markdown, docs,
+  mkdocs, artifact, manifest, validation_report, metrics, figures, PNG,
+  Plotly, smoke test, full execution, pytest, audit, release, version,
+  build, twine, TestPyPI, PyPI, GitHub Release, or worker report.
 ---
 
 # jaxfne Notebook Release Gate

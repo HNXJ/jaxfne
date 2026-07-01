@@ -1,7 +1,13 @@
 ---
 name: jaxfne-sha256-artifact-integrity
-summary: Use when a jaxfne task mentions sha256, hashes, checksums, artifact hashes, stale outputs, reproducibility, cache keys, manifest integrity, notebook source hash, release wheel hash, or debugging whether generated figures/JSON changed.
-trigger: Use whenever the task mentions sha256, SHA256SUMS, checksum, hash, artifact_hashes, stale figure, stale output, reproducibility, deterministic run, cache, candidate hash, manifest.json, validation_report.json, metrics.json, trained_model_agsdr.json, notebook hash, source hash, wheel hash, PyPI hash, release artifact, or verifying that an output changed after a code/config change.
+description: >-
+  Use SHA256 as content identity for jaxfne artifacts, configs, notebooks,
+  trained models, and release files. Use when a task mentions sha256,
+  SHA256SUMS, checksum, hash, artifact_hashes, stale figure, stale output,
+  reproducibility, deterministic run, cache, candidate hash, manifest.json,
+  validation_report.json, metrics.json, trained_model_agsdr.json, notebook
+  hash, source hash, wheel hash, PyPI hash, release artifact, or verifying
+  whether an output changed after a code/config change.
 ---
 
 # jaxfne SHA256 Artifact Integrity Skill

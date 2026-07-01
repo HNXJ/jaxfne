@@ -121,9 +121,11 @@ dict forwarded through `core.py`'s `_hdp_packed` — any new key (e.g.
 there or it is silently dropped (verify with `grep -n size_scale_by_cell_type
 jaxfne/core.py` before trusting a new key reaches the kernel).
 
-`DEFAULT_RELATIVE_SIZE` (re-exports `emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`,
-E=5.0/PV=1.0/SST≈VIP=1.5) is the single source of truth for `NeuronType` sizes
-and the HDP tau-law scaling.
+`jaxfne.neuronal_tensor.DEFAULT_RELATIVE_SIZE` (re-exports
+`emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`, verified: `E=5.0, PV=1.0, Inl=1.0,
+SST=1.5, Ing=1.5, VIP=1.5`) is the single source of truth for `NeuronType` sizes
+and the HDP tau-law scaling — not re-exported at the top-level `jtfne` namespace,
+import it from `jaxfne.neuronal_tensor` or `jaxfne.emitters` directly.
 
 `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge
 `receptor_index`.
