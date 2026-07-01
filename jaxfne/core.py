@@ -953,7 +953,8 @@ def _all_connection_rules_declare_resolvable_mechanism(rules, mechanisms):
 
 
 def _compile_mechanism_aware_connection_rules(
-    rules, mechanisms, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed
+    rules, mechanisms, area_labels, layer_labels, cell_labels, sign, n, jdtype, default_seed,
+    positions=None,
 ):
     """Mechanism-aware connection-rule compiler (Synaptic Tensor switch, gated path).
 
@@ -977,10 +978,17 @@ def _compile_mechanism_aware_connection_rules(
 
     import numpy as _np
 
-    neuron_rows = [
-        {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i]}
-        for i in range(n)
-    ]
+    if positions is not None:
+        neuron_rows = [
+            {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i],
+             "x": float(positions[i, 0]), "y": float(positions[i, 1]), "z": float(positions[i, 2])}
+            for i in range(n)
+        ]
+    else:
+        neuron_rows = [
+            {"neuron_id": i, "area": area_labels[i], "layer": layer_labels[i], "cell_type": cell_labels[i]}
+            for i in range(n)
+        ]
     dtype_name = "float64" if jdtype == jnp.float64 else "float32"
     result = compile_connection_rules(
         neuron_rows, rules, mechanisms, seed=int(default_seed), allow_empty=True, dtype=dtype_name
@@ -1542,6 +1550,8 @@ class Configuration:
         mechanism: Optional[str] = None,
         plasticity: Optional[Mapping[str, Any]] = None,
         control_key: Optional[str] = None,
+        max_in_degree: Optional[int] = None,
+        spatial_sigma: Optional[float] = None,
     ) -> "Configuration":
         """Declare a connection rule that ``construct()`` compiles into edges.
 
@@ -1586,6 +1596,12 @@ class Configuration:
             raise ValueError(
                 f"connection {name!r} sign must be excitatory/inhibitory/signed or None; got {sign!r}"
             )
+        if max_in_degree is not None and probability is not None:
+            raise ValueError(
+                f"connection {name!r}: max_in_degree and probability are mutually exclusive "
+                f"sampling modes -- probability targets an O(n_pre*n_post) density, "
+                f"max_in_degree targets a constant per-post-neuron cap; pick one."
+            )
         entry = {
             "name": str(name),
             "source": _circuit_json_safe(dict(source), "connections.source"),
@@ -1598,6 +1614,8 @@ class Configuration:
             if plasticity is not None
             else None,
             "control_key": str(control_key) if control_key is not None else None,
+            "max_in_degree": int(max_in_degree) if max_in_degree is not None else None,
+            "spatial_sigma": float(spatial_sigma) if spatial_sigma is not None else None,
             "status": "declared_not_compiled",
         }
         cfg = self._append_circuit("connections", entry, dedup_name=True)
@@ -7173,7 +7191,7 @@ def _construct_apply_geometry_override(
 
 def _construct_compile_connections(
     cfg: "Configuration", network: "EIGNetwork", n: int, geometry_meta: "dict[str, Any] | None",
-    net: Mapping[str, Any], edge_list: "EdgeList",
+    net: Mapping[str, Any], edge_list: "EdgeList", positions: "jax.Array | None" = None,
 ) -> "tuple[Configuration, EdgeList]":
     """``construct()`` stage: compile declarative ``.connections()`` rules into
     real edges -> ``(cfg, edge_list)``. They append to ``edge_list``; because the
@@ -7196,10 +7214,17 @@ def _construct_compile_connections(
         # resolvable .mechanisms() declaration; otherwise the sign-only
         # compiler runs unchanged (see _all_connection_rules_declare_resolvable_mechanism).
         if _all_connection_rules_declare_resolvable_mechanism(_conn_rules, _conn_mechanisms):
+            _needs_positions = any(r.get("max_in_degree") is not None for r in _conn_rules)
+            if _needs_positions and positions is None:
+                raise ValueError(
+                    "connection rule(s) declare max_in_degree (spatially-localized sampling) "
+                    "but no neuron positions are available at this construct() stage"
+                )
+            _positions_np = _np.asarray(positions) if _needs_positions else None
             _conn_edges, _counts = _compile_mechanism_aware_connection_rules(
                 _conn_rules, _conn_mechanisms, _area_labels, _layer_labels, _cell_labels,
                 _np.asarray(_ep.sign), n, edge_list.weight.dtype,
-                int(cfg.metadata.get("seed", 0) or 0),
+                int(cfg.metadata.get("seed", 0) or 0), positions=_positions_np,
             )
         else:
             _conn_edges, _counts = _compile_connection_rules(
@@ -7322,7 +7347,7 @@ def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourc
     )
     network = replace(network, params=emitter_params)
 
-    cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list)
+    cfg, edge_list = _construct_compile_connections(cfg, network, n, geometry_meta, net, edge_list, positions=positions)
     static = _construct_build_static(cfg, geometry_meta)
 
     return Model(

@@ -26,8 +26,11 @@
 | smart-test-matrix-configs-2-5 | 4 remaining configs of the small-network smart-test matrix (config #1 done) | proposed | tests/test_epv_2neuron_pipeline_smoke.py; tests/test_ei_jaxley_izhikevich_parity.py; tests/test_ei_jaxley_hh_field_reado |
 | bf16-quantized-tfne-izhikevich-mode | bf16 quantized-compute mode for TFNE-Izhikevich/HDP networks (not HH) + jaxfne.units.py dtype-aware defaults | proposed | jaxfne/core.py::RuntimeConfig; jaxfne/core.py::Model.with_hdp_initial_state; jaxfne/emitters.py::simulate_edge_recurrent |
 | hdp-universal-default-kernel-consolidation | Make HDP a default property of every TFNE emitter (K_HDP coefficient, not a separate opt-in kernel) | proposed | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich; jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_homeostat |
-| localized-distance-limited-connectivity-rule | New connectivity rule: distance/radius-limited sampling with constant target in-degree (not %-of-N^2) | proposed | jaxfne/connectivity.py |
-| cortical-column-scaleup-ladder-100-to-1M | Scale-up ladder for a TFNE-Izhikevich+HDP cortical column: 100 -> 1k -> 10k -> 100k -> 1M neurons | proposed | jaxfne/connectivity.py; jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/core.py::Configuration.unifor |
+| localized-distance-limited-connectivity-rule | New connectivity rule: distance/radius-limited sampling with constant target in-degree (not %-of-N^2) | done | jaxfne/connectivity.py |
+| cortical-column-scaleup-ladder-100-to-1M | Scale-up ladder for a TFNE-Izhikevich+HDP cortical column: 100 -> 1k -> 10k -> 100k -> 1M neurons | not_started | jaxfne/connectivity.py; jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/core.py::Configuration.unifor |
+| release-0.4.5-code-quality | 0.4.5: code release -- zero placeholders, merged/optimized pipelines, tutorials in jaxfne grammar, etudes/suites all rea | proposed | tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb; tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb;  |
+| release-0.4.6-docs-alignment | 0.4.6: docs release -- code-doc-theory alignment, 95/100 | proposed | docs/; AGENTS.md; README.md; skills/ |
+| release-0.4.7-final-polish | 0.4.7: final polish to 100/100 -- modular vis/util independence, improved paradigm engine for oddball/omission tasks on  | proposed | jaxfne/vis/; jaxfne/util.py; jaxfne/paradigm.py; jaxfne/export.py; jaxfne/tutorial_utils.py; scripts/evidence_figures/ |
 
 ## brainstorm
 

@@ -205,6 +205,103 @@ def _candidate_pairs(
     return sorted(all_pairs[int(i)] for i in idx)
 
 
+def _spatial_bucket_key(pos: np.ndarray, cell_size: float) -> tuple[int, int, int]:
+    return tuple(int(math.floor(c / cell_size)) for c in pos)
+
+
+_LOCALIZED_CANDIDATE_POOL_CAP = 500
+
+
+def _candidate_pairs_localized(
+    pre_ids: list[int],
+    post_ids: list[int],
+    positions: Mapping[int, np.ndarray],
+    *,
+    max_in_degree: int,
+    spatial_sigma: float,
+    allow_self: bool,
+    key: jax.Array,
+) -> list[tuple[int, int]]:
+    """Distance-limited edge sampling with a constant per-post in-degree cap.
+
+    Unlike ``_candidate_pairs``'s ``probability`` mode (a target edge *density*
+    that scales as O(n_pre*n_post) and is memory-catastrophic at large N --
+    see plans.json item localized-distance-limited-connectivity-rule), this
+    targets a CONSTANT in-degree per post-neuron, independent of N, matching
+    real cortical anatomy (fan-in bounded by dendritic arbor reach, not by
+    total tissue volume).
+
+    Candidate pre-neurons are restricted to a spatial neighborhood via grid
+    bucketing (cell size = 3*spatial_sigma, covering ~3 std of the Gaussian
+    falloff) rather than computing a full n_pre x n_post distance matrix --
+    that full computation would reintroduce the same O(N^2) cost one step
+    earlier even though the resulting edge count is sparse.
+
+    PERFORMANCE NOTE (found 2026-07-01): the grid-bucket neighborhood's raw
+    candidate count scales with local NEURON DENSITY, not with N or
+    max_in_degree -- at fixed column volume, higher N means higher density,
+    so the same spatial_sigma that gives ~tens of candidates at N=500 gives
+    ~40,000 at N=100k in the same volume (confirmed: density * (3*sigma)^3 * 27
+    neighbor cells). Without a cap, that's an O(density) cost PER POST-NEURON,
+    times N post-neurons -- the dominant cost at scale, not the sampling call
+    itself. Candidates are pre-subsampled uniformly down to
+    ``_LOCALIZED_CANDIDATE_POOL_CAP`` (500) BEFORE the more expensive Gaussian-
+    weight computation and without-replacement draw, bounding per-neuron cost
+    to O(cap) regardless of density. This is a uniform pre-filter within an
+    already-local neighborhood, not a bias away from "nearest" -- the Gaussian
+    weighting still governs which of the (now-capped) candidates are chosen.
+
+    Uses ``numpy``'s RNG throughout, not ``jax.random`` -- this function is
+    host-side/non-traced Python (per this module's own design doctrine), and
+    numpy avoids per-call JAX dispatch overhead accumulating across N
+    iterations. ``key`` is still accepted and folded into a numpy seed so
+    sampling stays deterministic given the same JAX key, matching the rest of
+    this module's determinism contract.
+
+    Within each post-neuron's (capped) neighborhood, pre-neurons are sampled
+    without replacement, weighted by a Gaussian distance kernel, up to
+    ``max_in_degree`` (or all available candidates if fewer).
+    """
+    if not pre_ids or not post_ids or max_in_degree <= 0:
+        return []
+    cell_size = 3.0 * max(float(spatial_sigma), 1e-9)
+
+    pre_buckets: dict[tuple[int, int, int], list[int]] = {}
+    for nid in pre_ids:
+        pre_buckets.setdefault(_spatial_bucket_key(positions[nid], cell_size), []).append(nid)
+
+    neighbor_offsets = [(dx, dy, dz) for dx in (-1, 0, 1) for dy in (-1, 0, 1) for dz in (-1, 0, 1)]
+    pairs: list[tuple[int, int]] = []
+    rng = np.random.default_rng(_stable_fold(int(jax.random.randint(key, (), 0, 2**31 - 1))))
+    for post_id in post_ids:
+        post_pos = positions[post_id]
+        bx, by, bz = _spatial_bucket_key(post_pos, cell_size)
+        candidates: list[int] = []
+        for dx, dy, dz in neighbor_offsets:
+            candidates.extend(pre_buckets.get((bx + dx, by + dy, bz + dz), ()))
+        if not allow_self and post_id in candidates:
+            candidates = [c for c in candidates if c != post_id]
+        if not candidates:
+            continue
+        if len(candidates) > _LOCALIZED_CANDIDATE_POOL_CAP:
+            keep = rng.choice(len(candidates), size=_LOCALIZED_CANDIDATE_POOL_CAP, replace=False)
+            candidates = [candidates[i] for i in keep]
+
+        cand_pos = np.stack([positions[c] for c in candidates])
+        dist_sq = np.sum((cand_pos - post_pos) ** 2, axis=1)
+        raw_w = np.exp(-dist_sq / (2.0 * spatial_sigma * spatial_sigma))
+        mass = raw_w.sum()
+        if mass <= 0.0:
+            continue
+        probs = raw_w / mass
+
+        n_take = min(max_in_degree, len(candidates))
+        idx = rng.choice(len(candidates), size=n_take, replace=False, p=probs)
+        for i in idx:
+            pairs.append((int(candidates[int(i)]), post_id))
+    return pairs
+
+
 def _stable_fold(seed: Any) -> int:
     """Deterministic 31-bit fold value from a weight-spec ``seed``.
 
@@ -341,6 +438,14 @@ def compile_connection_rules(
         If False (default), self-edges (pre == post) are dropped.
     artifacts:
         Optional mapping ``array_name -> ndarray`` for ``artifact_ref`` weights.
+
+    A connection rule may set ``max_in_degree`` (int) instead of
+    ``probability`` to sample via :func:`_candidate_pairs_localized`: a
+    constant per-post-neuron in-degree cap with spatially-local, Gaussian
+    distance-weighted sampling (``spatial_sigma``, default 0.1, same units as
+    neuron ``x``/``y``/``z``) rather than a flat O(n_pre*n_post) density
+    target -- see plans.json item localized-distance-limited-connectivity-rule.
+    Requires every selected neuron row to carry ``x``/``y``/``z``.
     """
     artifacts = dict(artifacts or {})
     jdtype = jnp.float64 if (dtype == "float64" and bool(jax.config.read("jax_enable_x64"))) else jnp.float32
@@ -390,9 +495,22 @@ def compile_connection_rules(
 
         mech_idx = _resolve_mechanism(rule.get("mechanism"), mech_index, rname)
         rkey = jax.random.fold_in(base_key, rule_id)
-        pairs = _candidate_pairs(
-            pre_ids, post_ids, probability=rule.get("probability"), allow_self=rule_self, key=rkey
-        )
+        max_in_degree = rule.get("max_in_degree")
+        if max_in_degree is not None:
+            neuron_xyz = {
+                int(row["neuron_id"]): np.asarray([row["x"], row["y"], row["z"]], dtype=float)
+                for row in neurons
+            }
+            pairs = _candidate_pairs_localized(
+                pre_ids, post_ids, neuron_xyz,
+                max_in_degree=int(max_in_degree),
+                spatial_sigma=float(rule.get("spatial_sigma", 0.1)),
+                allow_self=rule_self, key=rkey,
+            )
+        else:
+            pairs = _candidate_pairs(
+                pre_ids, post_ids, probability=rule.get("probability"), allow_self=rule_self, key=rkey
+            )
         pre_pos = {nid: i for i, nid in enumerate(pre_ids)}
         post_pos = {nid: i for i, nid in enumerate(post_ids)}
         weights = _edge_weights(
@@ -412,6 +530,7 @@ def compile_connection_rules(
             "n_edges": len(pairs),
             "mechanism": rule.get("mechanism"),
             "probability": rule.get("probability"),
+            "max_in_degree": rule.get("max_in_degree"),
             "sign": rule.get("sign"),
             "control_key": rule.get("control_key"),
             "status": "compiled",

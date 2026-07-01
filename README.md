@@ -170,7 +170,7 @@ Per-neuron-subset stimulus targeting (e.g. drive only L4 E cells on one event)
 goes through a per-event `target_indices` key on the event dict passed to
 `StimulusSchedule(events=...)`, built from
 `model.neuron_table()` — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)
-§ "Two paths to a laminar run" and the
+§ "Two (now three) paths to a laminar run" and the
 [Objective Grammar](https://jaxfne.readthedocs.io/en/latest/guides/objective_grammar/)
 guide for the full pipeline this feeds into. Worked example end to end:
 [`tutorials/jaxfne_v040_continuous_omission_oddball.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb).

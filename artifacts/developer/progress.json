@@ -489,7 +489,9 @@
       "score": 88,
       "tbi": [],
       "tbd": [
-        "No distance-decay/radius-limited connectivity rule exists -- the only randomized rule ('probability') is flat Erdos-Renyi (n_target = probability * n_pre * n_post), which scales as O(N^2) and is memory-catastrophic at N=100k-1M (a flat 5% at N=1M implies 50B edges / ~1TB and ~50,000 synapses/neuron, not biologically real). Needs a new rule targeting constant in-degree with spatial locality. Tracked in plans.json item localized-distance-limited-connectivity-rule, not yet built."
+        "IMPLEMENTED 2026-07-01: added _candidate_pairs_localized (spatial grid-bucketed, Gaussian-distance-weighted, constant per-post max_in_degree cap) and wired it into compile_connection_rules via a rule['max_in_degree'] field. Verified at N=200/500: cap always exactly respected, spatial_sigma genuinely controls mean edge distance (0.05->0.22, 0.20->0.34, 0.80->0.95). N=100k timing/memory check in progress -- the per-post-neuron Python loop with individual jax.random.choice calls may not scale well (each call has JAX dispatch overhead); needs verification before considered production-ready for the 100k-1M cortical column plan.",
+        "FULLY WIRED 2026-07-01: Configuration.connections(max_in_degree=..., spatial_sigma=...) now compiles into real, live simulation edges at construct() time (recurrent_backend='edge_list'), verified end-to-end at N=100 (cap exactly respected, real spikes, finite signals). Required 2 supporting fixes in jaxfne/core.py: (1) Configuration.connections() signature gained max_in_degree/spatial_sigma params (mutually exclusive with probability=); (2) _compile_mechanism_aware_connection_rules/_construct_compile_connections didn't thread neuron x/y/z positions through at all -- construct()-time connection compilation built neuron_rows WITHOUT positions, causing an immediate KeyError('x') the first time max_in_degree was used via the real construct() path (only caught because this session tested the full path, not just compile_connection_rules() in isolation). Fixed by threading `positions` through the call chain.",
+        "PERFORMANCE FIX 2026-07-01: _candidate_pairs_localized's grid-neighborhood candidate pool scales with local neuron DENSITY, not N or max_in_degree -- at fixed column volume, N=100k gives ~40,000 candidates/neuron vs ~tens at N=500 (same spatial_sigma), because density is 200-500x higher. This made construct() take >20 min (killed, unfinished) at N=100k before the fix. Fixed via a _LOCALIZED_CANDIDATE_POOL_CAP=500 uniform pre-subsample before the expensive Gaussian-weighted without-replacement draw, and switched sampling from jax.random to numpy (host-side/non-traced code, no reason to pay JAX per-call dispatch overhead 100k times). Verified: construct() at N=100k, cap=100 now takes 216s (down from >20min); simulate() 100 steps at N=100k takes 5.01s (segment_sum kernel was never the bottleneck). Real edges: 10,010,028 (expected ~10,000,000 + ~10,028 stray edges from an unrelated p_connect=1e-6 auto-connectivity leak -- 1e-6*100000^2 is NOT negligible at this N; use p_connect<=1e-9 for genuinely-negligible auto-connectivity at N=100k). max in-degree observed 104 (slightly over the 100 cap) due to that same leak, not a bug in the capping logic itself (verified exact at small N)."
       ],
       "warnings": [
         "compile_connection_rules_jax (the tensorized/jit variant) builds a dense n_pre x n_post grid (jnp.tile + ravel) internally before masking -- contradicts the file-level docstring claim of sparse-first/never-materializes-dense; only the host-side compile_connection_rules() actually avoids the dense mask. Not covered by the test files found (test_connection_rule_compile_v0330.py etc. only exercise the host-side path).",
@@ -4671,6 +4673,122 @@
       "last_verified": "2026-07-01",
       "evidence": "F-017 row corrected in-place 2026-07-01 to match the confirmed sweep result and the K_ctrl dead-code finding.",
       "status": "done"
+    },
+    {
+      "path": "jaxfne/core.py::Configuration.population",
+      "purpose": "Configuration.population(N, neurons={...}) fluent verb for per-layer neuron counts (jaxfne-config canonical column builder).",
+      "score": 90,
+      "tbi": [],
+      "tbd": [
+        "Confirmed via reproduction 2026-07-01: L4's hardcoded _SUITE2_LAYER_CELL_TYPES_V1 default (E:0.25,PV:0.45,SST:0.15,VIP:0.15) combined with Python banker's rounding at N=2 gives exactly the observed ['PV','VIP'] bug -- root cause fully explained, not just worked around."
+      ],
+      "warnings": [
+        "Only reproduced at N=2 with a single named canonical layer ('L4'); not yet checked at other small N or non-canonical layer names -- may be narrower or broader than stated."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "Fixed _area_layer_cell_type_map (jaxfne/core.py) to fall back to a broadcast of metadata['cell_types'] before the hardcoded suite2 default. Repro: Configuration().geometry(layer_thickness={'L4':1.0}).population(N=2, neurons={'L4':2}).cell_types({'E':0.5,'PV':0.5})... -> neuron_table() cell_types now ['E','PV'] (was ['PV','VIP']). Regression: python3 -m pytest tests/test_configuration_geometry_population_interarea.py tests/test_suite_no2_upgrade.py tests/test_multi_area_source_projector.py tests/test_multi_area_emitter_runtime.py -q -> 51 passed.",
+      "status": "done"
+    },
+    {
+      "path": "README.md",
+      "purpose": "Public-facing top-level readme: install, object grammar, NeuronalTensor/Configuration workflows, canonical cortex, 3D viewer, Jaxley interop, tune/manifest, checkout validation.",
+      "score": 98,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Every code example run end-to-end directly (not just import-checked): NeuronalTensor+RuntimeConfiguration workflow, inline circuit + HDP runtime override, Configuration fluent workflow, canonical-cortex build_laminar_column/build_multi_area_columns, the full adjustable-structure block (layer_fractions/layer_cell_type_fractions/.connections/.homeostasis/.plasticity), visualize_network_3d, Jaxley interop (JaxleyBridge.simulate), model.tune()->result.model, jtfne.manifest(). All referenced local files/paths exist (examples/08_neuronal_tensor_first.py, tutorials/*.ipynb, docs/api/neuronal_tensor.md, docs/migration_guide.md, docs/guides/{configuration_grammar,jaxley_interop}.md, AGENTS.md, LICENSE, both audit scripts). All 5 'Checkout validation' commands pass: compileall, pytest (2696 passed elsewhere this session), audit_notebooks_and_assets.py --check, audit_notebook_grammar.py --check, mkdocs build --strict (all exit 0). pyproject.toml version (0.4.4) matches jaxfne.__version__. Fixed one real drift: README's AGENTS.md cross-reference said section 'Two paths to a laminar run', but the actual current heading is 'Two (now three) paths to a laminar run' -- corrected in-place.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/core.py::RuntimeConfig.dtype + Model.with_hdp_initial_state",
+      "purpose": "bf16-quantization preconditions: RuntimeConfig.dtype validation/bfloat16 support; Model.with_hdp_initial_state dtype-respecting cast.",
+      "score": 90,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "RuntimeConfig(dtype='banana') now raises ValueError; RuntimeConfig(dtype='bfloat16').jnp_dtype == jax.numpy.bfloat16; with_hdp_initial_state casts H0/w0 via _runtime_config_from_metadata(self.cfg.metadata).jnp_dtype instead of hardcoded float32. Full suite: python3 -m pytest tests/ -q -> 2696 passed, 74 skipped, 9 xfailed, 0 failed (1166s). Independently re-run 2026-07-01: 2696 passed, 74 skipped, 9 xfailed, 0 failed (1184s) -- matches prior run exactly.",
+      "status": "done"
+    },
+    {
+      "path": "scripts/cortical_column_localized_workflow.py",
+      "purpose": "N-parametrized cylindrical cortical column (6 layers, 4 cell types, capped/localized connectivity) with the 7-step simulate->vis->stats workflow.",
+      "score": 85,
+      "tbi": [
+        "HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this column has not been designed or validated. Blocked on plans.json item hdp-universal-default-kernel-consolidation's formula-design work.",
+        "geometry='uniform3d' vs 'laminar' mutual exclusion in build_laminar_column is a real API gap (cylinder XY footprint vs preserved layer label, can't have both yet) -- worked around here by reconstructing layer labels from z-position + layer_fractions, not fixed upstream."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 scripts/cortical_column_localized_workflow.py -> runs cleanly at N=2000, all 6 layers x 4 cell types present with correct per-layer E:I composition, avg_synapses ~100 (98.58-100.00) matching the max_in_degree=100 cap. N=100k construct()/simulate() timing separately verified (216s / 5.01s, 10.0M edges) via the same build_config()/connections() path in jaxfne/connectivity.py.",
+      "status": "done"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
+      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "score": 0,
+      "tbi": [
+        "Continuous adaptation \u00e9tude -- needs a real NeuronalTensor/Model run demonstrating continuous drive adaptation (not an oddball/omission paradigm; check jaxfne.homeostasis or HDP mechanisms for the adaptation angle instead of jaxfne.paradigm). Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
+      "status": "open"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb",
+      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "score": 0,
+      "tbi": [
+        "Local oddball \u00e9tude -- wire to general_sequential_oddball_paradigm (jaxfne/paradigm.py, already implemented, 88/100, 38/38 tests passing standalone) on a real NeuronalTensor/Model run, matching the pattern that already fixed \u00e9tude 6/7 (v0.4.4 changelog). Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
+      "status": "open"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
+      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "score": 0,
+      "tbi": [
+        "Global/local oddball \u00e9tude -- wire to HierarchicalOddballParadigm (jaxfne/paradigm.py, already implemented) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
+      "status": "open"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb",
+      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "score": 0,
+      "tbi": [
+        "Omission-local \u00e9tude -- wire to omission_oddball_paradigm (jaxfne/paradigm.py, already implemented) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
+      "status": "open"
+    },
+    {
+      "path": "tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
+      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "score": 0,
+      "tbi": [
+        "Omission-global-cooperative \u00e9tude -- wire to coop_omission_oddball_paradigm (jaxfne/paradigm.py, already implemented, exercised by tests/test_coop_v035.py) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      ],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-01",
+      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
+      "status": "open"
     }
   ]
 }
