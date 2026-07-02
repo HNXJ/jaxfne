@@ -1082,8 +1082,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
     backward compatible with the income/spending-only kernel above).
     ``barrier_eps`` floors the ``(H_i-H_min)``/``(H_max-H_i)`` denominators
     to avoid a divide-by-zero singularity at the exact clamp boundary.
-    For backward compatibility, ``K_ctrl`` remains in the signature but is
-    now a no-op (use ``rho_passive`` instead).
+    ``K_ctrl`` is a live linear restoring term ``K_ctrl*(1-H_i)`` (REVIVED
+    2026-07-01, F-017/F-019: previously dead code -- ``rho_passive/H_i**2``
+    alone is >=0 everywhere and cannot pull ``H_i`` back down from above
+    ``H*=1``, confirmed via a full 20s/5-seed sweep failing at all 15
+    candidates; ``K_ctrl*(1-H_i)`` is genuinely two-sided and closes that
+    gap). ``K_ctrl=0.0`` (default) is the null control -- no behavior change
+    unless explicitly set.
 
     ``i`` indexes the postsynaptic neuron in the weight ODEs (matching the
     existing homeostatic-plasticity sign convention elsewhere in this
@@ -1159,8 +1164,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             not scaled by tau_i (default 0.0)
         K_HDP: global plasticity gain shared by both weight ODEs (default
             1.0; 0.0 disables HDP, negative is anti-homeostatic)
-        K_ctrl: deprecated; kept for backward compatibility but is now a no-op.
-            Use rho_passive instead for passive-income restoring force.
+        K_ctrl: linear restoring-force gain, dH/dt += K_ctrl*(1-H_i) (default
+            0.0, null control). Two-sided: pulls H_i up when below 1, down
+            when above -- unlike rho_passive (always >=0, floor-only rescue).
         rho_passive: passive-income gain on H_i (default 0.0; positive values
             add rho_passive/H_i**2 to dH_i/dt, pulling H_i toward 1 without
             an explicit linear controller)
@@ -1244,7 +1250,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     delta_arr = jnp.asarray(delta, dtype=jdtype)
     C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
-    K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Deprecated; no-op in update
+    K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Live linear restoring term (revived 2026-07-01)
     rho_passive_arr = jnp.asarray(rho_passive, dtype=jdtype)
     barrier_c_arr = jnp.asarray(barrier_c, dtype=jdtype)
     barrier_d_arr = jnp.asarray(barrier_d, dtype=jdtype)
@@ -1319,8 +1325,17 @@ def simulate_edge_recurrent_izhikevich_hdp(
         dH_income = alpha_arr * syn + beta_arr
         dH_rate = -gamma_arr * H * prev_spikes  # H-taxed: output spending scaled by resource level
         dH_weight = -delta_arr * W_burden
-        dH_passive = rho_passive_arr / (H * H)  # Passive income: stronger at low H
-        dH = dH_income + dH_rate + dH_weight + dH_passive + barrier_force
+        dH_passive = rho_passive_arr / (H * H)  # Passive income: stronger at low H -- NOTE this
+        # term is >=0 everywhere H>0, so it can cushion H near the floor but can NEVER pull H back
+        # down from above H*=1 on its own. Root-caused 2026-07-01 (F-017/F-019): with gamma=delta=0
+        # (DEFAULT_HDP's own base kwargs), dH_income/dH_rate/dH_weight/dH_passive are ALL >=0, so
+        # nothing opposes upward drift except barrier_force very close to H_max -- confirmed via the
+        # full rho_passive sweep (scripts/hdp_v2_rho_sweep.py): H_max_obs pinned near H_max=10 across
+        # nearly the entire swept range, at every rho_passive value, because H is only ever stopped by
+        # the hard clip, never by a real restoring force. K_ctrl_arr*(1-H) is genuinely two-sided
+        # (positive below H*=1, negative above) -- reviving it as a live term below closes this gap.
+        dH_ctrl = K_ctrl_arr * (1.0 - H)  # Revived 2026-07-01 -- was dead code (computed, unused).
+        dH = dH_income + dH_rate + dH_weight + dH_passive + dH_ctrl + barrier_force
         H_next = jnp.clip(H + (dt / tau_i) * dH, H_min_arr, H_max_arr)
 
         # (3) Update plastic weights from the updated H_i using the selected rule family.

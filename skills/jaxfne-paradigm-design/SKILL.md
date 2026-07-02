@@ -133,6 +133,36 @@ If you need specific int codes per label, set them after the call:
 `paradigm = replace(paradigm, event_codes={...})` (or just rely on the
 auto-derived ones — most readouts key on `label`/`onset_ms`, not the int code).
 
+## Known footguns (verified 2026-07-01 — read before wiring a new paradigm into `simulate()`)
+
+1. **`simulate(paradigm=...)` silently no-ops on the wrong type.**
+   `Model._resolve_stimulus_schedule` only recognizes `StimulusSchedule` and
+   `ParadigmCondition` — anything else (a bare list of event dicts, a raw
+   `Paradigm`) resolves to `None` with **no error or warning**. Always pass
+   a `StimulusSchedule` (built by hand or via `jaxfne.core.stimulus_schedule(...)`)
+   or a `ParadigmCondition` (e.g. `paradigm.conditions[0]` from any builder
+   above) — never the bare `Paradigm` object itself, and never a plain list.
+2. **`stimulus_schedule()`'s drive heuristic isn't stimulus-aware.**
+   `is_drive = not e.is_omission and e.onset_ms is not None` — this injects
+   the default `drive_amplitude` (5.0) into *every* non-omission event,
+   including pure timing markers like `trial_start`/`post_stimulus`/
+   `post_omission` that `omission_oddball_paradigm` emits, not just the
+   labeled stimulus. Harmless for a paired same-marker-structure contrast
+   (both conditions share the markers, so it cancels) but will corrupt any
+   comparison across conditions with differently-timed markers. Set
+   `metadata={"drive_amplitude": 0.0}` on marker-only events if you need
+   them genuinely silent (`coop_omission_oddball_paradigm` already does
+   this correctly for its own omitted-pulse events — copy that pattern).
+3. **`HierarchicalOddballParadigm` (in `jaxfne/sanity_delta.py`, not
+   `paradigm.py`) is a different, heavier tool than it sounds.** It's a
+   fixed-AAAB task-schedule + PFC-fixation-gate + reward-eligibility
+   framework (`SanityDeltaConfig`, `BehaviorGate`), not a lightweight
+   paradigm builder. Don't reach for it just because a task is named
+   "hierarchical" or "global/local" — check `jaxfne-worker-context-router`
+   or just verify the class's actual fields before assuming it fits; for a
+   simple global/local oddball étude, `general_sequential_oddball_paradigm`
+   with 4 labeled conditions (LSGS/LDGD/LDGS/LSGD-style) is the right tool.
+
 ## Truth-gate reminder
 
 Paradigms are declarative trial structure only — no claim about behavioral

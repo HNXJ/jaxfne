@@ -142,6 +142,40 @@ edge-list backend only, not general-purpose across backends).
 (reverse converter, does not exist), `tensor_to_graph` (internal flattening
 pass, not extracted from `construct()`). Not a public API yet.
 
+## Construct-once / checkpoint / reload (verified 2026-07-01 — 2 real landmines)
+
+`construct()` is the expensive step at scale (231s at N=100k vs. ~5s to
+simulate 100 steps) — a checkpoint/reload pattern avoids paying it twice, but
+two non-obvious things WILL silently corrupt the reload if skipped:
+
+1. **A treedef from a differently-sized dummy `construct()` is NOT a safe
+   substitute for the real model's treedef.** `IzhikevichParams.labels`/
+   `layer_labels` are pytree **aux data** (length N, baked into the treedef
+   itself, not leaves) — `jax.tree_util.tree_unflatten(dummy_treedef,
+   real_leaves)` does not error, it silently produces a model whose aux
+   metadata (labels) mismatches its array lengths, and `simulate()` then
+   produces different-but-still-finite output with no error. Caught by a
+   real bit-identical-output check that failed, not by inspection.
+2. **`construct()` mutates `Configuration.metadata` in place** (adds a
+   `recurrent_backend` key, flips `circuit.connections[*].status`) —
+   reusing a pre-construct `cfg`'s metadata after a checkpoint reload
+   reproduces a *different*, still-finite `V_m` trace, not an error.
+
+**The safe pattern** (verified bit-identical across separate processes, at
+N=2000 and N=20000): persist `model.params["emitter"]`/`edge_list`/
+`positions`'s raw arrays + their non-array aux fields (`labels`,
+`layer_labels`, calibration strings) + `model.cfg.metadata` explicitly, then
+reconstruct the dataclasses **directly** (`IzhikevichParams(...)`,
+`EdgeList(...)`) rather than via any `tree_unflatten` shortcut — see
+`scripts/cortical_column_localized_workflow.py::save_column`/`load_column`
+for the reference implementation. Full detail: `skills/FRICTIONS_STACK.md`
+F-020/F-021.
+
+`jaxfne/_pipeline.py::checkpoint_state`/`restore_state` (above) predate this
+fix and only save `model.params`/`model.static` — if reusing them directly,
+also persist `model.cfg.metadata` yourself and reconstruct via a fresh
+`Model` with **matching N** (per their own docstring), not a dummy.
+
 ## Related skills
 
 - `jaxfne-config` — the `Configuration` fluent-builder path

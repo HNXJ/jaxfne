@@ -118,6 +118,41 @@ def test_checkpoint_restore_roundtrip(tmp_path):
         assert jnp.allclose(jnp.asarray(restored), jnp.asarray(original))
 
 
+def test_checkpoint_restore_roundtrip_preserves_bfloat16():
+    # bf16 leaves are upcast to float32 for storage (np.savez/np.load
+    # silently mangle raw ml_dtypes bfloat16 arrays into void bytes on
+    # read-back with no error -- confirmed 2026-07-01) and must be cast
+    # back down on restore, not left as float32 or lost.
+    import dataclasses
+    import tempfile
+
+    model = _small_model()
+    emitter = model.params["emitter"]
+    bf16_emitter = dataclasses.replace(
+        emitter,
+        a=emitter.a.astype(jnp.bfloat16),
+        v0=emitter.v0.astype(jnp.bfloat16),
+    )
+    params_bf16 = dict(model.params)
+    params_bf16["emitter"] = bf16_emitter
+    model_bf16 = dataclasses.replace(model, params=params_bf16)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        ckpt_path = Path(tmp) / "ckpt_bf16"
+        _pipeline.checkpoint_state(model_bf16, ckpt_path)
+        leaves, _static = _pipeline.restore_state(ckpt_path)
+
+    original_leaves = jax.tree_util.tree_leaves(model_bf16.params)
+    assert len(leaves) == len(original_leaves)
+    for restored, original in zip(leaves, original_leaves):
+        if hasattr(original, "dtype"):
+            assert restored.dtype == original.dtype, (restored.dtype, original.dtype)
+            assert jnp.array_equal(
+                jnp.asarray(restored, dtype=jnp.float32),
+                jnp.asarray(original, dtype=jnp.float32),
+            )
+
+
 def test_initialize_static_state_matches_model_static():
     model = _small_model()
     static_copy = _pipeline.initialize_static_state(model)

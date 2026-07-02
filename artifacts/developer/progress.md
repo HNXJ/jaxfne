@@ -2,23 +2,13 @@
 
 | path | score | status | tbi | tbd | last_verified |
 |---|---|---|---|---|---|
-| .legacy/internal_docs/scratch_archive/build_notebook.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/scratch_archive/generate_suite_no_2.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v030_docs_audit.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v030_plotly_artifacts.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v030_tutorial_structure.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v031_single_neuron_tutorial.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v032_parameter_sweep_tutorial.py |  | unreviewed |  |  |  |
-| .legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py |  | unreviewed |  |  |  |
 | examples/00_generalized_izhikevich_3d_smoke.py |  | unreviewed |  |  |  |
 | examples/00_minimal_column.py |  | unreviewed |  |  |  |
 | examples/01_generalized_readout_smoke.py |  | unreviewed |  |  |  |
 | examples/01_source_field_manifest.py |  | unreviewed |  |  |  |
 | examples/02_generalized_vis_smoke.py |  | unreviewed |  |  |  |
-| examples/02_omission_scaffold.py |  | unreviewed |  |  |  |
 | examples/02_spectrolaminar_oddball_scaffold.py |  | unreviewed |  |  |  |
 | examples/03_jaxley_bridge_smoke.py |  | unreviewed |  |  |  |
-| examples/03_objective_and_tune_smoke.py |  | unreviewed |  |  |  |
 | examples/03_single_neuron_multimodal_probe.py |  | unreviewed |  |  |  |
 | examples/04_blackbox_tuning_loop.py |  | unreviewed |  |  |  |
 | examples/04_two_neuron_ei_multimodal.py |  | unreviewed |  |  |  |
@@ -31,7 +21,6 @@
 | examples/v032_single_neuron_parameter_sweep.py |  | unreviewed |  |  |  |
 | examples/v033_two_neuron_ei_multimodal.py |  | unreviewed |  |  |  |
 | jaxfne/tutorial_utils.py |  | unreviewed |  |  |  |
-| scripts/audit_notebook_grammar.py |  | unreviewed |  |  |  |
 | scripts/audit_notebooks_and_assets.py |  | unreviewed |  |  |  |
 | scripts/benchmark_jaxfne.py |  | unreviewed |  |  |  |
 | scripts/benchmark_scan_backends.py |  | unreviewed |  |  |  |
@@ -66,14 +55,12 @@
 | scripts/generate_operator_inventory.py |  | unreviewed |  |  |  |
 | scripts/generate_tutorial_figures.py |  | unreviewed |  |  |  |
 | scripts/hdp_1000_laminar_column_boosted.py |  | unreviewed |  |  |  |
-| scripts/hdp_1000_neuronal_tensor_column.py |  | unreviewed |  |  |  |
 | scripts/hdp_100_stability_sweep.py |  | unreviewed |  |  |  |
 | scripts/hdp_bifurcation_trace.py |  | unreviewed |  |  |  |
 | scripts/hdp_dH_component_trace.py |  | unreviewed |  |  |  |
 | scripts/hdp_fi_calibration_curves.py |  | unreviewed |  |  |  |
 | scripts/hdp_gain_ratio_sweep.py |  | unreviewed |  |  |  |
 | scripts/hdp_small_scale_balance_sweep.py |  | unreviewed |  |  |  |
-| scripts/hdp_suite2_visualizations.py |  | unreviewed |  |  |  |
 | scripts/hdp_synaptic_channel_trace.py |  | unreviewed |  |  |  |
 | scripts/make_delta_test_01_report.py |  | unreviewed |  |  |  |
 | scripts/release/assert_release_freeze.py |  | unreviewed |  |  |  |
@@ -88,7 +75,6 @@
 | scripts/run_tutorial_smoke.py |  | unreviewed |  |  |  |
 | scripts/snapshot_public_api.py |  | unreviewed |  |  |  |
 | scripts/spectrolaminar_drive_sweep_l23_l4_l56.py |  | unreviewed |  |  |  |
-| scripts/spectrolaminar_tfne_izhikevich_pipeline.py |  | unreviewed |  |  |  |
 | scripts/sync_docs_version.py |  | unreviewed |  |  |  |
 | scripts/sync_release_metadata.py |  | unreviewed |  |  |  |
 | scripts/tutorial_plotly_utils.py |  | unreviewed |  |  |  |
@@ -159,7 +145,6 @@
 | tests/test_interactive_tutorial_artifacts_v0221.py |  | unreviewed |  |  |  |
 | tests/test_is_valid_signal.py |  | unreviewed |  |  |  |
 | tests/test_jaxley_bridge.py |  | unreviewed |  |  |  |
-| tests/test_jaxley_emitter_bridge_e2e.py |  | unreviewed |  |  |  |
 | tests/test_jaxley_optional_dependency.py |  | unreviewed |  |  |  |
 | tests/test_jaxley_trace_bridge.py |  | unreviewed |  |  |  |
 | tests/test_jit_equivalence_v036.py |  | unreviewed |  |  |  |
@@ -297,26 +282,103 @@
 | tests/test_vis_suite.py |  | unreviewed |  |  |  |
 | tests/test_with_emitter_parameters.py |  | unreviewed |  |  |  |
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
-| tests/test_vis_smoke_all.py | 0 | open | File does not exist yet -- to be created per the shape described in plans.json item vis-smoke-test-coverage-gap: one (mo |  | 2026-07-01 |
-| jaxfne/units.py | 0 | open | File does not exist yet (confirmed via ls 2026-07-01). To be created per plans.json item bf16-quantized-tfne-izhikevich- |  | 2026-07-01 |
+| AGENTS.md |  | unreviewed |  |  |  |
+| docs/BASELINE_DRIVE_REFERENCE.md |  | unreviewed |  |  |  |
+| docs/CORTEX_CALIBRATION_CHECKLIST.md |  | unreviewed |  |  |  |
+| docs/HDP_REPORT.md |  | unreviewed |  |  |  |
+| docs/NEURON_IO_CHARACTERIZATION.md |  | unreviewed |  |  |  |
+| docs/STDP_CLOSED_LOOP_REPORT.md |  | unreviewed |  |  |  |
+| docs/STDP_GLOBAL_SCALE_REPORT.md |  | unreviewed |  |  |  |
+| docs/STDP_HOMEOSTATIC_REPORT.md |  | unreviewed |  |  |  |
+| docs/STDP_LOWRATE_REGIME_REPORT.md |  | unreviewed |  |  |  |
+| docs/STDP_REAL_TEST_REPORT.md |  | unreviewed |  |  |  |
+| docs/_generated/operator_inventory.md |  | unreviewed |  |  |  |
+| docs/_generated/version.md |  | unreviewed |  |  |  |
+| docs/api/bridges.md |  | unreviewed |  |  |  |
+| docs/api/core.md |  | unreviewed |  |  |  |
+| docs/api/emitters.md |  | unreviewed |  |  |  |
+| docs/api/fields.md |  | unreviewed |  |  |  |
+| docs/api/index.md |  | unreviewed |  |  |  |
+| docs/api/neuronal_tensor.md |  | unreviewed |  |  |  |
+| docs/api/objectives.md |  | unreviewed |  |  |  |
+| docs/api/plasticity.md |  | unreviewed |  |  |  |
+| docs/api/probes.md |  | unreviewed |  |  |  |
+| docs/api/runtime.md |  | unreviewed |  |  |  |
+| docs/api/sharding.md |  | unreviewed |  |  |  |
+| docs/api/solvers.md |  | unreviewed |  |  |  |
+| docs/api/tensor_operators.md |  | unreviewed |  |  |  |
+| docs/api/validation.md |  | unreviewed |  |  |  |
+| docs/changelog.md |  | unreviewed |  |  |  |
+| docs/ci_policy.md |  | unreviewed |  |  |  |
+| docs/citation.md |  | unreviewed |  |  |  |
+| docs/colab.md |  | unreviewed |  |  |  |
+| docs/computation_basis.md |  | unreviewed |  |  |  |
+| docs/conservation_proxy_diagnostics.md |  | unreviewed |  |  |  |
+| docs/contributing.md |  | unreviewed |  |  |  |
+| docs/faq.md |  | unreviewed |  |  |  |
+| docs/guides/calibration.md |  | unreviewed |  |  |  |
+| docs/guides/configuration_grammar.md |  | unreviewed |  |  |  |
+| docs/guides/hdp.md |  | unreviewed |  |  |  |
+| docs/guides/homeostasis.md |  | unreviewed |  |  |  |
+| docs/guides/index.md |  | unreviewed |  |  |  |
+| docs/guides/jaxley_interop.md |  | unreviewed |  |  |  |
+| docs/guides/objective_grammar.md |  | unreviewed |  |  |  |
+| docs/guides/operator_composition.md |  | unreviewed |  |  |  |
+| docs/guides/output_bundles.md |  | unreviewed |  |  |  |
+| docs/guides/plotly_visualization.md |  | unreviewed |  |  |  |
+| docs/guides/poisson_admissibility.md |  | unreviewed |  |  |  |
+| docs/guides/probe_operators.md |  | unreviewed |  |  |  |
+| docs/guides/showcases.md |  | unreviewed |  |  |  |
+| docs/guides/tensor_field_workflows.md |  | unreviewed |  |  |  |
+| docs/index.md |  | unreviewed |  |  |  |
+| docs/install.md |  | unreviewed |  |  |  |
+| docs/interactive_visualizations.md |  | unreviewed |  |  |  |
+| docs/limitations_and_future_plans.md |  | unreviewed |  |  |  |
+| docs/mathematical_glossary_flow.md |  | unreviewed |  |  |  |
+| docs/migration_guide.md |  | unreviewed |  |  |  |
+| docs/notes/biophysical_model_comparison.md |  | unreviewed |  |  |  |
+| docs/operator_doctrine.md |  | unreviewed |  |  |  |
+| docs/performance_baseline.md |  | unreviewed |  |  |  |
+| docs/quickstart.md |  | unreviewed |  |  |  |
+| docs/reference/glossary_of_methods.md |  | unreviewed |  |  |  |
+| docs/releases/v0.2.0.md |  | unreviewed |  |  |  |
+| docs/releases/v0.2.1.md |  | unreviewed |  |  |  |
+| docs/releases/v0.2.10.md |  | unreviewed |  |  |  |
+| docs/releases/v0.2.18.md |  | unreviewed |  |  |  |
+| docs/releases/v0.2.3.md |  | unreviewed |  |  |  |
+| docs/releases/v0.3.4.md |  | unreviewed |  |  |  |
+| docs/source_field_equations.md |  | unreviewed |  |  |  |
+| docs/tensor_electromagnetics_scope.md |  | unreviewed |  |  |  |
+| docs/tensor_network_ancestry.md |  | unreviewed |  |  |  |
+| docs/tutorial_figures.md |  | unreviewed |  |  |  |
+| docs/tutorials/01_single_neuron_multimodal.md |  | unreviewed |  |  |  |
+| docs/tutorials/02_two_neuron_ei.md |  | unreviewed |  |  |  |
+| docs/tutorials/03_network_100_ei.md |  | unreviewed |  |  |  |
+| docs/tutorials/04_v1_column.md |  | unreviewed |  |  |  |
+| docs/tutorials/05_v1_pfc_dual_column.md |  | unreviewed |  |  |  |
+| docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md |  | unreviewed |  |  |  |
+| docs/tutorials/06_v036_100_neuron_ei_population.md |  | unreviewed |  |  |  |
+| docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md |  | unreviewed |  |  |  |
+| docs/tutorials/07_v037_source_bookkeeping.md |  | unreviewed |  |  |  |
+| docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md |  | unreviewed |  |  |  |
+| docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md |  | unreviewed |  |  |  |
+| docs/tutorials/08_v038_lfp_csd_readout.md |  | unreviewed |  |  |  |
+| docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md |  | unreviewed |  |  |  |
+| docs/tutorials/10_v0313_omission_oddball.md |  | unreviewed |  |  |  |
+| docs/tutorials/11_multi_laminar_cortical_agsdr.md |  | unreviewed |  |  |  |
+| docs/tutorials/12_izhikevich_single_emitter_explorer.md |  | unreviewed |  |  |  |
+| docs/tutorials/13_canonical_column_etude.md |  | unreviewed |  |  |  |
+| docs/tutorials/index.md |  | unreviewed |  |  |  |
+| docs/tutorials/notebook_standard.md |  | unreviewed |  |  |  |
+| docs/tutorials/tutorial_outputs.md |  | unreviewed |  |  |  |
+| docs/v047_refactor_audit.md |  | unreviewed |  |  |  |
 | tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb | 0 | open | Continuous adaptation étude -- needs a real NeuronalTensor/Model run demonstrating continuous drive adaptation (not an o |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 0 | open | Local oddball étude -- wire to general_sequential_oddball_paradigm (jaxfne/paradigm.py, already implemented, 88/100, 38/ |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 0 | open | Global/local oddball étude -- wire to HierarchicalOddballParadigm (jaxfne/paradigm.py, already implemented) on a real Ne |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb | 0 | open | Omission-local étude -- wire to omission_oddball_paradigm (jaxfne/paradigm.py, already implemented) on a real NeuronalTe |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 0 | open | Omission-global-cooperative étude -- wire to coop_omission_oddball_paradigm (jaxfne/paradigm.py, already implemented, ex |  | 2026-07-01 |
-| outputs/ff_fb_hypothesis_bundle/run_analysis.py | 15 | open | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-06-30 |
-| tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb | 40 | open | Never executed end-to-end this session or prior -- confirmed via empty local/etude3/ output dir. Notebook file exists (3 |  | 2026-07-01 |
-| jaxfne/hdp_network.py | 55 | open | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
-| local/verify_plotly_pipeline.py | 55 | open |  |  | 2026-06-30 |
-| tests/test_etude3_v1_spectrolaminar_1k.py | 55 | open | Blocked on the notebook actually being run -- self-skips (or only structurally checks) while local/etude3/ is empty. Exe |  | 2026-07-01 |
-| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 65 | open |  | rho_passive formula redesign (same open item as hdp_network.py F-019); CONFIRMED 2026-07-01 (code-level, not docstring): | 2026-07-01 |
-| scripts/hdp_v2_rho_sweep.py | 70 | done |  |  | 2026-07-01 |
-| local/gen_test_data_100n_1000ms.py | 70 | open |  |  | 2026-06-30 |
+| outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
+| scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| jaxfne/optim/core.py | 72 | open |  |  | 2026-06-30 |
-| jaxfne/_pipeline.py | 78 | open | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-01 |
-| jaxfne/optim/manifests.py | 78 | open |  |  | 2026-06-30 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
+| scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
+| scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/__init__.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
@@ -330,56 +392,63 @@
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/fields/proxy.py | 85 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
-| jaxfne/vis/hdp_diagnostics.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despit | 2026-06-30 |
-| jaxfne/vis/plasticity_viz.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code - | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/__init__.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|fi | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/figure0.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage). | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/figure1.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry). | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/figure2.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry). | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/figure3.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry). | 2026-06-30 |
-| jaxfne/vis/plotly/manuscript/figure4.py | 85 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry). | 2026-06-30 |
 | jaxfne/vis/plotly/network.py | 85 | reviewed |  | No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and tes | 2026-06-30 |
 | jaxfne/vis/tutorial_panels.py | 85 | reviewed | visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's  |  | 2026-06-30 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
-| scripts/cortical_column_localized_workflow.py | 85 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
+| jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-01 |
 | jaxfne/connectivity.py | 88 | unreviewed |  | IMPLEMENTED 2026-07-01: added _candidate_pairs_localized (spatial grid-bucketed, Gaussian-distance-weighted, constant pe | 2026-07-01 |
 | jaxfne/paradigm.py | 88 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sharding_utils.py | 88 | unreviewed |  | Full multi-device AGSDR integration is explicitly deferred per module docstring ("planned for v0.3.20+") -- correctly fe | 2026-06-30 |
-| jaxfne/vis/plotly/lfp.py | 88 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/vis/plotly/raster.py | 88 | unreviewed |  |  | 2026-06-30 |
+| jaxfne/vis/hdp_diagnostics.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despit | 2026-07-01 |
+| jaxfne/vis/plasticity_viz.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code - | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/__init__.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|fi | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/figure0.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage).; Coverage gap closed | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/figure1.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/figure2.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/figure3.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
+| jaxfne/vis/plotly/manuscript/figure4.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/spectral.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/export.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/neuronal_tensor.py | 90 | unreviewed |  | Layer.geometry distribution only supports uniform_random (_sample_local_positions raises NotImplementedError otherwise) | 2026-06-30 |
 | jaxfne/objectives.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/presets.py | 90 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/vis/exporters.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests | 2026-06-30 |
-| jaxfne/vis/plotly/connectivity.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.connectivity\|plot_connectivity' tests/ -> no hits against this specific | 2026-06-30 |
-| jaxfne/vis/plotly/csd.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.csd\|plot_csd' tests/ found no hits referencing this specific module's f | 2026-06-30 |
-| jaxfne/vis/plotly/dashboard.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-leve | 2026-06-30 |
-| jaxfne/vis/plotly/metrics.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.metrics\|plot_objective_history' tests/ -> no hits against this plotly s | 2026-06-30 |
-| jaxfne/vis/plotly/spectra.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule sp | 2026-06-30 |
-| jaxfne/vis/raster_arrays.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-le | 2026-06-30 |
-| jaxfne/vis/report_plots.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly expor | 2026-06-30 |
-| jaxfne/vis/tutorial_array_plots.py | 90 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_popul | 2026-06-30 |
 | tests/test_epv_2neuron_pipeline_smoke.py | 90 | done |  | 4 more configs from the matrix still not built: jaxley-HH parity (same connectivity, different intrinsic params), Izhike | 2026-07-01 |
 | jaxfne/core.py::Configuration.uniform3d | 90 | done |  |  | 2026-07-01 |
 | tests/test_ei_jaxley_izhikevich_parity.py | 90 | done |  | Config #2b (jaxley+HH via simulate_laminar_field, 5-contact LFP/CSD) not yet built -- staged in plans.json smart-test-ma | 2026-07-01 |
-| skills/FRICTIONS_STACK.md | 90 | done |  |  | 2026-07-01 |
 | jaxfne/core.py::Configuration.population | 90 | done |  | Confirmed via reproduction 2026-07-01: L4's hardcoded _SUITE2_LAYER_CELL_TYPES_V1 default (E:0.25,PV:0.45,SST:0.15,VIP:0 | 2026-07-01 |
 | jaxfne/core.py::RuntimeConfig.dtype + Model.with_hdp_initial_state | 90 | done |  |  | 2026-07-01 |
+| jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 90 | done | The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- che |  | 2026-07-01 |
+| tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
+| jaxfne/vis/plotly/lfp.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
+| jaxfne/vis/plotly/raster.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
+| tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 92 | done |  | Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not | 2026-07-01 |
+| scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
 | jaxfne/fields/diagnostics.py | 93 | unreviewed |  |  | 2026-06-30 |
+| jaxfne/vis/exporters.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests | 2026-07-01 |
+| jaxfne/vis/plotly/connectivity.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.connectivity\|plot_connectivity' tests/ -> no hits against this specific | 2026-07-01 |
+| jaxfne/vis/plotly/csd.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.csd\|plot_csd' tests/ found no hits referencing this specific module's f | 2026-07-01 |
+| jaxfne/vis/plotly/dashboard.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-leve | 2026-07-01 |
+| jaxfne/vis/plotly/metrics.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.metrics\|plot_objective_history' tests/ -> no hits against this plotly s | 2026-07-01 |
+| jaxfne/vis/plotly/spectra.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule sp | 2026-07-01 |
+| jaxfne/vis/raster_arrays.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-le | 2026-07-01 |
+| jaxfne/vis/report_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly expor | 2026-07-01 |
+| jaxfne/vis/tutorial_array_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_popul | 2026-07-01 |
 | jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/probes.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/io.py | 95 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/vis/script_reports.py | 95 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-06-30 |
+| skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-01 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
+| jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
 | README.md | 98 | done |  |  | 2026-07-01 |
+| jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
+| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
 | jaxfne/vis/network3d.py | 100 | reviewed |  |  | 2026-06-30 |
 | tests/test_public_api_snapshot_v034.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/util.py + tests/test_util_config_tensor.py | 100 | done |  |  | 2026-06-30 |

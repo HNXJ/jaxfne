@@ -51,13 +51,18 @@ DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT = {
     "E": 1.0, "PV": 0.8757734374999999, "SST": 0.06492187500000002, "VIP": 5.7509375,
 }
 
-# Verified long-term stable (20s, 5-seed gate, flat rates in-band, H pinned
-# ~1.0000-1.0029, weight_saturation_fraction~0.105). Freeze candidate for
-# 0.4.6 per project memory; tau_0_ms multiplies the per-neuron size**3 term
-# (cube law, 0.4.7: size=2.0 -> 8x tau_0_ms, larger neurons adapt slower).
-# Note (0.4.7 HDP v2 blocking F-017): rho_passive/H^2 restoring tested and
-# rejected — sweep revealed regime bifurcation (wild oscillation at rho<0.24,
-# neuron silencing at rho>=0.36; no tuning window). K_ctrl=5.0 remains canonical.
+# RE-VERIFIED 2026-07-01 (F-017/F-019 resolved): K_ctrl=5.0 below was already
+# the declared value, but K_ctrl was DEAD CODE until this pass -- computed and
+# never used in dH/dt, so this preset had ZERO active restoring force despite
+# looking configured. Root cause: rho_passive/H^2 is >=0 everywhere and cannot
+# pull H back down from above H*=1 (confirmed via the full rho_passive sweep,
+# scripts/hdp_v2_rho_sweep.py: 0/75 candidates passed). K_ctrl*(1-H) is a real
+# two-sided restoring term, now live in jaxfne/emitters.py. Re-verified at the
+# full 20s/5-seed gate with K_ctrl actually active: H_mean=1.0020+-0.0000,
+# H_std=0.0002 (tighter at 20s than at a 5s smoke check -- genuine convergence,
+# not slow drift), rate~10.8Hz, all 5 seeds pass. tau_0_ms multiplies the
+# per-neuron size**3 term (cube law: size=2.0 -> 8x tau_0_ms, larger neurons
+# adapt slower).
 DEFAULT_HDP = dict(
     K_HDP=0.01,
     tau_0_ms=200.0,

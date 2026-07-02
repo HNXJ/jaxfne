@@ -172,14 +172,28 @@ def checkpoint_state(model: Model, path: str | Path) -> Path:
     treedef ``str()`` serialization is not reversible. The pytree structure
     is instead recovered by the caller from a freshly built ``Model`` (see
     :func:`restore_state`), so no reconstruction logic lives on disk.
+
+    bfloat16 leaves are upcast to float32 before ``np.savez`` and the
+    original dtype name is recorded in the JSON sidecar for
+    :func:`restore_state` to cast back down. This is required, not a
+    defensive nicety -- confirmed 2026-07-01 that plain
+    ``np.savez``/``np.load`` silently mangles ml_dtypes' bfloat16 arrays
+    into raw void bytes (dtype ``|V2``) on read-back, with no error. The
+    float32 upcast is exact (bfloat16 occupies the top 16 bits of float32),
+    so this loses no precision.
     """
     path = Path(path)
     leaves, treedef = jax.tree_util.tree_flatten(model.params)
-    arrays = {str(i): np.asarray(leaf) for i, leaf in enumerate(leaves)}
+    dtype_names = [np.asarray(leaf).dtype.name for leaf in leaves]
+    arrays = {
+        str(i): (np.asarray(leaf).astype(np.float32) if name == "bfloat16" else np.asarray(leaf))
+        for i, (leaf, name) in enumerate(zip(leaves, dtype_names))
+    }
     np.savez(path.with_suffix(".npz"), **arrays)
     meta = {
         "treedef": str(treedef),  # human-readable only; not used for restore
         "n_leaves": len(leaves),
+        "leaf_dtypes": dtype_names,
         "static": json_safe(model.static),
         "schema": "checkpoint_v1",
     }
@@ -204,7 +218,12 @@ def restore_state(path: str | Path) -> tuple[list, dict]:
         meta = json.loads(path.with_suffix(".json").read_text())
         if meta["schema"] != "checkpoint_v1":
             raise ValueError(f"Unknown checkpoint schema: {meta['schema']!r}")
-        leaves = [jnp.array(arrays_npz[str(i)]) for i in range(meta["n_leaves"])]
+        dtype_names = meta.get("leaf_dtypes")
+        leaves = []
+        for i in range(meta["n_leaves"]):
+            raw = arrays_npz[str(i)]
+            target_dtype = dtype_names[i] if dtype_names is not None else raw.dtype
+            leaves.append(jnp.array(raw, dtype=target_dtype))
     static = meta["static"]
     return leaves, static
 

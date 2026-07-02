@@ -72,10 +72,6 @@ pytestmark = [pytest.mark.slow, pytest.mark.notebook]
 # Etude gets a real implementation.
 PLACEHOLDER_NOTEBOOKS = {
     "etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
-    "etudes/jaxfne_etude_no_9_local_oddball.ipynb",
-    "etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
-    "etudes/jaxfne_etude_no_11_omission_local.ipynb",
-    "etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
 }
 
 

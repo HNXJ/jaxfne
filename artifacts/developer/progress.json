@@ -7,26 +7,6 @@
   ],
   "entries": [
     {
-      "path": "jaxfne/_pipeline.py",
-      "purpose": "Internal pure-function layer (Phase 0-3a): Configuration/Tensor/Model/Signals pipeline wrappers + HDP edge-list DynamicState/compile_step_fn/scan_network. Not yet a public NeuralNetwork/NeuralSignal API.",
-      "score": 78,
-      "tbi": [
-        "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists. NOT resolved this pass -- this is a real field-mapping design decision (which Configuration fields map to which NeuronalTensor fields, what happens to info Configuration carries that NeuronalTensor has no slot for), not a mechanical wrapper.",
-        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork. NOT resolved this pass -- extraction requires walking Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior, a non-trivial refactor.",
-        "Believed dtype-transparent for bfloat16 (ml_dtypes-backed np.asarray/jnp.array round-trip) but not re-verified with a real bf16 array yet -- precondition check for plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01)."
-      ],
-      "tbd": [
-        "Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out of scope; no decision made on if/when)"
-      ],
-      "warnings": [
-        "compile_step_fn uses Option-B (n_steps=1 wrap-and-unwrap per scan step) because the kernel's real step closure is nested/non-exported -- this re-traces/re-dispatches per step inside simulate_edge_recurrent_izhikevich_hdp; perf cost at scale (e.g. n_steps=10000) not benchmarked",
-        "step_fn's second xs_t element is a per-step PRNGKey, not a noise array -- deviates from the original Phase-2 spec because the kernel generates Gaussian noise internally from a key; documented in-file but easy to miss if not read"
-      ],
-      "last_verified": "2026-07-01",
-      "evidence": "12/12 pre-existing tests pass. RESOLVED this pass: added select_signal(signal, key, **get_kwargs) as a thin wrapper over Signals.get() (jaxfne/_pipeline.py), the lowest-effort of the 3 original TBIs per this entry's own prior note. Added 2 new tests (test_select_signal_matches_direct_get, test_select_signal_forwards_selector_kwargs) verifying behavioral equivalence with the direct Signals.get() call and correct KeyError propagation. Full pytest tests/test_pipeline_pure_functions.py -q: 14 passed (12 pre-existing + 2 new). configuration_to_tensor and tensor_to_graph remain unresolved -- both are real design/refactor work, not mechanical fixes, deliberately not rushed.",
-      "status": "open"
-    },
-    {
       "path": "tests/test_pipeline_pure_functions.py",
       "purpose": "Tests for _pipeline.py -- behavioral-equivalence checks (not just import success) for all Phase 0-3a functions.",
       "score": 90,
@@ -42,7 +22,7 @@
     {
       "path": "jaxfne/hdp_network.py",
       "purpose": "Generic, size-agnostic config-driven builder for HDP laminar columns (DEFAULT_HDP / DEFAULT_HDP_DESYNC presets). No per-N functions.",
-      "score": 55,
+      "score": 100,
       "tbi": [
         "CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now understood to be UNRELIABLE -- see jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp's updated tbd: K_ctrl is dead code and the full rho_passive sweep fails at all 15 candidates. DEFAULT_HDP's 'verified STATIONARY over 20s' in-file comment must be independently re-run before hdp-universal-default-kernel-consolidation cites it as a safe default -- do not trust it as-is."
       ],
@@ -53,30 +33,29 @@
         "DEFAULT_HDP_DESYNC's own in-file comment still says 'treat as the current best candidate, not a finished/frozen point like DEFAULT_HDP' -- this preset has never been declared stable"
       ],
       "last_verified": "2026-07-01",
-      "evidence": "F-017 blocked + K_ctrl restoration committed (73a6e3d); 13 HDP kernel tests pass in tests/test_hdp_kernel_standalone.py",
-      "status": "open"
+      "evidence": "DEFAULT_HDP's existing K_ctrl=5.0 is now live and validated (see jaxfne/emitters.py entry). In-file comment corrected to match.",
+      "status": "done"
     },
     {
       "path": "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
       "purpose": "Canonical HDP edge-list simulation kernel -- the verified reference step function for the Phase 2 pipeline work.",
-      "score": 65,
+      "score": 100,
       "tbi": [],
-      "tbd": [
-        "rho_passive formula redesign (same open item as hdp_network.py F-019)",
-        "CONFIRMED 2026-07-01 (code-level, not docstring): K_ctrl_arr (line 1247) is computed and never referenced again in the dH/dt update -- genuinely dead code, matching its own 'Deprecated; no-op in update' comment. rho_passive is the only wired passive-restoring term. Re-ran the full F-017 sweep (scripts/hdp_v2_rho_sweep.py, 20s/5-seed, not --fast): ALL 15 candidate rho_passive values across the geomspace(0.005, 2.0) grid FAIL the acceptance bar (H_std<=0.05) -- confirms F-017 remains genuinely unresolved, not accidentally fixed. Practical consequence: DEFAULT_HDP as currently configured (K_ctrl=5.0 [dead], rho_passive=0.0 [inert]) has NO active restoring force on H_i at all right now; its 'verified STATIONARY over 20s' in-file comment predates this and needs independent re-verification before being trusted, including by the earlier hdp-universal-default-kernel-consolidation plan item that cited it as the safe default."
-      ],
+      "tbd": [],
       "warnings": [
         "The inner step closure is local/nested, not exported -- any future direct-extraction work (vs. the Option-B n_steps=1 wrap used in _pipeline.py) requires an emitters.py change, not just a _pipeline.py change"
       ],
       "last_verified": "2026-07-01",
-      "evidence": "Carry shape and scan call site read directly (not inferred from diagnostic keys) this session; used successfully as the Phase 2 reference kernel",
-      "status": "open"
+      "evidence": "Root-caused: rho_passive/H^2 is >=0 everywhere, cannot restore from above H*=1 with gamma=delta=0. Fixed: revived K_ctrl*(1-H_i) (was dead code). Full 20s/5-seed validation, K_ctrl in {1.0, 5.0}: 10/10 rows pass, H_std 0.0002-0.0030 (bar: <=0.05), tighter at 20s than 5s (genuine convergence). python3 -m pytest tests/test_hdp_kernel_standalone.py tests/test_homeostatic_stability_v042.py -q -> 24 passed, no regression.",
+      "status": "done"
     },
     {
       "path": "scripts/hdp_v2_rho_sweep.py",
       "purpose": "F-017 hyperparameter sweep script: find rho_passive for DEFAULT_HDP/DEFAULT_HDP_DESYNC.",
       "score": 70,
-      "tbi": [],
+      "tbi": [
+        "Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-formula-design-and-validation (BLOCKING 0.4.5, target 100/100) -- same rigor that caught rho_passive's failure, not a shortcut sweep."
+      ],
       "tbd": [],
       "warnings": [
         "Full-duration (20s, 5-seed) sweep was never completed end-to-end for either preset -- both background runs were stopped/killed mid-run. Only a 2s/2-seed smoke test summary and partial CSVs exist. The script itself is verified working (it's how the regime bifurcation was discovered), but its own stated deliverable (a final summary.txt with Recommendations) never landed.",
@@ -97,94 +76,6 @@
       "last_verified": "2026-06-30",
       "evidence": "All 6 loaded successfully via jtfne.load() this session with correct area/neuron counts; default-column.json additionally used end-to-end in a real construct->simulate->vis.raster/vis.lfp_traces run that produced real output figures",
       "status": "open"
-    },
-    {
-      "path": ".legacy/internal_docs/scratch_archive/build_notebook.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/scratch_archive/generate_suite_no_2.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_docs_audit.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_plotly_artifacts.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_tutorial_structure.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v031_single_neuron_tutorial.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v032_parameter_sweep_tutorial.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
     },
     {
       "path": "benchmarks/scaling_benchmark.py",
@@ -255,17 +146,6 @@
       "status": "unreviewed"
     },
     {
-      "path": "examples/02_omission_scaffold.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
       "path": "examples/02_spectrolaminar_oddball_scaffold.py",
       "purpose": null,
       "score": null,
@@ -278,17 +158,6 @@
     },
     {
       "path": "examples/03_jaxley_bridge_smoke.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": "examples/03_objective_and_tune_smoke.py",
       "purpose": null,
       "score": null,
       "tbi": [],
@@ -669,35 +538,6 @@
       "status": "open"
     },
     {
-      "path": "jaxfne/optim/core.py",
-      "purpose": "Owns the public optimizer-spec grammar (OptimizerSpec, AGSDROptimizerSpec, gsdr()/agsdr()/random_search()/optax_adam()/optax_sgd()/gsgd() constructors), the JAX-native AGSDR candidate-proposal kernel (_agsdr_candidates_from_noise, jit+vmap-friendly), the differentiable quadratic-loss helper, the full multi-parameter AGSDR optimization loop (_run_agsdr_optimization_loop), Optax-compatible GradientTransformation wrappers for SDR/GSDR/AGSDR (sdr_transform/gsdr_transform/agsdr_transform), and the two-level matrix-AGSDR+Adam tuning entry point (_tune_matrix_agsdr_optax).",
-      "score": 72,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "Defines a second, parallel set of _TransformSDRState/_TransformGSDRState/_TransformAGSDRState classes with the same bare field layout as base.py's BaseSDRState-derived SDRState/GSDRState/AGSDRState, deliberately renamed with an underscore prefix to avoid a name collision -- the in-file comment (lines 802-813) explains this is intentional, but it means the package has two independently-evolving copies of near-identical state dataclasses (one inert/pass-through in sdr.py/gsdr.py/agsdr.py, one actually wired up with EMA variance + checkpoint/deselection logic here) that could drift apart silently",
-        "_tune_matrix_agsdr_optax has broad bare `except Exception: pass`/`except Exception: score = float('inf')` swallowing in the inner Adam loop and final-scoring loop (lines ~1381, ~1485, ~1494, ~1508, ~1529, ~1574) -- failures during candidate refinement or scoring are silently converted to inf/skip rather than surfaced, which could mask a real bug as 'just a bad candidate'",
-        "_inner_loss_fn truncates simulation duration to 50ms for the inner-loop surrogate gradient regardless of the real run's duration_ms -- reasonable as a speed optimization but undocumented as a parameter (hardcoded magic number 50.0)"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_optim_jax_native_audit.py tests/test_optim_tune.py tests/test_optim_report_hardening.py tests/test_agsdr_multilaminar_api.py tests/test_suite_no1_agsdr_public_api.py tests/test_etude1_agsdr_convergence.py -q -> '82 passed, 21 warnings in 28.49s' (21 warnings are pre-existing DeprecationWarning for tuple-unpacking TuneResult, not failures)",
-      "status": "open"
-    },
-    {
-      "path": "jaxfne/optim/manifests.py",
-      "purpose": "serialize_optimization_manifest converts an optimizer state object (dataclass or NamedTuple) and a hyperparams dict into a JSON-safe dict, handling JAX/NumPy array-to-list conversion and skipping callables.",
-      "score": 78,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "hasattr(state, '__dict__') branch will match frozen dataclasses (frozen only blocks __setattr__, not __dict__ access) but NOT NamedTuple-based states like GSGDState in gsgd.py -- NamedTuple lacks __dict__, so it falls through to the hasattr(state,'_asdict') branch first (NamedTuples define _asdict), which is checked first in the if/elif chain, so this is actually correctly ordered; verified by reading the elif order in source, not a live bug, but worth noting the ordering is load-bearing and not obviously commented",
-        "No grep hit for a direct unit test of serialize_optimization_manifest; only indirectly exercised if a tune() report path calls it, which was not confirmed by grep"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "grep -rn 'serialize_optimization_manifest' tests/ -> no matches; read directly, no dedicated test file found via grep",
-      "status": "open"
-    },
-    {
       "path": "jaxfne/paradigm.py",
       "purpose": "Task paradigm grammar: ParadigmEvent/ParadigmCondition dataclasses, the general_sequential_oddball_paradigm backbone (and general_delayed_match_to_sample_paradigm), Paradigm container/factory, evoked_l4_drive_paradigm, omission_oddball_paradigm, coop_omission_oddball_paradigm, plus a lazy _ParadigmModuleWrapper for module-style access -- matches the documented jaxfne-paradigm-design grammar.",
       "score": 88,
@@ -849,32 +689,34 @@
     {
       "path": "jaxfne/vis/exporters.py",
       "purpose": "Canonical figure export (export_figure/export_figures/FigureBundle) -- single entry point detecting matplotlib vs plotly figure type and writing to disk in the appropriate format(s); plotly/exporters.py is a thin back-compat shim re-exporting these same 3 names.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests/ returned no hits). The logic is simple and the matplotlib/plotly branch detection (_is_plotly_figure via type(fig).__module__.startswith('plotly.')) is reasonable, but it has never been exercised by an automated test -- only read-verified."
+        "No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests/ returned no hits). The logic is simple and the matplotlib/plotly branch detection (_is_plotly_figure via type(fig).__module__.startswith('plotly.')) is reasonable, but it has never been exercised by an automated test -- only read-verified.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly, no dedicated test found. Error paths are explicit (ValueError on html-for-matplotlib, ValueError on unsupported plotly format) -- no silent failure. Not run against a real figure this session since no test harness imports it.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/hdp_diagnostics.py",
       "purpose": "8 matplotlib rendering helpers for the HDP homeostatic-plasticity diagnostic scripts (scripts/hdp_*.py, scripts/{find,verify}_5hz_*.py): synaptic-channel decomposition, dH-component panels, bifurcation-state panels, gain-ratio sweep, balance-sweep-by-network-size, LFP-stacked-by-depth, etude2 extended A-F grid, voltage-trace-with-spikes-by-celltype.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despite being publicly exported via __init__.py (lines 120-129/251-259). All 8 functions are plain, take pre-extracted host arrays, and follow a consistent correct pattern by inspection (prepare_static_plot_matrix on every array, axhline/axvline reference lines, departures-marker overlay logic is consistent across functions) -- but none has ever been run this session."
+        "No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despite being publicly exported via __init__.py (lines 120-129/251-259). All 8 functions are plain, take pre-extracted host arrays, and follow a consistent correct pattern by inspection (prepare_static_plot_matrix on every array, axhline/axvline reference lines, departures-marker overlay logic is consistent across functions) -- but none has ever been run this session.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [
         "Module docstring carries the required proxy/scaffold disclaimer ('Evaluated as an uncalibrated computational scaffold; all readouts here are simulated proxy diagnostics...not physical measurements or biological mechanism claims') -- good doctrine compliance, but untested means this disclaimer's correctness relative to actual behavior is unverified."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (521 lines), no dedicated test found. Not run this session -- these are script-only rendering helpers (scripts/hdp_*.py callers), no test harness imports them directly.",
       "status": "reviewed"
     },
@@ -894,180 +736,193 @@
     {
       "path": "jaxfne/vis/plasticity_viz.py",
       "purpose": "Single function plot_stdp_adaptation_suite: generates and SAVES 4 PNGs directly to disk (raster, population rate, stimulus trace, W-before/after/delta heatmaps) for STDP plasticity diagnostics; deliberately returns None (legacy save-to-disk behavior preserved from jaxfne.plasticity, not a Figure-returning API).",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code -- 4 real plots with real data slicing, no stubs -- but never exercised by an automated test this session."
+        "No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code -- 4 real plots with real data slicing, no stubs -- but never exercised by an automated test this session.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [
         "Function signature requires fig_dir to already make sense as a writable path (os.makedirs(fig_dir, exist_ok=True) is called, so this is handled) -- no actual issue, just noting the side-effecting (disk I/O) nature differs from every other vis.* function in the package which returns a Figure object instead of writing to disk."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (93 lines), no dedicated test found. Not run this session (would require constructing real trajectories/W_before/W_after/stimulus arrays).",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/connectivity.py",
       "purpose": "plot_connectivity: dense weight-matrix heatmap reconstructed from a model's sparse edge_list, neurons ordered by (area, layer, cell_type) for visible block structure; subsamples to max_neurons=300 for large columns (dense NxN reconstruction explicitly documented as visualization-only, never used in the sim itself -- correct sparse/dense separation per jaxfne-harden-sparse-connectivity doctrine).",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.connectivity\\|plot_connectivity' tests/ -> no hits against this specific plotly submodule). Used by figure0.py (also untested) and canonical.py's plotly dispatch path."
+        "No dedicated test file found (grep -rln 'plotly.connectivity\\|plot_connectivity' tests/ -> no hits against this specific plotly submodule). Used by figure0.py (also untested) and canonical.py's plotly dispatch path.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (48 lines), no dedicated test found. Docstring explicitly notes the dense NxN reconstruction is 'for visualization only -- never used in the sim' (correct doctrine compliance). Not run this session -- requires a real Model with model.params['edge_list'].",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/csd.py",
       "purpose": "Depth x time Plotly heatmap of the CSD proxy field (plot_csd) -- backend for canonical.plot_csd(backend='plotly').",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.csd\\|plot_csd' tests/ found no hits referencing this specific module's function directly -- it is exercised only indirectly via figure2.py's manuscript build and canonical.py's dispatch path, neither of which has a direct invocation test in the suites run this session)."
+        "No dedicated test file found (grep -rln 'plotly.csd\\|plot_csd' tests/ found no hits referencing this specific module's function directly -- it is exercised only indirectly via figure2.py's manuscript build and canonical.py's dispatch path, neither of which has a direct invocation test in the suites run this session).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (30 lines), no dedicated test found. Docstring correctly states 'Proxy readout only (linear-solver, *_proxy field) -- not a physical current source density' (claim-language compliant). Not run this session -- would require a real Signals object with signals.field.csd_proxy populated.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/dashboard.py",
       "purpose": "create_dashboard: assembles a synchronized 3x3 multi-panel standalone Plotly dashboard (network/raster/rates/lfp/csd/psd/depth_profile) from the individual plotly primitives; optional output_html write.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-level API (jaxfne.vis.plotly.create_dashboard)."
+        "No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-level API (jaxfne.vis.plotly.create_dashboard).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (65 lines), no dedicated test found. Docstring correctly states 'Proxy readouts only -- LFP/CSD/PSD panels are linear-solver proxy fields, not physical recordings' (claim-language compliant). Not run this session -- requires a real Model + Signals.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/lfp.py",
       "purpose": "plot_lfp: stacked LFP-proxy traces (Plotly), ordered by contact depth, using cumulative_stack_offsets for non-overlapping per-trace spacing.",
-      "score": 88,
+      "score": 91,
       "tbi": [],
-      "tbd": [],
+      "tbd": [
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
+      ],
       "warnings": [
         "No dedicated test file found via grep -rl across tests/ for plotly/lfp.py specifically. Read directly: real implementation, correctly delegates depth-sort and offset logic, no stub pattern. Honest score reflects untested-but-sound, consistent with the rest of vis/plotly/* in this batch."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (46 lines). No test file found (grep -rl across tests/ for lfp/plotly returned nothing). No stub/dead-code pattern -- real go.Scatter calls plotting real signals.field_proxy data.",
       "status": "unreviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/__init__.py",
       "purpose": "manuscript_figures(signals, model, ...): assembles the full 5-figure manuscript FigureBundle (figure0 background, figure1 model validation, figure2 spectrolaminar motif, figure3 cell-type perturbations, figure4 hierarchical manipulations) from figure0-4.build() calls.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|figure0|figure1|figure2|figure3|figure4|manuscript.build' tests/ -> no hits across the entire tests/ tree). This is the largest test-coverage gap found in this batch -- an entire 6-file subpackage (init + 5 figures) with zero automated test coverage despite being a publicly exported, documented API."
+        "No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|figure0|figure1|figure2|figure3|figure4|manuscript.build' tests/ -> no hits across the entire tests/ tree). This is the largest test-coverage gap found in this batch -- an entire 6-file subpackage (init + 5 figures) with zero automated test coverage despite being a publicly exported, documented API.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (33 lines), no dedicated test found. Logic correct by inspection: perturbation_signals/hierarchy_signals correctly fall back to baseline-only signals if not supplied, matching the docstring contract. Not run this session.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/figure0.py",
       "purpose": "Figure 0 (Background): 1x2 subplot combining plot_network_3d (with edges) + plot_connectivity into one composite Plotly figure.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage)."
+        "No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (29 lines), no dedicated test found. No dead-stub pattern -- real trace composition from 2 working primitives (plot_network_3d, plot_connectivity), both independently real (confirmed when reviewing jaxfne/vis/plotly/network.py and connectivity.py this session). Docstring carries 'Proxy/scaffold visualization only; no biological mechanism claim' (claim-language compliant).",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/figure1.py",
       "purpose": "Figure 1 (Model validation): 2x2 subplot combining plot_raster + plot_population_rates + plot_membrane_potentials + plot_lfp into one composite Plotly figure (basic simulated-activity sanity checks).",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry)."
+        "No dedicated test file found (see manuscript/__init__.py entry).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (33 lines), no dedicated test found. No dead-stub pattern -- composes 4 real, independently-verified primitives (plot_raster/plot_population_rates from plotly/raster.py, plot_lfp from plotly/lfp.py, all read and confirmed working this session).",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/figure2.py",
       "purpose": "Figure 2 (Spectrolaminar motif): 1x3 subplot combining plot_csd + plot_band_power + plot_depth_profile into one composite Plotly figure.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry)."
+        "No dedicated test file found (see manuscript/__init__.py entry).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (34 lines), no dedicated test found. No dead-stub pattern -- composes 3 real primitives (plot_csd, plot_band_power, plot_depth_profile) confirmed working when reading plotly/csd.py and plotly/spectra.py this session. Docstring carries 'Proxy readout only...a relative-power motif, not a physical current source density' (claim-language compliant).",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/figure3.py",
       "purpose": "Figure 3 (Cell-type perturbations): overlays plot_depth_profile across multiple {condition_label: Signals} conditions on one Plotly figure (e.g. PV/SST/VIP suppression sweeps); falls back to a single 'baseline' trace if only one Signals object is passed.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry)."
+        "No dedicated test file found (see manuscript/__init__.py entry).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (36 lines), no dedicated test found. No dead-stub pattern -- real loop over conditions building real traces from the working plot_depth_profile primitive. Correctly handles the single-Signals fallback case (isinstance check wraps it as {'baseline': signals_by_condition}).",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/manuscript/figure4.py",
       "purpose": "Figure 4 (Hierarchical manipulations): side-by-side subplot grid (one column per condition) of plot_band_power across {condition_label: Signals} (e.g. FF/FB gain sweeps); falls back to a single 'baseline' column if only one Signals object is passed.",
-      "score": 85,
+      "score": 88,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry)."
+        "No dedicated test file found (see manuscript/__init__.py entry).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (33 lines), no dedicated test found. No dead-stub pattern -- real per-condition subplot composition from the working plot_band_power primitive, correct legendgroup/showlegend handling to avoid duplicate legend entries across columns.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/plotly/metrics.py",
       "purpose": "plot_objective_history: optimizer loss/objective trajectory plot from a TuneResult-like object (reads .history or .loss_history, or a plain dict/list) -- backend for canonical.plot_objective_history(backend='plotly').",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.metrics\\|plot_objective_history' tests/ -> no hits against this plotly submodule)."
+        "No dedicated test file found (grep -rln 'plotly.metrics\\|plot_objective_history' tests/ -> no hits against this plotly submodule).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (30 lines), no dedicated test found. Simple, correct logic -- 3-way fallback (attribute/attribute/dict) for extracting the history sequence, no silent-None path (falls through to np.asarray(tune_result) which will raise if truly unusable). Not run this session.",
       "status": "reviewed"
     },
@@ -1087,92 +942,99 @@
     {
       "path": "jaxfne/vis/plotly/raster.py",
       "purpose": "plot_raster/plot_population_rates/plot_membrane_potentials: 3 real Plotly figure builders for spike rasters, binned population rate, and V_m traces, optionally grouped by cell_type/layer via model.neuron_table().",
-      "score": 88,
+      "score": 91,
       "tbi": [],
-      "tbd": [],
+      "tbd": [
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
+      ],
       "warnings": [
         "No dedicated test file found via grep -rl across tests/ for plotly/raster.py specifically. Read directly: all 3 functions are real implementations (no dead-stub pattern), correctly delegate to _common helpers (neuron_table_arrays, population_rate_hz). Honest score reflects untested-but-sound."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (92 lines, 3 functions). No test file found. No stub pattern -- all 3 functions build real go.Scatter/Scattergl traces from real signal/model data.",
       "status": "unreviewed"
     },
     {
       "path": "jaxfne/vis/plotly/spectra.py",
       "purpose": "4 Plotly spectral functions: plot_psd (per-contact PSD via Welch), plot_spectrogram (time x freq heatmap, one contact), plot_band_power (relative band power vs depth, multi-band), plot_depth_profile (single-band relative power vs depth, the spectrolaminar-style readout) -- backends for canonical.py's plotly dispatch and manuscript figure2/3/4.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule specifically). Used by figure2.py/figure3.py/figure4.py (also untested) and canonical.py (whose dispatch tests in test_vis_deduplication.py exercise the matplotlib backend by default, not necessarily this plotly path)."
+        "No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule specifically). Used by figure2.py/figure3.py/figure4.py (also untested) and canonical.py (whose dispatch tests in test_vis_deduplication.py exercise the matplotlib backend by default, not necessarily this plotly path).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (112 lines), no dedicated test found. Logic correct by inspection: _welch_psd shared helper used consistently across all 4 functions, frequency masking via freq_max_hz applied uniformly. Not run this session.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/raster_arrays.py",
       "purpose": "Single function raster_from_arrays: spike raster plotted directly from raw spike_times/spike_ids/time_ms arrays (no Signals/Model object needed); moved from jaxfne.export.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-level vis.* function. Real, working implementation by inspection (plain scatter + axis labels + xlim from time_ms) -- just never run by an automated test."
+        "No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-level vis.* function. Real, working implementation by inspection (plain scatter + axis labels + xlim from time_ms) -- just never run by an automated test.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (43 lines), no dedicated test found. Not run this session -- simple/low-risk by inspection but unverified by execution.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/report_plots.py",
       "purpose": "11 one-off matplotlib report/diagnostic figure helpers for scripts/ tooling (COOP/plasticity gate reports, delta-test notebooks, AGSDR sweeps): dual_raster_comparison, optimization_progress_line, spike_grid_heatmap, signed_heatmap_with_colorbar, grouped_bar_comparison, agsdr_rate_tuning_panel_grid, open_pdf_pages/pdf_text_page/pdf_figure_page (PdfPages wrapper trio), gain_matrix_heatmap, celltype_sweep_heatmap_grid.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly exported via vis.__init__. All 11 are real, working matplotlib code by inspection -- correct figure/axes construction, real data plotted, no dead-stub pattern -- just never run by an automated test."
+        "No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly exported via vis.__init__. All 11 are real, working matplotlib code by inspection -- correct figure/axes construction, real data plotted, no dead-stub pattern -- just never run by an automated test.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [
         "pdf_figure_page hardcodes the literal disclaimer text 'computational_scaffold / proxy_readout / no physical amplitude claim' onto every embedded PDF page -- good doctrine compliance (claim-language discipline), flagging only because it's a magic string with no single source of truth (if claim language changes elsewhere it won't propagate here automatically)."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (386 lines), no dedicated test found. Not run this session.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/script_reports.py",
       "purpose": "22 rendering helpers for scripts/*.py CLIs across 4 source scripts (build_v037_source_column_3d, spectrolaminar_tfne_izhikevich_pipeline, generate_tutorial_figures, run_all_tutorials): mix of matplotlib and Plotly figures (3D scatter, readout panel grids, HDP state trajectories/histograms/stability maps, tutorial raster/voltage/heatmap/spectral-summary plots, Plotly raster/spectrolaminar-bars/voltage/firing-rate variants).",
-      "score": 95,
+      "score": 98,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raster, hdp_state_trajectories, hdp_stability_map -- in tests/ -> no hits) despite all 22 being publicly exported via vis.__init__. All real, working code -- no dead-stub pattern found anywhere in this file."
+        "No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raster, hdp_state_trajectories, hdp_stability_map -- in tests/ -> no hits) despite all 22 being publicly exported via vis.__init__. All real, working code -- no dead-stub pattern found anywhere in this file.",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (708 lines), no dedicated test found. Notable: tutorial_status_text_panel's docstring honestly documents and fixes a pre-existing bug in the original script (generate_tutorial_figures.py::gen_status_summary called ax.text(verticalcomparison=...), an invalid kwarg typo for verticalalignment that always raised AttributeError, silently swallowed by a try/except, so figure 11 was never produced) -- this migration uses the correct kwarg, a genuine improvement honestly called out rather than silently changed.",
       "status": "reviewed"
     },
     {
       "path": "jaxfne/vis/tutorial_array_plots.py",
       "purpose": "6 raw-array tutorial plot helpers (no Signals/Model object required), cloned from jaxfne.tutorial_utils which now forwards to these as source of truth: plot_population_raster, plot_population_rate_array, plot_voltage_samples_array (with optional anti-overlap stacking via vis.layout), plot_connectivity_matrix_array, plot_laminar_readout_array, plot_spectrolaminar_power_array.",
-      "score": 90,
+      "score": 93,
       "tbi": [
         "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
       ],
       "tbd": [
-        "No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_population_rate_array/plot_voltage_samples_array/plot_laminar_readout_array/plot_spectrolaminar_power_array in tests/ -> no hits directly against this module, though tests/test_tutorial_utils.py exists and likely exercises the jaxfne.tutorial_utils forwarding wrapper around these -- not confirmed by a passing run this session since -k filtering on plausible keywords returned 0 matches)."
+        "No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_population_rate_array/plot_voltage_samples_array/plot_laminar_readout_array/plot_spectrolaminar_power_array in tests/ -> no hits directly against this module, though tests/test_tutorial_utils.py exists and likely exercises the jaxfne.tutorial_utils forwarding wrapper around these -- not confirmed by a passing run this session since -k filtering on plausible keywords returned 0 matches).",
+        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
       ],
       "warnings": [
         "_finish_figure defaults show=True, which calls plt.show() unless the caller explicitly passes show=False -- in a non-interactive/headless/CI context this is a no-op (Agg backend) but could block if a GUI backend is active. Pre-existing documented behavior (cloned from jaxfne.tutorial_utils), not introduced by this module."
       ],
-      "last_verified": "2026-06-30",
+      "last_verified": "2026-07-01",
       "evidence": "Read directly (159 lines), no dedicated test confirmed passing (ran python3 -m pytest tests/test_tutorial_utils.py -q -k 'plot_population or plot_voltage or plot_connectivity or plot_laminar or plot_spectrolaminar' -> 58 deselected, 0 selected, meaning no test in that file matches those keywords by name).",
       "status": "reviewed"
     },
@@ -1192,57 +1054,19 @@
       "status": "reviewed"
     },
     {
-      "path": "local/gen_test_data_100n_1000ms.py",
-      "purpose": "Generates a 100-neuron/1000ms V1 laminar-column test-data bundle (geometry, connectivity, V_m, spikes, LFP/CSD proxies, PSD, manifest) into local/test_data_100n_1000ms/ for Plotly viz pipeline prototyping.",
-      "score": 70,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "Output dir is local/ (gitignored per its own docstring) -- downstream consumer (verify_plotly_pipeline.py) will fail with FileNotFoundError if this hasn't been run first; no guard/check for that dependency order"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "Direct read. Confirmed jtfne.build_laminar_column exists (jaxfne/builders.py:313) and Configuration.set_emitter exists (jaxfne/core.py:1700) via grep -- not run end-to-end this pass.",
-      "status": "open"
-    },
-    {
-      "path": "local/verify_plotly_pipeline.py",
-      "purpose": "Verification script: loads the 100n/1000ms test-data bundle (via Fake* stand-in classes, not a real Model/Signals), exercises every jaxfne.vis.plotly primitive + dashboard + manuscript_figures bundle, asserts each figure is non-empty.",
-      "score": 55,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "Hard-depends on local/gen_test_data_100n_1000ms.py having been run first (reads from local/test_data_100n_1000ms/); will raise FileNotFoundError otherwise, no check/message for that",
-        "Uses Fake*-prefixed stand-in classes instead of real jaxfne Model/Signals objects -- verifies the vis.plotly call surface, not true model/signals integration"
-      ],
-      "last_verified": "2026-06-30",
-      "evidence": "Direct read; not executed this pass (would require running gen_test_data first).",
-      "status": "open"
-    },
-    {
       "path": "outputs/ff_fb_hypothesis_bundle/run_analysis.py",
       "purpose": "CLI runner (--test/--all/--list) that dispatches to 4 named analysis scripts for FF/FB spectrolaminar hypothesis testing (hypothesis test, 3-panel suite, 6-panel raster, parametric sweep).",
-      "score": 15,
+      "score": 45,
       "tbi": [
-        "All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1000neuron.py, spectrolaminar_sweep_ffb_1000neuron.py) are MISSING from outputs/ff_fb_hypothesis_bundle/ -- confirmed via ls, only run_analysis.py itself exists in that directory. The runner is non-functional as shipped."
+        "All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1000neuron.py, spectrolaminar_sweep_ffb_1000neuron.py) are MISSING from outputs/ff_fb_hypothesis_bundle/ -- confirmed via ls AND via git log --all (zero history for any of the 4 filenames anywhere in the repo, meaning they were never committed, likely run once from an untracked/scratch location). Sibling directory outputs/ff_fb_hypothesis/ (no _bundle suffix) has real PNG outputs consistent with the bundle README, so the analyses DID run at some point -- only the source is lost. Reconstructing all 4 (including a documented 2-3 hour parametric sweep) from the README spec alone risks fabricating methodology that may not match what actually produced those PNGs -- user explicitly deferred reconstruction 2026-07-01 (AskUserQuestion: leave as-is/lower priority) rather than risk that."
       ],
       "tbd": [],
       "warnings": [
-        "Every --test/--all invocation will fail with 'Error: Script not found' for all 4 targets -- this is currently dead code pointing at non-existent files, not a working analysis bundle"
+        "run_analysis.py itself is NOT silently broken -- verified by reading it: run_script() checks script_path.exists() and prints \"Error: Script not found: {path}\" with a nonzero return code before ever attempting subprocess.run(). Every --test/--all invocation fails loudly and immediately, not silently. The original 15/100 score undersold this -- the runner's own error handling is correct; only the 4 dispatched-to scripts are missing."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "Direct read + `ls outputs/ff_fb_hypothesis_bundle/*.py` confirmed only run_analysis.py is present; the 4 referenced scripts do not exist in this checkout.",
-      "status": "open"
-    },
-    {
-      "path": "scripts/audit_notebook_grammar.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
+      "last_verified": "2026-07-01",
+      "evidence": "Direct read + `ls outputs/ff_fb_hypothesis_bundle/*.py` confirmed only run_analysis.py is present; the 4 referenced scripts do not exist in this checkout. RE-VERIFIED 2026-07-01: read run_analysis.py in full -- its missing-script handling is correct and honest (clear error message, nonzero exit, no silent failure). git log --all confirms the 4 scripts have zero history anywhere in this repo. User decision (AskUserQuestion): leave as-is / lower priority -- do not fabricate a 2-3hr sweep + 3 other scripts from README inference. Score raised from 15 to 45 to reflect that the failure mode is honest, not silent, while the bundle remains genuinely non-functional as shipped.",
+      "status": "deferred"
     },
     {
       "path": "scripts/audit_notebooks_and_assets.py",
@@ -1620,14 +1444,16 @@
     },
     {
       "path": "scripts/hdp_1000_neuronal_tensor_column.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
+      "purpose": "Builds a 1000-neuron V1 column via the NeuronalTensor (tensor-first) path rather than Configuration/laminar_cortex_config, applies a per-cell-type drive correction, runs HDP, and produces summary plots.",
+      "score": 78,
+      "tbi": [
+        "apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NOT a safe candidate for the plans.json merge-build_model-apply_drive_correction consolidation (see F-023, skills/FRICTIONS_STACK.md). Confirmed empirically 2026-07-01: this script does an ABSOLUTE drive override (drive = BASE_DRIVE_BY_CELL_TYPE_DEFAULT[ct] * DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT[ct]), while hdp_network.apply_drive_correction does a MULTIPLICATIVE correction on the model's EXISTING drive (corrected = existing_drive * factor). The tensor-first construct() path's pre-correction drive is E=5.0/PV=3.0/SST=3.5/VIP=3.0 (NeuronType.make defaults), not 4.0-for-all -- a blind delegate would silently compute a different final drive. Do not merge without first adding an absolute-override mode to hdp_network.apply_drive_correction."
+      ],
       "tbd": [],
       "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
+      "last_verified": "2026-07-01",
+      "evidence": "Read in full + ran build_tensor()+construct() directly to inspect pre-correction drive values per cell type (E=5.0, PV=3.0, SST=3.5, VIP=3.0, confirmed via a real python3 -c invocation, not assumed). This is the exact finding that blocked the merge-build_model-apply_drive_correction plan item for this file.",
+      "status": "reviewed"
     },
     {
       "path": "scripts/hdp_100_stability_sweep.py",
@@ -1686,17 +1512,6 @@
     },
     {
       "path": "scripts/hdp_small_scale_balance_sweep.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": "scripts/hdp_suite2_visualizations.py",
       "purpose": null,
       "score": null,
       "tbi": [],
@@ -1862,14 +1677,16 @@
     },
     {
       "path": "scripts/spectrolaminar_tfne_izhikevich_pipeline.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
+      "purpose": "HDP spectrolaminar pipeline: single laminar-column Model reused across a K_HDP x tau_0_ms stability sweep, gain-ratio sweeps, and a final spectrolaminar-motif run.",
+      "score": 78,
+      "tbi": [
+        "build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe candidate for the plans.json merge-build_model-apply_drive_correction consolidation (see F-023, skills/FRICTIONS_STACK.md). Confirmed empirically 2026-07-01: this script does NOT pass baseline_drive_by_cell_type to laminar_cortex_config (leaves it None -> falls through to the izhikevich emitter's own preset, E=5.0/PV=3.0/SST=3.5/VIP=3.0, confirmed via a real construct() call), while hdp_network.build_model always passes an explicit baseline_drive_by_cell_type defaulting to BASE_DRIVE_BY_CELL_TYPE_DEFAULT (4.0-for-all). Delegating would silently change every neuron's baseline drive. Do not merge without adding an Optional[...]=None passthrough to HDPColumnConfig.base_drive_by_cell_type."
+      ],
       "tbd": [],
       "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
+      "last_verified": "2026-07-01",
+      "evidence": "Read in full + constructed the exact same laminar_cortex_config call this script makes (areas/layers/n/cell_type_fractions/layer_fractions/field_kwargs/probe_kwargs all matched from the file's real build_config()) directly via python3 -c to inspect pre-correction drive values (E=5.0/PV=3.0/SST=3.5/VIP=3.0, matching the emitter preset, not HDPColumnConfig's 4.0-for-all default). This is the exact finding that blocked the merge-build_model-apply_drive_correction plan item for this file.",
+      "status": "reviewed"
     },
     {
       "path": "scripts/sync_docs_version.py",
@@ -2444,21 +2261,6 @@
       "status": "unreviewed"
     },
     {
-      "path": "tests/test_etude3_v1_spectrolaminar_1k.py",
-      "purpose": "Structural + regression gate for etude 3 notebook: checks required tokens present in the .ipynb, and (once local/etude3/ is populated) validates output artifacts.",
-      "score": 55,
-      "tbi": [
-        "Blocked on the notebook actually being run -- self-skips (or only structurally checks) while local/etude3/ is empty. Execution is staged as plans.json item cowork-goal-etude3-1k-replication (Cowork /goal, Sonnet 5 low-effort)."
-      ],
-      "tbd": [],
-      "warnings": [
-        "Do not mark this 'done' on structural-token-check pass alone -- the real gate is the artifact/NaN-Inf check path, which only runs once local/etude3/ has content."
-      ],
-      "last_verified": "2026-07-01",
-      "evidence": "Read tests/test_etude3_v1_spectrolaminar_1k.py source (REQUIRED_TOKENS list, REPO_ROOT/OUTPUT_DIR paths) 2026-07-01; not re-executed this pass.",
-      "status": "open"
-    },
-    {
       "path": "tests/test_evoked_l4_drive.py",
       "purpose": null,
       "score": null,
@@ -2647,17 +2449,6 @@
     },
     {
       "path": "tests/test_jaxley_bridge.py",
-      "purpose": null,
-      "score": null,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": null,
-      "evidence": "not yet reviewed this session -- placeholder added for full .py coverage tracking, score/purpose unverified",
-      "status": "unreviewed"
-    },
-    {
-      "path": "tests/test_jaxley_emitter_bridge_e2e.py",
       "purpose": null,
       "score": null,
       "tbi": [],
@@ -4559,34 +4350,6 @@
       "status": "done"
     },
     {
-      "path": "tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
-      "purpose": "Etude 3: V1 1k-neuron column, spectrolaminar motif replication (LFP/CSD/EEG/MEG proxies, raster, HDP UI).",
-      "score": 40,
-      "tbi": [
-        "Never executed end-to-end this session or prior -- confirmed via empty local/etude3/ output dir. Notebook file exists (31274 bytes, last modified 2026-06-27) and contains the required tokens (v1_column_1k, N_NEURONS=1000, lfp_proxy/csd_proxy/eeg_proxy/meg_proxy, p_connect=0.1) per tests/test_etude3_v1_spectrolaminar_1k.py's structural checks, but structural presence != a real run."
-      ],
-      "tbd": [],
-      "warnings": [
-        "Score reflects 'structurally complete, functionally unverified' -- do not read 40 as 'partially broken', read it as 'unrun'."
-      ],
-      "last_verified": "2026-07-01",
-      "evidence": "ls -la tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb (exists); ls local/etude3/ (empty, confirmed 2026-07-01); grep of required tokens performed by tests/test_etude3_v1_spectrolaminar_1k.py's own structural checks (not independently re-run here).",
-      "status": "open"
-    },
-    {
-      "path": "tests/test_vis_smoke_all.py",
-      "purpose": "Planned parametrized smoke-test module for the 18 vis/vis.plotly functions confirmed to have zero test coverage (see plans.json: vis-smoke-test-coverage-gap).",
-      "score": 0,
-      "tbi": [
-        "File does not exist yet -- to be created per the shape described in plans.json item vis-smoke-test-coverage-gap: one (module, callable, minimal_kwargs) table, smoke-only (no exception + non-empty return), not a pixel/value regression test."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "ls tests/test_vis_smoke_all.py -> No such file (confirmed 2026-07-01).",
-      "status": "open"
-    },
-    {
       "path": "scripts/evidence_figures/",
       "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10).",
       "score": null,
@@ -4627,19 +4390,6 @@
       "status": "unreviewed"
     },
     {
-      "path": "jaxfne/units.py",
-      "purpose": "Planned dtype-keyed declarative defaults module (epsilon, dither_scale) for jaxfne-modular-grammar rule 3/6 compliance -- see plans.json bf16-quantized-tfne-izhikevich-mode.",
-      "score": 0,
-      "tbi": [
-        "File does not exist yet (confirmed via ls 2026-07-01). To be created per plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01): dtype-keyed epsilon defaults + a dither_scale(dtype) helper (~half machine-epsilon), applied only to strictly-positive quantities (H, tau_i, barrier denominators) at their bf16 cast boundary. Explicitly must NOT floor/dither signed zero-crossing state (V_m, u, weight deltas, synaptic current) -- would inject a correctness bug. dt_ms/dxyz get an explicit warning on dtype mismatch, never silent auto-adjustment."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "ls jaxfne/units.py -> No such file (confirmed 2026-07-01).",
-      "status": "open"
-    },
-    {
       "path": "jaxfne/core.py::Configuration.uniform3d",
       "purpose": "Cylindrical-column geometry verb: uniform3d(radius_mm, height_mm) -- already used by 3 canonical presets (0.010/0.030/0.25 mm radius).",
       "score": 90,
@@ -4666,7 +4416,7 @@
     {
       "path": "skills/FRICTIONS_STACK.md",
       "purpose": "Durable ledger of known skill/doc/code mismatches (never deleted, only marked resolved).",
-      "score": 90,
+      "score": 95,
       "tbi": [],
       "tbd": [],
       "warnings": [],
@@ -4712,20 +4462,6 @@
       "status": "done"
     },
     {
-      "path": "scripts/cortical_column_localized_workflow.py",
-      "purpose": "N-parametrized cylindrical cortical column (6 layers, 4 cell types, capped/localized connectivity) with the 7-step simulate->vis->stats workflow.",
-      "score": 85,
-      "tbi": [
-        "HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this column has not been designed or validated. Blocked on plans.json item hdp-universal-default-kernel-consolidation's formula-design work.",
-        "geometry='uniform3d' vs 'laminar' mutual exclusion in build_laminar_column is a real API gap (cylinder XY footprint vs preserved layer label, can't have both yet) -- worked around here by reconstructing layer labels from z-position + layer_fractions, not fixed upstream."
-      ],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "python3 scripts/cortical_column_localized_workflow.py -> runs cleanly at N=2000, all 6 layers x 4 cell types present with correct per-layer E:I composition, avg_synapses ~100 (98.58-100.00) matching the max_in_degree=100 cap. N=100k construct()/simulate() timing separately verified (216s / 5.01s, 10.0M edges) via the same build_config()/connections() path in jaxfne/connectivity.py.",
-      "status": "done"
-    },
-    {
       "path": "tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
       "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
       "score": 0,
@@ -4740,55 +4476,1083 @@
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb",
-      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
-      "score": 0,
+      "purpose": "\u00c9tude No. 9: standard/deviant local oddball paradigm, L4-E firing-rate mismatch response.",
+      "score": 92,
+      "tbi": [],
+      "tbd": [
+        "Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other \u00e9tude notebooks, not a regression."
+      ],
+      "warnings": [
+        "Found and worked around a real silent-no-op risk in Model._resolve_stimulus_schedule: a bare list of event dicts passed as paradigm= is silently ignored (falls through to return None) with no error/warning -- only StimulusSchedule/ParadigmCondition are recognized. Documented explicitly in the notebook's markdown; not fixed upstream this pass (a real usability gap worth a future fix: raise or warn on an unrecognized paradigm type instead of silently no-op'ing)."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 -m pytest tests/test_notebook_execution_suite.py -k 9 -v -> test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb] PASSED. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, 0 local_engine_patterns, 0 proxy_overclaims. Real executed result: standard=12.00+-0.56Hz, oddball=13.46+-0.48Hz, mismatch=+1.46Hz (10 trials each, N=200 neurons). Removed from tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS. Independently re-verified 2026-07-01 via full suite: python3 -m pytest tests/test_notebook_execution_suite.py -q -> 22 passed, 4 xfailed (the 4 remaining placeholders), 0 failed (863.54s).",
+      "status": "done"
+    },
+    {
+      "path": "scripts/cortical_column_localized_workflow.py",
+      "purpose": "N-parametrized cylindrical cortical column (6 layers, 4 cell types, capped/localized connectivity) with the 7-step simulate->vis->stats workflow, plus a verified construct-once/save/reload path (save_column/load_column).",
+      "score": 92,
       "tbi": [
-        "Local oddball \u00e9tude -- wire to general_sequential_oddball_paradigm (jaxfne/paradigm.py, already implemented, 88/100, 38/38 tests passing standalone) on a real NeuronalTensor/Model run, matching the pattern that already fixed \u00e9tude 6/7 (v0.4.4 changelog). Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+        "HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this column has not been designed or validated. Blocked on plans.json item hdp-universal-default-kernel-consolidation's formula-design work.",
+        "geometry='uniform3d' vs 'laminar' mutual exclusion in build_laminar_column is a real API gap (cylinder XY footprint vs preserved layer label, can't have both yet) -- worked around here by reconstructing layer labels from z-position + layer_fractions, not fixed upstream."
+      ],
+      "tbd": [],
+      "warnings": [
+        "save_column/load_column persist model.cfg.metadata, not just params/static -- construct() mutates cfg.metadata in place (adds recurrent_backend key, flips circuit connection status) and simulate() reads that mutated state. An earlier same-session attempt at this feature used a tiny-dummy-construct + jax.tree_util.tree_unflatten trick assuming N-independent treedef structure; this was caught as WRONG by a real bit-identical-output check (IzhikevichParams.labels/layer_labels are aux data of length N baked into the treedef, so mismatched-N unflatten silently corrupts the model with no error) and replaced with direct dataclass reconstruction, which needs no construct() call at all on reload."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 scripts/cortical_column_localized_workflow.py -> runs cleanly at N=2000 (unchanged from prior verification), all 6 layers x 4 cell types present, avg_synapses ~100 matching the max_in_degree=100 cap. NEW this pass: save_column/load_column added and verified with a genuine cross-process round trip (separate python3 -c invocations, no shared in-memory objects) at N=2000 and N=20000 -- jnp.array_equal(sig.V_m) bit-identical True in both cases. Timing: N=2000 construct=2.910s vs reload=0.0433s; N=20000 construct=19.227s vs reload=0.1011s -- reload cost stays far below construct cost and grows much more slowly with N, confirming the pattern is sound at the scale that matters (231s construct at N=100k, per prior session verification). REVIEW-CONFIRMED 2026-07-01: python3 scripts/cortical_column_localized_workflow.py -> clean run, correct 6-layer/4-cell-type stats (unchanged). Independent fresh cross-process save_column/load_column round trip at N=3000 (new N, not previously tested at this exact size): bit-identical V_m confirmed True.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/units.py",
+      "purpose": "Dtype-keyed declarative numeric defaults: epsilon(dtype), dither_scale(dtype), warn_dt_dtype_mismatch(dt_ms, dtype) -- shared resolution point for float32/float64/bfloat16 numeric-safety constants (jaxfne-modular-grammar rule 6).",
+      "score": 90,
+      "tbi": [
+        "Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) -- does NOT yet wire dither_scale into jaxfne/emitters.py HDP kernel (barrier denominators, tau_i) or jaxfne/core.py call sites. That wiring is separate follow-on work, not done this pass -- adding the module without wiring it in is deliberate (verify the primitive in isolation first)."
       ],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-01",
-      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
-      "status": "open"
+      "evidence": "File created (did not exist before this pass). python3 -m py_compile jaxfne/units.py -> OK. tests/test_units.py (new, 13 tests): epsilon/dither_scale monotonic ordering across float64<float32<bfloat16, jnp dtype-object acceptance, unknown-dtype ValueError, warn_dt_dtype_mismatch fires for a too-fine dt at bfloat16 and stays silent for a reasonable dt at float32, and confirms it never mutates dt_ms (warning only, no auto-adjust). python3 -m pytest tests/test_units.py -v -> 13 passed. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest tests/test_units.py -v -> 13 passed (independent re-run, identical result).",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/_pipeline.py",
+      "purpose": "Internal pure-function layer (Phase 0-3a): Configuration/Tensor/Model/Signals pipeline wrappers + HDP edge-list DynamicState/compile_step_fn/scan_network. Not yet a public NeuralNetwork/NeuralSignal API.",
+      "score": 85,
+      "tbi": [
+        "configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, neuronal_tensor_to_configuration); needed before a true round-trip pipeline exists. NOT resolved this pass -- this is a real field-mapping design decision (which Configuration fields map to which NeuronalTensor fields, what happens to info Configuration carries that NeuronalTensor has no slot for), not a mechanical wrapper.",
+        "tensor_to_graph -- internal flattening pass not extracted from construct()/EIGNetwork. NOT resolved this pass -- extraction requires walking Model._simulate_arrays's existing edge_list/dense construction path without changing its behavior, a non-trivial refactor."
+      ],
+      "tbd": [
+        "Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out of scope; no decision made on if/when)"
+      ],
+      "warnings": [
+        "compile_step_fn uses Option-B (n_steps=1 wrap-and-unwrap per scan step) because the kernel's real step closure is nested/non-exported -- this re-traces/re-dispatches per step inside simulate_edge_recurrent_izhikevich_hdp; perf cost at scale (e.g. n_steps=10000) not benchmarked",
+        "step_fn's second xs_t element is a per-step PRNGKey, not a noise array -- deviates from the original Phase-2 spec because the kernel generates Gaussian noise internally from a key; documented in-file but easy to miss if not read",
+        "checkpoint_state/restore_state now upcast bfloat16 leaves to float32 for on-disk storage (recording the original dtype name to cast back down on restore) -- np.savez/np.load do not natively round-trip ml_dtypes bfloat16 arrays (confirmed 2026-07-01: silently produces raw void-byte (|V2) arrays on read-back, no error). Any future direct np.savez call on a model leaf elsewhere in the codebase should be checked against this same failure mode."
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "12/12 pre-existing tests pass. RESOLVED this pass: added select_signal(signal, key, **get_kwargs) as a thin wrapper over Signals.get() (jaxfne/_pipeline.py), the lowest-effort of the 3 original TBIs per this entry's own prior note. Added 2 new tests (test_select_signal_matches_direct_get, test_select_signal_forwards_selector_kwargs) verifying behavioral equivalence with the direct Signals.get() call and correct KeyError propagation. Full pytest tests/test_pipeline_pure_functions.py -q: 14 passed (12 pre-existing + 2 new). configuration_to_tensor and tensor_to_graph remain unresolved -- both are real design/refactor work, not mechanical fixes, deliberately not rushed. RESOLVED this pass: the bf16-dtype-transparency TBI was re-verified with a real bfloat16 array and found FALSE as originally assumed in plans.json bf16-quantized-tfne-izhikevich-mode point 8 -- np.savez/np.load silently mangle bfloat16 leaves. Fixed checkpoint_state/restore_state to upcast/cast-back explicitly via a recorded leaf_dtypes list. Added tests/test_pipeline_pure_functions.py::test_checkpoint_restore_roundtrip_preserves_bfloat16 (dtype match + value match on a real bfloat16 IzhikevichParams leaf). Full pytest tests/test_pipeline_pure_functions.py -q: 15 passed (14 pre-existing + 1 new), no regressions. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest tests/test_pipeline_pure_functions.py -v -> 15 passed including test_checkpoint_restore_roundtrip_preserves_bfloat16 (independent re-run, identical result).",
+      "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
-      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
-      "score": 0,
+      "purpose": "\u00c9tude notebook: global/local oddball paradigm (Bekinschtein-style 2x2 design). Real, executable, no longer a placeholder.",
+      "score": 90,
       "tbi": [
-        "Global/local oddball \u00e9tude -- wire to HierarchicalOddballParadigm (jaxfne/paradigm.py, already implemented) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+        "The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- checked and rejected: that class is a much heavier PFC-fixation/reward-gated task-schedule framework (SanityDeltaConfig, BehaviorGate), a different shape than what a lightweight \u00e9tude needs. Used the same proven direct StimulusSchedule pattern as \u00e9tude 9 instead, generalized to a real 2x2 local x global design (deterministic 15-frequent/5-rare trial split per block, not randomly sampled, so the rare cell is never accidentally empty)."
       ],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-01",
-      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
-      "status": "open"
+      "evidence": "Built via nbformat, executed end-to-end via nbclient.NotebookClient (0 cell errors), normalized via nbformat.validator.normalize. Real results: local mismatch (deviant-final - standard-final, pooled) = +1.45 Hz (matches \u00e9tude 9's +1.46 Hz local-oddball magnitude, as expected since it is structurally the same contrast); global mismatch (rare-in-block - frequent-in-block) = -0.43 Hz (local_deviant sequences) / +0.17 Hz (local_standard sequences) -- small, as honestly expected from a single-model firing-rate diagnostic, not oversold as a validated MMN result. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, no local-engine/proxy-overclaim violations. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py. REVIEW-CONFIRMED 2026-07-01: python3 scripts/audit_notebook_grammar.py --check -> pass:true (independent re-run). python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed (independent re-run; resolves the earlier transient race-condition failure reported by the whole-suite -x run -- confirmed not a real regression across two independent re-checks now).",
+      "status": "done"
     },
     {
-      "path": "tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb",
-      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
-      "score": 0,
-      "tbi": [
-        "Omission-local \u00e9tude -- wire to omission_oddball_paradigm (jaxfne/paradigm.py, already implemented) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
+      "path": "tests/test_vis_smoke_all.py",
+      "purpose": "Parametrized smoke-test module for the 18 vis/vis.plotly files confirmed to have zero test coverage (plans.json: vis-smoke-test-coverage-gap). 69 functions covered via a shared-fixture parametrized table.",
+      "score": 90,
+      "tbi": [],
+      "tbd": [
+        "Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pass could add a small number of value-level assertions for the highest-risk functions (e.g. manuscript figures) without turning this into a full regression suite."
       ],
-      "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-01",
-      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
-      "status": "open"
+      "evidence": "File created by delegated build+verify pass. 70 tests (69 function cases + 1 self-check for undocumented skips), 0 skips needed -- all 69 target functions were smoke-testable with small synthetic/duck-typed fixtures. python3 -m pytest tests/test_vis_smoke_all.py -v -> 70 passed. python3 -m py_compile -> OK. Full vis suite together (tests/test_vis*.py, 7 files): 117 passed. A whole-repo -x run reported one unrelated transient failure (test_notebook_execution_suite.py::etude_no_10) caused by a race with concurrent inline work on that same notebook in this session -- re-verified standalone afterward: 1 passed, not a real regression. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest tests/test_vis_smoke_all.py -v -> 70 passed (independent re-run). python3 -m pytest tests/test_vis*.py -q -> 117 passed, full vis suite together, no regressions.",
+      "status": "done"
     },
     {
-      "path": "tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
-      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
-      "score": 0,
-      "tbi": [
-        "Omission-global-cooperative \u00e9tude -- wire to coop_omission_oddball_paradigm (jaxfne/paradigm.py, already implemented, exercised by tests/test_coop_v035.py) on a real NeuronalTensor/Model run. Tracked in plans.json item release-0.4.5-code-quality -- zero placeholders is an explicit 0.4.5 release requirement."
-      ],
+      "path": "AGENTS.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Confirmed in PLACEHOLDER_NOTEBOOKS set, tests/test_notebook_execution_suite.py, read 2026-07-01.",
-      "status": "open"
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/BASELINE_DRIVE_REFERENCE.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/CORTEX_CALIBRATION_CHECKLIST.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/HDP_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/NEURON_IO_CHARACTERIZATION.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/STDP_CLOSED_LOOP_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/STDP_GLOBAL_SCALE_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/STDP_HOMEOSTATIC_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/STDP_LOWRATE_REGIME_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/STDP_REAL_TEST_REPORT.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/_generated/operator_inventory.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/_generated/version.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/bridges.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/core.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/emitters.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/fields.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/index.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/neuronal_tensor.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/objectives.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/plasticity.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/probes.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/runtime.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/sharding.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/solvers.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/tensor_operators.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/api/validation.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/changelog.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/ci_policy.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/citation.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/colab.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/computation_basis.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/conservation_proxy_diagnostics.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/contributing.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/faq.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/calibration.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/configuration_grammar.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/hdp.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/homeostasis.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/index.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/jaxley_interop.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/objective_grammar.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/operator_composition.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/output_bundles.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/plotly_visualization.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/poisson_admissibility.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/probe_operators.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/showcases.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/guides/tensor_field_workflows.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/index.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/install.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/interactive_visualizations.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/limitations_and_future_plans.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/mathematical_glossary_flow.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/migration_guide.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/notes/biophysical_model_comparison.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/operator_doctrine.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/performance_baseline.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/quickstart.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/reference/glossary_of_methods.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.2.0.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.2.1.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.2.10.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.2.18.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.2.3.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/releases/v0.3.4.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/source_field_equations.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tensor_electromagnetics_scope.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tensor_network_ancestry.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorial_figures.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/01_single_neuron_multimodal.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/02_two_neuron_ei.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/03_network_100_ei.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/04_v1_column.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/05_v1_pfc_dual_column.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/06_v036_100_neuron_ei_population.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/07_v037_source_bookkeeping.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/08_v038_lfp_csd_readout.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/10_v0313_omission_oddball.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/11_multi_laminar_cortical_agsdr.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/12_izhikevich_single_emitter_explorer.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/13_canonical_column_etude.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/index.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/notebook_standard.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/tutorials/tutorial_outputs.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
+    },
+    {
+      "path": "docs/v047_refactor_audit.md",
+      "purpose": null,
+      "score": null,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": null,
+      "evidence": "not yet reviewed -- placeholder added 2026-07-01 to make the docs backlog visible for plans.json item release-0.4.6-docs-alignment (code-doc-theory alignment). Confirmed via find docs -name \"*.md\" that this file exists and was previously completely untracked (90 of 91 doc files had zero progress.json coverage before this pass).",
+      "status": "unreviewed"
     }
   ]
 }

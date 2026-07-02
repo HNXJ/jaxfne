@@ -1379,6 +1379,7 @@ def _tune_matrix_agsdr_optax(
                 # Fallback: mean V_m should be near threshold
                 loss = jnp.mean(jnp.abs(sigs.V_m - (-45.0)))
         except Exception:
+            fallback_counts["inner_loop_step_failed"] += 1
             loss = jnp.asarray(float("inf"), dtype=_wdtype_outer)
         return loss
 
@@ -1400,6 +1401,13 @@ def _tune_matrix_agsdr_optax(
     best_model = model
     generation_records = []
     all_scores = []
+    fallback_counts = {
+        "inner_loop_step_failed": 0,
+        "candidate_refinement_failed": 0,
+        "final_scoring_failed": 0,
+        "matrix_extraction_failed": 0,
+        "diagnostics_failed": 0,
+    }
 
     base_key = jax.random.PRNGKey(int(seed))
 
@@ -1483,6 +1491,7 @@ def _tune_matrix_agsdr_optax(
                             param_upper = float(param_specs.get("gAMPA_w").bounds[1]) if "gAMPA_w" in param_specs else 1000.0
                             current_W = jnp.clip(current_W, param_lower, param_upper)
                         except Exception:
+                            fallback_counts["inner_loop_step_failed"] += 1
                             break  # Inner loop failed; use AGSDR candidate as-is
 
                     # Apply refined W to model
@@ -1492,7 +1501,7 @@ def _tune_matrix_agsdr_optax(
                     new_params["emitter"] = new_emitter
                     candidate_model = _replace(candidate_model, params=new_params)
                 except Exception:
-                    pass  # Fall back to unrefined AGSDR candidate
+                    fallback_counts["candidate_refinement_failed"] += 1  # Fall back to unrefined AGSDR candidate
 
             # FINAL SCORING: real objective
             try:
@@ -1505,7 +1514,8 @@ def _tune_matrix_agsdr_optax(
                 if score is None:
                     score = 0.0 if gates_pass else float("inf")
                 score = float(score)
-            except Exception as e:
+            except Exception:
+                fallback_counts["final_scoring_failed"] += 1
                 score = float("inf")
 
             all_scores.append(score)
@@ -1528,7 +1538,7 @@ def _tune_matrix_agsdr_optax(
                             best_parameters[matrix_name] = tuned_W.tolist()
                         except Exception:
                             # If extraction fails, keep scalar as placeholder
-                            pass
+                            fallback_counts["matrix_extraction_failed"] += 1
                 best_model = candidate_model
 
         # Delta-rule center update
@@ -1572,7 +1582,12 @@ def _tune_matrix_agsdr_optax(
                     "nonzero": int(np.count_nonzero(W_array)),
                 }
             except Exception:
-                pass
+                fallback_counts["diagnostics_failed"] += 1
+
+    _fallback_warnings = [
+        f"{count}x {name} (silently degraded to a fallback path, not a raised error)"
+        for name, count in fallback_counts.items() if count > 0
+    ]
 
     report = {
         **base_report,
@@ -1587,9 +1602,11 @@ def _tune_matrix_agsdr_optax(
         "inner_optimizer": inner_meta,
         "inner_steps": int(inner_steps),
         "matrix_parameters": matrix_parameters_meta,
+        "fallback_counts": dict(fallback_counts),
         "warnings": [
             "two_level_agsdr_adam_is_computational_scaffold_only",
             "inner_soft_rate_surrogate_is_not_biological_truth",
+            *_fallback_warnings,
         ],
     }
 

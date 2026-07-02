@@ -12,6 +12,25 @@ import jaxfne as jtfne
 from jaxfne import bridges
 
 
+@pytest.fixture(autouse=True)
+def _ensure_jax_clip_compat_shim():
+    """Every test in this file needs jnp.clip's a_min=/a_max= shim installed.
+
+    Previously only test_clip_compat_shim_lets_hh_integrate() installed it,
+    and every other test implicitly relied on that test having already run
+    first in the SAME process (pytest's default in-file execution order).
+    That's fragile even serially and breaks under pytest-xdist's
+    load-balanced scheduling, which can place tests from this file onto
+    separate worker processes with independent global state -- confirmed
+    2026-07-01: test_jaxley_to_signals_carries_positions_and_layout failed
+    with a raw jaxley/JAX TypeError when run in isolation (a fresh process
+    where the shim was never installed), passing only when collocated with
+    the shim-installing test in the same process. _install_jax_clip_compat
+    is documented idempotent, so calling it here for every test is safe.
+    """
+    bridges._install_jax_clip_compat()
+
+
 def _hh_cell():
     from jaxley.channels import HH
     cell = jaxley.Cell(jaxley.Branch(jaxley.Compartment(), ncomp=1), parents=[-1])

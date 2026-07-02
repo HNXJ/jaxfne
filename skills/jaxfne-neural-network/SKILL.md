@@ -39,6 +39,13 @@ idx = model.select(layer="L4", cell_type="E")
 model = model.with_emitter_parameters(drive_per_neuron=arr)
 ```
 
+`construct()` is the expensive step at scale (231s at N=100k) — if you need
+to avoid re-paying it across runs, see `jaxfne-neural-tensor`'s
+"Construct-once / checkpoint / reload" section before reaching for
+`jax.tree_util.tree_unflatten` with a dummy-sized model; that shortcut is a
+verified landmine (F-020/F-021 in `skills/FRICTIONS_STACK.md`), not a
+shortcut.
+
 ## Level 3 — Simulation → Signals
 
 **Canonical:** top-level `simulate` (not notebook-local kernels):
