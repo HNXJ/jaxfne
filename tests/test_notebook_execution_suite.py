@@ -34,6 +34,7 @@ TUTORIALS_DIR = Path(__file__).parent.parent / "tutorials"
 # Keep in sync with tutorials/NOTEBOOK_STATUS.md's release-facing list.
 RELEASE_FACING_NOTEBOOKS = [
     "jaxfne-sanity-checker-notebook-01.ipynb",
+    "jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
     "etudes/jaxfne_etude_no_1_base.ipynb",
     "etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
     "etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb",
@@ -63,13 +64,10 @@ RELEASE_FACING_NOTEBOOKS = [
 
 pytestmark = [pytest.mark.slow, pytest.mark.notebook]
 
-# Étude 8-12 are intentional skeleton placeholders: every code cell raises
-# NotImplementedError("... is a planned placeholder.") by design (verified
-# by reading the notebooks). They are not yet implemented Etudes, so "executes
-# cleanly" is the wrong bar -- xfail them (matching the same pattern already
-# used for Etude No. 1's placeholder phase) rather than block CI on planned-
-# but-unbuilt content. Re-parametrize to a real execution test once each
-# Etude gets a real implementation.
+# No placeholder notebooks remain: all release-facing études (1, 3-12, TCM)
+# are real, implemented, and executed by the gate as of 0.4.5. Kept as an
+# empty set so the xfail machinery below stays wired for any future
+# planned-but-unbuilt notebook without reworking the test.
 PLACEHOLDER_NOTEBOOKS = set()
 
 
