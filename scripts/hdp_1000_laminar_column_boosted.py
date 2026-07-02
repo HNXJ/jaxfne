@@ -41,6 +41,7 @@ import jaxfne as jtfne
 from jaxfne.hdp_network import (
     HDPColumnConfig, build_model, apply_drive_correction,
     layer_size_scale_override, run, BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
+    BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
 )
 
 OUTPUT_DIR = Path("outputs/hdp_1000_laminar_column_boosted")
@@ -53,8 +54,13 @@ TAIL_FRACTION = 0.3
 TARGET_RATE_HZ = 5.0
 TARGET_RATE_TOL_HZ = 2.5
 
+# F-023: explicit base_drive_by_cell_type preserves this script's prior
+# always-4.0-for-all behavior now that HDPColumnConfig's dataclass default
+# is None (emitter-preset passthrough) -- see skills/FRICTIONS_STACK.md F-023.
+# hdp_suite2_visualizations.py reuses this exact CFG, so it inherits the fix.
 CFG = HDPColumnConfig(n_neurons=N_NEURONS, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED,
-                       probe_name="hdp_1000_probe")
+                       probe_name="hdp_1000_probe",
+                       base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT))
 
 HDP_KWARGS = dict(BASE_HDP_KWARGS_DEFAULT)
 HDP_KWARGS.update(DEFAULT_HDP)

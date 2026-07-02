@@ -10,6 +10,7 @@ No matplotlib calls in notebooks; matplotlib used internally with lazy imports o
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
 from typing import Mapping, Sequence, Optional
 import numpy as np
@@ -21,6 +22,12 @@ def save_figure(fig, path: str | Path, dpi: int = 150, bbox_inches: str = "tight
     Thin matplotlib-only wrapper kept for back-compat; closes ``fig`` after
     saving (the canonical exporter does not).
     """
+    warnings.warn(
+        "jaxfne.export.save_figure is deprecated; use jaxfne.vis.export_figure "
+        "instead (handles matplotlib + plotly, does not close the figure).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     from .vis.exporters import export_figure
     path = Path(path)
     fmt = path.suffix.lstrip(".") or "png"

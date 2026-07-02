@@ -14,7 +14,7 @@ redefined per width. This consolidates the near-duplicate `build_model`/
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping, Optional
 
 import jax.numpy as jnp
 import numpy as np
@@ -153,8 +153,15 @@ class HDPColumnConfig:
         default_factory=lambda: dict(ZBANDS_DEFAULT))
     layer_cell_type_frac: Mapping[str, Mapping[str, float]] = field(
         default_factory=lambda: {k: dict(v) for k, v in LAYER_CELL_TYPE_FRAC_DEFAULT.items()})
-    base_drive_by_cell_type: Mapping[str, float] = field(
-        default_factory=lambda: dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT))
+    # F-023: Optional[...] = None is a real passthrough sentinel, NOT the same
+    # as BASE_DRIVE_BY_CELL_TYPE_DEFAULT. None means "do not pass
+    # baseline_drive_by_cell_type to laminar_cortex_config at all -- let the
+    # izhikevich emitter's own per-cell-type preset drive apply"
+    # (E=5.0/PV=3.0/SST=3.5/VIP=3.0, jaxfne/emitters.py IZHIKEVICH_PRESETS).
+    # Existing callers that relied on the old always-4.0-for-all dataclass
+    # default must now pass base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT)
+    # explicitly to preserve their prior behavior -- see skills/FRICTIONS_STACK.md F-023.
+    base_drive_by_cell_type: "Optional[Mapping[str, float]]" = None
     drive_correction_by_cell_type: Mapping[str, float] = field(
         default_factory=lambda: dict(DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT))
     layer_size_scale: "Mapping[str, float] | None" = field(
@@ -165,14 +172,22 @@ class HDPColumnConfig:
 def build_model(cfg: HDPColumnConfig) -> "jtfne.core.Model":
     """Construct an HDP-ready laminar column Model from `cfg`. The single
     network maker -- vary `cfg.n_neurons` (or any other field) to scale up
-    or down; never copy this function to add a new size."""
+    or down; never copy this function to add a new size.
+
+    `cfg.base_drive_by_cell_type is None` (F-023 passthrough sentinel) is
+    forwarded as "don't pass baseline_drive_by_cell_type at all" so
+    `laminar_cortex_config`'s own None-fallthrough (emitter preset drive)
+    runs unchanged -- NOT the same as passing an explicit 4.0-for-all dict.
+    """
+    laminar_kwargs: dict[str, Any] = dict(
+        areas=cfg.areas, layers=cfg.layers, n=cfg.n_neurons,
+        duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms, seed=cfg.seed,
+        emitter="izhikevich",
+    )
+    if cfg.base_drive_by_cell_type is not None:
+        laminar_kwargs["baseline_drive_by_cell_type"] = dict(cfg.base_drive_by_cell_type)
     builder = (
-        jtfne.laminar_cortex_config(
-            areas=cfg.areas, layers=cfg.layers, n=cfg.n_neurons,
-            duration_ms=cfg.duration_ms, dt_ms=cfg.dt_ms, seed=cfg.seed,
-            emitter="izhikevich",
-            baseline_drive_by_cell_type=dict(cfg.base_drive_by_cell_type),
-        )
+        jtfne.laminar_cortex_config(**laminar_kwargs)
         .layer_fractions(layer_fractions=dict(cfg.layer_fractions))
         .area_layer_cell_types(cfg.areas[0], {k: dict(v) for k, v in cfg.layer_cell_type_frac.items()})
         .field(domain="laminar_column", conductivity="proxy",
@@ -182,14 +197,49 @@ def build_model(cfg: HDPColumnConfig) -> "jtfne.core.Model":
     return jtfne.construct(builder)
 
 
-def apply_drive_correction(model: "jtfne.core.Model", cfg: HDPColumnConfig) -> "jtfne.core.Model":
-    """Per-cell-type multiplicative drive correction, applied post-hoc
-    via with_emitter_parameters (no rebuild needed)."""
+def apply_drive_correction(
+    model: "jtfne.core.Model",
+    cfg: HDPColumnConfig,
+    mode: Literal["multiplicative", "absolute"] = "multiplicative",
+) -> "jtfne.core.Model":
+    """Per-cell-type drive correction, applied post-hoc via
+    with_emitter_parameters (no rebuild needed).
+
+    mode="multiplicative" (default, preserves prior behavior of every
+    existing caller): `corrected = existing_drive_on_model * factor`, i.e.
+    scales whatever drive the model already has (preset or explicit).
+
+    mode="absolute" (F-023): `corrected = cfg.base_drive_by_cell_type[ct] *
+    cfg.drive_correction_by_cell_type[ct]`, ignoring the model's existing
+    drive entirely. Use this for callers that compute a fully-explicit
+    override (e.g. scripts/hdp_1000_neuronal_tensor_column.py's local
+    apply_drive_correction) -- forcing them through "multiplicative" would
+    silently compute a different final drive whenever the model's
+    pre-correction drive differs from cfg.base_drive_by_cell_type (e.g. a
+    tensor-first construct() path using emitter presets rather than an
+    explicit baseline). Requires cfg.base_drive_by_cell_type to be set
+    (not the None passthrough sentinel).
+    """
     labels = np.asarray(model.params["emitter"].labels)
     base_drive = np.asarray(model.params["emitter"].drive)
     corrected = base_drive.copy()
-    for ct, factor in cfg.drive_correction_by_cell_type.items():
-        corrected[labels == ct] = base_drive[labels == ct] * factor
+    if mode == "multiplicative":
+        for ct, factor in cfg.drive_correction_by_cell_type.items():
+            corrected[labels == ct] = base_drive[labels == ct] * factor
+    elif mode == "absolute":
+        if cfg.base_drive_by_cell_type is None:
+            raise ValueError(
+                "apply_drive_correction(mode='absolute') requires "
+                "cfg.base_drive_by_cell_type to be an explicit dict, not the "
+                "None passthrough sentinel -- there is no explicit base drive "
+                "to multiply by the correction factor."
+            )
+        for ct, factor in cfg.drive_correction_by_cell_type.items():
+            if ct not in cfg.base_drive_by_cell_type:
+                continue
+            corrected[labels == ct] = cfg.base_drive_by_cell_type[ct] * factor
+    else:
+        raise ValueError(f"Unknown mode: {mode!r}. Choose 'multiplicative' or 'absolute'.")
     return model.with_emitter_parameters(drive_per_neuron=jnp.asarray(corrected))
 
 

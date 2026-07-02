@@ -233,6 +233,17 @@ to `simulate()` — it overrides any `Configuration`-derived metadata. Full patt
 [`docs/guides/hdp.md`](docs/guides/hdp.md) § "Tensor-first" and
 [`docs/api/neuronal_tensor.md`](docs/api/neuronal_tensor.md).
 
+**HDP v2 sign orientation (`hdp_rule=`, `jaxfne/emitters.py` `simulate_receptor_exponential_izhikevich`):**
+`signed_linear` and `signed_quadratic` compute their weight-update basis as
+`H_post - H_pre` (edge-indexed `H_next[post]` minus `H_next[pre]`), not the naively-expected
+`H_pre - H_post` that the top-level docstring's rule-family summary states. This flip is
+deliberate: it preserves the postsynaptic-indexing invariant used everywhere else in this
+kernel (`W_i` from outgoing edges, `I_syn_i` from incoming edges, the E/I sign split via
+`exc_mask`) so that a resource-starved postsynaptic neuron (`H_post < H_pre`) still weakens its
+incoming excitatory weights and strengthens its incoming inhibitory weights — the correct
+restoring direction — under either expression once the sign convention is applied consistently.
+See the inline comment at `jaxfne/emitters.py:1347` for the exact basis per rule.
+
 **Noise-scale caveat (verified, not uniform across kernels):** `simulate_eig_izhikevich`,
 `simulate_edge_recurrent_izhikevich`, and `simulate_edge_recurrent_izhikevich_homeostatic`
 all accept `noise_scale=` (`None` keeps the historical `0.5` scalar; pass a scalar or

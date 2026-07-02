@@ -670,9 +670,9 @@ def omission_oddball_paradigm(
         name="expected",
         sequence=("pre", "standard", "post", "null"),
         events=(
-            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
             ParadigmEvent(label="standard", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, stimulus="standard_tone"),
-            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
         ),
         probability=0.8,
     )
@@ -682,9 +682,9 @@ def omission_oddball_paradigm(
         name="unexpected",
         sequence=("pre", "deviant", "post", "null"),
         events=(
-            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
             ParadigmEvent(label=deviant_label, onset_ms=pre_stimulus_buffer_ms, duration_ms=deviant_duration_ms, stimulus="deviant_tone"),
-            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + deviant_duration_ms, duration_ms=post_stimulus_buffer_ms),
+            ParadigmEvent(label="post_stimulus", onset_ms=pre_stimulus_buffer_ms + deviant_duration_ms, duration_ms=post_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
         ),
         probability=0.1,
         omission_position=None,
@@ -695,9 +695,9 @@ def omission_oddball_paradigm(
         name="omitted",
         sequence=("pre", "silence", "post", "null"),
         events=(
-            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms),
+            ParadigmEvent(label="trial_start", onset_ms=0.0, duration_ms=pre_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
             ParadigmEvent(label="omission", onset_ms=pre_stimulus_buffer_ms, duration_ms=standard_duration_ms, is_omission=True),
-            ParadigmEvent(label="post_omission", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms),
+            ParadigmEvent(label="post_omission", onset_ms=pre_stimulus_buffer_ms + standard_duration_ms, duration_ms=post_stimulus_buffer_ms, metadata={"drive_amplitude": 0.0}),
         ),
         probability=0.1,
         omission_position=omission_position,

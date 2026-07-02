@@ -4396,8 +4396,8 @@
       "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "F-017 row corrected in-place 2026-07-01 to match the confirmed sweep result and the K_ctrl dead-code finding.",
+      "last_verified": "2026-07-02",
+      "evidence": "F-017 row corrected in-place 2026-07-01 to match the confirmed sweep result and the K_ctrl dead-code finding. 2026-07-02: re-verified F-007/F-008/F-009 against real code/skill state (not just trusting the ledger's own prior text) and moved all three from Open to Resolved (this pass, 2026-07-02). F-007 (Configuration bare-vs-builder): confirmed skills/jaxfne-config/SKILL.md documents builder-first usage throughout (Quickstart sections lines 119-144 use only laminar_cortex_config/build_laminar_column fluent builders) -- closed as documented, no code change. F-008 (no top-level band_power/phase_locking): grep jaxfne/__init__.py jaxfne/core.py for band_power/phase_locking -> 0 matches; python3 -c import check confirms both absent from dir(jtfne); skills/jaxfne-neural-network/SKILL.md line 102 states this exact fact verbatim -- closed as documented, no code change. F-009 (Signals.get(trial=) NotImplementedError): found a real small gap -- jtfne.run_trials/Model.run_trials/tutorial_utils.simulate_laminar_trials all confirmed to exist and work, but the exception message itself didn't mention them. Fixed with a one-line message change in jaxfne/core.py::Signals.get (~line 2774), verified via `python3 -m py_compile jaxfne/core.py` (exit 0) and a live NotImplementedError capture on a synthetic Signals object showing the new message text pointing to run_trials/tutorial_utils.",
       "status": "done"
     },
     {

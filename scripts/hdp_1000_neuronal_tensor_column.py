@@ -36,6 +36,7 @@ from jaxfne.core import RuntimeConfig
 from jaxfne.hdp_network import (
     BASE_DRIVE_BY_CELL_TYPE_DEFAULT, DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT,
     DEFAULT_HDP, BASE_HDP_KWARGS_DEFAULT,
+    HDPColumnConfig, apply_drive_correction as _hdp_apply_drive_correction,
 )
 
 OUTPUT_DIR = Path("outputs/hdp_1000_neuronal_tensor_column")
@@ -265,15 +266,23 @@ def visualize(model: "jtfne.core.Model", sig: "jtfne.Signals", diag: dict, summa
 
 
 def apply_drive_correction(model: "jtfne.core.Model") -> "jtfne.core.Model":
-    labels = np.asarray(model.params["emitter"].labels)
-    drive = np.empty(len(labels), dtype=np.float32)
-    for ct in BASE_DRIVE_BY_CELL_TYPE_DEFAULT:
-        mask = labels == ct
-        base = BASE_DRIVE_BY_CELL_TYPE_DEFAULT[ct]
-        corr = DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT[ct]
-        drive[mask] = base * corr
-    import jax.numpy as jnp
-    return model.with_emitter_parameters(drive_per_neuron=jnp.asarray(drive))
+    """Absolute per-cell-type drive override: drive = base * correction,
+    ignoring whatever drive the tensor-first construct() path already put on
+    the model (the izhikevich emitter's own preset, NOT
+    BASE_DRIVE_BY_CELL_TYPE_DEFAULT). Delegates to hdp_network's generic
+    apply_drive_correction(mode="absolute") (F-023) -- verified numerically
+    identical to this script's prior hand-rolled loop:
+    PYTHONPATH=. python3 -c reproduction in the F-023 migration receipt
+    (skills/FRICTIONS_STACK.md) shows both compute
+    drive[ct] = BASE_DRIVE_BY_CELL_TYPE_DEFAULT[ct] * DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT[ct]
+    bitwise-identically.
+    """
+    cfg = HDPColumnConfig(
+        n_neurons=1, duration_ms=1.0, dt_ms=1.0,  # unused by apply_drive_correction
+        base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT),
+        drive_correction_by_cell_type=dict(DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT),
+    )
+    return _hdp_apply_drive_correction(model, cfg, mode="absolute")
 
 
 def main() -> None:

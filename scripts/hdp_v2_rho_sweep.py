@@ -34,6 +34,7 @@ import jax.numpy as jnp
 import jaxfne as jtfne
 from jaxfne.hdp_network import (
     HDPColumnConfig,
+    BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
     BASE_HDP_KWARGS_DEFAULT,
     DEFAULT_HDP,
     DEFAULT_HDP_DESYNC,
@@ -96,11 +97,16 @@ def _run_one(preset_key: str, rho: float, seed: int, overrides: dict) -> dict:
     hdp_kw = {**spec["hdp_kwargs"], "rho_passive": rho}
     combined_kw = {**hdp_kw, **spec["base_kwargs"]}
 
+    # F-023: explicit base_drive_by_cell_type preserves this script's prior
+    # always-4.0-for-all behavior now that HDPColumnConfig's dataclass
+    # default is None (emitter-preset passthrough) -- see
+    # skills/FRICTIONS_STACK.md F-023.
     cfg = HDPColumnConfig(
         n_neurons=spec["n_neurons"],
         duration_ms=spec["duration_ms"],
         dt_ms=0.5,
         seed=seed,
+        base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT),
     )
 
     # Build model from config

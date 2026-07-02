@@ -22,7 +22,10 @@ from pathlib import Path
 import jax.numpy as jnp
 import numpy as np
 
-from jaxfne.hdp_network import HDPColumnConfig, build_model, run, BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP
+from jaxfne.hdp_network import (
+    HDPColumnConfig, build_model, run, BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
+    BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
+)
 
 OUTPUT_DIR = Path("outputs/hdp_fi_calibration_curves")
 
@@ -37,7 +40,14 @@ DRIVE_FACTORS = [0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0]
 
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    cfg = HDPColumnConfig(n_neurons=N_NEURONS, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED)
+    # F-023: explicit base_drive_by_cell_type preserves this script's prior
+    # always-4.0-for-all behavior now that HDPColumnConfig's dataclass
+    # default is None (emitter-preset passthrough) instead of
+    # BASE_DRIVE_BY_CELL_TYPE_DEFAULT -- see skills/FRICTIONS_STACK.md F-023.
+    cfg = HDPColumnConfig(
+        n_neurons=N_NEURONS, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED,
+        base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT),
+    )
     model = build_model(cfg)
     labels = np.asarray(model.params["emitter"].labels)
     base_drive = np.asarray(model.params["emitter"].drive)

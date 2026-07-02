@@ -55,7 +55,7 @@ import numpy as np
 
 from jaxfne.hdp_network import (
     HDPColumnConfig, build_model, apply_drive_correction, run,
-    BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP,
+    BASE_HDP_KWARGS_DEFAULT, DEFAULT_HDP, BASE_DRIVE_BY_CELL_TYPE_DEFAULT,
 )
 
 OUTPUT_DIR = Path("outputs/hdp_100_stability_sweep")
@@ -69,8 +69,12 @@ LATE_WINDOW_MS = 1000.0    # steps [DURATION_MS - LATE_WINDOW_MS, DURATION_MS)
 TARGET_RATE_HZ = 5.0
 TARGET_RATE_TOL_HZ = 2.5
 
+# F-023: explicit base_drive_by_cell_type preserves this script's prior
+# always-4.0-for-all behavior now that HDPColumnConfig's dataclass default
+# is None (emitter-preset passthrough) -- see skills/FRICTIONS_STACK.md F-023.
 CFG = HDPColumnConfig(n_neurons=N_NEURONS, duration_ms=DURATION_MS, dt_ms=DT_MS, seed=SEED,
-                       probe_name="hdp_100_probe")
+                       probe_name="hdp_100_probe",
+                       base_drive_by_cell_type=dict(BASE_DRIVE_BY_CELL_TYPE_DEFAULT))
 
 # Re-exported for any callers/notebooks that still import these names
 # directly from this module (kept identical to jaxfne.hdp_network's

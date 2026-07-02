@@ -2773,8 +2773,10 @@ class Signals:
         if trial is not None:
             raise NotImplementedError(
                 "Signals.get(..., trial=...) is not supported: core Signals has no "
-                "declared trial axis (V_m is (n_steps, n_units)). Use a trial-batched "
-                "API or index the array directly once trial semantics are explicit."
+                "declared trial axis (V_m is (n_steps, n_units)). Use "
+                "jtfne.run_trials(...)/Model.run_trials(...) or "
+                "tutorial_utils.simulate_laminar_trials(...) for multi-trial data, "
+                "or index the array directly once trial semantics are explicit."
             )
 
         field_args = (area, layer, cell_type, ids)

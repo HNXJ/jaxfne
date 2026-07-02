@@ -454,7 +454,7 @@
 | jaxfne/fields/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/probes.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/io.py | 95 | unreviewed |  |  | 2026-06-30 |
-| skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-01 |
+| skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-02 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
