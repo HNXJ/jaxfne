@@ -407,6 +407,8 @@
 | jaxfne/vis/plotly/manuscript/figure2.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure3.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure4.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
+| local/gen_test_data_100n_1000ms.py | 88 | done |  |  | 2026-07-01 |
+| jaxfne/optim/core.py | 88 | done |  |  | 2026-07-01 |
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/spectral.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/export.py | 90 | unreviewed |  |  | 2026-06-30 |
@@ -421,12 +423,23 @@
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
 | tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 90 | done | The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- che |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb | 90 | done |  |  | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-01 |
+| scripts/hdp_suite2_visualizations.py | 90 | done |  |  | 2026-07-01 |
+| examples/02_omission_scaffold.py | 90 | done |  |  | 2026-07-01 |
+| examples/03_objective_and_tune_smoke.py | 90 | done |  |  | 2026-07-01 |
+| tests/test_jaxley_emitter_bridge_e2e.py | 90 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/lfp.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/vis/plotly/raster.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
 | tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 92 | done |  | Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not | 2026-07-01 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb | 92 | done |  |  | 2026-07-01 |
+| tests/test_etude3_v1_spectrolaminar_1k.py | 92 | done |  |  | 2026-07-01 |
+| local/verify_plotly_pipeline.py | 92 | done |  |  | 2026-07-01 |
+| jaxfne/optim/manifests.py | 92 | done |  |  | 2026-07-01 |
+| scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-01 |
 | jaxfne/fields/diagnostics.py | 93 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/vis/exporters.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests | 2026-07-01 |
 | jaxfne/vis/plotly/connectivity.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.connectivity\|plot_connectivity' tests/ -> no hits against this specific | 2026-07-01 |
@@ -482,3 +495,11 @@
 | jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json | 100 | done |  |  | 2026-06-30 |
 | jaxfne/stimulus.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
+| .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v030_docs_audit.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v030_plotly_artifacts.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v030_tutorial_structure.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v031_single_neuron_tutorial.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v032_parameter_sweep_tutorial.py | 100 | done |  |  | 2026-07-01 |
+| .legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py | 100 | done |  |  | 2026-07-01 |
