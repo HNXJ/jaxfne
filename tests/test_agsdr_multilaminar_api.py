@@ -4,45 +4,8 @@ Covers the new analysis and selection functions for Suite No. 2 AGSDR tuning wor
 """
 
 import numpy as np
-import pytest
 
 import jaxfne as jtfne
-
-
-class TestSelectNeurons:
-    """Tests for select_neurons() function."""
-
-    def test_select_neurons_basic(self):
-        """Test that select_neurons can be called on a model."""
-        cfg = jtfne.suite2_net1_config(seed=7, n=100, duration_ms=10.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-
-        # Should be callable without error
-        indices = jtfne.select_neurons(model)
-        assert indices is not None
-        assert isinstance(indices, np.ndarray)
-
-    def test_select_neurons_returns_array(self):
-        """Test that select_neurons returns a numpy array of indices."""
-        cfg = jtfne.suite2_net1_config(seed=7, n=50, duration_ms=10.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-        indices = jtfne.select_neurons(model)
-
-        assert isinstance(indices, np.ndarray)
-        assert indices.dtype == np.int64 or indices.dtype == int
-        # May be empty if neuron_metadata not set, which is fine
-        assert len(indices) <= 50
-
-    def test_select_neurons_empty_metadata(self):
-        """Test that select_neurons handles model with empty or missing metadata gracefully."""
-        cfg = jtfne.suite2_net1_config(seed=7, n=50, duration_ms=10.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-
-        # Model may have neuron_metadata as None or empty
-        indices = jtfne.select_neurons(model, cell_type="E")
-
-        assert isinstance(indices, np.ndarray)
-        assert indices.dtype == np.int64 or indices.dtype == int
 
 
 class TestKappaSynchrony:
@@ -170,36 +133,3 @@ class TestRateSynchronyTargets:
                 assert loss["weight"] == 2.0
             elif loss["name"] == "kappa_synchrony":
                 assert loss["weight"] == 1.0
-
-
-class TestIntegration:
-    """Integration tests for the three functions together."""
-
-    def test_workflow_smoke(self):
-        """Test a basic workflow: config → model → select → objective."""
-        # Create config
-        cfg = jtfne.suite2_net1_config(seed=7, n=50, duration_ms=100.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-
-        # Select neurons (if metadata available)
-        selected = jtfne.select_neurons(model)
-        assert selected is not None
-
-        # Create objective
-        objective = jtfne.rate_synchrony_targets(
-            target_rate_hz=5.0,
-            target_kappa_synchrony=0.0,
-        )
-        assert objective.name == "rate_synchrony_targets"
-
-    def test_kappa_on_simulated_spikes(self):
-        """Test kappa_synchrony on actual simulated spikes."""
-        cfg = jtfne.suite2_net1_config(seed=7, n=20, duration_ms=50.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-        signals = jtfne.simulate(model, seed=7, duration_ms=50.0, dt_ms=0.1)
-
-        spikes = np.array(signals.spikes)
-        kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
-
-        assert isinstance(kappa, float)
-        assert -1.0 <= kappa <= 1.0

@@ -18,23 +18,6 @@ def _cfg(n=8):
     )
 
 
-def test_compact_grammar_execution():
-    """Verify that the standard compact grammar works perfectly."""
-    cfg = _cfg(8)
-    model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=1)
-    assert signals.V_m.shape[1] == 8
-    assert signals.field is not None
-
-    # Visualization is optional (requires matplotlib)
-    pytest.importorskip("matplotlib")
-    import matplotlib.pyplot as plt
-
-    fig = jtfne.vis.spectrolaminar(signals)
-    assert isinstance(fig, plt.Figure)
-    plt.close(fig)
-
-
 def test_simulate_with_kwargs():
     """Verify that simulate accepts custom simulation parameters as kwargs."""
     cfg = _cfg(6)

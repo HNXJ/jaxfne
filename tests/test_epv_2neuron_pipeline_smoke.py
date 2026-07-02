@@ -58,17 +58,6 @@ def test_construct_produces_exactly_one_e_and_one_pv():
     assert cell_types == ["E", "PV"]
 
 
-def test_simulate_signals_finite_and_right_shape():
-    _, sig = _simulate()
-
-    expected_steps = round(DURATION_MS / DT_MS)
-    assert sig.V_m.shape[0] == expected_steps
-    assert sig.V_m.shape[-1] == 2
-    assert sig.spikes.shape == sig.V_m.shape
-    assert bool(jnp.all(jnp.isfinite(sig.V_m)))
-    assert bool(jnp.all(jnp.isfinite(sig.spikes)))
-
-
 def test_lfp_proxy_has_declared_contact_count():
     _, sig = _simulate()
 
@@ -91,15 +80,3 @@ def test_eeg_proxy_derivable_from_lfp():
     eeg_readout = jtfne.fields.eeg_proxy_probe(lfp)
     assert eeg_readout.data is not None
     assert bool(jnp.all(jnp.isfinite(jnp.asarray(eeg_readout.data))))
-
-
-def test_vis_raster_and_lfp_produce_figures():
-    pytest.importorskip("matplotlib")
-    _, sig = _simulate()
-
-    raster_fig = jtfne.vis.raster(sig)
-    assert raster_fig is not None
-    lfp_fig = jtfne.vis.lfp(sig)
-    assert lfp_fig is not None
-    vm_fig = jtfne.vis.vm(sig)
-    assert vm_fig is not None

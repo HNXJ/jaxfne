@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 
@@ -61,27 +60,3 @@ def test_suite2_smoke_simulation_and_tuning_are_finite():
     assert "noise_amplitude" in result.best_parameters
     assert result.summary["optimizer"] == "AGSDR_outer_finite_difference_Adam_inner"
     json.dumps(result.to_dict(), allow_nan=False)
-
-
-def test_suite2_visualization_facade_smoke():
-    pytest.importorskip("matplotlib")
-    import matplotlib.pyplot as plt
-
-    cfg = jtfne.suite2_net1_config(seed=5, n=8, duration_ms=20.0, dt_ms=0.5)
-    model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, jtfne.suite2_simulation(seed=5, duration_ms=20.0, dt_ms=0.5))
-    figs = [
-        jtfne.vis.raster(signals),
-        jtfne.vis.lfp_traces(signals),
-        jtfne.vis.csd_traces(signals),
-        jtfne.vis.eeg(signals),
-        jtfne.vis.meg(signals),
-        jtfne.vis.emm(signals),
-        jtfne.vis.spectrolaminar_suite(signals),
-        jtfne.vis.circuit3d(signals),
-    ]
-    for fig in figs:
-        assert isinstance(fig, plt.Figure)
-        assert len(fig.axes) > 0
-    for fig in figs:
-        plt.close(fig)

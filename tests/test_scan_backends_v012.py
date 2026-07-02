@@ -12,7 +12,6 @@ Tests that dense, edge-list, and receptor-exponential paths:
 import json
 import jax
 import jax.numpy as jnp
-import pytest
 import jaxfne as jtfne
 
 
@@ -46,15 +45,6 @@ class TestDenseScanBackend:
         sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=42, runtime=rt)
         signals = model.simulate(sim)
         assert signals.metadata["recurrent_backend"] == "dense"
-
-    def test_dense_output_shapes(self):
-        """Dense path produces correct output shapes."""
-        model = _make_model(n=15)
-        sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0)
-        signals = model.simulate(sim)
-        n_steps = int(10.0 / 0.1)
-        assert signals.spikes.shape == (n_steps, 15)
-        assert signals.V_m.shape == (n_steps, 15)
 
     def test_dense_deterministic_seed(self):
         """Dense path is deterministic for same seed."""
@@ -107,16 +97,6 @@ class TestEdgeListScanBackend:
         signals = model.simulate(sim)
         assert signals.metadata["recurrent_backend"] == "edge_list"
 
-    def test_edge_list_output_shapes(self):
-        """Edge-list path produces correct output shapes."""
-        model = _make_model(n=15)
-        rt = jtfne.runtime(recurrent_backend="edge_list", seed=0)
-        sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=rt)
-        signals = model.simulate(sim)
-        n_steps = int(10.0 / 0.1)
-        assert signals.spikes.shape == (n_steps, 15)
-        assert signals.V_m.shape == (n_steps, 15)
-
     def test_edge_list_deterministic_seed(self):
         """Edge-list path is deterministic for same seed."""
         model = _make_model(n=10)
@@ -157,20 +137,6 @@ class TestReceptorExponentialScanBackend:
         signals = model.simulate(sim)
         assert signals.metadata["recurrent_backend"] == "edge_list"
         assert signals.metadata["synaptic_kernel"] == "receptor_exponential"
-
-    def test_receptor_exponential_output_shapes(self):
-        """Receptor-exponential path produces correct shapes."""
-        model = _make_model(n=15)
-        rt = jtfne.runtime(
-            recurrent_backend="edge_list",
-            synaptic_kernel="receptor_exponential",
-            seed=0
-        )
-        sim = jtfne.simulation(duration_ms=10.0, dt_ms=0.1, seed=0, runtime=rt)
-        signals = model.simulate(sim)
-        n_steps = int(10.0 / 0.1)
-        assert signals.spikes.shape == (n_steps, 15)
-        assert signals.V_m.shape == (n_steps, 15)
 
     def test_receptor_exponential_deterministic(self):
         """Receptor-exponential path is deterministic."""

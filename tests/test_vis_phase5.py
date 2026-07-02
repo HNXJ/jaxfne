@@ -127,17 +127,6 @@ def _make_configuration():
 # ---------------------------------------------------------------------------
 
 class TestBandpower:
-    def test_returns_figure(self):
-        signals = _make_minimal_signals()
-        fig = vis.bandpower(signals)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
-    def test_custom_bands(self):
-        signals = _make_minimal_signals()
-        fig = vis.bandpower(signals, band_definitions={"gamma": (40.0, 80.0)})
-        _assert_real_figure(fig)
-
     def test_proxy_title_present(self):
         signals = _make_minimal_signals()
         fig = vis.bandpower(signals)
@@ -145,24 +134,12 @@ class TestBandpower:
         suptitle = fig._suptitle.get_text() if fig._suptitle else ""
         assert "proxy" in (suptitle + " ".join(titles)).lower()
 
-    def test_finite_data_required(self):
-        """bandpower does not raise on signals with finite LFP."""
-        signals = _make_minimal_signals()
-        fig = vis.bandpower(signals)
-        _assert_real_figure(fig)
-
 
 # ---------------------------------------------------------------------------
 # laminar_profile / layer_celltype_counts
 # ---------------------------------------------------------------------------
 
 class TestLaminarProfile:
-    def test_returns_figure_from_signals(self):
-        signals = _make_minimal_signals()
-        fig = vis.laminar_profile(signals)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
     def test_alias_layer_celltype_counts(self):
         signals = _make_minimal_signals()
         fig = vis.layer_celltype_counts(signals)
@@ -196,21 +173,9 @@ class TestLaminarProfile:
 # ---------------------------------------------------------------------------
 
 class TestConnectivity:
-    def test_from_raw_matrix(self):
-        W = np.random.randn(20, 20).astype(np.float32)
-        fig = vis.connectivity(W)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
     def test_alias_connectivity_matrix(self):
         W = np.random.randn(10, 10).astype(np.float32)
         fig = vis.connectivity_matrix(W)
-        _assert_real_figure(fig)
-
-    def test_with_cell_type_labels(self):
-        W = np.random.randn(4, 4).astype(np.float32)
-        labels = ["E", "PV", "SST", "VIP"]
-        fig = vis.connectivity(W, cell_type_labels=labels)
         _assert_real_figure(fig)
 
     def test_no_weight_matrix_fallback(self):
@@ -232,12 +197,6 @@ class TestConnectivity:
 # ---------------------------------------------------------------------------
 
 class TestGeometry3d:
-    def test_from_configuration(self):
-        cfg = _make_configuration()
-        fig = vis.geometry3d(cfg)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
     def test_alias_column_geometry(self):
         cfg = _make_configuration()
         fig = vis.column_geometry(cfg)
@@ -249,28 +208,12 @@ class TestGeometry3d:
         titles = " ".join(ax.get_title() for ax in fig.axes)
         assert "proxy" in titles.lower() or "declared" in titles.lower()
 
-    def test_from_signals(self):
-        signals = _make_minimal_signals()
-        fig = vis.geometry3d(signals)
-        _assert_real_figure(fig)
-
-    def test_area_filter(self):
-        cfg = _make_configuration()
-        fig = vis.geometry3d(cfg, areas=["V1"])
-        _assert_real_figure(fig)
-
 
 # ---------------------------------------------------------------------------
 # multi_area_layout
 # ---------------------------------------------------------------------------
 
 class TestMultiAreaLayout:
-    def test_from_configuration(self):
-        cfg = _make_configuration()
-        fig = vis.multi_area_layout(cfg)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
     def test_proxy_title(self):
         cfg = _make_configuration()
         fig = vis.multi_area_layout(cfg)
@@ -294,28 +237,12 @@ class TestMultiAreaLayout:
         fig = vis.multi_area_layout(sparse_signals)
         _assert_real_figure(fig)
 
-    def test_area_filter(self):
-        cfg = _make_configuration()
-        fig = vis.multi_area_layout(cfg, areas=["V1"])
-        _assert_real_figure(fig)
-
 
 # ---------------------------------------------------------------------------
 # objective_report
 # ---------------------------------------------------------------------------
 
 class TestObjectiveReport:
-    def test_from_list(self):
-        history = [1.0, 0.8, 0.6, 0.5, 0.45, 0.42]
-        fig = vis.objective_report(history)
-        assert fig is not None
-        assert hasattr(fig, "savefig")
-
-    def test_from_dict(self):
-        data = {"score_history": [2.0, 1.5, 1.2, 0.9, 0.7]}
-        fig = vis.objective_report(data)
-        _assert_real_figure(fig)
-
     def test_no_history_fallback(self):
         """Returns placeholder when history not extractable."""
         fig = vis.objective_report(None)

@@ -14,17 +14,6 @@ import jaxfne as jtfne
 class TestInterColumnConnectivity:
     """Tests for .inter_column_connectivity() method."""
 
-    def test_inter_column_connectivity_chainable(self):
-        """Test .inter_column_connectivity() returns a Configuration."""
-        cfg = (
-            jtfne.Configuration()
-            .areas(["V1", "V4"])
-            .column("V1", layers=["L1", "L4", "L5"], n=100)
-            .column("V4", layers=["L1", "L4", "L5"], n=100)
-            .inter_column_connectivity(source_area="V1", target_area="V4")
-        )
-        assert isinstance(cfg, jtfne.Configuration)
-
     def test_inter_column_connectivity_metadata(self):
         """Test .inter_column_connectivity() stores metadata correctly."""
         cfg = (
@@ -59,11 +48,6 @@ class TestInterColumnConnectivity:
 class TestDrive:
     """Tests for .drive() method."""
 
-    def test_drive_chainable(self):
-        """Test .drive() returns a Configuration."""
-        cfg = jtfne.Configuration().drive()
-        assert isinstance(cfg, jtfne.Configuration)
-
     def test_drive_metadata(self):
         """Test .drive() stores metadata correctly."""
         cfg = jtfne.Configuration().drive(
@@ -92,11 +76,6 @@ class TestDrive:
 class TestObjective:
     """Tests for .objective() method."""
 
-    def test_objective_chainable(self):
-        """Test .objective() returns a Configuration."""
-        cfg = jtfne.Configuration().objective()
-        assert isinstance(cfg, jtfne.Configuration)
-
     def test_objective_metadata(self):
         """Test .objective() stores metadata correctly."""
         cfg = jtfne.Configuration().objective(
@@ -120,11 +99,6 @@ class TestObjective:
 
 class TestOptimizer:
     """Tests for .optimizer() method."""
-
-    def test_optimizer_chainable(self):
-        """Test .optimizer() returns a Configuration."""
-        cfg = jtfne.Configuration().optimizer()
-        assert isinstance(cfg, jtfne.Configuration)
 
     def test_optimizer_metadata(self):
         """Test .optimizer() stores metadata correctly."""

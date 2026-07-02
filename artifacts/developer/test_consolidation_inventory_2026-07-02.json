@@ -1133,5 +1133,25 @@
         }
       ]
     }
-  ]
+  ],
+  "retirement_pass": {
+    "date": "2026-07-02",
+    "method": "6 parallel subagents, one per 8-file batch of the 48 RETIRE-CANDIDATE files. Each classified every test FUNCTION (not whole file) into CONTRACT-KEEP (pytest.raises, schema keys, JSON-safety, truth-gates, naming conventions, numerical equivalence, determinism, exact math invariants, API export/alias contracts) vs SMOKE-DELETE (pure construct/simulate/probe call-chain with only shape/finite/not-None assertions). Deleted whole files only when ALL tests were smoke; otherwise slimmed to keep only contract tests.",
+    "outcome": {
+      "files_deleted": 1,
+      "deleted_files": [
+        "tests/test_tutorial_panels.py"
+      ],
+      "files_slimmed": 17,
+      "files_reclassified_keep_whole": 30,
+      "total_test_functions_removed_estimate": "~70 (sum of each batch's n->m deltas)"
+    },
+    "cleanup": "Removed 10 now-unused imports (pytest/jnp/jtfne/json) left over from slimming, verified via AST-based token-count scan across all touched files.",
+    "verification": {
+      "compile_check": "python3 -m py_compile on all 18 touched files -- clean",
+      "non_notebook_suite": "python3 -m pytest tests/ -q -m 'not slow and not notebook' --ignore=tests/test_notebook_execution_suite.py -> 2685 passed, 74 skipped, 7 deselected, 4 xfailed, 0 failed (325.90s)",
+      "notebook_gate": "python3 -m pytest tests/test_notebook_execution_suite.py -q -> 27 passed, 0 failed (862.69s) -- includes the newly-gated sanity-delta notebook"
+    },
+    "conclusion": "Full suite green after retirement. The bulk-delete concern flagged earlier in this file was validated: only 1/48 files was safe to delete wholesale; the rest carried real contract value now preserved in slimmed form."
+  }
 }

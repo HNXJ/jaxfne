@@ -1,10 +1,7 @@
 """Runtime verification of TCM V1 6-Population column construction and connection rules."""
 
-import json
 import numpy as np
-import jax.numpy as jnp
 from pathlib import Path
-import pytest
 import jaxfne as jtfne
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -79,19 +76,3 @@ def test_tcm_v1_6pop_connectivity_mask():
                     
     # Confirm that we have non-zero connections for allowed paths
     assert np.any(W != 0.0), "Weight matrix is entirely zero."
-
-def test_tcm_v1_6pop_simulation_smoke():
-    # 4. Verify simulation executes successfully
-    cfg = (jtfne.Configuration()
-        .runtime(seed=42, dtype="float32", duration_ms=10.0, dt_ms=0.1)
-        .column(name="tcm_v1_col", layers=["L2/3", "L4", "L5", "L6"], n=100)
-        .cell_types({"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03})
-        .connectivity(tcm_v1_6pop=True)
-        .set_emitter("izhikevich", "cortical_eig")
-        .probes(["spikes", "V_m", "source", "LFP-proxy", "CSD-proxy"]))
-        
-    model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.1)
-    assert isinstance(signals, jtfne.Signals)
-    assert signals.spikes.shape == (100, 100)
-    assert bool(jnp.all(jnp.isfinite(signals.spikes)))

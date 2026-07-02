@@ -154,17 +154,6 @@ def test_connect_cross_rule_no_match_flagged():
     assert ens.cfg.metadata["ensemble"]["cross_model_edges"] == 0
 
 
-# --- simulate / tune integration ---------------------------------------------
-
-def test_connect_simulate_stays_finite():
-    ens = jtfne.connect(
-        _col("V1", 30, 0), _col("V2", 24, 1), namespace=("A", "B"),
-        edges=_ff(source_extra={"cell_type": "E"}))
-    sig = jtfne.simulate(ens, duration_ms=40, dt_ms=0.5, seed=2)
-    assert np.isfinite(np.asarray(sig.get("vm"))).all()
-    assert np.isfinite(np.asarray(sig.get("spk"))).all()
-
-
 # --- truth gates --------------------------------------------------------------
 
 def test_connect_truth_gates_not_escalated():

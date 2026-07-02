@@ -4,7 +4,6 @@ Validation tests for evoked L4 drive paradigm (v0.3.12).
 Tests for finite outputs, event timing, rate ranges, JSON safety, and proxy-safe wording.
 """
 
-import pytest
 import numpy as np
 import jaxfne as jtfne
 import json
@@ -69,22 +68,6 @@ class TestEvokedL4DriveAPI:
 
 class TestEvokedSimulation:
     """Test simulation with evoked L4 drive paradigm."""
-
-    def test_evoked_simulation_produces_finite_outputs(self):
-        """Evoked simulation should produce finite (no NaN/Inf) spike outputs."""
-        cfg = (jtfne.Configuration()
-            .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
-            .column("V1", layers=["L4"], n=20)
-            .cell_type_drives({"E": 8.0})
-            .set_emitter("izhikevich", "cortical_eig")
-            .probes(["spikes"]))
-
-        model = jtfne.construct(cfg)
-        signals = jtfne.simulate(model, seed=42, duration_ms=1000.0, dt_ms=0.1)
-
-        # Check spikes are finite
-        spikes = np.asarray(signals.spikes)
-        assert np.all(np.isfinite(spikes)), "Spikes contain NaN or Inf"
 
     def test_evoked_rate_in_reasonable_range(self):
         """Firing rate should be in plausible band (1–50 Hz for reduced Izhikevich)."""

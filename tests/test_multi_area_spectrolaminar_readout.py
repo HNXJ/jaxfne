@@ -4,9 +4,7 @@ import json
 import numpy as np
 import pytest
 import jax
-import jax.numpy as jnp
 
-import jaxfne as jtfne
 from jaxfne.fields import (
     spectrolaminar_psd,
     spectrolaminar_readout,
@@ -30,36 +28,6 @@ class MockNeuronsDataFrame:
 
     def get(self, key, default=None):
         return self.data.get(key, default)
-
-
-def test_spectrolaminar_psd_shape():
-    """Test that PSD output has correct shape."""
-    signal = np.random.randn(1000, 5).astype(np.float32)
-
-    freqs, psd = spectrolaminar_psd(signal, n_freqs=128)
-
-    assert freqs.shape == (128,)
-    assert psd.shape == (128, 5)
-
-
-def test_spectrolaminar_psd_1d_signal():
-    """Test that PSD handles 1D signals."""
-    signal = np.random.randn(1000).astype(np.float32)
-
-    freqs, psd = spectrolaminar_psd(signal, n_freqs=64)
-
-    assert freqs.shape == (64,)
-    assert psd.shape == (64, 1)
-
-
-def test_spectrolaminar_psd_finite():
-    """Test that PSD output is finite."""
-    signal = np.random.randn(500, 8).astype(np.float32)
-
-    freqs, psd = spectrolaminar_psd(signal)
-
-    assert np.all(np.isfinite(freqs)), "Frequencies must be finite"
-    assert np.all(np.isfinite(psd)), "PSD must be finite"
 
 
 def test_spectrolaminar_psd_freq_bounds():
@@ -109,19 +77,6 @@ def test_spectrolaminar_readout_shape_and_keys():
         "area",
     }
     assert set(readout.keys()) >= required_keys, f"Missing keys: {required_keys - set(readout.keys())}"
-
-
-def test_spectrolaminar_readout_finite():
-    """Test that readout arrays are finite."""
-    neurons = MockNeuronsDataFrame(n=30, areas=["V1"] * 30)
-    signal = np.random.randn(500, 30).astype(np.float32)
-
-    readout = spectrolaminar_readout(signal, neurons, area="V1")
-
-    assert np.all(np.isfinite(readout["freq_hz"]))
-    assert np.all(np.isfinite(readout["relative_power"]))
-    assert np.all(np.isfinite(readout["alpha_beta"]))
-    assert np.all(np.isfinite(readout["gamma"]))
 
 
 def test_spectrolaminar_readout_normalized_power():
@@ -198,22 +153,6 @@ def test_multi_area_readout_shape():
 
     assert set(readouts.keys()) == {"V1", "V4", "PFC"}
     assert all(readouts[area]["n_contacts"] > 0 for area in ["V1", "V4", "PFC"])
-
-
-def test_multi_area_readout_finite():
-    """Test that multi-area readout has all finite values."""
-    neurons = MockNeuronsDataFrame(
-        n=40,
-        areas=["V1"] * 20 + ["PFC"] * 20,
-    )
-    signal = np.random.randn(500, 40).astype(np.float32)
-
-    readouts = multi_area_spectrolaminar_readout(signal, neurons)
-
-    for area, readout in readouts.items():
-        assert np.all(np.isfinite(readout["relative_power"]))
-        assert np.all(np.isfinite(readout["alpha_beta"]))
-        assert np.all(np.isfinite(readout["gamma"]))
 
 
 def test_spectrolaminar_readout_n_contacts_limit():

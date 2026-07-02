@@ -1,6 +1,5 @@
 """Tests for backup state and resume equivalence."""
 
-import jax.numpy as jnp
 import jaxfne as jtfne
 
 
@@ -47,19 +46,6 @@ class TestBackupState:
 
 class TestTaskEpisode:
     """Test task episode and backup/resume."""
-
-    def test_episode_initialization(self):
-        """Test episode initializes correctly."""
-        cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
-        paradigm = cfg.make_paradigm()
-        model = cfg.construct()
-        backup = model.initialize_backup(paradigm)
-
-        episode = model.run_task(paradigm=paradigm, gate=paradigm.make_fixation_gate(), backup=backup)
-
-        assert isinstance(episode, jtfne.TaskEpisode)
-        assert episode.spikes.shape[0] == int(12000.0 / 0.1)  # n_steps
-        assert episode.vm.shape[0] == int(12000.0 / 0.1)
 
     def test_episode_probe_chain(self):
         """Test probe method chaining."""
