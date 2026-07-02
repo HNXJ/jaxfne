@@ -162,7 +162,6 @@
 | tests/test_network3d_visualize.py |  | unreviewed |  |  |  |
 | tests/test_network_100_ei_colab_v0210.py |  | unreviewed |  |  |  |
 | tests/test_neuronal_tensor_notebook_execution.py |  | unreviewed |  |  |  |
-| tests/test_notebook_execution_suite.py |  | unreviewed |  |  |  |
 | tests/test_notebook_standard_v027.py |  | unreviewed |  |  |  |
 | tests/test_notebook_status_doc_consistency.py |  | unreviewed |  |  |  |
 | tests/test_notebook_structure_v0330.py |  | unreviewed |  |  |  |
@@ -372,7 +371,6 @@
 | docs/tutorials/notebook_standard.md |  | unreviewed |  |  |  |
 | docs/tutorials/tutorial_outputs.md |  | unreviewed |  |  |  |
 | docs/v047_refactor_audit.md |  | unreviewed |  |  |  |
-| tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb | 0 | open | Continuous adaptation étude -- needs a real NeuronalTensor/Model run demonstrating continuous drive adaptation (not an o |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
@@ -386,11 +384,9 @@
 | jaxfne/sanity_delta.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sanity_runtime.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/validation.py | 80 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/emitters.py | 80 | unreviewed |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
 | jaxfne/fields/solvers.py | 82 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/bridges.py | 85 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
-| jaxfne/fields/proxy.py | 85 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/network.py | 85 | reviewed |  | No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and tes | 2026-06-30 |
 | jaxfne/vis/tutorial_panels.py | 85 | reviewed | visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's  |  | 2026-06-30 |
@@ -421,25 +417,28 @@
 | jaxfne/core.py::Configuration.population | 90 | done |  | Confirmed via reproduction 2026-07-01: L4's hardcoded _SUITE2_LAYER_CELL_TYPES_V1 default (E:0.25,PV:0.45,SST:0.15,VIP:0 | 2026-07-01 |
 | jaxfne/core.py::RuntimeConfig.dtype + Model.with_hdp_initial_state | 90 | done |  |  | 2026-07-01 |
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 90 | done | The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- che |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb | 90 | done |  |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-01 |
 | scripts/hdp_suite2_visualizations.py | 90 | done |  |  | 2026-07-01 |
 | examples/02_omission_scaffold.py | 90 | done |  |  | 2026-07-01 |
 | examples/03_objective_and_tune_smoke.py | 90 | done |  |  | 2026-07-01 |
 | tests/test_jaxley_emitter_bridge_e2e.py | 90 | done |  |  | 2026-07-01 |
+| jaxfne/fields/proxy.py | 90 | done |  |  | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 90 | done | The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- che |  | 2026-07-02 |
+| tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb | 90 | done |  |  | 2026-07-02 |
+| tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-02 |
 | jaxfne/vis/plotly/lfp.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/vis/plotly/raster.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
-| tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 92 | done |  | Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not | 2026-07-01 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
-| tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb | 92 | done |  |  | 2026-07-01 |
 | tests/test_etude3_v1_spectrolaminar_1k.py | 92 | done |  |  | 2026-07-01 |
 | local/verify_plotly_pipeline.py | 92 | done |  |  | 2026-07-01 |
 | jaxfne/optim/manifests.py | 92 | done |  |  | 2026-07-01 |
-| scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-01 |
+| jaxfne/ (TODO/FIXME/NotImplementedError triage, 11 files) | 92 | done |  | jaxfne/emitters.py GLIFEmitter/LIFEmitter and jaxfne/pynwb_compat.py write_nwb/read_nwb are exported in __all__ but ALWA | 2026-07-01 |
+| tutorials/etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb | 92 | done |  |  | 2026-07-02 |
+| tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 92 | done |  | Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not | 2026-07-02 |
+| tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb | 92 | done |  |  | 2026-07-02 |
+| scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-02 |
 | jaxfne/fields/diagnostics.py | 93 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/vis/exporters.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests | 2026-07-01 |
 | jaxfne/vis/plotly/connectivity.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.connectivity\|plot_connectivity' tests/ -> no hits against this specific | 2026-07-01 |
@@ -456,6 +455,7 @@
 | jaxfne/fields/probes.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/io.py | 95 | unreviewed |  |  | 2026-06-30 |
 | skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-01 |
+| tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
 | jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
@@ -495,6 +495,7 @@
 | jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json | 100 | done |  |  | 2026-06-30 |
 | jaxfne/stimulus.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
+| jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
 | .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/test_v030_docs_audit.py | 100 | done |  |  | 2026-07-01 |

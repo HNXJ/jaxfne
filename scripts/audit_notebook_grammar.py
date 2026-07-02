@@ -19,7 +19,7 @@ NOTEBOOK_GLOBS = ("tutorials/**/*.ipynb",)
 SECTION_PATTERNS = {
     "setup": re.compile(r"\b(setup|install|import|runtime|version)\b", re.I),
     "config": re.compile(r"\b(config|configuration|editable|parameters|knobs)\b", re.I),
-    "run": re.compile(r"\b(simulat|construct|probe|readout|signals?)\b", re.I),
+    "run": re.compile(r"\b(simulat\w*|construct|probe|readout|signals?)\b", re.I),
     "objective": re.compile(r"\b(objective|metric|score|gate|null|loss)\b", re.I),
     "export": re.compile(r"\b(export|manifest|receipt|asset|hash|png|json)\b", re.I),
 }

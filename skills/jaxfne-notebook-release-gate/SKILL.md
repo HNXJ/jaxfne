@@ -51,6 +51,30 @@ run/status metadata
 
 Avoid public overclaim wording. Machine-readable gates may still exist in manifests.
 
+## Before trusting any manually-executed notebook's printed numbers
+
+If you execute a notebook yourself via `nbclient.NotebookClient(nb, ...)`
+WITHOUT an explicit `kernel_name`, it silently falls back to whatever the
+default `python3` Jupyter kernelspec resolves to on this machine — which may
+point (via a hardcoded `PYTHONPATH`) at a completely different, stale jaxfne
+checkout, not this repo. Confirmed 2026-07-02 (`skills/FRICTIONS_STACK.md`
+F-024): this produced a dramatic, wrong, reproducible divergence for an
+HDP-kernel notebook while looking fine for others (whose code path happened
+to be unchanged between checkouts — not something to assume holds again).
+
+- Always pass `kernel_name="jaxfne_analysis"` (the pre-registered kernel
+  correctly pointed at `~/workspace/analysis/jaxfne`) to any manual
+  `NotebookClient` call — never rely on the unnamed default.
+- The real pytest gate (`tests/test_notebook_execution_suite.py`) is NOT
+  affected by this — `portable_kernel_context` builds an ephemeral
+  kernelspec from `sys.executable` directly, bypassing all pre-registered
+  kernels. A pytest PASS is trustworthy on its own; a manually-executed
+  notebook's printed numbers are not, until you've confirmed the kernel.
+- Print `jaxfne.__file__` (not just `__version__`, which can match across
+  checkouts) as literally the first executed line whenever you run a
+  notebook yourself, so a wrong-checkout run is caught immediately instead
+  of producing plausible-looking wrong numbers.
+
 ## Validation commands
 
 ```bash

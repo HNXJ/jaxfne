@@ -70,9 +70,7 @@ pytestmark = [pytest.mark.slow, pytest.mark.notebook]
 # used for Etude No. 1's placeholder phase) rather than block CI on planned-
 # but-unbuilt content. Re-parametrize to a real execution test once each
 # Etude gets a real implementation.
-PLACEHOLDER_NOTEBOOKS = {
-    "etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
-}
+PLACEHOLDER_NOTEBOOKS = set()
 
 
 @pytest.mark.parametrize("notebook_rel_path", RELEASE_FACING_NOTEBOOKS)

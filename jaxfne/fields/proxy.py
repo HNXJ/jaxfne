@@ -1154,7 +1154,11 @@ def construct_source_tensor(
             "Double-counting detected: total_membrane_current_proxy + synaptic_current_proxy"
         )
     else:
-        raise NotImplementedError(f"TODO: implement construct_source_tensor mode {mode!r}")
+        raise ValueError(
+            f"Unsupported construct_source_tensor mode {mode!r}. "
+            "Valid modes: 'total_membrane_current_proxy', "
+            "'decomposed_cap_ion_plus_synaptic_proxy', 'spike_proxy'."
+        )
 
     finite_flag = jnp.all(jnp.isfinite(source))
     try:
