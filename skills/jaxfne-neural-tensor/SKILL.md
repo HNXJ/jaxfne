@@ -51,16 +51,17 @@ tensor = NeuronalTensor(areas=[
 ])
 ```
 
-`NeuronalTensor`/`Area`/`Layer`/`NeuronType`/`InterConnection`/`AreaConnection`
-are all **frozen dataclasses with no runtime type validation** — passing the
-wrong type into a field (e.g. a `Configuration` object where `areas:
-Sequence[Area]` is expected) does NOT raise; it silently stores the wrong
-object. **Verified landmine (2026-06-30):** `NeuronalTensor(some_cfg)` succeeds
-and produces `tensor.areas == some_cfg` (a `Configuration`, not a list of
-`Area`) with zero error — this is always a bug if it happens, never a valid
-shortcut. There is no `Configuration -> NeuronalTensor` converter anywhere in
-the codebase (only the reverse, `neuronal_tensor_to_configuration`) — don't
-invent one by passing a `Configuration` into `NeuronalTensor()`.
+`NeuronalTensor`/`Area` validate their element types in `__post_init__` (added
+2026-07-03, see above) — `NeuronalTensor(some_cfg)` now raises `TypeError`
+immediately instead of the pre-2026-07-03 landmine (silently storing
+`tensor.areas == some_cfg`, a `Configuration`, with zero error). `Layer`/
+`NeuronType`/`InterConnection`/`AreaConnection` remain plain frozen dataclasses
+without their own `__post_init__` checks — the two-level validation (top-level
+`NeuronalTensor`/`Area`) catches the documented landmine case; nested
+mis-construction at the `Layer`/`NeuronType` level is not separately guarded.
+There is no `Configuration -> NeuronalTensor` converter anywhere in the
+codebase (only the reverse, `neuronal_tensor_to_configuration`) — this is
+deliberate, not a gap (see `AGENTS.md` § "Config complexity tiers").
 
 `NeuronType.make(name, *, relative_size=None, fraction=None, value_tag=...)` —
 `fraction` declares an explicit population fraction; if **every** type in a
