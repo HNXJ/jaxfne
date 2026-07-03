@@ -1,9 +1,9 @@
-# Google Colab Quick Start (v0.2.27)
+# Google Colab Quick Start (v0.4.4)
 
 **Run jaxfne examples in Google Colab without local setup.**
 
-**Version:** v0.2.27  
-**Last updated:** 2026-05-22  
+**Version:** v0.4.4  
+**Last updated:** 2026-07-03  
 **run_status:** tutorial_scaffold, exploratory_simulated_proxy
 
 ---
@@ -23,7 +23,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.2.27
+Successfully installed jaxfne-0.4.4
 ```
 
 ---
@@ -53,14 +53,14 @@ signals = simulate(model, duration_ms=100, dt_ms=0.1)
 manifest = model.manifest(signals)
 
 # Print key outputs
-print("=== v0.2.27 BASIS (Computation Contract) ===")
+print("=== v0.4.4 BASIS (Computation Contract) ===")
 basis = manifest["basis"]
 print(f"Version: {basis['jaxfne_version']}")
 print(f"Computational scaffold: {basis['model_status']}")
 print(f"Physical amplitude status allowed: {basis['amplitude_status']}")
 print(f"Field solver status: {basis['field_solver_status']}")
 
-print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.2.27) ===")
+print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.4.4) ===")
 cpd = manifest.get("conservation_proxy_diagnostics")
 if cpd:
     print(f"Status: {cpd['diagnostic_status']}")
@@ -87,13 +87,13 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 
 **Expected output:**
 ```
-=== v0.2.27 BASIS (Computation Contract) ===
-Version: 0.2.27
+=== v0.4.4 BASIS (Computation Contract) ===
+Version: 0.4.4
 Computational scaffold: computational_scaffold
 Physical amplitude status allowed: False
 Field solver status: linear_solver
 
-=== CONSERVATION PROXY DIAGNOSTICS (v0.2.27) ===
+=== CONSERVATION PROXY DIAGNOSTICS (v0.4.4) ===
 Status: proxy
 Source norm (L1): ~0.15
 Source norm (L2): ~0.20
@@ -205,7 +205,7 @@ print("✓ Simulation output saved to simulation_output.json")
 
 **Important:** jaxfne is an exploratory computational framework. Do not interpret outputs as biological status.
 
-### Statement Boundaries (v0.2.27)
+### Statement Boundaries (v0.4.4)
 
 | Statement | Status | Notes |
 |-------|--------|-------|
@@ -214,14 +214,14 @@ print("✓ Simulation output saved to simulation_output.json")
 | **Field accuracy** | Proxy only | CSD/LFP outputs are forward-field proxies, not validated against experiment |
 | **Solver status** | Not implemented | Elliptic/volumetric solvers are reserved regimes; diagnostics are proxy summaries |
 
-### What v0.2.27 IS
+### What v0.4.4 IS
 
 - ✓ Exploratory computational neuroscience framework
 - ✓ Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
 - ✓ Teaching tool for understanding circuit behavior
 - ✓ Optimization sandbox for fitness/plasticity experiments
 
-### What v0.2.27 IS NOT
+### What v0.4.4 IS NOT
 
 - ✗ Biological validation model
 - ✗ Whole-brain simulator
@@ -230,7 +230,7 @@ print("✓ Simulation output saved to simulation_output.json")
 
 ---
 
-## Example: Conservation Proxy Diagnostics (v0.2.27)
+## Example: Conservation Proxy Diagnostics (v0.4.4)
 
 If your model includes field outputs, conservation diagnostics are available:
 

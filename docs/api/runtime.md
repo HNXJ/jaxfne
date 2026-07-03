@@ -215,16 +215,19 @@ Get runtime environment information.
 - `jax_version` (str), `jaxlib_version` (str)
 - `default_backend` (str): JAX's own default backend
 - `available_devices` (list[str]): Available compute devices
-- `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None)
+- `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None) — if a non-`"auto"` backend is requested but unavailable on this machine, `runtime_report()` performs an "honest downgrade": `actual_backend` falls back to JAX's real default, `backend_enforced=False`, and `backend_warning` is set to `requested_backend_unavailable:requested=...`  rather than falsely claiming the requested device is in use
 - `requested_dtype` / `actual_dtype` / `dtype` (str), `x64_enabled` (bool)
 - `jit` / `vmap` (bool), `precision` (str), `seed` (int), `n_steps` (int)
 - `recurrent_backend` / `synaptic_kernel` (str)
 - `enable_homeostasis` / `homeostasis_params`, `enable_hdp` / `hdp_params`
 
-For package/environment metadata (jaxfne/numpy/python version, platform,
-default device) use `jaxfne.runtime.get_jax_backend_report()` instead —
-a separate, smaller helper with keys `available_devices`, `default_backend`,
-`x64_enabled`, `dtype_default`.
+For a smaller, standalone device/dtype probe that doesn't require a `RuntimeConfig`, use
+`get_jax_backend_report()` instead — keys `available_devices`, `default_backend`,
+`x64_enabled`, `dtype_default` (it does NOT return jaxfne/numpy/python version or platform
+info; no jaxfne helper currently reports those). See "jaxfne.runtime Module Helpers" below
+for the access path — note it is `importlib.import_module("jaxfne.runtime")`, not
+`jaxfne.runtime.get_jax_backend_report()` (that expression resolves to a different function
+due to a name collision, see below).
 
 **Example:**
 ```python
@@ -232,6 +235,63 @@ report = jtfne.runtime_report()
 print(f"JAX version: {report['jax_version']}")
 print(f"Available devices: {report['available_devices']}")
 ```
+
+---
+
+## jaxfne.runtime Module Helpers
+
+`jaxfne/runtime.py` re-exports `RuntimeConfig`/`Configuration.runtime`/`runtime_report`
+from `jaxfne/core.py` (see above) and additionally defines three standalone helpers
+(`__all__` in `jaxfne/runtime.py`), independent of `RuntimeConfig`.
+
+**Name-collision landmine:** `jaxfne.runtime` (attribute access on the `jaxfne` package)
+resolves to the `runtime()` *function* (re-exported from `core.py`), not the `runtime.py`
+*module* — this is deliberate, see the `_RuntimeModuleWrapper` in `jaxfne/__init__.py`.
+Neither `jtfne.runtime.get_jax_backend_report()` nor `import jaxfne.runtime as jtfne_runtime`
+reaches the module (both resolve `runtime` to the function via the same `__getattr__`
+interception, so `jtfne_runtime.get_jax_backend_report()` raises `AttributeError`). The only
+way to reach these helpers is an explicit `importlib.import_module`:
+
+```python
+import importlib
+jtfne_runtime = importlib.import_module("jaxfne.runtime")
+```
+
+### `get_jax_backend_report()`
+
+```python
+report = jtfne_runtime.get_jax_backend_report()
+```
+
+Lightweight environment/device probe. Returns a dict with `available_devices` (list[str]),
+`default_backend` (str), `x64_enabled` (bool), `dtype_default` (str). Does not require a
+`RuntimeConfig`/`Configuration` — call it standalone to check the environment before
+building anything.
+
+### `set_precision_policy(dtype="float32", enable_x64=False)`
+
+```python
+result = jtfne_runtime.set_precision_policy(dtype="float64", enable_x64=True)
+```
+
+Sets JAX's *global* `jax_enable_x64` flag (process-wide, not per-`RuntimeConfig`). Returns
+`{requested_dtype, actual_dtype, x64_enabled, status}`. If `dtype="float64"` is requested
+without `enable_x64=True`, it warns (or raises under `JAXFNE_STRICT=1`) and falls back to
+float32 rather than silently claiming float64. Call this once at startup, matching the
+project-wide "x64 is a startup policy, never mid-code" rule — do not call it after arrays
+have already been built.
+
+### `safe_jit(fn, strict=False, **jit_kwargs)` / `safe_vmap(fn, in_axes=0, strict=False, **vmap_kwargs)`
+
+```python
+fast_fn = jtfne_runtime.safe_jit(my_fn)
+batched_fn = jtfne_runtime.safe_vmap(my_fn, in_axes=0)
+```
+
+Wrap a function with `jax.jit`/`jax.vmap`; on compilation/vectorization failure, they warn
+and return the original (eager/unbatched) function instead of raising — an honest fallback,
+not a silent one, since a `RuntimeWarning` is always emitted. Pass `strict=True` (or set
+`JAXFNE_STRICT=1`) to raise instead of falling back.
 
 ---
 
@@ -271,7 +331,13 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=42)
 
 # Verify runtime environment
 report = jtfne.runtime_report()
-print(f"jaxfne {report['jaxfne_version']} on {report['platform']}")
+print(f"JAX {report['jax_version']}, backend={report['actual_backend']}")
+
+# For a standalone device/dtype probe (see "jaxfne.runtime Module Helpers" above):
+import importlib
+jtfne_runtime = importlib.import_module("jaxfne.runtime")
+backend_report = jtfne_runtime.get_jax_backend_report()
+print(f"Devices: {backend_report['available_devices']}")
 ```
 
 ---

@@ -20,35 +20,74 @@ Emitter currents → Source projection → Field convolution → Probe readouts
 jaxfne.LaminarSourceGeometry
 ```
 
-Defines the spatial anatomy of neural populations in laminar columns.
+*(Defined in `jaxfne/core.py`, not `jaxfne/fields/` — re-exported at package
+level as `jaxfne.LaminarSourceGeometry`.)*
+
+A frozen dataclass grouping named `LaminarPopulation` descriptors and
+materializing a deterministic `(n_units_total, 3)` positions array for use in
+`project_laminar_sources`/`project_sources_to_laminar_field`. Depths are
+proxy-normalized coordinates in `[0, 1]`, not physical microns; no
+physical-amplitude, PDE, or calibration claim is made.
 
 ### Attributes
 
-- `x` (jax.Array): X-coordinates (depth dimension) of source locations
-- `y` (jax.Array): Y-coordinates (lateral) of source locations
-- `z` (jax.Array): Z-coordinates (anterior-posterior) of source locations
-- `contact_locations` (jax.Array, optional): Electrode contact positions
-- `n_sources` (int): Number of distinct sources
-- `n_contacts` (int): Number of recording contacts
+- `populations` (`tuple[LaminarPopulation, ...]`): ordered named population descriptors
+- `n_units_total` (`int`): total neuron count across all populations
+- `position_units` (`str`, default `"relative_laminar_depth_proxy"`)
+- `source_calibration_status` (`str`, default `"uncalibrated_izhikevich_native_current"`)
+- `physical_amplitude_calibrated` (`bool`, default `False`)
+- `claim_level` (`str`, default `"computational_scaffold"`)
+
+`LaminarPopulation` (the element type of `populations`) is itself a frozen
+dataclass: `name: str`, `cell_type: str`, `layer: str`, `depth_min: float`,
+`depth_max: float`, `n_units: int`, plus the same
+`source_calibration_status`/`physical_amplitude_calibrated`/`claim_level`
+trio.
 
 ### Methods
 
-#### `from_dict(geometry_dict: dict) -> LaminarSourceGeometry`
+#### `validate() -> dict`
 
-Create geometry from configuration dictionary.
+Checks population sum equals `n_units_total`, that
+`physical_amplitude_calibrated` stays `False`, and validates each contained
+`LaminarPopulation`. Returns `{"valid": bool, "issues": list[str], "n_populations": int}`.
 
-**Parameters:**
-- `geometry_dict` (dict): Dictionary with 'x', 'y', 'z' keys
+#### `to_dict() -> dict`
 
-**Returns:** `LaminarSourceGeometry`
+JSON-safe dict: `type`, `n_units_total`, `n_populations`, `position_units`,
+`source_calibration_status`, `physical_amplitude_calibrated`, `claim_level`,
+and `populations` (each population's own `to_dict()`).
 
-**Example:**
+#### `population_slices() -> dict[str, slice]`
+
+Maps each population `name` to the `slice` of neuron indices it occupies
+(populations are laid out contiguously in `populations` order).
+
+#### `positions_array(dtype: str = "float32") -> jax.Array`
+
+Returns a deterministic `(n_units_total, 3)` array: `x=0`, `y=0`, `z`
+linearly spaced within each population's `[depth_min, depth_max]` range, in
+population order. No random sampling — feed this directly into
+`project_laminar_sources(sources, positions=...)`.
+
+### Building a `LaminarSourceGeometry`
+
+There is no `from_dict` constructor. Build one from a sequence of
+`LaminarPopulation` objects, either directly or via the
+`laminar_source_geometry()` helper (also `jaxfne.core`), which validates each
+population and computes `n_units_total` for you:
+
 ```python
-geom = jtfne.LaminarSourceGeometry.from_dict({
-    "x": [0, 200, 400],  # depths in µm
-    "y": [0, 0, 0],
-    "z": [0, 0, 0]
-})
+from jaxfne.core import LaminarPopulation, laminar_source_geometry
+
+pops = [
+    LaminarPopulation(name="L4_E", cell_type="E", layer="L4",
+                       depth_min=0.4, depth_max=0.6, n_units=200),
+    LaminarPopulation(name="L2_PV", cell_type="PV", layer="L2",
+                       depth_min=0.1, depth_max=0.3, n_units=50),
+]
+geom = laminar_source_geometry(pops)
+positions = geom.positions_array()  # (250, 3), feed into project_laminar_sources
 ```
 
 ---
@@ -104,51 +143,84 @@ field = jtfne.project_sources_to_laminar_field(sources, positions, n_contacts=16
 jaxfne.FieldOutput
 ```
 
-Container for computed field quantities (LFP, CSD, etc.).
+Frozen dataclass container for laminar proxy field/readout arrays, returned
+by `project_laminar_sources` / `project_sources_to_laminar_field`.
 
-### Attributes
+### Attributes (dataclass fields)
 
-- `phi_e_proxy` (jax.Array): Extracellular potential proxy [time, contacts]
-- `csd_proxy` (jax.Array): Current source density proxy [time, contacts]
-- `lfp_proxy` (jax.Array): Local field potential proxy [time, contacts]
-- `source` (jax.Array): Source density [time, locations]
-- `diagnostics` (dict): Field solution metadata and validation flags
+- `source_proxy` (jax.Array): source density projected onto contacts, `[T, n_contacts]`
+- `phi_e_proxy` (jax.Array): extracellular potential proxy, `[T, n_contacts]`
+- `csd_proxy` (jax.Array): current source density proxy, `[T, n_contacts]`
+- `lfp_proxy` (jax.Array): local field potential proxy, `[T, n_contacts]` (currently identical to `phi_e_proxy` — see below)
+- `kernel` (jax.Array): the projection kernel/leadfield matrix, `[n_contacts, n_emitters]`
+- `contact_depths` (jax.Array): normalized `[0, 1]` depth of each contact, `[n_contacts]`
+- `diagnostics` (dict): field solution metadata and validation flags (see below)
+
+### Read-only properties (aliases)
+
+- `.phi_e` -> `phi_e_proxy`
+- `.csd` -> `csd_proxy`
+- `.lfp` -> `lfp_proxy`
+- `.kernel_matrix` -> `kernel`
+
+**Note:** `lfp_proxy` and `phi_e_proxy` are currently the same array
+(`jaxfne/fields/proxy.py:169-170` sets `lfp_proxy = source_proxy` then
+`phi_e_proxy = lfp_proxy`) — the module does not yet distinguish an LFP
+readout from the raw potential proxy. `csd_proxy` is the genuinely distinct
+quantity, computed from `phi_e_proxy` via `csd_tensor`.
+
+There is no `FieldOutput.to_dict()` method and no `source` attribute (the
+field is named `source_proxy`). To get a JSON-safe dict of the diagnostics,
+use `jaxfne.io.json_safe`:
+
+```python
+import json
+from jaxfne.io import json_safe
+
+field_dict = json_safe(field.diagnostics)
+```
 
 ### Diagnostics Dictionary
 
-All `diagnostics` must include 18 required fields:
+`diagnostics` is produced by `validate_projection_invariants` (structural
+invariants) merged with a field-solution report from
+`_make_field_solution_report`, plus a few extra keys — 40 keys total as of
+this writing (verified via `sorted(field.diagnostics.keys())` on a live
+`project_laminar_sources` call). The keys relevant to truth-gate/claim
+status:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `field_solver_status` | str | Solver type: `"linear_solver"` |
+| `field_solver_status` | str | Solver type: always `"linear_solver"` for these proxy operators |
 | `solver_name` | str | Human-readable ID: `"laminar_proxy"` |
-| `boundary_condition` | str | BC declaration; `"declared_metadata_only"` for proxy |
-| `gauge` | str | Gauge convention; `"declared_metadata_only"` for proxy |
+| `boundary_condition` | str | BC declaration: `"mean_zero_neumann"` |
+| `gauge` | str | Gauge convention: `"mean_zero"` |
 | `csd_sign_convention` | str | **Canonical:** `"positive_equals_extracellular_source"` |
-| `current_density_layout` | str | J_e status: `"not_applicable"` for proxy |
-| `solver_residual_l2_relative` | float \| None | PDE residual; `null` for proxy |
-| `n_iterations` | int \| None | Solver iteration count; `null` for proxy |
-| `converged` | bool \| None | Convergence flag; `null` for proxy |
-| `finite_phi_e` | bool | Is potential array finite? |
-| `finite_J_e` | bool | Is current density finite? `false` for proxy |
-| `finite_CSD` | bool | Is CSD array finite? |
-| `field_model_status` | str | Statement authority: `"proxy_readout"` |
-| `amplitude_status` | bool | Can statement physical units? Always `false` for proxy |
+| `current_density_layout` | str | J_e status: `"not_applicable"` |
+| `solver_residual_l2_relative` | float \| None | PDE residual; `None` for proxy |
+| `n_iterations` | int \| None | Solver iteration count; `None` for proxy |
+| `converged` | bool \| None | Convergence flag; `None` for proxy |
+| `finite_phi_e` / `finite_phi_e_proxy` | bool | Is potential array finite? |
+| `finite_J_e` | bool | Is current density finite? Always `False` (J_e never computed) |
+| `finite_CSD` / `finite_csd_proxy` | bool | Is CSD array finite? |
+| `finite_source_proxy`, `finite_lfp_proxy`, `finite_sources`, `finite_positions`, `finite_kernel` | bool | Per-array finiteness checks |
+| `field_claim_level` | str | Statement authority: `"proxy_readout"` |
+| `physical_amplitude_calibrated` | bool | Can statement physical units? Always `False` for proxy |
 | `source_projection_mode` | str | How sources map to field: `"proxy_no_field_solve"` |
 | `source_current_conservation_status` | str | Conservation test: `"not_applicable_proxy_mode"` |
-| `source_conservation_tested` | bool | Was conservation validated? `false` for proxy |
-| `source_conservation_status` | bool | Can statement conserved sources? `false` for proxy |
+| `source_conservation_tested` | bool | Was conservation validated? Always `False` for proxy |
+| `source_conservation_claim_allowed` | bool | Can statement conserved sources? Always `False` for proxy |
+| `source_calibration_status` | str | `"uncalibrated_izhikevich_native_current"` |
+| `source_decomposition` | str | `"proxy_reduced_emitter"` |
+| `field_admissibility` | dict | Nested dict of kernel-normalization/finiteness sub-checks |
+| `warnings` | list[str] | Any structural-invariant warnings raised during validation |
+| `*_shape` keys | tuple[int, ...] | Shapes of `source`/`positions`/`kernel`/`source_proxy`/`phi_e_proxy`/`csd_proxy`/`lfp_proxy` |
+| `dtype` | str | dtype of the input `sources` array |
 
-### Methods
-
-#### `to_dict() -> dict`
-
-Convert field output to JSON-safe dictionary.
-
-**Example:**
-```python
-field_dict = field.to_dict()
-```
+There is no `amplitude_status` or `field_model_status` key (the doc
+previously invented these) — the real names are `physical_amplitude_calibrated`
+and `field_claim_level`. There is no `source_conservation_status` key either;
+the closest real key is `source_conservation_claim_allowed`.
 
 ---
 

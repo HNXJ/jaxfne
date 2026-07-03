@@ -6,7 +6,7 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 238 names),
+This page is the complete index of the public API (`jaxfne.__all__`, 246 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
 Current release `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
@@ -22,7 +22,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
 | Page | Covers | Public names |
 |---|---|---|
-| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 69 |
+| [Core](core.md) | Configuration, Model, Simulation, Signals, readouts, receipts, suites | 61 |
 | [Emitters](emitters.md) | Izhikevich emitter, receptors, synapses, EIG networks, edge lists | 19 |
 | [Fields](fields.md) | Source→laminar projection, `FieldOutput`, proxy diagnostics | 12 |
 | [Probes](probes.md) | EEG/MEG/EMM proxy transforms (within Fields) | (in Fields) |
@@ -39,7 +39,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**238**) checked against the complete symbol index
+> live `len(jaxfne.__all__)` (**246**) checked against the complete symbol index
 > below.
 
 ## Minimal workflow (verified)
@@ -136,15 +136,17 @@ byte-for-byte (depth-invariant composition, `uniform3d` placement). Only the new
 opt-in paths (`ei_profile="canonical"` or an explicit `layer_cell_type_fractions`)
 change placement to laminar.
 
-## The three canonical defaults
+## The canonical defaults
 
-The three canonical entry points, each returning a fully-specified
-`Configuration` ready for `.set_emitter().probes().field()` then `construct`:
-single laminar column (`default_cortical_column_config`), single flat
-non-laminar population (`default_nuclei_config`), and cortex+subcortex
-combined (`default_complete_configuration`). `default_spectrolaminar_config`
-(below) covers a fourth, distinct shape — two cortical areas with spectral
-objectives — and is kept as a specialized/legacy builder outside this trio.
+> **Correction (2026-07-03):** this section previously documented
+> `default_nuclei_config` and `default_spectrolaminar_config` as two of "three"
+> (then "four", counting spectrolaminar) canonical entry points. Neither exists
+> in the current package — confirmed via `hasattr(jaxfne, 'default_nuclei_config')`
+> → `False`, `hasattr(jaxfne, 'default_spectrolaminar_config')` → `False`, and
+> `grep -rln 'def default_nuclei_config\|def default_spectrolaminar_config' jaxfne/`
+> returning no files. Both entries below are removed. Only
+> `default_cortical_column_config` and `default_complete_configuration` are
+> real; they remain documented.
 
 ### `default_cortical_column_config(...) -> Configuration`
 
@@ -160,21 +162,6 @@ objectives — and is kept as a specialized/legacy builder outside this trio.
 fractions), all-to-all within-area connectivity, laminar proxy field, and the
 standard probe suite (spikes, V_m, source, LFP, CSD).
 
-### `default_nuclei_config(...) -> Configuration`
-
-A non-laminar population default. Every jaxfne emitter lives in the same 3D
-space — "laminar" is a depth label some configs apply, not a different
-coordinate system. This builder skips depth banding entirely.
-
-| Parameter | Default | Meaning |
-|---|---|---|
-| `nucleus_name` | `"thalamus"` | Name (label only — no biological-nucleus-identity claim). |
-| `n` | `80` | Total neurons. |
-| `cell_type_fractions` | `{"E": 0.70, "PV": 0.30}` | Plain E/I split using the built-in `PV` inhibitory preset (no generic `"I"` label exists). |
-| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
-
-**Returns:** a `Configuration` with one flat structural layer (`"core"`), `uniform3d` placement, all-to-all within-area connectivity, and `spikes`/`V_m`/`source` probes (no LFP/CSD — a flat nucleus has no depth axis for a laminar readout).
-
 ### `default_complete_configuration(...) -> Configuration`
 
 The broadest default: a laminar cortical column wired to a flat nucleus —
@@ -189,27 +176,6 @@ cortex and subcortex in one config, via `.inter_column_connectivity()`
 | `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
 
 **Returns:** a multi-area `Configuration`: the column keeps the standard E/PV/SST/VIP composition, the nucleus is flat E/PV, and `inter_column_connectivity` wires column→nucleus feedforward / nucleus→column feedback (sparse, `p_feedforward=0.3`, `p_feedback=0.2`).
-
-## Specialized multi-area builders
-
-### `default_spectrolaminar_config(...) -> Configuration`
-
-Not one of the three canonical defaults above — covers a distinct shape:
-two (or more) *cortical* laminar areas wired together with spectral band
-objectives (e.g. a V1↔V4 comparison), which the canonical trio's single-
-column/single-nucleus/column+nucleus shapes don't reach. Kept public and
-supported for that use case.
-
-| Parameter | Default | Meaning |
-|---|---|---|
-| `areas` | `["V1", "V4"]` | Area names. |
-| `n_per_area` | `100` | Neurons per area. |
-| `seed`, `duration_ms`, `dt_ms` | `None`, `1000.0`, `0.1` | As elsewhere. |
-
-**Returns:** a multi-area `Configuration`: dual laminar columns, inter-area
-feedforward/feedback connectivity, the full readout suite (spikes, LFP, CSD,
-EEG, MEG, EMM), and spectral objectives (alpha/beta `[8,25]` Hz, gamma
-`[40,150]` Hz band definitions).
 
 ---
 
@@ -240,23 +206,25 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**238 names**, grouped by defining module). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**246 names** live; this table currently lists 211 rows — the 9 dead names removed 2026-07-03 plus a pre-existing gap between the documented 238 and the live 246 that has not yet been reconciled row-by-row). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (70)
+### Core (61)
+
+> **Correction (2026-07-03):** 9 names previously listed here (`JaxFNEConfig`,
+> `validate_config`, `ConfigValidationResult`, `config_truth_boundary`,
+> `load_config`, `config_to_configuration`, `config_to_simulation`,
+> `config_to_geometry`, `config_to_trial_batch`) were deleted from the package
+> 2026-06-30 (see `jaxfne/_pipeline.py` top-of-file resolved note) and are
+> removed from this table. Confirmed absent: none of the 9 appear in
+> `jaxfne.__all__`.
 
 | Symbol | Kind | Summary |
 |---|---|---|
 | `AxisSpec` | class | Typed descriptor for one tensor axis in the TFNE scaffold. |
 | `BasisSpec` | class | Typed descriptor for the computation basis of a TFNE run. |
 | `Config` | class | Declarative TFNE model configuration. |
-| `config_to_configuration` | func | Map the `network`/`emitter`/`field`/`probes` sections to a `Configuration`. |
-| `config_to_geometry` | func | Map the `geometry` section to a `LaminarSourceGeometry`, or `None`. |
-| `config_to_simulation` | func | Map the `run` section of a `JaxFNEConfig` to a `Simulation`. |
-| `config_to_trial_batch` | func | Map the `trials` section and conditions to a `TrialBatch`. |
-| `config_truth_boundary` | func | Return a JSON-safe copy of the truth boundary section. |
 | `Configuration` | class | Declarative TFNE model configuration. |
 | `configuration` | func | —  _(undocumented)_ |
-| `ConfigValidationResult` | class | Report container for configuration validation. |
 | `connect` | func | Fuse two or more constructed `Model`s into one ensemble Model. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
@@ -264,11 +232,9 @@ and figure/readout outputs remain proxy diagnostics
 | `default_basis_spec` | func | Return the default BasisSpec matching the current laminar-proxy scaffold. |
 | `enable_x64` | func | Enable JAX float64 mode before constructing arrays and report status. |
 | `get_signal` | func | Thin free-function accessor that delegates to `Signals.get`. |
-| `JaxFNEConfig` | class | JSON-safe container for a complete `.jcfg.json` TFNE specification. |
 | `laminar_source_geometry` | func | Build a `LaminarSourceGeometry` from an ordered population sequence. |
 | `LaminarPopulation` | class | Metadata descriptor for one named laminar cell population. |
 | `LaminarSourceGeometry` | class | Metadata descriptor for the full laminar source geometry. |
-| `load_config` | func | Load a `.jcfg.json` file and return a `JaxFNEConfig`. |
 | `matrix_parameter` | func | Create a matrix parameter specification for tuning weight matrices. |
 | `MatrixParameterSpec` | class | Declarative specification for a tunable weight matrix parameter. |
 | `migrate_schema` | func | Upgrade a legacy truth/metadata dict to the canonical truth-gate schema. |
@@ -314,7 +280,6 @@ and figure/readout outputs remain proxy diagnostics
 | `TrialResult` | class | Result of a single simulation trial. |
 | `TrialSpec` | class | Specification for a single simulation trial. |
 | `TuneResult` | class | Result object returned by Model.tune() with multi-parameter optimization. |
-| `validate_config` | func | Validate a `JaxFNEConfig` and return a `ConfigValidationResult`. |
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
 
 ### Emitters (22)
@@ -514,10 +479,8 @@ and figure/readout outputs remain proxy diagnostics
 | `laminar_cortex_config` | func | Generalized multi-area laminar cortical configuration builder. |
 | `build_laminar_column` | func | Single-column builder; defaults `name="V1"`, `n=1000`; `ei_profile`/`geometry` select flat-legacy vs canonical laminar prior. |
 | `build_multi_area_columns` | func | Multi-area builder; defaults to the `V1→V4→PFC` hierarchy, 200/area, with inter-area feedforward/feedback. |
-| `default_cortical_column_config` | func | One of the three canonical defaults: single laminar column, `column_name="single_column"`, `n=100`. |
-| `default_nuclei_config` | func | One of the three canonical defaults: non-laminar "nucleus", one flat structural layer, isotropic 3D-cloud placement, no depth gradient. |
-| `default_complete_configuration` | func | One of the three canonical defaults: a laminar cortical column wired to a flat nucleus via inter-area connectivity (cortex+subcortex in one config). |
-| `default_spectrolaminar_config` | func | Specialized (not one of the three canonical defaults): two cortical areas wired together with spectral band objectives. |
+| `default_cortical_column_config` | func | Canonical default: single laminar column, `column_name="single_column"`, `n=100`. |
+| `default_complete_configuration` | func | Canonical default: a laminar cortical column wired to a flat nucleus via inter-area connectivity (cortex+subcortex in one config). |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` | const | Ground-truth per-layer E:I composition (6-layer); E peaks deep, I peaks superficial. |
 | `CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L` | const | 5-layer (L2/3 merged) variant of the canonical composition. |
 | `CANONICAL_Z_BANDS` | const | Count-proportional depth bands for the canonical 6-layer column. |

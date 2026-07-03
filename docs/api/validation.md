@@ -14,61 +14,23 @@ The validation module provides tools to:
 
 ## Configuration Validation
 
-### `validate_config(cfg: JaxFNEConfig) -> ConfigValidationResult`
-
-Validate a `JaxFNEConfig` (the dict-backed config produced by `load_config`/the
-config-path APIs — not the fluent `Configuration` builder) for structural
-consistency and completeness. Does not raise for normal validation failures;
-escalated truth claims and missing required sections are returned as blocking
-issues.
-
-**Parameters:**
-- `cfg` (JaxFNEConfig): Config to validate
-
-**Returns:** `ConfigValidationResult` with validation status and issue messages
-
-**Example:**
-```python
-import jaxfne as jtfne
-
-cfg = jtfne.JaxFNEConfig(...)
-result = jtfne.validate_config(cfg)
-if result.valid:
-    print("✓ Configuration is valid")
-else:
-    print(f"✗ Validation failed: {result.issues}")
-```
-
----
-
-## ConfigValidationResult
-
-```python
-jaxfne.ConfigValidationResult
-```
-
-Frozen dataclass container from configuration validation.
-
-### Attributes
-
-- `valid` (bool): True if configuration passes all checks
-- `issues` (tuple[str, ...]): Blocking issue messages (empty if valid)
-- `warnings` (tuple[str, ...]): Non-critical warnings
-- `truth_boundary` (dict): Declared truth/claim-level section
-- `schema_version` (str): Schema version the config was validated against
-
-### Methods
-
-#### `to_dict() -> dict`
-
-Return a JSON-safe dict of the result (`valid`, `issues`, `warnings`,
-`truth_boundary`, `schema_version`).
-
-**Example:**
-```python
-result = jtfne.validate_config(cfg)
-print(result.to_dict())
-```
+> **REMOVED (2026-06-30).** `validate_config`, `ConfigValidationResult`,
+> `config_truth_boundary`, `load_config`, `JaxFNEConfig`, and the rest of the
+> dict-backed `JaxFNEConfig`/`.jcfg.json` config-path API (`config_to_configuration`,
+> `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`) were
+> deliberately deleted along with their 21 dependent tests. See the resolved note
+> in `jaxfne/_pipeline.py` (top of file) for the removal record. None of these
+> names exist in the current package
+> (`hasattr(jaxfne, 'JaxFNEConfig')` → `False`, confirmed 2026-07-03).
+>
+> There is no direct replacement for `validate_config`/`ConfigValidationResult`
+> for the fluent `Configuration` object — `jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool = True) -> dict`
+> exists in `jaxfne/builders.py` but is a different name/signature/return type,
+> not a drop-in substitute, and is not yet re-exported/documented at the root
+> level here. Until it is, validate a `Configuration` structurally via
+> `jtfne.construct(cfg)` (raises on structural problems) and the signal/field
+> checks below (`is_valid_signal`, `validate_projection_invariants`,
+> `compute_conservation_proxy_diagnostics`).
 
 ---
 
@@ -208,24 +170,12 @@ else:
 
 ## Metadata Validation
 
-### `config_truth_boundary(cfg: JaxFNEConfig) -> dict`
-
-Reporting/passthrough helper — returns a JSON-safe copy of `cfg.truth` exactly
-as stored, without re-validating it. Call `validate_config` first to confirm
-the truth section is structurally correct.
-
-**Parameters:**
-- `cfg` (JaxFNEConfig): Config to check
-
-**Returns:** Dictionary with status for each operator
-
-**Example:**
-```python
-boundaries = jtfne.config_truth_boundary(cfg)
-print(f"Model status: {boundaries['model_status']}")
-print(f"Run status: {boundaries['run_status']}")
-print(f"Field solver status: {boundaries['field_solver_status']}")
-```
+> **REMOVED (2026-06-30).** `config_truth_boundary(cfg: JaxFNEConfig)` was
+> deleted along with the rest of the `JaxFNEConfig` config-path API — see the
+> note under "Configuration Validation" above. There is no direct root-level
+> replacement; truth-gate/claim-level metadata for the fluent `Configuration`
+> pipeline is carried on the objects themselves (e.g. `FieldOutput`,
+> `RunReceipt`) rather than fetched via a standalone boundary-report call.
 
 ---
 
@@ -271,11 +221,9 @@ if signals.source is not None and signals.LFP is not None:
 print("✓ All validation checks passed")
 ```
 
-Note: `validate_config(cfg: JaxFNEConfig)` validates the separate dict-backed
-`JaxFNEConfig` produced by `load_config(...)`, not the fluent `Configuration`
-object used above with `construct()` — the two config representations are not
-interchangeable; see `AGENTS.md` for the config-path vs fluent-builder
-distinction.
+Note: the dict-backed `JaxFNEConfig`/`load_config(...)` config-path API
+(distinct from the fluent `Configuration` object used above with `construct()`)
+was removed 2026-06-30 — see the "Configuration Validation" section above.
 
 ---
 
@@ -305,7 +253,8 @@ distinction.
 **Cause:** Missing fields, invalid parameters, or conflicting declarations
 
 **Solution:**
-- Use validate_config before construction
+- Call `construct(cfg)`, which raises on structural problems (`validate_config`
+  no longer exists — see "Configuration Validation" above)
 - Check error messages for specific issues
 - Verify all required fields are present
 

@@ -1,7 +1,17 @@
 # V1-PFC Dual Column
 
-
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/05_v1_pfc_dual_column.md)
+> **Status: ASPIRATIONAL / PLANNED — NOT YET IMPLEMENTED.**
+> This page describes a design sketch for a two-area (V1 + PFC) laminar model. As of this
+> writing there is **no corresponding notebook** anywhere in `tutorials/` (verified via
+> `find tutorials -iname "*dual*" -o -iname "*pfc*"`, zero hits besides this doc), and the code
+> snippet below is **not runnable as shown**: `inter_areal_connectivity=` and `areas=`/`layers=`
+> dict kwargs to `.network()` are accepted only as an untyped metadata sink (no builder consumes
+> them), `field(domain="dual_laminar_column")` is not a recognized field domain anywhere else in
+> the codebase, the `"traveling_waves"` probe mode does not exist in `jaxfne/fields/probes.py`
+> (the doc itself flags it as "reserved" further down, which this banner is making more
+> prominent), and the `"coherence"` readout kind has no implementation. Treat everything below as
+> a roadmap item, not a working tutorial. The Colab badge has been removed since there is no
+> notebook for it to open.
 
 Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area dynamics.
 

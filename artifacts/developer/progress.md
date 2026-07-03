@@ -282,19 +282,8 @@
 | tests/test_with_emitter_parameters.py |  | unreviewed |  |  |  |
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | AGENTS.md |  | unreviewed |  |  |  |
-| docs/tutorials/05_v1_pfc_dual_column.md | 30 | needs_followup |  | No corresponding notebook exists anywhere in tutorials/ (grepped for *dual*, *pfc*, *v1_pfc* -- zero hits besides this d | 2026-07-03 |
-| docs/api/emitters.md | 35 | needs_followup | IzhikevichParams.class_method(class_label) is documented but does not exist anywhere in jaxfne/emitters.py; the real fac |  | 2026-07-03 |
-| docs/api/probes.md | 35 | needs_followup | Every per-probe "Example" code block (SPK through emm_proxy sections) accesses signals via attributes that do not exist  |  | 2026-07-03 |
-| docs/api/fields.md | 38 | needs_followup | LaminarSourceGeometry Attributes table lists x/y/z/contact_locations/n_sources/n_contacts plus a from_dict(geometry_dict |  | 2026-07-03 |
-| docs/ci_policy.md | 40 | needs_followup |  | Test-count claim 'Core tests: 903 pytest tests (5 skipped, expected)' is stale -- actual repo has 2759 tests collected t | 2026-07-03 |
-| docs/api/core.md | 42 | needs_followup | Model attrs table lists cfg/geometry/basis_spec; real dataclass fields (jaxfne/core.py class Model, verified via datacla |  | 2026-07-03 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
-| docs/api/solvers.md | 45 | done |  |  | 2026-07-03 |
-| docs/api/validation.md | 45 | needs_followup |  | Rewrite/replace the 'Configuration Validation' and 'Metadata Validation' sections (lines 15-72, 209-228) and the Note at | 2026-07-03 |
-| docs/api/index.md | 55 | needs_followup | default_nuclei_config and default_spectrolaminar_config are documented as two of the 'three/four canonical defaults' wit |  | 2026-07-03 |
-| docs/colab.md | 55 | needs_followup |  | Doc is pinned to v0.2.27 ('Google Colab Quick Start (v0.2.27)', 'Last updated: 2026-05-22') while the package is now at  | 2026-07-03 |
-| docs/tutorials/04_v1_column.md | 55 | needs_followup | `signals = model.simulate(...)` (line 40) uses literal ellipsis `...` as the argument instead of a real jtfne.simulation |  | 2026-07-03 |
-| docs/api/runtime.md | 58 | needs_followup | jaxfne.runtime module's actual public API (get_jax_backend_report, set_precision_policy, safe_jit, safe_vmap -- all in j |  | 2026-07-03 |
+| docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | Underlying feature gap is real and unresolved: no dual-column / inter-areal-connectivity notebook exists, and inter_area | 2026-07-03 |
 | docs/tutorials/01_single_neuron_multimodal.md | 62 | needs_followup | readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _K |  | 2026-07-03 |
 | docs/source_field_equations.md | 68 | needs_followup | Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing lea |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
@@ -339,9 +328,12 @@
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
 | docs/HDP_REPORT.md | 85 | done | The doc's phrase 'Generic builder (jaxfne.hdp_network)' names jaxfne.hdp_network as if it were a callable builder; it is |  | 2026-07-03 |
+| docs/api/index.md | 85 | needs_followup | The 'Complete public symbol index' Core table only lists 61 of the module's real symbols after removing the 9 dead names |  | 2026-07-03 |
 | docs/api/plasticity.md | 85 | done |  |  | 2026-07-03 |
+| docs/colab.md | 85 | done |  | manifest['basis'] key names in the printed example ('jaxfne_version', 'model_status', 'amplitude_status', 'field_solver_ | 2026-07-03 |
 | docs/conservation_proxy_diagnostics.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
+| docs/tutorials/04_v1_column.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/06_v036_100_neuron_ei_population.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
@@ -380,6 +372,8 @@
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
 | docs/NEURON_IO_CHARACTERIZATION.md | 90 | done |  |  | 2026-07-03 |
+| docs/api/validation.md | 90 | needs_followup |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
+| docs/ci_policy.md | 90 | done |  |  | 2026-07-03 |
 | docs/contributing.md | 90 | done |  |  | 2026-07-03 |
 | docs/guides/calibration.md | 90 | done |  |  | 2026-07-03 |
 | docs/guides/probe_operators.md | 90 | needs_followup |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
@@ -403,6 +397,9 @@
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
+| docs/api/core.md | 92 | done |  | ReadoutSpec metrics table previously listed max_spike_rate_hz/mean_source/mean_LFP/mean_CSD/burst_frequency_hz as valid  | 2026-07-03 |
+| docs/api/fields.md | 92 | done |  |  | 2026-07-03 |
+| docs/api/probes.md | 92 | done |  |  | 2026-07-03 |
 | docs/citation.md | 92 | done |  |  | 2026-07-03 |
 | docs/guides/hdp.md | 92 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.3.md | 92 | done |  |  | 2026-07-03 |
@@ -440,12 +437,15 @@
 | jaxfne/io.py | 95 | unreviewed |  |  | 2026-06-30 |
 | skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-02 |
 | docs/_generated/operator_inventory.md | 95 | done |  |  | 2026-07-03 |
+| docs/api/emitters.md | 95 | done |  |  | 2026-07-03 |
 | docs/api/objectives.md | 95 | done |  |  | 2026-07-03 |
+| docs/api/solvers.md | 95 | done |  |  | 2026-07-03 |
 | docs/guides/poisson_admissibility.md | 95 | done |  |  | 2026-07-03 |
 | docs/notes/biophysical_model_comparison.md | 95 | done |  |  | 2026-07-03 |
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
+| docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
 | docs/limitations_and_future_plans.md | 96 | done |  |  | 2026-07-03 |
 | docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
 | docs/guides/index.md | 97 | done |  |  | 2026-07-03 |

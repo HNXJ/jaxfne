@@ -1,345 +1,317 @@
 # Probes API
 
-Probe operators and multimodal readout channels for neural signals.
+Probe declarations and multimodal readout channels for neural simulation output.
 
 ## Overview
 
-Probe operators extract various readout modalities from neural simulation:
-- **Spike-based:** Spike detection (SPK) from membrane voltage
-- **Voltage-based:** Direct voltage readouts (Vm)
-- **Field-based:** lfp_proxy and csd_proxy from spatial current distributions
-- **Sensor-based:** eeg_proxy and meg_proxy from head/field **proxy** projection operators (computational scaffold; no clinical forward-model claim)
-- **Activity cost:** emm_proxy signaling-energy estimation
+A probe is a declarative metadata entry attached to a `Configuration` via
+`cfg.probes([...])` (or `Configuration.probe(**kwargs)`). It does not itself
+compute anything — it records intent (which readout modes to expect, how many
+laminar contacts, etc.) as JSON-safe metadata on the config. The actual
+readout arrays are produced at simulation time as fields on the real
+`Signals` dataclass (`jaxfne/core.py:2716-2725`):
 
-All operators return **proxy readouts** suitable for tutorial simulations, designed for exploratory workflows.
+```python
+@dataclass(frozen=True)
+class Signals:
+    time_ms: jax.Array
+    V_m: jax.Array
+    spikes: jax.Array
+    sources: Optional[jax.Array]
+    field: Optional[FieldOutput]
+    metadata: dict[str, Any]
+```
+
+There is **no** `signals.LFP`, `signals.CSD`, `signals.EEG`, `signals.MEG`,
+`signals.EMM`, or `signals.source` (singular) attribute. Laminar
+field-derived readouts (LFP-proxy, CSD-proxy, phi_e-proxy, source-proxy) live
+on `signals.field`, a `FieldOutput` (`jaxfne/fields/proxy.py:35-60`):
+
+```python
+@dataclass(frozen=True)
+class FieldOutput:
+    source_proxy: jax.Array
+    phi_e_proxy: jax.Array
+    csd_proxy: jax.Array
+    lfp_proxy: jax.Array
+    kernel: jax.Array
+    contact_depths: jax.Array
+    diagnostics: dict[str, Any]
+
+    @property
+    def phi_e(self) -> jax.Array: ...
+    @property
+    def csd(self) -> jax.Array: ...   # alias for csd_proxy
+    @property
+    def lfp(self) -> jax.Array: ...   # alias for lfp_proxy
+```
+
+EEG-proxy / MEG-proxy / EMM-proxy are **not** stored fields at all — they are
+produced on demand by explicit transform functions in
+`jaxfne/fields/probes.py` (`eeg_proxy_transform`, `meg_proxy_transform`,
+`emm_proxy_transform`), which the caller invokes with a leadfield/weighting
+matrix it supplies. They are not automatically computed during `simulate()`.
+
+All readouts here are **proxy readouts** — uncalibrated computational
+scaffold, not physical measurements (`physical_amplitude_calibrated=False`
+throughout).
 
 ---
 
-## Probe Operators (Eight Kinds)
+## Getting a signal: `Signals.get()`
 
-### 1. SPK: Spike Detection
+The supported, alias-checked way to pull a named array out of `Signals` is
+`signals.get(key, ...)` (`jaxfne/core.py:2743`), which raises `KeyError`
+on an unknown key rather than silently returning `None`. The real key
+aliases (`_SIGNALS_GET_KEY_ALIASES`, `jaxfne/core.py:2694-2708`):
 
-```python
-cfg = cfg.probes(["SPK"])
-```
+| Alias(es) | Resolves to |
+|---|---|
+| `vm`, `v_m`, `voltage`, `V_m` | `V_m` |
+| `spk`, `spike`, `spikes`, `raster` | `spikes` |
+| `src`, `source`, `sources` | `sources` |
+| `lfp`, `lfp_proxy` | `field.lfp_proxy` |
+| `csd`, `csd_proxy` | `field.csd_proxy` |
+| `phi_e`, `phi`, `phi_e_proxy` | `field.phi_e_proxy` |
+| `field_source`, `source_proxy` | `field.source_proxy` |
+| `eeg`, `eeg_proxy` | `eeg_proxy` (probe-only; not on `FieldOutput`) |
+| `meg`, `meg_proxy` | `meg_proxy` (probe-only) |
+| `emm`, `emm_proxy` | `emm_proxy` (probe-only) |
 
-**Math form:** $\mathrm{SPK}_n = \mathbb{1}[V_n(t) \geq \theta_n]$
-
-**Output:** Binary spike raster [time, neurons]
-
-**Parameters:**
-- `threshold` (float): Spike threshold (default: 30 mV for Izhikevich)
-
-**Status:** Simulated proxy; threshold-based detection
-
-**Units:** Binary (0/1)
+Neuron-indexed keys (`V_m`, `spikes`, `sources`) accept a
+`selector=`/`area=`/`layer=`/`cell_type=`/`ids=` filter along the trailing
+neuron axis. Field-derived keys (`lfp_proxy`, `csd_proxy`, `phi_e_proxy`,
+`source_proxy`) are laminar/contact-indexed, not neuron-indexed, and raise
+`ValueError` if you pass a selector. `signals.get(..., trial=...)` raises
+`NotImplementedError` — core `Signals` has no declared trial axis; use
+`jtfne.run_trials(...)` for multi-trial data.
 
 **Example:**
 ```python
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=7)
-spikes = signals.spikes  # [time, neurons]
-spike_rate_hz = spikes.mean(axis=0) * 1000.0 / dt_ms
+
+spikes = signals.get("spikes")           # [time, neurons]
+V_m = signals.get("V_m")                 # [time, neurons]
+lfp = signals.get("lfp")                 # [time, contacts], from signals.field.lfp_proxy
+csd = signals.get("csd")                 # [time, contacts], from signals.field.csd_proxy
+
+spike_rate_hz = spikes.mean(axis=0) * 1000.0 / 0.1
 ```
+
+Direct attribute access also works for the fields that actually exist:
+`signals.spikes`, `signals.V_m`, `signals.sources`, `signals.field.lfp`,
+`signals.field.csd`, `signals.field.phi_e`.
 
 ---
 
-### 2. Vm: Membrane Voltage
+## `Model.probe()`: extracting arrays by mode
+
+`Model.probe(signals, modes=[...])` (`jaxfne/core.py:5120-5137`) is a
+compatibility alias that returns a plain dict of the requested modes:
 
 ```python
-cfg = cfg.probes(["Vm"])
+def probe(self, signals: Signals, modes: Sequence[str] | None = None) -> dict[str, Any]:
+    ...
 ```
 
-**Math form:** $\mathrm{Vm}_n(t) = V_n(t)$
+- `"spikes"` in `modes` -> `out["spikes"] = signals.spikes`
+- `"V_m"` in `modes` -> `out["V_m"] = signals.V_m`
+- `"source"`/`"sources"` in `modes` -> `out["sources"] = signals.sources`
+- if `signals.field is not None`, the laminar modes are merged in via
+  `probe_laminar_modes(signals.field, modes)` (`jaxfne/fields/proxy.py:450-479`):
+  - `"source"`/`"sources"` -> `out["source_proxy"]`
+  - `"phi_e"` -> `out["phi_e_proxy"]`
+  - `"CSD"` -> `out["CSD"]` and `out["csd_proxy"]`
+  - `"LFP"` -> `out["LFP"]` and `out["lfp_proxy"]`
+  - `"J_e"` -> `out["J_e_status"] = "not_computed_without_real_field_solver"` (no real field solver is wired in)
+  - any of the above also adds `out["readout_metadata"]` (truth-gate status from `validate_source_field_status`)
 
-**Output:** Voltage trace [time, neurons]
-
-**Status:** Direct state readout from Izhikevich emitter
-
-**Units:** mV (millivolts)
-
-**Range:** Typically -90 to 30 mV
+The **canonical v0.1 workflow** prefers `Model.compute_readout(signals, specs)`
+over `Model.probe()` for typed, declarative scalar feature extraction (next
+section). `Model.record()` is a user-facing alias for `Model.probe()`.
 
 **Example:**
 ```python
-V_m = signals.V_m  # [time, neurons]
-mean_voltage = V_m.mean()
-voltage_std = V_m.std()
+report = model.probe(signals, modes=["spikes", "V_m", "source", "LFP", "CSD"])
+lfp = report["LFP"]          # [time, n_contacts]
+csd = report["csd_proxy"]    # [time, n_contacts]
 ```
 
 ---
 
-### 3. source: Transmembrane Current
+## Declaring probes on a Configuration
+
+`cfg.probes([...])` is a real callable-list facade
+(`_ProbeDeclarations.__call__`, `jaxfne/core.py:1068-1101`) that attaches
+probe metadata to the config and, if `ensure_defaults=True` (default), backs
+in a default Izhikevich emitter and laminar proxy field declaration when
+none are present yet:
 
 ```python
-cfg = cfg.probes(["source"])
+cfg = cfg.probes(["spikes", "V_m", "source", "LFP", "CSD"], n_contacts=16)
 ```
 
-**Math form:** $S_n(t) = f_{\mathrm{source}}(I_{\mathrm{mem}}, \text{anatomy})$
+`modes` here are declarative labels stored in config metadata — they are
+**not** validated against an enum at declaration time (only later, when a
+`Signals.get()`/`Model.probe()` call actually resolves a key, does an unknown
+key raise). The set actually used by the shipped suite-2 preset
+(`_SUITE2_PROXY_MODES`, `jaxfne/core.py:256-258`) is:
 
-**Output:** Source density [time, spatial locations]
-
-**Description:**
-Projects Izhikevich transmembrane currents into space using anatomical mapping. This feeds **field-proxy** operators (LFP-proxy, CSD-proxy); no PDE field solver is invoked in v0.3.x.
-
-**Status:** Spatial projection proxy
-
-**Units:** Current density (relative Izhikevich units, not µA/mm³)
-
-**Example:**
 ```python
-source = signals.source  # [time, locations]
+_SUITE2_PROXY_MODES = (
+    "spikes", "V_m", "source", "LFP", "CSD", "EEG-proxy", "MEG-proxy", "EMM-proxy"
+)
 ```
+
+There is no `"SPK"`, `"Vm"` (capitalized-short form), or `"MUA-proxy"` mode
+anywhere in the codebase — those names do not appear in `_SUITE2_PROXY_MODES`,
+`_SIGNALS_GET_KEY_ALIASES`, or `probe_laminar_modes`. Use the real names
+above.
+
+```python
+cfg = cfg.probes(_SUITE2_PROXY_MODES, n_contacts=16)
+```
+
+or selectively:
+
+```python
+cfg = cfg.probes(["spikes", "LFP", "CSD"], n_contacts=16)
+```
+
+Lower-level equivalent: `Configuration.probe(**kwargs)` appends a raw probe
+declaration dict directly (`jaxfne/core.py:1179-1193`); it explicitly rejects
+the retired `kind`/`mode`/`modes`-as-legacy-alias keys via
+`_reject_retired_like`.
 
 ---
 
-### 4. lfp_proxy: Local Field Potential
+## Readout Metrics (`ReadoutSpec` / `compute_readout`)
 
+`jtfne.readout_spec(name, metric, ...)` builds a `ReadoutSpec`
+(`jaxfne/core.py:8131-8156`); `model.compute_readout(signals, specs)`
+(`jaxfne/core.py:5015-5057` area) evaluates a list of specs against a
+`Signals` object and returns a list of `ReadoutResult`.
+
+The **real, complete** set of valid `metric` values is
+`_KNOWN_READOUT_METRICS` (`jaxfne/core.py:8287-8294`) — six entries, not
+twelve:
+
+| Metric | Description |
+|--------|-------------|
+| `spike_rate_hz` | Mean firing rate (Hz), from `signals.spikes` |
+| `spike_count` | Total spike count |
+| `mean_V_m` | Mean membrane voltage (mV) |
+| `csd_abs_mean` | Mean absolute CSD-proxy magnitude, from `signals.field.csd` |
+| `lfp_abs_mean` | Mean absolute LFP-proxy magnitude, from `signals.field.lfp` |
+| `source_abs_mean` | Mean absolute source-proxy magnitude |
+
+Any other `metric` string (e.g. `"mean_LFP"`, `"mean_EEG"`,
+`"burst_frequency_hz"`) is **not** in `_KNOWN_READOUT_METRICS`; passing one
+does not raise — `compute_readout` returns a `ReadoutResult` with
+`status="unknown_metric"` and `value=None` (`jaxfne/core.py:5039-5046`).
+There is no burst-frequency, peak-rate, min/max-voltage, or EEG/MEG/EMM
+metric wired into `compute_readout` today.
+
+`ReadoutSpec` also supports optional `time_window_ms=(start_ms, end_ms)` and,
+for the two field metrics, `n_contacts_slice=(start, end)`.
+
+**Example (only real metric names):**
 ```python
-cfg = cfg.probes(["lfp_proxy"])
-```
-
-**Math form:** $\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$
-
-Default `project_laminar_sources` uses **`mode="density_preserving"`** (raw Gaussian weights).
-Optional **`mode="row_normalize"`** enforces $\sum_n W_{cn} = 1$ per contact (explicit opt-in).
-
-**Output:** Potential at recording contacts [time, contacts]
-
-**Status:** Proxy convolution; no PDE solve
-
-**Units:** Proxy voltage units (unscaled). Calibrated mV requires separate calibration evidence; not claimed by default.
-
-**Description:**
-Extracellular potential sampled at electrode contacts. Computed via weighted summation of sources with spatial weighting. Approximates field without solving Poisson equation.
-
-**Example:**
-```python
-LFP = signals.LFP  # [time, n_contacts]
-LFP_mean = LFP.mean(axis=0)  # Mean per contact
-```
-
----
-
-### 5. csd_proxy: Current Source Density
-
-```python
-cfg = cfg.probes(["csd_proxy"])
-```
-
-**Math form:** $\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi(t,c+1) - 2\phi(t,c) + \phi(t,c-1)}{(\Delta z)^2}$
-
-**Output:** Current source density [time, locations]
-
-**Status:** Proxy second spatial derivative
-
-**Units:** Proxy current density units (relative)
-
-**Description:**
-Estimate of inward/outward transmembrane current at each depth. Computed as second spatial derivative of LFP. Sign convention: **positive CSD = extracellular source = inward current**.
-
-**Example:**
-```python
-CSD = signals.CSD  # [time, n_locations]
-CSD_positive = (CSD > 0).sum()  # Count source voxels
-```
-
----
-
-### 6. eeg_proxy: Electroencephalogram
-
-```python
-cfg = cfg.probes(["eeg_proxy"])
-```
-
-**Math form:** $Y_{\mathrm{EEG}}(t, e) = \sum_{c=1}^{C} L_{ec} \phi_{\mathrm{proxy}}(t,c)$
-
-**Output:** Scalp electrode readings [time, n_eeg_channels]
-
-**Status:** Toy head model projection; no volumetric conductivity
-
-**Units:** Proxy voltage units (relative mV)
-
-**Description:**
-Projects laminar LFP to scalp electrodes using a simplified lead-field matrix. Not a realistic head model; suitable for relative visualization.
-
-**Example:**
-```python
-EEG = signals.EEG  # [time, n_eeg_channels]
-```
-
----
-
-### 7. meg_proxy: Magnetoencephalogram
-
-```python
-cfg = cfg.probes(["meg_proxy"])
-```
-
-**Math form:** $Y_{\mathrm{MEG}}(t, m) = \sum_{n,s} L_{m,ns} o_n S_n(t)$
-
-**Output:** Magnetometer readings [time, n_meg_channels]
-
-**Status:** Toy dipole model; no volume conductor
-
-**Units:** Proxy magnetic field units (relative to source)
-
-**Description:**
-Estimates magnetic field from dipoles with orientation weighting. Each source contributes based on its orientation relative to magnetometer. Simplified model for visualization.
-
-**Example:**
-```python
-MEG = signals.MEG  # [time, n_meg_channels]
-```
-
----
-
-### 8. emm_proxy: Energetic/Metabolic Activity Metric
-
-```python
-cfg = cfg.probes(["emm_proxy"])
-```
-
-**Math form:** $\mathrm{EMM}(t) = \alpha \|S(t)\|_1 + \beta \|\phi(t)\|_1$
-
-**Output:** Single activity metric [time]
-
-**Status:** Proxy cost function for exploratory analysis; signaling-energy proxy
-
-**Units:** Relative activity intensity (no physical units)
-
-**Description:**
-Estimates relative energy cost of network activity. Combines source magnitude (ion pump cost) and field magnitude (ATP for signal propagation). Weighted by parameters α and β.
-
-**Example:**
-```python
-EMM = signals.EMM  # [time]
-activity = EMM.mean()  # Mean metabolic proxy over time
-```
-
----
-
-## Probe Specifications
-
-### Declaring Multiple Probes
-
-```python
-cfg = cfg.probes([
-    "SPK",
-    "Vm",
-    "source",
-    "LFP-proxy",
-    "CSD-proxy",
-    "EEG-proxy",
-    "MEG-proxy",
-    "EMM-proxy"
+readouts = model.compute_readout(signals, [
+    jtfne.readout_spec("firing_rate", "spike_rate_hz"),
+    jtfne.readout_spec("voltage", "mean_V_m"),
+    jtfne.readout_spec("field_strength", "lfp_abs_mean"),
 ])
+for r in readouts:
+    print(r.spec_name, r.metric, r.value, r.status)
 ```
 
-Or selectively:
+`ReadoutResult` fields (`jaxfne/core.py:3137-3155`): `spec_name`, `metric`,
+`value` (float or `None`), `status` (`"computed"` / `"no_field"` /
+`"empty_time_window"` / `"unknown_metric"`), `claim_level`
+(`"computational_scaffold"`), `physical_amplitude_calibrated` (always
+`False`), `metadata`.
 
-```python
-cfg = cfg.probes(["MUA-proxy", "LFP-proxy", "CSD-proxy"])
-```
+---
 
-### Probe Report Structure
+## No `ProbeReport` dataclass
 
-Each probe operator returns a JSON-safe report:
+There is **no** `ProbeReport` class anywhere in the package (confirmed:
+`grep -rn "class ProbeReport" jaxfne/` returns nothing). Two real, differently
+shaped things exist under similar names — don't confuse them with the
+removed `ProbeReport`:
 
-```python
-@dataclass
-class ProbeReport:
-    kind: str  # "spk" | "vm" | "source" | "lfp_proxy" | ...
-    method: str  # Computation method
-    units_or_status: str  # Units or proxy declaration
-    operator_status: str  # "simulated_proxy" for all v0.2.x
-    amplitude_status: bool  # Always false for proxy
-```
+1. **`jaxfne.io.probe_report(n_probes, probe_types=None, metadata=None)`**
+   (`jaxfne/io.py:218-234`) — a plain JSON-bundle builder, not a per-probe
+   report object. It returns:
+   ```python
+   {
+       "n_probes": int(n_probes),
+       "probe_types": probe_types or {},
+       "metadata": metadata or {},
+   }
+   ```
+   **Example:**
+   ```python
+   from jaxfne.io import probe_report
+   report = probe_report(n_probes=2, probe_types={"V_m": 1, "spikes": 1})
+   ```
 
-**Example:**
-```json
-{
-  "kind": "lfp_proxy",
-  "method": "point_or_finite_contact_phi_proxy",
-  "units_or_status": "proxy_voltage_units",
-  "operator_status": "simulated_proxy",
-  "amplitude_status": false
-}
-```
+2. **`jaxfne.operator_status()`** (`jaxfne/core.py:7726-7738`) — returns a
+   dict mapping operator symbol names to readiness strings (e.g.
+   `"prototype_api"`, `"not_implemented"`), a registry-level status snapshot,
+   not a per-call probe result.
+
+If you need a per-probe-call structured result, use `ReadoutResult` (above)
+or the plain dict returned by `Model.probe()`.
 
 ---
 
 ## Statement Boundaries
 
-⚠️ **All probe operators are computational proxies:**
+All probe/readout paths here are computational proxies:
 
-- **No empirical validation:** Results are simulated, not measured
-- **No physical amplitude:** Cannot statement mV or µV units without calibration
-- **Relative metrics only:** Use for comparative analysis, not absolute scaling
-- **Sign conventions declared:** CSD+ = inward current (extracellular source)
-- **Spatial approximations:** Field solvers use convolution, not full PDE
+- **No empirical validation:** results are simulated, not measured.
+- **No physical amplitude:** `physical_amplitude_calibrated=False` throughout; do not state mV/µV without separate calibration evidence.
+- **Relative metrics only:** use for comparative analysis, not absolute scaling.
+- **Sign convention:** CSD-proxy positive = extracellular source = inward current (declared, not independently verified here).
+- **No PDE field solver:** laminar field readouts are convolution-based proxies (`field_solver_status="linear_solver"`), not a solved Poisson/volume-conductor equation. EEG-proxy/MEG-proxy require a caller-supplied leadfield matrix and are "toy" projections, not a realistic head model.
 
 **Safe statements:**
-- "Spike rate increased by 20%"
-- "LFP magnitude varies with depth"
-- "EMM proxy indicates higher activity"
+- "Spike rate increased by 20%."
+- "LFP-proxy magnitude varies with depth."
 
 **Unsafe statements:**
-- "LFP amplitude is 50 µV"
-- "CSD source is located at 400 µm depth" (localization not solved)
-- "EEG matches real recordings" (without validation)
-
----
-
-## Readout Metrics
-
-### Available Metrics (from ReadoutSpec)
-
-| Metric | Operator | Description |
-|--------|----------|-------------|
-| `spike_rate_hz` | SPK | Mean firing rate (Hz) |
-| `burst_frequency_hz` | SPK | Burst rate estimate |
-| `max_spike_rate_hz` | SPK | Peak firing rate |
-| `mean_V_m` | Vm | Mean membrane voltage (mV) |
-| `min_V_m` | Vm | Min voltage (mV) |
-| `max_V_m` | Vm | Max voltage (mV) |
-| `mean_source` | source | Mean source magnitude |
-| `mean_LFP` | LFP-proxy | Mean LFP-proxy magnitude (unscaled) |
-| `mean_CSD` | CSD-proxy | Mean CSD-proxy magnitude (unscaled) |
-| `mean_EEG` | EEG-proxy | Mean EEG-proxy magnitude (unscaled) |
-| `mean_MEG` | MEG-proxy | Mean MEG-proxy magnitude (unscaled) |
-| `mean_EMM` | EMM-proxy | Mean metabolic proxy |
-
-**Example:**
-```python
-readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("firing_rate", "spike_rate_hz"),
-    jtfne.readout_spec("voltage", "mean_V_m"),
-    jtfne.readout_spec("field_strength", "mean_LFP")
-])
-print(readouts.results)
-```
+- "LFP amplitude is 50 µV." (uncalibrated)
+- "CSD source is located at 400 µm depth." (localization not solved)
+- "EEG-proxy matches real recordings." (no empirical validation)
 
 ---
 
 ## JSON Serialization
 
-All probe outputs must be JSON-safe:
+Probe/readout outputs built from `jaxfne.io` helpers (`probe_report`,
+`ReadoutResult.to_dict()`, `Signals.summary()`) are JSON-safe by construction
+(routed through `jaxfne.io.json_safe`):
 
 ```python
 import json
-from jaxfne.io import json_safe
+from jaxfne.io import json_safe, probe_report
 
-signals_dict = json_safe(signals.to_dict())
-json.dumps(signals_dict, allow_nan=False)  # Must not raise
+report = probe_report(n_probes=2, probe_types={"V_m": 1, "spikes": 1})
+json.dumps(json_safe(report), allow_nan=False)  # must not raise
+
+summary = json_safe(signals.summary())
+json.dumps(summary, allow_nan=False)
 ```
 
-NaN or Inf values in signals will fail serialization.
+NaN or Inf values will fail `json.dumps(..., allow_nan=False)`.
 
 ---
 
 ## See also
 
-- [Probe Operators Guide](../guides/probe_operators.md) — Detailed mathematical descriptions
-- [Fields API](fields.md) — Source projection and field computation
-- [Core API](core.md) — Signal and readout containers
+- [Probe Operators Guide](../guides/probe_operators.md) — worked walkthroughs
+- [Fields API](fields.md) — Source projection and field computation (`FieldOutput`, `project_laminar_sources`)
+- [Core API](core.md) — `Signals`, `Model`, `Configuration`, `ReadoutSpec`/`ReadoutResult`
 - [API reference](index.md)

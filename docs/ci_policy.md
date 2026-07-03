@@ -15,8 +15,12 @@ This keeps development fast while ensuring comprehensive testing before release.
 
 - Python 3.10, 3.12 matrix (optimized routine development matrix)
 - Compilation check: `python -m compileall -q jaxfne tests examples`
-- Core tests: 903 pytest tests (5 skipped, expected)
-- Fast examples only: `examples/00-06` (smoke tests, ~1 min)
+- Core tests: 2759 pytest tests collected (`python -m pytest tests/ --collect-only -q`), run with
+  `-m "not slow" --ignore=tests/test_multi_area_source_projector.py --ignore=tests/test_multi_area_spectrolaminar_objective.py`
+  on non-`main` pushes/PRs (`.github/workflows/ci.yml:34`); the two ignored files and the `slow`-marked
+  tests still run on pushes to `main` (`ci.yml:41`)
+- Examples: **all** `examples/00-08` scripts listed in the "Run examples" step (`ci.yml:46-54`) are
+  executed on every fast-CI run, not a subset
 - Build: wheel + sdist
 - Smoke test: fresh venv wheel install + minimal workflow
 
@@ -29,22 +33,20 @@ This keeps development fast while ensuring comprehensive testing before release.
 
 ### What is excluded from fast CI
 
-Large, long-running examples:
+As of this writing, `.github/workflows/ci.yml`'s "Run examples" step runs every example listed
+there (`examples/00-08`, including the spectrolaminar, jaxley-bridge, and 100-neuron examples) on
+every fast-CI run — there is currently **no** large-example exclusion list in fast CI. The two
+`--ignore`d test files above (`test_multi_area_source_projector.py`,
+`test_multi_area_spectrolaminar_objective.py`) and `slow`-marked tests are the only things skipped
+on non-`main` runs; notebook execution (`notebook`-marked tests) is excluded from `ci.yml`
+entirely and instead handled by the separate `notebook_execution.yml` workflow.
 
-- `examples/02_spectrolaminar_oddball_scaffold.py` (~3 min)
-- `examples/03_single_neuron_multimodal_probe.py` (~3 min)
-- `examples/04_two_neuron_ei_multimodal.py` (~3 min)
-- `examples/05_network_100_ei_multimodal.py` (~5 min)
-- `examples/07_jaxley_trace_bridge.py` (synthetic, <10 sec but grouped with large examples)
+### Why some things are still excluded
 
-### Why excluded
-
-Large examples are not blockers for fast iteration:
-
-- Developers often work on small focal changes
-- Large simulations don't parallelize with other CI jobs
-- Testing all large examples on every push would add 10+ min to CI
-- These examples validate tutorial outputs, not core functionality
+- `notebook`-marked tests (28 release-facing notebooks) are handled by the dedicated
+  `notebook_execution.yml` workflow instead of every push — they can take well over an hour combined
+- The two `--ignore`d test files above are excluded from every `ci.yml` run (not gated by branch)
+- `slow`-marked tests run only on `main`, keeping non-`main` iteration fast
 
 ### Known subprocess test behaviors
 
@@ -135,9 +137,9 @@ No automatic CI gates are applied to benchmark results. Measurements serve as re
 ## Documentation and Policy Updates
 
 CI policy documentation:
-- This file explains smoke-safe CI and large example exclusion
-- `README.md` links users to this page
-- Large examples are documented as manual-validation in README
+- This file explains smoke-safe CI and the current test/example scope
+- `README.md` does not currently link to this file (verified via `grep -in ci_policy README.md`,
+  no match); if a stable cross-reference is wanted, add one under README's docs links
 
 See the "Extended Validation (Manual/Release)" section above for manual validation commands.
 

@@ -1,9 +1,13 @@
 # V1 Six-layer Column
 
 
-[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/docs/tutorials/04_v1_column.md)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb)
 
 A laminar model inspired by primate V1 with six layers and depth-specific readouts.
+
+*The Colab badge above links to `jaxfne_etude_no_4_homeostatic_V1_column.ipynb`, the closest
+real, runnable notebook covering a laminar V1 column (1000-neuron canonical column with
+homeostasis); it is not a byte-for-byte match of the 600-neuron config shown below.*
 
 ## Configuration
 
@@ -37,7 +41,7 @@ model = jtfne.construct(cfg)
 ## Multimodal readouts
 
 ```python
-signals = model.simulate(...)
+signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)
 
 # Layer-specific rates
 readouts = model.compute_readout(signals, [
