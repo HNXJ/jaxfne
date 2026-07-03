@@ -4,10 +4,13 @@ description: >-
   Verified NeuronalTensor build path (Areas × Layers × NeuronTypes ×
   AreaConnections) and HDP homeostatic-plasticity module. USE when building or
   editing a NeuronalTensor circuit, enabling HDP, or naming a NeuronalTensor
-  symbol. Do NOT construct NeuronalTensor(some_configuration) — it silently
-  type-confuses (verified 2026-06-30, no runtime validation on the dataclass);
-  there is no Configuration -> NeuronalTensor converter yet (open TBI, see
-  jaxfne repo artifacts/developer/progress.json).
+  symbol. As of 2026-07-03, NeuronalTensor/Area raise TypeError at
+  construction time on wrong-typed elements (closes the old silent
+  type-confusion landmine — NeuronalTensor(some_configuration) now raises
+  immediately instead of corrupting state). There is still no
+  Configuration -> NeuronalTensor converter (deliberately out of scope —
+  Configuration is the simpler tier, promoting it up adds no information;
+  see AGENTS.md § "Config complexity tiers").
 ---
 
 # jaxfne Neural Tensor
@@ -17,13 +20,22 @@ USE FIRST: `catalog-glossary-jaxfne` §1b/§1c.
 ## What it is
 
 `NeuronalTensor = [Areas, AreaConnections]`, `Area = [Layers × NeuronTypes, InterConnections]`.
-This is a **separate** build path from `Configuration` (`jaxfne-config`) — both
-converge on the same `Model` via `construct()`, dispatching on input type:
+This is the structured "IC/PCB schematic" tier — `Area`/`Layer`/`NeuronType` are
+elements, `InterConnection`/`AreaConnection` are wires (see `AGENTS.md` §
+"Config complexity tiers" for how this relates to `Configuration` and
+`HDPColumnConfig`). It is a **separate** build path from `Configuration`
+(`jaxfne-config`) — both converge on the same `Model` via `construct()`,
+dispatching on input type:
 
 ```python
 model = jtfne.construct(cfg)                                    # Configuration path
 model = jtfne.construct(tensor, RuntimeConfiguration(...))      # NeuronalTensor path
 ```
+
+`NeuronalTensor`/`Area` validate their element types at construction (`__post_init__`,
+added 2026-07-03) — passing the wrong type (e.g. a `Configuration` where an `Area`
+belongs) raises `TypeError` immediately with a clear message, rather than silently
+producing a malformed tensor that fails confusingly later.
 
 ## Building a tensor
 

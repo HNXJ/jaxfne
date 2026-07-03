@@ -165,6 +165,20 @@ class Area:
     inter_connections: Sequence[InterConnection] = field(default_factory=tuple)
     pose: Pose3D = field(default_factory=Pose3D)
 
+    def __post_init__(self):
+        if not isinstance(self.name, str):
+            raise TypeError(f"Area.name must be a str, got {type(self.name).__name__}")
+        if not all(isinstance(l, Layer) for l in self.layers):
+            raise TypeError(
+                "Area.layers must contain only Layer instances, got "
+                f"{[type(l).__name__ for l in self.layers]}"
+            )
+        if not all(isinstance(c, InterConnection) for c in self.inter_connections):
+            raise TypeError(
+                "Area.inter_connections must contain only InterConnection instances, got "
+                f"{[type(c).__name__ for c in self.inter_connections]}"
+            )
+
 
 @dataclass
 class AreaConnection:
@@ -182,10 +196,42 @@ class AreaConnection:
 
 @dataclass
 class NeuronalTensor:
-    """The canonical network representation: [Areas, AreaConnections]."""
+    """The canonical network representation: [Areas, AreaConnections].
+
+    Deliberately unvalidated against arbitrary Python objects beyond a basic
+    type check on ``areas``/``area_connections`` — this is a build-time spec,
+    not a runtime pytree, so keep validation cheap and loud rather than
+    exhaustive. The check below exists specifically to fail fast on the
+    documented landmine of passing a ``jaxfne.core.Configuration`` (or any
+    other non-``Area`` object) positionally into ``areas`` — previously a
+    silent type confusion with no runtime error until something much later
+    and more confusing broke.
+    """
     areas: Sequence[Area] = field(default_factory=tuple)
     area_connections: Sequence[AreaConnection] = field(default_factory=tuple)
     name: str = "untitled"
+
+    def __post_init__(self):
+        if isinstance(self.areas, Configuration):
+            raise TypeError(
+                "NeuronalTensor.areas received a jaxfne.core.Configuration — "
+                "there is no Configuration -> NeuronalTensor converter; build a "
+                "NeuronalTensor from Area/AreaConnection instances directly, or "
+                "use the Configuration/laminar_cortex_config fluent path instead "
+                "if that's what you meant to construct."
+            )
+        if not all(isinstance(a, Area) for a in self.areas):
+            raise TypeError(
+                "NeuronalTensor.areas must contain only Area instances, got "
+                f"{[type(a).__name__ for a in self.areas]}"
+            )
+        if not all(isinstance(c, AreaConnection) for c in self.area_connections):
+            raise TypeError(
+                "NeuronalTensor.area_connections must contain only AreaConnection "
+                f"instances, got {[type(c).__name__ for c in self.area_connections]}"
+            )
+        if not isinstance(self.name, str):
+            raise TypeError(f"NeuronalTensor.name must be a str, got {type(self.name).__name__}")
 
     def to_dict(self) -> dict:
         return asdict(self)

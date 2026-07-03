@@ -225,6 +225,41 @@ hand back different object types (`Model`/`Signals` vs a plain trial `dict`).
 | Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired | HDP: pass `runtime=RuntimeConfig(enable_hdp=True, ...)` to `simulate()` |
 | Docs | this file, `catalog-glossary-jaxfne` §1 | `catalog-glossary-jaxfne` §2 | `docs/guides/hdp.md`, `docs/api/neuronal_tensor.md` |
 
+**Config complexity tiers (0.4.7 design note):** these three paths are not competing
+schemas — they are tiers of one pipeline, all compiling down to the same runtime
+(`Model`/`IzhikevichParams`/`EdgeList`, already registered JAX pytrees with a
+numeric-arrays-as-leaves / string-labels-as-aux-data split). Pick the tier that
+matches how much structure your circuit actually needs, don't hand-roll structure
+a lower tier already gives you for free:
+- **`Configuration`** (fluent builder, `laminar_cortex_config`/`build_laminar_column`)
+  — the quick-start tier for a single area/column. Connectivity is declarative rule
+  dicts in `cfg.metadata["circuit"]["connections"]` (JSON-native), compiled to an
+  `EdgeList` at `construct()` time.
+- **`HDPColumnConfig`** (`jaxfne/hdp_network.py`) — a thin convenience wrapper around
+  `Configuration` for the single canonical 6-layer (`L1..L6`) HDP column case;
+  it funnels straight through `laminar_cortex_config()`/`construct()`, it does not
+  bypass or duplicate that path. Deliberately narrow in scope — it is not meant to
+  express every possible layer/cell-type shape (see `skills/FRICTIONS_STACK.md` F-023's
+  closure note for a concrete case, `scripts/spectrolaminar_tfne_izhikevich_pipeline.py`,
+  that correctly uses `Configuration` directly instead because its layer shape is
+  non-canonical). If a script needs a shape `HDPColumnConfig` can't express, use
+  `Configuration`/`laminar_cortex_config` directly rather than stretching
+  `HDPColumnConfig` to cover it.
+- **`NeuronalTensor`** (`jaxfne/neuronal_tensor.py`) — the "IC/PCB schematic" tier:
+  `Area`/`Layer`/`NeuronType` = elements, `InterConnection`/`AreaConnection` = wires,
+  each carrying typed `StaticParams`/`PlasticParams` rather than untyped metadata
+  dicts. Use for multi-area circuits, explicit 3D placement (`Pose3D`), or when you
+  want a structured, versioned, JSON-native circuit description you can diff/review
+  as data rather than code. Bridges into `Configuration` via
+  `neuronal_tensor_to_configuration()`/`construct_neuronal_tensor()` — this direction
+  only; there is no `Configuration -> NeuronalTensor` converter (a `Configuration` is
+  already the simpler tier, promoting it up adds no information). As of 2026-07-03,
+  `NeuronalTensor`/`Area` raise `TypeError` at construction time on the wrong element
+  type in `areas`/`layers`/`inter_connections`/`area_connections` (closes the earlier
+  silent-type-confusion landmine — passing a `Configuration` positionally into
+  `NeuronalTensor(...)` now raises immediately with a clear message instead of
+  corrupting state silently).
+
 **NeuronalTensor-path detail (0.4.7):** `RuntimeConfiguration` (tensor path, frozen) has **no**
 HDP field; `RuntimeConfig` (Config-path) does. To enable **HDP homeostatic plasticity**
 (synaptic + H-factor adaptation, cube-law `tau_i = tau_0_ms * size_i**3`) on a tensor-built

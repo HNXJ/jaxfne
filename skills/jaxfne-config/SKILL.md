@@ -13,6 +13,20 @@ description: >-
 
 USE FIRST: `catalog-glossary-jaxfne`.
 
+## Which config tier — `Configuration` is the quick-start tier
+
+`Configuration` is one of three tiers of the same pipeline (all compile to
+`Model`/`IzhikevichParams`/`EdgeList`): `Configuration` is the quick-start
+single-area/column tier; `HDPColumnConfig` (`jaxfne-neural-tensor` skill /
+`jaxfne/hdp_network.py`) is a thin canonical-6-layer convenience wrapper
+around `Configuration`; `NeuronalTensor` (`jaxfne-neural-tensor` skill) is
+the structured "IC/PCB schematic" tier for multi-area/typed circuits. Use
+`Configuration` directly (not `HDPColumnConfig`) whenever your layer names
+or cell-type-fraction shape don't fit `HDPColumnConfig`'s canonical
+`L1..L6` assumption — `Configuration.area_layer_cell_types(area, dict)`
+accepts arbitrary layer names and per-layer fraction dicts. See
+`AGENTS.md` § "Config complexity tiers" for the full picture.
+
 ## What `Configuration` actually is (verified via `dataclasses.fields`)
 
 ```python

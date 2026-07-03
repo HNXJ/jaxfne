@@ -14,7 +14,7 @@
 | jaxfneconfig-test-migration | Migrate or delete the 21 JaxFNEConfig-dependent tests | done | tests/test_config_schema_v015.py; tests/test_config_runtime_hardening_v028.py; tests/test_v021_config_runtime_source_fid |
 | stale-test-fixture-fix | Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config | done | tests/test_public_builders_complete.py; tests/test_vis_phase5.py; tests/test_etude1_agsdr_convergence.py; etudes/jaxfne_ |
 | configs-dir-schema-assumption-fix | Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema | done | tests/test_neuronal_tensor.py |
-| merge-build_model-apply_drive_correction | Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions | partially_done | scripts/hdp_1000_neuronal_tensor_column.py; scripts/hdp_suite2_visualizations.py; scripts/spectrolaminar_tfne_izhikevich |
+| merge-build_model-apply_drive_correction | Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions | done | scripts/hdp_1000_neuronal_tensor_column.py; scripts/hdp_suite2_visualizations.py; scripts/spectrolaminar_tfne_izhikevich |
 | file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | not_started |  |
 | test-1000n-fast-laminar-lfp-csd-hdp | 1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test | not_started | tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py) |
 | stale-fixture-remaining-notebooks | Fix 2 more notebooks still calling the removed default_spectrolaminar_config/default_nuclei_config | done | tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb; tutorials/templates/jaxfne_notebook_template.ipynb |
@@ -36,7 +36,7 @@
 | hdp-stability-formula-design-and-validation | [BLOCKING 0.4.5, TARGET 100/100] Design and validate a real, working HDP restoring formula | done | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/hdp_network.py::DEFAULT_HDP; scripts/hdp_v2_rho_sweep |
 | test-strategy-consolidate-to-etudes-suites | [SCOPING NEEDED, DO NOT START] Redirect test coverage: retire redundant unit tests, grow etude/suite notebooks to cover  | done | tests/; tutorials/etudes/; scripts/*suite*.py |
 | release-0.4.7-legacy-code-thinning | [SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume | partially_done |  |
-| config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | proposed | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
+| config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | done | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
 
 ## brainstorm
 
