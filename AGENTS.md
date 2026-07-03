@@ -57,9 +57,16 @@ enforced by tooling yet, but every future change should be checked against it be
 
 1. **Maximum modularity** — 5 main modules, each ~5 object rule (desired target, not a hard cap).
 2. **All visualization lives under `jaxfne/vis/*`** — not one plotting call anywhere else.
-   **Known violations as of 2026-07-01** (not yet fixed, tracked in `progress.json`):
-   `jaxfne/export.py`, `jaxfne/tutorial_utils.py`, and all of `scripts/evidence_figures/*.py`
-   contain direct `matplotlib`/`plotly` calls outside `jaxfne/vis/`.
+   **Re-verified 2026-07-03** (repo-wide grep for module-level `matplotlib`/`plotly` imports,
+   see the doc-review/scoring pass this session): `jaxfne/export.py` and
+   `jaxfne/tutorial_utils.py` are NOT real leaks — their `matplotlib` imports are lazy
+   (function-scoped, inside the deprecated `save_figure`/`save_png` shims only, both already
+   carrying a `DeprecationWarning` pointing at `jaxfne.vis.export_figure`), and every real
+   plotting call in the package genuinely lives under `jaxfne/vis/*` with zero module-level
+   leakage found anywhere else in `jaxfne/`. The one genuine, still-open violation is
+   `scripts/evidence_figures/*.py` (18 files, confirmed real top-level `matplotlib`/`plotly`
+   imports) — `scripts/` isn't part of the installable `jaxfne` package, so this is lower
+   priority than a leak inside `jaxfne/` itself would be, but still worth cleaning up.
 3. **Computation is jax-maximal, jax-parallel, `float32` by default.** Device order is always
    GPU → jax-metal → CPU. `float32` is already the practical default in `core.py`'s dtype
    handling (verified 2026-07-01); the GPU→metal→CPU fallback order is **not yet an enforced
@@ -333,6 +340,18 @@ Three distinct mechanisms share the word "plasticity" here — do not conflate t
    them — check you're past `86e19e0` before relying on this).
 3. `run_stdp_stream` / `make_ei_cloud_network` — a separate STDP path, **not connected** to
    `Model.simulate()` at all.
+
+**Other declarative-only `Configuration` methods (verified 2026-07-03, same pattern as
+`plasticity()` above — don't assume any Configuration fluent-chain call affects `simulate()`
+just because it exists):** `connectivity(**kwargs)` (`jaxfne/core.py:1412`, own docstring:
+"declared connectivity metadata without overclaiming dynamics... construct-time dynamics still
+use the package's existing network generator"), `drive(...)` (`jaxfne/core.py:2033`, "declarative
+drive metadata: baseline external input..."), `optimizer(...)` (`jaxfne/core.py:2223`, "declarative
+optimizer metadata: family, differentiability status, search space, budget, and hard gates").
+All three record intent into `metadata` for `manifest()`/inspection only — none of them changes
+`simulate()`'s actual behavior. A user chaining the full fluent API (`.plasticity().connectivity()
+.drive().optimizer()...`) can silently end up with a model that ignores most of their declared
+intent unless they've separately read each method's docstring.
 
 `Configuration.homeostasis(k_gain=...)` (the `g_bias` excitability term, independent of `eta`)
 is a **one-sided damper on this canonical-column prior, not a bidirectional rate-setpoint

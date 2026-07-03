@@ -20,12 +20,20 @@ classifiers = [
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering",
 ]
+
 dependencies = [
   "jax>=0.4.25",
   "jaxlib>=0.4.25",
   "numpy>=1.24",
   "scipy>=1.10",
 ]
+
+[project.urls]
+Homepage = "https://github.com/HNXJ/jaxfne"
+Repository = "https://github.com/HNXJ/jaxfne"
+Documentation = "https://jaxfne.readthedocs.io/en/latest/"
+Issues = "https://github.com/HNXJ/jaxfne/issues"
+Changelog = "https://github.com/HNXJ/jaxfne/blob/main/docs/changelog.md"
 
 [project.optional-dependencies]
 opt = ["optax>=0.2"]
