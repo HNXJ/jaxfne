@@ -283,7 +283,7 @@
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | AGENTS.md |  | unreviewed |  |  |  |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
-| docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | Underlying feature gap is real and unresolved: no dual-column / inter-areal-connectivity notebook exists, and inter_area | 2026-07-03 |
+| docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |

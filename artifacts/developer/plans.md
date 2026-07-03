@@ -37,8 +37,10 @@
 | test-strategy-consolidate-to-etudes-suites | [SCOPING NEEDED, DO NOT START] Redirect test coverage: retire redundant unit tests, grow etude/suite notebooks to cover  | done | tests/; tutorials/etudes/; scripts/*suite*.py |
 | release-0.4.7-legacy-code-thinning | [SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume | partially_done |  |
 | config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | done | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
+| v1-pfc-continuous-aaab-adaptation-paradigm | [SCOPED, 10-trial smoke test is the next real step] Build V1-PFC continuous AAAB adaptation paradigm (replaces the old a | proposed | docs/tutorials/05_v1_pfc_dual_column.md; tutorials/ (new notebook, name TBD); jaxfne/neuronal_tensor.py (Area/AreaConnec |
 
 ## brainstorm
 
 - **function_merger_analysis_2026-06-30**: 2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, inco
 - **test_consolidation_and_config_ic_schema_2026-07-02**: 2026-07-02, user directive ahead of 0.4.7: (1) simplify the test suite so real coverage comes from executing suites/etud
+- **v1_pfc_continuous_aaab_adaptation_2026-07-03**: User directive 2026-07-03: refine docs/tutorials/05_v1_pfc_dual_column.md's vague aspirational scope (inter_areal_connec
