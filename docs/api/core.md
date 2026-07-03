@@ -68,8 +68,15 @@ zero total mass.
 
 **Example:**
 ```python
-cfg = cfg.cell_types({"E": 0.8, "I": 0.2})
+cfg = cfg.cell_types({"E": 0.8, "PV": 0.2})
 ```
+
+Valid labels for the Izhikevich emitter family are `E`, `PV`, `Inl`, `SST`,
+`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — a generic
+`"I"` aggregate label is not accepted; `construct()` raises `ValueError:
+unknown Suite No. 2 cell type label` for any other string. `cell_types()`
+itself does not validate labels (it just stores the dict); the error
+surfaces later, at `construct()` time.
 
 #### `connectivity(**kwargs) -> Configuration`
 

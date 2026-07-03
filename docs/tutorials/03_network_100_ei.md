@@ -23,7 +23,7 @@ cfg = (
         name="network_100_ei",
         kind="balanced_ei_population",
         n=100,
-        cell_types={"E": 0.75, "I": 0.25},
+        cell_types={"E": 0.75, "PV": 0.25},
     )
     .emitter(family="izhikevich", preset="cortical_eig")
     .field(

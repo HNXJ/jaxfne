@@ -318,10 +318,11 @@ cfg = cfg.runtime(
     backend='gpu'
 )
 cfg = cfg.column("V1", layers=["L2/3"], n=100)
-cfg = cfg.cell_types({"E": 0.8, "I": 0.2})
+cfg = cfg.cell_types({"E": 0.8, "PV": 0.2})
 cfg = cfg.connectivity()
 cfg = cfg.set_emitter("izhikevich", "cortical_eig")
-cfg = cfg.probes(["SPK", "Vm", "LFP-proxy"])
+cfg = cfg.field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
+cfg = cfg.probe(name="full_example_probe", modes=["spikes", "V_m", "LFP"])
 
 # Build model
 model = jtfne.construct(cfg)

@@ -304,7 +304,6 @@
 | docs/api/neuronal_tensor.md | 78 | needs_followup | Species-config claim contradiction: doc text says (in the list_canonical_neuronal_tensors section) that jaxfne ships no  |  | 2026-07-03 |
 | docs/computation_basis.md | 78 | needs_followup |  | 'Implemented in v0.2.26' table cites AxisSpec, BasisSpec, default_basis_spec(), validate_basis_spec(), basis_statement_g | 2026-07-03 |
 | docs/guides/output_bundles.md | 78 | needs_followup | Uses an older/simplified API style (model.simulate(sim), model.compute_readout(signals, specs), model.manifest(signals,  |  | 2026-07-03 |
-| docs/tutorials/02_two_neuron_ei.md | 78 | done |  |  | 2026-07-03 |
 | docs/v047_refactor_audit.md | 78 | needs_followup |  | Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as  | 2026-07-03 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/__init__.py | 80 | unreviewed |  |  | 2026-06-30 |
@@ -314,7 +313,6 @@
 | jaxfne/sanity_runtime.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/validation.py | 80 | unreviewed |  |  | 2026-06-30 |
 | docs/guides/tensor_field_workflows.md | 80 | needs_followup |  | Uses the same older Configuration builder style as output_bundles.md (jtfne.configuration().network(n=1).emitter(family= | 2026-07-03 |
-| docs/tutorials/03_network_100_ei.md | 80 | needs_followup |  |  | 2026-07-03 |
 | jaxfne/fields/solvers.py | 82 | unreviewed |  |  | 2026-06-30 |
 | docs/faq.md | 82 | done |  |  | 2026-07-03 |
 | docs/migration_guide.md | 82 | needs_followup | Quick-comparison table (JSON round-trip row) claims Configuration uses 'load_config/config_to_configuration (.jcfg.json  |  | 2026-07-03 |
@@ -334,7 +332,6 @@
 | docs/conservation_proxy_diagnostics.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/04_v1_column.md | 85 | done |  |  | 2026-07-03 |
-| docs/tutorials/06_v036_100_neuron_ei_population.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | jaxfne/connectivity.py | 88 | unreviewed |  | IMPLEMENTED 2026-07-01: added _candidate_pairs_localized (spatial grid-bucketed, Gaussian-distance-weighted, constant pe | 2026-07-01 |
@@ -353,7 +350,10 @@
 | docs/guides/jaxley_interop.md | 88 | done |  | examples/03_jaxley_bridge_smoke.py also exists but is not referenced from this page -- could be added alongside the refe | 2026-07-03 |
 | docs/interactive_visualizations.md | 88 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.10.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/02_two_neuron_ei.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/03_network_100_ei.md | 88 | needs_followup |  |  | 2026-07-03 |
 | docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/06_v036_100_neuron_ei_population.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/11_multi_laminar_cortical_agsdr.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/tutorial_outputs.md | 88 | needs_followup | FIXED 2026-07-03: '--out-root OUTPUT_DIR' was documented as controlling output location ('default: outputs/') but script |  | 2026-07-03 |
 | local/gen_test_data_100n_1000ms.py | 88 | done |  |  | 2026-07-01 |

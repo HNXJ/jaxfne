@@ -157,7 +157,7 @@ Introduces the **new fluent Configuration API** (method chaining) for streamline
 cfg = (jtfne.Configuration()
     .runtime(seed=42, dtype="float32", duration_ms=1000.0, dt_ms=0.1)
     .column(name="L2/3_column", layers=["L2/3"], n=100)
-    .cell_types({"E": 0.75, "I": 0.25})
+    .cell_types({"E": 0.75, "PV": 0.25})
     .connectivity()
     .set_emitter(family="izhikevich", preset="cortical_eig")
     .probes(["SPK", "Vm", "source", "LFP-proxy", "CSD-proxy"]))

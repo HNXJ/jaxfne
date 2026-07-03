@@ -20,8 +20,8 @@ cfg = (
     jtfne.configuration()
     .network(
         n=2,
-        cell_types={"E": 1, "I": 1},
-        connectivity={"E→E": 0.1, "E→I": 0.2, "I→E": -0.3, "I→I": -0.1}
+        cell_types={"E": 1, "PV": 1},
+        connectivity={"E→E": 0.1, "E→PV": 0.2, "PV→E": -0.3, "PV→PV": -0.1}
     )
     .emitter(family="izhikevich", preset="regular_spiking")
     .field(domain="point")
