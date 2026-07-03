@@ -15,7 +15,6 @@ import os
 import json
 import pytest
 from pathlib import Path
-import sys
 import re
 
 # Test configuration
@@ -222,68 +221,6 @@ class TestNotebookStructure:
         # Check that code does iterate over readout results correctly
         assert "for result in readouts" in full_code or "for r in readouts" in full_code, \
             "Notebook should iterate over readout list"
-
-
-class TestAPIPresence:
-    """Test that required jaxfne API methods are accessible."""
-
-    def test_can_import_jaxfne(self):
-        """jaxfne module can be imported."""
-        try:
-            import jaxfne
-        except ImportError:
-            pytest.skip("jaxfne not installed")
-
-    def test_configuration_class_exists(self):
-        """jaxfne.Configuration exists."""
-        import jaxfne
-        assert hasattr(jaxfne, 'Configuration'), "Configuration class missing"
-
-    def test_configuration_has_runtime_method(self):
-        """Configuration.runtime method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'runtime'), "Configuration.runtime method missing"
-
-    def test_configuration_has_column_method(self):
-        """Configuration.column method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'column'), "Configuration.column method missing"
-
-    def test_configuration_has_cell_types_method(self):
-        """Configuration.cell_types method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'cell_types'), "Configuration.cell_types method missing"
-
-    def test_configuration_has_connectivity_method(self):
-        """Configuration.connectivity method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'connectivity'), "Configuration.connectivity method missing"
-
-    def test_configuration_has_set_emitter_method(self):
-        """Configuration.set_emitter method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'set_emitter'), "Configuration.set_emitter method missing"
-
-    def test_configuration_has_probes_method(self):
-        """Configuration.probes method exists."""
-        import jaxfne
-        cfg = jaxfne.Configuration()
-        assert hasattr(cfg, 'probes'), "Configuration.probes method missing"
-
-    def test_construct_function_exists(self):
-        """jaxfne.construct function exists."""
-        import jaxfne
-        assert hasattr(jaxfne, 'construct'), "construct function missing"
-
-    def test_simulate_function_exists(self):
-        """jaxfne.simulate function exists."""
-        import jaxfne
-        assert hasattr(jaxfne, 'simulate'), "simulate function missing"
 
 
 class TestDocumentationContent:

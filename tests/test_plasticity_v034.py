@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 import jax.numpy as jnp
-import pytest
 import jaxfne as jtfne
 
 def test_stdp_geometry_generation():
@@ -39,48 +38,3 @@ def test_triangular_drive_wave():
     assert wave.shape == (2000,)
     assert float(jnp.max(wave)) <= 5.0
     assert float(jnp.min(wave)) >= -5.0
-
-def test_stdp_simulation_run_smoke():
-    """Smoke test for running a short stdp simulation stream."""
-    n_neurons = 100
-    pos, exc_mask, inh_mask, W = jtfne.make_ei_cloud_network(n_neurons, seed=42)
-    
-    v = jnp.zeros(n_neurons) - 65.0
-    u = jnp.zeros(n_neurons)
-    s = jnp.zeros(n_neurons)
-    trace_pre = jnp.zeros(n_neurons)
-    trace_post = jnp.zeros(n_neurons)
-    
-    stdp_state = jtfne.STDPState(W=W, trace_pre=trace_pre, trace_post=trace_post)
-    plasticity_config = jtfne.STDPPlasticityConfig(A_plus=0.01, A_minus=0.012)
-    solver_config = jtfne.SolverConfig(method="euler", dt=0.5)
-    
-    # Tiny 10-step drive and noise
-    stim = jnp.zeros((10, n_neurons))
-    noise = jnp.zeros((10, n_neurons))
-    
-    a = jnp.full(n_neurons, 0.02)
-    b = jnp.full(n_neurons, 0.2)
-    c = jnp.full(n_neurons, -65.0)
-    d = jnp.full(n_neurons, 8.0)
-    
-    (v_final, u_final, s_final, final_stdp_state), traj = jtfne.run_stdp_stream(
-        v_init=v,
-        u_init=u,
-        s_init=s,
-        stdp_state=stdp_state,
-        stim_drive=stim,
-        noise=noise,
-        solver_config=solver_config,
-        plasticity_config=plasticity_config,
-        plasticity_scale=0.1,
-        exc_mask=exc_mask,
-        inh_mask=inh_mask,
-        a=a, b=b, c=c, d=d,
-        chunk_size_ms=10.0,
-        downsample_factor=1
-    )
-    
-    assert traj["vm"].shape == (10, n_neurons)
-    assert traj["spk"].shape == (10, n_neurons)
-    assert final_stdp_state.W.shape == (n_neurons, n_neurons)

@@ -34,7 +34,7 @@
 | release-0.4.6-docs-alignment | 0.4.6: docs release -- code-doc-theory alignment, 95/100 | proposed | docs/; AGENTS.md; README.md; skills/ |
 | release-0.4.7-final-polish | 0.4.7: final polish to 100/100 -- modular vis/util independence, improved paradigm engine for oddball/omission tasks on  | proposed | jaxfne/vis/; jaxfne/util.py; jaxfne/paradigm.py; jaxfne/export.py; jaxfne/tutorial_utils.py; scripts/evidence_figures/ |
 | hdp-stability-formula-design-and-validation | [BLOCKING 0.4.5, TARGET 100/100] Design and validate a real, working HDP restoring formula | done | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/hdp_network.py::DEFAULT_HDP; scripts/hdp_v2_rho_sweep |
-| test-strategy-consolidate-to-etudes-suites | [SCOPING NEEDED, DO NOT START] Redirect test coverage: retire redundant unit tests, grow etude/suite notebooks to cover  | partially_done | tests/; tutorials/etudes/; scripts/*suite*.py |
+| test-strategy-consolidate-to-etudes-suites | [SCOPING NEEDED, DO NOT START] Redirect test coverage: retire redundant unit tests, grow etude/suite notebooks to cover  | done | tests/; tutorials/etudes/; scripts/*suite*.py |
 | release-0.4.7-legacy-code-thinning | [SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume | proposed |  |
 | config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | proposed | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
 

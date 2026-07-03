@@ -3,7 +3,6 @@
 Tests the notebook components that can be verified without full execution.
 """
 
-import pytest
 import json
 from pathlib import Path
 
@@ -119,21 +118,6 @@ class TestDeltaNotebookInfrastructure:
         assert cfg is not None
         assert hasattr(cfg, "metadata")
         assert cfg.metadata["claim_level"] == "computational_scaffold"
-
-    def test_construct_produces_model(self):
-        """construct should produce a Model from config."""
-        cfg = jtfne.laminar_cortex_config(n=4, seed=0, duration_ms=1.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-        assert model is not None
-        assert hasattr(model, "select")
-
-    def test_simulate_produces_signals(self):
-        """simulate should produce Signals."""
-        cfg = jtfne.laminar_cortex_config(n=4, seed=0, duration_ms=1.0, dt_ms=0.1)
-        model = jtfne.construct(cfg)
-        signals = jtfne.simulate(model, duration_ms=1.0, dt_ms=0.1, seed=0)
-        assert signals is not None
-        assert hasattr(signals, "get")
 
 
 class TestDeltaNotebookAGSDRCells:

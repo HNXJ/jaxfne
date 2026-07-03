@@ -1153,5 +1153,39 @@
       "notebook_gate": "python3 -m pytest tests/test_notebook_execution_suite.py -q -> 27 passed, 0 failed (862.69s) -- includes the newly-gated sanity-delta notebook"
     },
     "conclusion": "Full suite green after retirement. The bulk-delete concern flagged earlier in this file was validated: only 1/48 files was safe to delete wholesale; the rest carried real contract value now preserved in slimmed form."
+  },
+  "unsure_retirement_pass": {
+    "date": "2026-07-02",
+    "method": "Same per-test-function split methodology as the RETIRE-CANDIDATE pass, applied to the 15 files flagged UNSURE (internally mixed) in the original 210-file classification. 3 parallel subagents, 5 files each.",
+    "outcome": {
+      "files_deleted": 0,
+      "files_slimmed": 7,
+      "slimmed_files": [
+        "tests/test_fields_projection_finite_and_normalization.py",
+        "tests/test_artifact_json_safety_v0330.py",
+        "tests/test_delta_notebook_01_static.py",
+        "tests/test_plasticity_v034.py",
+        "tests/test_tutorial_utils.py",
+        "tests/test_v036_100_neuron_ei_population_tutorial.py",
+        "tests/test_suite_no1_public_grammar_validation.py"
+      ],
+      "files_reclassified_keep_whole": 8,
+      "keep_whole_files": [
+        "tests/test_interactive_tutorial_artifacts_v0221.py",
+        "tests/test_config_plasticity_homeostasis_baseline.py",
+        "tests/test_ed9_evidence.py",
+        "tests/test_ed9_hdp_evidence.py",
+        "tests/test_optim_jax_native_audit.py",
+        "tests/test_public_builders_complete.py",
+        "tests/test_scaling_benchmark.py",
+        "tests/test_suite_no4_runtime_static_guards.py"
+      ]
+    },
+    "cleanup": "Removed 6 now-unused imports left over from slimming (pytest x3, sys, jtfne, a from-import name), verified via AST-based token-count scan.",
+    "verification": {
+      "compile_check": "python3 -m py_compile on all 7 touched files -- clean",
+      "non_notebook_suite": "python3 -m pytest tests/ -q -m 'not slow and not notebook' --ignore=tests/test_notebook_execution_suite.py -> 2645 passed, 74 skipped, 7 deselected, 4 xfailed, 2 failed (2292.60s). The 2 failures (test_probe_operators_v021.py::test_h_example_02_spectrolaminar_still_runs, test_single_neuron_multimodal_v023.py::test_single_neuron_example_runs) were re-run in isolation immediately after and both PASSED cleanly (8.16s) -- neither file was touched by this pass, and the full run took 7x longer than the prior clean baseline (2292s vs 325s), consistent with background resource contention/a race rather than a real regression. Treated as a flake per this repo's own doctrine on whole-suite-failure reports; not treated as a blocking finding."
+    },
+    "conclusion": "0 files deleted -- every UNSURE file carried at least some genuine contract value once split at the function level, matching the pattern from the RETIRE-CANDIDATE pass (most files were mixed rather than uniformly disposable)."
   }
 }

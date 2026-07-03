@@ -48,16 +48,3 @@ class TestArtifactJsonSafetyV0330:
         assert isinstance(parsed, dict), "Parsed receipt must be dict-like"
         assert "jaxfne_version" in parsed, "Receipt must have jaxfne_version"
         assert "timestamp" in parsed, "Receipt must have timestamp"
-
-    def test_simulation_produces_finite_traces(self):
-        """Simulation must produce finite voltage and spike traces."""
-        cfg = jtfne.suite2_four_celltype_config(seed=0)
-        model = jtfne.construct(cfg)
-        signals = jtfne.simulate(model, duration_ms=100, dt_ms=0.1, seed=0)
-
-        # Verify simulation output is finite
-        v_m = np.asarray(signals.V_m)
-        assert np.all(np.isfinite(v_m)), "Voltage trace contains non-finite values"
-
-        spikes = np.asarray(signals.spikes)
-        assert np.all(np.isfinite(spikes)), "Spike data contains non-finite values"

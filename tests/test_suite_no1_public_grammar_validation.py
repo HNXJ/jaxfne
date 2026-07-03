@@ -195,30 +195,6 @@ def test_poisson_drive_is_deterministic_under_seed():
     assert jnp.allclose(out1, out2), "Poisson drive must be deterministic under same seed"
 
 
-def test_poisson_drive_output_is_finite():
-    """Poisson drive output contains only finite values."""
-    from jaxfne.core import _make_poisson_drive
-    import jax.numpy as jnp
-    import numpy as np
-    out = _make_poisson_drive(200, 10, rate_hz=5.0, amplitude=1.0, dt_ms=0.1, seed=7)
-    assert jnp.all(jnp.isfinite(out)), "Poisson drive must be finite"
-    assert out.shape == (200, 10), "Poisson drive must have shape (n_steps, n_neurons)"
-
-
-def test_spectrolaminar_power_returns_at_least_64_freqs():
-    """plot_spectrolaminar_power_array returns a figure and uses at least 64 freq bins."""
-    import numpy as np
-    import matplotlib
-    matplotlib.use("Agg")
-    from jaxfne.vis import plot_spectrolaminar_power_array
-    t = np.linspace(0, 100, 1000)
-    signal = np.random.default_rng(0).normal(size=(1000, 4))
-    fig = plot_spectrolaminar_power_array(t, signal, freq_min=1.0, freq_max=80.0, n_freqs=64, show=False)
-    assert isinstance(fig, matplotlib.figure.Figure)
-    n_freq_bins = fig.axes[0].images[0].get_array().shape[0]
-    assert n_freq_bins >= 64
-
-
 def test_save_png_creates_parent_dirs(tmp_path):
     """save_png creates parent directories and returns a valid path."""
     import matplotlib

@@ -1,23 +1,9 @@
 """Phase A v0.3.15: projection finite-output and row-normalization tests."""
 
-import jax
 import jax.numpy as jnp
-import pytest
 
 import jaxfne as jtfne
 from jaxfne.fields import project_laminar_sources
-
-
-def test_projection_output_is_finite():
-    """Verify that proxy projection outputs are always finite (no NaN/Inf)."""
-    cfg = jtfne.suite2_net1_config(seed=42, n=8, duration_ms=10.0, dt_ms=0.5)
-    model = jtfne.construct(cfg)
-    sim = jtfne.suite2_simulation(seed=42, duration_ms=10.0, dt_ms=0.5)
-    signals = jtfne.simulate(model, sim)
-    
-    # Projection output should be finite
-    assert jnp.all(jnp.isfinite(signals.field.csd))
-    assert jnp.all(jnp.isfinite(signals.field.lfp))
 
 
 def test_projection_density_preserving_default_on_simulated_signals():
@@ -51,19 +37,6 @@ def test_projection_row_normalization():
     assert jnp.all(jnp.isfinite(row_sums_direct))
     assert jnp.allclose(row_sums_direct, 1.0, atol=1e-6)
 
-
-
-def test_projection_shape_invariants():
-    """Verify projection output shapes remain consistent with source/probe contracts."""
-    cfg = jtfne.suite2_net1_config(seed=42, n=8, duration_ms=10.0, dt_ms=0.5)
-    model = jtfne.construct(cfg)
-    sim = jtfne.suite2_simulation(seed=42, duration_ms=10.0, dt_ms=0.5)
-    signals = jtfne.simulate(model, sim)
-    
-    # Expected shape: [T, C] where T = time steps, C = channels
-    # For single-neuron laminar proxy: C = 1 (one column)
-    assert len(signals.field.csd.shape) == 2
-    assert signals.field.csd.shape[1] >= 1  # At least one readout channel
 
 
 def test_projection_proxy_readout_consistency():
