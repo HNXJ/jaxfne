@@ -28,13 +28,12 @@ hyperparameters controlling a single STDP learning rule.
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `A_plus` | `float` | LTP (long-term potentiation) rate — scales weight increase on near-coincident pre→post firing. |
-| `A_minus` | `float` | LTD (long-term depression) rate — scales weight decrease on post→pre ordering. |
-| `tau_plus_ms` | `float` | Presynaptic trace decay time constant (ms). |
-| `tau_minus_ms` | `float` | Postsynaptic trace decay time constant (ms). |
-| `w_min` | `float` | Hard lower bound on synaptic weights. |
-| `w_max` | `float` | Hard upper bound on synaptic weights. |
-| `plasticity_scale` | `float` | Global scaling factor applied to every weight update. |
+| `A_plus` | `float` | LTP (long-term potentiation) rate — scales weight increase on near-coincident pre→post firing. Default `0.01`. |
+| `A_minus` | `float` | LTD (long-term depression) rate — scales weight decrease on post→pre ordering. Default `0.012`. |
+| `tau_plus` | `float` | Presynaptic trace decay time constant (ms). Default `20.0`. |
+| `tau_minus` | `float` | Postsynaptic trace decay time constant (ms). Default `20.0`. |
+| `w_min` | `float` | Hard lower bound on synaptic weights. Default `0.0`. |
+| `w_max` | `float` | Hard upper bound on synaptic weights. Default `1.5`. |
 
 ---
 
@@ -126,10 +125,11 @@ Compute synapse-by-synapse adaptation statistics after an STDP run.
 | `W_before` | `jax.Array` | Weight matrix before adaptation. |
 | `W_after` | `jax.Array` | Weight matrix after adaptation. |
 
-**Returns:** `dict` with summary metrics (mean/std of weight changes, fraction
-of potentiated vs. depressed synapses, etc.).
+**Returns:** `dict` with keys `ltp_count`, `ltd_count`, `unchanged_count`,
+`W_before_mean`, `W_after_mean`, `W_after_sparsity`, `delta_W_min`,
+`delta_W_max`, `finite_checks`, `sign_preservation`.
 
 ```python
 summary = summarize_stdp_adaptation(W_before, W_after)
-print(summary["mean_delta_W"], summary["frac_ltp"])
+print(summary["ltp_count"], summary["W_after_mean"])
 ```

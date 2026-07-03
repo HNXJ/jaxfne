@@ -261,7 +261,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 ### Validation status
 - Package import and compile gates pass.
 - Etude and template notebooks pass structural hygiene checks.
-- Maintains ``, `computational_scaffold`, `field_solver_status=linear_solver`, and `physical_amplitude_calibrated=false`.
+- Maintains `computational_scaffold`, `field_solver_status=linear_solver`, and `physical_amplitude_calibrated=false`.
 
 ---
 
@@ -271,7 +271,7 @@ sdist), GitHub Release (tag `v0.3.37`, commit `49aa025`), and docs.
 
 - Optimized `project_laminar_sources` boundary fallbacks for low contact counts.
 - Added comprehensive boundary and stencil numerical parity tests.
-- Maintains ``, `linear_solver` status.
+- Maintains `linear_solver` status.
 
 ---
 

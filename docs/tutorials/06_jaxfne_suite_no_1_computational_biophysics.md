@@ -34,7 +34,7 @@ result = model.tune(objectives=objectives, optimizer=optimizer)
 The notebook writes PNG files under:
 
 ```text
-figures/suite_no1/
+outputs/suite_no1/figures/
 ```
 
 Core figures:

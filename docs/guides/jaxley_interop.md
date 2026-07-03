@@ -103,7 +103,7 @@ signals = jtfne.jaxley_trace_to_signals(trace, spec=spec)
 
 # Result: jaxfne.core.Signals with time_ms, V_m, spikes, metadata
 print(f"V_m shape: {signals.V_m.shape}")  # (1000, 16)
-print(f"Model status: {signals.metadata['model_status']}")  # computational_scaffold
+print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffold
 ```
 
 **Key features:**
@@ -116,8 +116,8 @@ print(f"Model status: {signals.metadata['model_status']}")  # computational_scaf
 
 **Scope specification:**
 All outputs are marked as:
-- `model_status: "computational_scaffold"` — Designed for computational workflows and tutorial scenarios
-- `amplitude_status: False` — Voltage is treated as a proxy readout, not a physical status
+- `claim_level: "computational_scaffold"` — Designed for computational workflows and tutorial scenarios
+- `physical_amplitude_calibrated: False` — Voltage is treated as a proxy readout, not a physical status
 - `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — Calibration to physical units pending
 - `field_solver_status: "not_computed"` — Field/LFP computation is optional downstream work
 

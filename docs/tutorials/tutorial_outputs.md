@@ -282,8 +282,8 @@ python scripts/run_all_tutorials.py --out-root outputs/
 ```
 
 **Flags:**
-- `--out-root OUTPUT_DIR` — Output directory (default: `outputs/`)
-- `--smoke` — Reduced runtime (not yet fully implemented; defer to reserved mode)
+- `--out-root OUTPUT_DIR` — accepted but currently unused; tutorial scripts write to hardcoded `outputs/...` paths regardless of this flag (verified against `scripts/run_all_tutorials.py` argparse help, 2026-07-03)
+- `--smoke` — Reduced runtime (not yet implemented in tutorial scripts)
 - `--write-figures` — Enable figure generation (default: True)
 
 **Output:**

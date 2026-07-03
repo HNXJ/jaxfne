@@ -163,10 +163,14 @@ for trial_idx in range(10):
 
 ## Device Selection
 
+The `RuntimeConfig`/`cfg.runtime(...)` field is **`backend`**, not `device` —
+`cfg.runtime(device=...)` is silently ignored (`_runtime_config_from_metadata`
+only reads the `backend`/`device_type` metadata keys, never `device`).
+
 ### CPU (Default)
 
 ```python
-cfg = cfg.runtime(device='cpu')
+cfg = cfg.runtime(backend='cpu')
 ```
 
 **Use when:**
@@ -177,7 +181,7 @@ cfg = cfg.runtime(device='cpu')
 ### GPU
 
 ```python
-cfg = cfg.runtime(device='gpu')
+cfg = cfg.runtime(backend='gpu')
 ```
 
 **Requirements:**
@@ -190,7 +194,7 @@ cfg = cfg.runtime(device='gpu')
 ### TPU (Google Cloud)
 
 ```python
-cfg = cfg.runtime(device='tpu')
+cfg = cfg.runtime(backend='tpu')
 ```
 
 **Available on:** Google Colab, Google Cloud TPU pods
@@ -207,14 +211,20 @@ Get runtime environment information.
 
 **Returns:** Dictionary with runtime details
 
-**Contents:**
-- `jaxfne_version` (str): jaxfne package version
-- `jax_version` (str): JAX version
-- `numpy_version` (str): NumPy version
-- `python_version` (str): Python version
-- `platform` (str): OS and hardware info
+**Contents (actual keys returned by `RuntimeConfig.runtime_report()`):**
+- `jax_version` (str), `jaxlib_version` (str)
+- `default_backend` (str): JAX's own default backend
 - `available_devices` (list[str]): Available compute devices
-- `default_device` (str): Default device for operations
+- `selected_backend` / `backend` / `requested_backend` / `actual_backend` (str), `backend_enforced` (bool), `backend_warning` (str | None)
+- `requested_dtype` / `actual_dtype` / `dtype` (str), `x64_enabled` (bool)
+- `jit` / `vmap` (bool), `precision` (str), `seed` (int), `n_steps` (int)
+- `recurrent_backend` / `synaptic_kernel` (str)
+- `enable_homeostasis` / `homeostasis_params`, `enable_hdp` / `hdp_params`
+
+For package/environment metadata (jaxfne/numpy/python version, platform,
+default device) use `jaxfne.runtime.get_jax_backend_report()` instead —
+a separate, smaller helper with keys `available_devices`, `default_backend`,
+`x64_enabled`, `dtype_default`.
 
 **Example:**
 ```python
@@ -245,7 +255,7 @@ cfg = cfg.runtime(
     dtype='float32',
     duration_ms=1000.0,
     dt_ms=0.1,
-    device='gpu'
+    backend='gpu'
 )
 cfg = cfg.column("V1", layers=["L2/3"], n=100)
 cfg = cfg.cell_types({"E": 0.8, "I": 0.2})

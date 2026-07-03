@@ -1,8 +1,8 @@
 # Operator Inventory (generated)
 
-Generated from the live `jaxfne.__all__` export surface (218 entries) by `scripts/generate_operator_inventory.py`. Grouped by each export's real defining submodule, not a hand-maintained category list — do not hand-edit; regenerate after any export change.
+Generated from the live `jaxfne.__all__` export surface (246 entries) by `scripts/generate_operator_inventory.py`. Grouped by each export's real defining submodule, not a hand-maintained category list — do not hand-edit; regenerate after any export change.
 
-## `jaxfne (unresolved)` (11)
+## `jaxfne (unresolved)` (12)
 
 | Name | Kind | Signature |
 |---|---|---|
@@ -15,8 +15,18 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `DEFAULT_LAYERS` | value |  |
 | `DEFAULT_SPIKE_IMPULSE_GAIN` | value |  |
 | `FLAT_CELL_TYPE_FRACTIONS` | value |  |
+| `NEURONAL_TENSOR_SCHEMA_VERSION` | value |  |
 | `RECEPTOR_KINETICS` | value |  |
 | `vis` | value |  |
+
+## `jaxfne._pipeline` (4)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `DynamicState` | class | `(v: ForwardRef('jax.Array'), u: ForwardRef('jax.Array'), prev_spikes: ForwardRef('jax.Array'), syn_state: ForwardRef('jax.Array'), H: ForwardRef('jax.Array'), w: ForwardRef('jax.Array'))` |
+| `checkpoint_state` | function | `(model: 'Model', path: 'str | Path') -> 'Path'` |
+| `dynamic_state_from_model` | function | `(model: 'Model') -> 'DynamicState'` |
+| `restore_state` | function | `(path: 'str | Path') -> 'tuple[list, dict]'` |
 
 ## `jaxfne.analysis.spectral` (6)
 
@@ -42,7 +52,7 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `jaxley_trace_to_signals` | function | `(trace: 'Any', *, spec: 'JaxleyTraceSpec | None' = None, dt_ms: 'float | None' = None, layout: 'str | None' = None, source: 'Any' = None) -> 'Any'` |
 | `require_jaxley` | function | `()` |
 
-## `jaxfne.builders` (7)
+## `jaxfne.builders` (5)
 
 | Name | Kind | Signature |
 |---|---|---|
@@ -50,8 +60,6 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `build_multi_area_columns` | function | `(areas: 'Sequence[str]' = ('V1', 'V4', 'PFC'), n_per_area: 'int' = 200, layers: 'Sequence[str] | None' = None, connectivity_mode: "Literal['sparse', 'all_to_all']" = 'sparse', *, ei_profile: "Literal['flat', 'canonical']" = 'flat', cell_type_fractions: 'Mapping[str, float] | None' = None, within_connectivity: 'str' = 'all_to_all_uniform_random', within_gain: 'float' = 0.35, p_feedforward: 'float' = 0.3, p_feedback: 'float' = 0.2) -> 'Configuration'` |
 | `default_complete_configuration` | function | `(column_name: 'str' = 'V1', nucleus_name: 'str' = 'thalamus', n_column: 'int' = 100, n_nucleus: 'int' = 60, layers: 'Sequence[str] | None' = None, seed: 'int | None' = None, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1) -> 'Configuration'` |
 | `default_cortical_column_config` | function | `(column_name: 'str' = 'single_column', n: 'int' = 100, layers: 'Sequence[str] | None' = None, seed: 'int | None' = None, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, *, synaptic_kernel: "Literal['exponential', 'receptor_exponential']" = 'exponential') -> 'Configuration'` |
-| `default_nuclei_config` | function | `(nucleus_name: 'str' = 'thalamus', n: 'int' = 80, cell_type_fractions: 'Mapping[str, float] | None' = None, seed: 'int | None' = None, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1) -> 'Configuration'` |
-| `default_spectrolaminar_config` | function | `(areas: 'Sequence[str] | None' = None, n_per_area: 'int' = 100, seed: 'int | None' = None, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1) -> 'Configuration'` |
 | `laminar_cortex_config` | function | `(*, seed: 'int' = 0, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, areas: 'Sequence[str] | None' = None, layers: 'Sequence[str] | None' = None, cell_types: 'Mapping[str, float] | None' = None, n: 'int' = 128, emitter: 'str' = 'izhikevich', baseline_drive_by_cell_type: 'Mapping[str, float] | None' = None) -> 'Configuration'` |
 
 ## `jaxfne.connectivity` (3)
@@ -62,17 +70,15 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `compile_connection_rules` | function | `(neurons: 'Sequence[Mapping[str, Any]]', connections: 'Sequence[Mapping[str, Any]]', mechanisms: 'Sequence[Mapping[str, Any]]', *, seed: 'int' = 0, allow_empty: 'bool' = False, allow_self_connections: 'bool' = False, artifacts: 'Optional[Mapping[str, Any]]' = None, dtype: 'str' = 'float32') -> 'ConnectionCompileResult'` |
 | `compile_connection_rules_jax` | function | `(pre_indices: 'jax.Array', post_indices: 'jax.Array', probability: 'float', key: 'jax.Array', max_edges: 'int', weight_val: 'float' = 1.0) -> 'tuple[jax.Array, jax.Array, jax.Array]'` |
 
-## `jaxfne.core` (70)
+## `jaxfne.core` (62)
 
 | Name | Kind | Signature |
 |---|---|---|
 | `AxisSpec` | class | `(name: 'str', status: 'str' = 'active', size: 'Optional[int]' = None, units_or_status: 'str' = 'declared') -> None` |
 | `BasisSpec` | class | `(space_basis: 'str' = 'laminar_depth', time_basis: 'str' = 'continuous_ms', field_regime: 'str' = 'laminar_proxy', source_mode: 'str' = 'proxy_no_field_solve', probe_basis: 'str' = 'multimodal_proxy', axes: 'tuple[Any, ...]' = <factory>) -> None` |
 | `Config` | class | `(networks: 'list[dict[str, Any]]' = <factory>, emitters: 'list[dict[str, Any]]' = <factory>, fields: 'list[dict[str, Any]]' = <factory>, probes: 'list[dict[str, Any]]' = <factory>, metadata: 'dict[str, Any]' = <factory>) -> None` |
-| `ConfigValidationResult` | class | `(valid: 'bool', issues: 'tuple[str, ...]', warnings: 'tuple[str, ...]', truth_boundary: 'dict[str, Any]', schema_version: 'str') -> None` |
 | `Configuration` | class | `(networks: 'list[dict[str, Any]]' = <factory>, emitters: 'list[dict[str, Any]]' = <factory>, fields: 'list[dict[str, Any]]' = <factory>, probes: 'list[dict[str, Any]]' = <factory>, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `DatasetSpec` | class | `(name: 'str' = 'unnamed_dataset', modality: 'str' = 'unspecified', source_format: 'str' = 'unspecified', comparison_label: 'str' = 'p1', comparison_code: 'int' = 101, sampling_rate_hz: 'Optional[float]' = None, units: 'str' = 'unspecified', trial_filter: 'dict[str, Any]' = <factory>, condition_map: 'dict[str, list[int]]' = <factory>, quality_gates: 'dict[str, Any]' = <factory>, metadata: 'dict[str, Any]' = <factory>) -> None` |
-| `JaxFNEConfig` | class | `(schema_version: 'str', run: 'dict[str, Any]', truth: 'dict[str, Any]', network: 'dict[str, Any]', emitter: 'dict[str, Any]', field_spec: 'dict[str, Any]', probes: 'tuple[dict[str, Any], ...]', geometry: 'Optional[dict[str, Any]]' = None, paradigm: 'Optional[dict[str, Any]]' = None, trials: 'Optional[dict[str, Any]]' = None, runtime_spec: 'Optional[dict[str, Any]]' = None, stimulus: 'Optional[dict[str, Any]]' = None, features: 'Optional[dict[str, Any]]' = None, objective_spec: 'Optional[dict[str, Any]]' = None, targets: 'Optional[dict[str, Any]]' = None, validation_spec: 'Optional[dict[str, Any]]' = None, output: 'Optional[dict[str, Any]]' = None, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `LaminarPopulation` | class | `(name: 'str', cell_type: 'str', layer: 'str', depth_min: 'float', depth_max: 'float', n_units: 'int', source_calibration_status: 'str' = 'uncalibrated_izhikevich_native_current', physical_amplitude_calibrated: 'bool' = False, claim_level: 'str' = 'computational_scaffold') -> None` |
 | `LaminarSourceGeometry` | class | `(populations: 'tuple[LaminarPopulation, ...]', n_units_total: 'int', position_units: 'str' = 'relative_laminar_depth_proxy', source_calibration_status: 'str' = 'uncalibrated_izhikevich_native_current', physical_amplitude_calibrated: 'bool' = False, claim_level: 'str' = 'computational_scaffold') -> None` |
 | `MatrixParameterSpec` | class | `(mask: 'str', bounds: 'tuple', init: 'str' = 'current', trainable: 'bool' = True) -> None` |
@@ -84,7 +90,7 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `ReadoutResult` | class | `(spec_name: 'str', metric: 'str', value: 'Optional[float]', status: 'str' = 'computed', claim_level: 'str' = 'computational_scaffold', physical_amplitude_calibrated: 'bool' = False, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `ReadoutSpec` | class | `(name: 'str', metric: 'str', time_window_ms: 'Optional[tuple[float, float]]' = None, n_contacts_slice: 'Optional[tuple[int, int]]' = None, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `RunReceipt` | class | `(receipt_id: 'str', jaxfne_version: 'str', config_hash: 'str', simulation: 'dict[str, Any]', signals_summary: 'dict[str, Any]', truth: 'dict[str, Any]', claim_labels: 'dict[str, Any]', backend: 'dict[str, Any]', tags: 'dict[str, Any]' = <factory>) -> None` |
-| `RuntimeConfig` | class | `(backend: 'str' = 'auto', dtype: 'str' = 'float32', jit: 'bool | str' = False, vmap: 'bool | str' = False, precision: 'str' = 'default', seed: 'int' = 0, n_steps: 'int' = 0, recurrent_backend: 'str' = 'dense', synaptic_kernel: 'str' = 'exponential', recompilation_guard: 'str' = 'warning', enable_homeostasis: 'bool' = False, homeostasis_params: 'dict' = <factory>, device_type: 'Optional[str]' = None, dtype_primary: 'Optional[str]' = None, x64_enabled: 'Optional[bool]' = None) -> None` |
+| `RuntimeConfig` | class | `(backend: 'str' = 'auto', dtype: 'str' = 'float32', jit: 'bool | str' = False, vmap: 'bool | str' = False, precision: 'str' = 'default', seed: 'int' = 0, n_steps: 'int' = 0, recurrent_backend: 'str' = 'dense', synaptic_kernel: 'str' = 'exponential', recompilation_guard: 'str' = 'warning', enable_homeostasis: 'bool' = False, homeostasis_params: 'dict' = <factory>, enable_hdp: 'bool' = False, hdp_params: 'dict' = <factory>, device_type: 'Optional[str]' = None, dtype_primary: 'Optional[str]' = None, x64_enabled: 'Optional[bool]' = None) -> None` |
 | `Signal` | class | `(time_ms: 'jax.Array', V_m: 'jax.Array', spikes: 'jax.Array', sources: 'Optional[jax.Array]', field: 'Optional[FieldOutput]', metadata: 'dict[str, Any]') -> None` |
 | `Signals` | class | `(time_ms: 'jax.Array', V_m: 'jax.Array', spikes: 'jax.Array', sources: 'Optional[jax.Array]', field: 'Optional[FieldOutput]', metadata: 'dict[str, Any]') -> None` |
 | `Simulation` | class | `(duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.05, plasticity: 'float' = 0.0, seed: 'int' = 0, record_sources: 'bool' = True, record_fields: 'bool' = True, poisson_drive: 'Optional[dict]' = None, runtime: 'RuntimeConfig | None' = None, ablation: 'Optional[str]' = None) -> None` |
@@ -95,20 +101,15 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `TrialResult` | class | `(trial_id: 'str', condition_label: 'Optional[str]' = None, signals: 'Optional[Signals]' = None, success: 'bool' = True, error_message: 'Optional[str]' = None, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `TrialSpec` | class | `(trial_id: 'str', condition: 'Optional[ParadigmCondition]' = None, seed: 'int' = 0, metadata: 'dict[str, Any]' = <factory>) -> None` |
 | `TuneResult` | class | `(best_parameters: 'dict[str, float]', best_score: 'float', history: 'list[dict[str, Any]]', summary: 'dict[str, Any]', model: 'Any' = None) -> None` |
-| `config_to_configuration` | function | `(cfg: 'JaxFNEConfig') -> 'Configuration'` |
-| `config_to_geometry` | function | `(cfg: 'JaxFNEConfig') -> 'Optional[LaminarSourceGeometry]'` |
-| `config_to_simulation` | function | `(cfg: 'JaxFNEConfig') -> 'Simulation'` |
-| `config_to_trial_batch` | function | `(cfg: 'JaxFNEConfig', conditions: 'Sequence[ParadigmCondition]') -> 'TrialBatch'` |
-| `config_truth_boundary` | function | `(cfg: 'JaxFNEConfig') -> 'dict[str, Any]'` |
+| `compute_fields` | function | `(model: "'Model'", signals: "'Signals'") -> "'FieldOutput'"` |
 | `configuration` | function | `() -> 'Configuration'` |
 | `connect` | function | `(*models: "'Model'", edges: "'Sequence[Mapping[str, Any]] | None'" = None, namespace: "'Sequence[str] | None'" = None, layout: 'str' = 'offset_x', strict: 'bool' = True, name: "'str | None'" = None) -> "'Model'"` |
-| `construct` | function | `(cfg: 'Configuration', *, geometry: "'LaminarSourceGeometry | None'" = None) -> 'Model'` |
+| `construct` | function | `(cfg: "'Configuration | Any'", runtime: "'Any | None'" = None, *, geometry: "'LaminarSourceGeometry | None'" = None) -> 'Model'` |
 | `dataset_spec` | function | `(**kwargs: 'Any') -> 'DatasetSpec'` |
 | `default_basis_spec` | function | `() -> 'BasisSpec'` |
 | `enable_x64` | function | `() -> 'dict[str, Any]'` |
 | `get_signal` | function | `(obj: 'Any', key: 'str', **kwargs: 'Any') -> 'Any'` |
 | `laminar_source_geometry` | function | `(populations: "Sequence['LaminarPopulation']") -> "'LaminarSourceGeometry'"` |
-| `load_config` | function | `(path: 'Any') -> 'JaxFNEConfig'` |
 | `matrix_parameter` | function | `(*, mask: 'str', bounds: 'tuple', init: 'str' = 'current', trainable: 'bool' = True) -> 'MatrixParameterSpec'` |
 | `migrate_schema` | function | `(meta: 'dict[str, Any]') -> 'dict[str, Any]'` |
 | `objective` | function | `() -> 'Objective'` |
@@ -134,7 +135,6 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `suite2_v1_v4_config` | function | `(*, seed: 'int' = 7, n_per_area: 'int' = 400, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, v1_layer_cell_types: 'Mapping[str, Mapping[str, float]] | None' = None, v4_layer_cell_types: 'Mapping[str, Mapping[str, float]] | None' = None) -> 'Configuration'` |
 | `surrogate_config` | function | `(**kwargs: 'Any') -> 'SurrogateConfig'` |
 | `trial_batch` | function | `(conditions: 'Sequence[ParadigmCondition]', n_reps: 'int' = 1, seed: 'int' = 0, seed_policy: 'str' = 'paired_by_replicate', batch_id: 'Optional[str]' = None, metadata: 'Optional[dict[str, Any]]' = None) -> 'TrialBatch'` |
-| `validate_config` | function | `(cfg: 'JaxFNEConfig') -> 'ConfigValidationResult'` |
 | `with_emitter_parameters` | function | `(model: 'Model', *, a: "'float | None'" = None, b: "'float | None'" = None, c: "'float | None'" = None, d: "'float | None'" = None, drive_scale: "'float | None'" = None, a_per_neuron: "'jax.Array | None'" = None, b_per_neuron: "'jax.Array | None'" = None, c_per_neuron: "'jax.Array | None'" = None, d_per_neuron: "'jax.Array | None'" = None, drive_per_neuron: "'jax.Array | None'" = None) -> 'Model'` |
 
 ## `jaxfne.emitters` (22)
@@ -171,14 +171,12 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `NodeIdentity` | class | `(global_id: 'int', area: 'str', area_id: 'str', local_id: 'int', layer: 'str', cell_type: 'str') -> None` |
 | `SelectorSpec` | class | `(area: 'Optional[str]' = None, area_id: 'Optional[str]' = None, layer: 'Optional[str]' = None, cell_type: 'Optional[str]' = None, ids: 'Optional[tuple[int, ...]]' = None) -> None` |
 
-## `jaxfne.export` (6)
+## `jaxfne.export` (4)
 
 | Name | Kind | Signature |
 |---|---|---|
 | `export_report` | function | `(output_dir: 'str | Path', manifest: 'Optional[Mapping]' = None, metrics: 'Optional[Mapping]' = None, validation: 'Optional[Mapping]' = None, figures: 'Optional[Mapping[str, object]]' = None, dpi: 'int' = 150) -> 'Mapping[str, str]'` |
 | `export_tutorial_artifacts` | function | `(output_dir: 'str | Path', manifest: 'Optional[Mapping]' = None, metrics: 'Optional[Mapping]' = None, validation: 'Optional[Mapping]' = None) -> 'Mapping[str, str]'` |
-| `plot_raster` | function | `(spike_times: 'np.ndarray', spike_ids: 'np.ndarray', time_ms: 'np.ndarray', figsize: 'Tuple[float, float]' = (10, 4), title: 'str' = 'Spike Raster') -> 'object'` |
-| `plot_spectrolaminar_suite` | function | `(signals: 'object' = None, **kwargs) -> 'object'` |
 | `save_figure` | function | `(fig, path: 'str | Path', dpi: 'int' = 150, bbox_inches: 'str' = 'tight') -> 'str'` |
 | `save_figures` | function | `(figures: 'Mapping[str, object]', output_dir: 'str | Path', dpi: 'int' = 150, prefix: 'str' = '', suffix: 'str' = '') -> 'Mapping[str, str]'` |
 
@@ -234,13 +232,39 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `sha256_text` | function | `(text: 'str') -> 'str'` |
 | `validation_report` | function | `(config_valid: 'bool', issues: 'list[str] | None' = None, metadata: 'dict[str, Any] | None' = None) -> 'dict[str, Any]'` |
 
+## `jaxfne.neuronal_tensor` (21)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `Area` | class | `(name: 'str', layers: 'Sequence[Layer]' = <factory>, inter_connections: 'Sequence[InterConnection]' = <factory>, pose: 'Pose3D' = <factory>) -> None` |
+| `AreaConnection` | class | `(source_area: 'str', source_layer: 'str', source_neuron_type: 'str', target_area: 'str', target_layer: 'str', target_neuron_type: 'str', mechanism: 'str' = 'monotonic_cable_synapse', static: 'StaticParams' = <factory>, plastic: 'PlasticParams' = <factory>) -> None` |
+| `Geometry3D` | class | `(distribution: 'str' = 'uniform_random', x_range: 'tuple[float, float]' = (0.0, 1.0), y_range: 'tuple[float, float]' = (0.0, 1.0), z_range: 'tuple[float, float]' = (0.0, 1.0), value_tag: 'ValueTag' = 'relative') -> None` |
+| `InterConnection` | class | `(source_layer: 'str', source_neuron_type: 'str', target_layer: 'str', target_neuron_type: 'str', mechanism: 'str', static: 'StaticParams' = <factory>, plastic: 'PlasticParams' = <factory>) -> None` |
+| `Layer` | class | `(name: 'str', neuron_types: 'Sequence[NeuronType]' = <factory>, geometry: 'Geometry3D' = <factory>, n_neurons: 'int' = 0) -> None` |
+| `NeuronType` | class | `(name: 'str', relative_size: 'float' = 1.0, fraction: 'Optional[float]' = None, value_tag: 'ValueTag' = 'relative') -> None` |
+| `NeuronalTensor` | class | `(areas: 'Sequence[Area]' = <factory>, area_connections: 'Sequence[AreaConnection]' = <factory>, name: 'str' = 'untitled') -> None` |
+| `PlasticParams` | class | `(w_mech: 'float' = 1.0, H: 'float' = 0.0, value_tag: 'ValueTag' = 'relative') -> None` |
+| `Pose3D` | class | `(plane: 'Plane' = 'xy', rotation_deg: 'float' = 0.0, translation: 'tuple[float, float, float]' = (0.0, 0.0, 0.0), value_tag: 'ValueTag' = 'relative') -> None` |
+| `RuntimeConfiguration` | class | `(duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, seed: 'int' = 0, dtype: 'str' = 'float32', emitter: 'str' = 'izhikevich', device: 'str' = 'auto', jit: "'bool | str'" = False, vmap: "'bool | str'" = False, solver: "'str | None'" = None, probes: "'Sequence[str] | None'" = None, n_contacts: 'int' = 16, outputs: "'dict | None'" = None, optimizer: "'Any | None'" = None) -> None` |
+| `StaticParams` | class | `(g_mech: 'dict' = <factory>, reversal_potentials_mV: 'dict' = <factory>, dT_ms: 'float' = 0.1, value_tag: 'ValueTag' = 'relative') -> None` |
+| `configs_dir` | function | `() -> 'Path'` |
+| `construct_neuronal_tensor` | function | `(tensor: 'NeuronalTensor', *, seed: 'int' = 0, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, emitter: 'str' = 'izhikevich') -> 'Model'` |
+| `default_relative_size` | function | `(neuron_type: 'str') -> 'float'` |
+| `list_canonical_neuronal_tensors` | function | `() -> 'list[str]'` |
+| `load` | function | `(path: 'str | Path') -> 'NeuronalTensor'` |
+| `load_canonical_neuronal_tensor` | function | `(name: 'str') -> 'NeuronalTensor'` |
+| `load_neuronal_tensor` | function | `(path: 'str | Path') -> 'NeuronalTensor'` |
+| `merge_neuronal_tensors` | function | `(tensors: 'Sequence[NeuronalTensor]', poses: 'Optional[Sequence[Pose3D]]' = None, *, name: 'str' = 'merged') -> 'NeuronalTensor'` |
+| `neuronal_tensor_to_configuration` | function | `(tensor: 'NeuronalTensor', *, seed: 'int' = 0, duration_ms: 'float' = 1000.0, dt_ms: 'float' = 0.1, emitter: 'str' = 'izhikevich') -> 'Configuration'` |
+| `save_neuronal_tensor` | function | `(tensor: 'NeuronalTensor', path: 'str | Path') -> 'str'` |
+
 ## `jaxfne.optim.agsdr` (1)
 
 | Name | Kind | Signature |
 |---|---|---|
 | `AGSDRState` | class | `(step: 'int' = 0, best_loss: 'float' = inf, best_param: 'Optional[Any]' = None, reset_counter: 'int' = 0, var_sup_ema: 'float' = 0.0, var_unsup_ema: 'float' = 0.0, ema_decay: 'float' = 0.99, deselection_counter: 'int' = 0, alpha_adaptive: 'float' = 0.7) -> None` |
 
-## `jaxfne.optim.core` (12)
+## `jaxfne.optim.core` (13)
 
 | Name | Kind | Signature |
 |---|---|---|
@@ -251,6 +275,7 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `agsdr_transform` | function | `(inner_optimizer: 'Optional[Any]' = None, stochastic_scale: 'float' = 0.1, global_scale: 'float' = 1.0, checkpoint_n_steps: 'int' = 50, deselection_threshold: 'int' = 10, epsilon: 'float' = 1e-06, alpha_min: 'float' = 0.0, alpha_max: 'float' = 1.0) -> 'Any'` |
 | `gsdr` | function | `(alpha: 'float' = 0.7, exploration: 'float' = 0.05, deselect_factor: 'float' = 2.0, metadata: 'Optional[dict[str, Any]]' = None) -> 'OptimizerSpec'` |
 | `gsdr_transform` | function | `(inner_optimizer: 'Optional[Any]' = None, stochastic_scale: 'float' = 0.1, checkpoint_n_steps: 'int' = 50, deselection_threshold: 'int' = 10) -> 'Any'` |
+| `gsgd` | function | `(learning_rate: 'float' = 0.01, differentiability_status: 'str' = 'not_checked', surrogate_status: 'str' = 'none', metadata: 'Optional[dict[str, Any]]' = None) -> 'OptimizerSpec'` |
 | `optax_adam` | function | `(learning_rate: 'float' = 0.001, differentiability_status: 'str' = 'not_checked', surrogate_status: 'str' = 'none', metadata: 'Optional[dict[str, Any]]' = None) -> 'OptimizerSpec'` |
 | `optax_sgd` | function | `(learning_rate: 'float' = 0.001, differentiability_status: 'str' = 'not_checked', surrogate_status: 'str' = 'none', metadata: 'Optional[dict[str, Any]]' = None) -> 'OptimizerSpec'` |
 | `random_search` | function | `(metadata: 'Optional[dict[str, Any]]' = None) -> 'OptimizerSpec'` |
@@ -262,6 +287,13 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | Name | Kind | Signature |
 |---|---|---|
 | `GSDRState` | class | `(step: 'int' = 0, best_loss: 'float' = inf, best_param: 'Optional[Any]' = None, reset_counter: 'int' = 0, var_sup_ema: 'float' = 0.0, var_unsup_ema: 'float' = 0.0, ema_decay: 'float' = 0.99, deselection_counter: 'int' = 0) -> None` |
+
+## `jaxfne.optim.gsgd` (2)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `GSGDState` | class | `(count: ForwardRef('jnp.ndarray'), step_size: ForwardRef('jnp.ndarray'))` |
+| `step_gsgd_transform` | function | `(u_t: 'jnp.ndarray', grad_l: 'jnp.ndarray', state: 'Any', hyperparams: 'dict') -> 'tuple[jnp.ndarray, Any]'` |
 
 ## `jaxfne.optim.sdr` (1)
 
@@ -282,13 +314,12 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `omission_oddball_paradigm` | function | `(standard_onset_ms: 'float' = 500.0, standard_duration_ms: 'float' = 100.0, deviant_onset_ms: 'Optional[float]' = None, deviant_duration_ms: 'float' = 100.0, deviant_label: 'str' = 'deviant', omission_position: 'str' = 'standard', pre_stimulus_buffer_ms: 'float' = 200.0, post_stimulus_buffer_ms: 'float' = 500.0, name: 'str' = 'omission_oddball') -> 'Paradigm'` |
 | `paradigm` | function | `(*args, **kwargs)` |
 
-## `jaxfne.plasticity` (5)
+## `jaxfne.plasticity` (4)
 
 | Name | Kind | Signature |
 |---|---|---|
 | `STDPPlasticityConfig` | class | `(A_plus: 'float' = 0.01, A_minus: 'float' = 0.012, tau_plus: 'float' = 20.0, tau_minus: 'float' = 20.0, w_min: 'float' = 0.0, w_max: 'float' = 1.5) -> None` |
 | `STDPState` | class | `(W: 'jnp.ndarray', trace_pre: 'jnp.ndarray', trace_post: 'jnp.ndarray') -> None` |
-| `plot_stdp_adaptation_suite` | function | `(trajectories: 'Dict[str, Any]', W_before: 'np.ndarray', W_after: 'np.ndarray', stimulus: 'np.ndarray', fig_dir: 'str', prefix: 'str' = '') -> 'None'` |
 | `summarize_stdp_adaptation` | function | `(W_before: 'np.ndarray', W_after: 'np.ndarray') -> 'Dict[str, Any]'` |
 | `update_stdp_weights_jax` | function | `(W: 'jax.Array', trace_pre: 'jax.Array', trace_post: 'jax.Array', spiked: 'jax.Array', exc_mask: 'jax.Array', A_plus: 'float', A_minus: 'float', plasticity_scale: 'float', w_min: 'float', w_max: 'float') -> 'jax.Array'` |
 
@@ -336,7 +367,7 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 
 | Name | Kind | Signature |
 |---|---|---|
-| `triangular_drive` | function | `(duration_ms: 'float', dt_ms: 'float', freq_hz: 'float' = 6.0, amplitude: 'float' = 5.0, seed: 'int | None' = None) -> 'jnp.ndarray'` |
+| `triangular_drive` | function | `(duration_ms: 'float', dt_ms: 'float', freq_hz: 'float' = 6.0, amplitude: 'float' = 5.0) -> 'jnp.ndarray'` |
 
 ## `jaxfne.streaming` (1)
 
@@ -344,7 +375,7 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 |---|---|---|
 | `run_stdp_stream` | function | `(v_init: 'jnp.ndarray', u_init: 'jnp.ndarray', s_init: 'jnp.ndarray', stdp_state: 'STDPState', stim_drive: 'jnp.ndarray', noise: 'jnp.ndarray', solver_config: 'SolverConfig', plasticity_config: 'STDPPlasticityConfig', plasticity_scale: 'float', exc_mask: 'jnp.ndarray', inh_mask: 'jnp.ndarray', a: 'jnp.ndarray', b: 'jnp.ndarray', c: 'jnp.ndarray', d: 'jnp.ndarray', chunk_size_ms: 'float' = 10000.0, downsample_factor: 'int' = 10) -> 'Tuple[Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, STDPState], Dict[str, Any]]'` |
 
-## `jaxfne.tutorial_utils` (4)
+## `jaxfne.tutorial_utils` (5)
 
 | Name | Kind | Signature |
 |---|---|---|
@@ -352,6 +383,20 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 | `kappa_synchrony` | function | `(spikes: 'np.ndarray', dt_ms: 'float' = 0.1) -> 'float'` |
 | `rate_synchrony_targets` | function | `(target_rate_hz: 'float' = 10.0, target_kappa_synchrony: 'float' = 0.0, rate_weight: 'float' = 1.0, synchrony_weight: 'float' = 0.25)` |
 | `select_neurons` | function | `(model, area: 'str | None' = None, layer: 'str | None' = None, cell_type: 'str | None' = None) -> 'np.ndarray'` |
+| `spectrolaminar_motif_score` | function | `(alpha_beta, gamma) -> 'float'` |
+
+## `jaxfne.util` (8)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `configuration_diff` | function | `(a: 'Configuration', b: 'Configuration') -> 'dict[str, Any]'` |
+| `merge_runtime_configs` | function | `(*cfgs: 'RuntimeConfig', **overrides: 'Any') -> 'RuntimeConfig'` |
+| `model_diff` | function | `(a: 'Model', b: 'Model', *, atol: 'float' = 1e-06) -> 'dict[str, Any]'` |
+| `runtime_config_diff` | function | `(a: 'RuntimeConfig', b: 'RuntimeConfig') -> 'dict[str, tuple[Any, Any]]'` |
+| `tensor_summary` | function | `(nt: 'NeuronalTensor') -> 'dict[str, Any]'` |
+| `validate_model` | function | `(model: 'Model', *, strict: 'bool' = False) -> 'list[str]'` |
+| `validate_neuronal_tensor` | function | `(nt: 'NeuronalTensor', *, strict: 'bool' = False) -> 'list[str]'` |
+| `validate_runtime_config` | function | `(cfg: 'RuntimeConfig', *, strict: 'bool' = False) -> 'list[str]'` |
 
 ## `jaxfne.validation` (2)
 
@@ -359,4 +404,22 @@ Generated from the live `jaxfne.__all__` export surface (218 entries) by `script
 |---|---|---|
 | `compilation_registry` | value |  |
 | `is_valid_signal` | function | `(signals: 'Any') -> 'bool'` |
+
+## `jaxfne.vis.canonical` (1)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `plot_raster` | function | `(signals, model=None, *, backend: 'str' = 'plotly', title: 'Optional[str]' = None, xlabel: 'Optional[str]' = 'Time (ms)', ylabel: 'Optional[str]' = 'Neuron index', legend: 'bool' = True, colors: 'Optional[Sequence[str]]' = None, width: 'Optional[int]' = None, height: 'Optional[int]' = None, **kwargs) -> 'Any'` |
+
+## `jaxfne.vis.fields` (1)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `plot_spectrolaminar_suite` | function | `(signals: 'Signals | dict[str, Any]', **kwargs: 'Any') -> 'matplotlib.figure.Figure'` |
+
+## `jaxfne.vis.plasticity_viz` (1)
+
+| Name | Kind | Signature |
+|---|---|---|
+| `plot_stdp_adaptation_suite` | function | `(trajectories: 'Dict[str, Any]', W_before: 'np.ndarray', W_after: 'np.ndarray', stimulus: 'np.ndarray', fig_dir: 'str', prefix: 'str' = '') -> 'None'` |
 

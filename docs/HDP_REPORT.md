@@ -52,14 +52,14 @@ lives, how it's verified, and its measured overhead.
 
 ## Verification
 
-- **Standalone kernel** (`tests/test_hdp_kernel_standalone.py`, 8 tests):
+- **Standalone kernel** (`tests/test_hdp_kernel_standalone.py`, 13 tests):
   null control (`H` pinned at exactly 1.0, weights bit-identical),
   `K_HDP=0` disabling plasticity independent of other gains, nonzero-gain
   finite/bounded trajectories, `record_dH_components`/`record_edge_current`
   trace shapes, `init_state` pause/resume determinism, `size_scale_override`
   changing dynamics, and `K_HDP<0` (anti-homeostatic stress mode) staying
   finite.
-- **Dispatch wiring** (`tests/test_hdp_dispatch.py`, 7 tests): config
+- **Dispatch wiring** (`tests/test_hdp_dispatch.py`, 8 tests): config
   propagation through `Configuration.runtime(...)`, the null-control
   invariant via `last_hdp_diagnostics()`, diagnostics passthrough through
   `Signals.metadata`, JIT-cache reuse across seeds (`N_compile==1`), the

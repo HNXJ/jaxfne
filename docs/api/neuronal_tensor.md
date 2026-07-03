@@ -72,14 +72,21 @@ Currently only `distribution="uniform_random"` is implemented;
 class NeuronType:
     name: str
     relative_size: float = 1.0
+    fraction: float | None = None
     value_tag: ValueTag = "relative"
 ```
+
+`fraction` is an optional per-type population fraction. If every `NeuronType`
+in a `Layer` declares a `fraction`, `neuronal_tensor_to_configuration` uses
+those (normalized) fractions instead of splitting the layer's population
+evenly across its declared types.
 
 **Class method:**
 
 ```python
 @classmethod
 def make(cls, name: str, relative_size: float | None = None,
+         fraction: float | None = None,
          value_tag: ValueTag = "relative") -> NeuronType
 ```
 
@@ -328,7 +335,8 @@ and loaded with the same `load_neuronal_tensor` deserializer above:
 ```python
 names = list_canonical_neuronal_tensors()
 # ['canonical-v1-column-1000n', 'canonical-v1-v4-pfc-multiarea', 'default-column',
-#  'homeostatic-h-override-demo', 'laminar-column-4layer', 'two-area-feedforward']
+#  'default_macaque_V1', 'homeostatic-h-override-demo', 'laminar-column-4layer',
+#  'two-area-feedforward']
 tensor = load_canonical_neuronal_tensor("canonical-v1-column-1000n")
 ```
 
@@ -415,7 +423,9 @@ Returns a `Configuration` object suitable for `jaxfne.construct`.
 **What is wired:**
 
 - Per-area/per-layer cell-type fractions (`Configuration.area_layer_cell_types`),
-  split evenly across declared `NeuronType` entries.
+  split evenly across declared `NeuronType` entries — unless every `NeuronType`
+  in the layer declares a `fraction`, in which case those (normalized)
+  fractions are used instead.
 - Every `InterConnection` (within-area) and `AreaConnection` (between-area)
   compiled into a real selector-based edge rule via
   `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is

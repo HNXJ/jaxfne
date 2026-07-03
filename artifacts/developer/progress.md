@@ -282,101 +282,41 @@
 | tests/test_with_emitter_parameters.py |  | unreviewed |  |  |  |
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | AGENTS.md |  | unreviewed |  |  |  |
-| docs/BASELINE_DRIVE_REFERENCE.md |  | unreviewed |  |  |  |
-| docs/CORTEX_CALIBRATION_CHECKLIST.md |  | unreviewed |  |  |  |
-| docs/HDP_REPORT.md |  | unreviewed |  |  |  |
-| docs/NEURON_IO_CHARACTERIZATION.md |  | unreviewed |  |  |  |
-| docs/STDP_CLOSED_LOOP_REPORT.md |  | unreviewed |  |  |  |
-| docs/STDP_GLOBAL_SCALE_REPORT.md |  | unreviewed |  |  |  |
-| docs/STDP_HOMEOSTATIC_REPORT.md |  | unreviewed |  |  |  |
-| docs/STDP_LOWRATE_REGIME_REPORT.md |  | unreviewed |  |  |  |
-| docs/STDP_REAL_TEST_REPORT.md |  | unreviewed |  |  |  |
-| docs/_generated/operator_inventory.md |  | unreviewed |  |  |  |
-| docs/_generated/version.md |  | unreviewed |  |  |  |
-| docs/api/bridges.md |  | unreviewed |  |  |  |
-| docs/api/core.md |  | unreviewed |  |  |  |
-| docs/api/emitters.md |  | unreviewed |  |  |  |
-| docs/api/fields.md |  | unreviewed |  |  |  |
-| docs/api/index.md |  | unreviewed |  |  |  |
-| docs/api/neuronal_tensor.md |  | unreviewed |  |  |  |
-| docs/api/objectives.md |  | unreviewed |  |  |  |
-| docs/api/plasticity.md |  | unreviewed |  |  |  |
-| docs/api/probes.md |  | unreviewed |  |  |  |
-| docs/api/runtime.md |  | unreviewed |  |  |  |
-| docs/api/sharding.md |  | unreviewed |  |  |  |
-| docs/api/solvers.md |  | unreviewed |  |  |  |
-| docs/api/tensor_operators.md |  | unreviewed |  |  |  |
-| docs/api/validation.md |  | unreviewed |  |  |  |
-| docs/changelog.md |  | unreviewed |  |  |  |
-| docs/ci_policy.md |  | unreviewed |  |  |  |
-| docs/citation.md |  | unreviewed |  |  |  |
-| docs/colab.md |  | unreviewed |  |  |  |
-| docs/computation_basis.md |  | unreviewed |  |  |  |
-| docs/conservation_proxy_diagnostics.md |  | unreviewed |  |  |  |
-| docs/contributing.md |  | unreviewed |  |  |  |
-| docs/faq.md |  | unreviewed |  |  |  |
-| docs/guides/calibration.md |  | unreviewed |  |  |  |
-| docs/guides/configuration_grammar.md |  | unreviewed |  |  |  |
-| docs/guides/hdp.md |  | unreviewed |  |  |  |
-| docs/guides/homeostasis.md |  | unreviewed |  |  |  |
-| docs/guides/index.md |  | unreviewed |  |  |  |
-| docs/guides/jaxley_interop.md |  | unreviewed |  |  |  |
-| docs/guides/objective_grammar.md |  | unreviewed |  |  |  |
-| docs/guides/operator_composition.md |  | unreviewed |  |  |  |
-| docs/guides/output_bundles.md |  | unreviewed |  |  |  |
-| docs/guides/plotly_visualization.md |  | unreviewed |  |  |  |
-| docs/guides/poisson_admissibility.md |  | unreviewed |  |  |  |
-| docs/guides/probe_operators.md |  | unreviewed |  |  |  |
-| docs/guides/showcases.md |  | unreviewed |  |  |  |
-| docs/guides/tensor_field_workflows.md |  | unreviewed |  |  |  |
-| docs/index.md |  | unreviewed |  |  |  |
-| docs/install.md |  | unreviewed |  |  |  |
-| docs/interactive_visualizations.md |  | unreviewed |  |  |  |
-| docs/limitations_and_future_plans.md |  | unreviewed |  |  |  |
-| docs/mathematical_glossary_flow.md |  | unreviewed |  |  |  |
-| docs/migration_guide.md |  | unreviewed |  |  |  |
-| docs/notes/biophysical_model_comparison.md |  | unreviewed |  |  |  |
-| docs/operator_doctrine.md |  | unreviewed |  |  |  |
-| docs/performance_baseline.md |  | unreviewed |  |  |  |
-| docs/quickstart.md |  | unreviewed |  |  |  |
-| docs/reference/glossary_of_methods.md |  | unreviewed |  |  |  |
-| docs/releases/v0.2.0.md |  | unreviewed |  |  |  |
-| docs/releases/v0.2.1.md |  | unreviewed |  |  |  |
-| docs/releases/v0.2.10.md |  | unreviewed |  |  |  |
-| docs/releases/v0.2.18.md |  | unreviewed |  |  |  |
-| docs/releases/v0.2.3.md |  | unreviewed |  |  |  |
-| docs/releases/v0.3.4.md |  | unreviewed |  |  |  |
-| docs/source_field_equations.md |  | unreviewed |  |  |  |
-| docs/tensor_electromagnetics_scope.md |  | unreviewed |  |  |  |
-| docs/tensor_network_ancestry.md |  | unreviewed |  |  |  |
-| docs/tutorial_figures.md |  | unreviewed |  |  |  |
-| docs/tutorials/01_single_neuron_multimodal.md |  | unreviewed |  |  |  |
-| docs/tutorials/02_two_neuron_ei.md |  | unreviewed |  |  |  |
-| docs/tutorials/03_network_100_ei.md |  | unreviewed |  |  |  |
-| docs/tutorials/04_v1_column.md |  | unreviewed |  |  |  |
-| docs/tutorials/05_v1_pfc_dual_column.md |  | unreviewed |  |  |  |
-| docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md |  | unreviewed |  |  |  |
-| docs/tutorials/06_v036_100_neuron_ei_population.md |  | unreviewed |  |  |  |
-| docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md |  | unreviewed |  |  |  |
-| docs/tutorials/07_v037_source_bookkeeping.md |  | unreviewed |  |  |  |
-| docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md |  | unreviewed |  |  |  |
-| docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md |  | unreviewed |  |  |  |
-| docs/tutorials/08_v038_lfp_csd_readout.md |  | unreviewed |  |  |  |
-| docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md |  | unreviewed |  |  |  |
-| docs/tutorials/10_v0313_omission_oddball.md |  | unreviewed |  |  |  |
-| docs/tutorials/11_multi_laminar_cortical_agsdr.md |  | unreviewed |  |  |  |
-| docs/tutorials/12_izhikevich_single_emitter_explorer.md |  | unreviewed |  |  |  |
-| docs/tutorials/13_canonical_column_etude.md |  | unreviewed |  |  |  |
-| docs/tutorials/index.md |  | unreviewed |  |  |  |
-| docs/tutorials/notebook_standard.md |  | unreviewed |  |  |  |
-| docs/tutorials/tutorial_outputs.md |  | unreviewed |  |  |  |
-| docs/v047_refactor_audit.md |  | unreviewed |  |  |  |
+| docs/tutorials/05_v1_pfc_dual_column.md | 30 | needs_followup |  | No corresponding notebook exists anywhere in tutorials/ (grepped for *dual*, *pfc*, *v1_pfc* -- zero hits besides this d | 2026-07-03 |
+| docs/api/emitters.md | 35 | needs_followup | IzhikevichParams.class_method(class_label) is documented but does not exist anywhere in jaxfne/emitters.py; the real fac |  | 2026-07-03 |
+| docs/api/probes.md | 35 | needs_followup | Every per-probe "Example" code block (SPK through emm_proxy sections) accesses signals via attributes that do not exist  |  | 2026-07-03 |
+| docs/api/fields.md | 38 | needs_followup | LaminarSourceGeometry Attributes table lists x/y/z/contact_locations/n_sources/n_contacts plus a from_dict(geometry_dict |  | 2026-07-03 |
+| docs/ci_policy.md | 40 | needs_followup |  | Test-count claim 'Core tests: 903 pytest tests (5 skipped, expected)' is stale -- actual repo has 2759 tests collected t | 2026-07-03 |
+| docs/api/core.md | 42 | needs_followup | Model attrs table lists cfg/geometry/basis_spec; real dataclass fields (jaxfne/core.py class Model, verified via datacla |  | 2026-07-03 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
+| docs/api/solvers.md | 45 | done |  |  | 2026-07-03 |
+| docs/api/validation.md | 45 | needs_followup |  | Rewrite/replace the 'Configuration Validation' and 'Metadata Validation' sections (lines 15-72, 209-228) and the Note at | 2026-07-03 |
+| docs/api/index.md | 55 | needs_followup | default_nuclei_config and default_spectrolaminar_config are documented as two of the 'three/four canonical defaults' wit |  | 2026-07-03 |
+| docs/colab.md | 55 | needs_followup |  | Doc is pinned to v0.2.27 ('Google Colab Quick Start (v0.2.27)', 'Last updated: 2026-05-22') while the package is now at  | 2026-07-03 |
+| docs/tutorials/04_v1_column.md | 55 | needs_followup | `signals = model.simulate(...)` (line 40) uses literal ellipsis `...` as the argument instead of a real jtfne.simulation |  | 2026-07-03 |
+| docs/api/runtime.md | 58 | needs_followup | jaxfne.runtime module's actual public API (get_jax_backend_report, set_precision_policy, safe_jit, safe_vmap -- all in j |  | 2026-07-03 |
+| docs/tutorials/01_single_neuron_multimodal.md | 62 | needs_followup | readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _K |  | 2026-07-03 |
+| docs/source_field_equations.md | 68 | needs_followup | Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing lea |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
+| docs/CORTEX_CALIBRATION_CHECKLIST.md | 70 | needs_followup | All three reproduction scripts cited (cortex_calibration_fi_curves.py, cortex_calibration_network_rate.py, cortex_100_st |  | 2026-07-03 |
+| docs/guides/plotly_visualization.md | 70 | needs_followup |  | Page footer states 'Status: v0.2.14 / Last updated: 2026-05-20' and requirements.txt example pins 'jaxfne>=0.2.14' -- cu | 2026-07-03 |
+| docs/STDP_CLOSED_LOOP_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_closedloop.py and cortex_100_stdp_closedloop_figure.py, and artifact dir cortex_100 |  | 2026-07-03 |
+| docs/STDP_GLOBAL_SCALE_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_global_sweep.py / cortex_100_stdp_global_figure.py and artifact dir cortex_100_stdp |  | 2026-07-03 |
+| docs/STDP_LOWRATE_REGIME_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_lowrate_sweep.py / cortex_100_stdp_lowrate_figure.py and artifact dir cortex_100_st |  | 2026-07-03 |
+| docs/tensor_network_ancestry.md | 72 | needs_followup | BasisSpec usage example (Part 5, lines 158-163: `BasisSpec(name=..., units=..., n_dims=...)`) not verified against the r |  | 2026-07-03 |
+| docs/STDP_REAL_TEST_REPORT.md | 74 | needs_followup | Reproduction script cortex_100_stdp_real_test_fast.py and artifact stdp_real_test_results_fast.json do not exist in the  |  | 2026-07-03 |
+| docs/STDP_HOMEOSTATIC_REPORT.md | 75 | needs_followup | Reproduction scripts cortex_100_homeostatic_stdp.py / cortex_100_homeostatic_stdp_figure.py and artifact dir cortex_100_ |  | 2026-07-03 |
+| docs/api/tensor_operators.md | 75 | needs_followup | config_truth_boundary(cfg) is listed as a live 'Validation / bookkeeping operator' (line 108) and referenced again under |  | 2026-07-03 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
+| docs/BASELINE_DRIVE_REFERENCE.md | 78 | needs_followup | Referenced artifacts outputs/neuron_io_reference.json and outputs/neuron_io_baseline_reference.json do not exist anywher |  | 2026-07-03 |
+| docs/api/neuronal_tensor.md | 78 | needs_followup | Species-config claim contradiction: doc text says (in the list_canonical_neuronal_tensors section) that jaxfne ships no  |  | 2026-07-03 |
+| docs/computation_basis.md | 78 | needs_followup |  | 'Implemented in v0.2.26' table cites AxisSpec, BasisSpec, default_basis_spec(), validate_basis_spec(), basis_statement_g | 2026-07-03 |
+| docs/guides/output_bundles.md | 78 | needs_followup | Uses an older/simplified API style (model.simulate(sim), model.compute_readout(signals, specs), model.manifest(signals,  |  | 2026-07-03 |
+| docs/tutorials/02_two_neuron_ei.md | 78 | done |  |  | 2026-07-03 |
+| docs/v047_refactor_audit.md | 78 | needs_followup |  | Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as  | 2026-07-03 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/__init__.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
@@ -384,7 +324,13 @@
 | jaxfne/sanity_delta.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sanity_runtime.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/validation.py | 80 | unreviewed |  |  | 2026-06-30 |
+| docs/guides/tensor_field_workflows.md | 80 | needs_followup |  | Uses the same older Configuration builder style as output_bundles.md (jtfne.configuration().network(n=1).emitter(family= | 2026-07-03 |
+| docs/tutorials/03_network_100_ei.md | 80 | needs_followup |  |  | 2026-07-03 |
 | jaxfne/fields/solvers.py | 82 | unreviewed |  |  | 2026-06-30 |
+| docs/faq.md | 82 | done |  |  | 2026-07-03 |
+| docs/migration_guide.md | 82 | needs_followup | Quick-comparison table (JSON round-trip row) claims Configuration uses 'load_config/config_to_configuration (.jcfg.json  |  | 2026-07-03 |
+| docs/releases/v0.3.4.md | 82 | done |  | Code sample (cfg.runtime/.column/.cell_types/.connectivity/.set_emitter/.probes) uses a DIFFERENT chaining vocabulary th | 2026-07-03 |
+| docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md | 82 | done |  |  | 2026-07-03 |
 | jaxfne/bridges.py | 85 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
@@ -392,6 +338,13 @@
 | jaxfne/vis/tutorial_panels.py | 85 | reviewed | visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's  |  | 2026-06-30 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
+| docs/HDP_REPORT.md | 85 | done | The doc's phrase 'Generic builder (jaxfne.hdp_network)' names jaxfne.hdp_network as if it were a callable builder; it is |  | 2026-07-03 |
+| docs/api/plasticity.md | 85 | done |  |  | 2026-07-03 |
+| docs/conservation_proxy_diagnostics.md | 85 | done |  |  | 2026-07-03 |
+| docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
+| docs/tutorials/06_v036_100_neuron_ei_population.md | 85 | done |  |  | 2026-07-03 |
+| docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
+| docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | jaxfne/connectivity.py | 88 | unreviewed |  | IMPLEMENTED 2026-07-01: added _candidate_pairs_localized (spatial grid-bucketed, Gaussian-distance-weighted, constant pe | 2026-07-01 |
 | jaxfne/paradigm.py | 88 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sharding_utils.py | 88 | unreviewed |  | Full multi-device AGSDR integration is explicitly deferred per module docstring ("planned for v0.3.20+") -- correctly fe | 2026-06-30 |
@@ -403,6 +356,14 @@
 | jaxfne/vis/plotly/manuscript/figure2.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure3.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure4.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
+| docs/api/sharding.md | 88 | needs_followup | Page does not mention that jaxfne/sharding_utils.py's own module docstring labels these as 'stubs: they set up the topol |  | 2026-07-03 |
+| docs/changelog.md | 88 | done |  |  | 2026-07-03 |
+| docs/guides/jaxley_interop.md | 88 | done |  | examples/03_jaxley_bridge_smoke.py also exists but is not referenced from this page -- could be added alongside the refe | 2026-07-03 |
+| docs/interactive_visualizations.md | 88 | done |  |  | 2026-07-03 |
+| docs/releases/v0.2.10.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/11_multi_laminar_cortical_agsdr.md | 88 | done |  |  | 2026-07-03 |
+| docs/tutorials/tutorial_outputs.md | 88 | needs_followup | FIXED 2026-07-03: '--out-root OUTPUT_DIR' was documented as controlling output location ('default: outputs/') but script |  | 2026-07-03 |
 | local/gen_test_data_100n_1000ms.py | 88 | done |  |  | 2026-07-01 |
 | jaxfne/optim/core.py | 88 | done |  |  | 2026-07-01 |
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
@@ -418,6 +379,16 @@
 | jaxfne/core.py::RuntimeConfig.dtype + Model.with_hdp_initial_state | 90 | done |  |  | 2026-07-01 |
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
+| docs/NEURON_IO_CHARACTERIZATION.md | 90 | done |  |  | 2026-07-03 |
+| docs/contributing.md | 90 | done |  |  | 2026-07-03 |
+| docs/guides/calibration.md | 90 | done |  |  | 2026-07-03 |
+| docs/guides/probe_operators.md | 90 | needs_followup |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
+| docs/performance_baseline.md | 90 | needs_followup |  |  | 2026-07-03 |
+| docs/releases/v0.2.18.md | 90 | done |  |  | 2026-07-03 |
+| docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md | 90 | done |  |  | 2026-07-03 |
+| docs/tutorials/08_v038_lfp_csd_readout.md | 90 | done |  |  | 2026-07-03 |
+| docs/tutorials/12_izhikevich_single_emitter_explorer.md | 90 | done |  |  | 2026-07-03 |
+| docs/tutorials/notebook_standard.md | 90 | needs_followup |  |  | 2026-07-03 |
 | scripts/hdp_suite2_visualizations.py | 90 | done |  |  | 2026-07-01 |
 | examples/02_omission_scaffold.py | 90 | done |  |  | 2026-07-01 |
 | examples/03_objective_and_tune_smoke.py | 90 | done |  |  | 2026-07-01 |
@@ -428,9 +399,16 @@
 | tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-02 |
 | jaxfne/vis/plotly/lfp.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | jaxfne/vis/plotly/raster.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
+| docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
+| docs/citation.md | 92 | done |  |  | 2026-07-03 |
+| docs/guides/hdp.md | 92 | done |  |  | 2026-07-03 |
+| docs/releases/v0.2.3.md | 92 | done |  |  | 2026-07-03 |
+| docs/tutorials/07_v037_source_bookkeeping.md | 92 | done |  |  | 2026-07-03 |
+| docs/tutorials/10_v0313_omission_oddball.md | 92 | done |  |  | 2026-07-03 |
+| docs/tutorials/index.md | 92 | done |  | The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files  | 2026-07-03 |
 | tests/test_etude3_v1_spectrolaminar_1k.py | 92 | done |  |  | 2026-07-01 |
 | local/verify_plotly_pipeline.py | 92 | done |  |  | 2026-07-01 |
 | jaxfne/optim/manifests.py | 92 | done |  |  | 2026-07-01 |
@@ -449,17 +427,36 @@
 | jaxfne/vis/raster_arrays.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-le | 2026-07-01 |
 | jaxfne/vis/report_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly expor | 2026-07-01 |
 | jaxfne/vis/tutorial_array_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_popul | 2026-07-01 |
+| docs/api/bridges.md | 93 | done |  |  | 2026-07-03 |
+| docs/guides/configuration_grammar.md | 93 | done |  |  | 2026-07-03 |
+| docs/guides/homeostasis.md | 93 | done |  | Consider a one-line note that the built-in kernel's default r_star (0.05, from jaxfne/core.py:2363 RuntimeConfig.homeost | 2026-07-03 |
+| docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
+| docs/mathematical_glossary_flow.md | 94 | done |  |  | 2026-07-03 |
+| docs/tensor_electromagnetics_scope.md | 94 | done |  |  | 2026-07-03 |
 | jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/fields/probes.py | 95 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/io.py | 95 | unreviewed |  |  | 2026-06-30 |
 | skills/FRICTIONS_STACK.md | 95 | done |  |  | 2026-07-02 |
+| docs/_generated/operator_inventory.md | 95 | done |  |  | 2026-07-03 |
+| docs/api/objectives.md | 95 | done |  |  | 2026-07-03 |
+| docs/guides/poisson_admissibility.md | 95 | done |  |  | 2026-07-03 |
+| docs/notes/biophysical_model_comparison.md | 95 | done |  |  | 2026-07-03 |
+| docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
+| docs/limitations_and_future_plans.md | 96 | done |  |  | 2026-07-03 |
+| docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
+| docs/guides/index.md | 97 | done |  |  | 2026-07-03 |
+| docs/guides/objective_grammar.md | 97 | done |  |  | 2026-07-03 |
+| docs/index.md | 97 | done |  |  | 2026-07-03 |
+| docs/install.md | 97 | done |  |  | 2026-07-03 |
+| docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
 | jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
 | README.md | 98 | done |  |  | 2026-07-01 |
+| docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
 | jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
 | jaxfne/vis/network3d.py | 100 | reviewed |  |  | 2026-06-30 |
@@ -496,6 +493,9 @@
 | jaxfne/stimulus.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
+| docs/_generated/version.md | 100 | done |  |  | 2026-07-03 |
+| docs/releases/v0.2.0.md | 100 | done |  |  | 2026-07-03 |
+| docs/releases/v0.2.1.md | 100 | done |  |  | 2026-07-03 |
 | .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/test_v030_docs_audit.py | 100 | done |  |  | 2026-07-01 |
