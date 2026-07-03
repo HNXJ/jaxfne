@@ -504,7 +504,7 @@ assert status["all_finite"]
 
 Check structural invariants of the laminar proxy projection (kernel
 row-normalization, finiteness, shape consistency). See
-[Validation API](validation.md#validate_projection_invariantssources-jaxarray-field-fieldoutput---bool)
+[Validation API](validation.md#validate_projection_invariants-sources-positions-kernel-source_proxy-phi_e_proxy-csd_proxy-lfp_proxy-moderow_normalize-dict)
 for the full parameter list — all keyword-only, returns a `dict` of
 pass/fail diagnostics, not a `bool`.
 
