@@ -15,7 +15,7 @@ This document is the canonical deliverable for the pre-v0.4.7 architectural refa
 
 | Area | Files | LOC (approx.) | Notes |
 |------|------:|--------------:|-------|
-| `jaxfne/` package | 79 `.py` | ~34,600 | `core.py` alone is 8,805 lines (25%) |
+| `jaxfne/` package | 79 `.py` | ~34,600 | `core.py` alone is 8,370 lines (25%) |
 | `jaxfne/vis/` | 37 `.py` | ~10,470 | Matplotlib + Plotly + canonical dispatcher |
 | `tests/` | 200+ | — | Primary contract surface |
 | `docs/` | 80+ `.md` | — | mkdocs strict build |
@@ -23,7 +23,7 @@ This document is the canonical deliverable for the pre-v0.4.7 architectural refa
 | `examples/` | 61 | — | Headless CI runners |
 | `.legacy/` | 110 tracked | ~1.9 MB | Former `internal_docs/`, old notebooks |
 | `scripts/` | 56 → 43 | — | 13 orphan scripts removed in this pass |
-| `skills/` | 30 | — | Repo source-of-truth for agent skills |
+| `skills/` | 13 | — | Repo source-of-truth for agent skills |
 
 ### Classification of Issues Found
 
@@ -180,7 +180,7 @@ Artifact store only (12 PNGs, JSON manifests). Not in nav. Rename to `docs/asset
 
 ### P0 (blocks clean v0.4.7 architecture)
 
-1. **`core.py` monolith** (8,805 LOC) — split behind compatibility re-exports.
+1. **`core.py` monolith** (8,370 LOC) — split behind compatibility re-exports.
 2. **`_RuntimeModuleWrapper`** — replace with explicit `jaxfne.runtime` submodule + `from jaxfne import runtime` function alias pattern.
 3. **`.legacy/` migration** — 6 test files + doc links still anchor `.legacy/notebooks/`.
 
@@ -223,7 +223,7 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/ -q --tb=l
 - [ ] No tracked generated artifacts under `scripts/out/`
 - [ ] Zero doc links to `.legacy/notebooks/` in published tutorials (tests may retain until migrated)
 - [ ] `operator_inventory.md` regenerated
-- [ ] Version aligned: `pyproject.toml` == `jaxfne.__version__` == `mkdocs extra.jaxfne_version`
+- [x] Version aligned: `pyproject.toml` == `jaxfne.__version__` == `mkdocs extra.jaxfne_version` (verified 2026-07-03: all three are `0.4.4`)
 - [ ] Public API changes documented in `changelog.md`
 
 ---

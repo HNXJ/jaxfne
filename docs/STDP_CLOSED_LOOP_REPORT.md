@@ -28,6 +28,11 @@ python cortex_100_stdp_closedloop_figure.py   # → PNG
 ```
 Artifacts: `cortex_100_stdp_closedloop/{stdp_closedloop.json, stdp_closedloop.png}`.
 
+> **Not reproducible as described:** these scripts and artifact files are not
+> preserved in this repo (verified absent from working tree and full git
+> history 2026-07-03). This report documents a historical result, not a
+> currently-reproducible one.
+
 ## Setup
 
 - 100-neuron canonical V1 column (71 E, 29 I)

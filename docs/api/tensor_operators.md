@@ -105,7 +105,11 @@ Lead-field transforms: `eeg_proxy_transform(...)`, `meg_proxy_transform(...)`, `
 ### Validation / bookkeeping operators
 
 - `validate_source_field_status(...)`, `compute_conservation_proxy_diagnostics(...)`, `is_valid_signal(signals)`.
-- `manifest(cfg, signals=None, ...)`, `run_receipt(model, signals, *, tags=...)`, `config_truth_boundary(cfg)`.
+- `manifest(cfg, signals=None, ...)`, `run_receipt(model, signals, *, tags=...)`.
+- `config_truth_boundary(cfg)` — **REMOVED (2026-06-30).** Deleted along with
+  the rest of the `JaxFNEConfig` config-path API; see [Validation](validation.md)
+  for the replacement pointer (truth-gate metadata now lives on the fluent
+  pipeline's own objects, e.g. `FieldOutput`/`RunReceipt`, not a standalone call).
 
 ---
 
@@ -147,7 +151,7 @@ this page does not duplicate it.
 ## See Also
 
 - [TFNE Operator Doctrine](../operator_doctrine.md) — the per-stage contract table this registry grounds
-- [Validation](validation.md) — `operator_status()`, `config_truth_boundary()`, `is_valid_signal()`
+- [Validation](validation.md) — `operator_status()`, `is_valid_signal()` (`config_truth_boundary()` REMOVED, see note above)
 - [Probe Operators](../guides/probe_operators.md) — the eight readout operators in full
 - [Configuration Grammar](../guides/configuration_grammar.md) — the fluent/operator grammar reconciliation
 - [Objective Grammar](../guides/objective_grammar.md) — the user-facing run sequence, stage by stage

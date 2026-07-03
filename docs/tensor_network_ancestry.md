@@ -157,13 +157,17 @@ jaxfne's `BasisSpec` (introduced in v0.2.25) formalizes the basis-transform idea
 ```python
 from jaxfne.core import BasisSpec
 
-# Example: declare basis transforms
-emitter_basis = BasisSpec(name="izhikevich_state", units="mV", n_dims=4)
-source_basis = BasisSpec(name="synaptic_current", units="nA", n_dims=50)
-field_basis = BasisSpec(name="laminar_potential", units="proxy_mV", n_dims=16)
-readout_basis = BasisSpec(name="multimodal", units="mixed", n_dims=8)
+# Example: declare the current default basis regime
+basis = BasisSpec(
+    space_basis="laminar_depth",
+    time_basis="continuous_ms",
+    field_regime="laminar_proxy",
+    source_mode="proxy_no_field_solve",
+    probe_basis="multimodal_proxy",
+)
 
-# Pipeline preserves basis contracts through transformations
+# `basis.implemented` reports whether this regime has a runtime
+# implementation in the current package (False for reserved/future regimes).
 ```
 
 **Doctrine:** BasisSpec makes the tensor-coordinate structure explicit and testable. It is the operational instantiation of "basis transform" as a software contract.

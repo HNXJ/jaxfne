@@ -49,7 +49,8 @@ source_calibration_status = "uncalibrated_izhikevich_model_current"
 
 **Code example:**
 ```python
-cfg = jtfne.configuration()
+cfg = (
+    jtfne.configuration()
     .emitter(family="izhikevich", preset="cortical_eig")
     .field(
         domain="laminar_column",
@@ -57,6 +58,7 @@ cfg = jtfne.configuration()
         boundary="mean_zero_neumann",  # metadata-only
         gauge="mean_zero",  # metadata-only
     )
+)
 
 # In the Manifest:
 manifest = model.manifest(signals, readouts)

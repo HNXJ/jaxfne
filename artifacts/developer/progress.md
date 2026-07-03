@@ -284,27 +284,11 @@
 | AGENTS.md |  | unreviewed |  |  |  |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | Underlying feature gap is real and unresolved: no dual-column / inter-areal-connectivity notebook exists, and inter_area | 2026-07-03 |
-| docs/tutorials/01_single_neuron_multimodal.md | 62 | needs_followup | readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _K |  | 2026-07-03 |
-| docs/source_field_equations.md | 68 | needs_followup | Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing lea |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| docs/CORTEX_CALIBRATION_CHECKLIST.md | 70 | needs_followup | All three reproduction scripts cited (cortex_calibration_fi_curves.py, cortex_calibration_network_rate.py, cortex_100_st |  | 2026-07-03 |
-| docs/guides/plotly_visualization.md | 70 | needs_followup |  | Page footer states 'Status: v0.2.14 / Last updated: 2026-05-20' and requirements.txt example pins 'jaxfne>=0.2.14' -- cu | 2026-07-03 |
-| docs/STDP_CLOSED_LOOP_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_closedloop.py and cortex_100_stdp_closedloop_figure.py, and artifact dir cortex_100 |  | 2026-07-03 |
-| docs/STDP_GLOBAL_SCALE_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_global_sweep.py / cortex_100_stdp_global_figure.py and artifact dir cortex_100_stdp |  | 2026-07-03 |
-| docs/STDP_LOWRATE_REGIME_REPORT.md | 72 | needs_followup | Reproduction scripts cortex_100_stdp_lowrate_sweep.py / cortex_100_stdp_lowrate_figure.py and artifact dir cortex_100_st |  | 2026-07-03 |
-| docs/tensor_network_ancestry.md | 72 | needs_followup | BasisSpec usage example (Part 5, lines 158-163: `BasisSpec(name=..., units=..., n_dims=...)`) not verified against the r |  | 2026-07-03 |
-| docs/STDP_REAL_TEST_REPORT.md | 74 | needs_followup | Reproduction script cortex_100_stdp_real_test_fast.py and artifact stdp_real_test_results_fast.json do not exist in the  |  | 2026-07-03 |
-| docs/STDP_HOMEOSTATIC_REPORT.md | 75 | needs_followup | Reproduction scripts cortex_100_homeostatic_stdp.py / cortex_100_homeostatic_stdp_figure.py and artifact dir cortex_100_ |  | 2026-07-03 |
-| docs/api/tensor_operators.md | 75 | needs_followup | config_truth_boundary(cfg) is listed as a live 'Validation / bookkeeping operator' (line 108) and referenced again under |  | 2026-07-03 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
-| docs/BASELINE_DRIVE_REFERENCE.md | 78 | needs_followup | Referenced artifacts outputs/neuron_io_reference.json and outputs/neuron_io_baseline_reference.json do not exist anywher |  | 2026-07-03 |
-| docs/api/neuronal_tensor.md | 78 | needs_followup | Species-config claim contradiction: doc text says (in the list_canonical_neuronal_tensors section) that jaxfne ships no  |  | 2026-07-03 |
-| docs/computation_basis.md | 78 | needs_followup |  | 'Implemented in v0.2.26' table cites AxisSpec, BasisSpec, default_basis_spec(), validate_basis_spec(), basis_statement_g | 2026-07-03 |
-| docs/guides/output_bundles.md | 78 | needs_followup | Uses an older/simplified API style (model.simulate(sim), model.compute_readout(signals, specs), model.manifest(signals,  |  | 2026-07-03 |
-| docs/v047_refactor_audit.md | 78 | needs_followup |  | Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as  | 2026-07-03 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/__init__.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
@@ -314,10 +298,17 @@
 | jaxfne/validation.py | 80 | unreviewed |  |  | 2026-06-30 |
 | docs/guides/tensor_field_workflows.md | 80 | needs_followup |  | Uses the same older Configuration builder style as output_bundles.md (jtfne.configuration().network(n=1).emitter(family= | 2026-07-03 |
 | jaxfne/fields/solvers.py | 82 | unreviewed |  |  | 2026-06-30 |
+| docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
+| docs/STDP_HOMEOSTATIC_REPORT.md | 82 | done | The all-neuron-plasticity result depends on a script-level code path (cortex_100_homeostatic_stdp.py, not the package's  |  | 2026-07-03 |
 | docs/faq.md | 82 | done |  |  | 2026-07-03 |
 | docs/migration_guide.md | 82 | needs_followup | Quick-comparison table (JSON round-trip row) claims Configuration uses 'load_config/config_to_configuration (.jcfg.json  |  | 2026-07-03 |
 | docs/releases/v0.3.4.md | 82 | done |  | Code sample (cfg.runtime/.column/.cell_types/.connectivity/.set_emitter/.probes) uses a DIFFERENT chaining vocabulary th | 2026-07-03 |
 | docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md | 82 | done |  |  | 2026-07-03 |
+| docs/BASELINE_DRIVE_REFERENCE.md | 83 | done |  |  | 2026-07-03 |
+| docs/STDP_CLOSED_LOOP_REPORT.md | 84 | done |  |  | 2026-07-03 |
+| docs/STDP_GLOBAL_SCALE_REPORT.md | 84 | done |  |  | 2026-07-03 |
+| docs/STDP_LOWRATE_REGIME_REPORT.md | 84 | done |  |  | 2026-07-03 |
+| docs/STDP_REAL_TEST_REPORT.md | 84 | done |  |  | 2026-07-03 |
 | jaxfne/bridges.py | 85 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
@@ -356,6 +347,7 @@
 | docs/tutorials/06_v036_100_neuron_ei_population.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/11_multi_laminar_cortical_agsdr.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/tutorial_outputs.md | 88 | needs_followup | FIXED 2026-07-03: '--out-root OUTPUT_DIR' was documented as controlling output location ('default: outputs/') but script |  | 2026-07-03 |
+| docs/v047_refactor_audit.md | 88 | done |  | Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as  | 2026-07-03 |
 | local/gen_test_data_100n_1000ms.py | 88 | done |  |  | 2026-07-01 |
 | jaxfne/optim/core.py | 88 | done |  |  | 2026-07-01 |
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
@@ -376,9 +368,12 @@
 | docs/ci_policy.md | 90 | done |  |  | 2026-07-03 |
 | docs/contributing.md | 90 | done |  |  | 2026-07-03 |
 | docs/guides/calibration.md | 90 | done |  |  | 2026-07-03 |
+| docs/guides/plotly_visualization.md | 90 | done |  | Page footer states 'Status: v0.2.14 / Last updated: 2026-05-20' and requirements.txt example pins 'jaxfne>=0.2.14' -- cu | 2026-07-03 |
 | docs/guides/probe_operators.md | 90 | needs_followup |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
 | docs/performance_baseline.md | 90 | needs_followup |  |  | 2026-07-03 |
 | docs/releases/v0.2.18.md | 90 | done |  |  | 2026-07-03 |
+| docs/tensor_network_ancestry.md | 90 | done | BasisSpec usage example (Part 5, lines 158-163: `BasisSpec(name=..., units=..., n_dims=...)`) not verified against the r |  | 2026-07-03 |
+| docs/tutorials/01_single_neuron_multimodal.md | 90 | done | readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _K |  | 2026-07-03 |
 | docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md | 90 | done |  |  | 2026-07-03 |
 | docs/tutorials/08_v038_lfp_csd_readout.md | 90 | done |  |  | 2026-07-03 |
 | docs/tutorials/12_izhikevich_single_emitter_explorer.md | 90 | done |  |  | 2026-07-03 |
@@ -401,8 +396,11 @@
 | docs/api/fields.md | 92 | done |  |  | 2026-07-03 |
 | docs/api/probes.md | 92 | done |  |  | 2026-07-03 |
 | docs/citation.md | 92 | done |  |  | 2026-07-03 |
+| docs/computation_basis.md | 92 | done |  |  | 2026-07-03 |
 | docs/guides/hdp.md | 92 | done |  |  | 2026-07-03 |
+| docs/guides/output_bundles.md | 92 | done | Uses an older/simplified API style (model.simulate(sim), model.compute_readout(signals, specs), model.manifest(signals,  |  | 2026-07-03 |
 | docs/releases/v0.2.3.md | 92 | done |  |  | 2026-07-03 |
+| docs/source_field_equations.md | 92 | done | Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing lea |  | 2026-07-03 |
 | docs/tutorials/07_v037_source_bookkeeping.md | 92 | done |  |  | 2026-07-03 |
 | docs/tutorials/10_v0313_omission_oddball.md | 92 | done |  |  | 2026-07-03 |
 | docs/tutorials/index.md | 92 | done |  | The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files  | 2026-07-03 |
@@ -445,6 +443,7 @@
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
+| docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
 | docs/limitations_and_future_plans.md | 96 | done |  |  | 2026-07-03 |
 | docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
@@ -494,6 +493,7 @@
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
 | docs/_generated/version.md | 100 | done |  |  | 2026-07-03 |
+| docs/api/tensor_operators.md | 100 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.0.md | 100 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.1.md | 100 | done |  |  | 2026-07-03 |
 | .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |

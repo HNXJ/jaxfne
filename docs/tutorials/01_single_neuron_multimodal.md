@@ -65,7 +65,7 @@ signals = model.simulate(sim)
 ```python
 readouts = model.compute_readout(signals, [
     jtfne.readout_spec("spike_count", "spike_count"),
-    jtfne.readout_spec("mean_voltage", "voltage_mean"),
+    jtfne.readout_spec("mean_voltage", "mean_V_m"),
 ])
 
 for r in readouts:

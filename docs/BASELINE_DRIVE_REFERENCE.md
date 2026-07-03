@@ -5,6 +5,13 @@
 **Generated:** 2026-06-09 via `scripts/characterize_neuron_io_curves.py`  
 **Truth status:** computational_scaffold (uncalibrated Izhikevich native units)
 
+> **Partially reproducible:** `scripts/characterize_neuron_io_curves.py` exists
+> in this repo and can be re-run. However, its recorded output artifacts
+> (`outputs/neuron_io_reference.json`, `outputs/neuron_io_baseline_reference.json`)
+> are not preserved (verified absent from working tree and full git history
+> 2026-07-03) — the numeric tables below are a historical record of a prior run,
+> not values you can currently diff against a saved artifact.
+
 ---
 
 ## Rheobase Values (Minimum DC for First Spikes)

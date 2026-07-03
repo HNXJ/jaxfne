@@ -4513,32 +4513,28 @@
     {
       "path": "docs/BASELINE_DRIVE_REFERENCE.md",
       "purpose": "Recommended per-cell-type baseline DC drive (80% of rheobase) to eliminate silent neurons, with a code example for laminar_cortex_config.",
-      "score": 78,
-      "tbi": [
-        "Referenced artifacts outputs/neuron_io_reference.json and outputs/neuron_io_baseline_reference.json do not exist anywhere in the repo (checked outputs/ dir listing) -- cannot verify the rheobase/rate numbers in the tables were actually produced by the cited script run, only that the script scripts/characterize_neuron_io_curves.py exists and its cell-type parameter table matches this doc's cell-type framing."
-      ],
+      "score": 83,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "Rheobase/rate numeric tables (E=4.17nA, PV=4.17nA, SST=0.83nA, VIP=24.14nA etc.) are receipt-style numbers from a prior script run; not independently re-derivable without re-running scripts/characterize_neuron_io_curves.py end-to-end, so treated as an unverified-but-plausible external claim rather than checked code fact."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Verified scripts/characterize_neuron_io_curves.py exists (ls confirmed) and its IZHIKEVICH cell-type parameter table (E a=0.02,PV a=0.10,SST a=0.02,VIP a=0.02/b=-0.10) matches the burst-dynamics framing used in this doc's 'Scientific Notes' section (VIP negative b). Verified laminar_cortex_config(...) code example (lines 78-86) against the real signature via `python3 -c \"import inspect,jaxfne; print(inspect.signature(jaxfne.laminar_cortex_config))\"` -> exact match: seed,duration_ms,dt_ms,areas,layers,cell_types,n,emitter,baseline_drive_by_cell_type all present, keyword-only. Checked outputs/neuron_io_reference.json and outputs/neuron_io_baseline_reference.json -- neither exists in outputs/ (ls outputs/ lists only unrelated dirs: TFNE-Izhikevich-Spectrolaminar-Motif-01, ed9_homeostasis_evidence, hdp_* dirs, etc, no neuron_io_* files) -- the 'Files' section at the bottom cites artifacts that are not present in the repo.",
-      "status": "needs_followup"
+      "evidence": "Added a partial-reproducibility note below the header (line ~8) distinguishing this file from the other 6: scripts/characterize_neuron_io_curves.py DOES exist in-repo and is re-runnable (confirmed via find), but its recorded output artifacts outputs/neuron_io_reference.json and outputs/neuron_io_baseline_reference.json are verified absent from working tree and git history 2026-07-03 -- so the numeric tables (rheobase/rate values) are a historical record, not values reproducible against a saved artifact today. Re-verified the laminar_cortex_config(...) code example (lines ~78-86, now shifted) against the live signature via python3 -c inspect.signature -- exact match on all 9 params (seed, duration_ms, dt_ms, areas, layers, cell_types, n, emitter, baseline_drive_by_cell_type), all keyword-only as shown. Scored slightly above the 6 STDP/calibration siblings (83 vs 82-84) because the reproduce script itself survives even though its outputs don't -- a smaller gap than 'nothing survives'. Left the 'Delta-Test Status: Score 100/100' section as-is: it is already hedged ('Expected PASS', 'pending final validation'), not a bare false claim.",
+      "status": "done"
     },
     {
       "path": "docs/CORTEX_CALIBRATION_CHECKLIST.md",
       "purpose": "Operating-point calibration for the 100-neuron V1 column: F-I curves, plasticity-scale (global_stdp) recommendation, physiological rate bounds, and drive sweetpoints.",
-      "score": 70,
-      "tbi": [
-        "All three reproduction scripts cited (cortex_calibration_fi_curves.py, cortex_calibration_network_rate.py, cortex_100_stdp_global_sweep.py) and their data artifact dirs (cortex_calibration/, cortex_100_stdp_global_sweep/) do not exist anywhere in the current repo tree or in git history (git log --all --diff-filter=A found zero matches) -- the numeric tables in this doc cannot be reproduced or independently verified from the checked-in repo as instructed."
-      ],
+      "score": 82,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "Same missing-script issue affects the entire STDP_* report family this doc cross-links to (STDP_GLOBAL_SCALE_REPORT.md, STDP_LOWRATE_REGIME_REPORT.md, STDP_CLOSED_LOOP_REPORT.md, STDP_HOMEOSTATIC_REPORT.md, STDP_REAL_TEST_REPORT.md) -- flagged individually in each of those entries too."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Checked all 7 relative cross-links in 'Related reports' section (NEURON_IO_CHARACTERIZATION.md, BASELINE_DRIVE_REFERENCE.md, STDP_GLOBAL_SCALE_REPORT.md, STDP_LOWRATE_REGIME_REPORT.md, STDP_HOMEOSTATIC_REPORT.md, STDP_CLOSED_LOOP_REPORT.md, STDP_REAL_TEST_REPORT.md) -- all resolve to real files in docs/. Verified `global_stdp` maps to jaxfne.streaming.run_stdp_stream's plasticity_scale kwarg: grep of jaxfne/streaming.py __all__ signature confirms `plasticity_scale: float` parameter exists on run_stdp_stream. Searched repo root, scripts/, and git history for cortex_calibration_fi_curves.py, cortex_calibration_network_rate.py, cortex_100_stdp_global_sweep.py -- none found (`find . -iname ... ` and `git log --all --diff-filter=A --name-only | grep` both empty) -- these are the doc's own cited 'Reproduce' commands and none of them exist in the repo.",
-      "status": "needs_followup"
+      "evidence": "Added non-reproducibility note below the 'Reproduce' block (line ~24) for cortex_calibration_fi_curves.py, cortex_calibration_network_rate.py, cortex_100_stdp_global_sweep.py, and the cortex_calibration/ + cortex_100_stdp_global_sweep/ artifact dirs -- re-verified absent from working tree and git history 2026-07-03. Historical F-I/rate tables kept. Re-verified global_stdp maps to run_stdp_stream's plasticity_scale kwarg. All 7 relative cross-links in 'Related reports' re-checked, resolve to real files.",
+      "status": "done"
     },
     {
       "path": "docs/HDP_REPORT.md",
@@ -4571,68 +4567,59 @@
     {
       "path": "docs/STDP_CLOSED_LOOP_REPORT.md",
       "purpose": "Closed-loop online STDP result on the 100-neuron cortex via jaxfne.streaming.run_stdp_stream: shows global_stdp=1.0 runs away, ~0.1 is the largest stable scale without a homeostatic regulator.",
-      "score": 72,
-      "tbi": [
-        "Reproduction scripts cortex_100_stdp_closedloop.py and cortex_100_stdp_closedloop_figure.py, and artifact dir cortex_100_stdp_closedloop/, do not exist anywhere in the repo or git history -- same missing-script issue as CORTEX_CALIBRATION_CHECKLIST.md and the other STDP_* reports."
-      ],
+      "score": 84,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified jaxfne.streaming.run_stdp_stream exists with a plasticity_scale kwarg (matches 'global_stdp (== kernel plasticity_scale)' claim) -- confirmed via docs/_generated/operator_inventory.md's live-generated signature for jaxfne.streaming (regenerated this pass) showing `plasticity_scale: 'float'` as a named parameter. Verified all 5 relative cross-links (STDP_HOMEOSTATIC_REPORT.md, STDP_GLOBAL_SCALE_REPORT.md, STDP_LOWRATE_REGIME_REPORT.md, STDP_REAL_TEST_REPORT.md, CORTEX_CALIBRATION_CHECKLIST.md) resolve to real files. Searched for cortex_100_stdp_closedloop.py and cortex_100_stdp_closedloop_figure.py repo-wide and in git history -- not found (same find/git log check as CORTEX_CALIBRATION_CHECKLIST.md, both empty). Numeric result tables (mean rate, exc-W trajectories) are unverifiable without the missing scripts/artifacts -- treated as an external receipt, not re-derived.",
-      "status": "needs_followup"
+      "evidence": "Added an explicit non-reproducibility note directly below the 'Reproduce' block (line ~30) stating cortex_100_stdp_closedloop.py/_figure.py and the cortex_100_stdp_closedloop/ artifact dir are verified absent from working tree and full git history (2026-07-03 re-check: find + git log --all --diff-filter=A both empty, same result as prior pass). Historical numeric tables kept, not deleted -- doc now honest about non-reproducibility instead of silently implying a runnable script. Re-verified jaxfne.streaming.run_stdp_stream has a plasticity_scale kwarg (python3 -c import jaxfne.streaming as s; 'run_stdp_stream' in dir(s) -> True) consistent with the doc's 'global_stdp (== kernel plasticity_scale)' claim. All 5 relative cross-links re-checked, resolve to real files in docs/.",
+      "status": "done"
     },
     {
       "path": "docs/STDP_GLOBAL_SCALE_REPORT.md",
       "purpose": "Post-hoc global_stdp plasticity-scale sweep at ~43 Hz mean rate on the 100-neuron cortex; characterizes the LTP/LTD balance and linear scaling of weight change with global_stdp.",
-      "score": 72,
-      "tbi": [
-        "Reproduction scripts cortex_100_stdp_global_sweep.py / cortex_100_stdp_global_figure.py and artifact dir cortex_100_stdp_global_sweep/ do not exist in the repo or git history."
-      ],
+      "score": 84,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified `dW = plasticity_scale * (dW_ltp - dW_ltd)` formula claim against jaxfne.plasticity.update_stdp_weights_jax signature (has plasticity_scale: float param per docs/_generated/operator_inventory.md's live-regenerated jaxfne.plasticity section) and jaxfne.streaming.run_stdp_stream (same plasticity_scale kwarg). Verified STDPPlasticityConfig defaults (A_plus=0.01, A_minus=0.012, tau_plus=tau_minus=20.0, w_min=0.0, w_max=1.5) against jaxfne/plasticity.py's STDPPlasticityConfig dataclass fields shown in the regenerated operator inventory -- exact match to the doc's 'Fixed rule: A_plus=0.01, A_minus=0.012, tau_plus=tau_minus=20 ms, w in [0, 1.5]'. Verified 4 relative cross-links resolve. Searched for cortex_100_stdp_global_sweep.py -- not found in repo or git history (same check as sibling reports).",
-      "status": "needs_followup"
+      "evidence": "Added non-reproducibility note below the 'Reproduce' block (line ~47) for cortex_100_stdp_global_sweep.py/_figure.py and the cortex_100_stdp_global_sweep/ artifact dir -- re-verified absent from working tree and git history 2026-07-03. Historical result tables kept intact. Re-verified STDPPlasticityConfig defaults (A_plus=0.01, A_minus=0.012, tau_plus=tau_minus=20.0, w_min=0.0, w_max=1.5) still match jaxfne/plasticity.py dataclass fields. 4 relative cross-links re-checked, resolve.",
+      "status": "done"
     },
     {
       "path": "docs/STDP_HOMEOSTATIC_REPORT.md",
       "purpose": "Canonical STDP-proxy model: all-neuron closed-loop STDP (both E and I synapses plastic) plus dual synaptic scaling as the minimal homeostatic regulator, stabilizing global_stdp=1.0; also documents an alternative Vogels-Sprekeler inhibitory plasticity rule.",
-      "score": 75,
+      "score": 82,
       "tbi": [
-        "Reproduction scripts cortex_100_homeostatic_stdp.py / cortex_100_homeostatic_stdp_figure.py and artifact dir cortex_100_homeostatic_stdp/ do not exist in the repo or git history.",
-        "The doc states run_stdp_stream updates excitatory synapses only via a hard-coded exc_mask, and that this report's 'all-neuron plasticity' uses a separate script-level implementation (cortex_100_homeostatic_stdp.py) rather than the package kernel -- since that script does not exist in the repo, the all-neuron-plasticity code path this report's headline result depends on is not verifiable or reproducible from the checked-in source."
+        "The all-neuron-plasticity result depends on a script-level code path (cortex_100_homeostatic_stdp.py, not the package's exc-only default kernel) that is not present in-repo to inspect -- documented via the new non-reproducibility note but not resolvable without the missing script."
       ],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified update_stdp_weights_jax(W, trace_pre, trace_post, spiked, exc_mask, A_plus, A_minus, plasticity_scale, w_min, w_max) signature includes an exc_mask parameter (per regenerated operator_inventory.md jaxfne.plasticity section), consistent with the doc's claim that the package kernel masks to excitatory-only by default. Verified Dale's-law sign convention (E clipped [0,1.5], I clipped [-1.5,0]) is consistent with STDPPlasticityConfig's w_min=0.0/w_max=1.5 defaults (doc's dual-sign framing extends beyond the single-sign default config, which is plausible for a script-level modification but not independently checkable without the missing script). Verified 3 relative cross-links resolve (STDP_CLOSED_LOOP_REPORT.md, CORTEX_CALIBRATION_CHECKLIST.md, STDP_GLOBAL_SCALE_REPORT.md/STDP_LOWRATE_REGIME_REPORT.md/STDP_REAL_TEST_REPORT.md). Searched for cortex_100_homeostatic_stdp.py -- not found in repo or git history.",
-      "status": "needs_followup"
+      "evidence": "Added non-reproducibility note below the 'Reproduce' block (line ~53) for cortex_100_homeostatic_stdp.py/_figure.py and cortex_100_homeostatic_stdp/ artifact dir -- re-verified absent from working tree and git history 2026-07-03. Historical tables kept. Scored slightly below sibling STDP reports (82 vs 84) because this report's headline all-neuron-plasticity result explicitly depends on a script-level code path (not the package kernel's exc-only default) that is not present in-repo to inspect -- a real, not fully closeable gap beyond the generic missing-artifact issue. Re-verified update_stdp_weights_jax signature still includes exc_mask param (package kernel default is exc-only, consistent with doc's own caveat). 5 relative cross-links re-checked, resolve.",
+      "status": "done"
     },
     {
       "path": "docs/STDP_LOWRATE_REGIME_REPORT.md",
       "purpose": "Re-run of the global_stdp scale sweep at a rate-compliant ~10 Hz operating point (vs the earlier 43 Hz sweep), quantifying the ~10x rate-to-scale coupling and giving a revised recommended global_stdp band.",
-      "score": 72,
-      "tbi": [
-        "Reproduction scripts cortex_100_stdp_lowrate_sweep.py / cortex_100_stdp_lowrate_figure.py and artifact dir cortex_100_stdp_lowrate_sweep/ do not exist in the repo or git history."
-      ],
+      "score": 84,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified internal numeric consistency: doc's own invariant checks (global_stdp=-1.0 gives LTP=3660/LTD=1929, mirroring +1.0's LTP=1929/LTD=3660) are self-consistent within the doc's own results table (checked row-by-row). Verified all 4 relative cross-links resolve (STDP_CLOSED_LOOP_REPORT.md, CORTEX_CALIBRATION_CHECKLIST.md, STDP_GLOBAL_SCALE_REPORT.md, STDP_REAL_TEST_REPORT.md). Searched for cortex_100_stdp_lowrate_sweep.py -- not found in repo or git history (same check pattern as sibling STDP reports).",
-      "status": "needs_followup"
+      "evidence": "Added non-reproducibility note below the 'Reproduce' block (line ~20) for cortex_100_stdp_lowrate_sweep.py/_figure.py and cortex_100_stdp_lowrate_sweep/ artifact dir -- re-verified absent from working tree and git history 2026-07-03. Historical tables kept. Re-checked internal self-consistency of the +/-1.0 mirror invariant (LTP=1929/LTD=3660 vs LTP=3660/LTD=1929) -- still holds row-for-row. 4 relative cross-links re-checked, resolve.",
+      "status": "done"
     },
     {
       "path": "docs/STDP_REAL_TEST_REPORT.md",
       "purpose": "Applies the package STDP rule to real spike trains from the 100-neuron cortex across a learning-rate (A_plus/A_minus) sweep to verify kernel correctness and characterize the adaptation regime; explicitly post-hoc (not fed back into dynamics).",
-      "score": 74,
-      "tbi": [
-        "Reproduction script cortex_100_stdp_real_test_fast.py and artifact stdp_real_test_results_fast.json do not exist in the repo or git history."
-      ],
+      "score": 84,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified jaxfne.plasticity and jaxfne.streaming modules both exist and are exported (per regenerated operator_inventory.md). Verified clip range [0, 1.5] matches STDPPlasticityConfig.w_max=1.5/w_min=0.0 defaults. Verified all 4 relative cross-links resolve (STDP_CLOSED_LOOP_REPORT.md, STDP_GLOBAL_SCALE_REPORT.md, STDP_LOWRATE_REGIME_REPORT.md, CORTEX_CALIBRATION_CHECKLIST.md). Searched for cortex_100_stdp_real_test_fast.py -- not found in repo or git history.",
-      "status": "needs_followup"
+      "evidence": "Added non-reproducibility note below the 'Reproduce' block (line ~18) for cortex_100_stdp_real_test_fast.py and stdp_real_test_results_fast.json -- re-verified absent from working tree and git history 2026-07-03. Historical tables kept. Re-verified clip range [0, 1.5] matches STDPPlasticityConfig.w_min/w_max defaults. 4 relative cross-links re-checked, resolve.",
+      "status": "done"
     },
     {
       "path": "docs/_generated/operator_inventory.md",
@@ -4730,17 +4717,15 @@
     {
       "path": "docs/api/neuronal_tensor.md",
       "purpose": "API reference for the NeuronalTensor canonical network representation (Areas/Layers/NeuronTypes/Connections), its dataclasses, save/load, merge, and the bridge into Configuration/construct.",
-      "score": 78,
-      "tbi": [
-        "Species-config claim contradiction: doc text says (in the list_canonical_neuronal_tensors section) that jaxfne ships no species-specific (mouse/macaque/human) canonical configs because none would be calibrated -- but jaxfne/configs/default_macaque_V1.json exists on disk and is a valid NeuronalTensor JSON (schema_version present, 1 area). Needs a human decision: either update the doc to acknowledge default_macaque_V1 (and clarify its calibration status), or remove/rename the shipped config if it truly should not exist. Not fixed here because it requires a substantive rewrite of an entire explanatory paragraph, not a one-line correction."
-      ],
+      "score": 96,
+      "tbi": [],
       "tbd": [],
       "warnings": [
-        "The paragraph beginning \"On species-scaled variants\" is now factually contradicted by jaxfne/configs/default_macaque_V1.json shipping in the package; left as-is pending human decision (see tbi)."
+        "The corrected paragraph is now accurate but the file was not otherwise re-audited in full this pass (dataclass fields, list_canonical_neuronal_tensors() output, merge_neuronal_tensors signature were verified in the prior pass and not re-run here since only the species-config paragraph was in scope)."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Verified against jaxfne/neuronal_tensor.py (807 lines). Checked every dataclass via python3 dataclasses.fields() against Geometry3D/NeuronType/Layer/StaticParams/PlasticParams/InterConnection/Pose3D/Area/AreaConnection/NeuronalTensor -- all fields and defaults in the doc matched exactly except NeuronType, which was missing the real fraction: float | None = None field and the matching NeuronType.make(fraction=...) kwarg (neuronal_tensor.py:93-104) -- FIXED (added field + updated make() signature + updated the neuronal_tensor_to_configuration \"What is wired\" bullet to mention the fraction override, matching the real even-split-unless-fraction-declared logic at neuronal_tensor.py:757-769). Verified default_relative_size against emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE (emitters.py:978-985): E=5.0, PV/Inl=1.0, SST/Ing/VIP=1.5 -- doc values correct. Verified list_canonical_neuronal_tensors() against actual ls jaxfne/configs/*.json -- doc hardcoded example list was missing default_macaque_V1 -- FIXED (added to the doc example output list). Verified construct_neuronal_tensor/neuronal_tensor_to_configuration signatures and behavior directly against neuronal_tensor.py:501-515 and :679-807, and against core.py:7272-7312 (construct() dispatch for NeuronalTensor+RuntimeConfiguration inputs, confirming construct_neuronal_tensor is functionally equivalent to the newer construct(tensor, runtime) path) -- all matched. Verified merge_neuronal_tensors signature/behavior line-by-line against neuronal_tensor.py:371-432 (rename-on-collision, poses length check, no cross-tensor AreaConnection inference) -- all matched. Found the species-config contradiction described in tbi/warnings.",
-      "status": "needs_followup"
+      "evidence": "FIXED the species-config contradiction flagged in the prior pass. Read jaxfne/configs/default_macaque_V1.json in full: it IS a real shipped NeuronalTensor config (schema_version=neuronal_tensor_v1, 1 area named V1) with an explicit _provenance block. Verified programmatically that its per-layer E/PV/SST/VIP fractions are byte-identical to jaxfne/configs/canonical-v1-column-1000n.json (python3 comparison: 'fractions identical: True'), which matches what its own _provenance.fraction_basis field self-reports ('inherited unchanged from the existing verified canonical-v1-column-1000n.json template ... NOT an independent pixel-level digitization'). Also confirmed via _provenance.cell_type_mapping that the E/PV/SST/VIP labels are an explicit approximation to the LAP Manuscript's NG/PV/CB/CR taxonomy, not a literal identity, and that synaptic kinetics (GABA_A decay per source cell type, NMDA co-release) were added on top of the reused fractions. Rewrote the 'On species-scaled variants' paragraph (neuronal_tensor.md line ~356) to state accurately that jaxfne does ship one named species-scoped config, describe exactly what is and isn't calibrated in it (fractions reused verbatim, only qualitatively cross-checked; synaptic kinetics manuscript-informed; cell-type mapping an authorized approximation), and redirect the general guidance (build a new config with documented provenance) accordingly instead of falsely claiming no such file exists.",
+      "status": "done"
     },
     {
       "path": "docs/api/objectives.md",
@@ -4833,17 +4818,13 @@
     {
       "path": "docs/api/tensor_operators.md",
       "purpose": "Inventories the jaxfne operator registry (operator_status()) and the concrete public functions behind each pipeline stage (source/field/probe/connectivity/paradigm/objective/optimizer/validation), grounding the TFNE Operator Doctrine in actually-shipped code.",
-      "score": 75,
-      "tbi": [
-        "config_truth_boundary(cfg) is listed as a live 'Validation / bookkeeping operator' (line 108) and referenced again under See Also -> Validation (line 150), but jaxfne/_pipeline.py:33 explicitly states 'validate_config / config_truth_boundary / config_to_trial_batch no longer exist' (their 21 dependent tests were deleted). Also grep confirms no `def config_truth_boundary` anywhere in jaxfne/*.py and it is absent from jaxfne/__init__.py's __all__. This is a stale claim spanning two doc files (this page and docs/api/validation.md, which still has a full '### config_truth_boundary(cfg: JaxFNEConfig) -> dict' section at validation.md:211-224) -- not a one-line fix since it requires deciding what (if anything) replaces it across both files; left unfixed and flagged for human follow-up rather than guessing a replacement."
-      ],
+      "score": 100,
+      "tbi": [],
       "tbd": [],
-      "warnings": [
-        "docs/api/validation.md (linked from this page) independently documents the same stale config_truth_boundary function -- the staleness is not isolated to this file."
-      ],
+      "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "Verified operator_status() dict exactly matches _default_operator_status() (jaxfne/core.py:169-180) key-for-key and value-for-value. Verified all listed pipeline-stage functions exist and are exported via jaxfne/__init__.py __all__: construct_source_tensor (jaxfne/fields/proxy.py:1106, signature (*, mode='total_membrane_current_proxy', total_membrane_current=None, decomposed_cap_ion=None, synaptic_current=None, spike_proxy=None, scale=1.0) matches doc), synaptic_current_tensor/synaptic_tau_from_mechanism/synaptic_tensor_report (jaxfne/core.py), project_laminar_sources/validate_source_field_status/compute_conservation_proxy_diagnostics/csd_tensor (jaxfne/fields/proxy.py), eeg_proxy_transform/meg_proxy_transform/emm_proxy_transform (jaxfne/fields/probes.py:271/295/319), compile_connection_rules (jaxfne/connectivity.py), general_sequential_oddball_paradigm/general_delayed_match_to_sample_paradigm, rate_targets/rate_synchrony_targets, agsdr/gsdr/gsgd/optax_adam/random_search (jaxfne/optim/core.py), is_valid_signal, manifest (jaxfne/io.py:65), run_receipt (jaxfne/core.py:8045, signature (model, signals, *, tags=None) matches doc exactly). Verified all 7 relative links resolve correctly relative to docs/api/: ../operator_doctrine.md, validation.md, ../guides/probe_operators.md, ../guides/configuration_grammar.md, ../limitations_and_future_plans.md, ../guides/objective_grammar.md, ../_generated/operator_inventory.md -- all exist on disk. One confirmed stale API claim (config_truth_boundary) left flagged, not fixed, since it spans two doc files and needs a human decision on replacement content.",
-      "status": "needs_followup"
+      "evidence": "FIXED the config_truth_boundary staleness flagged in the prior pass, matching the exact pattern already used in docs/api/validation.md (validation.md:173-178, 'REMOVED (2026-06-30)' note). Line 108: replaced the config_truth_boundary(cfg) bullet entry with a REMOVED note pointing to validation.md. Line 150 (See Also -> Validation): removed config_truth_boundary() from the inline function list, added a parenthetical '(REMOVED, see note above)'. Re-verified after fix: python3 -c \"import jaxfne; print(hasattr(jaxfne,'config_truth_boundary'))\" -> False (confirms removal is accurate); grep -n config_truth_boundary docs/api/tensor_operators.md now shows only the REMOVED-note lines, no stale 'live operator' claim remains. All other content in this file (operator_status() dict, pipeline-stage function inventory, 7 relative links) was already verified correct in the prior pass and untouched by this fix.",
+      "status": "done"
     },
     {
       "path": "docs/api/validation.md",
@@ -4917,17 +4898,15 @@
     {
       "path": "docs/computation_basis.md",
       "purpose": "Doctrine document describing TFNE's collapsible-tensor computation basis: canonical dimensions/shapes, collapse rules, basis-choice contract, and the shipped laminar-proxy field regime.",
-      "score": 78,
+      "score": 92,
       "tbi": [],
-      "tbd": [
-        "'Implemented in v0.2.26' table cites AxisSpec, BasisSpec, default_basis_spec(), validate_basis_spec(), basis_statement_gate() as living in jaxfne.core/jaxfne.validation -- not verified against current code in this pass (doc explicitly version-pins these to v0.2.26; package is now v0.4.4, so these names should be re-checked for continued existence before the next full review credits this section)."
-      ],
+      "tbd": [],
       "warnings": [
-        "Doctrine/theory content (collapsible dimensions, no-fake-dimensions rule, basis-choice contract) is conceptual and not independently falsifiable against code the way a function signature is -- scored primarily on internal consistency and cross-reference integrity."
+        "Doctrine/theory sections (collapsible dimensions, no-fake-dimensions rule, basis-choice contract) remain conceptual and not independently falsifiable against code the way a function signature is."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "All 7 cross-reference links in the 'See also' section resolve to real files (mathematical_glossary_flow.md, source_field_equations.md, tensor_network_ancestry.md, guides/probe_operators.md, limitations_and_future_plans.md, operator_doctrine.md, tensor_electromagnetics_scope.md all present on disk). PRNG determinism claim ('same seed -> same trajectory') and finiteness-guarantee claim (json.dumps(manifest, allow_nan=False) pattern) are consistent with is_valid_signal/manifest patterns verified elsewhere in this batch (docs/api/validation.md review). Did not re-verify the v0.2.26-pinned AxisSpec/BasisSpec/default_basis_spec/validate_basis_spec/basis_statement_gate table against current jaxfne.core/jaxfne.validation in this pass.",
-      "status": "needs_followup"
+      "evidence": "Re-verified the 'Implemented in v0.2.26' table left unchecked in the prior pass against current code (package now v0.4.4). AxisSpec: exists in jaxfne.core AND is re-exported at jaxfne top level (hasattr(jaxfne,'AxisSpec') -> True), signature (name, status='active', size=None, units_or_status='declared') -- doc description matches. BasisSpec: exists in jaxfne.core, re-exported at top level, signature (space_basis='laminar_depth', time_basis='continuous_ms', field_regime='laminar_proxy', source_mode='proxy_no_field_solve', probe_basis='multimodal_proxy', axes=()) -- matches doc. default_basis_spec(): exists, re-exported, matches. validate_basis_spec(spec): exists in jaxfne.validation, matches. basis_statement_gate(): DOES NOT EXIST -- grep -rn basis_statement_gate jaxfne/ returns nothing, and hasattr checks against jaxfne, jaxfne.validation, and jaxfne.core all return False. This was a false 'implemented' claim; FIXED by removing the row from the table and adding a dated note (re-verified 2026-07-03) explaining the removal and pointing to where claim-level/physical-amplitude gating actually lives (report dict fields like claim_level, physical_amplitude_calibrated, per docs/api/tensor_operators.md's Report shapes section). Also verified the manifest['basis'] row: jaxfne/core.py:6108 confirms res['basis'] = _default_basis_dict(), matching the doc; annotated with the populating function name for precision. Verified the field_regime status table (laminar_proxy active, solved_poisson/reserved_admittive/reserved_maxwell gated-reserved) against jaxfne/core.py:3821-3956 -- BasisSpec.field_regime literals and the 'solved_poisson is specified but not solved in v0.2.x' comment at line 3955-3956 match the doc exactly; no changes needed there. All 7 See-Also links previously verified present on disk, unchanged.",
+      "status": "done"
     },
     {
       "path": "docs/conservation_proxy_diagnostics.md",
@@ -5070,7 +5049,7 @@
     {
       "path": "docs/guides/output_bundles.md",
       "purpose": "Document the JSON-safe output-bundle structure (signals, readouts, metadata, operator_reports) and serialization/save-load pattern.",
-      "score": 78,
+      "score": 92,
       "tbi": [
         "Uses an older/simplified API style (model.simulate(sim), model.compute_readout(signals, specs), model.manifest(signals, readouts)) that is real and still supported (Model.compute_readout at jaxfne/core.py:5016 is explicitly documented there as 'Canonical v0.1 workflow method'; Model.manifest at jaxfne/core.py:5990 is explicitly documented as a 'Compatibility method retained from v0.0.4-v0.0.14... not scheduled for removal') -- but the page never mentions the newer Model.run_receipt()/Model.evaluate_report() path that Model.manifest's own docstring says to prefer. Not a code-doc mismatch (the shown code runs), but readers following only this page will land on the deprecated-in-spirit-if-not-in-practice path without knowing a newer one exists.",
         "The example bundle JSON schema (receipt_id, version, signals.field.lfp/csd nested dict, operator_reports list) is illustrative and was not checked field-by-field against build_manifest's actual output shape (jaxfne/io.py:65) -- plausible-looking but not verified byte-for-byte; flagging rather than fixing since altering illustrative JSON without running it would be a guess."
@@ -5080,13 +5059,13 @@
         "Claim-language check: 'simulated_proxy' status strings used correctly throughout; no dangerous overclaim language ('validated'/'physical'/'proved') found."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Verified Model.compute_readout(self, signals, specs) at jaxfne/core.py:5016 matches doc's model.compute_readout(signals, specs) call shape. Verified Model.manifest(self, signals=None, readout=None, ...) at jaxfne/core.py:5990 accepts (signals, readouts) positionally as doc's model.manifest(signals, readouts) uses -- confirmed compiles/matches, but per manifest()'s own docstring this is the pre-v0.1 compatibility path, not the canonical one. json.dumps(manifest, allow_nan=False) and json.dump(..., allow_nan=False) claims are standard stdlib behavior, correctly used. Cross-refs calibration.md and ../limitations_and_future_plans.md both confirmed present. Score docked for the missing run_receipt/evaluate_report mention and unverified illustrative JSON shape, not for any confirmed-wrong claim.",
-      "status": "needs_followup"
+      "evidence": "Added new section 'The canonical v0.1 path: run_receipt and evaluate_report' after Validation/serialization, documenting Model.run_receipt(signals, tags=None)->RunReceipt (jaxfne/core.py:4921) and Model.evaluate_report(signals, objective, readout_specs=None, readout=None)->ObjectiveReport (jaxfne/core.py:5216), plus the module-level jtfne.run_receipt() wrapper (core.py:8045). Confirmed both are labeled 'Canonical v0.1 workflow method' in their own docstrings and that Model.manifest() docstring (core.py:5990) explicitly names them as the preferred replacement. Checked docs/api/core.md does not document these two methods (no run_receipt/evaluate_report hits), so did not claim a cross-ref to an already-fixed API page -- instead pointed directly at jaxfne/core.py line numbers. Old manifest/compute_readout content left intact and explicitly marked still-valid-but-not-newest. Re-verified post-edit: grep for run_receipt/evaluate_report defs in core.py still match cited line numbers (4921, 5216, 8045).",
+      "status": "done"
     },
     {
       "path": "docs/guides/plotly_visualization.md",
       "purpose": "Guide for generating interactive Plotly HTML visualizations (LFP/CSD/raster/spectrolaminar) from jaxfne simulations, plus output-directory conventions and artifact hygiene.",
-      "score": 70,
+      "score": 90,
       "tbi": [],
       "tbd": [
         "Page footer states 'Status: v0.2.14 / Last updated: 2026-05-20' and requirements.txt example pins 'jaxfne>=0.2.14' -- current installed package version is 0.4.4 (pyproject.toml:7). Not factually wrong as a historical floor, but badly stale framing for a page meant to represent current guidance; a version-alignment pass across all docs (not just this file) would be the right fix rather than a single guessed edit here, since I cannot verify what floor is actually still required.",
@@ -5096,8 +5075,8 @@
         "Proxy-scale labeling guidance is correct and appropriately conservative (explicit 'Correctly labeling proxy-scale readouts' section warning against 'Real LFP recorded from V1 cortex' phrasing) -- aligns with repo claim-language discipline."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Verified jaxfne.io.json_safe exists (jaxfne/io.py:15, 'def json_safe') matching the 'from jaxfne.io import json_safe' import in the final example. Did not find any of the plotly-specific claims (file sizes 10-200KB, CDN vs embedded 3-5MB) checkable against code -- these are generic Plotly library facts, not jaxfne API claims, left as-is. No stale cross-references: probe_operators.md and tensor_field_workflows.md both confirmed present. Score reflects the stale version banner (v0.2.14 vs actual 0.4.4) as the dominant code-doc-theory alignment gap -- did not hand-edit the version number since I could not verify from this pass alone what the current correct minimum/'last updated' value should be; flagging as tbd rather than guessing.",
-      "status": "needs_followup"
+      "evidence": "Verified current version via python3 -c 'import jaxfne as jtfne; print(jtfne.__version__)' = 0.4.4. Updated both stale version references: line 24 requirements.txt pin 'jaxfne>=0.2.14' -> 'jaxfne>=0.4.4', and line 364 footer 'Status: v0.2.14' -> 'Status: v0.4.4' with 'Last updated: 2026-05-20' -> '2026-07-03'. Grepped file post-edit: no remaining 0.2.14 references, both 0.4.4 refs present. Did not touch the plotly-specific file-size/CDN claims (prior review already noted these are generic Plotly facts, not jaxfne API claims, and out of scope for this pass).",
+      "status": "done"
     },
     {
       "path": "docs/guides/poisson_admissibility.md",
@@ -5360,7 +5339,7 @@
     {
       "path": "docs/source_field_equations.md",
       "purpose": "Current-facing spec: source bookkeeping modes, field metadata contracts, forbidden double-counting pattern, manifest field mapping to code locations (proxy_no_field_solve default, CSD sign convention, amplitude_status gate).",
-      "score": 68,
+      "score": 92,
       "tbi": [
         "Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing leading `cfg = (` wrapper) is a syntax error as literally written (lines 52-58) -- multi-line method chain without parens or backslash continuation will raise SyntaxError if pasted verbatim. Same defect repeats in the Example-1 code block at lines 320-331, but there it IS correctly wrapped in `cfg = (\\n jtfne.configuration()\\n .network(...)` parens, so only the first occurrence (lines 51-58) is actually broken.",
         "`jtfne.simulation(...)` in Example 1 (line 335) is called then immediately passed to `model.simulate(sim)` (line 343) -- consistent with the verified current API (jaxfne.core.simulation() and Model.simulate(sim) both confirmed to exist), so this part is correct.",
@@ -5373,8 +5352,8 @@
         "20x spike-impulse gain claim ('spike impulse proxy (20x gain)') not re-verified against DEFAULT_SPIKE_IMPULSE_GAIN's actual numeric value in jaxfne/presets.py in this pass."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Verified against current code: jaxfne.fields.project_laminar_sources exists (jaxfne/fields/__init__.py, re-exported via core.py L39); JaxleyTraceSpec/jaxley_trace_to_signals exist in jaxfne/bridges.py at L127/L235 matching the constructor kwargs shown (layout, dt_ms, spike_threshold). amplitude_status=False and source_calibration_status constants found in jaxfne/core.py near L8280-8285, consistent with claims. Found one real syntax defect (missing `cfg = (` wrapper at lines 51-58) that should be fixed but is a multi-line restructure, not a single unambiguous string replacement, so left as a tbi item rather than auto-fixed.",
-      "status": "needs_followup"
+      "evidence": "Fixed SyntaxError-inducing code sample at docs/source_field_equations.md lines ~51-59: wrapped the multi-line .emitter().field() method chain in 'cfg = ( ... )' (was a bare chained-call fragment missing the opening cfg = ( ). Ran corrected snippet live: python3 -c with the exact wrapped chain (jtfne.configuration().emitter(family='izhikevich', preset='cortical_eig').field(domain='laminar_column', conductivity='proxy', boundary='mean_zero_neumann', gauge='mean_zero')) -> returns jaxfne.core.Configuration, no error. Re-verified other checkable claims unchanged from prior pass: jaxfne.fields.project_laminar_sources exists (jaxfne/fields/__init__.py, re-exported via core.py L39, referenced docs L29/264/265); JaxleyTraceSpec at jaxfne/bridges.py:127, jaxley_trace_to_signals at jaxfne/bridges.py:235, both referenced correctly at docs L371-379. No other syntax/API defects found in a re-read of the rest of the file.",
+      "status": "done"
     },
     {
       "path": "docs/tensor_electromagnetics_scope.md",
@@ -5392,7 +5371,7 @@
     {
       "path": "docs/tensor_network_ancestry.md",
       "purpose": "Current-facing conceptual doc: TFNE basis-transform architecture (emitter->source->field->readout cascade), relationship to Pellionisz/Llinas tensor-network tradition and modern ML tensor networks, and the BasisSpec contract.",
-      "score": 72,
+      "score": 90,
       "tbi": [
         "BasisSpec usage example (Part 5, lines 158-163: `BasisSpec(name=..., units=..., n_dims=...)`) not verified against the real BasisSpec dataclass signature in jaxfne/core.py (class found at line 3909) -- constructor kwargs (name/units/n_dims) were not checked field-by-field against the actual dataclass definition in this pass. Should be checked before treating the code sample as reliable; flagged rather than auto-fixed since dataclass field names are easy to get subtly wrong."
       ],
@@ -5402,8 +5381,8 @@
         "'8 probe operators' claim (Part 4) matches the verified current 8-mode list (spikes, V_m, source, LFP, CSD, EEG-proxy, MEG-proxy, EMM-proxy, confirmed in jaxfne/core.py during this batch's tutorial review), so that specific claim is still accurate."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Cross-references (computation_basis.md, mathematical_glossary_flow.md, source_field_equations.md, operator_doctrine.md) all confirmed present in docs/. The 8-probe-operator claim independently corroborated against jaxfne/core.py L257 mode list. BasisSpec class confirmed to exist (jaxfne/core.py L3909) but its constructor kwargs were not verified against the Part 5 code sample -- flagged as tbi rather than scored as fully verified.",
-      "status": "needs_followup"
+      "evidence": "Fixed fabricated BasisSpec constructor kwargs in docs/tensor_network_ancestry.md Part 5 (lines ~158-165): the sample used name=/units=/n_dims= kwargs that do not exist on the real dataclass. Verified real BasisSpec fields at jaxfne/core.py:3909-3939: space_basis (default 'laminar_depth'), time_basis (default 'continuous_ms'), field_regime (default 'laminar_proxy'), source_mode (default 'proxy_no_field_solve'), probe_basis (default 'multimodal_proxy'), axes (tuple of AxisSpec, defaulted). Replaced sample with a single BasisSpec(...) call using only real field names/defaults, plus a note on the real basis.implemented property (jaxfne/core.py:3949). Ran corrected snippet live: python3 -c constructing BasisSpec with the 5 real kwargs -> succeeds, basis.implemented == True, no error.",
+      "status": "done"
     },
     {
       "path": "docs/tutorial_figures.md",
@@ -5423,7 +5402,7 @@
     {
       "path": "docs/tutorials/01_single_neuron_multimodal.md",
       "purpose": "Current-facing tutorial: single Izhikevich neuron, fluent Configuration chain, simulate, compute_readout, matplotlib visualization.",
-      "score": 62,
+      "score": 90,
       "tbi": [
         "readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _KNOWN_READOUT_METRICS frozenset in jaxfne/core.py (the real metric is 'mean_V_m', confirmed at jaxfne/core.py's _KNOWN_READOUT_METRICS definition: {spike_rate_hz, spike_count, mean_V_m, csd_abs_mean, lfp_abs_mean, source_abs_mean}). This will fail at runtime with an unknown-metric error. Not auto-fixed because the correct replacement (changing 'voltage_mean' -> 'mean_V_m') changes example *output semantics*, not just a path/link, so flagged per task instructions on ambiguous fixes -- though this one is fairly high-confidence and a maintainer should just swap the string."
       ],
@@ -5434,8 +5413,8 @@
         "Colab notebook link points to tutorials/jaxfne_v031_single_neuron.ipynb and examples/v031_single_izhikevich_neuron.py -- neither path was checked for existence in this pass (out of scope: notebook/example file presence, not doc-text claims)."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "jtfne.configuration(), cfg.network/.emitter/.field/.probe, jtfne.construct, jtfne.simulation, and Model.simulate all confirmed to exist and be callable with the shapes shown, via direct introspection of a live jaxfne import in this session. The one concrete defect found: readout_spec metric 'voltage_mean' does not match the real metric name 'mean_V_m' in _KNOWN_READOUT_METRICS -- this is a real code-doc misalignment, not just style.",
-      "status": "needs_followup"
+      "evidence": "Fixed invalid metric name: docs/tutorials/01_single_neuron_multimodal.md:68 changed jtfne.readout_spec('mean_voltage', 'voltage_mean') -> jtfne.readout_spec('mean_voltage', 'mean_V_m'). Verified 'mean_V_m' is the real metric per _KNOWN_READOUT_METRICS docstring at jaxfne/core.py:3109-3111 and readout_spec() signature/docstring at jaxfne/core.py:8131-8144 (metric must be one of spike_rate_hz, spike_count, mean_V_m, csd_abs_mean, lfp_abs_mean, source_abs_mean). Ran corrected snippet live: python3 -c \"import jaxfne as jtfne; jtfne.readout_spec('mean_voltage','mean_V_m')\" -> ReadoutSpec(name='mean_voltage', metric='mean_V_m', ...) with no error. Fix confirmed correct and runnable.",
+      "status": "done"
     },
     {
       "path": "docs/tutorials/02_two_neuron_ei.md",
@@ -5688,7 +5667,7 @@
     {
       "path": "docs/v047_refactor_audit.md",
       "purpose": "Point-in-time (2026-06-28, branch cur, SHA a16b0ea) repository refactor audit -- scale/issue inventory, applied changes, remaining technical debt for the v0.4.7 architecture pass.",
-      "score": 78,
+      "score": 88,
       "tbi": [],
       "tbd": [
         "Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as if still authoritative -- no update/superseded banner. Recommend adding a one-line 'last re-verified against HEAD' note or explicit 'historical audit, see progress.json for current per-file status' pointer in a follow-up; not done here since it changes the doc's framing, not a pure fact-fix.",
@@ -5701,8 +5680,8 @@
         "P1 items independently re-verified as still true/open as of 2026-07-03: docs/HDP_REPORT.md + 5x docs/STDP_*_REPORT.md still present in docs/ (not relocated), examples/03_single_neuron_multimodal_probe.py and examples/04_two_neuron_ei_multimodal.py both still present, jaxfne/tutorial_utils.py is 2031 lines (claimed ~2023, close match). core.py split into config.py/model.py/signals.py/simulate.py confirmed NOT done (no such files exist) -- P0 item #1 genuinely still open."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Re-ran the audit's own scale/debt claims against current repo state rather than trusting them as still-true: git log -1 shows current HEAD a46529e (2026-07-03), different from the audit's cited pre-refactor baseline a16b0ea (2026-06-28) -- confirms real time has passed and some claims will have drifted. wc -l jaxfne/core.py = 8370 (doc claims 8805). find counts: jaxfne/*.py (non-vis) = 48 files, jaxfne/vis = 34 files, tests = 1044 entries, docs/*.md = 89, tutorials = 53 entries, examples = 61 files, .legacy = 7 entries (doc claims 110 tracked), skills/ subdirs = 13 (doc claims 30). Version triple confirmed aligned (0.4.4/0.4.4/0.4.4) contra the doc's own unchecked acceptance box. Confirmed jaxfne/config.py, model.py, signals.py, simulate.py do NOT exist -- P0 core.py-split item genuinely still pending. Confirmed docs/HDP_REPORT.md and docs/STDP_*_REPORT.md (5 files) still under docs/, not relocated -- P1 item #6 still open. Confirmed examples/03_single_neuron_multimodal_probe.py and 04_two_neuron_ei_multimodal.py still present -- P1 item #7 still open (archival not done).",
-      "status": "needs_followup"
+      "evidence": "Re-verified all four flagged numbers against live repo state. wc -l jaxfne/core.py = 8370 (doc said 8805) -- fixed both occurrences (Scale table line 18, P0 list line 183) to 8,370. ls -d skills/*/ | wc -l = 13 (doc said 30) -- fixed Scale table line 26 to 13. .legacy/ count: find .legacy -type f | wc -l = 110, which MATCHES the doc's existing claim of '110 tracked' (line 24) -- prior progress.json evidence for this file claimed actual was 7, which was itself wrong; left the doc's 110 unchanged since it is correct. Version-alignment checkbox (line 226): confirmed pyproject.toml version = 0.4.4, jaxfne.__version__ = 0.4.4, mkdocs.yml extra.jaxfne_version = '0.4.4' (grep mkdocs.yml line 138) -- all three aligned, so checked the box '[x]' with an inline verified-date note. Left all other historical/unverifiable claims (LOC totals for other dirs, P1/P2 issue lists, test counts) untouched per instructions -- this is a dated point-in-time audit, not a full rewrite. Re-verified post-edit: grep for 8,370/8,805/skills stale-30/skills-13/[x] Version aligned all match expected state.",
+      "status": "done"
     },
     {
       "path": "tests/test_etude3_v1_spectrolaminar_1k.py",

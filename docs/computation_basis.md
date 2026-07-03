@@ -298,9 +298,19 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 | `AxisSpec` | `jaxfne.core` | Typed descriptor for one tensor axis (name, status, size, units) |
 | `BasisSpec` | `jaxfne.core` | Typed descriptor for the full computation basis (space, time, field regime, source mode, probe basis) |
 | `default_basis_spec()` | `jaxfne.core` | Returns the default BasisSpec matching the current laminar-proxy scaffold |
-| `validate_basis_spec()` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis contracts |
-| `basis_statement_gate()` | `jaxfne.validation` | Evaluates physical-amplitude status eligibility given basis + runtime status |
-| `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest |
+| `validate_basis_spec(spec)` | `jaxfne.validation` | Validates a BasisSpec or dict against computation-basis contracts |
+| `manifest["basis"]` | `jaxfne.core.Model.manifest()` | Nested basis metadata block in every run manifest (populated by `jaxfne.core._default_basis_dict()`) |
+
+> **Note (re-verified 2026-07-03):** `basis_statement_gate()` does not exist —
+> not in `jaxfne.validation`, not anywhere in the `jaxfne` package, and not in
+> `jaxfne.__all__`. This table previously claimed it as implemented; that was
+> false and has been removed. Physical-amplitude/claim-level eligibility is
+> represented directly in report dicts (`claim_level`,
+> `physical_amplitude_calibrated`, etc. — see
+> [Tensor Operators — Report shapes](api/tensor_operators.md#report-shapes))
+> rather than through a dedicated gate function. `AxisSpec`, `BasisSpec`, and
+> `default_basis_spec()` all exist in `jaxfne.core` and are re-exported at the
+> `jaxfne` top level (`jaxfne.AxisSpec` works directly) as documented.
 
 **Allowed `BasisSpec.field_regime` values and their status:**
 

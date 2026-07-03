@@ -63,6 +63,50 @@ This ensures:
 - All arrays converted to lists for JSON portability
 - Metadata is human-readable and auditable
 
+## The canonical v0.1 path: `run_receipt` and `evaluate_report`
+
+`Model.manifest()` (shown above) is a **compatibility method retained from
+v0.0.4–v0.0.14**. It still works and is not scheduled for removal, but for
+new code the canonical v0.1 workflow is two typed, immutable, JSON-safe
+alternatives:
+
+- **`Model.run_receipt(signals, *, tags=None) -> RunReceipt`** — captures a
+  completed simulation run for audit/reproducibility. Produces a
+  deterministic `receipt_id` derived from `(config_hash, seed,
+  jaxfne_version)`. Prefer this over `manifest()` for recording runs.
+- **`Model.evaluate_report(signals, objective, *, readout_specs=None,
+  readout=None) -> ObjectiveReport`** — evaluates an `Objective` and returns
+  a frozen, JSON-safe report (losses, regularizers, gates,
+  `all_gates_pass`, embedded readout results, and a `truth` dict with the
+  standard truth-gate fields: `claim_level`, `physical_amplitude_calibrated`,
+  `empirical_validation_status`, etc.). Prefer this over `evaluate()` when a
+  typed, auditable result is needed.
+
+A module-level convenience wrapper also exists: `jtfne.run_receipt(model,
+signals, tags=None)`, equivalent to `model.run_receipt(signals, tags=tags)`.
+
+```python
+import jaxfne as jtfne
+
+model = jtfne.construct(cfg)
+signals = model.simulate(sim)
+
+# Canonical v0.1 receipt (replaces model.manifest() for run auditing)
+receipt = model.run_receipt(signals, tags={"paper": "etude_8"})
+
+# Canonical v0.1 objective evaluation (replaces model.evaluate())
+report = model.evaluate_report(signals, objective, readout_specs=specs)
+```
+
+Both `RunReceipt` and `ObjectiveReport` are dataclasses with JSON-safe
+contents; serialize them the same way as `manifest()`'s dict output (e.g.
+`json.dumps(jtfne.io.json_safe(receipt.__dict__), allow_nan=False)`), subject
+to the same NaN/Inf checks described above. The `manifest`/`compute_readout`
+path documented in this guide remains valid — it is simply not the newest
+recommended entry point. See `jaxfne/core.py` (`Model.run_receipt`,
+`Model.evaluate_report`) for the full signatures and docstrings; there is no
+separate `docs/api/` page for these two methods as of this writing.
+
 ## Output readout specs
 
 Common readout specifications:

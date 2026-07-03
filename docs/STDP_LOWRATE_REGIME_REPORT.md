@@ -18,6 +18,11 @@ python cortex_100_stdp_lowrate_figure.py   # → PNG (vs the 43 Hz regime)
 ```
 Artifacts: `cortex_100_stdp_lowrate_sweep/{stdp_lowrate_sweep.json, stdp_lowrate_sweep.png}`.
 
+> **Not reproducible as described:** these scripts and artifact files are not
+> preserved in this repo (verified absent from working tree and full git
+> history 2026-07-03). This report documents a historical result, not a
+> currently-reproducible one.
+
 ## Regime (rate-compliant ✅)
 
 Baseline E-drive **2 nA**, no (s,d) stimulus, 25,000 ms, dt = 0.1 ms:
