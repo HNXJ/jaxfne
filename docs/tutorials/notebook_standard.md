@@ -49,8 +49,9 @@ Use `Kernel → Clear all outputs` in Jupyter before committing.
 When applicable, notebooks **should** demonstrate and inspect jaxfne's output bundles:
 
 ```python
-# Run simulation
-signals = model.simulate(sim)
+# Run simulation (jtfne.simulate(model, sim) is equivalent to model.simulate(sim);
+# use the free function for consistency with the rest of the tutorial set)
+signals = jtfne.simulate(model, sim)
 
 # Inspect manifest
 manifest = model.manifest(signals)

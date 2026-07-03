@@ -311,6 +311,9 @@ python scripts/validate_tutorial_outputs.py outputs/
 
 ## Implementation Status
 
+**Note:** the checklist below is a historical implementation-status snapshot
+from v0.2.19/v0.2.20 and may not reflect the current package (0.4.4) status.
+
 **v0.2.19:**
 - ✓ All 4 tutorials generate figures
 - ✓ Figure hashes in asset_hashes.json
@@ -320,7 +323,12 @@ python scripts/validate_tutorial_outputs.py outputs/
 **v0.2.20 (in development):**
 - ✓ Automated runner script (scripts/run_all_tutorials.py)
 - ✓ Independent validator script (scripts/validate_tutorial_outputs.py)
-- ⧵ CI integration (smoke mode with realistic runtime)
+- ⧵ CI integration (smoke mode with realistic runtime) — re-verified 2026-07-03:
+  still not wired. `.github/workflows/ci.yml` and `release_ci.yml` only run
+  `examples/*.py` smokes and a wheel-install smoke; `notebook_execution.yml`
+  runs `pytest -m notebook` nightly. None of these invoke
+  `scripts/run_all_tutorials.py` or `scripts/validate_tutorial_outputs.py`
+  (both still present on disk) as a dedicated tutorial-output CI gate.
 - ⧵ Plotly interactive figures (deferred to v0.2.21)
 
 ---

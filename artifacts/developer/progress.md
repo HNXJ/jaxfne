@@ -296,12 +296,10 @@
 | jaxfne/sanity_delta.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/sanity_runtime.py | 80 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/validation.py | 80 | unreviewed |  |  | 2026-06-30 |
-| docs/guides/tensor_field_workflows.md | 80 | needs_followup |  | Uses the same older Configuration builder style as output_bundles.md (jtfne.configuration().network(n=1).emitter(family= | 2026-07-03 |
 | jaxfne/fields/solvers.py | 82 | unreviewed |  |  | 2026-06-30 |
 | docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
 | docs/STDP_HOMEOSTATIC_REPORT.md | 82 | done | The all-neuron-plasticity result depends on a script-level code path (cortex_100_homeostatic_stdp.py, not the package's  |  | 2026-07-03 |
 | docs/faq.md | 82 | done |  |  | 2026-07-03 |
-| docs/migration_guide.md | 82 | needs_followup | Quick-comparison table (JSON round-trip row) claims Configuration uses 'load_config/config_to_configuration (.jcfg.json  |  | 2026-07-03 |
 | docs/releases/v0.3.4.md | 82 | done |  | Code sample (cfg.runtime/.column/.cell_types/.connectivity/.set_emitter/.probes) uses a DIFFERENT chaining vocabulary th | 2026-07-03 |
 | docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md | 82 | done |  |  | 2026-07-03 |
 | docs/BASELINE_DRIVE_REFERENCE.md | 83 | done |  |  | 2026-07-03 |
@@ -317,7 +315,6 @@
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
 | docs/HDP_REPORT.md | 85 | done | The doc's phrase 'Generic builder (jaxfne.hdp_network)' names jaxfne.hdp_network as if it were a callable builder; it is |  | 2026-07-03 |
-| docs/api/index.md | 85 | needs_followup | The 'Complete public symbol index' Core table only lists 61 of the module's real symbols after removing the 9 dead names |  | 2026-07-03 |
 | docs/api/plasticity.md | 85 | done |  |  | 2026-07-03 |
 | docs/colab.md | 85 | done |  | manifest['basis'] key names in the printed example ('jaxfne_version', 'model_status', 'amplitude_status', 'field_solver_ | 2026-07-03 |
 | docs/conservation_proxy_diagnostics.md | 85 | done |  |  | 2026-07-03 |
@@ -336,17 +333,14 @@
 | jaxfne/vis/plotly/manuscript/figure2.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure3.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | jaxfne/vis/plotly/manuscript/figure4.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
-| docs/api/sharding.md | 88 | needs_followup | Page does not mention that jaxfne/sharding_utils.py's own module docstring labels these as 'stubs: they set up the topol |  | 2026-07-03 |
 | docs/changelog.md | 88 | done |  |  | 2026-07-03 |
 | docs/guides/jaxley_interop.md | 88 | done |  | examples/03_jaxley_bridge_smoke.py also exists but is not referenced from this page -- could be added alongside the refe | 2026-07-03 |
 | docs/interactive_visualizations.md | 88 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.10.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/02_two_neuron_ei.md | 88 | done |  |  | 2026-07-03 |
-| docs/tutorials/03_network_100_ei.md | 88 | needs_followup |  |  | 2026-07-03 |
 | docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/06_v036_100_neuron_ei_population.md | 88 | done |  |  | 2026-07-03 |
 | docs/tutorials/11_multi_laminar_cortical_agsdr.md | 88 | done |  |  | 2026-07-03 |
-| docs/tutorials/tutorial_outputs.md | 88 | needs_followup | FIXED 2026-07-03: '--out-root OUTPUT_DIR' was documented as controlling output location ('default: outputs/') but script |  | 2026-07-03 |
 | docs/v047_refactor_audit.md | 88 | done |  | Doc is an explicitly dated snapshot (header states 'Generated: 2026-06-28', SHA a16b0ea) but is read by users/agents as  | 2026-07-03 |
 | local/gen_test_data_100n_1000ms.py | 88 | done |  |  | 2026-07-01 |
 | jaxfne/optim/core.py | 88 | done |  |  | 2026-07-01 |
@@ -364,20 +358,16 @@
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
 | docs/NEURON_IO_CHARACTERIZATION.md | 90 | done |  |  | 2026-07-03 |
-| docs/api/validation.md | 90 | needs_followup |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
 | docs/ci_policy.md | 90 | done |  |  | 2026-07-03 |
 | docs/contributing.md | 90 | done |  |  | 2026-07-03 |
 | docs/guides/calibration.md | 90 | done |  |  | 2026-07-03 |
 | docs/guides/plotly_visualization.md | 90 | done |  | Page footer states 'Status: v0.2.14 / Last updated: 2026-05-20' and requirements.txt example pins 'jaxfne>=0.2.14' -- cu | 2026-07-03 |
-| docs/guides/probe_operators.md | 90 | needs_followup |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
-| docs/performance_baseline.md | 90 | needs_followup |  |  | 2026-07-03 |
 | docs/releases/v0.2.18.md | 90 | done |  |  | 2026-07-03 |
 | docs/tensor_network_ancestry.md | 90 | done | BasisSpec usage example (Part 5, lines 158-163: `BasisSpec(name=..., units=..., n_dims=...)`) not verified against the r |  | 2026-07-03 |
 | docs/tutorials/01_single_neuron_multimodal.md | 90 | done | readout_spec('mean_voltage', 'voltage_mean') at line 68 uses metric name 'voltage_mean', which is NOT in the verified _K |  | 2026-07-03 |
 | docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md | 90 | done |  |  | 2026-07-03 |
 | docs/tutorials/08_v038_lfp_csd_readout.md | 90 | done |  |  | 2026-07-03 |
 | docs/tutorials/12_izhikevich_single_emitter_explorer.md | 90 | done |  |  | 2026-07-03 |
-| docs/tutorials/notebook_standard.md | 90 | needs_followup |  |  | 2026-07-03 |
 | scripts/hdp_suite2_visualizations.py | 90 | done |  |  | 2026-07-01 |
 | examples/02_omission_scaffold.py | 90 | done |  |  | 2026-07-01 |
 | examples/03_objective_and_tune_smoke.py | 90 | done |  |  | 2026-07-01 |
@@ -427,6 +417,7 @@
 | docs/guides/homeostasis.md | 93 | done |  | Consider a one-line note that the built-in kernel's default r_star (0.05, from jaxfne/core.py:2363 RuntimeConfig.homeost | 2026-07-03 |
 | docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
 | docs/mathematical_glossary_flow.md | 94 | done |  |  | 2026-07-03 |
+| docs/migration_guide.md | 94 | done |  |  | 2026-07-03 |
 | docs/tensor_electromagnetics_scope.md | 94 | done |  |  | 2026-07-03 |
 | jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/__init__.py | 95 | unreviewed |  |  | 2026-06-30 |
@@ -439,18 +430,24 @@
 | docs/api/objectives.md | 95 | done |  |  | 2026-07-03 |
 | docs/api/solvers.md | 95 | done |  |  | 2026-07-03 |
 | docs/guides/poisson_admissibility.md | 95 | done |  |  | 2026-07-03 |
+| docs/guides/probe_operators.md | 95 | done |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
 | docs/notes/biophysical_model_comparison.md | 95 | done |  |  | 2026-07-03 |
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
+| docs/api/sharding.md | 96 | done |  |  | 2026-07-03 |
+| docs/guides/tensor_field_workflows.md | 96 | done |  | STYLE QUESTION RESOLVED (2026-07-03): confirmed this doc's older Configuration builder-facade style (jtfne.configuration | 2026-07-03 |
 | docs/limitations_and_future_plans.md | 96 | done |  |  | 2026-07-03 |
 | docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
+| docs/tutorials/03_network_100_ei.md | 96 | done |  |  | 2026-07-03 |
+| docs/tutorials/tutorial_outputs.md | 96 | done |  |  | 2026-07-03 |
 | docs/guides/index.md | 97 | done |  |  | 2026-07-03 |
 | docs/guides/objective_grammar.md | 97 | done |  |  | 2026-07-03 |
 | docs/index.md | 97 | done |  |  | 2026-07-03 |
 | docs/install.md | 97 | done |  |  | 2026-07-03 |
+| docs/performance_baseline.md | 97 | done |  |  | 2026-07-03 |
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
 | jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
@@ -493,9 +490,12 @@
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
 | docs/_generated/version.md | 100 | done |  |  | 2026-07-03 |
+| docs/api/index.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/tensor_operators.md | 100 | done |  |  | 2026-07-03 |
+| docs/api/validation.md | 100 | done |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
 | docs/releases/v0.2.0.md | 100 | done |  |  | 2026-07-03 |
 | docs/releases/v0.2.1.md | 100 | done |  |  | 2026-07-03 |
+| docs/tutorials/notebook_standard.md | 100 | done |  |  | 2026-07-03 |
 | .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/test_v030_docs_audit.py | 100 | done |  |  | 2026-07-01 |

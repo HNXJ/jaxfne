@@ -15,6 +15,12 @@ These utilities enable distributing parameter sweeps across JAX devices.
 On single-device environments (CPU, single GPU), all functions return `None`
 so downstream code can gate sharding with a simple `if ctx is not None` check.
 
+**Stub status:** per `jaxfne/sharding_utils.py`'s own module docstring, these
+functions are stubs — they set up the mesh/`PartitionSpec` topology but do not
+yet drive any real multi-device dispatch in the AGSDR loop. Full integration
+is planned for v0.3.20+. Do not assume calling these already parallelizes an
+AGSDR sweep across devices.
+
 ---
 
 ## `make_population_mesh`

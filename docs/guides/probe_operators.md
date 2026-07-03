@@ -26,7 +26,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Spike matrix: `[T, N]` (time × neurons)
 - Event table: rows with timestamp, neuron_id, area, layer, cell_type
 
-**v0.2.1 status:** Simulated spike readout from emitter.
+**Status (verified v0.4.4):** Simulated spike readout from emitter.
 
 ---
 
@@ -42,7 +42,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Scope note:** The emitter voltage represents model state; the report declares its specific interpretation and scope.
 
-**v0.2.1 status:** State voltage from emitter; proxy readout.
+**Status (verified v0.4.4):** State voltage from emitter; proxy readout.
 
 ---
 
@@ -56,7 +56,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `source_decomposition: proxy_reduced_emitter` (or other declared mode)
 - `source_calibration_status: proxy_izhikevich_current` (or calibrated status)
 
-**v0.2.1 status:** Proxy source from emitter state; computational readout.
+**Status (verified v0.4.4):** Proxy source from emitter state; computational readout.
 
 ---
 
@@ -64,7 +64,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Purpose:** Sample or average extracellular potential state at contacts.
 
-**Acceptable v0.2.1 implementation:**
+**Acceptable implementation:**
 - Point sample from `phi_e` proxy/solution
 - Finite-contact average
 - Laminar contact average over declared depths/layers
@@ -78,7 +78,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.4):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -86,7 +86,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Purpose:** Estimate current-source density profile or second spatial derivative/divergence proxy.
 
-**Acceptable v0.2.1 implementation:**
+**Acceptable implementation:**
 - `div(J_e)` when `J_e` exists
 - Second spatial derivative of laminar potential proxy
 - Source-profile proxy with explicit sign convention
@@ -103,7 +103,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Finite output
 - Sign convention exported
 
-**v0.2.1 status:** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.4):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -111,7 +111,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Purpose:** Provide a simulated scalp-channel proxy readout using a declared toy or proxy lead field.
 
-**Acceptable v0.2.1 implementation:**
+**Acceptable implementation:**
 
 ```
 y_eeg(t, c) = sum_k L_eeg[c, k] * s_k(t)
@@ -130,7 +130,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 **Scope:** EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**v0.2.1 status:** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.4):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -138,7 +138,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 **Purpose:** Provide a simulated magnetometer proxy readout using a declared current-orientation or lead-field proxy.
 
-**Acceptable v0.2.1 implementation:**
+**Acceptable implementation:**
 
 ```
 y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
@@ -156,7 +156,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 
 **Scope:** MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**v0.2.1 status:** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.4):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -168,7 +168,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 EMM = electromagnetic metabolism estimate proxy
 ```
 
-**Interpretation in v0.2.1:**
+**Interpretation:**
 
 ```
 normalized electrophysiological activity / electromagnetic energy cost proxy
@@ -193,7 +193,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 **Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
 
-**v0.2.1 status:** Normalized activity cost proxy; exploratory metric for optimization.
+**Status (verified v0.4.4):** Normalized activity cost proxy; exploratory metric for optimization.
 
 ---
 
@@ -257,9 +257,9 @@ Each operator returns a JSON-safe report $R_k$ declaring operator type, computat
 
 ---
 
-## Current Status: v0.2.1 Simulated / Proxy
+## Current Status: Simulated / Proxy (verified as of v0.4.4)
 
-All eight operators in v0.2.1 are simulated or proxy readouts:
+All eight operators remain simulated or proxy readouts as of v0.4.4:
 
 | Operator | Status | Notes |
 |----------|--------|-------|
@@ -332,5 +332,5 @@ print(emm_readout.report)
 
 ---
 
-**Document version:** v0.2.1  
-**Last updated:** 2026-05-20
+**Document version:** v0.4.4  
+**Last updated:** 2026-07-03

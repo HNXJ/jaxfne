@@ -218,7 +218,6 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 ## References and Related Docs
 
 - `docs/tutorials/tutorial_outputs.md` — tutorial runtime contracts
-- `docs/jax_compatibility.md` — JAX baseline and device fallback
 - `scripts/benchmark_jaxfne.py` — benchmark source code
 - `benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
 - `scripts/validate_json_safe.py` — JSON safety validator

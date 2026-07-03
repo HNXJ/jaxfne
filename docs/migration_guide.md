@@ -82,7 +82,7 @@ or export code either way.
 |---|---|---|
 | Style | Declarative data model (`Area`, `Layer`, `NeuronType`) | Fluent method chain (`.runtime().column().cell_types()...`) |
 | Runtime object | `RuntimeConfiguration` (no HDP field) | `RuntimeConfig` (has `enable_hdp`/`hdp_params`) |
-| JSON round-trip | `save_neuronal_tensor`/`load_neuronal_tensor`, or `jtfne.load`/canonical loaders | `load_config`/`config_to_configuration` (`.jcfg.json` format — distinct from `NeuronalTensor` JSON) |
+| JSON round-trip | `save_neuronal_tensor`/`load_neuronal_tensor`, or `jtfne.load`/canonical loaders | No dedicated method — verified generic path: `json.loads(json.dumps(dataclasses.asdict(cfg)))` then `Configuration(**loaded)` reconstructs an equal object |
 | HDP homeostatic plasticity | Native (pass `runtime=RuntimeConfig(enable_hdp=True, ...)` override to `simulate()`) | Same override pattern works identically |
 | Multi-trial spectrolaminar sweeps | Not yet a dedicated tensor-first helper — use `Configuration` via `tutorial_utils` | `make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` |
 | Result type | `Model` / `Signals` | `Model` / `Signals` (or plain `dict` via `tutorial_utils`) |

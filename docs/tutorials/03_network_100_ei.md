@@ -68,7 +68,7 @@ from jaxfne.fields import (
 
 spk_readout = spk_probe(signals.spikes)
 vm_readout = vm_probe(signals.V_m)
-source_readout = source_probe(signals.sources[0])
+source_readout = source_probe(signals.sources)
 lfp_readout = lfp_proxy_probe(signals.field.lfp_proxy)
 csd_readout = csd_proxy_probe(signals.field.csd_proxy)
 eeg_readout = eeg_proxy_probe(signals.field.lfp_proxy)

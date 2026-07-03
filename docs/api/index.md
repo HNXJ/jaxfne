@@ -29,7 +29,7 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 | [Objectives](objectives.md) | `Objective`, `ObjectiveReport`, rate targets | (in Core) |
 | [Runtime](runtime.md) | `RuntimeConfig`, `enable_x64`, `runtime_report` | (in Core) |
 | [Validation](validation.md) | config/field validators, `operator_status`, `is_valid_signal` | 2 |
-| [Neuronal tensor](neuronal_tensor.md) | `NeuronalTensor`, `Area`, `AreaConnection`, `Layer`, `NeuronType`, `Pose3D`, mergers/bridges into `Configuration` | 18 |
+| [Neuronal tensor](neuronal_tensor.md) | `NeuronalTensor`, `Area`, `AreaConnection`, `Layer`, `NeuronType`, `Pose3D`, mergers/bridges into `Configuration` | 23 |
 | [Plasticity](plasticity.md) | `STDPPlasticityConfig`, `STDPState`, `update_stdp_weights_jax`, `summarize_stdp_adaptation` | 5 |
 | [Solvers](solvers.md) | `SolverConfig`, `EulerSolver`, `DiffraxSolver`, `solve_ode` | 7 |
 | [Sharding](sharding.md) | `get_sharding_context`, `make_population_mesh`, `make_candidate_sharding`, `make_replicated_sharding` | 4 |
@@ -206,9 +206,9 @@ and figure/readout outputs remain proxy diagnostics
 
 ## Complete public symbol index
 
-`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**246 names** live; this table currently lists 211 rows — the 9 dead names removed 2026-07-03 plus a pre-existing gap between the documented 238 and the live 246 that has not yet been reconciled row-by-row). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
+`func`/`class`/`const`/`module` as resolved from `jaxfne.__all__` (**246 names** live; this table now lists all 246 rows — reconciled 2026-07-03 by diffing every documented symbol against `sorted(jaxfne.__all__)`; 0 stale names found, 35 missing names added below under **Neuronal Tensor** (23), **Model/config diff & validation utils** (11), and **Core** (+1, `compute_fields`)). Summaries are the first docstring line; `_(undocumented)_` marks public callables with no docstring in the released wheel.
 
-### Core (61)
+### Core (62)
 
 > **Correction (2026-07-03):** 9 names previously listed here (`JaxFNEConfig`,
 > `validate_config`, `ConfigValidationResult`, `config_truth_boundary`,
@@ -225,6 +225,7 @@ and figure/readout outputs remain proxy diagnostics
 | `Config` | class | Declarative TFNE model configuration. |
 | `Configuration` | class | Declarative TFNE model configuration. |
 | `configuration` | func | —  _(undocumented)_ |
+| `compute_fields` | func | Canonical field-stage entry point: `fields = jtfne.compute_fields(model, signals)`. |
 | `connect` | func | Fuse two or more constructed `Model`s into one ensemble Model. |
 | `construct` | func | —  _(undocumented)_ |
 | `dataset_spec` | func | Return a DatasetSpec schema declaration. |
@@ -281,6 +282,62 @@ and figure/readout outputs remain proxy diagnostics
 | `TrialSpec` | class | Specification for a single simulation trial. |
 | `TuneResult` | class | Result object returned by Model.tune() with multi-parameter optimization. |
 | `with_emitter_parameters` | func | Functional wrapper for `Model.with_emitter_parameters`. |
+
+### Neuronal Tensor (23)
+
+> Added 2026-07-03 (reconciliation pass) — these 21 names live in
+> `jaxfne.neuronal_tensor` and were exported in `__all__` but had no table in
+> this index. See the [Neuronal tensor](neuronal_tensor.md) module page for the
+> `NeuronalTensor`/`Area`/`AreaConnection`/`Layer`/`NeuronType` build path and
+> HDP homeostatic-plasticity module.
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `Area` | class | Area(name, layers, inter_connections) — one areal unit of a NeuronalTensor. |
+| `AreaConnection` | class | Between-area connection: `[source(Area,Layer,NeuronType), target(Area,Layer,NeuronType), mechanism]`. |
+| `Geometry3D` | class | Always 3D. Collapse an axis to a 2D/1D layer by fixing it at 0.0. |
+| `InterConnection` | class | Within-area connection: `[source(Layer,NeuronType), target(Layer,NeuronType), mechanism]`. |
+| `Layer` | class | Layer(name, neuron_types, geometry) — one laminar layer of an Area. |
+| `NeuronType` | class | NeuronType(name, relative_size, fraction, ...) — one cell-type population within a Layer. |
+| `NeuronalTensor` | class | The canonical network representation: `[Areas, AreaConnections]`. |
+| `PlasticParams` | class | Trainable/gradientable: per-connection gain (`wMech`) and homeostatic H-factor. |
+| `Pose3D` | class | Where an Area's layer stack sits in global 3D space. |
+| `RuntimeConfiguration` | class | Execution-only configuration for the tensor-first workflow. |
+| `StaticParams` | class | Never plastic/trainable/gradientable: conductances, reversal potentials, dT. |
+| `NEURONAL_TENSOR_SCHEMA_VERSION` | const | Schema-version string (`"neuronal_tensor_v1"`) stamped into saved NeuronalTensor JSON. |
+| `configs_dir` | func | Return the path to the package's canonical NeuronalTensor JSON library. |
+| `construct_neuronal_tensor` | func | Compatibility wrapper around `jaxfne.construct`. |
+| `default_relative_size` | func | Default relative soma size by cell type; matches HDP size-scaling table. |
+| `list_canonical_neuronal_tensors` | func | Return the names (without `.json`) of every canonical config in `configs_dir()`. |
+| `load` | func | Canonical loader: load a NeuronalTensor from its JSON config file. |
+| `load_canonical_neuronal_tensor` | func | Load a canonical NeuronalTensor by name from `configs_dir()`. |
+| `load_neuronal_tensor` | func | Compatibility wrapper. Prefer `load`. |
+| `merge_neuronal_tensors` | func | The "unifier": concatenate several NeuronalTensors' areas into one. |
+| `neuronal_tensor_to_configuration` | func | Bridge a `NeuronalTensor` into the existing construct/simulate pipeline. |
+| `save_neuronal_tensor` | func | Save a NeuronalTensor as a JSON config file. Configs are data, never code. |
+| `validate_neuronal_tensor` | func | Return structural-consistency warnings for a NeuronalTensor. |
+
+### Model/config diff & validation utils (11)
+
+> Added 2026-07-03 (reconciliation pass) — 4 names from `jaxfne._pipeline`
+> (checkpoint/restore + `DynamicState` for HDP edge-list execution) and 7 from
+> `jaxfne.util` (declarative diff/merge/validate helpers for `Configuration`,
+> `RuntimeConfig`, and built `Model`s), all present in `__all__` but previously
+> untabled.
+
+| Symbol | Kind | Summary |
+|---|---|---|
+| `DynamicState` | class | Canonical HDP edge-list carry tuple (Phase 2 canonical execution mode). |
+| `checkpoint_state` | func | Serialize `model.params` (dynamic) and `model.static` to disk. |
+| `dynamic_state_from_model` | func | Build a cold-start `DynamicState` from `model.params`. |
+| `restore_state` | func | Inverse of `checkpoint_state`. Returns `(leaves, static)`. |
+| `configuration_diff` | func | Return `{field_name: (a_value, b_value)}` for declarative fields that differ. |
+| `merge_runtime_configs` | func | Layer `cfgs` left-to-right; later non-default value wins. |
+| `model_diff` | func | Return a sweep-comparison summary between two built `Model` instances. |
+| `runtime_config_diff` | func | Return `{field_name: (a_value, b_value)}` for every field where `a != b`. |
+| `tensor_summary` | func | Return a flat, JSON-safe summary of a NeuronalTensor: counts and cell-type inventory. |
+| `validate_model` | func | Return structural/numerical consistency warnings for a built `Model`. |
+| `validate_runtime_config` | func | Return consistency warnings for a `RuntimeConfig` beyond its own `__post_init__`. |
 
 ### Emitters (22)
 
