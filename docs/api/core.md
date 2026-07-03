@@ -2,7 +2,7 @@
 
 Main classes for configuration, model construction, simulation, and signal handling.
 
-All source references below are `jaxfne/core.py` unless noted.
+All source references below are `jaxfne/core.py`; other files are noted explicitly.
 
 ## Configuration
 
@@ -11,8 +11,8 @@ jaxfne.Configuration()
 ```
 
 Declarative TFNE model configuration (`core.py:1109`, frozen dataclass). It is the
-anatomical/model declaration, not the compiled model. Methods return new objects
-(immutable, chainable construction).
+anatomical/model declaration, separate from the compiled model. Methods return new
+objects (immutable, chainable construction).
 
 ### Fields
 
@@ -24,8 +24,8 @@ Real dataclass fields (`core.py:1117-1121`):
 - `probes` (`_ProbeDeclarations`, a list-like, callable proxy — see below)
 - `metadata` (`dict`, default from `_default_metadata()`)
 
-There is no `column`/`cell_type_map`/etc. field — those are metadata written by the
-chainable methods below, not top-level dataclass fields.
+`column`/`cell_type_map`/etc. are metadata written by the chainable methods below,
+distinct from the top-level dataclass fields listed above.
 
 ### Methods
 
@@ -37,9 +37,9 @@ more (e.g. `plasticity`, `homeostasis`, `hdp`, `mechanisms`, `connections`, `les
 
 #### `runtime(**kwargs) -> Configuration`
 
-`core.py:1219`. Maps directly to `update_metadata(**kwargs)` — this is a metadata
-write, not a compiled `RuntimeConfig`. Typical keys: `seed`, `dtype`, `duration_ms`,
-`dt_ms`.
+`core.py:1219`. Maps directly to `update_metadata(**kwargs)` — this is a plain
+metadata write, distinct from a compiled `RuntimeConfig`. Typical keys: `seed`,
+`dtype`, `duration_ms`, `dt_ms`.
 
 **Example:**
 ```python
@@ -62,9 +62,9 @@ cfg = cfg.column("V1", layers=["L2/3", "L4", "L5"], n=100)
 #### `cell_types(fractions: Mapping[str, float]) -> Configuration`
 
 `core.py:1379`. Sets cell-type fractions in `metadata["cell_types"]` and on
-`networks[0]["cell_types"]`. Values are **not normalized** — stored exactly as
-given. Raises `ValueError` on empty input, non-finite/negative fractions, or
-zero total mass.
+`networks[0]["cell_types"]`. Values are stored exactly as given, unnormalized.
+Raises `ValueError` on empty input, non-finite/negative fractions, or zero
+total mass.
 
 **Example:**
 ```python
@@ -72,17 +72,18 @@ cfg = cfg.cell_types({"E": 0.8, "PV": 0.2})
 ```
 
 Valid labels for the Izhikevich emitter family are `E`, `PV`, `Inl`, `SST`,
-`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — a generic
-`"I"` aggregate label is not accepted; `construct()` raises `ValueError:
-unknown Suite No. 2 cell type label` for any other string. `cell_types()`
-itself does not validate labels (it just stores the dict); the error
-surfaces later, at `construct()` time.
+`Ing`, `VIP` (`jaxfne.emitters.IZHIKEVICH_CELL_TYPE_DEFAULTS`) — only these
+specific labels are accepted, a generic `"I"` aggregate label is rejected;
+`construct()` raises `ValueError: unknown Suite No. 2 cell type label` for
+any other string. `cell_types()` itself just stores the dict as given; label
+validation happens later, at `construct()` time.
 
 #### `connectivity(**kwargs) -> Configuration`
 
 `core.py:1412`. Declares connectivity metadata into `metadata["connectivity"]`
 (merged with any prior call) and sets `metadata["connectivity_status"] =
-"declared_metadata_proxy"`. Declaration only — does not change simulated dynamics.
+"declared_metadata_proxy"`. Declaration only — simulated dynamics stay as
+configured elsewhere.
 
 **Example:**
 ```python
@@ -110,7 +111,7 @@ physical-sensor claim is introduced by calling this.
 - `modes` (`Sequence[str]`): probe/readout mode labels, e.g. `["MUA-proxy", "LFP-proxy", "CSD-proxy"]`
 - `name` (`str`, default `"multimodal_probe"`)
 - `n_contacts` (`int | None`)
-- `ensure_defaults` (`bool`, default `True`): adds canonical Izhikevich emitter + laminar proxy field declarations if absent
+- `ensure_defaults` (`bool`, default `True`): adds canonical Izhikevich emitter + laminar proxy field declarations when they are still absent
 - `**kwargs`: extra probe metadata (e.g. `contact_depths`, `claim_level`)
 
 **Example:**
@@ -128,8 +129,8 @@ jaxfne.Model
 
 `core.py:4094`. Frozen dataclass — the constructed, immutable, runnable model built
 from a validated `Configuration`. Also exported as alias `Net`. A computational
-scaffold: its field and probe outputs are proxy readouts, not calibrated physical
-signals.
+scaffold: its field and probe outputs are proxy readouts rather than calibrated
+physical signals.
 
 ### Fields
 
@@ -137,9 +138,9 @@ signals.
 - `params` (`dict[str, Any]`): dynamic pytree (arrays, may be tuned/traced)
 - `static` (`dict[str, Any]`): JIT-static, non-array metadata
 
-There is no `geometry`/`basis_spec` attribute on `Model` — geometry lives inside
-`params`/`static` (e.g. `params["positions"]`, `static["n_contacts"]`), not as a
-top-level field.
+`Model`'s real attributes are `cfg`/`params`/`static` (no separate `geometry`/
+`basis_spec`) — geometry lives inside `params`/`static` (e.g. `params["positions"]`,
+`static["n_contacts"]`) as nested data, rather than as its own top-level field.
 
 ### Methods
 
@@ -152,7 +153,7 @@ documents.
 **required, positional `Simulation` object** — not `duration_ms`/`dt_ms`/`seed`
 keywords directly on `Model.simulate`. Use the module-level `jtfne.simulate(model,
 duration_ms=..., ...)` helper (below) for the kwarg form. When `paradigm` is a
-`StimulusSchedule` or `ParadigmCondition`, its drive is injected as native
+`StimulusSchedule` or `ParadigmCondition`, its drive is injected in internal (uncalibrated)
 (uncalibrated) current.
 
 **Example:**

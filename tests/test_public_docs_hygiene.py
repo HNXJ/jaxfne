@@ -395,7 +395,10 @@ class TestColabLinkCoverage:
         "docs/tutorials/02_two_neuron_ei.md",
         "docs/tutorials/03_network_100_ei.md",
         "docs/tutorials/04_v1_column.md",
-        "docs/tutorials/05_v1_pfc_dual_column.md",
+        # 05_v1_pfc_dual_column.md intentionally excluded: labeled
+        # ASPIRATIONAL / NOT YET IMPLEMENTED (2026-07-03, no backing
+        # notebook or implementation exists), not an active tutorial.
+        # Re-add once a real paradigm/notebook lands for it.
         "docs/tutorials/06_jaxfne_suite_no_1_computational_biophysics.md",
         "docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md",
         "docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md",

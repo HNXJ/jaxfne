@@ -30,9 +30,9 @@ dependencies = [
 [project.optional-dependencies]
 opt = ["optax>=0.2"]
 jaxley = ["jaxley>=0.13.0"]  # tested floor; bridge installs a JAX clip-compat shim for jaxley<=0.13
-viz = ["matplotlib", "plotly", "pandas", "ipywidgets"]
+viz = ["matplotlib", "plotly", "kaleido", "pandas", "ipywidgets"]
 io = ["pyyaml", "zarr", "h5py"]
-dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
+dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
 all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]

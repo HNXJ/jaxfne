@@ -186,8 +186,9 @@ field_dict = json_safe(field.diagnostics)
 invariants) merged with a field-solution report from
 `_make_field_solution_report`, plus a few extra keys — 40 keys total as of
 this writing (verified via `sorted(field.diagnostics.keys())` on a live
-`project_laminar_sources` call). The keys relevant to truth-gate/claim
-status:
+`project_laminar_sources` call). Every key below is required — it is always
+present on the returned dict, regardless of which projection `mode` was
+used. The keys relevant to truth-gate/claim status:
 
 | Field | Type | Purpose |
 |-------|------|---------|
@@ -219,8 +220,8 @@ status:
 
 There is no `amplitude_status` or `field_model_status` key (the doc
 previously invented these) — the real names are `physical_amplitude_calibrated`
-and `field_claim_level`. There is no `source_conservation_status` key either;
-the closest real key is `source_conservation_claim_allowed`.
+and `field_claim_level`. Similarly, `source_conservation_claim_allowed` is the
+real key in place of the invented `source_conservation_status`.
 
 ---
 
