@@ -9,6 +9,7 @@ Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass
 from typing import Any, Mapping, Sequence
 
@@ -1273,6 +1274,14 @@ class LegacyMultiAreaSpectrolaminarObjective:
     avoid the name collision with ``jaxfne.objectives.spectrolaminar_objective``.
     """
     def __init__(self, target_profiles: Optional[dict] = None):
+        warnings.warn(
+            "LegacyMultiAreaSpectrolaminarObjective (and the "
+            "spectrolaminar_objective alias in this module) is deprecated; "
+            "use jaxfne.objectives.spectrolaminar_objective / "
+            "spectrolaminar_objective_factory instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.target_profiles = target_profiles or {}
 
     def score(self, readouts: dict[str, dict], spikes: Optional[dict] = None) -> float:

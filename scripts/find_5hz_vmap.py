@@ -10,6 +10,12 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
+import functools
+
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from _neuron_sweep_common import simulate_single_step as _simulate_single_step_shared
 
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")
@@ -25,30 +31,10 @@ SEED = 42
 # Define presets
 PRESETS = jtfne.CELL_TYPE_PRESETS
 
-# Base simulation step
-def simulate_single_step(a_val, b_val, c_val, d_val, drive_val, noise_amp, key):
-    params = jtfne.IzhikevichParams(
-        a=jnp.array([a_val], dtype=jnp.float32),
-        b=jnp.array([b_val], dtype=jnp.float32),
-        c=jnp.array([c_val], dtype=jnp.float32),
-        d=jnp.array([d_val], dtype=jnp.float32),
-        drive=jnp.array([drive_val], dtype=jnp.float32),
-        sign=jnp.array([1.0], dtype=jnp.float32),
-        W=jnp.zeros((1, 1), dtype=jnp.float32),
-        v0=jnp.array([-65.0], dtype=jnp.float32),
-        u0=jnp.array([b_val * -65.0], dtype=jnp.float32),
-        source_scale=jnp.array([1.0], dtype=jnp.float32),
-        labels=("cell",),
-    )
-    
-    # Generate noise
-    noise_seq = jax.random.normal(key, shape=(N_STEPS, 1)) * noise_amp
-    
-    _, spikes, _ = jtfne.simulate_eig_izhikevich(
-        params, N_STEPS, DT_MS, key, drive_schedule=noise_seq
-    )
-    
-    return jnp.sum(spikes)
+# Base simulation step (shared with run_neuron_sweeps.py, see _neuron_sweep_common.py)
+simulate_single_step = functools.partial(
+    _simulate_single_step_shared, n_steps=N_STEPS, dt_ms=DT_MS
+)
 
 # Vmap the simulation function over drive and noise parameters
 # in_axes for simulate_single_step: (a, b, c, d, drive, noise, key)

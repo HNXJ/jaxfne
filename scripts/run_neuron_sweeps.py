@@ -12,6 +12,12 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 import jaxfne as jtfne
+import functools
+
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from _neuron_sweep_common import simulate_single_step as _simulate_single_step_shared
 
 # 1. Output setup
 OUT_DIR = jtfne.io.Path("outputs/neuron_sweeps")
@@ -28,34 +34,12 @@ SEED = 42
 # Define presets
 PRESETS = jtfne.CELL_TYPE_PRESETS
 
-# Let's write a fast JAX function to run a single sweep step
-# We can compile it with jit to make the sweep run in milliseconds
-@jax.jit
-def simulate_single_step(a_val, b_val, c_val, d_val, drive_val, noise_amp, key):
-    # Setup params
-    params = jtfne.IzhikevichParams(
-        a=jnp.array([a_val], dtype=jnp.float32),
-        b=jnp.array([b_val], dtype=jnp.float32),
-        c=jnp.array([c_val], dtype=jnp.float32),
-        d=jnp.array([d_val], dtype=jnp.float32),
-        drive=jnp.array([drive_val], dtype=jnp.float32),
-        sign=jnp.array([1.0], dtype=jnp.float32), # sign doesn't affect single neuron dynamics
-        W=jnp.zeros((1, 1), dtype=jnp.float32),
-        v0=jnp.array([-65.0], dtype=jnp.float32),
-        u0=jnp.array([b_val * -65.0], dtype=jnp.float32),
-        source_scale=jnp.array([1.0], dtype=jnp.float32),
-        labels=("cell",),
-    )
-    
-    # Generate custom noise sequence as drive_schedule
-    noise_seq = jax.random.normal(key, shape=(N_STEPS, 1)) * noise_amp
-    
-    # Simulate
-    _, spikes, _ = jtfne.simulate_eig_izhikevich(
-        params, N_STEPS, DT_MS, key, drive_schedule=noise_seq
-    )
-    
-    return jnp.sum(spikes)
+# Fast JAX single-neuron-in-isolation sweep step, jitted with n_steps/dt_ms
+# bound as static Python values (shared with find_5hz_vmap.py, see
+# _neuron_sweep_common.py).
+simulate_single_step = jax.jit(functools.partial(
+    _simulate_single_step_shared, n_steps=N_STEPS, dt_ms=DT_MS
+))
 
 # Grid setup (11x11)
 grid_values = np.linspace(0.0, 1.0, 11)

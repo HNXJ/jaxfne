@@ -6,6 +6,7 @@ API catalog ``docs/api/index.md`` — update those when this module changes.
 """
 from __future__ import annotations
 
+import warnings
 import numpy as np
 from pathlib import Path
 from dataclasses import dataclass
@@ -37,6 +38,13 @@ def _finish_figure(fig, show: bool):
 
 def save_png(fig, name: str, fig_dir: Path, show: bool = False) -> str:
     """DEPRECATED: use ``jaxfne.vis.export_figure``."""
+    warnings.warn(
+        "jaxfne.tutorial_utils.save_png is deprecated; use "
+        "jaxfne.vis.export_figure instead (handles matplotlib + plotly, "
+        "explicit formats=).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     from .vis.exporters import export_figure
     fig_dir = Path(fig_dir)
     written = export_figure(fig, fig_dir / name, formats=("png",), dpi=150)

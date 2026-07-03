@@ -31,23 +31,12 @@ import json
 import pathlib
 
 import numpy as np
-import jax.numpy as jnp
 import jaxfne as jtfne
 
-
-def build_imbalanced_model(n: int, hi_drive: float, lo_drive: float):
-    """Canonical column with a hyperactive (first half) and quiet (second half) group."""
-    cfg = (
-        jtfne.build_laminar_column(n=n, ei_profile="canonical")
-        .set_emitter("izhikevich", "cortical_eig")
-        .probes(["spikes", "V_m"], n_contacts=8)
-        .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
-    )
-    model = jtfne.construct(cfg)
-    n_real = int(model.params["emitter"].v0.shape[0])
-    drive = np.where(np.arange(n_real) < n_real // 2, hi_drive, lo_drive).astype(np.float32)
-    model = jtfne.with_emitter_parameters(model, drive_per_neuron=jnp.asarray(drive))
-    return model, n_real
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))
+from _ed9_common import build_imbalanced_model, _agg
 
 
 def _runtime(cond: dict, k_gain: float, eta: float) -> jtfne.RuntimeConfig:
@@ -69,14 +58,6 @@ def metrics(sig, hyper: slice, quiet: slice, duration_ms: float, dt_ms: float) -
         "kappa_synchrony": float(jtfne.kappa_synchrony(sig.spikes, dt_ms)),
         "vm_finite": bool(np.isfinite(np.asarray(sig.V_m)).all()),
     }
-
-
-def _agg(values: list[float]) -> dict:
-    arr = np.asarray(values, dtype=float)
-    n = arr.size
-    sd = float(arr.std(ddof=1)) if n > 1 else 0.0
-    return {"mean": float(arr.mean()), "std": sd,
-            "ci95_halfwidth": float(1.96 * sd / max(n, 1) ** 0.5), "n": n}
 
 
 def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5, k_gain=8.0, eta=0.05,

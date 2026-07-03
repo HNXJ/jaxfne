@@ -13,7 +13,6 @@ supporting optional interactive figure generation.
 
 import json
 from typing import Any, Dict, List, Optional, Tuple
-import hashlib
 import os
 
 import jaxfne as jtfne
@@ -91,8 +90,7 @@ def create_spike_raster_figure(
         fig.write_html(output_path)
 
         # Compute hash
-        with open(output_path, 'rb') as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
+        file_hash = jtfne.sha256_file(output_path)
 
         result['html_path'] = output_path
         result['hash'] = file_hash
@@ -136,8 +134,7 @@ def create_voltage_trace_figure(
         fig = jtfne.vis.tutorial_voltage_trace_plotly(time_ms, voltage_traces, title=title)
         fig.write_html(output_path)
 
-        with open(output_path, 'rb') as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
+        file_hash = jtfne.sha256_file(output_path)
 
         result['html_path'] = output_path
         result['hash'] = file_hash
@@ -184,8 +181,7 @@ def create_firing_rate_figure(
         fig = jtfne.vis.tutorial_firing_rate_plotly(time_ms, firing_rate_hz, title=title)
         fig.write_html(output_path)
 
-        with open(output_path, 'rb') as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
+        file_hash = jtfne.sha256_file(output_path)
 
         result['html_path'] = output_path
         result['hash'] = file_hash
@@ -251,8 +247,7 @@ def validate_artifact_hashes(
         recorded_hash = figure['hash']
 
         try:
-            with open(filepath, 'rb') as f:
-                computed_hash = hashlib.sha256(f.read()).hexdigest()
+            computed_hash = jtfne.sha256_file(filepath)
 
             if computed_hash == recorded_hash:
                 if verbose:
