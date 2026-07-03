@@ -1,3 +1,31 @@
+## v0.4.5 (2026-07-03)
+
+**HDP v2, NeuronalTensor as a first-class circuit representation, full-repo visualization isolation, and a large test/doc alignment pass.** The homeostasis-dependent-plasticity (HDP) kernel gained a real, stability-validated second generation (linear equilibrium controller + safety barrier, per-cell-type drive tuning, wired into `RuntimeConfig`), `NeuronalTensor` became a genuine second build path (Areas × Layers × NeuronTypes × AreaConnections, JSON round-trip, multi-area placement, a bridge into `Configuration`), and every `matplotlib`/`plotly` call in the installable package was consolidated under `jaxfne.vis` (verified zero leakage elsewhere). Alongside the features: all 89 public docs got a real content review against current source (average score 81→91/100, several docs that documented fabricated APIs were rewritten to match reality), the test suite was consolidated toward étude/suite-notebook execution as the primary coverage mechanism, and CI was fixed for real (a pre-existing failure and several stale exclusions were traced and genuinely resolved).
+
+### Added
+- **HDP v2** — passive resource income, H-taxed synaptic drain, `hdp_rule` families (`signed_linear`/`signed_quadratic`), a linear equilibrium controller (`K_ctrl`) restoring `H_i` toward 1.0, and an asymmetric safety barrier near `H_min`/`H_max`. Wired into `core.py`'s `RuntimeConfig`/dispatch and exposed via `Configuration.hdp()`. `K_ctrl=5.0` validated as the genuine stability-critical term after root-causing a prior instability (F-017).
+- **`NeuronalTensor`** — the canonical `[Areas, AreaConnections]` circuit representation (`Area = [Layers × NeuronTypes, InterConnections]`), with `Pose3D` multi-area 3D placement, `merge_neuronal_tensors`, JSON save/load, and `neuronal_tensor_to_configuration()` bridging it into the existing `construct()`/`simulate()` pipeline. `construct()` now dispatches on input type (`Configuration` or `NeuronalTensor`) transparently. Canonical JSON configs (including `default_macaque_V1`) promoted into `jaxfne/configs/`.
+- **`Configuration` declarative verbs** — `.plasticity()`, `.homeostasis()`, `.connectivity()`, `.drive()`, `.optimizer()` record structured intent into metadata for `manifest()`/inspection (none of these affect `simulate()` directly — each is honestly self-documented as declarative-only).
+- `jtfne.connect(...)` — model-to-model ensemble operator; `Configuration.connections()` compiles declarative selector rules into real edges at `construct()` time via a mechanism-aware connection compiler.
+- `general_sequential_oddball_paradigm` — a backbone for arbitrary sequential-task paradigms (local/global oddball, omission, DMS-style event lists), replacing several one-off paradigm builders.
+- 4 new étude notebooks (5, 6, 7, 8), closing the last remaining placeholder (étude 8 — continuous HDP adaptation).
+- `cable_filter_tensor` and `csd_tensor` — named, standard pipeline stages for LFP/EEG/MEG and CSD, replacing ad hoc inline math.
+- `Synaptic Tensor` — an additive mechanism-correct tau lookup (AMPA/NMDA/GABA-A/GABA-B) usable independent of the recurrent-network path.
+
+### Fixed
+- **Visualization isolation completed** — every real `matplotlib`/`plotly` call in `jaxfne/` now lives under `jaxfne/vis/*`; the two remaining references outside it (`export.py`/`tutorial_utils.py`) are lazy imports inside deprecated shims that delegate to `jaxfne.vis.export_figure`, both already carrying `DeprecationWarning`.
+- 4 dead-stub `jaxfne.vis` plotting functions (built a figure, plotted nothing, returned `None`) implemented for real.
+- HDP JIT cache key now fingerprints all `homeostasis_params` (was silently reusing a stale compiled kernel on some parameter changes); homeostasis diagnostics now correctly forward `w_trace`/`w_final`.
+- A real N=2 cell-type edge case, a silent bad-dtype fallthrough (now rejects loudly, with `bfloat16` support added), and several NeuronalTensor↔Configuration bridge fidelity gaps (per-area/per-layer cell-type fractions, `AreaConnection`/`InterConnection` wiring, `PlasticParams.H`/reversal potentials).
+- `NeuronalTensor`/`Area` now validate element types at construction (`__post_init__`) — passing the wrong type (e.g. a `Configuration` where an `Area` belongs) raises `TypeError` immediately instead of silently corrupting state.
+- CI: removed a stale `--ignore` exclusion for 2 test files that had been broken in May and were later fixed but never re-included; added the `kaleido` dependency (a pre-existing gap, present in every CI run checked back through history); fixed several doc-hygiene lint failures introduced by the doc-alignment pass itself.
+- `project_laminar_sources` now defaults to `density_preserving` (was a silent behavior mismatch with its own documentation).
+
+### Changed
+- **Test suite consolidated** toward étude/suite-notebook execution as the primary coverage mechanism: of 210 test files reviewed, 2 deleted and 41 slimmed to keep only tests a notebook run can't replace (pure-function invariants, error paths, schema/contract checks); the rest were confirmed to already carry unique value and left untouched.
+- **Full documentation review**: all 89 `docs/*.md` files given a real content review against current source (not just a scan) — average score 81→91/100, 88/89 fully resolved. Several `docs/api/*.md` files that documented entirely fabricated dataclass fields/function signatures (up to 65 points below their post-fix score) were rewritten to match reality.
+- `pyproject.toml` gained `[project.urls]` (Homepage/Repository/Documentation/Issues/Changelog).
+
 ## v0.4.4 (2026-06-21)
 
 **Multi-area études + a real fix to inter-area connectivity.** Études 6 and 7 are implemented (previously placeholders), built on the built-in Izhikevich emitter and the canonical E:I profile. Implementing them surfaced and fixed genuine bugs in the multi-area connectivity path.
