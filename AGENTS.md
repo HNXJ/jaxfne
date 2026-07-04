@@ -65,8 +65,8 @@ enforced by tooling yet, but every future change should be checked against it be
    carrying a `DeprecationWarning` pointing at `jaxfne.vis.export_figure`), and every real
    simulation-signal plotting call in the package genuinely lives under `jaxfne/vis/*` with
    zero module-level leakage found anywhere else in `jaxfne/`.
-   **`scripts/evidence_figures/*.py`** (18 files, confirmed real top-level `matplotlib`/`plotly`
-   imports) is a deliberate, correct exception, not a violation: read on 2026-07-03, these are
+   **`scripts/evidence_figures/*.py`** (19 files, confirmed real top-level `matplotlib`/`plotly`
+   imports) is a deliberate, correct exception, not a violation: read on 2026-07-03/04, these are
    one-off release/documentation figure generators (API-stability snapshots, contract matrices,
    benchmark-scaling tables, an architecture diagram) — a different category from simulation-
    signal visualization, with nothing in common with `jaxfne.vis`'s job. Moving them under
@@ -111,7 +111,7 @@ truth-gate pattern):
 | **Receipts write-once** | `core.py` `save_receipt()` | refuses overwrite without explicit flag; never hand-edit truth files |
 | **x64 before arrays** | session start | `jax.config.update('jax_enable_x64', True)` before array construction; verify `runtime_report()["actual_dtype"]` |
 | **Explicit PRNG only** | all stochastic paths | every SDR/GSDR/AGSDR call takes an explicit `jax.random.PRNGKey`; raises if `key=None`; no numpy.random in reproducible code |
-| **Hard spike reset non-differentiable** | `core.py`, `Model.tune()` (guard = `gradient_path_safe()`; confirm `grep -n gradient_path_safe jaxfne/core.py`) | `Model.tune()` blocks Optax unless `gradient_path_safe()` is true; do not remove the guard. (The "+30" is the +30 mV spike threshold, not a version.) |
+| **Hard spike reset non-differentiable** | `jaxfne/_model.py` (re-exported via `jaxfne.core`), `Model.tune()` (guard = `gradient_path_safe()`; confirm `grep -n gradient_path_safe jaxfne/_model.py`) | `Model.tune()` blocks Optax unless `gradient_path_safe()` is true; do not remove the guard. (The "+30" is the +30 mV spike threshold, not a version.) |
 
 **JAX execution defaults:** time = `jax.lax.scan` · edges = `jax.ops.segment_sum` (double-count
 guard) · batch = `jax.vmap` over PRNG keys · compile = `jit=True` in RuntimeConfig only on
@@ -295,13 +295,14 @@ See the inline comment at `jaxfne/emitters.py:1347` for the exact basis per rule
 `simulate_edge_recurrent_izhikevich`, and `simulate_edge_recurrent_izhikevich_homeostatic`
 all accept `noise_scale=` (`None` keeps the historical `0.5` scalar; pass a scalar or
 `(n_neurons,)` array to override). `simulate_receptor_exponential_izhikevich`
-(`jaxfne/emitters.py:1088`) has **no** `noise_scale` parameter at all — its noise
-coefficient is hardcoded to `0.5` inline (lines 1159/1186). Check which kernel
+(`jaxfne/emitters.py:1538`) has **no** `noise_scale` parameter at all — its noise
+coefficient is hardcoded to `0.5` inline. Check which kernel
 `construct()`/`simulate()` actually dispatches to for your config before assuming
 noise is or isn't sweepable.
 
 **Per-event, per-neuron-subset drive (`target_indices`):** `StimulusSchedule`
-(`jaxfne/core.py:3185`) does **not** take a `target_indices=` constructor kwarg —
+(`jaxfne/_signals.py`, re-exported via `jaxfne.core` -- moved there in the 2026-07-04
+core.py monolith split) does **not** take a `target_indices=` constructor kwarg —
 `target_indices` is a key on each **event dict**, read by
 `StimulusSchedule.to_array`/`to_array_jax` (`ev.get("target_indices", None)`) to
 restrict that event's amplitude to a specific neuron subset (e.g. L4-E-only)
@@ -348,11 +349,13 @@ Three distinct mechanisms share the word "plasticity" here — do not conflate t
 
 **Other declarative-only `Configuration` methods (verified 2026-07-03, same pattern as
 `plasticity()` above — don't assume any Configuration fluent-chain call affects `simulate()`
-just because it exists):** `connectivity(**kwargs)` (`jaxfne/core.py:1412`, own docstring:
-"declared connectivity metadata without overclaiming dynamics... construct-time dynamics still
-use the package's existing network generator"), `drive(...)` (`jaxfne/core.py:2033`, "declarative
-drive metadata: baseline external input..."), `optimizer(...)` (`jaxfne/core.py:2223`, "declarative
-optimizer metadata: family, differentiability status, search space, budget, and hard gates").
+just because it exists; `Configuration` itself moved to `jaxfne/_config.py` in the 2026-07-04
+core.py monolith split, re-exported unchanged via `jaxfne.core`):** `connectivity(**kwargs)`
+(`jaxfne/_config.py:492`, own docstring: "declared connectivity metadata without overclaiming
+dynamics... construct-time dynamics still use the package's existing network generator"),
+`drive(...)` (`jaxfne/_config.py:1113`, "declarative drive metadata: baseline external
+input..."), `optimizer(...)` (`jaxfne/_config.py:1303`, "declarative optimizer metadata:
+family, differentiability status, search space, budget, and hard gates").
 All three record intent into `metadata` for `manifest()`/inspection only — none of them changes
 `simulate()`'s actual behavior. A user chaining the full fluent API (`.plasticity().connectivity()
 .drive().optimizer()...`) can silently end up with a model that ignores most of their declared
