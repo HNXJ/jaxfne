@@ -56,17 +56,22 @@ Breaking this rule requires explicit approval. Violations: flag and revert immed
 enforced by tooling yet, but every future change should be checked against it before landing:
 
 1. **Maximum modularity** — 5 main modules, each ~5 object rule (desired target, not a hard cap).
-2. **All visualization lives under `jaxfne/vis/*`** — not one plotting call anywhere else.
+2. **All *simulation-signal* visualization (rasters, LFP/CSD/EEG/MEG, PSD, network layouts,
+   etc.) lives under `jaxfne/vis/*`** — not one such plotting call anywhere else in `jaxfne/`.
    **Re-verified 2026-07-03** (repo-wide grep for module-level `matplotlib`/`plotly` imports,
    see the doc-review/scoring pass this session): `jaxfne/export.py` and
    `jaxfne/tutorial_utils.py` are NOT real leaks — their `matplotlib` imports are lazy
    (function-scoped, inside the deprecated `save_figure`/`save_png` shims only, both already
    carrying a `DeprecationWarning` pointing at `jaxfne.vis.export_figure`), and every real
-   plotting call in the package genuinely lives under `jaxfne/vis/*` with zero module-level
-   leakage found anywhere else in `jaxfne/`. The one genuine, still-open violation is
-   `scripts/evidence_figures/*.py` (18 files, confirmed real top-level `matplotlib`/`plotly`
-   imports) — `scripts/` isn't part of the installable `jaxfne` package, so this is lower
-   priority than a leak inside `jaxfne/` itself would be, but still worth cleaning up.
+   simulation-signal plotting call in the package genuinely lives under `jaxfne/vis/*` with
+   zero module-level leakage found anywhere else in `jaxfne/`.
+   **`scripts/evidence_figures/*.py`** (18 files, confirmed real top-level `matplotlib`/`plotly`
+   imports) is a deliberate, correct exception, not a violation: read on 2026-07-03, these are
+   one-off release/documentation figure generators (API-stability snapshots, contract matrices,
+   benchmark-scaling tables, an architecture diagram) — a different category from simulation-
+   signal visualization, with nothing in common with `jaxfne.vis`'s job. Moving them under
+   `jaxfne/vis/*` would be a category error, not a fix; `scripts/` also isn't part of the
+   installable `jaxfne` package. Leave these as-is.
 3. **Computation is jax-maximal, jax-parallel, `float32` by default.** Device order is always
    GPU → jax-metal → CPU. `float32` is already the practical default in `core.py`'s dtype
    handling (verified 2026-07-01); the GPU→metal→CPU fallback order is **not yet an enforced

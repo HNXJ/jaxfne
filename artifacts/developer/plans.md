@@ -38,6 +38,7 @@
 | release-0.4.7-legacy-code-thinning | [SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume | partially_done |  |
 | config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | done | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
 | v1-pfc-continuous-aaab-adaptation-paradigm | [SCOPED, 10-trial smoke test is the next real step] Build V1-PFC continuous AAAB adaptation paradigm (replaces the old a | proposed | docs/tutorials/05_v1_pfc_dual_column.md; tutorials/ (new notebook, name TBD); jaxfne/neuronal_tensor.py (Area/AreaConnec |
+| release-v0.4.5-published | v0.4.5 released to PyPI | done | pyproject.toml; jaxfne/core.py; docs/changelog.md; docs/citation.md; mkdocs.yml; docs/_generated/version.md |
 
 ## brainstorm
 
