@@ -6027,21 +6027,22 @@
     {
       "path": "scripts/v1_pfc_continuous_aaab_smoke_test.py",
       "purpose": "First CPU smoke-test implementation of the V1-PFC continuous AAAB local-oddball adaptation paradigm (0.4.6 milestone). Builds a 100n V1 + 100n PFC NeuronalTensor with a feedforward AreaConnection, both HDP-enabled, drives V1's tuning-group neurons with true 40Hz sinusoidal current in a fixed 1000ms AAAB trial, and carries HDP state trial-to-trial.",
-      "score": 70,
+      "score": 85,
       "tbi": [
-        "hdp_params used (alpha=beta=gamma=delta=C_spike=0.0) is RuntimeConfig's documented null control -- H_final/w_final are bit-identical across all 10 trials of a real run. The adaptation *pipeline* is verified (HDP enabled, state carried forward, no NaN) but no actual adaptation *signal* is visible with this parameter choice."
+        "Long-term (trial-to-trial) adaptation is demonstrated only with H-only carryover (carry_weights=False). Carrying synaptic weights across trials (carry_weights=True, exposed for reproduction) is an unbounded positive-feedback runaway in the current HDP formulation -- H stabilizes rates but nothing pulls weights back to baseline. This is a real limitation reproducing F-017/F-019 at the chained/multi-trial level, not a solved problem."
       ],
       "tbd": [
-        "Find/validate a genuinely-driving (non-null) HDP parameter set for this specific 2-area topology -- deliberately not attempted yet to avoid blind-tuning a subsystem with documented open stability issues (see plans.json's hdp-stability-formula-design-and-validation item).",
-        "jaxfne/neuronal_tensor.py::neuronal_tensor_to_configuration has a real, separate, undocumented fidelity gap: it never calls Configuration.layer_fractions(), so declared per-layer Layer.n_neurons is silently ignored in favor of the hardcoded core._SUITE2_LAYER_FRACTIONS default split. This script works within that default (V1 L4=10/L6=15, not the originally-specified sizes) rather than fixing the bridge inline; fixing it properly is separate follow-up work.",
-        "Only a 10-trial smoke test has been run; the full 1000-trial/1000-second spec run is explicitly NOT authorized yet per the standing large-run doctrine."
+        "A weight-homeostat / synaptic-normalization term would be needed to make weight-carryover stable across trials; not in scope for this smoke test.",
+        "jaxfne/neuronal_tensor.py::neuronal_tensor_to_configuration still silently ignores declared per-layer Layer.n_neurons (uses hardcoded core._SUITE2_LAYER_FRACTIONS split) -- separate follow-up.",
+        "Only a 10-trial (and manual 20-trial diagnostic) run done; full 1000-trial spec run still NOT authorized."
       ],
       "warnings": [
-        "AreaConnection.plastic.H defaults to 0.0 (outside the valid HDP H range 0.1-10.0); construct_neuronal_tensor averages this into a target neuron's initial HDP state, so any AreaConnection/InterConnection declared without an explicit plastic=PlasticParams(H=1.0) will silently seed H0 outside its valid range and can blow up HDP integration to NaN at step 0. This is a real footgun for anyone building a NeuronalTensor with HDP enabled, not unique to this script."
+        "AreaConnection/InterConnection PlasticParams.H defaults to 0.0 (outside valid HDP range 0.1-10.0); construct_neuronal_tensor averages it into the target neuron's initial HDP state, so an unset H silently seeds H0 out of range and can NaN HDP integration at step 0. Always set plastic=PlasticParams(H=1.0) when HDP will be enabled.",
+        "K_HDP chained-stability boundary on this 2-area topology is between 0.003 (stable ~11 trials) and 0.005 (runaway) WITH weight carryover; without weight carryover even K_HDP=0.01 is stable over 20 trials."
       ],
       "last_verified": "2026-07-04",
-      "evidence": "Real 10-trial CPU run: `PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py 10` completed in ~28s, stable ~12.89Hz spike rate across all trials, no NaN, receipt written to outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Also verified: without the plastic=PlasticParams(H=1.0) fix, H_final/w_final were NaN from step 0 even under a fully-null HDP config with zero drive (isolated via direct testing: single-area V1-only + HDP = no NaN; adding the 2-area AreaConnection with default H=0.0 = NaN at step 0).",
-      "status": "needs_followup"
+      "evidence": "Real 10-trial CPU run (default carry_weights=False, DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003): ~26s, H_final_mean converges 1.048->1.063 with H_final_std SHRINKING 0.0083->0.0031 (homeostatic settling, not divergence), rate steady ~12.9Hz, no NaN. Receipt: outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Instability of weight-carryover verified directly: carry_weights=True runs away by ~trial 15-19 (H at both clamps, weights negative, rate ~50Hz) at every K_HDP tried; carry_weights=False stable at K_HDP=0.01 over 20 trials.",
+      "status": "reviewed"
     }
   ]
 }

@@ -286,7 +286,6 @@
 | docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| scripts/v1_pfc_continuous_aaab_smoke_test.py | 70 | needs_followup | hdp_params used (alpha=beta=gamma=delta=C_spike=0.0) is RuntimeConfig's documented null control -- H_final/w_final are b | Find/validate a genuinely-driving (non-null) HDP parameter set for this specific 2-area topology -- deliberately not att | 2026-07-04 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
@@ -322,6 +321,7 @@
 | docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/04_v1_column.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
+| scripts/v1_pfc_continuous_aaab_smoke_test.py | 85 | reviewed | Long-term (trial-to-trial) adaptation is demonstrated only with H-only carryover (carry_weights=False). Carrying synapti | A weight-homeostat / synaptic-normalization term would be needed to make weight-carryover stable across trials; not in s | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | jaxfne/connectivity.py | 88 | unreviewed |  | IMPLEMENTED 2026-07-01: added _candidate_pairs_localized (spatial grid-bucketed, Gaussian-distance-weighted, constant pe | 2026-07-01 |
 | jaxfne/paradigm.py | 88 | unreviewed |  |  | 2026-06-30 |
