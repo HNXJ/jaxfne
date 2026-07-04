@@ -46,3 +46,18 @@
 - **function_merger_analysis_2026-06-30**: 2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, inco
 - **test_consolidation_and_config_ic_schema_2026-07-02**: 2026-07-02, user directive ahead of 0.4.7: (1) simplify the test suite so real coverage comes from executing suites/etud
 - **v1_pfc_continuous_aaab_adaptation_2026-07-03**: User directive 2026-07-03: refine docs/tutorials/05_v1_pfc_dual_column.md's vague aspirational scope (inter_areal_connec
+
+## midterm plan: midterm-plan-2026-07-04 (2026-07-04)
+
+| step | target | target_score | status | definition_of_done |
+|---|---|---|---|---|
+| 1 | 0.4.5 | 95 | not_started | Finish the core.py monolith split (currently 2/5 slices done, 8370->6672 lines): extract Configuration, then Model (high |
+| 2 | v1_pfc_paradigm | 95 | not_started | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
+| 3 | 0.4.6 | 95 | not_started | Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, ve |
+| 4 | checkpoint |  | not_started | Literal process checkpoint, not a code step: after steps 1-3 land, refresh progress.json/plans.json/review.json to refle |
+| 5 | 0.4.5_and_0.4.6 | 99 | not_started | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |
+| 6 | 0.4.7 | 50 | not_started | Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begi |
+| 7 | 0.4.7 | 80 | not_started | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
+| 8 | 0.4.7 | 95 | not_started | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
+| 9 | 0.4.7 | 99 | not_started | Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) f |
+| 10 | 0.4.7 | 100 | not_started | The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, t |

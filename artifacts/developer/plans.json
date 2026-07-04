@@ -557,5 +557,118 @@
       "0.4.6": "V1-PFC continuous AAAB adaptation paradigm succeeds -- the plan item v1-pfc-continuous-aaab-adaptation-paradigm (100n V1 + 100n PFC, HDP, fixed AAAB local-oddball trials) reaching a genuinely working, verified state (starting with the 10-trial CPU smoke test) is what defines this milestone, not a documentation pass.",
       "0.4.7": "Publish/publication-ready package and toolbox -- requires more review and check (user's own words) before this is called done. Known candidates: core.py monolith split (self-flagged P0, quality score 58), scripts/evidence_figures/*.py vis-isolation cleanup, and whatever further review surfaces."
     }
-  }
+  },
+  "midterm_plans": [
+    {
+      "id": "midterm-plan-2026-07-04",
+      "created": "2026-07-04",
+      "authoritative_source": "User, 2026-07-04 -- ordered 10-step midterm plan, scores are the user's own targets",
+      "baseline_scorecard": {
+        "0.4.5": 78,
+        "v1_pfc_paradigm": 58,
+        "0.4.6": 50,
+        "docs_quality": 82,
+        "note": "Baseline from the quantitative review delivered 2026-07-04, before this plan's steps run. docs_quality (82) was not itself a step target in this plan but is tracked as context."
+      },
+      "steps": [
+        {
+          "step": 1,
+          "target": "0.4.5",
+          "target_score": 95,
+          "status": "not_started",
+          "definition_of_done": "Finish the core.py monolith split (currently 2/5 slices done, 8370->6672 lines): extract Configuration, then Model (highest risk, ~2030 lines, do last among these), each slice CI-green before the next starts (see core-py-monolith-split item). Materially reduce the 303/505 'unreviewed' file backlog in progress.json (does not require all 505 reviewed, but 'unreviewed' should no longer be the headline weakness -- target: file-by-file-review item substantially underway, not just proposed). No open regressions; full suite + CI green throughout.",
+          "depends_on_plan_items": [
+            "core-py-monolith-split",
+            "file-by-file-review",
+            "release-0.4.5-code-quality"
+          ]
+        },
+        {
+          "step": 2,
+          "target": "v1_pfc_paradigm",
+          "target_score": 95,
+          "status": "not_started",
+          "definition_of_done": "Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat/normalization term that makes carry_weights=True stable, or a documented, deliberate decision that H-only carryover is the permanent design with evidence for why. Scale validation beyond the 10/20-trial smoke test (e.g. a real 100-trial run) with a receipt. Either promote the positional AB/A/B tuning-group tagging to a documented, reusable pattern (e.g. a helper function, not inline script logic), or explicitly decide it's sufficient as-is with a written rationale. Replace the ad-hoc K_HDP sweep with a named, reproducible preset (mirroring DEFAULT_HDP / DEFAULT_HDP_DESYNC's precedent) rather than a magic 0.003 constant.",
+          "depends_on_plan_items": [
+            "v1-pfc-continuous-aaab-adaptation-paradigm",
+            "hdp-stability-formula-design-and-validation"
+          ]
+        },
+        {
+          "step": 3,
+          "target": "0.4.6",
+          "target_score": 95,
+          "status": "not_started",
+          "definition_of_done": "Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, verified state), PLUS: docs/tutorials/05_v1_pfc_dual_column.md rewritten from its current ASPIRATIONAL-placeholder state (score 45, 'needs_followup') to accurately document the real, working scripts/v1_pfc_continuous_aaab_smoke_test.py implementation. release-0.4.6-docs-alignment's scope should be re-checked against the now-real paradigm rather than the pre-implementation guess.",
+          "depends_on_plan_items": [
+            "release-0.4.6-docs-alignment"
+          ]
+        },
+        {
+          "step": 4,
+          "target": "checkpoint",
+          "target_score": null,
+          "status": "not_started",
+          "definition_of_done": "Literal process checkpoint, not a code step: after steps 1-3 land, refresh progress.json/plans.json/review.json to reflect the new real state (updated scores, statuses moved from in_progress/proposed to done/reviewed as actually verified, stale notes removed) before continuing to step 5. Regenerate the .md views via scripts/prp_to_markdown.py. This is the 'update the PRP jsons' step the user named explicitly.",
+          "depends_on_plan_items": []
+        },
+        {
+          "step": 5,
+          "target": "0.4.5_and_0.4.6",
+          "target_score": 99,
+          "status": "not_started",
+          "definition_of_done": "Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full test-suite run + CI green + no known regressions, cross-check docs against the then-current code (not just hygiene-clean, actually re-read against source). 99 not 100 acknowledges these are internal-milestone labels, not a formal external certification -- some irreducible residual risk (e.g. untested edge cases) is expected and honest to leave.",
+          "depends_on_plan_items": []
+        },
+        {
+          "step": 6,
+          "target": "0.4.7",
+          "target_score": 50,
+          "status": "not_started",
+          "definition_of_done": "Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begin systematic file-by-file-review of the remaining unreviewed backlog with real progress (not just 'started') -- target a meaningfully lower unreviewed count than step 1 left. No new P0 findings open.",
+          "depends_on_plan_items": [
+            "file-by-file-review"
+          ]
+        },
+        {
+          "step": 7,
+          "target": "0.4.7",
+          "target_score": 80,
+          "status": "not_started",
+          "definition_of_done": "Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). Package hygiene re-verified end-to-end (README badges, classifiers, changelog, license, citation.md) via a real build, not just a read-through. release-0.4.7-legacy-code-thinning moved from partially_done to done or explicitly re-scoped.",
+          "depends_on_plan_items": [
+            "release-0.4.7-legacy-code-thinning"
+          ]
+        },
+        {
+          "step": 8,
+          "target": "0.4.7",
+          "target_score": 95,
+          "status": "not_started",
+          "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
+          "depends_on_plan_items": [
+            "release-0.4.7-final-polish"
+          ]
+        },
+        {
+          "step": 9,
+          "target": "0.4.7",
+          "target_score": 99,
+          "status": "not_started",
+          "definition_of_done": "Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) finds no new blocking issues. CI green across the full matrix including nightly notebook execution, not just the fast lane. This is the last gate before an actual publish decision, not the publish itself.",
+          "depends_on_plan_items": []
+        },
+        {
+          "step": 10,
+          "target": "0.4.7",
+          "target_score": 100,
+          "status": "not_started",
+          "definition_of_done": "The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, this REQUIRES explicit per-mutation-class user authorization at the time (tag / TestPyPI / real PyPI / GitHub Release are separate gates), exactly like release-v0.4.5-published did -- not something to execute unilaterally even once steps 1-9 are complete.",
+          "depends_on_plan_items": [
+            "release-v0.4.5-published"
+          ]
+        }
+      ]
+    }
+  ]
 }

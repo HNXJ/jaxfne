@@ -41,6 +41,17 @@ def render_plans(data):
     out.append("\n## brainstorm\n")
     for b in data.get("brainstorm", []):
         out.append(f"- **{b.get('id','')}**: {cell(b.get('description', b))}")
+    for mp in data.get("midterm_plans", []):
+        out.append(f"\n## midterm plan: {mp.get('id','')} ({mp.get('created','')})\n")
+        out.append("| step | target | target_score | status | definition_of_done |")
+        out.append("|---|---|---|---|---|")
+        for s in mp.get("steps", []):
+            out.append(
+                "| " + " | ".join(cell(v) for v in (
+                    s.get("step"), s.get("target"), s.get("target_score"),
+                    s.get("status"), s.get("definition_of_done"),
+                )) + " |"
+            )
     return "\n".join(out)
 
 
