@@ -436,6 +436,7 @@
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/_signals.py | 95 | open |  | Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_K | 2026-07-04 |
+| jaxfne/_config.py | 95 | open |  |  | 2026-07-04 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |

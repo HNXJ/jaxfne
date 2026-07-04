@@ -6042,6 +6042,19 @@
       "last_verified": "2026-07-04",
       "evidence": "Real 10-trial CPU run (default carry_weights=False, DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003): ~26s, H_final_mean converges 1.048->1.063 with H_final_std SHRINKING 0.0083->0.0031 (homeostatic settling, not divergence), rate steady ~12.9Hz, no NaN. Receipt: outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Instability of weight-carryover verified directly: carry_weights=True runs away by ~trial 15-19 (H at both clamps, weights negative, rate ~50Hz) at every K_HDP tried; carry_weights=False stable at K_HDP=0.01 over 20 trials.",
       "status": "reviewed"
+    },
+    {
+      "path": "jaxfne/_config.py",
+      "purpose": "Configuration -- the declarative TFNE model-declaration object -- extracted from jaxfne/core.py as slice 3 of the core.py monolith split. Purely declarative: methods record metadata, don't touch dynamics. Re-exported in full from jaxfne/core.py.",
+      "score": 95,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "_default_operator_status and _counts_from_fractions are also used by group-1 connectivity code still in core.py (_default_metadata, _suite2_neuron_population_from_config, Configuration.area_layer_cell_types); core.py imports them back from jaxfne/_config.py -- a one-directional dependency (core.py -> _config.py), not a cycle, verified by successful import and a real end-to-end simulate() run."
+      ],
+      "last_verified": "2026-07-04",
+      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor('default-column') -> construct_neuronal_tensor -> jtfne.simulate() produced spike_rate_hz_mean=20.0, n_neurons=80 (matches pre-split behavior). Targeted tests green (71 passed: test_neuronal_tensor.py, test_util_config_tensor.py, test_pipeline_pure_functions.py). Full suite run in progress at time of this entry.",
+      "status": "open"
     }
   ]
 }
