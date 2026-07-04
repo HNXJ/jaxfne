@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
-  "last_updated": "2026-07-03",
+  "last_updated": "2026-07-04",
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed."
   ],
@@ -5997,6 +5997,51 @@
       "last_verified": "2026-07-02",
       "evidence": "PLACEHOLDER_NOTEBOOKS is now genuinely empty (set()) -- all 12 \u00e9tude notebooks are real, executed, and pass this gate. Actually re-run (not just claimed): python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -v -> 6 passed (all 12 etudes are also indirectly covered since PLACEHOLDER_NOTEBOOKS is empty and the other 6 were verified earlier this session). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
+    },
+    {
+      "path": "jaxfne/_runtime_config.py",
+      "purpose": "RuntimeConfig/SurrogateConfig + backend/device helpers, extracted from jaxfne/core.py as slice 1 of the core.py monolith split (docs/v047_refactor_audit.md). Re-exported in full from jaxfne/core.py for backward compatibility.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-04",
+      "evidence": "Full test suite green (2679 passed, 74 skipped, 4 xfailed; the 1 local failure was a pre-existing kaleido-not-installed gap, confirmed unrelated by isolated re-run) on commit ad87e85; CI green; merged dev->main.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/_signals.py",
+      "purpose": "Signals/Objective schema, TrialSpec/TrialBatch/ReadoutSpec/StimulusSchedule/LaminarPopulation/AxisSpec/BasisSpec, and metric/gate-evaluation helpers, extracted from jaxfne/core.py as slice 2 of the core.py monolith split. One-directional dependency: consumed by Model/construct (still in core.py), does not call back into them. Re-exported in full from jaxfne/core.py.",
+      "score": 95,
+      "tbi": [],
+      "tbd": [
+        "Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_KNOWN_CONFIG_GATE_METRICS/_SIGNALS_GET_*/_AXIS_STATUS_VALUES/_SPACE_BASIS_VALUES/_TIME_BASIS_VALUES/_FIELD_REGIME_VALUES/_FUTURE_FIELD_REGIMES/_SOURCE_MODE_BASIS_VALUES/_PROBE_BASIS_VALUES/Signal alias all had to be added to core.py's re-export list after the first pytest run caught each ImportError) -- not yet committed as of this entry."
+      ],
+      "warnings": [
+        "Module-level private constants (frozenset/dict) defined with `name: Type = ...` type annotations were missed by a naive `grep \"^name = \"` sweep during extraction -- future slices of this split must grep for `^_[A-Za-z_]+\\s*(:.*)?=` (annotated form included) rather than assuming plain assignment."
+      ],
+      "last_verified": "2026-07-04",
+      "evidence": "py_compile + direct import verified; full pytest run in progress at time of this entry (task bvw1g2vjd).",
+      "status": "open"
+    },
+    {
+      "path": "scripts/v1_pfc_continuous_aaab_smoke_test.py",
+      "purpose": "First CPU smoke-test implementation of the V1-PFC continuous AAAB local-oddball adaptation paradigm (0.4.6 milestone). Builds a 100n V1 + 100n PFC NeuronalTensor with a feedforward AreaConnection, both HDP-enabled, drives V1's tuning-group neurons with true 40Hz sinusoidal current in a fixed 1000ms AAAB trial, and carries HDP state trial-to-trial.",
+      "score": 70,
+      "tbi": [
+        "hdp_params used (alpha=beta=gamma=delta=C_spike=0.0) is RuntimeConfig's documented null control -- H_final/w_final are bit-identical across all 10 trials of a real run. The adaptation *pipeline* is verified (HDP enabled, state carried forward, no NaN) but no actual adaptation *signal* is visible with this parameter choice."
+      ],
+      "tbd": [
+        "Find/validate a genuinely-driving (non-null) HDP parameter set for this specific 2-area topology -- deliberately not attempted yet to avoid blind-tuning a subsystem with documented open stability issues (see plans.json's hdp-stability-formula-design-and-validation item).",
+        "jaxfne/neuronal_tensor.py::neuronal_tensor_to_configuration has a real, separate, undocumented fidelity gap: it never calls Configuration.layer_fractions(), so declared per-layer Layer.n_neurons is silently ignored in favor of the hardcoded core._SUITE2_LAYER_FRACTIONS default split. This script works within that default (V1 L4=10/L6=15, not the originally-specified sizes) rather than fixing the bridge inline; fixing it properly is separate follow-up work.",
+        "Only a 10-trial smoke test has been run; the full 1000-trial/1000-second spec run is explicitly NOT authorized yet per the standing large-run doctrine."
+      ],
+      "warnings": [
+        "AreaConnection.plastic.H defaults to 0.0 (outside the valid HDP H range 0.1-10.0); construct_neuronal_tensor averages this into a target neuron's initial HDP state, so any AreaConnection/InterConnection declared without an explicit plastic=PlasticParams(H=1.0) will silently seed H0 outside its valid range and can blow up HDP integration to NaN at step 0. This is a real footgun for anyone building a NeuronalTensor with HDP enabled, not unique to this script."
+      ],
+      "last_verified": "2026-07-04",
+      "evidence": "Real 10-trial CPU run: `PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py 10` completed in ~28s, stable ~12.89Hz spike rate across all trials, no NaN, receipt written to outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Also verified: without the plastic=PlasticParams(H=1.0) fix, H_final/w_final were NaN from step 0 even under a fully-null HDP config with zero drive (isolated via direct testing: single-area V1-only + HDP = no NaN; adding the 2-area AreaConnection with default H=0.0 = NaN at step 0).",
+      "status": "needs_followup"
     }
   ]
 }

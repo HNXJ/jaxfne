@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 3 of the 3-file pipeline: planned/not-yet-started work and open brainstorm/analysis findings. Nothing here is in progress -- an item moves OUT of plans.json into progress.json (as a new or updated entry) the moment any code/test work actually starts on it, with status set to 'open' there. items[]: discrete, scoped, actionable work units (status: not_started | blocked). brainstorm[]: raw analysis findings / ideas not yet scoped into an actionable item -- read before starting new work to avoid re-deriving something already investigated (e.g. the function-merger AST scan).",
-  "last_updated": "2026-07-03",
+  "last_updated": "2026-07-04",
   "items": [
     {
       "id": "hdp-100k-100step-validation-run",
@@ -472,10 +472,12 @@
       "id": "v1-pfc-continuous-aaab-adaptation-paradigm",
       "title": "[SCOPED, 10-trial smoke test is the next real step] Build V1-PFC continuous AAAB adaptation paradigm (replaces the old aspirational dual-column doc)",
       "target_files": [
+        "jaxfne/_signals.py (StimulusSchedule.frequency_hz extension)",
+        "jaxfne/paradigm.py (reference the F-022 marker-silencing pattern; may need a new paradigm-builder function, or can be hand-built via ParadigmEvent/ParadigmCondition directly -- design decision for the build step)",
         "docs/tutorials/05_v1_pfc_dual_column.md",
+        "scripts/v1_pfc_continuous_aaab_smoke_test.py",
         "tutorials/ (new notebook, name TBD)",
-        "jaxfne/neuronal_tensor.py (Area/AreaConnection usage, no new code expected)",
-        "jaxfne/paradigm.py (reference the F-022 marker-silencing pattern; may need a new paradigm-builder function, or can be hand-built via ParadigmEvent/ParadigmCondition directly -- design decision for the build step)"
+        "jaxfne/neuronal_tensor.py (Area/AreaConnection usage, no new code expected)"
       ],
       "depends_on_functions": [
         "target_indices (StimulusSchedule)",
@@ -483,8 +485,9 @@
         "RuntimeConfig(enable_hdp=True)"
       ],
       "shape": "User directive 2026-07-03, design finalized via 4 batched AskUserQuestion clarifications (all recommended options chosen). Full spec: see brainstorm entry v1_pfc_continuous_aaab_adaptation_2026-07-03 for complete detail. Summary: 100n V1 (canonical 6-layer, HDP-enabled) + 100n PFC (canonical 6-layer, generic, HDP-enabled), feedforward V1->PFC AreaConnection. V1's L4+L6 carry 30 tuned neurons (AB=10/A=10/B=10 -- assumption not yet locked, needs one-line confirmation: 10 total per class across L4+L6 combined, not per-layer). 1000ms trials, 100ms bins, fixed AAAB local-oddball structure (fx-p1=A-d1-p2=A-d2-p3=A-d3-p4=B-d4-rw). A/B = 40Hz sinusoidal drive via target_indices. Silent marker events need metadata={'drive_amplitude':0.0} (F-022 pattern). dtype float32, backend cpu. Full run = 1000 trials (1,000,000ms simulated) -- explicitly queued, NOT to be run without a separate go-ahead. NEXT STEP (not started): a 10-trial CPU smoke test, with a 10-neuron-per-column dummy-circuit fallback if even that's too slow on this machine. This work replaces docs/tutorials/05_v1_pfc_dual_column.md's old, never-implemented inter_areal_connectivity/dual_laminar_column/traveling_waves/coherence scope -- that doc's honest ASPIRATIONAL disclaimer stays in place until this new paradigm is actually built and verified working.",
-      "status": "proposed",
-      "source": "User, 2026-07-03: full paradigm spec given directly in chat, refined via 4 clarifying questions, all recommended options chosen."
+      "status": "in_progress",
+      "source": "User, 2026-07-03: full paradigm spec given directly in chat, refined via 4 clarifying questions, all recommended options chosen.",
+      "completion_note": "First CPU smoke test implemented and run (scripts/v1_pfc_continuous_aaab_smoke_test.py), 10 trials, real receipt at outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Mechanics verified end-to-end: V1(100n)+PFC(100n) NeuronalTensor, feedforward AreaConnection, fixed AAAB 1000ms trial schedule, true 40Hz sinusoidal AC drive (required extending StimulusSchedule.to_array with an optional frequency_hz event key), HDP enabled with state carried trial-to-trial via Model.with_hdp_initial_state, no NaN, stable ~12.9Hz spike rate across all 10 trials. Two design questions resolved: (1) tuning-group identity is a positional post-construction tag over the plain 'E' cell type in V1's L4/L6 (renaming to e.g. 'E_AB' would flip the excitatory/inhibitory sign heuristic in neuronal_tensor.py, which checks source_neuron_type == 'E' exactly); (2) built directly via StimulusSchedule (not the general_sequential_oddball_paradigm backbone), since full manual control over target_indices/frequency_hz per event was simpler than adapting the generic paradigm converter. NEW FINDING (real bug in the smoke-test script, now fixed, not a jaxfne bug): AreaConnection.plastic.H defaults to 0.0 (outside the valid HDP H range 0.1-10.0); construct_neuronal_tensor averages this into target neurons' initial HDP state, so an unset H on a cross-area AreaConnection silently seeded PFC's L4 neurons at H0=0.0 and blew up the HDP integration to NaN immediately at step 0 -- fixed by explicitly setting plastic=PlasticParams(H=1.0) on the AreaConnection declarations, matching the convention already used in jaxfne/configs/canonical-v1-column-1000n.json. SEPARATE GAP FOUND (genuine, undocumented, not yet fixed -- flagged for its own follow-up, not fixed inline): neuronal_tensor_to_configuration never calls Configuration.layer_fractions(), so declared per-layer Layer.n_neurons is silently ignored in favor of jaxfne's hardcoded default layer-thickness split (core._SUITE2_LAYER_FRACTIONS: L1=10%/L2=15%/L3=20%/L4=10%/L5=30%/L6=15%). This forced the tuning-group split to 25 combined V1 L4+L6 neurons (AB=9/A=8/B=8) instead of the originally-specified 30 (10/10/10). STILL OPEN: the hdp_params used (alpha=beta=gamma=delta=C_spike=0.0) is RuntimeConfig's documented 'null control' -- H_final/w_final were bit-identical across all 10 trials, i.e. the adaptation *pipeline* is verified but no actual adaptation *signal* is visible yet. Wiring a genuinely-driving HDP parameter set is deliberately deferred to avoid blind-tuning a subsystem with documented open stability issues (see hdp-stability-formula-design-and-validation). Next steps: (a) fix neuronal_tensor_to_configuration's layer-size fidelity gap as its own reviewed change; (b) find/validate a driving (non-null) HDP parameter set for this 2-area topology; (c) scale from the 10-trial smoke test toward the full 1000-trial run only after (a)/(b)."
     },
     {
       "id": "release-v0.4.5-published",
@@ -501,6 +504,21 @@
       "shape": "2026-07-03: real PyPI release, user-authorized. Fixed the root cause of the blank Python-version README badge (published PyPI classifiers were empty; pyproject.toml's classifiers were added after the 0.4.4 publish and never re-released) by bumping to 0.4.5 and publishing for real. Gates: TestPyPI dry-run first (confirmed classifiers/project_urls correct), then tag v0.4.5 (peeled SHA verified == origin/main == CI-green SHA 96e97c5) + GitHub Release -> real PyPI publish via OIDC. Verified post-publish: pypi.org/pypi/jaxfne/0.4.5/json has all 8 classifiers + 5 project_urls; img.shields.io/pypi/pyversions/jaxfne now renders '3.10 | 3.11 | 3.12' instead of missing. Bundled 176 commits since v0.4.4 (HDP v2, NeuronalTensor, vis isolation, test/doc consolidation, CI fixes) -- changelog entry added as curated highlights, not a raw commit dump.",
       "status": "done",
       "source": "User, 2026-07-03: 'lets do the pypi republish quickly' -> confirmed version/scope/mechanism via batched question -> explicit go-ahead for the real publish."
+    },
+    {
+      "id": "core-py-monolith-split",
+      "status": "in_progress",
+      "target_files": [
+        "jaxfne/core.py",
+        "jaxfne/_runtime_config.py",
+        "jaxfne/_signals.py",
+        "jaxfne/_config.py (not started)",
+        "jaxfne/_model.py (not started)",
+        "jaxfne/_construct.py (not started)"
+      ],
+      "shape": "Split jaxfne/core.py (8,370 lines, 127 top-level symbols pre-split; see docs/v047_refactor_audit.md and the research pass this item is based on) into focused modules, extracted in dependency order (leaves first, hub last): (1) RuntimeConfig/SurrogateConfig/backend helpers -> jaxfne/_runtime_config.py [DONE, commit ad87e85, CI green, merged to main]; (2) Signals/Objective/TrialSpec/StimulusSchedule/metric helpers -> jaxfne/_signals.py [extraction complete, 3 rounds of missed-re-export fixes applied after pytest caught each ImportError -- _KNOWN_METRICS/_KNOWN_LAYERS/_KNOWN_CONFIG_GATE_METRICS/_SIGNALS_GET_NEURON_AXIS_KEYS/_SIGNALS_GET_FIELD_KEYS/_SIGNALS_GET_KEY_ALIASES/_AXIS_STATUS_VALUES/_SPACE_BASIS_VALUES/_TIME_BASIS_VALUES/_FIELD_REGIME_VALUES/_FUTURE_FIELD_REGIMES/_SOURCE_MODE_BASIS_VALUES/_PROBE_BASIS_VALUES/Signal(alias) all had to be added to core.py's re-export list; full suite run pending at time of this entry, not yet committed]; (3) Configuration -> jaxfne/_config.py [not started]; (4) Model (~2030 lines, biggest integration surface) -> jaxfne/_model.py [not started, highest risk, do last]; (5) construct()/connect() hub -> jaxfne/_construct.py [not started, imports from both Configuration and Model]. Every extracted symbol is re-exported in full from jaxfne/core.py -- required because 26 test files + 1 script import private (underscore-prefixed) symbols directly from jaxfne.core, and this repo's public API contract is that jaxfne.core keeps working as the single stable import surface throughout the split.",
+      "depends_on_functions": [],
+      "completion_note": null
     }
   ],
   "brainstorm": [

@@ -286,6 +286,7 @@
 | docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
+| scripts/v1_pfc_continuous_aaab_smoke_test.py | 70 | needs_followup | hdp_params used (alpha=beta=gamma=delta=C_spike=0.0) is RuntimeConfig's documented null control -- H_final/w_final are b | Find/validate a genuinely-driving (non-null) HDP parameter set for this specific 2-area topology -- deliberately not att | 2026-07-04 |
 | jaxfne/runtime.py | 78 | unreviewed |  |  | 2026-06-30 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
@@ -434,6 +435,7 @@
 | docs/notes/biophysical_model_comparison.md | 95 | done |  |  | 2026-07-03 |
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
+| jaxfne/_signals.py | 95 | open |  | Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_K | 2026-07-04 |
 | jaxfne/analysis/metrics.py | 96 | unreviewed |  |  | 2026-06-30 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
@@ -504,3 +506,4 @@
 | .legacy/internal_docs/test_v031_single_neuron_tutorial.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/test_v032_parameter_sweep_tutorial.py | 100 | done |  |  | 2026-07-01 |
 | .legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py | 100 | done |  |  | 2026-07-01 |
+| jaxfne/_runtime_config.py | 100 | done |  |  | 2026-07-04 |
