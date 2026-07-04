@@ -94,8 +94,9 @@ Legacy `Configuration`-schema archives live at `jaxfne/configs/legacy/`
 
 `RuntimeConfiguration` (`neuronal_tensor.py`, frozen, execution-only:
 seed/duration_ms/dt_ms/dtype/emitter/device/jit/vmap) is **distinct from**
-`RuntimeConfig` (`core.py`, has `enable_hdp`/`hdp_params`). `RuntimeConfiguration`
-has **no** HDP field.
+`RuntimeConfig` (moved 2026-07-03 from `core.py` to `jaxfne/_runtime_config.py`,
+re-exported from `jaxfne.core` unchanged — `from jaxfne.core import RuntimeConfig`
+still works; has `enable_hdp`/`hdp_params`). `RuntimeConfiguration` has **no** HDP field.
 
 ## Enabling HDP (no new public API needed)
 
@@ -142,6 +143,39 @@ import it from `jaxfne.neuronal_tensor` or `jaxfne.emitters` directly.
 
 `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge
 `receptor_index`.
+
+### Footgun: `PlasticParams.H` defaults to 0.0, outside the valid HDP range
+
+`PlasticParams.H` (on `InterConnection`/`AreaConnection`, `neuronal_tensor.py`)
+defaults to **`0.0`** — outside `BASE_HDP_KWARGS_DEFAULT`'s valid homeostatic
+range (`H_min=0.1, H_max=10.0`). `construct_neuronal_tensor` averages every
+connection's `plastic.H` touching a target neuron (mean across
+`InterConnection`/`AreaConnection`, untouched neurons default to the HDP
+equilibrium `1.0`) into that neuron's initial HDP state via
+`Model.with_hdp_initial_state`. **Any `InterConnection`/`AreaConnection`
+declared without an explicit `plastic=PlasticParams(H=1.0)` silently seeds
+that neuron's H0 outside its valid range** — this is inert until HDP is
+enabled (`RuntimeConfig.enable_hdp=True`, default `False`), but once enabled
+it can blow up HDP integration to NaN from step 0 (verified: single-area HDP
+with no `H` set = fine; adding a 2-area `AreaConnection` with the `H=0.0`
+default = NaN immediately). Always set `plastic=PlasticParams(H=1.0, ...)`
+explicitly on every `InterConnection`/`AreaConnection` if HDP will be enabled.
+
+## Known gap: per-layer neuron count is NOT preserved by the tensor→Configuration bridge
+
+`neuronal_tensor.py::neuronal_tensor_to_configuration` never calls
+`Configuration.layer_fractions()` — it only calls `.column(area.name,
+layers=layer_names, n=area_n)` (total area neuron count) and
+`.area_layer_cell_types(...)` (per-layer E:PV:SST:VIP *fractions*). A
+`NeuronalTensor`'s declared per-layer `Layer.n_neurons` is therefore
+**silently ignored**: the constructed model splits the area's total count
+across layers using jaxfne's hardcoded default (`core._SUITE2_LAYER_FRACTIONS`:
+L1=10%, L2=15%, L3=20%, L4=10%, L5=30%, L6=15%), not whatever per-layer sizes
+you actually declared on each `Layer`. Only per-layer cell-type *composition*
+survives the bridge correctly — layer *size* does not. If you need declared
+layer sizes to be honored, don't rely on this bridge for that; verify sizes
+via `model.neuron_table()` after construct rather than assuming the tensor's
+`Layer.n_neurons` values were respected.
 
 ## Internal pure-function layer (`jaxfne/_pipeline.py`, Phase 0–3a)
 

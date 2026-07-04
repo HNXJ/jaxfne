@@ -47,7 +47,15 @@ grep -R "def <name>\|class <name>" -n jaxfne tests docs examples tutorials scrip
 ## Ownership map (verified on disk — no jaxfne/config.py or net.py)
 
 ```text
-Config/Model/Signals/Simulation  -> jaxfne/core.py (primary monolith)
+Config/Model                     -> jaxfne/core.py (primary monolith; Configuration/Model/
+                                     construct()/simulate()/connect() not yet split out)
+Signals/Simulation/Objective/     -> jaxfne/_runtime_config.py (RuntimeConfig, SurrogateConfig,
+RuntimeConfig/SurrogateConfig/       backend-device helpers) and jaxfne/_signals.py (Signals,
+StimulusSchedule/TrialSpec/etc.     Objective, Simulation, Probe, TrialSpec, StimulusSchedule,
+                                     ReadoutSpec, AxisSpec, BasisSpec, metric/gate helpers) —
+                                     core.py split 2026-07-03; jaxfne/core.py re-exports every
+                                     symbol in full, so `from jaxfne.core import X` / `from
+                                     jaxfne import X` public import paths are unchanged.
 Builders / canonical columns     -> jaxfne/builders.py
 NeuronalTensor / tensor bridge   -> jaxfne/neuronal_tensor.py
 HDP builder / defaults           -> jaxfne/hdp_network.py

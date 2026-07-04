@@ -120,6 +120,17 @@ real, wired blackbox path uses `propose_blackbox_candidates` +
 `optim/core.py`'s `sdr_transform`/`gsdr_transform`/`agsdr_transform` Optax
 factories.
 
+## Stimulus drive injection — `StimulusSchedule`
+
+`StimulusSchedule` (moved 2026-07-03 from `core.py` to `jaxfne/_signals.py`,
+re-exported from `jaxfne.core` unchanged) declares per-event drive pulses;
+`.to_array(n_steps, dt_ms)` renders them to a dense per-step array consumed
+by the emitter. Each event may now optionally carry `frequency_hz`: when
+present, the flat `amplitude` plateau is replaced by a sinusoid
+`amplitude * sin(2*pi*frequency_hz*t)` (`t` = seconds since that event's own
+onset, phase restarts at 0 per event). Omitting `frequency_hz` reproduces the
+original flat-amplitude behavior unchanged — fully backward compatible.
+
 ## Multi-trial / batch
 
 ```python
