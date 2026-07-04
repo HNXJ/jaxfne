@@ -483,20 +483,19 @@
     },
     {
       "path": "jaxfne/neuronal_tensor.py",
-      "purpose": "Canonical NeuronalTensor (Areas/Layers/NeuronTypes/Connections) data model: dataclasses for Geometry3D/NeuronType/Layer/Area/AreaConnection/InterConnection, JSON save/load with schema versioning, merge_neuronal_tensors unifier, and bridges (neuronal_tensor_to_configuration, construct_neuronal_tensor) into the existing Configuration/Model pipeline including pose-correct 3D placement and HDP initial-state seeding.",
-      "score": 90,
+      "purpose": "NeuronalTensor build path (Areas x Layers x NeuronTypes x AreaConnections), the tensor->Configuration bridge, and HDP-aware construct_neuronal_tensor.",
+      "score": 92,
       "tbi": [],
       "tbd": [
-        "Layer.geometry distribution only supports uniform_random (_sample_local_positions raises NotImplementedError otherwise)"
+        "Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only construct_neuronal_tensor (which overwrites positions from Layer.geometry+Area.pose afterward) gives pose-correct 3D placement.",
+        "StaticParams.reversal_potentials_mV surfaced into metadata but has no numeric consumer in jaxfne's native-current dynamics."
       ],
       "warnings": [
-        "neuronal_tensor_to_configuration drops Layer.geometry (positions come from default column sampling); only construct_neuronal_tensor (which re-derives positions post-construct) honors declared Geometry3D/Pose3D",
-        "StaticParams.reversal_potentials_mV is surfaced into mechanism metadata but has no numeric consumer in the current current-based (Izhikevich-style) edge dynamics -- documented honestly in the docstring, not a bug, but a real fidelity gap",
-        "cell-type fractions and connection wiring use an even-split / probability=1.0 full-bipartite fallback when the tensor does not declare its own fractions/density -- a neutral-reading default, not measured biology"
+        "PlasticParams.H defaults to 0.0, outside the valid HDP range (H_min=0.1, H_max=10.0). construct_neuronal_tensor averages it into a target neuron's initial HDP state, so an InterConnection/AreaConnection declared without an explicit plastic=PlasticParams(H=1.0) silently seeds H0 out of range and can NaN HDP integration at step 0 once HDP is enabled. Found and worked around in scripts/v1_pfc_continuous_aaab_smoke_test.py; not itself fixed here (the field's default is arguably correct for the non-HDP case -- the real footgun is the lack of a validation/warning when HDP is enabled with an out-of-range aggregated H0)."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "31/31 passed (tests/test_neuronal_tensor.py): python3 -m pytest tests/test_neuronal_tensor.py -q",
-      "status": "unreviewed"
+      "last_verified": "2026-07-04",
+      "evidence": "Fixed a real, verified bug in neuronal_tensor_to_configuration (jaxfne/neuronal_tensor.py:744-757): switched the per-area .column(name, layers, n=area_n) call to .population(area_n, neurons={layer.name: layer.n_neurons, ...}, name=area.name, layers=layer_names), which records metadata['area_layer_count_frac'][area] -- resolved by core._area_layer_count_frac ahead of jaxfne's hardcoded default layer-thickness split. Verified before/after: a V1 area declared L1=10/L2=25/L3=15/L4=15/L5=20/L6=15 previously constructed as L1=10/L2=15/L3=20/L4=10/L5=30/L6=15 (wrong, silently used the default for ANY area regardless of declared sizes) and now constructs with the exact declared counts. Full existing test suite for this module (tests/test_neuronal_tensor.py, test_neuronal_tensor_notebook_execution.py, test_pipeline_pure_functions.py, test_util_config_tensor.py) re-run clean (74 passed) -- none of those tests used multi-layer areas with non-default proportions, so none depended on the old (wrong) behavior.",
+      "status": "reviewed"
     },
     {
       "path": "jaxfne/objectives.py",

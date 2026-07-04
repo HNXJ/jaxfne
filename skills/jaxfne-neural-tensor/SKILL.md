@@ -161,21 +161,24 @@ with no `H` set = fine; adding a 2-area `AreaConnection` with the `H=0.0`
 default = NaN immediately). Always set `plastic=PlasticParams(H=1.0, ...)`
 explicitly on every `InterConnection`/`AreaConnection` if HDP will be enabled.
 
-## Known gap: per-layer neuron count is NOT preserved by the tensor→Configuration bridge
+## Per-layer neuron count IS preserved by the tensor→Configuration bridge (fixed 2026-07-04)
 
-`neuronal_tensor.py::neuronal_tensor_to_configuration` never calls
-`Configuration.layer_fractions()` — it only calls `.column(area.name,
-layers=layer_names, n=area_n)` (total area neuron count) and
-`.area_layer_cell_types(...)` (per-layer E:PV:SST:VIP *fractions*). A
-`NeuronalTensor`'s declared per-layer `Layer.n_neurons` is therefore
-**silently ignored**: the constructed model splits the area's total count
+`neuronal_tensor.py::neuronal_tensor_to_configuration` used to call the plain
+`.column(area.name, layers=layer_names, n=area_n)` (total area count only),
+which meant a `NeuronalTensor`'s declared per-layer `Layer.n_neurons` was
+**silently ignored** — the constructed model split the area's total count
 across layers using jaxfne's hardcoded default (`core._SUITE2_LAYER_FRACTIONS`:
-L1=10%, L2=15%, L3=20%, L4=10%, L5=30%, L6=15%), not whatever per-layer sizes
-you actually declared on each `Layer`. Only per-layer cell-type *composition*
-survives the bridge correctly — layer *size* does not. If you need declared
-layer sizes to be honored, don't rely on this bridge for that; verify sizes
-via `model.neuron_table()` after construct rather than assuming the tensor's
-`Layer.n_neurons` values were respected.
+L1=10%, L2=15%, L3=20%, L4=10%, L5=30%, L6=15%) regardless of what you
+declared. Fixed by routing through `Configuration.population(area_n,
+neurons={layer.name: layer.n_neurons, ...}, name=area.name, layers=...)`
+instead — this records `metadata["area_layer_count_frac"][area]`, which
+`core._area_layer_count_frac` resolves *ahead of* the thickness fallback.
+Verified: a declared L1=10/L2=25/L3=15/L4=15/L5=20/L6=15 area now constructs
+with exactly those per-layer counts (previously silently became
+L1=10/L2=15/L3=20/L4=10/L5=30/L6=15 for any 100-neuron area, regardless of
+what was declared). Per-layer cell-type *composition* was always preserved
+correctly (via `.area_layer_cell_types(...)`); it was only layer *size* that
+was affected.
 
 ## Internal pure-function layer (`jaxfne/_pipeline.py`, Phase 0–3a)
 

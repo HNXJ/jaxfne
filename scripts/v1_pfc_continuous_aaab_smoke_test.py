@@ -44,29 +44,30 @@ flagged unresolved in plans.json):
    ``frequency_hz`` event key (backward compatible; absent = original flat
    amplitude). See that module for the change.
 
-3. DISCOVERED GAP (not previously documented anywhere): despite each
-   ``Layer`` declaring its own ``n_neurons``,
-   ``neuronal_tensor.neuronal_tensor_to_configuration`` never calls
-   ``Configuration.layer_fractions()``, so the constructed model silently
-   falls back to jaxfne's hardcoded default layer-thickness split
+3. FIXED (2026-07-04, was a discovered gap in this script's first version):
+   despite each ``Layer`` declaring its own ``n_neurons``,
+   ``neuronal_tensor.neuronal_tensor_to_configuration`` used to never call
+   any per-layer-size API, so the constructed model silently fell back to
+   jaxfne's hardcoded default layer-thickness split
    (``core._SUITE2_LAYER_FRACTIONS``: L1=10%, L2=15%, L3=20%, L4=10%,
    L5=30%, L6=15% of the area's total neuron count) instead of respecting
-   the tensor's declared per-layer sizes. Verified directly: a V1 area
-   declared with L1=10/L2=25/L3=15/L4=15/L5=20/L6=15 constructed as
-   L1=10/L2=15/L3=20/L4=10/L5=30/L6=15 (the hardcoded default) for a
-   100-neuron area regardless. This script does NOT attempt to fix that
-   bridge function in the same pass as this paradigm (real fix belongs in
-   neuronal_tensor.py, reviewed on its own) -- it works within the existing
-   default split instead: for a 100-neuron area, L4 always gets 10 neurons
-   and L6 always gets 15, for 25 total pure-E tuning slots (not the 30 the
-   original spec called for). Tuning groups are split AB=9/A=8/B=8 across
-   the combined 25 slots -- a documented compromise, not a silent one.
+   the tensor's declared per-layer sizes. Fixed directly in
+   ``neuronal_tensor.py`` by routing through ``Configuration.population()``
+   (records ``metadata["area_layer_count_frac"][area]``, which
+   ``core._area_layer_count_frac`` resolves ahead of the thickness
+   fallback) instead of the bare ``.column()`` call. Verified: a V1 area
+   declared with L1=10/L2=25/L3=15/L4=15/L5=20/L6=15 now constructs with
+   exactly those per-layer counts. This script now uses the originally-
+   intended sizes (L4=15/L6=15 -> 30 combined tuning-layer neurons, 10 AB +
+   10 A + 10 B, matching the spec verbatim) instead of the earlier
+   AB=9/A=8/B=8 compromise forced by the bug.
 
 Design tradeoff (stated, not hidden): V1's L4 and L6 have PV/SST/VIP removed
-entirely (pure-E tuning layers) to host the AB/A/B groups; L1, L2, L3, L5
-and all of PFC keep the canonical E:PV:SST:VIP cell-type fractions (layer
-sizes for both areas follow the hardcoded default split from point 3 above,
-not the originally-intended canonical column proportions).
+entirely (pure-E tuning layers) to host the AB/A/B groups, and L3 is
+shrunk from its canonical 20 neurons to 15 to make room for L4's growth
+(canonical 10 -> 15) while holding V1 at 100 neurons total. L1, L2, L5 and
+all of PFC keep the canonical E:PV:SST:VIP cell-type fractions and canonical
+layer-size proportions unchanged.
 
 Usage: PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py [n_trials]
 Default n_trials=10 (the authorized first validation step; full spec target
@@ -121,50 +122,41 @@ def _canonical_layer(name: str, n_neurons: int) -> Layer:
     )
 
 
-# Layer sizes actually realized by neuronal_tensor_to_configuration's hardcoded
-# default split (core._SUITE2_LAYER_FRACTIONS), for a 100-neuron area -- see
-# module docstring point 3. Layer.n_neurons below is declared for
-# documentation/intent, but construction ignores it; these are the real sizes.
-_ACTUAL_LAYER_SIZES = {"L1": 10, "L2": 15, "L3": 20, "L4": 10, "L5": 30, "L6": 15}
-
-
 def build_v1_area() -> Area:
-    """100-neuron V1 column (canonical cell-type fractions in L1/L2/L3/L5;
-    L4/L6 are pure-E tuning layers). Layer sizes follow
-    ``_ACTUAL_LAYER_SIZES`` (the hardcoded default the bridge actually uses),
-    not canonical proportions -- see module docstring point 3."""
+    """100-neuron V1 column: L1=10, L2=25, L3=15, L4=15(pure-E tuning), L5=20,
+    L6=15(pure-E tuning). L3 shrunk from canonical 20->15 to make room for
+    L4's growth (canonical 10->15) while holding the V1 total at 100. These
+    declared per-layer sizes are honored exactly (neuronal_tensor_to_configuration's
+    layer-size fidelity bug is fixed -- see module docstring point 3)."""
     layers = [
-        _canonical_layer("L1", _ACTUAL_LAYER_SIZES["L1"]),
-        _canonical_layer("L2", _ACTUAL_LAYER_SIZES["L2"]),
-        _canonical_layer("L3", _ACTUAL_LAYER_SIZES["L3"]),
-        Layer(name="L4", n_neurons=_ACTUAL_LAYER_SIZES["L4"],
-              neuron_types=(NeuronType.make("E", fraction=1.0),)),
-        _canonical_layer("L5", _ACTUAL_LAYER_SIZES["L5"]),
-        Layer(name="L6", n_neurons=_ACTUAL_LAYER_SIZES["L6"],
-              neuron_types=(NeuronType.make("E", fraction=1.0),)),
+        _canonical_layer("L1", 10),
+        _canonical_layer("L2", 25),
+        _canonical_layer("L3", 15),
+        Layer(name="L4", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=1.0),)),
+        _canonical_layer("L5", 20),
+        Layer(name="L6", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=1.0),)),
     ]
+    assert sum(l.n_neurons for l in layers) == 100
     return Area(name="V1", layers=tuple(layers))
 
 
 def build_pfc_area() -> Area:
-    """100-neuron PFC column: canonical E:PV:SST:VIP cell-type fractions,
-    fully generic/untuned. Layer sizes follow ``_ACTUAL_LAYER_SIZES``."""
+    """100-neuron PFC column: canonical L1..L6 fractions, fully generic/untuned."""
     layers = [
-        _canonical_layer("L1", _ACTUAL_LAYER_SIZES["L1"]),
-        _canonical_layer("L2", _ACTUAL_LAYER_SIZES["L2"]),
-        _canonical_layer("L3", _ACTUAL_LAYER_SIZES["L3"]),
-        Layer(name="L4", n_neurons=_ACTUAL_LAYER_SIZES["L4"],
-              neuron_types=(NeuronType.make("E", fraction=0.75),
-                            NeuronType.make("PV", fraction=0.18),
-                            NeuronType.make("SST", fraction=0.04),
-                            NeuronType.make("VIP", fraction=0.03))),
-        _canonical_layer("L5", _ACTUAL_LAYER_SIZES["L5"]),
-        Layer(name="L6", n_neurons=_ACTUAL_LAYER_SIZES["L6"],
-              neuron_types=(NeuronType.make("E", fraction=0.9),
-                            NeuronType.make("PV", fraction=0.0533),
-                            NeuronType.make("SST", fraction=0.0267),
-                            NeuronType.make("VIP", fraction=0.02))),
+        _canonical_layer("L1", 10),
+        _canonical_layer("L2", 25),
+        _canonical_layer("L3", 20),
+        Layer(name="L4", n_neurons=10, neuron_types=(NeuronType.make("E", fraction=0.75),
+                                                      NeuronType.make("PV", fraction=0.18),
+                                                      NeuronType.make("SST", fraction=0.04),
+                                                      NeuronType.make("VIP", fraction=0.03))),
+        _canonical_layer("L5", 20),
+        Layer(name="L6", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=0.9),
+                                                      NeuronType.make("PV", fraction=0.0533),
+                                                      NeuronType.make("SST", fraction=0.0267),
+                                                      NeuronType.make("VIP", fraction=0.02))),
     ]
+    assert sum(l.n_neurons for l in layers) == 100
     return Area(name="PFC", layers=tuple(layers))
 
 
@@ -194,25 +186,20 @@ def build_tensor() -> NeuronalTensor:
 
 
 def tuning_group_indices(model: "jtfne.core.Model") -> dict[str, list[int]]:
-    """Positional AB/A/B tagging over the combined 25 pure-E neurons in V1's
-    L4 (10 neurons) + L6 (15 neurons), in stable neuron_table() order.
-    Split AB=9/A=8/B=8 (25 total) -- see module docstring point 3 for why
-    this isn't 10/10/10 as originally specified."""
+    """Positional AB/A/B tagging: within V1's L4 and L6 (both pure-E, 15
+    neurons each, in stable neuron_table() order), slice [0:5]=AB,
+    [5:10]=A, [10:15]=B, then union across the two layers -- 10 AB + 10 A
+    + 10 B combined, matching the spec verbatim."""
     rows = model.neuron_table()
-    layer_ids: list[int] = []
+    groups: dict[str, list[int]] = {"AB": [], "A": [], "B": []}
     for layer in ("L4", "L6"):
         ids = sorted(r["neuron_id"] for r in rows if r["area"] == "V1" and r["layer"] == layer)
-        expected = _ACTUAL_LAYER_SIZES[layer]
-        if len(ids) != expected:
-            raise ValueError(f"expected {expected} pure-E neurons in V1/{layer}, got {len(ids)}")
-        layer_ids.extend(ids)
-    if len(layer_ids) != 25:
-        raise ValueError(f"expected 25 combined tuning-layer neurons, got {len(layer_ids)}")
-    return {
-        "AB": layer_ids[0:9],
-        "A": layer_ids[9:17],
-        "B": layer_ids[17:25],
-    }
+        if len(ids) != 15:
+            raise ValueError(f"expected 15 pure-E neurons in V1/{layer}, got {len(ids)}")
+        groups["AB"].extend(ids[0:5])
+        groups["A"].extend(ids[5:10])
+        groups["B"].extend(ids[10:15])
+    return groups
 
 
 def build_trial_schedule(n_neurons: int, groups: dict[str, list[int]]) -> "jtfne.core.StimulusSchedule":

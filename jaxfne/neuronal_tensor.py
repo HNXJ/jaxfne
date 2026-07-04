@@ -692,6 +692,15 @@ def neuronal_tensor_to_configuration(
     membership, not population fractions, so an even split is the most
     neutral reading) and recorded per area/layer, not flattened globally.
 
+    Per-area per-layer NEURON COUNT is also preserved (fixed 2026-07-04),
+    via :meth:`Configuration.population` (records
+    ``metadata["area_layer_count_frac"][area]``, resolved by
+    ``core._area_layer_count_frac`` ahead of jaxfne's hardcoded default
+    layer-thickness split). Each ``Layer.n_neurons`` is honored exactly —
+    previously this function called the plain :meth:`Configuration.column`
+    (total count only), so per-layer sizes were silently dropped in favor
+    of that default split regardless of what a tensor declared.
+
     Cross-area / within-area wiring: every ``InterConnection`` (within an
     area) and ``AreaConnection`` (between areas) is compiled into a REAL edge
     rule via :meth:`Configuration.connections` + :meth:`Configuration.mechanisms`
@@ -748,7 +757,25 @@ def neuronal_tensor_to_configuration(
         layer_names = [layer.name for layer in area.layers] or ["single"]
         area_n = sum(layer.n_neurons for layer in area.layers) or 1
         area_n_by_name[area.name] = area_n
-        cfg = cfg.column(area.name, layers=layer_names, n=area_n)
+        if area.layers:
+            # Fixed 2026-07-04: previously called cfg.column(...) directly,
+            # which only records the total area size -- per-layer neuron
+            # counts were silently dropped in favor of jaxfne's hardcoded
+            # default layer-thickness split (core._SUITE2_LAYER_FRACTIONS).
+            # cfg.population(...) is a strict superset of .column() (it calls
+            # .column() internally with the same args) that ALSO records each
+            # layer's declared share of the area total under
+            # metadata["area_layer_count_frac"][area.name], which
+            # core._area_layer_count_frac resolves ahead of the thickness
+            # default -- so a Layer's declared n_neurons is now honored.
+            cfg = cfg.population(
+                area_n,
+                neurons={layer.name: (layer.n_neurons or 1) for layer in area.layers},
+                name=area.name,
+                layers=layer_names,
+            )
+        else:
+            cfg = cfg.column(area.name, layers=layer_names, n=area_n)
 
         layer_cell_types: dict[str, dict[str, float]] = {}
         for layer in area.layers:

@@ -348,7 +348,6 @@
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
 | jaxfne/analysis/spectral.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/export.py | 90 | unreviewed |  |  | 2026-06-30 |
-| jaxfne/neuronal_tensor.py | 90 | unreviewed |  | Layer.geometry distribution only supports uniform_random (_sample_local_positions raises NotImplementedError otherwise) | 2026-06-30 |
 | jaxfne/objectives.py | 90 | unreviewed |  |  | 2026-06-30 |
 | jaxfne/presets.py | 90 | unreviewed |  |  | 2026-06-30 |
 | tests/test_epv_2neuron_pipeline_smoke.py | 90 | done |  | 4 more configs from the matrix still not built: jaxley-HH parity (same connectivity, different intrinsic params), Izhike | 2026-07-01 |
@@ -381,6 +380,7 @@
 | jaxfne/vis/plotly/raster.py | 91 | unreviewed |  | Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value | 2026-07-01 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
+| jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/solvers.py | 92 | unreviewed |  |  | 2026-06-30 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
 | docs/api/core.md | 92 | done |  | ReadoutSpec metrics table previously listed max_spike_rate_hz/mean_source/mean_LFP/mean_CSD/burst_frequency_hz as valid  | 2026-07-03 |
