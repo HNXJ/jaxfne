@@ -1,5 +1,28 @@
 # AGENTS.md — jaxfne
 
+<details>
+<summary><b>Table of contents</b></summary>
+
+- [Read first](#read-first)
+- [Identity](#identity)
+- [Root freeze policy](#root-freeze-policy)
+- [jaxfne-modular-grammar](#jaxfne-modular-grammar)
+- [Gates](#gates)
+- [Known fragilities](#known-fragilities-track-dont-just-warn)
+- [Docs-migration status](#docs-migration-status)
+- [Backlog protocol](#backlog-protocol)
+- [Branch policy](#branch-policy)
+- [Validation](#validation)
+- [Report format](#report-format)
+- [API catalog](#api-catalog-read-before-writing-helpers)
+- [Verified laminar pipeline](#verified-laminar-pipeline-reuse-do-not-rediscover)
+- [Two (now three) paths to a laminar run](#two-now-three-paths-to-a-laminar-run--pick-before-you-start-dont-mix-mid-task)
+- [Self-check before claiming a result is real](#self-check-before-claiming-a-result-is-real)
+- [Homeostasis & plasticity](#homeostasis--plasticity-verified-2026-06-21-reuse-do-not-rediscover)
+- [PR review](#pr-review)
+
+</details>
+
 ## Read first
 
 This file is the quickref. `internal_docs/` (the old home for `AGENT_QUICKREF.md` /
@@ -17,9 +40,14 @@ What replaced each:
   entry.** Session-scoped, not a repo-wide sweep; grow it incrementally, don't backfill unverified rows.
 - Evidence/publication-state snapshot → `python3 scripts/evidence_inventory.py` (run
   it; don't trust a remembered SHA).
-- Biophysics deep reference → the global `~/.claude/CLAUDE.md` "COMPUTATIONAL NEURONAL
-  BIOPHYSICS" section + the `jax-neuro-diffsim-guard` / `neuro-biophysics-units-sanity`
-  skills.
+- Biophysics deep reference → the maintainer's global `~/.claude/CLAUDE.md` "COMPUTATIONAL
+  NEURONAL BIOPHYSICS" section + the `jax-neuro-diffsim-guard` / `neuro-biophysics-units-sanity`
+  skills — all three are maintainer-local (global Claude Code skills, not in this repo).
+  External contributors without that access: the "Self-check before claiming a result is
+  real" section below and the `neuro-biophysics-units-sanity` gates (rest ≈ −66 mV, spike
+  peak ≈ +30 mV, plausible rate 8–25 Hz) are restated in this file since they're load-bearing;
+  for anything deeper, [Jaxley's own docs](https://jaxley.readthedocs.io) cover the underlying
+  units convention this repo's Jaxley bridge relies on.
 
 ## Identity
 
@@ -58,25 +86,16 @@ enforced by tooling yet, but every future change should be checked against it be
 1. **Maximum modularity** — 5 main modules, each ~5 object rule (desired target, not a hard cap).
 2. **All *simulation-signal* visualization (rasters, LFP/CSD/EEG/MEG, PSD, network layouts,
    etc.) lives under `jaxfne/vis/*`** — not one such plotting call anywhere else in `jaxfne/`.
-   **Re-verified 2026-07-03** (repo-wide grep for module-level `matplotlib`/`plotly` imports,
-   see the doc-review/scoring pass this session): `jaxfne/export.py` and
-   `jaxfne/tutorial_utils.py` are NOT real leaks — their `matplotlib` imports are lazy
-   (function-scoped, inside the deprecated `save_figure`/`save_png` shims only, both already
-   carrying a `DeprecationWarning` pointing at `jaxfne.vis.export_figure`), and every real
-   simulation-signal plotting call in the package genuinely lives under `jaxfne/vis/*` with
-   zero module-level leakage found anywhere else in `jaxfne/`.
-   **`scripts/evidence_figures/*.py`** (19 files, confirmed real top-level `matplotlib`/`plotly`
-   imports) is a deliberate, correct exception, not a violation: read on 2026-07-03/04, these are
-   one-off release/documentation figure generators (API-stability snapshots, contract matrices,
-   benchmark-scaling tables, an architecture diagram) — a different category from simulation-
-   signal visualization, with nothing in common with `jaxfne.vis`'s job. Moving them under
-   `jaxfne/vis/*` would be a category error, not a fix; `scripts/` also isn't part of the
-   installable `jaxfne` package. Leave these as-is.
+   `scripts/evidence_figures/*.py` is a deliberate, correct exception (one-off release/
+   documentation figure generators, not simulation-signal visualization; not part of the
+   installable package) — leave as-is. Verification detail and history: `progress.json`'s
+   entries for `jaxfne/export.py`, `jaxfne/tutorial_utils.py`, and the `scripts/evidence_figures/`
+   files (per rule 4 below).
 3. **Computation is jax-maximal, jax-parallel, `float32` by default.** Device order is always
-   GPU → jax-metal → CPU. `float32` is already the practical default in `core.py`'s dtype
-   handling (verified 2026-07-01); the GPU→metal→CPU fallback order is **not yet an enforced
-   utility** — `jax.devices()` is called in several places (`sharding_utils.py`, `runtime.py`,
-   `core.py`) but none encode this specific priority order.
+   GPU → jax-metal → CPU. `float32` is the practical default (`jaxfne/_runtime_config.py`'s
+   `RuntimeConfig`); the GPU→metal→CPU fallback order is **not yet an enforced utility** —
+   `jax.devices()` is called in several places (`sharding_utils.py`, `runtime.py`,
+   `_runtime_config.py`) but none encode this specific priority order.
 4. **Every observed flaw goes straight into `progress.json`** on the file's existing row
    (`warnings`/`tbd`) or a new row if the file isn't tracked yet — immediately, not batched into
    a separate report. This is the same discipline the `progress-review-plan` skill already
@@ -123,8 +142,9 @@ shapes/dtypes stable to avoid recompilation. Finiteness gates: reuse `_finite_or
 **Claim language:** use "simulated"/"proxy"/"scaffold"/"computational diagnostic"; avoid
 "validated"/"physical"/"proved"/"mechanism" without a manifest+hashes receipt. No real
 EEG/MEG/LFP/CSD or calibrated-amplitude language for proxy readouts unless
-`physical_amplitude_calibrated=True` with evidence. TFNE claim source-of-truth: `hnyxj/rules/`
-(in `/Users/hamednejat/workspace/main/hnyxj/rules/`).
+`physical_amplitude_calibrated=True` with evidence. The rule above is self-contained and
+sufficient to follow; `hnyxj/rules/` (maintainer-local, `/Users/hamednejat/workspace/main/hnyxj/rules/`,
+not in this repo) is the deeper TFNE claim-language source-of-truth for anyone with that access.
 
 ## Known fragilities (track, don't just warn)
 
@@ -132,13 +152,14 @@ EEG/MEG/LFP/CSD or calibrated-amplitude language for proxy readouts unless
 2. **`_CONFIG_RUNTIME_WARNINGS` global in `core.py`** — not thread-safe; couples `config_to_simulation`/`config_to_configuration`. FIX: return warnings instead of a global.
 3. **Hardcoded 20.0 spike gain in source proxy** — dense + edge kernels must stay in sync or the double-count guard breaks. FIX: parameterize + automated sync check.
 
-## Docs-migration status (snapshot, not a standing fact — re-check before citing)
+## Docs-migration status
 
-As of 2026-06-25: `docs/api/neuronal_tensor.md` + `docs/api/index.md` described NeuronalTensor
-correctly; `README.md`, `docs/quickstart.md`, `docs/guides/hdp.md`, and `tutorials/` still
-taught Configuration-only. **Standing rule:** when a code change introduces or fixes a new
-top-level API path, update this file in the same pass — don't let docs drift the way
-README/quickstart did.
+Current per-file doc coverage/staleness lives in `artifacts/developer/progress.json`
+(and `python3 scripts/evidence_inventory.py`), not here — a dated snapshot in a standing
+doctrine file rots (confirmed: an earlier version of this note claimed README still taught
+Configuration-only, which stopped being true once README's NeuronalTensor section landed).
+**Standing rule:** when a code change introduces or fixes a new top-level API path, update
+the affected docs in the same pass — don't let docs drift, and log the update in `progress.json`.
 
 **Schema-state note:** the v0.4.0 gate schema (`linear_solver` / `proxy_readout` /
 `physical_amplitude_calibrated` / `migrate_schema`, api 195) is canonical; releases since
@@ -184,6 +205,11 @@ APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.
 **Stub warning:** `GLIFEmitter` and `LIFEmitter` are exported in `__all__` but raise `NotImplementedError` on use — do not reference them in examples or tutorials. `write_nwb` / `read_nwb` are similarly exported but not implemented.
 
 ## Verified laminar pipeline (reuse; do not rediscover)
+
+This is the raw builder-verb path (`.layer_fractions()`/`.area_layer_cell_types()` on
+`laminar_cortex_config`); README's "Canonical cortex" section shows the higher-level
+`build_laminar_column(..., ei_profile="canonical")` convenience wrapper over the same
+underlying gradient — same ground truth, two entry points at different levels of control.
 
 ```python
 cfg = jtfne.laminar_cortex_config(areas=["V1"], layers=["L1","L2/3","L4","L5","L6"],

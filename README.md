@@ -17,6 +17,36 @@
 
 Built for computational and systems neuroscientists who want differentiable, JAX-based circuit models — a canonical cortical-column prior with the real laminar E:I gradient, an interactive 3D viewer for inspecting circuit structure before you simulate, and a direct bridge into [Jaxley](https://jaxley.readthedocs.io) so single- and multi-compartment biophysical (HH, conductance-based) neurons slot into the same field/readout pipeline as the built-in point-neuron emitters.
 
+`jaxfne` is a computational scaffold, not a calibrated physical solver: field/probe
+outputs are proxy readouts (`*_proxy`, `physical_amplitude_calibrated=False`)
+built on a linear source/field approximation, not a validated biophysical or
+PDE field solve. See "Canonical cortex" and the object grammar below for where
+that boundary sits in the pipeline.
+
+**Requirements:** Python ≥3.10, JAX ≥0.4.25 (installed automatically). Device
+order is GPU → jax-metal → CPU, whichever JAX finds first; `float32` is the
+practical default. Expect roughly `construct()` ≈40s / `simulate()` ≈90s for a
+10k-neuron, 1000ms run on CPU (verify locally via `jtfne.runtime_report()`,
+these numbers will drift with hardware and are not a promise).
+
+<details>
+<summary><b>Table of contents</b></summary>
+
+- [Install](#install)
+- [Object grammar](#object-grammar)
+- [Minimal workflow (preferred: NeuronalTensor + RuntimeConfiguration)](#minimal-workflow-preferred-neuronaltensor--runtimeconfiguration)
+- [Configuration workflow (supported, compatibility)](#configuration-workflow-supported-compatibility)
+- [Which workflow should I use?](#which-workflow-should-i-use)
+- [Canonical cortex (default prior)](#canonical-cortex-default-prior)
+- [Adjustable structure: layers, connectivity, homeostasis, plasticity](#adjustable-structure-layers-connectivity-homeostasis-plasticity)
+- [Interactive 3D network (dark theme)](#interactive-3d-network-dark-theme)
+- [Jaxley interoperability](#jaxley-interoperability)
+- [Tune toward a target](#tune-toward-a-target)
+- [Known stubs (exported but not implemented)](#known-stubs-exported-but-not-implemented)
+- [Checkout validation](#checkout-validation)
+
+</details>
+
 ## Install
 
 ```bash
@@ -111,6 +141,13 @@ per-cell-type time constant). HDP is enabled by passing an explicit
 `runtime=` override to `simulate()` — this works on a tensor-built `Model`
 with no new API:
 
+> **Note the class switch below: `RuntimeConfig`, not `RuntimeConfiguration`.**
+> These are two distinct classes, not a typo. `RuntimeConfiguration` (used
+> above to `construct()` a tensor) is a frozen, execution-only spec
+> (seed/duration/dtype/backend) with **no HDP field**. `RuntimeConfig` (used
+> below) is the richer runtime object that carries `enable_hdp`/`hdp_params`
+> — pass it as an override to `simulate()`, not to `construct()`.
+
 ```python
 runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
     "K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
@@ -195,6 +232,15 @@ auto-routes to laminar placement so each neuron keeps its layer label and the
 per-layer E:I gradient is expressed. The exported constants
 `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, `jtfne.CANONICAL_Z_BANDS`, and
 `jtfne.DEFAULT_LAYERS` document the prior directly.
+
+> **Layer-naming convention: pick one set per script, don't mix.** The
+> examples below use the 5-band scheme (`L1, L2/3, L4, L5, L6`, merged
+> superficial layer); `build_laminar_column(..., ei_profile="canonical")` and
+> the canonical E:I fractions above are verified on the 6-name scheme
+> (`L1...L6`, split `L2`/`L3`). Both are real, supported conventions, but a
+> `Configuration` built with one and cell-type fractions verified on the
+> other will silently mismatch layer keys — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)'s
+> layer-naming note for the full detail.
 
 ## Adjustable structure: layers, connectivity, homeostasis, plasticity
 
@@ -308,6 +354,14 @@ tuned = result.model
 
 manifest = jtfne.manifest(cfg, signals=signals)      # export: strict JSON-safe run manifest
 ```
+
+## Known stubs (exported but not implemented)
+
+`GLIFEmitter` and `LIFEmitter` are exported in `jaxfne.__all__` but raise
+`NotImplementedError` on use — don't reference them in your own examples or
+tutorials. `write_nwb`/`read_nwb` are similarly exported placeholders, not
+working NWB I/O. All four are real names you can import today; none are
+callable yet.
 
 ## Checkout validation
 

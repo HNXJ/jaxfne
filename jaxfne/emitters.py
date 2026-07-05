@@ -1024,6 +1024,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     C_spike: float = 0.0,
     K_HDP: float = 1.0,
     K_ctrl: float = 0.0,
+    K_w_ctrl: float = 0.0,
     rho_passive: float = 0.0,
     barrier_c: float = 0.0,
     barrier_d: float = 0.0,
@@ -1167,6 +1168,23 @@ def simulate_edge_recurrent_izhikevich_hdp(
         K_ctrl: linear restoring-force gain, dH/dt += K_ctrl*(1-H_i) (default
             0.0, null control). Two-sided: pulls H_i up when below 1, down
             when above -- unlike rho_passive (always >=0, floor-only rescue).
+        K_w_ctrl: linear restoring-force gain on the synaptic weight
+            magnitude, dwmag/dt += K_w_ctrl*(wmag_baseline - wmag), where
+            wmag_baseline = |edges.weight| (the network's originally-declared
+            wiring, captured once from the ``edges`` argument -- NOT the
+            carried/chained weight from a prior trial). Default 0.0, null
+            control -- no behavior change unless explicitly set. Added
+            2026-07-04 to close the same structural gap K_ctrl closed for
+            H_i: previously the only thing bounding wmag was the hard
+            [w_floor, w_ceiling] clip, with no restoring pull back toward
+            the calibrated baseline, so chaining HDP across trials (each
+            trial's final weights feeding the next via
+            Model.with_hdp_initial_state) compounds unbounded drift with no
+            ceiling until the hard clip saturates every edge (verified:
+            reproduces the repo's chained-multi-trial HDP weight-runaway,
+            see scripts/v1_pfc_continuous_aaab_smoke_test.py's carry_weights
+            note). Sign-agnostic: applies identically to excitatory and
+            inhibitory edges since it targets the unsigned magnitude.
         rho_passive: passive-income gain on H_i (default 0.0; positive values
             add rho_passive/H_i**2 to dH_i/dt, pulling H_i toward 1 without
             an explicit linear controller)
@@ -1251,6 +1269,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
     C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Live linear restoring term (revived 2026-07-01)
+    K_w_ctrl_arr = jnp.asarray(K_w_ctrl, dtype=jdtype)  # Weight restoring term (added 2026-07-04)
+    wmag_baseline_arr = jnp.abs(edges.weight).astype(jdtype)  # Calibrated wiring, not the carried w
     rho_passive_arr = jnp.asarray(rho_passive, dtype=jdtype)
     barrier_c_arr = jnp.asarray(barrier_c, dtype=jdtype)
     barrier_d_arr = jnp.asarray(barrier_d, dtype=jdtype)
@@ -1359,7 +1379,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
         dw_exc = K_HDP_arr * rule_basis * wmag
         dw_inh = -K_HDP_arr * rule_basis * wmag
-        dw = jnp.where(exc_mask, dw_exc, dw_inh)
+        # Weight restoring force: pulls wmag back toward its calibrated baseline
+        # magnitude, closing the same gap K_ctrl closed for H_i (see K_w_ctrl's
+        # docstring). Sign-agnostic (applies to the unsigned magnitude before
+        # exc_mask reapplies sign), so added once to dw rather than split by
+        # E/I branch like dw_exc/dw_inh above.
+        dw_w_ctrl = K_w_ctrl_arr * (wmag_baseline_arr - wmag)
+        dw = jnp.where(exc_mask, dw_exc, dw_inh) + dw_w_ctrl
         wmag_next = jnp.clip(wmag + dt * dw, w_floor_arr, w_ceiling_arr)
         w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
 

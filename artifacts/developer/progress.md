@@ -181,7 +181,6 @@
 | jaxfne/core.py::RuntimeConfig.dtype + Model.with_hdp_initial_state | 90 | done |  |  | 2026-07-01 |
 | jaxfne/units.py | 90 | done | Scope deliberately limited to plans.json bf16-quantized-tfne-izhikevich-mode items 5+7 (epsilon/dither_scale defaults) - |  | 2026-07-01 |
 | tests/test_vis_smoke_all.py | 90 | done |  | Smoke-only by design (no exception + non-empty/meaningful return) -- does not catch value/pixel regressions. A future pa | 2026-07-01 |
-| AGENTS.md | 90 | reviewed | Fixed this session: gradient_path_safe/Model.tune() guard code-location claim, StimulusSchedule file:line, Configuration |  | 2026-07-04 |
 | docs/NEURON_IO_CHARACTERIZATION.md | 90 | done |  |  | 2026-07-03 |
 | docs/ci_policy.md | 90 | done |  |  | 2026-07-03 |
 | docs/contributing.md | 90 | done |  |  | 2026-07-03 |
@@ -370,6 +369,7 @@
 | tests/test_streaming.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_synapse_connectivity.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_synaptic_tensor.py | 93 | reviewed |  |  | 2026-07-04 |
+| AGENTS.md | 93 | reviewed | Fixed this session: gradient_path_safe/Model.tune() guard code-location claim, StimulusSchedule file:line, Configuration |  | 2026-07-05 |
 | docs/api/bridges.md | 93 | done |  |  | 2026-07-03 |
 | docs/guides/configuration_grammar.md | 93 | done |  |  | 2026-07-03 |
 | docs/guides/homeostasis.md | 93 | done |  | Consider a one-line note that the built-in kernel's default r_star (0.05, from jaxfne/core.py:2363 RuntimeConfig.homeost | 2026-07-03 |
@@ -434,6 +434,7 @@
 | scripts/evidence_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/generate_operator_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/validate_json_safe.py | 96 | reviewed |  |  | 2026-07-04 |
+| README.md | 96 | done |  |  | 2026-07-05 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/sharding.md | 96 | done |  |  | 2026-07-03 |
@@ -452,7 +453,6 @@
 | jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
-| README.md | 98 | done |  |  | 2026-07-01 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
 | jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
@@ -489,7 +489,7 @@
 | jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json | 100 | done |  |  | 2026-06-30 |
 | jaxfne/stimulus.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-01 |
+| jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-04 |
 | docs/_generated/version.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/index.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/tensor_operators.md | 100 | done |  |  | 2026-07-03 |

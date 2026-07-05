@@ -13,19 +13,34 @@ structure repeated every trial:
 
 A and B are 40Hz sinusoidal (AC) current drives targeting disjoint/overlapping
 tuning-group populations within V1's L4 and L6 layers (AB responds to both,
-A only to A-events, B only to B-events). The per-neuron homeostatic factor H
-carries over trial-to-trial via Model.with_hdp_initial_state, so long-term
-adaptation is genuine across the whole run, not reset every trial. Synaptic
-weights are NOT carried across trials by default -- see run_smoke_test's
-carry_weights docstring for the verified stability reason (weight carryover
-is an unbounded positive-feedback runaway in the current HDP formulation).
+A only to A-events, B only to B-events). Both the per-neuron homeostatic
+factor H and the synaptic weights carry over trial-to-trial via
+Model.with_hdp_initial_state, so long-term adaptation is genuine across the
+whole run, not reset every trial.
+
+WEIGHT-CARRYOVER RUNAWAY: FOUND AND FIXED (2026-07-04). Weight carryover used
+to be an unbounded positive-feedback runaway (H hits both clamps, rate ->
+~50Hz by trial ~15-19) -- root cause: H already had a two-sided restoring
+term (K_ctrl) pulling it back to equilibrium, but the synaptic weight
+magnitude had none, only a hard floor/ceiling clip, so chaining trials
+compounded drift with no ceiling until the clip saturated every edge. Fixed
+by adding K_w_ctrl to simulate_edge_recurrent_izhikevich_hdp (jaxfne/emitters.py):
+a linear restoring force pulling wmag back toward its calibrated baseline
+(|edges.weight|, the network's originally-declared wiring), mirroring K_ctrl's
+own form. Verified directly on this exact topology: K_w_ctrl=0.001 fully
+stabilizes 20 chained trials even at the previously-unstable K_HDP=0.01 (w
+stays at its ~0.071-0.075 baseline magnitude throughout; without K_w_ctrl the
+same K_HDP=0.01 config runs away by trial 15). carry_weights now defaults to
+True.
 
 VERIFIED ADAPTATION RESULT (this session, real runs, not the earlier null
 control): with the driving DEFAULT_HDP_DESYNC-family preset (build_hdp_params),
 H genuinely tracks activity and converges trial-to-trial (~1.03 -> ~1.07 over
 10 trials, Hstd shrinking toward equilibrium), rate stays in-band (~13Hz), no
-NaN. The paradigm now demonstrates real homeostatic adaptation, not just a
-working-but-static pipeline.
+NaN, weight magnitude stays at its calibrated baseline instead of drifting.
+The paradigm now demonstrates real, stable homeostatic adaptation with
+genuine trial-to-trial weight plasticity, not just a working-but-static
+H-only pipeline.
 
 Three open design decisions this script resolves concretely (previously
 flagged unresolved in plans.json):
@@ -242,16 +257,12 @@ def build_hdp_params() -> dict:
     cube-law per-cell-type size scaling (E=5 -> tau_i = tau_0_ms * 5**3, so E
     adapts far slower than interneurons).
 
-    K_HDP is dialed DOWN from DEFAULT_HDP_DESYNC's 0.01 to 0.003. This is a
-    finding, not a copy: DEFAULT_HDP_DESYNC was validated on ONE continuous
-    2000ms run, but this paradigm CHAINS trials (each trial's H carries into
-    the next via with_hdp_initial_state), which amplifies weight drift. A
-    direct K_HDP sweep on THIS 2-area topology (verified this session) put the
-    chained-stability boundary between 0.003 (stable) and 0.005 (runaway):
-    0.003 holds through ~11 trials with visible adaptation; anything >=0.005
-    hits the documented weight-runaway cliff (H pinned to both clamps, rate
-    -> ~50Hz) faster. See run_smoke_test's carry_weights note for the deeper
-    root cause and why weights are NOT carried across trials by default.
+    K_HDP is dialed DOWN from DEFAULT_HDP_DESYNC's 0.01 to 0.003 -- retained as
+    a conservative default even after the K_w_ctrl fix (see run_smoke_test),
+    since 0.003 was independently verified stable and adaptation is already
+    clearly visible at this gain; K_HDP=0.01 is also stable now (verified),
+    but 0.003 is kept as the shipped default rather than re-tuning upward
+    without a dedicated reason to.
     """
     from jaxfne.hdp_network import DEFAULT_HDP_DESYNC, BASE_HDP_KWARGS_DEFAULT
     from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
@@ -260,39 +271,43 @@ def build_hdp_params() -> dict:
     hp.update(DEFAULT_HDP_DESYNC)
     hp["size_scale_by_cell_type"] = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
     hp["K_HDP"] = 0.003
+    hp["K_w_ctrl"] = 0.001
     return hp
 
 
-def run_smoke_test(n_trials: int = 10, seed: int = 0, carry_weights: bool = False) -> dict:
+def run_smoke_test(n_trials: int = 10, seed: int = 0, carry_weights: bool = True) -> dict:
     """Run the chained AAAB paradigm.
 
     ``carry_weights`` controls the trial-to-trial carryover of the HDP state:
     the per-neuron homeostatic factor ``H`` is ALWAYS carried forward (that is
-    the long-term adaptation signal), but the per-edge synaptic weights ``w``
-    are only carried when ``carry_weights=True``.
+    the long-term adaptation signal), and the per-edge synaptic weights ``w``
+    are carried too when ``carry_weights=True`` (the default).
 
-    DEFAULT IS ``carry_weights=False`` and that is a deliberate, verified
-    stability choice, not a shortcut. Root cause established this session by
-    direct experiment on this exact topology:
+    DEFAULT IS ``carry_weights=True``, now that the underlying weight-runaway
+    instability is fixed (2026-07-04) rather than merely avoided. Root cause
+    established this session by direct experiment on this exact topology:
 
-      * carry_weights=True: even K_HDP=0.003 runs away by ~trial 15-19 (H hits
-        both clamps, weights go NEGATIVE, rate -> ~50Hz). The H-controller
-        stabilizes firing RATES via H, but nothing pulls the synaptic WEIGHTS
-        back toward baseline, so chaining them compounds a slow positive-
-        feedback loop with no ceiling -> unbounded drift -> runaway. This
-        reproduces the repo's open HDP-stability concern (F-017/F-019) at the
-        multi-trial/chained level rather than the single-run level.
-      * carry_weights=False (H-only carryover): STABLE even at the aggressive
-        K_HDP=0.01 over 20 trials -- H converges (~1.03 -> ~1.07, Hstd
-        shrinking toward equilibrium) with no runaway. This is the correct
-        homeostatic behavior: the network adapts over the first several trials
-        then settles, instead of diverging.
+      * BEFORE the fix: even K_HDP=0.003 ran away by ~trial 15-19 when weights
+        were carried (H hit both clamps, rate -> ~50Hz). H already had a
+        two-sided restoring term (K_ctrl) pulling it back to equilibrium, but
+        the synaptic weight magnitude had none, only a hard floor/ceiling
+        clip -- so chaining trials compounded a slow positive-feedback drift
+        with no ceiling until the clip saturated every edge. This reproduced
+        the repo's open HDP-stability concern (F-017/F-019) at the
+        multi-trial/chained level.
+      * THE FIX: added K_w_ctrl to simulate_edge_recurrent_izhikevich_hdp
+        (jaxfne/emitters.py) -- a linear restoring force pulling the weight
+        magnitude back toward its calibrated baseline (|edges.weight|),
+        mirroring K_ctrl's own form exactly. Verified on this exact topology:
+        K_w_ctrl=0.001 fully stabilizes 20 chained trials with weight
+        carryover, even at the previously-unstable K_HDP=0.01 -- weight
+        magnitude stays at its baseline (~0.071-0.075) throughout instead of
+        drifting toward the clip.
 
-    So genuine long-term (trial-to-trial) adaptation IS demonstrated here via
-    the carried H state; carrying synaptic weights across trials is left OFF
-    by default because it is a real, reproducible instability of the current
-    HDP formulation, not a solved problem. carry_weights=True is exposed so
-    the instability can be reproduced/inspected, not because it is recommended.
+    Genuine long-term (trial-to-trial) adaptation is now demonstrated via
+    BOTH the carried H state and genuinely-stable carried synaptic weights,
+    not H-only. ``carry_weights=False`` remains available to reproduce the
+    pre-fix H-only behavior for comparison.
     """
     tensor = build_tensor()
     model = construct_neuronal_tensor(tensor, seed=seed, duration_ms=TRIAL_DURATION_MS, dt_ms=DT_MS)
@@ -332,7 +347,7 @@ def run_smoke_test(n_trials: int = 10, seed: int = 0, carry_weights: bool = Fals
         "n_trials": n_trials,
         "n_neurons": n_neurons,
         "carry_weights": carry_weights,
-        "hdp_preset": "DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003",
+        "hdp_preset": "DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003, K_w_ctrl=0.001",
         "tuning_group_sizes": {k: len(v) for k, v in groups.items()},
         "trial_summaries": trial_summaries,
     }

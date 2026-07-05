@@ -500,6 +500,7 @@ class Model:
                     gamma=hp.get("gamma", 0.0), delta=hp.get("delta", 0.0),
                     C_spike=hp.get("C_spike", 0.0), K_HDP=hp.get("K_HDP", 1.0),
                     K_ctrl=hp.get("K_ctrl", 0.0),
+                    K_w_ctrl=hp.get("K_w_ctrl", 0.0),
                     barrier_c=hp.get("barrier_c", 0.0), barrier_d=hp.get("barrier_d", 0.0),
                     barrier_eps=hp.get("barrier_eps", 1.0e-3),
                     w_floor=hp.get("w_floor", 1.0e-3), w_ceiling=hp.get("w_ceiling", 50.0),
