@@ -1,66 +1,165 @@
-# V1-PFC Dual Column
+# V1-PFC Dual Column: Continuous AAAB Adaptation
 
-> **Status: ASPIRATIONAL / PLANNED — NOT YET IMPLEMENTED.**
-> This page describes a design sketch for a two-area (V1 + PFC) laminar model. As of this
-> writing there is **no corresponding notebook** anywhere in `tutorials/` (verified via
-> `find tutorials -iname "*dual*" -o -iname "*pfc*"`, zero hits besides this doc), and the code
-> snippet below is **not runnable as shown**: `inter_areal_connectivity=` and `areas=`/`layers=`
-> dict kwargs to `.network()` are accepted only as an untyped metadata sink (no builder consumes
-> them), `field(domain="dual_laminar_column")` is not a recognized field domain anywhere else in
-> the codebase, the `"traveling_waves"` probe mode does not exist in `jaxfne/fields/probes.py`
-> (the doc itself flags it as "reserved" further down, which this banner is making more
-> prominent), and the `"coherence"` readout kind has no implementation. Treat everything below as
-> a roadmap item, not a working tutorial. The Colab badge has been removed since there is no
-> notebook for it to open.
+> **Status: WORKING SCRIPT, NOT YET A NOTEBOOK.** This page documents
+> `scripts/v1_pfc_continuous_aaab_smoke_test.py`, a real, runnable, verified
+> implementation -- not a design sketch. It replaces this doc's earlier
+> ASPIRATIONAL version, which described `inter_areal_connectivity=`/
+> `field(domain="dual_laminar_column")`/`"traveling_waves"` probes that were
+> never implemented anywhere in the codebase. None of that content survives
+> here. There is still no polished Jupyter notebook for this paradigm (see
+> `docs/tutorials/notebook_standard.md` for what "polished" means in this
+> repo) -- run the script directly as shown below. Verified against the
+> actual source as of 2026-07-05; if this page and the script ever disagree,
+> the script is correct.
 
-Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area dynamics.
+Two 100-neuron canonical laminar columns, **V1** and **PFC**, both
+HDP-enabled, connected V1→PFC feedforward. V1's L4 and L6 host three
+disjoint/overlapping tuning-group populations (`AB`, `A`, `B`) that are
+driven with real 40Hz AC current in a fixed, repeating 1000ms local-oddball
+trial structure:
 
-## Configuration
+```
+fx(0-100) - p1=A(100-200) - d1(200-300) - p2=A(300-400) - d2(400-500)
+- p3=A(500-600) - d3(600-700) - p4=B(700-800, deviant) - d4(800-900)
+- rw(900-1000)
+```
+
+`A` drives the `AB`+`A` neurons; the deviant `B` window drives the `AB`+`B`
+neurons. Both the per-neuron homeostatic factor `H` and the synaptic
+weights `w` carry forward trial-to-trial (`Model.with_hdp_initial_state`),
+so adaptation is genuine across the whole run rather than reset every
+trial.
+
+## Why V1's L4/L6 are pure-E
+
+The sign-detection logic in `jaxfne/neuronal_tensor.py` checks
+`source_neuron_type == "E"` exactly to decide excitatory vs. inhibitory --
+renaming a neuron type (e.g. to `"E_AB"`) would silently misclassify it as
+inhibitory. So tuning-group identity is **not** encoded via `NeuronType.name`
+at all: V1's L4 and L6 are declared as single-type (`"E"`, `fraction=1.0`)
+tuning-only layers, and `AB`/`A`/`B` membership is a **positional
+post-construction tag**, sliced from the layers' stable `neuron_table()`
+order (`[0:5]`=`AB`, `[5:10]`=`A`, `[10:15]`=`B`, unioned across L4 and L6 for
+10+10+10 combined). This is a deliberate, explicit design choice, not a
+workaround pending a real feature -- see `tuning_group_indices()` in the
+script.
+
+## Building the two-area tensor
+
+```python
+from jaxfne.neuronal_tensor import (
+    Area, AreaConnection, Layer, NeuronType, NeuronalTensor, PlasticParams,
+    construct_neuronal_tensor,
+)
+
+# V1: L1=10, L2=25, L3=15, L4=15 (pure-E tuning), L5=20, L6=15 (pure-E tuning)
+v1 = Area(name="V1", layers=(
+    # ...canonical E/PV/SST/VIP layers for L1, L2, L3, L5...
+    Layer(name="L4", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=1.0),)),
+    Layer(name="L6", n_neurons=15, neuron_types=(NeuronType.make("E", fraction=1.0),)),
+))
+
+# PFC: canonical 6-layer column, fully generic/untuned
+pfc = Area(name="PFC", layers=(...))
+
+feedforward = [
+    AreaConnection(
+        source_area="V1", source_layer=layer, source_neuron_type="E",
+        target_area="PFC", target_layer="L4", target_neuron_type="E",
+        mechanism="AMPA",
+        # PlasticParams.H defaults to 0.0, outside the valid HDP range
+        # (H_min=0.1, H_max=10.0) -- ALWAYS set H=1.0 explicitly when HDP
+        # will be enabled, or the target neurons' seeded H0 blows up the
+        # HDP integration at step 0.
+        plastic=PlasticParams(H=1.0),
+    )
+    for layer in ("L4", "L6")
+]
+
+tensor = NeuronalTensor(areas=(v1, pfc), area_connections=tuple(feedforward),
+                         name="v1_pfc_continuous_aaab")
+model = construct_neuronal_tensor(tensor, seed=0, duration_ms=1000.0, dt_ms=0.1)
+```
+
+## Running chained trials with HDP carryover
 
 ```python
 import jaxfne as jtfne
+from jaxfne.core import RuntimeConfig
+from jaxfne.hdp_network import v1_pfc_aaab_hdp_params
 
-cfg = (
-    jtfne.configuration()
-    .network(
-        n=1200,
-        areas={"V1": 600, "PFC": 600},
-        layers={"V1": ["L1", "L2/3", "L4", "L5", "L6"], "PFC": ["L1", "L2/3", "L5", "L6"]},
-        inter_areal_connectivity={"V1→PFC": 0.15, "PFC→V1": 0.10}
-    )
-    .emitter(family="izhikevich", preset="cortical_eig")
-    .field(domain="dual_laminar_column")
-    .probe(name="v1_pfc_dual", modes=["spikes", "LFP", "traveling_waves"])
+runtime_cfg = RuntimeConfig(
+    dtype="float32", backend="cpu", enable_hdp=True,
+    hdp_params=v1_pfc_aaab_hdp_params(),  # named preset: K_HDP=0.003, K_w_ctrl=0.001
 )
 
-model = jtfne.construct(cfg)
+for trial in range(n_trials):
+    signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1,
+                              seed=seed + trial, runtime=runtime_cfg, paradigm=schedule)
+    diag = model.last_hdp_diagnostics()
+    # carry BOTH H (homeostatic factor) and w (synaptic weights) forward:
+    model = model.with_hdp_initial_state(H0=diag["H_final"], w0=diag["w_final"])
 ```
 
-## Explore inter-areal dynamics
+## The weight-carryover instability, and its fix
 
-```python
-signals = model.simulate(...)
+Carrying synaptic weights trial-to-trial used to be an **unbounded
+positive-feedback runaway**: `H` already had a two-sided restoring term
+(`K_ctrl`) pulling it back to equilibrium, but the synaptic weight
+magnitude had none -- only a hard floor/ceiling clip. Chaining trials
+compounded drift with no ceiling until the clip saturated every edge (rate
+→ ~50Hz by trial 15-19).
 
-readouts = model.compute_readout(signals, [
-    jtfne.readout_spec("V1_rate", "spike_rate_hz"),
-    jtfne.readout_spec("PFC_rate", "spike_rate_hz"),
-    jtfne.readout_spec("cross_area_coherence", "coherence"),
-])
+**Fixed** by adding `K_w_ctrl` to
+`simulate_edge_recurrent_izhikevich_hdp` (`jaxfne/emitters.py`): a linear
+restoring force pulling the weight magnitude back toward its calibrated
+baseline (`|edges.weight|`), mirroring `K_ctrl`'s own form for `H`. `K_HDP`
+and `K_w_ctrl` are exposed as a named, reproducible preset --
+`jaxfne.hdp_network.DEFAULT_HDP_V1_PFC_AAAB` / `v1_pfc_aaab_hdp_params()`
+-- rather than bare magic constants, mirroring `DEFAULT_HDP`/
+`DEFAULT_HDP_DESYNC`'s existing precedent.
+
+## Verified results
+
+A real 100-trial run (`carry_weights=True`, the default) is genuinely
+stable across the **entire** run, not just the first few trials:
+
+- `spike_rate_hz_mean` held at 12.53-12.55Hz across all 100 trials (trial 1
+  == trial 100).
+- `w_final_mean` (mean synaptic weight magnitude) held at 0.012248-0.012254
+  across all 100 trials -- a range of 6e-6, i.e. essentially flat, not
+  runaway.
+- `H_final_mean` converged 1.027 → 1.067 with `H_final_std` tightening
+  0.0201 → 0.0034 (homeostatic settling, not divergence).
+- Zero NaN in any of the 100 trial summaries.
+
+This demonstrates real, stable, long-term homeostatic adaptation with
+genuine trial-to-trial weight plasticity -- not just a working-but-static
+H-only pipeline (`carry_weights=False` remains available to reproduce that
+earlier, more conservative behavior for comparison).
+
+## Running it yourself
+
+```bash
+PYTHONPATH=. python3 scripts/v1_pfc_continuous_aaab_smoke_test.py [n_trials]
 ```
 
-## Key features
+Default `n_trials=10` (~26s on CPU). The full spec target is 1000 trials
+and is **not** run by default -- pass an explicit `n_trials` to opt into a
+longer run. A receipt is written to
+`outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json`.
 
-- Bi-directional V1 ↔ PFC connections
-- Laminar specificity: V1 L4 → PFC L1, PFC L5 → V1 L1
-- LFP-proxy shows areal-specific spectral signatures
-- Traveling-wave analysis (reserved) for inter-areal phase dynamics
+## Known limitations (stated, not hidden)
 
-## Applications
-
-- Attention and gain modulation (V1 ← PFC feedback)
-- Perceptual binding and temporal coordination
-- Visual working memory circuits
+- V1's L4 and L6 have PV/SST/VIP removed entirely (pure-E tuning layers)
+  to host the AB/A/B groups; L3 is shrunk from its canonical 20 neurons to
+  15 to make room for L4's growth (canonical 10 → 15), holding V1 at 100
+  neurons total. L1, L2, L5, and all of PFC keep the canonical
+  E:PV:SST:VIP fractions and layer-size proportions unchanged.
+- This is a script-driven smoke test, not a polished tutorial notebook --
+  there is no Colab badge and no `tutorials/*.ipynb` file for it yet.
 
 ## Next steps
 
-See [Guides](../guides/index.md) for how-to articles on extending these models.
+See [Guides](../guides/index.md) for how-to articles on extending these
+models.

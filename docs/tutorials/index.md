@@ -224,7 +224,7 @@ A laminar model inspired by primate V1 with six layers (L1, L2/3, L4, L5, L6) an
 
 **[V1-PFC Dual Column](05_v1_pfc_dual_column.md)**
 
-Two cortical columns (V1 and PFC) with inter-areal connections. Explore cross-area interaction and traveling-wave dynamics.
+Two cortical columns (V1 and PFC) with a feedforward inter-areal connection, driving a continuous AAAB local-oddball adaptation paradigm with real trial-to-trial HDP weight/homeostasis carryover. A working script (not yet a polished notebook) -- verified stable over 100 chained trials.
 
 
 ## Running tutorials

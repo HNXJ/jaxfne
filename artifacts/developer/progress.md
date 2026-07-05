@@ -4,7 +4,6 @@
 |---|---|---|---|---|---|
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
-| docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
 | tests/test_sanity_delta_report_schema_full.py | 75 | reviewed | test name/docstring ('strict JSON compliant') overclaims what the assertions check (mere key presence + json.loads-abili | either rename to reflect it only checks key presence, or add an assertion on checks['strict_json'] tied to a real outcom | 2026-07-04 |
@@ -403,6 +402,7 @@
 | docs/guides/probe_operators.md | 95 | done |  | Version banner says 'v0.2.1' / 'Last updated: 2026-05-20' while package is at 0.4.4 -- same stale-version pattern as plo | 2026-07-03 |
 | docs/notes/biophysical_model_comparison.md | 95 | done |  |  | 2026-07-03 |
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
+| docs/tutorials/05_v1_pfc_dual_column.md | 95 | done |  |  | 2026-07-05 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/_signals.py | 95 | open |  | Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_K | 2026-07-04 |
 | jaxfne/_config.py | 95 | open |  |  | 2026-07-04 |
