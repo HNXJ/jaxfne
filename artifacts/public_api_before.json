@@ -139,6 +139,7 @@
     "gsdr",
     "gsdr_transform",
     "gsgd",
+    "hh_jaxley_reference_trace",
     "hh_numpy_reference_trace",
     "is_valid_signal",
     "izhikevich_params_from_labels",

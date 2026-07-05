@@ -46,16 +46,37 @@ grep -R "def <name>\|class <name>" -n jaxfne tests docs examples tutorials scrip
 
 ## Ownership map (verified on disk — no jaxfne/config.py or net.py)
 
+**core.py monolith split COMPLETE (2026-07-04/05, 5 slices, 8370 -> 233 lines).**
+`jaxfne/core.py` is now a pure re-export aggregator — every public/private symbol
+still resolves via `from jaxfne.core import X` / `from jaxfne import X` unchanged,
+but the real implementations live in:
+
 ```text
-Config/Model                     -> jaxfne/core.py (primary monolith; Configuration/Model/
-                                     construct()/simulate()/connect() not yet split out)
+Config/Model                     -> jaxfne/_config.py (Configuration class + group-1 helpers)
+                                     and jaxfne/_model.py (Model class, ~2030 lines, the biggest
+                                     single integration surface, including the HDP dispatch --
+                                     see jaxfne-neural-tensor's K_w_ctrl/_hdp_packed note)
 Signals/Simulation/Objective/     -> jaxfne/_runtime_config.py (RuntimeConfig, SurrogateConfig,
 RuntimeConfig/SurrogateConfig/       backend-device helpers) and jaxfne/_signals.py (Signals,
 StimulusSchedule/TrialSpec/etc.     Objective, Simulation, Probe, TrialSpec, StimulusSchedule,
-                                     ReadoutSpec, AxisSpec, BasisSpec, metric/gate helpers) —
-                                     core.py split 2026-07-03; jaxfne/core.py re-exports every
-                                     symbol in full, so `from jaxfne.core import X` / `from
-                                     jaxfne import X` public import paths are unchanged.
+                                     ReadoutSpec, AxisSpec, BasisSpec, metric/gate helpers).
+construct()/connect() hub         -> jaxfne/_construct.py (final slice -- also holds the
+                                     remaining group-1 connectivity-compiler helpers and
+                                     group-8 paradigm/receipt/manifest module-level functions
+                                     that didn't move with Configuration/Model).
+                                     core.py re-exports every symbol in full, so `from
+                                     jaxfne.core import X` / `from jaxfne import X` public
+                                     import paths are unchanged. When grepping for a private
+                                     helper, check the specific slice file first, not core.py
+                                     (which is now only 233 lines and holds no real logic) --
+                                     e.g. `_hdp_packed` lives in `_model.py`;
+                                     `_resolve_homeostasis_k_gain`/
+                                     `_homeostasis_params_cache_fingerprint`/
+                                     `_runtime_config_from_metadata` (Model's group-6
+                                     dependencies) ended up in `_construct.py`, reached via
+                                     deferred (in-method-body) imports from `_model.py`,
+                                     matching an established
+                                     circular-import-avoidance pattern in this codebase.
 Builders / canonical columns     -> jaxfne/builders.py
 NeuronalTensor / tensor bridge   -> jaxfne/neuronal_tensor.py
 HDP builder / defaults           -> jaxfne/hdp_network.py

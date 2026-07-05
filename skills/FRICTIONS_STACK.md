@@ -6,6 +6,19 @@ external doctrine. Resolve items here before claiming a skill is authoritative.
 
 Last audited: 2026-07-02 (F-024 added — default Jupyter kernel points at a different jaxfne checkout; F-007/F-008 re-verified and closed as documented, F-009 re-verified and closed after a one-line `NotImplementedError` message fix pointing at `run_trials`).
 
+**F-025 (new, 2026-07-05):** the core.py monolith split (5 slices, 8370 -> 233
+lines, landed 2026-07-04/05) makes any OLDER row in this ledger that cites a
+specific `jaxfne/core.py:<line>` line number unreliable — core.py is now a
+pure re-export aggregator holding no real logic, so those line numbers point
+at stale content (e.g. F-023's `Configuration.area_layer_cell_types(...)
+(jaxfne/core.py:1866)` citation). The *symbol* still resolves via
+`jaxfne.core.X` (full re-export preserved), just not at the cited line — the
+real implementation moved to `_config.py`/`_model.py`/`_construct.py`/
+`_runtime_config.py`/`_signals.py` (see `jaxfne-worker-context-router`'s
+ownership map for which slice owns what). Re-verify any line-number citation
+against the actual current file before trusting it; do not assume core.py
+line numbers from any row dated before 2026-07-04 are still accurate.
+
 ---
 
 ## Open

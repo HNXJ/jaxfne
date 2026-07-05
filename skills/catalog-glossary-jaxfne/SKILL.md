@@ -70,8 +70,11 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
 ### 1c. HDP homeostatic plasticity module (`jaxfne/hdp_network.py`) — generic config-driven builder, no per-N functions
 
 - `DEFAULT_HDP = dict(K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=0.01, barrier_d=0.01)`.
+- `DEFAULT_HDP_DESYNC = dict(K_HDP=0.01, tau_0_ms=5.0, K_ctrl=0.15, rho_passive=0.0, barrier_c=0.01, barrier_d=0.01, alpha=0.05, gamma=0.5, C_spike=0.0)` — "responsive H" family (faster `tau_0_ms`, rate-drain `gamma`), vs. `DEFAULT_HDP`'s near-static profile.
+- `DEFAULT_HDP_V1_PFC_AAAB = dict(DEFAULT_HDP_DESYNC, K_HDP=0.003, K_w_ctrl=0.001)` + `v1_pfc_aaab_hdp_params()` (added 2026-07-05) — the named preset for the V1-PFC continuous AAAB paradigm; `v1_pfc_aaab_hdp_params()` returns the full `BASE_HDP_KWARGS_DEFAULT` + preset + `size_scale_by_cell_type` assembly, single source of truth (don't hand-roll this dict in a script).
+- `K_w_ctrl` (added 2026-07-04) — weight-magnitude two-sided restoring force, `dwmag/dt += K_w_ctrl*(wmag_baseline - wmag)`, mirroring `K_ctrl`'s form for `H`; default `0.0` (backward compatible). Fixes the previously-real weight-carryover runaway when chaining `Model.with_hdp_initial_state(H0=..., w0=...)` across trials. Verified stable at 100 chained trials with `K_w_ctrl=0.001`.
 - `BASE_HDP_KWARGS_DEFAULT` (H_min=0.1, H_max=10.0, alpha=0.01, beta=0.0, gamma=0.0, delta=0.0, C_spike=0.0, ...), `BASE_DRIVE_BY_CELL_TYPE_DEFAULT = {"E":4.0,"PV":4.0,"SST":4.0,"VIP":4.0}`, `DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT`.
-- Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `core.py`'s `_hdp_packed`; any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/core.py` before trusting a new `hdp_params` key reaches the kernel.
+- Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `_model.py`'s `_hdp_packed` (moved from `core.py` during the 2026-07-04/05 monolith split — core.py is now a 233-line pure re-export aggregator); any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`, `K_w_ctrl`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/_model.py` before trusting a new `hdp_params` key reaches the kernel.
 - `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge `receptor_index`.
 
 ## 2. Laminar-column TRIAL pipeline — `jtfne.tutorial_utils` (the one most often rediscovered)
@@ -169,6 +172,15 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 - `runtime_report(runtime_config=None)`, `RuntimeConfig`.
 - Sharding: `make_population_mesh()`, `make_candidate_sharding(mesh)`, `make_replicated_sharding(mesh)`, `get_sharding_context()`.
 - Lazy optional deps: `require_jaxley()`, `require_optax()` (and `vis.require_matplotlib()`).
+- HH reference traces (tutorial/comparison, not Jaxley-bridge validation):
+  `hh_numpy_reference_trace(duration_ms, dt_ms, current_amplitude)` (standalone,
+  no optional deps) and `hh_jaxley_reference_trace(duration_ms, dt_ms,
+  current_amplitude)` (real Jaxley HH channel, raises via `require_jaxley()`
+  if not installed — its `jaxley` import is deferred inside the function body,
+  so `import jaxfne` never fails regardless). Both exported at root as of
+  2026-07-05 (the jaxley-backed one was previously only reachable via
+  `jaxfne.bridges.hh_jaxley_reference_trace` — fixed as an inconsistency, not
+  a design choice).
 
 ## 11. Selection helpers
 

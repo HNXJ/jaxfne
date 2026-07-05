@@ -1173,7 +1173,15 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
     neurons_df = pd.DataFrame(neurons)
     positions_m = neurons_df[['x_m', 'y_m', 'z_m']].values.astype(np.float32)
 
-    # Build connection matrices (placeholder: sparse random)
+    # Scaffold-only DENSE random connection matrices, not sparse (fixed 2026-07-05
+    # comment: the prior "placeholder: sparse random" text was wrong on both
+    # counts -- these are dense n_neurons x n_neurons draws, and they are dead
+    # weight, never read by the real simulation engine. simulate_laminar_trials
+    # (this module's actual Etude No. 1 pipeline) builds its own independent
+    # connectivity matrix from scratch (Dale's-law recurrence + connectivity_spec
+    # inter-area projections) and never touches model['W_parts']. W_parts and
+    # build_laminar_connections() are kept only because tests/test_tutorial_utils.py
+    # exercises their shapes directly -- not wired into anything that runs.
     n_neurons = len(neurons_df)
     rng = np.random.RandomState(cfg.seed)
 
@@ -1196,7 +1204,12 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
 
 
 def build_laminar_connections(model: dict, cfg: LaminarColumnConfig) -> Tuple:
-    """Extract connection matrices from model.
+    """Extract the dense scaffold connection matrices from build_laminar_column()'s model dict.
+
+    Dead-weight extraction: these dense random matrices are never read by
+    simulate_laminar_trials (the real Etude No. 1 pipeline), which builds its
+    own independent connectivity. This function exists because
+    tests/test_tutorial_utils.py exercises its output shape directly.
 
     Parameters
     ----------

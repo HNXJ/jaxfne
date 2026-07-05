@@ -724,15 +724,25 @@ class TaskEpisode:
         # Equivalence check for backup_resume
         if self.runtime_mode == "full":
             schedule = self.paradigm.to_schedule()
-            seg_id = "d4"
-            start_ms = 2100.0
             total_duration = float(self.config.duration_ms)
-            if start_ms >= total_duration:
+            # Derive "d4"'s actual start_ms from the real schedule rather than
+            # assuming it's always 2100.0 -- that assumption only held for the
+            # default factory's timing and would silently pick a wrong resume
+            # point for a customized paradigm.
+            seg_id = "d4"
+            start_ms = next(
+                (s["start_ms"] for s in schedule["segments"] if s["segment_id"] == "d4"), None
+            )
+            if start_ms is None or start_ms >= total_duration:
                 for seg in reversed(schedule["segments"]):
                     if seg["start_ms"] < total_duration - self.config.dt_ms:
                         seg_id = seg["segment_id"]
                         start_ms = seg["start_ms"]
                         break
+            if start_ms is None:
+                # No segment qualified (e.g. a very short custom duration) --
+                # fall back to 0.0 rather than crash on int(None / dt_ms).
+                start_ms = 0.0
             step_idx = int(start_ms / self.config.dt_ms)
             if step_idx < len(self.vm):
                 resumed = self.resume(from_segment=seg_id)
@@ -829,15 +839,23 @@ class TaskEpisode:
             elif check == "backup_resume_equivalence":
                 if self.runtime_mode == "full":
                     schedule = self.paradigm.to_schedule()
-                    seg_id = "d4"
-                    start_ms = 2100.0
                     total_duration = float(self.config.duration_ms)
-                    if start_ms >= total_duration:
+                    # Derive "d4"'s actual start_ms from the real schedule --
+                    # see export()'s identical fix for the rationale.
+                    seg_id = "d4"
+                    start_ms = next(
+                        (s["start_ms"] for s in schedule["segments"] if s["segment_id"] == "d4"), None
+                    )
+                    if start_ms is None or start_ms >= total_duration:
                         for seg in reversed(schedule["segments"]):
                             if seg["start_ms"] < total_duration - self.config.dt_ms:
                                 seg_id = seg["segment_id"]
                                 start_ms = seg["start_ms"]
                                 break
+                    if start_ms is None:
+                        # No segment qualified (e.g. a very short custom duration) --
+                        # fall back to 0.0 rather than crash on int(None / dt_ms).
+                        start_ms = 0.0
                     step_idx = int(start_ms / self.config.dt_ms)
                     if step_idx < len(self.vm):
                         resumed = self.resume(from_segment=seg_id)

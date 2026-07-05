@@ -292,17 +292,15 @@
     {
       "path": "jaxfne/__init__.py",
       "purpose": "Package root; re-exports the full public API and implements a module-wrapper hack so jaxfne.runtime resolves to the function (not the submodule) and jaxfne.vis lazy-loads.",
-      "score": 90,
-      "tbi": [
-        "hh_jaxley_reference_trace (bridges.py) not exported at root, only its numpy fallback is -- may be intentional, worth a decision"
-      ],
+      "score": 96,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "_RuntimeModuleWrapper's sys.modules-replacement trick is subtle -- future refactors touching module-level runtime/vis attribute access must preserve __getattr__/__setattr__ semantics"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne' succeeded; verified _JAXFNE_VERSION/_KNOWN_READOUT_METRICS resolve; confirmed jaxfne.runtime returns the function, Net is Model, vis lazy-loads correctly.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne' succeeded; verified _JAXFNE_VERSION/_KNOWN_READOUT_METRICS resolve; confirmed jaxfne.runtime returns the function, Net is Model, vis lazy-loads correctly. || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure, explicit decision -- not intentional, an oversight): hh_jaxley_reference_trace is now exported at root alongside its numpy-fallback sibling hh_numpy_reference_trace. Verified safe to export unconditionally: bridges.py's `from jaxley.channels import HH` is inside the function body, not at module top level, so `import jaxfne` cannot fail even without jaxley installed -- only calling the function without jaxley installed raises (via require_jaxley()). Regenerated the frozen public-API snapshot (artifacts/public_api_before.json, 246->247 names) since this changes __all__. `pytest tests/test_public_api_snapshot_v034.py tests/test_jaxley_optional_dependency.py tests/test_jaxley_emitter_bridge_e2e.py tests/test_util_config_tensor.py tests/test_agent_api_catalog.py -q` -> 39 passed, 6 skipped. Live call confirmed correct (jaxley 0.13.0 installed in this environment): hh_jaxley_reference_trace(duration_ms=50, dt_ms=0.5) -> V range -75.1 to +39.6 mV, physiologically sane HH spiking.",
+      "status": "done"
     },
     {
       "path": "jaxfne/analysis/__init__.py",
@@ -342,17 +340,15 @@
     {
       "path": "jaxfne/bridges.py",
       "purpose": "Optional Jaxley bridge -- lazy import, jnp.clip compat shim, functions converting Jaxley traces/modules into jaxfne Signals including a real ionic-current laminar field path.",
-      "score": 88,
-      "tbi": [
-        "hh_jaxley_reference_trace defined but not exported anywhere in __init__.py, only reachable via the submodule path"
-      ],
+      "score": 95,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "simulate_laminar_field requires Jaxley HH channels specifically (non-HH channels raise ValueError) -- documented, not a silent gotcha"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.bridges' succeeded; confirmed 'from .core import Signals' resolves; read all ~1100 lines.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.bridges' succeeded; confirmed 'from .core import Signals' resolves; read all ~1100 lines. || FIXED 2026-07-05: hh_jaxley_reference_trace now exported at jaxfne root (see jaxfne/__init__.py's entry for the full fix + verification).",
+      "status": "done"
     },
     {
       "path": "jaxfne/connectivity.py",
@@ -572,18 +568,16 @@
     {
       "path": "jaxfne/sanity_delta.py",
       "purpose": "v0.3.32 hierarchical global/local oddball task orchestration -- 5-area 500-neuron scaffold with resumable backup state and proxy-safe readouts.",
-      "score": 82,
-      "tbi": [
-        "export()'s equivalence-check block hardcodes start_ms=2100.0 and segment 'd4' rather than deriving from config -- works for the default factory but would silently pick a wrong resume point if paradigm timing is customized"
-      ],
+      "score": 92,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "probe() only validates readout name patterns and returns self unchanged -- docstring 'Validate and extract readouts' overstates what it does (validates only, no extraction/filtering)",
         "validate()'s else branch for unknown check names silently sets False rather than raising -- could hide a typo'd check name"
       ],
       "last_verified": "2026-07-05",
-      "evidence": "python3 -c 'import jaxfne.sanity_delta' succeeded; read ~900 lines; grepped strict_json usage across sanity_delta.py/sanity_runtime.py to confirm it's never actually checked. || FIXED 2026-07-05: TaskEpisode.validate()'s 'strict_json' check now actually attempts json.dumps(self.task_schedule, allow_nan=False) plus a sampled vm/spikes payload, catching (ValueError, TypeError) to report False -- verified it genuinely discriminates (standalone repro: NaN in vm -> False, all-finite -> True, not a rubber stamp). Targeted tests: `pytest tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_report_schema_full.py tests/test_sanity_delta_optional_imports.py tests/test_sanity_delta_hierarchical_oddball_config.py tests/test_sanity_delta_plasticity_report_full.py -q` -> 27 passed. Score raised 68->82 (2 warnings remain, plus the still-open hardcoded start_ms=2100.0/segment 'd4' tbi -- not touched by this fix, left for a separate pass).",
-      "status": "open"
+      "evidence": "python3 -c 'import jaxfne.sanity_delta' succeeded; read ~900 lines; grepped strict_json usage across sanity_delta.py/sanity_runtime.py to confirm it's never actually checked. || FIXED 2026-07-05: TaskEpisode.validate()'s 'strict_json' check now actually attempts json.dumps(self.task_schedule, allow_nan=False) plus a sampled vm/spikes payload, catching (ValueError, TypeError) to report False -- verified it genuinely discriminates (standalone repro: NaN in vm -> False, all-finite -> True, not a rubber stamp). Targeted tests: `pytest tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_report_schema_full.py tests/test_sanity_delta_optional_imports.py tests/test_sanity_delta_hierarchical_oddball_config.py tests/test_sanity_delta_plasticity_report_full.py -q` -> 27 passed. || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): both export()'s and validate()'s equivalence-check blocks hardcoded start_ms=2100.0/seg_id='d4' as the initial guess -- now derives d4's actual start_ms from self.paradigm.to_schedule() directly (falls back to the existing 'last segment before duration' search only if d4 isn't found or doesn't fit), with a new None-guard (start_ms defaults to 0.0) added to prevent a TypeError crash in the case where the fallback loop also finds nothing, an edge case the fix itself introduced and then closed in the same pass. Verified behavior-preserving for the default factory: `paradigm.to_schedule()`'s real d4 segment starts at exactly 2100.0, byte-identical to the old hardcoded value. All 30 targeted tests still pass: `pytest tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_report_schema_full.py tests/test_sanity_delta_optional_imports.py tests/test_sanity_delta_hierarchical_oddball_config.py tests/test_sanity_delta_plasticity_report_full.py tests/test_sanity_delta_runtime_architecture.py -q` -> 30 passed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/sanity_runtime.py",
@@ -637,19 +631,16 @@
     {
       "path": "jaxfne/tutorial_utils.py",
       "purpose": "Large tutorial-scaffold module -- plotting/summary helpers, Jaxley/numpy HH reference-trace forwarders, AGSDR-tuning objective builder, and the full Etude No.1 laminar-column pipeline.",
-      "score": 77,
-      "tbi": [
-        "build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the actual code builds DENSE n_neurons x n_neurons matrices via rng.randn -- contradicts its own comment, and is dead code never consumed by the real simulation engine"
-      ],
-      "tbd": [
-        "delete the unused W_parts/build_laminar_connections dead-code path, or wire it in, or fix the comment"
-      ],
+      "score": 90,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "NAMING COLLISION confirmed live: tutorial_utils.export_tutorial_artifacts has a completely different signature from the root-exported jaxfne.export_tutorial_artifacts from export.py -- verified via inspect.signature",
-        "two module-level plot_raster definitions exist (vis/plotly/raster.py vs tutorial_utils.py) with incompatible signatures -- easy to import the wrong one"
+        "two module-level plot_raster definitions exist (vis/plotly/raster.py vs tutorial_utils.py) with incompatible signatures -- easy to import the wrong one",
+        "build_laminar_column's W_parts and build_laminar_connections() are confirmed dead weight, kept only because tests/test_tutorial_utils.py::test_build_laminar_connections exercises their shapes -- deleting them would also require updating that test, a larger, separate decision than this pass's scope; the misleading comment is fixed (see evidence), the dead-code status itself is now accurately documented rather than removed."
       ],
       "last_verified": "2026-07-05",
-      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed. The dead-code W_parts/build_laminar_connections tbi is a separate, larger design decision, left open.",
+      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): the 'placeholder: sparse random' comment was wrong on both counts (dense, not sparse; and never consumed) -- rewrote the comment on build_laminar_column's W_local_exc/W_local_inh/W_ff/W_fb block and build_laminar_connections()'s docstring to state plainly this is dead scaffold weight kept only for test-shape coverage, confirmed via grep that jaxfne/builders.py's build_laminar_column (the real, actively-used public builder) is a completely different function -- this file's version is deliberately aliased as jtfne.build_tutorial_laminar_column at root specifically to avoid the name collision (see jaxfne/__init__.py's own comment). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed.",
       "status": "reviewed"
     },
     {
@@ -722,12 +713,12 @@
       "score": 85,
       "tbi": [],
       "tbd": [
-        "No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and test_network3d_visualize.py, but those test jaxfne/vis/network3d.py's visualize_network_3d, NOT this plotly/network.py's plot_network_3d -- confirmed by reading both test files' imports. This file is exercised only indirectly via canonical.py's backend='plotly' dispatch path, which itself has no direct invocation test in the suites run this session."
+        "No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\\.network|plot_network_3d' tests/*.py` -> zero hits; test_vis_network3d_public_api.py and test_network3d_visualize.py, the two files a naive search might expect, both test jaxfne/vis/network3d.py's visualize_network_3d, a different function entirely -- confirmed by reading both files' imports/test names). Still exercised only indirectly via canonical.py's backend='plotly' dispatch path, which also has zero direct invocation tests (`grep -rl \"backend=.plotly.\" tests/*.py` -> zero hits). This is a genuine, real coverage gap -- documented here rather than fixed, since adding real test coverage (constructing a Model with neuron_table()+edge_list to exercise the Plotly network scatter) is separate scoped work, not a quick follow-up."
       ],
       "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "Read directly, no direct test found; not run this session (would require a real Model with neuron_table()+edge_list, not available without constructing a full simulation).",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly, no direct test found; not run this session (would require a real Model with neuron_table()+edge_list, not available without constructing a full simulation). || RE-VERIFIED 2026-07-05 (midterm-plan step 5 follow-up closure): re-ran the grep checks independently rather than trusting the prior note -- the coverage gap is still real and unchanged. No code change made; this entry itself is the accurate documentation of the gap, which was the intended scope for this follow-up item.",
+      "status": "open"
     },
     {
       "path": "jaxfne/vis/plotly/raster.py",
@@ -3907,12 +3898,12 @@
     {
       "path": "skills/FRICTIONS_STACK.md",
       "purpose": "Durable ledger of known skill/doc/code mismatches (never deleted, only marked resolved).",
-      "score": 95,
+      "score": 96,
       "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-02",
-      "evidence": "F-017 row corrected in-place 2026-07-01 to match the confirmed sweep result and the K_ctrl dead-code finding. 2026-07-02: re-verified F-007/F-008/F-009 against real code/skill state (not just trusting the ledger's own prior text) and moved all three from Open to Resolved (this pass, 2026-07-02). F-007 (Configuration bare-vs-builder): confirmed skills/jaxfne-config/SKILL.md documents builder-first usage throughout (Quickstart sections lines 119-144 use only laminar_cortex_config/build_laminar_column fluent builders) -- closed as documented, no code change. F-008 (no top-level band_power/phase_locking): grep jaxfne/__init__.py jaxfne/core.py for band_power/phase_locking -> 0 matches; python3 -c import check confirms both absent from dir(jtfne); skills/jaxfne-neural-network/SKILL.md line 102 states this exact fact verbatim -- closed as documented, no code change. F-009 (Signals.get(trial=) NotImplementedError): found a real small gap -- jtfne.run_trials/Model.run_trials/tutorial_utils.simulate_laminar_trials all confirmed to exist and work, but the exception message itself didn't mention them. Fixed with a one-line message change in jaxfne/core.py::Signals.get (~line 2774), verified via `python3 -m py_compile jaxfne/core.py` (exit 0) and a live NotImplementedError capture on a synthetic Signals object showing the new message text pointing to run_trials/tutorial_utils.",
+      "last_verified": "2026-07-05",
+      "evidence": "F-017 row corrected in-place 2026-07-01 to match the confirmed sweep result and the K_ctrl dead-code finding. 2026-07-02: re-verified F-007/F-008/F-009 against real code/skill state (not just trusting the ledger's own prior text) and moved all three from Open to Resolved (this pass, 2026-07-02). F-007 (Configuration bare-vs-builder): confirmed skills/jaxfne-config/SKILL.md documents builder-first usage throughout (Quickstart sections lines 119-144 use only laminar_cortex_config/build_laminar_column fluent builders) -- closed as documented, no code change. F-008 (no top-level band_power/phase_locking): grep jaxfne/__init__.py jaxfne/core.py for band_power/phase_locking -> 0 matches; python3 -c import check confirms both absent from dir(jtfne); skills/jaxfne-neural-network/SKILL.md line 102 states this exact fact verbatim -- closed as documented, no code change. F-009 (Signals.get(trial=) NotImplementedError): found a real small gap -- jtfne.run_trials/Model.run_trials/tutorial_utils.simulate_laminar_trials all confirmed to exist and work, but the exception message itself didn't mention them. Fixed with a one-line message change in jaxfne/core.py::Signals.get (~line 2774), verified via `python3 -m py_compile jaxfne/core.py` (exit 0) and a live NotImplementedError capture on a synthetic Signals object showing the new message text pointing to run_trials/tutorial_utils. || ADDED F-025 2026-07-05: the core.py monolith split (landed this session, 5 slices, 8370->233 lines) makes any older ledger row citing a specific `jaxfne/core.py:<line>` number unreliable (e.g. F-023's cited line 1866) -- the symbol still resolves via jaxfne.core.X (full re-export preserved) but the real implementation moved to a slice file. Documented as a new row (not editing/deleting the older rows themselves, per this ledger's own no-delete rule) so a future session re-verifies any pre-2026-07-04 line-number citation before trusting it.",
       "status": "done"
     },
     {
@@ -5448,6 +5439,84 @@
       "warnings": [],
       "last_verified": "2026-07-05",
       "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only) || DEMOTED BACK from review.json 2026-07-05: this file was edited again after being promoted -- added `import matplotlib.figure` (was referenced in 2 return-type annotations, e.g. spectrolaminar_suite/spectrolaminar, but never imported at module scope) and `from ..core import Signals` (used as a parameter annotation, also never imported). Verified with the real failure mode: `typing.get_type_hints(spectrolaminar_suite)` and `typing.get_type_hints(spectrolaminar)` now succeed (previously raised AttributeError / NameError). ruff --select F821 clean. `pytest tests/test_vis_smoke_all.py tests/test_vis_phase5.py -q` -> passing as part of the 124-passed run. Score set to 96 (not 100) since this is a re-verification after a real edit, following the review.json protocol: an entry that changes after promotion must be reset in progress.json, not left marked passed.",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-worker-context-router/SKILL.md",
+      "purpose": "Routes any jaxfne task to the correct module/API/branch/validation lane before editing; ownership map of which file owns which symbol.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "First-class SKILL.md folder, synced globally via skills/SYNC_GLOBAL.sh -- edits here require a re-sync (bash skills/SYNC_GLOBAL.sh) to reach ~/.claude/skills and ~/.agents/skills, not just the repo copy."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: the Ownership map was fully stale, still describing core.py as 'Configuration/Model/construct()/simulate()/connect() not yet split out' -- the split has been complete since this session (5 slices, 8370->233 lines). Rewrote to name the real owning file per symbol (_config.py, _model.py, _construct.py, _runtime_config.py, _signals.py) and corrected a self-introduced error during the edit itself: initially claimed 5 group-6 HDP helpers 'stayed in core.py', re-verified via `grep -n \"^def _resolve_homeostasis_k_gain\" jaxfne/core.py jaxfne/_construct.py` and found they actually live in _construct.py, not core.py -- corrected before finalizing. Synced to ~/.claude/skills/ and ~/.agents/skills/ via skills/SYNC_GLOBAL.sh, confirmed present in both (grep 'monolith split COMPLETE' in both destinations).",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-neural-tensor/SKILL.md",
+      "purpose": "NeuronalTensor build path (Areas x Layers x NeuronTypes x AreaConnections) + HDP homeostatic-plasticity module reference.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "First-class SKILL.md folder, synced globally via skills/SYNC_GLOBAL.sh."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: added the entire K_w_ctrl weight-carryover fix (real bug found+fixed this session, previously undocumented anywhere in this skill), the DEFAULT_HDP_DESYNC and DEFAULT_HDP_V1_PFC_AAAB named presets (also previously undocumented), and corrected the stale '_hdp_packed forwarded through core.py' claim to the real current location (_model.py, verified via `grep -n \"_hdp_packed\\|size_scale_by_cell_type\" jaxfne/_model.py`). Synced to ~/.claude/skills/ and ~/.agents/skills/ via skills/SYNC_GLOBAL.sh.",
+      "status": "done"
+    },
+    {
+      "path": "skills/catalog-glossary-jaxfne/SKILL.md",
+      "purpose": "Flat catalog of the entire jaxfne public API -- check before writing any helper or grepping 'does X exist'.",
+      "score": 95,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "First-class SKILL.md folder, synced globally via skills/SYNC_GLOBAL.sh."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: added hh_jaxley_reference_trace (newly root-exported this session, was previously undocumented in the catalog entirely) alongside its numpy sibling; added DEFAULT_HDP_DESYNC/DEFAULT_HDP_V1_PFC_AAAB/v1_pfc_aaab_hdp_params/K_w_ctrl to the HDP section (previously undocumented); corrected the same stale '_hdp_packed forwarded through core.py' claim found in jaxfne-neural-tensor's SKILL.md to point at _model.py. Synced to ~/.claude/skills/ and ~/.agents/skills/ via skills/SYNC_GLOBAL.sh.",
+      "status": "done"
+    },
+    {
+      "path": "skills/02_analysis_integrity.md",
+      "purpose": "Flat enforcement doc: prevent fabricated diagnostics from masking upstream failures.",
+      "score": 94,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Flat enforcement doc, NOT synced by skills/SYNC_GLOBAL.sh (only the 13 first-class SKILL.md folders are) -- lives as in-repo reference material, read directly from the repo path."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: added a 'Verified case in this repo' section citing two real violations found and fixed this session -- sanity_runtime.py's unflagged fabricated placeholder plasticity stats (fixed via an explicit placeholder_values bool) and sanity_delta.py's rubber-stamp strict_json check (fixed via a real json.dumps(allow_nan=False) attempt). Previously this doc had zero repo-specific examples, purely abstract rules.",
+      "status": "done"
+    },
+    {
+      "path": "skills/03_sparse_connectivity.md",
+      "purpose": "Flat enforcement doc: replace dense O(N^2) connectivity construction with sparse/block-sparse construction.",
+      "score": 94,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Flat enforcement doc, NOT synced by skills/SYNC_GLOBAL.sh."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: added a 'Verified case in this repo' section citing the real connectivity.py::compile_connection_rules_jax dense-grid fix from this session (removed 2 dense (n_pre,n_post) index grids, verified bit-identical output at scale), plus an explicit caveat distinguishing 'no dense index grid' from 'O(max_edges) memory' so a future reviewer doesn't over-claim the fix's scope.",
+      "status": "done"
+    },
+    {
+      "path": "skills/06_runtime_fallback_transparency.md",
+      "purpose": "Flat enforcement doc: prevent silent degradation in JIT, VMAP, and precision helpers.",
+      "score": 94,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Flat enforcement doc, NOT synced by skills/SYNC_GLOBAL.sh."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "FIXED 2026-07-05: added a 'Verified case in this repo' section citing two real cases from this session -- runtime.py's safe_jit/safe_vmap docstring correction (the guard only catches wrap-time failures, not the advertised eager-fallback-on-any-failure), and validation.py's recompile-guard investigation (found NOT exploitable via any real call site, fixed via docstring rather than a mechanism rewrite -- an example of correctly declining to 'fix' a non-live issue).",
       "status": "done"
     }
   ]

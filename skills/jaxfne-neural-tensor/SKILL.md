@@ -130,10 +130,40 @@ gamma=0.0, delta=0.0, C_spike=0.0, …), `BASE_DRIVE_BY_CELL_TYPE_DEFAULT =
 Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) —
 **`tau_i = tau_0_ms * size_i**3`** (cube law, verified; NOT `size_i**2`; a
 `relative_size=2.0` neuron integrates H 8× slower). `hdp_params` is a free-form
-dict forwarded through `core.py`'s `_hdp_packed` — any new key (e.g.
-`size_scale_by_cell_type`, `size_scale_override`) must be explicitly added
-there or it is silently dropped (verify with `grep -n size_scale_by_cell_type
-jaxfne/core.py` before trusting a new key reaches the kernel).
+dict forwarded through `_model.py`'s `_hdp_packed` dispatch (moved here from
+`core.py` during the 2026-07-04/05 monolith split; core.py itself is now a
+233-line pure re-export aggregator — see `jaxfne-worker-context-router`'s
+ownership map) — any new key (e.g. `size_scale_by_cell_type`,
+`size_scale_override`, `K_w_ctrl`) must be explicitly added there or it is
+silently dropped (verify with `grep -n size_scale_by_cell_type
+jaxfne/_model.py` before trusting a new key reaches the kernel — this exact
+bug bit `K_w_ctrl`'s first implementation pass, see below).
+
+**`K_w_ctrl` (added 2026-07-04) — the weight-magnitude analogue of `K_ctrl`.**
+Real bug found and fixed this session: `H` already had a two-sided restoring
+term (`K_ctrl`) pulling it toward equilibrium, but synaptic weight magnitude
+had none — only a hard floor/ceiling clip — so carrying weights trial-to-trial
+(`Model.with_hdp_initial_state(H0=..., w0=...)`) was an unbounded
+positive-feedback runaway (rate → ~50Hz by trial 15-19). `K_w_ctrl` adds
+`dwmag/dt += K_w_ctrl*(wmag_baseline - wmag)` (`wmag_baseline = |edges.weight|`,
+the network's declared wiring, not the carried value), mirroring `K_ctrl`'s own
+form one level down. Default `K_w_ctrl=0.0` (fully backward compatible).
+Verified stable at 100 chained trials with `K_w_ctrl=0.001`: weight magnitude
+held flat (range 6e-6 across all 100 trials), rate held at ~12.53-12.55Hz, zero
+NaN. Named, reproducible presets exist for this — don't hand-roll a magic
+`K_w_ctrl` constant:
+
+```python
+DEFAULT_HDP_DESYNC = dict(K_HDP=0.01, tau_0_ms=5.0, K_ctrl=0.15, rho_passive=0.0,
+                           barrier_c=0.01, barrier_d=0.01, alpha=0.05, gamma=0.5, C_spike=0.0)
+DEFAULT_HDP_V1_PFC_AAAB = dict(DEFAULT_HDP_DESYNC, K_HDP=0.003, K_w_ctrl=0.001)
+from jaxfne.hdp_network import v1_pfc_aaab_hdp_params  # full BASE + preset + size-scale assembly
+```
+
+`DEFAULT_HDP_DESYNC` ("responsive H" — faster `tau_0_ms=5` + rate-drain
+`gamma=0.5`, vs. `DEFAULT_HDP`'s near-static `tau_0_ms=200`) is the family
+`DEFAULT_HDP_V1_PFC_AAAB` builds on; both are real, named presets in
+`jaxfne/hdp_network.py`, not one-off script constants.
 
 `jaxfne.neuronal_tensor.DEFAULT_RELATIVE_SIZE` (re-exports
 `emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`, verified: `E=5.0, PV=1.0, Inl=1.0,
