@@ -11,7 +11,6 @@
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
 | tests/test_interactive_tutorial_artifacts_v0221.py | 78 | reviewed |  |  | 2026-07-04 |
 | tests/test_sanity_delta_plasticity_report_full.py | 78 | reviewed |  | add a companion test calling export() with plasticity left disabled that asserts plasticity_report.json's weights are NO | 2026-07-04 |
-| tests/test_tutorial_figure_manifest_v028.py | 78 | reviewed | test_jaxfne_version_current hardcodes expected '0.3.4' against a frozen manifest while pyproject is 0.4.5 -- not current | either drop the hardcoded version literal in favor of asserting the manifest's version is internally self-consistent, or | 2026-07-04 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
 | tests/test_canonical_biophysics.py | 80 | reviewed | test_pv_e_strengthened_canonical_only constructs the flat-baseline model mf but never uses it in any assertion -- it onl | either use mf in a real comparison (pv_e_meanabs(mc)>pv_e_meanabs(mf)) or remove the unused var and soften the comment | 2026-07-04 |
@@ -20,7 +19,6 @@
 | docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
 | docs/STDP_HOMEOSTATIC_REPORT.md | 82 | done | The all-neuron-plasticity result depends on a script-level code path (cortex_100_homeostatic_stdp.py, not the package's  |  | 2026-07-03 |
 | docs/faq.md | 82 | done |  |  | 2026-07-03 |
-| docs/releases/v0.3.4.md | 82 | done |  | Code sample (cfg.runtime/.column/.cell_types/.connectivity/.set_emitter/.probes) uses a DIFFERENT chaining vocabulary th | 2026-07-03 |
 | docs/tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md | 82 | done |  |  | 2026-07-03 |
 | docs/BASELINE_DRIVE_REFERENCE.md | 83 | done |  |  | 2026-07-03 |
 | docs/STDP_CLOSED_LOOP_REPORT.md | 84 | done |  |  | 2026-07-03 |
@@ -357,6 +355,7 @@
 | tests/test_kappa_synchrony_vectorized.py | 94 | reviewed |  |  | 2026-07-04 |
 | tests/test_objective_null_reproducibility_v0330.py | 94 | reviewed |  |  | 2026-07-04 |
 | tests/test_poisson_admissibility_v0215.py | 94 | reviewed |  |  | 2026-07-04 |
+| tests/test_tutorial_figure_manifest_v028.py | 94 | done |  |  | 2026-07-05 |
 | docs/mathematical_glossary_flow.md | 94 | done |  |  | 2026-07-03 |
 | docs/migration_guide.md | 94 | done |  |  | 2026-07-03 |
 | docs/tensor_electromagnetics_scope.md | 94 | done |  |  | 2026-07-03 |
@@ -422,6 +421,7 @@
 | docs/guides/tensor_field_workflows.md | 96 | done |  | STYLE QUESTION RESOLVED (2026-07-03): confirmed this doc's older Configuration builder-facade style (jtfne.configuration | 2026-07-03 |
 | docs/limitations_and_future_plans.md | 96 | done |  |  | 2026-07-03 |
 | docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
+| docs/releases/v0.3.4.md | 96 | done |  |  | 2026-07-05 |
 | docs/tutorials/03_network_100_ei.md | 96 | done |  |  | 2026-07-03 |
 | docs/tutorials/tutorial_outputs.md | 96 | done |  |  | 2026-07-03 |
 | jaxfne/vis/fields.py | 96 | done |  |  | 2026-07-05 |

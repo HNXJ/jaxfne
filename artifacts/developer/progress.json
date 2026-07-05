@@ -3385,19 +3385,13 @@
     {
       "path": "tests/test_tutorial_figure_manifest_v028.py",
       "purpose": "Validates the canonical docs figure_manifest.json (structure, figure count, status/claim fields, no forbidden phrases).",
-      "score": 78,
-      "tbi": [
-        "test_jaxfne_version_current hardcodes expected '0.3.4' against a frozen manifest while pyproject is 0.4.5 -- not currently broken (both sides static) but a staleness trap with no signal that the manifest is 3 releases behind"
-      ],
-      "tbd": [
-        "either drop the hardcoded version literal in favor of asserting the manifest's version is internally self-consistent, or add a skipped/xfail check that flags when manifest version diverges too far from pyproject"
-      ],
-      "warnings": [
-        "this test keeps passing indefinitely as the manifest drifts, since both sides are hardcoded literals"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "Loaded the manifest: jaxfne_version='0.3.4', figure_count=12, real_data=11 -- all match the test's hardcoded expectations; pyproject live version is 0.4.5; generate_tutorial_figures.py stamps version at generation time so the manifest is a frozen snapshot.",
-      "status": "reviewed"
+      "score": 94,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "Loaded the manifest: jaxfne_version='0.3.4', figure_count=12, real_data=11 -- all match the test's hardcoded expectations; pyproject live version is 0.4.5; generate_tutorial_figures.py stamps version at generation time so the manifest is a frozen snapshot. || FIXED 2026-07-05: the manifest IS deliberately frozen (this test file is explicitly named/scoped 'v0.3.4 Tutorial Figure Manifest Tests' in its own module docstring, same pattern as docs/releases/v0.3.4.md) -- 0.3.4 is the correct, permanent expectation, not a staleness bug. The real issue was the misleading test name `test_jaxfne_version_current` (implies checking against the CURRENT package version, when it actually validates a frozen historical snapshot) -- renamed to `test_jaxfne_version_matches_frozen_v034_manifest` with a docstring explaining why 0.3.4 is correct forever. `pytest tests/test_tutorial_figure_manifest_v028.py -q` -> 22 passed.",
+      "status": "done"
     },
     {
       "path": "tests/test_tutorial_utils.py",
@@ -4779,17 +4773,15 @@
     {
       "path": "docs/releases/v0.3.4.md",
       "purpose": "Historical release note for v0.3.4 (May 26 2026) -- stable v0.3 tutorial-scenario release, chainable Configuration grammar, optional matplotlib.",
-      "score": 82,
+      "score": 96,
       "tbi": [],
-      "tbd": [
-        "Code sample (cfg.runtime/.column/.cell_types/.connectivity/.set_emitter/.probes) uses a DIFFERENT chaining vocabulary than the .network()/.emitter()/.field()/.probe() vocabulary verified live in current jaxfne/core.py -- .column(), .cell_types(), .set_emitter() do not exist as Configuration methods today. This is plausible drift: v0.3.4 predates the current API and the grammar was likely renamed since. Left as historical snapshot per task scope (not current-facing), but flagging since it's a large surface (an entire code sample) rather than a single fact."
-      ],
+      "tbd": [],
       "warnings": [
         "Section heading 'Scope & Scope' is a duplicated-word typo -- cosmetic only, left as-is.",
         "'Suite No. 1'/'Suite No. 2' tutorial notebook names not independently checked against docs/tutorials/ (06_.../07_... suite files do exist in current docs/tutorials/, consistent with the claim)."
       ],
-      "last_verified": "2026-07-03",
-      "evidence": "Test count (1062 passed, 37 skipped) and breaking-changes claim are internally consistent with a 'stable checkpoint' framing. The .column()/.cell_types()/.set_emitter()/.probes() chain does not match current Configuration (dataclasses.fields = networks/emitters/fields/probes/metadata; methods are .network()/.emitter()/.field()/.probe()), but since this is describing the v0.3.4-era API (an earlier point in the repo's own history), it is being judged as internal/historical accuracy, not current-code alignment, per task instructions. Score reflects moderate risk that a reader mistakes the sample for current API despite the historical framing.",
+      "last_verified": "2026-07-05",
+      "evidence": "Test count (1062 passed, 37 skipped) and breaking-changes claim are internally consistent with a 'stable checkpoint' framing. || CORRECTED 2026-07-05: the prior entry's tbd claimed '.column(), .cell_types(), .set_emitter() do not exist as Configuration methods today' -- this was never actually tested against real source and was simply WRONG. Ran the doc's exact code sample live: `cfg = jtfne.Configuration(); cfg = cfg.runtime(seed=7, dtype='float32', duration_ms=1000.0, dt_ms=0.1); cfg = cfg.column('single_neuron', layers=['L2/3'], n=1); cfg = cfg.cell_types({'E': 1.0}); cfg = cfg.connectivity(); cfg = cfg.set_emitter('izhikevich', 'cortical_eig'); cfg = cfg.probes([...])` -> ALL 6 steps succeed on current source; Configuration genuinely supports both this vocabulary AND the .network()/.emitter()/.field()/.probe() one as coexisting method families, not a renamed-and-removed one. No drift, no fix needed -- the code sample is accurate today, not just historically.",
       "status": "done"
     },
     {
