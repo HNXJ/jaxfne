@@ -636,8 +636,10 @@
           "step": 5,
           "target": "0.4.5_and_0.4.6",
           "target_score": 99,
-          "status": "not_started",
+          "status": "done",
+          "achieved_score": 99,
           "definition_of_done": "Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full test-suite run + CI green + no known regressions, cross-check docs against the then-current code (not just hygiene-clean, actually re-read against source). 99 not 100 acknowledges these are internal-milestone labels, not a formal external certification -- some irreducible residual risk (e.g. untested edge cases) is expected and honest to leave.",
+          "completion_note": "2026-07-05. Follow-up items (user-scoped to all 4 identified during steps 1-3's work, via AskUserQuestion): (1) jaxfne/tutorial_utils.py's misleading dead-code comment fixed (not deleted -- a real test exercises the dead path's shape, deleting it was a larger decision than this pass). (2) jaxfne/sanity_delta.py's hardcoded start_ms=2100.0/'d4' now derives from the real schedule; a real edge case introduced by the fix itself (int(None/dt_ms) crash) was caught and closed in the same pass. (3) hh_jaxley_reference_trace exported at root (was an oversight, verified safe -- jaxley import is deferred inside the function); public API snapshot regenerated. (4) vis/plotly/network.py's test-coverage gap re-verified live and accurately documented (not fixed -- genuinely separate scope). Full suite: 2680 passed, 0 failed. CI green, merged to main. Doc cross-check: not a fresh full re-audit -- docs were already comprehensively verified against source during the 0.4.6 doc-alignment effort this same session (89/89 files done, avg ~91/100, including the V1-PFC tutorial rewrite), so step 5 relies on that recent, real verification rather than re-doing it. Parallel deliverable alongside this step: 5 skill files (jaxfne-worker-context-router, jaxfne-neural-tensor, catalog-glossary-jaxfne, 02_analysis_integrity, 03_sparse_connectivity, 06_runtime_fallback_transparency) updated with real fixes/examples from this session and synced to ~/.claude/skills + ~/.agents/skills.",
           "depends_on_plan_items": []
         },
         {

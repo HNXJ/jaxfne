@@ -56,7 +56,7 @@
 | 2 | v1_pfc_paradigm | 95 | done | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
 | 3 | 0.4.6 | 95 | done | Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, ve |
 | 4 | checkpoint |  | done |  |
-| 5 | 0.4.5_and_0.4.6 | 99 | not_started | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |
+| 5 | 0.4.5_and_0.4.6 | 99 | done | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |
 | 6 | 0.4.7 | 50 | not_started | Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begi |
 | 7 | 0.4.7 | 80 | not_started | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
 | 8 | 0.4.7 | 95 | not_started | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
