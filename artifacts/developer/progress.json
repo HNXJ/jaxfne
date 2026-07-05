@@ -6190,6 +6190,19 @@
       "last_verified": "2026-07-04",
       "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0 (identical to pre-split). model.with_hdp_initial_state() verified working (exercises the _runtime_config_from_metadata deferred-import path). Targeted tests green (115 passed, 1 xfailed across 7 test files including tune()/TuneResult and RuntimeConfig-dependent tests). Full suite run pending at time of this entry. core.py now 2774 lines (from 8370 pre-split, 67% reduction across 4 slices); only the construct()/connect() hub remains.",
       "status": "open"
+    },
+    {
+      "path": "jaxfne/_construct.py",
+      "purpose": "construct()/connect() hub -- builds Model from Configuration, merges Models -- plus the remaining group-1 connectivity-compiler helpers and group-8 paradigm/receipt/manifest module-level functions. Final (5th) slice of the core.py monolith split; core.py is now a pure re-export aggregator (233 lines).",
+      "score": 92,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "This slice moved the ENTIRE remaining core.py body in one pass (not further subdivided into e.g. separate connectivity.py/paradigm.py modules) to keep the final slice quick -- core.py's own connectivity helpers (_compile_connection_rules etc.) and the construct()/connect() hub now live together in one file. A future pass could split these further if _construct.py's ~2650 lines become unwieldy, but that's explicitly deferred, not forgotten."
+      ],
+      "last_verified": "2026-07-04",
+      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0, identical to pre-split. ruff --select F821 clean on both core.py and _construct.py (zero undefined names). 170 targeted tests green (neuronal_tensor, connect, construct golden-snapshot, tune/optim, suite_no1/no4 grammar -- the exact files broken by the previous slice's missed re-export). Full suite run in progress at time of this entry. core.py is now 233 lines (from 8370 pre-split, 97% reduction) -- the core.py monolith split is complete, 5/5 slices.",
+      "status": "open"
     }
   ]
 }

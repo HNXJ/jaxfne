@@ -322,6 +322,7 @@
 | tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb | 92 | done |  |  | 2026-07-02 |
 | scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-02 |
 | jaxfne/_model.py | 92 | open |  |  | 2026-07-04 |
+| jaxfne/_construct.py | 92 | open |  |  | 2026-07-04 |
 | jaxfne/analysis/metrics.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/__init__.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/diagnostics.py | 93 | reviewed |  |  | 2026-07-04 |

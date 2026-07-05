@@ -39,7 +39,7 @@
 | config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | done | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
 | v1-pfc-continuous-aaab-adaptation-paradigm | [SCOPED, 10-trial smoke test is the next real step] Build V1-PFC continuous AAAB adaptation paradigm (replaces the old a | in_progress | jaxfne/_signals.py (StimulusSchedule.frequency_hz extension); jaxfne/paradigm.py (reference the F-022 marker-silencing p |
 | release-v0.4.5-published | v0.4.5 released to PyPI | done | pyproject.toml; jaxfne/core.py; docs/changelog.md; docs/citation.md; mkdocs.yml; docs/_generated/version.md |
-| core-py-monolith-split |  | in_progress | jaxfne/core.py; jaxfne/_runtime_config.py; jaxfne/_signals.py; jaxfne/_config.py (not started); jaxfne/_model.py (not st |
+| core-py-monolith-split |  | done | jaxfne/core.py; jaxfne/_runtime_config.py; jaxfne/_signals.py; jaxfne/_config.py (not started); jaxfne/_model.py (not st |
 
 ## brainstorm
 
