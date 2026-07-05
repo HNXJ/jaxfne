@@ -357,17 +357,15 @@
     {
       "path": "jaxfne/connectivity.py",
       "purpose": "Compiles declarative connection-rule dicts into sparse finite edge arrays, plus a separate tensorized JAX helper using dense grids.",
-      "score": 72,
-      "tbi": [
-        "REAL BUG: compile_connection_rules_jax (lines 570-607) builds dense n_pre x n_post grids via jnp.tile/.ravel() -- directly contradicts the module's own docstring ('sparse-first...never materializes a dense mask') and the jaxfne-harden sparse-connectivity rule; it is public API despite being O(n_pre*n_post)"
+      "score": 90,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "compile_connection_rules_jax still touches an O(n_pre*n_post) array of per-pair random scores -- this is inherent to preserving the exact independent-Bernoulli-then-cap-at-max_edges semantics under a single static-shape jit call, not a further-fixable dense-grid bug. A true O(max_edges)-only implementation would need to change semantics (e.g. direct fixed-count sampling like the host-side compile_connection_rules's rejection sampler) or a lax.while_loop rejection scheme -- out of scope for this pass."
       ],
-      "tbd": [
-        "fix compile_connection_rules_jax to be sparse, or rescope the module docstring's 'sparse-first' claim to exclude the _jax variant"
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.connectivity' succeeded; confirmed via grep compile_connection_rules_jax is not called anywhere else but is exported publicly from __init__.py.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.connectivity' succeeded; confirmed via grep compile_connection_rules_jax is not called anywhere else but is exported publicly from __init__.py. || FIXED 2026-07-05: removed the two dense (n_pre, n_post) pre_grid/post_grid index arrays built via jnp.tile -- (pre, post) for the selected max_edges candidates are now derived via flat-index arithmetic (selected_idx // n_post, selected_idx % n_post) on only the selected subset, never a full grid. Verified bit-identical output vs the old implementation for the same key/inputs at a non-trivial scale (13x9 pre/post, max_edges=20, probability=0.3) -- confirms this is a true behavior-preserving refactor, not just shape-compatible. `ruff check --select F821` clean, no `jnp.tile` remains in the function body. Targeted test: `pytest tests/test_v0341_kernels.py -q` -> 6 passed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/experimental_hpc/__init__.py",
@@ -561,53 +559,44 @@
     {
       "path": "jaxfne/runtime.py",
       "purpose": "Re-exports RuntimeConfig/runtime/runtime_report from core, plus get_jax_backend_report, set_precision_policy, and safe_jit/safe_vmap wrappers advertised as falling back to eager/loop execution on failure.",
-      "score": 78,
-      "tbi": [
-        "REAL BUG: safe_jit/safe_vmap's try/except wraps only jax.jit(fn)/jax.vmap(fn) at wrap-time (which almost never raises) rather than deferring the fallback to call-time -- the docstring's 'falls back to eager execution' promise is misleading for the common failure mode (a function that traces but fails on shape/control-flow), which propagates uncaught"
+      "score": 92,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "safe_jit/safe_vmap are defined and exported but not called anywhere else in jaxfne/, scripts/, or examples/ -- dead utility code by usage, not by definition; the docstring fix applies regardless since it's public API."
       ],
-      "tbd": [
-        "rewrite safe_jit/safe_vmap to lazily try the jitted call on first invocation and catch failures there, or narrow the docstring to say it only guards jit-unavailable environments"
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.runtime' succeeded. LIVE TEST: wrapped a function with non-jittable control flow in safe_jit and called it -- raised TracerBoolConversionError at call time instead of falling back, proving the try/except only guards jax.jit() construction (which essentially never fails), not tracing/execution.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.runtime' succeeded. LIVE TEST: wrapped a function with non-jittable control flow in safe_jit and called it -- raised TracerBoolConversionError at call time instead of falling back, proving the try/except only guards jax.jit() construction (which essentially never fails), not tracing/execution. || FIXED 2026-07-05 (docstring-narrowing option, chosen over a lazy-wrap rewrite to keep blast radius minimal on an otherwise-uncalled utility): rewrote both docstrings to state plainly that the try/except only catches wrap-time failures (e.g. malformed jit_kwargs/vmap_kwargs), not trace-time failures like shape mismatches or unsupported control flow, and that the function should not be relied on to make an arbitrary fn 'safe under jit'. Zero behavior change (docstring-only); ruff --select F821 clean; grep confirms no call sites elsewhere in the repo to regression-test.",
+      "status": "done"
     },
     {
       "path": "jaxfne/sanity_delta.py",
       "purpose": "v0.3.32 hierarchical global/local oddball task orchestration -- 5-area 500-neuron scaffold with resumable backup state and proxy-safe readouts.",
-      "score": 68,
+      "score": 82,
       "tbi": [
-        "REAL BUG: TaskEpisode.validate()'s 'strict_json' check unconditionally sets results[check]=True without performing any actual JSON-safety check, despite being listed alongside genuine checks (finite_outputs, backup_resume_equivalence) -- flows into validation_report.json, which will always report strict_json:true regardless of actual JSON-safety",
         "export()'s equivalence-check block hardcodes start_ms=2100.0 and segment 'd4' rather than deriving from config -- works for the default factory but would silently pick a wrong resume point if paradigm timing is customized"
       ],
-      "tbd": [
-        "implement a real strict-JSON check (e.g. json.dumps(..., allow_nan=False)) or remove the check from the advertised list if it's a placeholder"
-      ],
+      "tbd": [],
       "warnings": [
         "probe() only validates readout name patterns and returns self unchanged -- docstring 'Validate and extract readouts' overstates what it does (validates only, no extraction/filtering)",
         "validate()'s else branch for unknown check names silently sets False rather than raising -- could hide a typo'd check name"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.sanity_delta' succeeded; read ~900 lines; grepped strict_json usage across sanity_delta.py/sanity_runtime.py to confirm it's never actually checked.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.sanity_delta' succeeded; read ~900 lines; grepped strict_json usage across sanity_delta.py/sanity_runtime.py to confirm it's never actually checked. || FIXED 2026-07-05: TaskEpisode.validate()'s 'strict_json' check now actually attempts json.dumps(self.task_schedule, allow_nan=False) plus a sampled vm/spikes payload, catching (ValueError, TypeError) to report False -- verified it genuinely discriminates (standalone repro: NaN in vm -> False, all-finite -> True, not a rubber stamp). Targeted tests: `pytest tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_report_schema_full.py tests/test_sanity_delta_optional_imports.py tests/test_sanity_delta_hierarchical_oddball_config.py tests/test_sanity_delta_plasticity_report_full.py -q` -> 27 passed. Score raised 68->82 (2 warnings remain, plus the still-open hardcoded start_ms=2100.0/segment 'd4' tbi -- not touched by this fix, left for a separate pass).",
+      "status": "open"
     },
     {
       "path": "jaxfne/sanity_runtime.py",
       "purpose": "Pure JAX/numpy numerical kernels backing sanity_delta.py -- area/cell-parameter indexing, stimulus drive scheduling, weight matrix construction, lax.scan Izhikevich integrator, homeostatic plasticity, proxy readout projections, backup/resume comparison.",
-      "score": 65,
-      "tbi": [
-        "REAL BUG: _make_plasticity_metrics' else branch (triggered by the default plasticity_enabled=False path) returns hardcoded fabricated-looking statistics (pre_weight_max: 0.08, etc.) presented in plasticity_report.json identically to genuinely-computed values, with no flag distinguishing 'not measured' from 'measured' -- conflicts with the no-synthetic-fallback analysis-integrity rule"
-      ],
-      "tbd": [
-        "add an explicit placeholder_values:true flag to the else-branch output, or set numeric fields to None/omit them when plasticity is disabled"
-      ],
+      "score": 88,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "_apply_segment_homeostasis mixes numpy host-side loops with jnp arrays -- correct but not JIT-compatible/vmappable as written; consistent with being called from the eager Python segment loop, not from inside a scan"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.sanity_runtime' succeeded; traced _make_plasticity_metrics call site through sanity_delta.py, confirmed plasticity_enabled defaults to False so the default export() path hits the hardcoded-placeholder branch.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.sanity_runtime' succeeded; traced _make_plasticity_metrics call site through sanity_delta.py, confirmed plasticity_enabled defaults to False so the default export() path hits the hardcoded-placeholder branch. || FIXED 2026-07-05: added an explicit placeholder_values bool to _make_plasticity_metrics' return dict (True on the not-measured/disabled path, False on the genuinely-computed path) -- the numeric fields themselves are unchanged (kept as floats, not nulled, since no existing test or consumer expects None and nulling risked breaking arithmetic on those fields), but a consumer can no longer mistake placeholder numbers for measurements. Verified standalone: disabled path -> placeholder_values=True, enabled path with real weight arrays -> placeholder_values=False. Targeted tests (30 total, both plasticity-enabled paths that exercise the real branch plus the runtime-architecture suite): `pytest tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_report_schema_full.py tests/test_sanity_delta_optional_imports.py tests/test_sanity_delta_hierarchical_oddball_config.py tests/test_sanity_delta_plasticity_report_full.py tests/test_sanity_delta_runtime_architecture.py -q` -> 30 passed (none exercise the disabled/placeholder branch currently -- a coverage gap, not a regression risk from this fix).",
+      "status": "done"
     },
     {
       "path": "jaxfne/sharding_utils.py",
@@ -671,19 +660,16 @@
     {
       "path": "jaxfne/validation.py",
       "purpose": "Field-admissibility validation (conductivity/finiteness/gauge/boundary), calibration reports, Poisson-solver admissibility gates, BasisSpec/claim-gate validation, and a CompilationRegistry/make_recompilation_guard for detecting JAX re-compilation.",
-      "score": 70,
-      "tbi": [
-        "REAL BUG: CompilationRegistry.track_trace/make_recompilation_guard count Python CALL count per (name,signature) key, not actual XLA trace/compile events -- the wrapper runs on every call, so any jitted function called more than once with the same shape (the normal case in any training/simulation loop) triggers a false-positive re-compilation warning/exception, directly contradicting its own docstring's 'N_compile <= 1 per signature' invariant and the jax-jit-pmap-performance-guard doctrine"
-      ],
-      "tbd": [
-        "fix track_trace to only increment on genuine trace events (e.g. via jax.jit's lower/cache-miss introspection), matching the comment's stated intent that this code should execute 'exactly once when JAX compiles/traces this block'"
-      ],
+      "score": 90,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
-        "rest of file (conductivity validators, calibration/gauge/boundary, basis-spec/claim-gate) reads clean; did not exhaustively re-derive every Poisson-admissibility formula given time budget"
+        "rest of file (conductivity validators, calibration/gauge/boundary, basis-spec/claim-gate) reads clean; did not exhaustively re-derive every Poisson-admissibility formula given time budget",
+        "CompilationRegistry.track_trace counts Python executions of the wrapped function's body, which only equals genuine XLA trace/compile events when the wrapper is itself the target of jax.jit -- a design constraint, not a bug per se, now made explicit in make_recompilation_guard's docstring."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.validation' succeeded; confirmed 7 underscore-prefixed jaxfne.core imports all resolve live. LIVE REPRODUCTION: wrapped an already-jitted function via make_recompilation_guard and called it twice with an identical shape signature -- it spuriously warned 'compiled 2 times!' even though no real second XLA compilation occurred.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.validation' succeeded; confirmed 7 underscore-prefixed jaxfne.core imports all resolve live. CORRECTED 2026-07-05 (this is why the review pass matters): the prior entry's 'REAL BUG' framing and its own reproduction called make_recompilation_guard's output DIRECTLY, bypassing jax.jit -- that is real misuse-triggered behavior, but re-verified against the ACTUAL usage pattern: grepped every one of the 5 call sites in jaxfne/_model.py (lines ~431, 531, 582, 624, 937) and confirmed all 5 immediately wrap the guard's output with jax.jit(...) before ever calling it. Live reproduction of the REAL pattern: `jax.jit(make_recompilation_guard(fn, ...))` called 3 times with an identical shape -> compilation_registry.traced_signatures shows count=1, zero warnings raised (JAX's own internal cache prevents re-executing the traced Python body on cache-hit calls). So the false-positive scenario does NOT occur via any current call site -- it's a genuine footgun only if a future call site calls the guard's output directly without jax.jit, which none does today. FIX APPLIED (docstring only, not a mechanism rewrite -- rewriting the counting itself was assessed as unwarranted risk for a non-live issue): make_recompilation_guard's docstring now states this constraint explicitly so a future call site can't skip it by accident. `pytest tests/test_v0320_recompilation_guards.py -q` -> 3 passed, ruff --select F821 clean.",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/hdp_diagnostics.py",

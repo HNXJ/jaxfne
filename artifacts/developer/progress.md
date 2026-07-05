@@ -5,17 +5,12 @@
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
-| jaxfne/sanity_runtime.py | 65 | reviewed | REAL BUG: _make_plasticity_metrics' else branch (triggered by the default plasticity_enabled=False path) returns hardcod | add an explicit placeholder_values:true flag to the else-branch output, or set numeric fields to None/omit them when pla | 2026-07-04 |
-| jaxfne/sanity_delta.py | 68 | reviewed | REAL BUG: TaskEpisode.validate()'s 'strict_json' check unconditionally sets results[check]=True without performing any a | implement a real strict-JSON check (e.g. json.dumps(..., allow_nan=False)) or remove the check from the advertised list  | 2026-07-04 |
 | scripts/evidence_figures/ed05_manifest_hashes.py | 68 | reviewed | METADATA_ARTIFACTS checklist entry path is stale/wrong -- will cause a spurious RuntimeError, confirmed by static trace | fix METADATA_ARTIFACTS path to use evidence_checklist_path() | 2026-07-04 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
-| jaxfne/validation.py | 70 | reviewed | REAL BUG: CompilationRegistry.track_trace/make_recompilation_guard count Python CALL count per (name,signature) key, not | fix track_trace to only increment on genuine trace events (e.g. via jax.jit's lower/cache-miss introspection), matching  | 2026-07-04 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| jaxfne/connectivity.py | 72 | reviewed | REAL BUG: compile_connection_rules_jax (lines 570-607) builds dense n_pre x n_post grids via jnp.tile/.ravel() -- direct | fix compile_connection_rules_jax to be sparse, or rescope the module docstring's 'sparse-first' claim to exclude the _ja | 2026-07-04 |
 | scripts/evidence_figures/fig07_reproducibility_artifacts.py | 72 | reviewed | checklist_exists field in the manifest/figure will always be False due to hardcoded stale path, contradicting the succes | replace the hardcoded path with evidence_checklist_path() (already imported) | 2026-07-04 |
 | jaxfne/tutorial_utils.py | 75 | reviewed | build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the a | delete the unused W_parts/build_laminar_connections dead-code path, or wire it in, or fix the comment | 2026-07-04 |
 | tests/test_sanity_delta_report_schema_full.py | 75 | reviewed | test name/docstring ('strict JSON compliant') overclaims what the assertions check (mere key presence + json.loads-abili | either rename to reflect it only checks key presence, or add an assertion on checks['strict_json'] tied to a real outcom | 2026-07-04 |
-| jaxfne/runtime.py | 78 | reviewed | REAL BUG: safe_jit/safe_vmap's try/except wraps only jax.jit(fn)/jax.vmap(fn) at wrap-time (which almost never raises) r | rewrite safe_jit/safe_vmap to lazily try the jitted call on first invocation and catch failures there, or narrow the doc | 2026-07-04 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/repair_notebooks.py | 78 | reviewed |  |  | 2026-07-04 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
@@ -25,6 +20,7 @@
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
 | tests/test_canonical_biophysics.py | 80 | reviewed | test_pv_e_strengthened_canonical_only constructs the flat-baseline model mf but never uses it in any assertion -- it onl | either use mf in a real comparison (pv_e_meanabs(mc)>pv_e_meanabs(mf)) or remove the unused var and soften the comment | 2026-07-04 |
+| jaxfne/sanity_delta.py | 82 | open | export()'s equivalence-check block hardcodes start_ms=2100.0 and segment 'd4' rather than deriving from config -- works  |  | 2026-07-05 |
 | scripts/find_5hz_vmap.py | 82 | reviewed |  |  | 2026-07-04 |
 | scripts/run_neuron_sweeps.py | 82 | reviewed |  |  | 2026-07-04 |
 | tests/test_docs_equations_plotly_v0214.py | 82 | reviewed | test_no_like_terminology_in_new_docs lists 'docs/skills/skill_visual_outputs.md' as a new_docs path to check, but that f | update the new_docs list to point at the current .legacy/internal_docs/skills/ location (or drop the stale entry) so the | 2026-07-04 |
@@ -60,6 +56,7 @@
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | jaxfne/bridges.py | 88 | reviewed | hh_jaxley_reference_trace defined but not exported anywhere in __init__.py, only reachable via the submodule path |  | 2026-07-04 |
+| jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/generate_tutorial_figures.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -99,8 +96,10 @@
 | examples/02_spectrolaminar_oddball_scaffold.py | 90 | reviewed |  |  | 2026-07-04 |
 | examples/03_jaxley_bridge_smoke.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/__init__.py | 90 | reviewed | hh_jaxley_reference_trace (bridges.py) not exported at root, only its numpy fallback is -- may be intentional, worth a d |  | 2026-07-04 |
+| jaxfne/connectivity.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/fields/solvers.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/plasticity.py | 90 | reviewed |  |  | 2026-07-04 |
+| jaxfne/validation.py | 90 | done |  |  | 2026-07-05 |
 | scripts/audit_notebooks_and_assets.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/benchmark_scan_backends.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed02_json_schema_validation.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -211,6 +210,7 @@
 | jaxfne/export.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
+| jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/sharding_utils.py | 92 | reviewed |  | docstring states stubs 'do not yet drive any real multi-device dispatch...planned for v0.3.20+' -- self-labeled incomple | 2026-07-04 |
 | jaxfne/solvers.py | 92 | reviewed |  |  | 2026-07-04 |
 | scripts/benchmark_jaxfne.py | 92 | reviewed |  |  | 2026-07-04 |

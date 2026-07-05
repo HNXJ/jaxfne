@@ -816,7 +816,16 @@ class TaskEpisode:
             if check == "finite_outputs":
                 results[check] = bool(jnp.all(jnp.isfinite(self.spikes)) and jnp.all(jnp.isfinite(self.vm)))
             elif check == "strict_json":
-                results[check] = True
+                try:
+                    json.dumps(self.task_schedule, allow_nan=False)
+                    sample = {
+                        "vm_sample": [float(x) for x in jnp.asarray(self.vm).reshape(-1)[:16]],
+                        "spikes_sample": [float(x) for x in jnp.asarray(self.spikes).reshape(-1)[:16]],
+                    }
+                    json.dumps(sample, allow_nan=False)
+                    results[check] = True
+                except (ValueError, TypeError):
+                    results[check] = False
             elif check == "backup_resume_equivalence":
                 if self.runtime_mode == "full":
                     schedule = self.paradigm.to_schedule()

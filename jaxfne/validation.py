@@ -1330,6 +1330,20 @@ def make_recompilation_guard(
 ) -> Any:
     """Wrap a Python function to track and guard compilation trace-time bounds.
 
+    IMPORTANT constraint (verified 2026-07-05, not previously documented): the
+    caller MUST pass the returned ``wrapped`` function straight into
+    ``jax.jit(...)`` before ever calling it, and always call the JIT-wrapped
+    result -- never ``wrapped`` itself directly. ``track_trace`` counts Python
+    executions of ``wrapped``'s body, which is only equivalent to "genuine XLA
+    trace/compile events" when ``wrapped`` is itself the target of jax.jit
+    (JAX only re-executes a jitted function's Python body on an actual
+    retrace, not on cache-hit calls). Calling ``wrapped`` directly (bypassing
+    jax.jit) makes it count every Python call as a "compile", triggering
+    false-positive re-compilation warnings/exceptions even when no XLA
+    compilation occurred. Every current call site in jaxfne/_model.py follows
+    the required jax.jit(make_recompilation_guard(...)) pattern; this
+    docstring exists so a future call site doesn't skip that step.
+
     Parameters
     ----------
     fn : Callable
@@ -1348,7 +1362,8 @@ def make_recompilation_guard(
         Time simulation steps.
     """
     def wrapped(*args, **kwargs):
-        # This python code executes exactly once when JAX compiles/traces this block
+        # Runs once per genuine JAX retrace ONLY if this function is itself
+        # passed to jax.jit before being called -- see the docstring above.
         """Documented public function `wrapped`."""
         compilation_registry.set_mode(recompilation_guard)
         compilation_registry.track_trace(name, (B, Z, C, T))

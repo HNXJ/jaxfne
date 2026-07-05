@@ -309,7 +309,11 @@ def _make_plasticity_metrics(
         max_abs_delta = float(np.max(np.abs(post_w - pre_w)))
         finite_status = bool(np.all(np.isfinite(post_w)))
         status = "pass"
+        placeholder_values = False
     else:
+        # Not measured: plasticity disabled or no weight arrays were provided.
+        # These numeric fields are NOT computed from real data -- placeholder_values
+        # flags that explicitly so a consumer can't mistake them for measurements.
         pre_w_min = 0.0
         pre_w_max = 0.08
         pre_w_mean = 0.01
@@ -319,7 +323,8 @@ def _make_plasticity_metrics(
         max_abs_delta = 0.0
         finite_status = True
         status = "pass" if enabled else "pass_no_update"
-        
+        placeholder_values = True
+
     return {
         "enabled": enabled,
         "runtime_mode": mode,
@@ -342,5 +347,6 @@ def _make_plasticity_metrics(
         "inhibitory_modified": bool(inh_modified),
         "finite_status": finite_status,
         "biological_learning_claim": False,
+        "placeholder_values": placeholder_values,
         "status": status,
     }

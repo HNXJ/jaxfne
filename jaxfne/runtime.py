@@ -117,15 +117,23 @@ T = TypeVar("T")
 
 
 def safe_jit(fn: Callable[..., T], strict: bool = False, **jit_kwargs: Any) -> Callable[..., T]:
-    """Wrap a function with JAX jit, with fallback to no-op if jit is not available.
+    """Wrap a function with JAX jit, falling back to the eager function on WRAP-TIME failure.
+
+    ``jax.jit(fn, **jit_kwargs)`` itself is lazy -- it almost never raises, since
+    tracing/compilation only happens on the *first call* of the returned wrapper.
+    This guard therefore only catches failures at wrap time (e.g. an invalid
+    ``jit_kwargs`` value such as a malformed ``static_argnums``), not trace-time
+    failures like a shape mismatch or unsupported control flow inside ``fn`` --
+    those surface uncaught on the first call of the jitted function this returns.
+    Do not rely on this to make an arbitrary function "safe to call" under jit.
 
     Args:
         fn: Function to jit-compile.
-        strict: If True, raise exception on jit failure rather than falling back.
+        strict: If True, raise exception on wrap-time jit failure rather than falling back.
         **jit_kwargs: Additional keyword arguments to pass to jax.jit (e.g., static_argnums).
 
     Returns:
-        jit-compiled function if jit is available; otherwise returns the original function.
+        jit-wrapped function if wrapping succeeded; otherwise returns the original function.
     """
     import os
     import warnings
@@ -140,16 +148,23 @@ def safe_jit(fn: Callable[..., T], strict: bool = False, **jit_kwargs: Any) -> C
 
 
 def safe_vmap(fn: Callable[..., T], in_axes: int | None = 0, strict: bool = False, **vmap_kwargs: Any) -> Callable[..., T]:
-    """Wrap a function with JAX vmap, with fallback to no-op if vmap is not available.
+    """Wrap a function with JAX vmap, falling back to the eager function on WRAP-TIME failure.
+
+    ``jax.vmap(fn, ...)`` itself is lazy -- like ``safe_jit``, it almost never
+    raises at wrap time, since tracing only happens on the *first call* of the
+    returned wrapper. This guard therefore only catches wrap-time failures (e.g.
+    invalid ``vmap_kwargs``), not trace-time failures like an axis-shape
+    mismatch inside ``fn`` -- those surface uncaught on the first call. Do not
+    rely on this to make an arbitrary function "safe to call" under vmap.
 
     Args:
         fn: Function to vectorize.
         in_axes: Which axis to map over (default 0, the batch axis).
-        strict: If True, raise exception on vmap failure rather than falling back.
+        strict: If True, raise exception on wrap-time vmap failure rather than falling back.
         **vmap_kwargs: Additional keyword arguments to pass to jax.vmap.
 
     Returns:
-        vmap-vectorized function if vmap is available; otherwise returns the original function.
+        vmap-wrapped function if wrapping succeeded; otherwise returns the original function.
     """
     import os
     import warnings
