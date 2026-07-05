@@ -2169,7 +2169,14 @@ class Model:
             "used_recurrent_backend": used_backend,
             "used_synaptic_kernel": used_kernel,
             "available_edge_list": "edge_list" in self.params,
-            "manifest_schema_version": _MANIFEST_SCHEMA_VERSION,
+            # Renamed 2026-07-05 from "manifest_schema_version" -- that name
+            # collided (same key, different meaning/value) with the manifest
+            # ROOT's own "manifest_schema_version" (Configuration's
+            # _default_metadata, "0.0.4"). Both coexisted without silently
+            # overwriting each other (different nesting depth), but the
+            # shared name was a real trap for a future reader. This key
+            # versions only this backend_metadata block, not the manifest.
+            "backend_metadata_schema_version": _MANIFEST_SCHEMA_VERSION,
             "source_model": dict(_SOURCE_PROXY_METADATA),
         }
         # v0.2.0: Field admissibility metadata

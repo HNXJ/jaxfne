@@ -1556,15 +1556,13 @@
     {
       "path": "tests/test_api_smoke.py",
       "purpose": "End-to-end smoke of construct/simulate/probe/manifest chain, dtype handling, optional-dependency guards.",
-      "score": 90,
+      "score": 96,
       "tbi": [],
-      "tbd": [
-        "stale unused constant _MANIFEST_SCHEMA_VERSION='manifest.v0.0.21' exists in _model.py alongside the actually-used '0.0.4' literal in _config.py -- dead/confusing constant, maintainer's-eye item"
-      ],
+      "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Ran the full chain live; manifest schema_version=='0.0.4' matches; verified require_jaxley/require_optax error strings.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Ran the full chain live; manifest schema_version=='0.0.4' matches; verified require_jaxley/require_optax error strings. || INVESTIGATED AND FIXED 2026-07-05: _MANIFEST_SCHEMA_VERSION was not actually dead/unused (re-verified against the original claim) -- it's used at jaxfne/_model.py's backend_meta dict, one nesting level below the manifest root. Built a real manifest and walked the full dict tree: root-level `manifest_schema_version`='0.0.4' (Configuration's own schema) and `backend_metadata.manifest_schema_version`='manifest.v0.0.21' (a different, unrelated schema for that nested block) coexisted without any silent overwrite -- not a bug, just a confusing same-name-different-meaning key collision. Fixed by renaming the nested key to `backend_metadata_schema_version`; verified no test or doc asserted on the old nested path (`grep -rn manifest_schema_version tests/*.py docs/**/*.md` -> both real assertions target the ROOT key, unaffected). `pytest tests/test_api_smoke.py tests/test_semantic_correctness_v020.py -q` -> 49 passed. Live re-verification: new key present, old key gone from the nested dict, root key unchanged.",
+      "status": "done"
     },
     {
       "path": "tests/test_artifact_json_safety_v0330.py",
@@ -3830,15 +3828,15 @@
     },
     {
       "path": "scripts/evidence_figures/",
-      "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10).",
-      "score": null,
+      "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10) -- directory-level summary entry.",
+      "score": 92,
       "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): all scripts in this directory make direct matplotlib/plotly calls outside jaxfne/vis/. Confirmed via grep 2026-07-01 across 19 files (fig01-fig08, ed01-ed10)."
+      "tbd": [
+        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): 18 of 19 .py files in this directory make direct matplotlib/plotly calls outside jaxfne/vis/ -- a real, known, directory-wide architectural violation, not fixed this pass (would mean refactoring 18 scripts to route through jaxfne.vis, a much larger scope than a quick follow-up)."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py -> all 19 files matched.",
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0.",
       "status": "open"
     },
     {
@@ -5366,17 +5364,15 @@
     {
       "path": "jaxfne/_signals.py",
       "purpose": "Signals/Objective schema, TrialSpec/TrialBatch/ReadoutSpec/StimulusSchedule/LaminarPopulation/AxisSpec/BasisSpec, and metric/gate-evaluation helpers, extracted from jaxfne/core.py as slice 2 of the core.py monolith split. One-directional dependency: consumed by Model/construct (still in core.py), does not call back into them. Re-exported in full from jaxfne/core.py.",
-      "score": 95,
+      "score": 97,
       "tbi": [],
-      "tbd": [
-        "Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_KNOWN_CONFIG_GATE_METRICS/_SIGNALS_GET_*/_AXIS_STATUS_VALUES/_SPACE_BASIS_VALUES/_TIME_BASIS_VALUES/_FIELD_REGIME_VALUES/_FUTURE_FIELD_REGIMES/_SOURCE_MODE_BASIS_VALUES/_PROBE_BASIS_VALUES/Signal alias all had to be added to core.py's re-export list after the first pytest run caught each ImportError) -- not yet committed as of this entry."
-      ],
+      "tbd": [],
       "warnings": [
         "Module-level private constants (frozenset/dict) defined with `name: Type = ...` type annotations were missed by a naive `grep \"^name = \"` sweep during extraction -- future slices of this split must grep for `^_[A-Za-z_]+\\s*(:.*)?=` (annotated form included) rather than assuming plain assignment."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "py_compile + direct import verified; full pytest run in progress at time of this entry (task bvw1g2vjd).",
-      "status": "open"
+      "last_verified": "2026-07-05",
+      "evidence": "py_compile + direct import verified. || RESOLVED 2026-07-05 (stale tbd cleared, not carried over): the 'full suite not yet committed' concern was from this file's original 2026-07-03 extraction commit (0abf292), which is long since committed and merged to main -- confirmed via `git log --oneline main -- jaxfne/_signals.py` and `git branch --contains 0abf292` (both main and dev). The full suite has since passed 2680/0-failed on every commit through the entire core.py-split-completion and midterm-plan steps 1-5 effort, all merged. This tbd item was simply never cleared after the concern resolved.",
+      "status": "done"
     },
     {
       "path": "scripts/v1_pfc_continuous_aaab_smoke_test.py",

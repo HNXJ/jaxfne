@@ -15,7 +15,7 @@
 | stale-test-fixture-fix | Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config | done | tests/test_public_builders_complete.py; tests/test_vis_phase5.py; tests/test_etude1_agsdr_convergence.py; etudes/jaxfne_ |
 | configs-dir-schema-assumption-fix | Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema | done | tests/test_neuronal_tensor.py |
 | merge-build_model-apply_drive_correction | Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions | done | scripts/hdp_1000_neuronal_tensor_column.py; scripts/hdp_suite2_visualizations.py; scripts/spectrolaminar_tfne_izhikevich |
-| file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | mostly_done |  |
+| file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | done |  |
 | test-1000n-fast-laminar-lfp-csd-hdp | 1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test | not_started | tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py) |
 | stale-fixture-remaining-notebooks | Fix 2 more notebooks still calling the removed default_spectrolaminar_config/default_nuclei_config | done | tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb; tutorials/templates/jaxfne_notebook_template.ipynb |
 | optim-bounds-duplicate-functions | Merge enforce_parameter_bounds/apply_parameter_constraints (jaxfne/optim/bounds.py) -- byte-identical logic, different n | done | jaxfne/optim/bounds.py |
@@ -57,7 +57,7 @@
 | 3 | 0.4.6 | 95 | done | Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, ve |
 | 4 | checkpoint |  | done |  |
 | 5 | 0.4.5_and_0.4.6 | 99 | done | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |
-| 6 | 0.4.7 | 50 | not_started | Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begi |
+| 6 | 0.4.7 | 50 | done | Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begi |
 | 7 | 0.4.7 | 80 | not_started | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
 | 8 | 0.4.7 | 95 | not_started | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
 | 9 | 0.4.7 | 99 | not_started | Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) f |

@@ -2,7 +2,6 @@
 
 | path | score | status | tbi | tbd | last_verified |
 |---|---|---|---|---|---|
-| scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
@@ -99,7 +98,6 @@
 | scripts/make_delta_test_01_report.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/tutorial_plotly_utils.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/_notebook_exec_helpers.py | 90 | reviewed |  |  | 2026-07-04 |
-| tests/test_api_smoke.py | 90 | reviewed |  | stale unused constant _MANIFEST_SCHEMA_VERSION='manifest.v0.0.21' exists in _model.py alongside the actually-used '0.0.4 | 2026-07-04 |
 | tests/test_artifact_json_safety_v0330.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_compact_facade_v034.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_config_circuit_ownership_v0328_completion.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -280,6 +278,7 @@
 | tests/test_v0331_euler_solver.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0331_laminar_config.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_with_emitter_parameters.py | 92 | reviewed |  |  | 2026-07-04 |
+| scripts/evidence_figures/ | 92 | open |  | VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): 18 of 19 .py files in this directory make direct matplotlib/plotly c | 2026-07-05 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
 | docs/api/core.md | 92 | done |  | ReadoutSpec metrics table previously listed max_spike_rate_hz/mean_source/mean_LFP/mean_CSD/burst_frequency_hz as valid  | 2026-07-03 |
 | docs/api/fields.md | 92 | done |  |  | 2026-07-03 |
@@ -405,7 +404,6 @@
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | docs/tutorials/05_v1_pfc_dual_column.md | 95 | done |  |  | 2026-07-05 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
-| jaxfne/_signals.py | 95 | open |  | Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_K | 2026-07-04 |
 | jaxfne/_config.py | 95 | open |  |  | 2026-07-04 |
 | skills/catalog-glossary-jaxfne/SKILL.md | 95 | done |  |  | 2026-07-05 |
 | jaxfne/__init__.py | 96 | done |  |  | 2026-07-05 |
@@ -414,6 +412,7 @@
 | scripts/evidence_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/generate_operator_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/validate_json_safe.py | 96 | reviewed |  |  | 2026-07-04 |
+| tests/test_api_smoke.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_docs_equations_plotly_v0214.py | 96 | done |  |  | 2026-07-05 |
 | skills/FRICTIONS_STACK.md | 96 | done |  |  | 2026-07-05 |
 | README.md | 96 | done |  |  | 2026-07-05 |
@@ -434,6 +433,7 @@
 | docs/install.md | 97 | done |  |  | 2026-07-03 |
 | docs/performance_baseline.md | 97 | done |  |  | 2026-07-03 |
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
+| jaxfne/_signals.py | 97 | done |  |  | 2026-07-05 |
 | scripts/v1_pfc_continuous_aaab_smoke_test.py | 97 | done |  |  | 2026-07-05 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
 | jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
