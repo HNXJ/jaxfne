@@ -4074,270 +4074,6 @@
       "status": "open"
     },
     {
-      "path": "tests/test_public_api_snapshot_v034.py",
-      "purpose": "Frozen public-API snapshot test (artifacts/public_api_before.json) -- catches unintentional jtfne.__all__ drift.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  (regenerated artifacts/public_api_before.json \u2014 stale snapshot still listed deleted JaxFNEConfig-family symbols)  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/util.py + tests/test_util_config_tensor.py",
-      "purpose": "RuntimeConfig/NeuronalTensor/Model/Configuration consistency helpers: validate_runtime_config, runtime_config_diff, merge_runtime_configs, validate_neuronal_tensor, tensor_summary, validate_model, model_diff, configuration_diff. New ground only -- does not duplicate Model.summary(), Configuration.validate(), or RuntimeConfig.runtime_report() (all pre-existing).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "tests/test_neuronal_tensor.py",
-      "purpose": "Tests for the NeuronalTensor schema, canonical config library, and tensor->Configuration bridge.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_neuronal_tensor.py tests/test_agent_context_hygiene.py -q  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "tests/test_agent_context_hygiene.py",
-      "purpose": "Repository hygiene checks (e.g. no agent/model-name leakage in public-facing docs).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_neuronal_tensor.py tests/test_agent_context_hygiene.py -q  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/builders.py",
-      "purpose": "Configuration builder functions (laminar_cortex_config, etc). default_spectrolaminar_config/default_nuclei_config were archived to JSON + removed from here.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "tests/test_public_builders_complete.py",
-      "purpose": "Tests for default_spectrolaminar_config/default_nuclei_config and related public builder exports.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "tests/test_vis_phase5.py",
-      "purpose": "Tests for jaxfne.vis Geometry3d / MultiAreaLayout figure builders.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "tests/test_etude1_agsdr_convergence.py",
-      "purpose": "AGSDR convergence/synchrony tests for the Etude 1 notebook pipeline.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "etudes/jaxfne_etude_no_1_base.ipynb",
-      "purpose": "Published tutorial notebook (Etude 1) -- real user-facing content, not test infrastructure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "pytest tests/test_public_builders_complete.py tests/test_vis_phase5.py tests/test_etude1_agsdr_convergence.py -q; PYTHONPATH=. pytest tests/test_notebook_execution_suite.py -k jaxfne_etude_no_1_base  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/pynwb_compat.py",
-      "purpose": "Intentional placeholder/fence module for future NWB (Neurodata Without Borders) file I/O: write_nwb/read_nwb both always raise NotImplementedError with a clear message pointing to the current manifest.json + Signals workaround. No NWB I/O is implemented.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_v0331_pynwb_placeholder.py -q  [PASSED]",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/geometry.py",
-      "purpose": "make_ei_cloud_network: generates a 100-neuron (default) E-I cloud test/demo network -- uniform-in-unit-sphere 3D positions, 70/30 E/I split mask, and a dense signed initial weight matrix (no self-connections) for use in plasticity/streaming demos.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/__init__.py",
-      "purpose": "Package entry point re-exporting the full matplotlib + plotly + canonical-dispatch + script_reports/hdp_diagnostics/report_plots vis API.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/core.py",
-      "purpose": "Core dataclass (FigureResult) + 3 shared helpers: require_matplotlib guard, close_all cleanup, prepare_static_plot_matrix (device->host transfer).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/layout.py",
-      "purpose": "Two pure-numpy layout helpers (cumulative_stack_offsets, cumulative_panel_extents) implementing the package-wide anti-overlap stacking rule used by plotly/lfp.py and others.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/canonical.py",
-      "purpose": "Backend-dispatching entry points (plot_raster/plot_lfp/plot_psd/etc., backend='plotly'|'matplotlib') layered on top of the existing matplotlib and plotly submodules; _apply_layout applies uniform cosmetic overrides without changing backend defaults unless requested.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/plotly/_common.py",
-      "purpose": "Shared (non-public) helpers for the plotly pipeline: require_plotly guard, neuron_table_arrays/field_proxy/contact_depths_mm/time_ms/dt_ms extraction, population_rate_hz binning, cell-type color map.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/plotly/__init__.py",
-      "purpose": "Plotly subpackage entry point; re-exports network/raster/lfp/csd/spectra/connectivity/metrics/dashboard/exporters/manuscript. Docstring states proxy-readout claim discipline (field_solver_status='linear_solver', field_claim_level='proxy_readout') explicitly for the whole subpackage.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/plotly/exporters.py",
-      "purpose": "Back-compat shim re-exporting export_figure/export_figures/FigureBundle from jaxfne.vis.exporters (the canonical location).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/optim/bounds.py",
-      "purpose": "Parameter bounds/clipping operator for jaxfne.optim -- enforce_parameter_bounds is the canonical jnp.clip-based implementation; apply_parameter_constraints is now a delegating alias (was a byte-identical duplicate).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "local/extract.py",
-      "purpose": "CLI utility: extracts a zip archive into local/skills_extracted/ (or a caller-specified --out-dir). Now argparse-driven, no longer hardcodes a personal Downloads path.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/fields.py",
-      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation. FIXED 2026-06-30: plot_laminar_field_interpolation was a dead stub (built a fig/ax, set only title/labels, never plotted data, closed the fig, returned None). Now: real np.ndim normalization, ax.imshow() of the field matrix with a colorbar, returns the Figure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/rasters.py",
-      "purpose": "matplotlib spike raster (raster/raster_with_meta, sortable by declared z-depth) plus a dead stub plot_spike_rasters. FIXED 2026-06-30: plot_spike_rasters was a dead stub (same broken pattern). Now: auto-detects neuron axis, computes np.nonzero() spike coordinates, ax.scatter() of real spike markers, returns the Figure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/traces.py",
-      "purpose": "matplotlib time-series traces: vm/rate/source/lfp/csd/lfp_traces/csd_traces/eeg/meg/emm/summary (+ *_with_meta variants), parameter_sweep_heatmap, multi_trace, dual_voltage_panel, coupled_vs_uncoupled_ei, parameter_sweep_lines. Plus a dead stub plot_continuous_traces. FIXED 2026-06-30: plot_continuous_traces was a dead stub. Now: plots up to max_traces=16 rows as overlaid ax.plot() line traces, returns the Figure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/vis/spectra.py",
-      "purpose": "matplotlib PSD (psd/psd_with_meta), spectrogram (spectrogram/spectrogram_with_meta), windowed_band_power bar chart. Plus a dead stub plot_spectrogram_profiles. FIXED 2026-06-30: plot_spectrogram_profiles was a dead stub. Now: computes a real scipy.signal.spectrogram from the input trace (sample rate derived from time_steps spacing), renders via ax.pcolormesh(), returns the Figure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
       "path": "jaxfne/optim/sdr.py",
       "purpose": "Defines SDRState (no extra fields beyond BaseSDRState) and step_sdr_transform, the low-level Stochastic Delta Rule per-step update function -- a plain JAX-native gradient-descent step (u_t - eta*grad_l).",
       "score": 100,
@@ -4402,39 +4138,6 @@
       "warnings": [
         "Not currently on Model.tune()'s real call path (the differentiable-optimizer branch is a metadata-only guard, optax_guarded_path_no_loop_v0.0.8, that never enters a gradient loop) -- kept for direct/manual use, same reasoning as the sdr/gsdr/agsdr trio fixed earlier this session."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json",
-      "purpose": "Legacy Configuration-schema (networks/emitters/fields/probes) JSON archival of the removed default_nuclei_config/default_spectrolaminar_config builder functions.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -c \"json.load(open(f))\" for both legacy config files [valid JSON]",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/stimulus.py",
-      "purpose": "triangular_drive: generates a triangular-wave drive trace (numpy phase computation wrapped to jnp.array) for use as a periodic stimulus input, e.g. in plasticity demos.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done"
-    },
-    {
-      "path": "jaxfne/optim/__init__.py",
-      "purpose": "Package namespace for jaxfne.optim: re-exports SDR/GSDR/AGSDR/GSGD state+step functions, bounds helpers, manifest serializer, and core.py's optimizer-spec constructors/internals into one flat __all__.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
       "last_verified": "2026-06-30",
       "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
       "status": "done"
@@ -4757,17 +4460,6 @@
       "status": "done"
     },
     {
-      "path": "docs/_generated/version.md",
-      "purpose": "One-line auto-generated pointer to the current source version string.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-03",
-      "evidence": "Verified 'Current source version: 0.4.4' against pyproject.toml's `version = \"0.4.4\"` (line 7, grep-confirmed) and against the live runtime `python3 -c \"import jaxfne; print(jaxfne.__version__)\"` -> 0.4.4. All three sources agree exactly; no discrepancy found.",
-      "status": "done"
-    },
-    {
       "path": "docs/api/bridges.md",
       "purpose": "Public API reference for jaxfne's Jaxley bridge: require_jaxley(), jaxley_to_signals(), JaxleyBridge (simulate/simulate_laminar_field/simulate_homeostatic run modes), and the HH reference-trace helpers.",
       "score": 93,
@@ -4931,17 +4623,6 @@
       ],
       "last_verified": "2026-07-03",
       "evidence": "Read full jaxfne/solvers.py (179 lines) and cross-checked every documented symbol name, signature, field, and default against it. All 5 signature/field mismatches above were confirmed by direct line-numbered read and fixed in place. solve_volume_conductor_experimental's 'always raises NotImplementedError' claim verified correct (solvers.py:157-167). DiffraxSolver's lazy-import-with-ImportError claim verified correct (solvers.py:77-83). No relative links in this file. SCORE CORRECTED 2026-07-03: was left at 45 (pre-fix severity) despite status=done with all 5 issues fixed in place -- bumped to 95 to reflect the actual current (post-fix) accuracy of the doc, consistent with scoring convention used elsewhere in this pass (score reflects current state, not history).",
-      "status": "done"
-    },
-    {
-      "path": "docs/api/tensor_operators.md",
-      "purpose": "Inventories the jaxfne operator registry (operator_status()) and the concrete public functions behind each pipeline stage (source/field/probe/connectivity/paradigm/objective/optimizer/validation), grounding the TFNE Operator Doctrine in actually-shipped code.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-03",
-      "evidence": "FIXED the config_truth_boundary staleness flagged in the prior pass, matching the exact pattern already used in docs/api/validation.md (validation.md:173-178, 'REMOVED (2026-06-30)' note). Line 108: replaced the config_truth_boundary(cfg) bullet entry with a REMOVED note pointing to validation.md. Line 150 (See Also -> Validation): removed config_truth_boundary() from the inline function list, added a parenthetical '(REMOVED, see note above)'. Re-verified after fix: python3 -c \"import jaxfne; print(hasattr(jaxfne,'config_truth_boundary'))\" -> False (confirms removal is accurate); grep -n config_truth_boundary docs/api/tensor_operators.md now shows only the REMOVED-note lines, no stale 'live operator' claim remains. All other content in this file (operator_status() dict, pipeline-stage function inventory, 7 relative links) was already verified correct in the prior pass and untouched by this fix.",
       "status": "done"
     },
     {
@@ -5373,28 +5054,6 @@
       "status": "done"
     },
     {
-      "path": "docs/releases/v0.2.0.md",
-      "purpose": "3-line historical release note for v0.2.0 (initial stable release: Izhikevich emitters, laminar proxy field solver).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-03",
-      "evidence": "Trivial archival stub (4 lines total, no code examples, no links, no numeric claims beyond a date). Nothing to verify against current code since it documents a point-in-time historical release, not current behavior. No broken links, no secrets, no overclaims.",
-      "status": "done"
-    },
-    {
-      "path": "docs/releases/v0.2.1.md",
-      "purpose": "3-line historical release note for v0.2.1 (eight canonical probe operators, status metadata framework, JSON-safe output bundles).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-03",
-      "evidence": "Trivial archival stub (4 lines total, no code examples, no links, no numeric claims beyond a date). Nothing to verify against current code since it documents a point-in-time historical release, not current behavior. No broken links, no secrets, no overclaims.",
-      "status": "done"
-    },
-    {
       "path": "docs/releases/v0.2.10.md",
       "purpose": "Historical release note for v0.2.10 (May 2026) -- field/proxy diagnostics, calibration spec, notebook standard, 3 Colab tutorials.",
       "score": 88,
@@ -5746,17 +5405,6 @@
       "status": "done"
     },
     {
-      "path": "docs/tutorials/notebook_standard.md",
-      "purpose": "Colab notebook standard: required cells, structure, vocabulary rules, validation checklist for every jaxfne tutorial notebook.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-03",
-      "evidence": "Re-checked the flagged claim directly: `python3 -c \"import jaxfne as jtfne; print(hasattr(jtfne.Model, 'simulate'))\"` -> True. Read jaxfne/core.py: Model.simulate is a real instance method (core.py:4560-...), and jtfne.simulate (core.py:6836) is a free function that is a thin wrapper literally calling `model.simulate(sim, paradigm=paradigm)` internally (core.py:6873). Built and ran a real minimal example (laminar_cortex_config -> construct -> both model.simulate(sim) and jtfne.simulate(model, sim)): both executed successfully, returned jaxfne.core.Signals, and model.manifest(signals) worked. So the prior review's premise ('model.simulate(sim) genuinely doesn't work') was FALSE -- both call shapes are real and equivalent. Still edited docs/tutorials/notebook_standard.md section 6 (line ~53) to use jtfne.simulate(model, sim) instead of model.simulate(sim), purely for consistency with docs/tutorials/13_canonical_column_etude.md and docs/tutorials/index.md (both use the free-function form), with an inline comment noting the two are equivalent -- not because the old code was broken.",
-      "status": "done"
-    },
-    {
       "path": "docs/tutorials/tutorial_outputs.md",
       "purpose": "Output-bundle contract spec (5 JSON files + figures + SHA256 hashes) for the 4 core tutorial example scripts, plus the runner/validator CLI reference.",
       "score": 96,
@@ -5900,94 +5548,6 @@
       "status": "done"
     },
     {
-      "path": ".legacy/internal_docs/scratch_archive/build_notebook.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/scratch_archive/generate_suite_no_2.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_docs_audit.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_plotly_artifacts.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v030_tutorial_structure.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v031_single_neuron_tutorial.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v032_parameter_sweep_tutorial.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
-      "path": ".legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py",
-      "purpose": "Archived pre-0.4.x file under .legacy/ -- not collected by pytest (pyproject.toml testpaths=[\"tests\"], confirmed 2026-07-01) and predates this session's active work (last touched 2026-06-16).",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "git log -1 --format=%ai -- .legacy/ -> 2026-06-16 (frozen, predates active session work). pyproject.toml [tool.pytest.ini_options] testpaths=[\"tests\"] confirmed via grep -- .legacy/ is never pytest-collected, so this file cannot silently break CI. Out of scope for the 0.4.5 95/100 quality bar (which targets jaxfne/, tutorials/, scripts/, tests/, not the frozen archive) -- scored 100 to reflect \"correctly inert, not a release blocker\", not \"reviewed for code quality.\" REVIEW-CONFIRMED 2026-07-01: grep testpaths pyproject.toml + git log -1 --format=%ai -- .legacy/ -> testpaths=[\"tests\"], last touched 2026-06-16 (independent re-check, unchanged).",
-      "status": "done"
-    },
-    {
       "path": "jaxfne/fields/proxy.py",
       "purpose": "Core source-to-field laminar proxy engine: project_laminar_sources (Gaussian-kernel depth projection with density_preserving vs row_normalize modes, FieldOutput container), CSD/LFP proxy derivation (csd_tensor spatial 2nd-derivative), spectrolaminar readout/PSD/bandpower/similarity functions, cable-filter source synthesis helpers, and a LegacyMultiAreaSpectrolaminarObjective kept for backward-compat alongside the maintained jaxfne.objectives.spectrolaminar_objective path. All outputs carry the proxy/linear_solver/physical_amplitude_calibrated=False truth-gate trio via a shared _proxy_truth_gate_fragment helper.",
       "score": 90,
@@ -6121,17 +5681,6 @@
       "status": "done"
     },
     {
-      "path": "jaxfne/_runtime_config.py",
-      "purpose": "RuntimeConfig/SurrogateConfig + backend/device helpers, extracted from jaxfne/core.py as slice 1 of the core.py monolith split (docs/v047_refactor_audit.md). Re-exported in full from jaxfne/core.py for backward compatibility.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Full test suite green (2679 passed, 74 skipped, 4 xfailed; the 1 local failure was a pre-existing kaleido-not-installed gap, confirmed unrelated by isolated re-run) on commit ad87e85; CI green; merged dev->main.",
-      "status": "done"
-    },
-    {
       "path": "jaxfne/_signals.py",
       "purpose": "Signals/Objective schema, TrialSpec/TrialBatch/ReadoutSpec/StimulusSchedule/LaminarPopulation/AxisSpec/BasisSpec, and metric/gate-evaluation helpers, extracted from jaxfne/core.py as slice 2 of the core.py monolith split. One-directional dependency: consumed by Model/construct (still in core.py), does not call back into them. Re-exported in full from jaxfne/core.py.",
       "score": 95,
@@ -6188,9 +5737,9 @@
       "warnings": [
         "5 group-6 helper functions still in core.py (_resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint, _runtime_config_from_metadata, _simulate_hdp_metadata, _simulate_homeostasis_metadata) are Model's only callers but themselves depend on other group-6 code not yet extracted -- resolved via local (deferred, in-method-body) imports from .core inside _model.py, matching an already-established pattern in this exact code (_dtype_from_policy, _resolve_optimizer already used this pattern before the split). One-directional at call time, no cycle -- verified via ruff --select F821 (clean except one pre-existing unrelated OptimizerSpec forward-ref that predates this session) and a real end-to-end simulate() run."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0 (identical to pre-split). model.with_hdp_initial_state() verified working (exercises the _runtime_config_from_metadata deferred-import path). Targeted tests green (115 passed, 1 xfailed across 7 test files including tune()/TuneResult and RuntimeConfig-dependent tests). Full suite run pending at time of this entry. core.py now 2774 lines (from 8370 pre-split, 67% reduction across 4 slices); only the construct()/connect() hub remains.",
-      "status": "open"
+      "last_verified": "2026-07-05",
+      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0 (identical to pre-split). model.with_hdp_initial_state() verified working (exercises the _runtime_config_from_metadata deferred-import path). Targeted tests green (115 passed, 1 xfailed across 7 test files including tune()/TuneResult and RuntimeConfig-dependent tests). CONFIRMED 2026-07-05: full suite -- 2679 passed, 74 skipped, 4 xfailed, 1 failed (isolated re-run confirmed the 1 failure is the pre-existing local kaleido-not-installed gap, unrelated); CI green on 4c740e8; merged dev->main. core.py now 233 lines (from 8370 pre-split, 97% reduction across all 5 slices) -- this file also received the K_w_ctrl HDP dispatch fix (hp.get('K_w_ctrl', 0.0) added to the Model.simulate() HDP call site) in the same commit.",
+      "status": "done"
     },
     {
       "path": "jaxfne/_construct.py",
@@ -6201,9 +5750,9 @@
       "warnings": [
         "This slice moved the ENTIRE remaining core.py body in one pass (not further subdivided into e.g. separate connectivity.py/paradigm.py modules) to keep the final slice quick -- core.py's own connectivity helpers (_compile_connection_rules etc.) and the construct()/connect() hub now live together in one file. A future pass could split these further if _construct.py's ~2650 lines become unwieldy, but that's explicitly deferred, not forgotten."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0, identical to pre-split. ruff --select F821 clean on both core.py and _construct.py (zero undefined names). 170 targeted tests green (neuronal_tensor, connect, construct golden-snapshot, tune/optim, suite_no1/no4 grammar -- the exact files broken by the previous slice's missed re-export). Full suite run in progress at time of this entry. core.py is now 233 lines (from 8370 pre-split, 97% reduction) -- the core.py monolith split is complete, 5/5 slices.",
-      "status": "open"
+      "last_verified": "2026-07-05",
+      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0, identical to pre-split. ruff --select F821 clean on both core.py and _construct.py (zero undefined names). 170 targeted tests green (neuronal_tensor, connect, construct golden-snapshot, tune/optim, suite_no1/no4 grammar -- the exact files broken by the previous slice's missed re-export). CONFIRMED 2026-07-05: full suite -- 2679 passed, 74 skipped, 4 xfailed, 1 failed (isolated re-run confirmed the 1 failure is the pre-existing local kaleido-not-installed gap, unrelated); CI green on 4c740e8; merged dev->main. core.py is now 233 lines (from 8370 pre-split, 97% reduction) -- the core.py monolith split is complete, 5/5 slices.",
+      "status": "done"
     }
   ]
 }

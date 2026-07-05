@@ -15,7 +15,7 @@
 | stale-test-fixture-fix | Fix the 4 call sites of removed default_spectrolaminar_config/default_nuclei_config | done | tests/test_public_builders_complete.py; tests/test_vis_phase5.py; tests/test_etude1_agsdr_convergence.py; etudes/jaxfne_ |
 | configs-dir-schema-assumption-fix | Fix test_neuronal_tensor.py's assumption that all of jaxfne/configs/ is NeuronalTensor-schema | done | tests/test_neuronal_tensor.py |
 | merge-build_model-apply_drive_correction | Migrate 3 scripts' un-consolidated build_model/apply_drive_correction copies onto hdp_network.py's generic versions | done | scripts/hdp_1000_neuronal_tensor_column.py; scripts/hdp_suite2_visualizations.py; scripts/spectrolaminar_tfne_izhikevich |
-| file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | not_started |  |
+| file-by-file-review | Systematic file-by-file review of the 374 score=null placeholder entries | mostly_done |  |
 | test-1000n-fast-laminar-lfp-csd-hdp | 1000-neuron fast float32 laminar default cortex LFP+CSD+HDP smoke test | not_started | tests/ (new file, name TBD e.g. tests/test_laminar_1000n_lfp_csd_hdp.py) |
 | stale-fixture-remaining-notebooks | Fix 2 more notebooks still calling the removed default_spectrolaminar_config/default_nuclei_config | done | tutorials/etudes/jaxfne_etude_no_2_spectrolaminar_power.ipynb; tutorials/templates/jaxfne_notebook_template.ipynb |
 | optim-bounds-duplicate-functions | Merge enforce_parameter_bounds/apply_parameter_constraints (jaxfne/optim/bounds.py) -- byte-identical logic, different n | done | jaxfne/optim/bounds.py |
@@ -52,8 +52,8 @@
 
 | step | target | target_score | status | definition_of_done |
 |---|---|---|---|---|
-| 1 | 0.4.5 | 95 | not_started | Finish the core.py monolith split (currently 2/5 slices done, 8370->6672 lines): extract Configuration, then Model (high |
-| 2 | v1_pfc_paradigm | 95 | not_started | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
+| 1 | 0.4.5 | 95 | done | Finish the core.py monolith split (currently 2/5 slices done, 8370->6672 lines): extract Configuration, then Model (high |
+| 2 | v1_pfc_paradigm | 95 | in_progress | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
 | 3 | 0.4.6 | 95 | not_started | Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, ve |
 | 4 | checkpoint |  | not_started | Literal process checkpoint, not a code step: after steps 1-3 land, refresh progress.json/plans.json/review.json to refle |
 | 5 | 0.4.5_and_0.4.6 | 99 | not_started | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |

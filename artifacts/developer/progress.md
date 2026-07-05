@@ -320,8 +320,8 @@
 | tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb | 92 | done |  | Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not | 2026-07-02 |
 | tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb | 92 | done |  |  | 2026-07-02 |
 | scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-02 |
-| jaxfne/_model.py | 92 | open |  |  | 2026-07-04 |
-| jaxfne/_construct.py | 92 | open |  |  | 2026-07-04 |
+| jaxfne/_model.py | 92 | done |  |  | 2026-07-05 |
+| jaxfne/_construct.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/analysis/metrics.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/__init__.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/diagnostics.py | 93 | reviewed |  |  | 2026-07-04 |
@@ -457,52 +457,11 @@
 | jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
 | jaxfne/vis/network3d.py | 100 | reviewed |  |  | 2026-06-30 |
-| tests/test_public_api_snapshot_v034.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/util.py + tests/test_util_config_tensor.py | 100 | done |  |  | 2026-06-30 |
-| tests/test_neuronal_tensor.py | 100 | done |  |  | 2026-06-30 |
-| tests/test_agent_context_hygiene.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/builders.py | 100 | done |  |  | 2026-06-30 |
-| tests/test_public_builders_complete.py | 100 | done |  |  | 2026-06-30 |
-| tests/test_vis_phase5.py | 100 | done |  |  | 2026-06-30 |
-| tests/test_etude1_agsdr_convergence.py | 100 | done |  |  | 2026-06-30 |
-| etudes/jaxfne_etude_no_1_base.ipynb | 100 | done |  |  | 2026-06-30 |
-| jaxfne/pynwb_compat.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/geometry.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/__init__.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/core.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/layout.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/canonical.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/plotly/_common.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/plotly/__init__.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/plotly/exporters.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/optim/bounds.py | 100 | done |  |  | 2026-06-30 |
-| local/extract.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/fields.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/rasters.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/traces.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/vis/spectra.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/sdr.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/gsdr.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/agsdr.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/core.py::Model / Configuration / JaxFNEConfig | 100 | done |  | Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever un | 2026-07-01 |
 | jaxfne/optim/gsgd.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json | 100 | done |  |  | 2026-06-30 |
-| jaxfne/stimulus.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/optim/__init__.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-04 |
-| docs/_generated/version.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/index.md | 100 | done |  |  | 2026-07-03 |
-| docs/api/tensor_operators.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/validation.md | 100 | done |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
-| docs/releases/v0.2.0.md | 100 | done |  |  | 2026-07-03 |
-| docs/releases/v0.2.1.md | 100 | done |  |  | 2026-07-03 |
-| docs/tutorials/notebook_standard.md | 100 | done |  |  | 2026-07-03 |
-| .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v030_docs_audit.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v030_plotly_artifacts.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v030_tutorial_structure.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v031_single_neuron_tutorial.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v032_parameter_sweep_tutorial.py | 100 | done |  |  | 2026-07-01 |
-| .legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py | 100 | done |  |  | 2026-07-01 |
-| jaxfne/_runtime_config.py | 100 | done |  |  | 2026-07-04 |

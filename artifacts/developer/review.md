@@ -2,3 +2,44 @@
 
 | path | score | review_status | moved_from_progress_on | review_command |
 |---|---|---|---|---|
+| tests/test_public_api_snapshot_v034.py | 100 | passed |  |  |
+| jaxfne/util.py + tests/test_util_config_tensor.py | 100 | passed |  |  |
+| tests/test_neuronal_tensor.py | 100 | passed |  |  |
+| tests/test_agent_context_hygiene.py | 100 | passed |  |  |
+| jaxfne/builders.py | 100 | passed |  |  |
+| tests/test_public_builders_complete.py | 100 | passed |  |  |
+| tests/test_vis_phase5.py | 100 | passed |  |  |
+| tests/test_etude1_agsdr_convergence.py | 100 | passed |  |  |
+| etudes/jaxfne_etude_no_1_base.ipynb | 100 | passed |  |  |
+| jaxfne/pynwb_compat.py | 100 | passed |  |  |
+| jaxfne/geometry.py | 100 | passed |  |  |
+| jaxfne/vis/__init__.py | 100 | passed |  |  |
+| jaxfne/vis/core.py | 100 | passed |  |  |
+| jaxfne/vis/layout.py | 100 | passed |  |  |
+| jaxfne/vis/canonical.py | 100 | passed |  |  |
+| jaxfne/vis/plotly/_common.py | 100 | passed |  |  |
+| jaxfne/vis/plotly/__init__.py | 100 | passed |  |  |
+| jaxfne/vis/plotly/exporters.py | 100 | passed |  |  |
+| jaxfne/optim/bounds.py | 100 | passed |  |  |
+| local/extract.py | 100 | passed |  |  |
+| jaxfne/vis/fields.py | 100 | passed |  |  |
+| jaxfne/vis/rasters.py | 100 | passed |  |  |
+| jaxfne/vis/traces.py | 100 | passed |  |  |
+| jaxfne/vis/spectra.py | 100 | passed |  |  |
+| jaxfne/configs/legacy/{nuclei_default,spectrolaminar_default}.json | 100 | passed |  |  |
+| jaxfne/stimulus.py | 100 | passed |  |  |
+| jaxfne/optim/__init__.py | 100 | passed |  |  |
+| docs/_generated/version.md | 100 | passed |  |  |
+| docs/api/tensor_operators.md | 100 | passed |  |  |
+| docs/releases/v0.2.0.md | 100 | passed |  |  |
+| docs/releases/v0.2.1.md | 100 | passed |  |  |
+| docs/tutorials/notebook_standard.md | 100 | passed |  |  |
+| .legacy/internal_docs/scratch_archive/build_notebook.py | 100 | passed |  |  |
+| .legacy/internal_docs/scratch_archive/generate_suite_no_2.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v030_docs_audit.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v030_plotly_artifacts.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v030_tutorial_structure.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v031_single_neuron_tutorial.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v032_parameter_sweep_tutorial.py | 100 | passed |  |  |
+| .legacy/internal_docs/test_v035_small_recurrent_ei_tutorial.py | 100 | passed |  |  |
+| jaxfne/_runtime_config.py | 100 | passed |  |  |
