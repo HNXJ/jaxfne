@@ -131,7 +131,7 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
         )
 
     inventory_path = root / "outputs" / "evidence" / "inventory.json"
-    checklist_path = root / "docs" / "evidence" / "evidence_checklist.json"
+    checklist_path = evidence_checklist_path()
 
     return {
         "chain_steps": CHAIN_STEPS,
@@ -140,7 +140,7 @@ def build_reproducibility_chain(inventory: dict, checklist: dict) -> dict:
         "repo_sha_checklist": checklist.get("repo_sha"),
         "inventory_path": "outputs/evidence/inventory.json",
         "inventory_exists": inventory_path.is_file(),
-        "checklist_path": "docs/evidence/evidence_checklist.json",
+        "checklist_path": str(checklist_path.relative_to(root)),
         "checklist_exists": checklist_path.is_file(),
         "main_figures_present": inventory["summary"]["main_figures_present"],
         "main_figures_total": inventory["summary"]["main_figures_total"],

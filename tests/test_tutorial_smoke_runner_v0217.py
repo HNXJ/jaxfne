@@ -234,8 +234,8 @@ class TestTutorialSmokeRunner:
             assert not re.search(r"/Users/|/home/|~|C:\\", nb_text), \
                 f"{nb_file}: contains private paths"
 
-    def test_version_remains_0_2_10(self, repo_root):
-        """jaxfne version is 0.3.4 (v0.3.4 release)."""
+    def test_version_matches_pyproject(self, repo_root):
+        """jaxfne.__version__ matches pyproject.toml's declared version."""
         result = subprocess.run(
             [sys.executable, "-c", "import jaxfne; print(jaxfne.__version__)"],
             capture_output=True,

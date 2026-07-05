@@ -5,12 +5,10 @@
 | scripts/evidence_figures/ |  | open |  |  | 2026-07-01 |
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | docs/tutorials/05_v1_pfc_dual_column.md | 45 | needs_followup |  | SCOPE REPLACED 2026-07-03 (user directive): the old vague inter_areal_connectivity/dual_laminar_column/traveling_waves/c | 2026-07-03 |
-| scripts/evidence_figures/ed05_manifest_hashes.py | 68 | reviewed | METADATA_ARTIFACTS checklist entry path is stale/wrong -- will cause a spurious RuntimeError, confirmed by static trace | fix METADATA_ARTIFACTS path to use evidence_checklist_path() | 2026-07-04 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| scripts/evidence_figures/fig07_reproducibility_artifacts.py | 72 | reviewed | checklist_exists field in the manifest/figure will always be False due to hardcoded stale path, contradicting the succes | replace the hardcoded path with evidence_checklist_path() (already imported) | 2026-07-04 |
-| jaxfne/tutorial_utils.py | 75 | reviewed | build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the a | delete the unused W_parts/build_laminar_connections dead-code path, or wire it in, or fix the comment | 2026-07-04 |
 | tests/test_sanity_delta_report_schema_full.py | 75 | reviewed | test name/docstring ('strict JSON compliant') overclaims what the assertions check (mere key presence + json.loads-abili | either rename to reflect it only checks key presence, or add an assertion on checks['strict_json'] tied to a real outcom | 2026-07-04 |
+| jaxfne/tutorial_utils.py | 77 | reviewed | build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the a | delete the unused W_parts/build_laminar_connections dead-code path, or wire it in, or fix the comment | 2026-07-05 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/repair_notebooks.py | 78 | reviewed |  |  | 2026-07-04 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
@@ -23,7 +21,6 @@
 | jaxfne/sanity_delta.py | 82 | open | export()'s equivalence-check block hardcodes start_ms=2100.0 and segment 'd4' rather than deriving from config -- works  |  | 2026-07-05 |
 | scripts/find_5hz_vmap.py | 82 | reviewed |  |  | 2026-07-04 |
 | scripts/run_neuron_sweeps.py | 82 | reviewed |  |  | 2026-07-04 |
-| tests/test_docs_equations_plotly_v0214.py | 82 | reviewed | test_no_like_terminology_in_new_docs lists 'docs/skills/skill_visual_outputs.md' as a new_docs path to check, but that f | update the new_docs list to point at the current .legacy/internal_docs/skills/ location (or drop the stale entry) so the | 2026-07-04 |
 | docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
 | docs/STDP_HOMEOSTATIC_REPORT.md | 82 | done | The all-neuron-plasticity result depends on a script-level code path (cortex_100_homeostatic_stdp.py, not the package's  |  | 2026-07-03 |
 | docs/faq.md | 82 | done |  |  | 2026-07-03 |
@@ -37,7 +34,6 @@
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/network.py | 85 | reviewed |  | No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and tes | 2026-06-30 |
-| jaxfne/vis/tutorial_panels.py | 85 | reviewed | visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's  |  | 2026-06-30 |
 | scripts/characterize_neuron_io_curves.py | 85 | reviewed |  |  | 2026-07-04 |
 | scripts/verify_5hz_traces.py | 85 | reviewed |  |  | 2026-07-04 |
 | tests/test_sanity_delta_backup_resume.py | 85 | reviewed |  | no file in the sanity_delta suite asserts the strict_json check's *value* is meaningful rather than just present | 2026-07-04 |
@@ -59,6 +55,7 @@
 | jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
+| scripts/evidence_figures/ed05_manifest_hashes.py | 88 | done |  |  | 2026-07-05 |
 | scripts/generate_tutorial_figures.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/run_all_tutorials.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/validate_tutorial_outputs.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -69,7 +66,6 @@
 | tests/test_performance_reports_v030.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_public_docs_hygiene.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_sanity_delta_hierarchical_oddball_config.py | 88 | reviewed |  | no file asserts on the actual value of the strict_json check result | 2026-07-04 |
-| tests/test_tutorial_smoke_runner_v0217.py | 88 | reviewed |  | rename test_version_remains_0_2_10 to something version-neutral to stop the name drifting further behind reality | 2026-07-04 |
 | tests/test_v0331_jaxley_lazy.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_v033_two_neuron_ei.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0342_evidence_inventory_paths.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -412,9 +408,12 @@
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/_signals.py | 95 | open |  | Verify full test suite passes after the 3 rounds of missed-re-export fixes this session (_KNOWN_METRICS/_KNOWN_LAYERS/_K | 2026-07-04 |
 | jaxfne/_config.py | 95 | open |  |  | 2026-07-04 |
+| jaxfne/vis/tutorial_panels.py | 96 | done |  |  | 2026-07-05 |
+| scripts/evidence_figures/fig07_reproducibility_artifacts.py | 96 | done |  |  | 2026-07-05 |
 | scripts/evidence_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/generate_operator_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
 | scripts/validate_json_safe.py | 96 | reviewed |  |  | 2026-07-04 |
+| tests/test_docs_equations_plotly_v0214.py | 96 | done |  |  | 2026-07-05 |
 | README.md | 96 | done |  |  | 2026-07-05 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
@@ -424,6 +423,7 @@
 | docs/operator_doctrine.md | 96 | done |  |  | 2026-07-03 |
 | docs/tutorials/03_network_100_ei.md | 96 | done |  |  | 2026-07-03 |
 | docs/tutorials/tutorial_outputs.md | 96 | done |  |  | 2026-07-03 |
+| jaxfne/vis/fields.py | 96 | done |  |  | 2026-07-05 |
 | docs/guides/index.md | 97 | done |  |  | 2026-07-03 |
 | docs/guides/objective_grammar.md | 97 | done |  |  | 2026-07-03 |
 | docs/index.md | 97 | done |  |  | 2026-07-03 |

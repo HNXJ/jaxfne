@@ -284,20 +284,6 @@
       "review_reverification_note": "Re-run 2026-07-05: `python3 -m py_compile <file>` -> OK (all 16 files in this group); `python3 -m pytest tests/ -q --collect-only` -> 2758 tests collected, 0 collection errors."
     },
     {
-      "path": "jaxfne/vis/fields.py",
-      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation. FIXED 2026-06-30: plot_laminar_field_interpolation was a dead stub (built a fig/ax, set only title/labels, never plotted data, closed the fig, returned None). Now: real np.ndim normalization, ax.imshow() of the field matrix with a colorbar, returns the Figure.",
-      "score": 100,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
-      "status": "done",
-      "review_status": "passed",
-      "review_verified_on": "2026-07-05",
-      "review_reverification_note": "Re-run 2026-07-05: `python3 -m py_compile <file>` -> OK (all 16 files in this group); `python3 -m pytest tests/ -q --collect-only` -> 2758 tests collected, 0 collection errors."
-    },
-    {
       "path": "jaxfne/vis/rasters.py",
       "purpose": "matplotlib spike raster (raster/raster_with_meta, sortable by declared z-depth) plus a dead stub plot_spike_rasters. FIXED 2026-06-30: plot_spike_rasters was a dead stub (same broken pattern). Now: auto-detects neuron axis, computes np.nonzero() spike coordinates, ax.scatter() of real spike markers, returns the Figure.",
       "score": 100,
@@ -786,6 +772,20 @@
       "review_status": "passed",
       "review_verified_on": "2026-07-05",
       "review_reverification_note": "Promoted directly: deprecation-warning fix verified live this same turn."
+    },
+    {
+      "path": "tests/test_tutorial_smoke_runner_v0217.py",
+      "purpose": "Validates scripts/run_tutorial_smoke.py CLI (help, default run, skip flags, JSON report schema, notebook structure, version consistency).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "Read fully; test_version_remains_0_2_10 reads pyproject live and compares dynamically -- not stale/broken, just an outdated function name/docstring. || FIXED 2026-07-05: renamed to test_version_matches_pyproject, docstring updated to match (no logic change, the test already read pyproject.toml dynamically). `pytest tests/test_tutorial_smoke_runner_v0217.py -q` -> passing as part of the 77-passed/1-xfailed targeted run.",
+      "status": "done",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-05",
+      "review_reverification_note": "Promoted directly: rename verified live this same turn."
     }
   ]
 }

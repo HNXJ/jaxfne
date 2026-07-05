@@ -76,14 +76,16 @@ METADATA_ARTIFACTS = [
         "artifact_group": "evidence_metadata",
         "artifact_id": "checklist",
         "label": "evidence_checklist.json",
-        "path": "docs/evidence/evidence_checklist.json",
+        "path": str(evidence_checklist_path().relative_to(repo_root())),
         "kind": "json",
     },
-    {
-        "artifact_group": "evidence_metadata",
-        "artifact_id": "roadmap",
-        "kind": "markdown",
-    },
+    # NOTE: a third "roadmap" entry (artifact_id="roadmap", kind="markdown", no
+    # "path"/"label") was removed 2026-07-05 -- it referenced a planning/roadmap
+    # document that docs/changelog.md confirms was intentionally deleted from
+    # the repo ("non-public planning/roadmap material removed from root"). The
+    # entry was never cleaned up after that deletion and crashed _audit_metadata_entry
+    # with KeyError('path') on every real run of this script's main(). No
+    # replacement path exists to fabricate, so the phantom entry is dropped.
 ]
 
 _dirs = ensure_evidence_dirs()

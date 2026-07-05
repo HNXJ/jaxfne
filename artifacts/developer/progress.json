@@ -641,10 +641,9 @@
     {
       "path": "jaxfne/tutorial_utils.py",
       "purpose": "Large tutorial-scaffold module -- plotting/summary helpers, Jaxley/numpy HH reference-trace forwarders, AGSDR-tuning objective builder, and the full Etude No.1 laminar-column pipeline.",
-      "score": 75,
+      "score": 77,
       "tbi": [
-        "build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the actual code builds DENSE n_neurons x n_neurons matrices via rng.randn -- contradicts its own comment, and is dead code never consumed by the real simulation engine",
-        "cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, harmless"
+        "build_laminar_column's inline comment says 'placeholder: sparse random' for W_local_exc/W_local_inh/W_ff/W_fb, but the actual code builds DENSE n_neurons x n_neurons matrices via rng.randn -- contradicts its own comment, and is dead code never consumed by the real simulation engine"
       ],
       "tbd": [
         "delete the unused W_parts/build_laminar_connections dead-code path, or wire it in, or fix the comment"
@@ -653,8 +652,8 @@
         "NAMING COLLISION confirmed live: tutorial_utils.export_tutorial_artifacts has a completely different signature from the root-exported jaxfne.export_tutorial_artifacts from export.py -- verified via inspect.signature",
         "two module-level plot_raster definitions exist (vis/plotly/raster.py vs tutorial_utils.py) with incompatible signatures -- easy to import the wrong one"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts'].",
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed. The dead-code W_parts/build_laminar_connections tbi is a separate, larger design decision, left open.",
       "status": "reviewed"
     },
     {
@@ -776,17 +775,15 @@
     {
       "path": "jaxfne/vis/tutorial_panels.py",
       "purpose": "3 visual suites for Etude No.1 laminar column tutorials: visualize_laminar_column_3d (matplotlib 3D scatter + optional Plotly HTML export), activity_trace_suite (2x2 raster/LFP-waterfall/CSD-heatmap/real-Welch-PSD panel), spectrolaminar_suite_3panel (3-4 panel per-area spectrolaminar readout supporting both a standard Configuration-path Model input and a legacy specs-dict tutorial-pipeline input).",
-      "score": 85,
-      "tbi": [
-        "visualize_laminar_column_3d's return type annotation (line 54) and activity_trace_suite's/spectrolaminar_suite_3panel's return annotations reference the bare name `matplotlib.figure.Figure` / `matplotlib` without ever importing the `matplotlib` module at file scope (only `matplotlib.pyplot` is imported lazily inside each function body). Same NameError-under-eager-annotation-resolution issue confirmed in fields.py's spectrolaminar_suite this session -- only survives at runtime because of `from __future__ import annotations` (PEP 563 lazy string evaluation). Low severity (doesn't break normal execution) but will break any tool that calls typing.get_type_hints() or eagerly resolves annotations (e.g. some doc generators)."
-      ],
+      "score": 96,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "activity_trace_suite's PSD computation path (lines 296-311) wraps scipy.signal.welch in a try/except that re-raises as RuntimeError with a message -- this is good (no silent fallback to mock data, matches the jaxfne-harden-analysis-integrity doctrine), explicitly noted in an inline comment as replacing a prior 'mock random noise' implementation. Worth confirming this comment isn't describing dead history that should be removed, but the current behavior itself is correct (raises loudly, no fabricated PSD)."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_tutorial_panels.py -q -> 16 passed (covers all 3 functions in this file via real Etude No.1 fixtures).",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -m pytest tests/test_tutorial_panels.py -q -> 16 passed (covers all 3 functions in this file via real Etude No.1 fixtures). || FIXED 2026-07-05: added `import matplotlib.figure` at module scope (matplotlib.figure was referenced in 4 return-type annotations but never imported anywhere -- only matplotlib.pyplot was imported lazily inside function bodies) and added the missing `Any` to the typing import (also used in an annotation, also never imported). Verified with the real failure mode, not just py_compile: `typing.get_type_hints(visualize_laminar_column_3d)` now succeeds (previously raised AttributeError: module 'matplotlib' has no attribute 'figure'). `pytest tests/test_vis_smoke_all.py tests/test_vis_phase5.py tests/test_tutorial_utils.py -q` -> 124 passed.",
+      "status": "done"
     },
     {
       "path": "outputs/ff_fb_hypothesis_bundle/run_analysis.py",
@@ -966,19 +963,16 @@
     {
       "path": "scripts/evidence_figures/ed05_manifest_hashes.py",
       "purpose": "Local artifact-integrity audit checking fig01-fig08/ED1-ED4 manifests/hashes against on-disk PNGs.",
-      "score": 68,
-      "tbi": [
-        "METADATA_ARTIFACTS checklist entry path is stale/wrong -- will cause a spurious RuntimeError, confirmed by static trace"
-      ],
-      "tbd": [
-        "fix METADATA_ARTIFACTS path to use evidence_checklist_path()"
-      ],
+      "score": 88,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
-        "SOURCE_FILES also references the stale path but that's cosmetic documentation only"
+        "SOURCE_FILES also references the stale path but that's cosmetic documentation only",
+        "main() still raises RuntimeError in this checkout, but now ONLY for the correct reason (fig01-08/ed01-10 png_manifest_match=png_missing) -- these PNGs were intentionally removed from the public repo (git log shows 'chore: remove local development & internal documentation from public repo'), a pre-existing, unrelated condition, not a bug introduced or left by this fix."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Traced a real bug end-to-end: METADATA_ARTIFACTS hardcodes the stale docs/evidence/evidence_checklist.json path instead of calling evidence_checklist_path(), causing a spurious RuntimeError on execution.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Traced a real bug end-to-end: METADATA_ARTIFACTS hardcodes the stale docs/evidence/evidence_checklist.json path instead of calling evidence_checklist_path(), causing a spurious RuntimeError on execution. || FIXED 2026-07-05, two real bugs: (1) checklist entry's hardcoded path replaced with evidence_checklist_path().relative_to(repo_root()) (dynamically resolves to the real docs/evidence_artifacts/evidence_checklist.json) -- verified the spurious 'checklist: json_strict failed' RuntimeError is gone. (2) A SECOND real bug found during verification: the 'roadmap' entry had no 'path' key at all, causing a hard KeyError('path') crash in _audit_metadata_entry on every real run -- git history/changelog.md confirm the referenced roadmap doc was intentionally deleted from the repo, so there is no real path to fabricate; removed the phantom entry with a comment explaining why. CORRECTION (caught by re-checking the real, unpiped exit code rather than trusting a piped `tail` command's exit status): `python3 ed05_manifest_hashes.py` still exits 1 in this checkout -- both bugs I fixed no longer appear in the failure list, but `main()` still raises RuntimeError for the pre-existing, legitimate png_missing condition on fig01-08/ed01-10 (those PNGs don't exist in this checkout at all, confirmed via git log -- separate from and not fixed by this pass, and not a regression from these changes).",
+      "status": "done"
     },
     {
       "path": "scripts/evidence_figures/ed06_benchmark_scaling_tables.py",
@@ -1108,17 +1102,13 @@
     {
       "path": "scripts/evidence_figures/fig07_reproducibility_artifacts.py",
       "purpose": "Diagrams the reproducibility artifact chain and cross-checks fig01-fig08 PNG/manifest SHA256 consistency.",
-      "score": 72,
-      "tbi": [
-        "checklist_exists field in the manifest/figure will always be False due to hardcoded stale path, contradicting the successfully-loaded checklist used elsewhere in the same run"
-      ],
-      "tbd": [
-        "replace the hardcoded path with evidence_checklist_path() (already imported)"
-      ],
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Found a real bug: hardcodes the stale docs/evidence/evidence_checklist.json path for the checklist_exists metadata field even though _load_checklist() correctly uses evidence_checklist_path() two lines earlier in the same function -- checklist_exists will always read False despite the checklist genuinely existing.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Found a real bug: hardcodes the stale docs/evidence/evidence_checklist.json path for the checklist_exists metadata field even though _load_checklist() correctly uses evidence_checklist_path() two lines earlier in the same function -- checklist_exists will always read False despite the checklist genuinely existing. || FIXED 2026-07-05: replaced the hardcoded path with evidence_checklist_path() (already imported), matching the pattern used two lines above. Verified directly: `checklist_path` now resolves to the real 'docs/evidence_artifacts/evidence_checklist.json' and `checklist_exists` reports True (was always False before). Ran the full script end-to-end: `python3 fig07_reproducibility_artifacts.py` -> exit 0, wrote figure/manifest/inventory outputs successfully (this script, unlike ed05, has no strict validation gate blocking on the pre-existing missing-PNG condition).",
+      "status": "done"
     },
     {
       "path": "scripts/evidence_figures/fig08_adjacent_tools_comparison.py",
@@ -1895,19 +1885,15 @@
     {
       "path": "tests/test_docs_equations_plotly_v0214.py",
       "purpose": "Validates docs infra for v0.2.14 (MkDocs math config, equation presence, Plotly guide, visual-outputs skill, version/deps, *_like audit).",
-      "score": 82,
-      "tbi": [
-        "test_no_like_terminology_in_new_docs lists 'docs/skills/skill_visual_outputs.md' as a new_docs path to check, but that file moved to .legacy/internal_docs/skills/; guarded by if Path(doc).exists() so it silently no-ops on the stale path -- a dead/unreachable assertion"
-      ],
-      "tbd": [
-        "update the new_docs list to point at the current .legacy/internal_docs/skills/ location (or drop the stale entry) so the *_like check actually runs"
-      ],
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "test_version_remains_0210 is xfail with a clear historical reason -- correctly self-flagged"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Verified docs/api/fields.md & probes.md exist; verified the skill file moved to .legacy/internal_docs/skills/, and docs/skills/skill_visual_outputs.md does NOT exist.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Verified docs/api/fields.md & probes.md exist; verified the skill file moved to .legacy/internal_docs/skills/, and docs/skills/skill_visual_outputs.md does NOT exist. || FIXED 2026-07-05: updated new_docs list to point at .legacy/internal_docs/skills/skill_visual_outputs.md. Verified the check now genuinely runs (was silently no-op'ing before): `pytest tests/test_docs_equations_plotly_v0214.py -k no_like_terminology -v` -> 1 passed (previously passed vacuously since Path(doc).exists() was False for the stale entry).",
+      "status": "done"
     },
     {
       "path": "tests/test_docs_links_v0330.py",
@@ -3426,19 +3412,6 @@
       ],
       "last_verified": "2026-07-04",
       "evidence": "Loaded the manifest: jaxfne_version='0.3.4', figure_count=12, real_data=11 -- all match the test's hardcoded expectations; pyproject live version is 0.4.5; generate_tutorial_figures.py stamps version at generation time so the manifest is a frozen snapshot.",
-      "status": "reviewed"
-    },
-    {
-      "path": "tests/test_tutorial_smoke_runner_v0217.py",
-      "purpose": "Validates scripts/run_tutorial_smoke.py CLI (help, default run, skip flags, JSON report schema, notebook structure, version consistency).",
-      "score": 88,
-      "tbi": [],
-      "tbd": [
-        "rename test_version_remains_0_2_10 to something version-neutral to stop the name drifting further behind reality"
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Read fully; test_version_remains_0_2_10 reads pyproject live and compares dynamically -- not stale/broken, just an outdated function name/docstring.",
       "status": "reviewed"
     },
     {
@@ -5478,6 +5451,17 @@
       ],
       "last_verified": "2026-07-05",
       "evidence": "Real end-to-end run: load_canonical_neuronal_tensor -> construct_neuronal_tensor -> jtfne.simulate() -> spike_rate_hz_mean=20.0, identical to pre-split. ruff --select F821 clean on both core.py and _construct.py (zero undefined names). 170 targeted tests green (neuronal_tensor, connect, construct golden-snapshot, tune/optim, suite_no1/no4 grammar -- the exact files broken by the previous slice's missed re-export). CONFIRMED 2026-07-05: full suite -- 2679 passed, 74 skipped, 4 xfailed, 1 failed (isolated re-run confirmed the 1 failure is the pre-existing local kaleido-not-installed gap, unrelated); CI green on 4c740e8; merged dev->main. core.py is now 233 lines (from 8370 pre-split, 97% reduction) -- the core.py monolith split is complete, 5/5 slices.",
+      "status": "done"
+    },
+    {
+      "path": "jaxfne/vis/fields.py",
+      "purpose": "Laminar/structural matplotlib plots: spectrolaminar 3-panel readout, bandpower, laminar_profile/layer_celltype_counts, connectivity/connectivity_matrix, multi_area_layout, objective_report, ei_circuit_diagram, spectrolaminar_suite (6-panel Suite No.2), plus a dead stub plot_laminar_field_interpolation. FIXED 2026-06-30: plot_laminar_field_interpolation was a dead stub (built a fig/ax, set only title/labels, never plotted data, closed the fig, returned None). Now: real np.ndim normalization, ax.imshow() of the field matrix with a colorbar, returns the Figure.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only) || DEMOTED BACK from review.json 2026-07-05: this file was edited again after being promoted -- added `import matplotlib.figure` (was referenced in 2 return-type annotations, e.g. spectrolaminar_suite/spectrolaminar, but never imported at module scope) and `from ..core import Signals` (used as a parameter annotation, also never imported). Verified with the real failure mode: `typing.get_type_hints(spectrolaminar_suite)` and `typing.get_type_hints(spectrolaminar)` now succeed (previously raised AttributeError / NameError). ruff --select F821 clean. `pytest tests/test_vis_smoke_all.py tests/test_vis_phase5.py -q` -> passing as part of the 124-passed run. Score set to 96 (not 100) since this is a re-verification after a real edit, following the review.json protocol: an entry that changes after promotion must be reset in progress.json, not left marked passed.",
       "status": "done"
     }
   ]

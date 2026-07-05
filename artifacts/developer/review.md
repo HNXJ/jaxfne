@@ -22,7 +22,6 @@
 | jaxfne/vis/plotly/exporters.py | 100 | passed |  |  |
 | jaxfne/optim/bounds.py | 100 | passed |  |  |
 | local/extract.py | 100 | passed |  |  |
-| jaxfne/vis/fields.py | 100 | passed |  |  |
 | jaxfne/vis/rasters.py | 100 | passed |  |  |
 | jaxfne/vis/traces.py | 100 | passed |  |  |
 | jaxfne/vis/spectra.py | 100 | passed |  |  |
@@ -58,3 +57,4 @@
 | jaxfne/vis/raster_arrays.py | 100 | passed |  |  |
 | jaxfne/vis/script_reports.py | 100 | passed |  |  |
 | examples/04_blackbox_tuning_loop.py | 100 | passed |  |  |
+| tests/test_tutorial_smoke_runner_v0217.py | 100 | passed |  |  |

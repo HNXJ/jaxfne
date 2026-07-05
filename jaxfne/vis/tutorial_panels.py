@@ -5,9 +5,10 @@ Docs: ``docs/tutorials/`` + ``docs/plotly_visualization.md``
 """
 from __future__ import annotations
 
+import matplotlib.figure
 import numpy as np
 from pathlib import Path
-from typing import Tuple, Sequence
+from typing import Any, Tuple, Sequence
 
 
 def _apply_dark_theme(fig, ax=None):

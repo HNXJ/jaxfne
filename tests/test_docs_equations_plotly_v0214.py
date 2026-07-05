@@ -310,7 +310,7 @@ def test_no_like_terminology_in_new_docs():
     """New docs must use *-proxy, never *-like terminology."""
     new_docs = [
         "docs/guides/plotly_visualization.md",
-        "docs/skills/skill_visual_outputs.md",
+        ".legacy/internal_docs/skills/skill_visual_outputs.md",
         "docs/api/fields.md",
         "docs/api/probes.md",
     ]

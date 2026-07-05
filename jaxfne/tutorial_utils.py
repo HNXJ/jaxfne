@@ -1965,7 +1965,7 @@ def export_tutorial_artifacts(
                 return obj.tolist()
             else:
                 return float(obj) if np.isfinite(obj) else None
-        elif isinstance(obj, (dict, dict)):
+        elif isinstance(obj, dict):
             return {k: _to_jsonable(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return [_to_jsonable(x) for x in obj]

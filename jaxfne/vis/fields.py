@@ -11,9 +11,11 @@ from __future__ import annotations
 from typing import Any, Mapping, Sequence
 
 import jax
+import matplotlib.figure
 import numpy as np
 from scipy import signal
 
+from ..core import Signals
 from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
 
 
