@@ -25,7 +25,7 @@ def main():
     model = jtfne.construct(cfg)
     obj = jtfne.objective().loss("rate", target=10.0, metric="spike_rate_hz_mean")
     sim = jtfne.simulation(duration_ms=4.0, dt_ms=0.1, seed=3)
-    tuned, report = model.tune(
+    result = model.tune(
         obj,
         optimizer=jtfne.random_search(),
         steps=3,
@@ -34,6 +34,7 @@ def main():
         parameter="source_scale",
         bounds=(0.5, 1.5),
     )
+    tuned, report = result.model, result.summary
     print("tuning_status:", report["tuning_status"])
     print("candidate_count:", len(report["candidate_history"]))
     print("best_parameter_value:", report["best_parameter_value"])

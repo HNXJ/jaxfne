@@ -14,10 +14,8 @@ and synchrony constraints. Physical amplitude claims NOT allowed.
 
 """
 
-import json
 import numpy as np
-from typing import Optional, Dict, Any, List, Tuple
-import warnings
+from typing import Optional, Dict, Any, List
 
 
 def spectrolaminar_profile_score(

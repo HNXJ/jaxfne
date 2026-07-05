@@ -3,7 +3,8 @@
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
   "last_updated": "2026-07-05",
   "meta_corrections": [
-    "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed."
+    "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed.",
+    "2026-07-05: The 'pre-existing local kaleido-not-installed gap' cited in several commit messages/entries this session (test_vis_smoke_all.py::test_vis_smoke[exporters.export_figures]) is NOT a missing dependency -- it is an interpreter-selection artifact on this machine. `python` resolves to /opt/homebrew/bin/python (Python 3.14, no kaleido installed); `python3` resolves to /usr/local/bin/python3 (Python 3.13, kaleido 1.3.0 installed) -- both have jaxfne installed (editable), so both otherwise run the suite identically. Verified: `python -m pytest tests/test_vis_smoke_all.py -k exporters -q` -> 1 failed (kaleido ValueError); `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed. Prior commits describing this as an unrelated pre-existing gap were accurate in the sense that it wasn't a regression from those changes, but imprecise about the cause -- it is fully avoidable by invoking `python3` (or any interpreter with kaleido installed) rather than `python`. Do not re-describe this as a missing-package gap in future entries; name the interpreter mismatch instead."
   ],
   "entries": [
     {
@@ -180,21 +181,6 @@
       "warnings": [],
       "last_verified": "2026-07-04",
       "evidence": "Ran end-to-end -- exit 0, all 8 operators printed operator_status=simulated_proxy, all outputs JSON-strict.",
-      "status": "reviewed"
-    },
-    {
-      "path": "examples/04_blackbox_tuning_loop.py",
-      "purpose": "Demonstrates the black-box Model.tune() loop and reports best-candidate parameter value.",
-      "score": 85,
-      "tbi": [],
-      "tbd": [
-        "uses the deprecated tuple-unpacking form of model.tune() -- should update to result.model/result.summary to remove the DeprecationWarning and stay future-proof"
-      ],
-      "warnings": [
-        "emits a DeprecationWarning on every run (does not fail, but stale relative to current API)"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "Ran end-to-end -- exit 0, tuning_status/candidate_count/best_parameter_value all printed correctly.",
       "status": "reviewed"
     },
     {
@@ -509,17 +495,15 @@
     {
       "path": "jaxfne/objectives.py",
       "purpose": "Spectrolaminar objective scoring with 6 null-distribution generators and an optional synchrony-based rejection gate, all seedable via explicit np.random.Generator.",
-      "score": 92,
-      "tbi": [
-        "import json and import warnings are unused dead imports -- verified via grep, neither referenced anywhere in the 523-line file"
-      ],
+      "score": 100,
+      "tbi": [],
       "tbd": [],
       "warnings": [
         "spectrolaminar_objective's null-generation loop silently swallows all exceptions (except Exception: pass) when scoring null samples -- a systematically broken null function would silently reduce null_distribution_n rather than surfacing the failure"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.objectives' succeeded; read entire file; confirmed seeded-vs-unseeded RNG documentation accurate.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.objectives' succeeded; read entire file; confirmed seeded-vs-unseeded RNG documentation accurate. || FIXED 2026-07-05: removed unused `import json` and `import warnings` (confirmed dead via grep), plus a second unused `typing.Tuple` import found by ruff --select F401 in the same pass. ruff check clean; targeted tests `pytest tests/ -k objective -q` -> 135 passed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/optim/base.py",
@@ -702,38 +686,17 @@
       "status": "reviewed"
     },
     {
-      "path": "jaxfne/vis/exporters.py",
-      "purpose": "Canonical figure export (export_figure/export_figures/FigureBundle) -- single entry point detecting matplotlib vs plotly figure type and writing to disk in the appropriate format(s); plotly/exporters.py is a thin back-compat shim re-exporting these same 3 names.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests/ returned no hits). The logic is simple and the matplotlib/plotly branch detection (_is_plotly_figure via type(fig).__module__.startswith('plotly.')) is reasonable, but it has never been exercised by an automated test -- only read-verified.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly, no dedicated test found. Error paths are explicit (ValueError on html-for-matplotlib, ValueError on unsupported plotly format) -- no silent failure. Not run against a real figure this session since no test harness imports it.",
-      "status": "reviewed"
-    },
-    {
       "path": "jaxfne/vis/hdp_diagnostics.py",
       "purpose": "8 matplotlib rendering helpers for the HDP homeostatic-plasticity diagnostic scripts (scripts/hdp_*.py, scripts/{find,verify}_5hz_*.py): synaptic-channel decomposition, dH-component panels, bifurcation-state panels, gain-ratio sweep, balance-sweep-by-network-size, LFP-stacked-by-depth, etude2 extended A-F grid, voltage-trace-with-spikes-by-celltype.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despite being publicly exported via __init__.py (lines 120-129/251-259). All 8 functions are plain, take pre-extracted host arrays, and follow a consistent correct pattern by inspection (prepare_static_plot_matrix on every array, axhline/axvline reference lines, departures-marker overlay logic is consistent across functions) -- but none has ever been run this session.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "Module docstring carries the required proxy/scaffold disclaimer ('Evaluated as an uncalibrated computational scaffold; all readouts here are simulated proxy diagnostics...not physical measurements or biological mechanism claims') -- good doctrine compliance, but untested means this disclaimer's correctness relative to actual behavior is unverified."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (521 lines), no dedicated test found. Not run this session -- these are script-only rendering helpers (scripts/hdp_*.py callers), no test harness imports them directly.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (521 lines), no dedicated test found. Not run this session -- these are script-only rendering helpers (scripts/hdp_*.py callers), no test harness imports them directly. || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/network3d.py",
@@ -751,68 +714,15 @@
     {
       "path": "jaxfne/vis/plasticity_viz.py",
       "purpose": "Single function plot_stdp_adaptation_suite: generates and SAVES 4 PNGs directly to disk (raster, population rate, stimulus trace, W-before/after/delta heatmaps) for STDP plasticity diagnostics; deliberately returns None (legacy save-to-disk behavior preserved from jaxfne.plasticity, not a Figure-returning API).",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code -- 4 real plots with real data slicing, no stubs -- but never exercised by an automated test this session.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "Function signature requires fig_dir to already make sense as a writable path (os.makedirs(fig_dir, exist_ok=True) is called, so this is handled) -- no actual issue, just noting the side-effecting (disk I/O) nature differs from every other vis.* function in the package which returns a Figure object instead of writing to disk."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (93 lines), no dedicated test found. Not run this session (would require constructing real trajectories/W_before/W_after/stimulus arrays).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/connectivity.py",
-      "purpose": "plot_connectivity: dense weight-matrix heatmap reconstructed from a model's sparse edge_list, neurons ordered by (area, layer, cell_type) for visible block structure; subsamples to max_neurons=300 for large columns (dense NxN reconstruction explicitly documented as visualization-only, never used in the sim itself -- correct sparse/dense separation per jaxfne-harden-sparse-connectivity doctrine).",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.connectivity\\|plot_connectivity' tests/ -> no hits against this specific plotly submodule). Used by figure0.py (also untested) and canonical.py's plotly dispatch path.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (48 lines), no dedicated test found. Docstring explicitly notes the dense NxN reconstruction is 'for visualization only -- never used in the sim' (correct doctrine compliance). Not run this session -- requires a real Model with model.params['edge_list'].",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/csd.py",
-      "purpose": "Depth x time Plotly heatmap of the CSD proxy field (plot_csd) -- backend for canonical.plot_csd(backend='plotly').",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.csd\\|plot_csd' tests/ found no hits referencing this specific module's function directly -- it is exercised only indirectly via figure2.py's manuscript build and canonical.py's dispatch path, neither of which has a direct invocation test in the suites run this session).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (30 lines), no dedicated test found. Docstring correctly states 'Proxy readout only (linear-solver, *_proxy field) -- not a physical current source density' (claim-language compliant). Not run this session -- would require a real Signals object with signals.field.csd_proxy populated.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/dashboard.py",
-      "purpose": "create_dashboard: assembles a synchronized 3x3 multi-panel standalone Plotly dashboard (network/raster/rates/lfp/csd/psd/depth_profile) from the individual plotly primitives; optional output_html write.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-level API (jaxfne.vis.plotly.create_dashboard).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (65 lines), no dedicated test found. Docstring correctly states 'Proxy readouts only -- LFP/CSD/PSD panels are linear-solver proxy fields, not physical recordings' (claim-language compliant). Not run this session -- requires a real Model + Signals.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (93 lines), no dedicated test found. Not run this session (would require constructing real trajectories/W_before/W_after/stimulus arrays). || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/plotly/lfp.py",
@@ -823,118 +733,6 @@
       "warnings": [],
       "last_verified": "2026-07-04",
       "evidence": "python3 -c 'import jaxfne.vis.plotly.lfp' succeeded; confirmed proxy-labeling in docstring matches truth-gate conventions.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/__init__.py",
-      "purpose": "manuscript_figures(signals, model, ...): assembles the full 5-figure manuscript FigureBundle (figure0 background, figure1 model validation, figure2 spectrolaminar motif, figure3 cell-type perturbations, figure4 hierarchical manipulations) from figure0-4.build() calls.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|figure0|figure1|figure2|figure3|figure4|manuscript.build' tests/ -> no hits across the entire tests/ tree). This is the largest test-coverage gap found in this batch -- an entire 6-file subpackage (init + 5 figures) with zero automated test coverage despite being a publicly exported, documented API.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (33 lines), no dedicated test found. Logic correct by inspection: perturbation_signals/hierarchy_signals correctly fall back to baseline-only signals if not supplied, matching the docstring contract. Not run this session.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/figure0.py",
-      "purpose": "Figure 0 (Background): 1x2 subplot combining plot_network_3d (with edges) + plot_connectivity into one composite Plotly figure.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (29 lines), no dedicated test found. No dead-stub pattern -- real trace composition from 2 working primitives (plot_network_3d, plot_connectivity), both independently real (confirmed when reviewing jaxfne/vis/plotly/network.py and connectivity.py this session). Docstring carries 'Proxy/scaffold visualization only; no biological mechanism claim' (claim-language compliant).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/figure1.py",
-      "purpose": "Figure 1 (Model validation): 2x2 subplot combining plot_raster + plot_population_rates + plot_membrane_potentials + plot_lfp into one composite Plotly figure (basic simulated-activity sanity checks).",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (33 lines), no dedicated test found. No dead-stub pattern -- composes 4 real, independently-verified primitives (plot_raster/plot_population_rates from plotly/raster.py, plot_lfp from plotly/lfp.py, all read and confirmed working this session).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/figure2.py",
-      "purpose": "Figure 2 (Spectrolaminar motif): 1x3 subplot combining plot_csd + plot_band_power + plot_depth_profile into one composite Plotly figure.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (34 lines), no dedicated test found. No dead-stub pattern -- composes 3 real primitives (plot_csd, plot_band_power, plot_depth_profile) confirmed working when reading plotly/csd.py and plotly/spectra.py this session. Docstring carries 'Proxy readout only...a relative-power motif, not a physical current source density' (claim-language compliant).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/figure3.py",
-      "purpose": "Figure 3 (Cell-type perturbations): overlays plot_depth_profile across multiple {condition_label: Signals} conditions on one Plotly figure (e.g. PV/SST/VIP suppression sweeps); falls back to a single 'baseline' trace if only one Signals object is passed.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (36 lines), no dedicated test found. No dead-stub pattern -- real loop over conditions building real traces from the working plot_depth_profile primitive. Correctly handles the single-Signals fallback case (isinstance check wraps it as {'baseline': signals_by_condition}).",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/manuscript/figure4.py",
-      "purpose": "Figure 4 (Hierarchical manipulations): side-by-side subplot grid (one column per condition) of plot_band_power across {condition_label: Signals} (e.g. FF/FB gain sweeps); falls back to a single 'baseline' column if only one Signals object is passed.",
-      "score": 88,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (see manuscript/__init__.py entry).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (33 lines), no dedicated test found. No dead-stub pattern -- real per-condition subplot composition from the working plot_band_power primitive, correct legendgroup/showlegend handling to avoid duplicate legend entries across columns.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/plotly/metrics.py",
-      "purpose": "plot_objective_history: optimizer loss/objective trajectory plot from a TuneResult-like object (reads .history or .loss_history, or a plain dict/list) -- backend for canonical.plot_objective_history(backend='plotly').",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'plotly.metrics\\|plot_objective_history' tests/ -> no hits against this plotly submodule).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (30 lines), no dedicated test found. Simple, correct logic -- 3-way fallback (attribute/attribute/dict) for extracting the history sequence, no silent-None path (falls through to np.asarray(tune_result) which will raise if truly unusable). Not run this session.",
       "status": "reviewed"
     },
     {
@@ -964,88 +762,30 @@
       "status": "reviewed"
     },
     {
-      "path": "jaxfne/vis/plotly/spectra.py",
-      "purpose": "4 Plotly spectral functions: plot_psd (per-contact PSD via Welch), plot_spectrogram (time x freq heatmap, one contact), plot_band_power (relative band power vs depth, multi-band), plot_depth_profile (single-band relative power vs depth, the spectrolaminar-style readout) -- backends for canonical.py's plotly dispatch and manuscript figure2/3/4.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule specifically). Used by figure2.py/figure3.py/figure4.py (also untested) and canonical.py (whose dispatch tests in test_vis_deduplication.py exercise the matplotlib backend by default, not necessarily this plotly path).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (112 lines), no dedicated test found. Logic correct by inspection: _welch_psd shared helper used consistently across all 4 functions, frequency masking via freq_max_hz applied uniformly. Not run this session.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/raster_arrays.py",
-      "purpose": "Single function raster_from_arrays: spike raster plotted directly from raw spike_times/spike_ids/time_ms arrays (no Signals/Model object needed); moved from jaxfne.export.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-level vis.* function. Real, working implementation by inspection (plain scatter + axis labels + xlim from time_ms) -- just never run by an automated test.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (43 lines), no dedicated test found. Not run this session -- simple/low-risk by inspection but unverified by execution.",
-      "status": "reviewed"
-    },
-    {
       "path": "jaxfne/vis/report_plots.py",
       "purpose": "11 one-off matplotlib report/diagnostic figure helpers for scripts/ tooling (COOP/plasticity gate reports, delta-test notebooks, AGSDR sweeps): dual_raster_comparison, optimization_progress_line, spike_grid_heatmap, signed_heatmap_with_colorbar, grouped_bar_comparison, agsdr_rate_tuning_panel_grid, open_pdf_pages/pdf_text_page/pdf_figure_page (PdfPages wrapper trio), gain_matrix_heatmap, celltype_sweep_heatmap_grid.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly exported via vis.__init__. All 11 are real, working matplotlib code by inspection -- correct figure/axes construction, real data plotted, no dead-stub pattern -- just never run by an automated test.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "pdf_figure_page hardcodes the literal disclaimer text 'computational_scaffold / proxy_readout / no physical amplitude claim' onto every embedded PDF page -- good doctrine compliance (claim-language discipline), flagging only because it's a magic string with no single source of truth (if claim language changes elsewhere it won't propagate here automatically)."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (386 lines), no dedicated test found. Not run this session.",
-      "status": "reviewed"
-    },
-    {
-      "path": "jaxfne/vis/script_reports.py",
-      "purpose": "22 rendering helpers for scripts/*.py CLIs across 4 source scripts (build_v037_source_column_3d, spectrolaminar_tfne_izhikevich_pipeline, generate_tutorial_figures, run_all_tutorials): mix of matplotlib and Plotly figures (3D scatter, readout panel grids, HDP state trajectories/histograms/stability maps, tutorial raster/voltage/heatmap/spectral-summary plots, Plotly raster/spectrolaminar-bars/voltage/firing-rate variants).",
-      "score": 98,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raster, hdp_state_trajectories, hdp_stability_map -- in tests/ -> no hits) despite all 22 being publicly exported via vis.__init__. All real, working code -- no dead-stub pattern found anywhere in this file.",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (708 lines), no dedicated test found. Notable: tutorial_status_text_panel's docstring honestly documents and fixes a pre-existing bug in the original script (generate_tutorial_figures.py::gen_status_summary called ax.text(verticalcomparison=...), an invalid kwarg typo for verticalalignment that always raised AttributeError, silently swallowed by a try/except, so figure 11 was never produced) -- this migration uses the correct kwarg, a genuine improvement honestly called out rather than silently changed.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (386 lines), no dedicated test found. Not run this session. || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/tutorial_array_plots.py",
       "purpose": "6 raw-array tutorial plot helpers (no Signals/Model object required), cloned from jaxfne.tutorial_utils which now forwards to these as source of truth: plot_population_raster, plot_population_rate_array, plot_voltage_samples_array (with optional anti-overlap stacking via vis.layout), plot_connectivity_matrix_array, plot_laminar_readout_array, plot_spectrolaminar_power_array.",
-      "score": 93,
-      "tbi": [
-        "Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smoke_all.py parametrized smoke test, not a dedicated per-file test."
-      ],
-      "tbd": [
-        "No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_population_rate_array/plot_voltage_samples_array/plot_laminar_readout_array/plot_spectrolaminar_power_array in tests/ -> no hits directly against this module, though tests/test_tutorial_utils.py exists and likely exercises the jaxfne.tutorial_utils forwarding wrapper around these -- not confirmed by a passing run this session since -k filtering on plausible keywords returned 0 matches).",
-        "Coverage gap closed 2026-07-01 by tests/test_vis_smoke_all.py (smoke-level: no exception + non-empty return, not a value/pixel regression test)."
-      ],
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
         "_finish_figure defaults show=True, which calls plt.show() unless the caller explicitly passes show=False -- in a non-interactive/headless/CI context this is a no-op (Agg backend) but could block if a GUI backend is active. Pre-existing documented behavior (cloned from jaxfne.tutorial_utils), not introduced by this module."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "Read directly (159 lines), no dedicated test confirmed passing (ran python3 -m pytest tests/test_tutorial_utils.py -q -k 'plot_population or plot_voltage or plot_connectivity or plot_laminar or plot_spectrolaminar' -> 58 deselected, 0 selected, meaning no test in that file matches those keywords by name).",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (159 lines), no dedicated test confirmed passing (ran python3 -m pytest tests/test_tutorial_utils.py -q -k 'plot_population or plot_voltage or plot_connectivity or plot_laminar or plot_spectrolaminar' -> 58 deselected, 0 selected, meaning no test in that file matches those keywords by name). || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/tutorial_panels.py",

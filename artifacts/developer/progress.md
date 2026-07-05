@@ -38,7 +38,6 @@
 | docs/STDP_GLOBAL_SCALE_REPORT.md | 84 | done |  |  | 2026-07-03 |
 | docs/STDP_LOWRATE_REGIME_REPORT.md | 84 | done |  |  | 2026-07-03 |
 | docs/STDP_REAL_TEST_REPORT.md | 84 | done |  |  | 2026-07-03 |
-| examples/04_blackbox_tuning_loop.py | 85 | reviewed |  | uses the deprecated tuple-unpacking form of model.tune() -- should update to result.model/result.summary to remove the D | 2026-07-04 |
 | jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/network.py | 85 | reviewed |  | No dedicated test file (grep -rln 'plotly.network|plot_network_3d' tests/ found test_vis_network3d_public_api.py and tes | 2026-06-30 |
@@ -61,14 +60,6 @@
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | jaxfne/bridges.py | 88 | reviewed | hh_jaxley_reference_trace defined but not exported anywhere in __init__.py, only reachable via the submodule path |  | 2026-07-04 |
-| jaxfne/vis/hdp_diagnostics.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'hdp_diagnostics|synaptic_channel_decomposition' tests/ returned no hits) despit | 2026-07-01 |
-| jaxfne/vis/plasticity_viz.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plot_stdp_adaptation_suite' tests/ -> no hits). Real, working matplotlib code - | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/__init__.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found anywhere for manuscript_figures or any of figure0-4.build (grep -rln 'manuscript_figures|fi | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/figure0.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry -- applies to the whole subpackage).; Coverage gap closed | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/figure1.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/figure2.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/figure3.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
-| jaxfne/vis/plotly/manuscript/figure4.py | 88 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (see manuscript/__init__.py entry).; Coverage gap closed 2026-07-01 by tests/test_vis_smoke | 2026-07-01 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/generate_tutorial_figures.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -219,7 +210,6 @@
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
 | jaxfne/export.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
-| jaxfne/objectives.py | 92 | reviewed | import json and import warnings are unused dead imports -- verified via grep, neither referenced anywhere in the 523-lin |  | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/sharding_utils.py | 92 | reviewed |  | docstring states stubs 'do not yet drive any real multi-device dispatch...planned for v0.3.20+' -- self-labeled incomple | 2026-07-04 |
 | jaxfne/solvers.py | 92 | reviewed |  |  | 2026-07-04 |
@@ -325,15 +315,6 @@
 | jaxfne/analysis/metrics.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/__init__.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/diagnostics.py | 93 | reviewed |  |  | 2026-07-04 |
-| jaxfne/vis/exporters.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for export_figure/export_figures/FigureBundle (grep -rln 'export_figure|FigureBundle' tests | 2026-07-01 |
-| jaxfne/vis/plotly/connectivity.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.connectivity\|plot_connectivity' tests/ -> no hits against this specific | 2026-07-01 |
-| jaxfne/vis/plotly/csd.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.csd\|plot_csd' tests/ found no hits referencing this specific module's f | 2026-07-01 |
-| jaxfne/vis/plotly/dashboard.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'create_dashboard' tests/ -> no hits) despite being a publicly exported top-leve | 2026-07-01 |
-| jaxfne/vis/plotly/metrics.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'plotly.metrics\|plot_objective_history' tests/ -> no hits against this plotly s | 2026-07-01 |
-| jaxfne/vis/plotly/spectra.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for these 4 function names in tests/ -> no hits against this plotly submodule sp | 2026-07-01 |
-| jaxfne/vis/raster_arrays.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln 'raster_from_arrays' tests/ -> no hits) despite being a publicly exported top-le | 2026-07-01 |
-| jaxfne/vis/report_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for all 11 function names in tests/ -> no hits) despite all being publicly expor | 2026-07-01 |
-| jaxfne/vis/tutorial_array_plots.py | 93 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found for these exact array-input function names (grep -rln for plot_population_raster/plot_popul | 2026-07-01 |
 | scripts/ed9_hdp_evidence.py | 93 | reviewed |  |  | 2026-07-04 |
 | scripts/ed9_homeostasis_evidence.py | 93 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed01_api_stability_snapshot.py | 93 | reviewed |  |  | 2026-07-04 |
@@ -450,13 +431,17 @@
 | docs/performance_baseline.md | 97 | done |  |  | 2026-07-03 |
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
-| jaxfne/vis/script_reports.py | 98 | reviewed | Coverage gap tracked as plans.json item vis-smoke-test-coverage-gap -- will be closed by the planned tests/test_vis_smok | No dedicated test file found (grep -rln for ~6 sampled function names -- column_network_3d_scatter, tutorial_spike_raste | 2026-07-01 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
 | jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
+| jaxfne/objectives.py | 100 | done |  |  | 2026-07-05 |
+| jaxfne/vis/hdp_diagnostics.py | 100 | done |  |  | 2026-07-05 |
 | jaxfne/vis/network3d.py | 100 | reviewed |  |  | 2026-06-30 |
+| jaxfne/vis/plasticity_viz.py | 100 | done |  |  | 2026-07-05 |
+| jaxfne/vis/report_plots.py | 100 | done |  |  | 2026-07-05 |
+| jaxfne/vis/tutorial_array_plots.py | 100 | done |  |  | 2026-07-05 |
 | jaxfne/optim/sdr.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/gsdr.py | 100 | done |  |  | 2026-06-30 |
 | jaxfne/optim/agsdr.py | 100 | done |  |  | 2026-06-30 |
