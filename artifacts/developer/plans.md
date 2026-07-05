@@ -53,7 +53,7 @@
 | step | target | target_score | status | definition_of_done |
 |---|---|---|---|---|
 | 1 | 0.4.5 | 95 | done | Finish the core.py monolith split (currently 2/5 slices done, 8370->6672 lines): extract Configuration, then Model (high |
-| 2 | v1_pfc_paradigm | 95 | in_progress | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
+| 2 | v1_pfc_paradigm | 95 | done | Resolve (not just mitigate) the weight-carryover HDP instability found 2026-07-04 -- either a validated weight-homeostat |
 | 3 | 0.4.6 | 95 | not_started | Mostly a consequence of step 2 (0.4.6's own milestone definition IS the V1-PFC paradigm reaching a genuinely working, ve |
 | 4 | checkpoint |  | not_started | Literal process checkpoint, not a code step: after steps 1-3 land, refresh progress.json/plans.json/review.json to refle |
 | 5 | 0.4.5_and_0.4.6 | 99 | not_started | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |

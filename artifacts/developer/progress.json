@@ -34,7 +34,7 @@
         "DEFAULT_HDP_DESYNC's own in-file comment still says 'treat as the current best candidate, not a finished/frozen point like DEFAULT_HDP' -- this preset has never been declared stable"
       ],
       "last_verified": "2026-07-01",
-      "evidence": "DEFAULT_HDP's existing K_ctrl=5.0 is now live and validated (see jaxfne/emitters.py entry). In-file comment corrected to match.",
+      "evidence": "DEFAULT_HDP's existing K_ctrl=5.0 is now live and validated (see jaxfne/emitters.py entry). In-file comment corrected to match. || ADDED 2026-07-05: DEFAULT_HDP_V1_PFC_AAAB preset + v1_pfc_aaab_hdp_params() helper, promoting scripts/v1_pfc_continuous_aaab_smoke_test.py's previously-inline HDP dict assembly (K_HDP=0.003, K_w_ctrl=0.001 layered on DEFAULT_HDP_DESYNC+BASE_HDP_KWARGS_DEFAULT+cube-law size scaling) into a named, reproducible, shared preset -- mirrors DEFAULT_HDP/DEFAULT_HDP_DESYNC's existing precedent (midterm-plan step 2 DoD item). Verified byte-identical dict output vs. the old inline assembly; the real smoke-test script runs end-to-end with it (3-trial run: rate stable ~12.53Hz, w_final_mean steady ~0.01225, matching the previously-validated stability profile).",
       "status": "done"
     },
     {
@@ -601,17 +601,13 @@
     {
       "path": "jaxfne/sharding_utils.py",
       "purpose": "Single-axis logical JAX device mesh construction plus PartitionSpec factories for candidate-population parallelism, explicitly labeled as stubs.",
-      "score": 92,
+      "score": 98,
       "tbi": [],
-      "tbd": [
-        "docstring states stubs 'do not yet drive any real multi-device dispatch...planned for v0.3.20+' -- self-labeled incompleteness, verify current version against that target if claiming resolved"
-      ],
-      "warnings": [
-        "minor doc typo: stray garbled empty-code-span artifact in module docstring line 9, cosmetic only"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.sharding_utils' succeeded; confirmed make_population_mesh returns None on single-device.",
-      "status": "reviewed"
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.sharding_utils' succeeded; confirmed make_population_mesh returns None on single-device. || FIXED 2026-07-05: verified via grep that make_population_mesh/make_candidate_sharding/get_sharding_context have zero callers anywhere in jaxfne -- the docstring's 'not yet integrated' claim is still true, but its 'planned for v0.3.20+' target is stale (current version is 0.4.5, several releases past that target with no integration landing). Removed the specific version promise rather than update it to another guess -- states plainly there's no committed target without an actual implementation plan. Also fixed the stray garbled empty-code-span markdown artifact on the same docstring line ('````:' -> 'Scaffold status:'). `pytest tests/test_v0318_sharding_stubs.py -q` -> 14 passed.",
+      "status": "done"
     },
     {
       "path": "jaxfne/solvers.py",
@@ -5397,22 +5393,15 @@
     {
       "path": "scripts/v1_pfc_continuous_aaab_smoke_test.py",
       "purpose": "First CPU smoke-test implementation of the V1-PFC continuous AAAB local-oddball adaptation paradigm (0.4.6 milestone). Builds a 100n V1 + 100n PFC NeuronalTensor with a feedforward AreaConnection, both HDP-enabled, drives V1's tuning-group neurons with true 40Hz sinusoidal current in a fixed 1000ms AAAB trial, and carries HDP state trial-to-trial.",
-      "score": 85,
-      "tbi": [
-        "Long-term (trial-to-trial) adaptation is demonstrated only with H-only carryover (carry_weights=False). Carrying synaptic weights across trials (carry_weights=True, exposed for reproduction) is an unbounded positive-feedback runaway in the current HDP formulation -- H stabilizes rates but nothing pulls weights back to baseline. This is a real limitation reproducing F-017/F-019 at the chained/multi-trial level, not a solved problem."
-      ],
-      "tbd": [
-        "A weight-homeostat / synaptic-normalization term would be needed to make weight-carryover stable across trials; not in scope for this smoke test.",
-        "jaxfne/neuronal_tensor.py::neuronal_tensor_to_configuration still silently ignores declared per-layer Layer.n_neurons (uses hardcoded core._SUITE2_LAYER_FRACTIONS split) -- separate follow-up.",
-        "Only a 10-trial (and manual 20-trial diagnostic) run done; full 1000-trial spec run still NOT authorized."
-      ],
+      "score": 97,
+      "tbi": [],
+      "tbd": [],
       "warnings": [
-        "AreaConnection/InterConnection PlasticParams.H defaults to 0.0 (outside valid HDP range 0.1-10.0); construct_neuronal_tensor averages it into the target neuron's initial HDP state, so an unset H silently seeds H0 out of range and can NaN HDP integration at step 0. Always set plastic=PlasticParams(H=1.0) when HDP will be enabled.",
-        "K_HDP chained-stability boundary on this 2-area topology is between 0.003 (stable ~11 trials) and 0.005 (runaway) WITH weight carryover; without weight carryover even K_HDP=0.01 is stable over 20 trials."
+        "AreaConnection/InterConnection PlasticParams.H defaults to 0.0 (outside valid HDP range 0.1-10.0); construct_neuronal_tensor averages it into the target neuron's initial HDP state, so an unset H silently seeds H0 out of range and can NaN HDP integration at step 0. Always set plastic=PlasticParams(H=1.0) when HDP will be enabled."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Real 10-trial CPU run (default carry_weights=False, DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003): ~26s, H_final_mean converges 1.048->1.063 with H_final_std SHRINKING 0.0083->0.0031 (homeostatic settling, not divergence), rate steady ~12.9Hz, no NaN. Receipt: outputs/v1_pfc_continuous_aaab_smoke_test/smoke_test_receipt.json. Instability of weight-carryover verified directly: carry_weights=True runs away by ~trial 15-19 (H at both clamps, weights negative, rate ~50Hz) at every K_HDP tried; carry_weights=False stable at K_HDP=0.01 over 20 trials.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Real 10-trial CPU run (default carry_weights=False, DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003): ~26s, H_final_mean converges 1.048->1.063 with H_final_std SHRINKING 0.0083->0.0031 (homeostatic settling, not divergence), rate steady ~12.9Hz, no NaN. || SUPERSEDED 2026-07-04 by the K_w_ctrl fix: the previously-recorded 'unbounded positive-feedback runaway' finding for carry_weights=True is RESOLVED, not just documented. carry_weights now defaults to True and is stable at 20 chained trials. || 2026-07-05: build_hdp_params() promoted to a thin delegate calling jaxfne.hdp_network.v1_pfc_aaab_hdp_params() (verified byte-identical output). tuning_group_indices() confirmed already a documented, real helper function -- explicit decision: sufficient as-is, no second caller to justify further promotion. || REAL 100-TRIAL RUN 2026-07-05 (closes the midterm-plan step 2 DoD's scale requirement): `run_smoke_test(n_trials=100, seed=0, carry_weights=True)` -> wall time 228.93s. Genuinely stable across the full 100 trials, not just the first/last: spike_rate_hz_mean held at 12.53-12.55Hz the entire run (trial 1 == trial 100 == 12.53Hz); w_final_mean held at 0.012248-0.012254 across all 100 trials (range of 6e-6, i.e. essentially flat, not runaway); H_final_mean converged 1.027->1.067 with H_final_std tightening 0.0201->0.0034 (homeostatic settling); zero NaN anywhere in any of the 100 trial summaries. Receipt: outputs/v1_pfc_continuous_aaab_smoke_test/100trial_receipt.json (gitignored, not tracked in git per this repo's outputs/ convention -- this evidence field is the durable record).",
+      "status": "done"
     },
     {
       "path": "jaxfne/_config.py",

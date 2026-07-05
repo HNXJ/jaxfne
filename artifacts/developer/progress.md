@@ -47,7 +47,6 @@
 | docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/04_v1_column.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
-| scripts/v1_pfc_continuous_aaab_smoke_test.py | 85 | reviewed | Long-term (trial-to-trial) adaptation is demonstrated only with H-only carryover (carry_weights=False). Carrying synapti | A weight-homeostat / synaptic-normalization term would be needed to make weight-carryover stable across trials; not in s | 2026-07-04 |
 | scripts/evidence_figures/ed10_release_archive_receipt.py | 87 | reviewed |  |  | 2026-07-04 |
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
@@ -207,7 +206,6 @@
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |
-| jaxfne/sharding_utils.py | 92 | reviewed |  | docstring states stubs 'do not yet drive any real multi-device dispatch...planned for v0.3.20+' -- self-labeled incomple | 2026-07-04 |
 | jaxfne/solvers.py | 92 | reviewed |  |  | 2026-07-04 |
 | scripts/benchmark_jaxfne.py | 92 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/_figure_common.py | 92 | reviewed |  |  | 2026-07-04 |
@@ -430,7 +428,9 @@
 | docs/install.md | 97 | done |  |  | 2026-07-03 |
 | docs/performance_baseline.md | 97 | done |  |  | 2026-07-03 |
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
+| scripts/v1_pfc_continuous_aaab_smoke_test.py | 97 | done |  |  | 2026-07-05 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
+| jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |

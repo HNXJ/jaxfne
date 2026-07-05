@@ -1,4 +1,4 @@
-"""Distributed sharding mesh stubs for jaxfne v0.3.18.
+"""Distributed sharding mesh stubs.
 
 Provides trace-safe, single-axis logical mesh construction for candidate-population
 parallelism across JAX devices. Falls back to no-op on single-device (CPU/single-GPU)
@@ -6,11 +6,15 @@ environments so callers need no branching logic.
 
 Scope
 -----
-- ````: laminar proxy output only, no PDE field solver.
+- Scaffold status: laminar proxy output only, no PDE field solver.
 - ``physical_amplitude_calibrated: false``
 - All sharding specs here are *stubs*: they set up the topology but do not yet
-  drive any real multi-device dispatch in the AGSDR loop.  Full integration is
-  planned for v0.3.20+.
+  drive any real multi-device dispatch in the AGSDR loop (verified 2026-07-05:
+  no caller anywhere in jaxfne invokes make_population_mesh/make_candidate_sharding/
+  get_sharding_context). No committed target version for full integration --
+  a prior "planned for v0.3.20+" note was dropped since that version has long
+  since shipped without this landing; do not re-add a specific version promise
+  without an actual implementation plan behind it.
 
 Public API
 ----------

@@ -250,29 +250,17 @@ def build_trial_schedule(n_neurons: int, groups: dict[str, list[int]]) -> "jtfne
 def build_hdp_params() -> dict:
     """Genuinely-driving HDP config for this paradigm (not the null control).
 
-    = jaxfne.hdp_network.DEFAULT_HDP_DESYNC (the repo's validated "responsive
-    H" preset: fast tau_0_ms=5, alpha=0.05 synaptic-income and gamma=0.5
-    rate-drain so H actually tracks each neuron's activity) folded onto
-    BASE_HDP_KWARGS_DEFAULT (H_min/H_max/barrier/w-clamp scaffold), plus
-    cube-law per-cell-type size scaling (E=5 -> tau_i = tau_0_ms * 5**3, so E
-    adapts far slower than interneurons).
-
-    K_HDP is dialed DOWN from DEFAULT_HDP_DESYNC's 0.01 to 0.003 -- retained as
-    a conservative default even after the K_w_ctrl fix (see run_smoke_test),
-    since 0.003 was independently verified stable and adaptation is already
-    clearly visible at this gain; K_HDP=0.01 is also stable now (verified),
-    but 0.003 is kept as the shipped default rather than re-tuning upward
-    without a dedicated reason to.
+    Thin delegate to jaxfne.hdp_network.v1_pfc_aaab_hdp_params() -- the named,
+    reproducible preset (DEFAULT_HDP_V1_PFC_AAAB, mirroring DEFAULT_HDP /
+    DEFAULT_HDP_DESYNC's precedent) that this script's own inline dict
+    assembly was promoted into 2026-07-05, so this exact HDP config is a
+    single source of truth reusable by any other script/test rather than a
+    magic-constant duplicate. See jaxfne/hdp_network.py's docstrings for the
+    K_HDP=0.003/K_w_ctrl=0.001 rationale.
     """
-    from jaxfne.hdp_network import DEFAULT_HDP_DESYNC, BASE_HDP_KWARGS_DEFAULT
-    from jaxfne.emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+    from jaxfne.hdp_network import v1_pfc_aaab_hdp_params
 
-    hp = dict(BASE_HDP_KWARGS_DEFAULT)
-    hp.update(DEFAULT_HDP_DESYNC)
-    hp["size_scale_by_cell_type"] = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
-    hp["K_HDP"] = 0.003
-    hp["K_w_ctrl"] = 0.001
-    return hp
+    return v1_pfc_aaab_hdp_params()
 
 
 def run_smoke_test(n_trials: int = 10, seed: int = 0, carry_weights: bool = True) -> dict:
@@ -347,7 +335,7 @@ def run_smoke_test(n_trials: int = 10, seed: int = 0, carry_weights: bool = True
         "n_trials": n_trials,
         "n_neurons": n_neurons,
         "carry_weights": carry_weights,
-        "hdp_preset": "DEFAULT_HDP_DESYNC + BASE + cube-law size scale, K_HDP=0.003, K_w_ctrl=0.001",
+        "hdp_preset": "jaxfne.hdp_network.DEFAULT_HDP_V1_PFC_AAAB (K_HDP=0.003, K_w_ctrl=0.001)",
         "tuning_group_sizes": {k: len(v) for k, v in groups.items()},
         "trial_summaries": trial_summaries,
     }

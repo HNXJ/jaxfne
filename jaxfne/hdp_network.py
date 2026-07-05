@@ -118,6 +118,48 @@ DEFAULT_HDP_DESYNC = dict(
     C_spike=0.0,
 )
 
+# K_HDP/K_w_ctrl overrides layered on DEFAULT_HDP_DESYNC for the V1-PFC
+# continuous AAAB adaptation paradigm (scripts/v1_pfc_continuous_aaab_smoke_test.py).
+# K_HDP dialed DOWN from DEFAULT_HDP_DESYNC's 0.01 to 0.003 -- retained as a
+# conservative default even after the K_w_ctrl fix below, since 0.003 was
+# independently verified stable and adaptation is already clearly visible at
+# this gain; K_HDP=0.01 is also stable now (verified), but 0.003 is kept as
+# the shipped default rather than re-tuning upward without a dedicated reason
+# to. K_w_ctrl=0.001 is the weight-magnitude two-sided restoring term added
+# 2026-07-04 to jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp
+# (mirrors K_ctrl's own form for H, applied one level down to wmag) --
+# verified directly on this exact topology: fully stabilizes 20 chained
+# trials with weight carryover even at the previously-unstable K_HDP=0.01 (w
+# stays at its ~0.071-0.075 baseline magnitude throughout; without K_w_ctrl
+# the same K_HDP=0.01 config runs away by trial 15).
+DEFAULT_HDP_V1_PFC_AAAB = dict(
+    DEFAULT_HDP_DESYNC,
+    K_HDP=0.003,
+    K_w_ctrl=0.001,
+)
+
+
+def v1_pfc_aaab_hdp_params() -> dict:
+    """Full HDP kwargs for the V1-PFC continuous AAAB paradigm.
+
+    BASE_HDP_KWARGS_DEFAULT (H_min/H_max/barrier/w-clamp scaffold) folded
+    with DEFAULT_HDP_V1_PFC_AAAB (K_HDP=0.003, K_w_ctrl=0.001, tau_0_ms=5,
+    K_ctrl=0.15, alpha=0.05, gamma=0.5 -- DEFAULT_HDP_DESYNC's "responsive H"
+    profile), plus cube-law per-cell-type size scaling from
+    jaxfne.emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE (E=5 -> tau_i =
+    tau_0_ms * 5**3, so E adapts far slower than interneurons). This is the
+    single source of truth for this paradigm's HDP config -- replaces the
+    inline dict assembly previously duplicated in
+    scripts/v1_pfc_continuous_aaab_smoke_test.py's own build_hdp_params().
+    """
+    from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
+
+    hp = dict(BASE_HDP_KWARGS_DEFAULT)
+    hp.update(DEFAULT_HDP_V1_PFC_AAAB)
+    hp["size_scale_by_cell_type"] = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
+    return hp
+
+
 # Drive scale paired with DEFAULT_HDP_DESYNC: x1.2 on
 # BASE_DRIVE_BY_CELL_TYPE_DEFAULT raises overall rate from ~7.3Hz to
 # ~12.6Hz while keeping H pinned (H_mean=1.001) at DEFAULT_HDP -- found by
