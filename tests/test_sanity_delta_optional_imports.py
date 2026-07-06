@@ -1,5 +1,6 @@
 """Tests for optional import patterns and optional notebook support."""
 
+import subprocess
 import sys
 import pytest
 import jaxfne as jtfne
@@ -9,16 +10,26 @@ class TestOptionalImports:
     """Test that heavy dependencies are not loaded on root import."""
 
     def test_jaxfne_imports_without_notebook_deps(self):
-        """Test that jaxfne imports without requiring nbconvert or notebook."""
-        # If these modules are in sys.modules, they were imported during setup
-        # This test documents which deps are expected at root import
-        excluded_heavy = ("nbconvert", "notebook", "papermill", "plotly")
+        """Test that jaxfne imports without requiring nbconvert or notebook.
 
-        for mod in excluded_heavy:
-            if mod in sys.modules:
-                # It's OK if these were imported, but they should not be *required*
-                # for basic jaxfne functionality
-                pass
+        Checks in a FRESH subprocess (not this test session's own sys.modules,
+        which is unreliable -- other tests/plugins may have already imported
+        these modules for unrelated reasons) that a bare `import jaxfne` does
+        not itself pull in any of these heavy/optional dependencies.
+        """
+        excluded_heavy = ("nbconvert", "notebook", "papermill", "plotly")
+        code = (
+            "import sys\n"
+            "import jaxfne\n"
+            "present = [m for m in %r if m in sys.modules]\n"
+            "print(','.join(present))\n"
+        ) % (excluded_heavy,)
+        result = subprocess.run(
+            [sys.executable, "-c", code], capture_output=True, text=True, timeout=60
+        )
+        assert result.returncode == 0, f"import jaxfne failed in a fresh subprocess: {result.stderr}"
+        present = [m for m in result.stdout.strip().split(",") if m]
+        assert present == [], f"import jaxfne unexpectedly pulled in: {present}"
 
     def test_sanity_delta_minimal_deps(self):
         """Test that SanityDeltaConfig can instantiate with minimal deps."""

@@ -2755,17 +2755,13 @@
     {
       "path": "tests/test_sanity_delta_backup_resume.py",
       "purpose": "Tests BackupState init/serialization/manifest export and TaskEpisode probe-chaining/validate/resume.",
-      "score": 85,
+      "score": 96,
       "tbi": [],
-      "tbd": [
-        "no file in the sanity_delta suite asserts the strict_json check's *value* is meaningful rather than just present"
-      ],
-      "warnings": [
-        "the known strict_json no-op bug in TaskEpisode.validate() is real but this file's tests don't touch it -- non-issue for this file's own correctness"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "Cross-checked TaskEpisode.validate(): test_episode_validate_truth_gates requests only truth_gates_preserved+finite_outputs (both real checks), NOT strict_json, so it neither exercises nor catches the known strict_json no-op bug.",
-      "status": "reviewed"
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "Cross-checked TaskEpisode.validate(): test_episode_validate_truth_gates requests only truth_gates_preserved+finite_outputs (both real checks), NOT strict_json, so it neither exercises nor catches the known strict_json no-op bug. || FIXED 2026-07-05: now that sanity_delta.py's strict_json check is a real check (fixed earlier this session, not a rubber stamp), added 'strict_json' to test_episode_validate_truth_gates' checks tuple + `assert results['strict_json'] is True`. `pytest tests/test_sanity_delta_backup_resume.py -q` -> passing as part of a 26-passed run across the 4 sanity_delta test files touched this pass.",
+      "status": "done"
     },
     {
       "path": "tests/test_sanity_delta_full_runtime_mode.py",
@@ -2781,28 +2777,24 @@
     {
       "path": "tests/test_sanity_delta_hierarchical_oddball_config.py",
       "purpose": "Tests SanityDeltaConfig factory defaults, truth-gate preservation, model construction, paradigm creation, 5-area validation, plasticity/backup/export smoke.",
-      "score": 88,
+      "score": 96,
       "tbi": [],
-      "tbd": [
-        "no file asserts on the actual value of the strict_json check result"
-      ],
+      "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Read fully; test_full_runtime_mode calls validate() with default checks (incl strict_json) but asserts only the 4 real ones, not results['strict_json'].",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read fully; test_full_runtime_mode calls validate() with default checks (incl strict_json) but asserts only the 4 real ones, not results['strict_json']. || FIXED 2026-07-05: added `assert results['strict_json'] is True` (strict_json is now a real check, not a rubber stamp -- fixed earlier this session). `pytest tests/test_sanity_delta_hierarchical_oddball_config.py -q` -> passing as part of a 26-passed run.",
+      "status": "done"
     },
     {
       "path": "tests/test_sanity_delta_optional_imports.py",
       "purpose": "Verifies jaxfne core (SanityDeltaConfig/Manifest/visualize/export) works without heavy optional deps required.",
-      "score": 89,
-      "tbi": [
-        "test_jaxfne_imports_without_notebook_deps has a genuinely vacuous assertion (the for-loop's if-branch always just passes) -- provides no real regression protection despite its docstring; predates the core.py split, real dead-assertion issue in the test"
-      ],
+      "score": 96,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Read fully.",
-      "status": "reviewed"
+      "last_verified": "2026-07-05",
+      "evidence": "Read fully. || FIXED 2026-07-05: test_jaxfne_imports_without_notebook_deps's for-loop body was a bare `pass` regardless of outcome, a genuinely vacuous assertion. Rewrote to check in a FRESH subprocess (not this test session's own polluted sys.modules) that `import jaxfne` alone does not pull in nbconvert/notebook/papermill/plotly. Verified the new check genuinely discriminates: injecting a deliberate `import plotly` before `import jaxfne` in the subprocess causes the assertion to correctly fail (present=['plotly']), confirming it's not another rubber stamp. `pytest tests/test_sanity_delta_optional_imports.py -q` -> passing as part of a 26-passed run.",
+      "status": "done"
     },
     {
       "path": "tests/test_sanity_delta_plasticity.py",
@@ -2844,19 +2836,13 @@
     {
       "path": "tests/test_sanity_delta_report_schema_full.py",
       "purpose": "Validates all 5 exported reports from episode.export() contain required schema keys and are strict-JSON compliant.",
-      "score": 75,
-      "tbi": [
-        "test name/docstring ('strict JSON compliant') overclaims what the assertions check (mere key presence + json.loads-ability, not schema strictness or the strict_json check's correctness) -- verified name/assertion mismatch"
-      ],
-      "tbd": [
-        "either rename to reflect it only checks key presence, or add an assertion on checks['strict_json'] tied to a real outcome (requires fixing the no-op first)"
-      ],
-      "warnings": [
-        "closest of all files to testing the strict_json no-op bug, and the most likely to give a false sense of coverage for it"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "Cross-checked export()+validate(): assertions on validation_report.json are only key-presence ('valid'/'checks'/'generated_at' in data), never inspecting checks['strict_json']'s boolean; since validate()'s strict_json is a hardcoded no-op (always True), this test passes identically whether the bug is fixed or not.",
-      "status": "reviewed"
+      "score": 93,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-05",
+      "evidence": "Cross-checked export()+validate(): assertions on validation_report.json are only key-presence ('valid'/'checks'/'generated_at' in data), never inspecting checks['strict_json']'s boolean; since validate()'s strict_json is a hardcoded no-op (always True), this test passes identically whether the bug is fixed or not. || FIXED 2026-07-05: added `assert val_data['checks']['strict_json'] is True` to the validation_report.json section -- now that strict_json is a real check (fixed earlier this session), this closes the name/assertion mismatch (the test now genuinely checks something about strict-JSON compliance, not just key presence). `pytest tests/test_sanity_delta_report_schema_full.py -q` -> passing as part of a 26-passed run.",
+      "status": "done"
     },
     {
       "path": "tests/test_sanity_delta_resume_equivalence_full.py",

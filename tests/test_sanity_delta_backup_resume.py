@@ -66,10 +66,11 @@ class TestTaskEpisode:
         backup = model.initialize_backup(paradigm)
         episode = model.run_task(paradigm=paradigm, gate=paradigm.make_fixation_gate(), backup=backup)
 
-        results = episode.validate(checks=("truth_gates_preserved", "finite_outputs"))
+        results = episode.validate(checks=("truth_gates_preserved", "finite_outputs", "strict_json"))
 
         assert results["truth_gates_preserved"] is True
         assert bool(results["finite_outputs"]) is True
+        assert results["strict_json"] is True
 
     def test_episode_resume_method(self):
         """Test episode can be resumed."""

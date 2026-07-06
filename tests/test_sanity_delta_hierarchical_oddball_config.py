@@ -123,6 +123,7 @@ class TestSanityDeltaModel:
         assert results["backup_resume_equivalence"] is True
         assert results["proxy_safe_readout_names"] is True
         assert results["truth_gates_preserved"] is True
+        assert results["strict_json"] is True
 
         # Export outputs
         episode.export(artifact_dir=tmp_path)

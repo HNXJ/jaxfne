@@ -5,7 +5,6 @@
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| tests/test_sanity_delta_report_schema_full.py | 75 | reviewed | test name/docstring ('strict JSON compliant') overclaims what the assertions check (mere key presence + json.loads-abili | either rename to reflect it only checks key presence, or add an assertion on checks['strict_json'] tied to a real outcom | 2026-07-04 |
 | scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
 | scripts/repair_notebooks.py | 78 | reviewed |  |  | 2026-07-04 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
@@ -30,7 +29,6 @@
 | jaxfne/vis/plotly/network.py | 85 | open |  | No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\.network|plot_network_3d' test | 2026-07-05 |
 | scripts/characterize_neuron_io_curves.py | 85 | reviewed |  |  | 2026-07-04 |
 | scripts/verify_5hz_traces.py | 85 | reviewed |  |  | 2026-07-04 |
-| tests/test_sanity_delta_backup_resume.py | 85 | reviewed |  | no file in the sanity_delta suite asserts the strict_json check's *value* is meaningful rather than just present | 2026-07-04 |
 | tests/test_v0320_recompilation_guards.py | 85 | reviewed | the underlying mechanism still conflates 'a new Python wrapper handed to jax.jit' with 'an actual XLA recompilation' (wo | if the registry's Python-call-counting design changes to be JIT-hook-based, these tests need re-verification since they  | 2026-07-04 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
@@ -57,7 +55,6 @@
 | tests/test_multi_area_source_projector.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_performance_reports_v030.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_public_docs_hygiene.py | 88 | reviewed |  |  | 2026-07-04 |
-| tests/test_sanity_delta_hierarchical_oddball_config.py | 88 | reviewed |  | no file asserts on the actual value of the strict_json check result | 2026-07-04 |
 | tests/test_v0331_jaxley_lazy.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_v033_two_neuron_ei.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0342_evidence_inventory_paths.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -79,7 +76,6 @@
 | scripts/run_agsdr_gain_optimization.py | 89 | reviewed |  |  | 2026-07-04 |
 | scripts/run_tutorial_smoke.py | 89 | reviewed |  |  | 2026-07-04 |
 | tests/test_multi_area_spectrolaminar_objective.py | 89 | reviewed |  |  | 2026-07-04 |
-| tests/test_sanity_delta_optional_imports.py | 89 | reviewed | test_jaxfne_imports_without_notebook_deps has a genuinely vacuous assertion (the for-loop's if-branch always just passes |  | 2026-07-04 |
 | tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
 | examples/02_spectrolaminar_oddball_scaffold.py | 90 | reviewed |  |  | 2026-07-04 |
 | examples/03_jaxley_bridge_smoke.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -326,6 +322,7 @@
 | tests/test_probe_operators_v021.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_public_api_compatibility.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_root_export_api_v0338.py | 93 | reviewed |  |  | 2026-07-04 |
+| tests/test_sanity_delta_report_schema_full.py | 93 | done |  |  | 2026-07-05 |
 | tests/test_schema_migration_v0342.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_selectors_v0329.py | 93 | reviewed |  |  | 2026-07-04 |
 | tests/test_signals_get_v0329.py | 93 | reviewed |  |  | 2026-07-04 |
@@ -413,6 +410,9 @@
 | scripts/validate_json_safe.py | 96 | reviewed |  |  | 2026-07-04 |
 | tests/test_api_smoke.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_docs_equations_plotly_v0214.py | 96 | done |  |  | 2026-07-05 |
+| tests/test_sanity_delta_backup_resume.py | 96 | done |  |  | 2026-07-05 |
+| tests/test_sanity_delta_hierarchical_oddball_config.py | 96 | done |  |  | 2026-07-05 |
+| tests/test_sanity_delta_optional_imports.py | 96 | done |  |  | 2026-07-05 |
 | skills/FRICTIONS_STACK.md | 96 | done |  |  | 2026-07-05 |
 | README.md | 96 | done |  |  | 2026-07-05 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |

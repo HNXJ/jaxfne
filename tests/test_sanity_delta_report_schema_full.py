@@ -26,6 +26,7 @@ def test_reports_strict_json_schema():
         assert "valid" in val_data
         assert "checks" in val_data
         assert "generated_at" in val_data
+        assert val_data["checks"]["strict_json"] is True
         
         # 2. Backup/Resume Report
         br_path = path / "backup_resume_report.json"
