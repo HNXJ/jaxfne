@@ -122,6 +122,7 @@ nav:
 
   - About jaxfne:
       - Limitations and future plans: limitations_and_future_plans.md
+      - Documentation quality report: publication/docs_quality_report.md
       - v0.4.7 Refactor Audit: v047_refactor_audit.md
       - Changelog: changelog.md
       - Citation: citation.md
