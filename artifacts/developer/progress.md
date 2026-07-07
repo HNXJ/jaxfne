@@ -76,7 +76,7 @@
 | jaxfne/connectivity.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/fields/solvers.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/plasticity.py | 90 | reviewed |  |  | 2026-07-04 |
-| jaxfne/tutorial_utils.py | 90 | reviewed |  |  | 2026-07-05 |
+| jaxfne/tutorial_utils.py | 90 | reviewed |  |  | 2026-07-07 |
 | jaxfne/validation.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/vis/plotly/network.py | 90 | done |  |  | 2026-07-07 |
 | scripts/audit_notebooks_and_assets.py | 90 | reviewed |  |  | 2026-07-04 |

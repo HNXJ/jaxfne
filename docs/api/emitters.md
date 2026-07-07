@@ -75,14 +75,14 @@ optional `drive_schedule` argument.
 
 ```python
 # From explicit cell-type fractions (random assignment order):
-params = jtfne.izhikevich_eig_params(
+params = jtfne.emitters.izhikevich_eig_params(
     n=128,
     cell_type_fractions={"E": 0.8, "PV": 0.1, "SST": 0.07, "VIP": 0.03},
     dtype="float32",
 )
 
 # From an explicit, ordered list of per-neuron labels (deterministic):
-params = jtfne.izhikevich_params_from_labels(
+params = jtfne.emitters.izhikevich_params_from_labels(
     labels=("E", "E", "PV", "SST"),
     layer_labels=("L4", "L4", "L4", "L2/3"),   # optional, must match len(labels)
     dtype="float32",
@@ -135,7 +135,7 @@ Number of neurons, i.e. `v0.shape[0]`.
 
 **Example:**
 ```python
-params = jtfne.izhikevich_eig_params(128, {"E": 0.8, "PV": 0.2})
+params = jtfne.emitters.izhikevich_eig_params(128, {"E": 0.8, "PV": 0.2})
 print(params.n_neurons)  # 128
 ```
 

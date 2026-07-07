@@ -385,7 +385,7 @@
         "scripts/spectrolaminar_tfne_izhikevich_pipeline.py"
       ],
       "depends_on_functions": [],
-      "shape": "User's staged 3-release roadmap 2026-07-01, first release: 'every single code must be 95/100 done here, such as placeholders, organization, optimization of pipelines and merger of functions to make repo less code more functionality; tutorial refactor since many codes are still not in jaxfne grammar; etudes and suites'.\n\nREAL BASELINE (measured, not estimated):\n1. PLACEHOLDERS: exactly 5 confirmed placeholder etudes in tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS -- etudes 8 (continuous adaptation), 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop). All 4 of 9-12 are oddball/omission paradigms -- directly unblocked by improving jaxfne.paradigm (see release-0.4.7-final-polish's modularity item, which covers the actual paradigm engineering). jaxfne/paradigm.py ALREADY has the real building blocks (general_sequential_oddball_paradigm, HierarchicalOddballParadigm, omission_oddball_paradigm, coop_omission_oddball_paradigm, standard_visual_omission) -- confirmed via direct import 2026-07-01. These 5 etudes likely just need wiring to a real NeuronalTensor/Model run, matching the exact pattern that already fixed etudes 6/7 (v0.4.4 changelog: 'previously placeholders... implementing them surfaced and fixed genuine bugs'). Not a from-scratch build.\n2. TODO/FIXME/NotImplementedError markers: 19 files in jaxfne/ contain at least one -- needs per-file triage (some are legitimate TBI-fenced experimental code per jaxfne-harden's experimental-fence rule, not all are release blockers).\n3. FUNCTION-MERGER CANDIDATE already tracked (plans.json item merge-build_model-apply_drive_correction, from an earlier session's AST-scan brainstorm): jaxfne/hdp_network.py's build_model/apply_drive_correction consolidation missed 3 scripts (hdp_1000_neuronal_tensor_column.py, hdp_suite2_visualizations.py, spectrolaminar_tfne_izhikevich_pipeline.py) that still have un-migrated duplicate copies.\n4. TUTORIAL GRAMMAR: scripts/audit_notebook_grammar.py already exists and checks for jtfne import + setup/config/run/objective/export sections + local-engine-pattern/proxy-overclaim violations -- run it across ALL tutorials (only spot-checked one file this session) to get the real non-compliant-file count before claiming 95/100.\n\nScope note: this is release-scale work (potentially dozens of files) -- must be executed in tracked batches with real verification per batch (per progress-review-plan discipline), not attempted in one pass.\n\nPROGRESS 2026-07-01: \u00e9tude 9 (local oddball) DONE -- real content built and verified (StimulusSchedule-wrapped standard/deviant paradigm, +1.46Hz mismatch response, 10 trials, N=200), passes the real test_release_notebook_executes_cleanly pytest gate + grammar audit, removed from PLACEHOLDER_NOTEBOOKS. Along the way found a real silent-no-op gap in Model._resolve_stimulus_schedule (bare list-of-dicts paradigm arg silently ignored, no error/warning) -- documented in the notebook, not yet fixed upstream. 4 placeholders remain: \u00e9tude 8 (continuous adaptation, not an oddball paradigm), 10 (global/local via HierarchicalOddballParadigm), 11 (omission-local via omission_oddball_paradigm), 12 (omission-global-coop via coop_omission_oddball_paradigm) -- same wiring pattern now proven for 9.\n\nPRIORITY UPDATE 2026-07-01: hdp-stability-formula-design-and-validation is now the SINGLE HIGHEST-PRIORITY sub-item of this release (user-designated, target 100/100, explicit 0.4.5 blocker) -- HDP is required for stability/equilibrium/long-term adaptation, not covered by the general 95/100 bar applied to everything else here. Tackle it before the placeholder-etude/function-merger/tutorial-grammar work below, since \u00e9tude 8 (continuous adaptation) likely needs a working HDP mechanism anyway.\n\nUPDATE 2026-07-01: 4 of 5 placeholder \u00e9tudes now real -- 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop) all built, executed, audited, and pass the release-facing pytest gate. Only \u00e9tude 8 (continuous adaptation) remains a placeholder -- a genuinely different task (long-timescale continuous adaptation, not an oddball/omission paradigm wiring job like 9-12), not yet started. PLACEHOLDER_NOTEBOOKS now contains exactly 1 entry.\n\nUPDATE 2026-07-01 (TODO/FIXME triage): all 11 flagged files reviewed (the earlier \"19 files\" estimate was stale, re-verified at 11). Verdict: 10/11 are legitimate fenced/ABC/input-validation patterns, not real gaps. 1 real fix made (fields/proxy.py's misleading \"TODO: implement\" catch-all reworded to a proper ValueError -- it was always a normal invalid-input guard, all 3 documented modes are implemented). 1 design note flagged but not fixed: GLIFEmitter/LIFEmitter/pynwb_compat are exported in __all__ but always raise NotImplementedError on use -- honest and loud-failing, not silent, but an unusual API choice worth a real decision (deprecate vs. move to experimental namespace) rather than a mechanical fix. This sub-item of release-0.4.5-code-quality is DONE.\n\nUPDATE 2026-07-02: \u00e9tude 8 (continuous adaptation) built -- ALL 12 placeholder \u00e9tudes are now real, executed, gated. tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS is genuinely empty (set()). The \"zero placeholders\" 0.4.5 sub-requirement is DONE.\n\nMAJOR FINDING while building \u00e9tude 8 (see F-024, skills/FRICTIONS_STACK.md): manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used a DIFFERENT, stale jaxfne checkout (~/workspace/computational/jaxfne, via a misconfigured default python3 Jupyter kernelspec) -- caused a real, dramatic wrong-result (HDP runaway) for \u00e9tude 8 specifically. Systematically re-verified \u00e9tudes 3/9/10/11/12 against the correct kernel afterward: all bit-identical to what was previously saved (their code path -- the standard paradigm/.simulate() chain -- happens to be unchanged between the two checkouts), so no other notebook's reported numbers were actually wrong this session, but this was not guaranteed and should not be assumed for future notebook work. The real pytest release gate (test_notebook_execution_suite.py) was never affected -- it uses an ephemeral sys.executable-based kernel, bypassing all pre-registered kernelspecs.\n\nAlso fixed in the process: a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never actually matched \"simulate\"/\"simulation\" due to word-boundary semantics -- fixed to \\bsimulat\\w*\\b), first exposed by \u00e9tude 8 since it was the first notebook to rely solely on simulate_edge_recurrent_izhikevich_hdp without also using construct()/probe/signals elsewhere in its text.",
+      "shape": "User's staged 3-release roadmap 2026-07-01, first release: 'every single code must be 95/100 done here, such as placeholders, organization, optimization of pipelines and merger of functions to make repo less code more functionality; tutorial refactor since many codes are still not in jaxfne grammar; etudes and suites'.\n\nREAL BASELINE (measured, not estimated):\n1. PLACEHOLDERS: exactly 5 confirmed placeholder etudes in tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS -- etudes 8 (continuous adaptation), 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop). All 4 of 9-12 are oddball/omission paradigms -- directly unblocked by improving jaxfne.paradigm (see release-0.4.7-final-polish's modularity item, which covers the actual paradigm engineering). jaxfne/paradigm.py ALREADY has the real building blocks (general_sequential_oddball_paradigm, HierarchicalOddballParadigm, omission_oddball_paradigm, coop_omission_oddball_paradigm, standard_visual_omission) -- confirmed via direct import 2026-07-01. These 5 etudes likely just need wiring to a real NeuronalTensor/Model run, matching the exact pattern that already fixed etudes 6/7 (v0.4.4 changelog: 'previously placeholders... implementing them surfaced and fixed genuine bugs'). Not a from-scratch build.\n2. TODO/FIXME/NotImplementedError markers: 19 files in jaxfne/ contain at least one -- needs per-file triage (some are legitimate TBI-fenced experimental code per jaxfne-harden's experimental-fence rule, not all are release blockers).\n3. FUNCTION-MERGER CANDIDATE already tracked (plans.json item merge-build_model-apply_drive_correction, from an earlier session's AST-scan brainstorm): jaxfne/hdp_network.py's build_model/apply_drive_correction consolidation missed 3 scripts (hdp_1000_neuronal_tensor_column.py, hdp_suite2_visualizations.py, spectrolaminar_tfne_izhikevich_pipeline.py) that still have un-migrated duplicate copies.\n4. TUTORIAL GRAMMAR: scripts/audit_notebook_grammar.py already exists and checks for jtfne import + setup/config/run/objective/export sections + local-engine-pattern/proxy-overclaim violations -- run it across ALL tutorials (only spot-checked one file this session) to get the real non-compliant-file count before claiming 95/100.\n\nScope note: this is release-scale work (potentially dozens of files) -- must be executed in tracked batches with real verification per batch (per progress-review-plan discipline), not attempted in one pass.\n\nPROGRESS 2026-07-01: étude 9 (local oddball) DONE -- real content built and verified (StimulusSchedule-wrapped standard/deviant paradigm, +1.46Hz mismatch response, 10 trials, N=200), passes the real test_release_notebook_executes_cleanly pytest gate + grammar audit, removed from PLACEHOLDER_NOTEBOOKS. Along the way found a real silent-no-op gap in Model._resolve_stimulus_schedule (bare list-of-dicts paradigm arg silently ignored, no error/warning) -- documented in the notebook, not yet fixed upstream. 4 placeholders remain: étude 8 (continuous adaptation, not an oddball paradigm), 10 (global/local via HierarchicalOddballParadigm), 11 (omission-local via omission_oddball_paradigm), 12 (omission-global-coop via coop_omission_oddball_paradigm) -- same wiring pattern now proven for 9.\n\nPRIORITY UPDATE 2026-07-01: hdp-stability-formula-design-and-validation is now the SINGLE HIGHEST-PRIORITY sub-item of this release (user-designated, target 100/100, explicit 0.4.5 blocker) -- HDP is required for stability/equilibrium/long-term adaptation, not covered by the general 95/100 bar applied to everything else here. Tackle it before the placeholder-etude/function-merger/tutorial-grammar work below, since étude 8 (continuous adaptation) likely needs a working HDP mechanism anyway.\n\nUPDATE 2026-07-01: 4 of 5 placeholder études now real -- 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop) all built, executed, audited, and pass the release-facing pytest gate. Only étude 8 (continuous adaptation) remains a placeholder -- a genuinely different task (long-timescale continuous adaptation, not an oddball/omission paradigm wiring job like 9-12), not yet started. PLACEHOLDER_NOTEBOOKS now contains exactly 1 entry.\n\nUPDATE 2026-07-01 (TODO/FIXME triage): all 11 flagged files reviewed (the earlier \"19 files\" estimate was stale, re-verified at 11). Verdict: 10/11 are legitimate fenced/ABC/input-validation patterns, not real gaps. 1 real fix made (fields/proxy.py's misleading \"TODO: implement\" catch-all reworded to a proper ValueError -- it was always a normal invalid-input guard, all 3 documented modes are implemented). 1 design note flagged but not fixed: GLIFEmitter/LIFEmitter/pynwb_compat are exported in __all__ but always raise NotImplementedError on use -- honest and loud-failing, not silent, but an unusual API choice worth a real decision (deprecate vs. move to experimental namespace) rather than a mechanical fix. This sub-item of release-0.4.5-code-quality is DONE.\n\nUPDATE 2026-07-02: étude 8 (continuous adaptation) built -- ALL 12 placeholder études are now real, executed, gated. tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS is genuinely empty (set()). The \"zero placeholders\" 0.4.5 sub-requirement is DONE.\n\nMAJOR FINDING while building étude 8 (see F-024, skills/FRICTIONS_STACK.md): manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used a DIFFERENT, stale jaxfne checkout (~/workspace/computational/jaxfne, via a misconfigured default python3 Jupyter kernelspec) -- caused a real, dramatic wrong-result (HDP runaway) for étude 8 specifically. Systematically re-verified études 3/9/10/11/12 against the correct kernel afterward: all bit-identical to what was previously saved (their code path -- the standard paradigm/.simulate() chain -- happens to be unchanged between the two checkouts), so no other notebook's reported numbers were actually wrong this session, but this was not guaranteed and should not be assumed for future notebook work. The real pytest release gate (test_notebook_execution_suite.py) was never affected -- it uses an ephemeral sys.executable-based kernel, bypassing all pre-registered kernelspecs.\n\nAlso fixed in the process: a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never actually matched \"simulate\"/\"simulation\" due to word-boundary semantics -- fixed to \\bsimulat\\w*\\b), first exposed by étude 8 since it was the first notebook to rely solely on simulate_edge_recurrent_izhikevich_hdp without also using construct()/probe/signals elsewhere in its text.",
       "status": "proposed",
       "source": "User's explicit 3-release roadmap, 2026-07-01: '0.4.5: every single code must be 95/100 done here...'"
     },
@@ -467,7 +467,7 @@
         "jaxfne/hdp_network.py"
       ],
       "depends_on_functions": [],
-      "shape": "User directive 2026-07-02: configs should describe emitters and their synaptic connections the way an IC/PCB schematic describes elements and wires -- standard, organized, and easy to flatten/unflatten. This is a design-philosophy statement ('simple code and short algorithms and objects with minimum complexity, complex configs') more than a filed bug -- complexity should live in declarative config data, not in runtime algorithms/object graphs. Relevant existing state: NeuronalTensor/EdgeList/IzhikevichParams are ALREADY registered JAX pytrees with flatten/unflatten support (see F-020's fix in scripts/cortical_column_localized_workflow.py::save_column/load_column for the treedef-safety landmine already found in this area). F-023 (this session, friction-resolution pass) is a smaller, concrete instance of the same underlying gap: HDPColumnConfig.base_drive_by_cell_type has no clean None-passthrough sentinel, forcing ad hoc per-script override logic instead of one standard config path. NOT SCOPED YET: no concrete schema has been drafted; needs a design pass (likely Plan-mode/architecture-review scale, not a quick edit) before implementation, given multiple existing config entry points (Configuration, NeuronalTensor, HDPColumnConfig) would need reconciling under one schema without breaking existing tutorials/etudes.\n\nSCOPED AND CLOSED 2026-07-03 as 'harden + document existing tiers' (user's explicit choice over a full schema redesign, given research showed jaxfne already has the IC/PCB shape needed). Research pass first (background agent, verified via direct source reads, not trusted claims): Configuration (5 fields, NOT a pytree, declarative rule-dict connectivity compiled to EdgeList at construct() time), NeuronalTensor (Area/Layer/NeuronType=elements, InterConnection/AreaConnection=wires, already the IC/PCB shape, NOT a pytree but has a real NeuronalTensor->Configuration converter -- a background subagent's earlier claim that NO converter exists in either direction was WRONG and corrected by direct source read), HDPColumnConfig (thin wrapper funneling through Configuration, no independent connectivity representation), and the shared IzhikevichParams/EdgeList pytree substrate (ALREADY registered via jax.tree_util.register_pytree_node, numeric arrays as leaves / string labels as aux data -- confirms 'flatten/unflatten-friendly' is largely already satisfied at the runtime layer).\n\nThree concrete actions taken:\n1. Closed the documented silent-type-confusion landmine: added __post_init__ validation to NeuronalTensor and Area (jaxfne/neuronal_tensor.py) that raises TypeError on wrong-typed elements, with a specific clear message for the exact known case (NeuronalTensor(some_configuration) positionally). Verified: all 4 real call sites (scripts/build_canonical_neuronal_tensor_configs.py's 4 builders, scripts/hdp_1000_neuronal_tensor_column.py's build_tensor()) still construct correctly; landmine case now raises immediately with a clear message; 74 NeuronalTensor-related tests + full 2647-test non-notebook suite pass clean.\n2. Documented the three-tier system (Configuration=quick-start, HDPColumnConfig=canonical-6-layer convenience wrapper, NeuronalTensor=structured IC/PCB-schematic tier) in AGENTS.md \u00a7 'Config complexity tiers' and both jaxfne-config/jaxfne-neural-tensor skills (synced to global skill dirs) -- resolves the 'three competing schemas' framing into 'three tiers of one pipeline'.\n3. Closed F-023's remaining gap (skills/FRICTIONS_STACK.md) not by extending HDPColumnConfig, but by confirming and documenting that scripts/spectrolaminar_tfne_izhikevich_pipeline.py's direct use of Configuration/laminar_cortex_config is CORRECT and intentional (its 5-layer merged-L2/3 + flat cell-type-fraction shape is genuinely outside HDPColumnConfig's canonical-6-layer scope) -- extending HDPColumnConfig to cover every shape was considered and rejected as adding complexity to the wrong layer. merge-build_model-apply_drive_correction closed as done.\nDeliberately NOT done (explicit design decision, not an oversight): a Configuration->NeuronalTensor converter (only the reverse exists) -- Configuration is the simpler tier, promoting it up adds no information; build only if a concrete use case demands round-tripping. Also not done: making NeuronalTensor itself a registered JAX pytree -- it's a build-time-only Python spec, never traced by JIT, so pytree registration would add complexity with no simulate-time benefit (contradicts 'minimum complexity'); the runtime layer (IzhikevichParams/EdgeList) already has the pytree flatten/unflatten the user asked for.",
+      "shape": "User directive 2026-07-02: configs should describe emitters and their synaptic connections the way an IC/PCB schematic describes elements and wires -- standard, organized, and easy to flatten/unflatten. This is a design-philosophy statement ('simple code and short algorithms and objects with minimum complexity, complex configs') more than a filed bug -- complexity should live in declarative config data, not in runtime algorithms/object graphs. Relevant existing state: NeuronalTensor/EdgeList/IzhikevichParams are ALREADY registered JAX pytrees with flatten/unflatten support (see F-020's fix in scripts/cortical_column_localized_workflow.py::save_column/load_column for the treedef-safety landmine already found in this area). F-023 (this session, friction-resolution pass) is a smaller, concrete instance of the same underlying gap: HDPColumnConfig.base_drive_by_cell_type has no clean None-passthrough sentinel, forcing ad hoc per-script override logic instead of one standard config path. NOT SCOPED YET: no concrete schema has been drafted; needs a design pass (likely Plan-mode/architecture-review scale, not a quick edit) before implementation, given multiple existing config entry points (Configuration, NeuronalTensor, HDPColumnConfig) would need reconciling under one schema without breaking existing tutorials/etudes.\n\nSCOPED AND CLOSED 2026-07-03 as 'harden + document existing tiers' (user's explicit choice over a full schema redesign, given research showed jaxfne already has the IC/PCB shape needed). Research pass first (background agent, verified via direct source reads, not trusted claims): Configuration (5 fields, NOT a pytree, declarative rule-dict connectivity compiled to EdgeList at construct() time), NeuronalTensor (Area/Layer/NeuronType=elements, InterConnection/AreaConnection=wires, already the IC/PCB shape, NOT a pytree but has a real NeuronalTensor->Configuration converter -- a background subagent's earlier claim that NO converter exists in either direction was WRONG and corrected by direct source read), HDPColumnConfig (thin wrapper funneling through Configuration, no independent connectivity representation), and the shared IzhikevichParams/EdgeList pytree substrate (ALREADY registered via jax.tree_util.register_pytree_node, numeric arrays as leaves / string labels as aux data -- confirms 'flatten/unflatten-friendly' is largely already satisfied at the runtime layer).\n\nThree concrete actions taken:\n1. Closed the documented silent-type-confusion landmine: added __post_init__ validation to NeuronalTensor and Area (jaxfne/neuronal_tensor.py) that raises TypeError on wrong-typed elements, with a specific clear message for the exact known case (NeuronalTensor(some_configuration) positionally). Verified: all 4 real call sites (scripts/build_canonical_neuronal_tensor_configs.py's 4 builders, scripts/hdp_1000_neuronal_tensor_column.py's build_tensor()) still construct correctly; landmine case now raises immediately with a clear message; 74 NeuronalTensor-related tests + full 2647-test non-notebook suite pass clean.\n2. Documented the three-tier system (Configuration=quick-start, HDPColumnConfig=canonical-6-layer convenience wrapper, NeuronalTensor=structured IC/PCB-schematic tier) in AGENTS.md § 'Config complexity tiers' and both jaxfne-config/jaxfne-neural-tensor skills (synced to global skill dirs) -- resolves the 'three competing schemas' framing into 'three tiers of one pipeline'.\n3. Closed F-023's remaining gap (skills/FRICTIONS_STACK.md) not by extending HDPColumnConfig, but by confirming and documenting that scripts/spectrolaminar_tfne_izhikevich_pipeline.py's direct use of Configuration/laminar_cortex_config is CORRECT and intentional (its 5-layer merged-L2/3 + flat cell-type-fraction shape is genuinely outside HDPColumnConfig's canonical-6-layer scope) -- extending HDPColumnConfig to cover every shape was considered and rejected as adding complexity to the wrong layer. merge-build_model-apply_drive_correction closed as done.\nDeliberately NOT done (explicit design decision, not an oversight): a Configuration->NeuronalTensor converter (only the reverse exists) -- Configuration is the simpler tier, promoting it up adds no information; build only if a concrete use case demands round-tripping. Also not done: making NeuronalTensor itself a registered JAX pytree -- it's a build-time-only Python spec, never traced by JIT, so pytree registration would add complexity with no simulate-time benefit (contradicts 'minimum complexity'); the runtime layer (IzhikevichParams/EdgeList) already has the pytree flatten/unflatten the user asked for.",
       "status": "done",
       "source": "User, 2026-07-02: 'configs are like description of emitters and their synaptic connections, like elements and wires in a IC/PCB; to make it both standard, organized and easy to flatten/unflatten'"
     },
@@ -598,16 +598,76 @@
           "review_passed_entries": 61
         },
         "step_scores": [
-          {"step": 1, "target": "0.4.5", "target_score": 95, "achieved_score": 96, "status": "done"},
-          {"step": 2, "target": "v1_pfc_paradigm", "target_score": 95, "achieved_score": 95, "status": "done"},
-          {"step": 3, "target": "0.4.6", "target_score": 95, "achieved_score": 95, "status": "done"},
-          {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
-          {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
-          {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
-          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 28, "status": "in_progress"},
-          {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
-          {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
+          {
+            "step": 1,
+            "target": "0.4.5",
+            "target_score": 95,
+            "achieved_score": 96,
+            "status": "done"
+          },
+          {
+            "step": 2,
+            "target": "v1_pfc_paradigm",
+            "target_score": 95,
+            "achieved_score": 95,
+            "status": "done"
+          },
+          {
+            "step": 3,
+            "target": "0.4.6",
+            "target_score": 95,
+            "achieved_score": 95,
+            "status": "done"
+          },
+          {
+            "step": 4,
+            "target": "checkpoint",
+            "target_score": null,
+            "achieved_score": null,
+            "status": "done"
+          },
+          {
+            "step": 5,
+            "target": "0.4.5_and_0.4.6",
+            "target_score": 99,
+            "achieved_score": 99,
+            "status": "done"
+          },
+          {
+            "step": 6,
+            "target": "0.4.7",
+            "target_score": 50,
+            "achieved_score": 55,
+            "status": "done"
+          },
+          {
+            "step": 7,
+            "target": "0.4.7",
+            "target_score": 80,
+            "achieved_score": 74,
+            "status": "done"
+          },
+          {
+            "step": 8,
+            "target": "0.4.7",
+            "target_score": 95,
+            "achieved_score": 38,
+            "status": "in_progress"
+          },
+          {
+            "step": 9,
+            "target": "0.4.7",
+            "target_score": 99,
+            "achieved_score": 0,
+            "status": "not_started"
+          },
+          {
+            "step": 10,
+            "target": "0.4.7",
+            "target_score": 100,
+            "achieved_score": 0,
+            "status": "not_started"
+          }
         ]
       },
       "current_scorecard_2026_07_06": {
@@ -621,16 +681,76 @@
           "review_passed_entries": 60
         },
         "step_scores": [
-          {"step": 1, "target": "0.4.5", "target_score": 95, "achieved_score": 96, "status": "done"},
-          {"step": 2, "target": "v1_pfc_paradigm", "target_score": 95, "achieved_score": 95, "status": "done"},
-          {"step": 3, "target": "0.4.6", "target_score": 95, "achieved_score": 95, "status": "done"},
-          {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
-          {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
-          {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
-          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 28, "status": "in_progress"},
-          {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
-          {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
+          {
+            "step": 1,
+            "target": "0.4.5",
+            "target_score": 95,
+            "achieved_score": 96,
+            "status": "done"
+          },
+          {
+            "step": 2,
+            "target": "v1_pfc_paradigm",
+            "target_score": 95,
+            "achieved_score": 95,
+            "status": "done"
+          },
+          {
+            "step": 3,
+            "target": "0.4.6",
+            "target_score": 95,
+            "achieved_score": 95,
+            "status": "done"
+          },
+          {
+            "step": 4,
+            "target": "checkpoint",
+            "target_score": null,
+            "achieved_score": null,
+            "status": "done"
+          },
+          {
+            "step": 5,
+            "target": "0.4.5_and_0.4.6",
+            "target_score": 99,
+            "achieved_score": 99,
+            "status": "done"
+          },
+          {
+            "step": 6,
+            "target": "0.4.7",
+            "target_score": 50,
+            "achieved_score": 55,
+            "status": "done"
+          },
+          {
+            "step": 7,
+            "target": "0.4.7",
+            "target_score": 80,
+            "achieved_score": 74,
+            "status": "done"
+          },
+          {
+            "step": 8,
+            "target": "0.4.7",
+            "target_score": 95,
+            "achieved_score": 28,
+            "status": "in_progress"
+          },
+          {
+            "step": 9,
+            "target": "0.4.7",
+            "target_score": 99,
+            "achieved_score": 0,
+            "status": "not_started"
+          },
+          {
+            "step": 10,
+            "target": "0.4.7",
+            "target_score": 100,
+            "achieved_score": 0,
+            "status": "not_started"
+          }
         ]
       },
       "steps": [
@@ -723,12 +843,12 @@
           "target": "0.4.7",
           "target_score": 95,
           "status": "in_progress",
-          "achieved_score": 28,
+          "achieved_score": 38,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
           ],
-          "progress_note": "2026-07-07 kickoff (Cursor): review pass clean (46 passed batch); 2/27 release-facing notebooks executed (v031 single neuron + sanity-checker, 339s); mkdocs --strict OK; API index smoke OK; step8_kickoff_worklist in progress.json. PRP promoted test_vis_plotly_network_model_path to review.json (61 entries).",
+          "progress_note": "2026-07-07 continue: 5/27 notebooks executed clean; emitters.md izhikevich_* import path fixed; tutorial_utils._finish_figure -> vis.tutorial_array_plots.",
           "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain."
         },
         {

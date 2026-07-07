@@ -237,3 +237,10 @@ notebooks verified (`v031_single_neuron`, `sanity-checker`) → 2 passed in 339s
 **Post-kickoff CI:** run 28900914827 → **success** on `c28799b`. Merged `dev` →
 `main`; `dev` == `main` @ `c28799b`.
 
+### 2026-07-07 — Cursor (Composer) [step 8 continue]
+**Notebooks:** +3 verified clean in 17.10s (`v033_two_neuron_ei`, `v035_small_recurrent_ei`,
+`v032_parameter_sweep`) → **5/27** total. **API docs:** `docs/api/emitters.md` — fixed
+`jtfne.izhikevich_*` → `jtfne.emitters.izhikevich_*` (post-split accurate). **Vis grammar:**
+`tutorial_utils._finish_figure` delegates to `jaxfne.vis.tutorial_array_plots`; pytest
+`test_tutorial_utils` → **38 passed**. `plans.json` step 8 → **38/95** `in_progress`.
+

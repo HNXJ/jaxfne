@@ -27,13 +27,9 @@ class ConfigSummary:
 
 
 def _finish_figure(fig, show: bool):
-    """Display or close a Matplotlib figure."""
-    import matplotlib.pyplot as plt
-    if show:
-        plt.show()
-    else:
-        plt.close(fig)
-    return fig
+    """Display or close a Matplotlib figure (delegates to jaxfne.vis)."""
+    from .vis.tutorial_array_plots import _finish_figure as _vis_finish_figure
+    return _vis_finish_figure(fig, show)
 
 
 def save_png(fig, name: str, fig_dir: Path, show: bool = False) -> str:

@@ -748,8 +748,8 @@
         "two module-level plot_raster definitions exist (vis/plotly/raster.py vs tutorial_utils.py) with incompatible signatures -- easy to import the wrong one",
         "build_laminar_column's W_parts and build_laminar_connections() are confirmed dead weight, kept only because tests/test_tutorial_utils.py::test_build_laminar_connections exercises their shapes -- deleting them would also require updating that test, a larger, separate decision than this pass's scope; the misleading comment is fixed (see evidence), the dead-code status itself is now accurately documented rather than removed."
       ],
-      "last_verified": "2026-07-05",
-      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): the 'placeholder: sparse random' comment was wrong on both counts (dense, not sparse; and never consumed) -- rewrote the comment on build_laminar_column's W_local_exc/W_local_inh/W_ff/W_fb block and build_laminar_connections()'s docstring to state plainly this is dead scaffold weight kept only for test-shape coverage, confirmed via grep that jaxfne/builders.py's build_laminar_column (the real, actively-used public builder) is a completely different function -- this file's version is deliberately aliased as jtfne.build_tutorial_laminar_column at root specifically to avoid the name collision (see jaxfne/__init__.py's own comment). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed.",
+      "last_verified": "2026-07-07",
+      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): the 'placeholder: sparse random' comment was wrong on both counts (dense, not sparse; and never consumed) -- rewrote the comment on build_laminar_column's W_local_exc/W_local_inh/W_ff/W_fb block and build_laminar_connections()'s docstring to state plainly this is dead scaffold weight kept only for test-shape coverage, confirmed via grep that jaxfne/builders.py's build_laminar_column (the real, actively-used public builder) is a completely different function -- this file's version is deliberately aliased as jtfne.build_tutorial_laminar_column at root specifically to avoid the name collision (see jaxfne/__init__.py's own comment). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed. || STEP8 2026-07-07: _finish_figure delegates to jaxfne.vis.tutorial_array_plots (vis-grammar); pytest tests/test_tutorial_utils.py -> 38 passed.",
       "status": "reviewed"
     },
     {
@@ -5555,19 +5555,25 @@
       "total_release_facing": 27,
       "verified_this_pass": [
         "jaxfne_v031_single_neuron.ipynb",
-        "jaxfne-sanity-checker-notebook-01.ipynb"
+        "jaxfne-sanity-checker-notebook-01.ipynb",
+        "jaxfne_v033_two_neuron_ei.ipynb",
+        "jaxfne_v035_small_recurrent_ei.ipynb",
+        "jaxfne_v032_parameter_sweep.ipynb"
       ],
       "receipt": "2 passed in 339.63s (test_notebook_execution_suite parametrized). Full 27-notebook suite is slow/nightly lane — do not block step 8 on single-session full sweep.",
-      "remaining": 25
+      "remaining": 22,
+      "receipt_batch2": "3 passed in 17.10s (2026-07-07 step 8 continue)"
     },
-    "priority_2_api_docs": "Re-verify docs/api/* against post-split source (core.py re-exports). Smoke: key symbols present in docs/api/index.md — OK this pass.",
+    "priority_2_api_docs": "emitters.md corrected: izhikevich_* factories live under jtfne.emitters, not top-level (verified hasattr).",
     "priority_3_vis_grammar": [
       "jaxfne/export.py deprecated save_figure wrappers",
       "jaxfne/tutorial_utils.py _finish_figure matplotlib",
       "scripts/evidence_figures/ (README exception exists; optional full vis refactor)"
     ],
     "priority_4_paradigm": "release-0.4.7-final-polish paradigm/NeuronalTensor oddball wiring — plans item still proposed",
-    "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence."
+    "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence.",
+    "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed."
   },
-  "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added."
+  "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
+  "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation."
 }
