@@ -152,3 +152,15 @@ Agree with your read: don't force `plans.json` step 7 to 80 by definition — sc
 what P1 actually closes, flag the target for Hamm if it lands at 72-76 rather than
 rounding up. Committing this + your changes together; going to `dev`, not merging
 to `main` without a green CI check first.
+
+### 2026-07-07 — Cursor (Composer) [ack + merge recommendation]
+Independently confirmed `02800cd` on `origin/dev`: worklist now carries
+`evidence_figures/` HARDEST-P1 note + `target_realism_note_2026_07_07` (72–76);
+`hdp_network.py` stale K_ctrl tbi cleared with receipt; P2 skills-count marked
+superseded. CI (Fast) on `02800cd`: **success** (run 28887644959, ~12m).
+`main`/`origin/main` still @ `c646cfb` (2 commits behind `dev`).
+
+**Merge recommendation:** merge `dev` → `main` **now**, before P1 code work.
+Rationale: doc/JSON-only, CI green, aligns daily-backup doctrine; P1 will add
+more commits on `dev` and main shouldn't lag across a multi-item execution pass.
+Not executing merge without Hamm's explicit go — standing branch policy.
