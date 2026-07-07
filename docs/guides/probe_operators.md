@@ -26,7 +26,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Spike matrix: `[T, N]` (time × neurons)
 - Event table: rows with timestamp, neuron_id, area, layer, cell_type
 
-**Status (verified v0.4.4):** Simulated spike readout from emitter.
+**Status (verified v0.4.5, development tree):** Simulated spike readout from emitter.
 
 ---
 
@@ -42,7 +42,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Scope note:** The emitter voltage represents model state; the report declares its specific interpretation and scope.
 
-**Status (verified v0.4.4):** State voltage from emitter; proxy readout.
+**Status (verified v0.4.5, development tree):** State voltage from emitter; proxy readout.
 
 ---
 
@@ -56,7 +56,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - `source_decomposition: proxy_reduced_emitter` (or other declared mode)
 - `source_calibration_status: proxy_izhikevich_current` (or calibrated status)
 
-**Status (verified v0.4.4):** Proxy source from emitter state; computational readout.
+**Status (verified v0.4.5, development tree):** Proxy source from emitter state; computational readout.
 
 ---
 
@@ -78,7 +78,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 
 **Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**Status (verified v0.4.4):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.5, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -103,7 +103,7 @@ Eight probe operators expose different aspects of neural/field state as named re
 - Finite output
 - Sign convention exported
 
-**Status (verified v0.4.4):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.5, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -130,7 +130,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 **Scope:** EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.4):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.5, development tree):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -156,7 +156,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 
 **Scope:** MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.4):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.5, development tree):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -193,7 +193,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 **Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
 
-**Status (verified v0.4.4):** Normalized activity cost proxy; exploratory metric for optimization.
+**Status (verified v0.4.5, development tree):** Normalized activity cost proxy; exploratory metric for optimization.
 
 ---
 
@@ -257,9 +257,9 @@ Each operator returns a JSON-safe report $R_k$ declaring operator type, computat
 
 ---
 
-## Current Status: Simulated / Proxy (verified as of v0.4.4)
+## Current Status: Simulated / Proxy (verified as of v0.4.5 development tree)
 
-All eight operators remain simulated or proxy readouts as of v0.4.4:
+All eight operators remain simulated or proxy readouts as of v0.4.5:
 
 | Operator | Status | Notes |
 |----------|--------|-------|
@@ -332,5 +332,5 @@ print(emm_readout.report)
 
 ---
 
-**Document version:** v0.4.4  
+**Document version:** v0.4.5 (development tree)  
 **Last updated:** 2026-07-03

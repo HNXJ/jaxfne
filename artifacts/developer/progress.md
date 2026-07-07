@@ -2,9 +2,9 @@
 
 | path | score | status | tbi | tbd | last_verified |
 |---|---|---|---|---|---|
-| outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
-| benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
-| jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
+| outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-07 |
+| benchmarks/scaling_benchmark.py | 82 | done |  |  | 2026-07-07 |
+| jaxfne/optim/base.py | 82 | done |  |  | 2026-07-07 |
 | scripts/find_5hz_vmap.py | 82 | reviewed |  |  | 2026-07-04 |
 | scripts/run_neuron_sweeps.py | 82 | reviewed |  |  | 2026-07-04 |
 | docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
@@ -16,14 +16,11 @@
 | docs/STDP_GLOBAL_SCALE_REPORT.md | 84 | done |  |  | 2026-07-03 |
 | docs/STDP_LOWRATE_REGIME_REPORT.md | 84 | done |  |  | 2026-07-03 |
 | docs/STDP_REAL_TEST_REPORT.md | 84 | done |  |  | 2026-07-03 |
-| jaxfne/experimental_hpc/__init__.py | 85 | open |  |  | 2026-06-30 |
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
-| jaxfne/vis/plotly/network.py | 85 | open |  | No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\.network|plot_network_3d' test | 2026-07-05 |
 | scripts/characterize_neuron_io_curves.py | 85 | reviewed |  |  | 2026-07-04 |
 | scripts/verify_5hz_traces.py | 85 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0320_recompilation_guards.py | 85 | reviewed | the underlying mechanism still conflates 'a new Python wrapper handed to jax.jit' with 'an actual XLA recompilation' (wo | if the registry's Python-call-counting design changes to be JIT-hook-based, these tests need re-verification since they  | 2026-07-04 |
-| jaxfne/configs/default_macaque_V1.json | 85 | open |  |  | 2026-07-06 |
-| scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
+| jaxfne/configs/default_macaque_V1.json | 85 | done |  |  | 2026-07-07 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
 | docs/HDP_REPORT.md | 85 | done | The doc's phrase 'Generic builder (jaxfne.hdp_network)' names jaxfne.hdp_network as if it were a callable builder; it is |  | 2026-07-03 |
 | docs/api/plasticity.md | 85 | done |  |  | 2026-07-03 |
@@ -36,6 +33,7 @@
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 88 | done |  |  | 2026-07-06 |
+| jaxfne/experimental_hpc/__init__.py | 88 | done |  |  | 2026-07-07 |
 | jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -56,6 +54,7 @@
 | tests/test_vis_deduplication.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_vis_proxy_safe_titles.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_vis_suite.py | 88 | reviewed |  |  | 2026-07-04 |
+| scripts/macaque_v1_n_parametrized_smoke.py | 88 | done |  | N=10-only scope confirmed as intentional locked user decision (2026-07-07). N=1000 sweep deferred — not required for ste | 2026-07-07 |
 | docs/changelog.md | 88 | done |  |  | 2026-07-03 |
 | docs/guides/jaxley_interop.md | 88 | done |  | examples/03_jaxley_bridge_smoke.py also exists but is not referenced from this page -- could be added alongside the refe | 2026-07-03 |
 | docs/interactive_visualizations.md | 88 | done |  |  | 2026-07-03 |
@@ -71,7 +70,7 @@
 | scripts/run_agsdr_gain_optimization.py | 89 | reviewed |  |  | 2026-07-04 |
 | scripts/run_tutorial_smoke.py | 89 | reviewed |  |  | 2026-07-04 |
 | tests/test_multi_area_spectrolaminar_objective.py | 89 | reviewed |  |  | 2026-07-04 |
-| tests/test_pipeline_pure_functions.py | 90 | open |  |  | 2026-06-30 |
+| tests/test_pipeline_pure_functions.py | 90 | done |  |  | 2026-07-07 |
 | examples/02_spectrolaminar_oddball_scaffold.py | 90 | reviewed |  |  | 2026-07-04 |
 | examples/03_jaxley_bridge_smoke.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/connectivity.py | 90 | done |  |  | 2026-07-05 |
@@ -79,6 +78,7 @@
 | jaxfne/plasticity.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/tutorial_utils.py | 90 | reviewed |  |  | 2026-07-05 |
 | jaxfne/validation.py | 90 | done |  |  | 2026-07-05 |
+| jaxfne/vis/plotly/network.py | 90 | done |  |  | 2026-07-07 |
 | scripts/audit_notebooks_and_assets.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/benchmark_scan_backends.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed02_json_schema_validation.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -184,7 +184,7 @@
 | tests/test_suite_no3_low_frequency_scaling_tutorial.py | 91 | reviewed |  |  | 2026-07-04 |
 | tests/test_suite_no4_notebook_execution.py | 91 | reviewed |  |  | 2026-07-04 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
-| jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
+| jaxfne/experimental_hpc/contracts.py | 92 | done | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-07-07 |
 | jaxfne/export.py | 92 | reviewed |  |  | 2026-07-06 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
@@ -268,7 +268,7 @@
 | tests/test_v0331_euler_solver.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0331_laminar_config.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_with_emitter_parameters.py | 92 | reviewed |  |  | 2026-07-04 |
-| scripts/evidence_figures/ | 92 | open |  | VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): 18 of 19 .py files in this directory make direct matplotlib/plotly c | 2026-07-05 |
+| scripts/evidence_figures/ | 92 | done |  | GRAMMAR RULE 2: 18/19 .py files still call matplotlib/plotly directly — RE-SCOPED 2026-07-07 as documented maintainer ex | 2026-07-07 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
 | docs/api/core.md | 92 | done |  | ReadoutSpec metrics table previously listed max_spike_rate_hz/mean_source/mean_LFP/mean_CSD/burst_frequency_hz as valid  | 2026-07-03 |
 | docs/api/fields.md | 92 | done |  |  | 2026-07-03 |
@@ -355,7 +355,7 @@
 | skills/02_analysis_integrity.md | 94 | done |  |  | 2026-07-05 |
 | skills/03_sparse_connectivity.md | 94 | done |  |  | 2026-07-05 |
 | skills/06_runtime_fallback_transparency.md | 94 | done |  |  | 2026-07-05 |
-| jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | open |  |  | 2026-06-30 |
+| jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | done |  |  | 2026-07-07 |
 | examples/00_generalized_izhikevich_3d_smoke.py | 95 | reviewed |  |  | 2026-07-04 |
 | examples/00_minimal_column.py | 95 | reviewed |  |  | 2026-07-04 |
 | examples/01_generalized_readout_smoke.py | 95 | reviewed |  |  | 2026-07-04 |
@@ -396,7 +396,7 @@
 | docs/reference/glossary_of_methods.md | 95 | done |  |  | 2026-07-03 |
 | docs/tutorials/05_v1_pfc_dual_column.md | 95 | done |  |  | 2026-07-05 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
-| jaxfne/_config.py | 95 | open |  |  | 2026-07-04 |
+| jaxfne/_config.py | 95 | done |  |  | 2026-07-07 |
 | skills/catalog-glossary-jaxfne/SKILL.md | 95 | done |  |  | 2026-07-05 |
 | jaxfne/__init__.py | 96 | done |  |  | 2026-07-05 |
 | jaxfne/vis/tutorial_panels.py | 96 | done |  |  | 2026-07-05 |
@@ -431,7 +431,7 @@
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
 | jaxfne/_signals.py | 97 | done |  |  | 2026-07-05 |
 | scripts/v1_pfc_continuous_aaab_smoke_test.py | 97 | done |  |  | 2026-07-05 |
-| jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | open |  |  | 2026-06-30 |
+| jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | done |  |  | 2026-07-07 |
 | jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |

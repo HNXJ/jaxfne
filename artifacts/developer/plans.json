@@ -603,7 +603,7 @@
           {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 68, "status": "in_progress"},
+          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "in_progress"},
           {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
@@ -689,8 +689,8 @@
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
-          "achieved_score": 68,
-          "progress_note": "2026-07-06d: legacy thinning re-scoped done; export.py deferral note; test_interactive manifest truth-gate test (78->90); hdp_v2_rho_sweep archival doc (70->88). score<80=1 (ff_fb bundle deferred/gitignored). Package hygiene re-verified."
+          "achieved_score": 74,
+          "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0. Honest score 74/80 (not rounded): target 80 may need Hamm re-scope or evidence_figures migration."
         },
         {
           "step": 8,

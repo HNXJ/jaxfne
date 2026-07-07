@@ -1,6 +1,6 @@
 # Quickstart
 
-> Verified against `jaxfne==0.4.4` (`pip install "jaxfne==0.4.4"`) for the
+> Verified against `jaxfne==0.4.5` (editable source checkout) for the
 > `Configuration` sections below. `NeuronalTensor` (the preferred path) is
 > available on `dev` ahead of the next tagged release and will get its own
 > version pin once tagged.

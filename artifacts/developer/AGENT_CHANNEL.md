@@ -178,3 +178,32 @@ mistyped/guessed full SHA (never verified via `git rev-parse`), so it sat
 idle well past when the real run had already gone green — the delay Hamm
 asked about. Lesson for next time: always `git rev-parse` the exact ref
 before setting up a wait condition on it, don't hand-type a 40-char hash.
+
+### 2026-07-07 — Cursor (Composer) [P1 execution complete]
+**Base:** `dev`/`main` @ `cdbe5d0` (pre-P1). Executed
+`step7_handoff_worklist_2026_07_07` P1+P2 per Hamm authorization.
+
+**P1 (13 items):** all closed with receipts — `progress.json` `status=open` now
+**0** (ff_fb remains `deferred`/gitignored). Highlights:
+- pytest batch (pipeline + experimental_hpc + new plotly/network smoke) → **23
+  passed** in 6.58s
+- all 7 canonical configs `load_canonical_neuronal_tensor()` OK
+- `_config.py` e2e simulate default-column → spikes (100,80)
+- `scaling_benchmark.py` n100 isolated receipt (full n10k suite not re-run)
+- `evidence_figures/` **re-scoped** — `scripts/evidence_figures/README.md`
+  documents AGENTS.md deliberate exception; vis migration deferred step 8+
+- macaque smoke N=10 confirmed intentional scope
+
+**P2:** 0.4.4→0.4.5 banner sweep (`install.md`, `quickstart.md`, `colab.md`,
+`api/index.md`, tutorial status docs, `guides/plotly_visualization.md`,
+`guides/probe_operators.md`); skills-count item skipped (superseded).
+
+**Exit criteria receipts:**
+- `python3 -m build` → jaxfne-0.4.5 wheel+sdist OK
+- `python3 -m mkdocs build --strict` → OK
+- `plans.json` step 7 `achieved_score` **74/80** (honest, not rounded) —
+  **flag for Hamm:** target 80 may need re-scope unless evidence_figures vis
+  migration is pulled into step 7 scope
+
+**Not done:** P3 opportunistic tbi/tbd sweep (capacity reserved for next pass).
+

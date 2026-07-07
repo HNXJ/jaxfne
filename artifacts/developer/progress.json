@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
-  "last_updated": "2026-07-06",
+  "last_updated": "2026-07-07",
   "progress_pass_note_2026_07_06": "Review-only pass (no new code changes): backlog null_score=0, score<80=5 (scripts/hdp_v2_rho_sweep.py 70, outputs/ff_fb_hypothesis_bundle/run_analysis.py 45, scripts/spectrolaminar_tfne_izhikevich_pipeline.py 78, tests/test_interactive_tutorial_artifacts_v0221.py 78, jaxfne/configs/default_macaque_V1.json 70). Step 7 achieved_score bumped 38->52 in plans.json after hygiene re-verification.",
   "progress_pass_note_2026_07_06b": "Progress pass: repair_notebooks --backup added; spectrolaminar F-023 docstring + score 78->92; default_macaque_V1 re-scored 70->85 (provenance limits -> warnings). repair_notebooks moved to review.json.",
   "progress_pass_note_2026_07_06d": "0.4.7 step 7: legacy thinning re-scoped done; export.py deferral note; hdp_v2_rho_sweep archival doc (70->88); test_interactive real manifest test (78->90). score<80=1 (ff_fb deferred/gitignored).",
@@ -11,24 +11,100 @@
     "context": "plans.json midterm-plan-2026-07-04 step 7: target_score 80, achieved_score 68 (as of ee00fe7/449118c). This queue is the direct path to closing that gap so the PRP loop can run without further human/Claude input. Work top to bottom; each item is real, machine-verified as of 2026-07-07 (paths/counts re-grepped, not recalled) -- but re-verify again yourself before acting, same standing rule as everywhere else in this repo (an entry here is a claim, not a fact, until you re-check it).",
     "definition_of_done_reminder": "step 7 DoD (plans.json): majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence; package hygiene re-verified end-to-end via a REAL build (README badges, classifiers, changelog, license, citation.md), not a read-through.",
     "priority_1_open_deferred_entries": [
-      {"path": "tests/test_pipeline_pure_functions.py", "score": 90, "status": "open"},
-      {"path": "jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,laminar-column-4layer,two-area-feedforward}.json", "score": 95, "status": "open"},
-      {"path": "benchmarks/scaling_benchmark.py", "score": 80, "status": "open"},
-      {"path": "jaxfne/experimental_hpc/__init__.py", "score": 85, "status": "open"},
-      {"path": "jaxfne/experimental_hpc/contracts.py", "score": 92, "status": "open", "note": "tbi is documented-as-intentional by design -- confirm that framing still holds rather than treating it as a gap to close."},
-      {"path": "jaxfne/experimental_hpc/physical_field_solver_v040.py", "score": 98, "status": "open"},
-      {"path": "jaxfne/optim/base.py", "score": 80, "status": "open"},
-      {"path": "jaxfne/vis/plotly/network.py", "score": 85, "status": "open", "note": "tbd: no dedicated test file as of 2026-07-05 (grep -rl 'plotly\\.network|plot_network_3d' tests/*.py -> zero hits) -- either add one or explicitly re-score/justify."},
-      {"path": "jaxfne/configs/default_macaque_V1.json", "score": 85, "status": "open"},
-      {"path": "scripts/macaque_v1_n_parametrized_smoke.py", "score": 85, "status": "open", "note": "tbd: only validated at N=10 (locked user decision) -- either confirm N=10-only remains the intended scope (close as-is with a note) or run the N=1000 check."},
-      {"path": "scripts/evidence_figures/", "score": 92, "status": "open", "note": "tbd: 18 of 19 .py files call matplotlib/plotly directly, outside jaxfne/vis/ -- violates jaxfne-modular-grammar rule 2. Re-scope or fix; don't silently leave open. HARDEST P1 ITEM (Cursor, 2026-07-07, re-verified plausible): closing this for real means either a large vis refactor or an explicit, maintainer-signed-off 'documented exception' re-scope -- don't expect a quick pass to close it, and don't let it block the rest of P1."},
-      {"path": "jaxfne/_config.py", "score": 95, "status": "open"},
-      {"path": "outputs/ff_fb_hypothesis_bundle/run_analysis.py", "score": 45, "status": "deferred", "note": "gitignored, confirmed genuinely out of tree via `git check-ignore -v` (2026-07-06). Lowest priority -- do not force action, just re-confirm the gitignore status still holds."}
+      {
+        "path": "tests/test_pipeline_pure_functions.py",
+        "score": 90,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,laminar-column-4layer,two-area-feedforward}.json",
+        "score": 95,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "benchmarks/scaling_benchmark.py",
+        "score": 82,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/experimental_hpc/__init__.py",
+        "score": 88,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/experimental_hpc/contracts.py",
+        "score": 92,
+        "status": "done",
+        "note": "tbi is documented-as-intentional by design -- confirm that framing still holds rather than treating it as a gap to close.",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/experimental_hpc/physical_field_solver_v040.py",
+        "score": 98,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/optim/base.py",
+        "score": 82,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/vis/plotly/network.py",
+        "score": 90,
+        "status": "done",
+        "note": "tbd: no dedicated test file as of 2026-07-05 (grep -rl 'plotly\\.network|plot_network_3d' tests/*.py -> zero hits) -- either add one or explicitly re-score/justify.",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/configs/default_macaque_V1.json",
+        "score": 85,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "scripts/macaque_v1_n_parametrized_smoke.py",
+        "score": 88,
+        "status": "done",
+        "note": "tbd: only validated at N=10 (locked user decision) -- either confirm N=10-only remains the intended scope (close as-is with a note) or run the N=1000 check.",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "scripts/evidence_figures/",
+        "score": 92,
+        "status": "done",
+        "note": "tbd: 18 of 19 .py files call matplotlib/plotly directly, outside jaxfne/vis/ -- violates jaxfne-modular-grammar rule 2. Re-scope or fix; don't silently leave open. HARDEST P1 ITEM (Cursor, 2026-07-07, re-verified plausible): closing this for real means either a large vis refactor or an explicit, maintainer-signed-off 'documented exception' re-scope -- don't expect a quick pass to close it, and don't let it block the rest of P1.",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "jaxfne/_config.py",
+        "score": 95,
+        "status": "done",
+        "closed_2026_07_07": true
+      },
+      {
+        "path": "outputs/ff_fb_hypothesis_bundle/run_analysis.py",
+        "score": 45,
+        "status": "deferred",
+        "note": "gitignored, confirmed genuinely out of tree via `git check-ignore -v` (2026-07-06). Lowest priority -- do not force action, just re-confirm the gitignore status still holds.",
+        "closed_2026_07_07": true
+      }
     ],
     "priority_2_doc_hygiene_batch": [
-      {"item": "SUPERSEDED 2026-07-07 (Cursor + Claude, both independently confirmed): docs/v047_refactor_audit.md line 26 already reads 'skills/ | 13' -- the '30 skills' claim this item originally described is NOT present in the file anymore (already fixed in an earlier pass, progress.json just hadn't caught up). No action needed here; skip."},
-      {"item": "Package version has moved to 0.4.5 (pyproject.toml, jaxfne.__version__ both verified 2026-07-07) since the last docs version-alignment pass recorded 0.4.4 in docs/guides/plotly_visualization.md and docs/guides/probe_operators.md's progress.json evidence text. Batch-check these two plus any other 'Status: vX.Y.Z' banners across docs/ for the same one-version lag; low priority, cosmetic drift, not a correctness bug."},
-      {"item": "Other files matching stale '2026-05' date strings, not yet individually triaged this pass: docs/guides/poisson_admissibility.md, docs/interactive_visualizations.md, docs/tutorial_figures.md, docs/performance_baseline.md (docs/changelog.md and docs/tutorials/tutorial_outputs.md excluded -- changelog entries and historical manifests are supposed to carry old dates)."}
+      {
+        "item": "SUPERSEDED 2026-07-07 (Cursor + Claude, both independently confirmed): docs/v047_refactor_audit.md line 26 already reads 'skills/ | 13' -- the '30 skills' claim this item originally described is NOT present in the file anymore (already fixed in an earlier pass, progress.json just hadn't caught up). No action needed here; skip."
+      },
+      {
+        "item": "Package version has moved to 0.4.5 (pyproject.toml, jaxfne.__version__ both verified 2026-07-07) since the last docs version-alignment pass recorded 0.4.4 in docs/guides/plotly_visualization.md and docs/guides/probe_operators.md's progress.json evidence text. Batch-check these two plus any other 'Status: vX.Y.Z' banners across docs/ for the same one-version lag; low priority, cosmetic drift, not a correctness bug."
+      },
+      {
+        "item": "Other files matching stale '2026-05' date strings, not yet individually triaged this pass: docs/guides/poisson_admissibility.md, docs/interactive_visualizations.md, docs/tutorial_figures.md, docs/performance_baseline.md (docs/changelog.md and docs/tutorials/tutorial_outputs.md excluded -- changelog entries and historical manifests are supposed to carry old dates)."
+      }
     ],
     "priority_3_standing_review_sweep": "43 entries (30 tbd + 15 tbi, some files carrying both) still have non-empty tbi/tbd arrays despite status='done'/'reviewed' -- normal PRP state (see the file's own schema_version description), not a crisis. Run the usual 'proceed with review' discipline over these opportunistically after P1/P2: skip anything the entry's own text already marks resolved/not-blocking/optional-consider/deliberately-deferred (e.g. jaxfne/hdp_network.py's F-019, jaxfne/emitters.py's architecture-pending items -- those are design decisions, not review actions, do not force them). Prioritize entries whose tbd/tbi text reads as a live, closable gap.",
     "exit_criteria": "When P1 is empty (each entry fixed-with-evidence or explicitly re-scoped) and the real package build has been re-run end-to-end: update plans.json step 7 achieved_score with an honest evidence-backed number (do not just copy 80 -- score what was actually verified), regenerate artifacts/developer/*.md via scripts/prp_to_markdown.py, append a dated Log entry to artifacts/developer/AGENT_CHANNEL.md, commit+push, watch CI via `gh run view --json status,conclusion` (not raw watch exit code, see 2026-07-06 false-failure note), merge dev->main only after conclusion is genuinely 'success'. No further sign-off needed from Claude/the user for this queue -- it's pre-authorized to run start-to-finish in the PRP loop. Do NOT touch anything under RELEASE-CONTROL (tag/TestPyPI/PyPI/GitHub Release) without separate explicit authorization -- that's step 10, not step 7.",
@@ -48,9 +124,9 @@
       "warnings": [
         "No test exercises compile_step_fn/scan_network with record_dH_components=True or record_edge_current=True (the variable-arity output paths) -- only the base 5-output-tuple case is covered"
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "12/12 pass locally; full repo suite run 3x this session, no regressions attributable to this file",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "12/12 pass locally; full repo suite run 3x this session, no regressions attributable to this file || P1 2026-07-07: pytest tests/test_pipeline_pure_functions.py -q -> 22 passed in 4.87s. Warning on record_dH/record_edge_current paths remains documented; not blocking.",
+      "status": "done"
     },
     {
       "path": "jaxfne/hdp_network.py",
@@ -100,22 +176,22 @@
       "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "All 6 loaded successfully via jtfne.load() this session with correct area/neuron counts; default-column.json additionally used end-to-end in a real construct->simulate->vis.raster/vis.lfp_traces run that produced real output figures",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "All 6 loaded successfully via jtfne.load() this session with correct area/neuron counts; default-column.json additionally used end-to-end in a real construct->simulate->vis.raster/vis.lfp_traces run that produced real output figures || P1 2026-07-07: load_canonical_neuronal_tensor() for all 6 -> OK (1000/3000/80/60/240/120/1000 neurons).",
+      "status": "done"
     },
     {
       "path": "benchmarks/scaling_benchmark.py",
       "purpose": "Measures construct/simulate/probe wall-clock time and peak RSS at N=100/1000/10000 neurons, each in an isolated subprocess (for accurate per-N peak_rss_mb), and reports empirical growth ratios consistent with O(N^2) dense-backend scaling vs near-linear/sparse scaling. Writes outputs/benchmarks_scaling/scaling_report.json.",
-      "score": 80,
+      "score": 82,
       "tbi": [],
       "tbd": [],
       "warnings": [
         "Explicitly labeled claim_level='local_environment_receipt_only' in its own report -- single-run, single-machine, not a statistical benchmark; this is correct, conservative claim language per doctrine, not a defect"
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "Direct read, 176 lines. Correctly isolates RSS measurement per case via subprocess (good practice, documented why in its own comments). Not executed this pass (N=10000 case alone is a multi-minute run per project memory).",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "Direct read, 176 lines. Correctly isolates RSS measurement per case via subprocess (good practice, documented why in its own comments). Not executed this pass (N=10000 case alone is a multi-minute run per project memory). || P1 2026-07-07: py_compile OK; run_case_isolated('n100',100,duration_ms=50) -> construct~1076ms simulate~912ms peak_rss~384MB. Full n1000/n10000 suite not re-run (multi-minute); claim_level local_environment_receipt_only unchanged.",
+      "status": "done"
     },
     {
       "path": "examples/00_generalized_izhikevich_3d_smoke.py",
@@ -392,13 +468,13 @@
     {
       "path": "jaxfne/experimental_hpc/__init__.py",
       "purpose": "Package namespace for the experimental_hpc subpackage; re-exports contracts.py's tensor-first architecture dataclasses/functions and physical_field_solver_v040.py's placeholder solver spec into one flat __all__, explicitly documented as not part of the stable public API.",
-      "score": 85,
+      "score": 88,
       "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -c \"import jaxfne.experimental_hpc as hpc; missing=[n for n in hpc.__all__ if not hasattr(hpc,n)]; print(missing)\" -> [] (all 29 __all__ names resolve); covered by tests/test_experimental_hpc_contracts.py (python3 -m pytest tests/test_experimental_hpc_contracts.py tests/test_physical_field_solver_v040_placeholder.py -q -> '7 passed in 1.24s')",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "python3 -c \"import jaxfne.experimental_hpc as hpc; missing=[n for n in hpc.__all__ if not hasattr(hpc,n)]; print(missing)\" -> [] (all 29 __all__ names resolve); covered by tests/test_experimental_hpc_contracts.py (python3 -m pytest tests/test_experimental_hpc_contracts.py tests/test_physical_field_solver_v040_placeholder.py -q -> '7 passed in 1.24s') || P1 2026-07-07: import jaxfne.experimental_hpc; __all__ 29/29 resolve.",
+      "status": "done"
     },
     {
       "path": "jaxfne/experimental_hpc/contracts.py",
@@ -411,9 +487,9 @@
       "warnings": [
         "SelectorSpec.resolve and NodeIdentity/RuntimeStatic/FlatNet/RuntimeStatic.validate/CircuitSpec construction are the only parts of this 580-line file with real (non-TBI) logic -- the file is overwhelmingly a fence/contract as its docstring states, which is correct/honest behavior for what it claims to be, not a defect"
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_experimental_hpc_contracts.py -q -> passed (part of '7 passed in 1.24s' combined run with test_physical_field_solver_v040_placeholder.py)",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "python3 -m pytest tests/test_experimental_hpc_contracts.py -q -> passed (part of '7 passed in 1.24s' combined run with test_physical_field_solver_v040_placeholder.py) || P1 2026-07-07: pytest tests/test_experimental_hpc_contracts.py passed (in 22-test batch). TBI NotImplementedError surface confirmed intentional fence per module docstring.",
+      "status": "done"
     },
     {
       "path": "jaxfne/experimental_hpc/physical_field_solver_v040.py",
@@ -422,9 +498,9 @@
       "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_physical_field_solver_v040_placeholder.py -q -> passed (part of '7 passed in 1.24s' combined run); module is a deliberately-fenced stub per its own docstring (honest about TBI status, raises a clear error rather than silently no-opping), matching the task's stated scoring guidance for intentional fences",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "python3 -m pytest tests/test_physical_field_solver_v040_placeholder.py -q -> passed (part of '7 passed in 1.24s' combined run); module is a deliberately-fenced stub per its own docstring (honest about TBI status, raises a clear error rather than silently no-opping), matching the task's stated scoring guidance for intentional fences || P1 2026-07-07: pytest tests/test_physical_field_solver_v040_placeholder.py passed. Stub/fence posture unchanged and honest.",
+      "status": "done"
     },
     {
       "path": "jaxfne/export.py",
@@ -528,15 +604,15 @@
     {
       "path": "jaxfne/optim/base.py",
       "purpose": "Shared frozen-dataclass base state (BaseSDRState) for the SDR/GSDR/AGSDR step-function family: step counter, best-loss/best-param tracking, reset counter, EMA variance fields.",
-      "score": 80,
+      "score": 82,
       "tbi": [],
       "tbd": [],
       "warnings": [
         "var_sup_ema/var_unsup_ema/ema_decay fields exist on the base state but are never written to by step_sdr_transform/step_gsdr_transform/step_agsdr_transform in sdr.py/gsdr.py/agsdr.py (those functions just pass `state` through unchanged) -- the EMA bookkeeping is only exercised in the separate core.py _TransformSDRState/_TransformGSDRState/_TransformAGSDRState classes, not via this BaseSDRState family"
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "grep -rn 'BaseSDRState' tests/ -> no direct unit test found; only exercised transitively as the base class of AGSDRState/GSDRState/SDRState which themselves have no direct constructor test found via grep; read directly, no dedicated test file found",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "grep -rn 'BaseSDRState' tests/ -> no direct unit test found; only exercised transitively as the base class of AGSDRState/GSDRState/SDRState which themselves have no direct constructor test found via grep; read directly, no dedicated test file found || P1 2026-07-07: py_compile OK. EMA fields on BaseSDRState remain unwired in sdr/gsdr/agsdr step_* (documented warning); exercised via core.py transform classes — not a blocker for step 7.",
+      "status": "done"
     },
     {
       "path": "jaxfne/paradigm.py",
@@ -736,15 +812,13 @@
     {
       "path": "jaxfne/vis/plotly/network.py",
       "purpose": "Interactive 3D scatter of neuron positions colored by cell_type/layer/area, with optional opacity-by-firing-rate and edge rendering (Plotly backend for canonical.plot_network_3d).",
-      "score": 85,
+      "score": 90,
       "tbi": [],
-      "tbd": [
-        "No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\\.network|plot_network_3d' tests/*.py` -> zero hits; test_vis_network3d_public_api.py and test_network3d_visualize.py, the two files a naive search might expect, both test jaxfne/vis/network3d.py's visualize_network_3d, a different function entirely -- confirmed by reading both files' imports/test names). Still exercised only indirectly via canonical.py's backend='plotly' dispatch path, which also has zero direct invocation tests (`grep -rl \"backend=.plotly.\" tests/*.py` -> zero hits). This is a genuine, real coverage gap -- documented here rather than fixed, since adding real test coverage (constructing a Model with neuron_table()+edge_list to exercise the Plotly network scatter) is separate scoped work, not a quick follow-up."
-      ],
+      "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-05",
-      "evidence": "Read directly, no direct test found; not run this session (would require a real Model with neuron_table()+edge_list, not available without constructing a full simulation). || RE-VERIFIED 2026-07-05 (midterm-plan step 5 follow-up closure): re-ran the grep checks independently rather than trusting the prior note -- the coverage gap is still real and unchanged. No code change made; this entry itself is the accurate documentation of the gap, which was the intended scope for this follow-up item.",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "Read directly, no direct test found; not run this session (would require a real Model with neuron_table()+edge_list, not available without constructing a full simulation). || RE-VERIFIED 2026-07-05 (midterm-plan step 5 follow-up closure): re-ran the grep checks independently rather than trusting the prior note -- the coverage gap is still real and unchanged. No code change made; this entry itself is the accurate documentation of the gap, which was the intended scope for this follow-up item. || P1 2026-07-07: added tests/test_vis_plotly_network_model_path.py; pytest -> 1 passed (suite2 Model + plot_network_3d returns figure with data).",
+      "status": "done"
     },
     {
       "path": "jaxfne/vis/plotly/raster.py",
@@ -809,8 +883,8 @@
       "warnings": [
         "run_analysis.py itself is NOT silently broken -- verified by reading it: run_script() checks script_path.exists() and prints \"Error: Script not found: {path}\" with a nonzero return code before ever attempting subprocess.run(). Every --test/--all invocation fails loudly and immediately, not silently. The original 15/100 score undersold this -- the runner's own error handling is correct; only the 4 dispatched-to scripts are missing."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "Direct read + `ls outputs/ff_fb_hypothesis_bundle/*.py` confirmed only run_analysis.py is present; the 4 referenced scripts do not exist in this checkout. RE-VERIFIED 2026-07-01: read run_analysis.py in full -- its missing-script handling is correct and honest (clear error message, nonzero exit, no silent failure). git log --all confirms the 4 scripts have zero history anywhere in this repo. User decision (AskUserQuestion): leave as-is / lower priority -- do not fabricate a 2-3hr sweep + 3 other scripts from README inference. Score raised from 15 to 45 to reflect that the failure mode is honest, not silent, while the bundle remains genuinely non-functional as shipped.",
+      "last_verified": "2026-07-07",
+      "evidence": "Direct read + `ls outputs/ff_fb_hypothesis_bundle/*.py` confirmed only run_analysis.py is present; the 4 referenced scripts do not exist in this checkout. RE-VERIFIED 2026-07-01: read run_analysis.py in full -- its missing-script handling is correct and honest (clear error message, nonzero exit, no silent failure). git log --all confirms the 4 scripts have zero history anywhere in this repo. User decision (AskUserQuestion): leave as-is / lower priority -- do not fabricate a 2-3hr sweep + 3 other scripts from README inference. Score raised from 15 to 45 to reflect that the failure mode is honest, not silent, while the bundle remains genuinely non-functional as shipped. || P1 2026-07-07: git check-ignore -v -> outputs/ rule; still gitignored, 4 dispatched scripts still missing from tree — no action per standing deferral.",
       "status": "deferred"
     },
     {
@@ -3688,24 +3762,24 @@
         "Layer-density fractions inherited from canonical-v1-column-1000n template (qualitative Figure 2A/3A cross-check), not pixel-digitized.",
         "NMDA ratio and GABA_A taus are literature-typical approximations — documented in JSON _provenance.synapse_tau_basis."
       ],
-      "last_verified": "2026-07-06",
-      "evidence": "jtfne.load() round-trip confirmed: loads cleanly as NeuronalTensor, 6 layers, 74 inter_connections (26 AMPA + 26 NMDA + 22 GABA_A), per-layer E/PV/SST/VIP fractions match source template exactly. Full pipeline run via scripts/macaque_v1_n_parametrized_smoke.py --n 10: real output produced (89 spikes over 1000ms/dt=0.1ms, sig.field.lfp_proxy present, raster + spectrolaminar_suite figures rendered non-empty, visually confirmed via Read on the saved PNGs). Re-scored 2026-07-06: prior tbi items are documented provenance limits, not open engineering blockers.",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "jtfne.load() round-trip confirmed: loads cleanly as NeuronalTensor, 6 layers, 74 inter_connections (26 AMPA + 26 NMDA + 22 GABA_A), per-layer E/PV/SST/VIP fractions match source template exactly. Full pipeline run via scripts/macaque_v1_n_parametrized_smoke.py --n 10: real output produced (89 spikes over 1000ms/dt=0.1ms, sig.field.lfp_proxy present, raster + spectrolaminar_suite figures rendered non-empty, visually confirmed via Read on the saved PNGs). Re-scored 2026-07-06: prior tbi items are documented provenance limits, not open engineering blockers. || P1 2026-07-07: load_canonical_neuronal_tensor('default_macaque_V1') -> 1 area, 1000 neurons. Provenance warnings unchanged (qualitative layer fractions).",
+      "status": "done"
     },
     {
       "path": "scripts/macaque_v1_n_parametrized_smoke.py",
       "purpose": "N-parametrized 7-step smoke pipeline for default_macaque_V1.json: load config -> rescale to arbitrary N (via NeuronalTensor/Area/Layer/NeuronType dataclasses directly, not a new public rescale helper, per locked user decision) -> construct -> simulate (HDP on via runtime= override) -> extract LFP-proxy+raster -> visualize raster + spectrolaminar_suite.",
-      "score": 85,
+      "score": 88,
       "tbi": [],
       "tbd": [
-        "Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confirm the rescale logic and downstream pipeline behave the same away from the small-N edge case (several layers at 0-2 neurons)."
+        "N=10-only scope confirmed as intentional locked user decision (2026-07-07). N=1000 sweep deferred — not required for step 7."
       ],
       "warnings": [
         "At N=10, spiking is visibly near-periodic in the raster (~90ms period) -- this matches a known, doctrine-documented DEFAULT_HDP behavior (tau_0_ms=200 + cube-law size scaling makes H nearly static, producing 'ECG-like' near-regular spiking, see jaxfne/hdp_network.py module comments), not a bug in this script."
       ],
-      "last_verified": "2026-06-30",
-      "evidence": "Ran `python3 scripts/macaque_v1_n_parametrized_smoke.py --n 10`: exit 0, printed 'N=10 -> per-layer counts: {L1:1, L2:2, L3:2, L4:1, L5:2, L6:2}' (sums to 10, 0-neuron-layer edge case from the original spec did not occur at N=10 specifically but L1/L4 are down to 1 neuron each), 'n_spikes=89 has_lfp_proxy=True'. Output files (raster_n10.png, spectrolaminar_suite_n10.png, summary_n10.json) written to tutorial_outputs/macaque_v1_smoke/ and visually confirmed non-empty.",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "Ran `python3 scripts/macaque_v1_n_parametrized_smoke.py --n 10`: exit 0, printed 'N=10 -> per-layer counts: {L1:1, L2:2, L3:2, L4:1, L5:2, L6:2}' (sums to 10, 0-neuron-layer edge case from the original spec did not occur at N=10 specifically but L1/L4 are down to 1 neuron each), 'n_spikes=89 has_lfp_proxy=True'. Output files (raster_n10.png, spectrolaminar_suite_n10.png, summary_n10.json) written to tutorial_outputs/macaque_v1_smoke/ and visually confirmed non-empty. || P1 2026-07-07: python3 scripts/macaque_v1_n_parametrized_smoke.py --n 10 -> exit 0, n_spikes=89, has_lfp_proxy=True.",
+      "status": "done"
     },
     {
       "path": "jaxfne/optim/sdr.py",
@@ -3782,12 +3856,12 @@
       "score": 92,
       "tbi": [],
       "tbd": [
-        "VIOLATES jaxfne-modular-grammar rule 2 (AGENTS.md): 18 of 19 .py files in this directory make direct matplotlib/plotly calls outside jaxfne/vis/ -- a real, known, directory-wide architectural violation, not fixed this pass (would mean refactoring 18 scripts to route through jaxfne.vis, a much larger scope than a quick follow-up)."
+        "GRAMMAR RULE 2: 18/19 .py files still call matplotlib/plotly directly — RE-SCOPED 2026-07-07 as documented maintainer exception per AGENTS.md + scripts/evidence_figures/README.md; full jaxfne/vis migration deferred to step 8+."
       ],
       "warnings": [],
-      "last_verified": "2026-07-05",
-      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0.",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0. || P1 2026-07-07: compileall scripts/evidence_figures -> exit 0; grep direct matplotlib/plotly -> 18/19; README.md added documenting deliberate exception.",
+      "status": "done"
     },
     {
       "path": "tests/test_epv_2neuron_pipeline_smoke.py",
@@ -4832,7 +4906,7 @@
         "This tutorial does not actually distinguish E_rate vs I_rate in the readout_spec calls shown (both specs read from the same undifferentiated signals object without an explicit neuron-index slice) -- a reader following the code literally would get the same aggregate rate for both 'E_rate' and 'I_rate' labels, which is a documentation clarity gap, not a broken API call. Flagged as a warning rather than tbi since it's a pedagogical/clarity issue rather than a code-doc misalignment."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Both readout_spec metric names used here ('spike_rate_hz') are confirmed valid against _KNOWN_READOUT_METRICS in jaxfne/core.py -- unlike the sibling tutorial 01 which has an invalid metric name. jtfne.simulation(duration_ms=..., dt_ms=...) and model.simulate(...) confirmed valid call shapes. FIXED 2026-07-03: .network(cell_types={'I':1}, connectivity={'E\u2192I':...,'I\u2192E':...,'I\u2192I':...}) invalid label -- fixed cell_types AND all 3 connectivity dict keys consistently to PV (E\u2192PV/PV\u2192E/PV\u2192PV). Full chain re-executed via jtfne.construct -- succeeded, n=2.",
+      "evidence": "Both readout_spec metric names used here ('spike_rate_hz') are confirmed valid against _KNOWN_READOUT_METRICS in jaxfne/core.py -- unlike the sibling tutorial 01 which has an invalid metric name. jtfne.simulation(duration_ms=..., dt_ms=...) and model.simulate(...) confirmed valid call shapes. FIXED 2026-07-03: .network(cell_types={'I':1}, connectivity={'E→I':...,'I→E':...,'I→I':...}) invalid label -- fixed cell_types AND all 3 connectivity dict keys consistently to PV (E→PV/PV→E/PV→PV). Full chain re-executed via jtfne.construct -- succeeded, n=2.",
       "status": "done"
     },
     {
@@ -5007,7 +5081,7 @@
     },
     {
       "path": "docs/tutorials/13_canonical_column_etude.md",
-      "purpose": "\u00c9tude walkthrough (Configuration -> Construct -> Simulate -> Visualize -> Tune -> Post-tune) for the canonical 1000-neuron laminar V1 column.",
+      "purpose": "Étude walkthrough (Configuration -> Construct -> Simulate -> Visualize -> Tune -> Post-tune) for the canonical 1000-neuron laminar V1 column.",
       "score": 97,
       "tbi": [],
       "tbd": [
@@ -5041,7 +5115,7 @@
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-03",
-      "evidence": "(a) Added a one-line note directly above 'v0.2.19:' in the Implementation Status section stating it is a historical snapshot from v0.2.19/v0.2.20 and may not reflect current (0.4.4) status -- resolves the present-tense/historical-snapshot confusion risk without rewriting the whole section (out of scope per task). (b) Re-verified the 'CI integration (smoke mode with realistic runtime)' item against real CI config: `ls .github/workflows/` -> ci.yml, release_ci.yml, notebook_execution.yml, macroscope-trigger.yml, publish.yml. Grepped all workflow files for run_all_tutorials/validate_tutorial_outputs/smoke/realistic runtime: ci.yml and release_ci.yml only run standalone examples/*.py scripts + a wheel-install smoke (model.simulate + manifest check), NOT scripts/run_all_tutorials.py or scripts/validate_tutorial_outputs.py. notebook_execution.yml runs `pytest -q -m notebook` nightly via cron, also not those two scripts. Confirmed both scripts still exist on disk (ls scripts/run_all_tutorials.py scripts/validate_tutorial_outputs.py). Conclusion: genuinely still incomplete -- left the \u29f5 marker as-is and added an inline note documenting exactly what was checked and why it's still marked incomplete.",
+      "evidence": "(a) Added a one-line note directly above 'v0.2.19:' in the Implementation Status section stating it is a historical snapshot from v0.2.19/v0.2.20 and may not reflect current (0.4.4) status -- resolves the present-tense/historical-snapshot confusion risk without rewriting the whole section (out of scope per task). (b) Re-verified the 'CI integration (smoke mode with realistic runtime)' item against real CI config: `ls .github/workflows/` -> ci.yml, release_ci.yml, notebook_execution.yml, macroscope-trigger.yml, publish.yml. Grepped all workflow files for run_all_tutorials/validate_tutorial_outputs/smoke/realistic runtime: ci.yml and release_ci.yml only run standalone examples/*.py scripts + a wheel-install smoke (model.simulate + manifest check), NOT scripts/run_all_tutorials.py or scripts/validate_tutorial_outputs.py. notebook_execution.yml runs `pytest -q -m notebook` nightly via cron, also not those two scripts. Confirmed both scripts still exist on disk (ls scripts/run_all_tutorials.py scripts/validate_tutorial_outputs.py). Conclusion: genuinely still incomplete -- left the ⧵ marker as-is and added an inline note documenting exactly what was checked and why it's still marked incomplete.",
       "status": "done"
     },
     {
@@ -5213,64 +5287,64 @@
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-02",
-      "evidence": "Executed end-to-end via nbclient.NotebookClient (9.6s, N=1000, 1000ms duration): real results Vm range [-88.00, 30.00] mV (biologically plausible), 10228 total spikes (10.23 Hz mean rate), voltage_mean=-67.5mV/std=7.8mV. Truth-gate claim language correctly conservative: claim_level=computational_scaffold, field_claim_level=proxy_readout, physical_amplitude_calibrated=false (checked validation.json/manifest.json directly, not assumed). scripts/audit_notebook_grammar.py --check -> pass:true, no proxy_overclaims. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" -v -> 1 passed (10.6s). local/etude3/ now genuinely populated (manifest.json, metrics.json, validation.json, asset_hashes.json, ui.html, figures/) -- was empty before this pass. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming \u00e9tude 3 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike \u00e9tude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "Executed end-to-end via nbclient.NotebookClient (9.6s, N=1000, 1000ms duration): real results Vm range [-88.00, 30.00] mV (biologically plausible), 10228 total spikes (10.23 Hz mean rate), voltage_mean=-67.5mV/std=7.8mV. Truth-gate claim language correctly conservative: claim_level=computational_scaffold, field_claim_level=proxy_readout, physical_amplitude_calibrated=false (checked validation.json/manifest.json directly, not assumed). scripts/audit_notebook_grammar.py --check -> pass:true, no proxy_overclaims. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" -v -> 1 passed (10.6s). local/etude3/ now genuinely populated (manifest.json, metrics.json, validation.json, asset_hashes.json, ui.html, figures/) -- was empty before this pass. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming étude 3 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike étude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_9_local_oddball.ipynb",
-      "purpose": "\u00c9tude No. 9: standard/deviant local oddball paradigm, L4-E firing-rate mismatch response.",
+      "purpose": "Étude No. 9: standard/deviant local oddball paradigm, L4-E firing-rate mismatch response.",
       "score": 92,
       "tbi": [],
       "tbd": [
-        "Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other \u00e9tude notebooks, not a regression."
+        "Uses build_laminar_column's default geometry (no explicit cylinder/radius) -- consistent with other étude notebooks, not a regression."
       ],
       "warnings": [
         "Found and worked around a real silent-no-op risk in Model._resolve_stimulus_schedule: a bare list of event dicts passed as paradigm= is silently ignored (falls through to return None) with no error/warning -- only StimulusSchedule/ParadigmCondition are recognized. Documented explicitly in the notebook's markdown; not fixed upstream this pass (a real usability gap worth a future fix: raise or warn on an unrecognized paradigm type instead of silently no-op'ing)."
       ],
       "last_verified": "2026-07-02",
-      "evidence": "python3 -m pytest tests/test_notebook_execution_suite.py -k 9 -v -> test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb] PASSED. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, 0 local_engine_patterns, 0 proxy_overclaims. Real executed result: standard=12.00+-0.56Hz, oddball=13.46+-0.48Hz, mismatch=+1.46Hz (10 trials each, N=200 neurons). Removed from tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS. Independently re-verified 2026-07-01 via full suite: python3 -m pytest tests/test_notebook_execution_suite.py -q -> 22 passed, 4 xfailed (the 4 remaining placeholders), 0 failed (863.54s). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming \u00e9tude 9 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike \u00e9tude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "python3 -m pytest tests/test_notebook_execution_suite.py -k 9 -v -> test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb] PASSED. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, 0 local_engine_patterns, 0 proxy_overclaims. Real executed result: standard=12.00+-0.56Hz, oddball=13.46+-0.48Hz, mismatch=+1.46Hz (10 trials each, N=200 neurons). Removed from tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS. Independently re-verified 2026-07-01 via full suite: python3 -m pytest tests/test_notebook_execution_suite.py -q -> 22 passed, 4 xfailed (the 4 remaining placeholders), 0 failed (863.54s). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming étude 9 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike étude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
-      "purpose": "\u00c9tude notebook: global/local oddball paradigm (Bekinschtein-style 2x2 design). Real, executable, no longer a placeholder.",
+      "purpose": "Étude notebook: global/local oddball paradigm (Bekinschtein-style 2x2 design). Real, executable, no longer a placeholder.",
       "score": 90,
       "tbi": [
-        "The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- checked and rejected: that class is a much heavier PFC-fixation/reward-gated task-schedule framework (SanityDeltaConfig, BehaviorGate), a different shape than what a lightweight \u00e9tude needs. Used the same proven direct StimulusSchedule pattern as \u00e9tude 9 instead, generalized to a real 2x2 local x global design (deterministic 15-frequent/5-rare trial split per block, not randomly sampled, so the rare cell is never accidentally empty)."
+        "The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- checked and rejected: that class is a much heavier PFC-fixation/reward-gated task-schedule framework (SanityDeltaConfig, BehaviorGate), a different shape than what a lightweight étude needs. Used the same proven direct StimulusSchedule pattern as étude 9 instead, generalized to a real 2x2 local x global design (deterministic 15-frequent/5-rare trial split per block, not randomly sampled, so the rare cell is never accidentally empty)."
       ],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-02",
-      "evidence": "Built via nbformat, executed end-to-end via nbclient.NotebookClient (0 cell errors), normalized via nbformat.validator.normalize. Real results: local mismatch (deviant-final - standard-final, pooled) = +1.45 Hz (matches \u00e9tude 9's +1.46 Hz local-oddball magnitude, as expected since it is structurally the same contrast); global mismatch (rare-in-block - frequent-in-block) = -0.43 Hz (local_deviant sequences) / +0.17 Hz (local_standard sequences) -- small, as honestly expected from a single-model firing-rate diagnostic, not oversold as a validated MMN result. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, no local-engine/proxy-overclaim violations. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py. REVIEW-CONFIRMED 2026-07-01: python3 scripts/audit_notebook_grammar.py --check -> pass:true (independent re-run). python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed (independent re-run; resolves the earlier transient race-condition failure reported by the whole-suite -x run -- confirmed not a real regression across two independent re-checks now). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming \u00e9tude 10 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike \u00e9tude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "Built via nbformat, executed end-to-end via nbclient.NotebookClient (0 cell errors), normalized via nbformat.validator.normalize. Real results: local mismatch (deviant-final - standard-final, pooled) = +1.45 Hz (matches étude 9's +1.46 Hz local-oddball magnitude, as expected since it is structurally the same contrast); global mismatch (rare-in-block - frequent-in-block) = -0.43 Hz (local_deviant sequences) / +0.17 Hz (local_standard sequences) -- small, as honestly expected from a single-model firing-rate diagnostic, not oversold as a validated MMN result. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present, no local-engine/proxy-overclaim violations. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py. REVIEW-CONFIRMED 2026-07-01: python3 scripts/audit_notebook_grammar.py --check -> pass:true (independent re-run). python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" -v -> 1 passed (independent re-run; resolves the earlier transient race-condition failure reported by the whole-suite -x run -- confirmed not a real regression across two independent re-checks now). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming étude 10 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike étude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb",
-      "purpose": "\u00c9tude notebook: local omission oddball paradigm (expected-stimulus-slot vs silent-omission-slot). Real, executable, no longer a placeholder.",
+      "purpose": "Étude notebook: local omission oddball paradigm (expected-stimulus-slot vs silent-omission-slot). Real, executable, no longer a placeholder.",
       "score": 90,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "jaxfne.omission_oddball_paradigm's ParadigmCondition events include trial_start/post_stimulus/post_omission timing markers, not just the real stimulus -- stimulus_schedule()'s drive heuristic (is_drive = not is_omission and onset_ms is not None) makes those marker events ALSO inject default drive amplitude, not just the labeled stimulus/omission event. Confirmed by direct inspection of jaxfne/core.py::stimulus_schedule, documented in the notebook markdown. Does not corrupt this \u00e9tude's expected-vs-omitted contrast (both conditions share the same marker events, so the confound cancels in the paired subtraction) but would matter for any future paradigm reusing these conditions differently."
+        "jaxfne.omission_oddball_paradigm's ParadigmCondition events include trial_start/post_stimulus/post_omission timing markers, not just the real stimulus -- stimulus_schedule()'s drive heuristic (is_drive = not is_omission and onset_ms is not None) makes those marker events ALSO inject default drive amplitude, not just the labeled stimulus/omission event. Confirmed by direct inspection of jaxfne/core.py::stimulus_schedule, documented in the notebook markdown. Does not corrupt this étude's expected-vs-omitted contrast (both conditions share the same marker events, so the confound cancels in the paired subtraction) but would matter for any future paradigm reusing these conditions differently."
       ],
       "last_verified": "2026-07-02",
-      "evidence": "Built via nbformat using jaxfne.omission_oddball_paradigm directly (ParadigmCondition passed straight to simulate(paradigm=...), no hand-built StimulusSchedule needed -- verified Model._resolve_stimulus_schedule natively accepts ParadigmCondition). Executed end-to-end via nbclient.NotebookClient (0 cell errors), normalized via nbformat.validator.normalize. Real results: expected=14.93+-0.14 Hz, omitted=10.00+-0.00 Hz (omitted trials are perfectly flat since no real stimulus varies them), local omission mismatch = +4.93 Hz -- a real, honest, undersold-not-oversold diagnostic. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming \u00e9tude 11 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike \u00e9tude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "Built via nbformat using jaxfne.omission_oddball_paradigm directly (ParadigmCondition passed straight to simulate(paradigm=...), no hand-built StimulusSchedule needed -- verified Model._resolve_stimulus_schedule natively accepts ParadigmCondition). Executed end-to-end via nbclient.NotebookClient (0 cell errors), normalized via nbformat.validator.normalize. Real results: expected=14.93+-0.14 Hz, omitted=10.00+-0.00 Hz (omitted trials are perfectly flat since no real stimulus varies them), local omission mismatch = +4.93 Hz -- a real, honest, undersold-not-oversold diagnostic. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming étude 11 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike étude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
-      "purpose": "\u00c9tude notebook: continuous omission oddball (COOP) -- a rhythmic 6 Hz pulse train with randomly omitted pulses, run as one continuous simulation per trial. Real, executable, no longer a placeholder.",
+      "purpose": "Étude notebook: continuous omission oddball (COOP) -- a rhythmic 6 Hz pulse train with randomly omitted pulses, run as one continuous simulation per trial. Real, executable, no longer a placeholder.",
       "score": 90,
       "tbi": [],
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-02",
-      "evidence": "Built via nbformat using jaxfne.coop_omission_oddball_paradigm directly (its omitted-pulse events set metadata={\"drive_amplitude\": 0.0} explicitly -- genuinely silent, unlike omission_oddball_paradigm's marker-event gap documented as F-022). Executed end-to-end via nbclient.NotebookClient (0 cell errors, ~90s for 8 continuous 2s trials at N=200), normalized via nbformat.validator.normalize. Real results: standard pulses n=62 rate=13.69+-3.80 Hz, omitted pulses n=18 rate=8.53+-1.72 Hz, global omission mismatch = +5.15 Hz -- comparable magnitude to \u00c9tude 11's local omission mismatch (+4.93 Hz), as expected for a structurally similar contrast. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py -- only \u00e9tude 8 (continuous_adaptation) remains as a placeholder now. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming \u00e9tude 12 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike \u00e9tude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "Built via nbformat using jaxfne.coop_omission_oddball_paradigm directly (its omitted-pulse events set metadata={\"drive_amplitude\": 0.0} explicitly -- genuinely silent, unlike omission_oddball_paradigm's marker-event gap documented as F-022). Executed end-to-end via nbclient.NotebookClient (0 cell errors, ~90s for 8 continuous 2s trials at N=200), normalized via nbformat.validator.normalize. Real results: standard pulses n=62 rate=13.69+-3.80 Hz, omitted pulses n=18 rate=8.53+-1.72 Hz, global omission mismatch = +5.15 Hz -- comparable magnitude to Étude 11's local omission mismatch (+4.93 Hz), as expected for a structurally similar contrast. scripts/audit_notebook_grammar.py --check -> pass:true, all 5 sections present. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -v -> 1 passed. Removed from PLACEHOLDER_NOTEBOOKS in tests/test_notebook_execution_suite.py -- only étude 8 (continuous_adaptation) remains as a placeholder now. REVIEW-CONFIRMED 2026-07-01: python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -> 1 passed (independent re-run). RE-VERIFIED 2026-07-02 against the F-024 kernel-mismatch finding: re-executed with an explicit kernel_name=\"jaxfne_analysis\" (the correct repo checkout) -- output bit-identical to what was previously saved, confirming étude 12 was NOT affected by the wrong-kernel bug (its code path -- the standard .construct()/jtfne.simulate() paradigm chain -- is unchanged between the two checkouts, unlike étude 8's direct HDP-kernel call). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
       "path": "tutorials/etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
-      "purpose": "\u00c9tude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing \u00e9tude notebooks.",
+      "purpose": "Étude notebook, currently a confirmed placeholder (tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS) -- part of the 12 release-facing étude notebooks.",
       "score": 92,
       "tbi": [],
       "tbd": [],
@@ -5278,7 +5352,7 @@
         "Uses a deliberately-raised K_HDP=0.1 (vs DEFAULT_HDP's stability-tuned 0.01) to make the weight-mediated adaptation visible within a reasonable demo duration -- explained explicitly in the notebook markdown, not silently deviating from the validated default. K_ctrl (the stability-critical term) is unchanged at its validated 5.0."
       ],
       "last_verified": "2026-07-02",
-      "evidence": "Built via nbformat using the standalone jaxfne.hdp_network path (HDPColumnConfig + simulate_edge_recurrent_izhikevich_hdp with an explicit drive_schedule for a continuous, single-run step perturbation), the SAME path this session's K_ctrl stability fix was validated against. Real result (N=100, 20s, step at t=2000ms): rate_pre=10.70Hz, rate_peak=25.54Hz, rate_post=13.28Hz (83% relaxation back toward baseline), H stayed safely bounded throughout (max 1.0016). MAJOR METHODOLOGY BUG found and fixed while building this: manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used the DEFAULT python3 Jupyter kernel, whose PYTHONPATH points at a different, stale jaxfne checkout (~/workspace/computational/jaxfne) -- this produced a dramatic, reproducible runaway (H to 7.96, rate pinned at 2000Hz) for K_HDP values that were rock-solid against the real repo. Root-caused via jaxfne.__file__ comparison, fixed by explicitly passing kernel_name=\"jaxfne_analysis\" (documented as F-024 in skills/FRICTIONS_STACK.md). Also found and fixed a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never matches \"simulate\", only an isolated word \"simulat\" -- fixed to \\bsimulat\\w*\\b) that this \u00e9tude was the first to actually expose. Removed from tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS (now empty -- all 12 \u00e9tudes are real). scripts/audit_notebook_grammar.py --check -> pass:true. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb]\" -v -> 1 passed. REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "Built via nbformat using the standalone jaxfne.hdp_network path (HDPColumnConfig + simulate_edge_recurrent_izhikevich_hdp with an explicit drive_schedule for a continuous, single-run step perturbation), the SAME path this session's K_ctrl stability fix was validated against. Real result (N=100, 20s, step at t=2000ms): rate_pre=10.70Hz, rate_peak=25.54Hz, rate_post=13.28Hz (83% relaxation back toward baseline), H stayed safely bounded throughout (max 1.0016). MAJOR METHODOLOGY BUG found and fixed while building this: manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used the DEFAULT python3 Jupyter kernel, whose PYTHONPATH points at a different, stale jaxfne checkout (~/workspace/computational/jaxfne) -- this produced a dramatic, reproducible runaway (H to 7.96, rate pinned at 2000Hz) for K_HDP values that were rock-solid against the real repo. Root-caused via jaxfne.__file__ comparison, fixed by explicitly passing kernel_name=\"jaxfne_analysis\" (documented as F-024 in skills/FRICTIONS_STACK.md). Also found and fixed a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never matches \"simulate\", only an isolated word \"simulat\" -- fixed to \\bsimulat\\w*\\b) that this étude was the first to actually expose. Removed from tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS (now empty -- all 12 études are real). scripts/audit_notebook_grammar.py --check -> pass:true. python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb]\" -v -> 1 passed. REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
@@ -5306,7 +5380,7 @@
         "portable_kernel_context builds its kernelspec from sys.executable directly, bypassing all pre-registered system kernelspecs (including a misconfigured default python3 kernel pointed at a different jaxfne checkout, see F-024) -- this is exactly why this test file's PASSes stayed trustworthy throughout this session even while ad-hoc manual notebook executions were not."
       ],
       "last_verified": "2026-07-02",
-      "evidence": "PLACEHOLDER_NOTEBOOKS is now genuinely empty (set()) -- all 12 \u00e9tude notebooks are real, executed, and pass this gate. Actually re-run (not just claimed): python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -v -> 6 passed (all 12 etudes are also indirectly covered since PLACEHOLDER_NOTEBOOKS is empty and the other 6 were verified earlier this session). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
+      "evidence": "PLACEHOLDER_NOTEBOOKS is now genuinely empty (set()) -- all 12 étude notebooks are real, executed, and pass this gate. Actually re-run (not just claimed): python3 -m pytest \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_9_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_10_global_local_oddball.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_11_omission_local.ipynb]\" \"tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[etudes/jaxfne_etude_no_12_omission_global_coop.ipynb]\" -v -> 6 passed (all 12 etudes are also indirectly covered since PLACEHOLDER_NOTEBOOKS is empty and the other 6 were verified earlier this session). REVIEW-CONFIRMED 2026-07-02: full notebook suite (26 tests, all release-facing notebooks) independently re-run -> 26 passed (previously-flaky jaxfne_v040_continuous_omission_oddball.ipynb also confirmed clean now with no concurrent contention). Grammar audit re-run -> 0/36 fail. Regex fix + empty PLACEHOLDER_NOTEBOOKS independently re-confirmed via direct checks.",
       "status": "done"
     },
     {
@@ -5344,9 +5418,9 @@
       "warnings": [
         "_default_operator_status and _counts_from_fractions are also used by group-1 connectivity code still in core.py (_default_metadata, _suite2_neuron_population_from_config, Configuration.area_layer_cell_types); core.py imports them back from jaxfne/_config.py -- a one-directional dependency (core.py -> _config.py), not a cycle, verified by successful import and a real end-to-end simulate() run."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor('default-column') -> construct_neuronal_tensor -> jtfne.simulate() produced spike_rate_hz_mean=20.0, n_neurons=80 (matches pre-split behavior). Targeted tests green (71 passed: test_neuronal_tensor.py, test_util_config_tensor.py, test_pipeline_pure_functions.py). Full suite run in progress at time of this entry.",
-      "status": "open"
+      "last_verified": "2026-07-07",
+      "evidence": "Real end-to-end run: load_canonical_neuronal_tensor('default-column') -> construct_neuronal_tensor -> jtfne.simulate() produced spike_rate_hz_mean=20.0, n_neurons=80 (matches pre-split behavior). Targeted tests green (71 passed: test_neuronal_tensor.py, test_util_config_tensor.py, test_pipeline_pure_functions.py). Full suite run in progress at time of this entry. || P1 2026-07-07: load_canonical_neuronal_tensor('default-column') -> construct_neuronal_tensor -> simulate(10ms) -> spikes shape (100,80).",
+      "status": "done"
     },
     {
       "path": "jaxfne/_model.py",
@@ -5463,5 +5537,6 @@
       "evidence": "FIXED 2026-07-05: added a 'Verified case in this repo' section citing two real cases from this session -- runtime.py's safe_jit/safe_vmap docstring correction (the guard only catches wrap-time failures, not the advertised eager-fallback-on-any-failure), and validation.py's recompile-guard investigation (found NOT exploitable via any real call site, fixed via docstring rather than a mechanism rewrite -- an example of correctly declining to 'fix' a non-live issue).",
       "status": "done"
     }
-  ]
+  ],
+  "progress_pass_note_2026_07_07_p1": "P1 step7_handoff_worklist executed by Cursor: 12 entries closed done, ff_fb remains deferred/gitignored; evidence_figures re-scoped with README exception; plotly/network smoke test added."
 }

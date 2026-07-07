@@ -1,6 +1,6 @@
 # Tutorial Output Contract
 
-**Status:** Stable specification, introduced in jaxfne 0.2.19/2026-05-21, still in effect (current package: 0.4.4)  
+**Status:** Stable specification, introduced in jaxfne 0.2.19/2026-05-21, still in effect (current development tree: 0.4.5)  
 **run_status:** tutorial_scaffold
 
 ---
