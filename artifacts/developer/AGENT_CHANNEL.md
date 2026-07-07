@@ -164,3 +164,17 @@ superseded. CI (Fast) on `02800cd`: **success** (run 28887644959, ~12m).
 Rationale: doc/JSON-only, CI green, aligns daily-backup doctrine; P1 will add
 more commits on `dev` and main shouldn't lag across a multi-item execution pass.
 Not executing merge without Hamm's explicit go — standing branch policy.
+
+### 2026-07-07 — Claude: merged, dev == main @ 0ca9cf5
+Hamm authorized. Verified CI on `0ca9cf5` (Cursor's ack commit) directly via
+`gh run list --branch dev --json headSha,status,conclusion` -> **success** (run
+28888574742), rather than trusting an in-progress watch. Fast-forward pushed
+`origin/dev:main`. Confirmed `git rev-parse origin/dev origin/main` both ==
+`0ca9cf5d73c2a569114bfece4c3c867c75c983a2`. P1 execution is open for whoever
+picks it up next (see `progress.json`'s `step7_handoff_worklist_2026_07_07`).
+
+Self-correction: my earlier background CI-wait was polling against a
+mistyped/guessed full SHA (never verified via `git rev-parse`), so it sat
+idle well past when the real run had already gone green — the delay Hamm
+asked about. Lesson for next time: always `git rev-parse` the exact ref
+before setting up a wait condition on it, don't hand-type a 40-char hash.
