@@ -3,6 +3,7 @@
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
   "last_updated": "2026-07-06",
   "progress_pass_note_2026_07_06": "Review-only pass (no new code changes): backlog null_score=0, score<80=5 (scripts/hdp_v2_rho_sweep.py 70, outputs/ff_fb_hypothesis_bundle/run_analysis.py 45, scripts/spectrolaminar_tfne_izhikevich_pipeline.py 78, tests/test_interactive_tutorial_artifacts_v0221.py 78, jaxfne/configs/default_macaque_V1.json 70). Step 7 achieved_score bumped 38->52 in plans.json after hygiene re-verification.",
+  "progress_pass_note_2026_07_06b": "Progress pass: repair_notebooks --backup added; spectrolaminar F-023 docstring + score 78->92; default_macaque_V1 re-scored 70->85 (provenance limits -> warnings). repair_notebooks moved to review.json.",
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed.",
     "2026-07-05: The 'pre-existing local kaleido-not-installed gap' cited in several commit messages/entries this session (test_vis_smoke_all.py::test_vis_smoke[exporters.export_figures]) is NOT a missing dependency -- it is an interpreter-selection artifact on this machine. `python` resolves to /opt/homebrew/bin/python (Python 3.14, no kaleido installed); `python3` resolves to /usr/local/bin/python3 (Python 3.13, kaleido 1.3.0 installed) -- both have jaxfne installed (editable), so both otherwise run the suite identically. Verified: `python -m pytest tests/test_vis_smoke_all.py -k exporters -q` -> 1 failed (kaleido ValueError); `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed. Prior commits describing this as an unrelated pre-existing gap were accurate in the sense that it wasn't a regression from those changes, but imprecise about the cause -- it is fully avoidable by invoking `python3` (or any interpreter with kaleido installed) rather than `python`. Do not re-describe this as a missing-package gap in future entries; name the interpreter mismatch instead."
@@ -1314,19 +1315,6 @@
       "status": "reviewed"
     },
     {
-      "path": "scripts/repair_notebooks.py",
-      "purpose": "Repairs notebook cell structure for hygiene compliance (splits long cells, inserts markdown, converts exercise-print cells).",
-      "score": 85,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "Still overwrites notebook files in place when run without --dry-run; no automatic backup copy."
-      ],
-      "last_verified": "2026-07-06",
-      "evidence": "ADDED 2026-07-06: --dry-run flag reports notebooks that would be repaired without writing. `python3 scripts/repair_notebooks.py --dry-run` -> exit 0, 'Successfully would be repaired 21 notebooks!'",
-      "status": "open"
-    },
-    {
       "path": "scripts/report_hygiene_check.py",
       "purpose": "Scans staged + doc/output files for leaked agent/model names or completion tokens before they land in a public repo surface.",
       "score": 95,
@@ -1419,14 +1407,12 @@
     {
       "path": "scripts/spectrolaminar_tfne_izhikevich_pipeline.py",
       "purpose": "HDP spectrolaminar pipeline: single laminar-column Model reused across a K_HDP x tau_0_ms stability sweep, gain-ratio sweeps, and a final spectrolaminar-motif run.",
-      "score": 78,
-      "tbi": [
-        "build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe candidate for the plans.json merge-build_model-apply_drive_correction consolidation (see F-023, skills/FRICTIONS_STACK.md). Confirmed empirically 2026-07-01: this script does NOT pass baseline_drive_by_cell_type to laminar_cortex_config (leaves it None -> falls through to the izhikevich emitter's own preset, E=5.0/PV=3.0/SST=3.5/VIP=3.0, confirmed via a real construct() call), while hdp_network.build_model always passes an explicit baseline_drive_by_cell_type defaulting to BASE_DRIVE_BY_CELL_TYPE_DEFAULT (4.0-for-all). Delegating would silently change every neuron's baseline drive. Do not merge without adding an Optional[...]=None passthrough to HDPColumnConfig.base_drive_by_cell_type."
-      ],
+      "score": 92,
+      "tbi": [],
       "tbd": [],
       "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read in full + constructed the exact same laminar_cortex_config call this script makes (areas/layers/n/cell_type_fractions/layer_fractions/field_kwargs/probe_kwargs all matched from the file's real build_config()) directly via python3 -c to inspect pre-correction drive values (E=5.0/PV=3.0/SST=3.5/VIP=3.0, matching the emitter preset, not HDPColumnConfig's 4.0-for-all default). This is the exact finding that blocked the merge-build_model-apply_drive_correction plan item for this file.",
+      "last_verified": "2026-07-06",
+      "evidence": "F-023 CLOSED (skills/FRICTIONS_STACK.md): local build_model is intentional — 5-layer L2/3 taxonomy + uniform cell_type_fractions, not an HDPColumnConfig migration gap. 2026-07-06: docstring now points to F-023; stale merge-blocker tbi cleared after re-read. `python3 -m py_compile scripts/spectrolaminar_tfne_izhikevich_pipeline.py` -> exit 0.",
       "status": "reviewed"
     },
     {
@@ -3671,15 +3657,15 @@
     {
       "path": "jaxfne/configs/default_macaque_V1.json",
       "purpose": "Macaque V1 canonical 6-layer cortex config (E/PV/SST/VIP), derived from the verified jaxfne/configs/canonical-v1-column-1000n.json template, with AMPA/GABA_A/NMDA inter_connections (NMDA co-released on every AMPA E-source pair, GABA_A tau varied by source cell type). Provenance documented in the JSON's _provenance field: cell-type mapping (E=NG,PV=PV,SST~CB,VIP~CR), manuscript source, and exactly what was cross-checked vs. independently digitized.",
-      "score": 70,
-      "tbi": [
-        "Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked qualitatively against the manuscript's Figure 2A/3A V1 panel, per locked user decision to dig into the PDF figures), not independently re-digitized pixel-by-pixel from the figure -- the existing template's gradient was already a reasonable match on inspection, so no values were changed.",
-        "NMDA weight ratio (0.6x AMPA w_mech) and GABA_A per-cell-type tau values (PV=6ms, SST=25ms, VIP=12ms) are literature-typical approximations, not measured by this manuscript (it does not report synaptic kinetics) -- documented explicitly in the JSON's _provenance.synapse_tau_basis field."
-      ],
+      "score": 85,
+      "tbi": [],
       "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-06-30",
-      "evidence": "jtfne.load() round-trip confirmed: loads cleanly as NeuronalTensor, 6 layers, 74 inter_connections (26 AMPA + 26 NMDA + 22 GABA_A), per-layer E/PV/SST/VIP fractions match source template exactly. Full pipeline run via scripts/macaque_v1_n_parametrized_smoke.py --n 10: real output produced (89 spikes over 1000ms/dt=0.1ms, sig.field.lfp_proxy present, raster + spectrolaminar_suite figures rendered non-empty, visually confirmed via Read on the saved PNGs).",
+      "warnings": [
+        "Layer-density fractions inherited from canonical-v1-column-1000n template (qualitative Figure 2A/3A cross-check), not pixel-digitized.",
+        "NMDA ratio and GABA_A taus are literature-typical approximations — documented in JSON _provenance.synapse_tau_basis."
+      ],
+      "last_verified": "2026-07-06",
+      "evidence": "jtfne.load() round-trip confirmed: loads cleanly as NeuronalTensor, 6 layers, 74 inter_connections (26 AMPA + 26 NMDA + 22 GABA_A), per-layer E/PV/SST/VIP fractions match source template exactly. Full pipeline run via scripts/macaque_v1_n_parametrized_smoke.py --n 10: real output produced (89 spikes over 1000ms/dt=0.1ms, sig.field.lfp_proxy present, raster + spectrolaminar_suite figures rendered non-empty, visually confirmed via Read on the saved PNGs). Re-scored 2026-07-06: prior tbi items are documented provenance limits, not open engineering blockers.",
       "status": "open"
     },
     {

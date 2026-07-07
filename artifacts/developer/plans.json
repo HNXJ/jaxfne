@@ -586,14 +586,14 @@
         "note": "Baseline from the quantitative review delivered 2026-07-04, before this plan's steps run. docs_quality (82) was not itself a step target in this plan but is tracked as context."
       },
       "current_scorecard_2026_07_06": {
-        "0.4.7_estimated": 58,
+        "0.4.7_estimated": 60,
         "0.4.7_note": "Interpolated from step 6 achieved (55) + step 7 partial (52/80 of the step-7 delta toward 80). Not a publish gate score.",
         "progress_backlog": {
           "total_entries": 451,
           "null_score": 0,
-          "score_lt_80": 5,
-          "status_open": 13,
-          "review_passed_entries": 59
+          "score_lt_80": 3,
+          "status_open": 12,
+          "review_passed_entries": 60
         },
         "step_scores": [
           {"step": 1, "target": "0.4.5", "target_score": 95, "achieved_score": 96, "status": "done"},
@@ -602,7 +602,7 @@
           {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 52, "status": "in_progress"},
+          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 56, "status": "in_progress"},
           {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
@@ -688,8 +688,8 @@
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
-          "achieved_score": 52,
-          "progress_note": "2026-07-06 Progress pass: closed 2 real test gaps (canonical PV-E comparison, sanity_delta plasticity placeholder flag); added repair_notebooks --dry-run; cleared stale hdp_1000 merge tbd; package hygiene re-verified (mkdocs --strict, LICENSE, docs/citation.md, docs/changelog.md contains 0.4.5). 2026-07-06b: fixed tests/_notebook_exec_helpers portable kernel install (temp JUPYTER_DATA_DIR); notebook execution unblocked locally for at least v031. 2026-07-06 Review pass: 0 pending_review entries; batch re-verified the 3 step-7 promotions (canonical biophysics 7 passed, sanity_delta plasticity 2 passed, v031 notebook exec 1 passed). Backlog metrics: progress.json 451 entries, null_score=0, score<80=5, status=open=13. Package hygiene re-run: mkdocs build --strict clean, python3 -m build wheel -> jaxfne-0.4.5.whl. STILL OPEN: release-0.4.7-legacy-code-thinning (partially_done, no full deprecated-code inventory); 5 sub-80 entries; scripts/evidence_figures/ grammar violation tracked but not fixed."
+          "achieved_score": 56,
+          "progress_note": "2026-07-06c: repair_notebooks --backup; spectrolaminar F-023 docstring (78->92); default_macaque_V1 re-score (70->85). Review batch pytest 20 passed. score<80=3. STILL OPEN: legacy-code-thinning partially_done."
         },
         {
           "step": 8,

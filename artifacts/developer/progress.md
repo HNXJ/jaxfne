@@ -4,8 +4,6 @@
 |---|---|---|---|---|---|
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
-| jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
 | tests/test_interactive_tutorial_artifacts_v0221.py | 78 | reviewed |  |  | 2026-07-04 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
@@ -24,9 +22,9 @@
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/network.py | 85 | open |  | No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\.network|plot_network_3d' test | 2026-07-05 |
 | scripts/characterize_neuron_io_curves.py | 85 | reviewed |  |  | 2026-07-04 |
-| scripts/repair_notebooks.py | 85 | open |  |  | 2026-07-06 |
 | scripts/verify_5hz_traces.py | 85 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0320_recompilation_guards.py | 85 | reviewed | the underlying mechanism still conflates 'a new Python wrapper handed to jax.jit' with 'an actual XLA recompilation' (wo | if the registry's Python-call-counting design changes to be JIT-hook-based, these tests need re-verification since they  | 2026-07-04 |
+| jaxfne/configs/default_macaque_V1.json | 85 | open |  |  | 2026-07-06 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
 | jaxfne/_pipeline.py | 85 | done | configuration_to_tensor -- no Configuration->NeuronalTensor converter exists anywhere in the codebase (only the reverse, | Whether compile_step_fn/scan_network ever expand beyond HDP edge-list (homeostasis and dense backends are explicitly out | 2026-07-03 |
 | docs/HDP_REPORT.md | 85 | done | The doc's phrase 'Generic builder (jaxfne.hdp_network)' names jaxfne.hdp_network as if it were a callable builder; it is |  | 2026-07-03 |
@@ -202,6 +200,7 @@
 | scripts/hdp_fi_calibration_curves.py | 92 | reviewed |  |  | 2026-07-04 |
 | scripts/hdp_gain_ratio_sweep.py | 92 | reviewed |  |  | 2026-07-04 |
 | scripts/hdp_synaptic_channel_trace.py | 92 | reviewed |  |  | 2026-07-04 |
+| scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 92 | reviewed |  |  | 2026-07-06 |
 | scripts/visualize_cylinder_cortex_1000.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_agsdr_multilaminar_api.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_analysis_metrics.py | 92 | reviewed |  |  | 2026-07-04 |

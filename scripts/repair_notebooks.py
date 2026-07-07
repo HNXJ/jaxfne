@@ -1,6 +1,7 @@
 import os
 import json
 import glob
+import shutil
 from pathlib import Path
 
 def split_code_lines(source_lines: list[str], max_logical_lines: int = 10) -> list[list[str]]:
@@ -41,7 +42,7 @@ def split_code_lines(source_lines: list[str], max_logical_lines: int = 10) -> li
         
     return chunks
 
-def repair_notebook(nb_path: Path, *, dry_run: bool = False) -> bool:
+def repair_notebook(nb_path: Path, *, dry_run: bool = False, backup: bool = False) -> bool:
     """Repair notebook cell structure and formatting."""
     try:
         with open(nb_path, "r", encoding="utf-8") as f:
@@ -142,6 +143,14 @@ def repair_notebook(nb_path: Path, *, dry_run: bool = False) -> bool:
     if dry_run:
         return True
 
+    if backup:
+        backup_path = nb_path.with_suffix(nb_path.suffix + ".bak")
+        try:
+            shutil.copy2(nb_path, backup_path)
+        except Exception as e:
+            print(f"Error backing up {nb_path} -> {backup_path}: {e}")
+            return False
+
     # Save the repaired notebook
     try:
         with open(nb_path, "w", encoding="utf-8") as f:
@@ -160,6 +169,11 @@ def main():
         action="store_true",
         help="Report which notebooks would be repaired without writing files.",
     )
+    parser.add_argument(
+        "--backup",
+        action="store_true",
+        help="Write a .ipynb.bak copy beside each notebook before repairing.",
+    )
     args = parser.parse_args()
 
     mode = "DRY RUN" if args.dry_run else "REPAIRING"
@@ -174,7 +188,7 @@ def main():
             continue
         verb = "Would repair" if args.dry_run else "Repairing structure for"
         print(f"{verb}: {nb}")
-        if repair_notebook(nb, dry_run=args.dry_run):
+        if repair_notebook(nb, dry_run=args.dry_run, backup=args.backup):
             repaired_count += 1
 
     label = "would be repaired" if args.dry_run else "repaired"

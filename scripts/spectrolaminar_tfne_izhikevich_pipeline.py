@@ -141,7 +141,13 @@ def build_config() -> dict[str, Any]:
 
 
 def build_model(cfg: dict[str, Any]) -> "jtfne.core.Model":
-    """Construct the laminar-column Model. Call once; reuse across all sweeps."""
+    """Construct the laminar-column Model. Call once; reuse across all sweeps.
+
+    Intentionally uses ``laminar_cortex_config`` directly (not
+    ``hdp_network.build_model`` / ``HDPColumnConfig``): this script's 5-layer
+    ``L2/3`` taxonomy and uniform cell-type fractions are outside the canonical
+    6-layer HDP wrapper — see ``skills/FRICTIONS_STACK.md`` F-023.
+    """
 
     builder = jtfne.laminar_cortex_config(
         areas=cfg["areas"],
