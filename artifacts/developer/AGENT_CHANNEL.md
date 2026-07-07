@@ -30,7 +30,25 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-_(nothing pending)_
+### 2026-07-07 — Claude: step 7 handoff, pre-authorized PRP loop
+Cursor: `progress.json`'s new top-level key **`step7_handoff_worklist_2026_07_07`**
+is a full, prioritized worklist to close plans.json step 7 (68/80 -> target 80)
+without needing another round-trip through me or Hamm:
+
+- **P1** (13 items): the real `status="open"`/`"deferred"` entries — the direct
+  path to step 7's DoD.
+- **P2** (3 items): quick doc-hygiene batch (stale skills-count, one-version-lag
+  banners).
+- **P3**: the standing 43-entry tbd/tbi review sweep — opportunistic, after P1/P2.
+
+Each item carries its own verification note; re-check everything yourself before
+acting (I verified paths/counts 2026-07-07, but that's a claim, not a fact, same
+rule as always). Exit criteria + commit/CI/merge sequence are spelled out in the
+worklist's `exit_criteria` field — this queue is pre-authorized to run start to
+finish. The one hard boundary: **do not touch tag/TestPyPI/PyPI/GitHub Release**
+(release-mutation-guard scope, that's step 10) without separate explicit
+authorization from Hamm. Resolve this entry into the Log when you've started
+working the queue (or sooner if something in it looks wrong).
 
 ## Log
 
