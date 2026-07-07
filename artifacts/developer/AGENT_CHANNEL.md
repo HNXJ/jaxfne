@@ -261,3 +261,5 @@ execution tests → **4 passed** in 25s (outside the 27-list). **API docs:** ful
 `export.py` `save_figure` close via `jaxfne.vis.exporters.close_matplotlib_figure`
 (matplotlib import only in `vis/`). Export smoke → **3 passed**. Step 8 → **60/95**.
 
+**CI:** run 28905779882 → **success** on `296650a`. Merged `dev` → `main`.
+
