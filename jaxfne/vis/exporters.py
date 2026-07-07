@@ -73,6 +73,12 @@ def export_figures(figures: dict, output_dir, *, formats: tuple = ("html", "png"
     return manifest
 
 
+def close_matplotlib_figure(fig) -> None:
+    """Close a matplotlib figure (used by deprecated export shims)."""
+    import matplotlib.pyplot as plt
+    plt.close(fig)
+
+
 class FigureBundle:
     """A named collection of figures (matplotlib and/or plotly) with ``.export(...)``."""
 

@@ -518,8 +518,8 @@
       "warnings": [
         "NAMING COLLISION: jaxfne.tutorial_utils.py defines its own, differently-signatured export_tutorial_artifacts(cfg, manifest_dict=None, ...) never imported at root -- verified via inspect.signature that jaxfne.export_tutorial_artifacts (root) and jaxfne.tutorial_utils.export_tutorial_artifacts are distinct functions with incompatible signatures"
       ],
-      "last_verified": "2026-07-06",
-      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root. || 2026-07-06: module docstring documents 0.4.7 incremental-thinning deferral for save_figure (F-016).",
+      "last_verified": "2026-07-07",
+      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root. || 2026-07-06: module docstring documents 0.4.7 incremental-thinning deferral for save_figure (F-016). || STEP8 2026-07-07: save_figure close path moved to jaxfne.vis.exporters.close_matplotlib_figure (matplotlib only in vis/).",
       "status": "reviewed"
     },
     {
@@ -5562,13 +5562,18 @@
         "jaxfne_v036_100_neuron_ei_population.ipynb",
         "jaxfne_v038_lfp_csd_readout.ipynb",
         "jaxfne_suite_no_2_evoked_l4_drive.ipynb",
-        "jaxfne_v0313_omission_oddball.ipynb"
+        "jaxfne_v0313_omission_oddball.ipynb",
+        "jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
+        "jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
+        "jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
+        "etudes/jaxfne_etude_no_1_base.ipynb"
       ],
       "receipt": "2 passed in 339.63s (test_notebook_execution_suite parametrized). Full 27-notebook suite is slow/nightly lane — do not block step 8 on single-session full sweep.",
-      "remaining": 18,
+      "remaining": 14,
       "receipt_batch2": "3 passed in 17.10s (2026-07-07 step 8 continue)",
       "receipt_batch3": "4 passed in 28.18s",
-      "dedicated_suite_tests": "test_suite_no1 + test_suite_no4 -> 4 passed in 25.03s (separate from 27-list)"
+      "dedicated_suite_tests": "test_suite_no1 + test_suite_no4 -> 4 passed in 25.03s (separate from 27-list)",
+      "receipt_batch4": "4 passed in 29.53s"
     },
     "priority_2_api_docs": "emitters.md corrected: izhikevich_* factories live under jtfne.emitters, not top-level (verified hasattr). Full docs/api/*.md dotted-ref scan: only runtime.md flags are documented __init__ collision (intentional); emitters.md fixed prior pass.",
     "priority_3_vis_grammar": [
@@ -5578,9 +5583,10 @@
     ],
     "priority_4_paradigm": "release-0.4.7-final-polish paradigm/NeuronalTensor oddball wiring — plans item still proposed",
     "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence.",
-    "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed."
+    "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed. export.py save_figure plt.close -> vis.exporters.close_matplotlib_figure; root_export + vis exporters smoke 3 passed."
   },
   "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
   "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation.",
-  "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95."
+  "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95.",
+  "progress_pass_note_2026_07_07_step8_batch4": "13/27 notebooks; export.py vis-grammar close delegation."
 }

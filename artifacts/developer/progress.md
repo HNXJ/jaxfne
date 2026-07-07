@@ -185,7 +185,7 @@
 | tests/test_suite_no4_notebook_execution.py | 91 | reviewed |  |  | 2026-07-04 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | done | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-07-07 |
-| jaxfne/export.py | 92 | reviewed |  |  | 2026-07-06 |
+| jaxfne/export.py | 92 | reviewed |  |  | 2026-07-07 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |

@@ -651,7 +651,7 @@
             "step": 8,
             "target": "0.4.7",
             "target_score": 95,
-            "achieved_score": 50,
+            "achieved_score": 60,
             "status": "in_progress"
           },
           {
@@ -843,12 +843,12 @@
           "target": "0.4.7",
           "target_score": 95,
           "status": "in_progress",
-          "achieved_score": 50,
+          "achieved_score": 60,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
           ],
-          "progress_note": "2026-07-07 batch3: 9/27 notebooks + suite1/4 dedicated (4 passed); API docs scan clean except documented runtime collision.",
+          "progress_note": "2026-07-07 batch4: 13/27 notebooks; export.py matplotlib close via vis.exporters.",
           "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain."
         },
         {

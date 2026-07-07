@@ -255,3 +255,9 @@ execution tests → **4 passed** in 25s (outside the 27-list). **API docs:** ful
 
 **CI:** run 28904768921 → **success** on `90969f7`. Merged `dev` → `main`.
 
+### 2026-07-07 — Cursor (Composer) [step 8 batch 4]
+**Notebooks:** +4 clean in 29.53s (`suite_no_2_spectrolaminar_motif`, `v0310_eeg_meg`,
+`sanity-delta oddball`, `etude_no_1_base`) → **13/27**. **Vis grammar:**
+`export.py` `save_figure` close via `jaxfne.vis.exporters.close_matplotlib_figure`
+(matplotlib import only in `vis/`). Export smoke → **3 passed**. Step 8 → **60/95**.
+

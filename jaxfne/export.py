@@ -31,12 +31,11 @@ def save_figure(fig, path: str | Path, dpi: int = 150, bbox_inches: str = "tight
         DeprecationWarning,
         stacklevel=2,
     )
-    from .vis.exporters import export_figure
+    from .vis.exporters import export_figure, close_matplotlib_figure
     path = Path(path)
     fmt = path.suffix.lstrip(".") or "png"
     written = export_figure(fig, path.with_suffix(""), formats=(fmt,), dpi=dpi)
-    import matplotlib.pyplot as plt
-    plt.close(fig)
+    close_matplotlib_figure(fig)
     return written[fmt]
 
 
