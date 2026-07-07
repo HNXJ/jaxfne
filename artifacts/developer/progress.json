@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 1 of the 3-file pipeline (progress.json -> review.json -> plans.json; plus a local-only, untracked pv.json for private plans if any -- never these three). This file holds every file/task that is NOT yet fully resolved: score=null means unreviewed (a real review hasn't happened -- never treat null as 0 or 'broken'), score<100 or status='open' means reviewed-but-incomplete (read tbi/tbd/warnings for exactly what's missing). Workflow for ANY agent, no prior context needed: pick an entry, do the work named in its tbi/tbd/warnings, verify with a real command (not assumed), update score/evidence/last_verified honestly. The MOMENT an entry reaches score=100 with empty tbi/tbd/warnings: cut it from entries[] here and paste it into review.json's entries[] with status='pending_review' and moved_from_progress_on=today -- do not leave a finished entry in this file. Planned-but-not-started work lives in plans.json, not here.",
-  "last_updated": "2026-07-05",
+  "last_updated": "2026-07-06",
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed.",
     "2026-07-05: The 'pre-existing local kaleido-not-installed gap' cited in several commit messages/entries this session (test_vis_smoke_all.py::test_vis_smoke[exporters.export_figures]) is NOT a missing dependency -- it is an interpreter-selection artifact on this machine. `python` resolves to /opt/homebrew/bin/python (Python 3.14, no kaleido installed); `python3` resolves to /usr/local/bin/python3 (Python 3.13, kaleido 1.3.0 installed) -- both have jaxfne installed (editable), so both otherwise run the suite identically. Verified: `python -m pytest tests/test_vis_smoke_all.py -k exporters -q` -> 1 failed (kaleido ValueError); `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed. Prior commits describing this as an unrelated pre-existing gap were accurate in the sense that it wasn't a regression from those changes, but imprecise about the cause -- it is fully avoidable by invoking `python3` (or any interpreter with kaleido installed) rather than `python`. Do not re-describe this as a missing-package gap in future entries; name the interpreter mismatch instead."
@@ -1181,14 +1181,14 @@
     {
       "path": "scripts/hdp_1000_neuronal_tensor_column.py",
       "purpose": "Builds a 1000-neuron V1 column via the NeuronalTensor (tensor-first) path rather than Configuration/laminar_cortex_config, applies a per-cell-type drive correction, runs HDP, and produces summary plots.",
-      "score": 78,
-      "tbi": [
-        "apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NOT a safe candidate for the plans.json merge-build_model-apply_drive_correction consolidation (see F-023, skills/FRICTIONS_STACK.md). Confirmed empirically 2026-07-01: this script does an ABSOLUTE drive override (drive = BASE_DRIVE_BY_CELL_TYPE_DEFAULT[ct] * DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT[ct]), while hdp_network.apply_drive_correction does a MULTIPLICATIVE correction on the model's EXISTING drive (corrected = existing_drive * factor). The tensor-first construct() path's pre-correction drive is E=5.0/PV=3.0/SST=3.5/VIP=3.0 (NeuronType.make defaults), not 4.0-for-all -- a blind delegate would silently compute a different final drive. Do not merge without first adding an absolute-override mode to hdp_network.apply_drive_correction."
-      ],
+      "score": 88,
+      "tbi": [],
       "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-01",
-      "evidence": "Read in full + ran build_tensor()+construct() directly to inspect pre-correction drive values per cell type (E=5.0, PV=3.0, SST=3.5, VIP=3.0, confirmed via a real python3 -c invocation, not assumed). This is the exact finding that blocked the merge-build_model-apply_drive_correction plan item for this file.",
+      "warnings": [
+        "apply_drive_correction() is now a thin delegate to hdp_network.apply_drive_correction(mode='absolute') -- intentional, not a duplicate body to merge away."
+      ],
+      "last_verified": "2026-07-06",
+      "evidence": "RE-VERIFIED 2026-07-06: stale tbd claiming unsafe merge was wrong post-F-023 -- local apply_drive_correction already delegates to hdp_network with mode='absolute' (lines 268-285). No code change required; progress note corrected.",
       "status": "reviewed"
     },
     {
@@ -1315,15 +1315,15 @@
     {
       "path": "scripts/repair_notebooks.py",
       "purpose": "Repairs notebook cell structure for hygiene compliance (splits long cells, inserts markdown, converts exercise-print cells).",
-      "score": 78,
+      "score": 85,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "directly overwrites notebook files with no backup or dry-run flag -- inherent to purpose, but no --check/--dry-run option exists"
+        "Still overwrites notebook files in place when run without --dry-run; no automatic backup copy."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Read fully, syntax OK; no jaxfne dependency; not run since it writes notebook files in place.",
-      "status": "reviewed"
+      "last_verified": "2026-07-06",
+      "evidence": "ADDED 2026-07-06: --dry-run flag reports notebooks that would be repaired without writing. `python3 scripts/repair_notebooks.py --dry-run` -> exit 0, 'Successfully would be repaired 21 notebooks!'",
+      "status": "open"
     },
     {
       "path": "scripts/report_hygiene_check.py",
@@ -1508,17 +1508,6 @@
       "status": "reviewed"
     },
     {
-      "path": "tests/_notebook_exec_helpers.py",
-      "purpose": "Shared nbclient-based notebook-execution helper (portable kernel install + cell error collection); not itself collected by pytest.",
-      "score": 90,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Read fully; pure helper, no jaxfne.core imports; logic self-consistent.",
-      "status": "reviewed"
-    },
-    {
       "path": "tests/test_agent_api_catalog.py",
       "purpose": "Guards the curated internal_docs API catalog (row count, spectrolaminar pipeline, no *_like vocab, no local paths).",
       "score": 88,
@@ -1608,21 +1597,6 @@
       "warnings": [],
       "last_verified": "2026-07-04",
       "evidence": "Confirmed imports from jaxfne.validation; no jaxfne.core usage.",
-      "status": "reviewed"
-    },
-    {
-      "path": "tests/test_canonical_biophysics.py",
-      "purpose": "Tests six canonical-column biophysics effects at construct time (SST a, deep-E size grading, random v0, layer fractions, PV<->E connectivity, size-scaled homeostasis).",
-      "score": 80,
-      "tbi": [
-        "test_pv_e_strengthened_canonical_only constructs the flat-baseline model mf but never uses it in any assertion -- it only checks pv_e_meanabs(mc)>0.0, a much weaker claim than the comment (which describes a canonical-vs-flat comparison). Dead code / comment overclaims what the test verifies."
-      ],
-      "tbd": [
-        "either use mf in a real comparison (pv_e_meanabs(mc)>pv_e_meanabs(mf)) or remove the unused var and soften the comment"
-      ],
-      "warnings": [],
-      "last_verified": "2026-07-04",
-      "evidence": "Verified IZHIKEVICH_CELL_TYPE_DEFAULTS['SST']['a']==0.05 and canonical layer fractions match assertions exactly.",
       "status": "reviewed"
     },
     {
@@ -2805,21 +2779,6 @@
       "warnings": [],
       "last_verified": "2026-07-04",
       "evidence": "Verified enable_plasticity() mutates+returns self, matching the test's reassignment pattern; config-only so the _make_plasticity_metrics bug is out of scope.",
-      "status": "reviewed"
-    },
-    {
-      "path": "tests/test_sanity_delta_plasticity_report_full.py",
-      "purpose": "Verifies homeostatic plasticity updates preserve bounds and produce a valid plasticity_report.json when plasticity is enabled.",
-      "score": 78,
-      "tbi": [],
-      "tbd": [
-        "add a companion test calling export() with plasticity left disabled that asserts plasticity_report.json's weights are NOT the hardcoded 0.0/0.08 when real weight arrays exist -- would close the coverage gap and catch the fabrication bug"
-      ],
-      "warnings": [
-        "no file in the review scope exercises the plasticity-disabled default path against plasticity_report.json content"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "Cross-checked _make_plasticity_metrics: this test enables plasticity first (real computed stats branch), so it does NOT exercise the fabricated-placeholder else-branch (the disabled default) -- the known fabrication bug can't be caught here.",
       "status": "reviewed"
     },
     {

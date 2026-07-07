@@ -41,7 +41,7 @@ def split_code_lines(source_lines: list[str], max_logical_lines: int = 10) -> li
         
     return chunks
 
-def repair_notebook(nb_path: Path) -> bool:
+def repair_notebook(nb_path: Path, *, dry_run: bool = False) -> bool:
     """Repair notebook cell structure and formatting."""
     try:
         with open(nb_path, "r", encoding="utf-8") as f:
@@ -139,6 +139,9 @@ def repair_notebook(nb_path: Path) -> bool:
                 
     nb["cells"] = final_cells
     
+    if dry_run:
+        return True
+
     # Save the repaired notebook
     try:
         with open(nb_path, "w", encoding="utf-8") as f:
@@ -149,20 +152,33 @@ def repair_notebook(nb_path: Path) -> bool:
         return False
 
 def main():
-    print("=== REPAIRING JAXFNE JUPYTER NOTEBOOKS (ROBUST) ===")
-    
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Repair notebook cell structure for hygiene compliance.")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Report which notebooks would be repaired without writing files.",
+    )
+    args = parser.parse_args()
+
+    mode = "DRY RUN" if args.dry_run else "REPAIRING"
+    print(f"=== {mode} JAXFNE JUPYTER NOTEBOOKS (ROBUST) ===")
+
     # Scan both notebooks and tutorials directories
     nb_files = list(Path("tutorials").glob("*.ipynb")) + list(Path("notebooks").glob("**/*.ipynb"))
-    
+
     repaired_count = 0
     for nb in nb_files:
         if ".ipynb_checkpoints" in str(nb) or "outputs/" in str(nb):
             continue
-        print(f"Repairing structure for: {nb}")
-        if repair_notebook(nb):
+        verb = "Would repair" if args.dry_run else "Repairing structure for"
+        print(f"{verb}: {nb}")
+        if repair_notebook(nb, dry_run=args.dry_run):
             repaired_count += 1
-            
-    print(f"\nSuccessfully repaired {repaired_count} notebooks!")
+
+    label = "would be repaired" if args.dry_run else "repaired"
+    print(f"\nSuccessfully {label} {repaired_count} notebooks!")
 
 if __name__ == "__main__":
     main()

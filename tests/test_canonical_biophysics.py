@@ -77,16 +77,26 @@ def test_canonical_layer_fractions_match_reference():
 
 
 def test_pv_e_strengthened_canonical_only():
-    mc = jtfne.construct(_canon()); mf = jtfne.construct(_flat())
+    mc = jtfne.construct(_canon())
+    mf = jtfne.construct(_flat())
+
     def pv_e_meanabs(m):
-        e = m.params["edge_list"]; lab = np.array(m.params["emitter"].labels)
-        pre = np.asarray(e.pre); post = np.asarray(e.post); w = np.asarray(e.weight)
-        pc = lab[pre]; qc = lab[post]
+        e = m.params["edge_list"]
+        lab = np.array(m.params["emitter"].labels)
+        pre = np.asarray(e.pre)
+        post = np.asarray(e.post)
+        w = np.asarray(e.weight)
+        pc = lab[pre]
+        qc = lab[post]
         mask = ((pc == "PV") & (qc == "E")) | ((pc == "E") & (qc == "PV"))
         return float(np.abs(w[mask]).mean()) if mask.any() else 0.0
+
+    canon_pv_e = pv_e_meanabs(mc)
+    flat_pv_e = pv_e_meanabs(mf)
+    assert canon_pv_e > 0.0
+    assert flat_pv_e > 0.0
     # canonical strengthens PV<->E (distance-gated) above the flat baseline scale
-    # (both have PV<->E edges; canonical's are boosted up to x3 locally)
-    assert pv_e_meanabs(mc) > 0.0
+    assert canon_pv_e > flat_pv_e
 
 
 def test_homeostasis_k_gain_size_scaled_runs_and_json_safe():

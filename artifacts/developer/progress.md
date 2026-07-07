@@ -5,14 +5,10 @@
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
 | scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
 | jaxfne/configs/default_macaque_V1.json | 70 | open | Per-layer density fractions are inherited from the existing canonical-v1-column-1000n.json template (cross-checked quali |  | 2026-06-30 |
-| scripts/hdp_1000_neuronal_tensor_column.py | 78 | reviewed | apply_drive_correction() is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.apply_drive_correction -- but NO |  | 2026-07-01 |
-| scripts/repair_notebooks.py | 78 | reviewed |  |  | 2026-07-04 |
 | scripts/spectrolaminar_tfne_izhikevich_pipeline.py | 78 | reviewed | build_model(cfg: dict) is a real, working, LOCAL-ONLY duplicate of jaxfne.hdp_network.build_model -- but NOT a safe cand |  | 2026-07-01 |
 | tests/test_interactive_tutorial_artifacts_v0221.py | 78 | reviewed |  |  | 2026-07-04 |
-| tests/test_sanity_delta_plasticity_report_full.py | 78 | reviewed |  | add a companion test calling export() with plasticity left disabled that asserts plasticity_report.json's weights are NO | 2026-07-04 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
-| tests/test_canonical_biophysics.py | 80 | reviewed | test_pv_e_strengthened_canonical_only constructs the flat-baseline model mf but never uses it in any assertion -- it onl | either use mf in a real comparison (pv_e_meanabs(mc)>pv_e_meanabs(mf)) or remove the unused var and soften the comment | 2026-07-04 |
 | scripts/find_5hz_vmap.py | 82 | reviewed |  |  | 2026-07-04 |
 | scripts/run_neuron_sweeps.py | 82 | reviewed |  |  | 2026-07-04 |
 | docs/CORTEX_CALIBRATION_CHECKLIST.md | 82 | done |  |  | 2026-07-03 |
@@ -28,6 +24,7 @@
 | jaxfne/streaming.py | 85 | done |  |  | 2026-07-01 |
 | jaxfne/vis/plotly/network.py | 85 | open |  | No dedicated test file (re-confirmed 2026-07-05, not just carried over: `grep -rl 'plotly\.network|plot_network_3d' test | 2026-07-05 |
 | scripts/characterize_neuron_io_curves.py | 85 | reviewed |  |  | 2026-07-04 |
+| scripts/repair_notebooks.py | 85 | open |  |  | 2026-07-06 |
 | scripts/verify_5hz_traces.py | 85 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0320_recompilation_guards.py | 85 | reviewed | the underlying mechanism still conflates 'a new Python wrapper handed to jax.jit' with 'an actual XLA recompilation' (wo | if the registry's Python-call-counting design changes to be JIT-hook-based, these tests need re-verification since they  | 2026-07-04 |
 | scripts/macaque_v1_n_parametrized_smoke.py | 85 | open |  | Only validated at N=10 per locked user decision (N=10-only scope) -- not yet checked at a larger N (e.g. 1000) to confir | 2026-06-30 |
@@ -47,6 +44,7 @@
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed05_manifest_hashes.py | 88 | done |  |  | 2026-07-05 |
 | scripts/generate_tutorial_figures.py | 88 | reviewed |  |  | 2026-07-04 |
+| scripts/hdp_1000_neuronal_tensor_column.py | 88 | reviewed |  |  | 2026-07-06 |
 | scripts/run_all_tutorials.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/validate_tutorial_outputs.py | 88 | reviewed |  |  | 2026-07-04 |
 | tests/test_agent_api_catalog.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -91,7 +89,6 @@
 | scripts/evidence_figures/fig05_runtime_scaling.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/make_delta_test_01_report.py | 90 | reviewed |  |  | 2026-07-04 |
 | scripts/tutorial_plotly_utils.py | 90 | reviewed |  |  | 2026-07-04 |
-| tests/_notebook_exec_helpers.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_artifact_json_safety_v0330.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_compact_facade_v034.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_config_circuit_ownership_v0328_completion.py | 90 | reviewed |  |  | 2026-07-04 |

@@ -11,6 +11,7 @@ Not a test module itself (no test_ prefix) -- pytest will not collect it.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
 import tempfile
@@ -26,6 +27,9 @@ def portable_kernel_context(kernel_name: str = "jaxfne_test_kernel"):
     Avoids depending on a pre-registered "python3" kernel being present
     (e.g. on a fresh CI runner) by writing a minimal kernelspec to a temp
     dir and registering it for the duration of the test.
+
+    Uses JUPYTER_DATA_DIR / JUPYTER_RUNTIME_DIR under a temp root so installs
+    never touch ~/Library/Jupyter (PermissionError in sandboxed/CI envs).
     """
     from jupyter_client.kernelspec import KernelSpecManager
 
@@ -34,21 +38,34 @@ def portable_kernel_context(kernel_name: str = "jaxfne_test_kernel"):
         "display_name": "JAXFNE Portable Test Kernel",
         "language": "python",
     }
-    temp_dir = tempfile.mkdtemp()
+    temp_root = tempfile.mkdtemp(prefix="jaxfne_jupyter_")
+    jupyter_data = Path(temp_root) / "data"
+    jupyter_runtime = Path(temp_root) / "runtime"
+    kernelspec_source = Path(temp_root) / "kernelspec_source"
+    kernelspec_source.mkdir(parents=True, exist_ok=True)
+    env_keys = ("JUPYTER_DATA_DIR", "JUPYTER_RUNTIME_DIR")
+    saved_env = {key: os.environ.get(key) for key in env_keys}
+    os.environ["JUPYTER_DATA_DIR"] = str(jupyter_data)
+    os.environ["JUPYTER_RUNTIME_DIR"] = str(jupyter_runtime)
     try:
-        spec_path = Path(temp_dir) / "kernel.json"
-        with open(spec_path, "w") as f:
+        spec_path = kernelspec_source / "kernel.json"
+        with open(spec_path, "w", encoding="utf-8") as f:
             json.dump(spec, f)
         ksm = KernelSpecManager()
-        ksm.install_kernel_spec(temp_dir, kernel_name, user=True, replace=True)
+        ksm.install_kernel_spec(str(kernelspec_source), kernel_name, user=True)
         yield kernel_name
     finally:
         try:
             KernelSpecManager().remove_kernel_spec(kernel_name)
         except Exception:
             pass
+        for key, value in saved_env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
         try:
-            shutil.rmtree(temp_dir)
+            shutil.rmtree(temp_root)
         except Exception:
             pass
 

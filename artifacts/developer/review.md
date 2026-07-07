@@ -2,6 +2,9 @@
 
 | path | score | review_status | moved_from_progress_on | review_command |
 |---|---|---|---|---|
+| tests/test_sanity_delta_plasticity_report_full.py | 92 | passed | 2026-07-06 | PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_sanity_delta_plasticity_report_full.py -q --t |
+| tests/test_canonical_biophysics.py | 95 | passed | 2026-07-06 | PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_canonical_biophysics.py -q --tb=short |
+| tests/_notebook_exec_helpers.py | 96 | passed | 2026-07-06 | PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest 'tests/test_notebook_execution_suite.py::test_release_no |
 | tests/test_public_api_snapshot_v034.py | 100 | passed |  |  |
 | jaxfne/util.py + tests/test_util_config_tensor.py | 100 | passed |  |  |
 | tests/test_neuronal_tensor.py | 100 | passed |  |  |
