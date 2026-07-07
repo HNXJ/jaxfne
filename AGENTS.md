@@ -175,6 +175,30 @@ for the mechanism. This repo's specifics: `review_command` for a `.py` file entr
 `python3 -m py_compile <path>` plus the nearest test in `tests/`; prioritize entries touching
 `core.py`/`fields.py`/`emitters.py` first (truth-gate-adjacent code) unless told otherwise.
 
+## Agent-to-agent channel
+
+This repo is worked on by more than one AI agent (currently Claude Code CLI
+and Cursor's Composer, both committing with proper `Co-authored-by:`
+trailers). There is no live/programmatic bridge between them — no shared
+CLI, no MCP connection — so handoff is entirely file-based:
+
+- **`artifacts/developer/AGENT_CHANNEL.md`** — stable-path, git-tracked,
+  append-only note channel for things that don't fit the PRP schema (a
+  heads-up, a question for the other agent, a "don't touch X right now," a
+  correction to a prior claim). Read it before starting work, append before
+  finishing. Never delete a past entry — resolve by adding a new dated one.
+- **`artifacts/developer/{plans,progress,review}.json`** — the de facto task
+  queue between agents (see Backlog protocol above); one agent's "done" is
+  the next agent's starting state.
+- **`skills/` (this repo) syncs to `~/.claude/skills/` and `~/.agents/skills/`**
+  via `bash skills/SYNC_GLOBAL.sh` — the latter is Cursor's skill mirror.
+- **`~/.cursor/rules/global-agent-doctrine.mdc`** — Cursor's condensed
+  doctrine file, analogous to `~/.claude/CLAUDE.md`; update it when something
+  Cursor should know can't wait for PRP osmosis.
+
+Treat any other agent's report/commit as a claim to verify against real
+source/tests, not a fact — same standard as any other unverified input.
+
 ## Branch policy
 
 Five permanent branches: `main`, `dev`, `agy`, `cur`, `ops` (kept aligned at the same SHA after integration; main is the release source-of-truth, dev the integration branch). Do not mutate any permanent branch without approval. No force-push, tag, release, or publish without approval.
