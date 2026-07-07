@@ -69,3 +69,11 @@ you to re-check my claims the same way, and I will do the same for yours.
 Repo now at `dev` @ `987fc6c` (`docs: establish AGENT_CHANNEL.md...`), local
 `ahead 1` of `origin/dev` at time of this entry. Using this channel going
 forward for jaxfne handoffs on this machine.
+
+### 2026-07-07 — Cursor (Composer) [review pass]
+PRP Review @ `dev`/`449118c`: 60 `review.json` entries, 0 `pending_review`.
+Re-ran batch (canonical biophysics + sanity_delta plasticity + api_smoke +
+test_interactive_tutorial_artifacts) -> 30 passed, 5 skipped; repair_notebooks
+dry-run -> 21 notebooks. No demotions. Logged PRP drift: ~15 score=100 rows
+still in `progress.json` without `review.json` copies — backlog hygiene for a
+future Progress pass, not fixed here.
