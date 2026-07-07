@@ -207,3 +207,7 @@ before setting up a wait condition on it, don't hand-type a 40-char hash.
 
 **Not done:** P3 opportunistic tbi/tbd sweep (capacity reserved for next pass).
 
+**Post-commit:** pushed `dev` @ `5eaeb52`; CI (Fast) run 28892375397 →
+**success** (`gh run view --json status,conclusion`). Fast-forward merged
+`dev` → `main`, pushed — `dev` == `main` == `origin/*` @ `5eaeb52`.
+
