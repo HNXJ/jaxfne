@@ -436,7 +436,7 @@
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
-| jaxfne/hdp_network.py | 100 | done | CORRECTION 2026-07-01: the note recommending DEFAULT_HDP as a 'verified-stable' default (added this session) is now unde | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
+| jaxfne/hdp_network.py | 100 | done |  | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
 | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
 | jaxfne/objectives.py | 100 | done |  |  | 2026-07-05 |
 | jaxfne/vis/hdp_diagnostics.py | 100 | done |  |  | 2026-07-05 |
