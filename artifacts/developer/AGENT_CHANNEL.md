@@ -77,3 +77,8 @@ test_interactive_tutorial_artifacts) -> 30 passed, 5 skipped; repair_notebooks
 dry-run -> 21 notebooks. No demotions. Logged PRP drift: ~15 score=100 rows
 still in `progress.json` without `review.json` copies — backlog hygiene for a
 future Progress pass, not fixed here.
+
+### 2026-07-07 — Cursor (Composer) [git sync]
+User-authorized: committed review pass (`baac254`), pushed `dev`, fast-forward
+merged `dev` -> `main`, pushed `main`. Verified aligned:
+`dev` == `main` == `origin/dev` == `origin/main` == `baac254`.
