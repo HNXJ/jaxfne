@@ -211,3 +211,11 @@ before setting up a wait condition on it, don't hand-type a 40-char hash.
 **success** (`gh run view --json status,conclusion`). Fast-forward merged
 `dev` → `main`, pushed — `dev` == `main` == `origin/*` @ `5eaeb52`.
 
+### 2026-07-07 — Cursor (Composer) [step 7 exit]
+Hamm authorized step 7 exit. `plans.json` step 7 → **`status: done`**, **`achieved_score:
+74/80`** (target 80 not rounded). DoD receipts re-run this pass: `python3 -m build`
+→ jaxfne-0.4.5 OK; `mkdocs build --strict` OK; api_smoke + root_import → **12
+passed**. Backlog: `open=0`, `deferred=1` (ff_fb gitignored), `null_score=0`,
+`score<80=1`. `evidence_figures/` vis migration explicitly deferred to **step 8**.
+Step 8 is next (`release-0.4.7-final-polish`).
+

@@ -586,6 +586,30 @@
         "docs_quality": 82,
         "note": "Baseline from the quantitative review delivered 2026-07-04, before this plan's steps run. docs_quality (82) was not itself a step target in this plan but is tracked as context."
       },
+      "current_scorecard_2026_07_07": {
+        "0.4.7_estimated": 74,
+        "0.4.7_note": "Step 7 exited done at 74/80 (Hamm-authorized exit 2026-07-07). Target 80 not rounded — evidence_figures vis migration deferred to step 8.",
+        "progress_backlog": {
+          "total_entries": 450,
+          "null_score": 0,
+          "score_lt_80": 1,
+          "status_open": 0,
+          "status_deferred": 1,
+          "review_passed_entries": 60
+        },
+        "step_scores": [
+          {"step": 1, "target": "0.4.5", "target_score": 95, "achieved_score": 96, "status": "done"},
+          {"step": 2, "target": "v1_pfc_paradigm", "target_score": 95, "achieved_score": 95, "status": "done"},
+          {"step": 3, "target": "0.4.6", "target_score": 95, "achieved_score": 95, "status": "done"},
+          {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
+          {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
+          {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
+          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
+          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
+          {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
+          {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
+        ]
+      },
       "current_scorecard_2026_07_06": {
         "0.4.7_estimated": 64,
         "0.4.7_note": "Step 6 at 55 + step 7 at 68/80 partial. Not a publish gate score.",
@@ -603,7 +627,7 @@
           {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "in_progress"},
+          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
           {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
@@ -684,13 +708,15 @@
           "step": 7,
           "target": "0.4.7",
           "target_score": 80,
-          "status": "in_progress",
+          "status": "done",
           "definition_of_done": "Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). Package hygiene re-verified end-to-end (README badges, classifiers, changelog, license, citation.md) via a real build, not just a read-through. release-0.4.7-legacy-code-thinning moved from partially_done to done or explicitly re-scoped.",
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
           "achieved_score": 74,
-          "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0. Honest score 74/80 (not rounded): target 80 may need Hamm re-scope or evidence_figures migration."
+          "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0.",
+          "completion_note": "2026-07-07 step 7 EXIT (Hamm-authorized): achieved_score 74/80 — not rounded to target 80. DoD met: progress.json status_open=0, null_score=0, legacy thinning re-scoped done, P1 worklist fully closed with receipts, evidence_figures/ documented exception (vis migration → step 8). Remaining score_lt_80=1 is gitignored ff_fb bundle (deferred). Exit re-verified: python3 -m build -> jaxfne-0.4.5 wheel+sdist OK; mkdocs build --strict OK; api_smoke+root_import -> 12 passed. CI green on 5eaeb52/f5613af before this exit commit.",
+          "exit_score_rationale": "Target 80 assumed full evidence_figures grammar closure or PRP orphan promotion; honest verified closure lands at 74. Hamm accepted step 7 done at 74 with evidence_figures deferred to step 8."
         },
         {
           "step": 8,
