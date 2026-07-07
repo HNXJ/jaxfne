@@ -5558,13 +5558,19 @@
         "jaxfne-sanity-checker-notebook-01.ipynb",
         "jaxfne_v033_two_neuron_ei.ipynb",
         "jaxfne_v035_small_recurrent_ei.ipynb",
-        "jaxfne_v032_parameter_sweep.ipynb"
+        "jaxfne_v032_parameter_sweep.ipynb",
+        "jaxfne_v036_100_neuron_ei_population.ipynb",
+        "jaxfne_v038_lfp_csd_readout.ipynb",
+        "jaxfne_suite_no_2_evoked_l4_drive.ipynb",
+        "jaxfne_v0313_omission_oddball.ipynb"
       ],
       "receipt": "2 passed in 339.63s (test_notebook_execution_suite parametrized). Full 27-notebook suite is slow/nightly lane — do not block step 8 on single-session full sweep.",
-      "remaining": 22,
-      "receipt_batch2": "3 passed in 17.10s (2026-07-07 step 8 continue)"
+      "remaining": 18,
+      "receipt_batch2": "3 passed in 17.10s (2026-07-07 step 8 continue)",
+      "receipt_batch3": "4 passed in 28.18s",
+      "dedicated_suite_tests": "test_suite_no1 + test_suite_no4 -> 4 passed in 25.03s (separate from 27-list)"
     },
-    "priority_2_api_docs": "emitters.md corrected: izhikevich_* factories live under jtfne.emitters, not top-level (verified hasattr).",
+    "priority_2_api_docs": "emitters.md corrected: izhikevich_* factories live under jtfne.emitters, not top-level (verified hasattr). Full docs/api/*.md dotted-ref scan: only runtime.md flags are documented __init__ collision (intentional); emitters.md fixed prior pass.",
     "priority_3_vis_grammar": [
       "jaxfne/export.py deprecated save_figure wrappers",
       "jaxfne/tutorial_utils.py _finish_figure matplotlib",
@@ -5575,5 +5581,6 @@
     "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed."
   },
   "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
-  "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation."
+  "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation.",
+  "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95."
 }

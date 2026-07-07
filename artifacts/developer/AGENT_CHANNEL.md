@@ -246,3 +246,10 @@ notebooks verified (`v031_single_neuron`, `sanity-checker`) → 2 passed in 339s
 
 **CI:** run 28902899248 → **success** on `5e8ffb0`. Merged `dev` → `main`.
 
+### 2026-07-07 — Cursor (Composer) [step 8 batch 3]
+**Notebooks:** +4 clean in 28.18s (`v036`, `v038`, `suite_no_2_evoked_l4`,
+`v0313_omission`) → **9/27** on parametrized suite. **Dedicated:** suite 1 + suite 4
+execution tests → **4 passed** in 25s (outside the 27-list). **API docs:** full
+`docs/api/*.md` dotted-ref scan — no new fixes (runtime collision already documented).
+`plans.json` step 8 → **50/95**.
+
