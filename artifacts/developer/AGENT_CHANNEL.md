@@ -234,3 +234,6 @@ notebooks verified (`v031_single_neuron`, `sanity-checker`) → 2 passed in 339s
 `mkdocs build --strict` OK. `step8_kickoff_worklist_2026_07_07` added to
 `progress.json`. Next: continue notebook lane + API docs pass + vis-grammar items.
 
+**Post-kickoff CI:** run 28900914827 → **success** on `c28799b`. Merged `dev` →
+`main`; `dev` == `main` @ `c28799b`.
+
