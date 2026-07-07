@@ -244,3 +244,5 @@ notebooks verified (`v031_single_neuron`, `sanity-checker`) → 2 passed in 339s
 `tutorial_utils._finish_figure` delegates to `jaxfne.vis.tutorial_array_plots`; pytest
 `test_tutorial_utils` → **38 passed**. `plans.json` step 8 → **38/95** `in_progress`.
 
+**CI:** run 28902899248 → **success** on `5e8ffb0`. Merged `dev` → `main`.
+
