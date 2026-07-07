@@ -219,3 +219,6 @@ passed**. Backlog: `open=0`, `deferred=1` (ff_fb gitignored), `null_score=0`,
 `score<80=1`. `evidence_figures/` vis migration explicitly deferred to **step 8**.
 Step 8 is next (`release-0.4.7-final-polish`).
 
+**Post-exit CI:** run 28898020238 → **success** on `835aeba`. Merged `dev` →
+`main`; `dev` == `main` == `origin/*` @ `835aeba`.
+
