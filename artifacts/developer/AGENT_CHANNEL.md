@@ -253,3 +253,5 @@ execution tests → **4 passed** in 25s (outside the 27-list). **API docs:** ful
 `docs/api/*.md` dotted-ref scan — no new fixes (runtime collision already documented).
 `plans.json` step 8 → **50/95**.
 
+**CI:** run 28904768921 → **success** on `90969f7`. Merged `dev` → `main`.
+
