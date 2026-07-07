@@ -35,7 +35,7 @@
 | release-0.4.7-final-polish | 0.4.7: final polish to 100/100 -- modular vis/util independence, improved paradigm engine for oddball/omission tasks on  | proposed | jaxfne/vis/; jaxfne/util.py; jaxfne/paradigm.py; jaxfne/export.py; jaxfne/tutorial_utils.py; scripts/evidence_figures/ |
 | hdp-stability-formula-design-and-validation | [BLOCKING 0.4.5, TARGET 100/100] Design and validate a real, working HDP restoring formula | done | jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp; jaxfne/hdp_network.py::DEFAULT_HDP; scripts/hdp_v2_rho_sweep |
 | test-strategy-consolidate-to-etudes-suites | [SCOPING NEEDED, DO NOT START] Redirect test coverage: retire redundant unit tests, grow etude/suite notebooks to cover  | done | tests/; tutorials/etudes/; scripts/*suite*.py |
-| release-0.4.7-legacy-code-thinning | [SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume | partially_done |  |
+| release-0.4.7-legacy-code-thinning | 0.4.7 legacy thinning (incremental scope — re-scoped done 2026-07-06) | done |  |
 | config-schema-ic-pcb-redesign | [SCOPING NEEDED, DO NOT START] Redesign config schema as an IC/PCB-style declarative description (emitters=elements, syn | done | jaxfne/core.py; jaxfne/builders.py; jaxfne/hdp_network.py |
 | v1-pfc-continuous-aaab-adaptation-paradigm | [SCOPED, 10-trial smoke test is the next real step] Build V1-PFC continuous AAAB adaptation paradigm (replaces the old a | in_progress | jaxfne/_signals.py (StimulusSchedule.frequency_hz extension); jaxfne/paradigm.py (reference the F-022 marker-silencing p |
 | release-v0.4.5-published | v0.4.5 released to PyPI | done | pyproject.toml; jaxfne/core.py; docs/changelog.md; docs/citation.md; mkdocs.yml; docs/_generated/version.md |

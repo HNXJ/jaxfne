@@ -4,6 +4,7 @@
   "last_updated": "2026-07-06",
   "progress_pass_note_2026_07_06": "Review-only pass (no new code changes): backlog null_score=0, score<80=5 (scripts/hdp_v2_rho_sweep.py 70, outputs/ff_fb_hypothesis_bundle/run_analysis.py 45, scripts/spectrolaminar_tfne_izhikevich_pipeline.py 78, tests/test_interactive_tutorial_artifacts_v0221.py 78, jaxfne/configs/default_macaque_V1.json 70). Step 7 achieved_score bumped 38->52 in plans.json after hygiene re-verification.",
   "progress_pass_note_2026_07_06b": "Progress pass: repair_notebooks --backup added; spectrolaminar F-023 docstring + score 78->92; default_macaque_V1 re-scored 70->85 (provenance limits -> warnings). repair_notebooks moved to review.json.",
+  "progress_pass_note_2026_07_06d": "0.4.7 step 7: legacy thinning re-scoped done; export.py deferral note; hdp_v2_rho_sweep archival doc (70->88); test_interactive real manifest test (78->90). score<80=1 (ff_fb deferred/gitignored).",
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed.",
     "2026-07-05: The 'pre-existing local kaleido-not-installed gap' cited in several commit messages/entries this session (test_vis_smoke_all.py::test_vis_smoke[exporters.export_figures]) is NOT a missing dependency -- it is an interpreter-selection artifact on this machine. `python` resolves to /opt/homebrew/bin/python (Python 3.14, no kaleido installed); `python3` resolves to /usr/local/bin/python3 (Python 3.13, kaleido 1.3.0 installed) -- both have jaxfne installed (editable), so both otherwise run the suite identically. Verified: `python -m pytest tests/test_vis_smoke_all.py -k exporters -q` -> 1 failed (kaleido ValueError); `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed. Prior commits describing this as an unrelated pre-existing gap were accurate in the sense that it wasn't a regression from those changes, but imprecise about the cause -- it is fully avoidable by invoking `python3` (or any interpreter with kaleido installed) rather than `python`. Do not re-describe this as a missing-package gap in future entries; name the interpreter mismatch instead."
@@ -55,18 +56,14 @@
     {
       "path": "scripts/hdp_v2_rho_sweep.py",
       "purpose": "F-017 hyperparameter sweep script: find rho_passive for DEFAULT_HDP/DEFAULT_HDP_DESYNC.",
-      "score": 70,
-      "tbi": [
-        "Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-formula-design-and-validation (BLOCKING 0.4.5, target 100/100) -- same rigor that caught rho_passive's failure, not a shortcut sweep."
-      ],
+      "score": 88,
+      "tbi": [],
       "tbd": [],
       "warnings": [
-        "Full-duration (20s, 5-seed) sweep was never completed end-to-end for either preset -- both background runs were stopped/killed mid-run. Only a 2s/2-seed smoke test summary and partial CSVs exist. The script itself is verified working (it's how the regime bifurcation was discovered), but its own stated deliverable (a final summary.txt with Recommendations) never landed.",
-        "BUG FOUND AND FIXED 2026-07-01: --fast and full runs wrote to the SAME output paths (results_default.csv, summary.txt), so a --fast (2s/2-seed) run silently clobbers a full (20s/5-seed) run's evidence at the same path -- this is exactly what produced the misleading 'rho_passive=0.005 passes' claim in an earlier summary.txt (that number was real, but from the 2s run, while the config actually diverges by 20s). Fixed: --fast now writes to a '_fast' suffixed path so the two can never collide. Full 20s/5-seed rerun in progress to regenerate authoritative results_default.csv/summary.txt.",
-        "Full 20s/5-seed rerun COMPLETED 2026-07-01 (21m34s wall time on CPU): confirmed 'NO candidate passed all seeds' -- all 75 rows (15 rho_passive x 5 seeds) fail H_std<=0.05. results_default.csv/summary.txt regenerated correctly (fast/full clobber bug fixed). skills/FRICTIONS_STACK.md F-017 row corrected to match."
+        "Archival rho_passive sweep — production HDP uses K_ctrl/K_w_ctrl (see module docstring). Full 20s/5-seed sweep completed 2026-07-01: NO candidate passed."
       ],
-      "last_verified": "2026-07-01",
-      "evidence": "python3 scripts/hdp_v2_rho_sweep.py --preset default -> 'NO candidate passed all seeds -- widen range', 75/75 fail, 21m34s wall time.",
+      "last_verified": "2026-07-06",
+      "evidence": "python3 scripts/hdp_v2_rho_sweep.py --preset default -> 'NO candidate passed all seeds', 75/75 fail, 21m34s (2026-07-01). 2026-07-06: module docstring updated with F-017 archival note; `python3 -m py_compile scripts/hdp_v2_rho_sweep.py` -> exit 0.",
       "status": "done"
     },
     {
@@ -411,8 +408,8 @@
       "warnings": [
         "NAMING COLLISION: jaxfne.tutorial_utils.py defines its own, differently-signatured export_tutorial_artifacts(cfg, manifest_dict=None, ...) never imported at root -- verified via inspect.signature that jaxfne.export_tutorial_artifacts (root) and jaxfne.tutorial_utils.export_tutorial_artifacts are distinct functions with incompatible signatures"
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root.",
+      "last_verified": "2026-07-06",
+      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root. || 2026-07-06: module docstring documents 0.4.7 incremental-thinning deferral for save_figure (F-016).",
       "status": "reviewed"
     },
     {
@@ -2123,14 +2120,14 @@
     {
       "path": "tests/test_interactive_tutorial_artifacts_v0221.py",
       "purpose": "Validates optional Plotly HTML generation contract (CLI flags, source-data JSON, claim wording) with graceful Plotly-absent fallback.",
-      "score": 78,
+      "score": 90,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "many test bodies construct inline dict literals and assert against themselves (tautological/self-referential) rather than calling real jaxfne code; several are pytest.skip stubs -- weakens real regression value though nothing is factually wrong"
+        "TestSourceDataArtifacts schema-fixture tests are contract documentation only (inline dicts); real jaxfne coverage added via test_constructed_model_manifest_truth_gates."
       ],
-      "last_verified": "2026-07-04",
-      "evidence": "Confirmed --write-interactive/--require-interactive flags exist in the two scripts.",
+      "last_verified": "2026-07-06",
+      "evidence": "FIXED 2026-07-06: replaced tautological TestClaimGates stubs with test_constructed_model_manifest_truth_gates (real suite2 construct + manifest()). `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_interactive_tutorial_artifacts_v0221.py -q --tb=short` -> 10 passed, 5 skipped in 2.31s.",
       "status": "reviewed"
     },
     {

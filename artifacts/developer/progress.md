@@ -3,8 +3,6 @@
 | path | score | status | tbi | tbd | last_verified |
 |---|---|---|---|---|---|
 | outputs/ff_fb_hypothesis_bundle/run_analysis.py | 45 | deferred | All 4 scripts it dispatches to (test_ff_fb_hypothesis_proper.py, spectrolaminar_3panel_suite.py, laminar_raster_6panel_1 |  | 2026-07-01 |
-| scripts/hdp_v2_rho_sweep.py | 70 | done | Will need re-running (full duration, multi-seed) against any new candidate formula from plans.json item hdp-stability-fo |  | 2026-07-01 |
-| tests/test_interactive_tutorial_artifacts_v0221.py | 78 | reviewed |  |  | 2026-07-04 |
 | benchmarks/scaling_benchmark.py | 80 | open |  |  | 2026-06-30 |
 | jaxfne/optim/base.py | 80 | open |  |  | 2026-06-30 |
 | scripts/find_5hz_vmap.py | 82 | reviewed |  |  | 2026-07-04 |
@@ -37,6 +35,7 @@
 | scripts/evidence_figures/ed10_release_archive_receipt.py | 87 | reviewed |  |  | 2026-07-04 |
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
+| scripts/hdp_v2_rho_sweep.py | 88 | done |  |  | 2026-07-06 |
 | jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed03_notebook_execution_receipts.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -105,6 +104,7 @@
 | tests/test_ed9_evidence.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_ed9_hdp_evidence.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_etude1_notebook_thinness.py | 90 | reviewed |  |  | 2026-07-04 |
+| tests/test_interactive_tutorial_artifacts_v0221.py | 90 | reviewed |  |  | 2026-07-06 |
 | tests/test_network_100_ei_colab_v0210.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_notebook_status_doc_consistency.py | 90 | reviewed |  |  | 2026-07-04 |
 | tests/test_notebook_structure_v0330.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -185,7 +185,7 @@
 | tests/test_suite_no4_notebook_execution.py | 91 | reviewed |  |  | 2026-07-04 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | open | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-06-30 |
-| jaxfne/export.py | 92 | reviewed |  |  | 2026-07-04 |
+| jaxfne/export.py | 92 | reviewed |  |  | 2026-07-06 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |

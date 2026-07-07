@@ -6,6 +6,9 @@ All functions here are designed for direct notebook use with strict call grammar
   jtfne.plot_raster(...)
 
 No matplotlib calls in notebooks; matplotlib used internally with lazy imports only.
+
+0.4.7 legacy-thinning note: ``save_figure``/``save_figures`` remain until tutorial
+call sites migrate to ``jaxfne.vis.export_figure`` (see F-016).
 """
 from __future__ import annotations
 

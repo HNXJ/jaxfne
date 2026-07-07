@@ -203,22 +203,20 @@ class TestInteractiveHTMLGeneration:
 
 
 class TestClaimGates:
-    """Claim gates remain frozen in all interactive artifacts."""
+    """Claim gates remain conservative on real Model manifests."""
 
-    def test_physical_amplitude_claim_always_false(self):
-        """physical_amplitude_calibrated is always False."""
-        source_data = {"physical_amplitude_calibrated": False}
-        assert source_data["physical_amplitude_calibrated"] is False
+    def test_constructed_model_manifest_truth_gates(self):
+        """manifest() from a real construct() carries conservative defaults."""
+        import jaxfne as jtfne
 
-    def test_claim_level_always_computational_scaffold(self):
-        """claim_level is always computational_scaffold."""
-        source_data = {"claim_level": "computational_scaffold"}
-        assert source_data["claim_level"] == "computational_scaffold"
+        cfg = jtfne.suite2_four_celltype_config(seed=0, duration_ms=10.0, dt_ms=0.1)
+        model = jtfne.construct(cfg)
+        manifest = model.manifest()
 
-    def test_no_biological_validation_claims(self):
-        """Artifacts make no claims about biological validation."""
-        artifact_text = "computational scaffold, not empirically validated"
-        assert "empirical" not in artifact_text.lower() or "not" in artifact_text.lower()
+        assert manifest["claim_level"] == "computational_scaffold"
+        assert manifest["physical_amplitude_calibrated"] is False
+        assert manifest["field_solver_status"] == "linear_solver"
+        assert manifest["field_claim_level"] == "proxy_readout"
 
 
 if __name__ == "__main__":

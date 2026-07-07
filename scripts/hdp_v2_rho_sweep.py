@@ -19,6 +19,11 @@ Outputs
 
 Do NOT put simulator or optimizer logic here. This script only
 configures and calls package APIs.
+
+Historical (F-017): rho_passive sweep found no working window (see
+artifacts/hdp_v2_rho_sweep/summary.txt). Production HDP presets use
+K_ctrl / K_w_ctrl — re-run this sweep only if the restoring-force
+formula changes materially.
 """
 from __future__ import annotations
 

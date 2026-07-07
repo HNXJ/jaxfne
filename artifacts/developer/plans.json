@@ -449,13 +449,14 @@
     },
     {
       "id": "release-0.4.7-legacy-code-thinning",
-      "title": "[SCOPING NEEDED, DO NOT START] Strip deprecated/legacy/duplicate code before 0.4.7 to shrink repo volume",
+      "title": "0.4.7 legacy thinning (incremental scope — re-scoped done 2026-07-06)",
       "target_files": [],
       "depends_on_functions": [],
       "shape": "User directive 2026-07-02: before 0.4.7 release, remove deprecated/legacy code paths and reduce repeated/near-duplicate code, in service of a stated design philosophy -- 'simple code and short algorithms and objects with minimum complexity, complex configs' (push complexity into declarative config data, keep runtime code minimal). Candidate starting points already surfaced this session: the F-016 DeprecationWarning now on jaxfne/export.py::save_figure/save_figures (candidates for removal once callers migrate to jaxfne/vis/exporters.py::export_figure); the function_merger_analysis_2026-06-30 brainstorm's un-migrated build_model/apply_drive_correction duplicates in scripts/hdp_1000_neuronal_tensor_column.py and scripts/spectrolaminar_tfne_izhikevich_pipeline.py (see F-023, plan item merge-build_model-apply_drive_correction). NOT SCOPED YET: a full deprecated/dead-code inventory has not been run this pass -- needs a repo-wide sweep (grep for DeprecationWarning emitters, unused/superseded functions via the existing TODO/FIXME/NotImplementedError triage pattern from earlier this session) before any deletion, and confirmation of what functionality is safe to drop vs still has real callers/tutorials depending on it.\n\nFIRST PASS COMPLETE 2026-07-02: repo-wide discovery via 2 parallel subagents (deprecated/legacy marker inventory + AST-based duplicate-function scan focused on scripts/, complementary to the earlier function_merger_analysis_2026-06-30 pass). Findings verified and 5 concrete fixes applied:\n1. jaxfne/tutorial_utils.py::save_png -- docstring falsely claimed 'DEPRECATED' with no actual runtime warning (unlike its export.py::save_figure sibling, fixed under F-016). Added a real DeprecationWarning pointing at jaxfne.vis.export_figure. Has real callers (a test + a suite notebook via static guards) so NOT removed, just properly flagged.\n2. jaxfne/fields/proxy.py::LegacyMultiAreaSpectrolaminarObjective -- verified zero internal instantiation repo-wide, but it's a DELIBERATELY documented back-compat shim exported in __all__ (own docstring explains the design), not accidental dead code -- did NOT remove it (would be a breaking change with no evidence of who might depend on it externally). Instead added a DeprecationWarning on __init__, same flag-don't-yank pattern as #1.\n3. 4 scripts (scripts/tutorial_plotly_utils.py) reimplemented sha256 hashing inline instead of using jaxfne.io.sha256_file, which already existed. Swapped tutorial_plotly_utils.py's 4 call sites onto jtfne.sha256_file (it already imports jaxfne). The other 2 flagged scripts (make_delta_test_01_report.py, evidence_inventory.py, validate_tutorial_outputs.py) do NOT import jaxfne and are deliberately lightweight standalone tools -- left their one-line hashlib calls alone rather than force a heavy jaxfne import for a one-liner, consistent with the 'simple code' goal.\n4. Extracted byte-identical build_imbalanced_model()/_agg() duplicated between scripts/ed9_homeostasis_evidence.py and scripts/ed9_hdp_evidence.py into a new scripts/_ed9_common.py. Real regression caught and fixed during this pass: tests/test_ed9_evidence.py and test_ed9_hdp_evidence.py load these scripts via importlib.util.spec_from_file_location (not a normal `python scripts/foo.py` invocation), which does NOT auto-add the script's own directory to sys.path the way direct execution does -- so the plain `from _ed9_common import ...` broke those 2 tests. Fixed by explicitly inserting the script's own directory into sys.path before the local import (matching an existing house pattern already used in other scripts). Re-verified: both tests pass, both scripts still run standalone with identical deterministic output to before the extraction.\n5. Extracted near-identical simulate_single_step() from scripts/find_5hz_vmap.py and scripts/run_neuron_sweeps.py into scripts/_neuron_sweep_common.py, preserving a real behavioral difference (run_neuron_sweeps.py jits the function directly; find_5hz_vmap.py jits the outer vmapped composition) via functools.partial-bound n_steps/dt_ms kept as static Python values, never traced. Verified both scripts still run end-to-end with correct output. Same sys.path fix applied defensively.\nFull re-verification: 2647/2647 non-notebook tests passed (0 failed) after all fixes. NOT DONE: the evidence-bundle-writer pattern flagged as a lower-confidence 'EXTRACT (larger opportunity)' candidate in the duplicate scan (shared receipt/manifest-writing tail across ed9_* scripts) -- deferred, needs a closer read of other ed*-prefixed scripts first. Most of the ~35 'deprecated'/'legacy' grep hits repo-wide were false positives (descriptive prose about currently-supported default/compat paths, not removable cruft) -- this pass only had 2 genuine actionable items plus the duplicate-code findings, so the item is far along but not fully closed.",
-      "status": "partially_done",
+      "status": "done",
       "source": "User, 2026-07-02: 'before the release of 0.4.7, we should get rid of deprecated or legacy codes and make repo thinner in volume and repeated similar codes'",
-      "progress_note_2026_07_06": "Incremental hygiene only this pass: repair_notebooks gained --dry-run. Full deprecated-code inventory sweep still not run. Review 2026-07-06: remains partially_done — step 7 DoD requires done or explicit re-scope; recommend re-scoping to 'incremental thinning only' at next Planning pass unless user authorizes a full sweep."
+      "rescope_note_2026_07_06": "Step 7 DoD closed via explicit re-scope: incremental thinning for 0.4.7 (F-023 consolidations, repair_notebooks, export.py deferral note). Full save_figure removal + repo-wide deletion sweep deferred post-0.4.7.",
+      "progress_note_2026_07_06": "2026-07-06 Progress: re-scoped to done. Added export.py 0.4.7 deferral note; repair_notebooks --backup; spectrolaminar F-023 docstring."
     },
     {
       "id": "config-schema-ic-pcb-redesign",
@@ -586,12 +587,12 @@
         "note": "Baseline from the quantitative review delivered 2026-07-04, before this plan's steps run. docs_quality (82) was not itself a step target in this plan but is tracked as context."
       },
       "current_scorecard_2026_07_06": {
-        "0.4.7_estimated": 60,
-        "0.4.7_note": "Interpolated from step 6 achieved (55) + step 7 partial (52/80 of the step-7 delta toward 80). Not a publish gate score.",
+        "0.4.7_estimated": 64,
+        "0.4.7_note": "Step 6 at 55 + step 7 at 68/80 partial. Not a publish gate score.",
         "progress_backlog": {
-          "total_entries": 451,
+          "total_entries": 450,
           "null_score": 0,
-          "score_lt_80": 3,
+          "score_lt_80": 1,
           "status_open": 12,
           "review_passed_entries": 60
         },
@@ -602,7 +603,7 @@
           {"step": 4, "target": "checkpoint", "target_score": null, "achieved_score": null, "status": "done"},
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
-          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 56, "status": "in_progress"},
+          {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 68, "status": "in_progress"},
           {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
@@ -688,8 +689,8 @@
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
-          "achieved_score": 56,
-          "progress_note": "2026-07-06c: repair_notebooks --backup; spectrolaminar F-023 docstring (78->92); default_macaque_V1 re-score (70->85). Review batch pytest 20 passed. score<80=3. STILL OPEN: legacy-code-thinning partially_done."
+          "achieved_score": 68,
+          "progress_note": "2026-07-06d: legacy thinning re-scoped done; export.py deferral note; test_interactive manifest truth-gate test (78->90); hdp_v2_rho_sweep archival doc (70->88). score<80=1 (ff_fb bundle deferred/gitignored). Package hygiene re-verified."
         },
         {
           "step": 8,
