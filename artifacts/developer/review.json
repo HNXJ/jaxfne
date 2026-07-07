@@ -15,7 +15,7 @@
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-06-30",
-      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  (regenerated artifacts/public_api_before.json \u2014 stale snapshot still listed deleted JaxFNEConfig-family symbols)  [PASSED]",
+      "evidence": "python3 -m pytest tests/test_public_api_snapshot_v034.py tests/test_util_config_tensor.py -q  (regenerated artifacts/public_api_before.json — stale snapshot still listed deleted JaxFNEConfig-family symbols)  [PASSED]",
       "status": "done",
       "review_status": "passed",
       "review_verified_on": "2026-07-05",
@@ -835,7 +835,7 @@
       "tbd": [],
       "warnings": [],
       "last_verified": "2026-07-06",
-      "evidence": "FIXED 2026-07-06: portable_kernel_context now installs kernels under a temp JUPYTER_DATA_DIR/JUPYTER_RUNTIME_DIR instead of ~/Library/Jupyter \u2014 fixes PermissionError in sandboxed/local runs. `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest 'tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[jaxfne_v031_single_neuron.ipynb]' -q --tb=short` -> 1 passed.",
+      "evidence": "FIXED 2026-07-06: portable_kernel_context now installs kernels under a temp JUPYTER_DATA_DIR/JUPYTER_RUNTIME_DIR instead of ~/Library/Jupyter — fixes PermissionError in sandboxed/local runs. `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest 'tests/test_notebook_execution_suite.py::test_release_notebook_executes_cleanly[jaxfne_v031_single_neuron.ipynb]' -q --tb=short` -> 1 passed.",
       "status": "done",
       "moved_from_progress_on": "2026-07-06",
       "review_status": "passed",
@@ -860,6 +860,23 @@
       "review_result": "py_compile exit 0; dry-run -> Successfully would be repaired 21 notebooks!",
       "review_verified_on": "2026-07-06",
       "review_reverification_note": "Re-run 2026-07-06: py_compile + --dry-run -> exit 0, 21 notebooks."
+    },
+    {
+      "path": "tests/test_vis_plotly_network_model_path.py",
+      "purpose": "Smoke test for jaxfne.vis.plotly.network.plot_network_3d on suite2 Model.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-07",
+      "evidence": "P1 2026-07-07 + review 2026-07-07: pytest tests/test_vis_plotly_network_model_path.py -q -> 1 passed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_vis_plotly_network_model_path.py -q",
+      "review_result": "1 passed"
     }
-  ]
+  ],
+  "review_pass_note_2026_07_07c": "Review pass @ main/f3f3de5 (post step-7 exit): 60 entries, 0 pending_review. Batch: pytest canonical_biophysics + sanity_delta + api_smoke + interactive_tutorial + pipeline_pure_functions + vis_plotly_network_model_path -> 46 passed, 5 skipped in 32.63s; repair_notebooks py_compile + --dry-run -> 21 notebooks. No demotions. PRP drift: 16 score=100 progress rows still without review.json copies (logged, not promoted this pass)."
 }

@@ -62,3 +62,4 @@
 | examples/04_blackbox_tuning_loop.py | 100 | passed |  |  |
 | tests/test_tutorial_smoke_runner_v0217.py | 100 | passed |  |  |
 | scripts/repair_notebooks.py | 100 | passed | 2026-07-06 | python3 -m py_compile scripts/repair_notebooks.py && python3 scripts/repair_notebooks.py --dry-run |
+| tests/test_vis_plotly_network_model_path.py | 100 | passed | 2026-07-07 | PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_vis_plotly_network_model_path.py -q |

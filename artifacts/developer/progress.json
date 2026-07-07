@@ -5546,5 +5546,28 @@
     }
   ],
   "progress_pass_note_2026_07_07_p1": "P1 step7_handoff_worklist executed by Cursor: 12 entries closed done, ff_fb remains deferred/gitignored; evidence_figures re-scoped with README exception; plotly/network smoke test added.",
-  "progress_pass_note_2026_07_07_exit": "Step 7 exit: plans.json step 7 status=done achieved_score=74/80 (Hamm-authorized, not rounded)."
+  "progress_pass_note_2026_07_07_exit": "Step 7 exit: plans.json step 7 status=done achieved_score=74/80 (Hamm-authorized, not rounded).",
+  "step8_kickoff_worklist_2026_07_07": {
+    "for_agent": "Cursor (Composer) — step 8 after review pass",
+    "written_by": "Cursor Composer",
+    "context": "plans.json step 8 target 95; release-0.4.7-final-polish. Step 7 deferred evidence_figures vis migration lands here.",
+    "priority_1_notebook_execution": {
+      "total_release_facing": 27,
+      "verified_this_pass": [
+        "jaxfne_v031_single_neuron.ipynb",
+        "jaxfne-sanity-checker-notebook-01.ipynb"
+      ],
+      "receipt": "2 passed in 339.63s (test_notebook_execution_suite parametrized). Full 27-notebook suite is slow/nightly lane — do not block step 8 on single-session full sweep.",
+      "remaining": 25
+    },
+    "priority_2_api_docs": "Re-verify docs/api/* against post-split source (core.py re-exports). Smoke: key symbols present in docs/api/index.md — OK this pass.",
+    "priority_3_vis_grammar": [
+      "jaxfne/export.py deprecated save_figure wrappers",
+      "jaxfne/tutorial_utils.py _finish_figure matplotlib",
+      "scripts/evidence_figures/ (README exception exists; optional full vis refactor)"
+    ],
+    "priority_4_paradigm": "release-0.4.7-final-polish paradigm/NeuronalTensor oddball wiring — plans item still proposed",
+    "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence."
+  },
+  "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added."
 }

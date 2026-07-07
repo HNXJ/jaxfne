@@ -595,7 +595,7 @@
           "score_lt_80": 1,
           "status_open": 0,
           "status_deferred": 1,
-          "review_passed_entries": 60
+          "review_passed_entries": 61
         },
         "step_scores": [
           {"step": 1, "target": "0.4.5", "target_score": 95, "achieved_score": 96, "status": "done"},
@@ -605,7 +605,7 @@
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
           {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
-          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
+          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 28, "status": "in_progress"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
         ]
@@ -628,7 +628,7 @@
           {"step": 5, "target": "0.4.5_and_0.4.6", "target_score": 99, "achieved_score": 99, "status": "done"},
           {"step": 6, "target": "0.4.7", "target_score": 50, "achieved_score": 55, "status": "done"},
           {"step": 7, "target": "0.4.7", "target_score": 80, "achieved_score": 74, "status": "done"},
-          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 0, "status": "not_started"},
+          {"step": 8, "target": "0.4.7", "target_score": 95, "achieved_score": 28, "status": "in_progress"},
           {"step": 9, "target": "0.4.7", "target_score": 99, "achieved_score": 0, "status": "not_started"},
           {"step": 10, "target": "0.4.7", "target_score": 100, "achieved_score": 0, "status": "not_started"}
         ]
@@ -722,11 +722,14 @@
           "step": 8,
           "target": "0.4.7",
           "target_score": 95,
-          "status": "not_started",
+          "status": "in_progress",
+          "achieved_score": 28,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
-          ]
+          ],
+          "progress_note": "2026-07-07 kickoff (Cursor): review pass clean (46 passed batch); 2/27 release-facing notebooks executed (v031 single neuron + sanity-checker, 339s); mkdocs --strict OK; API index smoke OK; step8_kickoff_worklist in progress.json. PRP promoted test_vis_plotly_network_model_path to review.json (61 entries).",
+          "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain."
         },
         {
           "step": 9,

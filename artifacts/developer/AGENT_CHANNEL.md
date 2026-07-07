@@ -222,3 +222,15 @@ Step 8 is next (`release-0.4.7-final-polish`).
 **Post-exit CI:** run 28898020238 → **success** on `835aeba`. Merged `dev` →
 `main`; `dev` == `main` == `origin/*` @ `835aeba`.
 
+### 2026-07-07 — Cursor (Composer) [review pass + step 8 kickoff]
+**Review @ `f3f3de5`:** 60→**61** entries (promoted
+`tests/test_vis_plotly_network_model_path.py`), **0** pending. Batch pytest →
+**46 passed, 5 skipped** in 32.63s; repair_notebooks dry-run → 21 notebooks.
+**No demotions.** 16 score=100 progress orphans remain (logged, not bulk-promoted).
+
+**Step 8 started:** `plans.json` step 8 → **`in_progress`**, **`achieved_score:
+28/95`** (honest kickoff, not rounded). Notebook execution: **2/27** release-facing
+notebooks verified (`v031_single_neuron`, `sanity-checker`) → 2 passed in 339s.
+`mkdocs build --strict` OK. `step8_kickoff_worklist_2026_07_07` added to
+`progress.json`. Next: continue notebook lane + API docs pass + vis-grammar items.
+
