@@ -57,7 +57,7 @@ test_execution_output/
 
 # Development & local experimentation
 .cursor/
-figures/publication/
+figures/
 internal_docs/
 reports/v1_spectrolaminar_10k/
 test_gpu.py

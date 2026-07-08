@@ -1,5 +1,5 @@
 {
-  "version": "0.4.7",
+  "version": "0.4.5",
   "public_names": [
     "AGSDR",
     "AGSDROptimizerSpec",
@@ -117,6 +117,8 @@
     "construct",
     "construct_neuronal_tensor",
     "construct_source_tensor",
+    "coop_omission_oddball_for_model",
+    "coop_omission_oddball_for_neuronal_tensor",
     "coop_omission_oddball_paradigm",
     "csd_tensor",
     "dataset_spec",
@@ -173,6 +175,7 @@
     "optax_adam",
     "optax_sgd",
     "paradigm",
+    "paradigm_target_indices_from_model",
     "plot_raster",
     "plot_spectrolaminar_suite",
     "plot_stdp_adaptation_suite",
