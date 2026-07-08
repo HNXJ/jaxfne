@@ -49,29 +49,33 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - Google Colab Quick Start: colab.md
       - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
       - FAQ: faq.md
 
   - Tutorials:
       - Atlas Overview: tutorials/index.md
       - Notebook Standard: tutorials/notebook_standard.md
-      - "Étude: Canonical Cortical Column": tutorials/13_canonical_column_etude.md
-      - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-      - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
-      - Suite No. 2 (Evoked L4 Drive): tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
-      - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
-      - "v0.3.13: Sensory Omission Oddball": tutorials/10_v0313_omission_oddball.md
-      - "Tutorial: Multi-area Laminar Model": tutorials/11_multi_laminar_cortical_agsdr.md
-      - TFNE-Izhikevich Single Emitter Explorer: tutorials/12_izhikevich_single_emitter_explorer.md
-      - "09: EEG/MEG/EMM Proxy Bundle": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
-      - "01: Single-neuron Multimodal": tutorials/01_single_neuron_multimodal.md
-      - "02: Two-neuron E/I": tutorials/02_two_neuron_ei.md
-      - "03: 100-neuron Network": tutorials/03_network_100_ei.md
-      - "04: V1 Six-layer Column": tutorials/04_v1_column.md
-      - "05: V1-PFC Dual Column": tutorials/05_v1_pfc_dual_column.md
-      - "06: v0.3.6 Chainable Config": tutorials/06_v036_100_neuron_ei_population.md
-      - "07: v0.3.7 Source Bookkeeping": tutorials/07_v037_source_bookkeeping.md
-      - "08: v0.3.8 LFP/CSD Readout": tutorials/08_v038_lfp_csd_readout.md
+      - Tutorial Output Contract: tutorials/tutorial_outputs.md
+      - Suites:
+          - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+          - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+          - Suite No. 2 (Evoked L4 Drive): tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
+          - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+      - Versioned tutorials:
+          - "01: Single-neuron Multimodal": tutorials/01_single_neuron_multimodal.md
+          - "02: Two-neuron E/I": tutorials/02_two_neuron_ei.md
+          - "03: 100-neuron Network": tutorials/03_network_100_ei.md
+          - "04: V1 Six-layer Column": tutorials/04_v1_column.md
+          - "05: V1-PFC Dual Column": tutorials/05_v1_pfc_dual_column.md
+          - "06: v0.3.6 Chainable Config": tutorials/06_v036_100_neuron_ei_population.md
+          - "07: v0.3.7 Source Bookkeeping": tutorials/07_v037_source_bookkeeping.md
+          - "08: v0.3.8 LFP/CSD Readout": tutorials/08_v038_lfp_csd_readout.md
+          - "09: EEG/MEG/EMM Proxy Bundle": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
+          - "10: Sensory Omission Oddball": tutorials/10_v0313_omission_oddball.md
+          - "11: Multi-area Laminar Model": tutorials/11_multi_laminar_cortical_agsdr.md
+          - "12: Izhikevich Single Emitter Explorer": tutorials/12_izhikevich_single_emitter_explorer.md
+          - "13: Canonical Cortical Column": tutorials/13_canonical_column_etude.md
 
 
   - Guides:
@@ -90,6 +94,20 @@ nav:
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
+      - Interactive Tutorial Visualizations: interactive_visualizations.md
+      - Performance Baseline: performance_baseline.md
+      - Tutorial Figures: tutorial_figures.md
+      - CI and Validation Policy: ci_policy.md
+      - Technical reports:
+          - Baseline Drive Reference: BASELINE_DRIVE_REFERENCE.md
+          - Cortex Calibration Checklist: CORTEX_CALIBRATION_CHECKLIST.md
+          - Neuron I/O Characterization: NEURON_IO_CHARACTERIZATION.md
+          - HDP Implementation Report: HDP_REPORT.md
+          - "STDP: Homeostatic (Canonical)": STDP_HOMEOSTATIC_REPORT.md
+          - "STDP: Closed-Loop Online": STDP_CLOSED_LOOP_REPORT.md
+          - "STDP: Global Scale": STDP_GLOBAL_SCALE_REPORT.md
+          - "STDP: Low-Rate Regime": STDP_LOWRATE_REGIME_REPORT.md
+          - "STDP: Real Test Report": STDP_REAL_TEST_REPORT.md
 
   - API reference:
       - Overview: api/index.md

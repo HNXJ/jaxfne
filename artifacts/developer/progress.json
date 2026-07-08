@@ -125,6 +125,19 @@
   ],
   "entries": [
     {
+      "path": "mkdocs.yml",
+      "purpose": "MkDocs Material site config: theme, plugins, and the full docs nav tree.",
+      "score": 95,
+      "tbi": [],
+      "tbd": [
+        "Only the Tutorials/Guides/Getting-started sections touched this pass (wiring 15 previously-orphaned pages + Tutorials sub-grouping) -- API reference, Theory, Reference, and About jaxfne sections not re-audited beyond confirming mkdocs build --strict passes overall."
+      ],
+      "warnings": [],
+      "last_verified": "2026-07-08",
+      "evidence": "step 10 docs reorg: `python3 -m mkdocs build --strict` before my changes listed 16 docs/ pages that exist on disk but were never in nav (confirmed via `git stash` + rebuild that this predates my changes, not caused by them): 9 technical reports (BASELINE_DRIVE_REFERENCE, CORTEX_CALIBRATION_CHECKLIST, NEURON_IO_CHARACTERIZATION, HDP_REPORT, 5x STDP_*), 5 guide-adjacent pages (ci_policy, colab, interactive_visualizations, performance_baseline, tutorial_figures), 1 tutorials page (tutorial_outputs.md), 1 auto-generated stamp (_generated/version.md, correctly left out). Wired all 15 real pages into their appropriate existing sections (colab.md -> Getting started; the 5 guide-adjacent pages + a new 'Technical reports' sub-group -> Guides; tutorial_outputs.md -> Tutorials) by content category read from each file's own heading, not guessed. Restructured Tutorials nav into Suites/Versioned-tutorials sub-groups matching docs/tutorials/index.md's parallel reorg. Verified: `python3 -m mkdocs build --strict` -> 0 blocking warnings (only _generated/version.md remains, correctly). `python3 -c \"import yaml; yaml.safe_load(open('mkdocs.yml'))\"` -> valid YAML.",
+      "status": "reviewed"
+    },
+    {
       "path": "tests/test_pipeline_pure_functions.py",
       "purpose": "Tests for _pipeline.py -- behavioral-equivalence checks (not just import success) for all Phase 0-3a functions.",
       "score": 90,
@@ -4868,16 +4881,14 @@
     {
       "path": "docs/tutorials/index.md",
       "purpose": "Master tutorial index / discoverability hub linking every tutorial doc page and Colab notebook.",
-      "score": 92,
+      "score": 98,
       "tbi": [],
       "tbd": [
         "The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files (confirmed), but were not deep-content-checked against the code in this pass -- only file existence and the direct API calls quoted inline (NeuronalTensor(areas=...), jtfne.construct(tensor, jtfne.RuntimeConfiguration(...)), jtfne.load_canonical_neuronal_tensor) were verified against jaxfne's public namespace."
       ],
-      "warnings": [
-        "Table row order is non-monotonic by version/number (Suite 1/2/3, then 09, 10, an unlabeled Continuous Oddball row, then 06/07/08, then 01-05, then an unlabeled NeuronalTensor row) -- confusing to scan but not a broken link; a future pass could resort chronologically or by tutorial number without changing any link targets."
-      ],
-      "last_verified": "2026-07-03",
-      "evidence": "Checked every relative link in the doc (12 in-repo .md targets + templates path + cross-links to ../guides/index.md, ../api/index.md, ../guides/jaxley_interop.md, ../guides/hdp.md, ../api/neuronal_tensor.md) -- all resolve to real files on disk. Verified jtfne.suite2_four_celltype_config(seed=0, duration_ms=100.0, dt_ms=0.1) matches its actual signature (seed:int=7, duration_ms:float=1000.0, dt_ms:float=0.1) -- kwargs used in the doc's Quick Example are all valid. Confirmed tutorials/jaxfne_neuronal_tensor_first.ipynb and examples/08_neuronal_tensor_first.py both exist. Colab badge URLs point to files under github.com/HNXJ/jaxfne/blob/main/tutorials/ -- spot-checked 3 of 7 filenames against the local tutorials/ directory listing (jaxfne_suite_no_1_computational_biophysics.ipynb, jaxfne_suite_no_2_spectrolaminar_motif.ipynb, jaxfne_v036_100_neuron_ei_population.ipynb) and all exist locally, but did not fetch the remote GitHub URLs to confirm the main branch has them (network verification out of scope this pass). FIXED 2026-07-03: one occurrence of cell_types({'E':0.75,'I':0.25}) in the featured Configuration API example -- fixed to PV, matching the real notebook. || FIXED 2026-07-05: the V1-PFC Dual Column blurb promised 'traveling-wave dynamics' which never existed anywhere in the codebase (see docs/tutorials/05_v1_pfc_dual_column.md's own entry, now rewritten) -- updated to describe the real continuous AAAB adaptation paradigm and its verified 100-trial stability, for consistency with the target page.",
+      "warnings": [],
+      "last_verified": "2026-07-08",
+      "evidence": "Checked every relative link in the doc (12 in-repo .md targets + templates path + cross-links to ../guides/index.md, ../api/index.md, ../guides/jaxley_interop.md, ../guides/hdp.md, ../api/neuronal_tensor.md) -- all resolve to real files on disk. Verified jtfne.suite2_four_celltype_config(seed=0, duration_ms=100.0, dt_ms=0.1) matches its actual signature (seed:int=7, duration_ms:float=1000.0, dt_ms:float=0.1) -- kwargs used in the doc's Quick Example are all valid. Confirmed tutorials/jaxfne_neuronal_tensor_first.ipynb and examples/08_neuronal_tensor_first.py both exist. Colab badge URLs point to files under github.com/HNXJ/jaxfne/blob/main/tutorials/ -- spot-checked 3 of 7 filenames against the local tutorials/ directory listing (jaxfne_suite_no_1_computational_biophysics.ipynb, jaxfne_suite_no_2_spectrolaminar_motif.ipynb, jaxfne_v036_100_neuron_ei_population.ipynb) and all exist locally, but did not fetch the remote GitHub URLs to confirm the main branch has them (network verification out of scope this pass). FIXED 2026-07-03: one occurrence of cell_types({'E':0.75,'I':0.25}) in the featured Configuration API example -- fixed to PV, matching the real notebook. || FIXED 2026-07-05: the V1-PFC Dual Column blurb promised 'traveling-wave dynamics' which never existed anywhere in the codebase (see docs/tutorials/05_v1_pfc_dual_column.md's own entry, now rewritten) -- updated to describe the real continuous AAAB adaptation paradigm and its verified 100-trial stability, for consistency with the target page. || REWRITTEN 2026-07-08 (step 10 docs reorg): full restructure into 3 clear H2 sections -- Suites, Versioned tutorials (beginner/intermediate/advanced sub-tables, fixing the prior non-monotonic single-table warning), and a NEW Étude notebooks section cataloging all 14 tutorials/etudes/*.ipynb notebooks (previously undocumented anywhere in docs/ -- verified via `grep -rln tutorials/etudes docs/` before the rewrite, only 4 of 14 had any doc presence) grouped into 6 real thematic sub-groups (Foundational, Spectrolaminar, Homeostasis & plasticity, Biophysical & multi-area, Oddball/omission paradigm, Thalamocortical) derived from each notebook's actual first-markdown-cell title, not guessed. mkdocs.yml Tutorials nav restructured to match (Suites/Versioned tutorials sub-groups). Verified: `python3 -m mkdocs build --strict` -> 0 blocking warnings (only the correctly-excluded auto-generated _generated/version.md remains unlinked); `pytest tests/test_public_docs_hygiene.py` -> 287 passed, 5 skipped; jtfne.suite2_four_celltype_config signature re-verified live; all internal relative links re-checked on disk.",
       "status": "done"
     },
     {

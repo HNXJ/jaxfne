@@ -277,7 +277,6 @@
 | docs/source_field_equations.md | 92 | done | Code example 'cfg = jtfne.configuration().emitter(...).field(...)' (no assignment reuse of `cfg =` per line, missing lea |  | 2026-07-03 |
 | docs/tutorials/07_v037_source_bookkeeping.md | 92 | done |  |  | 2026-07-03 |
 | docs/tutorials/10_v0313_omission_oddball.md | 92 | done |  |  | 2026-07-03 |
-| docs/tutorials/index.md | 92 | done |  | The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files  | 2026-07-03 |
 | tests/test_etude3_v1_spectrolaminar_1k.py | 92 | done |  |  | 2026-07-01 |
 | local/verify_plotly_pipeline.py | 92 | done |  |  | 2026-07-01 |
 | jaxfne/optim/manifests.py | 92 | done |  |  | 2026-07-01 |
@@ -352,6 +351,7 @@
 | skills/02_analysis_integrity.md | 94 | done |  |  | 2026-07-05 |
 | skills/03_sparse_connectivity.md | 94 | done |  |  | 2026-07-05 |
 | skills/06_runtime_fallback_transparency.md | 94 | done |  |  | 2026-07-05 |
+| mkdocs.yml | 95 | reviewed |  | Only the Tutorials/Guides/Getting-started sections touched this pass (wiring 15 previously-orphaned pages + Tutorials su | 2026-07-08 |
 | jaxfne/configs/{canonical-v1-column-1000n,canonical-v1-v4-pfc-multiarea,default-column,homeostatic-h-override-demo,lamin | 95 | done |  |  | 2026-07-07 |
 | examples/00_generalized_izhikevich_3d_smoke.py | 95 | reviewed |  |  | 2026-07-04 |
 | examples/00_minimal_column.py | 95 | reviewed |  |  | 2026-07-04 |
@@ -435,6 +435,7 @@
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ | 98 | reviewed |  |  | 2026-07-08 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
+| docs/tutorials/index.md | 98 | done |  | The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files  | 2026-07-08 |
 
 ## active worklists (handoff)
 
