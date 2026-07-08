@@ -46,29 +46,29 @@ level.
 
 | # | Topic | Focus | Version |
 |---|-------|-------|---------|
-| [01](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
-| [02](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics | v0.2.9+ |
+| [**01**](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
+| [**02**](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics | v0.2.9+ |
 
 **Intermediate**
 
 | # | Topic | Focus | Version |
 |---|-------|-------|---------|
-| [03](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability | v0.2.10+ |
-| [04](04_v1_column.md) | V1 Six-layer Column | Laminar anatomy, depth-specific readouts | v0.2.11+ |
-| [06](06_v036_100_neuron_ei_population.md) | Chainable Configuration | New fluent `Configuration` method-chaining API | v0.3.6+ |
-| [07](07_v037_source_bookkeeping.md) | Source Bookkeeping | 3D visualization of source/field/probe workflow | v0.3.7+ |
-| [08](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
-| [09](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Separate sensor pathways: scalp potential, magnetic field, metabolic proxy | v0.3.10+ |
-| [10](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, unexpected deviants, sensory omissions | v0.3.13+ |
+| [**03**](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability | v0.2.10+ |
+| [**04**](04_v1_column.md) | V1 Six-layer Column | Laminar anatomy, depth-specific readouts | v0.2.11+ |
+| [**06**](06_v036_100_neuron_ei_population.md) | Chainable Configuration | New fluent `Configuration` method-chaining API | v0.3.6+ |
+| [**07**](07_v037_source_bookkeeping.md) | Source Bookkeeping | 3D visualization of source/field/probe workflow | v0.3.7+ |
+| [**08**](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
+| [**09**](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Separate sensor pathways: scalp potential, magnetic field, metabolic proxy | v0.3.10+ |
+| [**10**](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, unexpected deviants, sensory omissions | v0.3.13+ |
 
 **Advanced**
 
 | # | Topic | Focus | Version |
 |---|-------|-------|---------|
-| [05](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, traveling waves, continuous AAAB local-oddball adaptation with real trial-to-trial HDP carryover (100 chained trials, verified stable) | v0.2.14+ |
-| [11](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event `target_indices` L4-E-only targeting, `general_sequential_oddball_paradigm` backbone | v0.4.0+ |
-| [12](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration | — |
-| [13](13_canonical_column_etude.md) | Canonical Cortical Column | The canonical 1000-neuron laminar column reference | 0.4.7+ |
+| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, traveling waves, continuous AAAB local-oddball adaptation with real trial-to-trial HDP carryover (100 chained trials, verified stable) | v0.2.14+ |
+| [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event `target_indices` L4-E-only targeting, `general_sequential_oddball_paradigm` backbone | v0.4.0+ |
+| [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration | — |
+| [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | The canonical 1000-neuron laminar column reference | 0.4.7+ |
 
 **NeuronalTensor (tensor-first circuits)** — [`jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)
 (script version: [`08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)).
