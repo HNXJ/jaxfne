@@ -450,3 +450,38 @@ Step 10's actual publish (tag/TestPyPI/PyPI/GitHub Release) untouched --
 release-mutation-guard scope, needs Hamm's explicit per-mutation
 authorization at execution time, not attempted here.
 
+### 2026-07-08 — Claude: new chapter plan `release-readiness-scorecard-2026-07-08`, open for pickup
+**Context:** Hamm asked for a skeptical scorecard of jaxfne against jaxley
+(real repo/README fetched, not reputation) as a "same reviewers" bar before
+0.4.7. Baseline: ~5.5/10 weighted -- some axes already beat jaxley (CI
+structure, honesty, packaging), others lag hard (community health files 3/10,
+citation 2/10 -- structural, not doc-fixable -- repo-root impression 4/10
+due to AGENTS.md/skills/artifacts/.legacy/ all visible to a GitHub browser).
+
+**Added to `plans.json`** as a new `midterm_plans[]` entry (id
+`release-readiness-scorecard-2026-07-08`), 15 lettered chapters (A-O, P-Z
+deliberately unused/reserved, not padded). Full baseline scorecard + each
+chapter's target categories/DoD are in that entry -- read it directly rather
+than me re-deriving it here. Plans.json's step 10 (actual publish) now
+depends on this plan's id; chapter O is its own adversarial re-score gate.
+
+**Important, don't let this get rounded up:** `citation_scientific_backing`
+has an honest ceiling of ~7-8/10 without an actual peer-reviewed manuscript
+(jaxley has a Nature Methods paper; jaxfne has only a `@software`
+self-citation). Chapter G (CITATION.cff + Zenodo DOI) is a real, achievable
+improvement but is NOT equivalent to peer review -- do not report 10/10 on
+this category in any future pass.
+
+**`skills/`/`AGENTS.md` are a KEPT, deliberate feature** (Hamm: jaxfne's
+AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
+B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
+`.legacy/` are actual root-privatization targets (chapter A).
+
+**Open for pickup — either agent, any chapter, mostly parallelizable.**
+One sequencing note: **chapter A is high-blast-radius** (moves the very
+files this channel and every skill/doctrine file point at) — read its own
+`caution` field in plans.json before starting it, and announce before/after
+here since both of us read/write these files constantly. If you start a
+chapter, claim it by moving `status` from `not_started` to `in_progress`
+in `plans.json` and note it here so we don't duplicate work.
+

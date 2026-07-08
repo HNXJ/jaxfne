@@ -891,8 +891,10 @@
           "status": "not_started",
           "definition_of_done": "The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, this REQUIRES explicit per-mutation-class user authorization at the time (tag / TestPyPI / real PyPI / GitHub Release are separate gates), exactly like release-v0.4.5-published did -- not something to execute unilaterally even once steps 1-9 are complete.",
           "depends_on_plan_items": [
-            "release-v0.4.5-published"
-          ]
+            "release-v0.4.5-published",
+            "release-readiness-scorecard-2026-07-08"
+          ],
+          "gate_note_2026_07_08": "Hamm's explicit ask: bring the release-readiness-scorecard-2026-07-08 chapters (A-O) to as close to 10/10 as honestly achievable (citation_scientific_backing has a real, disclosed ceiling short of 10/10 without a peer-reviewed manuscript) BEFORE attempting step 10. Chapter O is that plan's own adversarial re-score gate."
         }
       ],
       "canonical_scorecard": "current_scorecard_2026_07_07",
@@ -1008,6 +1010,138 @@
           }
         }
       }
+    },
+    {
+      "id": "release-readiness-scorecard-2026-07-08",
+      "created": "2026-07-08",
+      "authoritative_source": "Hamm's direct ask: 'be skeptical and score the repo' against jaxley (https://github.com/jaxleyverse/jaxley, https://jaxley.readthedocs.io/en/latest/) as a comparable-but-not-identical reference standard, using 'same reviewers' framing. This plan is the prerequisite readiness track BEFORE plans.json's existing step 10 (the actual 0.4.7 PyPI publish) -- step 10's own depends_on_plan_items now includes this id.",
+      "baseline_scorecard_2026_07_08": {
+        "method": "Fetched jaxley's real README/repo tree via WebFetch + raw.githubusercontent.com (not reputation/memory), diffed jaxfne's actual root/pyproject.toml/.github/workflows/README.md line-by-line against it.",
+        "categories": [
+          {"id": "readme_first_impression", "score": 5, "max": 10, "note": "Opens with internal jargon (TFNE, typed computational chain) before value prop; 374 lines vs jaxley's ~100; deep API branching before a reader knows if this tool is for them."},
+          {"id": "docs_site_structure", "score": 7, "max": 10, "note": "Structurally comparable after 2026-07-08's tutorial/mkdocs reorg (see plans.json step 8/10 work) -- readthedocs configured, tutorial ladder, FAQ, API ref. Language/pacing inside individual pages not yet audited."},
+          {"id": "community_health_files", "score": 3, "max": 10, "note": "No CONTRIBUTING.md/CODE_OF_CONDUCT.md at root (jaxley has both, badge-linked); docs/contributing.md exists but thin (39 lines) and unsurfaced; no root CHANGELOG.md (only docs/changelog.md)."},
+          {"id": "citation_scientific_backing", "score": 2, "max": 10, "note": "STRUCTURAL CEILING, NOT DOC-FIXABLE: jaxley has a real Nature Methods peer-reviewed paper + formal BibTeX; jaxfne has only a @software self-citation. No amount of README/docs editing closes this gap -- it requires an actual manuscript + peer-review cycle, out of scope for a repo-polish arc. This plan's chapter G raises citation INFRASTRUCTURE (CITATION.cff, Zenodo DOI) toward a realistic ceiling of ~7-8/10, not 10/10 -- do not let a future pass round this up to 10/10 without a real paper behind it."},
+          {"id": "packaging_pyproject", "score": 8, "max": 10, "note": "Already solid: real classifiers, optional-dependency groups, hatch sdist properly excludes internal/dev dirs from the shipped package. Missing: py.typed marker, keywords field, full project.urls set."},
+          {"id": "ci_maturity", "score": 8, "max": 10, "note": "5 workflows (fast CI, full-matrix release CI, nightly notebook execution, publish, AI-review-bot trigger) -- structurally more rigorous than jaxley's single tests.yml. Missing: coverage reporting/badge."},
+          {"id": "repo_root_impression", "score": 4, "max": 10, "note": "AGENTS.md (30KB), skills/, artifacts/developer/*.json (PRP tracking), .legacy/, macroscope-trigger.yml (AI-review bot) all visible in the GitHub-browsed tree (though hatch sdist already excludes most from the pip-installed package). Reads as internal engineering documentation that happens to be public, not a paper-adjacent release. NOTE: skills/ and AGENTS.md are a DELIBERATE, KEPT feature per Hamm's explicit instruction (jaxfne's AI-friendliness is a stated goal, skills/ = 'docs but for AI') -- this category's fix is reframing + trimming, NOT hiding skills/AGENTS.md. artifacts/ and .legacy/ are the actual privatization targets."},
+          {"id": "tone_honesty_vs_confidence", "score": 6, "max": 10, "note": "Genuinely MORE scientifically honest than jaxley in places (explicit truth-gates, proxy labeling, an actual 'Known stubs' section) -- but caveats front-load paragraph 2 of the README and repeat densely across docs, crowding out confident positioning. Content is right; pacing needs work."},
+          {"id": "differentiation_vs_jaxley", "score": 6, "max": 10, "note": "Real content exists (source-to-field-to-probe chain, canonical cortical prior, population/field-scale focus, Jaxley-as-emitter interop) but it's positioned at README line 309, not in the opening pitch where it would do the most work for a reader who already knows jaxley."}
+        ],
+        "weighted_read": "~5.5/10 against a jaxley-caliber reviewer. Not low-effort -- several axes already beat jaxley's baseline (CI structure, honesty, packaging). Reads as internal engineering docs made public, not a release."
+      },
+      "target": "10/10 (100/100) on every category EXCEPT citation_scientific_backing, which has an honest structural ceiling (~7-8/10) without a peer-reviewed manuscript -- see that category's note. Do not silently round citation to 10/10 in any future scoring pass.",
+      "cross_agent_note": "Written for both Claude and Cursor to pull and contribute -- see artifacts/developer/AGENT_CHANNEL.md for the handoff pointer. Chapters are independent where possible (parallelizable across agents) but A/N have sequencing dependencies noted in their own entries -- read those before starting.",
+      "chapters": [
+        {
+          "id": "A",
+          "title": "Root minimization: move artifacts/ and .legacy/ out of repo root",
+          "target_categories": ["repo_root_impression"],
+          "definition_of_done": "artifacts/developer/{plans,progress,review}.json + generated .md relocate to a root-minimal location (e.g. .dev/artifacts/ or artifacts/ kept but .legacy/ removed/archived) -- exact target path is this chapter's own decision, not pre-committed here. MUST update every reference: global ~/.claude/CLAUDE.md, jaxfne/AGENTS.md, all skills/ files citing artifacts/developer/*.json paths, scripts/prp_to_markdown.py, AGENT_CHANNEL.md's own 'stable path' claim, .gitignore if paths change. Verify PRP tooling (prp_to_markdown.py, the review/progress workflows) still works end-to-end after the move -- run a real progress-json edit + regenerate + commit cycle as the verification, not just a file move.",
+          "status": "not_started",
+          "caution": "This is the highest-blast-radius chapter -- AGENT_CHANNEL.md's own rule 'stable path, do not move' currently applies to itself too. Do this chapter EARLY (before other agents build up more references to the current path) and announce it loudly in AGENT_CHANNEL.md before and after, since both Claude and Cursor read/write these files constantly."
+        },
+        {
+          "id": "B",
+          "title": "AGENTS.md diet: trim 30KB root file to a lean pointer, move depth into skills/docs",
+          "target_categories": ["repo_root_impression", "ai_friendliness"],
+          "definition_of_done": "AGENTS.md at root shrinks to a concise orientation file (target: under ~5KB) covering only what a first-time agent needs before routing elsewhere; move detailed content (root-freeze specifics, known fragilities, gate tables, verified pipelines) into skills/ entries or docs/, cross-referenced not duplicated. Verify no doctrine content is silently lost -- diff old vs new AGENTS.md content coverage explicitly before/after.",
+          "status": "not_started"
+        },
+        {
+          "id": "C",
+          "title": "AI-friendliness manifesto: frame skills/ and AGENTS.md as a stated feature, not clutter",
+          "target_categories": ["ai_friendliness", "repo_root_impression"],
+          "definition_of_done": "Add a short, confident README section (or a dedicated docs/for_ai_agents.md linked from README) explicitly stating jaxfne treats AI-agent-readability as a first-class design goal -- skills/ described as 'documentation written for AI agents, verified against the same source as the human docs'. This turns the repo-root visibility of AGENTS.md/skills/ from an unexplained oddity into a deliberate, named feature for a reviewer who notices it.",
+          "status": "not_started"
+        },
+        {
+          "id": "D",
+          "title": "Community health files at root: CONTRIBUTING.md, CODE_OF_CONDUCT.md, CHANGELOG.md",
+          "target_categories": ["community_health_files"],
+          "definition_of_done": "Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expectations, doc/skill-sync requirements given the multi-agent workflow). Root CODE_OF_CONDUCT.md (adopt Contributor Covenant standard text, not invented). Root CHANGELOG.md in Keep-a-Changelog format, sourced from docs/changelog.md's real history, not a stub. All three linked from README badges/footer matching jaxley's pattern.",
+          "status": "not_started"
+        },
+        {
+          "id": "E",
+          "title": "README rewrite: jaxley-paced structure, plain-language opening, honest caveats repositioned not deleted",
+          "target_categories": ["readme_first_impression", "tone_honesty_vs_confidence", "differentiation_vs_jaxley"],
+          "definition_of_done": "Restructure README to: (1) open with a plain-language one-paragraph pitch stating what phenomena jaxfne lets you study, before any internal-architecture vocabulary; (2) move the jaxley-comparison/differentiation content up near the opening, not line 309; (3) trim to landing-page length by moving deep API branching (three-workflow table, RuntimeConfig vs RuntimeConfiguration gotcha, layer-naming caveats) into docs/quickstart.md or a dedicated guide, linked not inlined; (4) keep the proxy/truth-gate honesty (it's a real strength) but consolidate into one 'Scope & Status' subsection instead of repeating across multiple sections. Verify: mkdocs build --strict still passes, no broken internal links after content moves.",
+          "status": "not_started"
+        },
+        {
+          "id": "F",
+          "title": "Docs language pass: plain, professional, technical tone across guides/FAQ/quickstart",
+          "target_categories": ["docs_site_structure", "tone_honesty_vs_confidence"],
+          "definition_of_done": "Audit docs/quickstart.md, docs/faq.md, docs/guides/*.md for jargon-first framing (opening with internal vocabulary before explaining purpose) -- rewrite openings to lead with what/why, keep how/internals after. Not a full-content rewrite of every page; a targeted pass on openings + any section that reads as internal engineering notes rather than user-facing documentation.",
+          "status": "not_started"
+        },
+        {
+          "id": "G",
+          "title": "Citation infrastructure: CITATION.cff + Zenodo DOI wiring",
+          "target_categories": ["citation_scientific_backing"],
+          "definition_of_done": "Add a real CITATION.cff (machine-readable, GitHub surfaces a 'Cite this repository' button). Wire GitHub-Zenodo integration so each tagged GitHub Release mints a real, permanent DOI -- a concrete, achievable citability improvement short of peer review. Update docs/citation.md to include the DOI once minted. EXPLICITLY DOES NOT claim peer-reviewed-paper-equivalent citability -- see this plan's citation_scientific_backing baseline note on the honest ceiling.",
+          "status": "not_started"
+        },
+        {
+          "id": "H",
+          "title": "Differentiation-vs-jaxley positioning: state it early and plainly",
+          "target_categories": ["differentiation_vs_jaxley"],
+          "definition_of_done": "Ensure both README and docs/index.md state the jaxley/jaxfne relationship in the first screen a reader sees: jaxley = single/multi-compartment biophysical detail; jaxfne = population/field-scale, tensor-algebraic circuit definition, source-to-sensor-proxy readout chain; explicitly composable (jaxley models plug into jaxfne as emitters). Plain language, not internal vocabulary.",
+          "status": "not_started"
+        },
+        {
+          "id": "I",
+          "title": "CI polish: coverage reporting, workflow clarity, badge validity",
+          "target_categories": ["ci_maturity"],
+          "definition_of_done": "Add pytest-cov + a coverage badge (codecov or equivalent). Verify every README badge URL actually resolves to a real, current workflow/status (re-check after any workflow renames from other chapters). Consider consolidating/renaming workflow files for external-reader clarity if the current 5-workflow set reads as confusing.",
+          "status": "not_started"
+        },
+        {
+          "id": "J",
+          "title": "Packaging polish: py.typed, keywords, full project.urls",
+          "target_categories": ["packaging_pyproject"],
+          "definition_of_done": "Add a py.typed marker file (signals type-hint support to downstream tools/IDEs). Add a keywords list to pyproject.toml (PyPI search discoverability). Complete project.urls (jaxley has Homepage/Repository/Documentation/Issues -- check for any standard field jaxfne is missing, e.g. Changelog already present, consider Discussions/Funding if applicable).",
+          "status": "not_started"
+        },
+        {
+          "id": "K",
+          "title": "Single authoritative 'Scope & Status' doc page for truth-gate/proxy language",
+          "target_categories": ["tone_honesty_vs_confidence"],
+          "definition_of_done": "One page (or README subsection, see chapter E) states claim_level/truth-gates/proxy status ONCE, authoritatively, referenced (short link) from every other page that currently repeats the full explanation. Preserves the honesty; stops it from crowding every single doc page.",
+          "status": "not_started"
+        },
+        {
+          "id": "L",
+          "title": "skills/ polish as a public-facing AI-docs surface",
+          "target_categories": ["ai_friendliness", "docs_site_structure"],
+          "definition_of_done": "Audit skills/README.md (or add one if it doesn't already serve this purpose) to the same formatting/completeness bar as human docs -- no undefined internal shorthand (P0/P1, TBI/TBD without a glossary). Cross-link from chapter C's README AI-friendliness section and from mkdocs nav if appropriate.",
+          "status": "not_started"
+        },
+        {
+          "id": "M",
+          "title": "Full-repo tone/professionalism grep pass",
+          "target_categories": ["tone_honesty_vs_confidence"],
+          "definition_of_done": "One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only language that survived chapters E/F/K. Close-out pass, not a first pass -- run after E/F/K land.",
+          "status": "not_started"
+        },
+        {
+          "id": "N",
+          "title": "Cross-agent PRP sync of this plan itself",
+          "target_categories": [],
+          "definition_of_done": "This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated path) and pushed to dev, with an AGENT_CHANNEL.md pointer entry, so Cursor or any other agent can pull and pick up chapters. Meta-chapter, self-referential -- closes when this commit lands and is pushed.",
+          "status": "in_progress"
+        },
+        {
+          "id": "O",
+          "title": "Final adversarial re-score against jaxley",
+          "target_categories": [],
+          "definition_of_done": "Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of this pass) after all prior chapters close. Report honest final scores -- confirm real 10/10 where claimed, and explicitly confirm citation_scientific_backing's honest ceiling rather than let it get rounded up. This is the gate before plans.json step 10 (actual publish) is considered ready to attempt.",
+          "status": "not_started"
+        }
+      ],
+      "reserved_letters_note": "P-Z intentionally unused -- reserved for chapters discovered mid-execution (e.g. a chapter splits, or O's final re-score finds a new gap), not padded to reach 26 artificially.",
+      "step10_linkage": "plans.json's existing step 10 (the actual 0.4.7 PyPI publish) should add this plan's id to its depends_on_plan_items -- chapter O is the explicit gate."
     }
   ]
 }

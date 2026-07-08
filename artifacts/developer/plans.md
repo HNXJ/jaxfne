@@ -62,3 +62,23 @@
 | 8 | 0.4.7 | 95 | 95 | done | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
 | 9 | 0.4.7 | 99 | 99 | done | Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) f |
 | 10 | 0.4.7 | 100 |  | not_started | The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, t |
+
+## midterm plan: release-readiness-scorecard-2026-07-08 (2026-07-08)
+
+| chapter | title | target_categories | status | definition_of_done |
+|---|---|---|---|---|
+| A | Root minimization: move artifacts/ and .legacy/ out of repo root | repo_root_impression | not_started | artifacts/developer/{plans,progress,review}.json + generated .md relocate to a root-minimal location (e.g. .dev/artifact |
+| B | AGENTS.md diet: trim 30KB root file to a lean pointer, move depth into skills/docs | repo_root_impression, ai_friendliness | not_started | AGENTS.md at root shrinks to a concise orientation file (target: under ~5KB) covering only what a first-time agent needs |
+| C | AI-friendliness manifesto: frame skills/ and AGENTS.md as a stated feature, not clutter | ai_friendliness, repo_root_impression | not_started | Add a short, confident README section (or a dedicated docs/for_ai_agents.md linked from README) explicitly stating jaxfn |
+| D | Community health files at root: CONTRIBUTING.md, CODE_OF_CONDUCT.md, CHANGELOG.md | community_health_files | not_started | Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expe |
+| E | README rewrite: jaxley-paced structure, plain-language opening, honest caveats repositioned not deleted | readme_first_impression, tone_honesty_vs_confidence, differentiation_vs_jaxley | not_started | Restructure README to: (1) open with a plain-language one-paragraph pitch stating what phenomena jaxfne lets you study,  |
+| F | Docs language pass: plain, professional, technical tone across guides/FAQ/quickstart | docs_site_structure, tone_honesty_vs_confidence | not_started | Audit docs/quickstart.md, docs/faq.md, docs/guides/*.md for jargon-first framing (opening with internal vocabulary befor |
+| G | Citation infrastructure: CITATION.cff + Zenodo DOI wiring | citation_scientific_backing | not_started | Add a real CITATION.cff (machine-readable, GitHub surfaces a 'Cite this repository' button). Wire GitHub-Zenodo integrat |
+| H | Differentiation-vs-jaxley positioning: state it early and plainly | differentiation_vs_jaxley | not_started | Ensure both README and docs/index.md state the jaxley/jaxfne relationship in the first screen a reader sees: jaxley = si |
+| I | CI polish: coverage reporting, workflow clarity, badge validity | ci_maturity | not_started | Add pytest-cov + a coverage badge (codecov or equivalent). Verify every README badge URL actually resolves to a real, cu |
+| J | Packaging polish: py.typed, keywords, full project.urls | packaging_pyproject | not_started | Add a py.typed marker file (signals type-hint support to downstream tools/IDEs). Add a keywords list to pyproject.toml ( |
+| K | Single authoritative 'Scope & Status' doc page for truth-gate/proxy language | tone_honesty_vs_confidence | not_started | One page (or README subsection, see chapter E) states claim_level/truth-gates/proxy status ONCE, authoritatively, refere |
+| L | skills/ polish as a public-facing AI-docs surface | ai_friendliness, docs_site_structure | not_started | Audit skills/README.md (or add one if it doesn't already serve this purpose) to the same formatting/completeness bar as  |
+| M | Full-repo tone/professionalism grep pass | tone_honesty_vs_confidence | not_started | One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only langu |
+| N | Cross-agent PRP sync of this plan itself |  | in_progress | This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated |
+| O | Final adversarial re-score against jaxley |  | not_started | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |
