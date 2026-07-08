@@ -115,7 +115,9 @@
       "target_score": 80,
       "authorized_by": "Hamm",
       "note": "Step 7 marked done in plans.json at 74/80; evidence_figures vis migration deferred to step 8."
-    }
+    },
+    "status": "in_progress",
+    "status_correction": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong."
   },
   "meta_corrections": [
     "2026-06-30: Every full-suite test run before this correction was launched as `pytest tests/ -q 2>&1 | tail -20`, which silently truncated the FAILED-test list to whatever fit in the last 20 lines before the summary line. This session repeatedly reported '29 pre-existing failures, identical list, no regressions' across Phase 0/1/2/3a -- that claim was only ever checked against ~19-20 of the real 30 failures, never the complete set. A full untruncated run (grep '^FAILED' on raw output, no tail) found: (1) test_public_api_snapshot_v034.py was failing because of MY OWN Phase 3a change (4 new __all__ names not reflected in the frozen snapshot) -- a real regression I introduced and missed, now fixed by regenerating the snapshot; (2) 3 more call sites of the removed default_spectrolaminar_config function (test_etude1_agsdr_convergence.py, and critically the published tutorial notebook etudes/jaxfne_etude_no_1_base.ipynb) that were never previously identified; (3) 2 unrelated test_neuronal_tensor.py failures from a second consequence of the same archival (legacy-schema JSON in a directory a test assumed was tensor-only); (4) 1 fully unrelated pre-existing hygiene-check failure. Lesson: never pipe a verification run through `tail`/`head` when the claim being made is about completeness of a list -- truncation silently turns 'no regressions found' into 'no regressions found in the last 20 lines', which is a materially different and weaker claim. CONFIRMED FIXED 2026-06-30: a second complete run after the fix shows 29 failures (was 30), exact same remaining list as documented in entries[] -- regeneration worked, nothing else regressed.",
@@ -5603,7 +5605,7 @@
     "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed. export.py save_figure plt.close -> vis.exporters.close_matplotlib_figure; root_export + vis exporters smoke 3 passed.",
     "notebook_lane_status": "complete_2026_07_07",
     "step8_exit_2026_07_07": {
-      "status": "closed",
+      "status": "reverted_not_done",
       "achieved_score": 85,
       "target_score": 95,
       "authorized_by": "Hamm proceed",
@@ -5614,8 +5616,13 @@
         "build": "python3 -m build -> jaxfne-0.4.5 OK; mkdocs --strict OK",
         "vis_grammar": "export.py + tutorial_utils delegated; evidence_figures documented exception (deferred)"
       },
-      "gap_to_95": "evidence_figures vis migration; full NeuronalTensor-first paradigm convenience wrappers"
-    }
+      "gap_to_95": "evidence_figures vis migration; full NeuronalTensor-first paradigm convenience wrappers",
+      "correction": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong."
+    },
+    "step_status": "in_progress",
+    "achieved_score": 85,
+    "target_score": 95,
+    "status_correction": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong."
   },
   "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
   "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation.",
@@ -5646,9 +5653,9 @@
       }
     },
     "remaining_for_exit": [
-      "fast CI run 28914605563 terminal success on def3517 (latest dev push)",
-      "optional: promote 16 score=100 progress entries to review.json (PRP drift, non-blocking)",
-      "on exit: honest achieved_score ~90-92/99 (not rounded to 99); merge dev->main; log channel"
+      "step 7: close gap to 80 (evidence_figures vis, PRP orphans optional)",
+      "step 8: close gap to 95 (evidence_figures migration, NeuronalTensor paradigm wrappers)",
+      "step 9: achieved >= 99 + full CI matrix green"
     ],
     "notebook_ci_receipt": {
       "run_id": 28913958125,
@@ -5658,7 +5665,7 @@
     },
     "current_head": "def3517",
     "branch": "dev",
-    "handoff_for_next_agent": "Step 9 DoD (plans.json step 9): adversarial audit DONE (0 new blockers); notebook CI DONE (28913958125 success); local pytest -m 'not notebook' 2650 passed. NEXT: confirm fast CI 28914605563 green, then close step 9 in plans.json/progress.json, append AGENT_CHANNEL, commit/push/merge. Step 10 is publish — requires explicit per-mutation authorization; do NOT tag/PyPI without Hamm approval.",
+    "handoff_for_next_agent": "PRP rule: status=done only when achieved_score >= target_score. Steps 7 (74/80) and 8 (85/95) reverted to in_progress — finish those gaps OR raise scores before marking done. Step 9 (88/99) also in_progress. Notebook CI 28913958125 success; adversarial audit 0 new blockers.",
     "exit_commands": [
       "gh run view 28914605563 --json status,conclusion",
       "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/ -q -m 'not notebook' | tail -3",
@@ -5666,5 +5673,7 @@
     ]
   },
   "progress_pass_note_2026_07_07_step9_kickoff": "Step 9 adversarial audit: no new blockers; full local -m not notebook green; notebook CI dispatched.",
-  "progress_pass_note_2026_07_07_step9_notebook_ci": "Notebook CI 28913958125 success; step9 at 88/99."
+  "progress_pass_note_2026_07_07_step9_notebook_ci": "Notebook CI 28913958125 success; step9 at 88/99.",
+  "prp_invariant_2026_07_07": "status=done requires achieved_score >= target_score",
+  "progress_pass_note_2026_07_07_status_correction": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong."
 }

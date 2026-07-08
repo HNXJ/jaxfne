@@ -30,13 +30,10 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-**[HANDOFF — step 9 @ 88/99, `dev` @ `def3517`]** Any agent continuing the 0.4.7
-PRP loop: read `artifacts/developer/progress.json` →
-`step9_kickoff_worklist_2026_07_07` (full receipts + `handoff_for_next_agent`).
-Canonical scorecard: `plans.json` → `current_scorecard_2026_07_07`. **Done:**
-adversarial audit (0 new blockers), notebook CI run **28913958125** → success.
-**Pending:** fast CI **28914605563** on `def3517` → confirm terminal success, then
-close step 9 (~90–92/99 honest, not 99). Step 10 = publish — explicit Hamm auth only.
+**[HANDOFF — PRP rule enforced]** `status=done` **requires** `achieved_score >= target_score`.
+Steps **7** (74/80), **8** (85/95), **9** (88/99) are all **`in_progress`**. Prior
+“exit below target” markings on steps 7–8 were **reverted** 2026-07-07 per Hamm.
+Read `progress.json` worklists for receipts; read `plans.json` `step_status_invariant`.
 
 ## Log
 
@@ -308,4 +305,10 @@ Hamm: PRP synced for multi-agent continuity on `origin/dev` @ `def3517`.
 `remaining_for_exit`, and notebook CI receipt. `prp_to_markdown.py` now exports
 `achieved_score` in plans.md and active worklists in progress.md. Open handoff
 pointer added above.
+
+### 2026-07-07 — Cursor (Composer) [PRP status correction]
+Hamm: **`status=done` requires `achieved_score >= target_score`** — trivial rule, now
+encoded in `plans.json` `step_status_invariant`. Steps **7** (74/80) and **8** (85/95)
+reverted from `done` → **`in_progress`**. Worklist receipts (notebooks 27/27, audit,
+etc.) unchanged; only status was wrong. Step **9** (88/99) remains `in_progress`.
 

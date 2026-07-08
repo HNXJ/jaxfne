@@ -58,7 +58,7 @@
 | 4 | checkpoint |  |  | done |  |
 | 5 | 0.4.5_and_0.4.6 | 99 | 99 | done | Final polish pass on both, after the checkpoint: close any follow-up items step 1-3 left open, re-verify with a full tes |
 | 6 | 0.4.7 | 50 | 55 | done | Baseline entry point once 0.4.5/0.4.6 are solid (most blocking infra work already done via step 1's core.py split). Begi |
-| 7 | 0.4.7 | 80 | 74 | done | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
-| 8 | 0.4.7 | 95 | 85 | done | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
+| 7 | 0.4.7 | 80 | 74 | in_progress | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
+| 8 | 0.4.7 | 95 | 85 | in_progress | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
 | 9 | 0.4.7 | 99 | 88 | in_progress | Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) f |
 | 10 | 0.4.7 | 100 |  | not_started | The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, t |

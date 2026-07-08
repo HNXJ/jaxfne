@@ -590,7 +590,7 @@
       },
       "current_scorecard_2026_07_07": {
         "0.4.7_estimated": 74,
-        "0.4.7_note": "Step 7 exited done at 74/80 (Hamm-authorized exit 2026-07-07). Target 80 not rounded — evidence_figures vis migration deferred to step 8.",
+        "0.4.7_note": "Steps 7–9 in_progress below target as of correction. Step 7: 74/80; step 8: 85/95; step 9: 88/99. status=done requires achieved >= target.",
         "progress_backlog": {
           "total_entries": 450,
           "null_score": 0,
@@ -647,14 +647,14 @@
             "target": "0.4.7",
             "target_score": 80,
             "achieved_score": 74,
-            "status": "done"
+            "status": "in_progress"
           },
           {
             "step": 8,
             "target": "0.4.7",
             "target_score": 95,
             "achieved_score": 85,
-            "status": "done"
+            "status": "in_progress"
           },
           {
             "step": 9,
@@ -730,7 +730,7 @@
             "target": "0.4.7",
             "target_score": 80,
             "achieved_score": 74,
-            "status": "done"
+            "status": "in_progress"
           },
           {
             "step": 8,
@@ -830,37 +830,41 @@
           "step": 7,
           "target": "0.4.7",
           "target_score": 80,
-          "status": "done",
-          "definition_of_done": "Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). Package hygiene re-verified end-to-end (README badges, classifiers, changelog, license, citation.md) via a real build, not just a read-through. release-0.4.7-legacy-code-thinning moved from partially_done to done or explicitly re-scoped.",
+          "status": "in_progress",
+          "definition_of_done": "Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). Package hygiene re-verified end-to-end (README badges, classifiers, changelog, license, citation.md) via a real build, not just a read-through. release-0.4.7-legacy-code-thinning moved from partially_done to done or explicitly re-scoped. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
           "achieved_score": 74,
           "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0.",
           "completion_note": "2026-07-07 step 7 EXIT (Hamm-authorized): achieved_score 74/80 — not rounded to target 80. DoD met: progress.json status_open=0, null_score=0, legacy thinning re-scoped done, P1 worklist fully closed with receipts, evidence_figures/ documented exception (vis migration → step 8). Remaining score_lt_80=1 is gitignored ff_fb bundle (deferred). Exit re-verified: python3 -m build -> jaxfne-0.4.5 wheel+sdist OK; mkdocs build --strict OK; api_smoke+root_import -> 12 passed. CI green on 5eaeb52/f5613af before this exit commit.",
-          "exit_score_rationale": "Target 80 assumed full evidence_figures grammar closure or PRP orphan promotion; honest verified closure lands at 74. Hamm accepted step 7 done at 74 with evidence_figures deferred to step 8."
+          "exit_score_rationale": "Target 80 assumed full evidence_figures grammar closure or PRP orphan promotion; honest verified closure lands at 74. Hamm accepted step 7 done at 74 with evidence_figures deferred to step 8.",
+          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
+          "remaining_to_target": "6 points: evidence_figures vis migration, PRP orphan promotion, ff_fb remains deferred"
         },
         {
           "step": 8,
           "target": "0.4.7",
           "target_score": 95,
-          "status": "done",
+          "status": "in_progress",
           "achieved_score": 85,
-          "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
+          "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
           ],
           "progress_note": "2026-07-07: 27/27 release-facing notebooks executed clean (batches 5-7). Notebook lane DoD met; API/vis/paradigm remain.",
           "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain.",
           "completion_note": "2026-07-07 EXIT: 27/27 notebooks executed; API docs hygiene 315 passed; paradigm tests 20 passed; build+mkdocs OK; vis grammar partial (export/tutorial_utils via vis/, evidence_figures documented exception). Achieved 85/95 not rounded — gap is evidence_figures migration + NeuronalTensor-first paradigm convenience layer.",
-          "exit_score_rationale": "Same discipline as step 7 exit at 74/80."
+          "exit_score_rationale": "Same discipline as step 7 exit at 74/80.",
+          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
+          "remaining_to_target": "10 points: evidence_figures migration, NeuronalTensor paradigm wrappers"
         },
         {
           "step": 9,
           "target": "0.4.7",
           "target_score": 99,
           "status": "in_progress",
-          "definition_of_done": "Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) finds no new blocking issues. CI green across the full matrix including nightly notebook execution, not just the fast lane. This is the last gate before an actual publish decision, not the publish itself.",
+          "definition_of_done": "Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) finds no new blocking issues. CI green across the full matrix including nightly notebook execution, not just the fast lane. This is the last gate before an actual publish decision, not the publish itself. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [],
           "achieved_score": 88,
           "kickoff_note_2026_07_07": "Adversarial repo-audit: 0 new blockers. Local pytest -m not notebook 2650 passed. Notebook CI 28913958125 success on 0052fe5.",
@@ -878,7 +882,8 @@
           ]
         }
       ],
-      "canonical_scorecard": "current_scorecard_2026_07_07"
+      "canonical_scorecard": "current_scorecard_2026_07_07",
+      "step_status_invariant": "status=done iff achieved_score >= target_score (target_score null exempt only for checkpoint-style steps). Sub-target closure is in_progress with honest achieved_score."
     }
   ]
 }

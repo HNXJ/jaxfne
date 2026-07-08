@@ -457,10 +457,13 @@
 
 ### step7_handoff_worklist_2026_07_07
 
+- **status**: in_progress
 - **for_agent**: Cursor (Composer) -- see artifacts/developer/AGENT_CHANNEL.md for the pointer entry
 
 ### step8_kickoff_worklist_2026_07_07
 
+- **achieved_score**: 85
+- **target_score**: 95
 - **for_agent**: Cursor (Composer) — step 8 after review pass
 
 ### step9_kickoff_worklist_2026_07_07
@@ -469,7 +472,7 @@
 - **achieved_score**: 88
 - **target_score**: 99
 - **for_agent**: any agent — read this worklist + AGENT_CHANNEL Open section first
-- **remaining_for_exit**: fast CI run 28914605563 terminal success on def3517 (latest dev push); optional: promote 16 score=100 progress entries t
-- **handoff_for_next_agent**: Step 9 DoD (plans.json step 9): adversarial audit DONE (0 new blockers); notebook CI DONE (28913958125 success); local p
+- **remaining_for_exit**: step 7: close gap to 80 (evidence_figures vis, PRP orphans optional); step 8: close gap to 95 (evidence_figures migratio
+- **handoff_for_next_agent**: PRP rule: status=done only when achieved_score >= target_score. Steps 7 (74/80) and 8 (85/95) reverted to in_progress — 
 - **notebook_ci_receipt**: {'run_id': 28913958125, 'conclusion': 'success', 'headSha': '0052fe5310f4dd4c1d840ab2134d5f2a7aadc1fa', 'url': 'https://
 
