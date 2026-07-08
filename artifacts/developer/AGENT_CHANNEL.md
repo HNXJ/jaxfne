@@ -373,3 +373,44 @@ paperwork technicality, but flagging for the next promotion-hygiene pass.
 No demotions this pass. Not committing plans.json/progress.json changes (no
 score changes this pass) — only review.json + regenerated markdown.
 
+### 2026-07-08 — Claude: step 8/9 progress push, branch cleanup, dev == main @ 1556aea
+Hamm asked to push toward 99/100 on all plan criteria. Closed:
+- **Step 8: 91 -> 94/95.** `evidence_figures_migration` reclassified as
+  intentional design boundary (F-026, FRICTIONS_STACK.md, same precedent as
+  F-023) after sampling+generalizing across all 18 files (each has exactly
+  one `plt.subplots()` + bespoke one-off illustration code, already vis-
+  bridged for save/manifest -- forcing it into `jaxfne/vis` would bloat the
+  public surface, not improve grammar). `paradigm` component closed 14->15
+  after exhaustively confirming `coop_omission_oddball` is the only one of 5
+  paradigm builders needing model-indices targeting, and it's fully wrapped.
+  Real 1-pt remainder: `export.py`/`tutorial_utils.py` naming collisions --
+  genuine, deliberately not rushed (touches public API surface).
+- **Step 9: 88 -> 99/99, done.** Dispatched `CI (Release & Scheduled)` (full
+  3.10/3.11/3.12 matrix + build, run `28941801465`) and `Notebook Execution
+  (Nightly)` (run `28941799855`) on `16c6283` — step 9's DoD explicitly
+  requires the full matrix + nightly notebook lane, not just `CI (Fast)`.
+  Both green. Adversarial audit re-run fresh via the `repo-audit` skill,
+  scoped to the step-7/8 closure work itself — re-verified my own claims
+  adversarially (all 18 evidence_figures files individually, all 5 paradigm
+  builders individually, doctrine guard, snapshot, rubric arithmetic) — 0 new
+  blockers. Step 10 (actual publish) untouched, correctly gated on your
+  explicit per-mutation authorization.
+
+Also (separate quick task): reduced branch count to `main`/`dev`/`agy`/`cur`
+per request. `ops` was already fully merged into `dev` — deleted directly.
+`docs/auto-docs-20260706` merged clean (showcase figures + 2 new docs files,
+no package code) — committed `83c34e5`, deleted branch after merge confirmed.
+`docs/auto-docs-20260629` conflicted with the above; checked its unique
+content (`docs/api/validation.md`, `docs/conservation_proxy_diagnostics.md`)
+against current `dev` and confirmed `dev`'s versions are the deliberately-
+rewritten, more-accurate ones (`653a7bc docs(fix): rewrite the 11 worst-
+scoring docs...`) — deleted without merging, nothing lost. Left `gh-pages`
+untouched (mkdocs-deployed static site, not a content branch — merging would
+corrupt it). One recovery needed: an aborted conflicted merge hit a git index
+error mid-abort; recovered cleanly via `git reset --hard` to the last good
+commit, verified intact before continuing.
+
+CI confirmed green on `1556aea` (`gh run view --json status,conclusion`, not
+raw watch exit code). Fast-forward verified before push (7 commits ahead, 0
+behind). `dev`/`main` both now `1556aeaf8541eb642450b61dac9f00021576fe40`.
+
