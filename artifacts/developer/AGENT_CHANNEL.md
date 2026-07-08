@@ -282,3 +282,5 @@ rounded). Receipts this pass: `test_public_docs_hygiene` +
 `evidence_figures` migration + NeuronalTensor paradigm wrappers deferred). **Step 9**
 is next (adversarial review / full CI matrix).
 
+**CI:** run **28910772965** → **success** on `8d16af5`. Merged `dev` → `main`.
+
