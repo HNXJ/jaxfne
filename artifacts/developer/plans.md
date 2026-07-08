@@ -80,5 +80,5 @@
 | K | Single authoritative 'Scope & Status' doc page for truth-gate/proxy language | tone_honesty_vs_confidence | not_started | One page (or README subsection, see chapter E) states claim_level/truth-gates/proxy status ONCE, authoritatively, refere |
 | L | skills/ polish as a public-facing AI-docs surface | ai_friendliness, docs_site_structure | not_started | Audit skills/README.md (or add one if it doesn't already serve this purpose) to the same formatting/completeness bar as  |
 | M | Full-repo tone/professionalism grep pass | tone_honesty_vs_confidence | not_started | One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only langu |
-| N | Cross-agent PRP sync of this plan itself |  | in_progress | This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated |
+| N | Cross-agent PRP sync of this plan itself |  | done | This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated |
 | O | Final adversarial re-score against jaxley |  | not_started | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |

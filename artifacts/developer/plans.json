@@ -1130,7 +1130,8 @@
           "title": "Cross-agent PRP sync of this plan itself",
           "target_categories": [],
           "definition_of_done": "This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated path) and pushed to dev, with an AGENT_CHANNEL.md pointer entry, so Cursor or any other agent can pull and pick up chapters. Meta-chapter, self-referential -- closes when this commit lands and is pushed.",
-          "status": "in_progress"
+          "status": "done",
+          "closed_2026_07_08": "Verified via git fetch + git show origin/dev:artifacts/developer/plans.json -- commit 7677cfe confirmed present on origin/dev, plan entry readable from the remote."
         },
         {
           "id": "O",
