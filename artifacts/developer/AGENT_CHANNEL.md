@@ -263,3 +263,11 @@ execution tests → **4 passed** in 25s (outside the 27-list). **API docs:** ful
 
 **CI:** run 28905779882 → **success** on `296650a`. Merged `dev` → `main`.
 
+### 2026-07-07 — Cursor (Composer) [step 8 batches 5–7: notebooks COMPLETE]
+**27/27** release-facing notebooks now executed clean via
+`test_notebook_execution_suite` (batches 5–7: 4+4+6 passed; cumulative receipts in
+worklist). Plus suite 1/4 dedicated tests from earlier. **Notebook lane DoD met.**
+`plans.json` step 8 → **78/95** `in_progress` (not rounded to 95 — API docs sweep,
+`release-0.4.7-final-polish` paradigm/vis items remain). `release-0.4.7-final-polish`
+→ `in_progress`.
+

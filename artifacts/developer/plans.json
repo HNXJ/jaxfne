@@ -416,8 +416,9 @@
       ],
       "depends_on_functions": [],
       "shape": "User's staged roadmap, third/final release: 'highly modular as independence of jaxfne.vis.*, jaxfne.util.*, and so on; and improved jaxfne.paradigm to basically simulate a hypothetical electrophysiology task like global local oddball and omission oddball on neural tensor network models'. Depends on 0.4.5/0.4.6 landing first.\n\nModularity part: jaxfne-modular-grammar rule 2 (AGENTS.md, this session's own doctrine) already requires vis-under-jaxfne.vis-only; 3 confirmed violations tracked in progress.json (jaxfne/export.py, jaxfne/tutorial_utils.py, all of scripts/evidence_figures/*.py -- direct matplotlib/plotly calls outside jaxfne/vis/). This release should actually FIX those, not just track them.\n\nParadigm part: jaxfne/paradigm.py already has the real primitives (confirmed 2026-07-01: general_sequential_oddball_paradigm, HierarchicalOddballParadigm, omission_oddball_paradigm, coop_omission_oddball_paradigm) -- 'improved' likely means wiring these cleanly onto the NeuronalTensor/Model path (the preferred workflow per README) rather than only the older Configuration path, and is the same underlying work that unblocks the 5 placeholder etudes in release-0.4.5-code-quality -- these two items should be coordinated, not duplicated.",
-      "status": "proposed",
-      "source": "User's explicit 3-release roadmap, 2026-07-01."
+      "status": "in_progress",
+      "source": "User's explicit 3-release roadmap, 2026-07-01.",
+      "progress_note_2026_07_07": "Notebook execution lane complete (27/27). Vis grammar partial (export/tutorial_utils). Paradigm NeuronalTensor wiring still open."
     },
     {
       "id": "hdp-stability-formula-design-and-validation",
@@ -651,7 +652,7 @@
             "step": 8,
             "target": "0.4.7",
             "target_score": 95,
-            "achieved_score": 60,
+            "achieved_score": 78,
             "status": "in_progress"
           },
           {
@@ -843,12 +844,12 @@
           "target": "0.4.7",
           "target_score": 95,
           "status": "in_progress",
-          "achieved_score": 60,
+          "achieved_score": 78,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
           ],
-          "progress_note": "2026-07-07 batch4: 13/27 notebooks; export.py matplotlib close via vis.exporters.",
+          "progress_note": "2026-07-07: 27/27 release-facing notebooks executed clean (batches 5-7). Notebook lane DoD met; API/vis/paradigm remain.",
           "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain."
         },
         {

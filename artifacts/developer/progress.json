@@ -5566,14 +5566,31 @@
         "jaxfne_suite_no_2_spectrolaminar_motif.ipynb",
         "jaxfne_v0310_eeg_meg_emm_proxy_bundle.ipynb",
         "jaxfne-sanity-delta-test-hierarchical-global-local-oddball.ipynb",
-        "etudes/jaxfne_etude_no_1_base.ipynb"
+        "etudes/jaxfne_etude_no_1_base.ipynb",
+        "etudes/jaxfne_etude_no_3_v1_spectrolaminar_1k.ipynb",
+        "etudes/jaxfne_etude_no_4_homeostatic_V1_column.ipynb",
+        "jaxfne_v040_continuous_omission_oddball.ipynb",
+        "jaxfne_suite_no_3_low_frequency_scaling.ipynb",
+        "etudes/jaxfne_etude_no_5_enhanced_biophysical_column.ipynb",
+        "etudes/jaxfne_etude_no_6_multi_area_network.ipynb",
+        "etudes/jaxfne_etude_no_9_local_oddball.ipynb",
+        "etudes/jaxfne_etude_no_10_global_local_oddball.ipynb",
+        "etudes/jaxfne_etude_no_7_multitrial_spectrolaminar.ipynb",
+        "etudes/jaxfne_etude_no_8_continuous_adaptation.ipynb",
+        "etudes/jaxfne_etude_no_11_omission_local.ipynb",
+        "etudes/jaxfne_etude_no_12_omission_global_coop.ipynb",
+        "etudes/jaxfne_etude_tcm_v1_6pop.ipynb",
+        "jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb"
       ],
       "receipt": "2 passed in 339.63s (test_notebook_execution_suite parametrized). Full 27-notebook suite is slow/nightly lane — do not block step 8 on single-session full sweep.",
-      "remaining": 14,
+      "remaining": 0,
       "receipt_batch2": "3 passed in 17.10s (2026-07-07 step 8 continue)",
       "receipt_batch3": "4 passed in 28.18s",
       "dedicated_suite_tests": "test_suite_no1 + test_suite_no4 -> 4 passed in 25.03s (separate from 27-list)",
-      "receipt_batch4": "4 passed in 29.53s"
+      "receipt_batch4": "4 passed in 29.53s",
+      "receipt_batch5": "4 passed in 396.91s",
+      "receipt_batch6": "4 passed in 48.64s",
+      "receipt_batch7": "6 passed in 348.97s — ALL 27/27 COMPLETE"
     },
     "priority_2_api_docs": "emitters.md corrected: izhikevich_* factories live under jtfne.emitters, not top-level (verified hasattr). Full docs/api/*.md dotted-ref scan: only runtime.md flags are documented __init__ collision (intentional); emitters.md fixed prior pass.",
     "priority_3_vis_grammar": [
@@ -5583,10 +5600,12 @@
     ],
     "priority_4_paradigm": "release-0.4.7-final-polish paradigm/NeuronalTensor oddball wiring — plans item still proposed",
     "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence.",
-    "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed. export.py save_figure plt.close -> vis.exporters.close_matplotlib_figure; root_export + vis exporters smoke 3 passed."
+    "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed. export.py save_figure plt.close -> vis.exporters.close_matplotlib_figure; root_export + vis exporters smoke 3 passed.",
+    "notebook_lane_status": "complete_2026_07_07"
   },
   "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
   "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation.",
   "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95.",
-  "progress_pass_note_2026_07_07_step8_batch4": "13/27 notebooks; export.py vis-grammar close delegation."
+  "progress_pass_note_2026_07_07_step8_batch4": "13/27 notebooks; export.py vis-grammar close delegation.",
+  "progress_pass_note_2026_07_07_step8_notebooks_done": "27/27 release-facing notebooks executed clean via test_notebook_execution_suite."
 }
