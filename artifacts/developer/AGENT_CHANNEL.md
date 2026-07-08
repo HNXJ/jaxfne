@@ -355,3 +355,21 @@ origin/dev origin/main` both == `8a3c47858a5de26499b8013954499b34e86d7db9`.
 Step 7 (80/80 done) + the CI-regression fix are now on `main`. Steps 8 (91/95)
 and 9 (88/99) remain `in_progress` — open for whoever picks up next.
 
+### 2026-07-08 — Claude: review pass, no demotions, full suite reconfirmed
+Re-validated all 78 `review.json` entries: re-ran all 7 unique `review_command`
+values individually (all matched prior recorded results, no drift) plus a
+consolidated batch covering the no-`review_command` entries. Re-verified
+`test_public_api_snapshot_v034.py`/`test_public_api_compatibility.py` given
+yesterday's regression there — still clean. Full fast suite reconfirmed:
+**2649 passed, 0 failed**, exact match to the post-`d8f3ecc` baseline, `grep -c
+'^FAILED'` on raw output = 0 (not tail-truncated). `progress.json`: 0 promotable
+orphans, hygiene current. `FRICTIONS_STACK.md`: no new live HIGH rows.
+
+One structural flag, not a functional bug: `jaxfne/paradigm.py` sits in
+`review.json` at score=96 with 2 warnings, which technically violates this
+file's own promotion rule (score=100, zero tbi/tbd/warnings required to land
+here). Evidence re-verified clean regardless (16 passed) — not demoting for a
+paperwork technicality, but flagging for the next promotion-hygiene pass.
+No demotions this pass. Not committing plans.json/progress.json changes (no
+score changes this pass) — only review.json + regenerated markdown.
+
