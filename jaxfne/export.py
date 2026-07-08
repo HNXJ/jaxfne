@@ -118,6 +118,13 @@ def export_tutorial_artifacts(
 ) -> Mapping[str, str]:
     """Export tutorial artifacts (JSON only, no figures).
 
+    NAME COLLISION NOTE: ``jaxfne.tutorial_utils.export_tutorial_artifacts``
+    is a DIFFERENT function with a different signature (takes a
+    ``LaminarColumnConfig`` as its first positional arg, not ``output_dir``)
+    -- it is the actively-used one in tutorials/notebooks. This is the
+    root-exported, generic ``jtfne.export_tutorial_artifacts`` (JSON-only,
+    config-agnostic thin wrapper around :func:`export_report`).
+
     Parameters
     ----------
     output_dir : str or Path

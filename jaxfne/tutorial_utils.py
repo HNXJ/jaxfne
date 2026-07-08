@@ -1937,6 +1937,13 @@ def export_tutorial_artifacts(
 ) -> dict:
     """Export configuration and results as strict JSON.
 
+    NAME COLLISION NOTE: this is a DIFFERENT function from the root-exported
+    ``jtfne.export_tutorial_artifacts`` (``jaxfne.export.export_tutorial_artifacts``,
+    a generic ``output_dir``-first JSON-only wrapper) -- this one requires a
+    ``LaminarColumnConfig`` as its first positional arg. Import via
+    ``jtfne.tutorial_utils.export_tutorial_artifacts`` explicitly, never
+    assume it's the same as the bare ``jtfne.export_tutorial_artifacts``.
+
     Parameters
     ----------
     cfg : LaminarColumnConfig
@@ -2012,7 +2019,15 @@ def plot_population_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs)
 
 
 def plot_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs):
-    """Raw-array raster (spike times / neuron IDs from lists)."""
+    """Raw-array raster (spike times / neuron IDs from lists).
+
+    NAME COLLISION NOTE: this is a DIFFERENT function from the root-exported
+    ``jtfne.plot_raster`` (``jaxfne.vis.canonical.plot_raster``, which takes
+    ``Signals``/``Model``, not raw arrays) -- this one is a thin forwarding
+    wrapper to ``vis.plot_population_raster`` for the raw-array tutorial
+    call shape. Import via ``jtfne.tutorial_utils.plot_raster`` explicitly,
+    never assume it's the same as the bare ``jtfne.plot_raster``.
+    """
     return plot_population_raster(spike_times_list, spike_neuron_ids_list, t, **kwargs)
 
 

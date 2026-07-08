@@ -486,14 +486,12 @@
     {
       "path": "jaxfne/export.py",
       "purpose": "Root-level notebook export API -- deprecated matplotlib-only save_figure/save_figures plus export_report/export_tutorial_artifacts for strict-JSON manifest/metrics/validation + figure export.",
-      "score": 92,
+      "score": 96,
       "tbi": [],
       "tbd": [],
-      "warnings": [
-        "NAMING COLLISION: jaxfne.tutorial_utils.py defines its own, differently-signatured export_tutorial_artifacts(cfg, manifest_dict=None, ...) never imported at root -- verified via inspect.signature that jaxfne.export_tutorial_artifacts (root) and jaxfne.tutorial_utils.export_tutorial_artifacts are distinct functions with incompatible signatures"
-      ],
-      "last_verified": "2026-07-07",
-      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root. || 2026-07-06: module docstring documents 0.4.7 incremental-thinning deferral for save_figure (F-016). || STEP8 2026-07-07: save_figure close path moved to jaxfne.vis.exporters.close_matplotlib_figure (matplotlib only in vis/).",
+      "warnings": [],
+      "last_verified": "2026-07-08",
+      "evidence": "python3 -c 'import jaxfne.export' succeeded; confirmed this module's export_tutorial_artifacts is the one imported at package root. || 2026-07-06: module docstring documents 0.4.7 incremental-thinning deferral for save_figure (F-016). || STEP8 2026-07-07: save_figure close path moved to jaxfne.vis.exporters.close_matplotlib_figure (matplotlib only in vis/). || CLOSED 2026-07-08 (naming collision): decided NOT to rename either export_tutorial_artifacts (the tutorial_utils.py one is actively used by 2 real notebooks + a test with functional assertions; the root one is only existence-checked, never called with real args anywhere in-repo -- renaming either risks breaking real callers or public API for zero benefit). Instead added a mutual cross-reference docstring note to both functions (this file + jaxfne/tutorial_utils.py) stating the signature difference explicitly, same 'documented not silent' resolution pattern as F-016/F-018/F-022. Verified: python3 -m py_compile jaxfne/export.py jaxfne/tutorial_utils.py jaxfne/vis/canonical.py -> exit 0; pytest tests/test_tutorial_utils.py tests/test_root_export_api_v0338.py tests/test_vis_phase5.py -> 57 passed.",
       "status": "reviewed"
     },
     {
@@ -687,16 +685,14 @@
     {
       "path": "jaxfne/tutorial_utils.py",
       "purpose": "Large tutorial-scaffold module -- plotting/summary helpers, Jaxley/numpy HH reference-trace forwarders, AGSDR-tuning objective builder, and the full Etude No.1 laminar-column pipeline.",
-      "score": 90,
+      "score": 94,
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "NAMING COLLISION confirmed live: tutorial_utils.export_tutorial_artifacts has a completely different signature from the root-exported jaxfne.export_tutorial_artifacts from export.py -- verified via inspect.signature",
-        "two module-level plot_raster definitions exist (vis/plotly/raster.py vs tutorial_utils.py) with incompatible signatures -- easy to import the wrong one",
         "build_laminar_column's W_parts and build_laminar_connections() are confirmed dead weight, kept only because tests/test_tutorial_utils.py::test_build_laminar_connections exercises their shapes -- deleting them would also require updating that test, a larger, separate decision than this pass's scope; the misleading comment is fixed (see evidence), the dead-code status itself is now accurately documented rather than removed."
       ],
-      "last_verified": "2026-07-07",
-      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): the 'placeholder: sparse random' comment was wrong on both counts (dense, not sparse; and never consumed) -- rewrote the comment on build_laminar_column's W_local_exc/W_local_inh/W_ff/W_fb block and build_laminar_connections()'s docstring to state plainly this is dead scaffold weight kept only for test-shape coverage, confirmed via grep that jaxfne/builders.py's build_laminar_column (the real, actively-used public builder) is a completely different function -- this file's version is deliberately aliased as jtfne.build_tutorial_laminar_column at root specifically to avoid the name collision (see jaxfne/__init__.py's own comment). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed. || STEP8 2026-07-07: _finish_figure delegates to jaxfne.vis.tutorial_array_plots (vis-grammar); pytest tests/test_tutorial_utils.py -> 38 passed.",
+      "last_verified": "2026-07-08",
+      "evidence": "python3 -c 'import jaxfne.tutorial_utils' succeeded; read ~2032 lines across two passes; traced W_parts from build_laminar_column through build_laminar_connections and confirmed via grep that simulate_laminar_trials builds its own independent connectivity and never reads model['W_parts']. || FIXED 2026-07-05: removed the cosmetic isinstance(obj, (dict, dict)) duplicate-type typo in _to_jsonable, now isinstance(obj, dict). || FIXED 2026-07-05 (midterm-plan step 5 follow-up closure): the 'placeholder: sparse random' comment was wrong on both counts (dense, not sparse; and never consumed) -- rewrote the comment on build_laminar_column's W_local_exc/W_local_inh/W_ff/W_fb block and build_laminar_connections()'s docstring to state plainly this is dead scaffold weight kept only for test-shape coverage, confirmed via grep that jaxfne/builders.py's build_laminar_column (the real, actively-used public builder) is a completely different function -- this file's version is deliberately aliased as jtfne.build_tutorial_laminar_column at root specifically to avoid the name collision (see jaxfne/__init__.py's own comment). Targeted tests: `pytest tests/test_tutorial_smoke_runner_v0217.py tests/test_docs_equations_plotly_v0214.py tests/test_tutorial_utils.py -q` -> 77 passed, 1 xfailed. || STEP8 2026-07-07: _finish_figure delegates to jaxfne.vis.tutorial_array_plots (vis-grammar); pytest tests/test_tutorial_utils.py -> 38 passed. || CLOSED 2026-07-08 (both naming collisions): export_tutorial_artifacts and plot_raster collisions resolved via mutual cross-reference docstrings (this file + jaxfne/export.py + jaxfne/vis/canonical.py), not renames -- both collided names are actively used with real, incompatible call shapes, and both root-exported counterparts are established public API, so renaming either was rejected as unnecessary breaking-change risk. Verified: py_compile clean on all 3 files; pytest tests/test_tutorial_utils.py tests/test_root_export_api_v0338.py tests/test_vis_phase5.py -> 57 passed. Score 90->94 (2 of 3 warnings closed with receipts; W_parts dead-weight warning deliberately stays, separate larger-scope decision).",
       "status": "reviewed"
     },
     {

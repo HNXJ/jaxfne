@@ -139,7 +139,14 @@ def plot_raster(
     **kwargs,
 ) -> Any:
     """Spike raster (time vs neuron id). See :func:`plot_network_3d` for the
-    shared meaning of the cosmetic override kwargs."""
+    shared meaning of the cosmetic override kwargs.
+
+    NAME COLLISION NOTE: ``jaxfne.tutorial_utils.plot_raster`` is a DIFFERENT
+    function with a different signature (raw ``spike_times_list``/
+    ``spike_neuron_ids_list``/``t`` arrays, not ``Signals``/``Model``) -- it's
+    a thin forwarding wrapper to ``vis.plot_population_raster``, not this
+    function. This is the root-exported ``jtfne.plot_raster``.
+    """
     _check_backend(backend)
     if backend == "plotly":
         from .plotly.raster import plot_raster as _impl

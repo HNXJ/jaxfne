@@ -76,7 +76,6 @@
 | jaxfne/connectivity.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/fields/solvers.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/plasticity.py | 90 | reviewed |  |  | 2026-07-04 |
-| jaxfne/tutorial_utils.py | 90 | reviewed |  |  | 2026-07-07 |
 | jaxfne/validation.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/vis/plotly/network.py | 90 | done |  |  | 2026-07-07 |
 | scripts/audit_notebooks_and_assets.py | 90 | reviewed |  |  | 2026-07-04 |
@@ -185,7 +184,6 @@
 | tests/test_suite_no4_notebook_execution.py | 91 | reviewed |  |  | 2026-07-04 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | done | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-07-07 |
-| jaxfne/export.py | 92 | reviewed |  |  | 2026-07-07 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/sanity_delta.py | 92 | done |  |  | 2026-07-05 |
@@ -336,6 +334,7 @@
 | docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
 | jaxfne/fields/probes.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/presets.py | 94 | reviewed |  |  | 2026-07-04 |
+| jaxfne/tutorial_utils.py | 94 | reviewed |  |  | 2026-07-08 |
 | jaxfne/vis/plotly/lfp.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/vis/plotly/raster.py | 94 | reviewed |  |  | 2026-07-04 |
 | scripts/ed10_release_archive_receipt.py | 94 | reviewed |  |  | 2026-07-04 |
@@ -397,6 +396,7 @@
 | jaxfne/_config.py | 95 | done |  |  | 2026-07-07 |
 | skills/catalog-glossary-jaxfne/SKILL.md | 95 | done |  |  | 2026-07-05 |
 | jaxfne/__init__.py | 96 | done |  |  | 2026-07-05 |
+| jaxfne/export.py | 96 | reviewed |  |  | 2026-07-08 |
 | jaxfne/vis/tutorial_panels.py | 96 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures/fig07_reproducibility_artifacts.py | 96 | done |  |  | 2026-07-05 |
 | scripts/evidence_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
