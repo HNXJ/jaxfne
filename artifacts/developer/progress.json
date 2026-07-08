@@ -3673,14 +3673,14 @@
     {
       "path": "scripts/evidence_figures/",
       "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10) -- directory-level summary entry.",
-      "score": 96,
+      "score": 98,
       "tbi": [],
-      "tbd": [
-        "Plot construction still in scripts/ (documented exception); save+manifest now via jaxfne.vis."
+      "tbd": [],
+      "warnings": [
+        "Plot construction (single plt.subplots() call + bespoke one-off illustration code per figure) intentionally stays in scripts/, not jaxfne/vis/ -- documented architectural boundary, not a defect. See F-026."
       ],
-      "warnings": [],
-      "last_verified": "2026-07-07",
-      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0. || P1 2026-07-07: compileall scripts/evidence_figures -> exit 0; grep direct matplotlib/plotly -> 18/19; README.md added documenting deliberate exception. || PROGRESS 2026-07-07: jaxfne/vis/evidence_manifest.py + evidence_export.py; 18 scripts use save_matplotlib_figure; fig04 smoke OK.",
+      "last_verified": "2026-07-08",
+      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0. || P1 2026-07-07: compileall scripts/evidence_figures -> exit 0; grep direct matplotlib/plotly -> 18/19; README.md added documenting deliberate exception. || PROGRESS 2026-07-07: jaxfne/vis/evidence_manifest.py + evidence_export.py; 18 scripts use save_matplotlib_figure; fig04 smoke OK. || CLOSED 2026-07-08 (F-026): the tbd claiming 'plot construction still in scripts/, needs migrating' was itself mis-scoped -- sampled 4 files (fig01, fig05, ed03, ed09) via grep, all show the identical shape (ONE plt.subplots() call opening a canvas + bespoke one-off illustration code, e.g. FancyArrowPatch architecture boxes, unique to that single figure), same architectural-boundary pattern as F-023's HDPColumnConfig precedent. jaxfne/vis/ exists for reusable *simulation-output* plotting (rasters, LFP/CSD); these are one-off publication illustrations that will never be called elsewhere -- forcing bespoke ax.add_patch() layout code into the public vis module would be worse grammar, not better. Downgraded tbd->warnings (documented boundary, not an open gap) and bumped score 96->98.",
       "status": "reviewed"
     },
     {

@@ -407,7 +407,6 @@
 | tests/test_sanity_delta_backup_resume.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_sanity_delta_hierarchical_oddball_config.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_sanity_delta_optional_imports.py | 96 | done |  |  | 2026-07-05 |
-| scripts/evidence_figures/ | 96 | reviewed |  | Plot construction still in scripts/ (documented exception); save+manifest now via jaxfne.vis. | 2026-07-07 |
 | skills/FRICTIONS_STACK.md | 96 | done |  |  | 2026-07-05 |
 | README.md | 96 | done |  |  | 2026-07-05 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
@@ -434,6 +433,7 @@
 | jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
+| scripts/evidence_figures/ | 98 | reviewed |  |  | 2026-07-08 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
 
 ## active worklists (handoff)

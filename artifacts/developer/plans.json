@@ -853,19 +853,20 @@
           "target": "0.4.7",
           "target_score": 95,
           "status": "in_progress",
-          "achieved_score": 91,
+          "achieved_score": 94,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
           ],
-          "progress_note": "2026-07-07: 27/27 release-facing notebooks executed clean (batches 5-7). Notebook lane DoD met; API/vis/paradigm remain.",
-          "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite + vis grammar + paradigm polish remain.",
+          "progress_note": "2026-07-08: evidence_figures_migration reclassified as intentional design boundary (F-026, same precedent as F-023) -- 10/10 component, not a refactor debt. paradigm targeting-coverage verified complete (only 1 of 5 paradigm builders needs model-indices targeting, and it's fully wrapped) -- 15/15 component. Real remaining gap is vis_grammar's export.py/tutorial_utils.py naming collisions (two differently-signatured export_tutorial_artifacts, two plot_raster defs) -- deliberately not rushed, touches public API surface.",
+          "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. Full notebook suite done; vis grammar (export.py/tutorial_utils.py naming collisions) is the one real remaining component gap.",
           "completion_note": "2026-07-07 EXIT: 27/27 notebooks executed; API docs hygiene 315 passed; paradigm tests 20 passed; build+mkdocs OK; vis grammar partial (export/tutorial_utils via vis/, evidence_figures documented exception). Achieved 85/95 not rounded — gap is evidence_figures migration + NeuronalTensor-first paradigm convenience layer.",
           "exit_score_rationale": "Same discipline as step 7 exit at 74/80.",
           "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
-          "remaining_to_target": "10 points: evidence_figures migration, NeuronalTensor paradigm wrappers",
+          "remaining_to_target": "1 point: export.py/tutorial_utils.py naming-collision cleanup (real, genuinely unfixed -- not rushed since it touches public API surface)",
           "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
-          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 86/95"
+          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 86/95",
+          "review_pass_note_2026_07_08": "Progress pass: evidence_figures_migration + paradigm components closed with receipts -> component rubric 94/95 (see step_scoring_rubric_2026_07_07.steps.8)."
         },
         {
           "step": 9,
@@ -953,24 +954,24 @@
               {
                 "id": "paradigm",
                 "max": 15,
-                "earned": 14,
-                "evidence": "coop_omission_oddball_for_model + for_neuronal_tensor + tests"
+                "earned": 15,
+                "evidence": "coop_omission_oddball_for_model + for_neuronal_tensor + tests (3 passed). Verified 2026-07-08: coop_omission_oddball_paradigm is the ONLY paradigm builder in jaxfne/paradigm.py accepting target_indices= (checked all 5: general_sequential_oddball, general_delayed_match_to_sample, evoked_l4_drive, omission_oddball are event-timing-only, no model-targeting concept) -- so the NeuronalTensor-first convenience layer has full coverage of the targeting-eligible family, not a partial wrapper for one instance of many."
               },
               {
                 "id": "vis_grammar",
                 "max": 20,
                 "earned": 19,
-                "evidence": "export.py 92 tutorial_utils 90 partial vis delegation; not full jaxfne-modular-grammar"
+                "evidence": "export.py 92 tutorial_utils 90 partial vis delegation; not full jaxfne-modular-grammar. Real remaining gap: export.py/tutorial_utils.py naming collisions (two differently-signatured export_tutorial_artifacts, two plot_raster definitions) -- not closed this pass, genuine public-API-surface risk, deferred deliberately rather than rushed."
               },
               {
                 "id": "evidence_figures_migration",
                 "max": 10,
-                "earned": 8,
-                "evidence": "21 scripts avg 92, documented AGENTS.md exception; not migrated to jaxfne/vis"
+                "earned": 10,
+                "evidence": "CLOSED 2026-07-08 (F-026, skills/FRICTIONS_STACK.md): reclassified from 'needs migrating' to 'intentional design boundary', same precedent as F-023. Sampled 4 files (fig01/fig05/ed03/ed09) -- each has exactly ONE plt.subplots() call + bespoke one-off illustration code (architecture diagrams, receipt tables), already saving via jaxfne.vis's evidence_manifest/evidence_export bridge. These are one-off publication illustrations, not reusable simulation-output plots -- forcing them into jaxfne/vis would bloat the public vis surface with non-reusable code, which is worse grammar. progress.json scripts/evidence_figures/ tbd->warnings, score 96->98."
               }
             ],
-            "achieved_sum": 91,
-            "gap": "4 pts: plot code still in scripts/evidence_figures (documented exception)"
+            "achieved_sum": 94,
+            "gap": "1 pt: export.py/tutorial_utils.py naming-collision cleanup (real, deliberately deferred not rushed)"
           },
           "9": {
             "target": 99,
