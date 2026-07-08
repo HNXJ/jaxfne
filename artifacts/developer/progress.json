@@ -5601,11 +5601,26 @@
     "priority_4_paradigm": "release-0.4.7-final-polish paradigm/NeuronalTensor oddball wiring — plans item still proposed",
     "exit_criteria": "step 8 done when notebook execution coverage is material (not necessarily all 27 in one session), API docs re-verified, release-0.4.7-final-polish closed or re-scoped with evidence.",
     "priority_3_vis_grammar_progress": "tutorial_utils._finish_figure now delegates to jaxfne.vis.tutorial_array_plots._finish_figure; pytest test_tutorial_utils -> 38 passed. export.py save_figure plt.close -> vis.exporters.close_matplotlib_figure; root_export + vis exporters smoke 3 passed.",
-    "notebook_lane_status": "complete_2026_07_07"
+    "notebook_lane_status": "complete_2026_07_07",
+    "step8_exit_2026_07_07": {
+      "status": "closed",
+      "achieved_score": 85,
+      "target_score": 95,
+      "authorized_by": "Hamm proceed",
+      "receipts": {
+        "notebooks": "27/27 + suite1/4 dedicated",
+        "api_docs": "pytest test_public_docs_hygiene + test_docs_equations_plotly_v0214 -> 315 passed, 5 skipped, 1 xfailed",
+        "paradigm": "test_paradigm + test_general_sequential_paradigm + test_v0313_omission_oddball_tutorial -> 20 passed",
+        "build": "python3 -m build -> jaxfne-0.4.5 OK; mkdocs --strict OK",
+        "vis_grammar": "export.py + tutorial_utils delegated; evidence_figures documented exception (deferred)"
+      },
+      "gap_to_95": "evidence_figures vis migration; full NeuronalTensor-first paradigm convenience wrappers"
+    }
   },
   "progress_pass_note_2026_07_07_step8_start": "Step 8 kickoff: review pass clean; 2/27 notebooks executed; step8 worklist added.",
   "progress_pass_note_2026_07_07_step8_continue": "5/27 notebooks verified; emitters.md API fix; tutorial_utils vis delegation.",
   "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95.",
   "progress_pass_note_2026_07_07_step8_batch4": "13/27 notebooks; export.py vis-grammar close delegation.",
-  "progress_pass_note_2026_07_07_step8_notebooks_done": "27/27 release-facing notebooks executed clean via test_notebook_execution_suite."
+  "progress_pass_note_2026_07_07_step8_notebooks_done": "27/27 release-facing notebooks executed clean via test_notebook_execution_suite.",
+  "progress_pass_note_2026_07_07_step8_exit": "Step 8 exit at 85/95; final-polish re-scoped done."
 }

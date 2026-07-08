@@ -273,3 +273,12 @@ worklist). Plus suite 1/4 dedicated tests from earlier. **Notebook lane DoD met.
 
 **CI:** run 28909716297 → **success** on `de04879`. Merged `dev` → `main`.
 
+### 2026-07-07 — Cursor (Composer) [step 8 EXIT @ 85/95]
+Hamm `proceed`. Step 8 closed **`done`**, **`achieved_score: 85/95`** (target 95 not
+rounded). Receipts this pass: `test_public_docs_hygiene` +
+`test_docs_equations_plotly_v0214` → **315 passed**; paradigm tests → **20 passed**;
+`python3 -m build` + `mkdocs --strict` OK. `release-0.4.7-final-polish` → **`done`**
+(re-scoped: notebooks 27/27, API verified, vis partial, paradigm via tests+notebooks;
+`evidence_figures` migration + NeuronalTensor paradigm wrappers deferred). **Step 9**
+is next (adversarial review / full CI matrix).
+
