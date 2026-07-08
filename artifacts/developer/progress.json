@@ -5624,7 +5624,7 @@
   "progress_pass_note_2026_07_07_step8_notebooks_done": "27/27 release-facing notebooks executed clean via test_notebook_execution_suite.",
   "progress_pass_note_2026_07_07_step8_exit": "Step 8 exit at 85/95; final-polish re-scoped done.",
   "step9_kickoff_worklist_2026_07_07": {
-    "for_agent": "Cursor (Composer)",
+    "for_agent": "any agent — read this worklist + AGENT_CHANNEL Open section first",
     "status": "in_progress",
     "achieved_score": 88,
     "target_score": 99,
@@ -5633,7 +5633,7 @@
       "blocking_issues_new": 0,
       "known_deferred": "outputs/ff_fb_hypothesis_bundle/run_analysis.py score=45 deferred/gitignored",
       "receipts": {
-        "git": "dev clean @ 0052fe5",
+        "git": "dev clean @ def3517 (origin/dev synced)",
         "version": "0.4.5 pyproject + __init__ aligned",
         "compile": "COMPILE_OK",
         "pytest_not_notebook": "2650 passed, 74 skipped, 4 xfailed, 0 failed (373s)",
@@ -5642,18 +5642,29 @@
         "build": "jaxfne-0.4.5 wheel+sdist OK",
         "review_pending": 0,
         "progress_blockers": 1,
-        "notebook_ci": "run 28913958125 queued on 0052fe5 (workflow_dispatch)"
+        "notebook_ci": "run 28913958125 success on 0052fe5"
       }
     },
     "remaining_for_exit": [
-      "fast CI run 28914273250 terminal success on badab56"
+      "fast CI run 28914605563 terminal success on def3517 (latest dev push)",
+      "optional: promote 16 score=100 progress entries to review.json (PRP drift, non-blocking)",
+      "on exit: honest achieved_score ~90-92/99 (not rounded to 99); merge dev->main; log channel"
     ],
     "notebook_ci_receipt": {
       "run_id": 28913958125,
       "conclusion": "success",
       "headSha": "0052fe5310f4dd4c1d840ab2134d5f2a7aadc1fa",
       "url": "https://github.com/HNXJ/jaxfne/actions/runs/28913958125"
-    }
+    },
+    "current_head": "def3517",
+    "branch": "dev",
+    "handoff_for_next_agent": "Step 9 DoD (plans.json step 9): adversarial audit DONE (0 new blockers); notebook CI DONE (28913958125 success); local pytest -m 'not notebook' 2650 passed. NEXT: confirm fast CI 28914605563 green, then close step 9 in plans.json/progress.json, append AGENT_CHANNEL, commit/push/merge. Step 10 is publish — requires explicit per-mutation authorization; do NOT tag/PyPI without Hamm approval.",
+    "exit_commands": [
+      "gh run view 28914605563 --json status,conclusion",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/ -q -m 'not notebook' | tail -3",
+      "python3 scripts/prp_to_markdown.py"
+    ]
   },
-  "progress_pass_note_2026_07_07_step9_kickoff": "Step 9 adversarial audit: no new blockers; full local -m not notebook green; notebook CI dispatched."
+  "progress_pass_note_2026_07_07_step9_kickoff": "Step 9 adversarial audit: no new blockers; full local -m not notebook green; notebook CI dispatched.",
+  "progress_pass_note_2026_07_07_step9_notebook_ci": "Notebook CI 28913958125 success; step9 at 88/99."
 }

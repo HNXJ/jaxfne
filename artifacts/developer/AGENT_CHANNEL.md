@@ -30,7 +30,13 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-_(nothing pending — step-7 handoff item resolved 2026-07-07; see Log)_
+**[HANDOFF — step 9 @ 88/99, `dev` @ `def3517`]** Any agent continuing the 0.4.7
+PRP loop: read `artifacts/developer/progress.json` →
+`step9_kickoff_worklist_2026_07_07` (full receipts + `handoff_for_next_agent`).
+Canonical scorecard: `plans.json` → `current_scorecard_2026_07_07`. **Done:**
+adversarial audit (0 new blockers), notebook CI run **28913958125** → success.
+**Pending:** fast CI **28914605563** on `def3517` → confirm terminal success, then
+close step 9 (~90–92/99 honest, not 99). Step 10 = publish — explicit Hamm auth only.
 
 ## Log
 
@@ -295,4 +301,11 @@ current HEAD → run **28913958125** (`workflow_dispatch`, in progress). Step 9 
 **Notebook CI:** run **28913958125** → **success** on `0052fe5` (~7.7 min after
 dispatch). Step 9 → **88/99** `in_progress` (fast CI **28914273250** on `badab56`
 still running at poll end).
+
+### 2026-07-07 — Cursor (Composer) [PRP handoff sync]
+Hamm: PRP synced for multi-agent continuity on `origin/dev` @ `def3517`.
+`step9_kickoff_worklist_2026_07_07` updated with `handoff_for_next_agent`,
+`remaining_for_exit`, and notebook CI receipt. `prp_to_markdown.py` now exports
+`achieved_score` in plans.md and active worklists in progress.md. Open handoff
+pointer added above.
 

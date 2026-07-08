@@ -452,3 +452,24 @@
 | jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-04 |
 | docs/api/index.md | 100 | done |  |  | 2026-07-03 |
 | docs/api/validation.md | 100 | done |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
+
+## active worklists (handoff)
+
+### step7_handoff_worklist_2026_07_07
+
+- **for_agent**: Cursor (Composer) -- see artifacts/developer/AGENT_CHANNEL.md for the pointer entry
+
+### step8_kickoff_worklist_2026_07_07
+
+- **for_agent**: Cursor (Composer) — step 8 after review pass
+
+### step9_kickoff_worklist_2026_07_07
+
+- **status**: in_progress
+- **achieved_score**: 88
+- **target_score**: 99
+- **for_agent**: any agent — read this worklist + AGENT_CHANNEL Open section first
+- **remaining_for_exit**: fast CI run 28914605563 terminal success on def3517 (latest dev push); optional: promote 16 score=100 progress entries t
+- **handoff_for_next_agent**: Step 9 DoD (plans.json step 9): adversarial audit DONE (0 new blockers); notebook CI DONE (28913958125 success); local p
+- **notebook_ci_receipt**: {'run_id': 28913958125, 'conclusion': 'success', 'headSha': '0052fe5310f4dd4c1d840ab2134d5f2a7aadc1fa', 'url': 'https://
+

@@ -43,13 +43,13 @@ def render_plans(data):
         out.append(f"- **{b.get('id','')}**: {cell(b.get('description', b))}")
     for mp in data.get("midterm_plans", []):
         out.append(f"\n## midterm plan: {mp.get('id','')} ({mp.get('created','')})\n")
-        out.append("| step | target | target_score | status | definition_of_done |")
-        out.append("|---|---|---|---|---|")
+        out.append("| step | target | target_score | achieved_score | status | definition_of_done |")
+        out.append("|---|---|---|---|---|---|")
         for s in mp.get("steps", []):
             out.append(
                 "| " + " | ".join(cell(v) for v in (
                     s.get("step"), s.get("target"), s.get("target_score"),
-                    s.get("status"), s.get("definition_of_done"),
+                    s.get("achieved_score"), s.get("status"), s.get("definition_of_done"),
                 )) + " |"
             )
     return "\n".join(out)
@@ -67,7 +67,24 @@ def regenerate():
         if src_name == "plans.json":
             body = render_plans(data)
         else:
-            body = render_table(data.get("entries", []), cols)
+            entries = data.get("entries", [])
+            body = render_table(entries, cols)
+            worklists = {
+                k: v for k, v in data.items()
+                if k.endswith("_worklist_2026_07_07") and isinstance(v, dict)
+            }
+            if worklists:
+                body += "\n\n## active worklists (handoff)\n"
+                for name, wl in sorted(worklists.items()):
+                    body += f"\n### {name}\n\n"
+                    for key in (
+                        "status", "achieved_score", "target_score", "for_agent",
+                        "remaining_for_exit", "handoff_for_next_agent",
+                    ):
+                        if key in wl:
+                            body += f"- **{key}**: {cell(wl[key])}\n"
+                    if wl.get("notebook_ci_receipt"):
+                        body += f"- **notebook_ci_receipt**: {cell(wl['notebook_ci_receipt'])}\n"
         header = f"<!-- auto-generated from {src_name} by scripts/prp_to_markdown.py — do not hand-edit -->\n\n"
         (DEV_DIR / out_name).write_text(header + body + "\n")
     print(f"regenerated markdown in {DEV_DIR}")
