@@ -271,3 +271,5 @@ worklist). Plus suite 1/4 dedicated tests from earlier. **Notebook lane DoD met.
 `release-0.4.7-final-polish` paradigm/vis items remain). `release-0.4.7-final-polish`
 → `in_progress`.
 
+**CI:** run 28909716297 → **success** on `de04879`. Merged `dev` → `main`.
+
