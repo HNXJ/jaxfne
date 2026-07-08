@@ -872,15 +872,16 @@
           "step": 9,
           "target": "0.4.7",
           "target_score": 99,
-          "status": "in_progress",
+          "status": "done",
           "definition_of_done": "Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) finds no new blocking issues. CI green across the full matrix including nightly notebook execution, not just the fast lane. This is the last gate before an actual publish decision, not the publish itself. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [],
-          "achieved_score": 88,
+          "achieved_score": 99,
           "kickoff_note_2026_07_07": "Adversarial repo-audit: 0 new blockers. Local pytest -m not notebook 2650 passed. Notebook CI 28913958125 success on 0052fe5.",
           "notebook_ci_note_2026_07_07": "run 28913958125 success on 0052fe5 (workflow_dispatch).",
           "handoff_sha_2026_07_07": "def3517",
           "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
-          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 88/99"
+          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 88/99",
+          "completion_note_2026_07_08": "EXIT: fast_ci_matrix closed 13->24 (dispatched CI (Release & Scheduled) workflow_dispatch on dev@16c6283, run 28941801465, all 3 Python versions + build green) and notebook_ci re-confirmed 25/25 (run 28941799855, Notebook Execution Nightly, success on same SHA) -- both dispatched specifically because step 9's DoD requires the FULL matrix + nightly notebook lane, not just CI (Fast). adversarial_audit re-run fresh 2026-07-08 (repo-audit skill) scoped to the step-7/8 closure work itself, 0 new blockers, stays 25/25. Component rubric: 25+25+25+24 = 99 = target_score exactly, not rounded up -- every point has a receipt (see step_scoring_rubric_2026_07_07.steps.9). Note: this is the review/audit/CI gate per the DoD's own text ('the last gate before an actual publish decision, not the publish itself') -- step 10 (actual PyPI publish) remains separately gated and requires explicit per-mutation-class authorization at execution time, same as release-v0.4.5-published."
         },
         {
           "step": 10,
@@ -992,17 +993,17 @@
                 "id": "notebook_ci",
                 "max": 25,
                 "earned": 25,
-                "evidence": "run 28913958125 success on 0052fe5"
+                "evidence": "run 28913958125 success on 0052fe5. RE-CONFIRMED 2026-07-08: run 28941799855 (Notebook Execution Nightly, workflow_dispatch) success on dev@16c6283."
               },
               {
                 "id": "fast_ci_matrix",
                 "max": 24,
-                "earned": 13,
-                "evidence": "run 28915395028 on 49b3ebd in_progress at review time; 28914605563 success on def3517"
+                "earned": 24,
+                "evidence": "CLOSED 2026-07-08: dispatched CI (Release & Scheduled) workflow_dispatch on dev@16c6283 -- run 28941801465, conclusion success, full 3-version matrix all green (test (3.10): success, test (3.11): success, test (3.12): success, build: success). Also dispatched Notebook Execution (Nightly) run 28941799855 on the same SHA -- conclusion success. Both satisfy step 9 DoD's 'CI green across the full matrix including nightly notebook execution, not just the fast lane' literally, not just the fast-lane CI (Fast) workflow."
               }
             ],
-            "achieved_sum": 88,
-            "gap": "11 pts: fast CI green on HEAD + final re-audit receipt on merged SHA"
+            "achieved_sum": 99,
+            "gap": "none -- target met"
           }
         }
       }
