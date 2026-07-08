@@ -980,7 +980,7 @@
                 "id": "adversarial_audit",
                 "max": 25,
                 "earned": 25,
-                "evidence": "repo-audit gates 0 new blockers; ff_fb deferred only"
+                "evidence": "repo-audit gates 0 new blockers; ff_fb deferred only. RE-RUN 2026-07-08 @ 6873817 (repo-audit skill, fresh-eyes, scoped to the step-7/8 closure work): doctrine guard clean; F-026 markdown structure intact (6 headers, 15 table separators, no damage); re-verified the '1 plt.subplots() call per file' claim across ALL 18 evidence_figures files, not just the 4 sampled (grep -c confirms 1/1/1... for every file, generalization holds); re-verified 'only 1 of 5 paradigm builders takes target_indices=' exhaustively across all 5 (awk scan, 0/0/0/0/1); py_compile clean on paradigm.py + __init__.py + all evidence_figures scripts; public API snapshot re-verified clean (2 passed); rubric arithmetic self-check (sum(earned)==achieved_sum) passes. 0 new blockers from this pass's own changes."
               },
               {
                 "id": "local_full_tests",
