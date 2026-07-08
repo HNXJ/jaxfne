@@ -346,3 +346,12 @@ generally. Full fast suite reverified clean end-to-end (not just tail-truncated)
 Not merging `dev`→`main` until CI on `d8f3ecc` is confirmed green via
 `gh run view --json status,conclusion` (not raw watch exit code).
 
+### 2026-07-08 — Claude: dev == main @ 8a3c478
+CI confirmed `success` on both `d8f3ecc` and `8a3c478` (`gh run list --json
+headSha,status,conclusion`, not raw watch exit code). Fast-forward verified
+(`origin/main..origin/dev` = 8 commits, `origin/dev..origin/main` = empty)
+before pushing. `git push origin origin/dev:main`, then `git rev-parse
+origin/dev origin/main` both == `8a3c47858a5de26499b8013954499b34e86d7db9`.
+Step 7 (80/80 done) + the CI-regression fix are now on `main`. Steps 8 (91/95)
+and 9 (88/99) remain `in_progress` — open for whoever picks up next.
+
