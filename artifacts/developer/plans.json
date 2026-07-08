@@ -660,7 +660,7 @@
             "step": 9,
             "target": "0.4.7",
             "target_score": 99,
-            "achieved_score": 72,
+            "achieved_score": 88,
             "status": "in_progress"
           },
           {
@@ -862,8 +862,9 @@
           "status": "in_progress",
           "definition_of_done": "Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) finds no new blocking issues. CI green across the full matrix including nightly notebook execution, not just the fast lane. This is the last gate before an actual publish decision, not the publish itself.",
           "depends_on_plan_items": [],
-          "achieved_score": 72,
-          "kickoff_note_2026_07_07": "Adversarial repo-audit pass: 0 new blockers (1 known deferred ff_fb). Local full pytest -m 'not notebook' -> 2650 passed. Notebook CI workflow_dispatch run 28913958125 on 0052fe5 in progress."
+          "achieved_score": 88,
+          "kickoff_note_2026_07_07": "Adversarial repo-audit pass: 0 new blockers (1 known deferred ff_fb). Local full pytest -m 'not notebook' -> 2650 passed. Notebook CI workflow_dispatch run 28913958125 on 0052fe5 in progress.",
+          "notebook_ci_note_2026_07_07": "run 28913958125 success on 0052fe5 (workflow_dispatch)."
         },
         {
           "step": 10,

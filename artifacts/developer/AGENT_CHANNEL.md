@@ -292,3 +292,7 @@ known deferred `ff_fb` (score 45, gitignored). Local full matrix minus notebooks
 current HEAD → run **28913958125** (`workflow_dispatch`, in progress). Step 9 →
 **72/99** `in_progress` (exit blocked on notebook CI terminal success).
 
+**Notebook CI:** run **28913958125** → **success** on `0052fe5` (~7.7 min after
+dispatch). Step 9 → **88/99** `in_progress` (fast CI **28914273250** on `badab56`
+still running at poll end).
+

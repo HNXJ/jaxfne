@@ -5626,7 +5626,7 @@
   "step9_kickoff_worklist_2026_07_07": {
     "for_agent": "Cursor (Composer)",
     "status": "in_progress",
-    "achieved_score": 72,
+    "achieved_score": 88,
     "target_score": 99,
     "adversarial_audit_2026_07_07": {
       "skill": "jaxfne-repo-audit gates",
@@ -5646,9 +5646,14 @@
       }
     },
     "remaining_for_exit": [
-      "notebook CI run 28913958125 terminal success on current HEAD",
-      "optional: promote 16 score=100 progress orphans to review.json"
-    ]
+      "fast CI run 28914273250 terminal success on badab56"
+    ],
+    "notebook_ci_receipt": {
+      "run_id": 28913958125,
+      "conclusion": "success",
+      "headSha": "0052fe5310f4dd4c1d840ab2134d5f2a7aadc1fa",
+      "url": "https://github.com/HNXJ/jaxfne/actions/runs/28913958125"
+    }
   },
   "progress_pass_note_2026_07_07_step9_kickoff": "Step 9 adversarial audit: no new blockers; full local -m not notebook green; notebook CI dispatched."
 }
