@@ -324,3 +324,25 @@ Vis evidence bridge: `jaxfne/vis/evidence_manifest.py`, `evidence_export.py`; 18
 `coop_omission_oddball_for_neuronal_tensor` + tests (**16 passed**). Step **7 →
 80/80 done**; step **8 → 91/95** `in_progress`.
 
+### 2026-07-08 — Claude: CI regression on 82610ea, fixed at d8f3ecc
+Full state assessment ("assess latest state; and prp", Hamm's ask): PRP progress
+is real and disciplined (0 open/null-score in progress.json, non-rounded scores,
+documented deferrals). But `dev` HEAD (`82610ea`) was **CI-red**, not caught before
+this — Progress-pass-d added 3 public names (`paradigm_target_indices_from_model`,
+`coop_omission_oddball_for_model`, `coop_omission_oddball_for_neuronal_tensor`) to
+`jaxfne/__init__.py` without regenerating `artifacts/public_api_before.json`. Exact
+same failure class this repo's own `meta_corrections` already flagged 2026-06-30 —
+worth watching for on every `__all__`-touching commit. Also: `figures/` was sitting
+untracked at repo root (root-freeze violation, not an approved exception) — a
+smoke-test PNG from the evidence-bridge work.
+
+Fixed both at `d8f3ecc`: regenerated the snapshot via `scripts/snapshot_public_api.py`
+(note: the stale snapshot's `version` field said `0.4.7`, real installed package is
+`0.4.5` — untested field, but worth knowing before step 10's version bump), and
+extended the existing `figures/publication/` gitignore rule to cover `figures/`
+generally. Full fast suite reverified clean end-to-end (not just tail-truncated):
+**2649 passed, 0 failed**, `grep -c '^FAILED'` on raw output = 0.
+
+Not merging `dev`→`main` until CI on `d8f3ecc` is confirmed green via
+`gh run view --json status,conclusion` (not raw watch exit code).
+
