@@ -5622,5 +5622,33 @@
   "progress_pass_note_2026_07_07_step8_batch3": "9/27 parametrized notebooks + suite1/4 dedicated tests; step8 score target 50/95.",
   "progress_pass_note_2026_07_07_step8_batch4": "13/27 notebooks; export.py vis-grammar close delegation.",
   "progress_pass_note_2026_07_07_step8_notebooks_done": "27/27 release-facing notebooks executed clean via test_notebook_execution_suite.",
-  "progress_pass_note_2026_07_07_step8_exit": "Step 8 exit at 85/95; final-polish re-scoped done."
+  "progress_pass_note_2026_07_07_step8_exit": "Step 8 exit at 85/95; final-polish re-scoped done.",
+  "step9_kickoff_worklist_2026_07_07": {
+    "for_agent": "Cursor (Composer)",
+    "status": "in_progress",
+    "achieved_score": 72,
+    "target_score": 99,
+    "adversarial_audit_2026_07_07": {
+      "skill": "jaxfne-repo-audit gates",
+      "blocking_issues_new": 0,
+      "known_deferred": "outputs/ff_fb_hypothesis_bundle/run_analysis.py score=45 deferred/gitignored",
+      "receipts": {
+        "git": "dev clean @ 0052fe5",
+        "version": "0.4.5 pyproject + __init__ aligned",
+        "compile": "COMPILE_OK",
+        "pytest_not_notebook": "2650 passed, 74 skipped, 4 xfailed, 0 failed (373s)",
+        "smoke": "test_api_smoke + root_import + signals_get -> 34 passed, 1 skipped",
+        "mkdocs": "build --strict OK",
+        "build": "jaxfne-0.4.5 wheel+sdist OK",
+        "review_pending": 0,
+        "progress_blockers": 1,
+        "notebook_ci": "run 28913958125 queued on 0052fe5 (workflow_dispatch)"
+      }
+    },
+    "remaining_for_exit": [
+      "notebook CI run 28913958125 terminal success on current HEAD",
+      "optional: promote 16 score=100 progress orphans to review.json"
+    ]
+  },
+  "progress_pass_note_2026_07_07_step9_kickoff": "Step 9 adversarial audit: no new blockers; full local -m not notebook green; notebook CI dispatched."
 }

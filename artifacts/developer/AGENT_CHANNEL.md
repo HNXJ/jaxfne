@@ -284,3 +284,11 @@ is next (adversarial review / full CI matrix).
 
 **CI:** run **28910772965** → **success** on `8d16af5`. Merged `dev` → `main`.
 
+### 2026-07-07 — Cursor (Composer) [step 9 KICKOFF @ 72/99]
+Hamm `proceed`. **Adversarial audit** (repo-audit gates): **0 new blockers** — only
+known deferred `ff_fb` (score 45, gitignored). Local full matrix minus notebooks:
+`pytest -m "not notebook"` → **2650 passed**, 74 skipped, 4 xfailed; compile,
+`mkdocs --strict`, `python3 -m build`, smoke suite OK. **Notebook CI** dispatched on
+current HEAD → run **28913958125** (`workflow_dispatch`, in progress). Step 9 →
+**72/99** `in_progress` (exit blocked on notebook CI terminal success).
+
