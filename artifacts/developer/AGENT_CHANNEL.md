@@ -414,3 +414,39 @@ CI confirmed green on `1556aea` (`gh run view --json status,conclusion`, not
 raw watch exit code). Fast-forward verified before push (7 commits ahead, 0
 behind). `dev`/`main` both now `1556aeaf8541eb642450b61dac9f00021576fe40`.
 
+### 2026-07-08 — Claude: steps 1-9 all done, docs reorg, dev == main @ 0390e04
+Hamm asked for a full 1-9 wrap ("quick glow up") + step 10 docs
+reorg. Closed:
+- **Step 8: 94 -> 95/95, done.** Resolved the export_tutorial_artifacts /
+  plot_raster naming collisions via mutual cross-reference docstrings
+  (jaxfne/export.py + tutorial_utils.py + vis/canonical.py) rather than
+  renaming either actively-used, differently-signatured function -- renaming
+  risked breaking real notebook/test callers for a naming-clarity fix.
+- **Backlog sweep:** 68 progress.json entries score 82-89 spot-checked --
+  all conservative-but-honest (stale-not-defective doc claims, missing
+  `if __name__=="__main__"` guards on 3 standalone scripts). Judged a full
+  rewrite of all 68 as real scope creep beyond "quick"; flagged rather than
+  rushed, especially the `__main__` guards (would need restructuring flat
+  module-body scripts into functions -- real behavioral-equivalence risk).
+- **Step 10 docs reorg:** docs/tutorials/index.md fully restructured into
+  Suites / Versioned tutorials (beginner/intermediate/advanced) / a NEW
+  Étude notebooks section -- 14 tutorials/etudes/*.ipynb notebooks (only 4
+  previously had any doc presence) grouped into 6 real thematic sub-groups
+  from each notebook's own title. mkdocs.yml nav restructured to match, plus
+  15 pages that existed on disk but were never in nav (confirmed pre-
+  existing via git-stash rebuild) wired in by content category.
+
+One real regression caught by CI (not local pytest -- I didn't run
+test_notebook_standard_v027.py locally before pushing c73d828): my table
+rewrite dropped the literal `**01**`..`**05**` bold-marker pattern
+test_tutorials_index_has_notebook_stack_table checks for, swapping to plain
+`[01](...)` links. Fixed at 0390e04: `[**01**](...)` -- bold + still
+clickable. Full suite reverified clean both before and after (2649
+passed/0 failed each time). CI confirmed green via `gh run view
+--json status,conclusion`. Fast-forward verified (4 commits ahead, 0
+behind) before push. `dev`/`main` both now `0390e041d3bc74a222412a8f8c187744b653a2a4`.
+
+Step 10's actual publish (tag/TestPyPI/PyPI/GitHub Release) untouched --
+release-mutation-guard scope, needs Hamm's explicit per-mutation
+authorization at execution time, not attempted here.
+
