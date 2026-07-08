@@ -71,7 +71,7 @@ already reserves the relevant report fields for this stage —
 ## What does not change
 
 Reaching any reserved stage above does not change `claim_level`,
-`physical_amplitude_calibrated`, or any other truth gate by itself — those
+`physical_amplitude_calibrated`, or other scope metadata by itself — those
 remain conservative defaults until separate calibration evidence exists, per
 [Limitations and future plans](limitations_and_future_plans.md).
 

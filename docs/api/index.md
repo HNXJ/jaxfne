@@ -12,7 +12,7 @@ Current development tree `jaxfne==0.4.5` (`pyproject.toml`). Latest PyPI release
 `jaxfne==0.4.4` (tag `v0.4.4`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 
-!!! note "Scope & truth gates"
+!!! note "Scope"
     All field/EEG/MEG/EMM outputs are computational proxies
     (`claim_level = "computational_scaffold"`, `field_solver_status = "linear_solver"`,
     `field_claim_level = "proxy_readout"`, `physical_amplitude_calibrated = False`).

@@ -317,6 +317,72 @@ Poynting's theorem provides a conservation-principle foundation for the field di
 
 ---
 
+## Proof and practice flows
+
+These short flows tie formal reasoning to jaxfne implementation locations. Each stops at the proxy/scaffold boundary unless a solved field is explicitly enabled.
+
+### Linearity and superposition (proxy stage)
+
+**Formal:** for fixed projection weights $w_{k\alpha}$, laminar readouts satisfy
+$\mathcal{R}[q_1 + q_2] \approx \mathcal{R}[q_1] + \mathcal{R}[q_2]$ when sources are combined before projection.
+
+**Practice:** combine emitter outputs into one `[T, N]` source array, then call
+`project_laminar_sources` once. Do not project populations separately and add
+readouts unless you have verified the weights are identical — the default
+Gaussian kernel is linear in source amplitude but not in neuron placement.
+
+**Code:** `jaxfne/fields/proxy.py` (`project_laminar_sources`), `validate_projection_invariants`.
+
+**Boundary:** superposition holds for the **proxy operator**, not for a future
+nonlinear PDE solve (P2+ in [Tensor Electromagnetics Scope](tensor_electromagnetics_scope.md)).
+
+### Source projection
+
+**Formal:** $q_\alpha(t) = \sum_k w_{\alpha k}\, s_k(t)$ with $w$ from depth/contact geometry.
+
+**Practice:** build `positions` from `model.neuron_table()`, pass `[T,N]` sources from
+`signals.get("source")` or `sig.sources`. Choose `mode="density_preserving"` (default)
+for off-population attenuation; `mode="row_normalize"` only when every contact lies
+inside the modeled population.
+
+**Code:** `jaxfne/fields/proxy.py`, `jtfne.project_laminar_sources`.
+
+### CSD finite difference
+
+**Formal:** $\mathrm{CSD}(z,t) \approx \partial^2 \phi_e / \partial z^2$ on the contact axis.
+
+**Practice:** CSD-proxy is computed along the laminar contact grid after spatial
+projection — it is a discrete second difference on `phi_e_proxy`, not a volume
+divergence solve. Use `csd_tensor` when you need the stage factored out of the
+full projection chain.
+
+**Code:** `jaxfne/fields/proxy.py`, `jaxfne/fields/diagnostics.py` (`csd_tensor`).
+
+### Conservation compatibility (diagnostic only)
+
+**Formal:** $\int q\,\mathrm{d}V \approx 0$ is checked via the spatial mean of $q$ over contacts.
+
+**Practice:** `compute_conservation_proxy_diagnostics` reports
+`source_conservation_proxy_residual` — a scalar summary, not a PDE residual.
+Values near zero indicate spatial balance of the **proxy source**, not enforced
+continuity at a tissue boundary.
+
+**Code:** `jaxfne/fields/diagnostics.py`, [Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md).
+
+### Proxy-vs-solver ladder
+
+| Rung | What runs | Status field |
+|------|-----------|--------------|
+| L0 | Emitter only (`V_m`, spikes) | no field |
+| L1 | Gaussian projection + FD CSD | `field_solver_status = "linear_solver"` |
+| L2 | Declared geometry metadata | `PhysicalFieldSolverSpec` (metadata) |
+| L3 | Elliptic/volume solve | reserved (`solve_physical_field` raises) |
+
+Ascending the ladder requires new evidence at each rung; metadata alone does not
+upgrade `physical_amplitude_calibrated` or `field_claim_level`.
+
+---
+
 ## Implementation Checklist
 
 When adding a new equation to jaxfne documentation:
