@@ -876,7 +876,321 @@
       "review_verified_on": "2026-07-07",
       "review_command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_vis_plotly_network_model_path.py -q",
       "review_result": "1 passed"
+    },
+    {
+      "path": "jaxfne/hdp_network.py",
+      "purpose": "Generic, size-agnostic config-driven builder for HDP laminar columns (DEFAULT_HDP / DEFAULT_HDP_DESYNC presets). No per-N functions.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-017 sweep found a hard regime bifurcation (wild H oscillation rho<0.24, neuron silencing rho>=0.36) with no working window. K_ctrl restored as canonical in the meantime."
+      ],
+      "warnings": [
+        "DEFAULT_HDP_DESYNC's own in-file comment still says 'treat as the current best candidate, not a finished/frozen point like DEFAULT_HDP' -- this preset has never been declared stable"
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "STALE-TBI CLEARED 2026-07-07 (Claude, cross-agent review verification): the 2026-07-01 tbi calling K_ctrl 'dead code' was superseded the same day by F-017's resolution (skills/FRICTIONS_STACK.md) -- K_ctrl was revived as a live linear restoring term and is confirmed present/active in jaxfne/emitters.py (lines 1271, 1357: K_ctrl_arr = jnp.asarray(...); dH_ctrl = K_ctrl_arr * (1.0 - H)). The tbd array already reflected this correctly ('K_ctrl restored as canonical') -- only the tbi array had the stale pre-fix claim. Flagged by Cursor's 2026-07-07 review-opinion pass on the step7_handoff_worklist, independently re-verified here before clearing (grep against real jaxfne/emitters.py source, not recalled). || DEFAULT_HDP's existing K_ctrl=5.0 is now live and validated (see jaxfne/emitters.py entry). In-file comment corrected to match. || ADDED 2026-07-05: DEFAULT_HDP_V1_PFC_AAAB preset + v1_pfc_aaab_hdp_params() helper, promoting scripts/v1_pfc_continuous_aaab_smoke_test.py's previously-inline HDP dict assembly (K_HDP=0.003, K_w_ctrl=0.001 layered on DEFAULT_HDP_DESYNC+BASE_HDP_KWARGS_DEFAULT+cube-law size scaling) into a named, reproducible, shared preset -- mirrors DEFAULT_HDP/DEFAULT_HDP_DESYNC's existing precedent (midterm-plan step 2 DoD item). Verified byte-identical dict output vs. the old inline assembly; the real smoke-test script runs end-to-end with it (3-trial run: rate stable ~12.53Hz, w_final_mean steady ~0.01225, matching the previously-validated stability profile).",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp",
+      "purpose": "Canonical HDP edge-list simulation kernel -- the verified reference step function for the Phase 2 pipeline work.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "The inner step closure is local/nested, not exported -- any future direct-extraction work (vs. the Option-B n_steps=1 wrap used in _pipeline.py) requires an emitters.py change, not just a _pipeline.py change"
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "Root-caused: rho_passive/H^2 is >=0 everywhere, cannot restore from above H*=1 with gamma=delta=0. Fixed: revived K_ctrl*(1-H_i) (was dead code). Full 20s/5-seed validation, K_ctrl in {1.0, 5.0}: 10/10 rows pass, H_std 0.0002-0.0030 (bar: <=0.05), tighter at 20s than 5s (genuine convergence). python3 -m pytest tests/test_hdp_kernel_standalone.py tests/test_homeostatic_stability_v042.py -q -> 24 passed, no regression.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/objectives.py",
+      "purpose": "Spectrolaminar objective scoring with 6 null-distribution generators and an optional synchrony-based rejection gate, all seedable via explicit np.random.Generator.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "spectrolaminar_objective's null-generation loop silently swallows all exceptions (except Exception: pass) when scoring null samples -- a systematically broken null function would silently reduce null_distribution_n rather than surfacing the failure"
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "python3 -c 'import jaxfne.objectives' succeeded; read entire file; confirmed seeded-vs-unseeded RNG documentation accurate. || FIXED 2026-07-05: removed unused `import json` and `import warnings` (confirmed dead via grep), plus a second unused `typing.Tuple` import found by ruff --select F401 in the same pass. ruff check clean; targeted tests `pytest tests/ -k objective -q` -> 135 passed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/vis/hdp_diagnostics.py",
+      "purpose": "8 matplotlib rendering helpers for the HDP homeostatic-plasticity diagnostic scripts (scripts/hdp_*.py, scripts/{find,verify}_5hz_*.py): synaptic-channel decomposition, dH-component panels, bifurcation-state panels, gain-ratio sweep, balance-sweep-by-network-size, LFP-stacked-by-depth, etude2 extended A-F grid, voltage-trace-with-spikes-by-celltype.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Module docstring carries the required proxy/scaffold disclaimer ('Evaluated as an uncalibrated computational scaffold; all readouts here are simulated proxy diagnostics...not physical measurements or biological mechanism claims') -- good doctrine compliance, but untested means this disclaimer's correctness relative to actual behavior is unverified."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (521 lines), no dedicated test found. Not run this session -- these are script-only rendering helpers (scripts/hdp_*.py callers), no test harness imports them directly. || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/vis/network3d.py",
+      "purpose": "matplotlib 3D scatter (circuit3d/geometry3d/column_geometry) + interactive Plotly visualize_network_3d (the package's primary interactive 3D network viewer; supports Model/Signals/DataFrame/dict/networkx input via _coerce_to_rows, layer planes, column shells, deterministic jitter for duplicate positions).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "geometry3d's no-data fallback path (line ~113-117) silently renders an empty axes3d with a text placeholder instead of raising -- acceptable since it's documented behavior (declared-geometry-optional), but differs from circuit3d which raises ValueError on missing data; minor API inconsistency, not a correctness bug."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m pytest tests/test_network3d_visualize.py tests/test_vis_network3d_public_api.py -q -> 17 passed. Docstring explicitly states 'Geometry is proxy/declared only. Not calibrated anatomical coordinates' (proxy disclaimer present, satisfies claim-language doctrine). z-axis correctly reversed (autorange='reversed') with an inline comment explaining the superficial-top/deep-bottom anatomical convention.",
+      "status": "reviewed",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/vis/plasticity_viz.py",
+      "purpose": "Single function plot_stdp_adaptation_suite: generates and SAVES 4 PNGs directly to disk (raster, population rate, stimulus trace, W-before/after/delta heatmaps) for STDP plasticity diagnostics; deliberately returns None (legacy save-to-disk behavior preserved from jaxfne.plasticity, not a Figure-returning API).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function signature requires fig_dir to already make sense as a writable path (os.makedirs(fig_dir, exist_ok=True) is called, so this is handled) -- no actual issue, just noting the side-effecting (disk I/O) nature differs from every other vis.* function in the package which returns a Figure object instead of writing to disk."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (93 lines), no dedicated test found. Not run this session (would require constructing real trajectories/W_before/W_after/stimulus arrays). || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/vis/report_plots.py",
+      "purpose": "11 one-off matplotlib report/diagnostic figure helpers for scripts/ tooling (COOP/plasticity gate reports, delta-test notebooks, AGSDR sweeps): dual_raster_comparison, optimization_progress_line, spike_grid_heatmap, signed_heatmap_with_colorbar, grouped_bar_comparison, agsdr_rate_tuning_panel_grid, open_pdf_pages/pdf_text_page/pdf_figure_page (PdfPages wrapper trio), gain_matrix_heatmap, celltype_sweep_heatmap_grid.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "pdf_figure_page hardcodes the literal disclaimer text 'computational_scaffold / proxy_readout / no physical amplitude claim' onto every embedded PDF page -- good doctrine compliance (claim-language discipline), flagging only because it's a magic string with no single source of truth (if claim language changes elsewhere it won't propagate here automatically)."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (386 lines), no dedicated test found. Not run this session. || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/vis/tutorial_array_plots.py",
+      "purpose": "6 raw-array tutorial plot helpers (no Signals/Model object required), cloned from jaxfne.tutorial_utils which now forwards to these as source of truth: plot_population_raster, plot_population_rate_array, plot_voltage_samples_array (with optional anti-overlap stacking via vis.layout), plot_connectivity_matrix_array, plot_laminar_readout_array, plot_spectrolaminar_power_array.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "_finish_figure defaults show=True, which calls plt.show() unless the caller explicitly passes show=False -- in a non-interactive/headless/CI context this is a no-op (Agg backend) but could block if a GUI backend is active. Pre-existing documented behavior (cloned from jaxfne.tutorial_utils), not introduced by this module."
+      ],
+      "last_verified": "2026-07-05",
+      "evidence": "Read directly (159 lines), no dedicated test confirmed passing (ran python3 -m pytest tests/test_tutorial_utils.py -q -k 'plot_population or plot_voltage or plot_connectivity or plot_laminar or plot_spectrolaminar' -> 58 deselected, 0 selected, meaning no test in that file matches those keywords by name). || RESOLVED 2026-07-05: re-verified tests/test_vis_smoke_all.py directly covers this file's public function(s) (grep-confirmed each import + a dedicated _case_* function), and a live re-run confirms it passes: `python3 -m pytest tests/test_vis_smoke_all.py -q` -> 70 passed, 0 failed (note: use `python3`, not `python` -- this machine's `python` resolves to a Python 3.14 interpreter without kaleido installed, `python3` to a 3.13 interpreter that has it; see meta_corrections). The stale 'no dedicated test file found' tbd item this entry previously carried alongside its own 'coverage gap closed' note was self-contradictory -- cleared. Coverage is smoke-level (no exception + non-empty return, not a value/pixel regression test), which is what the resolution note always claimed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/optim/sdr.py",
+      "purpose": "Defines SDRState (no extra fields beyond BaseSDRState) and step_sdr_transform, the low-level Stochastic Delta Rule per-step update function -- a plain JAX-native gradient-descent step (u_t - eta*grad_l).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/optim/gsdr.py",
+      "purpose": "Defines GSDRState (adds deselection_counter to BaseSDRState) and step_gsdr_transform, the low-level GSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/optim/agsdr.py",
+      "purpose": "Defines AGSDRState (adds deselection_counter, alpha_adaptive fields on BaseSDRState) and step_agsdr_transform, the low-level AGSDR per-step update function.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Function is kept for backward compatibility but is genuinely dead code (zero internal callers) -- a future cleanup pass could consider deprecating it outright now that its docstring is honest, rather than keeping a correctly-labeled-but-unused public function indefinitely."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/core.py::Model / Configuration / JaxFNEConfig",
+      "purpose": "Core dataclasses: Model (frozen, params/static dict pytree), Configuration (declarative builder-first API). JaxFNEConfig (.jcfg.json loader, separate format) DELETED 2026-06-30.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever unified, or permanently stays mode-specific via _pipeline.py-style targeted wrappers -- NOT resolved this pass, out of scope for the JaxFNEConfig deletion.",
+        "RuntimeConfig.enable_hdp and enable_homeostasis are currently hard mutually-exclusive (lines 2377-2379) -- this invariant is in tension with the pending decision to make HDP a default-on universal property (would need to either fold homeostasis into the unified HDP gain space, or keep both as explicit, independently-toggleable opt-outs). Tracked in plans.json item hdp-universal-default-kernel-consolidation (staged 2026-07-01), not yet resolved."
+      ],
+      "warnings": [
+        "_compiled_cache and _warmup_times are mutated via object.__setattr__ on a frozen dataclass (Model) -- works but is a fragile pattern if anyone adds new mutable cache state without following the same convention",
+        "8310 lines in core.py (down from 8805 after deletion) -- any future read of this file should target line ranges via grep first, not load it in full"
+      ],
+      "last_verified": "2026-07-01",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only); dtype-fallthrough + with_hdp_initial_state hardcode fixed and moved to review.json 2026-07-01 (see jaxfne/core.py::RuntimeConfig.dtype entry).",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/optim/gsgd.py",
+      "purpose": "Defines GSGDState (NamedTuple: count, step_size) and step_gsgd_transform, the differentiable-path GSGD per-step update function consumed by Model.tune() when an explicit gradient is available.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Not currently on Model.tune()'s real call path (the differentiable-optimizer branch is a metadata-only guard, optax_guarded_path_no_loop_v0.0.8, that never enters a gradient loop) -- kept for direct/manual use, same reasoning as the sdr/gsdr/agsdr trio fixed earlier this session."
+      ],
+      "last_verified": "2026-06-30",
+      "evidence": "python3 -m py_compile <file> [OK]; full test collection 2769 items, 0 collection errors (python3 -m pytest tests/ -q --collect-only)",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/emitters.py",
+      "purpose": "Native recurrent emitter kernels: plain/homeostatic/HDP Izhikevich variants (simulate_edge_recurrent_izhikevich{,_homeostatic,_hdp}).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2, lines ~1316-1318) is disabled by default (barrier_c=barrier_d=0.0) and only exercised standalone in tests/test_hdp_kernel_standalone.py -- never in a full construct->simulate pipeline, never validated for its intended stall/discharge behavior under real dynamics. Follow-on action tracked in plans.json item bf16-quantized-tfne-izhikevich-mode (staged 2026-07-01): enable it in the staged HDP-stability config (tests/test_ei_hdp_stability_rho_passive_sweep.py) and sweep H near H_min.",
+        "Architecture decision pending: HDP should become a default-on property of every emitter (K_HDP-gated, matching rule 6's 'one unified object' principle) instead of a separate opt-in kernel (simulate_edge_recurrent_izhikevich_hdp) among 3. Consolidating the 3 kernels requires resolving the enable_hdp/enable_homeostasis mutual-exclusion conflict (core.py:2377-2379) first. Tracked in plans.json item hdp-universal-default-kernel-consolidation (staged 2026-07-01), not yet implemented.",
+        "K_w_ctrl is new and only validated on the V1-PFC 2-area topology at one value (0.001) -- a dedicated sweep across topologies/K_HDP values (like the existing K_ctrl sweep, scripts/hdp_v2_rho_sweep.py precedent) would give a more general confidence bound, not yet done."
+      ],
+      "warnings": [
+        "The asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2) is disabled by default (barrier_c=barrier_d=0.0) and only exercised standalone in tests/test_hdp_kernel_standalone.py -- never in a full construct->simulate pipeline. K_ctrl is the load-bearing restoring term, not the barrier; this is a documented, deliberate scope note, not a gap in the K_ctrl fix itself."
+      ],
+      "last_verified": "2026-07-04",
+      "evidence": "This entry was found with empty evidence and status=unreviewed 2026-07-01 despite the K_ctrl HDP fix being real and already landed in the code -- a real gap in this session's own tracker bookkeeping (fixed now, not left stale). Re-verified against ground truth, not the conversation summary alone: grep -n \"K_ctrl|dH_ctrl\" jaxfne/emitters.py confirms dH_ctrl = K_ctrl_arr * (1.0 - H) is computed AND included in the dH sum (line 1338), with in-code comments dated \"Revived 2026-07-01\" matching the fix. DEFAULT_HDP.K_ctrl=5.0 confirmed active via direct import. Full validation receipt (20s duration, 5 seeds, K_ctrl in {1.0, 5.0}): 10/10 rows PASS, H_std 0.0002-0.0030 -- well under the 0.05 bar, tighter at 20s than a 5s smoke check (genuine convergence, not slow drift) -- see skills/FRICTIONS_STACK.md F-017 (RESOLVED 2026-07-01) for the full root-cause + receipt. This is the user-designated 0.4.5 HDP blocker, explicitly required at 100/100 (not the general 95/100 bar) -- confirmed met. || 2026-07-04: added K_w_ctrl to simulate_edge_recurrent_izhikevich_hdp -- a linear restoring force on synaptic weight magnitude (dwmag/dt += K_w_ctrl*(wmag_baseline - wmag), wmag_baseline=|edges.weight|), closing the same structural gap K_ctrl closed for H_i (weight magnitude previously had only a hard clip, no restoring force). Default 0.0 (null control) -- verified backward compatible via the existing HDP test suite (42 tests green, no changes needed) and ruff --select F821 clean. Validated non-null on the V1-PFC 2-area topology: K_w_ctrl=0.001 fully stabilizes 20 chained trials with weight carryover even at the previously-unstable K_HDP=0.01 (see scripts/v1_pfc_continuous_aaab_smoke_test.py, plans.json's v1-pfc-continuous-aaab-adaptation-paradigm item for the full receipt). Real bug caught during validation: first pass missed threading K_w_ctrl through jaxfne/_model.py's hp.get(...) dispatch call site -- caught because 3 different K_w_ctrl values produced byte-identical (still-runaway) trajectories, fixed.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "docs/api/index.md",
+      "purpose": "Top-level API index: module page table, minimal Configuration->construct->simulate workflow example, column/default builder reference tables, export/figure API table, and the complete 238-name public symbol index grouped by module.",
+      "score": 100,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Module-pages summary table (lines ~24-36) is explicitly disclaimed as 'indicative groupings, not an exact partition' -- only the Neuronal tensor row (18->23) was corrected there to match the new table; the 'no page yet' aggregate row (86) was left as-is as it groups several small tables and the doc itself says the authoritative source is the Complete symbol index below, not this summary table."
+      ],
+      "last_verified": "2026-07-03",
+      "evidence": "Full row-by-row reconciliation performed 2026-07-03. Ground truth: `python3 -c \"import jaxfne as jtfne; print(sorted(jtfne.__all__))\"` -> 246 names. Extracted every `| `name` | kind | ...` row under '## Complete public symbol index' via regex table_re = r'^\\|\\s*`([^`]+)`\\s*\\|\\s*(func|class|const|module)\\s*\\|' over docs/api/index.md: BEFORE = 211 rows (211 unique, 0 stale vs __all__ -- all 9 dead names from the prior pass were already fully removed, confirmed 0 stale-name diff). DIFF found exactly 35 names in __all__ missing from the doc (Area, AreaConnection, DynamicState, Geometry3D, InterConnection, Layer, NEURONAL_TENSOR_SCHEMA_VERSION, NeuronType, NeuronalTensor, PlasticParams, Pose3D, RuntimeConfiguration, StaticParams, checkpoint_state, compute_fields, configs_dir, configuration_diff, construct_neuronal_tensor, default_relative_size, dynamic_state_from_model, list_canonical_neuronal_tensors, load, load_canonical_neuronal_tensor, load_neuronal_tensor, merge_neuronal_tensors, merge_runtime_configs, model_diff, neuronal_tensor_to_configuration, restore_state, runtime_config_diff, save_neuronal_tensor, tensor_summary, validate_model, validate_neuronal_tensor, validate_runtime_config). Resolved each via `obj.__module__`/`obj.__doc__` lookups: 23 belong to jaxfne.neuronal_tensor (new 'Neuronal Tensor' table added, docs/api/index.md), 4 to jaxfne._pipeline + 7 to jaxfne.util (new 'Model/config diff & validation utils' table, 11 rows), and compute_fields to jaxfne.core (added to the existing Core table, 61->62 rows). Every added row's summary is the object's real first docstring line, not invented. AFTER: re-ran the same extraction regex post-edit -> 246 rows, 246 unique, set(doc_rows) == set(jaxfne.__all__) confirmed True, 0 missing, 0 stale, 0 duplicates. Net change: +35 rows added, 0 rows removed (no additional stale names found beyond the 9 already removed in the prior pass). Also corrected the 'Neuronal tensor' row in the module-pages summary table from 18 -> 23 to match the new table. Command re-run for this update: `python3 -c \"import jaxfne as jtfne; print(len(jtfne.__all__))\"` -> 246.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "docs/api/validation.md",
+      "purpose": "API reference for jaxfne validation/diagnostics functions (config validation, signal/field validation, conservation diagnostics, operator status).",
+      "score": 100,
+      "tbi": [],
+      "tbd": [
+        "Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True) -> dict as the real validator for the fluent Configuration object, once someone with authority on its intended public surface confirms it should be re-exported/documented at root level. Currently only referenced by name+module path in the REMOVED note (validation.md lines 17-28), not documented as a first-class API."
+      ],
+      "warnings": [],
+      "last_verified": "2026-07-03",
+      "evidence": "Re-read docs/api/validation.md in full (267 lines) and re-verified the flagged warning: 'load_config also does not exist'. Confirmed load_config IS already noted inline in the REMOVED block at line 18 ('`config_truth_boundary`, `load_config`, `JaxFNEConfig`...') in addition to the closing Note at line 224 ('the dict-backed JaxFNEConfig/load_config(...) config-path API ... was removed 2026-06-30'). Independently verified both names are actually gone: `python3 -c \"import jaxfne; print(hasattr(jaxfne,'JaxFNEConfig'), hasattr(jaxfne,'load_config'))\"` -> False False. Grepped the whole file for JaxFNEConfig/ConfigValidationResult/config_truth_boundary/validate_config/load_config: every occurrence is inside a REMOVED block, an inline note, or the closing-section explanatory text -- none present the dead API as live. Retained tbd entry (optional, non-blocking follow-up about documenting jaxfne.builders.validate_configuration as a first-class replacement) since that's a forward-looking doc addition, not a correctness defect. Nothing more to fix; flipping to done.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_verified_on": "2026-07-07",
+      "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
+      "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
+      "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
     }
   ],
-  "review_pass_note_2026_07_07c": "Review pass @ main/f3f3de5 (post step-7 exit): 60 entries, 0 pending_review. Batch: pytest canonical_biophysics + sanity_delta + api_smoke + interactive_tutorial + pipeline_pure_functions + vis_plotly_network_model_path -> 46 passed, 5 skipped in 32.63s; repair_notebooks py_compile + --dry-run -> 21 notebooks. No demotions. PRP drift: 16 score=100 progress rows still without review.json copies (logged, not promoted this pass)."
+  "review_pass_note_2026_07_07c": "Review pass @ dev/49b3ebd: promoted 16 score=100 orphans from progress to review (all passed via batch). Batch: pytest canonical_biophysics + sanity_delta + api_smoke + interactive_tutorial + pipeline_pure + vis_plotly -> 46 passed, 5 skipped; repair_notebooks --dry-run -> 21 notebooks. 0 demotions. PRP 1-1 path mapping restored for score=100 rows."
 }

@@ -63,3 +63,19 @@
 | tests/test_tutorial_smoke_runner_v0217.py | 100 | passed |  |  |
 | scripts/repair_notebooks.py | 100 | passed | 2026-07-06 | python3 -m py_compile scripts/repair_notebooks.py && python3 scripts/repair_notebooks.py --dry-run |
 | tests/test_vis_plotly_network_model_path.py | 100 | passed | 2026-07-07 | PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_vis_plotly_network_model_path.py -q |
+| jaxfne/hdp_network.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/objectives.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/vis/hdp_diagnostics.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/vis/network3d.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/vis/plasticity_viz.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/vis/report_plots.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/vis/tutorial_array_plots.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/optim/sdr.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/optim/gsdr.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/optim/agsdr.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/core.py::Model / Configuration / JaxFNEConfig | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/optim/gsgd.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| jaxfne/emitters.py | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| docs/api/index.md | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |
+| docs/api/validation.md | 100 | passed | 2026-07-07 | review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_ne |

@@ -436,22 +436,6 @@
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
-| jaxfne/hdp_network.py | 100 | done |  | F-019 (not yet opened, deferred per explicit instruction): redesign of the passive-income rho_passive/H^2 formula -- F-0 | 2026-07-01 |
-| jaxfne/emitters.py::simulate_edge_recurrent_izhikevich_hdp | 100 | done |  |  | 2026-07-01 |
-| jaxfne/objectives.py | 100 | done |  |  | 2026-07-05 |
-| jaxfne/vis/hdp_diagnostics.py | 100 | done |  |  | 2026-07-05 |
-| jaxfne/vis/network3d.py | 100 | reviewed |  |  | 2026-06-30 |
-| jaxfne/vis/plasticity_viz.py | 100 | done |  |  | 2026-07-05 |
-| jaxfne/vis/report_plots.py | 100 | done |  |  | 2026-07-05 |
-| jaxfne/vis/tutorial_array_plots.py | 100 | done |  |  | 2026-07-05 |
-| jaxfne/optim/sdr.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/optim/gsdr.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/optim/agsdr.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/core.py::Model / Configuration / JaxFNEConfig | 100 | done |  | Whether Model._simulate_arrays's five-way Python dispatcher (homeostasis/HDP/edge_list/dense x ablation_mode) is ever un | 2026-07-01 |
-| jaxfne/optim/gsgd.py | 100 | done |  |  | 2026-06-30 |
-| jaxfne/emitters.py | 100 | done |  | simulate_edge_recurrent_izhikevich_hdp's asymmetric double-barrier term (barrier_c/(H-H_min)^2 - barrier_d/(H_max-H)^2,  | 2026-07-04 |
-| docs/api/index.md | 100 | done |  |  | 2026-07-03 |
-| docs/api/validation.md | 100 | done |  | Optional follow-up (not blocking): document jaxfne.builders.validate_configuration(cfg: Configuration, strict: bool=True | 2026-07-03 |
 
 ## active worklists (handoff)
 
@@ -472,7 +456,7 @@
 - **achieved_score**: 88
 - **target_score**: 99
 - **for_agent**: any agent — read this worklist + AGENT_CHANNEL Open section first
-- **remaining_for_exit**: step 7: close gap to 80 (evidence_figures vis, PRP orphans optional); step 8: close gap to 95 (evidence_figures migratio
+- **remaining_for_exit**: step 7: +2 to 80 (evidence_figures vis migration or target re-scope); step 8: +9 to 95 (NeuronalTensor paradigm wrappers
 - **handoff_for_next_agent**: PRP rule: status=done only when achieved_score >= target_score. Steps 7 (74/80) and 8 (85/95) reverted to in_progress — 
 - **notebook_ci_receipt**: {'run_id': 28913958125, 'conclusion': 'success', 'headSha': '0052fe5310f4dd4c1d840ab2134d5f2a7aadc1fa', 'url': 'https://
 

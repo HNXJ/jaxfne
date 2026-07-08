@@ -589,15 +589,16 @@
         "note": "Baseline from the quantitative review delivered 2026-07-04, before this plan's steps run. docs_quality (82) was not itself a step target in this plan but is tracked as context."
       },
       "current_scorecard_2026_07_07": {
-        "0.4.7_estimated": 74,
-        "0.4.7_note": "Steps 7–9 in_progress below target as of correction. Step 7: 74/80; step 8: 85/95; step 9: 88/99. status=done requires achieved >= target.",
+        "0.4.7_estimated": 84.0,
+        "0.4.7_note": "Precise component rubric in step_scoring_rubric_2026_07_07. Steps 7-9 in_progress below target.",
         "progress_backlog": {
-          "total_entries": 450,
+          "total_entries": 434,
           "null_score": 0,
           "score_lt_80": 1,
           "status_open": 0,
-          "review_passed_entries": 61,
-          "note": "score_lt_80 is deferred ff_fb only"
+          "review_passed_entries": 77,
+          "score100_orphans": 0,
+          "note": "score_lt_80 is deferred ff_fb only; 16 orphans promoted review pass 2026-07-07c"
         },
         "step_scores": [
           {
@@ -646,22 +647,25 @@
             "step": 7,
             "target": "0.4.7",
             "target_score": 80,
-            "achieved_score": 74,
-            "status": "in_progress"
+            "achieved_score": 78,
+            "status": "in_progress",
+            "scoring_rubric_ref": "step_scoring_rubric_2026_07_07"
           },
           {
             "step": 8,
             "target": "0.4.7",
             "target_score": 95,
-            "achieved_score": 85,
-            "status": "in_progress"
+            "achieved_score": 86,
+            "status": "in_progress",
+            "scoring_rubric_ref": "step_scoring_rubric_2026_07_07"
           },
           {
             "step": 9,
             "target": "0.4.7",
             "target_score": 99,
             "achieved_score": 88,
-            "status": "in_progress"
+            "status": "in_progress",
+            "scoring_rubric_ref": "step_scoring_rubric_2026_07_07"
           },
           {
             "step": 10,
@@ -835,19 +839,21 @@
           "depends_on_plan_items": [
             "release-0.4.7-legacy-code-thinning"
           ],
-          "achieved_score": 74,
+          "achieved_score": 78,
           "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0.",
           "completion_note": "2026-07-07 step 7 EXIT (Hamm-authorized): achieved_score 74/80 — not rounded to target 80. DoD met: progress.json status_open=0, null_score=0, legacy thinning re-scoped done, P1 worklist fully closed with receipts, evidence_figures/ documented exception (vis migration → step 8). Remaining score_lt_80=1 is gitignored ff_fb bundle (deferred). Exit re-verified: python3 -m build -> jaxfne-0.4.5 wheel+sdist OK; mkdocs build --strict OK; api_smoke+root_import -> 12 passed. CI green on 5eaeb52/f5613af before this exit commit.",
           "exit_score_rationale": "Target 80 assumed full evidence_figures grammar closure or PRP orphan promotion; honest verified closure lands at 74. Hamm accepted step 7 done at 74 with evidence_figures deferred to step 8.",
           "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
-          "remaining_to_target": "6 points: evidence_figures vis migration, PRP orphan promotion, ff_fb remains deferred"
+          "remaining_to_target": "6 points: evidence_figures vis migration, PRP orphan promotion, ff_fb remains deferred",
+          "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
+          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 78/80"
         },
         {
           "step": 8,
           "target": "0.4.7",
           "target_score": 95,
           "status": "in_progress",
-          "achieved_score": 85,
+          "achieved_score": 86,
           "definition_of_done": "Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) against current code; API docs re-verified against source post-core.py-split. release-0.4.7-final-polish item closed with evidence, not left proposed. Gate: achieved_score >= target_score required for status=done.",
           "depends_on_plan_items": [
             "release-0.4.7-final-polish"
@@ -857,7 +863,9 @@
           "completion_note": "2026-07-07 EXIT: 27/27 notebooks executed; API docs hygiene 315 passed; paradigm tests 20 passed; build+mkdocs OK; vis grammar partial (export/tutorial_utils via vis/, evidence_figures documented exception). Achieved 85/95 not rounded — gap is evidence_figures migration + NeuronalTensor-first paradigm convenience layer.",
           "exit_score_rationale": "Same discipline as step 7 exit at 74/80.",
           "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
-          "remaining_to_target": "10 points: evidence_figures migration, NeuronalTensor paradigm wrappers"
+          "remaining_to_target": "10 points: evidence_figures migration, NeuronalTensor paradigm wrappers",
+          "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
+          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 86/95"
         },
         {
           "step": 9,
@@ -869,7 +877,9 @@
           "achieved_score": 88,
           "kickoff_note_2026_07_07": "Adversarial repo-audit: 0 new blockers. Local pytest -m not notebook 2650 passed. Notebook CI 28913958125 success on 0052fe5.",
           "notebook_ci_note_2026_07_07": "run 28913958125 success on 0052fe5 (workflow_dispatch).",
-          "handoff_sha_2026_07_07": "def3517"
+          "handoff_sha_2026_07_07": "def3517",
+          "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
+          "review_pass_note_2026_07_07": "Review pass c: component rubric -> 88/99"
         },
         {
           "step": 10,
@@ -883,7 +893,118 @@
         }
       ],
       "canonical_scorecard": "current_scorecard_2026_07_07",
-      "step_status_invariant": "status=done iff achieved_score >= target_score (target_score null exempt only for checkpoint-style steps). Sub-target closure is in_progress with honest achieved_score."
+      "step_status_invariant": "status=done iff achieved_score >= target_score (target_score null exempt only for checkpoint-style steps). Sub-target closure is in_progress with honest achieved_score.",
+      "step_scoring_rubric_2026_07_07": {
+        "invariant": "status=done iff achieved_score >= target_score",
+        "method": "Component points sum to target_score; achieved_score is sum of earned component points (never rounded up).",
+        "steps": {
+          "7": {
+            "target": 80,
+            "components": [
+              {
+                "id": "backlog",
+                "max": 25,
+                "earned": 25,
+                "evidence": "progress.json null_score=0 status_open=0; ff_fb excluded (deferred/gitignored)"
+              },
+              {
+                "id": "package_hygiene",
+                "max": 20,
+                "earned": 20,
+                "evidence": "python3 -m build OK; mkdocs --strict OK; api_smoke batch 46 passed"
+              },
+              {
+                "id": "legacy_thinning",
+                "max": 15,
+                "earned": 15,
+                "evidence": "release-0.4.7-legacy-code-thinning status=done re-scoped"
+              },
+              {
+                "id": "prp_hygiene",
+                "max": 10,
+                "earned": 10,
+                "evidence": "16 score=100 orphans promoted to review.json this pass (77 review entries)"
+              },
+              {
+                "id": "evidence_figures_step7",
+                "max": 10,
+                "earned": 8,
+                "evidence": "scripts/evidence_figures/ README exception + avg score 92; vis migration not done (+2 gap to 80)"
+              }
+            ],
+            "achieved_sum": 78,
+            "gap": "2 pts: full evidence_figures->jaxfne/vis migration (or explicit plan re-scope lowering target)"
+          },
+          "8": {
+            "target": 95,
+            "components": [
+              {
+                "id": "notebooks",
+                "max": 30,
+                "earned": 30,
+                "evidence": "27/27 test_notebook_execution_suite executed clean (step8 batches)"
+              },
+              {
+                "id": "api_docs",
+                "max": 20,
+                "earned": 20,
+                "evidence": "test_public_docs_hygiene + paradigm batch -> 307 passed this pass"
+              },
+              {
+                "id": "paradigm",
+                "max": 15,
+                "earned": 12,
+                "evidence": "test_paradigm + general_sequential + v0313 omission -> 20 passed; NeuronalTensor wrappers absent"
+              },
+              {
+                "id": "vis_grammar",
+                "max": 20,
+                "earned": 17,
+                "evidence": "export.py 92 tutorial_utils 90 partial vis delegation; not full jaxfne-modular-grammar"
+              },
+              {
+                "id": "evidence_figures_migration",
+                "max": 10,
+                "earned": 7,
+                "evidence": "21 scripts avg 92, documented AGENTS.md exception; not migrated to jaxfne/vis"
+              }
+            ],
+            "achieved_sum": 86,
+            "gap": "9 pts: NeuronalTensor paradigm wrappers + full evidence_figures vis migration"
+          },
+          "9": {
+            "target": 99,
+            "components": [
+              {
+                "id": "adversarial_audit",
+                "max": 25,
+                "earned": 25,
+                "evidence": "repo-audit gates 0 new blockers; ff_fb deferred only"
+              },
+              {
+                "id": "local_full_tests",
+                "max": 25,
+                "earned": 25,
+                "evidence": "pytest -m not notebook -> 2650 passed (2026-07-07)"
+              },
+              {
+                "id": "notebook_ci",
+                "max": 25,
+                "earned": 25,
+                "evidence": "run 28913958125 success on 0052fe5"
+              },
+              {
+                "id": "fast_ci_matrix",
+                "max": 24,
+                "earned": 13,
+                "evidence": "run 28915395028 on 49b3ebd in_progress at review time; 28914605563 success on def3517"
+              }
+            ],
+            "achieved_sum": 88,
+            "gap": "11 pts: fast CI green on HEAD + final re-audit receipt on merged SHA"
+          }
+        }
+      }
     }
   ]
 }

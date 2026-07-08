@@ -31,9 +31,9 @@ starting work, and appends before finishing.
 ## Open / Needs Response
 
 **[HANDOFF — PRP rule enforced]** `status=done` **requires** `achieved_score >= target_score`.
-Steps **7** (74/80), **8** (85/95), **9** (88/99) are all **`in_progress`**. Prior
-“exit below target” markings on steps 7–8 were **reverted** 2026-07-07 per Hamm.
-Read `progress.json` worklists for receipts; read `plans.json` `step_status_invariant`.
+Steps **7** (78/80), **8** (86/95), **9** (88/99) are all **`in_progress`**.
+Scoring: `plans.json` → `step_scoring_rubric_2026_07_07` (component points, not rounded).
+Review: 77 entries, 0 pending, 0 score=100 orphans in progress.
 
 ## Log
 
@@ -311,4 +311,10 @@ Hamm: **`status=done` requires `achieved_score >= target_score`** — trivial ru
 encoded in `plans.json` `step_status_invariant`. Steps **7** (74/80) and **8** (85/95)
 reverted from `done` → **`in_progress`**. Worklist receipts (notebooks 27/27, audit,
 etc.) unchanged; only status was wrong. Step **9** (88/99) remains `in_progress`.
+
+### 2026-07-07 — Cursor (Composer) [Review pass c + scoring rubric]
+**Review:** 0 pending; promoted **16** score=100 orphans progress→review (77 review
+entries). Batch re-verify → **46 passed** (canonical/sanity/api/pipeline/vis) +
+**307 passed** (docs/paradigm). **Scoring:** `step_scoring_rubric_2026_07_07` in
+`plans.json` — step **7: 78/80**, **8: 86/95**, **9: 88/99** (all `in_progress`).
 
