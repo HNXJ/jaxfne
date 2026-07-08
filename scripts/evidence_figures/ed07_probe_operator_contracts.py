@@ -39,6 +39,7 @@ from jaxfne.fields import (
 from jaxfne.io import json_safe
 
 from _figure_common import (
+    save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
     repo_sha,
@@ -266,8 +267,7 @@ def draw_figure(rows: list[dict[str, Any]], runtime: dict) -> None:
 
     FIGURE_PATH.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout(pad=0.35)
-    fig.savefig(FIGURE_PATH, dpi=150, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
+    save_matplotlib_figure(fig, FIGURE_PATH, dpi=150)
 
 
 def _runtime_receipt() -> dict:

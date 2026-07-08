@@ -583,20 +583,6 @@
       "status": "done"
     },
     {
-      "path": "jaxfne/paradigm.py",
-      "purpose": "Task/condition/event dataclasses (ParadigmEvent/ParadigmCondition/Paradigm) plus general_sequential_oddball_paradigm/general_delayed_match_to_sample_paradigm builders and concrete paradigm factories.",
-      "score": 92,
-      "tbi": [],
-      "tbd": [],
-      "warnings": [
-        "event_codes= kwarg is an alias for event_windows= in the builders but a DIFFERENT concept from Paradigm.event_codes (int comparison-code map) -- documented, not silent",
-        "module tail replaces sys.modules[__name__] with a callable wrapper -- unusual footgun for importlib.reload/introspection"
-      ],
-      "last_verified": "2026-07-04",
-      "evidence": "python3 -c 'import jaxfne.paradigm' succeeded; confirmed the module-self-wrapping trick works live: jaxfne.paradigm('test') returns a Paradigm object and jaxfne.paradigm.paradigm('test2') also works.",
-      "status": "reviewed"
-    },
-    {
       "path": "jaxfne/plasticity.py",
       "purpose": "STDP config/state dataclasses, weight-adaptation summary stats, and a JIT-compiled dense-matrix STDP weight-update kernel with E/I sign preservation.",
       "score": 90,
@@ -3687,15 +3673,15 @@
     {
       "path": "scripts/evidence_figures/",
       "purpose": "Publication-evidence figure generation scripts (fig01-fig08, ed01-ed10) -- directory-level summary entry.",
-      "score": 92,
+      "score": 96,
       "tbi": [],
       "tbd": [
-        "GRAMMAR RULE 2: 18/19 .py files still call matplotlib/plotly directly — RE-SCOPED 2026-07-07 as documented maintainer exception per AGENTS.md + scripts/evidence_figures/README.md; full jaxfne/vis migration deferred to step 8+."
+        "Plot construction still in scripts/ (documented exception); save+manifest now via jaxfne.vis."
       ],
       "warnings": [],
       "last_verified": "2026-07-07",
-      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0. || P1 2026-07-07: compileall scripts/evidence_figures -> exit 0; grep direct matplotlib/plotly -> 18/19; README.md added documenting deliberate exception.",
-      "status": "done"
+      "evidence": "SUPERSEDED 2026-07-05 -- this was the last remaining null-score directory-level placeholder from the 2026-06-30 full-coverage expansion; all 19 real .py files in this directory now have their OWN individual progress.json/review.json entries with real scores (verified: 19 tracked individually, avg score 91.68/100), so this entry no longer represents unreviewed work -- it's a category summary, kept for the directory-wide grammar-violation note that doesn't belong on any single file's entry. Re-ran the original grep check rather than trusting the old '19 files' count: `grep -rl 'matplotlib.pyplot|plt\\.|go\\.Figure|plotly.graph_objects' scripts/evidence_figures/*.py` -> 18 of 19 matched (the 19th, _figure_common.py, is the shared helper module and does not itself call matplotlib/plotly directly) -- the original count was off by one, corrected here. This closes the file-by-file-review backlog's last remaining null-score entry to 0. || P1 2026-07-07: compileall scripts/evidence_figures -> exit 0; grep direct matplotlib/plotly -> 18/19; README.md added documenting deliberate exception. || PROGRESS 2026-07-07: jaxfne/vis/evidence_manifest.py + evidence_export.py; 18 scripts use save_matplotlib_figure; fig04 smoke OK.",
+      "status": "reviewed"
     },
     {
       "path": "tests/test_epv_2neuron_pipeline_smoke.py",
@@ -5476,5 +5462,6 @@
     "docs/api/index.md",
     "docs/api/validation.md"
   ],
-  "progress_pass_note_2026_07_07_review_c": "Review pass c @ 49b3ebd: 0 pending; promoted 16 score=100 orphans; batch 46+307 pytest receipts; step scores recalculated via component rubric (step7=78/80 step8=86/95 step9=88/99)."
+  "progress_pass_note_2026_07_07_review_c": "Review pass c @ 49b3ebd: 0 pending; promoted 16 score=100 orphans; batch 46+307 pytest receipts; step scores recalculated via component rubric (step7=78/80 step8=86/95 step9=88/99).",
+  "progress_pass_note_2026_07_07_progress_d": "Progress pass: vis evidence bridge (manifest+export), paradigm Model/NTarget helpers, 18 evidence_figures savefig routed via jaxfne.vis; paradigm tests 16 passed."
 }

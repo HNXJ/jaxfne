@@ -29,6 +29,7 @@ import numpy as np
 import jaxfne as jtfne
 
 from _figure_common import (
+    save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
@@ -296,8 +297,7 @@ def draw_figure(rows: list[dict], hw: dict) -> None:
 
     FIGURE_PATH.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(FIGURE_PATH, dpi=150, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
+    save_matplotlib_figure(fig, FIGURE_PATH, dpi=150)
 
 
 def main() -> int:

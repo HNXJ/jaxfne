@@ -30,6 +30,7 @@ from jaxfne.fields import (
 )
 
 from _figure_common import (
+    save_matplotlib_figure,
     ensure_evidence_dirs,
     repo_root,
     save_figure_manifest,
@@ -215,8 +216,7 @@ def draw_figure(readouts: dict, receipts: list[dict], time_ms) -> None:
 
     FIGURE_PATH.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
-    fig.savefig(FIGURE_PATH, dpi=150, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
+    save_matplotlib_figure(fig, FIGURE_PATH, dpi=150)
 
 
 def main() -> int:

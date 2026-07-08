@@ -187,7 +187,6 @@
 | jaxfne/experimental_hpc/contracts.py | 92 | done | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-07-07 |
 | jaxfne/export.py | 92 | reviewed |  |  | 2026-07-07 |
 | jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
-| jaxfne/paradigm.py | 92 | reviewed |  |  | 2026-07-04 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/sanity_delta.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/solvers.py | 92 | reviewed |  |  | 2026-07-04 |
@@ -268,7 +267,6 @@
 | tests/test_v0331_euler_solver.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_v0331_laminar_config.py | 92 | reviewed |  |  | 2026-07-04 |
 | tests/test_with_emitter_parameters.py | 92 | reviewed |  |  | 2026-07-04 |
-| scripts/evidence_figures/ | 92 | done |  | GRAMMAR RULE 2: 18/19 .py files still call matplotlib/plotly directly — RE-SCOPED 2026-07-07 as documented maintainer ex | 2026-07-07 |
 | scripts/cortical_column_localized_workflow.py | 92 | done | HDP deliberately left off (K_HDP=0 null control) -- the custom 'spend more, lose more' dH/dt formula requested for this  |  | 2026-07-01 |
 | docs/api/core.md | 92 | done |  | ReadoutSpec metrics table previously listed max_spike_rate_hz/mean_source/mean_LFP/mean_CSD/burst_frequency_hz as valid  | 2026-07-03 |
 | docs/api/fields.md | 92 | done |  |  | 2026-07-03 |
@@ -409,6 +407,7 @@
 | tests/test_sanity_delta_backup_resume.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_sanity_delta_hierarchical_oddball_config.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_sanity_delta_optional_imports.py | 96 | done |  |  | 2026-07-05 |
+| scripts/evidence_figures/ | 96 | reviewed |  | Plot construction still in scripts/ (documented exception); save+manifest now via jaxfne.vis. | 2026-07-07 |
 | skills/FRICTIONS_STACK.md | 96 | done |  |  | 2026-07-05 |
 | README.md | 96 | done |  |  | 2026-07-05 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |

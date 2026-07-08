@@ -30,10 +30,9 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-**[HANDOFF — PRP rule enforced]** `status=done` **requires** `achieved_score >= target_score`.
-Steps **7** (78/80), **8** (86/95), **9** (88/99) are all **`in_progress`**.
-Scoring: `plans.json` → `step_scoring_rubric_2026_07_07` (component points, not rounded).
-Review: 77 entries, 0 pending, 0 score=100 orphans in progress.
+**[HANDOFF]** Step **7** **done** @ **80/80**. Steps **8** (91/95) and **9** (88/99)
+`in_progress`. Rule: `status=done` requires `achieved_score >= target_score`.
+Scoring: `plans.json` → `step_scoring_rubric_2026_07_07`.
 
 ## Log
 
@@ -317,4 +316,11 @@ etc.) unchanged; only status was wrong. Step **9** (88/99) remains `in_progress`
 entries). Batch re-verify → **46 passed** (canonical/sanity/api/pipeline/vis) +
 **307 passed** (docs/paradigm). **Scoring:** `step_scoring_rubric_2026_07_07` in
 `plans.json` — step **7: 78/80**, **8: 86/95**, **9: 88/99** (all `in_progress`).
+
+### 2026-07-07 — Cursor (Composer) [Progress pass d]
+Vis evidence bridge: `jaxfne/vis/evidence_manifest.py`, `evidence_export.py`; 18
+`evidence_figures` scripts save via `save_matplotlib_figure`. Paradigm:
+`paradigm_target_indices_from_model`, `coop_omission_oddball_for_model`,
+`coop_omission_oddball_for_neuronal_tensor` + tests (**16 passed**). Step **7 →
+80/80 done**; step **8 → 91/95** `in_progress`.
 

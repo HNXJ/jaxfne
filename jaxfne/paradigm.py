@@ -783,6 +783,68 @@ def coop_omission_oddball_paradigm(
         }
     )
 
+
+def paradigm_target_indices_from_model(
+    model,
+    *,
+    area: Optional[str] = None,
+    layer: Optional[str] = None,
+    cell_type: Optional[str] = None,
+) -> list[int]:
+    """Resolve ``Model.select`` row indices for ``ParadigmEvent`` ``target_indices`` metadata."""
+    import jax.numpy as jnp
+
+    idx = model.select(area=area, layer=layer, cell_type=cell_type)
+    return [int(i) for i in jnp.asarray(idx).tolist()]
+
+
+def coop_omission_oddball_for_model(
+    model,
+    *,
+    target_area: Optional[str] = None,
+    target_layer: Optional[str] = None,
+    target_cell_type: Optional[str] = None,
+    **kwargs,
+) -> Paradigm:
+    """COOP omission oddball with drive restricted via ``Model.select`` targets."""
+    target_indices = paradigm_target_indices_from_model(
+        model,
+        area=target_area,
+        layer=target_layer,
+        cell_type=target_cell_type,
+    )
+    return coop_omission_oddball_paradigm(target_indices=target_indices, **kwargs)
+
+
+def coop_omission_oddball_for_neuronal_tensor(
+    tensor,
+    *,
+    construct_seed: int = 0,
+    construct_duration_ms: float = 1000.0,
+    construct_dt_ms: float = 0.1,
+    target_area: Optional[str] = None,
+    target_layer: Optional[str] = None,
+    target_cell_type: Optional[str] = None,
+    **kwargs,
+) -> Paradigm:
+    """NeuronalTensor-first COOP oddball: construct then apply layer/cell-type targeting."""
+    from .neuronal_tensor import construct_neuronal_tensor
+
+    model = construct_neuronal_tensor(
+        tensor,
+        seed=construct_seed,
+        duration_ms=construct_duration_ms,
+        dt_ms=construct_dt_ms,
+    )
+    return coop_omission_oddball_for_model(
+        model,
+        target_area=target_area,
+        target_layer=target_layer,
+        target_cell_type=target_cell_type,
+        **kwargs,
+    )
+
+
 import sys
 from types import ModuleType as _ModuleType
 

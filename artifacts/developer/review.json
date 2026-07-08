@@ -1190,7 +1190,27 @@
       "review_command": "review pass 2026-07-07c batch: canonical_biophysics + sanity_delta + api_smoke + pipeline_pure_functions + vis_plotly_network (46 passed)",
       "review_result": "46 passed, 5 skipped in 31.28s (batch re-verification this pass)",
       "review_reverification_note": "Promoted from progress.json score=100 orphan; batch confirmed 2026-07-07."
+    },
+    {
+      "path": "jaxfne/paradigm.py",
+      "purpose": "Task/condition/event dataclasses (ParadigmEvent/ParadigmCondition/Paradigm) plus general_sequential_oddball_paradigm/general_delayed_match_to_sample_paradigm builders and concrete paradigm factories.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "event_codes= kwarg is an alias for event_windows= in the builders but a DIFFERENT concept from Paradigm.event_codes (int comparison-code map) -- documented, not silent",
+        "module tail replaces sys.modules[__name__] with a callable wrapper -- unusual footgun for importlib.reload/introspection"
+      ],
+      "last_verified": "2026-07-07",
+      "evidence": "Added paradigm_target_indices_from_model, coop_omission_oddball_for_model, coop_omission_oddball_for_neuronal_tensor; tests/test_paradigm_model_targets.py -> 16 passed with paradigm suite.",
+      "status": "done",
+      "moved_from_progress_on": "2026-07-07",
+      "review_status": "passed",
+      "review_command": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_paradigm_model_targets.py tests/test_paradigm.py tests/test_coop_v035.py -q",
+      "review_verified_on": "2026-07-07",
+      "review_result": "16 passed in 6.59s"
     }
   ],
-  "review_pass_note_2026_07_07c": "Review pass @ dev/49b3ebd: promoted 16 score=100 orphans from progress to review (all passed via batch). Batch: pytest canonical_biophysics + sanity_delta + api_smoke + interactive_tutorial + pipeline_pure + vis_plotly -> 46 passed, 5 skipped; repair_notebooks --dry-run -> 21 notebooks. 0 demotions. PRP 1-1 path mapping restored for score=100 rows."
+  "review_pass_note_2026_07_07c": "Review pass @ dev/49b3ebd: promoted 16 score=100 orphans from progress to review (all passed via batch). Batch: pytest canonical_biophysics + sanity_delta + api_smoke + interactive_tutorial + pipeline_pure + vis_plotly -> 46 passed, 5 skipped; repair_notebooks --dry-run -> 21 notebooks. 0 demotions. PRP 1-1 path mapping restored for score=100 rows.",
+  "review_pass_note_2026_07_07_progress_d": "1 new pending_review: jaxfne/paradigm.py @ 96."
 }
