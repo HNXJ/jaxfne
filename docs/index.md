@@ -1,17 +1,23 @@
 # jaxfne
 
-JAX-based tools for TFNE source, field, probe, objective, and optimizer workflows.
+**Simulate laminar cortical circuits in JAX** — population dynamics, depth-resolved
+LFP/CSD proxy readouts, spectrolaminar summaries, and multi-area hierarchies.
 
-The full pipeline is one linear chain — each step returns the input to the next:
+**Compared to [Jaxley](https://jaxley.readthedocs.io):** Jaxley builds
+differentiable, multi-compartment biophysical neurons (HH and other channels).
+jaxfne works at **population and field scale** — declarative circuit definition,
+source-to-sensor proxy chains, canonical cortical priors, and optimization over
+population readouts. They **compose**: a Jaxley model plugs into jaxfne as an
+emitter via `JaxleyBridge` and uses the same readout stack as built-in Izhikevich
+emitters. Details: [Jaxley interoperability](guides/jaxley_interop.md).
 
-```text
-setup -> config -> construct -> simulate -> visualize -> tune/objective -> optimize -> export
-```
+Scope and truth gates: [Scope & status](scope_and_status.md).
 
 ## Install
 
 ```bash
 pip install -U jaxfne
+pip install "jaxfne[viz]"   # optional plotting
 ```
 
 Development checkout:
@@ -19,36 +25,28 @@ Development checkout:
 ```bash
 git clone https://github.com/HNXJ/jaxfne.git
 cd jaxfne
-pip install -e .[dev,viz,opt]
+pip install -e ".[dev,viz]"
 ```
 
 ## Minimal example
 
 ```python
 import jaxfne as jtfne
+
 jtfne.enable_x64()
-
-# Canonical laminar cortex — no arguments required for the default prior.
-cfg = (jtfne.build_laminar_column(n=1000, ei_profile="canonical")
-          .set_emitter("izhikevich", "cortical_eig")
-          .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=16)
-          .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
-
-model = jtfne.construct(cfg)
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
-print(signals.V_m.shape, signals.spikes.sum())
+tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model)
+print(signals.get("spk").shape)
 ```
 
-`ei_profile="canonical"` applies the verified ground-truth E:I gradient (E peaks
-deep, I peaks superficial, ≈77E:23I); `ei_profile="flat"` (the default) keeps the
-legacy depth-invariant composition. See the [Quickstart](quickstart.md) for the
-flat path and tuning.
+Prefer the fluent `Configuration` builder or Jaxley bridge? See [Quickstart](quickstart.md).
 
 ## Main pages
 
-- [Install](install.md)
-- [Quickstart](quickstart.md)
-- [Probe operators](guides/probe_operators.md)
+- [Quickstart](quickstart.md) — three build paths, canonical column, HDP
 - [Tutorials](tutorials/index.md)
 - [API reference](api/index.md)
+- [Scope & status](scope_and_status.md) — proxy readouts and truth gates
+- [For AI agents](for_ai_agents.md)
 - [Changelog](changelog.md)

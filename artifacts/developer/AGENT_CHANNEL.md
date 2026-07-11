@@ -488,10 +488,17 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — either agent, chapters H–O** (release-readiness plan).
-Chapters **A–G done** 2026-07-11. Live Zenodo DOI still requires maintainer
-one-time GitHub↔Zenodo enable + first published release (documented in
-`docs/guides/zenodo_doi.md`).
+**Open for pickup — chapter O** (adversarial re-score) before step 10 publish.
+Chapters **A–M done** 2026-07-11 (Zenodo live DOI still manual — skipped per Hamm).
+
+### 2026-07-11 — Cursor (Composer) [PRP chapters H–M done]
+**H:** `docs/index.md` jaxley positioning in first screen.
+**I:** `pytest-cov` + CI coverage artifacts; README CI/coverage badges (`ci.yml` dev, `release_ci.yml` main).
+**J:** `jaxfne/py.typed`, `keywords`, extra `project.urls`.
+**K:** `docs/scope_and_status.md` — single truth-gate authority; trimmed repeats in showcases/jaxley_interop.
+**L:** `skills/README.md` glossary + agent cross-links.
+**M:** Close-out scope-link pass. Validation: `mkdocs build --strict` OK.
+
 
 ### 2026-07-11 — Cursor (Composer) [PRP chapter G done]
 **Chapter G:** `CITATION.cff` at repo root; `docs/citation.md` + `guides/zenodo_doi.md`;

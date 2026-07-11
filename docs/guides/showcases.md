@@ -4,11 +4,7 @@ Runnable demonstrations of jaxfne's structural, homeostatic, and plasticity
 knobs. Every figure on this page comes from a real `construct()`/`simulate()`
 run with the exact parameters quoted in its caption — nothing here is a mockup.
 
-All outputs stay on the package's conservative scope defaults: `claim_level=
-computational_scaffold`, `field_solver_status=linear_solver`,
-`physical_amplitude_calibrated=False`. Nothing on this page is a biological
-validation or a calibrated physical measurement — it is a computational
-diagnostic of the proxy/scaffold pipeline.
+All outputs use conservative scope defaults — see [Scope & status](../scope_and_status.md).
 
 ## Interactive 3D network: V1 → V4 → PFC hierarchy
 

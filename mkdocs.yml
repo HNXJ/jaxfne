@@ -47,6 +47,7 @@ markdown_extensions:
 nav:
   - Getting started:
       - Welcome: index.md
+      - Scope & status: scope_and_status.md
       - Installation: install.md
       - Quickstart: quickstart.md
       - For AI agents: for_ai_agents.md

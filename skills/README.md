@@ -1,67 +1,54 @@
 # jaxfne skills
 
-Versioned agent skills committed with the repository (`skills/`). Global copies
-may also live in each contributor's `~/.claude/skills/` and `~/.agents/skills/` —
-**the repo copy is source-of-truth for jaxfne work**; sync global when they diverge:
+**Documentation written for AI coding agents** — same package source-of-truth as
+the human docs under `docs/`, not a parallel spec. Human-oriented overview:
+[docs/for_ai_agents.md](../docs/for_ai_agents.md).
+
+Versioned skills live in this folder (`skills/`). Global copies may also exist in
+each contributor's `~/.claude/skills/` and `~/.agents/skills/` — **the repo copy
+wins** when they diverge:
 
 ```bash
 bash skills/SYNC_GLOBAL.sh
 ```
 
-**Friction ledger:** `FRICTIONS_STACK.md` — open contradictions between skills,
-docs, and code. Check before claiming ground truth.
+## Glossary (agent shorthand)
 
-**Consolidated 2026-06-30** (17 → 13 skills; see `PATCH.md` for the merge log).
-Merged-away names (content absorbed, do not look for these folders anymore):
-`jaxfne-configuration-fluent-api` + `jaxfne-cortical-column-default` → `jaxfne-config`;
-`jaxfne-visualization-schema` → `jaxfne-vis-modules`;
-`jaxfne-signals-probe-objective-chain` → `jaxfne-neural-network`.
+| Term | Meaning |
+|------|---------|
+| **PRP** | Progress–Review–Plan backlog in `artifacts/developer/{plans,progress,review}.json` |
+| **TBI / TBD** | To-be-investigated / to-be-done items on a `progress.json` file row |
+| **P0 / P1** | Priority labels in audit notes — P0 = fix before release claim |
+| **Truth gates** | Conservative defaults (`claim_level`, `*_proxy`, etc.) — see [Scope & status](../docs/scope_and_status.md) |
 
-| skill | role |
+**Friction ledger:** `FRICTIONS_STACK.md` — contradictions between skills, docs,
+and code. Resolve before escalating claims.
+
+## First-class skills (`skill-name/SKILL.md`)
+
+Consolidated 2026-06-30 (17 → 13 folders). Merged-away names are listed in `PATCH.md`.
+
+| Skill | Role |
 |-------|------|
-| `catalog-glossary-jaxfne` | flat catalog of the public jaxfne API — check before writing any helper |
-| `jaxfne-objective-grammar` | top-level chain: Configuration/NeuronalTensor → Model → Signals → probe/tune → manifest; routes into the 4 below |
-| `jaxfne-config` | verified `Configuration` fluent chaining + the canonical 1K-neuron laminar column template |
-| `jaxfne-neural-tensor` | `NeuronalTensor` build path (Areas × Layers × NeuronTypes) + HDP homeostatic-plasticity module |
-| `jaxfne-neural-network` | `construct → simulate → Signals`, probe/objective/tune, manifest/receipt — no invented Signals methods |
-| `jaxfne-vis-modules` | design/fix/audit `jaxfne.vis`; keep plotting package-level and proxy-safe |
-| `jaxfne-modeling-optimization-schema` | deep schema/truth-gate reference: connectivity rules, selectors, objective/trainer path conventions |
-| `jaxfne-paradigm-design` | build task paradigms (omission, global/local, delayed-match-to-sample, explicit event lists) via `general_sequential_oddball_paradigm` |
-| `jaxfne-notebook-release-gate` | validate notebooks/tutorials/docs/artifacts before any "done" claim |
-| `jaxfne-release-mutation-guard` | guard every remote mutation (push, tag, GitHub Release, PyPI) |
-| `jaxfne-sha256-artifact-integrity` | SHA256 content identity for configs/notebooks/models/figures/wheels |
-| `jaxfne-worker-context-router` | route a jaxfne task to the right module/API/validation lane |
-| `jaxfne-spectrolaminar-suite` | scalable spectrolaminar suite + Etude No.3 / TCM etudes; LFP-proxy/density/size/kappa caveats and the crossover-needs-oscillations result |
+| `catalog-glossary-jaxfne` | Public API catalog — check before writing helpers |
+| `jaxfne-objective-grammar` | Top-level chain: Config → Model → Signals → tune → manifest |
+| `jaxfne-config` | `Configuration` fluent API + canonical laminar column |
+| `jaxfne-neural-tensor` | `NeuronalTensor` path + HDP |
+| `jaxfne-neural-network` | `construct` → `simulate` → probe/tune/manifest |
+| `jaxfne-vis-modules` | `jaxfne.vis` plotting — package-level, proxy-safe |
+| `jaxfne-modeling-optimization-schema` | Connectivity, selectors, objective conventions |
+| `jaxfne-paradigm-design` | Sequential paradigms / oddball builders |
+| `jaxfne-notebook-release-gate` | Notebook/tutorial validation before "done" claims |
+| `jaxfne-release-mutation-guard` | Remote mutation gates (push, tag, PyPI) |
+| `jaxfne-sha256-artifact-integrity` | Content hashes for configs/figures/wheels |
+| `jaxfne-worker-context-router` | Route tasks to the right skill/lane |
+| `jaxfne-spectrolaminar-suite` | Spectrolaminar études and LFP-proxy caveats |
 
-These are reference guidance, not importable package code. The shipped Python
-package is `jaxfne/`. Each first-class skill is a `skill-name/SKILL.md` folder.
+These are guidance files, not importable package code (`jaxfne/` is the package).
 
-## Repo-hardening enforcement skills (flat)
+## Repo-hardening rules (flat `0N_*.md`)
 
-A second, flat set of enforcement skills lives at the root of this folder as
-numbered markdown files (`00_INDEX.md`, `01_*.md` … `11_*.md`). They turn
-repo-review findings into enforceable operating rules rather than descriptions.
-Start at `00_INDEX.md`; `PATCH.md` and `ANTIGRAVITY_PROMPT.md` record the bundle's
-provenance and apply-prompt.
+Numbered enforcement checklists (`00_INDEX.md` … `11_*.md`) at this folder root.
+Start at `00_INDEX.md`. They overlap the folder skills at a shorter rule altitude.
 
-| file | enforces |
-|------|----------|
-| `01_repo_orientation.md` | understand the repo/module map before editing |
-| `02_analysis_integrity.md` | no synthetic fallback masking a real failure |
-| `03_sparse_connectivity.md` | sparse/edge-list construction, no default dense O(N²) |
-| `04_batch_first_simulation.md` | vectorized (vmap/scan) on the common repeated-run path |
-| `05_projection_semantics.md` | projection normalization is explicit and testable |
-| `06_runtime_fallback_transparency.md` | fallbacks report themselves; strict mode fails loudly |
-| `07_api_contracts.md` | public helpers implemented, wrapped, or explicitly fenced |
-| `08_parameter_semantics.md` | parameter scope (per-area/layer/column/global) is explicit |
-| `09_experimental_fence.md` | incomplete bridges/solvers stay clearly experimental |
-| `10_objective_grammar.md` | follow the Configuration → … → Manifest chain |
-| `11_catalog_glossary.md` | verify a symbol before using it; never invent APIs |
-
-These overlap, at a shorter "rule" altitude, with the first-class skills above
-(`jaxfne-objective-grammar`, `catalog-glossary-jaxfne`, `jaxfne-worker-context-router`);
-the flat set is the enforceable checklist, the folders are the full guidance.
-The numbered files were not touched in the 2026-06-30 consolidation pass (they
-predate and are independent of the `SKILL.md` folder set above).
-
-Keep this set flat — do not recreate nested skill folders for it in the repo.
+Keep this flat set at the repo root of `skills/` — do not nest duplicate folders.

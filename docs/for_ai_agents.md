@@ -27,14 +27,7 @@ Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
 
 ## Truth gates (non-negotiable)
 
-Outputs are **computational scaffolds / proxy readouts**, not calibrated biophysical recordings:
-
-- `claim_level=computational_scaffold`
-- `field_solver_status=linear_solver`
-- `field_claim_level=proxy_readout`
-- `physical_amplitude_calibrated=False`
-
-Use language: simulated, proxy, scaffold. Avoid validated/physical/mechanism without receipts.
+See [Scope & status](scope_and_status.md) for the authoritative gate table.
 
 ## Skills sync
 

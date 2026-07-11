@@ -6,7 +6,9 @@
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI package"></a>
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/pyversions/jaxfne" alt="Python versions"></a>
   <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Documentation"></a>
-  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml/badge.svg?branch=dev" alt="CI (fast)"></a>
+  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="Release CI"></a>
+  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-reported%20in%20CI-blue" alt="Coverage"></a>
   <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions welcome"></a>
   <a href="CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg" alt="Code of Conduct"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
@@ -56,11 +58,9 @@ multi-trial sweeps, HDP plasticity, Jaxley bridge): **[Quickstart](docs/quicksta
 ## Scope & status
 
 jaxfne is a **computational scaffold**, not a calibrated physical solver.
-Field and probe outputs are **proxy readouts** (`*_proxy`,
-`physical_amplitude_calibrated=False`) on a linear source/field approximation —
-useful for method development and circuit-level diagnostics, not a substitute
-for validated biophysical recordings or PDE field solves. Truth gates are
-conservative by design and are not escalated in code without evidence.
+Field and probe outputs are **proxy readouts** — useful for method development,
+not calibrated biophysical recordings. Full gate table:
+[Scope & status](docs/scope_and_status.md).
 
 Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`.
 
@@ -78,7 +78,7 @@ Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `rea
 
 jaxfne ships **`skills/`** and **`AGENTS.md`** as first-class agent documentation —
 verified against the same package source as the human docs, not a parallel spec.
-See **[Documentation for AI agents](docs/for_ai_agents.md)**.
+See **[Documentation for AI agents](docs/for_ai_agents.md)** and the [`skills/`](skills/) index.
 
 ## Citation
 

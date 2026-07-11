@@ -1179,7 +1179,9 @@
             "differentiation_vs_jaxley"
           ],
           "definition_of_done": "Ensure both README and docs/index.md state the jaxley/jaxfne relationship in the first screen a reader sees: jaxley = single/multi-compartment biophysical detail; jaxfne = population/field-scale, tensor-algebraic circuit definition, source-to-sensor-proxy readout chain; explicitly composable (jaxley models plug into jaxfne as emitters). Plain language, not internal vocabulary.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "docs/index.md jaxley comparison in opening; README already aligned (chapter E). mkdocs strict OK."
         },
         {
           "id": "I",
@@ -1188,7 +1190,9 @@
             "ci_maturity"
           ],
           "definition_of_done": "Add pytest-cov + a coverage badge (codecov or equivalent). Verify every README badge URL actually resolves to a real, current workflow/status (re-check after any workflow renames from other chapters). Consider consolidating/renaming workflow files for external-reader clarity if the current 5-workflow set reads as confusing.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "pytest-cov in dev deps; ci.yml coverage + artifact upload with -p pytest_cov; README CI fast + release CI + coverage badges."
         },
         {
           "id": "J",
@@ -1197,7 +1201,9 @@
             "packaging_pyproject"
           ],
           "definition_of_done": "Add a py.typed marker file (signals type-hint support to downstream tools/IDEs). Add a keywords list to pyproject.toml (PyPI search discoverability). Complete project.urls (jaxley has Homepage/Repository/Documentation/Issues -- check for any standard field jaxfne is missing, e.g. Changelog already present, consider Discussions/Funding if applicable).",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "jaxfne/py.typed; pyproject keywords + Citation/Source Code urls."
         },
         {
           "id": "K",
@@ -1206,7 +1212,9 @@
             "tone_honesty_vs_confidence"
           ],
           "definition_of_done": "One page (or README subsection, see chapter E) states claim_level/truth-gates/proxy status ONCE, authoritatively, referenced (short link) from every other page that currently repeats the full explanation. Preserves the honesty; stops it from crowding every single doc page.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "docs/scope_and_status.md authoritative page; linked from README, showcases, quickstart, for_ai_agents, jaxley_interop; mkdocs nav."
         },
         {
           "id": "L",
@@ -1216,7 +1224,9 @@
             "docs_site_structure"
           ],
           "definition_of_done": "Audit skills/README.md (or add one if it doesn't already serve this purpose) to the same formatting/completeness bar as human docs -- no undefined internal shorthand (P0/P1, TBI/TBD without a glossary). Cross-link from chapter C's README AI-friendliness section and from mkdocs nav if appropriate.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "skills/README.md glossary (PRP/TBI/TBD/P0), cross-links to docs/for_ai_agents.md and scope page."
         },
         {
           "id": "M",
@@ -1225,7 +1235,9 @@
             "tone_honesty_vs_confidence"
           ],
           "definition_of_done": "One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only language that survived chapters E/F/K. Close-out pass, not a first pass -- run after E/F/K land.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "Close-out trim: jaxley_interop + showcases proxy blocks \u2192 scope link; mkdocs strict OK."
         },
         {
           "id": "N",

@@ -114,16 +114,9 @@ print(f"Claim level: {signals.metadata['claim_level']}")  # computational_scaffo
 - Flexible layout support: `time_by_unit` [T,N], `unit_by_time` [N,T], `recording_by_time` [R,T]
 - Spike proxy derivation via voltage threshold (default 0.0 mV, configurable)
 - Conservative voltage-proxy source (ionic current mapping deferred)
-- Scope declaration: `computational_scaffold`, `amplitude_status=False`
 
-**Scope specification:**
-All outputs are marked as:
-- `claim_level: "computational_scaffold"` — Designed for computational workflows and tutorial scenarios
-- `physical_amplitude_calibrated: False` — Voltage is treated as a proxy readout, not a physical status
-- `source_calibration_status: "uncalibrated_jaxley_voltage_proxy"` — Calibration to physical units pending
-- `field_solver_status: "not_computed"` — Field/LFP computation is optional downstream work
-
-**Important:** The voltage trace is treated as a proxy external readout. Voltage is treated as a computational proxy without biological mechanism statements; field computation is optional; ionic current modeling is deferred. Field computation is deferred to the jaxfne probe/field layer if needed.
+**Scope:** All bridge outputs use the package truth gates — see
+[Scope & status](../scope_and_status.md).
 
 **See also:**
 - `examples/07_jaxley_trace_bridge.py` — Full tutorial with layout conversion and threshold variation

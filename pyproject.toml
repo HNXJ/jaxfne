@@ -10,6 +10,16 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "H N"}]
+keywords = [
+  "neuroscience",
+  "neural simulation",
+  "JAX",
+  "laminar cortex",
+  "LFP",
+  "computational neuroscience",
+  "Izhikevich",
+  "spectrolaminar",
+]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
@@ -34,13 +44,15 @@ Repository = "https://github.com/HNXJ/jaxfne"
 Documentation = "https://jaxfne.readthedocs.io/en/latest/"
 Issues = "https://github.com/HNXJ/jaxfne/issues"
 Changelog = "https://github.com/HNXJ/jaxfne/blob/main/CHANGELOG.md"
+Citation = "https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff"
+"Source Code" = "https://github.com/HNXJ/jaxfne"
 
 [project.optional-dependencies]
 opt = ["optax>=0.2"]
 jaxley = ["jaxley>=0.13.0"]  # tested floor; bridge installs a JAX clip-compat shim for jaxley<=0.13
 viz = ["matplotlib", "plotly", "kaleido", "pandas", "ipywidgets"]
 io = ["pyyaml", "zarr", "h5py"]
-dev = ["pytest", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
+dev = ["pytest", "pytest-cov", "pytest-xdist", "ruff", "optax>=0.2", "matplotlib", "plotly", "kaleido", "pandas", "ipywidgets", "nbformat", "nbclient", "ipykernel"]
 all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 
 [tool.ruff]

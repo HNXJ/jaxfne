@@ -151,7 +151,7 @@ manifest = jtfne.manifest(cfg, signals=signals)
 
 ## Scope & status
 
-Proxy readouts only — see README [Scope & status](https://github.com/HNXJ/jaxfne#scope--status).
+Proxy readouts only — see [Scope & status](scope_and_status.md).
 
 ## Validate locally
 
