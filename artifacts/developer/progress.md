@@ -333,7 +333,7 @@
 | docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
 | jaxfne/fields/probes.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/presets.py | 94 | reviewed |  |  | 2026-07-04 |
-| jaxfne/tutorial_utils.py | 94 | reviewed |  |  | 2026-07-08 |
+| jaxfne/tutorial_utils.py | 94 | reviewed |  |  | 2026-07-11 |
 | jaxfne/vis/plotly/lfp.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/vis/plotly/raster.py | 94 | reviewed |  |  | 2026-07-04 |
 | scripts/ed10_release_archive_receipt.py | 94 | reviewed |  |  | 2026-07-04 |
@@ -396,7 +396,7 @@
 | jaxfne/_config.py | 95 | done |  |  | 2026-07-07 |
 | skills/catalog-glossary-jaxfne/SKILL.md | 95 | done |  |  | 2026-07-05 |
 | jaxfne/__init__.py | 96 | done |  |  | 2026-07-05 |
-| jaxfne/export.py | 96 | reviewed |  |  | 2026-07-08 |
+| jaxfne/export.py | 96 | reviewed |  |  | 2026-07-11 |
 | jaxfne/vis/tutorial_panels.py | 96 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures/fig07_reproducibility_artifacts.py | 96 | done |  |  | 2026-07-05 |
 | scripts/evidence_inventory.py | 96 | reviewed |  |  | 2026-07-04 |
@@ -433,7 +433,7 @@
 | jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
 | scripts/snapshot_public_api.py | 98 | reviewed |  |  | 2026-07-04 |
-| scripts/evidence_figures/ | 98 | reviewed |  |  | 2026-07-08 |
+| scripts/evidence_figures/ | 98 | reviewed |  |  | 2026-07-11 |
 | docs/guides/operator_composition.md | 98 | done |  |  | 2026-07-03 |
 | docs/tutorials/index.md | 98 | done |  | The `docs/api/neuronal_tensor.md` and `docs/guides/hdp.md` links under 'Featured: NeuronalTensor' resolve to real files  | 2026-07-08 |
 

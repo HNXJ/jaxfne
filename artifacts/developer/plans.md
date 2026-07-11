@@ -61,7 +61,7 @@
 | 7 | 0.4.7 | 80 | 80 | done | Majority of the unreviewed backlog reviewed and either fixed or explicitly cleared with evidence (not silently skipped). |
 | 8 | 0.4.7 | 95 | 95 | done | Full external-facing polish: every active tutorial/notebook verified to actually run (not just hygiene-lint clean) again |
 | 9 | 0.4.7 | 99 | 99 | done | Independent adversarial review pass (fresh-eyes re-audit, e.g. the repo-audit skill or an equivalent independent pass) f |
-| 10 | 0.4.7 | 100 |  | not_started | The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, t |
+| 10 | 0.4.7 | 100 | 0 | not_started | The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, t |
 
 ## midterm plan: release-readiness-scorecard-2026-07-08 (2026-07-08)
 

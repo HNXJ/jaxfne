@@ -30,9 +30,10 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-**[HANDOFF]** Step **7** **done** @ **80/80**. Steps **8** (91/95) and **9** (88/99)
-`in_progress`. Rule: `status=done` requires `achieved_score >= target_score`.
-Scoring: `plans.json` → `step_scoring_rubric_2026_07_07`.
+**[HANDOFF — 2026-07-11 review]** Midterm steps **1–9 done** (8=95/95, 9=99/99);
+scorecard synced this pass. Step **10** not_started (publish auth). Next work:
+`release-readiness-scorecard-2026-07-08` chapters A–M/O (N done). Claim chapters
+in `plans.json` before starting. PRP: Canonical five-phase protocol locked.
 
 ## Log
 
@@ -492,4 +493,11 @@ the same file list; auxiliaries under `.cache/`. Phased commands:
 `proceed with brainstorm` → `proceed with plan` → `proceed with review` →
 `proceed with progress` → `inspect`. Encoded in `~/.cursor/rules/prp-protocol.mdc`
 (alwaysApply) and `.cursor/rules/prp-canonical.mdc` (this repo).
+
+### 2026-07-11 — Cursor (Grok) [proceed with review]
+0 pending in `review.json`. Critical re-verify batch → **91 passed** (35s);
+compile + mkdocs `--strict` OK. **Fixed scorecard drift:**
+`current_scorecard_2026_07_07` was stale at step 8=91/9=88; synced to
+authoritative `steps[]` → **8=95 done, 9=99 done**. No demotions. Next: chapter
+plan A–O (release-readiness) or step 10 (auth-gated).
 
