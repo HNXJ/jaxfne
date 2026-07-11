@@ -5471,5 +5471,6 @@
   ],
   "progress_pass_note_2026_07_07_review_c": "Review pass c @ 49b3ebd: 0 pending; promoted 16 score=100 orphans; batch 46+307 pytest receipts; step scores recalculated via component rubric (step7=78/80 step8=86/95 step9=88/99).",
   "progress_pass_note_2026_07_07_progress_d": "Progress pass: vis evidence bridge (manifest+export), paradigm Model/NTarget helpers, 18 evidence_figures savefig routed via jaxfne.vis; paradigm tests 16 passed.",
-  "review_pass_note_2026_07_11": "Review pass: 0 pending; re-verified step8/9 claim batch -> 91 passed; scorecard synced (8=95 done, 9=99 done); mkdocs+compile OK."
+  "review_pass_note_2026_07_11": "Review pass: 0 pending; re-verified step8/9 claim batch -> 91 passed; scorecard synced (8=95 done, 9=99 done); mkdocs+compile OK.",
+  "inspect_pass_note_2026_07_11": "PRP compliant: 434 entries, 0 null, 0 open, 1 lt80 (ff_fb deferred)."
 }

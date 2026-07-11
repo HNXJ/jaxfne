@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 3 of the 3-file pipeline: planned/not-yet-started work and open brainstorm/analysis findings. Nothing here is in progress -- an item moves OUT of plans.json into progress.json (as a new or updated entry) the moment any code/test work actually starts on it, with status set to 'open' there. items[]: discrete, scoped, actionable work units (status: not_started | blocked). brainstorm[]: raw analysis findings / ideas not yet scoped into an actionable item -- read before starting new work to avoid re-deriving something already investigated (e.g. the function-merger AST scan).",
-  "last_updated": "2026-07-06",
+  "last_updated": "2026-07-11",
   "scorecard_as_of": "2026-07-06T22:22",
   "items": [
     {
@@ -682,11 +682,12 @@
           "mkdocs": "build --strict OK",
           "notebook_ci_latest": "run 29141701292 success on 3c24060 (2026-07-11)",
           "fast_ci_tip": "run 29160780174 in_progress on f58c8fb at review start"
-        }
+        },
+        "inspect_sync_note_2026_07_11": "Synced step_scores from authoritative steps[] during inspect pass."
       },
       "current_scorecard_2026_07_06": {
         "0.4.7_estimated": 64,
-        "0.4.7_note": "Step 6 at 55 + step 7 at 68/80 partial. Not a publish gate score.",
+        "0.4.7_note": "Historical scorecard retained for trend; synced 2026-07-11 for PRP row parity. Canonical: current_scorecard_2026_07_07.",
         "progress_backlog": {
           "total_entries": 450,
           "null_score": 0,
@@ -741,22 +742,22 @@
             "step": 7,
             "target": "0.4.7",
             "target_score": 80,
-            "achieved_score": 74,
-            "status": "in_progress"
+            "achieved_score": 80,
+            "status": "done"
           },
           {
             "step": 8,
             "target": "0.4.7",
             "target_score": 95,
-            "achieved_score": 28,
-            "status": "in_progress"
+            "achieved_score": 95,
+            "status": "done"
           },
           {
             "step": 9,
             "target": "0.4.7",
             "target_score": 99,
-            "achieved_score": 0,
-            "status": "not_started"
+            "achieved_score": 99,
+            "status": "done"
           },
           {
             "step": 10,
@@ -765,7 +766,8 @@
             "achieved_score": 0,
             "status": "not_started"
           }
-        ]
+        ],
+        "inspect_sync_note_2026_07_11": "Synced step_scores from authoritative steps[] during inspect pass."
       },
       "steps": [
         {
@@ -1230,5 +1232,20 @@
       "reserved_letters_note": "P-Z intentionally unused -- reserved for chapters discovered mid-execution (e.g. a chapter splits, or O's final re-score finds a new gap), not padded to reach 26 artificially.",
       "step10_linkage": "plans.json's existing step 10 (the actual 0.4.7 PyPI publish) should add this plan's id to its depends_on_plan_items -- chapter O is the explicit gate."
     }
-  ]
+  ],
+  "inspect_pass_note_2026_07_11": {
+    "receipts": {
+      "duplicate_paths": 0,
+      "dual_progress_review": 0,
+      "review_pending": 0,
+      "progress_null_score": 0,
+      "progress_open": 0,
+      "progress_lt80": 1,
+      "scorecard_drift_fixed": [
+        "current_scorecard_2026_07_06"
+      ],
+      "canonical_scorecard": "current_scorecard_2026_07_07"
+    },
+    "repo_sha": "b4f9679"
+  }
 }

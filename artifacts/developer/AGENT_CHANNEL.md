@@ -35,6 +35,16 @@ scorecard synced this pass. Step **10** not_started (publish auth). Next work:
 `release-readiness-scorecard-2026-07-08` chapters A–M/O (N done). Claim chapters
 in `plans.json` before starting. PRP: Canonical five-phase protocol locked.
 
+## Inspect snapshot (2026-07-11)
+
+| Surface | State |
+|---------|-------|
+| Midterm steps 1–9 | **done** (10 not_started) |
+| PRP | progress **434**, review **78** / **0 pending**, **0** dual-path |
+| Blocker | `ff_fb` score 45 deferred only |
+| Next queue | `release-readiness-scorecard-2026-07-08` A–M/O (N done) |
+| `dev` vs `main` | dev ahead — merge when ready |
+
 ## Log
 
 ### 2026-07-06 — Claude
@@ -500,4 +510,10 @@ compile + mkdocs `--strict` OK. **Fixed scorecard drift:**
 `current_scorecard_2026_07_07` was stale at step 8=91/9=88; synced to
 authoritative `steps[]` → **8=95 done, 9=99 done**. No demotions. Next: chapter
 plan A–O (release-readiness) or step 10 (auth-gated).
+
+### 2026-07-11 — Cursor (Grok) [proceed with inspect]
+PRP inspect: **0** duplicate paths, **0** dual progress/review, **0** pending review.
+Fixed **scorecard drift** in `current_scorecard_2026_07_06` (was 74/28/0 vs authoritative
+80/95/99). Both scorecards now synced to `steps[]`. Canonical:
+`current_scorecard_2026_07_07`. Inspect snapshot table added to Open section.
 
