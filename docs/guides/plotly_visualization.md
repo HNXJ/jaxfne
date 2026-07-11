@@ -1,14 +1,14 @@
-# Plotly Visualization Guide
+# Plotly visualization
 
-## Overview
-
-Plotly is **optional** — a jaxfne addition for creating interactive HTML visualizations. Install it when needed for this feature:
+**Explore simulations interactively** — pan, zoom, and hover on rasters, traces,
+and 3D circuit layouts in the browser. Plotly is optional; install it when you
+want HTML exports from `jaxfne.vis`.
 
 ```bash
 pip install plotly
 ```
 
-This guide describes standard practices for generating reproducible, portable HTML figures from jaxfne simulations.
+This guide covers reproducible, portable HTML figures from jaxfne simulations.
 
 ## Installation
 

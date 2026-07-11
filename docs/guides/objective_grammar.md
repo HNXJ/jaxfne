@@ -1,24 +1,19 @@
 # Objective Grammar
 
-This page documents the **user-facing run sequence**: the literal chain of calls
-a script makes to go from a declarative `Configuration` to a validated, exported
-result.
+This guide walks through a **complete script** — from circuit definition to
+simulated signals, objectives, tuning, and export — using the real top-level
+calls in order.
 
 ```text
 Configuration → construct() → Paradigm → simulate() → probe() → Objective → tune() → validate → export
 ```
 
-This is a different view from two pages that already exist and stay unchanged:
+Related views (unchanged):
 
-- [Configuration Grammar](configuration_grammar.md) documents the **builder
-  methods on `Configuration`** (`.runtime()`, `.column()`, `.connectivity()`, ...)
-  — what you call to *specify* a model.
-- [TFNE Operator Doctrine](../operator_doctrine.md) documents the **tensor
-  operator chain** (`Emitter → Source → Field → Probe → Objective → Optimizer →
-  Manifest`) — the mathematical contract each stage satisfies internally.
+- [Configuration Grammar](configuration_grammar.md) — builder methods on `Configuration`
+  (`.runtime()`, `.column()`, `.connectivity()`, …).
+- [TFNE Operator Doctrine](../operator_doctrine.md) — internal tensor-operator contracts.
 
-This page is the third, missing view: the **sequence of top-level function
-calls** a user writes, stage by stage, with the real signature at each step.
 Every call below was run against the installed package before being written
 here — none of it is illustrative pseudocode.
 

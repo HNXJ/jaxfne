@@ -1,18 +1,14 @@
-# Operator Composition
+# Operator composition
 
-[Operator Doctrine](../operator_doctrine.md) and the
-[Tensor Operator Registry](../api/tensor_operators.md) describe each tensor
-operator in isolation: one domain, one codomain, one contract. Neither shows
-what happens when several operators run back to back — the question a script
-actually answers when it goes from raw spikes to a CSD-proxy or an EEG-proxy.
+**Chain tensor operators** from raw spikes to laminar LFP/CSD or scalp EEG/MEG
+proxies. This page shows real composed pipelines — shapes and dtypes at every
+handoff — not isolated operator definitions.
 
-This page is that missing view: real composed chains, each one run against
-the installed package, with the real shape and dtype at every handoff. The
-source of truth for these chains is
-[`tests/test_tensor_pipeline_custom_cfg.py`](https://github.com/HNXJ/jaxfne/blob/main/tests/test_tensor_pipeline_custom_cfg.py),
-which proves the same composition holds on a non-canonical `Configuration`
-(3 layers instead of 6, a non-canonical cell-type mix) — not just the one
-column used to validate each operator individually.
+For single-operator contracts see [Operator Doctrine](../operator_doctrine.md) and
+the [Tensor Operator Registry](../api/tensor_operators.md). The chains here were
+verified in
+[`tests/test_tensor_pipeline_custom_cfg.py`](https://github.com/HNXJ/jaxfne/blob/main/tests/test_tensor_pipeline_custom_cfg.py)
+on a non-canonical 3-layer configuration, not only the default column.
 
 ## Chain 1: source → synaptic filter → cable filter → CSD-proxy
 

@@ -1,10 +1,15 @@
-# Elliptic Field Equation Specification: Admissibility Conditions
+# Elliptic field admissibility
 
-> **Scope:** This page specifies the admissibility mathematics (well-posedness, accuracy,
-> consistency) for the elliptic field regime. The regime is one of the reserved regimes in
-> [Limitations and future plans](../limitations_and_future_plans.md); the shipped package uses
-> the laminar proxy. The `solved_poisson` regime carries `implemented=False, status_enabled=False`,
-> and proxy amplitudes stay relative (uncalibrated) under `physical_amplitude_calibrated = False`.
+This page specifies **when a full elliptic (Poisson-type) field solve would be
+well-posed and consistent** in jaxfne's reserved field regimes. The **shipped
+package uses laminar proxy readouts**, not this solver — read this if you are
+extending or validating a future PDE path.
+
+> **Scope:** Admissibility mathematics (well-posedness, accuracy, consistency)
+> for the elliptic field regime. The `solved_poisson` regime carries
+> `implemented=False, status_enabled=False`; proxy amplitudes stay relative
+> (uncalibrated) under `physical_amplitude_calibrated = False`. See
+> [Limitations and future plans](../limitations_and_future_plans.md).
 
 ## Overview
 

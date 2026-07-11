@@ -1,6 +1,7 @@
 # Guides
 
-How-to articles and workflow documentation for jaxfne.
+**How-to articles** for building circuits, running simulations, reading out
+field proxies, tuning objectives, and exporting manifests.
 
 ## Core grammar
 

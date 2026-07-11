@@ -1,6 +1,9 @@
 # Calibration
 
-jaxfne readouts are computational proxies by default. Physical-unit workflows require calibration.
+When you have **empirical EEG, MEG, LFP, or CSD data**, jaxfne's default proxy
+readouts need a calibration step before amplitudes or units are meaningful.
+This guide describes the metadata and workflow hooks the package provides —
+without claiming shipped outputs are already physically calibrated.
 
 ## Calibration-ready design
 

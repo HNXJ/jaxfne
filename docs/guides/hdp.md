@@ -1,15 +1,16 @@
 # HDP (Homeostasis-Dependent Plasticity)
 
-jaxfne includes a second, more structured excitability/plasticity controller:
-**HDP**. Where [homeostasis](homeostasis.md) adapts an intrinsic excitability
-bias per neuron, HDP gives each neuron a slow **master state** `H_i` that both
-reflects the neuron's own activity/synaptic budget AND drives its excitatory
-and inhibitory edge weights. It is one extra set of gains per emitter, and like
-homeostasis it is a *control method*, not a claimed biological plasticity
-mechanism — jaxfne is the mathematical backend.
+**Stabilize population activity and adapt synaptic weights** with a structured
+homeostatic controller: each neuron carries a slow master state `H_i` that
+drives both intrinsic dynamics and edge-weight updates.
+
+Where [homeostasis](homeostasis.md) adapts an excitability bias per neuron, HDP
+couples activity, synaptic budget, and weight plasticity in one loop. Like
+homeostasis, it is a *control method* for simulations — not a claimed biological
+learning mechanism.
 
 `enable_homeostasis` and `enable_hdp` are mutually exclusive `RuntimeConfig`
-fields (they are two distinct controllers); enabling both raises `ValueError`.
+fields; enabling both raises `ValueError`.
 
 ## The control law
 

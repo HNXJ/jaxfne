@@ -1,10 +1,13 @@
 # Configuration Grammar
 
-`Configuration` is the primary abstraction layer in jaxfne. Everything else —
-emitters, source tensors, field proxies, probes, objectives, optimizers, and
-manifests — is *compiled from it*. A `Configuration` is not a bag of settings: it
-is a **declarative specification** of a model that `construct()` and `simulate()`
-turn into a runnable TFNE graph.
+Define a cortical circuit **declaratively** — layers, cell types, connectivity,
+stimulus, probes, and runtime — without editing package source. Chain fluent
+methods on `Configuration`, then `construct()` compiles your specification into
+a runnable model.
+
+`Configuration` is the primary builder for the fluent API path. Everything else —
+emitters, source tensors, field proxies, probes, objectives, and manifests — is
+*compiled from it*.
 
 ```text
         Configuration  (declarative specification — the dial you turn)
@@ -12,15 +15,12 @@ turn into a runnable TFNE graph.
          construct()       ← the compiler
               ▼
    Emitter → Source → Field → Probe → Objective → Optimizer → Manifest
-   (the TFNE operator chain — emergent from the specification)
 ```
 
-This is the central idea of the package: **jaxfne is the mathematical backend,
-and the configuration is the biophysical specification.** How biophysical the
-output is — amplitude calibration, real morphology, channel detail — is
-determined by how much detail you put into the `Configuration` (and any
-[Jaxley](jaxley_interop.md) models you bridge in), not by a fixed ceiling in the
-backend. Every method below adds biophysical specificity to the same chain.
+How biophysical the output is — amplitude calibration, morphology, channel detail —
+follows how much detail you put into the `Configuration` (and any
+[Jaxley](jaxley_interop.md) models you bridge in), not a fixed ceiling in the
+backend. Each method below adds specificity to the same chain.
 
 Each method returns a `Configuration`, so the whole model reads as one fluent
 sequence:

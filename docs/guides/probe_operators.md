@@ -1,16 +1,21 @@
-# Probe Operators in jaxfne v0.2.1+
+# Probe operators
 
-## Overview
+**Read out** spikes, membrane voltage, source currents, and field-proxy traces
+(LFP, CSD, EEG, MEG, EMM) from a finished simulation. Eight named probe kinds
+map to the multimodal outputs most laminar workflows need.
 
-The probe layer is a first-class component of the TFNE pipeline:
+Each operator returns data plus a JSON-safe report (units, calibration status,
+scope declarations, assumptions).
+
+## Pipeline context
+
+Probes sit at the end of the simulation chain:
 
 ```
 Emitter → Source → Field → Probe → Objective → Optimizer
 ```
 
-Eight probe operators expose different aspects of neural/field state as named readouts. Each operator returns data plus a JSON-safe report declaring operator status, units, calibration metadata, scope declarations, and assumptions.
-
-## Operator Kinds
+## Operator kinds
 
 ### SPK
 

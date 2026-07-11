@@ -1,13 +1,15 @@
 # Jaxley interoperability
 
-[Jaxley](https://jaxley.readthedocs.io) and jaxfne are complementary JAX-based projects:
+**Combine biophysical detail with population-scale readouts.** Use [Jaxley](https://jaxley.readthedocs.io)
+for multi-compartment, conductance-based neurons; use jaxfne for laminar LFP/CSD
+proxies, spectrolaminar summaries, objectives, and manifests on the same signals.
 
-- **Jaxley:** Differentiable neuron and network models in JAX (compartmental, multi-compartment, conductance-based)
-- **jaxfne:** Source-to-field/readout layer for organizing outputs into tensor-field workflows
+| Tool | Best for |
+|------|----------|
+| **Jaxley** | Differentiable HH/compartment models, morphology, channel dynamics |
+| **jaxfne** | Cortical columns, field-proxy chains, multi-trial laminar workflows |
 
 ## Using Jaxley with jaxfne
-
-Jaxley builds neuron/network models; jaxfne organizes their outputs into multimodal readouts.
 
 ### End-to-end: a Jaxley model → tfne Signals (one call)
 

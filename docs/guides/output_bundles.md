@@ -1,6 +1,7 @@
 # Output bundles
 
-jaxfne outputs workflows as JSON-safe bundles containing signals, readouts, and metadata.
+**Export and audit** a simulation run: spikes, voltages, field proxies, readout
+metrics, and provenance metadata in one strict JSON-safe package.
 
 ## Structure
 

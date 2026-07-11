@@ -1157,7 +1157,9 @@
             "tone_honesty_vs_confidence"
           ],
           "definition_of_done": "Audit docs/quickstart.md, docs/faq.md, docs/guides/*.md for jargon-first framing (opening with internal vocabulary before explaining purpose) -- rewrite openings to lead with what/why, keep how/internals after. Not a full-content rewrite of every page; a targeted pass on openings + any section that reads as internal engineering notes rather than user-facing documentation.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "Targeted openings pass on docs/quickstart.md, docs/faq.md, 12 guides/*.md (configuration_grammar, objective_grammar, hdp, tensor_field_workflows, probe_operators, output_bundles, operator_composition, calibration, plotly_visualization, poisson_admissibility, jaxley_interop, guides/index). mkdocs build --strict OK."
         },
         {
           "id": "G",

@@ -1,6 +1,8 @@
 # Tensor-field workflows
 
-jaxfne organizes neural model outputs into a source-to-field/readout pipeline:
+Turn simulated neural activity into **depth-resolved readouts** — LFP-proxy,
+CSD-proxy, EEG/MEG proxies, and bundled manifests — by chaining a few
+well-defined stages.
 
 ```
 Emitter/Network → Source tensors → Field operators → Probe readouts → Output bundles

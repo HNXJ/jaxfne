@@ -1,5 +1,9 @@
 # Frequently Asked Questions
 
+Common questions about installing jaxfne, running simulations, readouts, and
+extending the package. For hands-on examples start with [Quickstart](quickstart.md);
+for API detail see the [API reference](api/index.md).
+
 ## Installation and setup
 
 **Q: What Python version does jaxfne require?**

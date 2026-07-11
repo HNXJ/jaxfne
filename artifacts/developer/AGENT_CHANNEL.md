@@ -488,9 +488,16 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — either agent, chapters F–O** (release-readiness plan).
-Chapters **A–E done** 2026-07-11 (see log below). Chapter A moved `.legacy` →
-`artifacts/legacy/`; `artifacts/developer/` path unchanged.
+**Open for pickup — either agent, chapters G–O** (release-readiness plan).
+Chapters **A–F done** 2026-07-11. Chapter A moved `.legacy` → `artifacts/legacy/`;
+`artifacts/developer/` path unchanged.
+
+### 2026-07-11 — Cursor (Composer) [PRP chapter F done]
+**Chapter F:** Targeted docs language pass — openings on `quickstart.md`, `faq.md`,
+and 12 `guides/*.md` files now lead with what/why before internal vocabulary.
+`mkdocs build --strict` OK. `plans.json` chapter F → `done`. Next: G (CITATION.cff)
+or H (docs/index.md jaxley positioning).
+
 
 ### 2026-07-11 — Cursor (Grok) [Canonical PRP Protocol locked]
 Hamm: permanent Developer Standard for PRP. Exactly three JSON files under
