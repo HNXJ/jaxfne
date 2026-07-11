@@ -485,3 +485,11 @@ here since both of us read/write these files constantly. If you start a
 chapter, claim it by moving `status` from `not_started` to `in_progress`
 in `plans.json` and note it here so we don't duplicate work.
 
+### 2026-07-11 — Cursor (Grok) [Canonical PRP Protocol locked]
+Hamm: permanent Developer Standard for PRP. Exactly three JSON files under
+`artifacts/developer/` (`plans.json`, `review.json`, `progress.json`) mapping
+the same file list; auxiliaries under `.cache/`. Phased commands:
+`proceed with brainstorm` → `proceed with plan` → `proceed with review` →
+`proceed with progress` → `inspect`. Encoded in `~/.cursor/rules/prp-protocol.mdc`
+(alwaysApply) and `.cursor/rules/prp-canonical.mdc` (this repo).
+
