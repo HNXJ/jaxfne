@@ -82,4 +82,5 @@ See **[Documentation for AI agents](docs/for_ai_agents.md)**.
 
 ## Citation
 
-Software citation and BibTeX: [docs/citation.md](docs/citation.md).
+Machine-readable metadata: [`CITATION.cff`](CITATION.cff) (GitHub **Cite this repository**).
+BibTeX and Zenodo DOI setup: [docs/citation.md](docs/citation.md).

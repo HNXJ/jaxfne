@@ -1168,7 +1168,9 @@
             "citation_scientific_backing"
           ],
           "definition_of_done": "Add a real CITATION.cff (machine-readable, GitHub surfaces a 'Cite this repository' button). Wire GitHub-Zenodo integration so each tagged GitHub Release mints a real, permanent DOI -- a concrete, achievable citability improvement short of peer review. Update docs/citation.md to include the DOI once minted. EXPLICITLY DOES NOT claim peer-reviewed-paper-equivalent citability -- see this plan's citation_scientific_backing baseline note on the honest ceiling.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-11",
+          "evidence": "Root CITATION.cff (cff 1.2.0, software type, no fabricated DOI); docs/citation.md + guides/zenodo_doi.md (maintainer Zenodo wiring checklist); tests/test_citation_cff.py; mkdocs strict OK. Live Zenodo DOI pending first published GitHub Release + maintainer enables zenodo.org GitHub integration (documented, not executed)."
         },
         {
           "id": "H",

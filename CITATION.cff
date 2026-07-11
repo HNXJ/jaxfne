@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use jaxfne, please cite it using the metadata in this file."
+title: "jaxfne: JAX Field Neural Equations"
+type: software
+version: 0.4.5
+date-released: "2026-07-03"
+license: MIT
+repository-code: "https://github.com/HNXJ/jaxfne"
+url: "https://jaxfne.readthedocs.io/en/latest/"
+abstract: >
+  JAX-native computational scaffold for laminar cortical circuits: population
+  simulation, source-to-field proxy readouts (LFP, CSD, EEG/MEG), spectrolaminar
+  workflows, and Jaxley interoperability. Outputs are proxy/scaffold readouts,
+  not calibrated biophysical recordings.
+authors:
+  - family-names: Nejat
+    given-names: Hamed
+keywords:
+  - neuroscience
+  - neural simulation
+  - JAX
+  - laminar cortex
+  - LFP
+  - computational neuroscience
+  - tensor field neural equations
+identifiers:
+  - type: url
+    value: "https://github.com/HNXJ/jaxfne"
+  - type: url
+    value: "https://pypi.org/project/jaxfne/"
+  - type: url
+    value: "https://jaxfne.readthedocs.io/en/latest/"

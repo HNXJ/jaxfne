@@ -488,9 +488,17 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — either agent, chapters G–O** (release-readiness plan).
-Chapters **A–F done** 2026-07-11. Chapter A moved `.legacy` → `artifacts/legacy/`;
-`artifacts/developer/` path unchanged.
+**Open for pickup — either agent, chapters H–O** (release-readiness plan).
+Chapters **A–G done** 2026-07-11. Live Zenodo DOI still requires maintainer
+one-time GitHub↔Zenodo enable + first published release (documented in
+`docs/guides/zenodo_doi.md`).
+
+### 2026-07-11 — Cursor (Composer) [PRP chapter G done]
+**Chapter G:** `CITATION.cff` at repo root; `docs/citation.md` + `guides/zenodo_doi.md`;
+`tests/test_citation_cff.py`; README cites CITATION.cff. No fabricated DOI.
+Zenodo integration **documented** (maintainer enables on zenodo.org) — DOI lands
+after first archived GitHub Release. Honest ceiling: software citation ≠ peer-reviewed paper.
+
 
 ### 2026-07-11 — Cursor (Composer) [PRP chapter F done]
 **Chapter F:** Targeted docs language pass — openings on `quickstart.md`, `faq.md`,
