@@ -13,18 +13,18 @@ class TestAgentContextHygiene:
 
     def test_durable_context_exists(self):
         """Assert durable context file exists at canonical location."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         assert context_path.exists(), f"Durable context missing: {context_path}"
 
     def test_durable_context_not_empty(self):
         """Assert context file has substantive content."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
         assert len(content) > 500, "Context file too short (< 500 chars)"
 
     def test_durable_context_has_key_sections(self):
         """Assert context includes key guidance sections."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8').lower()
 
         required_sections = [
@@ -46,7 +46,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_mentions_canonical_api(self):
         """Assert context documents canonical Configuration API."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         api_terms = [
@@ -65,7 +65,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_mentions_public_private_separation(self):
         """Assert context explains public/private surface boundaries."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         # Should mention docs, tutorials as public
@@ -77,7 +77,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_mentions_generated_output_policy(self):
         """Assert context documents generated output handling."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         assert "tutorial_outputs" in content, "Missing generated output location"
@@ -85,7 +85,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_mentions_report_contract(self):
         """Assert context specifies validation report requirements."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         report_items = ["SHA", "branch", "test", "report", "receipt"]
@@ -115,7 +115,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_warns_against_common_mistakes(self):
         """Assert context documents known failure modes."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         mistake_keywords = [
@@ -133,7 +133,7 @@ class TestAgentContextHygiene:
 
     def test_durable_context_jaxfne_version_stable(self):
         """Assert context confirms package version remains 0.3.5."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         # Should mention version staying at 0.3.5
@@ -141,7 +141,7 @@ class TestAgentContextHygiene:
 
     def test_no_secrets_in_context(self):
         """Assert context contains no API keys or credentials."""
-        context_path = Path(".legacy/internal_docs/agent_context/claude/CLAUDE.md")
+        context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
         secret_patterns = [
@@ -169,11 +169,11 @@ class TestRepositoryStructure:
 
     def test_internal_docs_exists(self):
         """Assert internal_docs directory exists."""
-        assert Path(".legacy/internal_docs").exists(), ".legacy/internal_docs/ directory not found"
+        assert Path("artifacts/legacy/internal_docs").exists(), "artifacts/legacy/internal_docs/ directory not found"
 
     def test_agent_context_directory_structure(self):
         """Assert agent context has expected structure."""
-        context_dir = Path(".legacy/internal_docs/agent_context/claude")
+        context_dir = Path("artifacts/legacy/internal_docs/agent_context/claude")
         assert context_dir.exists(), "agent_context/claude directory not found"
         assert (context_dir / "CLAUDE.md").exists(), "CLAUDE.md not found in context dir"
 

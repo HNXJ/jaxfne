@@ -59,7 +59,7 @@ class TestNetwork100EINotebook:
         """Test that notebooks/03_network_100_ei_multimodal.ipynb exists."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
@@ -68,7 +68,7 @@ class TestNetwork100EINotebook:
         """Test that notebook is valid JSON."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         content = notebook_path.read_text(encoding="utf-8")
@@ -83,7 +83,7 @@ class TestNetwork100EINotebook:
         """Test that first code cell contains !pip install jaxfne."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -99,7 +99,7 @@ class TestNetwork100EINotebook:
         """Test that second code cell verifies jaxfne version."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -116,7 +116,7 @@ class TestNetwork100EINotebook:
         """Test that all code cell outputs are empty."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -132,7 +132,7 @@ class TestNetwork100EINotebook:
         """Test that notebook contains no absolute private paths."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -156,7 +156,7 @@ class TestNetwork100EINotebook:
         """Test that notebook includes all eight readout operator names."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -185,7 +185,7 @@ class TestNetwork100EINotebook:
         """Test that notebook includes 100-neuron, 75E/25I terminology."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -206,7 +206,7 @@ class TestNetwork100EINotebook:
         """Test that notebook mentions jaxfne.__version__."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -292,7 +292,7 @@ class TestNetwork100EINotebook:
         """Test that notebook avoids forbidden internal terminology."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "03_network_100_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))

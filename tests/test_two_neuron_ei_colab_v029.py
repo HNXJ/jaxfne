@@ -58,7 +58,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebooks/02_two_neuron_ei_multimodal.ipynb exists."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         assert notebook_path.exists(), f"Notebook not found at {notebook_path}"
@@ -67,7 +67,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook is valid JSON."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         content = notebook_path.read_text(encoding="utf-8")
@@ -82,7 +82,7 @@ class TestTwoNeuronEINotebook:
         """Test that first code cell contains !pip install jaxfne."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -102,7 +102,7 @@ class TestTwoNeuronEINotebook:
         """Test that second code cell verifies jaxfne version."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -119,7 +119,7 @@ class TestTwoNeuronEINotebook:
         """Test that all code cell outputs are empty."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -135,7 +135,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook contains no absolute private paths."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -159,7 +159,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook includes all eight readout operator names."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -188,7 +188,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook includes E/I terminology."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -207,7 +207,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook mentions jaxfne.__version__."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))
@@ -283,7 +283,7 @@ class TestTwoNeuronEINotebook:
         """Test that notebook avoids forbidden internal terminology."""
         notebook_path = (
             Path(__file__).parent.parent
-            / ".legacy" / "notebooks"
+            / "artifacts/legacy" / "notebooks"
             / "02_two_neuron_ei_multimodal.ipynb"
         )
         nb_json = json.loads(notebook_path.read_text(encoding="utf-8"))

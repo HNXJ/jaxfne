@@ -1834,7 +1834,7 @@
         "test_version_remains_0210 is xfail with a clear historical reason -- correctly self-flagged"
       ],
       "last_verified": "2026-07-05",
-      "evidence": "Verified docs/api/fields.md & probes.md exist; verified the skill file moved to .legacy/internal_docs/skills/, and docs/skills/skill_visual_outputs.md does NOT exist. || FIXED 2026-07-05: updated new_docs list to point at .legacy/internal_docs/skills/skill_visual_outputs.md. Verified the check now genuinely runs (was silently no-op'ing before): `pytest tests/test_docs_equations_plotly_v0214.py -k no_like_terminology -v` -> 1 passed (previously passed vacuously since Path(doc).exists() was False for the stale entry).",
+      "evidence": "Verified docs/api/fields.md & probes.md exist; verified the skill file moved to artifacts/legacy/internal_docs/skills/, and docs/skills/skill_visual_outputs.md does NOT exist. || FIXED 2026-07-05: updated new_docs list to point at artifacts/legacy/internal_docs/skills/skill_visual_outputs.md. Verified the check now genuinely runs (was silently no-op'ing before): `pytest tests/test_docs_equations_plotly_v0214.py -k no_like_terminology -v` -> 1 passed (previously passed vacuously since Path(doc).exists() was False for the stale entry).",
       "status": "done"
     },
     {
@@ -2329,10 +2329,10 @@
       "tbi": [],
       "tbd": [],
       "warnings": [
-        ".legacy/notebooks/ notebook appears superseded by the canonical tutorials-path notebook -- two notebooks covering similar ground in different locations, future-consolidation note"
+        "artifacts/legacy/notebooks/ notebook appears superseded by the canonical tutorials-path notebook -- two notebooks covering similar ground in different locations, future-consolidation note"
       ],
       "last_verified": "2026-07-04",
-      "evidence": "Confirmed notebook at .legacy/notebooks/, docs, and example script exist; version 0.4.5 matches pyproject; docs link to the canonical notebook.",
+      "evidence": "Confirmed notebook at artifacts/legacy/notebooks/, docs, and example script exist; version 0.4.5 matches pyproject; docs link to the canonical notebook.",
       "status": "reviewed"
     },
     {
@@ -2353,7 +2353,7 @@
       "tbi": [],
       "tbd": [],
       "warnings": [
-        "targets .legacy/notebooks/ rather than an active notebooks/ dir -- correct today but easy to orphan if the legacy path is removed"
+        "targets artifacts/legacy/notebooks/ rather than an active notebooks/ dir -- correct today but easy to orphan if the legacy path is removed"
       ],
       "last_verified": "2026-07-04",
       "evidence": "Verified all referenced paths exist; forbidden-term regex has zero hits.",
@@ -4914,11 +4914,11 @@
       "warnings": [
         "Acceptance-criteria checkbox 'Version aligned: pyproject.toml == jaxfne.__version__ == mkdocs extra.jaxfne_version' is left unchecked in the doc, but is actually TRUE as of this review (all three read 0.4.4) -- the doc under-reports its own progress here; leaving the checkbox as-is since flipping unverified-at-generation-time checkboxes retroactively risks overclaiming other items that are still genuinely open.",
         "core.py LOC claim (8,805) vs current actual (8,370 via wc -l) -- reduced by ~435 lines since the audit was generated, consistent with ongoing incremental work, not a contradiction, but means the exact number is now stale.",
-        "'.legacy/' file count claim (110 tracked files) vs current actual (7 entries via `ls .legacy`) -- large reduction since audit generation; the P0 item '.legacy/ migration' may be substantially further along than this doc suggests, worth a fresh audit pass rather than trusting this number.",
+        "'artifacts/legacy/' file count claim (110 tracked files) vs current actual (7 entries via `ls .legacy`) -- large reduction since audit generation; the P0 item 'artifacts/legacy/ migration' may be substantially further along than this doc suggests, worth a fresh audit pass rather than trusting this number.",
         "P1 items independently re-verified as still true/open as of 2026-07-03: docs/HDP_REPORT.md + 5x docs/STDP_*_REPORT.md still present in docs/ (not relocated), examples/03_single_neuron_multimodal_probe.py and examples/04_two_neuron_ei_multimodal.py both still present, jaxfne/tutorial_utils.py is 2031 lines (claimed ~2023, close match). core.py split into config.py/model.py/signals.py/simulate.py confirmed NOT done (no such files exist) -- P0 item #1 genuinely still open."
       ],
       "last_verified": "2026-07-03",
-      "evidence": "Re-verified all four flagged numbers against live repo state. wc -l jaxfne/core.py = 8370 (doc said 8805) -- fixed both occurrences (Scale table line 18, P0 list line 183) to 8,370. ls -d skills/*/ | wc -l = 13 (doc said 30) -- fixed Scale table line 26 to 13. .legacy/ count: find .legacy -type f | wc -l = 110, which MATCHES the doc's existing claim of '110 tracked' (line 24) -- prior progress.json evidence for this file claimed actual was 7, which was itself wrong; left the doc's 110 unchanged since it is correct. Version-alignment checkbox (line 226): confirmed pyproject.toml version = 0.4.4, jaxfne.__version__ = 0.4.4, mkdocs.yml extra.jaxfne_version = '0.4.4' (grep mkdocs.yml line 138) -- all three aligned, so checked the box '[x]' with an inline verified-date note. Left all other historical/unverifiable claims (LOC totals for other dirs, P1/P2 issue lists, test counts) untouched per instructions -- this is a dated point-in-time audit, not a full rewrite. Re-verified post-edit: grep for 8,370/8,805/skills stale-30/skills-13/[x] Version aligned all match expected state.",
+      "evidence": "Re-verified all four flagged numbers against live repo state. wc -l jaxfne/core.py = 8370 (doc said 8805) -- fixed both occurrences (Scale table line 18, P0 list line 183) to 8,370. ls -d skills/*/ | wc -l = 13 (doc said 30) -- fixed Scale table line 26 to 13. artifacts/legacy/ count: find .legacy -type f | wc -l = 110, which MATCHES the doc's existing claim of '110 tracked' (line 24) -- prior progress.json evidence for this file claimed actual was 7, which was itself wrong; left the doc's 110 unchanged since it is correct. Version-alignment checkbox (line 226): confirmed pyproject.toml version = 0.4.4, jaxfne.__version__ = 0.4.4, mkdocs.yml extra.jaxfne_version = '0.4.4' (grep mkdocs.yml line 138) -- all three aligned, so checked the box '[x]' with an inline verified-date note. Left all other historical/unverifiable claims (LOC totals for other dirs, P1/P2 issue lists, test counts) untouched per instructions -- this is a dated point-in-time audit, not a full rewrite. Re-verified post-edit: grep for 8,370/8,805/skills stale-30/skills-13/[x] Version aligned all match expected state.",
       "status": "done"
     },
     {

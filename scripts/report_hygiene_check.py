@@ -24,16 +24,11 @@ FORBIDDEN = [
     (re.compile(r"\bAgent:\s"), "Agent: (agent identifier)"),
 ]
 
-# Excluded directories (relative to REPO_ROOT)
-EXCLUDED_DIRS = {
-    ".git",
-    ".venv",
-    ".legacy",
+# Excluded path prefixes (relative to REPO_ROOT, POSIX)
+EXCLUDED_PREFIXES = (
+    "artifacts/legacy",
     "internal_docs",
-    ".pytest_cache",
-    ".ruff_cache",
-    "site", # Mkdocs built site can contain docs generated from allowed sources
-}
+)
 
 # Excluded files
 EXCLUDED_FILES = {
@@ -74,9 +69,14 @@ def is_excluded(path: Path) -> bool:
     except ValueError:
         return True
     
-    # Check parent dirs
+    rel_posix = rel.as_posix()
+    for prefix in EXCLUDED_PREFIXES:
+        if rel_posix == prefix or rel_posix.startswith(prefix + "/"):
+            return True
+
+    # Skip VCS / cache dirs by single segment
     for part in rel.parts[:-1]:
-        if part in EXCLUDED_DIRS:
+        if part in {".git", ".venv", ".pytest_cache", ".ruff_cache", "site"}:
             return True
             
     if rel in EXCLUDED_FILES:

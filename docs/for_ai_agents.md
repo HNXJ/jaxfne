@@ -1,0 +1,54 @@
+# Documentation for AI agents
+
+jaxfne treats **AI-agent readability as a first-class design goal**, alongside human docs on
+[Read the Docs](https://jaxfne.readthedocs.io/). The repo ships two coordinated surfaces:
+
+| Surface | Audience | Role |
+|---------|----------|------|
+| `docs/` + README | Humans | Tutorials, API reference, guides |
+| `skills/` + `AGENTS.md` | AI coding agents | Verified workflows, API catalog, config recipes — same source-of-truth as the package, not a parallel spec |
+| `artifacts/developer/` | Maintainers / agents | PRP backlog (`plans.json`, `progress.json`, `review.json`) and handoff notes (`AGENT_CHANNEL.md`) |
+
+## Start here (agents)
+
+1. **Import:** `import jaxfne as jtfne` — only public entry point.
+2. **API catalog:** read `skills/catalog-glossary-jaxfne/SKILL.md` before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
+3. **Task router:** `skills/jaxfne-worker-context-router/SKILL.md` picks config / tensor / paradigm / vis skills.
+4. **Lean orientation:** root `AGENTS.md` (pointer only — depth lives in skills and docs).
+5. **Backlog:** `artifacts/developer/progress.json` — verify scores before claiming a file is done.
+
+## Object grammar (one line)
+
+```text
+Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
+```
+
+`construct()` is the single dispatch — extend it, don't bypass.
+
+## Truth gates (non-negotiable)
+
+Outputs are **computational scaffolds / proxy readouts**, not calibrated biophysical recordings:
+
+- `claim_level=computational_scaffold`
+- `field_solver_status=linear_solver`
+- `field_claim_level=proxy_readout`
+- `physical_amplitude_calibrated=False`
+
+Use language: simulated, proxy, scaffold. Avoid validated/physical/mechanism without receipts.
+
+## Skills sync
+
+Repo skills mirror to global agent installs via `bash skills/SYNC_GLOBAL.sh`. After changing a
+skill, run sync locally or note the change in `artifacts/developer/AGENT_CHANNEL.md`.
+
+## Multi-agent handoff
+
+Maintainers and coding agents share this repo file-based (no live bridge). **Read** `AGENT_CHANNEL.md`
+before starting; **append** before finishing (never delete past entries).
+
+## Human docs cross-links
+
+- [Quickstart](quickstart.md) — three build paths, HDP, canonical column
+- [Configuration Grammar](guides/configuration_grammar.md)
+- [NeuronalTensor API](api/neuronal_tensor.md)
+- [Jaxley interoperability](guides/jaxley_interop.md)

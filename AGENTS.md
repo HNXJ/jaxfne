@@ -1,451 +1,82 @@
-# AGENTS.md — jaxfne
+# AGENTS.md — jaxfne (agent pointer)
 
-<details>
-<summary><b>Table of contents</b></summary>
+**Clone:** this repo · **Import:** `import jaxfne as jtfne`
 
-- [Read first](#read-first)
-- [Identity](#identity)
-- [Root freeze policy](#root-freeze-policy)
-- [jaxfne-modular-grammar](#jaxfne-modular-grammar)
-- [Gates](#gates)
-- [Known fragilities](#known-fragilities-track-dont-just-warn)
-- [Docs-migration status](#docs-migration-status)
-- [Backlog protocol](#backlog-protocol)
-- [Branch policy](#branch-policy)
-- [Validation](#validation)
-- [Report format](#report-format)
-- [API catalog](#api-catalog-read-before-writing-helpers)
-- [Verified laminar pipeline](#verified-laminar-pipeline-reuse-do-not-rediscover)
-- [Two (now three) paths to a laminar run](#two-now-three-paths-to-a-laminar-run--pick-before-you-start-dont-mix-mid-task)
-- [Self-check before claiming a result is real](#self-check-before-claiming-a-result-is-real)
-- [Homeostasis & plasticity](#homeostasis--plasticity-verified-2026-06-21-reuse-do-not-rediscover)
-- [PR review](#pr-review)
+Depth lives in **`skills/`**, **`docs/`**, and **`artifacts/developer/`** — not here.
+Full AI-agent guide: [docs/for_ai_agents.md](docs/for_ai_agents.md).
 
-</details>
-
-## Read first
-
-This file is the quickref. `internal_docs/` (the old home for `AGENT_QUICKREF.md` /
-`CURRENT_PUBLICATION_STATE.md` / `JAXFNE_BIOPHYSICS_GLOSSARY.md`) was deliberately
-removed from the public repo at the same commit that froze the root (`ca43c1e`,
-2026-06-17) — links into it are dead by design, not staleness; do not recreate it.
-What replaced each:
-
-- API catalog → the `catalog-glossary-jaxfne` skill (`skills/catalog-glossary-jaxfne/SKILL.md`) — check it before writing
-  any helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/spectrolaminar logic.
-- Known skill/doc contradictions → `skills/FRICTIONS_STACK.md` (resolve before escalating claims).
-- Per-file completeness/status tracker → `artifacts/developer/progress.json` (path, purpose, score/100,
-  TBI/TBD/warnings, evidence). **Check it before claiming a file is done, broken, or untouched, and before
-  trusting a score/finding recalled from a prior session — verify against current state, then update the
-  entry.** Session-scoped, not a repo-wide sweep; grow it incrementally, don't backfill unverified rows.
-- Evidence/publication-state snapshot → `python3 scripts/evidence_inventory.py` (run
-  it; don't trust a remembered SHA).
-- Biophysics deep reference → the maintainer's global `~/.claude/CLAUDE.md` "COMPUTATIONAL
-  NEURONAL BIOPHYSICS" section + the `jax-neuro-diffsim-guard` / `neuro-biophysics-units-sanity`
-  skills — all three are maintainer-local (global Claude Code skills, not in this repo).
-  External contributors without that access: the "Self-check before claiming a result is
-  real" section below and the `neuro-biophysics-units-sanity` gates (rest ≈ −66 mV, spike
-  peak ≈ +30 mV, plausible rate 8–25 Hz) are restated in this file since they're load-bearing;
-  for anything deeper, [Jaxley's own docs](https://jaxley.readthedocs.io) cover the underlying
-  units convention this repo's Jaxley bridge relies on.
-
-## Identity
-
-jaxfne is a compact JAX-native TFNE scaffold.
-
-```python
-import jaxfne as jtfne
-```
-
-Public flow (shorthand): `Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export` (package computes; notebooks configure/plot/export). For the full typed chain see README § "Object grammar".
-
-## Root freeze policy
-
-**[INVARIANT] Repo root is frozen as of 2026-06-17 (commit ca43c1e).**
-
-Structure is final. All future changes must:
-- **Modify existing files** in root (e.g., README.md, LICENSE, .gitignore)
-- **Add content inside existing folders** (jaxfne/, docs/, examples/, tutorials/, tests/, scripts/, .github/, skills/)
-- **NOT create new top-level folders or files** except in exceptional patches (e.g., critical security fix requiring new root artifact)
-
-**Approved exceptions:**
-- `skills/` (added 2026-06-18, v0.4.0): versioned jaxfne agent skills, sign-off recorded for this release.
-
-This ensures:
-- Stable project surface (no structural surprises)
-- Predictable navigation (familiar structure)
-- Professional package state (no root clutter)
-
-Breaking this rule requires explicit approval. Violations: flag and revert immediately.
-
-## jaxfne-modular-grammar
-
-**[INVARIANT, added 2026-07-01] The standing architecture rule set for this repo** — not
-enforced by tooling yet, but every future change should be checked against it before landing:
-
-1. **Maximum modularity** — 5 main modules, each ~5 object rule (desired target, not a hard cap).
-2. **All *simulation-signal* visualization (rasters, LFP/CSD/EEG/MEG, PSD, network layouts,
-   etc.) lives under `jaxfne/vis/*`** — not one such plotting call anywhere else in `jaxfne/`.
-   `scripts/evidence_figures/*.py` is a deliberate, correct exception (one-off release/
-   documentation figure generators, not simulation-signal visualization; not part of the
-   installable package) — leave as-is. Verification detail and history: `progress.json`'s
-   entries for `jaxfne/export.py`, `jaxfne/tutorial_utils.py`, and the `scripts/evidence_figures/`
-   files (per rule 4 below).
-3. **Computation is jax-maximal, jax-parallel, `float32` by default.** Device order is always
-   GPU → jax-metal → CPU. `float32` is the practical default (`jaxfne/_runtime_config.py`'s
-   `RuntimeConfig`); the GPU→metal→CPU fallback order is **not yet an enforced utility** —
-   `jax.devices()` is called in several places (`sharding_utils.py`, `runtime.py`,
-   `_runtime_config.py`) but none encode this specific priority order.
-4. **Every observed flaw goes straight into `progress.json`** on the file's existing row
-   (`warnings`/`tbd`) or a new row if the file isn't tracked yet — immediately, not batched into
-   a separate report. This is the same discipline the `progress-review-plan` skill already
-   enforces; this rule just says "don't wait for a formal Review pass to log something you
-   noticed in passing."
-5. **Maximum borrowing** — prefer `jax`/`jaxlib`/`jaxley`/`plotly`/`scipy`/`sklearn`/`torch`/
-   `torchvision` primitives over hand-rolled logic; jax gets priority when multiple libraries
-   offer the same primitive.
-6. **`NeuronalTensor` and the network/`Model` object must stay one identical format for any
-   config** — no new bespoke construction function per config variant; new configs merge into
-   the existing objects (`Configuration`, `NeuronalTensor`, `Model`) rather than growing parallel
-   one-off helpers. `construct(cfg_or_tensor, runtime=None)` in `core.py` is the existing
-   dispatch point for this — extend it, don't bypass it.
-
-## Gates
+## Object grammar
 
 ```text
-claim_level: computational_scaffold
-field_solver_status: linear_solver
-field_claim_level: proxy_readout
-physical_amplitude_calibrated: false
+Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
 ```
 
-**[INVARIANT] = non-negotiable.** Rules, exact code locations, and what each prevents (moved
-here 2026-06-30 from the global `~/.claude/CLAUDE.md`, which now only states the generic
-truth-gate pattern):
+`construct()` is the single dispatch — extend it, don't bypass.
 
-| Rule | Code location | What it prevents |
-|------|---|---|
-| **Never escalate claim gates upward** | `core.py`, all dataclasses | `claim_level`, `field_solver_status`, `physical_amplitude_calibrated` stay at conservative defaults; code may read, never flip |
-| **Proxy ≠ PDE** | `fields.py` | Laminar proxy (Gaussian kernel + FD CSD) is not a field solve; carry the `*_proxy` suffix and `field_solver_status` at its conservative default (`linear_solver`); never synthesize J_e |
-| **Receipts write-once** | `core.py` `save_receipt()` | refuses overwrite without explicit flag; never hand-edit truth files |
-| **x64 before arrays** | session start | `jax.config.update('jax_enable_x64', True)` before array construction; verify `runtime_report()["actual_dtype"]` |
-| **Explicit PRNG only** | all stochastic paths | every SDR/GSDR/AGSDR call takes an explicit `jax.random.PRNGKey`; raises if `key=None`; no numpy.random in reproducible code |
-| **Hard spike reset non-differentiable** | `jaxfne/_model.py` (re-exported via `jaxfne.core`), `Model.tune()` (guard = `gradient_path_safe()`; confirm `grep -n gradient_path_safe jaxfne/_model.py`) | `Model.tune()` blocks Optax unless `gradient_path_safe()` is true; do not remove the guard. (The "+30" is the +30 mV spike threshold, not a version.) |
+## Three build paths (pick one per script)
 
-**JAX execution defaults:** time = `jax.lax.scan` · edges = `jax.ops.segment_sum` (double-count
-guard) · batch = `jax.vmap` over PRNG keys · compile = `jit=True` in RuntimeConfig only on
-repeat runs. Perf debug order (cheapest first): confirm jit/vmap via `runtime_report()` → check
-`recurrent_backend` (sparse > dense for large W) → reduce `n_steps` before profiling → keep
-shapes/dtypes stable to avoid recompilation. Finiteness gates: reuse `_finite_or_none`,
-`_finite_bool`, `validate_*`; JSON uses `allow_nan=False`.
+| Path | When | Returns |
+|------|------|---------|
+| **Config** `laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate` | single run, AGSDR, homeostasis, per-neuron drive, HDP via `RuntimeConfig` | `Model` / `Signals` |
+| **tutorial_utils** `make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | multi-trial spectrolaminar sweeps | plain `dict` |
+| **NeuronalTensor** → `construct(tensor, RuntimeConfiguration(...))` → `simulate` | multi-area, JSON tensors, explicit 3D | `Model` / `Signals` |
 
-**Claim language:** use "simulated"/"proxy"/"scaffold"/"computational diagnostic"; avoid
-"validated"/"physical"/"proved"/"mechanism" without a manifest+hashes receipt. No real
-EEG/MEG/LFP/CSD or calibrated-amplitude language for proxy readouts unless
-`physical_amplitude_calibrated=True` with evidence. The rule above is self-contained and
-sufficient to follow; `hnyxj/rules/` (maintainer-local, `/Users/hamednejat/workspace/main/hnyxj/rules/`,
-not in this repo) is the deeper TFNE claim-language source-of-truth for anyone with that access.
+HDP on tensor path: `simulate(..., runtime=RuntimeConfig(enable_hdp=True, hdp_params={...}))`.
 
-## Known fragilities (track, don't just warn)
+Per-event layer targeting: `target_indices` on **event dict**, not schedule ctor. Build indices from `model.neuron_table()`.
 
-1. **`jaxfne/__init__.py` runtime wrapper** — CustomModuleType intercepts function/submodule collision; brittle. FIX: refactor public `runtime()` surface + regression tests.
-2. **`_CONFIG_RUNTIME_WARNINGS` global in `core.py`** — not thread-safe; couples `config_to_simulation`/`config_to_configuration`. FIX: return warnings instead of a global.
-3. **Hardcoded 20.0 spike gain in source proxy** — dense + edge kernels must stay in sync or the double-count guard breaks. FIX: parameterize + automated sync check.
+Laminar readout: `jtfne.vis.spectrolaminar_suite(sig)`.
 
-## Docs-migration status
+## Truth gates (never escalate)
 
-Current per-file doc coverage/staleness lives in `artifacts/developer/progress.json`
-(and `python3 scripts/evidence_inventory.py`), not here — a dated snapshot in a standing
-doctrine file rots (confirmed: an earlier version of this note claimed README still taught
-Configuration-only, which stopped being true once README's NeuronalTensor section landed).
-**Standing rule:** when a code change introduces or fixes a new top-level API path, update
-the affected docs in the same pass — don't let docs drift, and log the update in `progress.json`.
+`claim_level=computational_scaffold` · `field_solver_status=linear_solver` · `field_claim_level=proxy_readout` · `physical_amplitude_calibrated=False`
 
-**Schema-state note:** the v0.4.0 gate schema (`linear_solver` / `proxy_readout` /
-`physical_amplitude_calibrated` / `migrate_schema`, api 195) is canonical; releases since
-(v0.4.1+) build on it without changing it. Legacy JSON/manifests upgrade via
-`jtfne.migrate_schema(old_dict)`. A clone with `git grep -I laminar_proxy_no_pde | wc -l > 0`
-predates the v0.4.0 migration and is stale.
+Language: simulated/proxy/scaffold — not validated/physical/mechanism without receipts.
 
-## Backlog protocol
+Plausible Izhikevich sanity: rest ≈ −66 mV, spike peak ≈ +30 mV, mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = blowup.
 
-`artifacts/developer/{plans,progress,review}.json` is run via the global `progress-review-plan`
-skill (Plan/Progress/Review/Brainstorm) — see `~/.claude/skills/progress-review-plan/SKILL.md`
-for the mechanism. This repo's specifics: `review_command` for a `.py` file entry is usually
-`python3 -m py_compile <path>` plus the nearest test in `tests/`; prioritize entries touching
-`core.py`/`fields.py`/`emitters.py` first (truth-gate-adjacent code) unless told otherwise.
+## Before writing helpers
 
-## Agent-to-agent channel
+Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
 
-This repo is worked on by more than one AI agent (currently Claude Code CLI
-and Cursor's Composer, both committing with proper `Co-authored-by:`
-trailers). There is no live/programmatic bridge between them — no shared
-CLI, no MCP connection — so handoff is entirely file-based:
+## PRP backlog
 
-- **`artifacts/developer/AGENT_CHANNEL.md`** — stable-path, git-tracked,
-  append-only note channel for things that don't fit the PRP schema (a
-  heads-up, a question for the other agent, a "don't touch X right now," a
-  correction to a prior claim). Read it before starting work, append before
-  finishing. Never delete a past entry — resolve by adding a new dated one.
-- **`artifacts/developer/{plans,progress,review}.json`** — the de facto task
-  queue between agents (see Backlog protocol above); one agent's "done" is
-  the next agent's starting state.
-- **`skills/` (this repo) syncs to `~/.claude/skills/` and `~/.agents/skills/`**
-  via `bash skills/SYNC_GLOBAL.sh` — the latter is Cursor's skill mirror.
-- **`~/.cursor/rules/global-agent-doctrine.mdc`** — Cursor's condensed
-  doctrine file, analogous to `~/.claude/CLAUDE.md`; update it when something
-  Cursor should know can't wait for PRP osmosis.
+`artifacts/developer/{plans,progress,review}.json` + `AGENT_CHANNEL.md` (stable path). Skill: `progress-review-plan`.
+**Done rule:** `status=done` requires `achieved_score >= target_score`. JSON edits ≠ work done.
 
-Treat any other agent's report/commit as a claim to verify against real
-source/tests, not a fact — same standard as any other unverified input.
+## Module map
 
-## Branch policy
+`core.py` re-exports → `_config.py`, `_model.py`, `_signals.py`, `_construct.py`, `_runtime_config.py`, `emitters.py`, `fields/`.
+Plotting: **`jaxfne/vis/*` only** (modular-grammar rule 2).
 
-Five permanent branches: `main`, `dev`, `agy`, `cur`, `ops` (kept aligned at the same SHA after integration; main is the release source-of-truth, dev the integration branch). Do not mutate any permanent branch without approval. No force-push, tag, release, or publish without approval.
+## Root freeze
 
-## Validation
+Repo root frozen 2026-06-17 — modify existing root files/folders only; no new top-level dirs except approved patches (`skills/` kept by design).
+
+## Known stubs
+
+`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb` — exported names, `NotImplementedError` on use.
+
+## Known fragilities (track)
+
+1. `jaxfne/__init__.py` runtime wrapper — brittle function/submodule collision.
+2. `_CONFIG_RUNTIME_WARNINGS` global in `core.py` — not thread-safe.
+3. Hardcoded 20.0 spike gain in source proxy — dense/edge kernels must stay in sync.
+
+## Validation (`python3`)
 
 ```bash
-python3 scripts/evidence_inventory.py
-# scripts/evidence_figures_inventory.py is kept as a compatibility wrapper.
-python3 -m compileall -q scripts/evidence_figures jaxfne tests
+git status --short --branch && git rev-parse HEAD
+python3 -m compileall -q jaxfne tests scripts
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
   tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short
 ```
 
-## Report format
+## Branches
 
-Status, repo state, changed files, commands run, exact results, evidence/truth status, blockers, next safe action.
+`main`, `dev`, `agy`, `cur`, `ops` — verify SHA before mutations; no force-push without approval. Push PRP work to `dev` as autosave.
 
-## API catalog (read before writing helpers)
+## Agent channel
 
-Before writing any jaxfne helper or hand-rolling PSD/raster/LFP-proxy/CSD-proxy/
-EEG-proxy/MEG-proxy/spectrolaminar/AGSDR/manifest logic, consult the
-`catalog-glossary-jaxfne` skill (global, `~/.claude/skills/`) — it lists the
-package-native functions (incl. the exact spectrolaminar pipeline) so existing
-APIs are reused, not rediscovered. Canonical import: `import jaxfne as jtfne`.
-
-**Stub warning:** `GLIFEmitter` and `LIFEmitter` are exported in `__all__` but raise `NotImplementedError` on use — do not reference them in examples or tutorials. `write_nwb` / `read_nwb` are similarly exported but not implemented.
-
-## Verified laminar pipeline (reuse; do not rediscover)
-
-This is the raw builder-verb path (`.layer_fractions()`/`.area_layer_cell_types()` on
-`laminar_cortex_config`); README's "Canonical cortex" section shows the higher-level
-`build_laminar_column(..., ei_profile="canonical")` convenience wrapper over the same
-underlying gradient — same ground truth, two entry points at different levels of control.
-
-```python
-cfg = jtfne.laminar_cortex_config(areas=["V1"], layers=["L1","L2/3","L4","L5","L6"],
-                                  n=10000, duration_ms=1000.0, dt_ms=0.1, seed=0)
-cfg = cfg.layer_fractions(layer_fractions={L: (z_lo, z_hi), ...})   # per-layer DEPTH band; count ∝ thickness
-cfg = cfg.area_layer_cell_types("V1", {L: {"E":.., "PV":.., "SST":.., "VIP":..}, ...})
-model = jtfne.construct(cfg)
-sig   = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=0)   # sig.field auto-computed (lfp_proxy, csd_proxy)
-```
-
-**Canonical column E:I gradient (ground truth, verified 2026-06-17; skill `jaxfne-config`):**
-E peaks DEEP — E-fraction rises with depth to L6 ≈ 90% E. I peaks SUPERFICIAL — L1 50% I,
-I-fraction falls monotonically 50→30→25→20→12→10% (L1→L6); the largest inhibitory neuron
-COUNT sits in the dense superficial L2. Overall ≈ 77E:23I. PV concentrates in L4
-(feedforward), absent in L1 (VIP/SST only). Set this per layer via
-`.area_layer_cell_types(area, {...})` — the global `cell_types=` weight produces the WRONG
-(over-inhibitory, 41:59) gradient. Verify with `construct(cfg).neuron_table()` (list of dict rows).
-
-- Per-neuron/per-layer DC drive: `model.with_emitter_parameters(drive_per_neuron=array)`
-  (build a deep-layer mask from `model.neuron_table()`; recurrent `W` is dense, so deep drive reaches superficial).
-  Per-cell-type DC: `baseline_drive_by_cell_type={"E":..}` in the config.
-- Explicit 128-contact projection: `jtfne.project_laminar_sources(source, positions_(N,3), n_contacts=128)`.
-  **Default `mode="density_preserving"`** (`jaxfne/fields/proxy.py`) — SUM weights, no row-normalize.
-  Opt-in **`mode="row_normalize"`** only for pedagogy or when every contact lies inside the
-  modeled population; row-normalizing erases attenuation for off-population contacts (e.g. a probe
-  beyond the depth band): weights sum to 1 regardless of Gaussian falloff, so outside contacts can
-  read *louder*, not weaker. Verified 2026-06-21 on a 300-neuron V1 column with 2 contacts at
-  z=-0.15/1.15: `row_normalize` gave outside RMS *higher* than the inside mean;
-  `density_preserving` gave ~9× attenuation. Skill: `jaxfne-config` § Projection.
-- **Layer naming (F-002):** 5-layer (`L1,L2/3,L4,L5,L6`) in `laminar_cortex_config` examples vs
-  **6-layer** (`L1…L6`) required by `build_laminar_column(..., ei_profile="canonical")` /
-  `CANONICAL_LAYERS_6L`. Pick one set per script; canonical E:I fractions in
-  `jaxfne-config` are verified on **6-layer** names.
-- `spectrolaminar_psd_jax` wants `(n_trials, n_steps, n_contacts)`.
-- All `jtfne.vis.*` (lfp/csd/eeg/meg/emm/raster/rate/psd/spectrolaminar_suite/layer_celltype_counts)
-  take `sig` and return matplotlib Figures; **`vis.spectrolaminar_suite(sig)` is the preferred laminar readout**.
-  3D circuit: `vis.visualize_network_3d(model.neuron_table(), output_html=...)`.
-
-## Two (now three) paths to a laminar run — pick before you start, don't mix mid-task
-
-There are three independent ways to build+run a laminar column/circuit. All
-are real and supported; they are not interchangeable mid-script because they
-hand back different object types (`Model`/`Signals` vs a plain trial `dict`).
-
-| | **Config-path** (`laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate`) | **tutorial_utils-path** (`make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials`) | **NeuronalTensor-path** (`NeuronalTensor` → `construct(tensor, RuntimeConfiguration(...))` → `simulate`) |
-|---|---|---|---|
-| Use when | single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive, HDP via `RuntimeConfig` | multi-trial spectrolaminar sweeps, `summarize_spectrolaminar_similarity` | declarative Areas×Layers×Types, canonical JSON tensors, multi-area merge |
-| Returns | `Model` / `Signals` | plain `dict` of trial arrays | `Model` / `Signals` |
-| Per-event drive targeting | per-event `target_indices` key — see below | not exposed; drive is column-wide | same as Config-path after bridge |
-| Noise control | kernel-dependent — see caveat below | `cell_type_izh_params[ct]["noise"]`, swept directly | same as Config-path after bridge |
-| Homeostasis/plasticity | wired (`Configuration.homeostasis(...)`, see below) | not wired | HDP: pass `runtime=RuntimeConfig(enable_hdp=True, ...)` to `simulate()` |
-| Docs | this file, `catalog-glossary-jaxfne` §1 | `catalog-glossary-jaxfne` §2 | `docs/guides/hdp.md`, `docs/api/neuronal_tensor.md` |
-
-**Config complexity tiers (0.4.7 design note):** these three paths are not competing
-schemas — they are tiers of one pipeline, all compiling down to the same runtime
-(`Model`/`IzhikevichParams`/`EdgeList`, already registered JAX pytrees with a
-numeric-arrays-as-leaves / string-labels-as-aux-data split). Pick the tier that
-matches how much structure your circuit actually needs, don't hand-roll structure
-a lower tier already gives you for free:
-- **`Configuration`** (fluent builder, `laminar_cortex_config`/`build_laminar_column`)
-  — the quick-start tier for a single area/column. Connectivity is declarative rule
-  dicts in `cfg.metadata["circuit"]["connections"]` (JSON-native), compiled to an
-  `EdgeList` at `construct()` time.
-- **`HDPColumnConfig`** (`jaxfne/hdp_network.py`) — a thin convenience wrapper around
-  `Configuration` for the single canonical 6-layer (`L1..L6`) HDP column case;
-  it funnels straight through `laminar_cortex_config()`/`construct()`, it does not
-  bypass or duplicate that path. Deliberately narrow in scope — it is not meant to
-  express every possible layer/cell-type shape (see `skills/FRICTIONS_STACK.md` F-023's
-  closure note for a concrete case, `scripts/spectrolaminar_tfne_izhikevich_pipeline.py`,
-  that correctly uses `Configuration` directly instead because its layer shape is
-  non-canonical). If a script needs a shape `HDPColumnConfig` can't express, use
-  `Configuration`/`laminar_cortex_config` directly rather than stretching
-  `HDPColumnConfig` to cover it.
-- **`NeuronalTensor`** (`jaxfne/neuronal_tensor.py`) — the "IC/PCB schematic" tier:
-  `Area`/`Layer`/`NeuronType` = elements, `InterConnection`/`AreaConnection` = wires,
-  each carrying typed `StaticParams`/`PlasticParams` rather than untyped metadata
-  dicts. Use for multi-area circuits, explicit 3D placement (`Pose3D`), or when you
-  want a structured, versioned, JSON-native circuit description you can diff/review
-  as data rather than code. Bridges into `Configuration` via
-  `neuronal_tensor_to_configuration()`/`construct_neuronal_tensor()` — this direction
-  only; there is no `Configuration -> NeuronalTensor` converter (a `Configuration` is
-  already the simpler tier, promoting it up adds no information). As of 2026-07-03,
-  `NeuronalTensor`/`Area` raise `TypeError` at construction time on the wrong element
-  type in `areas`/`layers`/`inter_connections`/`area_connections` (closes the earlier
-  silent-type-confusion landmine — passing a `Configuration` positionally into
-  `NeuronalTensor(...)` now raises immediately with a clear message instead of
-  corrupting state silently).
-
-**NeuronalTensor-path detail (0.4.7):** `RuntimeConfiguration` (tensor path, frozen) has **no**
-HDP field; `RuntimeConfig` (Config-path) does. To enable **HDP homeostatic plasticity**
-(synaptic + H-factor adaptation, cube-law `tau_i = tau_0_ms * size_i**3`) on a tensor-built
-`Model`, pass an explicit `runtime=RuntimeConfig(enable_hdp=True, hdp_params={...})`
-to `simulate()` — it overrides any `Configuration`-derived metadata. Full pattern:
-[`docs/guides/hdp.md`](docs/guides/hdp.md) § "Tensor-first" and
-[`docs/api/neuronal_tensor.md`](docs/api/neuronal_tensor.md).
-
-**HDP v2 sign orientation (`hdp_rule=`, `jaxfne/emitters.py` `simulate_receptor_exponential_izhikevich`):**
-`signed_linear` and `signed_quadratic` compute their weight-update basis as
-`H_post - H_pre` (edge-indexed `H_next[post]` minus `H_next[pre]`), not the naively-expected
-`H_pre - H_post` that the top-level docstring's rule-family summary states. This flip is
-deliberate: it preserves the postsynaptic-indexing invariant used everywhere else in this
-kernel (`W_i` from outgoing edges, `I_syn_i` from incoming edges, the E/I sign split via
-`exc_mask`) so that a resource-starved postsynaptic neuron (`H_post < H_pre`) still weakens its
-incoming excitatory weights and strengthens its incoming inhibitory weights — the correct
-restoring direction — under either expression once the sign convention is applied consistently.
-See the inline comment at `jaxfne/emitters.py:1347` for the exact basis per rule.
-
-**Noise-scale caveat (verified, not uniform across kernels):** `simulate_eig_izhikevich`,
-`simulate_edge_recurrent_izhikevich`, and `simulate_edge_recurrent_izhikevich_homeostatic`
-all accept `noise_scale=` (`None` keeps the historical `0.5` scalar; pass a scalar or
-`(n_neurons,)` array to override). `simulate_receptor_exponential_izhikevich`
-(`jaxfne/emitters.py:1538`) has **no** `noise_scale` parameter at all — its noise
-coefficient is hardcoded to `0.5` inline. Check which kernel
-`construct()`/`simulate()` actually dispatches to for your config before assuming
-noise is or isn't sweepable.
-
-**Per-event, per-neuron-subset drive (`target_indices`):** `StimulusSchedule`
-(`jaxfne/_signals.py`, re-exported via `jaxfne.core` -- moved there in the 2026-07-04
-core.py monolith split) does **not** take a `target_indices=` constructor kwarg —
-`target_indices` is a key on each **event dict**, read by
-`StimulusSchedule.to_array`/`to_array_jax` (`ev.get("target_indices", None)`) to
-restrict that event's amplitude to a specific neuron subset (e.g. L4-E-only)
-rather than the whole column. Build the index list from `model.neuron_table()`
-(filter by `layer`/`cell_type`) and put it on the event, e.g.:
-
-```python
-nt = model.neuron_table()
-l4e_idx = [i for i, row in enumerate(nt) if row["layer"] == "L4" and row["cell_type"] == "E"]
-event = {"onset_ms": 0.0, "duration_ms": 50.0, "amplitude": 5.0,
-         "label": "p1", "is_drive_event": True, "target_indices": l4e_idx}
-sched = jtfne.StimulusSchedule(events=(event,), n_neurons=model.n_neurons)
-```
-
-This is the real mechanism for "stimulate only this cell-type/layer subset on this
-event" — don't hand-roll a per-neuron drive mask for that case. Worked end-to-end
-example (4-slot sequential paradigm, L4-E-only targeting per slot, laminar readout):
-[`tutorials/jaxfne_v040_continuous_omission_oddball.ipynb`](tutorials/jaxfne_v040_continuous_omission_oddball.ipynb)
-([doc](docs/tutorials/index.md#tutorial-stack)).
-
-## Self-check before claiming a result is real
-
-Reduced Izhikevich, native units: Vm rest ≈ −66 mV, spike peak ≈ +30 mV (hard reset),
-plausible mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = a dt/solver/unit blowup, **not** a finding.
-10k-neuron / 1000 ms run on CPU: `construct` ≈ 40 s, `simulate` ≈ 90 s — if 5–10× slower the
-machine is thermally throttled (cool, run as a fresh subprocess), it is not hung. A real run with
-plausible numbers is the receipt; never report a simulated value you did not sanity-check.
-
-## Homeostasis & plasticity (verified 2026-06-21; reuse, do not rediscover)
-
-Three distinct mechanisms share the word "plasticity" here — do not conflate them:
-
-1. `Configuration.plasticity()` — **declarative only**, `status="declared_not_wired_to_simulate"`.
-   No kernel runs; it only records intent in `metadata["plasticity"]` for `manifest()`.
-2. `Configuration.homeostasis(eta=...)` — **real and wired**. `eta != 0` engages homeostatic
-   synaptic plasticity inside `simulate_edge_recurrent_izhikevich_homeostatic`
-   (`jaxfne/emitters.py`): `dw = eta*(r_star - r_post)*x_pre`, clipped to `[w_min, w_max]`.
-   Verified: most edges' weights measurably change and stay clipped/finite. As of `86e19e0`,
-   `Model.last_homeostasis_diagnostics()` and `Signals.metadata["homeostasis"]` surface
-   `w_final`/`w_trace` when `eta != 0` (earlier commits silently dropped them after computing
-   them — check you're past `86e19e0` before relying on this).
-3. `run_stdp_stream` / `make_ei_cloud_network` — a separate STDP path, **not connected** to
-   `Model.simulate()` at all.
-
-**Other declarative-only `Configuration` methods (verified 2026-07-03, same pattern as
-`plasticity()` above — don't assume any Configuration fluent-chain call affects `simulate()`
-just because it exists; `Configuration` itself moved to `jaxfne/_config.py` in the 2026-07-04
-core.py monolith split, re-exported unchanged via `jaxfne.core`):** `connectivity(**kwargs)`
-(`jaxfne/_config.py:492`, own docstring: "declared connectivity metadata without overclaiming
-dynamics... construct-time dynamics still use the package's existing network generator"),
-`drive(...)` (`jaxfne/_config.py:1113`, "declarative drive metadata: baseline external
-input..."), `optimizer(...)` (`jaxfne/_config.py:1303`, "declarative optimizer metadata:
-family, differentiability status, search space, budget, and hard gates").
-All three record intent into `metadata` for `manifest()`/inspection only — none of them changes
-`simulate()`'s actual behavior. A user chaining the full fluent API (`.plasticity().connectivity()
-.drive().optimizer()...`) can silently end up with a model that ignores most of their declared
-intent unless they've separately read each method's docstring.
-
-`Configuration.homeostasis(k_gain=...)` (the `g_bias` excitability term, independent of `eta`)
-is a **one-sided damper on this canonical-column prior, not a bidirectional rate-setpoint
-controller** — verified by sweep, not assumed: at a ~10.8 Hz natural baseline, the activity
-trace `r` settles at 0.65–0.73 regardless of `r_star` in the small range you'd naively pick
-(spikes/step units), so `g=clip(k_gain*(r_star-r))` stays negative; pushing `r_star` to its
-ceiling (1.0) only ever recovers baseline, never exceeds it, and raising `g_max` past the
-default 8 does nothing (confirms it isn't a clipping-ceiling issue — `r` itself saturates near
-`r_max` within the run). If you need a rate *above* baseline, this mechanism cannot do it
-without a kernel change (none made; would need sign-off). For suppression-toward-a-lower-target
-demos it works smoothly up to about `k_gain≈1.5–2.0` (default `tau_r_ms=300`); past
-`k_gain≈2.5` the population enters a bursty bang-bang relaxation oscillation (full-silence
-windows every ~`tau_r_ms`-scale period) rather than settling — check a 20-100ms-windowed rate
-trace, not just the run mean, before calling a homeostasis result "stable."
-
-## PR review
-
-Automated review runs via **Macroscope** (comment `@macroscope-app review` on a GitHub PR;
-code review is enabled by default). Reviewers — human or bot — obey the repo skills under
-`skills/` and apply this rubric:
-
-- **Posture:** `jaxfne` is a **computational scaffold / proxy-readout** codebase, NOT a
-  physical-solver or biological-mechanism codebase. Review accordingly.
-- **Review for:** correctness, JAX efficiency (jit/vmap/scan, `N_compile ≤ 1`, stable shapes/dtypes),
-  API stability, docs/tutorial alignment (notebook grammar), and truth-gate compliance (§ Gates).
-- **Block (revise/reject):** silent fallbacks; fabricated/synthetic analysis output presented as real;
-  dense O(N²) where a sparse path is possible (all-to-all is inherently dense → warn, don't block;
-  sparse `p_connect<1` at scale should use the direct edge builder); ambiguous projection semantics
-  (normalization mode must be explicit); public stubs masquerading as finished APIs; any
-  biological/mechanistic overclaim.
-- **Homeostasis/plasticity:** jaxfne is the mathematical backend — biophysical fidelity follows
-  the config you provide, not a fixed ceiling (decided 2026-06-20, see memory
-  `jaxfne-math-backend-framing`). Do **not** require disclaimer-triple stamping
-  (`physical_amplitude_calibrated=False`/`biological_learning_claim=False`/
-  `mechanism_claim_status=not_claimed`) in reports, changelogs, or docs prose. Block only on
-  actual overclaims — e.g. asserting a validated biological mechanism without nulls/ablations/
-  repeated-seed evidence — not on missing disclaimer language.
-- **Output per PR:** accept / revise / reject · exact blockers · files involved · score /100.
-  Prefer concrete file/line references and decisive recommendations.
+Read `artifacts/developer/AGENT_CHANNEL.md` before starting; append before finishing. Treat other agents' claims as hypotheses — verify against source/tests.

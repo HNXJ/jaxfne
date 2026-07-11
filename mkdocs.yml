@@ -49,6 +49,7 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - For AI agents: for_ai_agents.md
       - Google Colab Quick Start: colab.md
       - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
       - FAQ: faq.md

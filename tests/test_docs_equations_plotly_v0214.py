@@ -214,13 +214,13 @@ def test_plotly_guide_documents_write_html():
 
 def test_visual_outputs_skill_exists():
     """visual_outputs_skill now in internal_docs (moved for hard-rule cleanup)."""
-    doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
+    doc_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
     assert doc_path.exists(), "skill_visual_outputs.md not found in internal_docs/"
 
 
 def test_visual_outputs_skill_has_code_examples():
     """Visual outputs skill must include code examples for each operator (now in internal_docs)."""
-    doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
+    doc_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -232,7 +232,7 @@ def test_visual_outputs_skill_has_code_examples():
 
 def test_visual_outputs_skill_documents_naming_conventions():
     """Visual outputs skill must document file naming conventions."""
-    doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
+    doc_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -242,7 +242,7 @@ def test_visual_outputs_skill_documents_naming_conventions():
 
 def test_visual_outputs_skill_has_validation_commands():
     """Visual outputs skill must include validation commands."""
-    doc_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
+    doc_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
     with open(doc_path, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -265,7 +265,7 @@ def test_mkdocs_nav_includes_plotly_guide():
 def test_mkdocs_nav_includes_visual_outputs_skill():
     """Visual outputs skill is internal, not in public mkdocs.yml navigation (moved to internal_docs)."""
     # Skills moved to internal_docs/ for hard-rule cleanup
-    skill_path = Path(".legacy/internal_docs/skills/skill_visual_outputs.md")
+    skill_path = Path("artifacts/legacy/internal_docs/skills/skill_visual_outputs.md")
     assert skill_path.exists(), "Visual outputs skill not found in internal_docs/"
 
 
@@ -310,7 +310,7 @@ def test_no_like_terminology_in_new_docs():
     """New docs must use *-proxy, never *-like terminology."""
     new_docs = [
         "docs/guides/plotly_visualization.md",
-        ".legacy/internal_docs/skills/skill_visual_outputs.md",
+        "artifacts/legacy/internal_docs/skills/skill_visual_outputs.md",
         "docs/api/fields.md",
         "docs/api/probes.md",
     ]

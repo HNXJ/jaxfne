@@ -89,7 +89,7 @@ class TutorialSmokeRunner:
             ]
             return True
 
-        notebooks_dir = self.repo_root / ".legacy" / "notebooks"
+        notebooks_dir = self.repo_root / "artifacts/legacy" / "notebooks"
         notebook_files = [
             "01_single_neuron_multimodal.ipynb",
             "02_two_neuron_ei_multimodal.ipynb",
@@ -209,12 +209,12 @@ class TutorialSmokeRunner:
                     )
                     all_ok = False
 
-            for match in re.finditer(r"\.legacy/notebooks/(\d+_\S+\.ipynb)", content):
+            for match in re.finditer(r"\artifacts/legacy/notebooks/(\d+_\S+\.ipynb)", content):
                 ref = match.group(1)
-                path = self.repo_root / ".legacy" / "notebooks" / ref
+                path = self.repo_root / "artifacts/legacy" / "notebooks" / ref
                 if not path.exists():
                     self.report["docs"]["errors"].append(
-                        f"{md_file.name}: broken link to .legacy/notebooks/{ref}"
+                        f"{md_file.name}: broken link to artifacts/legacy/notebooks/{ref}"
                     )
                     all_ok = False
 

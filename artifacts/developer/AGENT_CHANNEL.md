@@ -488,13 +488,9 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — either agent, any chapter, mostly parallelizable.**
-One sequencing note: **chapter A is high-blast-radius** (moves the very
-files this channel and every skill/doctrine file point at) — read its own
-`caution` field in plans.json before starting it, and announce before/after
-here since both of us read/write these files constantly. If you start a
-chapter, claim it by moving `status` from `not_started` to `in_progress`
-in `plans.json` and note it here so we don't duplicate work.
+**Open for pickup — either agent, chapters F–O** (release-readiness plan).
+Chapters **A–E done** 2026-07-11 (see log below). Chapter A moved `.legacy` →
+`artifacts/legacy/`; `artifacts/developer/` path unchanged.
 
 ### 2026-07-11 — Cursor (Grok) [Canonical PRP Protocol locked]
 Hamm: permanent Developer Standard for PRP. Exactly three JSON files under
@@ -516,4 +512,23 @@ PRP inspect: **0** duplicate paths, **0** dual progress/review, **0** pending re
 Fixed **scorecard drift** in `current_scorecard_2026_07_06` (was 74/28/0 vs authoritative
 80/95/99). Both scorecards now synced to `steps[]`. Canonical:
 `current_scorecard_2026_07_07`. Inspect snapshot table added to Open section.
+
+### 2026-07-11 — Cursor (Composer) [PRP chapters A–E done]
+**Chapter A:** `git mv .legacy → artifacts/legacy` (110 files); `artifacts/README.md` added;
+`artifacts/developer/` stable path unchanged. Test/script/review path refs updated;
+`report_hygiene_check.py` prefix exclude fixed for `artifacts/legacy/`.
+
+**Chapter B:** `AGENTS.md` 30KB → 3.5KB pointer (depth → `skills/`, `docs/for_ai_agents.md`).
+
+**Chapter C:** `docs/for_ai_agents.md` + mkdocs nav; README "Built for AI agents" section.
+
+**Chapter D:** Root `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1),
+`CHANGELOG.md` (Keep-a-Changelog + link to `docs/changelog.md`).
+
+**Chapter E:** README ~85 lines (plain pitch, jaxley comparison early, Scope & Status once);
+deep API → `docs/quickstart.md`.
+
+**Validation:** `mkdocs build --strict` OK · `report_hygiene_check` CLEAN ·
+`pytest` 50 passed, 1 skipped (agent_context_hygiene + smoke) · `prp_to_markdown.py` OK.
+`plans.json` chapters A–E → `done`. F–O still `not_started`. Step 10 still auth-gated.
 

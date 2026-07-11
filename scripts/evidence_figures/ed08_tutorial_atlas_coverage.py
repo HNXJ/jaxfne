@@ -96,7 +96,7 @@ def _discover_notebooks(root: Path) -> list[Path]:
     notebooks: list[Path] = []
     for path in sorted((root / "tutorials").rglob("*.ipynb")):
         rel = str(path.relative_to(root))
-        if any(skip in rel for skip in ("archive", "test_execution", ".legacy")):
+        if any(skip in rel for skip in ("archive", "test_execution", "artifacts/legacy")):
             continue
         notebooks.append(path)
     return notebooks

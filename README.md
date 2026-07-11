@@ -5,370 +5,81 @@
 <p align="center">
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI package"></a>
   <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/pyversions/jaxfne" alt="Python versions"></a>
-  <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Documentation Status"></a>
-  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="Tests"></a>
-  <a href="https://jaxfne.readthedocs.io/contributing/"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="contributions welcome"></a>
-  <a href="https://github.com/HNXJ/jaxfne/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
+  <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Documentation"></a>
+  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions welcome"></a>
+  <a href="CODE_OF_CONDUCT.md"><img src="https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg" alt="Code of Conduct"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
 # jaxfne
 
-`jaxfne` is a compact JAX package for Tensor-Field Neural Equations (TFNE): a typed computational chain from neural emitters to source tensors, field-proxy operators, probe readouts, objective reports, optimizers, and run manifests.
+**Simulate laminar cortical circuits in JAX** — from point-neuron populations to
+depth-resolved LFP/CSD/EEG proxy readouts, spectrolaminar summaries, and
+population-level optimization. Define a column (or multi-area hierarchy), run it,
+and inspect rasters, layer-targeted drive, and field-proxy traces in one pipeline.
 
-Built for computational and systems neuroscientists who want differentiable, JAX-based circuit models — a canonical cortical-column prior with the real laminar E:I gradient, an interactive 3D viewer for inspecting circuit structure before you simulate, and a direct bridge into [Jaxley](https://jaxley.readthedocs.io) so single- and multi-compartment biophysical (HH, conductance-based) neurons slot into the same field/readout pipeline as the built-in point-neuron emitters.
-
-`jaxfne` is a computational scaffold, not a calibrated physical solver: field/probe
-outputs are proxy readouts (`*_proxy`, `physical_amplitude_calibrated=False`)
-built on a linear source/field approximation, not a validated biophysical or
-PDE field solve. See "Canonical cortex" and the object grammar below for where
-that boundary sits in the pipeline.
-
-**Requirements:** Python ≥3.10, JAX ≥0.4.25 (installed automatically). Device
-order is GPU → jax-metal → CPU, whichever JAX finds first; `float32` is the
-practical default. Expect roughly `construct()` ≈40s / `simulate()` ≈90s for a
-10k-neuron, 1000ms run on CPU (verify locally via `jtfne.runtime_report()`,
-these numbers will drift with hardware and are not a promise).
-
-<details>
-<summary><b>Table of contents</b></summary>
-
-- [Install](#install)
-- [Object grammar](#object-grammar)
-- [Minimal workflow (preferred: NeuronalTensor + RuntimeConfiguration)](#minimal-workflow-preferred-neuronaltensor--runtimeconfiguration)
-- [Configuration workflow (supported, compatibility)](#configuration-workflow-supported-compatibility)
-- [Which workflow should I use?](#which-workflow-should-i-use)
-- [Canonical cortex (default prior)](#canonical-cortex-default-prior)
-- [Adjustable structure: layers, connectivity, homeostasis, plasticity](#adjustable-structure-layers-connectivity-homeostasis-plasticity)
-- [Interactive 3D network (dark theme)](#interactive-3d-network-dark-theme)
-- [Jaxley interoperability](#jaxley-interoperability)
-- [Tune toward a target](#tune-toward-a-target)
-- [Known stubs (exported but not implemented)](#known-stubs-exported-but-not-implemented)
-- [Checkout validation](#checkout-validation)
-
-</details>
+**How this relates to [Jaxley](https://jaxley.readthedocs.io):** Jaxley builds
+differentiable, multi-compartment biophysical neurons (HH and other channels).
+jaxfne operates at **population and field scale** — tensor-algebraic circuit
+definition, source-to-sensor proxy chains, canonical cortical priors, and
+multi-trial spectrolaminar workflows. The two compose: a Jaxley model is a
+drop-in **emitter** via `JaxleyBridge`, feeding the same readout stack as
+built-in Izhikevich emitters.
 
 ## Install
 
 ```bash
 pip install jaxfne
+pip install "jaxfne[viz]"   # matplotlib/plotly readouts
 ```
 
-Visualization extras:
+Development checkout: `pip install -e ".[dev,viz]"` after cloning.
 
-```bash
-pip install "jaxfne[viz]"
-```
-
-Development checkout:
-
-```bash
-git clone https://github.com/HNXJ/jaxfne.git
-cd jaxfne
-pip install -e ".[dev,viz]"
-```
-
-Canonical import:
-
-```python
-import jaxfne as jtfne
-```
-
-## Object grammar
-
-Every jaxfne program is the same linear chain. Each step returns the input to the
-next, so the whole pipeline reads as one fluent sequence:
-
-```text
-setup  ->  config  ->  construct  ->  simulate  ->  visualize  ->  tune/objective  ->  optimize  ->  export
-enable_x64   Configuration   Model       Signals     vis.*           Objective         Model.tune   manifest / save_*
-```
-
-The full typed chain underneath that sequence:
-
-```text
-Config
-  -> Runtime(seed, dtype, backend, jit, vmap, duration_ms, dt_ms)
-  -> Identity(area, layer, cell_type, unit_id, position)
-  -> Emitter(theta_e, state_0, drive, noise, key)
-  -> SourceMap(source_mode, source_calibration_status, support, normalization)
-  -> FieldProxy(kernel, geometry_metadata, field_solver_status, field_claim_level)
-  -> Probe(kind, selector, channel_geometry, units_status, method)
-  -> Signals(spk, vm, source, lfp_proxy, csd_proxy, eeg_proxy, meg_proxy, spectrolaminar_proxy, emm_proxy)
-  -> Objective(metrics, targets, gates, nulls, rejection_reasons)
-  -> Optimizer(search_space, budget, key, constraints)
-  -> Manifest(run_id, version, repo_sha, runtime_report, artifact_paths, asset_hashes, truth_gates)
-  -> Validation(finite_outputs, strict_json, png_assets, notebook_receipts, optional_dependency_laziness)
-```
-
-## Minimal workflow (preferred: NeuronalTensor + RuntimeConfiguration)
-
-`NeuronalTensor` — a declarative `Areas x Layers x NeuronTypes` data model with
-per-layer `InterConnection`/`AreaConnection` wiring — is the canonical, preferred
-way to define a circuit. Load a packaged canonical circuit (or build
-one inline, see below), construct, simulate:
-
-```python
-import jaxfne as jtfne
-
-jtfne.enable_x64()                                              # setup: x64 before arrays
-
-tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")  # or jtfne.load("path/to.json")
-runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5)
-model   = jtfne.construct(tensor, runtime)                      # construct: NeuronalTensor -> Model
-signals = jtfne.simulate(model)                                 # simulate -> Signals
-spk = signals.get("spk")                                        # (n_steps, n_neurons) spike raster
-vm_e = signals.get("vm", cell_type="E")                         # membrane voltage for E cells
-```
-
-Define your own circuit inline instead of loading a canonical one:
-
-```python
-E  = jtfne.NeuronType.make("E", fraction=0.9)    # explicit population fraction
-PV = jtfne.NeuronType.make("PV", fraction=0.1)   # (omit fraction on any type -> even split)
-L4 = jtfne.Layer(name="L4", n_neurons=100, neuron_types=[E, PV])
-v1 = jtfne.Area(name="V1", layers=[L4])
-tensor = jtfne.NeuronalTensor(areas=[v1])
-
-model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
-```
-
-This is the path for explicit, declarative circuit definitions (JSON
-round-trippable via `jtfne.save_neuronal_tensor`/`load_neuronal_tensor`, or one
-of the packaged canonical circuits via `jtfne.list_canonical_neuronal_tensors()`)
-and for **HDP homeostatic plasticity** (synaptic + H-factor adaptation with a
-per-cell-type time constant). HDP is enabled by passing an explicit
-`runtime=` override to `simulate()` — this works on a tensor-built `Model`
-with no new API:
-
-> **Note the class switch below: `RuntimeConfig`, not `RuntimeConfiguration`.**
-> These are two distinct classes, not a typo. `RuntimeConfiguration` (used
-> above to `construct()` a tensor) is a frozen, execution-only spec
-> (seed/duration/dtype/backend) with **no HDP field**. `RuntimeConfig` (used
-> below) is the richer runtime object that carries `enable_hdp`/`hdp_params`
-> — pass it as an override to `simulate()`, not to `construct()`.
-
-```python
-runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
-    "K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
-    "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0},   # tau_i = tau_0_ms * size_i**3
-})
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0, runtime=runtime_hdp)
-diag = model.last_hdp_diagnostics()   # H_trace, weight trace, per-edge receptor_index
-```
-
-Full worked example: [`examples/08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)
-· runnable notebook: [`tutorials/jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)
-· API reference: [`docs/api/neuronal_tensor.md`](https://github.com/HNXJ/jaxfne/blob/main/docs/api/neuronal_tensor.md)
-· coming from `Configuration`? see the [migration guide](https://github.com/HNXJ/jaxfne/blob/main/docs/migration_guide.md).
-
-## Configuration workflow (supported, compatibility)
-
-`Configuration` — the original fluent-builder path — remains fully supported.
-It is no longer the primary teaching path, but every `Configuration` capability
-(AGSDR tuning, homeostasis, custom connection rules, etc.) keeps working
-unchanged, and `Configuration`-built circuits converge on the same `Model` via
-`construct()`:
+## Minimal example
 
 ```python
 import jaxfne as jtfne
 
 jtfne.enable_x64()
+tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
+model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
+signals = jtfne.simulate(model)
 
-cfg = jtfne.build_laminar_column()                   # config: V1, n=1000, flat E:I (legacy default)
-cfg = (cfg.set_emitter("izhikevich", "cortical_eig")
-          .probes(["spikes", "V_m", "LFP", "CSD"], n_contacts=16)
-          .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann"))
-
-model   = jtfne.construct(cfg)                        # construct: Configuration -> Model
-signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)  # simulate -> Signals
+jtfne.vis.raster(signals)                    # population raster
+jtfne.vis.spectrolaminar_suite(signals)      # laminar PSD readout
 ```
 
-See the [Configuration Grammar guide](https://github.com/HNXJ/jaxfne/blob/main/docs/guides/configuration_grammar.md) for the full fluent API.
+Canonical import: `import jaxfne as jtfne`. More paths (fluent `Configuration`,
+multi-trial sweeps, HDP plasticity, Jaxley bridge): **[Quickstart](docs/quickstart.md)**.
 
-## Which workflow should I use?
+## Scope & status
 
-There are three independent ways to build and run a laminar column/circuit.
-They return different object types, so pick one per task rather than mixing
-mid-script:
+jaxfne is a **computational scaffold**, not a calibrated physical solver.
+Field and probe outputs are **proxy readouts** (`*_proxy`,
+`physical_amplitude_calibrated=False`) on a linear source/field approximation —
+useful for method development and circuit-level diagnostics, not a substitute
+for validated biophysical recordings or PDE field solves. Truth gates are
+conservative by design and are not escalated in code without evidence.
 
-| Status | Goal | Path | Returns |
-|---|---|---|---|
-| **Preferred** | Explicit Areas/Layers/NeuronTypes circuit, HDP synaptic+H-factor plasticity, any new code | `jtfne.NeuronalTensor` (or `jtfne.load`/`load_canonical_neuronal_tensor`) → `jtfne.construct(tensor, RuntimeConfiguration)` → `jtfne.simulate` (above) | `Model` / `Signals` |
-| Supported | Single run, AGSDR tuning, homeostasis/plasticity, custom per-neuron drive (existing code, or the fluent builder style) | `jtfne.laminar_cortex_config` → `jtfne.construct` → `jtfne.simulate` (above) | `Model` / `Signals` |
-| Supported | Multi-trial spectrolaminar sweeps, similarity scoring across trials | `jaxfne.tutorial_utils.make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | plain `dict` of trial arrays |
+Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`.
 
-`AGSDR` tuning, homeostasis, and custom per-neuron drive all work identically
-on a `NeuronalTensor`-built `Model` too — `Model.tune()`/`with_emitter_parameters()`
-are methods on `Model`, independent of which path built it. The "Preferred"
-row isn't capability-restricted; it's the recommended default for new code.
+## Documentation
 
-Per-neuron-subset stimulus targeting (e.g. drive only L4 E cells on one event)
-goes through a per-event `target_indices` key on the event dict passed to
-`StimulusSchedule(events=...)`, built from
-`model.neuron_table()` — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)
-§ "Two (now three) paths to a laminar run" and the
-[Objective Grammar](https://jaxfne.readthedocs.io/en/latest/guides/objective_grammar/)
-guide for the full pipeline this feeds into. Worked example end to end:
-[`tutorials/jaxfne_v040_continuous_omission_oddball.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_v040_continuous_omission_oddball.ipynb).
+| Resource | Link |
+|----------|------|
+| Quickstart (three build paths, canonical column, Jaxley) | [docs/quickstart.md](docs/quickstart.md) |
+| Full docs site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
+| Tutorials & études | [docs/tutorials/](docs/tutorials/) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) · [full notes](docs/changelog.md) |
+| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
-## Canonical cortex (default prior)
+## Built for AI agents too
 
-The verified ground-truth laminar prior is a first-class API surface — no source
-editing required. Excitatory fraction rises with depth (L6 ≈90% E), inhibition
-peaks superficially (L1 50% I, no PV), PV concentrates at L4; overall ≈77E:23I.
+jaxfne ships **`skills/`** and **`AGENTS.md`** as first-class agent documentation —
+verified against the same package source as the human docs, not a parallel spec.
+See **[Documentation for AI agents](docs/for_ai_agents.md)**.
 
-```python
-# Canonical laminar cortex: real per-layer composition + laminar placement.
-cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
+## Citation
 
-# Multi-area hierarchy with the canonical prior in each area:
-cfg = jtfne.build_multi_area_columns(["V1", "V4", "PFC"], ei_profile="canonical")
-```
-
-`ei_profile="flat"` (the default) preserves the legacy depth-invariant
-composition and `uniform3d` placement **unchanged**; `ei_profile="canonical"`
-auto-routes to laminar placement so each neuron keeps its layer label and the
-per-layer E:I gradient is expressed. The exported constants
-`jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, `jtfne.CANONICAL_Z_BANDS`, and
-`jtfne.DEFAULT_LAYERS` document the prior directly.
-
-> **Layer-naming convention: pick one set per script, don't mix.** The
-> examples below use the 5-band scheme (`L1, L2/3, L4, L5, L6`, merged
-> superficial layer); `build_laminar_column(..., ei_profile="canonical")` and
-> the canonical E:I fractions above are verified on the 6-name scheme
-> (`L1...L6`, split `L2`/`L3`). Both are real, supported conventions, but a
-> `Configuration` built with one and cell-type fractions verified on the
-> other will silently mismatch layer keys — see [`AGENTS.md`](https://github.com/HNXJ/jaxfne/blob/main/AGENTS.md)'s
-> layer-naming note for the full detail.
-
-## Adjustable structure: layers, connectivity, homeostasis, plasticity
-
-Every knob below is a chainable `Configuration` call, not a source edit.
-
-```python
-# Per-layer neuron count and composition: layer_fractions sets each layer's
-# relative depth band (band width -> per-layer neuron count out of n);
-# layer_cell_type_fractions sets each layer's own E/PV/SST/VIP split.
-cfg = jtfne.build_laminar_column(
-    "V1", n=2000,
-    layers=["L1", "L2/3", "L4", "L5", "L6"],
-    layer_fractions={"L1": (0.00, 0.08), "L2/3": (0.08, 0.40), "L4": (0.40, 0.55),
-                      "L5": (0.55, 0.80), "L6": (0.80, 1.00)},
-    layer_cell_type_fractions={
-        "L1":   {"E": 0.20, "PV": 0.10, "SST": 0.10, "VIP": 0.60},
-        "L2/3": {"E": 0.45, "PV": 0.30, "SST": 0.20, "VIP": 0.05},
-        "L4":   {"E": 0.55, "PV": 0.35, "SST": 0.08, "VIP": 0.02},
-        "L5":   {"E": 0.85, "PV": 0.10, "SST": 0.04, "VIP": 0.01},
-        "L6":   {"E": 0.90, "PV": 0.06, "SST": 0.03, "VIP": 0.01},
-    },
-)
-
-# Explicit within-layer and between-layer connections: .connections() compiles
-# real edges at construct() time (status flips declared -> compiled, with an
-# exact edge count), distinct from the blanket within_connectivity/within_gain
-# the builder already applied above.
-cfg = (cfg
-    .connections(name="L4_recurrent", source={"layer": "L4"}, target={"layer": "L4"},
-                 probability=0.2, weight=0.5)                              # within-layer
-    .connections(name="L4_to_L23_feedforward", source={"layer": "L4"}, target={"layer": "L2/3"},
-                 probability=0.3, weight=0.4, sign="excitatory")            # between-layer
-)
-
-# Homeostasis: a real per-neuron rate-feedback kernel, active in simulate()
-# once declared (clip(k_gain * (r_star - r), g_min, g_max) intrinsic bias).
-cfg = cfg.homeostasis(relative_baseline=1.0, r_star=8.0, k_gain=1.0)
-
-# Plasticity: records intent in the manifest from the first call, but is
-# declaration-only here — simulate() does not consume it. The actual STDP
-# weight-update kernel (update_stdp_weights_jax) runs through the separate
-# run_stdp_stream entry point, not through Model.simulate().
-cfg = cfg.plasticity(relative_baseline=1.0)
-```
-
-## Interactive 3D network (dark theme)
-
-Inspect circuit geometry before you simulate: `jtfne.vis.visualize_network_3d`
-takes a constructed `Model` (or a `Signals` run) and renders an interactive
-Plotly figure — per-layer depth, per-cell-type color/symbol, optional synaptic
-edges — on a dark background by default, and exports a self-contained,
-pannable/zoomable HTML file for sharing outside a notebook.
-
-```python
-cfg = jtfne.build_laminar_column(n=1000, ei_profile="canonical")
-cfg = cfg.set_emitter("izhikevich", "cortical_eig").probes(["spikes", "V_m"])
-model = jtfne.construct(cfg)
-
-jtfne.vis.visualize_network_3d(
-    model,
-    title="Canonical cortical column",
-    output_html="network3d.html",   # interactive, dark-themed, open in any browser
-)
-```
-
-## Jaxley interoperability
-
-[Jaxley](https://jaxley.readthedocs.io) and jaxfne are complementary: Jaxley
-builds differentiable, multi-compartment, conductance-based neuron and network
-models (HH and other biophysical channels); jaxfne organizes the resulting
-voltages into the same source/field/readout/objective chain used by its built-in
-emitters — LFP-proxy, CSD-proxy, EEG-proxy, spectrolaminar readouts, manifests.
-A Jaxley model is a drop-in emitter: build the morphology and channels in
-Jaxley, then hand it to `JaxleyBridge` for one-call integration into `Signals`.
-
-```python
-import jaxley as jx
-from jaxley.channels import HH
-import jaxfne as jtfne
-
-# Build a Jaxley emitter: single HH compartment, recorded and stimulated.
-cell = jx.Cell(jx.Branch(jx.Compartment(), ncomp=1), parents=[-1])
-cell.insert(HH())
-cell.record("v")
-cell.stimulate(jx.step_current(i_delay=10, i_dur=50, i_amp=0.1, delta_t=0.025, t_max=100))
-
-# One call: integrate the Jaxley model and convert to jaxfne Signals.
-sig = jtfne.JaxleyBridge(model=cell).simulate(duration_ms=100.0, dt_ms=0.025)
-
-sig.V_m.shape                                         # [T, N] proxy voltage
-sig.metadata["physical_amplitude_calibrated"]         # False (proxy gate, never escalated)
-fig = jtfne.vis.vm(sig)                               # plot like any native tfne run
-```
-
-`JaxleyBridge` also exposes `.simulate_homeostatic(...)`, which keeps Jaxley's
-channels/morphology untouched while layering tfne's windowed homeostatic
-controller on top — useful for holding a population of biophysical cells near
-a target firing rate without hand-tuning per-cell drive. See
-[`docs/guides/jaxley_interop.md`](docs/guides/jaxley_interop.md) for the full
-bridge surface (manual `jx.integrate()` conversion, the array-first trace
-bridge for Jaxley-shaped data without installing Jaxley, and the homeostasis
-example). All Jaxley-bridged output stays on the same conservative truth gates
-as the rest of jaxfne: proxy voltage, not a calibrated biophysical recording.
-
-## Tune toward a target
-
-```python
-obj = jtfne.rate_synchrony_targets()                 # defaults: 10 Hz, kappa 0 (async-irregular)
-result = model.tune(obj, optimizer="AGSDR", steps=50)
-tuned = result.model
-
-manifest = jtfne.manifest(cfg, signals=signals)      # export: strict JSON-safe run manifest
-```
-
-## Known stubs (exported but not implemented)
-
-`GLIFEmitter` and `LIFEmitter` are exported in `jaxfne.__all__` but raise
-`NotImplementedError` on use — don't reference them in your own examples or
-tutorials. `write_nwb`/`read_nwb` are similarly exported placeholders, not
-working NWB I/O. All four are real names you can import today; none are
-callable yet.
-
-## Checkout validation
-
-```bash
-python -m compileall -q jaxfne tests examples scripts
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests -q --tb=short
-PYTHONPATH=. python scripts/audit_notebooks_and_assets.py --check
-PYTHONPATH=. python scripts/audit_notebook_grammar.py --check
-mkdocs build --strict
-```
+Software citation and BibTeX: [docs/citation.md](docs/citation.md).

@@ -181,7 +181,7 @@ class TestTutorialSmokeRunner:
 
     def test_notebook_structure_validation(self, repo_root):
         """Notebooks have required structure (install, version cells, no outputs)."""
-        notebooks_dir = repo_root / ".legacy" / "notebooks"
+        notebooks_dir = repo_root / "artifacts/legacy" / "notebooks"
         required_notebooks = [
             "01_single_neuron_multimodal.ipynb",
             "02_two_neuron_ei_multimodal.ipynb",
