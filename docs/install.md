@@ -6,17 +6,16 @@
 pip install -U jaxfne
 ```
 
-The latest **PyPI** release is **`jaxfne==0.4.4`** (tag `v0.4.4`). The
-**development tree** in this repository is **`0.4.5`** (`pyproject.toml`,
-`jaxfne.__version__`). To pin the last published PyPI release for tutorials
-that track PyPI:
+The latest **PyPI** release is **`jaxfne==0.4.5`** (tag `v0.4.5`). The
+**development tree** in this repository is **`0.4.6`** (internal git tag;
+no PyPI upload for 0.4.6). To pin the last published PyPI release:
 
 ```bash
-pip install "jaxfne==0.4.4"
+pip install "jaxfne==0.4.5"
 ```
 
 For the current development checkout, use editable install (below) and verify
-`jaxfne.__version__` prints `0.4.5`.
+`jaxfne.__version__` prints `0.4.6`.
 
 Optional extras:
 

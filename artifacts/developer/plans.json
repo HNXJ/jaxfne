@@ -550,11 +550,12 @@
       ],
       "depends_on_functions": [],
       "shape": "Brainstorm recorded 2026-07-12 (step10-publish-options-2026-07-12). Await Hamm decisions: publish now?, 0.4.6 vs 0.4.7, merge auth, per-mutation publish auth, Zenodo timing. Pre-publish: CI fixes for quickstart native + inventory path test.",
-      "status": "brainstormed_awaiting_decision",
+      "status": "partially_executed",
       "source": "brainstorm/step10-publish-brainstorm-required-2026-07-12",
       "priority": "queue_front",
       "blocks_step": 10,
-      "brainstorm_id": "step10-publish-options-2026-07-12"
+      "brainstorm_id": "step10-publish-options-2026-07-12",
+      "execution_note_2026_07_12": "Hamm: keep polishing; 0.4.6 = internal tag only; merge main when CI green; tag now; Release/TestPyPI/PyPI wait for 0.4.7 + Claude 100/100 confirmation."
     },
     {
       "id": "optional-zenodo-doi-after-first-release",
@@ -1523,5 +1524,16 @@
     "focus": "step 10 publish options",
     "ci_fixes_included": true,
     "awaiting": "Hamm decisions listed in brainstorm entry"
+  },
+  "hamm_step10_decisions_2026_07_12": {
+    "polish": true,
+    "version_0_4_6": "internal_git_tag_only",
+    "public_release_target": "0.4.7_after_hamm_confirm_and_claude_100_100",
+    "merge_dev_to_main": "authorized_after_ci_green",
+    "tag_v0_4_6": "authorized_now_no_github_release",
+    "github_release": "wait",
+    "testpypi": "wait",
+    "pypi": "wait",
+    "zenodo": "deferred_explained_to_hamm"
   }
 }

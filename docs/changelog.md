@@ -1,3 +1,19 @@
+## v0.4.6 (2026-07-12)
+
+**Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). **No GitHub Release / TestPyPI / PyPI** in this step — public distribution waits on Hamm confirmation for **0.4.7**.
+
+### Added
+- `CITATION.cff`, root `CONTRIBUTING.md` / `CHANGELOG.md`
+- `docs/scope_and_status.md`, `docs/for_ai_agents.md`, Zenodo wiring guide
+- `jaxfne/py.typed`; pytest-cov coverage artifacts in CI
+
+### Changed
+- README landing page shortened; Jaxley comparison in docs only
+- Lean `AGENTS.md`; `.legacy/` under `artifacts/legacy/`
+
+### Removed
+- Root `CODE_OF_CONDUCT.md`
+
 ## v0.4.5 (2026-07-03)
 
 **HDP v2, NeuronalTensor as a first-class circuit representation, full-repo visualization isolation, and a large test/doc alignment pass.** The homeostasis-dependent-plasticity (HDP) kernel gained a real, stability-validated second generation (linear equilibrium controller + safety barrier, per-cell-type drive tuning, wired into `RuntimeConfig`), `NeuronalTensor` became a genuine second build path (Areas × Layers × NeuronTypes × AreaConnections, JSON round-trip, multi-area placement, a bridge into `Configuration`), and every `matplotlib`/`plotly` call in the installable package was consolidated under `jaxfne.vis` (verified zero leakage elsewhere). Alongside the features: all 89 public docs got a real content review against current source (average score 81→91/100, several docs that documented fabricated APIs were rewritten to match reality), the test suite was consolidated toward étude/suite-notebook execution as the primary coverage mechanism, and CI was fixed for real (a pre-existing failure and several stale exclusions were traced and genuinely resolved).

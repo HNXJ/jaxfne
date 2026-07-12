@@ -488,9 +488,17 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — Hamm decisions on step 10** (see brainstorm
-`step10-publish-options-2026-07-12`). Recommended: green CI → choose 0.4.6/0.4.7 →
-authorize merge → authorize tag/Release/TestPyPI/PyPI separately. Zenodo optional.
+**Open:** keep polishing toward **0.4.7**. `v0.4.6` = internal tag only (no
+GitHub Release / TestPyPI / PyPI). Public distribute only after Hamm confirm + Claude 100/100.
+
+### 2026-07-12 — Cursor (Composer) [Hamm publish decisions]
+- Keep polishing.
+- **0.4.6** = internal git tag only (not a public release).
+- Public release target = **0.4.7** after Hamm confirmation.
+- **dev→main** authorized once tip CI green; then **tag v0.4.6** (no GitHub Release).
+- Release + TestPyPI + PyPI: wait for Claude 100/100 confirmation.
+- Zenodo: deferred (explained in chat).
+
 
 ### 2026-07-12 — Cursor (Composer) [proceed with brainstorm — step 10]
 Recorded publish options (version / merge / mutation order / Zenodo). Fixed two CI
