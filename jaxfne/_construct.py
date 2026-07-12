@@ -2776,6 +2776,8 @@ def migrate_schema(meta: dict[str, Any]) -> dict[str, Any]:
             out[key] = "proxy_readout"
             continue
         out[key] = value
-    return out
+    from ._config import clamp_truth_gate_metadata
+
+    return clamp_truth_gate_metadata(out)
 
 

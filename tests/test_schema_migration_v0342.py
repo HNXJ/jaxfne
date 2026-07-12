@@ -45,8 +45,9 @@ def test_migrate_schema_upgrades_legacy_keys():
     assert new["claim_level"] == "computational_scaffold"
 
 
-def test_migrate_schema_preserves_amplitude_boolean():
-    assert jtfne.migrate_schema({_OLD_AMP_KEY: True})["physical_amplitude_calibrated"] is True
+def test_migrate_schema_forces_amplitude_false():
+    """Legacy True amplitude flags are clamped; scaffold never escalates."""
+    assert jtfne.migrate_schema({_OLD_AMP_KEY: True})["physical_amplitude_calibrated"] is False
     assert jtfne.migrate_schema({_OLD_AMP_KEY: False})["physical_amplitude_calibrated"] is False
 
 

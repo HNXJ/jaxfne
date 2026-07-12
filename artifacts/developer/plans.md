@@ -41,9 +41,12 @@
 | release-v0.4.5-published | v0.4.5 released to PyPI | done | pyproject.toml; jaxfne/core.py; docs/changelog.md; docs/citation.md; mkdocs.yml; docs/_generated/version.md |
 | core-py-monolith-split |  | done | jaxfne/core.py; jaxfne/_runtime_config.py; jaxfne/_signals.py; jaxfne/_config.py (not started); jaxfne/_model.py (not st |
 | docs-external-review-2026-07-05 |  | done | README.md; AGENTS.md; ~/.claude/CLAUDE.md (maintainer-global, outside this repo); artifacts/developer/progress.json |
-| step10-publish-decision-brainstorm | Brainstorm step 10 publish decisions before any tag/PyPI mutation | partially_executed | artifacts/developer/plans.json; pyproject.toml; docs/changelog.md; CHANGELOG.md; CITATION.cff |
+| step10-publish-decision-brainstorm | Brainstorm step 10 publish decisions before any tag/PyPI mutation | done | artifacts/developer/plans.json; pyproject.toml; docs/changelog.md; CITATION.cff |
 | optional-zenodo-doi-after-first-release | Add live Zenodo DOI to CITATION.cff after first archived GitHub Release | proposed | CITATION.cff; docs/citation.md |
 | optional-live-coverage-badge | Optional: replace static coverage badge with live coverage percentage | proposed | README.md; .github/workflows/ci.yml |
+| pre-047-public-surface-deparrot | Pre-0.4.7: strip agent doctrine parrot from human-facing docs | done | docs/index.md; docs/quickstart.md; docs/contributing.md; docs/tutorials/13_canonical_column_etude.md; docs/STDP_HOMEOSTA |
+| pre-047-gate-enforcement-clamp | Pre-0.4.7 (optional/high-value): clamp truth gates at construct/manifest | done | jaxfne/_config.py; jaxfne/io.py; jaxfne/bridges.py; tests/ |
+| pre-047-public-leak-rescore | Re-score public rule-leak discipline after de-parrot patch | proposed | artifacts/developer/plans.json; docs/index.md; docs/quickstart.md; docs/contributing.md |
 
 ## brainstorm
 
@@ -52,6 +55,7 @@
 - **v1_pfc_continuous_aaab_adaptation_2026-07-03**: User directive 2026-07-03: refine docs/tutorials/05_v1_pfc_dual_column.md's vague aspirational scope (inter_areal_connec
 - **step10-publish-brainstorm-required-2026-07-12**: Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readin
 - **step10-publish-options-2026-07-12**: Step 10 publish brainstorm: choices for version, merge, SHA, Zenodo, and mutation order. No tags/PyPI in this entry.
+- **public-surface-skeptical-review-2026-07-12**: 2026-07-12 read-only skeptical review (Cursor): dual ask = (1) rules compliance and (2) rules not parroted into public h
 
 ## midterm plan: midterm-plan-2026-07-04 (2026-07-04)
 
@@ -75,7 +79,7 @@
 | A | Root minimization: move artifacts/ and .legacy/ out of repo root | repo_root_impression | done | artifacts/developer/{plans,progress,review}.json + generated .md relocate to a root-minimal location (e.g. .dev/artifact |
 | B | AGENTS.md diet: trim 30KB root file to a lean pointer, move depth into skills/docs | repo_root_impression, ai_friendliness | done | AGENTS.md at root shrinks to a concise orientation file (target: under ~5KB) covering only what a first-time agent needs |
 | C | AI-friendliness manifesto: frame skills/ and AGENTS.md as a stated feature, not clutter | ai_friendliness, repo_root_impression | done | Add a short, confident README section (or a dedicated docs/for_ai_agents.md linked from README) explicitly stating jaxfn |
-| D | Community health files at root: CONTRIBUTING.md, CODE_OF_CONDUCT.md, CHANGELOG.md | community_health_files | done | Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expe |
+| D | Community health files: contributing + changelog (relocated, not root-crowding) | community_health_files | done | Canonical contributing guide in docs/contributing.md; GitHub PR discovery via .github/CONTRIBUTING.md pointer; changelog |
 | E | README rewrite: jaxley-paced structure, plain-language opening, honest caveats repositioned not deleted | readme_first_impression, tone_honesty_vs_confidence, differentiation_vs_jaxley | done | Restructure README to: (1) open with a plain-language one-paragraph pitch stating what phenomena jaxfne lets you study,  |
 | F | Docs language pass: plain, professional, technical tone across guides/FAQ/quickstart | docs_site_structure, tone_honesty_vs_confidence | done | Audit docs/quickstart.md, docs/faq.md, docs/guides/*.md for jargon-first framing (opening with internal vocabulary befor |
 | G | Citation infrastructure: CITATION.cff + Zenodo DOI wiring | citation_scientific_backing | done | Add a real CITATION.cff (machine-readable, GitHub surfaces a 'Cite this repository' button). Wire GitHub-Zenodo integrat |
@@ -87,3 +91,7 @@
 | M | Full-repo tone/professionalism grep pass | tone_honesty_vs_confidence | done | One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only langu |
 | N | Cross-agent PRP sync of this plan itself |  | done | This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated |
 | O | Final adversarial re-score against jaxley |  | done | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |
+| P | Public surface de-parrot: human docs stop repeating agent rules | tone_honesty_vs_confidence, docs_site_structure, readme_first_impression | done | Implements item pre-047-public-surface-deparrot. Human landing/quickstart/contributing and Research report headers no lo |
+| Q | Truth-gate enforcement: construct/manifest clamp (or documented privilege) | tone_honesty_vs_confidence | done | Implements item pre-047-gate-enforcement-clamp with regression tests. Manifest and run_receipt cannot disagree on physic |
+| R | Independent re-score of dual ask (compliance + no public parrot) |  | not_started | Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 a |
+| S | PRP plan hygiene: stale DoD / scorecard notes match repo reality |  | done | Chapter D + final_scorecard community_health notes updated for relocated contributing/changelog; step10 brainstorm item  |

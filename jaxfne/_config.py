@@ -83,6 +83,50 @@ def _default_metadata() -> dict[str, Any]:
     }
 
 
+# Conservative claim defaults. Public metadata merges cannot escalate these.
+_ALLOWED_CLAIM_LEVELS = frozenset({"computational_scaffold"})
+_ALLOWED_FIELD_CLAIM_LEVELS = frozenset({"proxy_readout"})
+_ALLOWED_FIELD_SOLVER_STATUS = frozenset(
+    {
+        "linear_solver",
+        "not_computed",
+        "experimental_pde_solver",
+        "pde_solver",  # reserved token; amplitude still forced False
+    }
+)
+
+
+def clamp_truth_gate_metadata(metadata: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Return a copy of ``metadata`` with non-escalatable truth gates pinned.
+
+    Forces ``physical_amplitude_calibrated=False``, pins ``claim_level`` and
+    ``field_claim_level`` to scaffold/proxy defaults when missing or escalated,
+    and coerces unknown ``field_solver_status`` values to ``linear_solver``.
+    Does not mutate the input mapping.
+    """
+    out = dict(metadata or {})
+    claim = out.get("claim_level", "computational_scaffold")
+    if claim not in _ALLOWED_CLAIM_LEVELS:
+        out["claim_level"] = "computational_scaffold"
+    else:
+        out["claim_level"] = str(claim)
+
+    field_claim = out.get("field_claim_level", "proxy_readout")
+    if field_claim not in _ALLOWED_FIELD_CLAIM_LEVELS:
+        out["field_claim_level"] = "proxy_readout"
+    else:
+        out["field_claim_level"] = str(field_claim)
+
+    solver = out.get("field_solver_status", "linear_solver")
+    if solver not in _ALLOWED_FIELD_SOLVER_STATUS:
+        out["field_solver_status"] = "linear_solver"
+    else:
+        out["field_solver_status"] = str(solver)
+
+    out["physical_amplitude_calibrated"] = False
+    return out
+
+
 def _counts_from_fractions(total: int, fractions: Mapping[str, float]) -> dict[str, int]:
     total = int(total)
     if total < 0:
@@ -275,8 +319,10 @@ class Configuration:
     def update_metadata(self, **kwargs: Any) -> "Configuration":
         """Merge keyword arguments into configuration metadata.
 
-        Use for truth-mode, claim-level, and other administrative tags.
-        Existing keys are overwritten; unspecified keys are preserved.
+        Use for administrative tags. Truth-gate fields
+        (``claim_level``, ``field_claim_level``, ``field_solver_status``,
+        ``physical_amplitude_calibrated``) are clamped after merge so callers
+        cannot escalate claim surfaces via this API.
 
         Returns
         -------
@@ -285,7 +331,7 @@ class Configuration:
         """
         metadata = dict(self.metadata)
         metadata.update(kwargs)
-        return replace(self, metadata=metadata)
+        return replace(self, metadata=clamp_truth_gate_metadata(metadata))
 
     # ------------------------------------------------------------------
     # Suite No. 2 compact DSL facade.

@@ -49,6 +49,7 @@ from ._runtime_config import (
 from ._config import (
     Configuration,
     Config,
+    clamp_truth_gate_metadata,
     _default_operator_status,
     _circuit_json_safe,
     _default_metadata,

@@ -81,8 +81,9 @@ def manifest(
     so downstream readers cannot mistake them for empirical validation results.
     """
     from .fields import validate_source_field_status
+    from ._config import clamp_truth_gate_metadata
 
-    cfg_metadata = dict(getattr(cfg, "metadata", {}) or {})
+    cfg_metadata = clamp_truth_gate_metadata(getattr(cfg, "metadata", {}) or {})
     data: dict[str, Any] = {
         "package": "jaxfne",
         "manifest_schema_version": cfg_metadata.get("manifest_schema_version", "0.0.16"),
@@ -99,7 +100,7 @@ def manifest(
         ),
         "field_solver_status": cfg_metadata.get("field_solver_status", "linear_solver"),
         "field_claim_level": cfg_metadata.get("field_claim_level", "proxy_readout"),
-        "physical_amplitude_calibrated": cfg_metadata.get("physical_amplitude_calibrated", False),
+        "physical_amplitude_calibrated": False,
         "operator_status": cfg_metadata.get("operator_status", {}),
         "plasticity": cfg_metadata.get("plasticity"),
         "homeostasis": cfg_metadata.get("homeostasis"),

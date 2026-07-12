@@ -351,6 +351,10 @@ def jaxley_trace_to_signals(
     if spec.metadata:
         metadata.update(spec.metadata)
 
+    from ._config import clamp_truth_gate_metadata
+
+    metadata = clamp_truth_gate_metadata(metadata)
+
     # Return Signals with field=None
     return Signals(
         time_ms=time_ms,

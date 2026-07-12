@@ -601,3 +601,35 @@ Hamm: make root less crowded; move contribution/changelog if possible.
 
 **Not moved this pass:** `AGENTS.md` / `skills/` (deliberate AI surface)
 
+
+## 2026-07-12 — PRP plan improved (post skeptical review)
+
+Hamm: make the PRP plan better after dual-ask review (compliance + no public parrot).
+
+**Plan pass (`plan_pass_note_2026_07_12b`):**
+- Brainstorm: `public-surface-skeptical-review-2026-07-12` (overall ~84; leak 74)
+- Items: `pre-047-public-surface-deparrot` (queue front), `pre-047-gate-enforcement-clamp`, `pre-047-public-leak-rescore`
+- Scorecard chapters **P–S** on `release-readiness-scorecard-2026-07-08` (S done = plan hygiene)
+- Chapter D retitled: contributing/changelog relocated, not root
+- Tone category in final scorecard lowered 9→7 until P closes
+- Step 10 depends_on now includes de-parrot + re-score items
+- step10 brainstorm item → **done** (decisions already recorded)
+
+**Queue front:** chapter P / `pre-047-public-surface-deparrot`
+
+
+## 2026-07-12 — Progress: chapters P + Q
+
+Hamm: proceed with progress (chapter P/Q).
+
+**P (done):** De-parroted human docs — `docs/index.md`, `quickstart.md`, `contributing.md`,
+tutorial 13, STDP/HDP/CORTEX research headers. Agent grammar stays in `for_ai_agents.md` /
+`scope_and_status.md` / `AGENTS.md`.
+
+**Q (done):** `clamp_truth_gate_metadata()` in `_config.py`; applied in `update_metadata`,
+`io.manifest`, `migrate_schema`, Jaxley bridge metadata merge. Tests:
+`tests/test_truth_gate_clamp_v046.py` + migration test updated (legacy True → forced False).
+Receipt: 76 passed, 1 skipped (smoke + clamp + migration + jaxley bridge).
+
+**Next:** chapter R re-score (`pre-047-public-leak-rescore`). Uncommitted until Hamm asks push.
+

@@ -5,6 +5,7 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Changed
+- Chapters P/Q: human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema.
 - Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog only under `docs/changelog.md`.
 
 ## v0.4.6 (2026-07-12)

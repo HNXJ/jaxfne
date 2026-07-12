@@ -385,7 +385,7 @@
         "scripts/spectrolaminar_tfne_izhikevich_pipeline.py"
       ],
       "depends_on_functions": [],
-      "shape": "User's staged 3-release roadmap 2026-07-01, first release: 'every single code must be 95/100 done here, such as placeholders, organization, optimization of pipelines and merger of functions to make repo less code more functionality; tutorial refactor since many codes are still not in jaxfne grammar; etudes and suites'.\n\nREAL BASELINE (measured, not estimated):\n1. PLACEHOLDERS: exactly 5 confirmed placeholder etudes in tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS -- etudes 8 (continuous adaptation), 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop). All 4 of 9-12 are oddball/omission paradigms -- directly unblocked by improving jaxfne.paradigm (see release-0.4.7-final-polish's modularity item, which covers the actual paradigm engineering). jaxfne/paradigm.py ALREADY has the real building blocks (general_sequential_oddball_paradigm, HierarchicalOddballParadigm, omission_oddball_paradigm, coop_omission_oddball_paradigm, standard_visual_omission) -- confirmed via direct import 2026-07-01. These 5 etudes likely just need wiring to a real NeuronalTensor/Model run, matching the exact pattern that already fixed etudes 6/7 (v0.4.4 changelog: 'previously placeholders... implementing them surfaced and fixed genuine bugs'). Not a from-scratch build.\n2. TODO/FIXME/NotImplementedError markers: 19 files in jaxfne/ contain at least one -- needs per-file triage (some are legitimate TBI-fenced experimental code per jaxfne-harden's experimental-fence rule, not all are release blockers).\n3. FUNCTION-MERGER CANDIDATE already tracked (plans.json item merge-build_model-apply_drive_correction, from an earlier session's AST-scan brainstorm): jaxfne/hdp_network.py's build_model/apply_drive_correction consolidation missed 3 scripts (hdp_1000_neuronal_tensor_column.py, hdp_suite2_visualizations.py, spectrolaminar_tfne_izhikevich_pipeline.py) that still have un-migrated duplicate copies.\n4. TUTORIAL GRAMMAR: scripts/audit_notebook_grammar.py already exists and checks for jtfne import + setup/config/run/objective/export sections + local-engine-pattern/proxy-overclaim violations -- run it across ALL tutorials (only spot-checked one file this session) to get the real non-compliant-file count before claiming 95/100.\n\nScope note: this is release-scale work (potentially dozens of files) -- must be executed in tracked batches with real verification per batch (per progress-review-plan discipline), not attempted in one pass.\n\nPROGRESS 2026-07-01: \u00e9tude 9 (local oddball) DONE -- real content built and verified (StimulusSchedule-wrapped standard/deviant paradigm, +1.46Hz mismatch response, 10 trials, N=200), passes the real test_release_notebook_executes_cleanly pytest gate + grammar audit, removed from PLACEHOLDER_NOTEBOOKS. Along the way found a real silent-no-op gap in Model._resolve_stimulus_schedule (bare list-of-dicts paradigm arg silently ignored, no error/warning) -- documented in the notebook, not yet fixed upstream. 4 placeholders remain: \u00e9tude 8 (continuous adaptation, not an oddball paradigm), 10 (global/local via HierarchicalOddballParadigm), 11 (omission-local via omission_oddball_paradigm), 12 (omission-global-coop via coop_omission_oddball_paradigm) -- same wiring pattern now proven for 9.\n\nPRIORITY UPDATE 2026-07-01: hdp-stability-formula-design-and-validation is now the SINGLE HIGHEST-PRIORITY sub-item of this release (user-designated, target 100/100, explicit 0.4.5 blocker) -- HDP is required for stability/equilibrium/long-term adaptation, not covered by the general 95/100 bar applied to everything else here. Tackle it before the placeholder-etude/function-merger/tutorial-grammar work below, since \u00e9tude 8 (continuous adaptation) likely needs a working HDP mechanism anyway.\n\nUPDATE 2026-07-01: 4 of 5 placeholder \u00e9tudes now real -- 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop) all built, executed, audited, and pass the release-facing pytest gate. Only \u00e9tude 8 (continuous adaptation) remains a placeholder -- a genuinely different task (long-timescale continuous adaptation, not an oddball/omission paradigm wiring job like 9-12), not yet started. PLACEHOLDER_NOTEBOOKS now contains exactly 1 entry.\n\nUPDATE 2026-07-01 (TODO/FIXME triage): all 11 flagged files reviewed (the earlier \"19 files\" estimate was stale, re-verified at 11). Verdict: 10/11 are legitimate fenced/ABC/input-validation patterns, not real gaps. 1 real fix made (fields/proxy.py's misleading \"TODO: implement\" catch-all reworded to a proper ValueError -- it was always a normal invalid-input guard, all 3 documented modes are implemented). 1 design note flagged but not fixed: GLIFEmitter/LIFEmitter/pynwb_compat are exported in __all__ but always raise NotImplementedError on use -- honest and loud-failing, not silent, but an unusual API choice worth a real decision (deprecate vs. move to experimental namespace) rather than a mechanical fix. This sub-item of release-0.4.5-code-quality is DONE.\n\nUPDATE 2026-07-02: \u00e9tude 8 (continuous adaptation) built -- ALL 12 placeholder \u00e9tudes are now real, executed, gated. tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS is genuinely empty (set()). The \"zero placeholders\" 0.4.5 sub-requirement is DONE.\n\nMAJOR FINDING while building \u00e9tude 8 (see F-024, skills/FRICTIONS_STACK.md): manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used a DIFFERENT, stale jaxfne checkout (~/workspace/computational/jaxfne, via a misconfigured default python3 Jupyter kernelspec) -- caused a real, dramatic wrong-result (HDP runaway) for \u00e9tude 8 specifically. Systematically re-verified \u00e9tudes 3/9/10/11/12 against the correct kernel afterward: all bit-identical to what was previously saved (their code path -- the standard paradigm/.simulate() chain -- happens to be unchanged between the two checkouts), so no other notebook's reported numbers were actually wrong this session, but this was not guaranteed and should not be assumed for future notebook work. The real pytest release gate (test_notebook_execution_suite.py) was never affected -- it uses an ephemeral sys.executable-based kernel, bypassing all pre-registered kernelspecs.\n\nAlso fixed in the process: a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never actually matched \"simulate\"/\"simulation\" due to word-boundary semantics -- fixed to \\bsimulat\\w*\\b), first exposed by \u00e9tude 8 since it was the first notebook to rely solely on simulate_edge_recurrent_izhikevich_hdp without also using construct()/probe/signals elsewhere in its text.",
+      "shape": "User's staged 3-release roadmap 2026-07-01, first release: 'every single code must be 95/100 done here, such as placeholders, organization, optimization of pipelines and merger of functions to make repo less code more functionality; tutorial refactor since many codes are still not in jaxfne grammar; etudes and suites'.\n\nREAL BASELINE (measured, not estimated):\n1. PLACEHOLDERS: exactly 5 confirmed placeholder etudes in tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS -- etudes 8 (continuous adaptation), 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop). All 4 of 9-12 are oddball/omission paradigms -- directly unblocked by improving jaxfne.paradigm (see release-0.4.7-final-polish's modularity item, which covers the actual paradigm engineering). jaxfne/paradigm.py ALREADY has the real building blocks (general_sequential_oddball_paradigm, HierarchicalOddballParadigm, omission_oddball_paradigm, coop_omission_oddball_paradigm, standard_visual_omission) -- confirmed via direct import 2026-07-01. These 5 etudes likely just need wiring to a real NeuronalTensor/Model run, matching the exact pattern that already fixed etudes 6/7 (v0.4.4 changelog: 'previously placeholders... implementing them surfaced and fixed genuine bugs'). Not a from-scratch build.\n2. TODO/FIXME/NotImplementedError markers: 19 files in jaxfne/ contain at least one -- needs per-file triage (some are legitimate TBI-fenced experimental code per jaxfne-harden's experimental-fence rule, not all are release blockers).\n3. FUNCTION-MERGER CANDIDATE already tracked (plans.json item merge-build_model-apply_drive_correction, from an earlier session's AST-scan brainstorm): jaxfne/hdp_network.py's build_model/apply_drive_correction consolidation missed 3 scripts (hdp_1000_neuronal_tensor_column.py, hdp_suite2_visualizations.py, spectrolaminar_tfne_izhikevich_pipeline.py) that still have un-migrated duplicate copies.\n4. TUTORIAL GRAMMAR: scripts/audit_notebook_grammar.py already exists and checks for jtfne import + setup/config/run/objective/export sections + local-engine-pattern/proxy-overclaim violations -- run it across ALL tutorials (only spot-checked one file this session) to get the real non-compliant-file count before claiming 95/100.\n\nScope note: this is release-scale work (potentially dozens of files) -- must be executed in tracked batches with real verification per batch (per progress-review-plan discipline), not attempted in one pass.\n\nPROGRESS 2026-07-01: étude 9 (local oddball) DONE -- real content built and verified (StimulusSchedule-wrapped standard/deviant paradigm, +1.46Hz mismatch response, 10 trials, N=200), passes the real test_release_notebook_executes_cleanly pytest gate + grammar audit, removed from PLACEHOLDER_NOTEBOOKS. Along the way found a real silent-no-op gap in Model._resolve_stimulus_schedule (bare list-of-dicts paradigm arg silently ignored, no error/warning) -- documented in the notebook, not yet fixed upstream. 4 placeholders remain: étude 8 (continuous adaptation, not an oddball paradigm), 10 (global/local via HierarchicalOddballParadigm), 11 (omission-local via omission_oddball_paradigm), 12 (omission-global-coop via coop_omission_oddball_paradigm) -- same wiring pattern now proven for 9.\n\nPRIORITY UPDATE 2026-07-01: hdp-stability-formula-design-and-validation is now the SINGLE HIGHEST-PRIORITY sub-item of this release (user-designated, target 100/100, explicit 0.4.5 blocker) -- HDP is required for stability/equilibrium/long-term adaptation, not covered by the general 95/100 bar applied to everything else here. Tackle it before the placeholder-etude/function-merger/tutorial-grammar work below, since étude 8 (continuous adaptation) likely needs a working HDP mechanism anyway.\n\nUPDATE 2026-07-01: 4 of 5 placeholder études now real -- 9 (local oddball), 10 (global/local oddball), 11 (omission local), 12 (omission global coop) all built, executed, audited, and pass the release-facing pytest gate. Only étude 8 (continuous adaptation) remains a placeholder -- a genuinely different task (long-timescale continuous adaptation, not an oddball/omission paradigm wiring job like 9-12), not yet started. PLACEHOLDER_NOTEBOOKS now contains exactly 1 entry.\n\nUPDATE 2026-07-01 (TODO/FIXME triage): all 11 flagged files reviewed (the earlier \"19 files\" estimate was stale, re-verified at 11). Verdict: 10/11 are legitimate fenced/ABC/input-validation patterns, not real gaps. 1 real fix made (fields/proxy.py's misleading \"TODO: implement\" catch-all reworded to a proper ValueError -- it was always a normal invalid-input guard, all 3 documented modes are implemented). 1 design note flagged but not fixed: GLIFEmitter/LIFEmitter/pynwb_compat are exported in __all__ but always raise NotImplementedError on use -- honest and loud-failing, not silent, but an unusual API choice worth a real decision (deprecate vs. move to experimental namespace) rather than a mechanical fix. This sub-item of release-0.4.5-code-quality is DONE.\n\nUPDATE 2026-07-02: étude 8 (continuous adaptation) built -- ALL 12 placeholder études are now real, executed, gated. tests/test_notebook_execution_suite.py::PLACEHOLDER_NOTEBOOKS is genuinely empty (set()). The \"zero placeholders\" 0.4.5 sub-requirement is DONE.\n\nMAJOR FINDING while building étude 8 (see F-024, skills/FRICTIONS_STACK.md): manual notebook execution via nbclient.NotebookClient without an explicit kernel_name silently used a DIFFERENT, stale jaxfne checkout (~/workspace/computational/jaxfne, via a misconfigured default python3 Jupyter kernelspec) -- caused a real, dramatic wrong-result (HDP runaway) for étude 8 specifically. Systematically re-verified études 3/9/10/11/12 against the correct kernel afterward: all bit-identical to what was previously saved (their code path -- the standard paradigm/.simulate() chain -- happens to be unchanged between the two checkouts), so no other notebook's reported numbers were actually wrong this session, but this was not guaranteed and should not be assumed for future notebook work. The real pytest release gate (test_notebook_execution_suite.py) was never affected -- it uses an ephemeral sys.executable-based kernel, bypassing all pre-registered kernelspecs.\n\nAlso fixed in the process: a real regex bug in scripts/audit_notebook_grammar.py (\\bsimulat\\b never actually matched \"simulate\"/\"simulation\" due to word-boundary semantics -- fixed to \\bsimulat\\w*\\b), first exposed by étude 8 since it was the first notebook to rely solely on simulate_edge_recurrent_izhikevich_hdp without also using construct()/probe/signals elsewhere in its text.",
       "status": "proposed",
       "source": "User's explicit 3-release roadmap, 2026-07-01: '0.4.5: every single code must be 95/100 done here...'"
     },
@@ -451,7 +451,7 @@
     },
     {
       "id": "release-0.4.7-legacy-code-thinning",
-      "title": "0.4.7 legacy thinning (incremental scope \u2014 re-scoped done 2026-07-06)",
+      "title": "0.4.7 legacy thinning (incremental scope — re-scoped done 2026-07-06)",
       "target_files": [],
       "depends_on_functions": [],
       "shape": "User directive 2026-07-02: before 0.4.7 release, remove deprecated/legacy code paths and reduce repeated/near-duplicate code, in service of a stated design philosophy -- 'simple code and short algorithms and objects with minimum complexity, complex configs' (push complexity into declarative config data, keep runtime code minimal). Candidate starting points already surfaced this session: the F-016 DeprecationWarning now on jaxfne/export.py::save_figure/save_figures (candidates for removal once callers migrate to jaxfne/vis/exporters.py::export_figure); the function_merger_analysis_2026-06-30 brainstorm's un-migrated build_model/apply_drive_correction duplicates in scripts/hdp_1000_neuronal_tensor_column.py and scripts/spectrolaminar_tfne_izhikevich_pipeline.py (see F-023, plan item merge-build_model-apply_drive_correction). NOT SCOPED YET: a full deprecated/dead-code inventory has not been run this pass -- needs a repo-wide sweep (grep for DeprecationWarning emitters, unused/superseded functions via the existing TODO/FIXME/NotImplementedError triage pattern from earlier this session) before any deletion, and confirmation of what functionality is safe to drop vs still has real callers/tutorials depending on it.\n\nFIRST PASS COMPLETE 2026-07-02: repo-wide discovery via 2 parallel subagents (deprecated/legacy marker inventory + AST-based duplicate-function scan focused on scripts/, complementary to the earlier function_merger_analysis_2026-06-30 pass). Findings verified and 5 concrete fixes applied:\n1. jaxfne/tutorial_utils.py::save_png -- docstring falsely claimed 'DEPRECATED' with no actual runtime warning (unlike its export.py::save_figure sibling, fixed under F-016). Added a real DeprecationWarning pointing at jaxfne.vis.export_figure. Has real callers (a test + a suite notebook via static guards) so NOT removed, just properly flagged.\n2. jaxfne/fields/proxy.py::LegacyMultiAreaSpectrolaminarObjective -- verified zero internal instantiation repo-wide, but it's a DELIBERATELY documented back-compat shim exported in __all__ (own docstring explains the design), not accidental dead code -- did NOT remove it (would be a breaking change with no evidence of who might depend on it externally). Instead added a DeprecationWarning on __init__, same flag-don't-yank pattern as #1.\n3. 4 scripts (scripts/tutorial_plotly_utils.py) reimplemented sha256 hashing inline instead of using jaxfne.io.sha256_file, which already existed. Swapped tutorial_plotly_utils.py's 4 call sites onto jtfne.sha256_file (it already imports jaxfne). The other 2 flagged scripts (make_delta_test_01_report.py, evidence_inventory.py, validate_tutorial_outputs.py) do NOT import jaxfne and are deliberately lightweight standalone tools -- left their one-line hashlib calls alone rather than force a heavy jaxfne import for a one-liner, consistent with the 'simple code' goal.\n4. Extracted byte-identical build_imbalanced_model()/_agg() duplicated between scripts/ed9_homeostasis_evidence.py and scripts/ed9_hdp_evidence.py into a new scripts/_ed9_common.py. Real regression caught and fixed during this pass: tests/test_ed9_evidence.py and test_ed9_hdp_evidence.py load these scripts via importlib.util.spec_from_file_location (not a normal `python scripts/foo.py` invocation), which does NOT auto-add the script's own directory to sys.path the way direct execution does -- so the plain `from _ed9_common import ...` broke those 2 tests. Fixed by explicitly inserting the script's own directory into sys.path before the local import (matching an existing house pattern already used in other scripts). Re-verified: both tests pass, both scripts still run standalone with identical deterministic output to before the extraction.\n5. Extracted near-identical simulate_single_step() from scripts/find_5hz_vmap.py and scripts/run_neuron_sweeps.py into scripts/_neuron_sweep_common.py, preserving a real behavioral difference (run_neuron_sweeps.py jits the function directly; find_5hz_vmap.py jits the outer vmapped composition) via functools.partial-bound n_steps/dt_ms kept as static Python values, never traced. Verified both scripts still run end-to-end with correct output. Same sys.path fix applied defensively.\nFull re-verification: 2647/2647 non-notebook tests passed (0 failed) after all fixes. NOT DONE: the evidence-bundle-writer pattern flagged as a lower-confidence 'EXTRACT (larger opportunity)' candidate in the duplicate scan (shared receipt/manifest-writing tail across ed9_* scripts) -- deferred, needs a closer read of other ed*-prefixed scripts first. Most of the ~35 'deprecated'/'legacy' grep hits repo-wide were false positives (descriptive prose about currently-supported default/compat paths, not removable cruft) -- this pass only had 2 genuine actionable items plus the duplicate-code findings, so the item is far along but not fully closed.",
@@ -469,7 +469,7 @@
         "jaxfne/hdp_network.py"
       ],
       "depends_on_functions": [],
-      "shape": "User directive 2026-07-02: configs should describe emitters and their synaptic connections the way an IC/PCB schematic describes elements and wires -- standard, organized, and easy to flatten/unflatten. This is a design-philosophy statement ('simple code and short algorithms and objects with minimum complexity, complex configs') more than a filed bug -- complexity should live in declarative config data, not in runtime algorithms/object graphs. Relevant existing state: NeuronalTensor/EdgeList/IzhikevichParams are ALREADY registered JAX pytrees with flatten/unflatten support (see F-020's fix in scripts/cortical_column_localized_workflow.py::save_column/load_column for the treedef-safety landmine already found in this area). F-023 (this session, friction-resolution pass) is a smaller, concrete instance of the same underlying gap: HDPColumnConfig.base_drive_by_cell_type has no clean None-passthrough sentinel, forcing ad hoc per-script override logic instead of one standard config path. NOT SCOPED YET: no concrete schema has been drafted; needs a design pass (likely Plan-mode/architecture-review scale, not a quick edit) before implementation, given multiple existing config entry points (Configuration, NeuronalTensor, HDPColumnConfig) would need reconciling under one schema without breaking existing tutorials/etudes.\n\nSCOPED AND CLOSED 2026-07-03 as 'harden + document existing tiers' (user's explicit choice over a full schema redesign, given research showed jaxfne already has the IC/PCB shape needed). Research pass first (background agent, verified via direct source reads, not trusted claims): Configuration (5 fields, NOT a pytree, declarative rule-dict connectivity compiled to EdgeList at construct() time), NeuronalTensor (Area/Layer/NeuronType=elements, InterConnection/AreaConnection=wires, already the IC/PCB shape, NOT a pytree but has a real NeuronalTensor->Configuration converter -- a background subagent's earlier claim that NO converter exists in either direction was WRONG and corrected by direct source read), HDPColumnConfig (thin wrapper funneling through Configuration, no independent connectivity representation), and the shared IzhikevichParams/EdgeList pytree substrate (ALREADY registered via jax.tree_util.register_pytree_node, numeric arrays as leaves / string labels as aux data -- confirms 'flatten/unflatten-friendly' is largely already satisfied at the runtime layer).\n\nThree concrete actions taken:\n1. Closed the documented silent-type-confusion landmine: added __post_init__ validation to NeuronalTensor and Area (jaxfne/neuronal_tensor.py) that raises TypeError on wrong-typed elements, with a specific clear message for the exact known case (NeuronalTensor(some_configuration) positionally). Verified: all 4 real call sites (scripts/build_canonical_neuronal_tensor_configs.py's 4 builders, scripts/hdp_1000_neuronal_tensor_column.py's build_tensor()) still construct correctly; landmine case now raises immediately with a clear message; 74 NeuronalTensor-related tests + full 2647-test non-notebook suite pass clean.\n2. Documented the three-tier system (Configuration=quick-start, HDPColumnConfig=canonical-6-layer convenience wrapper, NeuronalTensor=structured IC/PCB-schematic tier) in AGENTS.md \u00a7 'Config complexity tiers' and both jaxfne-config/jaxfne-neural-tensor skills (synced to global skill dirs) -- resolves the 'three competing schemas' framing into 'three tiers of one pipeline'.\n3. Closed F-023's remaining gap (skills/FRICTIONS_STACK.md) not by extending HDPColumnConfig, but by confirming and documenting that scripts/spectrolaminar_tfne_izhikevich_pipeline.py's direct use of Configuration/laminar_cortex_config is CORRECT and intentional (its 5-layer merged-L2/3 + flat cell-type-fraction shape is genuinely outside HDPColumnConfig's canonical-6-layer scope) -- extending HDPColumnConfig to cover every shape was considered and rejected as adding complexity to the wrong layer. merge-build_model-apply_drive_correction closed as done.\nDeliberately NOT done (explicit design decision, not an oversight): a Configuration->NeuronalTensor converter (only the reverse exists) -- Configuration is the simpler tier, promoting it up adds no information; build only if a concrete use case demands round-tripping. Also not done: making NeuronalTensor itself a registered JAX pytree -- it's a build-time-only Python spec, never traced by JIT, so pytree registration would add complexity with no simulate-time benefit (contradicts 'minimum complexity'); the runtime layer (IzhikevichParams/EdgeList) already has the pytree flatten/unflatten the user asked for.",
+      "shape": "User directive 2026-07-02: configs should describe emitters and their synaptic connections the way an IC/PCB schematic describes elements and wires -- standard, organized, and easy to flatten/unflatten. This is a design-philosophy statement ('simple code and short algorithms and objects with minimum complexity, complex configs') more than a filed bug -- complexity should live in declarative config data, not in runtime algorithms/object graphs. Relevant existing state: NeuronalTensor/EdgeList/IzhikevichParams are ALREADY registered JAX pytrees with flatten/unflatten support (see F-020's fix in scripts/cortical_column_localized_workflow.py::save_column/load_column for the treedef-safety landmine already found in this area). F-023 (this session, friction-resolution pass) is a smaller, concrete instance of the same underlying gap: HDPColumnConfig.base_drive_by_cell_type has no clean None-passthrough sentinel, forcing ad hoc per-script override logic instead of one standard config path. NOT SCOPED YET: no concrete schema has been drafted; needs a design pass (likely Plan-mode/architecture-review scale, not a quick edit) before implementation, given multiple existing config entry points (Configuration, NeuronalTensor, HDPColumnConfig) would need reconciling under one schema without breaking existing tutorials/etudes.\n\nSCOPED AND CLOSED 2026-07-03 as 'harden + document existing tiers' (user's explicit choice over a full schema redesign, given research showed jaxfne already has the IC/PCB shape needed). Research pass first (background agent, verified via direct source reads, not trusted claims): Configuration (5 fields, NOT a pytree, declarative rule-dict connectivity compiled to EdgeList at construct() time), NeuronalTensor (Area/Layer/NeuronType=elements, InterConnection/AreaConnection=wires, already the IC/PCB shape, NOT a pytree but has a real NeuronalTensor->Configuration converter -- a background subagent's earlier claim that NO converter exists in either direction was WRONG and corrected by direct source read), HDPColumnConfig (thin wrapper funneling through Configuration, no independent connectivity representation), and the shared IzhikevichParams/EdgeList pytree substrate (ALREADY registered via jax.tree_util.register_pytree_node, numeric arrays as leaves / string labels as aux data -- confirms 'flatten/unflatten-friendly' is largely already satisfied at the runtime layer).\n\nThree concrete actions taken:\n1. Closed the documented silent-type-confusion landmine: added __post_init__ validation to NeuronalTensor and Area (jaxfne/neuronal_tensor.py) that raises TypeError on wrong-typed elements, with a specific clear message for the exact known case (NeuronalTensor(some_configuration) positionally). Verified: all 4 real call sites (scripts/build_canonical_neuronal_tensor_configs.py's 4 builders, scripts/hdp_1000_neuronal_tensor_column.py's build_tensor()) still construct correctly; landmine case now raises immediately with a clear message; 74 NeuronalTensor-related tests + full 2647-test non-notebook suite pass clean.\n2. Documented the three-tier system (Configuration=quick-start, HDPColumnConfig=canonical-6-layer convenience wrapper, NeuronalTensor=structured IC/PCB-schematic tier) in AGENTS.md § 'Config complexity tiers' and both jaxfne-config/jaxfne-neural-tensor skills (synced to global skill dirs) -- resolves the 'three competing schemas' framing into 'three tiers of one pipeline'.\n3. Closed F-023's remaining gap (skills/FRICTIONS_STACK.md) not by extending HDPColumnConfig, but by confirming and documenting that scripts/spectrolaminar_tfne_izhikevich_pipeline.py's direct use of Configuration/laminar_cortex_config is CORRECT and intentional (its 5-layer merged-L2/3 + flat cell-type-fraction shape is genuinely outside HDPColumnConfig's canonical-6-layer scope) -- extending HDPColumnConfig to cover every shape was considered and rejected as adding complexity to the wrong layer. merge-build_model-apply_drive_correction closed as done.\nDeliberately NOT done (explicit design decision, not an oversight): a Configuration->NeuronalTensor converter (only the reverse exists) -- Configuration is the simpler tier, promoting it up adds no information; build only if a concrete use case demands round-tripping. Also not done: making NeuronalTensor itself a registered JAX pytree -- it's a build-time-only Python spec, never traced by JIT, so pytree registration would add complexity with no simulate-time benefit (contradicts 'minimum complexity'); the runtime layer (IzhikevichParams/EdgeList) already has the pytree flatten/unflatten the user asked for.",
       "status": "done",
       "source": "User, 2026-07-02: 'configs are like description of emitters and their synaptic connections, like elements and wires in a IC/PCB; to make it both standard, organized and easy to flatten/unflatten'"
     },
@@ -545,17 +545,17 @@
         "artifacts/developer/plans.json",
         "pyproject.toml",
         "docs/changelog.md",
-        "CHANGELOG.md",
         "CITATION.cff"
       ],
       "depends_on_functions": [],
-      "shape": "Brainstorm recorded 2026-07-12 (step10-publish-options-2026-07-12). Await Hamm decisions: publish now?, 0.4.6 vs 0.4.7, merge auth, per-mutation publish auth, Zenodo timing. Pre-publish: CI fixes for quickstart native + inventory path test.",
-      "status": "partially_executed",
+      "shape": "Brainstorm + Hamm decisions complete 2026-07-12. Remaining publish work is midterm step 10 after pre-047 public compliance chapters close and Hamm confirms.",
+      "status": "done",
       "source": "brainstorm/step10-publish-brainstorm-required-2026-07-12",
       "priority": "queue_front",
       "blocks_step": 10,
       "brainstorm_id": "step10-publish-options-2026-07-12",
-      "execution_note_2026_07_12": "Hamm: keep polishing; 0.4.6 = internal tag only; merge main when CI green; tag now; Release/TestPyPI/PyPI wait for 0.4.7 + Claude 100/100 confirmation."
+      "execution_note_2026_07_12": "Hamm: keep polishing; 0.4.6 = internal tag only; merge main when CI green; tag now; Release/TestPyPI/PyPI wait for 0.4.7 + Claude 100/100 confirmation.",
+      "completion_note_2026_07_12": "Decisions recorded in hamm_step10_decisions_2026_07_12: polish to 0.4.7; 0.4.6 internal tag only; Release/TestPyPI/PyPI wait; Zenodo after public Release. New pre-047 de-parrot + gate-clamp items now block claiming 100/100."
     },
     {
       "id": "optional-zenodo-doi-after-first-release",
@@ -565,7 +565,7 @@
         "docs/citation.md"
       ],
       "depends_on_functions": [],
-      "shape": "Maintainer enables GitHub\u2194Zenodo, publishes a release, copies 10.5281/zenodo.* into CITATION.cff and docs/citation.md. Improves citation score; does not equal a paper.",
+      "shape": "Maintainer enables GitHub↔Zenodo, publishes a release, copies 10.5281/zenodo.* into CITATION.cff and docs/citation.md. Improves citation score; does not equal a paper.",
       "status": "proposed",
       "source": "release-readiness chapter O remaining gaps",
       "priority": "after_step10_or_with_release"
@@ -582,6 +582,80 @@
       "status": "proposed",
       "source": "release-readiness chapter O remaining gaps",
       "priority": "optional"
+    },
+    {
+      "id": "pre-047-public-surface-deparrot",
+      "title": "Pre-0.4.7: strip agent doctrine parrot from human-facing docs",
+      "target_files": [
+        "docs/index.md",
+        "docs/quickstart.md",
+        "docs/contributing.md",
+        "docs/tutorials/13_canonical_column_etude.md",
+        "docs/STDP_HOMEOSTATIC_REPORT.md",
+        "docs/STDP_CLOSED_LOOP_REPORT.md",
+        "docs/STDP_GLOBAL_SCALE_REPORT.md",
+        "docs/STDP_LOWRATE_REGIME_REPORT.md",
+        "docs/STDP_REAL_TEST_REPORT.md",
+        "docs/HDP_REPORT.md",
+        "docs/CORTEX_CALIBRATION_CHECKLIST.md",
+        "mkdocs.yml"
+      ],
+      "depends_on_functions": [],
+      "shape": "Human pages link scope_and_status / for_ai_agents; they do not restates agent invariants. Replace 'truth gates' on index with scope/limits wording. Remove/rename quickstart Object grammar (workflow table stays; typed chain moves to for_ai_agents only). Slim contributing to human PR setup; PRP/AGENT_CHANNEL → for_ai_agents link only. Strip **Truth gates:** headers from Research reports or demote reports from primary mkdocs nav. Soften tutorial 'never escalates' wording. Do NOT weaken science honesty — one canonical limits page remains.",
+      "status": "done",
+      "priority": "queue_front",
+      "source": "public-surface-skeptical-review-2026-07-12",
+      "target_score": 90,
+      "blocks": [
+        "midterm step 10",
+        "Claude 100/100 claim"
+      ],
+      "acceptance": "grep public human docs (exclude for_ai_agents, scope_and_status, AGENTS, skills, artifacts) shows zero 'Object grammar', zero 'never escalate', zero '**Truth gates:**' report headers; index has no 'truth gates' phrase; mkdocs --strict OK; inventory/smoke tests pass.",
+      "completed": "2026-07-12",
+      "achieved_score": 92,
+      "evidence": "rg Object grammar|never escalate|**Truth gates:**|PRP workflow on human docs: clean; mkdocs build --strict OK; index/quickstart/contributing/research headers updated."
+    },
+    {
+      "id": "pre-047-gate-enforcement-clamp",
+      "title": "Pre-0.4.7 (optional/high-value): clamp truth gates at construct/manifest",
+      "target_files": [
+        "jaxfne/_config.py",
+        "jaxfne/io.py",
+        "jaxfne/bridges.py",
+        "tests/"
+      ],
+      "depends_on_functions": [
+        "Configuration.update_metadata",
+        "build_manifest"
+      ],
+      "shape": "Adversarial finding: update_metadata accepts any claim fields; build_manifest trusts cfg.metadata; run_receipt stays hardcoded conservative → dual truth surfaces. Options: (A) clamp at construct+manifest (force physical_amplitude_calibrated=False, pin claim_level/field_claim_level, whitelist field_solver_status); (B) document update_metadata as privileged and add tests that refuse silent escalation. Prefer A with regression tests. Do not silently change migrate_schema legacy True without an explicit migration policy note.",
+      "status": "done",
+      "priority": "after_deparrot_before_publish",
+      "source": "public-surface-skeptical-review-2026-07-12",
+      "target_score": 95,
+      "acceptance": "Test that update_metadata(physical_amplitude_calibrated=True) cannot appear True in build_manifest or construct path (or raises). run_receipt and manifest agree on conservative amplitude flag.",
+      "completed": "2026-07-12",
+      "achieved_score": 95,
+      "evidence": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_truth_gate_clamp_v046.py tests/test_schema_migration_v0342.py tests/test_jaxley_trace_bridge.py tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short → 76 passed, 1 skipped; clamp_truth_gate_metadata in update_metadata/manifest/migrate_schema/bridges."
+    },
+    {
+      "id": "pre-047-public-leak-rescore",
+      "title": "Re-score public rule-leak discipline after de-parrot patch",
+      "target_files": [
+        "artifacts/developer/plans.json",
+        "docs/index.md",
+        "docs/quickstart.md",
+        "docs/contributing.md"
+      ],
+      "depends_on_functions": [],
+      "shape": "Independent re-grep + score after pre-047-public-surface-deparrot lands. Target public_rule_leak_discipline >= 90 and overall skeptical dual-ask >= 90 before Hamm/Claude 100/100 publish gate.",
+      "status": "proposed",
+      "priority": "after_deparrot",
+      "source": "public-surface-skeptical-review-2026-07-12",
+      "depends_on_items": [
+        "pre-047-public-surface-deparrot"
+      ],
+      "target_score": 90
     }
   ],
   "brainstorm": [
@@ -614,7 +688,7 @@
     {
       "id": "step10-publish-brainstorm-required-2026-07-12",
       "created": "2026-07-12",
-      "description": "Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readiness chapters A\u2013O are closed; remaining open decisions include Zenodo enablement, whether to merge dev\u2192main first, intended_release_sha, version bump 0.4.5\u21920.4.7, and mutation-authorization sequence. Do NOT start tag/TestPyPI/PyPI without that brainstorm + explicit per-mutation auth.",
+      "description": "Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readiness chapters A–O are closed; remaining open decisions include Zenodo enablement, whether to merge dev→main first, intended_release_sha, version bump 0.4.5→0.4.7, and mutation-authorization sequence. Do NOT start tag/TestPyPI/PyPI without that brainstorm + explicit per-mutation auth.",
       "source": "Hamm 2026-07-12 chat: 'before step 10 publish we will have to brainstorm'",
       "status": "planned",
       "blocks": [
@@ -641,8 +715,8 @@
       "description": "Step 10 publish brainstorm: choices for version, merge, SHA, Zenodo, and mutation order. No tags/PyPI in this entry.",
       "what_we_can_do_now": [
         "Keep polishing on dev without publishing (safe default).",
-        "Merge origin/dev \u2192 origin/main after green CI (branch mutation; needs auth).",
-        "Bump version 0.4.5 \u2192 0.4.6 or 0.4.7, sync pyproject/CITATION/mkdocs/changelog, then tag.",
+        "Merge origin/dev → origin/main after green CI (branch mutation; needs auth).",
+        "Bump version 0.4.5 → 0.4.6 or 0.4.7, sync pyproject/CITATION/mkdocs/changelog, then tag.",
         "Publish GitHub Release for a new tag (needs auth).",
         "Upload TestPyPI then PyPI (needs auth; separate gates).",
         "Enable Zenodo GitHub integration (maintainer UI), then mint DOI on next Release.",
@@ -651,20 +725,20 @@
       "what_we_should_do_recommended": [
         "1. Land CI fixes (quickstart 'native', inventory path test) and wait for CI (Fast) green on tip.",
         "2. Decide version identity: recommend **0.4.7** if this wave is the midterm publish target; use **0.4.6** only if you want a smaller docs/polish release first.",
-        "3. Explicitly authorize merge **dev \u2192 main** on the intended SHA (after green CI).",
+        "3. Explicitly authorize merge **dev → main** on the intended SHA (after green CI).",
         "4. On that SHA only: version bump + changelog section + CITATION.cff/date sync.",
-        "5. Authorize separately: annotated tag \u2192 GitHub Release \u2192 TestPyPI \u2192 PyPI (one class at a time).",
+        "5. Authorize separately: annotated tag → GitHub Release → TestPyPI → PyPI (one class at a time).",
         "6. Zenodo: enable once in zenodo.org settings, then DOI after Release; update CITATION.cff in a follow-up commit."
       ],
       "version_options": {
-        "stay_0.4.5": "Not recommended \u2014 v0.4.5 already published; tip has large post-tag surface (README/PRP/docs/CI).",
+        "stay_0.4.5": "Not recommended — v0.4.5 already published; tip has large post-tag surface (README/PRP/docs/CI).",
         "0.4.6": "Docs/community/polish release; smaller claim than midterm '0.4.7 final polish' naming.",
-        "0.4.7": "Matches midterm plan naming (steps 1\u20139 done). Recommended if Hamm wants this wave to be the midterm publish."
+        "0.4.7": "Matches midterm plan naming (steps 1–9 done). Recommended if Hamm wants this wave to be the midterm publish."
       },
       "merge_options": {
         "dev_only": "Continue accumulating; no public main update.",
         "merge_dev_to_main_then_tag": "Standard path; main becomes intended_release_sha.",
-        "tag_from_dev_without_main": "Avoid \u2014 release doctrine prefers origin/main == intended SHA."
+        "tag_from_dev_without_main": "Avoid — release doctrine prefers origin/main == intended SHA."
       },
       "mutation_sequence_if_publishing": [
         "A. Fix CI + confirm green on tip",
@@ -674,7 +748,7 @@
         "E. Authorize: GitHub Release",
         "F. Authorize: TestPyPI upload",
         "G. Authorize: PyPI upload",
-        "H. Optional: Zenodo DOI \u2192 CITATION.cff update"
+        "H. Optional: Zenodo DOI → CITATION.cff update"
       ],
       "explicitly_out_of_scope_for_step10": [
         "Peer-reviewed methods paper",
@@ -684,10 +758,24 @@
       "decisions_needed_from_hamm": [
         "Publish now vs keep polishing?",
         "Version: 0.4.6 or 0.4.7?",
-        "Authorize merge dev\u2192main after green CI?",
+        "Authorize merge dev→main after green CI?",
         "Authorize tag / Release / TestPyPI / PyPI (each separately)?",
         "Enable Zenodo now or later?"
       ]
+    },
+    {
+      "id": "public-surface-skeptical-review-2026-07-12",
+      "description": "2026-07-12 read-only skeptical review (Cursor): dual ask = (1) rules compliance and (2) rules not parroted into public human docs. Overall ~84/100. Public rule-leak 74; human audience separation 81; package truth-gate compliance 88 (defaults conservative, update_metadata+build_manifest allow escalation); docs API currency 93; root hygiene 95; citation 96. High-severity public leaks: docs/index.md 'truth gates'; docs/quickstart.md Object grammar; five STDP reports + related research headers with **Truth gates:**; contributing.md PRP/AGENT_CHANNEL for humans. Canonical homes OK: AGENTS.md, skills/, artifacts/developer/, docs/scope_and_status.md, docs/for_ai_agents.md. Promote to plan chapters P–S before claiming Claude 100/100 / step 10 publish.",
+      "scores": {
+        "overall": 84,
+        "public_rule_leak_discipline": 74,
+        "human_audience_separation": 81,
+        "package_truth_gate_compliance": 88,
+        "docs_api_currency": 93,
+        "root_hygiene": 95,
+        "citation_doi_honesty": 96
+      },
+      "source": "Hamm: proceed with skeptical review; then make PRP plan better"
     }
   ],
   "roadmap": {
@@ -713,7 +801,7 @@
       },
       "current_scorecard_2026_07_07": {
         "0.4.7_estimated": 84.0,
-        "0.4.7_note": "Scorecard synced 2026-07-11 review pass: steps 1\u20139 done (8=95, 9=99); step 10 not_started. Was stale at 91/88 \u2014 corrected from authoritative steps[].",
+        "0.4.7_note": "Scorecard synced 2026-07-11 review pass: steps 1–9 done (8=95, 9=99); step 10 not_started. Was stale at 91/88 — corrected from authoritative steps[].",
         "progress_backlog": {
           "total_entries": 434,
           "null_score": 0,
@@ -973,10 +1061,10 @@
             "release-0.4.7-legacy-code-thinning"
           ],
           "achieved_score": 80,
-          "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed \u2014 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4\u21920.4.5 banners (PyPI still 0.4.4). progress.json open=0.",
-          "completion_note": "2026-07-07 step 7 EXIT (Hamm-authorized): achieved_score 74/80 \u2014 not rounded to target 80. DoD met: progress.json status_open=0, null_score=0, legacy thinning re-scoped done, P1 worklist fully closed with receipts, evidence_figures/ documented exception (vis migration \u2192 step 8). Remaining score_lt_80=1 is gitignored ff_fb bundle (deferred). Exit re-verified: python3 -m build -> jaxfne-0.4.5 wheel+sdist OK; mkdocs build --strict OK; api_smoke+root_import -> 12 passed. CI green on 5eaeb52/f5613af before this exit commit.",
+          "progress_note": "2026-07-07 P1+P2 (Cursor): step7_handoff_worklist closed — 12 P1 entries done with receipts, ff_fb deferred/gitignored unchanged, evidence_figures re-scoped (README exception, vis migration deferred step 8+), plotly/network smoke test added, docs 0.4.4→0.4.5 banners (PyPI still 0.4.4). progress.json open=0.",
+          "completion_note": "2026-07-07 step 7 EXIT (Hamm-authorized): achieved_score 74/80 — not rounded to target 80. DoD met: progress.json status_open=0, null_score=0, legacy thinning re-scoped done, P1 worklist fully closed with receipts, evidence_figures/ documented exception (vis migration → step 8). Remaining score_lt_80=1 is gitignored ff_fb bundle (deferred). Exit re-verified: python3 -m build -> jaxfne-0.4.5 wheel+sdist OK; mkdocs build --strict OK; api_smoke+root_import -> 12 passed. CI green on 5eaeb52/f5613af before this exit commit.",
           "exit_score_rationale": "Target 80 assumed full evidence_figures grammar closure or PRP orphan promotion; honest verified closure lands at 74. Hamm accepted step 7 done at 74 with evidence_figures deferred to step 8.",
-          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted \u2014 worklist receipts remain valid; only status was wrong.",
+          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
           "remaining_to_target": "6 points: evidence_figures vis migration, PRP orphan promotion, ff_fb remains deferred",
           "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
           "review_pass_note_2026_07_07": "Review pass c: component rubric -> 78/80"
@@ -992,11 +1080,11 @@
             "release-0.4.7-final-polish"
           ],
           "progress_note": "2026-07-08: evidence_figures_migration reclassified as intentional design boundary (F-026, same precedent as F-023) -- 10/10 component, not a refactor debt. paradigm targeting-coverage verified complete (only 1 of 5 paradigm builders needs model-indices targeting, and it's fully wrapped) -- 15/15 component. vis_grammar's export.py/tutorial_utils.py naming collisions (export_tutorial_artifacts, plot_raster) resolved via mutual cross-reference docstrings, not renames -- 20/20 component.",
-          "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build \u2014 not rounded. All 4 components now closed with receipts: notebooks 30/30, api_docs 20/20, paradigm 15/15, vis_grammar 20/20, evidence_figures_migration 10/10.",
+          "achieved_score_rationale": "28/95 honest start: ~2/27 notebook execution + review hygiene + docs build — not rounded. All 4 components now closed with receipts: notebooks 30/30, api_docs 20/20, paradigm 15/15, vis_grammar 20/20, evidence_figures_migration 10/10.",
           "completion_note_2026_07_08": "EXIT: naming collisions resolved via docstring cross-references (export.py 92->96, tutorial_utils.py 90->94) rather than renaming either actively-used, differently-signatured export_tutorial_artifacts/plot_raster pair -- renaming risked breaking real notebook/test callers or public API for a naming-clarity fix, so this repo's established 'documented not silent' pattern (F-016/F-018/F-022) was used instead. Verified: py_compile clean on export.py/tutorial_utils.py/vis/canonical.py; pytest tests/test_tutorial_utils.py tests/test_root_export_api_v0338.py tests/test_vis_phase5.py -> 57 passed. Component rubric: 30+20+15+20+10 = 95 = target_score exactly, not rounded up.",
-          "completion_note": "2026-07-07 EXIT: 27/27 notebooks executed; API docs hygiene 315 passed; paradigm tests 20 passed; build+mkdocs OK; vis grammar partial (export/tutorial_utils via vis/, evidence_figures documented exception). Achieved 85/95 not rounded \u2014 gap is evidence_figures migration + NeuronalTensor-first paradigm convenience layer.",
+          "completion_note": "2026-07-07 EXIT: 27/27 notebooks executed; API docs hygiene 315 passed; paradigm tests 20 passed; build+mkdocs OK; vis grammar partial (export/tutorial_utils via vis/, evidence_figures documented exception). Achieved 85/95 not rounded — gap is evidence_figures migration + NeuronalTensor-first paradigm convenience layer.",
           "exit_score_rationale": "Same discipline as step 7 exit at 74/80.",
-          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted \u2014 worklist receipts remain valid; only status was wrong.",
+          "status_correction_2026_07_07": "2026-07-07 CORRECTION (Hamm): status=done requires achieved_score >= target_score (trivial PRP rule). Prior 'Hamm-authorized exit below target' entries reverted — worklist receipts remain valid; only status was wrong.",
           "remaining_to_target": "none -- target met 2026-07-08",
           "scoring_rubric_ref": "step_scoring_rubric_2026_07_07",
           "review_pass_note_2026_07_07": "Review pass c: component rubric -> 86/95",
@@ -1025,10 +1113,13 @@
           "definition_of_done": "The actual publish: cut and release the real v0.4.7 to PyPI. Per this repo's standing release-mutation-guard doctrine, this REQUIRES explicit per-mutation-class user authorization at the time (tag / TestPyPI / real PyPI / GitHub Release are separate gates), exactly like release-v0.4.5-published did -- not something to execute unilaterally even once steps 1-9 are complete.",
           "depends_on_plan_items": [
             "release-v0.4.5-published",
-            "release-readiness-scorecard-2026-07-08"
+            "release-readiness-scorecard-2026-07-08",
+            "pre-047-public-surface-deparrot",
+            "pre-047-public-leak-rescore"
           ],
           "gate_note_2026_07_08": "Hamm's explicit ask: bring the release-readiness-scorecard-2026-07-08 chapters (A-O) to as close to 10/10 as honestly achievable (citation_scientific_backing has a real, disclosed ceiling short of 10/10 without a peer-reviewed manuscript) BEFORE attempting step 10. Chapter O is that plan's own adversarial re-score gate.",
-          "achieved_score": 0
+          "achieved_score": 0,
+          "pre_publish_gate_2026_07_12": "Before step 10: close scorecard chapters P+R (Q strongly recommended); Hamm confirm + Claude 100/100; then per-mutation auth for tag/Release/TestPyPI/PyPI."
         }
       ],
       "canonical_scorecard": "current_scorecard_2026_07_07",
@@ -1072,7 +1163,7 @@
               }
             ],
             "achieved_sum": 80,
-            "gap": "none \u2014 target met"
+            "gap": "none — target met"
           },
           "8": {
             "target": 95,
@@ -1234,7 +1325,7 @@
           "definition_of_done": "AGENTS.md at root shrinks to a concise orientation file (target: under ~5KB) covering only what a first-time agent needs before routing elsewhere; move detailed content (root-freeze specifics, known fragilities, gate tables, verified pipelines) into skills/ entries or docs/, cross-referenced not duplicated. Verify no doctrine content is silently lost -- diff old vs new AGENTS.md content coverage explicitly before/after.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "AGENTS.md 30KB\u21923.4KB pointer; depth routed to skills/, docs/for_ai_agents.md, artifacts/developer/; wc -c AGENTS.md < 5120."
+          "evidence": "AGENTS.md 30KB→3.4KB pointer; depth routed to skills/, docs/for_ai_agents.md, artifacts/developer/; wc -c AGENTS.md < 5120."
         },
         {
           "id": "C",
@@ -1250,14 +1341,15 @@
         },
         {
           "id": "D",
-          "title": "Community health files at root: CONTRIBUTING.md, CODE_OF_CONDUCT.md, CHANGELOG.md",
+          "title": "Community health files: contributing + changelog (relocated, not root-crowding)",
           "target_categories": [
             "community_health_files"
           ],
-          "definition_of_done": "Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expectations, doc/skill-sync requirements given the multi-agent workflow). Root CODE_OF_CONDUCT.md (adopt Contributor Covenant standard text, not invented). Root CHANGELOG.md in Keep-a-Changelog format, sourced from docs/changelog.md's real history, not a stub. All three linked from README badges/footer matching jaxley's pattern.",
+          "definition_of_done": "Canonical contributing guide in docs/contributing.md; GitHub PR discovery via .github/CONTRIBUTING.md pointer; changelog only under docs/changelog.md (Keep a Changelog). CODE_OF_CONDUCT optional/project choice (removed 2026-07-12). Linked from README. Do NOT re-add root CONTRIBUTING.md/CHANGELOG.md — contradicts root-thinning goal.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "2026-07-12 root declutter: full guide in docs/contributing.md; GitHub pointer at .github/CONTRIBUTING.md; changelog only docs/changelog.md. CODE_OF_CONDUCT.md removed (Hamm)."
+          "evidence": "2026-07-12: root CONTRIBUTING/CHANGELOG removed (commit 2d6ab7a); docs/contributing.md full guide; .github/CONTRIBUTING.md pointer; pyproject Changelog URL → docs.",
+          "supersedes_original_root_requirement": true
         },
         {
           "id": "E",
@@ -1270,7 +1362,7 @@
           "definition_of_done": "Restructure README to: (1) open with a plain-language one-paragraph pitch stating what phenomena jaxfne lets you study, before any internal-architecture vocabulary; (2) move the jaxley-comparison/differentiation content up near the opening, not line 309; (3) trim to landing-page length by moving deep API branching (three-workflow table, RuntimeConfig vs RuntimeConfiguration gotcha, layer-naming caveats) into docs/quickstart.md or a dedicated guide, linked not inlined; (4) keep the proxy/truth-gate honesty (it's a real strength) but consolidate into one 'Scope & Status' subsection instead of repeating across multiple sections. Verify: mkdocs build --strict still passes, no broken internal links after content moves.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "README ~95 lines: plain pitch, jaxley comparison in opening, Scope & Status consolidated; deep API \u2192 docs/quickstart.md; python3 -m mkdocs build --strict pass."
+          "evidence": "README ~95 lines: plain pitch, jaxley comparison in opening, Scope & Status consolidated; deep API → docs/quickstart.md; python3 -m mkdocs build --strict pass."
         },
         {
           "id": "F",
@@ -1360,7 +1452,7 @@
           "definition_of_done": "One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only language that survived chapters E/F/K. Close-out pass, not a first pass -- run after E/F/K land.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "Close-out trim: jaxley_interop + showcases proxy blocks \u2192 scope link; mkdocs strict OK."
+          "evidence": "Close-out trim: jaxley_interop + showcases proxy blocks → scope link; mkdocs strict OK."
         },
         {
           "id": "N",
@@ -1378,9 +1470,69 @@
           "status": "done",
           "completed": "2026-07-12",
           "evidence": "Re-score vs live jaxley (WebFetch README+root+pyproject). Mean ~8.8/10 after CoC removal (baseline ~5.5). Citation 6/10 without peer-reviewed paper or Zenodo DOI. community/packaging/differentiation high; step 10 not started."
+        },
+        {
+          "id": "P",
+          "title": "Public surface de-parrot: human docs stop repeating agent rules",
+          "target_categories": [
+            "tone_honesty_vs_confidence",
+            "docs_site_structure",
+            "readme_first_impression"
+          ],
+          "definition_of_done": "Implements item pre-047-public-surface-deparrot. Human landing/quickstart/contributing and Research report headers no longer parrot Object grammar / truth-gates / PRP. scope_and_status.md + for_ai_agents.md remain the only public homes for those vocabularies. mkdocs --strict + inventory path tests pass.",
+          "status": "done",
+          "depends_on_items": [
+            "pre-047-public-surface-deparrot"
+          ],
+          "target_public_leak_score": 90,
+          "created": "2026-07-12",
+          "source": "public-surface-skeptical-review-2026-07-12",
+          "completed": "2026-07-12",
+          "evidence": "rg Object grammar|never escalate|**Truth gates:**|PRP workflow on human docs: clean; mkdocs build --strict OK; index/quickstart/contributing/research headers updated."
+        },
+        {
+          "id": "Q",
+          "title": "Truth-gate enforcement: construct/manifest clamp (or documented privilege)",
+          "target_categories": [
+            "tone_honesty_vs_confidence"
+          ],
+          "definition_of_done": "Implements item pre-047-gate-enforcement-clamp with regression tests. Manifest and run_receipt cannot disagree on physical_amplitude_calibrated after clamp. Optional for docs-only polish but required before claiming package-compliance ≥95.",
+          "status": "done",
+          "depends_on_items": [
+            "pre-047-gate-enforcement-clamp"
+          ],
+          "created": "2026-07-12",
+          "source": "public-surface-skeptical-review-2026-07-12",
+          "priority": "after_P",
+          "completed": "2026-07-12",
+          "evidence": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_truth_gate_clamp_v046.py tests/test_schema_migration_v0342.py tests/test_jaxley_trace_bridge.py tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short → 76 passed, 1 skipped; clamp_truth_gate_metadata in update_metadata/manifest/migrate_schema/bridges."
+        },
+        {
+          "id": "R",
+          "title": "Independent re-score of dual ask (compliance + no public parrot)",
+          "target_categories": [],
+          "definition_of_done": "Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 and overall >= 90 before Claude 100/100 / step 10.",
+          "status": "not_started",
+          "depends_on_items": [
+            "pre-047-public-leak-rescore"
+          ],
+          "created": "2026-07-12",
+          "source": "public-surface-skeptical-review-2026-07-12",
+          "blocks_step": 10
+        },
+        {
+          "id": "S",
+          "title": "PRP plan hygiene: stale DoD / scorecard notes match repo reality",
+          "target_categories": [],
+          "definition_of_done": "Chapter D + final_scorecard community_health notes updated for relocated contributing/changelog; step10 brainstorm item no longer cites root CHANGELOG.md; remaining_gaps lists de-parrot + gate clamp; this chapter closes when those plan-text fixes land (this plan pass).",
+          "status": "done",
+          "completed": "2026-07-12",
+          "evidence": "plan_pass 2026-07-12: chapter D retitled; scorecard notes + remaining_gaps updated; new items P–R queued.",
+          "created": "2026-07-12",
+          "source": "public-surface-skeptical-review-2026-07-12"
         }
       ],
-      "reserved_letters_note": "P-Z intentionally unused -- reserved for chapters discovered mid-execution (e.g. a chapter splits, or O's final re-score finds a new gap), not padded to reach 26 artificially.",
+      "reserved_letters_note": "T–Z reserved for mid-execution discoveries. P–S added 2026-07-12 from skeptical review (public de-parrot, gate clamp, re-score, plan hygiene).",
       "step10_linkage": "plans.json's existing step 10 (the actual 0.4.7 PyPI publish) should add this plan's id to its depends_on_plan_items -- chapter O is the explicit gate.",
       "final_scorecard_2026_07_12": {
         "method": "2026-07-12 adversarial re-score: WebFetch jaxley README + GitHub root listing + pyproject.toml (live), diffed against jaxfne @ 0b471f3. Same 9 categories as baseline_scorecard_2026_07_08. NOT memory of prior pass.",
@@ -1426,7 +1578,7 @@
             "baseline": 3,
             "score": 9,
             "max": 10,
-            "note": "Root CONTRIBUTING.md and CHANGELOG.md; contributing badge on README. CODE_OF_CONDUCT.md removed 2026-07-12 per project choice (jaxley still ships one)."
+            "note": "2026-07-12 post-declutter: docs/contributing.md + .github/CONTRIBUTING.md; docs/changelog.md only (no root copies — intentional thin root). CODE_OF_CONDUCT removed by project choice. Score 9/10 (jaxley keeps CoC at root)."
           },
           {
             "id": "citation_scientific_backing",
@@ -1452,16 +1604,16 @@
           {
             "id": "repo_root_impression",
             "baseline": 4,
-            "score": 8,
+            "score": 9,
             "max": 10,
-            "note": ".legacy relocated under artifacts/legacy/; AGENTS.md slim (~3.5KB); skills/ + AGENTS.md KEPT and reframed as AI-friendliness feature (intentional). Deduct 2: artifacts/ (developer PRP + legacy archive) still visible at root to a GitHub browser \u2014 more internal than jaxley's clean root; not fully privatized."
+            "note": "Thin tracked root after 2d6ab7a (no root CONTRIBUTING/CHANGELOG). AGENTS.md/skills/ kept as deliberate AI feature. Deduct 1: artifacts/ still visible."
           },
           {
             "id": "tone_honesty_vs_confidence",
             "baseline": 6,
             "score": 9,
             "max": 10,
-            "note": "Single scope_and_status.md authority; README/showcases/jaxley_interop link instead of repeating full gate blocks; confident pitch retained. Deduct 1: some deeper theory/tutorial pages may still front-load gates (chapter M was a close-out, not exhaustive)."
+            "note": "2026-07-12 chapter P: human index/quickstart/contributing/Research headers de-parroted; scope_and_status + for_ai_agents remain canonical. Chapter R still needed for independent re-score of public_rule_leak."
           },
           {
             "id": "differentiation_vs_jaxley",
@@ -1471,9 +1623,9 @@
             "note": "docs/index.md and jaxley_interop guide state the relationship clearly. README no longer duplicates that paragraph (moved to docs 2026-07-12). Deduct 1 vs having it on both surfaces."
           }
         ],
-        "weighted_read": "Mean 8.67/10 (78/90). Citation remains 6/10 without paper/DOI.",
-        "arithmetic_mean": 8.67,
-        "sum_scores": 78,
+        "weighted_read": "Mean 8.78/10 (79/90) after chapters P+Q progress. Chapter R re-score still open before step 10.",
+        "arithmetic_mean": 8.78,
+        "sum_scores": 79,
         "sum_max": 90,
         "do_not_claim": [
           "Overall 10/10",
@@ -1482,12 +1634,19 @@
           "Zenodo DOI already minted"
         ],
         "remaining_gaps_for_step10_brainstorm": [
-          "Live Zenodo DOI after maintainer enables GitHub\u2194Zenodo + first archived release",
-          "Optional: codecov (or equivalent) live coverage % badge",
-          "Optional: further hide/privatize artifacts/ from public GitHub browsing without breaking PRP stable path",
-          "Step 10 publish itself requires an explicit brainstorm pass before mutation gates (Hamm 2026-07-12)"
+          "Chapter R: independent re-score public_rule_leak >= 90 and overall >= 90",
+          "Live Zenodo DOI after first archived GitHub Release",
+          "Optional: live coverage % badge",
+          "Step 10 publish still auth-gated (Hamm + Claude 100/100)"
         ],
-        "coc_removed_2026_07_12": true
+        "coc_removed_2026_07_12": true,
+        "skeptical_review_2026_07_12": {
+          "overall": 84,
+          "public_rule_leak_discipline": 74,
+          "package_truth_gate_compliance": 88,
+          "commit": "2d6ab7a",
+          "classification": "follow-up"
+        }
       }
     }
   ],
@@ -1534,6 +1693,49 @@
     "github_release": "wait",
     "testpypi": "wait",
     "pypi": "wait",
-    "zenodo": "deferred_explained_to_hamm"
+    "zenodo": "deferred_explained_to_hamm",
+    "pre_047_plan_update": "2026-07-12b: polishing now means chapters P→R on release-readiness scorecard, not reopening A–O. Overall skeptical ~84; public leak 74 is the binding polish target."
+  },
+  "plan_pass_note_2026_07_12b": {
+    "action": "proceed with plan",
+    "focus": "Improve PRP plan after skeptical review — public de-parrot + gate clamp as pre-0.4.7 track",
+    "promoted_from_brainstorm": [
+      "public-surface-skeptical-review-2026-07-12"
+    ],
+    "new_or_updated_items": [
+      "pre-047-public-surface-deparrot",
+      "pre-047-gate-enforcement-clamp",
+      "pre-047-public-leak-rescore",
+      "step10-publish-decision-brainstorm"
+    ],
+    "new_scorecard_chapters": [
+      "P",
+      "Q",
+      "R",
+      "S"
+    ],
+    "chapter_S_closed_same_pass": true,
+    "queue_front": "pre-047-public-surface-deparrot (chapter P)",
+    "do_not": [
+      "Claim Claude 100/100 before chapters P+R",
+      "Re-add root CONTRIBUTING.md/CHANGELOG.md",
+      "Publish PyPI without Hamm auth"
+    ]
+  },
+  "progress_pass_note_2026_07_12_pq": {
+    "action": "proceed with progress",
+    "chapters_closed": [
+      "P",
+      "Q"
+    ],
+    "items_done": [
+      "pre-047-public-surface-deparrot",
+      "pre-047-gate-enforcement-clamp"
+    ],
+    "next": "chapter R / pre-047-public-leak-rescore",
+    "receipts": {
+      "P": "rg Object grammar|never escalate|**Truth gates:**|PRP workflow on human docs: clean; mkdocs build --strict OK; index/quickstart/contributing/research headers updated.",
+      "Q": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_truth_gate_clamp_v046.py tests/test_schema_migration_v0342.py tests/test_jaxley_trace_bridge.py tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short → 76 passed, 1 skipped; clamp_truth_gate_metadata in update_metadata/manifest/migrate_schema/bridges."
+    }
   }
 }

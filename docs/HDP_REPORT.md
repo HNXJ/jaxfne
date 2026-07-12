@@ -2,8 +2,7 @@
 
 **Status:** Technical report · computational-control method, not a biological
 mechanism claim · 2026-06-24
-**Truth gates:** `claim_status=computational_control_proxy_not_biological_mechanism`,
-`biological_learning_claim=False`, `mechanism_claim_status=not_claimed`.
+Scope: computational-control proxy (not a biological mechanism claim) — see [Scope & status](scope_and_status.md).
 
 ## Summary
 

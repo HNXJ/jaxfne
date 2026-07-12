@@ -125,13 +125,13 @@ cfg = (cfg
 
 `plasticity()` records manifest intent only — STDP runs via separate `run_stdp_stream`, not `simulate()`.
 
-## Object grammar
+## Typical workflow
 
 ```text
 setup → config → construct → simulate → visualize → tune/objective → optimize → export
 ```
 
-Typed chain: `Config → Emitter → SourceMap → FieldProxy → Probe → Signals → Objective → Optimizer → Manifest`.
+Agent-oriented object chain (Config → Net → …): [For AI agents](for_ai_agents.md).
 
 ## Interactive 3D circuit view
 

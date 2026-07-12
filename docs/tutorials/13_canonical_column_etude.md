@@ -230,7 +230,7 @@ manifest = tuned.manifest(
 jtfne.save_json(manifest, "tuned_run_manifest.json")  # allow_nan=False; finite-checked
 ```
 
-The manifest preserves the conservative gates and never escalates them:
+Manifests carry the same default claim fields as [Scope & status](../scope_and_status.md):
 
 ```text
 claim_level:                   computational_scaffold

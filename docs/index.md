@@ -11,7 +11,7 @@ population readouts. They **compose**: a Jaxley model plugs into jaxfne as an
 emitter via `JaxleyBridge` and uses the same readout stack as built-in Izhikevich
 emitters. Details: [Jaxley interoperability](guides/jaxley_interop.md).
 
-Scope and truth gates: [Scope & status](scope_and_status.md).
+Scope & limits: [Scope & status](scope_and_status.md).
 
 ## Install
 
@@ -47,6 +47,6 @@ Prefer the fluent `Configuration` builder or Jaxley bridge? See [Quickstart](qui
 - [Quickstart](quickstart.md) — three build paths, canonical column, HDP
 - [Tutorials](tutorials/index.md)
 - [API reference](api/index.md)
-- [Scope & status](scope_and_status.md) — proxy readouts and truth gates
+- [Scope & status](scope_and_status.md) — proxy readouts and claim limits
 - [For AI agents](for_ai_agents.md)
 - [Changelog](changelog.md)
