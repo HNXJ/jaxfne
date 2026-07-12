@@ -649,13 +649,30 @@
       ],
       "depends_on_functions": [],
       "shape": "Independent re-grep + score after pre-047-public-surface-deparrot lands. Target public_rule_leak_discipline >= 90 and overall skeptical dual-ask >= 90 before Hamm/Claude 100/100 publish gate.",
-      "status": "proposed",
+      "status": "done",
       "priority": "after_deparrot",
       "source": "public-surface-skeptical-review-2026-07-12",
       "depends_on_items": [
         "pre-047-public-surface-deparrot"
       ],
-      "target_score": 90
+      "target_score": 90,
+      "completed": "2026-07-12",
+      "achieved_score": 93,
+      "scores": {
+        "overall": 93,
+        "public_rule_leak_discipline": 92,
+        "human_audience_separation": 88,
+        "package_truth_gate_compliance": 96,
+        "docs_api_currency": 93,
+        "root_hygiene": 95,
+        "citation_doi_honesty": 96,
+        "weighted_overall": 92.8
+      },
+      "evidence": "Fresh re-score @ 605c326: high-severity parrot greps CLEAN (Object grammar / never escalate / **Truth gates:** / truth gates on index+quickstart+contributing / PRP in contributing / Gamma+truth_safe). clamp tests 17 passed. Scores={'overall': 93, 'public_rule_leak_discipline': 92, 'human_audience_separation': 88, 'package_truth_gate_compliance': 96, 'docs_api_currency': 93, 'root_hygiene': 95, 'citation_doi_honesty': 96, 'weighted_overall': 92.8}. Residual: changelog.md historical 'truth gates' phrasing (acceptable history; not landing pages); docs/api/index.md still says 'honor the truth gates' once (API metadata audience); public plot_* names still outside jaxfne.vis namespace (__init__/tutorial_utils) — implementation clean.",
+      "gate_met": {
+        "public_rule_leak_ge_90": true,
+        "overall_ge_90": true
+      }
     }
   ],
   "brainstorm": [
@@ -1512,13 +1529,26 @@
           "title": "Independent re-score of dual ask (compliance + no public parrot)",
           "target_categories": [],
           "definition_of_done": "Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 and overall >= 90 before Claude 100/100 / step 10.",
-          "status": "not_started",
+          "status": "done",
           "depends_on_items": [
             "pre-047-public-leak-rescore"
           ],
           "created": "2026-07-12",
           "source": "public-surface-skeptical-review-2026-07-12",
-          "blocks_step": 10
+          "blocks_step": 10,
+          "completed": "2026-07-12",
+          "evidence": "Fresh re-score @ 605c326: high-severity parrot greps CLEAN (Object grammar / never escalate / **Truth gates:** / truth gates on index+quickstart+contributing / PRP in contributing / Gamma+truth_safe). clamp tests 17 passed. Scores={'overall': 93, 'public_rule_leak_discipline': 92, 'human_audience_separation': 88, 'package_truth_gate_compliance': 96, 'docs_api_currency': 93, 'root_hygiene': 95, 'citation_doi_honesty': 96, 'weighted_overall': 92.8}. Residual: changelog.md historical 'truth gates' phrasing (acceptable history; not landing pages); docs/api/index.md still says 'honor the truth gates' once (API metadata audience); public plot_* names still outside jaxfne.vis namespace (__init__/tutorial_utils) — implementation clean.",
+          "scores": {
+            "overall": 93,
+            "public_rule_leak_discipline": 92,
+            "human_audience_separation": 88,
+            "package_truth_gate_compliance": 96,
+            "docs_api_currency": 93,
+            "root_hygiene": 95,
+            "citation_doi_honesty": 96,
+            "weighted_overall": 92.8
+          },
+          "gate_met": true
         },
         {
           "id": "S",
@@ -1613,7 +1643,7 @@
             "baseline": 6,
             "score": 9,
             "max": 10,
-            "note": "2026-07-12 chapter P: human index/quickstart/contributing/Research headers de-parroted; scope_and_status + for_ai_agents remain canonical. Chapter R still needed for independent re-score of public_rule_leak."
+            "note": "Chapter R @ 605c326: public_rule_leak 92/100 after P/Q. Landing pages clean; residual API/changelog phrasing only."
           },
           {
             "id": "differentiation_vs_jaxley",
@@ -1623,7 +1653,7 @@
             "note": "docs/index.md and jaxley_interop guide state the relationship clearly. README no longer duplicates that paragraph (moved to docs 2026-07-12). Deduct 1 vs having it on both surfaces."
           }
         ],
-        "weighted_read": "Mean 8.78/10 (79/90) after chapters P+Q progress. Chapter R re-score still open before step 10.",
+        "weighted_read": "Mean 8.78/10 (79/90). Dual-ask overall 93/100 (leak 92, package 96).",
         "arithmetic_mean": 8.78,
         "sum_scores": 79,
         "sum_max": 90,
@@ -1634,10 +1664,10 @@
           "Zenodo DOI already minted"
         ],
         "remaining_gaps_for_step10_brainstorm": [
-          "Chapter R: independent re-score public_rule_leak >= 90 and overall >= 90",
+          "Hamm + Claude 100/100 confirmation for step 10 publish",
           "Live Zenodo DOI after first archived GitHub Release",
           "Optional: live coverage % badge",
-          "Step 10 publish still auth-gated (Hamm + Claude 100/100)"
+          "Optional later: retire 'truth gates' phrase from docs/api/index.md + historical changelog wording"
         ],
         "coc_removed_2026_07_12": true,
         "skeptical_review_2026_07_12": {
@@ -1646,6 +1676,43 @@
           "package_truth_gate_compliance": 88,
           "commit": "2d6ab7a",
           "classification": "follow-up"
+        },
+        "dual_ask_rescore_2026_07_12": {
+          "commit": "605c326",
+          "method": "Independent re-grep + clamp pytest after chapters P/Q; not memory of prior pass.",
+          "scores": {
+            "overall": 93,
+            "public_rule_leak_discipline": 92,
+            "human_audience_separation": 88,
+            "package_truth_gate_compliance": 96,
+            "docs_api_currency": 93,
+            "root_hygiene": 95,
+            "citation_doi_honesty": 96,
+            "weighted_overall": 92.8
+          },
+          "weights": {
+            "public_rule_leak_discipline": 0.3,
+            "human_audience_separation": 0.2,
+            "package_truth_gate_compliance": 0.25,
+            "docs_api_currency": 0.1,
+            "root_hygiene": 0.1,
+            "citation_doi_honesty": 0.05
+          },
+          "deductions": [
+            "changelog.md historical 'truth gates' phrasing (acceptable history; not landing pages)",
+            "docs/api/index.md still says 'honor the truth gates' once (API metadata audience)",
+            "public plot_* names still outside jaxfne.vis namespace (__init__/tutorial_utils) — implementation clean",
+            "for_ai_agents early in Getting started nav (intentional; mild human spillover)",
+            "artifacts/ still visible at root; no live Zenodo DOI yet"
+          ],
+          "classification": "accept_for_polish_track",
+          "gate_public_leak_ge_90": true,
+          "gate_overall_ge_90": true,
+          "remaining_before_step10": [
+            "Hamm confirm + Claude 100/100 on publish readiness",
+            "Per-mutation auth for GitHub Release / TestPyPI / PyPI",
+            "Optional Zenodo DOI after first archived Release"
+          ]
         }
       }
     }
@@ -1737,5 +1804,21 @@
       "P": "rg Object grammar|never escalate|**Truth gates:**|PRP workflow on human docs: clean; mkdocs build --strict OK; index/quickstart/contributing/research headers updated.",
       "Q": "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest tests/test_truth_gate_clamp_v046.py tests/test_schema_migration_v0342.py tests/test_jaxley_trace_bridge.py tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short → 76 passed, 1 skipped; clamp_truth_gate_metadata in update_metadata/manifest/migrate_schema/bridges."
     }
+  },
+  "review_pass_note_2026_07_12_chapter_r": {
+    "action": "proceed with review / chapter R rescore",
+    "commit": "605c326",
+    "scores": {
+      "overall": 93,
+      "public_rule_leak_discipline": 92,
+      "human_audience_separation": 88,
+      "package_truth_gate_compliance": 96,
+      "docs_api_currency": 93,
+      "root_hygiene": 95,
+      "citation_doi_honesty": 96,
+      "weighted_overall": 92.8
+    },
+    "gate_met": true,
+    "next": "step 10 still auth-gated; polish track P–R closed"
   }
 }

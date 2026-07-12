@@ -633,3 +633,21 @@ Receipt: 76 passed, 1 skipped (smoke + clamp + migration + jaxley bridge).
 
 **Next:** chapter R re-score (`pre-047-public-leak-rescore`). Uncommitted until Hamm asks push.
 
+
+## 2026-07-12 — Chapter R re-score (after P/Q push)
+
+Pushed P/Q as `605c326` on origin/dev. Independent dual-ask re-score:
+
+| Factor | Before | After |
+|--------|-------:|------:|
+| public_rule_leak_discipline | 74 | **92** |
+| human_audience_separation | 81 | **88** |
+| package_truth_gate_compliance | 88 | **96** |
+| docs_api_currency | 93 | 93 |
+| root_hygiene | 95 | 95 |
+| citation_doi_honesty | 96 | 96 |
+| **overall** | **84** | **93** |
+
+Gates met: leak≥90, overall≥90. Classification: accept_for_polish_track.
+Step 10 still requires Hamm + Claude 100/100 + per-mutation auth.
+

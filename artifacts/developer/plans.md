@@ -46,7 +46,7 @@
 | optional-live-coverage-badge | Optional: replace static coverage badge with live coverage percentage | proposed | README.md; .github/workflows/ci.yml |
 | pre-047-public-surface-deparrot | Pre-0.4.7: strip agent doctrine parrot from human-facing docs | done | docs/index.md; docs/quickstart.md; docs/contributing.md; docs/tutorials/13_canonical_column_etude.md; docs/STDP_HOMEOSTA |
 | pre-047-gate-enforcement-clamp | Pre-0.4.7 (optional/high-value): clamp truth gates at construct/manifest | done | jaxfne/_config.py; jaxfne/io.py; jaxfne/bridges.py; tests/ |
-| pre-047-public-leak-rescore | Re-score public rule-leak discipline after de-parrot patch | proposed | artifacts/developer/plans.json; docs/index.md; docs/quickstart.md; docs/contributing.md |
+| pre-047-public-leak-rescore | Re-score public rule-leak discipline after de-parrot patch | done | artifacts/developer/plans.json; docs/index.md; docs/quickstart.md; docs/contributing.md |
 
 ## brainstorm
 
@@ -93,5 +93,5 @@
 | O | Final adversarial re-score against jaxley |  | done | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |
 | P | Public surface de-parrot: human docs stop repeating agent rules | tone_honesty_vs_confidence, docs_site_structure, readme_first_impression | done | Implements item pre-047-public-surface-deparrot. Human landing/quickstart/contributing and Research report headers no lo |
 | Q | Truth-gate enforcement: construct/manifest clamp (or documented privilege) | tone_honesty_vs_confidence | done | Implements item pre-047-gate-enforcement-clamp with regression tests. Manifest and run_receipt cannot disagree on physic |
-| R | Independent re-score of dual ask (compliance + no public parrot) |  | not_started | Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 a |
+| R | Independent re-score of dual ask (compliance + no public parrot) |  | done | Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 a |
 | S | PRP plan hygiene: stale DoD / scorecard notes match repo reality |  | done | Chapter D + final_scorecard community_health notes updated for relocated contributing/changelog; step10 brainstorm item  |
