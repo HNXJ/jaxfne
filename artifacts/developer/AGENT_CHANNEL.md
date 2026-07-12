@@ -30,10 +30,10 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-**[HANDOFF — 2026-07-11 review]** Midterm steps **1–9 done** (8=95/95, 9=99/99);
-scorecard synced this pass. Step **10** not_started (publish auth). Next work:
-`release-readiness-scorecard-2026-07-08` chapters A–M/O (N done). Claim chapters
-in `plans.json` before starting. PRP: Canonical five-phase protocol locked.
+**[HANDOFF — 2026-07-12 Cursor]** Pre-0.4.7 **four-chapter polish P–S finalized** (closeout chapter T).
+Dual-ask scores: leak **92**, overall **93**. Midterm step **10** still `not_started` (publish auth).
+Next: tip CI green after closeout commit → Hamm + Claude **100/100** → per-mutation Release/TestPyPI/PyPI.
+Do **not** invent Zenodo DOI; do **not** publish without explicit auth.
 
 ## Inspect snapshot (2026-07-11)
 
@@ -650,4 +650,15 @@ Pushed P/Q as `605c326` on origin/dev. Independent dual-ask re-score:
 
 Gates met: leak≥90, overall≥90. Classification: accept_for_polish_track.
 Step 10 still requires Hamm + Claude 100/100 + per-mutation auth.
+
+
+## 2026-07-12 — Four-chapter polish finalized (P–S + T)
+
+Hamm: polish + double-check for finalized 4-chapter pre-0.4.7 polish.
+
+**Verified:** P de-parrot, Q clamp, R rescore (93), S plan hygiene — all done.
+**CI blockers from tip:** fixed `test_schema_migration_stage` (clamp fills keys) +
+changelog adverb count 20→18; API index phrasing cleaned.
+**Local receipt:** 105 passed / 1 skipped (hygiene+clamp+smoke batch); mkdocs strict OK.
+**Chapter T:** closeout marker on scorecard. Step 10 still auth-gated.
 

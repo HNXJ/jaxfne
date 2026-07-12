@@ -199,9 +199,9 @@ in a plotting backend.
 | `plot_raster` | func | Plot a spike raster. |
 | `plot_spectrolaminar_suite` | func | Plot spectrolaminar suite from a signals object. |
 
-All export helpers honor the truth gates: JSON is written with `allow_nan=False`,
+All export helpers keep outputs claim-safe: JSON is written with `allow_nan=False`,
 and figure/readout outputs remain proxy diagnostics
-(`physical_amplitude_calibrated = False`).
+(`physical_amplitude_calibrated = False`). See [Scope & status](../scope_and_status.md).
 
 ---
 

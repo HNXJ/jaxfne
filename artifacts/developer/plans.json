@@ -673,6 +673,72 @@
         "public_rule_leak_ge_90": true,
         "overall_ge_90": true
       }
+    },
+    {
+      "id": "pre-047-four-chapter-polish",
+      "title": "Pre-0.4.7 four-chapter polish finalized (P–S)",
+      "status": "done",
+      "completed": "2026-07-12",
+      "chapters": {
+        "P": {
+          "title": "public de-parrot",
+          "status": "done",
+          "score": 92
+        },
+        "Q": {
+          "title": "truth-gate clamp",
+          "status": "done",
+          "score": 95
+        },
+        "R": {
+          "title": "dual-ask rescore",
+          "status": "done",
+          "score": 93
+        },
+        "S": {
+          "title": "plan hygiene",
+          "status": "done",
+          "score": 100
+        }
+      },
+      "dual_ask_scores": {
+        "overall": 93,
+        "public_rule_leak_discipline": 92,
+        "package_truth_gate_compliance": 96,
+        "human_audience_separation": 88,
+        "docs_api_currency": 93,
+        "root_hygiene": 95,
+        "citation_doi_honesty": 96
+      },
+      "gates_met": {
+        "public_leak_ge_90": true,
+        "overall_ge_90": true,
+        "chapters_P_S_done": true
+      },
+      "ci_followups_this_pass": [
+        "Fixed test_schema_migration_stage for clamp filling field_claim_level + amplitude False",
+        "Reduced changelog banned-adverb count 20→18 (threshold <20)",
+        "docs/api/index.md: retired 'truth gates' export phrasing"
+      ],
+      "local_receipt": "PYTEST … hygiene adverb + migration + clamp + smoke + inventory → 105 passed, 1 skipped; mkdocs build --strict OK; compileall OK",
+      "not_in_scope": [
+        "step 10 PyPI / GitHub Release / TestPyPI (auth-gated)",
+        "Zenodo DOI mint",
+        "live coverage badge",
+        "retiring public plot_* root aliases"
+      ],
+      "definition_of_done": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10.",
+      "target_files": [
+        "docs/",
+        "jaxfne/_config.py",
+        "jaxfne/io.py",
+        "tests/test_truth_gate_clamp_v046.py",
+        "artifacts/developer/plans.json"
+      ],
+      "depends_on_functions": [],
+      "shape": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10.",
+      "source": "Hamm: finalize 4-chapter polish for pre-0.4.7",
+      "achieved_score": 93
     }
   ],
   "brainstorm": [
@@ -1560,6 +1626,21 @@
           "evidence": "plan_pass 2026-07-12: chapter D retitled; scorecard notes + remaining_gaps updated; new items P–R queued.",
           "created": "2026-07-12",
           "source": "public-surface-skeptical-review-2026-07-12"
+        },
+        {
+          "id": "T",
+          "title": "Four-chapter polish closeout (P–S) for pre-0.4.7",
+          "status": "done",
+          "completed": "2026-07-12",
+          "definition_of_done": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10.",
+          "evidence": "PYTEST … hygiene adverb + migration + clamp + smoke + inventory → 105 passed, 1 skipped; mkdocs build --strict OK; compileall OK",
+          "depends_on_chapters": [
+            "P",
+            "Q",
+            "R",
+            "S"
+          ],
+          "source": "Hamm finalize ask 2026-07-12"
         }
       ],
       "reserved_letters_note": "T–Z reserved for mid-execution discoveries. P–S added 2026-07-12 from skeptical review (public de-parrot, gate clamp, re-score, plan hygiene).",
@@ -1666,8 +1747,7 @@
         "remaining_gaps_for_step10_brainstorm": [
           "Hamm + Claude 100/100 confirmation for step 10 publish",
           "Live Zenodo DOI after first archived GitHub Release",
-          "Optional: live coverage % badge",
-          "Optional later: retire 'truth gates' phrase from docs/api/index.md + historical changelog wording"
+          "Optional: live coverage % badge"
         ],
         "coc_removed_2026_07_12": true,
         "skeptical_review_2026_07_12": {
@@ -1713,7 +1793,63 @@
             "Per-mutation auth for GitHub Release / TestPyPI / PyPI",
             "Optional Zenodo DOI after first archived Release"
           ]
-        }
+        },
+        "pre_047_polish_status": "finalized_pending_ci_green_on_closeout_commit"
+      },
+      "pre_047_four_chapter_polish_finalized": {
+        "id": "pre-047-four-chapter-polish",
+        "title": "Pre-0.4.7 four-chapter polish finalized (P–S)",
+        "status": "done",
+        "completed": "2026-07-12",
+        "chapters": {
+          "P": {
+            "title": "public de-parrot",
+            "status": "done",
+            "score": 92
+          },
+          "Q": {
+            "title": "truth-gate clamp",
+            "status": "done",
+            "score": 95
+          },
+          "R": {
+            "title": "dual-ask rescore",
+            "status": "done",
+            "score": 93
+          },
+          "S": {
+            "title": "plan hygiene",
+            "status": "done",
+            "score": 100
+          }
+        },
+        "dual_ask_scores": {
+          "overall": 93,
+          "public_rule_leak_discipline": 92,
+          "package_truth_gate_compliance": 96,
+          "human_audience_separation": 88,
+          "docs_api_currency": 93,
+          "root_hygiene": 95,
+          "citation_doi_honesty": 96
+        },
+        "gates_met": {
+          "public_leak_ge_90": true,
+          "overall_ge_90": true,
+          "chapters_P_S_done": true
+        },
+        "ci_followups_this_pass": [
+          "Fixed test_schema_migration_stage for clamp filling field_claim_level + amplitude False",
+          "Reduced changelog banned-adverb count 20→18 (threshold <20)",
+          "docs/api/index.md: retired 'truth gates' export phrasing"
+        ],
+        "local_receipt": "PYTEST … hygiene adverb + migration + clamp + smoke + inventory → 105 passed, 1 skipped; mkdocs build --strict OK; compileall OK",
+        "not_in_scope": [
+          "step 10 PyPI / GitHub Release / TestPyPI (auth-gated)",
+          "Zenodo DOI mint",
+          "live coverage badge",
+          "retiring public plot_* root aliases"
+        ],
+        "definition_of_done": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10."
       }
     }
   ],
@@ -1761,7 +1897,8 @@
     "testpypi": "wait",
     "pypi": "wait",
     "zenodo": "deferred_explained_to_hamm",
-    "pre_047_plan_update": "2026-07-12b: polishing now means chapters P→R on release-readiness scorecard, not reopening A–O. Overall skeptical ~84; public leak 74 is the binding polish target."
+    "pre_047_plan_update": "2026-07-12b: polishing now means chapters P→R on release-readiness scorecard, not reopening A–O. Overall skeptical ~84; public leak 74 is the binding polish target.",
+    "pre_047_four_chapter_polish": "finalized_2026_07_12"
   },
   "plan_pass_note_2026_07_12b": {
     "action": "proceed with plan",
@@ -1820,5 +1957,11 @@
     },
     "gate_met": true,
     "next": "step 10 still auth-gated; polish track P–R closed"
+  },
+  "progress_pass_note_2026_07_12_four_chapter_finalize": {
+    "action": "finalize P–S polish + CI fix double-check",
+    "item": "pre-047-four-chapter-polish",
+    "chapter": "T",
+    "next": "wait CI green on tip; then Hamm/Claude 100/100 for step 10"
   }
 }

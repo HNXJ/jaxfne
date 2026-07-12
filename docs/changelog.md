@@ -5,8 +5,9 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 ## [Unreleased]
 
 ### Changed
-- Chapters P/Q: human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema.
-- Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog only under `docs/changelog.md`.
+- Pre-0.4.7 four-chapter polish (P–S): human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema; dual-ask re-score leak 92 / overall 93.
+- Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog lives under `docs/changelog.md`.
+- API docs export note links [Scope & status](scope_and_status.md) instead of repeating gate jargon.
 
 ## v0.4.6 (2026-07-12)
 
@@ -18,7 +19,7 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 - `jaxfne/py.typed`; pytest-cov coverage artifacts in CI
 
 ### Changed
-- README landing page shortened; Jaxley comparison in docs only
+- README landing page shortened; Jaxley comparison lives in docs
 - Lean `AGENTS.md`; `.legacy/` under `artifacts/legacy/`
 
 ### Removed

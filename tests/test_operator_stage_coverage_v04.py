@@ -53,6 +53,11 @@ def test_manifest_receipt_export_stage(model, signals):
 
 
 def test_schema_migration_stage():
-    # migration utility reachable + idempotent on canonical input
+    # migration utility reachable + clamps missing truth-gate keys to defaults
     canonical = {"claim_level": "computational_scaffold", "field_solver_status": "linear_solver"}
-    assert jtfne.migrate_schema(canonical) == canonical
+    migrated = jtfne.migrate_schema(canonical)
+    assert migrated["claim_level"] == "computational_scaffold"
+    assert migrated["field_solver_status"] == "linear_solver"
+    assert migrated["field_claim_level"] == "proxy_readout"
+    assert migrated["physical_amplitude_calibrated"] is False
+    assert jtfne.migrate_schema(migrated) == migrated

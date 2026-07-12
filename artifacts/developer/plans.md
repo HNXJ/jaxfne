@@ -47,6 +47,7 @@
 | pre-047-public-surface-deparrot | Pre-0.4.7: strip agent doctrine parrot from human-facing docs | done | docs/index.md; docs/quickstart.md; docs/contributing.md; docs/tutorials/13_canonical_column_etude.md; docs/STDP_HOMEOSTA |
 | pre-047-gate-enforcement-clamp | Pre-0.4.7 (optional/high-value): clamp truth gates at construct/manifest | done | jaxfne/_config.py; jaxfne/io.py; jaxfne/bridges.py; tests/ |
 | pre-047-public-leak-rescore | Re-score public rule-leak discipline after de-parrot patch | done | artifacts/developer/plans.json; docs/index.md; docs/quickstart.md; docs/contributing.md |
+| pre-047-four-chapter-polish | Pre-0.4.7 four-chapter polish finalized (P–S) | done | docs/; jaxfne/_config.py; jaxfne/io.py; tests/test_truth_gate_clamp_v046.py; artifacts/developer/plans.json |
 
 ## brainstorm
 
@@ -95,3 +96,4 @@
 | Q | Truth-gate enforcement: construct/manifest clamp (or documented privilege) | tone_honesty_vs_confidence | done | Implements item pre-047-gate-enforcement-clamp with regression tests. Manifest and run_receipt cannot disagree on physic |
 | R | Independent re-score of dual ask (compliance + no public parrot) |  | done | Fresh skeptical re-score after P (and ideally Q). Record scores in plans.json. Gate: public_rule_leak_discipline >= 90 a |
 | S | PRP plan hygiene: stale DoD / scorecard notes match repo reality |  | done | Chapter D + final_scorecard community_health notes updated for relocated contributing/changelog; step10 brainstorm item  |
+| T | Four-chapter polish closeout (P–S) for pre-0.4.7 |  | done | P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/1 |
