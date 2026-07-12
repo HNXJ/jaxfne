@@ -488,15 +488,16 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — `proceed with brainstorm` for step 10 publish** (Hamm gate).
-Release-readiness chapters **A–O all done**. Do **not** start tag/TestPyPI/PyPI
-until that brainstorm + explicit per-mutation authorization. Zenodo live DOI
-still manual (skipped). Root `CODE_OF_CONDUCT.md` **removed 2026-07-12** per Hamm.
+**Open for pickup — `proceed with brainstorm` for step 10** (queued plan item
+`step10-publish-decision-brainstorm`). Chapters A–O closed. No tag/TestPyPI/PyPI
+until that brainstorm and explicit per-mutation authorization.
 
-### 2026-07-12 — Cursor (Composer) [remove CODE_OF_CONDUCT.md]
-Hamm: delete root Contributor Covenant / CoC — not relevant to jaxfne.
-Deleted `CODE_OF_CONDUCT.md`; removed README badge + CONTRIBUTING/docs links;
-CHANGELOG note; plans.json chapter D + final scorecard community 10→9.
+### 2026-07-12 — Cursor (Composer) [proceed with plan + review]
+**Plan:** Promoted step-10 brainstorm → `plans.items` `step10-publish-decision-brainstorm`
+(plus optional Zenodo DOI / live coverage badge items). Tone pass on scorecard/CHANGELOG
+(factual wording). README Jaxley paragraph already removed; chapter H evidence updated.
+**Review:** Re-verified chapter deliverables with commands (see review pass note).
+0 pending in `review.json` beforehand; critical re-check used instead of idle.
 
 
 ### 2026-07-12 — Cursor (Composer) [PRP chapter O done — adversarial re-score]

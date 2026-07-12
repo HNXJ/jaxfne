@@ -41,6 +41,9 @@
 | release-v0.4.5-published | v0.4.5 released to PyPI | done | pyproject.toml; jaxfne/core.py; docs/changelog.md; docs/citation.md; mkdocs.yml; docs/_generated/version.md |
 | core-py-monolith-split |  | done | jaxfne/core.py; jaxfne/_runtime_config.py; jaxfne/_signals.py; jaxfne/_config.py (not started); jaxfne/_model.py (not st |
 | docs-external-review-2026-07-05 |  | done | README.md; AGENTS.md; ~/.claude/CLAUDE.md (maintainer-global, outside this repo); artifacts/developer/progress.json |
+| step10-publish-decision-brainstorm | Brainstorm step 10 publish decisions before any tag/PyPI mutation | proposed | artifacts/developer/plans.json; pyproject.toml; docs/changelog.md; CHANGELOG.md; CITATION.cff |
+| optional-zenodo-doi-after-first-release | Add live Zenodo DOI to CITATION.cff after first archived GitHub Release | proposed | CITATION.cff; docs/citation.md |
+| optional-live-coverage-badge | Optional: replace static coverage badge with live coverage percentage | proposed | README.md; .github/workflows/ci.yml |
 
 ## brainstorm
 

@@ -537,6 +537,49 @@
       "shape": "User relayed an external (Opus) review of README.md (82/100), AGENTS.md (77/100), and a third file described as 'workspace instructions (project CLAUDE.md-equivalent)' (85/100, global ~/.claude/CLAUDE.md itself was 'not mounted' in that review session). Verified every finding against real source before acting -- none applied blindly:\n\nREADME.md fixes (all verified real): RuntimeConfiguration-vs-RuntimeConfig class-switch trap (confirmed genuinely distinct classes, added a callout at the divergence point); missing GLIFEmitter/LIFEmitter/write_nwb/read_nwb stub warning (confirmed all 4 in jaxfne.__all__, raise NotImplementedError); buried proxy/scaffold disclaimer (moved to intro); missing requirements/timing (added, but corrected the review's own suggested 'model.runtime_report()' -- verified Model has no such method, only the module-level jtfne.runtime_report() does); no TOC (added); 5L-vs-6L layer-naming friction not surfaced (added, cross-checked against AGENTS.md's existing F-002 note).\n\nAGENTS.md fixes (all verified real): jaxfne-modular-grammar rule 2's session-log prose compressed to the rule + a progress.json pointer (the file's own rule 4 says findings go to progress.json, not inline prose -- it was violating its own discipline); 2 stale code locations fixed (rule 3's 'core.py' references for dtype/jax.devices() -- these moved to jaxfne/_runtime_config.py in THIS session's own core.py split, a real regression in the doctrine caused by not updating it after the refactor); dated 'Docs-migration status' snapshot replaced with a progress.json pointer (the snapshot had gone stale -- it claimed README still taught Configuration-only, no longer true); external-contributor fallback notes added for the 2 genuinely maintainer-local references (~/.claude/CLAUDE.md, hnyxj/rules/) -- verified catalog-glossary-jaxfne is actually in-repo (skills/) so did NOT need one, but jax-neuro-diffsim-guard/neuro-biophysics-units-sanity are global-only skills (corrected an initial wrong claim mid-edit before landing it); TOC added; laminar-pipeline section given a one-line cross-reference to README's convenience wrapper instead of being flagged as pure duplication (verified they're different API levels: raw builder verbs vs a higher-level ei_profile='canonical' wrapper -- both real, neither redundant enough to cut).\n\nREJECTED after verification (not applied): the review's claimed 'banned-token hygiene hit' on the word 'publication' in AGENTS.md -- scripts/report_hygiene_check.py's real FORBIDDEN list is [antigravity, gemini, claude, GOAL_COMPLETE, 'Agent: '] (confirmed via direct read + a live run reporting CLEAN); 'publication' is not a banned token anywhere in this repo's actual tooling. This appears to be the external review inventing or misapplying a rule that doesn't exist here -- did not make an unnecessary edit based on a false premise.\n\nGlobal ~/.claude/CLAUDE.md fix: found and fixed the one genuine remaining duplication risk (the JAX-performance-primitives one-liner is restated near-verbatim in both this file and AGENTS.md's 'JAX execution defaults') -- most of the file's other jaxfne-adjacent content already explicitly points to AGENTS.md as authoritative (root freeze, truth-gates, known fragilities all already say this, per the file's own 2026-06-30 restructuring pass logged in its own changelog header) and the catalog-glossary-jaxfne 'USE FIRST' pointer was already present and prominent -- so most of the review's stated concerns for this file were already resolved before this pass; flagged the one real gap as intentional-duplication-not-drift rather than deleting either copy (this file is shared across jaxfne/jbiophysic/future projects, so it can't safely assume AGENTS.md is always present).",
       "depends_on_functions": [],
       "completion_note": "All verified fixes landed in README.md/AGENTS.md/~/.claude/CLAUDE.md; progress.json entries for README.md (98->96, reflects new content added, not a regression) and AGENTS.md (90->93) updated with the full fix list and verification evidence. One review finding rejected after verification (false 'publication' hygiene claim). No code changes; doc-only, so no test suite run required beyond the existing doc-hygiene tests already covered by the standing full-suite run in progress at the time of this pass."
+    },
+    {
+      "id": "step10-publish-decision-brainstorm",
+      "title": "Brainstorm step 10 publish decisions before any tag/PyPI mutation",
+      "target_files": [
+        "artifacts/developer/plans.json",
+        "pyproject.toml",
+        "docs/changelog.md",
+        "CHANGELOG.md",
+        "CITATION.cff"
+      ],
+      "depends_on_functions": [],
+      "shape": "Explicit brainstorm pass required before midterm step 10. Cover: version bump (0.4.5 vs 0.4.7), intended_release_sha, whether to merge dev\u2192main first, changelog/CITATION sync, Zenodo enablement timing, and mutation order (tag / GitHub Release / TestPyPI / PyPI) with per-class authorization. No remote publish mutations in this item.",
+      "status": "proposed",
+      "source": "brainstorm/step10-publish-brainstorm-required-2026-07-12",
+      "priority": "queue_front",
+      "blocks_step": 10
+    },
+    {
+      "id": "optional-zenodo-doi-after-first-release",
+      "title": "Add live Zenodo DOI to CITATION.cff after first archived GitHub Release",
+      "target_files": [
+        "CITATION.cff",
+        "docs/citation.md"
+      ],
+      "depends_on_functions": [],
+      "shape": "Maintainer enables GitHub\u2194Zenodo, publishes a release, copies 10.5281/zenodo.* into CITATION.cff and docs/citation.md. Improves citation score; does not equal a paper.",
+      "status": "proposed",
+      "source": "release-readiness chapter O remaining gaps",
+      "priority": "after_step10_or_with_release"
+    },
+    {
+      "id": "optional-live-coverage-badge",
+      "title": "Optional: replace static coverage badge with live coverage percentage",
+      "target_files": [
+        "README.md",
+        ".github/workflows/ci.yml"
+      ],
+      "depends_on_functions": [],
+      "shape": "CI already emits coverage.xml artifacts. Optional follow-up: codecov/coveralls or equivalent live badge. Not required for step 10.",
+      "status": "proposed",
+      "source": "release-readiness chapter O remaining gaps",
+      "priority": "optional"
     }
   ],
   "brainstorm": [
@@ -571,10 +614,12 @@
       "created": "2026-07-12",
       "description": "Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readiness chapters A\u2013O are closed; remaining open decisions include Zenodo enablement, whether to merge dev\u2192main first, intended_release_sha, version bump 0.4.5\u21920.4.7, and mutation-authorization sequence. Do NOT start tag/TestPyPI/PyPI without that brainstorm + explicit per-mutation auth.",
       "source": "Hamm 2026-07-12 chat: 'before step 10 publish we will have to brainstorm'",
-      "status": "open",
+      "status": "planned",
       "blocks": [
         "release-0.4.7-midterm / step 10"
-      ]
+      ],
+      "planned_item_id": "step10-publish-decision-brainstorm",
+      "planned_on": "2026-07-12"
     }
   ],
   "roadmap": {
@@ -1144,8 +1189,7 @@
           "definition_of_done": "Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expectations, doc/skill-sync requirements given the multi-agent workflow). Root CODE_OF_CONDUCT.md (adopt Contributor Covenant standard text, not invented). Root CHANGELOG.md in Keep-a-Changelog format, sourced from docs/changelog.md's real history, not a stub. All three linked from README badges/footer matching jaxley's pattern.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "Root CONTRIBUTING.md + CHANGELOG.md. CODE_OF_CONDUCT.md removed 2026-07-12 per Hamm (Contributor Covenant / empathy framing not retained for jaxfne).",
-          "note_2026_07_12": "CoC deleted from root; README badge and CONTRIBUTING link removed."
+          "evidence": "Root CONTRIBUTING.md + CHANGELOG.md present. CODE_OF_CONDUCT.md removed 2026-07-12 (Hamm)."
         },
         {
           "id": "E",
@@ -1192,7 +1236,7 @@
           "definition_of_done": "Ensure both README and docs/index.md state the jaxley/jaxfne relationship in the first screen a reader sees: jaxley = single/multi-compartment biophysical detail; jaxfne = population/field-scale, tensor-algebraic circuit definition, source-to-sensor-proxy readout chain; explicitly composable (jaxley models plug into jaxfne as emitters). Plain language, not internal vocabulary.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "docs/index.md jaxley comparison in opening; README already aligned (chapter E). mkdocs strict OK."
+          "evidence": "docs/index.md states jaxley/jaxfne relationship in the opening. README jaxley comparison paragraph removed 2026-07-12 (Hamm: belongs in docs)."
         },
         {
           "id": "I",
@@ -1265,7 +1309,7 @@
           "definition_of_done": "Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of this pass) after all prior chapters close. Report honest final scores -- confirm real 10/10 where claimed, and explicitly confirm citation_scientific_backing's honest ceiling rather than let it get rounded up. This is the gate before plans.json step 10 (actual publish) is considered ready to attempt.",
           "status": "done",
           "completed": "2026-07-12",
-          "evidence": "Adversarial re-score vs live jaxley (WebFetch README+root+pyproject). Mean 8.89/10 (was ~5.5). citation=6/10 (ceiling honored, no paper, no live DOI). community=10, packaging=10, differentiation=10. mkdocs --strict OK; hygiene CLEAN; 20 pytest smoke passed. Step 10 NOT unlocked \u2014 brainstorm required first per Hamm."
+          "evidence": "Re-score vs live jaxley (WebFetch README+root+pyproject). Mean ~8.8/10 after CoC removal (baseline ~5.5). Citation 6/10 without peer-reviewed paper or Zenodo DOI. community/packaging/differentiation high; step 10 not started."
         }
       ],
       "reserved_letters_note": "P-Z intentionally unused -- reserved for chapters discovered mid-execution (e.g. a chapter splits, or O's final re-score finds a new gap), not padded to reach 26 artificially.",
@@ -1300,7 +1344,7 @@
             "baseline": 5,
             "score": 9,
             "max": 10,
-            "note": "Plain-language pitch first; jaxley comparison near top; ~86 lines vs prior 374; Scope & status consolidated. Deduct 1: still denser than jaxley's ~100-line tutorial-forward README, and coverage badge is static text not a live %."
+            "note": "Plain-language pitch; ~80 lines; Scope & status linked. Coverage badge is static text, not a live coverage percentage."
           },
           {
             "id": "docs_site_structure",
@@ -1314,15 +1358,14 @@
             "baseline": 3,
             "score": 9,
             "max": 10,
-            "note": "Root CONTRIBUTING.md + CHANGELOG.md; README contributing badge. CODE_OF_CONDUCT.md removed 2026-07-12 per Hamm (not retained). Deduct 1 vs jaxley which ships CoC \u2014 intentional project choice, not an oversight."
+            "note": "Root CONTRIBUTING.md and CHANGELOG.md; contributing badge on README. CODE_OF_CONDUCT.md removed 2026-07-12 per project choice (jaxley still ships one)."
           },
           {
             "id": "citation_scientific_backing",
             "baseline": 2,
             "score": 6,
             "max": 10,
-            "honest_ceiling_without_paper": "7-8",
-            "note": "STRUCTURAL CEILING HONORED: CITATION.cff + docs/citation.md + Zenodo wiring guide improve infrastructure; NO peer-reviewed manuscript; NO live Zenodo DOI yet (maintainer enable + release still pending \u2014 Hamm skipped for now). Score 6 (not 7-8) until a real DOI lands; NEVER round to 10/10 without a paper."
+            "note": "CITATION.cff and Zenodo wiring docs present. No peer-reviewed manuscript and no live Zenodo DOI yet. Score 6/10 until a DOI lands; peer-reviewed paper would be required for 10/10."
           },
           {
             "id": "packaging_pyproject",
@@ -1355,19 +1398,19 @@
           {
             "id": "differentiation_vs_jaxley",
             "baseline": 6,
-            "score": 10,
+            "score": 9,
             "max": 10,
-            "note": "README and docs/index.md both state jaxley=biophysical compartments vs jaxfne=population/field-scale + composable JaxleyBridge in the first screen. Plain language. Verified this pass."
+            "note": "docs/index.md and jaxley_interop guide state the relationship clearly. README no longer duplicates that paragraph (moved to docs 2026-07-12). Deduct 1 vs having it on both surfaces."
           }
         ],
-        "weighted_read": "~8.78/10 arithmetic mean after CoC removal (79/90). citation still 6/10.",
-        "arithmetic_mean": 8.78,
-        "sum_scores": 79,
+        "weighted_read": "Mean 8.67/10 (78/90). Citation remains 6/10 without paper/DOI.",
+        "arithmetic_mean": 8.67,
+        "sum_scores": 78,
         "sum_max": 90,
         "do_not_claim": [
-          "10/10 overall",
-          "10/10 citation without peer-reviewed paper",
-          "codecov live badge (not installed)",
+          "Overall 10/10",
+          "Citation 10/10 without a peer-reviewed paper",
+          "Live codecov percentage badge",
           "Zenodo DOI already minted"
         ],
         "remaining_gaps_for_step10_brainstorm": [
@@ -1394,5 +1437,18 @@
       "canonical_scorecard": "current_scorecard_2026_07_07"
     },
     "repo_sha": "b4f9679"
+  },
+  "plan_pass_note_2026_07_12": {
+    "action": "proceed with plan",
+    "promoted_from_brainstorm": [
+      "step10-publish-brainstorm-required-2026-07-12"
+    ],
+    "new_or_updated_items": [
+      "step10-publish-decision-brainstorm",
+      "optional-zenodo-doi-after-first-release",
+      "optional-live-coverage-badge"
+    ],
+    "tone": "Public and scorecard notes use factual wording; avoid theatrical claim-language.",
+    "not_started_midterm_step": 10
   }
 }

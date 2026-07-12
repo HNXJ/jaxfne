@@ -9,8 +9,9 @@ The canonical, detailed release notes live in [docs/changelog.md](docs/changelog
 ### Changed
 - README restructured for jaxley-paced first impression; deep API branching moved to [docs/quickstart.md](docs/quickstart.md).
 - `.legacy/` archived under `artifacts/legacy/` (root minimization).
-- Root community files: `CONTRIBUTING.md`, lean `AGENTS.md`, [docs/for_ai_agents.md](docs/for_ai_agents.md).
-- Removed root `CODE_OF_CONDUCT.md` (Contributor Covenant) — not retained for this project.
+- Root `CONTRIBUTING.md`, lean `AGENTS.md`, [docs/for_ai_agents.md](docs/for_ai_agents.md).
+- Removed root `CODE_OF_CONDUCT.md`.
+- README no longer duplicates the Jaxley comparison (see docs).
 
 ## [0.4.5] - 2026-07-03
 

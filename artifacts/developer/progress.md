@@ -167,6 +167,8 @@
 | tutorials/etudes/jaxfne_etude_no_10_global_local_oddball.ipynb | 90 | done | The progress.json TBI note this replaces suggested wiring to HierarchicalOddballParadigm (jaxfne/sanity_delta.py) -- che |  | 2026-07-02 |
 | tutorials/etudes/jaxfne_etude_no_11_omission_local.ipynb | 90 | done |  |  | 2026-07-02 |
 | tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-02 |
+| CHANGELOG.md | 90 | done |  |  | 2026-07-12 |
+| CONTRIBUTING.md | 90 | done |  |  | 2026-07-12 |
 | scripts/evidence_figures/ed04_optional_dependency_laziness.py | 91 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed07_probe_operator_contracts.py | 91 | reviewed |  |  | 2026-07-04 |
 | scripts/hdp_bifurcation_trace.py | 91 | reviewed |  |  | 2026-07-04 |
@@ -287,6 +289,7 @@
 | scripts/audit_notebook_grammar.py | 92 | done |  | Checks are deliberately text/regex-based (section-marker presence, forbidden-pattern absence), NOT execution-based -- it | 2026-07-02 |
 | jaxfne/_model.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/_construct.py | 92 | done |  |  | 2026-07-05 |
+| CITATION.cff | 92 | done |  |  | 2026-07-12 |
 | jaxfne/analysis/metrics.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/__init__.py | 93 | reviewed |  |  | 2026-07-04 |
 | jaxfne/fields/diagnostics.py | 93 | reviewed |  |  | 2026-07-04 |
@@ -331,6 +334,7 @@
 | docs/guides/configuration_grammar.md | 93 | done |  |  | 2026-07-03 |
 | docs/guides/homeostasis.md | 93 | done |  | Consider a one-line note that the built-in kernel's default r_star (0.05, from jaxfne/core.py:2363 RuntimeConfig.homeost | 2026-07-03 |
 | docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
+| docs/scope_and_status.md | 93 | done |  |  | 2026-07-12 |
 | jaxfne/fields/probes.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/presets.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/tutorial_utils.py | 94 | reviewed |  |  | 2026-07-11 |
@@ -408,7 +412,7 @@
 | tests/test_sanity_delta_hierarchical_oddball_config.py | 96 | done |  |  | 2026-07-05 |
 | tests/test_sanity_delta_optional_imports.py | 96 | done |  |  | 2026-07-05 |
 | skills/FRICTIONS_STACK.md | 96 | done |  |  | 2026-07-05 |
-| README.md | 96 | done |  |  | 2026-07-05 |
+| README.md | 96 | done |  |  | 2026-07-12 |
 | docs/api/neuronal_tensor.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/runtime.md | 96 | done |  |  | 2026-07-03 |
 | docs/api/sharding.md | 96 | done |  |  | 2026-07-03 |
@@ -423,7 +427,7 @@
 | skills/jaxfne-neural-tensor/SKILL.md | 96 | done |  |  | 2026-07-05 |
 | docs/guides/index.md | 97 | done |  |  | 2026-07-03 |
 | docs/guides/objective_grammar.md | 97 | done |  |  | 2026-07-03 |
-| docs/index.md | 97 | done |  |  | 2026-07-03 |
+| docs/index.md | 97 | done |  |  | 2026-07-12 |
 | docs/install.md | 97 | done |  |  | 2026-07-03 |
 | docs/performance_baseline.md | 97 | done |  |  | 2026-07-03 |
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
