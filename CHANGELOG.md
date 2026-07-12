@@ -7,11 +7,11 @@ The canonical, detailed release notes live in [docs/changelog.md](docs/changelog
 ## [Unreleased]
 
 ### Notes
-- Public GitHub Release / TestPyPI / PyPI for **0.4.7** wait on Hamm confirmation after a 100/100 review gate.
+- GitHub Release / TestPyPI / PyPI for **0.4.7** wait on Hamm confirmation after a 100/100 review gate.
 
 ## [0.4.6] - 2026-07-12
 
-Internal git tag only (no GitHub Release / PyPI upload in this step).
+Internal git tag (GitHub Release / PyPI upload deferred).
 
 ### Added
 - Root `CONTRIBUTING.md`, `CHANGELOG.md`, `CITATION.cff`

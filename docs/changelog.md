@@ -1,6 +1,6 @@
 ## v0.4.6 (2026-07-12)
 
-**Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). **No GitHub Release / TestPyPI / PyPI** in this step — public distribution waits on Hamm confirmation for **0.4.7**.
+**Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). Distribution to GitHub Release / TestPyPI / PyPI stays deferred until Hamm confirms **0.4.7**.
 
 ### Added
 - `CITATION.cff`, root `CONTRIBUTING.md` / `CHANGELOG.md`
