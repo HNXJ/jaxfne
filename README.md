@@ -64,12 +64,7 @@ Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `rea
 | Tutorials & études | [docs/tutorials/](docs/tutorials/) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 | Contributing | [docs/contributing.md](docs/contributing.md) |
-
-## Built for AI agents too
-
-jaxfne ships **`skills/`** and **`AGENTS.md`** as first-class agent documentation —
-verified against the same package source as the human docs, not a parallel spec.
-See **[Documentation for AI agents](docs/for_ai_agents.md)** and the [`skills/`](skills/) index.
+| AI agents | [docs/for_ai_agents.md](docs/for_ai_agents.md) |
 
 ## Citation
 

@@ -662,3 +662,10 @@ changelog adverb count 20→18; API index phrasing cleaned.
 **Local receipt:** 105 passed / 1 skipped (hygiene+clamp+smoke batch); mkdocs strict OK.
 **Chapter T:** closeout marker on scorecard. Step 10 still auth-gated.
 
+
+## 2026-07-12 — README agent blurb softened (Claude gray-area)
+
+Claude independent score ~89 flagged README "## Built for AI agents too" as rule-leak gray area.
+Replaced with a single Documentation-table row → `docs/for_ai_agents.md` (manifesto stays there).
+`docs/index.md` Main pages: quieter "AI-oriented workflow notes" link.
+

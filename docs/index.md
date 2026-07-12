@@ -48,5 +48,5 @@ Prefer the fluent `Configuration` builder or Jaxley bridge? See [Quickstart](qui
 - [Tutorials](tutorials/index.md)
 - [API reference](api/index.md)
 - [Scope & status](scope_and_status.md) — proxy readouts and claim limits
-- [For AI agents](for_ai_agents.md)
 - [Changelog](changelog.md)
+- AI-oriented workflow notes: [For AI agents](for_ai_agents.md)
