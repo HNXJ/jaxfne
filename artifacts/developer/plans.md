@@ -47,6 +47,7 @@
 - **function_merger_analysis_2026-06-30**: 2026-06-30: repo-wide AST scan for function-merger candidates (pattern: y1=f1(x1), y2=f2(x2), same output identity, inco
 - **test_consolidation_and_config_ic_schema_2026-07-02**: 2026-07-02, user directive ahead of 0.4.7: (1) simplify the test suite so real coverage comes from executing suites/etud
 - **v1_pfc_continuous_aaab_adaptation_2026-07-03**: User directive 2026-07-03: refine docs/tutorials/05_v1_pfc_dual_column.md's vague aspirational scope (inter_areal_connec
+- **step10-publish-brainstorm-required-2026-07-12**: Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readin
 
 ## midterm plan: midterm-plan-2026-07-04 (2026-07-04)
 
@@ -81,4 +82,4 @@
 | L | skills/ polish as a public-facing AI-docs surface | ai_friendliness, docs_site_structure | done | Audit skills/README.md (or add one if it doesn't already serve this purpose) to the same formatting/completeness bar as  |
 | M | Full-repo tone/professionalism grep pass | tone_honesty_vs_confidence | done | One consolidated grep-based pass across all public-facing docs/ + README + CONTRIBUTING for informal/internal-only langu |
 | N | Cross-agent PRP sync of this plan itself |  | done | This chapter plan (the JSON you're reading) committed to artifacts/developer/plans.json (or its post-chapter-A relocated |
-| O | Final adversarial re-score against jaxley |  | not_started | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |
+| O | Final adversarial re-score against jaxley |  | done | Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of |

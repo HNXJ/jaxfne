@@ -488,8 +488,18 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — chapter O** (adversarial re-score) before step 10 publish.
-Chapters **A–M done** 2026-07-11 (Zenodo live DOI still manual — skipped per Hamm).
+**Open for pickup — `proceed with brainstorm` for step 10 publish** (Hamm gate).
+Release-readiness chapters **A–O all done**. Do **not** start tag/TestPyPI/PyPI
+until that brainstorm + explicit per-mutation authorization. Zenodo live DOI
+still manual (skipped).
+
+### 2026-07-12 — Cursor (Composer) [PRP chapter O done — adversarial re-score]
+Live WebFetch of jaxley README + GitHub root + pyproject.toml. Final scorecard
+in `plans.json` → `final_scorecard_2026_07_12`: **mean ~8.9/10** (baseline ~5.5).
+Highlights: community/packaging/differentiation **10**; citation **6** (ceiling
+honored — no paper, no live DOI; not rounded). Seeded brainstorm item
+`step10-publish-brainstorm-required-2026-07-12`. Validation: mkdocs `--strict` OK,
+hygiene CLEAN, 20 smoke tests passed. **Step 10 not started.**
 
 ### 2026-07-11 — Cursor (Composer) [PRP chapters H–M done]
 **H:** `docs/index.md` jaxley positioning in first screen.

@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
   "description": "Stage 3 of the 3-file pipeline: planned/not-yet-started work and open brainstorm/analysis findings. Nothing here is in progress -- an item moves OUT of plans.json into progress.json (as a new or updated entry) the moment any code/test work actually starts on it, with status set to 'open' there. items[]: discrete, scoped, actionable work units (status: not_started | blocked). brainstorm[]: raw analysis findings / ideas not yet scoped into an actionable item -- read before starting new work to avoid re-deriving something already investigated (e.g. the function-merger AST scan).",
-  "last_updated": "2026-07-11",
+  "last_updated": "2026-07-12",
   "scorecard_as_of": "2026-07-06T22:22",
   "items": [
     {
@@ -565,6 +565,16 @@
       "description": "User directive 2026-07-03: refine docs/tutorials/05_v1_pfc_dual_column.md's vague aspirational scope (inter_areal_connectivity/dual_laminar_column/traveling_waves/coherence -- confirmed never implemented) into a concrete, buildable continuous-adaptation paradigm. Design finalized via 4 batched clarifying questions, all recommended options chosen: (1) V1->PFC IS a real feedforward AreaConnection, not two independent columns; (2) PFC is generic/untuned, no hand-assigned A/B/AB groups -- any PFC selectivity should emerge from V1 input; (3) the AAAB structure is FIXED every trial (p1=A,p2=A,p3=A,p4=B), not randomized per-trial, matching this repo's existing local-oddball paradigm pattern (etudes 9-11); (4) HDP timescale stays at the validated default (tau_0_ms=200, K_ctrl=5.0) rather than adding an unvalidated second slow timescale -- long-term (cross-trial) adaptation is expected to emerge as a drift in trial-averaged metrics, not from a hand-tuned slow state.",
       "real_candidate": "Full spec: 100n V1 (canonical 6-layer) + 100n PFC (canonical 6-layer, generic), both HDP-enabled (synaptic K_HDP + intrinsic K_ctrl/H_i), feedforward V1->PFC AreaConnection. V1 L4+L6 carry 30 tuned neurons: AB=10, A=10, B=10 (assumption not yet locked: 10 total per class across L4+L6 combined, not 10-per-layer -- needs a one-line confirmation before build). 1000ms trials, 100ms bins: fx(0-100)-p1=A(100-200)-d1(200-300)-p2=A(300-400)-d2(400-500)-p3=A(500-600)-d3(600-700)-p4=B(700-800)-d4(800-900)-rw(900-1000). A/B = 40Hz sinusoidal drive_schedule targeted via target_indices (A-events -> A+AB neurons, B-events -> B+AB neurons, per AGENTS.md's already-verified per-event per-neuron-subset drive mechanism). fx/d1-d4/rw are silent markers -- must apply metadata={'drive_amplitude':0.0} on those events, same fix pattern already landed for F-022 (jaxfne/paradigm.py::omission_oddball_paradigm), to avoid the identical spurious-drive leak this repo already found and fixed once. dtype float32, backend cpu. Full target run is 1000 trials = 1,000,000ms simulated time -- explicitly NOT to be run without a separate go-ahead (matches this repo's standing doctrine on large/expensive runs, see hdp-100k-100step-validation-run's 'queue front, do not start' precedent). First real step: a 10-trial (10,000ms) CPU smoke test; fallback to 10-neuron-per-column dummy circuits if even that is too slow on this machine.",
       "already_solved_confirmed": "Every real mechanism this paradigm needs was independently verified working earlier in this same session, not assumed: target_indices per-event per-neuron-subset drive (AGENTS.md, verified via a real StimulusSchedule build), HDP's dual synaptic+intrinsic adaptation (K_HDP/K_ctrl, extensively validated this session including the K_ctrl=5.0 restoring-term fix), NeuronalTensor's Area/AreaConnection multi-area IC/PCB tier (hardened this session with __post_init__ validation, confirmed compiles to the same Configuration/Model/EdgeList runtime), and the metadata={'drive_amplitude':0.0} marker-silencing pattern (F-022, verified fix landed in jaxfne/paradigm.py this session). No new jaxfne API needs to be built -- this is a paradigm/notebook-authoring task on top of existing, proven machinery."
+    },
+    {
+      "id": "step10-publish-brainstorm-required-2026-07-12",
+      "created": "2026-07-12",
+      "description": "Hamm: before step 10 (0.4.7 PyPI / tag / GitHub Release), run an explicit `proceed with brainstorm` pass. Release-readiness chapters A\u2013O are closed; remaining open decisions include Zenodo enablement, whether to merge dev\u2192main first, intended_release_sha, version bump 0.4.5\u21920.4.7, and mutation-authorization sequence. Do NOT start tag/TestPyPI/PyPI without that brainstorm + explicit per-mutation auth.",
+      "source": "Hamm 2026-07-12 chat: 'before step 10 publish we will have to brainstorm'",
+      "status": "open",
+      "blocks": [
+        "release-0.4.7-midterm / step 10"
+      ]
     }
   ],
   "roadmap": {
@@ -1252,11 +1262,120 @@
           "title": "Final adversarial re-score against jaxley",
           "target_categories": [],
           "definition_of_done": "Re-run the exact same 9-category skeptical scorecard methodology (real WebFetch of jaxley's current state, not memory of this pass) after all prior chapters close. Report honest final scores -- confirm real 10/10 where claimed, and explicitly confirm citation_scientific_backing's honest ceiling rather than let it get rounded up. This is the gate before plans.json step 10 (actual publish) is considered ready to attempt.",
-          "status": "not_started"
+          "status": "done",
+          "completed": "2026-07-12",
+          "evidence": "Adversarial re-score vs live jaxley (WebFetch README+root+pyproject). Mean 8.89/10 (was ~5.5). citation=6/10 (ceiling honored, no paper, no live DOI). community=10, packaging=10, differentiation=10. mkdocs --strict OK; hygiene CLEAN; 20 pytest smoke passed. Step 10 NOT unlocked \u2014 brainstorm required first per Hamm."
         }
       ],
       "reserved_letters_note": "P-Z intentionally unused -- reserved for chapters discovered mid-execution (e.g. a chapter splits, or O's final re-score finds a new gap), not padded to reach 26 artificially.",
-      "step10_linkage": "plans.json's existing step 10 (the actual 0.4.7 PyPI publish) should add this plan's id to its depends_on_plan_items -- chapter O is the explicit gate."
+      "step10_linkage": "plans.json's existing step 10 (the actual 0.4.7 PyPI publish) should add this plan's id to its depends_on_plan_items -- chapter O is the explicit gate.",
+      "final_scorecard_2026_07_12": {
+        "method": "2026-07-12 adversarial re-score: WebFetch jaxley README + GitHub root listing + pyproject.toml (live), diffed against jaxfne @ 0b471f3. Same 9 categories as baseline_scorecard_2026_07_08. NOT memory of prior pass.",
+        "jaxley_probe": {
+          "readme_url": "https://raw.githubusercontent.com/jaxleyverse/jaxley/main/README.md",
+          "readme_size_bytes": 4736,
+          "root_has": [
+            "CONTRIBUTING.md",
+            "CODE_OF_CONDUCT.md",
+            "CHANGELOG.md",
+            "LICENSE",
+            "README.md",
+            "docs/",
+            "tests/",
+            "pyproject.toml"
+          ],
+          "root_lacks_observed": [
+            "CITATION.cff (not in GitHub contents listing)",
+            "AGENTS.md",
+            "skills/"
+          ],
+          "citation": "Nature Methods peer-reviewed paper BibTeX in README",
+          "pyproject": "keywords present; version 0.13.0; optional doc/dev groups",
+          "ci_badge": "single tests.yml badge"
+        },
+        "categories": [
+          {
+            "id": "readme_first_impression",
+            "baseline": 5,
+            "score": 9,
+            "max": 10,
+            "note": "Plain-language pitch first; jaxley comparison near top; ~86 lines vs prior 374; Scope & status consolidated. Deduct 1: still denser than jaxley's ~100-line tutorial-forward README, and coverage badge is static text not a live %."
+          },
+          {
+            "id": "docs_site_structure",
+            "baseline": 7,
+            "score": 9,
+            "max": 10,
+            "note": "MkDocs/RTD, tutorial ladder, FAQ, API, scope_and_status, for_ai_agents, zenodo guide. Chapter F openings pass done. Deduct 1: not a full page-by-page language audit of every tutorial; docs/index still thinner than jaxley tutorial hub density."
+          },
+          {
+            "id": "community_health_files",
+            "baseline": 3,
+            "score": 10,
+            "max": 10,
+            "note": "Root CONTRIBUTING.md, CODE_OF_CONDUCT.md (Contributor Covenant 2.1), CHANGELOG.md; README badges match jaxley pattern. Verified on disk this pass."
+          },
+          {
+            "id": "citation_scientific_backing",
+            "baseline": 2,
+            "score": 6,
+            "max": 10,
+            "honest_ceiling_without_paper": "7-8",
+            "note": "STRUCTURAL CEILING HONORED: CITATION.cff + docs/citation.md + Zenodo wiring guide improve infrastructure; NO peer-reviewed manuscript; NO live Zenodo DOI yet (maintainer enable + release still pending \u2014 Hamm skipped for now). Score 6 (not 7-8) until a real DOI lands; NEVER round to 10/10 without a paper."
+          },
+          {
+            "id": "packaging_pyproject",
+            "baseline": 8,
+            "score": 10,
+            "max": 10,
+            "note": "py.typed present; keywords list; project.urls includes Homepage/Repository/Documentation/Issues/Changelog/Citation/Source Code. Matches or exceeds jaxley packaging polish on these axes."
+          },
+          {
+            "id": "ci_maturity",
+            "baseline": 8,
+            "score": 9,
+            "max": 10,
+            "note": "Still structurally richer than jaxley's single tests.yml (fast CI, release_ci, notebook_execution, publish, macroscope). pytest-cov + coverage.xml artifacts added. Deduct 1: coverage badge is a static 'reported in CI' shield, not codecov/coveralls live percentage."
+          },
+          {
+            "id": "repo_root_impression",
+            "baseline": 4,
+            "score": 8,
+            "max": 10,
+            "note": ".legacy relocated under artifacts/legacy/; AGENTS.md slim (~3.5KB); skills/ + AGENTS.md KEPT and reframed as AI-friendliness feature (intentional). Deduct 2: artifacts/ (developer PRP + legacy archive) still visible at root to a GitHub browser \u2014 more internal than jaxley's clean root; not fully privatized."
+          },
+          {
+            "id": "tone_honesty_vs_confidence",
+            "baseline": 6,
+            "score": 9,
+            "max": 10,
+            "note": "Single scope_and_status.md authority; README/showcases/jaxley_interop link instead of repeating full gate blocks; confident pitch retained. Deduct 1: some deeper theory/tutorial pages may still front-load gates (chapter M was a close-out, not exhaustive)."
+          },
+          {
+            "id": "differentiation_vs_jaxley",
+            "baseline": 6,
+            "score": 10,
+            "max": 10,
+            "note": "README and docs/index.md both state jaxley=biophysical compartments vs jaxfne=population/field-scale + composable JaxleyBridge in the first screen. Plain language. Verified this pass."
+          }
+        ],
+        "weighted_read": "~8.9/10 arithmetic mean of category scores (80/90). Baseline was ~5.5/10. citation_scientific_backing remains the honest structural drag (6/10, ceiling ~7-8 with DOI, never 10 without a paper).",
+        "arithmetic_mean": 8.89,
+        "sum_scores": 80,
+        "sum_max": 90,
+        "do_not_claim": [
+          "10/10 overall",
+          "10/10 citation without peer-reviewed paper",
+          "codecov live badge (not installed)",
+          "Zenodo DOI already minted"
+        ],
+        "remaining_gaps_for_step10_brainstorm": [
+          "Live Zenodo DOI after maintainer enables GitHub\u2194Zenodo + first archived release",
+          "Optional: codecov (or equivalent) live coverage % badge",
+          "Optional: further hide/privatize artifacts/ from public GitHub browsing without breaking PRP stable path",
+          "Step 10 publish itself requires an explicit brainstorm pass before mutation gates (Hamm 2026-07-12)"
+        ]
+      }
     }
   ],
   "inspect_pass_note_2026_07_11": {
