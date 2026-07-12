@@ -1794,7 +1794,13 @@
             "Optional Zenodo DOI after first archived Release"
           ]
         },
-        "pre_047_polish_status": "finalized_pending_ci_green_on_closeout_commit"
+        "pre_047_polish_status": "finalized_ci_green",
+        "closeout_ci": {
+          "run_id": 29204671387,
+          "url": "https://github.com/HNXJ/jaxfne/actions/runs/29204671387",
+          "head_sha": "d13fcae",
+          "conclusion": "success"
+        }
       },
       "pre_047_four_chapter_polish_finalized": {
         "id": "pre-047-four-chapter-polish",
@@ -1849,7 +1855,13 @@
           "live coverage badge",
           "retiring public plot_* root aliases"
         ],
-        "definition_of_done": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10."
+        "definition_of_done": "P–S closed with receipts; dual-ask overall≥90 and leak≥90; CI blockers from P/Q clamp fixed; ready for Hamm+Claude 100/100 gate before step 10.",
+        "ci_receipt": {
+          "run_id": 29204671387,
+          "url": "https://github.com/HNXJ/jaxfne/actions/runs/29204671387",
+          "head_sha": "d13fcae",
+          "conclusion": "success"
+        }
       }
     }
   ],
