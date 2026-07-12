@@ -163,4 +163,4 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
 python3 -m mkdocs build --strict
 ```
 
-Contributing: [CONTRIBUTING.md](https://github.com/HNXJ/jaxfne/blob/main/CONTRIBUTING.md).
+Contributing: [docs/contributing.md](contributing.md).

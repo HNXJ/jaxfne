@@ -585,3 +585,19 @@ deep API → `docs/quickstart.md`.
 `pytest` 50 passed, 1 skipped (agent_context_hygiene + smoke) · `prp_to_markdown.py` OK.
 `plans.json` chapters A–E → `done`. F–O still `not_started`. Step 10 still auth-gated.
 
+
+## 2026-07-12 — Root declutter (CONTRIBUTING / CHANGELOG)
+
+Hamm: make root less crowded; move contribution/changelog if possible.
+
+**Done (local, uncommitted):**
+- Removed root `CONTRIBUTING.md` and `CHANGELOG.md`
+- Full guide → `docs/contributing.md`
+- GitHub PR surface → `.github/CONTRIBUTING.md` (pointer)
+- Changelog canonical → `docs/changelog.md` only; `pyproject.toml` Changelog URL updated
+- Links updated: README, quickstart, ci_policy, performance_baseline, artifacts/README, inventory test
+
+**Must stay at root:** README, LICENSE, pyproject.toml, CITATION.cff, AGENTS.md, mkdocs.yml, package dirs (`jaxfne/`, `tests/`, `docs/`, `skills/`, …)
+
+**Not moved this pass:** `AGENTS.md` / `skills/` (deliberate AI surface)
+

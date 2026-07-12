@@ -222,7 +222,7 @@ All reserved work will maintain `local_environment_receipt_only` framing and avo
 - `benchmarks/scaling_benchmark.py` — N=100/1,000/10,000 scaling-evidence source code
 - `scripts/validate_json_safe.py` — JSON safety validator
 - `tests/test_performance_reports_v030.py` — performance report schema validation
-- `CHANGELOG.md` — version history and release notes
+- `docs/changelog.md` — version history and release notes
 
 ---
 

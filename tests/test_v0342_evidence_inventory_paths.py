@@ -14,7 +14,7 @@ def test_agent_context_inventory_commands_resolve():
     command_refs = []
     for path in [
         Path("AGENTS.md"),
-        Path("CONTRIBUTING.md"),
+        Path(".github/CONTRIBUTING.md"),
         Path("docs/contributing.md"),
         Path("internal_docs/loop_context/AGENT_QUICKREF.md"),
     ]:

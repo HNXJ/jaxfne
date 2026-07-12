@@ -43,7 +43,7 @@ Homepage = "https://github.com/HNXJ/jaxfne"
 Repository = "https://github.com/HNXJ/jaxfne"
 Documentation = "https://jaxfne.readthedocs.io/en/latest/"
 Issues = "https://github.com/HNXJ/jaxfne/issues"
-Changelog = "https://github.com/HNXJ/jaxfne/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/HNXJ/jaxfne/blob/main/docs/changelog.md"
 Citation = "https://github.com/HNXJ/jaxfne/blob/main/CITATION.cff"
 "Source Code" = "https://github.com/HNXJ/jaxfne"
 

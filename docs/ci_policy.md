@@ -83,7 +83,7 @@ Before tagging a release:
 2. Run extended validation: `scripts/run_all_tutorials.py && scripts/validate_tutorial_outputs.py`
 3. Verify build: `python -m build && twine check dist/*`
 4. Verify wheel smoke: fresh venv install + minimal workflow (checked in CI)
-5. Update CHANGELOG.md with version and summary
+5. Update docs/changelog.md with version and summary
 6. Tag and push
 
 ## Status Status and Statement Gates

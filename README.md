@@ -9,7 +9,7 @@
   <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml/badge.svg?branch=dev" alt="CI (fast)"></a>
   <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="Release CI"></a>
   <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-reported%20in%20CI-blue" alt="Coverage"></a>
-  <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions welcome"></a>
+  <a href="docs/contributing.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions welcome"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
 </p>
 
@@ -62,8 +62,8 @@ Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `rea
 | Quickstart (three build paths, canonical column, Jaxley) | [docs/quickstart.md](docs/quickstart.md) |
 | Full docs site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
 | Tutorials & études | [docs/tutorials/](docs/tutorials/) |
-| Changelog | [CHANGELOG.md](CHANGELOG.md) · [full notes](docs/changelog.md) |
-| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| Changelog | [docs/changelog.md](docs/changelog.md) |
+| Contributing | [docs/contributing.md](docs/contributing.md) |
 
 ## Built for AI agents too
 

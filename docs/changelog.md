@@ -1,9 +1,18 @@
+# Changelog
+
+All notable changes are documented here in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+## [Unreleased]
+
+### Changed
+- Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog only under `docs/changelog.md`.
+
 ## v0.4.6 (2026-07-12)
 
 **Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). Distribution to GitHub Release / TestPyPI / PyPI stays deferred until Hamm confirms **0.4.7**.
 
 ### Added
-- `CITATION.cff`, root `CONTRIBUTING.md` / `CHANGELOG.md`
+- `CITATION.cff`; contributing under `docs/contributing.md` + `.github/CONTRIBUTING.md`; changelog under `docs/changelog.md`
 - `docs/scope_and_status.md`, `docs/for_ai_agents.md`, Zenodo wiring guide
 - `jaxfne/py.typed`; pytest-cov coverage artifacts in CI
 

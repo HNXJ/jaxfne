@@ -1257,7 +1257,7 @@
           "definition_of_done": "Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expectations, doc/skill-sync requirements given the multi-agent workflow). Root CODE_OF_CONDUCT.md (adopt Contributor Covenant standard text, not invented). Root CHANGELOG.md in Keep-a-Changelog format, sourced from docs/changelog.md's real history, not a stub. All three linked from README badges/footer matching jaxley's pattern.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "Root CONTRIBUTING.md + CHANGELOG.md present. CODE_OF_CONDUCT.md removed 2026-07-12 (Hamm)."
+          "evidence": "2026-07-12 root declutter: full guide in docs/contributing.md; GitHub pointer at .github/CONTRIBUTING.md; changelog only docs/changelog.md. CODE_OF_CONDUCT.md removed (Hamm)."
         },
         {
           "id": "E",
