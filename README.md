@@ -20,14 +20,6 @@ depth-resolved LFP/CSD/EEG proxy readouts, spectrolaminar summaries, and
 population-level optimization. Define a column (or multi-area hierarchy), run it,
 and inspect rasters, layer-targeted drive, and field-proxy traces in one pipeline.
 
-**How this relates to [Jaxley](https://jaxley.readthedocs.io):** Jaxley builds
-differentiable, multi-compartment biophysical neurons (HH and other channels).
-jaxfne operates at **population and field scale** — tensor-algebraic circuit
-definition, source-to-sensor proxy chains, canonical cortical priors, and
-multi-trial spectrolaminar workflows. The two compose: a Jaxley model is a
-drop-in **emitter** via `JaxleyBridge`, feeding the same readout stack as
-built-in Izhikevich emitters.
-
 ## Install
 
 ```bash
