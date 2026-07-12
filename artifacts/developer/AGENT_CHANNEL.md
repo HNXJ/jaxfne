@@ -491,7 +491,13 @@ B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 **Open for pickup — `proceed with brainstorm` for step 10 publish** (Hamm gate).
 Release-readiness chapters **A–O all done**. Do **not** start tag/TestPyPI/PyPI
 until that brainstorm + explicit per-mutation authorization. Zenodo live DOI
-still manual (skipped).
+still manual (skipped). Root `CODE_OF_CONDUCT.md` **removed 2026-07-12** per Hamm.
+
+### 2026-07-12 — Cursor (Composer) [remove CODE_OF_CONDUCT.md]
+Hamm: delete root Contributor Covenant / CoC — not relevant to jaxfne.
+Deleted `CODE_OF_CONDUCT.md`; removed README badge + CONTRIBUTING/docs links;
+CHANGELOG note; plans.json chapter D + final scorecard community 10→9.
+
 
 ### 2026-07-12 — Cursor (Composer) [PRP chapter O done — adversarial re-score]
 Live WebFetch of jaxley README + GitHub root + pyproject.toml. Final scorecard

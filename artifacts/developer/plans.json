@@ -1144,7 +1144,8 @@
           "definition_of_done": "Real root CONTRIBUTING.md (expand docs/contributing.md's 39 lines into a genuine guide: dev setup, test running, PR expectations, doc/skill-sync requirements given the multi-agent workflow). Root CODE_OF_CONDUCT.md (adopt Contributor Covenant standard text, not invented). Root CHANGELOG.md in Keep-a-Changelog format, sourced from docs/changelog.md's real history, not a stub. All three linked from README badges/footer matching jaxley's pattern.",
           "status": "done",
           "completed": "2026-07-11",
-          "evidence": "Root CONTRIBUTING.md (expanded dev setup/PRP/multi-agent), CODE_OF_CONDUCT.md (Contributor Covenant 2.1), CHANGELOG.md (Keep-a-Changelog + link to docs/changelog.md); README badges for CoC/contributing."
+          "evidence": "Root CONTRIBUTING.md + CHANGELOG.md. CODE_OF_CONDUCT.md removed 2026-07-12 per Hamm (Contributor Covenant / empathy framing not retained for jaxfne).",
+          "note_2026_07_12": "CoC deleted from root; README badge and CONTRIBUTING link removed."
         },
         {
           "id": "E",
@@ -1311,9 +1312,9 @@
           {
             "id": "community_health_files",
             "baseline": 3,
-            "score": 10,
+            "score": 9,
             "max": 10,
-            "note": "Root CONTRIBUTING.md, CODE_OF_CONDUCT.md (Contributor Covenant 2.1), CHANGELOG.md; README badges match jaxley pattern. Verified on disk this pass."
+            "note": "Root CONTRIBUTING.md + CHANGELOG.md; README contributing badge. CODE_OF_CONDUCT.md removed 2026-07-12 per Hamm (not retained). Deduct 1 vs jaxley which ships CoC \u2014 intentional project choice, not an oversight."
           },
           {
             "id": "citation_scientific_backing",
@@ -1359,9 +1360,9 @@
             "note": "README and docs/index.md both state jaxley=biophysical compartments vs jaxfne=population/field-scale + composable JaxleyBridge in the first screen. Plain language. Verified this pass."
           }
         ],
-        "weighted_read": "~8.9/10 arithmetic mean of category scores (80/90). Baseline was ~5.5/10. citation_scientific_backing remains the honest structural drag (6/10, ceiling ~7-8 with DOI, never 10 without a paper).",
-        "arithmetic_mean": 8.89,
-        "sum_scores": 80,
+        "weighted_read": "~8.78/10 arithmetic mean after CoC removal (79/90). citation still 6/10.",
+        "arithmetic_mean": 8.78,
+        "sum_scores": 79,
         "sum_max": 90,
         "do_not_claim": [
           "10/10 overall",
@@ -1374,7 +1375,8 @@
           "Optional: codecov (or equivalent) live coverage % badge",
           "Optional: further hide/privatize artifacts/ from public GitHub browsing without breaking PRP stable path",
           "Step 10 publish itself requires an explicit brainstorm pass before mutation gates (Hamm 2026-07-12)"
-        ]
+        ],
+        "coc_removed_2026_07_12": true
       }
     }
   ],

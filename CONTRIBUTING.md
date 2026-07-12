@@ -5,7 +5,6 @@ human and AI-agent contributors.
 
 ## Quick links
 
-- [Code of Conduct](CODE_OF_CONDUCT.md)
 - [Changelog](CHANGELOG.md) · [full history](docs/changelog.md)
 - [Documentation](https://jaxfne.readthedocs.io/)
 - [For AI agents](docs/for_ai_agents.md)
