@@ -488,9 +488,15 @@ AI-friendliness is a stated goal, skills/ = "docs but for AI") -- chapters
 B/C reframe and trim them, they do NOT get hidden. Only `artifacts/` and
 `.legacy/` are actual root-privatization targets (chapter A).
 
-**Open for pickup — `proceed with brainstorm` for step 10** (queued plan item
-`step10-publish-decision-brainstorm`). Chapters A–O closed. No tag/TestPyPI/PyPI
-until that brainstorm and explicit per-mutation authorization.
+**Open for pickup — Hamm decisions on step 10** (see brainstorm
+`step10-publish-options-2026-07-12`). Recommended: green CI → choose 0.4.6/0.4.7 →
+authorize merge → authorize tag/Release/TestPyPI/PyPI separately. Zenodo optional.
+
+### 2026-07-12 — Cursor (Composer) [proceed with brainstorm — step 10]
+Recorded publish options (version / merge / mutation order / Zenodo). Fixed two CI
+blockers found while checking readiness: quickstart prose "native"; inventory test
+paths after AGENTS.md diet. Awaiting Hamm decisions — no publish mutations.
+
 
 ### 2026-07-12 — Cursor (Composer) [proceed with plan + review]
 **Plan:** Promoted step-10 brainstorm → `plans.items` `step10-publish-decision-brainstorm`

@@ -549,11 +549,12 @@
         "CITATION.cff"
       ],
       "depends_on_functions": [],
-      "shape": "Explicit brainstorm pass required before midterm step 10. Cover: version bump (0.4.5 vs 0.4.7), intended_release_sha, whether to merge dev\u2192main first, changelog/CITATION sync, Zenodo enablement timing, and mutation order (tag / GitHub Release / TestPyPI / PyPI) with per-class authorization. No remote publish mutations in this item.",
-      "status": "proposed",
+      "shape": "Brainstorm recorded 2026-07-12 (step10-publish-options-2026-07-12). Await Hamm decisions: publish now?, 0.4.6 vs 0.4.7, merge auth, per-mutation publish auth, Zenodo timing. Pre-publish: CI fixes for quickstart native + inventory path test.",
+      "status": "brainstormed_awaiting_decision",
       "source": "brainstorm/step10-publish-brainstorm-required-2026-07-12",
       "priority": "queue_front",
-      "blocks_step": 10
+      "blocks_step": 10,
+      "brainstorm_id": "step10-publish-options-2026-07-12"
     },
     {
       "id": "optional-zenodo-doi-after-first-release",
@@ -620,6 +621,72 @@
       ],
       "planned_item_id": "step10-publish-decision-brainstorm",
       "planned_on": "2026-07-12"
+    },
+    {
+      "id": "step10-publish-options-2026-07-12",
+      "created": "2026-07-12",
+      "status": "open_for_decision",
+      "source": "proceed with brainstorm (Hamm)",
+      "context": {
+        "package_version_on_disk": "0.4.5",
+        "latest_github_release_tag": "v0.4.5",
+        "origin_dev": "395b59f338bc6b0cebd6a7b5b3ff81e74653b735",
+        "origin_main": "3c2406037cc1e71288ebf434b9c7463594370476",
+        "dev_ahead_of_main_commits": 13,
+        "release_readiness_chapters": "A-O done",
+        "midterm_step_10": "not_started",
+        "ci_blocker_found": "CI (Fast) failed on 0b471f3: docs/quickstart.md 'native' prose hit; test_agent_context_inventory_commands_resolve empty after AGENTS.md diet. Both fixed locally in this brainstorm pass (pending push)."
+      },
+      "description": "Step 10 publish brainstorm: choices for version, merge, SHA, Zenodo, and mutation order. No tags/PyPI in this entry.",
+      "what_we_can_do_now": [
+        "Keep polishing on dev without publishing (safe default).",
+        "Merge origin/dev \u2192 origin/main after green CI (branch mutation; needs auth).",
+        "Bump version 0.4.5 \u2192 0.4.6 or 0.4.7, sync pyproject/CITATION/mkdocs/changelog, then tag.",
+        "Publish GitHub Release for a new tag (needs auth).",
+        "Upload TestPyPI then PyPI (needs auth; separate gates).",
+        "Enable Zenodo GitHub integration (maintainer UI), then mint DOI on next Release.",
+        "Defer live coverage badge and peer-reviewed citation work (optional / out of band)."
+      ],
+      "what_we_should_do_recommended": [
+        "1. Land CI fixes (quickstart 'native', inventory path test) and wait for CI (Fast) green on tip.",
+        "2. Decide version identity: recommend **0.4.7** if this wave is the midterm publish target; use **0.4.6** only if you want a smaller docs/polish release first.",
+        "3. Explicitly authorize merge **dev \u2192 main** on the intended SHA (after green CI).",
+        "4. On that SHA only: version bump + changelog section + CITATION.cff/date sync.",
+        "5. Authorize separately: annotated tag \u2192 GitHub Release \u2192 TestPyPI \u2192 PyPI (one class at a time).",
+        "6. Zenodo: enable once in zenodo.org settings, then DOI after Release; update CITATION.cff in a follow-up commit."
+      ],
+      "version_options": {
+        "stay_0.4.5": "Not recommended \u2014 v0.4.5 already published; tip has large post-tag surface (README/PRP/docs/CI).",
+        "0.4.6": "Docs/community/polish release; smaller claim than midterm '0.4.7 final polish' naming.",
+        "0.4.7": "Matches midterm plan naming (steps 1\u20139 done). Recommended if Hamm wants this wave to be the midterm publish."
+      },
+      "merge_options": {
+        "dev_only": "Continue accumulating; no public main update.",
+        "merge_dev_to_main_then_tag": "Standard path; main becomes intended_release_sha.",
+        "tag_from_dev_without_main": "Avoid \u2014 release doctrine prefers origin/main == intended SHA."
+      },
+      "mutation_sequence_if_publishing": [
+        "A. Fix CI + confirm green on tip",
+        "B. Authorize: merge/push main = tip SHA",
+        "C. Local version bump commit on that line",
+        "D. Authorize: annotated tag vX.Y.Z + push tag",
+        "E. Authorize: GitHub Release",
+        "F. Authorize: TestPyPI upload",
+        "G. Authorize: PyPI upload",
+        "H. Optional: Zenodo DOI \u2192 CITATION.cff update"
+      ],
+      "explicitly_out_of_scope_for_step10": [
+        "Peer-reviewed methods paper",
+        "Live codecov badge (optional later)",
+        "Large feature work still proposed (HDP 100k, 1M ladder, bf16, etc.)"
+      ],
+      "decisions_needed_from_hamm": [
+        "Publish now vs keep polishing?",
+        "Version: 0.4.6 or 0.4.7?",
+        "Authorize merge dev\u2192main after green CI?",
+        "Authorize tag / Release / TestPyPI / PyPI (each separately)?",
+        "Enable Zenodo now or later?"
+      ]
     }
   ],
   "roadmap": {
@@ -1450,5 +1517,11 @@
     ],
     "tone": "Public and scorecard notes use factual wording; avoid theatrical claim-language.",
     "not_started_midterm_step": 10
+  },
+  "brainstorm_pass_note_2026_07_12": {
+    "action": "proceed with brainstorm",
+    "focus": "step 10 publish options",
+    "ci_fixes_included": true,
+    "awaiting": "Hamm decisions listed in brainstorm entry"
   }
 }
