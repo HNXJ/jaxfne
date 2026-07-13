@@ -41,8 +41,8 @@ This page indexes those contracts. It does not restate their derivations.
 
 | Stage | Domain | Codomain | Tensor rank | Class | Key assumption | Units / status |
 |---|---|---|---|---|---|---|
-| **Emitter** | parameters `theta`, input `u(t)`, initial state | state trajectory `z(t)` | rank-2 `[T, N]` | dynamical | Izhikevich default; explicit `PRNGKey` required; no biological calibration claim | mV / ms; `claim_level = "computational_scaffold"` |
-| **Source** | state `z(t)`, drive `I(t)`, spatial basis `chi(x)` | source density `q(x,t)` | rank-2 `[T, N]` | source projection | no synaptic double-counting (see Source/Field Equations); proxy coefficients are not calibrated physical constants | relative units; `source_calibration_status` |
+| **Emitter** | parameters `theta`, input `u(t)`, initial state | state trajectory `z(t)` | rank-2 `[T, N]` | dynamical | Izhikevich default; explicit `PRNGKey` required; Relative-value state | mV / ms; `claim_level = "computational_scaffold"` |
+| **Source** | state `z(t)`, drive `I(t)`, spatial basis `chi(x)` | source density `q(x,t)` | rank-2 `[T, N]` | source projection | no synaptic double-counting (see Source/Field Equations); Relative-value coefficients | relative units; `source_calibration_status` |
 | **Field** | source density `q` | `lfp_proxy`, `csd_proxy` | rank-2 `[T, n_contacts]` | field projection (declared, not solved) | isotropic conductivity assumed; the field equation is declared, not solved (`field_solver_status = "linear_solver"`) | relative units; `physical_amplitude_calibrated = False` |
 | **Probe** | field + source + state | channel readout `Y_c(t)` | depends on operator (eight operators) | readout | a proxy reading unless lead-field geometry is calibrated to real electrodes | relative units; see [Probe Operators](guides/probe_operators.md) |
 | **Objective** | signals + declared targets | scalar/vector score | rank-0 / rank-1 | evaluation | strict mode raises on a non-finite score | dimensionless |

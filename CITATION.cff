@@ -8,10 +8,10 @@ license: MIT
 repository-code: "https://github.com/HNXJ/jaxfne"
 url: "https://jaxfne.readthedocs.io/en/latest/"
 abstract: >
-  JAX-native computational scaffold for laminar cortical circuits: population
-  simulation, source-to-field proxy readouts (LFP, CSD, EEG/MEG), spectrolaminar
-  workflows, and Jaxley interoperability. Outputs are proxy/scaffold readouts,
-  not calibrated biophysical recordings.
+  JAX-based simulation of Tensor-Field Neural Equations: population simulation,
+  emitter-to-source-to-field readouts (LFP, CSD, EEG/MEG), spectrolaminar
+  workflows, and Jaxley interoperability. All outputs are Relative-value unless
+  an explicit calibration step is supplied.
 authors:
   - family-names: Nejat
     given-names: Hamed

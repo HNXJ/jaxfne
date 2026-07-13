@@ -47,13 +47,8 @@ markdown_extensions:
 nav:
   - Getting started:
       - Welcome: index.md
-      - Scope & status: scope_and_status.md
       - Installation: install.md
       - Quickstart: quickstart.md
-      - For AI agents: for_ai_agents.md
-      - Google Colab Quick Start: colab.md
-      - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
-      - FAQ: faq.md
 
   - Tutorials:
       - Atlas Overview: tutorials/index.md
@@ -88,9 +83,7 @@ nav:
       - Operator Composition: guides/operator_composition.md
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
-      - Plotly Visualization: guides/plotly_visualization.md
       - Poisson Admissibility: guides/poisson_admissibility.md
-      - Jaxley Interoperability: guides/jaxley_interop.md
       - Homeostasis: guides/homeostasis.md
       - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
@@ -99,7 +92,6 @@ nav:
       - Interactive Tutorial Visualizations: interactive_visualizations.md
       - Performance Baseline: performance_baseline.md
       - Tutorial Figures: tutorial_figures.md
-      - CI and Validation Policy: ci_policy.md
       - Technical reports:
           - Baseline Drive Reference: BASELINE_DRIVE_REFERENCE.md
           - Cortex Calibration Checklist: CORTEX_CALIBRATION_CHECKLIST.md
@@ -128,7 +120,15 @@ nav:
       - Tensor Operator Registry: api/tensor_operators.md
       - Operator Inventory (generated): _generated/operator_inventory.md
 
-  - Theory:
+  - Appendix:
+      - Scope & status: scope_and_status.md
+      - For AI agents: for_ai_agents.md
+      - Google Colab Quick Start: colab.md
+      - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
+      - FAQ: faq.md
+      - Plotly Visualization: guides/plotly_visualization.md
+      - Jaxley Interoperability: guides/jaxley_interop.md
+      - CI and Validation Policy: ci_policy.md
       - Operator Doctrine: operator_doctrine.md
       - Tensor-Network Ancestry: tensor_network_ancestry.md
       - Mathematical Glossary Flow: mathematical_glossary_flow.md
@@ -136,25 +136,23 @@ nav:
       - Source/Field Equations: source_field_equations.md
       - Conservation Proxy Diagnostics: conservation_proxy_diagnostics.md
       - Tensor Electromagnetics Scope: tensor_electromagnetics_scope.md
-
-  - Reference:
-      - Glossary of Methods: reference/glossary_of_methods.md
-
-  - About jaxfne:
-      - Limitations and future plans: limitations_and_future_plans.md
-      - Documentation quality report: publication/docs_quality_report.md
-      - v0.4.7 Refactor Audit: v047_refactor_audit.md
-      - Changelog: changelog.md
-      - Citation: citation.md
-      - Zenodo release DOI: guides/zenodo_doi.md
-      - Contributing: contributing.md
-      - Releases:
-          - v0.3.4: releases/v0.3.4.md
-          - v0.2.18: releases/v0.2.18.md
-          - v0.2.10: releases/v0.2.10.md
-          - v0.2.3: releases/v0.2.3.md
-          - v0.2.1: releases/v0.2.1.md
-          - v0.2.0: releases/v0.2.0.md
+      - Reference:
+          - Glossary of Methods: reference/glossary_of_methods.md
+      - About jaxfne:
+          - Limitations and future plans: limitations_and_future_plans.md
+          - Documentation quality report: publication/docs_quality_report.md
+          - v0.4.7 Refactor Audit: v047_refactor_audit.md
+          - Changelog: changelog.md
+          - Citation: citation.md
+          - Zenodo release DOI: guides/zenodo_doi.md
+          - Contributing: contributing.md
+          - Releases:
+              - v0.3.4: releases/v0.3.4.md
+              - v0.2.18: releases/v0.2.18.md
+              - v0.2.10: releases/v0.2.10.md
+              - v0.2.3: releases/v0.2.3.md
+              - v0.2.1: releases/v0.2.1.md
+              - v0.2.0: releases/v0.2.0.md
 
 extra:
   jaxfne_version: "0.4.6"

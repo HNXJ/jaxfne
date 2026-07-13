@@ -414,7 +414,7 @@ For V1-V4 only. Declarative metadata; connectivity is stored as parameter dicts,
 | Parameter | Value | Status |
 |---|---|---|
 | `domain` | `"laminar_column"` | Proxy geometry |
-| `conductivity` | `"proxy"` | Not calibrated |
+| `conductivity` | `"proxy"` | Relative-value |
 | `boundary` | `"mean_zero_neumann"` | Boundary convention |
 | `field_solver_status` | `"linear_solver"` | **Immutable** |
 | `field_claim_level` | `"proxy_readout"` | **Immutable** |

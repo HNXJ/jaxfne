@@ -27,7 +27,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DOC_GLOBS = ("README.md", "docs/**/*.md")
+DOC_GLOBS = ("README.md", "CITATION.cff", "docs/**/*.md")
 CODE_GLOBS = ("jaxfne/**/*.py", "scripts/**/*.py", "tests/**/*.py")
 
 # Directories under docs/ that are explicitly dated snapshots or archived
@@ -60,8 +60,8 @@ COMPARISON_PATTERNS = [
 
 NEGATIVE_CLAIM_PATTERNS = [
     re.compile(r"does not claim", re.I),
-    re.compile(r"\bnot a calibrated\b", re.I),
-    re.compile(r"\bnot a validated\b", re.I),
+    re.compile(r"\bnot a?n? ?calibrated\b", re.I),
+    re.compile(r"\bnot a?n? ?validated\b", re.I),
     re.compile(r"\bnot an? absolute\b", re.I),
     re.compile(r"\bnot validated physical\b", re.I),
     re.compile(r"\bno substitute for\b", re.I),

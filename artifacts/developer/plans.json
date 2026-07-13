@@ -1862,6 +1862,40 @@
           "head_sha": "d13fcae",
           "conclusion": "success"
         }
+      },
+      "correction_2026_07_13": {
+        "id": "correction-public-doc-integrity-2026-07-13",
+        "title": "Chapter R/O self-scores were inflated -- real violations found by a human read, not by the automated grep re-score",
+        "finding": "Hamm hand-read the actual public docs and found 6 concrete violation categories still live at chapter R's 'accept_for_polish_track' commit (605c326) and beyond: docs/scope_and_status.md's entire 'Language to use' section (verbatim internal doctrine -- 'Prefer: X / Avoid without receipts: Y' -- copied into a public page), docs/index.md's full 'Compared to Jaxley' paragraph, an over-narrow README/index.md opening sentence, and ~10 instances of 'not a calibrated/validated/absolute X' negative-claim framing across docs/ and CITATION.cff. Chapter R's own automated grep denylist (targeting literal phrases like 'Object grammar'/'never escalate'/'Truth gates:') did not cover these patterns -- a real gap in what 'clean' meant, not a false alarm.",
+        "root_cause_of_a_second_incident": "Separately, an uncommitted, broken (21 failing tests), string-concatenation-obfuscated 'value_kind' terminology-purge attempt was found sitting in the working tree at session start, signed 'Hamm' but never committed/pushed. Stashed (stash@{0}, not deleted) rather than applied. Not evidence of anything malicious -- but a second, independent confirmation that self-reported 'done'/'135 passing' claims need re-verification before being trusted, same standing rule as everywhere else in this repo.",
+        "fixed_2026_07_13_commit": "8e039cf",
+        "fix_summary": "docs/scope_and_status.md rewritten (positive-only, Relative/Absolute vocabulary, no leaked instructions); docs/index.md jaxley-comparison paragraph removed; README.md + docs/index.md + CITATION.cff opening/abstract rewritten to the broader Tensor-Field Neural Equations framing; 9 more docs files purged of negative-claim language; jaxfne/_construct.py::migrate_schema + its test de-obfuscated (plain literals, zero functional change, 13/13 tests still pass).",
+        "new_permanent_guard": "scripts/audit_public_docs_language.py --check, wired into ci.yml -- checks README.md + CITATION.cff + docs/**/*.md for leaked-instruction phrases, cross-project comparisons, and negative-claim patterns; checks jaxfne/+scripts/+tests/ for string-concatenation identifier obfuscation. This is the first time this specific category of violation is CI-enforced, not just self-graded.",
+        "lesson": "Chapter R/O's dual-ask/adversarial-rescore methodology (re-grep a fixed denylist) is necessary but not sufficient -- it only catches patterns someone thought to write a regex for. A fresh human read (or an agent instructed to read with genuinely adversarial intent, not confirm an existing denylist) found real violations the automated pass missed. Future 'final' scorecards should note this explicitly rather than treat a clean grep pass as equivalent to a clean doc.",
+        "revised_scorecard_2026_07_13": {
+          "method": "Direct read of committed docs (not grep-pattern-matching a pre-existing list) plus scripts/audit_public_docs_language.py --check as a verification floor, not the whole test. Same 9-category framework as baseline_scorecard_2026_07_08, with two categories renamed to reflect a correction Hamm made explicit this pass: 'tone_honesty_vs_confidence' -> 'public_doc_integrity' (now CI-gated, zero tolerance for leaked instructions/negative-claim framing) and 'differentiation_vs_jaxley' -> 'capability_clarity' (comparison to any named competitor is NOT wanted in public docs -- positive, self-contained capability description only).",
+          "categories": [
+            {"id": "readme_first_impression", "score": 9, "max": 10, "note": "72 lines, plain Tensor-Field Neural Equations opening (fixed 2026-07-13), positive Scope & status section, clean badge row, working minimal example."},
+            {"id": "docs_site_structure", "score": 9, "max": 10, "note": "readthedocs configured, tutorial ladder + etude sub-groups, FAQ, API ref, scope_and_status rewritten. Deduct 1: not every one of 93 docs/ pages has had an individual manual tone read -- audit script covers pattern-matchable violations, not full prose-quality judgment."},
+            {"id": "community_health_files", "score": 6, "max": 10, "note": "CONTRIBUTING + CHANGELOG present (relocated to docs/, thin root pointer at .github/CONTRIBUTING.md). No CODE_OF_CONDUCT anywhere (deliberately removed 2026-07-12) -- real, current gap vs jaxley, not fixed this pass."},
+            {"id": "citation_scientific_backing", "score": 6, "max": 10, "note": "CITATION.cff present and now fixed of its own negative-claim/narrow-framing issues; Zenodo DOI wiring documented but no DOI minted yet; no peer-reviewed manuscript. Structural ceiling, not doc-fixable -- do not round to 10 without a real DOI+paper."},
+            {"id": "packaging_pyproject", "score": 10, "max": 10, "note": "py.typed present, keywords list present, full project.urls. Matches or exceeds jaxley."},
+            {"id": "ci_maturity", "score": 9, "max": 10, "note": "5 workflows incl. the new public-docs-language + notebook-grammar audits (2026-07-13), pytest-cov. Deduct 1: coverage badge is a static shield, not a live percentage."},
+            {"id": "repo_root_impression", "score": 8, "max": 10, "note": "18 tracked root entries. artifacts/ (PRP tracking) and skills/+AGENTS.md (deliberate AI-friendliness feature, not clutter) remain visible to a GitHub browser -- a real, disclosed tradeoff, not an oversight."},
+            {"id": "public_doc_integrity", "score": 9, "max": 10, "note": "RENAMED from tone_honesty_vs_confidence. Verified 2026-07-13 via scripts/audit_public_docs_language.py --check across README+CITATION.cff+all of docs/: 0 violations, now CI-gated so it can't silently regress. Not 10/10: the denylist is curated/pattern-based, not an exhaustive semantic read -- a sufficiently indirect phrasing could still slip past pattern matching."},
+            {"id": "capability_clarity", "score": 8, "max": 10, "note": "RENAMED from differentiation_vs_jaxley per Hamm's explicit correction: no named-competitor comparison in public docs, period -- positive, self-contained capability description only (Tensor-Field Neural Equations, emitter-to-source-to-field, spectrolaminar, Jaxley interoperability described as a technical bridge, not an evaluative comparison). Deduct 2: purely positive-only framing is an inherent readability cost for a reader trying to place jaxfne relative to tools they already know -- a real tradeoff of the no-comparison constraint, not a flaw to chase away."}
+          ],
+          "sum_scores": 74,
+          "sum_max": 90,
+          "weighted_mean": 8.22,
+          "percent": 82,
+          "do_not_claim": [
+            "Overall 10/10 -- community_health_files and citation_scientific_backing both have real, current, non-doc-fixable gaps",
+            "public_doc_integrity 10/10 -- script-verified clean, not a full independent semantic re-read since the CITATION.cff round"
+          ],
+          "backlog_check": "progress.json: 438 entries, 0 open, 1 correctly-deferred (gitignored ff_fb bundle). review.json: 80 entries. Midterm plan steps 1-9 all status=done at or above target; step 10 (actual publish) correctly not_started, gated on Hamm's explicit per-mutation authorization.",
+          "verified_receipts": "Full fast suite 2661 passed/0 failed before commit 8e039cf; mkdocs build --strict clean; scripts/audit_public_docs_language.py --check exit 0 across the whole repo."
+        }
       }
     }
   ],
