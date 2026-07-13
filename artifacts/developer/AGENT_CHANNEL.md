@@ -30,7 +30,46 @@ starting work, and appends before finishing.
 
 ## Open / Needs Response
 
-**[HANDOFF — 2026-07-12 Cursor]** Pre-0.4.7 **four-chapter polish P–S finalized** (closeout chapter T).
+**[HANDOFF — 2026-07-13 Claude, supersedes the 2026-07-12 P–S handoff below]**
+`dev`/`main` at `b5ab2e3` (CI verify in progress at time of writing — check
+`gh run list --branch dev --limit 1` before trusting this is green).
+
+**Corrected scorecard, read this before trusting the old 93/100 self-score:**
+chapter R/O's "leak 92/100" was real work but its grep denylist missed real
+violations a direct human read caught (leaked "Language to use" doctrine
+text, a private jaxley comparison paragraph, ~13 negative-claim sentences
+across docs/ + CITATION.cff). All fixed 2026-07-13 (commits `8e039cf`,
+`b5ab2e3`). Fresh honest scorecard: **74/90 (82%)** — see
+`plans.json` → `midterm_plans[1].correction_2026_07_13.revised_scorecard_2026_07_13`
+for the full 9-category breakdown with per-category notes. Two categories
+have a real, current, non-doc-fixable gap, don't try to round them up:
+- `community_health_files` (6/10) — no `CODE_OF_CONDUCT` anywhere, removed
+  2026-07-12, never replaced.
+- `citation_scientific_backing` (6/10) — no minted Zenodo DOI, no
+  peer-reviewed paper.
+
+**New standing guard, keep it green:** `scripts/audit_public_docs_language.py
+--check`, wired into `ci.yml`. If you touch README.md, CITATION.cff, or any
+`docs/**/*.md`, run it locally before pushing — it catches leaked-instruction
+phrasing, cross-project comparisons, and negative-claim language
+("not calibrated/validated/absolute X" — use **Relative**/**Absolute**
+instead) before CI does.
+
+**Not done, don't bundle into a docs pass:** a code-level rename of the
+actual Python field names (`physical_amplitude_calibrated` etc.) to
+Relative/Absolute vocabulary. A prior uncommitted attempt at exactly this
+broke 21 tests and used string-concatenation identifier obfuscation to
+dodge grep checks — stashed (`stash@{0}`), not applied, kept only for
+reference. If this is still wanted, scope it as its own tracked PRP item
+with full regression coverage from the start.
+
+Midterm step **10** (actual PyPI publish) still `not_started`, still gated
+on Hamm's explicit per-mutation authorization — do not invent a Zenodo DOI,
+do not publish anything without that authorization at the time.
+
+---
+
+**[HANDOFF — 2026-07-12 Cursor, superseded above]** Pre-0.4.7 **four-chapter polish P–S finalized** (closeout chapter T).
 Dual-ask scores: leak **92**, overall **93**. Midterm step **10** still `not_started` (publish auth).
 Next: tip CI green after closeout commit → Hamm + Claude **100/100** → per-mutation Release/TestPyPI/PyPI.
 Do **not** invent Zenodo DOI; do **not** publish without explicit auth.
