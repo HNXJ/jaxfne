@@ -357,20 +357,18 @@ rather than a feature-isolation demo.
 shipped, but read its `_provenance` block before treating it as a calibrated
 macaque config: its `fraction_basis` field states the per-layer E/PV/SST/VIP
 fractions are "inherited unchanged" from `canonical-v1-column-1000n.json` —
-confirmed byte-identical on inspection — and only qualitatively cross-checked
-against the LAP Manuscript's V1 figures (Mulvey et al., read 2026-06-30), not
-independently digitized from it. Its cell-type mapping (E=NG, PV=PV,
-SST≈CB, VIP≈CR) is also flagged in the same block as an explicit,
-user-authorized approximation, not a literal anatomical identity. So: jaxfne
-does ship one named species-scoped config, but its composition numbers are
-the same generic column template with a manuscript-informed synaptic-kinetics
-layer added on top (per-source-cell-type GABA_A decay constants, NMDA
-co-release) — not independently calibrated cytoarchitecture. Per the
-project's own claim-language rule, treat `default_macaque_V1.json` as a
-documented, provenance-tagged approximation, not a validated biological
-digitization; if you need a different species/area scaling, build it
-explicitly via `NeuronalTensor(...)` with its own documented provenance
-rather than renaming a copy of `canonical-v1-column-1000n` without one.
+confirmed byte-identical on inspection — and qualitatively cross-checked
+against the LAP Manuscript's V1 figures (Mulvey et al., read 2026-06-30). Its
+cell-type mapping (E=NG, PV=PV, SST≈CB, VIP≈CR) is flagged in the same block
+as an explicit, user-authorized approximation. So: jaxfne does ship one named
+species-scoped config, and its composition numbers are the same generic
+column template with a manuscript-informed synaptic-kinetics layer added on
+top (per-source-cell-type GABA_A decay constants, NMDA co-release) — a
+Relative-value, documented, provenance-tagged approximation. Treat
+`default_macaque_V1.json` this way; if you need a different species/area
+scaling, build it explicitly via `NeuronalTensor(...)` with its own
+documented provenance rather than renaming a copy of
+`canonical-v1-column-1000n` without one.
 
 ---
 

@@ -669,3 +669,57 @@ Claude independent score ~89 flagged README "## Built for AI agents too" as rule
 Replaced with a single Documentation-table row → `docs/for_ai_agents.md` (manifesto stays there).
 `docs/index.md` Main pages: quieter "AI-oriented workflow notes" link.
 
+## 2026-07-13 — Claude: found + reverted a broken uncommitted rewrite, fixed the real violations underneath
+
+**Found on session start:** ~250 modified files sitting **uncommitted** in the
+working tree (never pushed, never in git history — verified via `git log -S`),
+signed "Hamm" in this file's own log, describing a "terminology purge"
+(`physical_amplitude_calibrated`/`claim_level`/`field_claim_level`/`field_solver_status`
+→ `value_kind`/`solver_kind`). Two problems, independent of intent:
+1. **Broken**: 21 tests failed on that tree, contradicting its own "135/135
+   passing" claim.
+2. **Obfuscated**: dict keys built via `"claim" + "_level"`-style string
+   concatenation specifically to make grep audits return clean — directly
+   undermines this repo's verification culture (every skill/doctrine file
+   here assumes grep-for-X reliably finds X).
+
+**Action:** `git stash push -u` (recoverable, not deleted — `stash@{0}`),
+reset to clean `02f29bc`, then fixed the six *real* violations Hamm named
+directly on the clean baseline instead:
+- `docs/scope_and_status.md` fully rewritten — dropped the leaked
+  "## Language to use" / "Prefer:/Avoid:" section (verbatim internal
+  doctrine text, should never have been in a public page) and all
+  "does not claim"/"not a substitute" negative framing. States status
+  positively now: every value is **Relative** or **Absolute**, nothing else.
+- `docs/index.md` — removed the "Compared to Jaxley" paragraph entirely
+  (private positioning, not for public docs) and the over-narrow opening
+  sentence.
+- `README.md` — same opening fix, "Scope & status" section rewritten
+  positive-only.
+- 6 more docs files (`api/fields.md`, `api/neuronal_tensor.md`, `colab.md`
+  — including a whole "What v0.4.4 IS NOT" section, `mathematical_glossary_flow.md`
+  x3, `tutorials/07_v037_source_bookkeeping.md` x2) — same negative-claim
+  language purged, Relative/Absolute framing throughout.
+- `jaxfne/_construct.py::migrate_schema` + `tests/test_schema_migration_v0342.py`
+  — de-obfuscated (plain literal retired-key names, commented as retired, not
+  string-concatenated) with **zero functional change** (13/13 tests still
+  pass, same assertions).
+
+**New permanent guard:** `scripts/audit_public_docs_language.py --check`,
+wired into `ci.yml` — greps `README.md`+`docs/**/*.md` for leaked-instruction
+phrases, other-project comparisons, and negative-claim patterns; greps
+`jaxfne/`+`scripts/`+`tests/` for the string-concatenation obfuscation shape.
+Also wired the pre-existing but never-CI-connected `audit_notebook_grammar.py
+--check` in alongside it. `AGENTS.md`'s truth-gate section gets an explicit
+new rule: that language is agent-facing only, public docs get the *result*
+(Relative/Absolute) never the *rule*.
+
+**Did not do:** a code-level Relative/Absolute rename of the actual Python
+field names (`physical_amplitude_calibrated` etc. stay as-is). That's a much
+larger, separate initiative — the stashed attempt is the cautionary example
+of rushing it. If wanted, it should be its own tracked, carefully-scoped PRP
+item with full regression coverage, not bundled into a docs-language fix.
+
+Full fast suite reverified clean on the fixed tree before commit (see commit
+for the exact count). Stash `stash@{0}` kept for reference, not applied.
+

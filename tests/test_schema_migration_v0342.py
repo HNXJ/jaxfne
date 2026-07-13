@@ -7,8 +7,10 @@ Canonical schema:
   physical_amplitude_calibrated: bool
 
 This is the designated *migration test*: it is the one place permitted to name the
-retired wording, and it constructs those strings by concatenation so the repository
-stays free of literal occurrences even here.
+retired, pre-v0.4.x wording, checking that it never leaks into public docs/notebooks
+or a fresh manifest. Named as plain literals, not string concatenation -- this file
+only greps *other* files (docs/, tutorials/) for these terms, never itself, so there
+is no reason to hide the literal here.
 """
 import json
 import subprocess
@@ -18,12 +20,12 @@ import pytest
 
 import jaxfne as jtfne
 
-# Retired wording, built so this file contains no literal occurrence.
-_OLD_AMP_KEY = "physical_amplitude_" + "claim_allowed"
-_OLD_SOLVER = "laminar_proxy" + "_no_pde"
-_OLD_CLAIM = "proxy_readout" + "_only"
-_OLD_TRUTH_MODE = "truth" + "_mode"
-_OLD_TRUTH_VALUE = "truth_safe" + "_unverified"
+# Retired, pre-v0.4.x wording -- checked for absence in public docs/notebooks/manifests.
+_OLD_AMP_KEY = "physical_amplitude_claim_allowed"
+_OLD_SOLVER = "laminar_proxy_no_pde"
+_OLD_CLAIM = "proxy_readout_only"
+_OLD_TRUTH_MODE = "truth_mode"
+_OLD_TRUTH_VALUE = "truth_safe_unverified"
 RETIRED = (_OLD_AMP_KEY, _OLD_SOLVER, _OLD_CLAIM, _OLD_TRUTH_MODE, _OLD_TRUTH_VALUE)
 
 REPO = Path(__file__).resolve().parent.parent

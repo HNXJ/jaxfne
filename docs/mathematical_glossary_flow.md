@@ -74,8 +74,8 @@ where $\alpha$ indexes spatial contact points, $k$ indexes neurons, and $w$ are 
 - $I(t)$: input/drive current
 - $\chi(x)$: spatial contact basis (probe geometry, source locations)
 - $w_{k\alpha}(x)$: spatial projection weight from neuron $k$ to contact $\alpha$ (anatomical distance, contact coupling)
-- $a_k$: state-to-source projection scalar for unit $k$ (scales how much of the emitter state contributes to the source; proxy coefficient, not a calibrated physical constant)
-- $b_k$: input-to-source projection scalar for unit $k$ (scales how much of the drive/input current contributes to the source; proxy coefficient, not a calibrated physical constant)
+- $a_k$: state-to-source projection scalar for unit $k$ (scales how much of the emitter state contributes to the source; a Relative-value coefficient)
+- $b_k$: input-to-source projection scalar for unit $k$ (scales how much of the drive/input current contributes to the source; a Relative-value coefficient)
 
 **Worded-equation:**
 
@@ -163,9 +163,8 @@ $q$ is the **Source → Field** boundary condition. It ensures the field solutio
 
 **Run boundary:**
 
-- **Current default**: `linear_solver` — equation is declared but NOT solved
-- **Reserved path**: `specified_future_solver` for a calibrated field solver (see [Limitations and future plans](limitations_and_future_plans.md))
-- **Not a physical status** unless solver evidence exists
+- **Current default**: `linear_solver` — a Relative-value declared projection
+- **Reserved path**: `specified_future_solver` for an Absolute-value field solver (see [Limitations and future plans](limitations_and_future_plans.md))
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — declares but doesn't solve

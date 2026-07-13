@@ -1,17 +1,15 @@
 # jaxfne
 
-**Simulate laminar cortical circuits in JAX** — population dynamics, depth-resolved
-LFP/CSD proxy readouts, spectrolaminar summaries, and multi-area hierarchies.
+**JAX-based simulation of Tensor-Field Neural Equations** — emitter-to-source-to-field
+readouts for computational electrophysiology. Declarative circuit definition,
+canonical cortical priors, and optimization over population readouts, at population
+and field scale.
 
-**Compared to [Jaxley](https://jaxley.readthedocs.io):** Jaxley builds
-differentiable, multi-compartment biophysical neurons (HH and other channels).
-jaxfne works at **population and field scale** — declarative circuit definition,
-source-to-sensor proxy chains, canonical cortical priors, and optimization over
-population readouts. They **compose**: a Jaxley model plugs into jaxfne as an
-emitter via `JaxleyBridge` and uses the same readout stack as built-in Izhikevich
-emitters. Details: [Jaxley interoperability](guides/jaxley_interop.md).
+Interoperability: a [Jaxley](https://jaxley.readthedocs.io) model plugs into jaxfne
+as an emitter via `JaxleyBridge` and uses the same readout stack as built-in
+Izhikevich emitters. Details: [Jaxley interoperability](guides/jaxley_interop.md).
 
-Scope & limits: [Scope & status](scope_and_status.md).
+Scope & status: [Scope & status](scope_and_status.md).
 
 ## Install
 
@@ -47,6 +45,6 @@ Prefer the fluent `Configuration` builder or Jaxley bridge? See [Quickstart](qui
 - [Quickstart](quickstart.md) — three build paths, canonical column, HDP
 - [Tutorials](tutorials/index.md)
 - [API reference](api/index.md)
-- [Scope & status](scope_and_status.md) — proxy readouts and claim limits
+- [Scope & status](scope_and_status.md) — Relative vs Absolute value reference
 - [Changelog](changelog.md)
 - AI-oriented workflow notes: [For AI agents](for_ai_agents.md)

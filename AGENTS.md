@@ -35,6 +35,15 @@ Language: simulated/proxy/scaffold — not validated/physical/mechanism without 
 
 Plausible Izhikevich sanity: rest ≈ −66 mV, spike peak ≈ +30 mV, mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = blowup.
 
+**This section is agent-facing, not for public docs.** README/`docs/**` are read by
+humans deciding whether to use jaxfne — they get the *result* of this rule (every
+value is stated as **Relative** or **Absolute**, nothing else), never the rule
+itself. Don't copy "language: prefer X avoid Y" phrasing, "does not claim" framing,
+or any other doctrine text into `docs/` or `README.md`. Don't compare jaxfne to
+other named projects in public docs. Don't build dict keys via string concatenation
+to dodge a grep check — if a name needs deprecating, deprecate it in the open.
+Guard: `python3 scripts/audit_public_docs_language.py --check` (wired into CI).
+
 ## Before writing helpers
 
 Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.

@@ -203,30 +203,24 @@ print("✓ Simulation output saved to simulation_output.json")
 
 ## Status Status and Scientific Statements
 
-**Important:** jaxfne is an exploratory computational framework. Do not interpret outputs as biological status.
+**Value status:** every output below is Relative unless you supply an explicit
+calibration step. See [Scope & status](scope_and_status.md).
 
-### Statement Boundaries (v0.4.4)
+### Statement boundaries (v0.4.4)
 
-| Statement | Status | Notes |
+| Statement | Value | Notes |
 |-------|--------|-------|
-| **Physical amplitude** | Not allowed | Values are in simulation units, not validated physical currents |
-| **Biological metabolism** | Not allowed | Izhikevich model is phenomenological, not biophysical |
-| **Field accuracy** | Proxy only | CSD/LFP outputs are forward-field proxies, not validated against experiment |
-| **Solver status** | Not implemented | Elliptic/volumetric solvers are reserved regimes; diagnostics are proxy summaries |
+| **Amplitude** | Relative | Values are in simulation units |
+| **Metabolism** | Relative | Izhikevich model is phenomenological |
+| **Field readouts** | Relative | CSD/LFP outputs are forward-field projections |
+| **Solver** | `linear_solver` | Elliptic/volumetric solvers are a reserved future regime; current diagnostics use a Relative-value projection |
 
-### What v0.4.4 IS
+### What v0.4.4 is
 
-- ✓ Exploratory computational neuroscience framework
-- ✓ Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
-- ✓ Teaching tool for understanding circuit behavior
-- ✓ Optimization sandbox for fitness/plasticity experiments
-
-### What v0.4.4 IS NOT
-
-- ✗ Biological validation model
-- ✗ Whole-brain simulator
-- ✗ Empirically calibrated circuit model
-- ✗ Solver for differential equations (no PDEs solved)
+- Exploratory computational neuroscience framework
+- Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
+- Teaching tool for understanding circuit behavior
+- Optimization sandbox for fitness/plasticity experiments
 
 ---
 

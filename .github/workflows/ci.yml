@@ -29,6 +29,12 @@ jobs:
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
 
+      - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
+        run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check
+
+      - name: Audit notebook grammar
+        run: PYTHONPATH=. python scripts/audit_notebook_grammar.py --check
+
       - name: Run fast tests (skip slow notebook execution)
         if: github.ref != 'refs/heads/main'
         run: |

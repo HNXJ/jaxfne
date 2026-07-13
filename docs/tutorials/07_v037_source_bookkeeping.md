@@ -136,7 +136,7 @@ signals.metadata = {
 }
 ```
 
-**Critical key:** `amplitude_status=False` gates statements about real-world amplitude. This is a computational scaffold, not a calibrated model.
+**Key field:** `amplitude_status=False` marks amplitude values as Relative.
 
 ---
 
@@ -191,7 +191,8 @@ Readout R(t) = Q @ Y(t)
 - **Kernel type:** Gaussian (default); width parameterized by distance in µm
 - **Boundary handling:** Zero-padding (no boundary currents)
 
-**Important:** Spatial units are **arbitrary normalized units**, not physical micrometers. The visualization uses µm for layer depth (anatomical reference), but field amplitudes are not calibrated.
+**Spatial units:** Relative, normalized units. The visualization uses µm for
+layer depth (anatomical reference); field amplitudes are Relative-value.
 
 ---
 

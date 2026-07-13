@@ -2747,9 +2747,10 @@ _VALID_FIELD_SOLVER_STATUS = (None, "linear_solver", "pde_solver")
 def migrate_schema(meta: dict[str, Any]) -> dict[str, Any]:
     """Upgrade a legacy truth/metadata dict to the canonical truth-gate schema.
 
-    Pure, JSON-safe rewrite applied on load of older manifests/configs. The legacy
-    key/value strings are built by concatenation so the repository stays free of
-    literal occurrences even here.
+    Pure, JSON-safe rewrite applied on load of older manifests/configs. Legacy key/
+    value names are pre-v0.4.x field names, retired and unused by any current code
+    path -- kept here as plain literals (not obfuscated) so a grep audit for these
+    names still finds this migration path, not just live usage.
 
     - legacy physical-amplitude key -> ``physical_amplitude_calibrated`` (bool kept)
     - legacy laminar field-solver value -> ``linear_solver``
@@ -2758,10 +2759,10 @@ def migrate_schema(meta: dict[str, Any]) -> dict[str, Any]:
 
     Returns a new dict; the input is not mutated.
     """
-    _amp = "physical_amplitude_" + "claim_allowed"
-    _solver = "laminar_proxy" + "_no_pde"
-    _claim = "proxy_readout" + "_only"
-    _tmode = "truth" + "_mode"
+    _amp = "physical_amplitude_claim_allowed"  # retired pre-v0.4.x key
+    _solver = "laminar_proxy_no_pde"  # retired pre-v0.4.x value
+    _claim = "proxy_readout_only"  # retired pre-v0.4.x value
+    _tmode = "truth_mode"  # retired pre-v0.4.x key
     out: dict[str, Any] = {}
     for key, value in (meta or {}).items():
         if key == _tmode:

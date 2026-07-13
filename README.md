@@ -15,10 +15,10 @@
 
 # jaxfne
 
-**Simulate laminar cortical circuits in JAX** — from point-neuron populations to
-depth-resolved LFP/CSD/EEG proxy readouts, spectrolaminar summaries, and
-population-level optimization. Define a column (or multi-area hierarchy), run it,
-and inspect rasters, layer-targeted drive, and field-proxy traces in one pipeline.
+**JAX-based simulation of Tensor-Field Neural Equations** — emitter-to-source-to-field
+readouts for computational electrophysiology. Define a circuit (single column or
+multi-area hierarchy), run it, and inspect population activity, layer-targeted drive,
+and field readouts in one pipeline.
 
 ## Install
 
@@ -48,9 +48,9 @@ multi-trial sweeps, HDP plasticity, Jaxley bridge): **[Quickstart](docs/quicksta
 
 ## Scope & status
 
-jaxfne is a **computational scaffold**, not a calibrated physical solver.
-Field and probe outputs are **proxy readouts** — useful for method development,
-not calibrated biophysical recordings. Full gate table:
+Every jaxfne output is labeled **Relative** or **Absolute**. Relative values are
+the default and require no external evidence; Absolute (physically calibrated)
+values require an explicit, evidenced calibration step. Reference:
 [Scope & status](docs/scope_and_status.md).
 
 Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`.

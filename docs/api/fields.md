@@ -330,8 +330,8 @@ emitter -> (source_scale gain tensor) -> source
 Computes, per neuron, the cascaded single-pole transfer function
 `H[f, n] = 1 / (1 + 2j*pi*f*tau_s[n]) ** order` and applies it along the time
 axis via FFT. A phenomenological proxy for passive dendritic cable
-filtering, not a calibrated cable-equation solve — `field_solver_status`
-stays `"linear_solver"` and `physical_amplitude_calibrated` stays `False`.
+filtering — a Relative-value projection (`field_solver_status="linear_solver"`,
+`physical_amplitude_calibrated=False`).
 
 Validated on a 100-neuron canonical V1 column (10 trials x 6000 ms,
 `cable_filter_tau` defaults, `order=2`): alpha/beta deep:superficial power
