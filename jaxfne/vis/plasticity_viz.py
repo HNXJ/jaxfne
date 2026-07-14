@@ -27,7 +27,7 @@ def plot_stdp_adaptation_suite(
     import matplotlib.pyplot as plt
     os.makedirs(fig_dir, exist_ok=True)
 
-    vm = trajectories["vm"]
+    _ = trajectories["vm"]  # not plotted here, but required to be present in trajectories
     spk = trajectories["spk"]
     dt_ms = 0.5 * 10  # Accounts for downsampling of 10
     times = np.arange(spk.shape[0]) * dt_ms / 1000.0

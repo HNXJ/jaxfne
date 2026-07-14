@@ -1274,7 +1274,7 @@ def suite2_tune_noise_agsdr_adam(
         loss, rate, sig = run_amp(float(amp), seed + idx)
         history.append({"stage": "agsdr_population", "amplitude": float(amp), "rate_hz": rate, "loss": loss})
         if loss < best_loss:
-            best_amp, best_loss, best_rate, best_sig = float(amp), loss, rate, sig
+            best_amp, best_loss, best_rate, _ = float(amp), loss, rate, sig
 
     m = 0.0
     v = 0.0
@@ -1294,7 +1294,7 @@ def suite2_tune_noise_agsdr_adam(
         loss_new, rate_new, sig_new = run_amp(amp, seed + 200 + step)
         history.append({"stage": "finite_difference_adam", "step": step, "amplitude": amp, "rate_hz": rate_new, "loss": loss_new, "gradient_estimate": grad})
         if loss_new < best_loss:
-            best_amp, best_loss, best_rate, best_sig = amp, loss_new, rate_new, sig_new
+            best_amp, best_loss, best_rate, _ = amp, loss_new, rate_new, sig_new
 
     summary = json_safe({
         "optimizer": "AGSDR_outer_finite_difference_Adam_inner",

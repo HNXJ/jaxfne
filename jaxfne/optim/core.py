@@ -1322,7 +1322,6 @@ def _tune_matrix_agsdr_optax(
             MatrixParameterSpec,
             _evaluate_soft_rate_targets,
             _model_with_parameters,
-            Simulation,
         )
         from jaxfne.io import json_safe
     except ImportError:
@@ -1333,7 +1332,6 @@ def _tune_matrix_agsdr_optax(
         MatrixParameterSpec = _core.MatrixParameterSpec
         _evaluate_soft_rate_targets = _core._evaluate_soft_rate_targets
         _model_with_parameters = _core._model_with_parameters
-        Simulation = _core.Simulation
         _io = importlib.import_module("jaxfne.io")
         json_safe = _io.json_safe
 

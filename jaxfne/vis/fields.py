@@ -312,7 +312,6 @@ def bandpower(
 
     n_bands = len(band_definitions)
     fig, axes = plt.subplots(1, n_bands, figsize=figsize, squeeze=False)
-    n_contacts = lfp_arr.shape[1] if lfp_arr.ndim > 1 else 1
 
     for col, (band_name, (lo, hi)) in enumerate(band_definitions.items()):
         ax = axes[0, col]
@@ -708,7 +707,7 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
 
     freq_min_hz = float(kwargs.pop("freq_min_hz", 0.0))
     freq_max_hz = float(kwargs.pop("freq_max_hz", 80.0))
-    freq_count = int(kwargs.pop("freq_count", 128))
+    _ = int(kwargs.pop("freq_count", 128))  # accepted, not yet wired into the PSD calc below
     psd_nperseg = kwargs.pop("psd_nperseg", None)
     figure_title = kwargs.pop("title", None)
     figsize = kwargs.pop("figsize", (12, 10))

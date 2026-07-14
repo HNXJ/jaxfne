@@ -55,7 +55,7 @@ def vm(signals: Any, **kwargs: Any) -> Any:
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    dt_ms = kwargs.pop("dt_ms", None)
+    _ = kwargs.pop("dt_ms", None)  # accepted (drained before **kwargs -> plt.figure), not used here
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 
@@ -140,7 +140,7 @@ def source(signals: Any, **kwargs: Any) -> Any:
     require_matplotlib()
     import matplotlib.pyplot as plt
 
-    dt_ms = kwargs.pop("dt_ms", None)
+    _ = kwargs.pop("dt_ms", None)  # accepted (drained before **kwargs -> plt.figure), not used here
     fig = plt.figure(**kwargs)
     ax = fig.add_subplot(111)
 

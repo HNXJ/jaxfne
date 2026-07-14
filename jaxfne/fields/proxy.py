@@ -689,7 +689,6 @@ def teaching_control_spectrolaminar_resonance_source(
             },
         )
 
-    areas = np.array(neurons.get("area", ["V1"] * n))
     layers = np.array(neurons.get("layer", ["L4"] * n))
 
     t = np.arange(n_steps) * dt_ms / 1000.0

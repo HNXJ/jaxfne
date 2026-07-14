@@ -653,7 +653,6 @@ def _layer_thickness_mm(layer: str, metadata: Mapping[str, Any]) -> float:
     if columns:
         layers = [str(x) for x in columns[0].get("layers", [])]
         if layers and str(layer) in layers:
-            idx = layers.index(str(layer))
             n = len(layers)
             return height_mm / max(n, 1)
     return height_mm
