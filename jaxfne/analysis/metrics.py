@@ -9,7 +9,10 @@ descriptors, not biological validation. No biological truth claims are supported
 """
 
 import numpy as np
-from typing import Union
+from typing import Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import jax
 
 
 def mean_pairwise_spike_correlation(
