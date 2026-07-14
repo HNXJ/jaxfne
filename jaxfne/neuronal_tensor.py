@@ -6,7 +6,9 @@ layers, or cell types it has:
     NeuronalTensor = [Areas, AreaConnections]
     Area           = [Layers x NeuronTypes, InterConnections]
     Layer          = always 3D geometry (collapse an axis to 0.0 for 2D/1D)
-    NeuronType     = E (relative size 2.0 default), PV/SST/VIP (1.0 default)
+    NeuronType     = E (relative size 5.0 default), PV (1.0), SST/VIP (1.5)
+                      -- see emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, the
+                      actual single source of truth this module imports below
     InterConnection (within an area)  = [source(Layer,NeuronType), target(Layer,NeuronType), mechanism]
         mechanism is required, no default (e.g. "AMPA", "GABA")
     AreaConnection  (between areas)   = [source(Area,Layer,NeuronType), target(Area,Layer,NeuronType), mechanism]

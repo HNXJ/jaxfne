@@ -71,6 +71,14 @@ DEFAULT_HDP = dict(
     barrier_c=0.01,
     barrier_d=0.01,
 )
+# NOTE (external review 2026-07-14): barrier_c==barrier_d==0.01 gives a 1:1
+# ratio, not the 100:1 ratio emitters.py's own docstring says is required for
+# the barrier potential's minimum to coincide with H*=1
+# (barrier_d/barrier_c=((H_max-1)/(1-H_min))**2=100 at H_min=0.1/H_max=10.0).
+# Left as-is: this preset's verified dynamics keep H tightly pinned near
+# H*=1 via K_ctrl (see the block above), so H rarely nears either boundary
+# and the barrier asymmetry is dormant in practice, not exercised. Re-tune
+# barrier_d before relying on barrier repulsion near a boundary.
 
 BASE_HDP_KWARGS_DEFAULT = dict(
     H_min=0.1, H_max=10.0,

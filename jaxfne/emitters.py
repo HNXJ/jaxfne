@@ -12,10 +12,12 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import Any, Mapping, Sequence
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
 
@@ -994,15 +996,32 @@ DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE: dict[str, float] = {
 }
 
 
+@lru_cache(maxsize=64)
+def _hdp_size_scale_array_np(
+    labels: tuple[str, ...],
+    overrides: tuple[tuple[str, float], ...],
+    dtype_name: str,
+) -> np.ndarray:
+    """Python-loop lookup, cached by (labels, overrides, dtype).
+
+    ``labels`` is the same static tuple across every ``simulate()`` call on a
+    given tensor (construct-time metadata, not traced), so repeated calls --
+    the common case in tuning/sweep loops -- hit this cache instead of
+    re-running an O(n_neurons) Python loop every time.
+    """
+    table = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
+    table.update(dict(overrides))
+    return np.asarray([float(table.get(name, 1.0)) for name in labels], dtype=dtype_name)
+
+
 def _hdp_size_scale_array(
     labels: tuple[str, ...],
     size_scale_by_cell_type: "Mapping[str, float] | None",
     dtype: jnp.dtype,
 ) -> jax.Array:
-    table = dict(DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE)
-    if size_scale_by_cell_type:
-        table.update(size_scale_by_cell_type)
-    return jnp.asarray([float(table.get(name, 1.0)) for name in labels], dtype=dtype)
+    overrides = tuple(sorted(size_scale_by_cell_type.items())) if size_scale_by_cell_type else ()
+    dtype_name = jnp.dtype(dtype).name
+    return jnp.asarray(_hdp_size_scale_array_np(tuple(labels), overrides, dtype_name))
 
 
 def simulate_edge_recurrent_izhikevich_hdp(
@@ -1208,7 +1227,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
             H*=1 requires barrier_d/barrier_c=((H_max-1)/(1-H_min))**2 (100
             at the canonical H_min=0.1/H_max=10.0) -- but barrier_c/d are
             meant only as a safety constraint, not the equilibrium
-            definition; use rho_passive for that
+            definition; use rho_passive for that. NOTE: hdp_network.py's
+            DEFAULT_HDP preset sets barrier_c=barrier_d=0.01 (ratio 1, not
+            the 100 this equilibrium condition calls for) -- a real gap
+            between this docstring's stated requirement and the shipped
+            preset, left as-is since the tuned/verified DEFAULT_HDP dynamics
+            keep H tightly pinned near H*=1 in practice (H rarely nears
+            either boundary), so the asymmetry is dormant, not exercised --
+            external review 2026-07-14; re-tune before relying on the
+            barrier near a boundary.
         barrier_eps: floor on the barrier denominators (default 1e-3)
         w_floor, w_ceiling: clip bounds for edge weight magnitude (default
             [1e-3, 50.0]; prevents collapse-to-zero and unbounded divergence)
@@ -1338,6 +1365,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # (1) Synaptic current.
         edge_current = w * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
+        # NOTE: uses the carry (previous-step) H, one step lagged behind H_next
+        # computed below in (2) -- negligible at small dt but not exact. Also
+        # note dH_income below is alpha*syn only, so the extra current this
+        # boost adds is not itself counted as H income: combining H_boost_gain>0
+        # with gamma>0 can create a starved-neuron-fires-more-but-drains-more
+        # loop. DEFAULT_HDP_V1_PFC_AAAB does combine both (H_boost_gain=4.0,
+        # gamma=0.5) but is stabilized empirically via K_w_ctrl bounding weight
+        # growth, not by this income-term asymmetry -- external review 2026-07-14.
         boost = 1.0 + H_boost_gain_arr * jnp.maximum(0.0, 1.0 - H)
         current_native = (drive + sched_t) * boost + syn + noise_coef * noise_t
 
@@ -1347,6 +1382,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # which are only known after step 4). Passive income restores H toward
         # 1 without an explicit linear controller (rho_passive/H_i**2).
         wmag = jnp.abs(w)
+        # W_burden is an abs-sum over a neuron's outgoing edges (E and I
+        # pooled) -- intentional metabolic-cost framing (both excitation and
+        # inhibition consume resources), not an E/I-signed drive term; it can
+        # therefore stay near-constant even while HDP redistributes weight
+        # between E and I edges on the same neuron.
         W_burden = _segment_sum(wmag, pre, n_neurons)
         dist_floor = jnp.clip(H - H_min_arr, barrier_eps_arr, None)
         dist_ceil = jnp.clip(H_max_arr - H, barrier_eps_arr, None)
@@ -1354,7 +1394,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         dH_income = alpha_arr * syn + beta_arr
         dH_rate = -gamma_arr * H * prev_spikes  # H-taxed: output spending scaled by resource level
         dH_weight = -delta_arr * W_burden
-        dH_passive = rho_passive_arr / (H * H)  # Passive income: stronger at low H -- NOTE this
+        dH_passive = rho_passive_arr / jnp.maximum(H * H, 1e-8)  # Passive income: stronger at low H -- NOTE this
         # term is >=0 everywhere H>0, so it can cushion H near the floor but can NEVER pull H back
         # down from above H*=1 on its own. Root-caused 2026-07-01 (F-017/F-019): with gamma=delta=0
         # (DEFAULT_HDP's own base kwargs), dH_income/dH_rate/dH_weight/dH_passive are ALL >=0, so
@@ -1386,6 +1426,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
         else:
             raise ValueError(f"Unknown hdp_rule: {hdp_rule}. Must be one of: signed_linear, signed_quadratic, hebbian_product")
 
+        # NOTE: dw is proportional to the edge's current wmag (multiplicative
+        # rule) -- an edge clipped to w_floor gets a proportionally tiny
+        # learning signal and stops evolving in practice. Intentional (mirrors
+        # multiplicative/log-domain plasticity rules and keeps dw scale-free
+        # across a wide weight range), but not swap-in-additive without
+        # re-verifying every tuned preset's dynamics -- external review 2026-07-14.
         dw_exc = K_HDP_arr * rule_basis * wmag
         dw_inh = -K_HDP_arr * rule_basis * wmag
         # Weight restoring force: pulls wmag back toward its calibrated baseline
@@ -1411,6 +1457,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
         syn_next = syn_state * decay + spikes[pre]
 
         # (5) Spikes consume H_i (discrete drain on neurons that just fired).
+        # NOTE: intentionally NOT divided by tau_i (see docstring) -- at any
+        # nonzero C_spike this drain is the same absolute size regardless of a
+        # neuron's size-scaled tau_i, so it does not follow the "larger/slower
+        # neurons adapt slower" contract the continuous dH/dt terms follow.
+        # C_spike=0.0 in every shipped preset today, so this is currently
+        # inert everywhere; flagged, not changed, without re-verifying presets
+        # that would enable it -- external review 2026-07-14.
         H_final = jnp.clip(H_next - C_spike_arr * spikes, H_min_arr, H_max_arr)
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)

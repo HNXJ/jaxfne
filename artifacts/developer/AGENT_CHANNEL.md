@@ -762,3 +762,30 @@ item with full regression coverage, not bundled into a docs-language fix.
 Full fast suite reverified clean on the fixed tree before commit (see commit
 for the exact count). Stash `stash@{0}` kept for reference, not applied.
 
+
+---
+
+## 2026-07-14 — F-029: HDP kernel review response (Claude Sonnet 5)
+
+External 9-issue technical review of `emitters.py::simulate_edge_recurrent_izhikevich_hdp`
+(the HDP kernel). Independently re-verified every issue against the live kernel body,
+`hdp_network.py`'s presets, and `neuronal_tensor.py` before touching anything.
+
+**Fixed (low-risk, zero/near-zero behavior change):**
+- `neuronal_tensor.py` stale docstring: E relative size claimed `2.0`, real table has `5.0`.
+- `dH_passive = rho_passive/H**2` guarded against NaN when `H_min=0.0` (non-default).
+- `_hdp_size_scale_array`'s per-call Python loop memoized via `functools.lru_cache`
+  (first attempt used `str(dtype)` as the cache key and broke on jax dtype objects —
+  caught immediately by the targeted test run, fixed to `jnp.dtype(dtype).name`).
+
+**Documented in-place, deliberately not code-changed (would alter tuned/verified preset
+dynamics):** C_spike/tau_i scaling asymmetry (inert at C_spike=0.0 everywhere today),
+H_boost_gain+gamma interaction (DEFAULT_HDP_V1_PFC_AAAB combines both but is empirically
+stabilized via K_w_ctrl per its own comments), W_burden's E/I-pooled abs-sum, the
+multiplicative weight-update rule's near-floor freezing, H_boost's one-step H lag, and
+DEFAULT_HDP's barrier_c=barrier_d=0.01 not satisfying the 100:1 ratio its own docstring
+requires (dormant in practice since K_ctrl keeps H pinned near 1.0).
+
+Full detail: `skills/FRICTIONS_STACK.md` F-029. Verified: targeted HDP/emitter tests
+182/182 after the cache-key fix; full fast suite 2661 passed / 0 failed-or-error
+(`grep -c "^FAILED\|^ERROR"` on raw output → 0).

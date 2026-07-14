@@ -29,11 +29,12 @@
 | docs/tutorial_figures.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/04_v1_column.md | 85 | done |  |  | 2026-07-03 |
 | docs/tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md | 85 | done |  |  | 2026-07-03 |
+| jaxfne/hdp_network.py | 85 | reviewed |  | DEFAULT_HDP's barrier_c=barrier_d=0.01 (1:1 ratio) does not satisfy the 100:1 ratio emitters.py's own docstring says is  | 2026-07-14 |
 | scripts/evidence_figures/ed10_release_archive_receipt.py | 87 | reviewed |  |  | 2026-07-04 |
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 88 | done |  |  | 2026-07-06 |
-| jaxfne/emitters.py | 88 | reviewed |  | The core Izhikevich step dynamics (dv = 0.04*v*v + 5.0*v + 140.0 - u + current_native) is duplicated 11 times across thi | 2026-07-13 |
+| jaxfne/emitters.py | 88 | reviewed |  | The core Izhikevich step dynamics (dv = 0.04*v*v + 5.0*v + 140.0 - u + current_native) is duplicated 11 times across thi | 2026-07-14 |
 | jaxfne/experimental_hpc/__init__.py | 88 | done |  |  | 2026-07-07 |
 | jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -187,7 +188,7 @@
 | tests/test_suite_no4_notebook_execution.py | 91 | reviewed |  |  | 2026-07-04 |
 | docs/guides/showcases.md | 91 | done |  | Side-finding documented inline in the page itself (VIP neurons appearing in neuron_table() despite being omitted from a  | 2026-07-03 |
 | jaxfne/experimental_hpc/contracts.py | 92 | done | Documented-as-intentional TBI surface (by design, not a bug): Config.with_runtime/.with_circuit/.with_probes/.validate/. |  | 2026-07-07 |
-| jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-04 |
+| jaxfne/neuronal_tensor.py | 92 | reviewed |  | Layer.geometry (per-layer distribution/x_range/y_range/z_range) is dropped by neuronal_tensor_to_configuration; only con | 2026-07-14 |
 | jaxfne/runtime.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/sanity_delta.py | 92 | done |  |  | 2026-07-05 |
 | jaxfne/solvers.py | 92 | reviewed |  |  | 2026-07-04 |
