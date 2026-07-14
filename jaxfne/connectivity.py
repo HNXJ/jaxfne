@@ -70,8 +70,9 @@ class ConnectionCompileResult:
             for m in self.mechanism_table
         ]
         if self.n_edges and tau_by_mech:
-            mech_idx = np.asarray(self.edge_mechanism)
-            tau = jnp.asarray([tau_by_mech[int(i)] for i in mech_idx], dtype=jdtype)
+            tau_table = jnp.asarray(tau_by_mech, dtype=jdtype)
+            mech_idx = jnp.asarray(self.edge_mechanism, dtype=jnp.int32)
+            tau = tau_table[mech_idx]
         else:
             tau = jnp.zeros((self.n_edges,), dtype=jdtype)
         return EdgeList(

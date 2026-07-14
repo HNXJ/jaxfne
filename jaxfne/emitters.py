@@ -29,15 +29,28 @@ IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
     "SST": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
     "Ing": {"a": 0.05, "b": 0.25, "c": -65.0, "d": 2.0,  "drive": 3.5, "sign": -1.0},
     "VIP": {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
+    # "I" (generic Inhibitory) is a widely-used two-population E/I shorthand
+    # across examples/, scripts/evidence_figures/, and tests/ -- explicit alias
+    # to VIP's parameters (2026-07-13: this matches the exact values every
+    # real "I" caller was already getting via a since-removed silent VIP
+    # fallback in _get_cell_type_params; made explicit, not changed).
+    "I":   {"a": 0.02, "b": -0.10, "c": -55.0, "d": 6.0, "drive": 3.0, "sign": -1.0},
 }
 
 
 def _get_cell_type_params(name: str) -> dict[str, float]:
-    """Look up canonical Izhikevich parameters for a cell type."""
+    """Look up canonical Izhikevich parameters for a cell type.
+
+    Raises ValueError on an unrecognized name rather than silently falling
+    back to VIP parameters -- a typo'd cell-type key (e.g. "pv" instead of
+    "PV") previously simulated silently as VIP with no warning.
+    """
     if name in IZHIKEVICH_CELL_TYPE_DEFAULTS:
         return IZHIKEVICH_CELL_TYPE_DEFAULTS[name]
-    # Default fallback to VIP/IS profile for unknown types
-    return IZHIKEVICH_CELL_TYPE_DEFAULTS["VIP"]
+    raise ValueError(
+        f"unknown Izhikevich cell type {name!r}; expected one of "
+        f"{sorted(IZHIKEVICH_CELL_TYPE_DEFAULTS)}"
+    )
 
 
 
@@ -150,17 +163,13 @@ def _izhikevich_params_unflatten(aux_data, children):
 
 
 try:
-    try:
-        jax.tree_util.register_pytree_node(
-            IzhikevichParams,
-            _izhikevich_params_flatten,
-            _izhikevich_params_unflatten,
-        )
-    except ValueError:
-        pass
-
+    jax.tree_util.register_pytree_node(
+        IzhikevichParams,
+        _izhikevich_params_flatten,
+        _izhikevich_params_unflatten,
+    )
 except ValueError:
-    pass # Already registered
+    pass  # Already registered (re-import / notebook reload)
 
 
 def _segment_sum(data, segment_ids, num_segments):

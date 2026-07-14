@@ -33,6 +33,7 @@
 | scripts/run_delta_notebook_01.py | 87 | reviewed |  |  | 2026-07-04 |
 | docs/tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md | 87 | done |  |  | 2026-07-03 |
 | scripts/hdp_v2_rho_sweep.py | 88 | done |  |  | 2026-07-06 |
+| jaxfne/emitters.py | 88 | reviewed |  | The core Izhikevich step dynamics (dv = 0.04*v*v + 5.0*v + 140.0 - u + current_native) is duplicated 11 times across thi | 2026-07-13 |
 | jaxfne/experimental_hpc/__init__.py | 88 | done |  |  | 2026-07-07 |
 | jaxfne/sanity_runtime.py | 88 | done |  |  | 2026-07-05 |
 | scripts/build_v037_source_column_3d.py | 88 | reviewed |  |  | 2026-07-04 |
@@ -73,7 +74,6 @@
 | tests/test_pipeline_pure_functions.py | 90 | done |  |  | 2026-07-07 |
 | examples/02_spectrolaminar_oddball_scaffold.py | 90 | reviewed |  |  | 2026-07-04 |
 | examples/03_jaxley_bridge_smoke.py | 90 | reviewed |  |  | 2026-07-04 |
-| jaxfne/connectivity.py | 90 | done |  |  | 2026-07-05 |
 | jaxfne/fields/solvers.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/plasticity.py | 90 | reviewed |  |  | 2026-07-04 |
 | jaxfne/validation.py | 90 | done |  |  | 2026-07-05 |
@@ -169,6 +169,7 @@
 | tutorials/etudes/jaxfne_etude_no_12_omission_global_coop.ipynb | 90 | done |  |  | 2026-07-02 |
 | CHANGELOG.md | 90 | done |  |  | 2026-07-12 |
 | CONTRIBUTING.md | 90 | done |  |  | 2026-07-12 |
+| jaxfne/connectivity.py | 91 | done |  |  | 2026-07-13 |
 | scripts/evidence_figures/ed04_optional_dependency_laziness.py | 91 | reviewed |  |  | 2026-07-04 |
 | scripts/evidence_figures/ed07_probe_operator_contracts.py | 91 | reviewed |  |  | 2026-07-04 |
 | scripts/hdp_bifurcation_trace.py | 91 | reviewed |  |  | 2026-07-04 |

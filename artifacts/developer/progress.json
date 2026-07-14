@@ -449,15 +449,28 @@
     {
       "path": "jaxfne/connectivity.py",
       "purpose": "Compiles declarative connection-rule dicts into sparse finite edge arrays, plus a separate tensorized JAX helper using dense grids.",
-      "score": 90,
+      "score": 91,
       "tbi": [],
       "tbd": [],
       "warnings": [
         "compile_connection_rules_jax still touches an O(n_pre*n_post) array of per-pair random scores -- this is inherent to preserving the exact independent-Bernoulli-then-cap-at-max_edges semantics under a single static-shape jit call, not a further-fixable dense-grid bug. A true O(max_edges)-only implementation would need to change semantics (e.g. direct fixed-count sampling like the host-side compile_connection_rules's rejection sampler) or a lax.while_loop rejection scheme -- out of scope for this pass."
       ],
-      "last_verified": "2026-07-05",
-      "evidence": "python3 -c 'import jaxfne.connectivity' succeeded; confirmed via grep compile_connection_rules_jax is not called anywhere else but is exported publicly from __init__.py. || FIXED 2026-07-05: removed the two dense (n_pre, n_post) pre_grid/post_grid index arrays built via jnp.tile -- (pre, post) for the selected max_edges candidates are now derived via flat-index arithmetic (selected_idx // n_post, selected_idx % n_post) on only the selected subset, never a full grid. Verified bit-identical output vs the old implementation for the same key/inputs at a non-trivial scale (13x9 pre/post, max_edges=20, probability=0.3) -- confirms this is a true behavior-preserving refactor, not just shape-compatible. `ruff check --select F821` clean, no `jnp.tile` remains in the function body. Targeted test: `pytest tests/test_v0341_kernels.py -q` -> 6 passed.",
+      "last_verified": "2026-07-13",
+      "evidence": "python3 -c 'import jaxfne.connectivity' succeeded; confirmed via grep compile_connection_rules_jax is not called anywhere else but is exported publicly from __init__.py. || FIXED 2026-07-05: removed the two dense (n_pre, n_post) pre_grid/post_grid index arrays built via jnp.tile -- (pre, post) for the selected max_edges candidates are now derived via flat-index arithmetic (selected_idx // n_post, selected_idx % n_post) on only the selected subset, never a full grid. Verified bit-identical output vs the old implementation for the same key/inputs at a non-trivial scale (13x9 pre/post, max_edges=20, probability=0.3) -- confirms this is a true behavior-preserving refactor, not just shape-compatible. `ruff check --select F821` clean, no `jnp.tile` remains in the function body. Targeted test: `pytest tests/test_v0341_kernels.py -q` -> 6 passed. || FIXED 2026-07-13 (F-028, external deep-review response): the per-edge mechanism-tau lookup in to_edge_list() was a Python-level list comprehension (`[tau_by_mech[int(i)] for i in mech_idx]`) -- replaced with a vectorized `jnp.asarray(tau_by_mech)[mech_idx]` gather, same output, no per-edge Python dispatch. Full fast suite reverified clean: 2661 passed, 0 failed.",
       "status": "done"
+    },
+    {
+      "path": "jaxfne/emitters.py",
+      "purpose": "Izhikevich reduced-model dynamics: EIG/edge-recurrent/HDP/plastic scan kernels, cell-type parameter defaults, pytree registration for IzhikevichParams/EdgeList.",
+      "score": 88,
+      "tbi": [],
+      "tbd": [
+        "The core Izhikevich step dynamics (dv = 0.04*v*v + 5.0*v + 140.0 - u + current_native) is duplicated 11 times across this file's scan-body closures (verified via grep, worse than an external review's claimed 5) -- extracting a single _izhikevich_step helper is the single highest-value refactor in this file, but touches the hottest JIT-traced path in the package across 11 call sites with differing carry shapes. Deliberately NOT attempted in the 2026-07-13 pass -- needs its own scoped session with full before/after behavioral-equivalence verification per call site."
+      ],
+      "warnings": [],
+      "last_verified": "2026-07-13",
+      "evidence": "F-028: independently re-verified an external deep-code review's 16 findings against live source; several were conflated between Model.simulate() and the separate Model.simulate_batch() method, or overstated relative to JAX's actual once-only tracing semantics (see FRICTIONS_STACK.md F-028 for the full per-finding verdict). Fixed 3 real, low-risk issues here: (1) nested identical try/except ValueError around register_pytree_node collapsed to one (dead outer block). (2) _get_cell_type_params silently fell back to VIP parameters for any unrecognized cell-type name -- now raises ValueError. Self-correction during this same pass: an initial targeted-test batch (138 tests) passed clean, but the FULL suite then surfaced 16 real errors in tests/test_v033_api_extensions.py -- \"I\" (generic Inhibitory) turned out to be a real, widely-used shorthand across examples/, scripts/evidence_figures/ (production evidence-generation scripts), and multiple tests, previously silently resolving to VIP params via the exact fallback just removed. Repo-wide grep of every cell_type(s)={...} dict literal confirmed only 5 keys are ever used anywhere (E, I, PV, SST, VIP) -- added \"I\" as an explicit alias to VIP's exact parameter values (zero behavior change for any real caller, just no longer accidental). Full fast suite reverified clean: 2661 passed, 0 failed, 0 errors.",
+      "status": "reviewed"
     },
     {
       "path": "jaxfne/experimental_hpc/__init__.py",
