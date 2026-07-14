@@ -28,6 +28,10 @@ FORBIDDEN = [
 EXCLUDED_PREFIXES = (
     "artifacts/legacy",
     "internal_docs",
+    # 2026-07-14: untracked (see .gitignore) but may still be present locally
+    # on a machine that had them before the untracking -- PRP/agent working
+    # notes, not doc content this check is meant to police.
+    "artifacts/developer",
 )
 
 # Excluded files

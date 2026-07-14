@@ -62,6 +62,32 @@ internal_docs/
 reports/v1_spectrolaminar_10k/
 test_gpu.py
 
+# PRP / agent working notes -- internal roadmap, per-file audit scores, and
+# session-to-session agent handoff notes. Confirmed 2026-07-14 (independent
+# audit): these were tracked and pushed to the public repo, exposing internal
+# roadmap reasoning and competitive citation-strategy notes. Stopped tracking
+# going forward; not scrubbed from history (explicit decision, repo stays
+# public) -- keep these local-only or in a private location from here on.
+artifacts/developer/
+# artifacts/legacy/internal_docs/ is covered by the internal_docs/ rule above,
+# but two files under it are load-bearing for tests/test_agent_context_hygiene.py
+# and tests/test_docs_equations_plotly_v0214.py -- explicit force-tracked
+# exceptions (git add -f), confirmed non-sensitive (agent-context/skills docs,
+# no roadmap/strategy content) before being kept public. Git requires every
+# ancestor directory to be explicitly un-ignored too (a bare `!file` inside an
+# ignored parent dir is silently a no-op) -- hence the full chain below, not
+# just the two leaf files.
+!artifacts/legacy/internal_docs
+artifacts/legacy/internal_docs/*
+!artifacts/legacy/internal_docs/agent_context
+artifacts/legacy/internal_docs/agent_context/*
+!artifacts/legacy/internal_docs/agent_context/claude
+artifacts/legacy/internal_docs/agent_context/claude/*
+!artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md
+!artifacts/legacy/internal_docs/skills
+artifacts/legacy/internal_docs/skills/*
+!artifacts/legacy/internal_docs/skills/skill_visual_outputs.md
+
 # Local session analysis scripts + their output dirs (not package code)
 cortex_100_*.py
 cortex_100_*/
