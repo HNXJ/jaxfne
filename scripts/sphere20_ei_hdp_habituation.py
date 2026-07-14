@@ -1,7 +1,11 @@
 """0.4.7 practical release-condition test: long-term habituation/adaptation on a
 20-neuron (15E/5PV) uniform-random-sphere network under a repeated pulse-train
-drive, chained across turns via HDP (Model.with_hdp_initial_state) so each
-turn's final H/weight state seeds the next turn's initial state.
+drive, chained across turns via HDP with TRUE full-state continuity
+(jaxfne._pipeline.compile_step_fn/scan_network's DynamicState -- v, u,
+prev_spikes, syn_state, H, w all carried forward) so each turn's final state
+seeds the next turn's initial state. Model.with_hdp_initial_state() was tried
+first and found to only carry H/w, silently resetting v/u/spikes/syn_state
+every call -- see the landmine note in build_model()/run() below.
 
 Build path (as specified): Configuration -> NeuronalTensor -> construct (Model)
 -> simulate at baseline -> chained continuous-task turns -> observe Wee/Wei/
@@ -21,7 +25,6 @@ import jax.numpy as jnp
 import jaxfne as jtfne
 from jaxfne.neuronal_tensor import (
     Area,
-    AreaConnection,
     InterConnection,
     Layer,
     NeuronalTensor,
