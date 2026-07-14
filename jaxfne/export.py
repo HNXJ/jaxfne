@@ -140,7 +140,25 @@ def export_tutorial_artifacts(
     -------
     dict
         Paths to saved JSON files
+
+    Raises
+    ------
+    TypeError
+        If ``output_dir`` looks like the ``tutorial_utils`` sibling's first
+        argument (a ``LaminarColumnConfig``) rather than a path -- points to
+        the correct function instead of the generic ``pathlib`` error this
+        would otherwise raise downstream.
     """
+    from .tutorial_utils import LaminarColumnConfig
+
+    if isinstance(output_dir, LaminarColumnConfig):
+        raise TypeError(
+            "export_tutorial_artifacts() received a LaminarColumnConfig as "
+            "output_dir -- you likely want jaxfne.tutorial_utils."
+            "export_tutorial_artifacts(cfg, ...) instead, which is a "
+            "different function with a different signature (see this "
+            "function's NAME COLLISION NOTE)."
+        )
     return export_report(output_dir, manifest, metrics, validation, figures=None)
 
 
