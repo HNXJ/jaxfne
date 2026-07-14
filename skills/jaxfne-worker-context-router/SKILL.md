@@ -53,7 +53,7 @@ but the real implementations live in:
 
 ```text
 Config/Model                     -> jaxfne/_config.py (Configuration class + group-1 helpers)
-                                     and jaxfne/_model.py (Model class, ~2030 lines, the biggest
+                                     and jaxfne/_model.py (Model class, ~2640 lines, the biggest
                                      single integration surface, including the HDP dispatch --
                                      see jaxfne-neural-tensor's K_w_ctrl/_hdp_packed note)
 Signals/Simulation/Objective/     -> jaxfne/_runtime_config.py (RuntimeConfig, SurrogateConfig,
