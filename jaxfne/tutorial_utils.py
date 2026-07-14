@@ -10,7 +10,10 @@ import warnings
 import numpy as np
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Sequence, Mapping, Tuple
+from typing import Sequence, Mapping, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 @dataclass(frozen=True)

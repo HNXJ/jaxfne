@@ -23,10 +23,13 @@ import json
 import math
 import warnings
 from dataclasses import dataclass, field, replace
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
 
 import jax
 import jax.numpy as jnp
+
+if TYPE_CHECKING:
+    from .optim import OptimizerSpec
 
 from .emitters import (
     EdgeList,

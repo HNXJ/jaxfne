@@ -48,7 +48,7 @@ import math
 import warnings
 from dataclasses import dataclass, field, asdict, replace
 from pathlib import Path
-from typing import Literal, Optional, Sequence
+from typing import Any, Literal, Optional, Sequence
 
 import jax
 import jax.numpy as jnp
