@@ -789,3 +789,10 @@ requires (dormant in practice since K_ctrl keeps H pinned near 1.0).
 Full detail: `skills/FRICTIONS_STACK.md` F-029. Verified: targeted HDP/emitter tests
 182/182 after the cache-key fix; full fast suite 2661 passed / 0 failed-or-error
 (`grep -c "^FAILED\|^ERROR"` on raw output → 0).
+
+**Post-commit:** pushed `dev` @ `247c13b`; CI run `29299273211` → **success**
+(`gh run list --json headSha,status,conclusion`, matched against the exact
+`git rev-parse origin/dev` SHA, not a guessed hash). Fast-forward verified
+(`origin/main..origin/dev` = this one commit, `origin/dev..origin/main` =
+empty) before push. `git push origin origin/dev:main`; confirmed `dev` ==
+`main` == `247c13beefeaa27f52cf218bc0f236c084c99ac8`.
