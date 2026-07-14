@@ -29,6 +29,16 @@ jobs:
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
 
+      - name: Lint (ruff) -- visibility only, not yet a hard gate
+        # 2026-07-14: reduced from 509 to 87 errors this session (see
+        # skills/FRICTIONS_STACK.md F-030 for the caught-and-corrected
+        # near-miss). Remaining categories (F821/F841/F811/E741) need
+        # per-site review before a hard fail is safe -- continue-on-error
+        # until that pass is done, tracked in artifacts/developer/plans.json
+        # (local-only) F6.
+        run: python -m ruff check jaxfne/
+        continue-on-error: true
+
       - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
         run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check
 
