@@ -117,10 +117,9 @@ status = jtfne.validate_configuration(cfg)
 # -> {"status": "PASS", "issues": [], "truth_gates": {...}}
 ```
 
-Other validation entry points: `jtfne.validate_config(cfg)` for the legacy
-`JaxFNEConfig` path, `jtfne.validate_source_field_status(...)` for field-stage
-truth gates, `jtfne.validation_report(config_valid, issues, metadata)` for a
-freeform validation record.
+Other validation entry points: `jtfne.validate_source_field_status(...)` for
+field-stage truth gates, `jtfne.validation_report(config_valid, issues,
+metadata)` for a freeform validation record.
 
 ### 9. Export
 
