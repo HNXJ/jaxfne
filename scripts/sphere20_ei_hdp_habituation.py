@@ -1,15 +1,28 @@
 """0.4.7 practical release-condition test: long-term habituation/adaptation on a
-20-neuron (15E/5PV) uniform-random-sphere network under a repeated pulse-train
-drive, chained across turns via HDP with TRUE full-state continuity
-(jaxfne._pipeline.compile_step_fn/scan_network's DynamicState -- v, u,
-prev_spikes, syn_state, H, w all carried forward) so each turn's final state
-seeds the next turn's initial state. Model.with_hdp_initial_state() was tried
-first and found to only carry H/w, silently resetting v/u/spikes/syn_state
-every call -- see the landmine note in build_model()/run() below.
+20-neuron (15E/5PV) uniform-random-sphere network under a trial-structured
+paradigm with two overlapping stimulus groups, chained across turns/trials
+via HDP with TRUE full-state continuity (jaxfne._pipeline.compile_step_fn/
+scan_network's DynamicState -- v, u, prev_spikes, syn_state, H, w all carried
+forward) so each trial's final state seeds the next trial's initial state.
+Model.with_hdp_initial_state() was tried first and found to only carry H/w,
+silently resetting v/u/spikes/syn_state every call -- see the landmine note
+in build_model()/run() below.
 
 Build path (as specified): Configuration -> NeuronalTensor -> construct (Model)
--> simulate at baseline -> chained continuous-task turns -> observe Wee/Wei/
-Wie/Wii, per-cell-type H, firing rates, and a coarse oscillation readout.
+-> simulate at baseline -> chained continuous-task trials -> observe Wee/Wei/
+Wie/Wii, per-cell-type H, firing rates, a coarse oscillation readout, and a
+stim4-response metric comparing AAAA vs AAAB trials.
+
+Paradigm (via jtfne.general_sequential_oddball_paradigm, see build_group_a_b()/
+build_trial_events()): two overlapping E-neuron stimulus groups, A (6 cells)
+and B (6 cells), sharing 2 "AB" cells. A trial is 4 repetitions of
+[500+-250ms random delay, then 500ms stimulus]; the stimulus in each
+repetition targets group A or B per the trial's condition sequence -- "AAAA"
+(habituate to A four times) or "AAAB" (habituate to A three times, then
+switch to B on the last repetition -- the oddball). Comparing the shared AB
+cells' response on stim4 between AAAA and AAAB tests whether habituation to
+A transfers to B through the 2 shared cells, versus B's unique cells which
+were never driven by A.
 
 This is a computational scaffold / proxy diagnostic, not a physical or
 biological validation claim (see AGENTS.md truth gates).
@@ -39,14 +52,29 @@ N_I = 5
 N = N_E + N_I
 SEED = 0
 DT_MS = 0.5
-TURN_DURATION_MS = 1000.0
 N_TURNS = 20
 SPHERE_RADIUS_MM = 0.25
 
-PULSE_AMPLITUDE = 6.0
-PULSE_DURATION_MS = 20.0
-PULSE_PERIOD_MS = 100.0
-DRIVEN_FRACTION = 1.0 / 3.0  # subset of E cells that receives the pulse train
+# Two overlapping E-neuron stimulus groups: 6 cells respond to A, 6 respond
+# to B, 2 of those are shared "AB" cells driven by both. |A|=6, |B|=6,
+# |A&B|=2 -> 10 distinct E cells involved (out of 15), 5 uninvolved.
+GROUP_A_SIZE = 6
+GROUP_B_SIZE = 6
+GROUP_AB_SHARED = 2
+
+# Trial structure: 4 repetitions of [500+-250ms random delay, 500ms stimulus].
+TRIAL_N_REPS = 4
+STIM_DURATION_MS = 500.0
+DELAY_MEAN_MS = 500.0
+DELAY_JITTER_MS = 250.0  # delay ~ Uniform(DELAY_MEAN-JITTER, DELAY_MEAN+JITTER)
+STIM_AMPLITUDE = 6.0  # same amplitude for A and B (user decision -- isolates
+                       # the population-overlap effect from an amplitude confound)
+
+# Two conditions: "AAAA" (habituate to A all 4 repetitions) and "AAAB"
+# (habituate to A three times, then the oddball -- switch to B on stim4).
+SEQUENCE_AAAA = ("A", "A", "A", "A")
+SEQUENCE_AAAB = ("A", "A", "A", "B")
+ODDBALL_TURNS = (10, 15)  # trials that run AAAB instead of AAAA
 
 # NOTE: tried switching to DEFAULT_HDP_DESYNC (gamma=0.5) so H would be
 # rate-dependent -- diverged even at E_TO_PV_GAIN=1.0 (H/weights pin at their
@@ -158,11 +186,18 @@ def override_positions_with_sphere(model: "jtfne.Model", radius: float, seed: in
     return dataclasses.replace(model, params=new_params, static=new_static)
 
 
+NOMINAL_TRIAL_DURATION_MS = TRIAL_N_REPS * (DELAY_MEAN_MS + STIM_DURATION_MS)  # metadata only -- see below
+
+
 def build_model() -> "jtfne.Model":
     """Step 3: NeuronalTensor -> Configuration bridge -> construct() -> Model."""
     tensor = build_tensor()
+    # duration_ms here is cfg metadata only (manifest/provenance) -- actual
+    # trial length varies turn-to-turn because of the random delays, and is
+    # controlled per-turn by the length of the array handed to scan_network,
+    # not by anything read from cfg.metadata at construct() time.
     cfg = neuronal_tensor_to_configuration(
-        tensor, seed=SEED, duration_ms=TURN_DURATION_MS, dt_ms=DT_MS
+        tensor, seed=SEED, duration_ms=NOMINAL_TRIAL_DURATION_MS, dt_ms=DT_MS
     )
     # LANDMINE (found during this build, not previously documented): construct()
     # ALSO generates its own default same-area dense random recurrent wiring
@@ -190,32 +225,103 @@ def build_model() -> "jtfne.Model":
     return model
 
 
-def build_pulse_train(model: "jtfne.Model", seed: int) -> "jtfne.StimulusSchedule":
-    """Repeated pulse train targeting a subset of E neurons, spanning the full
-    turn duration. Identical schedule every turn -- only the carried HDP state
-    (H, w) differs turn to turn, which is what should show habituation."""
+def build_groups(model: "jtfne.Model", seed: int) -> tuple[list[int], list[int], list[int]]:
+    """Pick the two overlapping E-neuron stimulus groups: group_a (6 cells),
+    group_b (6 cells), sharing group_ab (2 cells) -- group_a & group_b ==
+    group_ab exactly, group_a and group_b are each otherwise disjoint from
+    the other's unique cells."""
     rows = model.neuron_table()
     e_indices = [r["neuron_id"] for r in rows if r["cell_type"] == "E"]
-    n_driven = max(1, int(round(len(e_indices) * DRIVEN_FRACTION)))
     rng = np.random.default_rng(seed)
-    driven = sorted(rng.choice(e_indices, size=n_driven, replace=False).tolist())
 
-    events = []
-    onset = 0.0
-    while onset + PULSE_DURATION_MS <= TURN_DURATION_MS:
-        events.append(
-            {
-                "onset_ms": float(onset),
-                "duration_ms": float(PULSE_DURATION_MS),
-                "amplitude": float(PULSE_AMPLITUDE),
-                "target_indices": driven,
-                "label": "pulse",
-                "is_drive_event": True,
-            }
-        )
-        onset += PULSE_PERIOD_MS
+    shared = sorted(rng.choice(e_indices, size=GROUP_AB_SHARED, replace=False).tolist())
+    remaining = [i for i in e_indices if i not in shared]
+    a_only = rng.choice(remaining, size=GROUP_A_SIZE - GROUP_AB_SHARED, replace=False).tolist()
+    remaining = [i for i in remaining if i not in a_only]
+    b_only = rng.choice(remaining, size=GROUP_B_SIZE - GROUP_AB_SHARED, replace=False).tolist()
 
-    return jtfne.StimulusSchedule(events=tuple(events), n_neurons=N), driven
+    group_a = sorted(shared + a_only)
+    group_b = sorted(shared + b_only)
+    assert sorted(set(group_a) & set(group_b)) == shared
+    return group_a, group_b, shared
+
+
+def build_trial_events(
+    group_a: list[int], group_b: list[int], sequence: tuple[str, str, str, str], seed: int
+) -> tuple[list[dict], float]:
+    """Build one trial's explicit event list: TRIAL_N_REPS repetitions of
+    [random delay, STIM_DURATION_MS stimulus], stimulus target group per
+    `sequence`'s token ("A" -> group_a, "B" -> group_b) at each position.
+
+    Per-event `target_indices`/`drive_amplitude` go through
+    ParadigmEvent.metadata, which jaxfne._model.stimulus_schedule() reads
+    directly (verified via source: `if "target_indices" in e.metadata:
+    ev_dict["target_indices"] = e.metadata["target_indices"]`) -- the real,
+    documented hook, not a guess.
+
+    Delay lengths are random (see DELAY_MEAN_MS/DELAY_JITTER_MS), so the
+    trial's total duration varies -- returned alongside the event list so the
+    caller can size its own n_steps/drive-array per trial.
+    """
+    rng = np.random.default_rng(seed)
+    groups = {"A": group_a, "B": group_b}
+    events: list[dict] = []
+    t = 0.0
+    for i, token in enumerate(sequence):
+        delay_ms = float(rng.uniform(DELAY_MEAN_MS - DELAY_JITTER_MS, DELAY_MEAN_MS + DELAY_JITTER_MS))
+        events.append({
+            "label": f"delay{i + 1}",
+            "onset_ms": t,
+            "duration_ms": delay_ms,
+            "metadata": {"drive_amplitude": 0.0},
+        })
+        t += delay_ms
+        events.append({
+            "label": f"stim{i + 1}",
+            "onset_ms": t,
+            "duration_ms": STIM_DURATION_MS,
+            "stimulus": token,
+            "metadata": {"target_indices": groups[token], "drive_amplitude": STIM_AMPLITUDE},
+        })
+        t += STIM_DURATION_MS
+    return events, t
+
+
+def trial_paradigm(
+    group_a: list[int], group_b: list[int], sequence: tuple[str, str, str, str], seed: int
+) -> tuple["jtfne.Paradigm", float]:
+    """Wrap one trial's explicit event list in a jtfne.general_sequential_
+    oddball_paradigm (single condition, since event_windows/timings are
+    randomly resampled fresh every trial rather than shared across a fixed
+    condition set) -- keeps the trial declaratively structured (Paradigm/
+    ParadigmCondition/ParadigmEvent) instead of a hand-rolled StimulusSchedule,
+    per jaxfne-paradigm-design."""
+    events, total_duration_ms = build_trial_events(group_a, group_b, sequence, seed)
+    event_windows = {
+        str(ev["label"]): (ev["onset_ms"], ev["onset_ms"] + ev["duration_ms"]) for ev in events
+    }
+    condition_name = "".join(sequence)
+    paradigm = jtfne.general_sequential_oddball_paradigm(
+        name="sphere20_overlapping_ab_trial",
+        event_windows=event_windows,
+        sequence_event_labels=[f"stim{i + 1}" for i in range(TRIAL_N_REPS)],
+        conditions=[{"name": condition_name, "events": events}],
+        comparison_label="stim1",
+    )
+    return paradigm, total_duration_ms
+
+
+def trial_drive_array(paradigm: "jtfne.Paradigm", n_steps: int) -> np.ndarray:
+    """Resolve a single-condition trial Paradigm to a dense (n_steps, N) drive
+    array via jtfne.stimulus_schedule() -- the same free function
+    Model._resolve_stimulus_schedule() calls internally for a
+    ParadigmCondition -- rather than passing the ParadigmCondition straight
+    to Model.simulate(), since the continuous-task loop drives jax.lax.scan
+    directly (see run()'s landmine note on Model.simulate()/
+    with_hdp_initial_state not giving true state continuity)."""
+    condition = paradigm.conditions[0]
+    schedule = jtfne.stimulus_schedule(condition.events, n_neurons=N)
+    return schedule.to_array(n_steps, DT_MS)
 
 
 def edge_block_weights(model: "jtfne.Model", w_final: "jnp.ndarray | None" = None) -> dict[str, float]:
@@ -287,6 +393,21 @@ def oscillation_metric(spikes: "np.ndarray", dt_ms: float) -> dict[str, float]:
     }
 
 
+def stim_window_response(
+    spikes: "np.ndarray", target_indices: list[int], onset_ms: float, duration_ms: float
+) -> float:
+    """Total spike count of `target_indices` during one stimulus window
+    (onset_ms, onset_ms+duration_ms]. The direct habituation/dishabituation
+    readout: comparing this at stim4 for the shared AB cells (always driven,
+    every repetition, regardless of A/B) against the unique-to-the-current-
+    group cells (only driven when their own group is the stim4 target) tests
+    whether habituation built up over stim1-3 (to A) transfers through the
+    shared cells onto a stim4 driven by B, or stays specific to A."""
+    start = int(round(onset_ms / DT_MS))
+    end = int(round((onset_ms + duration_ms) / DT_MS))
+    return float(np.asarray(spikes)[start:end, target_indices].sum())
+
+
 def run() -> list[dict[str, Any]]:
     import jax
     from jaxfne._pipeline import compile_step_fn, scan_network
@@ -300,42 +421,47 @@ def run() -> list[dict[str, Any]]:
     print(f"[build] {N_E} E / {N_I} PV confirmed via neuron_table(); "
           f"n_edges={model.params['edge_list'].n_edges}")
 
-    stimulus, driven = build_pulse_train(model, seed=SEED)
-    print(f"[stimulus] pulse train: amp={PULSE_AMPLITUDE}, dur={PULSE_DURATION_MS}ms, "
-          f"period={PULSE_PERIOD_MS}ms, driven E-neuron ids={driven}")
-
-    n_steps = int(round(TURN_DURATION_MS / DT_MS))
-    drive_schedule = stimulus.to_array(n_steps, DT_MS)
+    group_a, group_b, shared = build_groups(model, seed=SEED)
+    a_only = [i for i in group_a if i not in shared]
+    b_only = [i for i in group_b if i not in shared]
+    print(f"[groups] group_a={group_a} group_b={group_b} shared(AB)={shared}")
 
     # Step 4: baseline simulate via the higher-level Model.simulate() path, just
-    # to sanity-check finite/sane output. HDP runtime passed explicitly -- see
-    # the landmine note in build_model(): Model.simulate(sim) does NOT inherit
-    # cfg.hdp(...) the way top-level jtfne.simulate(model, ...) does; only the
-    # top-level free function reads cfg.metadata via _runtime_config_from_metadata.
+    # to sanity-check finite/sane output, using one AAAA trial. HDP runtime
+    # passed explicitly -- see the landmine note in build_model():
+    # Model.simulate(sim) does NOT inherit cfg.hdp(...) the way top-level
+    # jtfne.simulate(model, ...) does; only the top-level free function reads
+    # cfg.metadata via _runtime_config_from_metadata. Footgun (jaxfne-paradigm-
+    # design): simulate(paradigm=...) only recognizes StimulusSchedule/
+    # ParadigmCondition, never a bare Paradigm -- pass paradigm.conditions[0],
+    # not the Paradigm object itself.
+    baseline_paradigm, baseline_duration_ms = trial_paradigm(group_a, group_b, SEQUENCE_AAAA, seed=SEED)
     runtime_cfg = jtfne.RuntimeConfig(enable_hdp=True, hdp_params=HDP_PARAMS)
-    sim = jtfne.simulation(duration_ms=TURN_DURATION_MS, dt_ms=DT_MS, seed=SEED, runtime=runtime_cfg)
-    sig0 = model.simulate(sim, paradigm=stimulus)
+    sim0 = jtfne.simulation(duration_ms=baseline_duration_ms, dt_ms=DT_MS, seed=SEED, runtime=runtime_cfg)
+    sig0 = model.simulate(sim0, paradigm=baseline_paradigm.conditions[0])
     assert bool(jnp.all(jnp.isfinite(sig0.V_m))), "baseline V_m contains NaN/Inf"
     assert bool(jnp.all(jnp.isfinite(sig0.spikes))), "baseline spikes contain NaN/Inf"
-    print(f"[baseline] rates={firing_rates(np.asarray(sig0.spikes), DT_MS, model)}")
+    print(f"[baseline] trial_duration_ms={baseline_duration_ms:.1f} "
+          f"rates={firing_rates(np.asarray(sig0.spikes), DT_MS, model)}")
 
-    # Step 5: continuous task, TRUE full-state carryover across turns.
+    # Step 5: continuous task, TRUE full-state carryover across trials.
     #
     # LANDMINE (found during this build, the most consequential one): the
     # higher-level Model.simulate() + Model.with_hdp_initial_state() pair --
     # the API this script originally used -- does NOT satisfy "last state of
-    # previous turn is first state of next turn". with_hdp_initial_state only
-    # carries H and edge weight w forward; membrane voltage v, recovery u,
-    # prev_spikes, and synaptic state syn_state are hard-reset to the model's
-    # native v0/u0/zero every single call (see _model.py's `init_state = {"v":
-    # emitter.v0.astype(...), "u": emitter.u0.astype(...), "prev_spikes":
-    # jnp.zeros_like(...), "syn_state": jnp.zeros_like(...), ...}` -- there is
-    # no v0=/u0=/prev_spikes0=/syn_state0= kwarg on with_hdp_initial_state at
-    # all). Combined with an identical PRNG seed every turn, this produced
-    # bit-identical firing rates/oscillation metrics across all 20 turns in
-    # an earlier run of this script despite H/weight visibly drifting --
-    # a real, non-obvious API footgun for anyone trying to build a genuinely
-    # continuous multi-turn simulation, not a mistake specific to this script.
+    # previous trial is first state of next trial". with_hdp_initial_state
+    # only carries H and edge weight w forward; membrane voltage v, recovery
+    # u, prev_spikes, and synaptic state syn_state are hard-reset to the
+    # model's native v0/u0/zero every single call (see _model.py's
+    # `init_state = {"v": emitter.v0.astype(...), "u": emitter.u0.astype(...),
+    # "prev_spikes": jnp.zeros_like(...), "syn_state": jnp.zeros_like(...),
+    # ...}` -- there is no v0=/u0=/prev_spikes0=/syn_state0= kwarg on
+    # with_hdp_initial_state at all). Combined with an identical PRNG seed
+    # every trial, an earlier version of this script (fixed-duration flat
+    # pulse train) showed bit-identical firing rates/oscillation metrics
+    # across all 20 trials despite H/weight visibly drifting -- a real,
+    # non-obvious API footgun for anyone trying to build a genuinely
+    # continuous multi-trial simulation, not a mistake specific to this script.
     #
     # The correct verified path for full v/u/prev_spikes/syn_state/H/w
     # carryover is the lower-level jaxfne._pipeline.compile_step_fn/
@@ -343,13 +469,23 @@ def run() -> list[dict[str, Any]]:
     # documented in jaxfne-neural-tensor's "Internal pure-function layer"
     # section as the real jax.lax.scan step pattern. HDP hyperparameters are
     # captured once via closure (compile_step_fn), so it's compiled a single
-    # time and reused across all turns -- only `carry` and the per-turn PRNG
-    # keys change.
+    # time and reused across all trials -- only `carry`, the per-trial PRNG
+    # keys, and the per-trial drive array (variable length, since each
+    # trial's random delays give it a different total duration) change.
     step_fn, carry = compile_step_fn(model, dt_ms=DT_MS, **HDP_PARAMS)
     base_key = jax.random.PRNGKey(SEED)
 
     history: list[dict[str, Any]] = []
     for turn in range(N_TURNS):
+        is_oddball = turn in ODDBALL_TURNS
+        sequence = SEQUENCE_AAAB if is_oddball else SEQUENCE_AAAA
+        # Delays resampled fresh every trial (user decision) -- turn-indexed
+        # seed keeps the whole run reproducible given the fixed top-level SEED.
+        trial_seed = SEED + 1009 * (turn + 1)
+        paradigm, duration_ms = trial_paradigm(group_a, group_b, sequence, seed=trial_seed)
+        n_steps = int(round(duration_ms / DT_MS))
+        drive_schedule = trial_drive_array(paradigm, n_steps)
+
         keys = jax.random.split(jax.random.fold_in(base_key, turn), n_steps)
         carry, outputs = scan_network(step_fn, carry, jnp.asarray(drive_schedule), keys)
         v_trace, spikes_trace, source_trace, H_trace, w_trace = outputs
@@ -358,13 +494,27 @@ def run() -> list[dict[str, Any]]:
             raise RuntimeError(f"turn {turn}: non-finite v/spikes in continuous-task scan -- stopping chain")
 
         spikes_np = np.asarray(spikes_trace)
-        row = {"turn": turn}
+        stim4_event = next(ev for ev in paradigm.conditions[0].events if ev.label == "stim4")
+        stim4_target_group = group_b if is_oddball else group_a
+        stim4_unique = b_only if is_oddball else a_only
+
+        row = {"turn": turn, "is_oddball": 1.0 if is_oddball else 0.0, "trial_duration_ms": duration_ms}
         row.update(firing_rates(spikes_np, DT_MS, model))
         row.update(cell_type_h(model, carry.H))
         row.update(edge_block_weights(model, carry.w))
         row.update(oscillation_metric(spikes_np, DT_MS))
+        row["stim4_shared_response"] = stim_window_response(
+            spikes_np, shared, stim4_event.onset_ms, stim4_event.duration_ms
+        )
+        row["stim4_unique_response"] = stim_window_response(
+            spikes_np, stim4_unique, stim4_event.onset_ms, stim4_event.duration_ms
+        )
+        row["stim4_group_response"] = stim_window_response(
+            spikes_np, stim4_target_group, stim4_event.onset_ms, stim4_event.duration_ms
+        )
         history.append(row)
-        print(f"[turn {turn:2d}] " + " ".join(f"{k}={v:.4f}" for k, v in row.items() if k != "turn"))
+        tag = "AAAB" if is_oddball else "AAAA"
+        print(f"[trial {turn:2d} {tag}] " + " ".join(f"{k}={v:.4f}" for k, v in row.items() if k != "turn"))
 
     return history
 
