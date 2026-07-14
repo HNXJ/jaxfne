@@ -16,7 +16,7 @@ bash skills/SYNC_GLOBAL.sh
 
 | Term | Meaning |
 |------|---------|
-| **PRP** | Progress–Review–Plan backlog in `artifacts/developer/{plans,progress,review}.json` |
+| **PRP** | Progress–Review–Plan backlog in `artifacts/developer/{plans,progress,review}.json` (local-only, gitignored — not in a fresh clone) |
 | **TBI / TBD** | To-be-investigated / to-be-done items on a `progress.json` file row |
 | **P0 / P1** | Priority labels in audit notes — P0 = fix before release claim |
 | **Truth gates** | Conservative defaults (`claim_level`, `*_proxy`, etc.) — see [Scope & status](../docs/scope_and_status.md) |

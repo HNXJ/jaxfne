@@ -7,7 +7,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 |---------|----------|------|
 | `docs/` + README | Humans | Tutorials, API reference, guides |
 | `skills/` + `AGENTS.md` | AI coding agents | Verified workflows, API catalog, config recipes — same source-of-truth as the package, not a parallel spec |
-| `artifacts/developer/` | Maintainers / agents | PRP backlog (`plans.json`, `progress.json`, `review.json`) and handoff notes (`AGENT_CHANNEL.md`) |
+| `artifacts/developer/` | Maintainers / agents, **local-only** | PRP backlog (`plans.json`, `progress.json`, `review.json`) and handoff notes (`AGENT_CHANNEL.md`) — gitignored since 2026-07-14, not present in a fresh clone |
 
 ## Start here (agents)
 
@@ -15,7 +15,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 2. **API catalog:** read `skills/catalog-glossary-jaxfne/SKILL.md` before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
 3. **Task router:** `skills/jaxfne-worker-context-router/SKILL.md` picks config / tensor / paradigm / vis skills.
 4. **Lean orientation:** root `AGENTS.md` (pointer only — depth lives in skills and docs).
-5. **Backlog:** `artifacts/developer/progress.json` — verify scores before claiming a file is done.
+5. **Backlog:** `artifacts/developer/progress.json` if present locally — verify scores before claiming a file is done. Not in a fresh clone; maintainers keep it locally.
 
 ## Object grammar (one line)
 
