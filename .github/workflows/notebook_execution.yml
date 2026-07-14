@@ -6,6 +6,10 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch: {}
 
+# Least-privilege: read-only checkout + notebook execution, no writes.
+permissions:
+  contents: read
+
 jobs:
   execute-notebooks:
     runs-on: ubuntu-latest

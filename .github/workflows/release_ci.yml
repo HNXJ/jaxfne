@@ -9,6 +9,10 @@ on:
     - cron: '0 0 * * *'  # Nightly at midnight
   workflow_dispatch:
 
+# Least-privilege: read-only checkout/test/build, no pushes or releases.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest

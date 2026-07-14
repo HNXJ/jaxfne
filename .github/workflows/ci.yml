@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [dev]
 
+# Least-privilege: this workflow only checks out code, runs tests/builds,
+# and uploads a coverage artifact -- it never pushes, comments, or creates
+# releases, so it needs no more than read access to repo contents.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
