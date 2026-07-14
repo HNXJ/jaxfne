@@ -70,7 +70,10 @@ Plotting: **`jaxfne/vis/*` only** (modular-grammar rule 2).
 
 ## Root freeze
 
-Repo root frozen 2026-06-17 — modify existing root files/folders only; no new top-level dirs except approved patches (`skills/` kept by design).
+Repo root frozen 2026-06-17 — no new top-level **folders** except approved patches (`skills/`
+kept by design). A single new top-level **file** (e.g. `SECURITY.md`, a GitHub-convention file
+expected at repo root) is not a folder-clutter violation — added 2026-07-14, don't treat this as
+reopening the freeze generally.
 
 ## Known stubs
 
