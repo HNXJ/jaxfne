@@ -644,9 +644,16 @@ def _reconstruct_hh_ionic_current(v, m, h, n, params: dict[str, Any]):
     """
     import jax.numpy as jnp
 
-    v = jnp.asarray(v); m = jnp.asarray(m); h = jnp.asarray(h); n = jnp.asarray(n)
-    gNa = params["gNa"]; gK = params["gK"]; gL = params["gLeak"]
-    eNa = params["eNa"]; eK = params["eK"]; eL = params["eLeak"]
+    v = jnp.asarray(v)
+    m = jnp.asarray(m)
+    h = jnp.asarray(h)
+    n = jnp.asarray(n)
+    gNa = params["gNa"]
+    gK = params["gK"]
+    gL = params["gLeak"]
+    eNa = params["eNa"]
+    eK = params["eK"]
+    eL = params["eLeak"]
     i_na = gNa * (m ** 3) * h * (v - eNa)
     i_k = gK * (n ** 4) * (v - eK)
     i_l = gL * (v - eL)

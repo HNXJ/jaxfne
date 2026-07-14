@@ -170,10 +170,10 @@ class Area:
     def __post_init__(self):
         if not isinstance(self.name, str):
             raise TypeError(f"Area.name must be a str, got {type(self.name).__name__}")
-        if not all(isinstance(l, Layer) for l in self.layers):
+        if not all(isinstance(layer, Layer) for layer in self.layers):
             raise TypeError(
                 "Area.layers must contain only Layer instances, got "
-                f"{[type(l).__name__ for l in self.layers]}"
+                f"{[type(layer).__name__ for layer in self.layers]}"
             )
         if not all(isinstance(c, InterConnection) for c in self.inter_connections):
             raise TypeError(
@@ -335,12 +335,12 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
             name=a["name"],
             layers=[
                 Layer(
-                    name=l["name"],
-                    neuron_types=[NeuronType(**nt) for nt in l.get("neuron_types", [])],
-                    geometry=Geometry3D(**l.get("geometry", {})),
-                    n_neurons=l.get("n_neurons", 0),
+                    name=layer["name"],
+                    neuron_types=[NeuronType(**nt) for nt in layer.get("neuron_types", [])],
+                    geometry=Geometry3D(**layer.get("geometry", {})),
+                    n_neurons=layer.get("n_neurons", 0),
                 )
-                for l in a.get("layers", [])
+                for layer in a.get("layers", [])
             ],
             inter_connections=[
                 InterConnection(
@@ -576,7 +576,7 @@ def _construct_neuronal_tensor_impl(
         )
         model = model.with_hdp_initial_state(H0=H0)
 
-    layer_by_key = {(a.name, l.name): l for a in tensor.areas for l in a.layers}
+    layer_by_key = {(a.name, layer.name): layer for a in tensor.areas for layer in a.layers}
     pose_by_area = {a.name: a.pose for a in tensor.areas}
 
     base_key = jax.random.PRNGKey(seed)

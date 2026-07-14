@@ -365,16 +365,19 @@ def etude2_extended_panel_grid(
 
     fig = plt.figure(figsize=(20, 11), dpi=150, facecolor=BG)
     grid = fig.add_gridspec(2, 3, height_ratios=[1, 1], width_ratios=[0.8, 1.3, 0.8])
-    axA = fig.add_subplot(grid[0, 0]); axB = fig.add_subplot(grid[0, 1])
+    axA = fig.add_subplot(grid[0, 0])
+    axB = fig.add_subplot(grid[0, 1])
     axC = fig.add_subplot(grid[0, 2], sharey=axB)
-    axD = fig.add_subplot(grid[1, 0]); axE = fig.add_subplot(grid[1, 1])
+    axD = fig.add_subplot(grid[1, 0])
+    axE = fig.add_subplot(grid[1, 1])
     axF = fig.add_subplot(grid[1, 2])
     for ax in (axA, axB, axC, axD, axE, axF):
         ax.set_facecolor(BG)
         for sp in ax.spines.values():
             sp.set_color("#555555")
         ax.tick_params(colors=LINE, labelsize=8)
-        ax.xaxis.label.set_color(LINE); ax.yaxis.label.set_color(LINE)
+        ax.xaxis.label.set_color(LINE)
+        ax.yaxis.label.set_color(LINE)
         ax.title.set_color(LINE)
 
     # A: cell-type relative density per layer (stacked, L1 top -> L6 bottom)

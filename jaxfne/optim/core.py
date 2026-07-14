@@ -1161,7 +1161,7 @@ def agsdr_transform(
 
     def _calc_tree_variance(tree: Any) -> jax.Array:
         """Compute true L2 variance of a PyTree."""
-        leaves = [jnp.ravel(l) for l in jax.tree_util.tree_leaves(tree) if hasattr(l, "shape")]
+        leaves = [jnp.ravel(leaf) for leaf in jax.tree_util.tree_leaves(tree) if hasattr(leaf, "shape")]
         if not leaves:
             return jnp.asarray(0.0, dtype=jnp.float32)
         flat_concat = jnp.concatenate(leaves)

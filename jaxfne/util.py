@@ -151,7 +151,7 @@ def validate_neuronal_tensor(nt: NeuronalTensor, *, strict: bool = False) -> lis
             warnings.append(f"Area {area.name!r} has zero Layers")
             continue
 
-        layer_names = [l.name for l in area.layers]
+        layer_names = [layer.name for layer in area.layers]
         layer_dupes = {n for n in layer_names if layer_names.count(n) > 1}
         if layer_dupes:
             warnings.append(f"Area {area.name!r}: duplicate Layer names: {sorted(layer_dupes)}")
@@ -283,7 +283,7 @@ def tensor_summary(nt: NeuronalTensor) -> dict[str, Any]:
     """
     n_areas = len(nt.areas)
     n_layers = sum(len(a.layers) for a in nt.areas)
-    n_neurons = sum(l.n_neurons for a in nt.areas for l in a.layers)
+    n_neurons = sum(layer.n_neurons for a in nt.areas for layer in a.layers)
     cell_types: set[str] = set()
     for area in nt.areas:
         for layer in area.layers:

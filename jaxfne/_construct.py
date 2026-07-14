@@ -430,12 +430,17 @@ def _make_sparse_within_area_edges(area_labels, sign, n, *, within_gain, p_conne
         post_g = idx[post_loc]
         rnd = rng.uniform(0.25, 1.0, n_edges)
         w = within_gain * rnd * sign_np[pre_g] / (sqrt_n * p)
-        pre_chunks.append(pre_g); post_chunks.append(post_g); w_chunks.append(w)
+        pre_chunks.append(pre_g)
+        post_chunks.append(post_g)
+        w_chunks.append(w)
     if pre_chunks:
-        pre = _np.concatenate(pre_chunks); post = _np.concatenate(post_chunks)
+        pre = _np.concatenate(pre_chunks)
+        post = _np.concatenate(post_chunks)
         w = _np.concatenate(w_chunks)
     else:
-        pre = _np.zeros(0, int); post = _np.zeros(0, int); w = _np.zeros(0, float)
+        pre = _np.zeros(0, int)
+        post = _np.zeros(0, int)
+        w = _np.zeros(0, float)
     receptor = (w < 0).astype(_np.int32)
     tau = _np.where(receptor == 0, 2.0, 5.0)
     return EdgeList(
@@ -764,7 +769,8 @@ def _compile_connection_rules(
         if n_cand <= _CONNECTIONS_EXACT_PRODUCT_CAP:
             # Exact cartesian product -> exact p=1 (full) / p=0 (none) semantics.
             pre_grid, post_grid = _np.meshgrid(pre_idx, post_idx, indexing="ij")
-            pre_flat = pre_grid.ravel(); post_flat = post_grid.ravel()
+            pre_flat = pre_grid.ravel()
+            post_flat = post_grid.ravel()
             non_self = pre_flat != post_flat
             pre_flat, post_flat = pre_flat[non_self], post_flat[non_self]
             keep = _np.ones(pre_flat.size, bool) if p >= 1.0 else (rng.random(pre_flat.size) < p)
@@ -789,12 +795,16 @@ def _compile_connection_rules(
             continue
         sgn = rule.get("sign")
         wv = _apply_edge_sign_policy(sgn, _np.full(pre_g.size, w_mag), pre_g, sign_np)
-        pre_all.append(pre_g); post_all.append(post_g); w_all.append(wv)
+        pre_all.append(pre_g)
+        post_all.append(post_g)
+        w_all.append(wv)
         counts.append(int(pre_g.size))
 
     if not pre_all:
         return None, counts
-    pre = _np.concatenate(pre_all); post = _np.concatenate(post_all); w = _np.concatenate(w_all)
+    pre = _np.concatenate(pre_all)
+    post = _np.concatenate(post_all)
+    w = _np.concatenate(w_all)
     receptor = (w < 0).astype(_np.int32)
     tau = _np.where(receptor == 0, 2.0, 5.0)
     edges = EdgeList(
@@ -1465,8 +1475,10 @@ def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
                           source_scale=jnp.asarray(ss, dtype=jdtype))
 
     # PV<->E local connectivity x3 (distance-gated by laminar depth).
-    pre = _np.asarray(edge_list.pre); post = _np.asarray(edge_list.post)
-    pc = lab[pre]; qc = lab[post]
+    pre = _np.asarray(edge_list.pre)
+    post = _np.asarray(edge_list.post)
+    pc = lab[pre]
+    qc = lab[post]
     pv_e = ((pc == "PV") & (qc == "E")) | ((pc == "E") & (qc == "PV"))
     if pv_e.any():
         w = _np.asarray(edge_list.weight, dtype=float).copy()
@@ -1513,7 +1525,8 @@ def _simulate_homeostasis_metadata(
                                    "Model.last_homeostasis_diagnostics()",
     }
     if diag is not None:
-        g = diag["g_bias"]; r = diag["r_trace"]
+        g = diag["g_bias"]
+        r = diag["r_trace"]
         homeo_meta["g_bias_summary"] = {
             "min": float(jnp.min(g)), "max": float(jnp.max(g)),
             "mean": float(jnp.mean(g)), "shape": list(g.shape),
@@ -1557,7 +1570,8 @@ def _simulate_hdp_metadata(
                                     "Model.last_hdp_diagnostics()",
     }
     if diag is not None:
-        H = diag["H_trace"]; wf = diag["w_final"]
+        H = diag["H_trace"]
+        wf = diag["w_final"]
         hdp_meta["H_trace_summary"] = {
             "min": float(jnp.min(H)), "max": float(jnp.max(H)),
             "mean": float(jnp.mean(H)), "std": float(jnp.std(H)),
@@ -1992,7 +2006,8 @@ def _connect_merge_positions(models: "tuple[Model, ...]", layout: str, jdtype: A
     for m in models:
         p = m.params["positions"].astype(jdtype)
         if layout == "offset_x" and p.shape[0] > 0:
-            xmin = float(jnp.min(p[:, 0])); xmax = float(jnp.max(p[:, 0]))
+            xmin = float(jnp.min(p[:, 0]))
+            xmax = float(jnp.max(p[:, 0]))
             p = p + jnp.asarray([xcursor - xmin, 0.0, 0.0], dtype=jdtype)
             xcursor += (xmax - xmin) + 1.0
         pos_parts.append(p)

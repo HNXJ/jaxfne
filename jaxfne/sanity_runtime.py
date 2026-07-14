@@ -117,8 +117,8 @@ def _scan_task_runtime(
         """Documented public function `step_fn`."""
         v_c, u_c, s_c, W_c = carry
         stim_step, noise_step = inputs
-        I = base_drive + stim_step + s_c + noise_step
-        dv = 0.04 * v_c * v_c + 5.0 * v_c + 140.0 - u_c + I
+        I_drive = base_drive + stim_step + s_c + noise_step
+        dv = 0.04 * v_c * v_c + 5.0 * v_c + 140.0 - u_c + I_drive
         v_next = v_c + dt_ms * dv
         du = a_jnp * (b_jnp * v_c - u_c)
         u_next = u_c + dt_ms * du

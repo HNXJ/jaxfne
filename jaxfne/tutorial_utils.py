@@ -1099,13 +1099,14 @@ def build_laminar_column(cfg: LaminarColumnConfig) -> dict:
 
     # Pre-compute per-layer neuron counts (largest-remainder from layer_count_frac).
     _layer_keys = list(cfg.layers)
-    _lcf_vals   = np.array([cfg.layer_count_frac.get(l, 1.0) for l in _layer_keys], dtype=float)
+    _lcf_vals   = np.array([cfg.layer_count_frac.get(layer, 1.0) for layer in _layer_keys], dtype=float)
     _lcf_vals  /= _lcf_vals.sum()
     _n_raw      = _lcf_vals * cfg.n_neuron_per_column
     _n_floor    = np.floor(_n_raw).astype(int)
     _remainder  = int(cfg.n_neuron_per_column - _n_floor.sum())
     _topup      = np.argsort(-(_n_raw - _n_floor))[:_remainder]
-    _layer_n    = _n_floor.copy(); _layer_n[_topup] += 1
+    _layer_n    = _n_floor.copy()
+    _layer_n[_topup] += 1
 
     # Per-layer per-cell-type integer counts (largest-remainder from cell_dist).
     _layer_cell_counts: list[list[int]] = []
@@ -1403,12 +1404,18 @@ def simulate_laminar_trials(
         m = cells_arr == ct
         if not m.any():
             continue
-        if 'a' in p: a_arr[m] = float(p['a'])
-        if 'b' in p: b_arr[m] = float(p['b'])
-        if 'c' in p: c_arr[m] = float(p['c'])
-        if 'd' in p: d_arr[m] = float(p['d'])
-        if 'drive' in p: drv_arr[m] = float(p['drive'])
-        if 'noise' in p: noise_arr[m] = float(p['noise'])
+        if 'a' in p:
+            a_arr[m] = float(p['a'])
+        if 'b' in p:
+            b_arr[m] = float(p['b'])
+        if 'c' in p:
+            c_arr[m] = float(p['c'])
+        if 'd' in p:
+            d_arr[m] = float(p['d'])
+        if 'drive' in p:
+            drv_arr[m] = float(p['drive'])
+        if 'noise' in p:
+            noise_arr[m] = float(p['noise'])
     noise_scale_j = jnp.asarray(noise_arr)
     sign = np.asarray(params.sign, dtype=np.float32)
     v0_arr = np.asarray(params.v0, dtype=np.float32)
@@ -1593,10 +1600,14 @@ def single_cell_waveforms(
         c = np.asarray(params.c, dtype=np.float32).copy()
         d = np.asarray(params.d, dtype=np.float32).copy()
         p = overrides.get(ct, {})
-        if 'a' in p: a[:] = float(p['a'])
-        if 'b' in p: b[:] = float(p['b'])
-        if 'c' in p: c[:] = float(p['c'])
-        if 'd' in p: d[:] = float(p['d'])
+        if 'a' in p:
+            a[:] = float(p['a'])
+        if 'b' in p:
+            b[:] = float(p['b'])
+        if 'c' in p:
+            c[:] = float(p['c'])
+        if 'd' in p:
+            d[:] = float(p['d'])
         drv = np.full(1, float(drive), dtype=np.float32)  # constant drive for a clean AP
         params = _dataclasses.replace(
             params,

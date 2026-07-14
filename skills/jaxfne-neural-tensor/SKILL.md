@@ -161,7 +161,7 @@ jaxfne/_model.py` before trusting a new key reaches the kernel — this exact
 bug bit `K_w_ctrl`'s first implementation pass, see below).
 
 **`K_w_ctrl` (added 2026-07-04) — the weight-magnitude analogue of `K_ctrl`.**
-Real bug found and fixed this session: `H` already had a two-sided restoring
+Real bug found and fixed 2026-07-04: `H` already had a two-sided restoring
 term (`K_ctrl`) pulling it toward equilibrium, but synaptic weight magnitude
 had none — only a hard floor/ceiling clip — so carrying weights trial-to-trial
 (`Model.with_hdp_initial_state(H0=..., w0=...)`) was an unbounded

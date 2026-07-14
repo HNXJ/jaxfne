@@ -29,8 +29,8 @@ def simulate_stdp_euler_step(
     stim_val, noise_val, A_plus, A_minus = inputs
     
     # ODE Euler solver updates for Izhikevich state variables
-    I = stim_val + noise_val + s
-    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + I
+    I_drive = stim_val + noise_val + s
+    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + I_drive
     v_next = v + dt_ms * dv
     
     du = a * (b * v - u)

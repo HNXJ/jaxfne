@@ -131,13 +131,22 @@ present, the flat `amplitude` plateau is replaced by a sinusoid
 onset, phase restarts at 0 per event). Omitting `frequency_hz` reproduces the
 original flat-amplitude behavior unchanged — fully backward compatible.
 
-## Multi-trial / batch
+## Multi-trial / batch — two paths, pick by object type in hand
 
 ```python
 batch = jtfne.trial_batch(...)
 result = model.run_trials(batch, sim)
 # or tutorial_utils.simulate_laminar_trials(model_dict, cfg, n_trials=8)
 ```
+
+Not two competing APIs for the same job — pick by what you're holding:
+`model.run_trials(batch, sim)` operates on a real `Model` (from `construct()`)
+and a typed `TrialBatch`/`Simulation` — the production/typed path. `tutorial_utils.simulate_laminar_trials(model_dict, cfg, ...)` operates on the
+plain-`dict` output of `build_laminar_column()` with a looser `control`
+dict/`stimulus` array signature — the notebook-friendly quick-iteration path.
+Don't mix inputs across them (a `Model` won't work with
+`simulate_laminar_trials`, a `build_laminar_column()` dict won't work with
+`run_trials`).
 
 ## Level 7 — Manifest / receipt
 
