@@ -86,7 +86,7 @@ site. Both are partial builders — chain `.set_emitter().probes().field()` befo
 | `layer_fractions` | canonical/even bands | `(z0, z1)` depth band per layer; width sets the count. |
 | `cell_type_fractions` | `FLAT_CELL_TYPE_FRACTIONS` | Global E/PV/SST/VIP used by `ei_profile="flat"`. |
 | `layer_cell_type_fractions` | `None` | Explicit per-layer composition; overrides `ei_profile`. |
-| `ei_profile` *(kw)* | `"flat"` | `"flat"` = legacy depth-invariant; `"canonical"` = verified E:I gradient (E deep ≈90%, I superficial 50%, PV at L4, ≈77E:23I). |
+| `ei_profile` *(kw)* | `"flat"` | `"flat"` = legacy depth-invariant; `"canonical"` = verified E:I gradient (E deep 95%, I superficial 50%, PV peaks L2/L3, ≈66E:34I overall). |
 | `geometry` *(kw)* | `"auto"` | `"auto"` → `laminar` when a non-flat composition is requested, else `uniform3d`. `uniform3d` collapses layer identity. |
 | `within_connectivity` *(kw)* | `"all_to_all_uniform_random"` | Within-area rule. |
 | `within_gain` *(kw)* | `0.45` | Within-area weight gain. |

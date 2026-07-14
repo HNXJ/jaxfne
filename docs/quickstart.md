@@ -100,8 +100,8 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 ```
 
 `ei_profile="canonical"` applies the verified laminar E:I gradient (E peaks deep,
-I peaks superficial, PV at L4, ≈77E:23I). `ei_profile="flat"` keeps legacy
-depth-invariant composition.
+I peaks superficial, PV peaks at L2/L3, ≈66E:34I overall). `ei_profile="flat"`
+keeps legacy depth-invariant composition.
 
 Multi-area: `jtfne.build_multi_area_columns(["V1", "V4", "PFC"], ei_profile="canonical")`.
 

@@ -14,10 +14,12 @@ Two cell-type composition paths share the builders:
 * ``ei_profile="flat"`` (default) — depth-invariant E/PV/SST/VIP fractions with
   ``uniform3d`` placement. This is the legacy behavior, preserved unchanged.
 * ``ei_profile="canonical"`` — the verified ground-truth E:I gradient (E peaks
-  deep ≈90%, I peaks superficial 50%, PV at L4, ≈77E:23I), with laminar
-  placement so each neuron keeps its layer label. The gradient is exported as
-  first-class constants (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`,
-  :data:`CANONICAL_Z_BANDS`, and the 5-layer variants).
+  deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3, ≈66E:34I
+  overall), with laminar placement so each neuron keeps its layer label. The
+  gradient is exported as first-class constants
+  (:data:`CANONICAL_LAYER_CELL_TYPE_FRACTIONS`, :data:`CANONICAL_Z_BANDS`,
+  and the 5-layer variants) — query those directly rather than copying these
+  numbers, they are the source of truth.
 
 All builders preserve the truth gates:
   - claim_level = computational_scaffold
@@ -356,8 +358,8 @@ def build_laminar_column(
     ei_profile : {"flat", "canonical"}, keyword-only, default "flat"
         ``"flat"`` repeats ``cell_type_fractions`` across layers (legacy).
         ``"canonical"`` applies the verified ground-truth E:I gradient
-        (E peaks deep ≈90%, I peaks superficial 50%, PV at L4, ≈77E:23I) —
-        requires the canonical 6- or 5-layer set.
+        (E peaks deep to 95%, I peaks superficial at 50%, PV peaks at L2/L3,
+        ≈66E:34I overall) — requires the canonical 6- or 5-layer set.
     geometry : {"auto", "uniform3d", "laminar"}, keyword-only, default "auto"
         Neuron placement. ``"uniform3d"`` scatters neurons in a cylinder
         (legacy; collapses layer identity to ``"uniform_3d"``, so per-layer

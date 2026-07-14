@@ -13,7 +13,7 @@ calibrated-amplitude or mechanism claim is made.
 | Step | What it does |
 |------|--------------|
 | 1 Config | Fluent canonical cfg: thickness-proportional counts + per-layer E/I |
-| 2 Construct | 1000-neuron model, ~77E:23I, E-deep / I-superficial gradient |
+| 2 Construct | 1000-neuron model, ~66E:34I, E-deep / I-superficial gradient |
 | 3 Simulate | Drive sweep → operating point ~18 Hz; sanity gates; `*_proxy` fields |
 | 4 Visualize | Spiking, rate, PSD, LFP/CSD-proxy, spectrolaminar, interactive 3D |
 | 5 Tune | AGSDR fits `drive_gain` to a target rate |
@@ -26,12 +26,15 @@ calibrated-amplitude or mechanism claim is made.
 Two laws define the reference column (the default prior for laminar work):
 
 1. **Excitation peaks deep.** The E-fraction rises monotonically with depth, to
-   roughly 90% E in L6.
+   95% E in L6.
 2. **Inhibition peaks superficial.** The I-fraction is highest superficially
-   (L1 ~50% I) and falls with depth to ~10% in L6; the largest inhibitory *count*
-   sits in the dense superficial L2. PV concentrates in L4; L1 carries VIP/SST only.
+   (L1/L2/L3, 50% I each) and falls with depth to 5% in L6; the largest
+   inhibitory *count* sits in the dense superficial L2. PV peaks at L2/L3
+   (25% each); L6 carries no PV.
 
-Overall composition is ~77% E : 23% I, in the realistic cortical range.
+Overall composition is ~66% E : 34% I, in the realistic cortical range. This
+table is `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` — query the live
+constant rather than copying these numbers if you need them elsewhere.
 
 ```python
 import jaxfne as jtfne
@@ -47,12 +50,12 @@ ZBANDS = {
 
 # Per-layer cell-type composition: I-fraction high superficial -> low deep
 LAYER_CELL_TYPES = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},  # 50% I (no PV)
-    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},  # 30% I (I-count peak)
-    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},  # 25% I
-    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},  # 20% I (PV feedforward)
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},  # 12% I
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},  # 10% I (E-fraction peak)
+    "L1": {"E": 0.50, "PV": 0.05, "SST": 0.10, "VIP": 0.35},  # 50% I
+    "L2": {"E": 0.50, "PV": 0.25, "SST": 0.10, "VIP": 0.15},  # 50% I (I-count peak)
+    "L3": {"E": 0.50, "PV": 0.25, "SST": 0.15, "VIP": 0.10},  # 50% I
+    "L4": {"E": 0.70, "PV": 0.20, "SST": 0.05, "VIP": 0.05},  # 30% I (PV feedforward)
+    "L5": {"E": 0.85, "PV": 0.05, "SST": 0.05, "VIP": 0.05},  # 15% I
+    "L6": {"E": 0.95, "PV": 0.00, "SST": 0.05, "VIP": 0.00},  # 5% I (E-fraction peak, no PV)
 }
 ```
 
@@ -90,13 +93,13 @@ Verified composition (per-layer counts, I% by layer):
 
 ```text
  layer     E    PV   SST   VIP   tot   I%
-    L1    50     0    15    35   100   50
-    L2   175    38    25    12   250   30
-    L3   150    26    16     8   200   25
-    L4    80    12     5     3   100   20
-    L5   176    12     8     4   200   12
-    L6   135     8     4     3   150   10
-                                  1000  ~23   ->  ~77E : 23I
+    L1    50     5    10    35   100   50
+    L2   125    62    25    38   250   50
+    L3   100    50    30    20   200   50
+    L4    70    20     5     5   100   30
+    L5   170    10    10    10   200   15
+    L6   142     0     8     0   150    5
+                                  1000  ~34   ->  ~66E : 34I
 ```
 
 E-fraction rises with depth (L1 50% → L6 90%); the inhibitory *count* peaks in L2.
@@ -187,7 +190,7 @@ jtfne.save_figure(jtfne.vis.spectrolaminar_suite(signals), "spectrolaminar.pdf")
 
 # Interactive 3D column (pan/zoom; shows the depth gradient directly)
 jtfne.vis.visualize_network_3d(
-    model.neuron_table(), title="Canonical V1 column (77E:23I)",
+    model.neuron_table(), title="Canonical V1 column (66E:34I)",
     show_layers=True, show_column_shells=True, output_html="network_3d.html",
 )
 ```

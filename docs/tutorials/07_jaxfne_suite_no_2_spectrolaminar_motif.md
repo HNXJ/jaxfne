@@ -71,8 +71,8 @@ model_v1v4 = jtfne.construct(cfg_v1v4)
 
 For the depth × frequency crossover (deep alpha/beta vs superficial gamma), use the
 canonical laminar column with a realistic E/I gradient and the multi-trial **LFP**
-pipeline. The column follows the ground-truth composition (E peaks deep, I peaks
-superficial; PV in L4, none in L1; ~77E:23I overall):
+pipeline. The column follows the ground-truth composition, `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
+(E peaks deep, I peaks superficial; PV peaks at L2/L3, absent at L6; ~66E:34I overall):
 
 ```python
 import jaxfne as jtfne
@@ -83,12 +83,12 @@ jtfne.enable_x64()
 # Per-layer neuron counts (count ∝ thickness) and the E/I gradient.
 LAYER_COUNT_FRAC = {"L1": 0.10, "L2": 0.25, "L3": 0.20, "L4": 0.10, "L5": 0.20, "L6": 0.15}
 LAYER_CELL_TYPES = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},  # 50% I (no PV in L1)
-    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},  # I-count peak (dense L2)
-    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},
-    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},  # PV feedforward
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},  # E-fraction peak
+    "L1": {"E": 0.50, "PV": 0.05, "SST": 0.10, "VIP": 0.35},  # 50% I
+    "L2": {"E": 0.50, "PV": 0.25, "SST": 0.10, "VIP": 0.15},  # I-count peak (dense L2)
+    "L3": {"E": 0.50, "PV": 0.25, "SST": 0.15, "VIP": 0.10},
+    "L4": {"E": 0.70, "PV": 0.20, "SST": 0.05, "VIP": 0.05},  # PV feedforward
+    "L5": {"E": 0.85, "PV": 0.05, "SST": 0.05, "VIP": 0.05},
+    "L6": {"E": 0.95, "PV": 0.00, "SST": 0.05, "VIP": 0.00},  # E-fraction peak, no PV
 }
 
 cfg = tu.make_laminar_column_config(

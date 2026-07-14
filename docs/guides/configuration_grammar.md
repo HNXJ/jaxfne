@@ -79,7 +79,7 @@ placement collapses layer identity and should be used only for non-laminar model
 Specificity dial: the E:I composition and its laminar gradient. A single global
 `.cell_types({"E": 0.8, ...})` is the coarse setting; `.area_layer_cell_types(...)`
 expresses the verified ground-truth gradient (E rises with depth, inhibition
-peaks superficially, PV concentrates at L4). `.cell_params(...)` overrides
+peaks superficially, PV peaks at L2/L3). `.cell_params(...)` overrides
 per-selector neuron parameters. The more layer- and type-resolved the
 composition, the more the model can reproduce real laminar physiology.
 

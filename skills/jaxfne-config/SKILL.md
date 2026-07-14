@@ -98,37 +98,46 @@ Constants: `jtfne.CANONICAL_LAYERS_6L`, `DEFAULT_LAYERS` in `builders.py`.
 
 ## Canonical 1K-neuron column (default prior unless user specifies otherwise)
 
-**Ground truth** (verified via `construct(cfg).neuron_table()`), two laws:
+**Ground truth** (re-verified 2026-07-13 directly against `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
+and a live `construct(cfg).neuron_table()` — the previous table below this
+line was stale and off by up to 25 points per layer; corrected here, not
+just flagged), two laws hold:
 
-1. **E peaks DEEP** — excitatory fraction rises with depth (L6 ≈ 90% E).
-2. **I peaks SUPERFICIAL** — inhibitory fraction highest in L1 (50% I); largest
-   inhibitory **neuron count** in dense L2.
+1. **E peaks DEEP** — excitatory fraction rises with depth (L6 = 95% E).
+2. **I peaks SUPERFICIAL** — inhibitory fraction highest in L1/L2/L3 (50% I
+   each, not just L1); lowest in L6 (5% I).
 
-Overall ≈ **77E : 23I**. NOT the wrong global `cell_types=` weight (≈41:59 over-inhibitory).
+Overall ≈ **66E : 34I** (verified: 657–658 E of 1000 at n=1000, seed 0). NOT
+77:23 (a stale figure from an earlier fraction table) and NOT the wrong
+global `cell_types=` weight (≈41:59 over-inhibitory).
 
 | Layer | z-band (width ∝ count) | Neurons | I-fraction |
 |-------|------------------------|--------:|-----------:|
 | L1 | 0.00–0.10 | 100 | 50% |
-| L2 | 0.10–0.35 | 250 | 30% |
-| L3 | 0.35–0.55 | 200 | 25% |
-| L4 | 0.55–0.65 | 100 | 20% |
-| L5 | 0.65–0.85 | 200 | 12% |
-| L6 | 0.85–1.00 | 150 | 10% |
+| L2 | 0.10–0.35 | 250 | 50% |
+| L3 | 0.35–0.55 | 200 | 50% |
+| L4 | 0.55–0.65 | 100 | 30% |
+| L5 | 0.65–0.85 | 200 | 15% |
+| L6 | 0.85–1.00 | 150 | 5% |
 
-Per-layer fractions (use `.area_layer_cell_types`, NOT global `cell_types=`):
+Per-layer fractions — this IS `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS`
+verbatim (query the live constant instead of copying this table if in doubt,
+it can drift again):
 
 ```python
-LAYER_CELL_TYPE_FRAC = {
-    "L1": {"E": 0.50, "PV": 0.00, "SST": 0.15, "VIP": 0.35},
-    "L2": {"E": 0.70, "PV": 0.15, "SST": 0.10, "VIP": 0.05},
-    "L3": {"E": 0.75, "PV": 0.13, "SST": 0.08, "VIP": 0.04},
-    "L4": {"E": 0.80, "PV": 0.12, "SST": 0.05, "VIP": 0.03},
-    "L5": {"E": 0.88, "PV": 0.06, "SST": 0.04, "VIP": 0.02},
-    "L6": {"E": 0.90, "PV": 0.05, "SST": 0.03, "VIP": 0.02},
+jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS == {
+    "L1": {"E": 0.50, "PV": 0.05, "SST": 0.10, "VIP": 0.35},
+    "L2": {"E": 0.50, "PV": 0.25, "SST": 0.10, "VIP": 0.15},
+    "L3": {"E": 0.50, "PV": 0.25, "SST": 0.15, "VIP": 0.10},
+    "L4": {"E": 0.70, "PV": 0.20, "SST": 0.05, "VIP": 0.05},
+    "L5": {"E": 0.85, "PV": 0.05, "SST": 0.05, "VIP": 0.05},
+    "L6": {"E": 0.95, "PV": 0.00, "SST": 0.05, "VIP": 0.00},
 }
 ```
 
-PV concentrates in L4; **absent in L1** (VIP/SST only).
+PV **peaks at L2/L3 (25% each)**, is present but lower at L1/L4 (5%/20%),
+and is **absent at L6** (0%) — not "concentrates in L4, absent in L1" as an
+earlier pass of this skill claimed.
 
 ### Quickstart — config path
 

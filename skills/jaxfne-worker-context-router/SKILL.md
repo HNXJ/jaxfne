@@ -46,7 +46,7 @@ grep -R "def <name>\|class <name>" -n jaxfne tests docs examples tutorials scrip
 
 ## Ownership map (verified on disk — no jaxfne/config.py or net.py)
 
-**core.py monolith split COMPLETE (2026-07-04/05, 5 slices, 8370 -> 233 lines).**
+**core.py monolith split COMPLETE (2026-07-04/05, 5 slices, 8370 -> ~237 lines).**
 `jaxfne/core.py` is now a pure re-export aggregator — every public/private symbol
 still resolves via `from jaxfne.core import X` / `from jaxfne import X` unchanged,
 but the real implementations live in:
@@ -68,7 +68,7 @@ construct()/connect() hub         -> jaxfne/_construct.py (final slice -- also h
                                      jaxfne.core import X` / `from jaxfne import X` public
                                      import paths are unchanged. When grepping for a private
                                      helper, check the specific slice file first, not core.py
-                                     (which is now only 233 lines and holds no real logic) --
+                                     (which is now only ~237 lines and holds no real logic) --
                                      e.g. `_hdp_packed` lives in `_model.py`;
                                      `_resolve_homeostasis_k_gain`/
                                      `_homeostasis_params_cache_fingerprint`/

@@ -5246,14 +5246,88 @@
     {
       "path": "skills/jaxfne-worker-context-router/SKILL.md",
       "purpose": "Routes any jaxfne task to the correct module/API/branch/validation lane before editing; ownership map of which file owns which symbol.",
-      "score": 96,
+      "score": 97,
       "tbi": [],
       "tbd": [],
       "warnings": [
         "First-class SKILL.md folder, synced globally via skills/SYNC_GLOBAL.sh -- edits here require a re-sync (bash skills/SYNC_GLOBAL.sh) to reach ~/.claude/skills and ~/.agents/skills, not just the repo copy."
       ],
-      "last_verified": "2026-07-05",
-      "evidence": "FIXED 2026-07-05: the Ownership map was fully stale, still describing core.py as 'Configuration/Model/construct()/simulate()/connect() not yet split out' -- the split has been complete since this session (5 slices, 8370->233 lines). Rewrote to name the real owning file per symbol (_config.py, _model.py, _construct.py, _runtime_config.py, _signals.py) and corrected a self-introduced error during the edit itself: initially claimed 5 group-6 HDP helpers 'stayed in core.py', re-verified via `grep -n \"^def _resolve_homeostasis_k_gain\" jaxfne/core.py jaxfne/_construct.py` and found they actually live in _construct.py, not core.py -- corrected before finalizing. Synced to ~/.claude/skills/ and ~/.agents/skills/ via skills/SYNC_GLOBAL.sh, confirmed present in both (grep 'monolith split COMPLETE' in both destinations).",
+      "last_verified": "2026-07-13",
+      "evidence": "FIXED 2026-07-05: the Ownership map was fully stale, still describing core.py as 'Configuration/Model/construct()/simulate()/connect() not yet split out' -- the split has been complete since this session (5 slices, 8370->233 lines). Rewrote to name the real owning file per symbol (_config.py, _model.py, _construct.py, _runtime_config.py, _signals.py) and corrected a self-introduced error during the edit itself: initially claimed 5 group-6 HDP helpers 'stayed in core.py', re-verified via `grep -n \"^def _resolve_homeostasis_k_gain\" jaxfne/core.py jaxfne/_construct.py` and found they actually live in _construct.py, not core.py -- corrected before finalizing. Synced to ~/.claude/skills/ and ~/.agents/skills/ via skills/SYNC_GLOBAL.sh, confirmed present in both (grep 'monolith split COMPLETE' in both destinations). || RE-VERIFIED 2026-07-13 (F-027): file existence claims (no jaxfne/config.py or net.py, all 5 slice files present), skill count (13, matches '17->13' claim), 'code-reviewer (if present)' subagent framing correctly hedged not asserted. Minor drift found+fixed: core.py line count claimed 233, live wc -l = 237 (both mentions updated to ~237).",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-config/SKILL.md",
+      "purpose": "Verified Configuration fluent API + the canonical 1K-neuron laminar column template (E-deep/I-superficial gradient).",
+      "score": 97,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 full re-verification: dataclasses.fields(Configuration) == ['networks','emitters','fields','probes','metadata'] confirmed exact; all 18 claimed Configuration methods confirmed present via hasattr; load_config/validate_config/JaxFNEConfig confirmed absent (deletion claim holds); project_laminar_sources default mode confirmed 'density_preserving'. REAL FINDING, FIXED: the canonical-column table ('~77E:23I' overall, 'PV concentrates in L4, absent in L1') was stale by up to 25 points/layer against the live jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS constant and a fresh construct(cfg).neuron_table() run (n=1000, seed=0). Real: 66E:34I overall (657-658 E of 1000); PV peaks L2/L3 at 25% each, absent at L6 (not L1). Traced to source: jaxfne/builders.py's own docstring had the identical stale numbers (2 locations, fixed). Table rewritten with live-verified numbers + a note to query the constant directly rather than copy this table again.",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-neural-network/SKILL.md",
+      "purpose": "Verified Model/construct/simulate/Signals/probe/objective/tune runtime chain.",
+      "score": 97,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 full re-verification: Model(cfg, params, static) signature confirmed exact via inspect.signature; Net is Model confirmed True; Model instances confirmed not callable (callable(model)=False, model() raises TypeError) matching the 'No __call__' claim (an initial hasattr(Model,'__call__')=True check was a false alarm -- that's Python's universal class-callability via the metaclass, not an instance method); band_power/phase_locking/optimize confirmed absent from jtfne; sig.rate/psd/bandpower/coherence/cv_isi/probe confirmed absent from Signals; sig.get(vm, trial=0) confirmed raises NotImplementedError with the exact quoted message text.",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-objective-grammar/SKILL.md",
+      "purpose": "Condensed top-level object-transform grammar router -- Configuration/NeuronalTensor through simulate/probe/tune/manifest, routing to detailed per-stage skills.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "Deliberately short (52 lines) by design -- detailed content lives in the 4 skills it routes to, not duplicated here. An external review flagged this as 'depth risk' without independently verifying claims; verification found no error, only intentional conciseness."
+      ],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 full re-verification: jtfne.optimize/jtfne.weld confirmed absent; signals.rate()/signals.probe() confirmed absent; Config/Net legacy aliases confirmed present. All 4 'Violations' list items and the route table verified accurate.",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-modeling-optimization-schema/SKILL.md",
+      "purpose": "Deep schema/truth-gate reference for Configuration, connectivity rule schema, node-identity/selector conventions, objective/trainer path conventions.",
+      "score": 96,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "129 lines against a large surface (connectivity.py + optim/'s 8 files) -- but the skill correctly scopes itself to schema/conventions and defers per-optimizer-variant API detail to jaxfne-neural-network, so the smaller size reflects a narrower, appropriate scope, not a coverage gap."
+      ],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 full re-verification: compile_connection_rules(neurons, connections, mechanisms, *, seed, allow_empty=False, ...) signature confirmed exact via inspect.signature, matching the skill's 'allow_empty=True explicit' claim; model.neuron_table() row keys confirmed exactly ['neuron_id','area','layer','cell_type','x','y','z']; migrate_schema confirmed present (also independently touched today, F-027's de-obfuscation fix, function name/behavior unchanged).",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-spectrolaminar-suite/SKILL.md",
+      "purpose": "Scalable laminar/spectrolaminar pipeline (>=1k neurons, sparse edge backend), proxy-readout caveats, and the deep-alpha/beta vs superficial-gamma crossover result.",
+      "score": 95,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "62 lines, shortest domain skill -- an external review speculated possible redundancy with jaxfne-vis-modules. Verified false: this skill covers the scientific/computational recipe (scalable construction, proxy caveats, the crossover result), vis-modules covers plotting functions -- different concerns, no overlap found."
+      ],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 full re-verification: izhikevich_params_from_labels, make_edge_list_from_dense, simulate_edge_recurrent_izhikevich, kappa_synchrony, project_laminar_sources all confirmed present via hasattr; project_laminar_sources default mode confirmed 'density_preserving' (jaxfne/fields/proxy.py:121) matching the skill's claim exactly; FRICTIONS_STACK F-003 reference confirmed present and marked resolved.",
+      "status": "done"
+    },
+    {
+      "path": "skills/jaxfne-sha256-artifact-integrity/SKILL.md",
+      "purpose": "SHA256 content-identity reference recipes for jaxfne artifacts, configs, notebooks, trained models, and release files.",
+      "score": 93,
+      "tbi": [],
+      "tbd": [],
+      "warnings": [
+        "The 6 function names referenced (stable_json_bytes, make_asset_hashes, write_asset_hashes, diff_hashes, evaluate_candidate, load_weight_artifact) are defined INLINE in the skill as copy-paste reference recipes (hashlib/json patterns), not claims about pre-built jtfne.* API -- confirmed via the skill's own stated purpose after an initial hasattr(jtfne, name) check on all 6 returned False and looked like a real finding before this context was checked. Not independently verified line-by-line beyond this (451 lines, largest in the set)."
+      ],
+      "last_verified": "2026-07-13",
+      "evidence": "F-027 spot-check: confirmed the 6 flagged 'missing' functions are inline reference code (def statements inside the skill's own code blocks), not jtfne.* API claims -- no error. Full line-by-line audit not performed given size; no contradictions found in skills/FRICTIONS_STACK.md for this skill specifically.",
       "status": "done"
     },
     {

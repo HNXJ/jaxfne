@@ -334,6 +334,7 @@
 | docs/guides/configuration_grammar.md | 93 | done |  |  | 2026-07-03 |
 | docs/guides/homeostasis.md | 93 | done |  | Consider a one-line note that the built-in kernel's default r_star (0.05, from jaxfne/core.py:2363 RuntimeConfig.homeost | 2026-07-03 |
 | docs/quickstart.md | 93 | done |  | hdp_params example passes 'size_scale_by_cell_type' inside RuntimeConfig(hdp_params={...}); RuntimeConfig's own docstrin | 2026-07-03 |
+| skills/jaxfne-sha256-artifact-integrity/SKILL.md | 93 | done |  |  | 2026-07-13 |
 | docs/scope_and_status.md | 93 | done |  |  | 2026-07-12 |
 | jaxfne/fields/probes.py | 94 | reviewed |  |  | 2026-07-04 |
 | jaxfne/presets.py | 94 | reviewed |  |  | 2026-07-04 |
@@ -398,6 +399,7 @@
 | docs/tutorials/05_v1_pfc_dual_column.md | 95 | done |  |  | 2026-07-05 |
 | tests/test_notebook_execution_suite.py | 95 | done |  |  | 2026-07-02 |
 | jaxfne/_config.py | 95 | done |  |  | 2026-07-07 |
+| skills/jaxfne-spectrolaminar-suite/SKILL.md | 95 | done |  |  | 2026-07-13 |
 | skills/catalog-glossary-jaxfne/SKILL.md | 95 | done |  |  | 2026-07-05 |
 | jaxfne/__init__.py | 96 | done |  |  | 2026-07-05 |
 | jaxfne/export.py | 96 | reviewed |  |  | 2026-07-11 |
@@ -423,7 +425,8 @@
 | docs/tutorials/03_network_100_ei.md | 96 | done |  |  | 2026-07-03 |
 | docs/tutorials/tutorial_outputs.md | 96 | done |  |  | 2026-07-03 |
 | jaxfne/vis/fields.py | 96 | done |  |  | 2026-07-05 |
-| skills/jaxfne-worker-context-router/SKILL.md | 96 | done |  |  | 2026-07-05 |
+| skills/jaxfne-objective-grammar/SKILL.md | 96 | done |  |  | 2026-07-13 |
+| skills/jaxfne-modeling-optimization-schema/SKILL.md | 96 | done |  |  | 2026-07-13 |
 | skills/jaxfne-neural-tensor/SKILL.md | 96 | done |  |  | 2026-07-05 |
 | docs/guides/index.md | 97 | done |  |  | 2026-07-03 |
 | docs/guides/objective_grammar.md | 97 | done |  |  | 2026-07-03 |
@@ -433,6 +436,9 @@
 | docs/tutorials/13_canonical_column_etude.md | 97 | done |  | No numbered notebook maps 1:1 to this doc (unlike docs/tutorials/0X_*.md pattern) -- closest analog is tutorials/etudes/ | 2026-07-03 |
 | jaxfne/_signals.py | 97 | done |  |  | 2026-07-05 |
 | scripts/v1_pfc_continuous_aaab_smoke_test.py | 97 | done |  |  | 2026-07-05 |
+| skills/jaxfne-worker-context-router/SKILL.md | 97 | done |  |  | 2026-07-13 |
+| skills/jaxfne-config/SKILL.md | 97 | done |  |  | 2026-07-13 |
+| skills/jaxfne-neural-network/SKILL.md | 97 | done |  |  | 2026-07-13 |
 | jaxfne/experimental_hpc/physical_field_solver_v040.py | 98 | done |  |  | 2026-07-07 |
 | jaxfne/sharding_utils.py | 98 | done |  |  | 2026-07-05 |
 | scripts/evidence_figures_inventory.py | 98 | reviewed |  |  | 2026-07-04 |
