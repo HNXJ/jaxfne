@@ -386,7 +386,6 @@ def _recorded_compartment_positions(module: Any, state: str = "v") -> Any:
         idx = [int(i) for i in sel["rec_index"].tolist()]
         if not idx:
             return None
-        import numpy as np
 
         return nodes.loc[idx, ["x", "y", "z"]].to_numpy(dtype=float)
     except Exception:

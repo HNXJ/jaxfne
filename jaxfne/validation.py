@@ -246,7 +246,7 @@ def validate_full_spd_conductivity(
             "min_eigenvalue": None,
             "condition_number": None,
             "status": "non_finite_elements",
-            "evidence": f"Found NaN or Inf in tensor",
+            "evidence": "Found NaN or Inf in tensor",
         }
 
     # Check symmetry
@@ -1126,12 +1126,6 @@ def validate_basis_spec(spec: Any) -> dict[str, Any]:
     try:
         from .core import (
             BasisSpec,
-            _AXIS_STATUS_VALUES,
-            _SPACE_BASIS_VALUES,
-            _TIME_BASIS_VALUES,
-            _FIELD_REGIME_VALUES,
-            _SOURCE_MODE_BASIS_VALUES,
-            _PROBE_BASIS_VALUES,
             _FUTURE_FIELD_REGIMES,
         )
     except ImportError:

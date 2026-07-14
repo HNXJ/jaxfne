@@ -8,7 +8,7 @@ laminar profiles, multi-area layouts, and optimization objective histories.
 """
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import jax
 import matplotlib.figure
@@ -16,7 +16,7 @@ import numpy as np
 from scipy import signal
 
 from ..core import Signals
-from .core import FigureResult, prepare_static_plot_matrix, require_matplotlib
+from .core import prepare_static_plot_matrix, require_matplotlib
 
 
 def plot_laminar_field_interpolation(field_potential_tensor: jax.Array, grid_coords: dict) -> Any:
@@ -705,7 +705,6 @@ def spectrolaminar_suite(signals: Signals | dict[str, Any], **kwargs: Any) -> ma
     """
     require_matplotlib()
     import matplotlib.pyplot as plt
-    import matplotlib
 
     freq_min_hz = float(kwargs.pop("freq_min_hz", 0.0))
     freq_max_hz = float(kwargs.pop("freq_max_hz", 80.0))

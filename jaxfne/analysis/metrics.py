@@ -9,8 +9,7 @@ descriptors, not biological validation. No biological truth claims are supported
 """
 
 import numpy as np
-import jax.numpy as jnp
-from typing import Union, Optional
+from typing import Union
 
 
 def mean_pairwise_spike_correlation(

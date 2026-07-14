@@ -58,6 +58,23 @@ all = ["jaxfne[opt,jaxley,viz,io,dev]"]
 [tool.ruff]
 line-length = 100
 
+[tool.ruff.lint.per-file-ignores]
+# Re-export aggregator files: import names purely to make them available at a
+# higher import path (jaxfne.X, jaxfne.core.X) without referencing them
+# internally. F401 "unused import" is a false positive for this pattern, not a
+# real dead import -- confirmed 2026-07-14 the hard way (a blanket `ruff --fix`
+# gutted core.py's and _construct.py's entire re-export blocks, breaking
+# `import jaxfne` outright; reverted, this ignore list added before re-running
+# --fix so it can't happen again).
+"jaxfne/__init__.py" = ["F401"]
+"jaxfne/core.py" = ["F401"]
+"jaxfne/_construct.py" = ["F401"]
+"jaxfne/_signals.py" = ["F401"]
+"jaxfne/_model.py" = ["F401"]
+"jaxfne/fields/proxy.py" = ["F401"]
+"jaxfne/optim/__init__.py" = ["F401"]
+"jaxfne/vis/__init__.py" = ["F401"]
+
 [tool.hatch.build.targets.wheel]
 only-packages = true
 

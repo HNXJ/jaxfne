@@ -18,7 +18,6 @@ def create_dashboard(signals, model, *, output_html: str | None = None, title: s
     """
     require_plotly()
     from plotly.subplots import make_subplots
-    import plotly.graph_objects as go
 
     panels = {
         "network": plot_network_3d(model, signals),

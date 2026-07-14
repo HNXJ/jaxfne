@@ -33,7 +33,7 @@ solver or calibration engine.
 from __future__ import annotations
 
 import math
-from typing import Any, Literal, Mapping, Optional, Sequence
+from typing import Any, Literal, Mapping, Sequence
 
 from .core import Configuration
 

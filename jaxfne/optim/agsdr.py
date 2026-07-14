@@ -6,8 +6,7 @@ Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=Fa
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
-import jax
+from typing import Any
 import jax.numpy as jnp
 
 from .base import BaseSDRState

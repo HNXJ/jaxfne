@@ -6,7 +6,6 @@ Outputs are handled as a structured simulation proxy (amplitude_claim_allowed=Fa
 from __future__ import annotations
 
 from typing import Any, NamedTuple
-import jax
 import jax.numpy as jnp
 
 

@@ -652,7 +652,6 @@ def _run_agsdr_optimization_loop(
     >>> print(f"Best score: {result['best_score']}")
     >>> print(f"Best params: {result['best_parameters']}")
     """
-    import random
     import math
 
     # Validate inputs

@@ -19,7 +19,6 @@ Example:
 
 from typing import Any, Callable, TypeVar
 import jax
-import jax.numpy as jnp
 
 from .core import RuntimeConfig, runtime, runtime_report
 

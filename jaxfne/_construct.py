@@ -2595,7 +2595,6 @@ def provenance_receipt(
         receipt = provenance_receipt(branch="main", sha="abc123def456", dirty=False)
         json.dumps(receipt, allow_nan=False)  # Always succeeds
     """
-    import json
     from datetime import datetime, timezone
 
     timestamp = datetime.now(timezone.utc).isoformat()

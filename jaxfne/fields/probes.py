@@ -7,7 +7,7 @@ and physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import jax
 import jax.numpy as jnp

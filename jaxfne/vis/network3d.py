@@ -11,11 +11,11 @@ Public API (stable):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
-from .core import prepare_static_plot_matrix, require_matplotlib
+from .core import require_matplotlib
 
 
 def _neuron_rows(signals: Any) -> list[dict[str, Any]]:

@@ -164,7 +164,6 @@ class TuneResult:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to JSON-safe dictionary for serialization."""
-        from .io import json_safe
 
         return json_safe({
             "best_parameters": self.best_parameters,
@@ -206,7 +205,6 @@ class Model:
 
     def summary(self) -> dict[str, Any]:
         """Return compact JSON-safe model metadata for notebook display."""
-        from .io import json_safe
         emitter: IzhikevichParams = self.params["emitter"]
         return json_safe({
             "config_hash": config_hash(self.cfg),
@@ -857,7 +855,6 @@ class Model:
         ``jax.vmap`` over PRNG keys and returns proxy arrays without changing the
         field-solver or calibration status.
         """
-        from .io import json_safe
         # Local import: see _simulate_arrays' matching comment above.
         from .core import _resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint
         runtime_cfg = sim.resolved_runtime
@@ -1050,7 +1047,7 @@ class Model:
             identical, because the computational kernel may have changed.
             IDs are audit identifiers; they are not empirical claims.
         """
-        from .io import json_safe, sha256_text
+        from .io import sha256_text
 
         cfg_h = config_hash(self.cfg)
         # Seed is stored inside the runtime sub-dict (via RuntimeConfig.runtime_report)
@@ -1267,7 +1264,6 @@ class Model:
         empirical validation, biological calibration, or mechanism proof.
         All truth gates from v0.0.4 are preserved in the report.
         """
-        from .io import json_safe
 
         if isinstance(objective, str):
             objective = Objective(name=objective)
@@ -1392,7 +1388,6 @@ class Model:
         Extracts group definitions and target rates from objective metadata,
         computes group-wise firing rates, and returns squared relative error loss.
         """
-        from .io import json_safe
 
         # Extract metadata from gates (set by rate_targets())
         groups_dict: Optional[dict[str, Any]] = None
@@ -1548,7 +1543,6 @@ class Model:
         This is a computational scaffold: no biological calibration, no field-solver upgrade,
         and no optimizer-selected mechanism claim are made.
         """
-        from .io import json_safe
         from .optim import _resolve_optimizer, propose_blackbox_candidates, require_optax
 
         # Normalize objectives vs objective
@@ -1786,7 +1780,6 @@ class Model:
         optimizer has an inner_optimizer, routes to the two-level AGSDR+Adam path.
         Otherwise uses the scalar AGSDR black-box path.
         """
-        from .io import json_safe
         from .optim import (
             _run_agsdr_optimization_loop,
             _tune_matrix_agsdr_optax,

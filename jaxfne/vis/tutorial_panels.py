@@ -217,7 +217,6 @@ def activity_trace_suite(
     from .core import require_matplotlib
     require_matplotlib()
     import matplotlib.pyplot as plt
-    import matplotlib
     from scipy import signal
 
     spikes = trials['spikes']  # (trials, T, N)

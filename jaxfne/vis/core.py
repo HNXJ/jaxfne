@@ -22,9 +22,9 @@ class FigureResult:
 
 def require_matplotlib() -> None:
     """Raise ImportError if matplotlib is not available."""
-    try:
-        import matplotlib
-    except ImportError:
+    import importlib.util
+
+    if importlib.util.find_spec("matplotlib") is None:
         raise ImportError(
             "The visualization features require the optional dependency 'matplotlib'. "
             "Please install it via `pip install matplotlib` or `pip install jaxfne[viz]`."

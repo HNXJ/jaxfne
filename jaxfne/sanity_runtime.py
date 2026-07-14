@@ -12,7 +12,6 @@ hierarchical global-local oddball task. In accordance with the project architect
 import numpy as np
 import jax
 import jax.numpy as jnp
-import jax.random as jr
 from typing import Any, Dict, List, Tuple
 
 def _build_area_index(n_neurons: int) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray, jnp.ndarray]:

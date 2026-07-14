@@ -318,7 +318,7 @@ def rate_synchrony_targets(
 # ─────────────────────────────────────────────────────────────────────────────
 
 import json
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 
 
 @dataclass

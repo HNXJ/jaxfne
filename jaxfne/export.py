@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import warnings
 from pathlib import Path
-from typing import Mapping, Sequence, Optional
+from typing import Mapping, Optional
 import numpy as np
 
 

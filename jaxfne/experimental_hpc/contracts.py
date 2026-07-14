@@ -10,7 +10,7 @@ so unfinished APIs cannot silently succeed.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping, Optional, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 import jax
 import jax.numpy as jnp

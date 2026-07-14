@@ -8,7 +8,7 @@ PDEs or spatial structures. Use for neural state evolution only.
 import jax
 import jax.numpy as jnp
 from jax import lax
-from typing import Callable, Any, Tuple, Optional
+from typing import Callable, Tuple, Optional
 from dataclasses import dataclass
 
 
