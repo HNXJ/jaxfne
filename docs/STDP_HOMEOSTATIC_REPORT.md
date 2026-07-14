@@ -51,10 +51,7 @@ python cortex_100_homeostatic_stdp_figure.py   # → PNG
 ```
 Artifacts: `cortex_100_homeostatic_stdp/{homeostatic_stdp.json, homeostatic_stdp.png}`.
 
-> **Not reproducible as described:** these scripts and artifact files are not
-> preserved in this repo (verified absent from working tree and full git
-> history 2026-07-03). This report documents a historical result, not a
-> currently-reproducible one.
+> **Not reproducible as described** — see [Cortex Calibration Checklist](CORTEX_CALIBRATION_CHECKLIST.md#not-reproducible-as-described) for the full note (applies to all reports in this group).
 
 ## Setup
 

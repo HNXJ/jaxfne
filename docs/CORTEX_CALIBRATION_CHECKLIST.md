@@ -22,10 +22,14 @@ python cortex_100_stdp_global_sweep.py      # Q2 (global_stdp scale sweep)
 Data artifacts: `cortex_calibration/{fi_curves.json, network_rate.json}`,
 `cortex_100_stdp_global_sweep/stdp_global_sweep.json`.
 
-> **Not reproducible as described:** these scripts and artifact files are not
-> preserved in this repo (verified absent from working tree and full git
-> history 2026-07-03). This report documents a historical result, not a
-> currently-reproducible one.
+#### Not reproducible as described
+
+> These scripts and artifact files are not preserved in this repo (verified
+> absent from working tree and full git history 2026-07-03). This report
+> documents a historical result, not a currently-reproducible one. **This
+> note applies to every report in the STDP/calibration group** (Homeostatic,
+> Closed-Loop, Global Scale, Low-Rate Regime) — each links back here instead
+> of repeating it.
 
 ---
 

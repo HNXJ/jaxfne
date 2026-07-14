@@ -7,6 +7,14 @@ repo_name: HNXJ/jaxfne
 
 docs_dir: docs
 
+# docs/_generated/version.md is a machine-written/machine-read source-of-truth
+# for scripts/sync_docs_version.py + scripts/sync_release_metadata.py, not a
+# human-facing page -- excluded so mkdocs stops flagging it as an orphan not
+# in nav (cosmetic INFO warning only, never failed --strict, but the file was
+# never meant to be navigable).
+exclude_docs: |
+  _generated/version.md
+
 theme:
   name: material
   logo: assets/jaxfne-img.png
