@@ -411,6 +411,66 @@ def test_transform_requires_explicit_prng_key():
         assert "PRNG key" in str(e) or "key" in str(e).lower()
 
 
+def test_sdr_transform_checkpoint_reverts_params_to_best():
+    """SDR must actually revert params to best_param once checkpoint_n_steps of
+    non-improvement have elapsed -- not just compute params_to_use and drop it."""
+    import jax
+    import jax.numpy as jnp
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        return
+
+    key = jax.random.PRNGKey(0)
+    transform = jtfne.sdr_transform(checkpoint_n_steps=3, stochastic_scale=0.0)
+    params = jnp.asarray([1.0])
+    state = transform.init(params)
+
+    # Loss strictly worsens after step 0 -> no improvement ever again, so the
+    # reset_counter reaches checkpoint_n_steps at step 3.
+    for step in range(4):
+        loss = 10.0 + step
+        grad = jnp.asarray([1.0])
+        updates, state = transform.update(
+            grad, state, params=params, loss=loss, key=jax.random.fold_in(key, step)
+        )
+        params = optax.apply_updates(params, updates)
+
+    sdr_state, _ = state
+    assert sdr_state.reset_counter == 0
+    assert float(params[0]) == float(sdr_state.best_param[0])
+
+
+def test_gsdr_transform_reset_reverts_params_to_best():
+    """GSDR's genetic deselection reset must actually revert params to
+    best_param, mirroring the SDR checkpoint contract."""
+    import jax
+    import jax.numpy as jnp
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        return
+
+    key = jax.random.PRNGKey(0)
+    transform = jtfne.gsdr_transform(deselection_threshold=3, stochastic_scale=0.0)
+    params = jnp.asarray([1.0])
+    state = transform.init(params)
+
+    for step in range(4):
+        loss = 10.0 + step
+        grad = jnp.asarray([1.0])
+        updates, state = transform.update(
+            grad, state, params=params, loss=loss, key=jax.random.fold_in(key, step)
+        )
+        params = optax.apply_updates(params, updates)
+
+    gsdr_state, _ = state
+    assert gsdr_state.deselection_counter == 0
+    assert float(params[0]) == float(gsdr_state.best_param[0])
+
+
 def test_state_dataclass_pytree_compatible():
     """Transform state dataclasses must be frozen (JAX PyTree compatible)."""
     from jaxfne.optim import SDRState, GSDRState, AGSDRState

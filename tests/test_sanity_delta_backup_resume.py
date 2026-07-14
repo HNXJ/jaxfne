@@ -1,5 +1,7 @@
 """Tests for backup state and resume equivalence."""
 
+import dataclasses
+
 import jaxfne as jtfne
 
 
@@ -83,6 +85,32 @@ class TestTaskEpisode:
         resumed = episode.resume(from_segment="d4")
         assert isinstance(resumed, jtfne.TaskEpisode)
         assert resumed is not episode
+
+
+class TestBackupHistoryUnderrun:
+    """A backup whose time_ms implies more history than history_buffer holds must not crash."""
+
+    def test_start_step_beyond_history_buffer_length_does_not_raise(self):
+        cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball()
+        paradigm = cfg.make_paradigm()
+        model = cfg.construct()
+        # A short history window (100ms -> 1000 steps at dt_ms=0.1) paired with a
+        # resume point (200ms -> 2000 steps) further back than that window covers.
+        backup = model.initialize_backup(paradigm, history_ms=100.0)
+        assert backup.history_buffer.shape[0] == 1000
+        short_history_backup = dataclasses.replace(backup, time_ms=200.0)
+
+        episode = model.run_task(
+            paradigm=paradigm,
+            gate=paradigm.make_fixation_gate(),
+            backup=short_history_backup,
+            runtime_mode="full",
+        )
+
+        assert episode.vm.shape[0] > 0
+        # Steps before the available history window fall back to the resting-potential
+        # default (-65 mV) rather than being populated from data that doesn't exist.
+        assert float(episode.vm[0, 0]) == -65.0
 
 
 class TestManifest:

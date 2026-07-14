@@ -305,7 +305,10 @@ def validate_field_arrays_finite(
     """Check that field arrays are finite (no NaN, no Inf).
 
     Returns:
-        dict with keys: all_finite, phi_e_finite, J_e_finite, CSD_finite, evidence
+        dict with keys: all_finite, all_provided, phi_e_finite, J_e_finite,
+        CSD_finite, evidence. `all_finite` is vacuously True when no arrays are
+        passed at all -- check `all_provided` to distinguish "everything
+        supplied was finite" from "nothing was supplied to check".
     """
     results = {
         "phi_e_finite": None,
@@ -349,6 +352,7 @@ def validate_field_arrays_finite(
 
     return {
         "all_finite": all_finite,
+        "all_provided": all_provided,
         "phi_e_finite": results["phi_e_finite"],
         "J_e_finite": results["J_e_finite"],
         "CSD_finite": results["CSD_finite"],

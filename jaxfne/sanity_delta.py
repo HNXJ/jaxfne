@@ -276,7 +276,8 @@ class SanityDeltaModel:
             start_step = int(start_ms / dt_ms)
             if start_step > 0:
                 history_steps = min(start_step, backup.history_buffer.shape[0])
-                vm_out[:start_step] = backup.history_buffer[-start_step:]
+                if history_steps > 0:
+                    vm_out[start_step - history_steps:start_step] = backup.history_buffer[-history_steps:]
 
             initial_W = np.array(W)
             segment_weights = {}

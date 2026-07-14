@@ -960,6 +960,16 @@ def sdr_transform(
             should_checkpoint = new_reset_counter >= checkpoint_n_steps
             params_to_use = new_best_param if should_checkpoint else params
 
+            if should_checkpoint:
+                # Convert the checkpoint target into an update delta -- update()
+                # returns *updates* (added to params by the caller), not params
+                # directly, so reverting to best_param requires the delta that
+                # gets us there, not best_param itself.
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_reset_counter = 0
+
             # Simple EMA update of variance estimates
             # (In practice, these would be computed from historical losses)
             var_sup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(u)) for u in jax.tree_util.tree_leaves(inner_updates)]))
@@ -1073,6 +1083,15 @@ def gsdr_transform(
             new_desel_counter = 0 if is_improvement else gsdr_state.deselection_counter + 1
             should_reset = new_desel_counter >= deselection_threshold
             params_to_use = new_best_param if should_reset else params
+
+            if should_reset:
+                # Same gap as sdr_transform: update() returns a delta, not raw
+                # params, so the genetic reset must be expressed as the delta
+                # that carries params back to params_to_use (best_param).
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_desel_counter = 0
 
             var_sup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(u)) for u in jax.tree_util.tree_leaves(inner_updates)]))
             var_unsup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(d)) for d in jax.tree_util.tree_leaves(stochastic_delta)]))
