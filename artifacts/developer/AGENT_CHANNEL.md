@@ -796,3 +796,52 @@ Full detail: `skills/FRICTIONS_STACK.md` F-029. Verified: targeted HDP/emitter t
 (`origin/main..origin/dev` = this one commit, `origin/dev..origin/main` =
 empty) before push. `git push origin origin/dev:main`; confirmed `dev` ==
 `main` == `247c13beefeaa27f52cf218bc0f236c084c99ac8`.
+
+---
+
+## 2026-07-14 — Exploratory HDP experiments (not committed to package; findings only)
+
+Two ad-hoc research scripts run from the session scratchpad (not part of the
+repo, no package files touched) at Hamm's request, to sanity-check HDP on
+small custom-geometry networks the canonical builders don't cover:
+
+1. **20 neurons, 3D-sphere positions (metadata only, jaxfne's synapse model
+   has no distance kernel), 15E/5PV, all-to-all, `DEFAULT_HDP` unmodified.**
+   Short-term: H converges within ~100ms, stays pinned near 1.0. Long-term
+   (extended to 80s / 40 chained trials): H stable throughout, but `|w|_mean`
+   grew monotonically the entire window (0.61→0.72, no asymptote) since
+   `DEFAULT_HDP` ships `K_w_ctrl=0.0` — reproduces the exact weight-runaway
+   class `K_w_ctrl` exists to fix, just not triggered by any existing preset
+   until now. Memory probe (HDP-on vs `K_HDP=0` control, identical seed):
+   real, seed-dependent per-edge weight divergence (reorg_std=0.056) that is
+   exactly zero in the control — confirms the differentiation is genuinely
+   HDP-driven, not noise artifact.
+
+2. **`K_w_ctrl` follow-up + cascade-vs-nucleus topology test.** `K_w_ctrl` at
+   the repo's own verified value (`0.001`, from `DEFAULT_HDP_V1_PFC_AAAB`)
+   fully bounded the runaway but also **nearly erased the memory effect**
+   (reorg_std collapsed to 0.00028, ~150x smaller than the no-restoring
+   control) — that exact `K_HDP=0.01`/`K_w_ctrl=0.001` combination is NOT a
+   pre-verified preset (the repo only verified `K_w_ctrl=0.001` paired with
+   `K_HDP=0.003`/`tau_0_ms=5`), so this is a genuinely new, previously-
+   untested regime, not a re-confirmation. A 3-point sweep found
+   `K_w_ctrl=0.0001` keeps both a cascade (4 blocks of 4E+1I, all-to-all
+   within a block, strict feedforward block→block+1, 155 edges) and a flat
+   16E:4I all-to-all nucleus (380 edges) bounded over 80s while retaining
+   real differentiation. **Real, single-seed finding:** the sparser cascade
+   retained ~4x more weight differentiation than the denser flat nucleus
+   despite having fewer than half the edges (reorg_std/BASE_W: 0.0193 vs
+   0.0050) — dense all-to-all coupling homogenizes HDP's weight updates
+   across the pool; a structured/staged topology preserves per-neuron local
+   input statistics that HDP can actually differentiate on. Single seed pair,
+   not a significance test — directional, not a load-bearing result.
+
+**No package/test changes** — this is research findings only, logged here
+because it identifies a real, previously-latent gap: `DEFAULT_HDP`'s
+`K_w_ctrl=0.0` default means any custom network built on this preset (not
+just the ones in this repo's own scripts) is exposed to unbounded weight
+drift on long runs unless the caller sets `K_w_ctrl` explicitly. Added as a
+`proposed` backlog item in `plans.json` (`hdp-k-w-ctrl-default-runaway-gap`)
+rather than silently fixed — changing `DEFAULT_HDP`'s own default would
+alter every existing verified preset's tuned behavior and needs its own
+scoped re-verification pass, not a drive-by default change.

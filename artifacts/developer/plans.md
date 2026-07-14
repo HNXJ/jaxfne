@@ -48,6 +48,7 @@
 | pre-047-gate-enforcement-clamp | Pre-0.4.7 (optional/high-value): clamp truth gates at construct/manifest | done | jaxfne/_config.py; jaxfne/io.py; jaxfne/bridges.py; tests/ |
 | pre-047-public-leak-rescore | Re-score public rule-leak discipline after de-parrot patch | done | artifacts/developer/plans.json; docs/index.md; docs/quickstart.md; docs/contributing.md |
 | pre-047-four-chapter-polish | Pre-0.4.7 four-chapter polish finalized (P–S) | done | docs/; jaxfne/_config.py; jaxfne/io.py; tests/test_truth_gate_clamp_v046.py; artifacts/developer/plans.json |
+| hdp-k-w-ctrl-default-runaway-gap | DEFAULT_HDP's K_w_ctrl=0.0 exposes unbounded weight drift on long/custom runs | proposed |  |
 
 ## brainstorm
 
