@@ -572,11 +572,12 @@ class Model:
                 with _device_scope(runtime_cfg.selected_backend):
                     if cache_key not in self._compiled_cache:
                         import time
-                        target_fn = lambda k, s: kernel_fn(
-                            emitter, edges, sim.n_steps, sim.dt_ms, k,
-                            dtype=runtime_cfg.actual_dtype, drive_schedule=s,
-                            silence_mask=silence_mask,
-                        )[:3]
+                        def target_fn(k, s):
+                            return kernel_fn(
+                                emitter, edges, sim.n_steps, sim.dt_ms, k,
+                                dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                                silence_mask=silence_mask,
+                            )[:3]
                         target_fn = make_recompilation_guard(
                             target_fn,
                             name="simulate",
@@ -614,11 +615,12 @@ class Model:
             with _device_scope(runtime_cfg.selected_backend):
                 if cache_key not in self._compiled_cache:
                     import time
-                    target_fn = lambda k, s: simulate_eig_izhikevich(
-                        emitter, sim.n_steps, sim.dt_ms, k,
-                        dtype=runtime_cfg.actual_dtype, drive_schedule=s,
-                        silence_mask=silence_mask,
-                    )
+                    def target_fn(k, s):
+                        return simulate_eig_izhikevich(
+                            emitter, sim.n_steps, sim.dt_ms, k,
+                            dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                            silence_mask=silence_mask,
+                        )
                     target_fn = make_recompilation_guard(
                         target_fn,
                         name="simulate",

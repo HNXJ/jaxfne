@@ -991,9 +991,10 @@ class JaxleyBridge:
         ng = rec[base + 3 * n_comp: base + 4 * n_comp]
 
         nodes = module.nodes.set_index("global_comp_index")
-        col = lambda name: jnp.asarray(
-            nodes.loc[comps, name].to_numpy(dtype=float)
-        )[:, None]
+        def col(name):
+            return jnp.asarray(
+                nodes.loc[comps, name].to_numpy(dtype=float)
+            )[:, None]
         params = {
             "gNa": col("HH_gNa"), "gK": col("HH_gK"), "gLeak": col("HH_gLeak"),
             "eNa": col("HH_eNa"), "eK": col("HH_eK"), "eLeak": col("HH_eLeak"),

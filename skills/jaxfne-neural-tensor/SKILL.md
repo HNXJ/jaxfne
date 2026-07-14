@@ -123,6 +123,27 @@ DEFAULT_HDP = dict(K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, rho_passive=0.0,
 wild H oscillation <0.24, neuron silencing ≥0.36; `K_ctrl=5.0` is the tuned
 restoring term instead).
 
+**`barrier_c`/`barrier_d` ratio gap (found 2026-07-14, F-029):** `barrier_c==
+barrier_d==0.01` is a 1:1 ratio, but `emitters.py`'s own docstring says the
+barrier potential's minimum only coincides with `H*=1` at a 100:1 ratio
+(`barrier_d/barrier_c=((H_max-1)/(1-H_min))**2=100` at the canonical
+`H_min=0.1`/`H_max=10.0`). Left as-is deliberately, not a bug to "fix" by
+rebalancing — `DEFAULT_HDP`'s own verified dynamics keep H tightly pinned
+near `H*=1` via `K_ctrl`, so H rarely nears either boundary and this
+asymmetry is dormant in practice. Re-tune `barrier_d` before relying on
+barrier repulsion near a boundary in a new use case.
+
+**`K_w_ctrl=0.0` unbounded-drift gap (found 2026-07-14):** `DEFAULT_HDP`
+ships `K_w_ctrl=0.0` (no weight-restoring force). Verified this permits
+unbounded `|w|` growth on long/custom runs outside the presets already
+checked (80s continuous run on a custom 20-neuron all-to-all network: `|w|`
+grew monotonically the entire window, no asymptote). `K_w_ctrl=0.001` (the
+repo's own verified value, from `DEFAULT_HDP_V1_PFC_AAAB`) over-corrects on
+a different topology — collapses weight differentiation ~150x vs a
+no-restoring control. If building a new long-horizon HDP network directly
+on `DEFAULT_HDP`, sweep `K_w_ctrl` for that specific topology rather than
+assuming either `0.0` or `0.001` is safe by default.
+
 `BASE_HDP_KWARGS_DEFAULT` (H_min=0.1, H_max=10.0, alpha=0.01, beta=0.0,
 gamma=0.0, delta=0.0, C_spike=0.0, …), `BASE_DRIVE_BY_CELL_TYPE_DEFAULT =
 {"E":4.0,"PV":4.0,"SST":4.0,"VIP":4.0}`, `DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT`.

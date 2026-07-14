@@ -642,10 +642,11 @@ def visualize_network_3d(
 
     # ── Layout ─────────────────────────────────────────────────────────────────
     ax_label = f"{display_unit}"
-    _axis = lambda t: dict(
-        title=t, backgroundcolor="black", gridcolor="#333333",
-        zerolinecolor="#444444", color="#cccccc", showbackground=True,
-    )
+    def _axis(t):
+        return dict(
+            title=t, backgroundcolor="black", gridcolor="#333333",
+            zerolinecolor="#444444", color="#cccccc", showbackground=True,
+        )
     # Relative laminar depth (z_m / the proxy z coordinate) is 0=superficial
     # (L1) -> 1=deep (L6) throughout jaxfne (see project_laminar_sources'
     # "relative laminar depth in [0,1]" convention and every
