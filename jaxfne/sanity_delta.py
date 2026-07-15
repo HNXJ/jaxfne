@@ -28,6 +28,7 @@ import jax.numpy as jnp
 import jax.random as jr
 import numpy as np
 from . import sanity_runtime
+from ._config import clamp_truth_gate_metadata
 
 
 @dataclasses.dataclass
@@ -96,6 +97,19 @@ class SanityDeltaConfig:
                 "B": {"orientation_deg": 135.0, "V1a": 0.25, "V1b": 0.75},
             }
 
+        # Truth-gate clamp: a caller passing claim_level="validated"/
+        # physical_amplitude_calibrated=True here (via kwargs) previously
+        # escalated unchecked -- these fields never routed through
+        # Configuration's clamp_truth_gate_metadata() the way
+        # Configuration.update_metadata() does. Route through the same
+        # helper so this factory can't escalate any differently than the
+        # rest of the package.
+        _clamped = clamp_truth_gate_metadata({
+            "claim_level": claim_level,
+            "field_solver_status": field_solver_status,
+        })
+        physical_amplitude_calibrated = False
+
         return cls(
             seed=seed,
             duration_ms=duration_ms,
@@ -106,8 +120,8 @@ class SanityDeltaConfig:
             cell_counts=cell_counts,
             stimulus_frequency_hz=stimulus_frequency_hz,
             stimulus_map=stimulus_map,
-            claim_level=claim_level,
-            field_solver_status=field_solver_status,
+            claim_level=_clamped["claim_level"],
+            field_solver_status=_clamped["field_solver_status"],
             physical_amplitude_calibrated=physical_amplitude_calibrated,
             runtime_mode=runtime_mode,
         )

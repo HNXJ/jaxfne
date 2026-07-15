@@ -51,6 +51,19 @@ jobs:
       - name: Audit notebook grammar
         run: PYTHONPATH=. python scripts/audit_notebook_grammar.py --check
 
+      - name: Install docs deps
+        run: pip install -r docs/requirements.txt pyyaml
+
+      - name: Docs build (strict)
+        run: python -m mkdocs build --strict
+
+      - name: Docs orphan-page check
+        # mkdocs itself only flags an orphan page (built but not in nav) as a
+        # cosmetic INFO note, never a --strict failure (see mkdocs.yml's own
+        # exclude_docs comment) -- this closes that gap for real. Catches the
+        # class of regression fixed manually 2026-07-08 (16 orphaned pages).
+        run: PYTHONPATH=. python scripts/check_docs_orphans.py
+
       - name: Run fast tests (skip slow notebook execution)
         if: github.ref != 'refs/heads/main'
         run: |

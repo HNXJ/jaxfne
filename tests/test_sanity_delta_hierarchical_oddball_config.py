@@ -132,3 +132,19 @@ class TestSanityDeltaModel:
         assert (tmp_path / "backup_resume_report.json").exists()
         assert (tmp_path / "probe_report.json").exists()
         assert (tmp_path / "plasticity_report.json").exists()
+
+
+def test_hierarchical_global_local_oddball_clamps_claim_level_escalation():
+    """A caller passing claim_level="validated"/physical_amplitude_calibrated=True
+    must NOT actually escalate the config's truth-gate fields -- found 2026-07-14
+    via a direct write-site sweep: this factory never routed its claim kwargs
+    through Configuration's clamp_truth_gate_metadata(), unlike
+    Configuration.update_metadata()."""
+    cfg = jtfne.SanityDeltaConfig.hierarchical_global_local_oddball(
+        claim_level="validated",
+        physical_amplitude_calibrated=True,
+        field_solver_status="pde_solved",
+    )
+    assert cfg.claim_level == "computational_scaffold"
+    assert cfg.physical_amplitude_calibrated is False
+    assert cfg.field_solver_status == "linear_solver"

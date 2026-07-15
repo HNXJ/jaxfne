@@ -471,6 +471,38 @@ def test_gsdr_transform_reset_reverts_params_to_best():
     assert float(params[0]) == float(gsdr_state.best_param[0])
 
 
+def test_agsdr_transform_reset_reverts_params_to_best():
+    """AGSDR's genetic-deselection reset must also revert params to best_param
+    -- the identical gap already fixed in sdr_transform/gsdr_transform
+    (checkpoint/reset computed but never converted into an update delta).
+    Found via direct source read 2026-07-14: agsdr_transform had no
+    params_to_use/delta-override logic at all, unlike its two siblings."""
+    import jax
+    import jax.numpy as jnp
+
+    try:
+        optax = jtfne.require_optax()
+    except ImportError:
+        return
+
+    key = jax.random.PRNGKey(0)
+    transform = jtfne.agsdr_transform(deselection_threshold=3, stochastic_scale=0.0)
+    params = jnp.asarray([1.0])
+    state = transform.init(params)
+
+    for step in range(4):
+        loss = 10.0 + step
+        grad = jnp.asarray([1.0])
+        updates, state = transform.update(
+            grad, state, params=params, loss=loss, key=jax.random.fold_in(key, step)
+        )
+        params = optax.apply_updates(params, updates)
+
+    agsdr_state, _ = state
+    assert agsdr_state.deselection_counter == 0
+    assert float(params[0]) == float(agsdr_state.best_param[0])
+
+
 def test_state_dataclass_pytree_compatible():
     """Transform state dataclasses must be frozen (JAX PyTree compatible)."""
     from jaxfne.optim import SDRState, GSDRState, AGSDRState

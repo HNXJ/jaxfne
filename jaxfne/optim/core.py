@@ -1236,6 +1236,17 @@ def agsdr_transform(
 
             new_desel_counter = 0 if is_improvement else agsdr_state.deselection_counter + 1
             should_reset = new_desel_counter >= deselection_threshold
+            params_to_use = new_best_param if should_reset else params
+
+            if should_reset:
+                # Same gap already fixed in sdr_transform/gsdr_transform: update()
+                # returns a delta, not raw params, so the genetic reset must be
+                # expressed as the delta that carries params back to
+                # params_to_use (best_param).
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_desel_counter = 0
 
             # Apply Exponential Moving Average (EMA) to tracked variances
             new_var_sup_ema = agsdr_state.ema_decay * agsdr_state.var_sup_ema + (1.0 - agsdr_state.ema_decay) * var_d

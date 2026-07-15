@@ -518,3 +518,23 @@ class TestEmitterNoiseScale:
         )
         # Same key + same noise_scale should give same result
         assert np.allclose(np.asarray(v1), np.asarray(v2))
+
+
+def test_make_laminar_column_config_clamps_claim_level_escalation():
+    """A caller passing claim_level="validated"/physical_amplitude_calibrated=True
+    must NOT actually escalate the config's truth-gate fields -- found 2026-07-14
+    via a direct write-site sweep: this factory never routed its claim kwargs
+    through Configuration's clamp_truth_gate_metadata(), unlike
+    Configuration.update_metadata()."""
+    from jaxfne.tutorial_utils import make_laminar_column_config
+
+    cfg = make_laminar_column_config(
+        claim_level="validated",
+        physical_amplitude_calibrated=True,
+        field_solver_status="pde_solved",
+        field_claim_level="real_field",
+    )
+    assert cfg.claim_level == "computational_scaffold"
+    assert cfg.physical_amplitude_calibrated is False
+    assert cfg.field_solver_status == "linear_solver"
+    assert cfg.field_claim_level == "proxy_readout"

@@ -873,6 +873,21 @@ def make_laminar_column_config(
     if len(area_x_rel) != len(areas):
         area_x_rel = tuple(np.linspace(-1, 1, len(areas)))
 
+    # Truth-gate clamp: this function's claim_level/field_solver_status/
+    # field_claim_level/physical_amplitude_calibrated kwargs previously let a
+    # caller escalate unchecked (e.g. claim_level="validated" passed straight
+    # through) -- these never routed through Configuration's
+    # clamp_truth_gate_metadata() the way Configuration.update_metadata()
+    # does. Route through the same helper so this factory can't escalate any
+    # differently than the rest of the package.
+    from ._config import clamp_truth_gate_metadata
+    _clamped = clamp_truth_gate_metadata({
+        "claim_level": claim_level,
+        "field_solver_status": field_solver_status,
+        "field_claim_level": field_claim_level,
+    })
+    physical_amplitude_calibrated = False
+
     return LaminarColumnConfig(
         areas=tuple(areas),
         layers=tuple(layers),
@@ -904,9 +919,9 @@ def make_laminar_column_config(
         cell_type_izh_params={k: dict(v) for k, v in dict(cell_type_izh_params).items()},
         connectivity_spec=tuple(dict(r) for r in connectivity_spec),
         lesion_spec=tuple(dict(r) for r in lesion_spec),
-        claim_level=claim_level,
-        field_solver_status=field_solver_status,
-        field_claim_level=field_claim_level,
+        claim_level=_clamped["claim_level"],
+        field_solver_status=_clamped["field_solver_status"],
+        field_claim_level=_clamped["field_claim_level"],
         physical_amplitude_calibrated=physical_amplitude_calibrated,
     )
 

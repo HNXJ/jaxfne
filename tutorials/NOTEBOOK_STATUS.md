@@ -1,6 +1,6 @@
 # Notebook Status and Classification
 
-**Total notebooks: 36** (release-facing: 29, archived: 6, template: 1)
+**Total notebooks: 37** (release-facing: 29, archived: 7, template: 1)
 
 ## Release-facing notebooks (28)
 
@@ -36,7 +36,7 @@ Release-facing notebooks are part of the standard tutorial suite and subject to 
 - **jaxfne_v040_homeostasis_plasticity_dc_noise_sweep.ipynb** — Version tutorial; v0.4.0 homeostasis/plasticity DC-noise sweep
 - **jaxfne_neuronal_tensor_first.ipynb** — Version tutorial; 0.4.7 NeuronalTensor-first circuit definition (Areas/Layers/NeuronTypes), JSON round-trip, HDP homeostatic plasticity via explicit `RuntimeConfig` override; executed with `nbclient` 2026-06-25 (outputs are real captured run results, not placeholders)
 
-## Archived notebooks (6)
+## Archived notebooks (7)
 
 Archived notebooks are excluded from strict validation. They may use legacy patterns, experimental APIs, or non-standard scope.
 
@@ -46,6 +46,7 @@ Archived notebooks are excluded from strict validation. They may use legacy patt
 - **jaxfne-v035-coop-paradigm-stability.ipynb** — Experimental cooperative/competition paradigm (pre-release, scope unstable)
 - **jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb** — Legacy etude; replaced by jaxfne_etude_no_1_base.ipynb with cleaner workflow
 - **tutorial_madelane_2026_jaxfne_spectrolaminar.ipynb** — Madelane research notebook; custom analysis beyond standard scope
+- **jaxfne_colab_gpu_tpu_100k_column.ipynb** (added 2026-07-14) — Manual-run Colab notebook for real GPU/TPU timing on a 100k-neuron column (`plans.json` item `colab-notebook-gpu-tpu-100k-column`); requires real GPU/TPU hardware this repo's CI doesn't have, so it's intentionally excluded from `nbclient`-based execution coverage — run it yourself in Colab, not via `test_notebook_execution_suite.py`
 
 ## Template (1)
 
