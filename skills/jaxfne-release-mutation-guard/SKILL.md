@@ -26,7 +26,14 @@ distribution mutation: TestPyPI/PyPI upload
 GitHub Release mutation: create/edit/publish release
 ```
 
-Remote branch, tag, distribution, and GitHub Release mutations need explicit user authorization.
+| Class | Authorization |
+|---|---|
+| Read-only (status, ls-remote, gh run view) | Allowed |
+| Local-only (build, test, inspect) | Allowed unless risky |
+| Remote branch push | Explicit task scope |
+| Tag create/delete/recreate/push | Explicit authorization |
+| TestPyPI/PyPI upload | Explicit authorization (+2FA if available) |
+| GitHub Release create/edit/publish | Explicit authorization |
 
 ## Required reconciliation before release mutation
 
@@ -53,6 +60,22 @@ tag peeled commit SHA
 working tree clean/dirty
 package version
 ```
+
+## One `intended_release_sha` per release (invariant)
+
+Before tag repair / Release edit / TestPyPI / PyPI, verify all four gates:
+
+```bash
+git fetch origin --prune --tags
+origin_main_sha=$(git ls-remote origin main | awk '{print $1}')
+ci_head_sha=$(gh run view <run-id> --json headSha -q .headSha)
+# GATES: origin/main == ci_head_sha == intended_release_sha · CI conclusion == success · tree clean
+```
+
+origin/main ≠ CI headSha → stop, report reconciliation options, do not repair/upload.
+
+**Annotated tags:** use the peeled commit SHA as release identity, never the tag-object SHA —
+`git ls-remote origin "refs/tags/vX.Y.Z^{}"` (peeled) vs `refs/tags/vX.Y.Z` (object).
 
 ## Release freeze rules
 
@@ -99,6 +122,27 @@ import jaxfne as jtfne
 print(jtfne.__version__)
 PY
 ```
+
+## Before any remote mutation: report intent, get explicit authorization
+
+Do not combine mutation classes in one authorization (tag · TestPyPI · PyPI · GitHub Release
+are separate gates). Intent template:
+
+```text
+type · operation · scope · target ref · current SHA · intended SHA · reason ·
+risk · rollback · permanent · Authorization: PENDING
+```
+
+## Long CI job → ONE receipt at terminal state only
+
+No heartbeats — wait for success/failure/cancelled/timed_out, then report once: run URL ·
+status+conclusion · headSha · job-matrix · origin/main SHA · tree status ·
+no-unauthorized-mutations confirmation · next safe action.
+
+## Fix root clutter BEFORE release-candidate CI, not during freeze
+
+`git ls-files . | wc -l`; `find . -maxdepth 1 -type f`; `git status --short` clean — do this as a
+default before kicking off release CI, not as freeze-window cleanup (freeze blocks it, see above).
 
 ## Stop conditions
 
