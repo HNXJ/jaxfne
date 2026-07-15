@@ -10,6 +10,9 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 - API docs export note links [Scope & status](scope_and_status.md) instead of repeating gate jargon.
 - README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md) only.
 
+### Removed
+- Root `SECURITY.md` and `CODE_OF_CONDUCT.md`.
+
 ## v0.4.6 (2026-07-12)
 
 **Internal git tag** for the release-readiness polish wave (README/docs community files, citation metadata, scope page, CI coverage, root cleanup). Distribution to GitHub Release / TestPyPI / PyPI stays deferred until Hamm confirms **0.4.7**.
