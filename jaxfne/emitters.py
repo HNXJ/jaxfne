@@ -2115,3 +2115,16 @@ class SynapseLayer:
         trace_next = state.trace.astype(jdtype) * decay + jnp.asarray(pre_spikes, dtype=jdtype)
         current = self.W.astype(jdtype) @ trace_next
         return SynapseState(trace=trace_next), current
+
+
+# Re-export the second canonical HDP sanity emitter (jaxfne/emitters_homeostatic_ei.py)
+# so `jaxfne.emitters.HomeostaticEIParams`/`.simulate_homeostatic_ei` work without a
+# second import path -- the implementation lives in its own sibling module (this file
+# is already 2000+ lines and organized around the Izhikevich/EIG scaffold).
+from .emitters_homeostatic_ei import (  # noqa: E402
+    ACTIVATION_RULES,
+    CONDUCTANCE_RULES,
+    HOMEOSTASIS_RULES,
+    HomeostaticEIParams,
+    simulate_homeostatic_ei,
+)

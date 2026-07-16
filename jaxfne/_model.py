@@ -41,6 +41,7 @@ from .emitters import (
     simulate_eig_izhikevich,
     simulate_receptor_exponential_izhikevich,
 )
+from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
 from .fields import probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, manifest as build_manifest
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
@@ -96,12 +97,18 @@ class MatrixParameterSpec:
         model's existing weight values.
     trainable : bool
         Whether this parameter participates in optimization.
+    target : str
+        Name of the emitter dataclass field to read/write, e.g. "W" (the
+        default, the Izhikevich edge-weight matrix) or "G" (the
+        homeostatic_ei emitter's conductance matrix). Backward compatible
+        default keeps every existing caller's behavior unchanged.
     """
 
     mask: str
     bounds: tuple
     init: str = "current"
     trainable: bool = True
+    target: str = "W"
 
 
 def matrix_parameter(
@@ -110,6 +117,7 @@ def matrix_parameter(
     bounds: tuple,
     init: str = "current",
     trainable: bool = True,
+    target: str = "W",
 ) -> MatrixParameterSpec:
     """Create a matrix parameter specification for tuning weight matrices.
 
@@ -124,6 +132,9 @@ def matrix_parameter(
         Initialization; "current" uses existing weight values.
     trainable : bool
         Whether this parameter participates in optimization.
+    target : str
+        Name of the emitter dataclass field to read/write (default "W";
+        e.g. "G0" for the homeostatic_ei emitter's conductance matrix).
 
     Returns
     -------
@@ -134,8 +145,9 @@ def matrix_parameter(
     --------
     >>> import jaxfne as jtfne
     >>> spec = jtfne.matrix_parameter(mask="E_to_E", bounds=(0.1, 5.0))
+    >>> g_spec = jtfne.matrix_parameter(mask="all", bounds=(0.1, 5.0), target="G0")
     """
-    return MatrixParameterSpec(mask=mask, bounds=bounds, init=init, trainable=trainable)
+    return MatrixParameterSpec(mask=mask, bounds=bounds, init=init, trainable=trainable, target=target)
 
 
 @dataclass
@@ -206,9 +218,25 @@ class Model:
     params: dict[str, Any]
     static: dict[str, Any]
 
+    def _require_izhikevich_emitter(self, method_name: str) -> "IzhikevichParams":
+        """Guard for `Model` methods not yet generalized beyond the Izhikevich
+        emitter family. Raises a clear, actionable error instead of an
+        AttributeError from a missing Izhikevich-only field (e.g. `v0`/`W`)
+        on a different emitter family's params dataclass (e.g.
+        `HomeostaticEIParams`, which has no `v0`/`layer_labels`/`a`-`d`)."""
+        emitter = self.params["emitter"]
+        if not isinstance(emitter, IzhikevichParams):
+            raise NotImplementedError(
+                f"Model.{method_name}() is not yet supported for the "
+                f"{type(emitter).__name__} emitter family -- only "
+                "construct()/simulate()/probe()/evaluate()/tune() (matrix-parameter "
+                "tuning) are supported for homeostatic_ei this pass."
+            )
+        return emitter
+
     def summary(self) -> dict[str, Any]:
         """Return compact JSON-safe model metadata for notebook display."""
-        emitter: IzhikevichParams = self.params["emitter"]
+        emitter = self._require_izhikevich_emitter("summary")
         return json_safe({
             "config_hash": config_hash(self.cfg),
             "n_units": int(emitter.v0.shape[0]),
@@ -228,7 +256,7 @@ class Model:
         rows = self.static.get("neuron_metadata")
         if rows is not None:
             return [dict(row) for row in rows]
-        emitter: IzhikevichParams = self.params["emitter"]
+        emitter = self._require_izhikevich_emitter("neuron_table")
         layers = emitter.layer_labels or tuple("unspecified" for _ in emitter.labels)
         positions = self.params.get("positions")
         rows_out: list[dict[str, Any]] = []
@@ -266,7 +294,7 @@ class Model:
         import numpy as _np
 
         p = Path(path)
-        emitter: IzhikevichParams = self.params["emitter"]
+        emitter = self._require_izhikevich_emitter("checkpoint")
         edge_list: EdgeList = self.params["edge_list"]
         positions = self.params["positions"]
         _np.savez(
@@ -773,6 +801,9 @@ class Model:
         runtime_cfg = sim.resolved_runtime
         key = jax.random.PRNGKey(sim.seed)
 
+        if isinstance(self.params["emitter"], HomeostaticEIParams):
+            return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
+
         schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
         drive_array: Optional[Any] = None
         if schedule is not None:
@@ -881,6 +912,74 @@ class Model:
             metadata=metadata,
         )
 
+    def _simulate_homeostatic_ei(
+        self: "Model",
+        sim: Simulation,
+        key: jax.Array,
+        runtime_cfg: RuntimeConfig,
+    ) -> Signals:
+        """The homeostatic_ei emitter family's ``simulate()`` path -- the
+        second canonical HDP sanity circuit (see
+        ``jaxfne/emitters_homeostatic_ei.py``). Duplicates only the
+        family-agnostic parts of :meth:`simulate` (time axis, field
+        projection, metadata scaffold, ``Signals`` construction); does not
+        call ``_simulate_homeostasis_metadata``/``_simulate_hdp_metadata``
+        (those assume the edge-list HDP kernel's diagnostic shape) -- HDP
+        metadata here is built directly from ``G_history``/``H_history``.
+        """
+        emitter: HomeostaticEIParams = self.params["emitter"]
+        voltages, spikes, sources, G_history, H_history, diag = simulate_homeostatic_ei(
+            emitter,
+            n_steps=sim.n_steps,
+            dt_ms=sim.dt_ms,
+            key=key,
+            activation_rule=emitter.activation_rule_name,
+            conductance_rule=emitter.conductance_rule_name,
+            homeostasis_rule=emitter.homeostasis_rule_name,
+            dtype=runtime_cfg.actual_dtype,
+        )
+        time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
+            sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+        )
+        field_output = None
+        if sim.record_fields:
+            positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+            field_output = project_laminar_sources(
+                sources=sources,
+                positions=positions,
+                n_contacts=self.static.get("n_contacts", 16),
+                dtype=runtime_cfg.actual_dtype,
+            )
+        metadata: dict[str, Any] = {
+            "config_hash": config_hash(self.cfg),
+            "emitter_family": "homeostatic_ei",
+            "source_calibration_status": emitter.source_calibration_status,
+            "field_claim_level": "proxy_readout",
+            "duration_ms": float(sim.duration_ms),
+            "dt_ms": float(sim.dt_ms),
+            "n_steps": int(sim.n_steps),
+            "runtime": runtime_cfg.runtime_report(),
+            "hdp": {
+                "enabled": True,
+                "rules": {
+                    "activation_rule": emitter.activation_rule_name,
+                    "conductance_rule": emitter.conductance_rule_name,
+                    "homeostasis_rule": emitter.homeostasis_rule_name,
+                },
+                "H_trace": H_history,
+                "G_trace": G_history,
+                "error": bool(diag["error"]),
+            },
+        }
+        return Signals(
+            time_ms=time_ms,
+            V_m=voltages.astype(runtime_cfg.jnp_dtype),
+            spikes=spikes,
+            sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
+            field=field_output,
+            metadata=metadata,
+        )
+
     def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
         """Return the full per-step homeostasis diagnostics from the most recent
         ``simulate(...)`` call with ``enable_homeostasis=True``.
@@ -946,7 +1045,7 @@ class Model:
         runtime_cfg = sim.resolved_runtime
         base_seed = sim.seed if seed is None else int(seed)
         keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
-        emitter: IzhikevichParams = self.params["emitter"]
+        emitter = self._require_izhikevich_emitter("simulate_batch")
 
         # Sparse-direct models (placeholder dense W) must use the edge_list backend.
         if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:
@@ -2129,7 +2228,7 @@ class Model:
         Returns:
             New Model — original is not mutated.
         """
-        emitter: IzhikevichParams = self.params["emitter"]
+        emitter = self._require_izhikevich_emitter("with_emitter_parameters")
         updates: dict[str, Any] = {}
 
         # a: per-neuron takes priority over scalar
@@ -2446,17 +2545,22 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     return Model(cfg=model.cfg, params=params, static=dict(model.static))
 
 
-def _mask_for_parameter(model: "Model", parameter_name: str, mask_type: str) -> "jax.Array":
-    """Return a boolean mask over the W matrix for the given mask type.
+def _mask_for_parameter(
+    model: "Model", parameter_name: str, mask_type: str, target: str = "W"
+) -> "jax.Array":
+    """Return a boolean mask over the target matrix for the given mask type.
 
     Parameters
     ----------
     model : Model
-        Model whose W matrix determines the mask shape.
+        Model whose target matrix determines the mask shape.
     parameter_name : str
         Name of the parameter (used only for error messages).
     mask_type : str
         One of: "E_to_E", "E_to_I", "excitatory_to_all", "all".
+    target : str
+        Name of the emitter dataclass field the mask applies to (default
+        "W"; e.g. "G" for the homeostatic_ei emitter's conductance matrix).
 
     Returns
     -------
@@ -2465,7 +2569,7 @@ def _mask_for_parameter(model: "Model", parameter_name: str, mask_type: str) -> 
     """
     import numpy as _np_mask
     emitter = model.params["emitter"]
-    W = _np_mask.asarray(emitter.W, dtype=float)
+    W = _np_mask.asarray(getattr(emitter, target), dtype=float)
     n = W.shape[0]
 
     if mask_type == "all":
@@ -2535,13 +2639,15 @@ def _model_with_matrix_parameter(
     lo, hi = float(spec.bounds[0]), float(spec.bounds[1])
     value = float(_np_matrix.clip(value, lo, hi))
 
+    target = getattr(spec, "target", "W")
     emitter = model.params["emitter"]
-    W = _np_matrix.asarray(emitter.W, dtype=float)
-    mask = _np_matrix.asarray(_mask_for_parameter(model, parameter_name, spec.mask), dtype=bool)
+    current = getattr(emitter, target)
+    W = _np_matrix.asarray(current, dtype=float)
+    mask = _np_matrix.asarray(_mask_for_parameter(model, parameter_name, spec.mask, target), dtype=bool)
 
     new_W = W.copy()
     new_W[mask] = W[mask] * value
-    new_emitter = replace(emitter, W=jnp.asarray(new_W, dtype=emitter.W.dtype))
+    new_emitter = replace(emitter, **{target: jnp.asarray(new_W, dtype=current.dtype)})
     params = dict(model.params)
     params["emitter"] = new_emitter
     return Model(cfg=model.cfg, params=params, static=dict(model.static))

@@ -857,8 +857,38 @@ class Configuration:
         metadata["training_executed"] = False
         return replace(self, metadata=metadata)
 
-    def set_emitter(self, family: str = "izhikevich", preset: str = "cortical_eig") -> "Configuration":
-        """Chainable config method to set/wrap emitter family and presets."""
+    def set_emitter(
+        self,
+        family: str = "izhikevich",
+        preset: str = "cortical_eig",
+        *,
+        activation_rule: str = "cubic",
+        conductance_rule: str = "hebbian",
+        homeostasis_rule: str = "linear",
+    ) -> "Configuration":
+        """Chainable config method to set/wrap emitter family and presets.
+
+        For ``family="homeostatic_ei"`` (the second canonical HDP sanity
+        circuit -- see ``jaxfne/emitters_homeostatic_ei.py``), the three rule
+        kwargs select the update-rule *names* from that module's registries
+        (``ACTIVATION_RULES``/``CONDUCTANCE_RULES``/``HOMEOSTASIS_RULES``).
+        Only registry names are accepted here -- a custom Python callable
+        cannot pass through ``Configuration`` (which must stay JSON-safe for
+        ``jtfne.io.json_safe``/``config_hash``); call
+        :func:`jaxfne.emitters_homeostatic_ei.simulate_homeostatic_ei`
+        directly to use a custom callable rule. Validity of the names is
+        checked at ``construct()`` time, not here (this method only records
+        metadata).
+        """
+        if family == "homeostatic_ei":
+            return self.emitter(
+                family=family,
+                homeostatic_ei_rules={
+                    "activation_rule": str(activation_rule),
+                    "conductance_rule": str(conductance_rule),
+                    "homeostasis_rule": str(homeostasis_rule),
+                },
+            )
         return self.emitter(family=family, preset=preset)
 
     def _with_probe_modes(
