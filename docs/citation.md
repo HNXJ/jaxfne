@@ -61,13 +61,6 @@ citable snapshots) but is **not** equivalent to a peer-reviewed methods paper.
 
 Detailed checklist: [Zenodo release DOI guide](guides/zenodo_doi.md).
 
-## Scope note
-
-jaxfne is a **computational scaffold** with **proxy readouts**
-(`physical_amplitude_calibrated=False`). Software + Zenodo citation supports
-reproducibility and attribution; it does not substitute for a peer-reviewed
-methods publication.
-
 ## Component citations
 
 If using specific models or frameworks:

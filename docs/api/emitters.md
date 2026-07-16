@@ -561,19 +561,4 @@ emitter = jtfne.IzhikevichEmitter(n=64, cell_type_fractions={"E": 0.8, "PV": 0.2
 state = emitter.initial_state(seed=0)
 state, output = emitter.step(state, input_t=jnp.zeros(64), dt_ms=0.1)
 ```
-
----
-
-## Scope Notes
-
-- **Izhikevich model is phenomenological:** Not a detailed Hodgkin-Huxley model; suitable for tutorial and prototyping workflows.
-- **Spike threshold (v >= 30.0):** Fixed threshold; not voltage-dependent channels.
-- **Internal drive, not physical current:** every kernel's `source_calibration_status` defaults to an
-  `"uncalibrated_..."` value; there is no physical-amplitude claim without an explicit calibration
-  bridge.
-- **Synaptic kinetics:** Exponential decay only (no separate rise time constant); receptor
-  reversal potentials are metadata-only and never enter the dynamics as a conductance equation.
-- **Network connectivity:** Declared via `IzhikevichParams.W` (dense) or `EdgeList` (sparse);
-  not learned by default (see `simulate_edge_recurrent_izhikevich_homeostatic`'s `eta` and
-  `simulate_edge_recurrent_izhikevich_hdp` for the plasticity-enabled paths).
 </content>

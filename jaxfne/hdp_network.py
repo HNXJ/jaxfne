@@ -79,6 +79,18 @@ DEFAULT_HDP = dict(
 # H*=1 via K_ctrl (see the block above), so H rarely nears either boundary
 # and the barrier asymmetry is dormant in practice, not exercised. Re-tune
 # barrier_d before relying on barrier repulsion near a boundary.
+#
+# NOTE (found 2026-07-14): DEFAULT_HDP ships K_w_ctrl=0.0 (no weight-magnitude
+# restoring term -- see K_w_ctrl below). This preset's own verification runs
+# never exceeded the trial lengths already on record; an 80s continuous run
+# on a separate, custom 20-neuron all-to-all topology (not one of this
+# module's named presets) showed |w|_mean growing monotonically with no
+# asymptote over that window. K_w_ctrl=0.0 is unbounded-safe only at the
+# trial lengths this preset has actually been verified at -- for a new
+# long-horizon or custom-topology caller building directly on DEFAULT_HDP,
+# sweep K_w_ctrl for that topology rather than assuming 0.0 (this preset's
+# default) or 0.001 (DEFAULT_HDP_V1_PFC_AAAB's value, tuned for a different
+# topology and confirmed to over-correct here) is safe by default.
 
 BASE_HDP_KWARGS_DEFAULT = dict(
     H_min=0.1, H_max=10.0,

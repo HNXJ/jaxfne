@@ -5,7 +5,7 @@ Make proxy readouts interpretable and explicit.
 
 ## Rules
 - **Default (2026-06):** `project_laminar_sources(..., mode="density_preserving")` — do not
-  document or assume `row_normalize` as default (`jaxfne/fields/proxy.py:120`).
+  document or assume `row_normalize` as default (`jaxfne/fields/proxy.py:121`).
 - Any projection that normalizes must expose the normalization choice explicitly.
 - Provide a density-preserving mode wherever row-normalized or unit-sum projection exists.
 - Do not let a default projection erase absolute scale without making that choice visible.

@@ -70,7 +70,7 @@ Alternative entry: `jtfne.laminar_cortex_config(...)` then `.layer_fractions(...
 | `.connectivity(**kwargs)` | within/inter connectivity rules |
 | `.set_emitter(family, preset)` | emitter family |
 | `.plasticity(...)` | declarative only (`declared_not_wired_to_simulate`) |
-| `.homeostasis(eta=..., r_star=...)` | wired synaptic homeostasis when eta≠0 (excitability damper, not bidirectional setpoint) |
+| `.homeostasis(relative_baseline=1.0, **kwargs)` | wired synaptic homeostasis when `k_gain≠0` (derived as `relative_baseline-1.0`, overridable via explicit `k_gain=`; excitability damper, not bidirectional setpoint) |
 | `.hdp(...)` | HDP metadata for simulate dispatch — see `jaxfne-neural-tensor` for the real HDP mechanics |
 | `.cell_params(selector, params)` | targeted parameter overrides |
 | `.areas(area_names)` | multi-area names |

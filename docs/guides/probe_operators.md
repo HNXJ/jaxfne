@@ -45,8 +45,6 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `units_or_status: mV_or_model_state_variable`
 - `operator_status: simulated_proxy`
 
-**Scope note:** The emitter voltage represents model state; the report declares its specific interpretation and scope.
-
 **Status (verified v0.4.5, development tree):** State voltage from emitter; proxy readout.
 
 ---

@@ -2,7 +2,7 @@
 
 **Total notebooks: 37** (release-facing: 29, archived: 7, template: 1)
 
-## Release-facing notebooks (28)
+## Release-facing notebooks (29)
 
 Release-facing notebooks are part of the standard tutorial suite and subject to strict grammar, API, and scope validation.
 

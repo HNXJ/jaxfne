@@ -247,6 +247,87 @@ class Model:
             })
         return rows_out
 
+    def checkpoint(self, path: str) -> "Path":
+        """Persist the expensive construct() output (emitter/edge_list/positions
+        arrays + their aux fields + static + cfg.metadata) for reload via
+        :meth:`restore`, avoiding a second construct() call.
+
+        Uses direct dataclass reconstruction (not JAX treedef unflatten) --
+        the same verified-safe pattern as
+        ``scripts/cortical_column_localized_workflow.py::save_column``/
+        ``load_column`` (see ``skills/jaxfne-neural-tensor/SKILL.md``'s
+        "Construct-once / checkpoint / reload" section for the two landmines
+        this specifically avoids: a differently-sized dummy treedef silently
+        producing a structurally-mismatched model, and reusing a pre-construct
+        ``cfg.metadata`` that construct() has since mutated in place).
+        """
+        from pathlib import Path
+        import json as _json
+        import numpy as _np
+
+        p = Path(path)
+        emitter: IzhikevichParams = self.params["emitter"]
+        edge_list: EdgeList = self.params["edge_list"]
+        positions = self.params["positions"]
+        _np.savez(
+            p.with_suffix(".npz"),
+            **{f"emitter_{f}": _np.asarray(getattr(emitter, f))
+               for f in ("a", "b", "c", "d", "drive", "sign", "W", "v0", "u0", "source_scale")},
+            **{f"edge_{f}": _np.asarray(getattr(edge_list, f))
+               for f in ("pre", "post", "weight", "receptor_index", "tau_ms")},
+            positions=_np.asarray(positions),
+        )
+        meta = {
+            "schema": "model_checkpoint_v1",
+            "emitter_labels": list(emitter.labels),
+            "emitter_layer_labels": list(emitter.layer_labels) if emitter.layer_labels is not None else None,
+            "emitter_source_calibration_status": emitter.source_calibration_status,
+            "edge_source_calibration_status": edge_list.source_calibration_status,
+            "static": json_safe(self.static),
+            "cfg_metadata": json_safe(self.cfg.metadata),
+        }
+        p.with_suffix(".json").write_text(_json.dumps(meta, indent=2))
+        return p
+
+    @classmethod
+    def restore(cls, path: str, cfg: Configuration) -> "Model":
+        """Inverse of :meth:`checkpoint`.
+
+        ``cfg`` must be a fresh, cheap (no ``construct()`` call) ``Configuration``
+        built with the same kwargs used to build the checkpointed model -- its
+        ``metadata`` is overwritten in place with the saved post-construct
+        metadata (construct() mutates metadata; the checkpoint captured that
+        mutated state, not the pre-construct declaration).
+        """
+        import dataclasses
+        import json as _json
+        import numpy as _np
+        from pathlib import Path
+
+        p = Path(path)
+        meta = _json.loads(p.with_suffix(".json").read_text())
+        if meta["schema"] != "model_checkpoint_v1":
+            raise ValueError(f"Unknown checkpoint schema: {meta['schema']!r}")
+        with _np.load(p.with_suffix(".npz")) as z:
+            emitter = IzhikevichParams(
+                a=jnp.array(z["emitter_a"]), b=jnp.array(z["emitter_b"]), c=jnp.array(z["emitter_c"]),
+                d=jnp.array(z["emitter_d"]), drive=jnp.array(z["emitter_drive"]), sign=jnp.array(z["emitter_sign"]),
+                W=jnp.array(z["emitter_W"]), v0=jnp.array(z["emitter_v0"]), u0=jnp.array(z["emitter_u0"]),
+                source_scale=jnp.array(z["emitter_source_scale"]),
+                labels=tuple(meta["emitter_labels"]),
+                layer_labels=tuple(meta["emitter_layer_labels"]) if meta["emitter_layer_labels"] is not None else None,
+                source_calibration_status=meta["emitter_source_calibration_status"],
+            )
+            edge_list = EdgeList(
+                pre=jnp.array(z["edge_pre"]), post=jnp.array(z["edge_post"]), weight=jnp.array(z["edge_weight"]),
+                receptor_index=jnp.array(z["edge_receptor_index"]), tau_ms=jnp.array(z["edge_tau_ms"]),
+                source_calibration_status=meta["edge_source_calibration_status"],
+            )
+            positions = jnp.array(z["positions"])
+        params = {"emitter": emitter, "positions": positions, "edge_list": edge_list}
+        restored_cfg = dataclasses.replace(cfg, metadata=meta["cfg_metadata"])
+        return cls(cfg=restored_cfg, params=params, static=meta["static"])
+
     def compile_connections(self, *, seed: int = 0, **kwargs: Any):
         """Compile this model's declared connection rules into sparse edges.
 
@@ -1647,6 +1728,68 @@ class Model:
                 if strict:
                     raise
                 optax_status = "unavailable"
+
+            # Narrow real gradient path: source_scale is a linear post-processing
+            # rescale of already-simulated arrays (source_proxy = source_scale *
+            # (current_native + GAIN * spikes)) -- never crosses the spike/reset
+            # boundary, so this specific case is genuinely differentiable without
+            # any surrogate. Only wired for a single loss on a metric linear in
+            # source_scale; anything else falls through to the honest stub below.
+            from .optim.core import _tune_source_scale_optax, _SOURCE_SCALE_LINEAR_METRICS
+            single_loss = getattr(objective, "losses", [])
+            eligible = (
+                optax_status == "available"
+                and (parameter is None or parameter == "source_scale")
+                and n_steps > 0
+                and len(single_loss) == 1
+                and single_loss[0].get("metric") in _SOURCE_SCALE_LINEAR_METRICS
+                and single_loss[0].get("target") is not None
+            )
+            if eligible:
+                return _tune_source_scale_optax(
+                    model=self,
+                    simulation=sim,
+                    objective=objective,
+                    spec=spec,
+                    bounds=bounds,
+                    n_steps=n_steps,
+                    seed=seed,
+                    base_report=base_report,
+                )
+
+            # Second narrow real gradient path: drive_gain/synaptic_gain/gAMPA
+            # DO cross the spike/reset boundary, but JAX already differentiates
+            # through Model.simulate()'s hard jnp.where-based reset without any
+            # kernel change -- verified empirically (real nonzero gradient at
+            # emitters.py's existing, unmodified step dynamics). The soft-rate
+            # surrogate lives only at the loss level (_evaluate_soft_rate_targets,
+            # already used and tested in the AGSDR two-level inner loop), reused
+            # here rather than reinvented. Only wired for a jtfne.rate_targets(...)
+            # -style objective; anything else falls through to the stub below.
+            from .optim.core import _tune_scalar_soft_rate_optax, _SCALAR_SOFT_RATE_PARAMETERS
+            has_rate_targets_gate = any(
+                isinstance(g, dict) and "groups" in g.get("metadata", {}) and "targets_hz" in g.get("metadata", {})
+                for g in getattr(objective, "gates", [])
+            )
+            eligible_soft_rate = (
+                optax_status == "available"
+                and parameter in _SCALAR_SOFT_RATE_PARAMETERS
+                and n_steps > 0
+                and has_rate_targets_gate
+            )
+            if eligible_soft_rate:
+                return _tune_scalar_soft_rate_optax(
+                    model=self,
+                    simulation=sim,
+                    objective=objective,
+                    spec=spec,
+                    parameter=parameter,
+                    bounds=bounds,
+                    n_steps=n_steps,
+                    seed=seed,
+                    base_report=base_report,
+                )
+
             report = {
                 **base_report,
                 "tuning_status": "optax_guarded_path_no_loop_v0.0.8",
@@ -2255,11 +2398,16 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
     - drive_scale_b: multiplicative gain on second-half neuron drive signals
     - gAMPA: multiplicative gain on all excitatory (positive) synaptic weights
     """
-    import numpy as np
-
     emitter = model.params["emitter"]
-    value = float(value)
 
+    # source_scale/drive_gain/synaptic_gain/gAMPA are pure jnp elementwise ops --
+    # `value` is passed straight into jnp.asarray without a premature float()
+    # concretization, so a jax.grad tracer flows through unchanged (needed for
+    # the differentiable-tune path; a bare `float(value)` here would silently
+    # break jax.grad's tape exactly like the _compute_all_metrics footgun).
+    # drive_scale_a/drive_scale_b remain numpy-based (data-dependent array
+    # construction, not part of the differentiable-tune surface) and still
+    # concretize `value` locally within that branch only.
     if parameter == "source_scale":
         new_emitter = replace(emitter, source_scale=jnp.asarray(value, dtype=emitter.source_scale.dtype))
     elif parameter == "drive_gain":
@@ -2268,6 +2416,7 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         new_emitter = replace(emitter, W=emitter.W * jnp.asarray(value, dtype=emitter.W.dtype))
     elif parameter in ("drive_scale_a", "drive_scale_b"):
         import numpy as _np_dsa
+        value = float(value)
         base_drive = _np_dsa.asarray(emitter.drive, dtype=float).reshape(-1)
         n_units = base_drive.shape[0]
         split = n_units // 2
@@ -2279,12 +2428,13 @@ def _model_with_scalar_parameter(model: Model, parameter: str, value: float) -> 
         drive_per_neuron = base_drive * drive_scale
         new_emitter = replace(emitter, drive=jnp.asarray(drive_per_neuron, dtype=emitter.drive.dtype))
     elif parameter == "gAMPA":
-        import numpy as np
-        W = np.asarray(emitter.W, dtype=float)
-        new_W = W.copy()
-        # Scale only excitatory (positive) weights
-        new_W[W > 0] = W[W > 0] * value
-        new_emitter = replace(emitter, W=jnp.asarray(new_W, dtype=emitter.W.dtype))
+        # jnp.where (not numpy boolean-indexed assignment) -- keeps this branch
+        # jax-traceable/differentiable too; bit-identical result for concrete
+        # inputs (verified: scales only W > 0 entries, leaves the rest untouched).
+        W = emitter.W
+        scale = jnp.asarray(value, dtype=W.dtype)
+        new_W = jnp.where(W > 0, W * scale, W)
+        new_emitter = replace(emitter, W=new_W)
     else:
         supported = ["source_scale", "drive_gain", "synaptic_gain", "drive_scale_a", "drive_scale_b", "gAMPA"]
         raise ValueError(

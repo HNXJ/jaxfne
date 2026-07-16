@@ -155,7 +155,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 - `visualize_laminar_column_3d(model, cfg, ...)`.
 
 ### `jtfne.tutorial_utils.plot_*` (array-driven quick plots)
-`plot_raster`, `plot_spectrolaminar_power(t, signal, freq_min, freq_max, n_freqs)`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`, `plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`.
+`plot_raster`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`, `plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`. (No `tutorial_utils` short-name wrapper exists for spectrolaminar-power plotting — use `jtfne.vis.plot_spectrolaminar_power_array(t, signal, freq_min=1.0, freq_max=120.0, n_freqs=96, ...)` directly, defined in `jaxfne/vis/tutorial_array_plots.py`.)
 
 ## 9. Manifests, receipts, JSON, hashing (Truth plane)
 
