@@ -77,37 +77,28 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
 - Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `_model.py`'s `_hdp_packed` (moved from `core.py` during the 2026-07-04/05 monolith split — core.py is now a 233-line pure re-export aggregator); any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`, `K_w_ctrl`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/_model.py` before trusting a new `hdp_params` key reaches the kernel.
 - `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge `receptor_index`.
 
-### 1d. `homeostatic_ei` — the second canonical HDP sanity emitter (`jaxfne/emitters_homeostatic_ei.py`, added 2026-07-15)
+### 1d. `homeostatic_ei` — second canonical HDP sanity emitter (`jaxfne/emitters_homeostatic_ei.py`)
 
-Minimal 2-neuron E/I circuit, a separate emitter family from Izhikevich (not
-an alias, not built on `HDPColumnConfig`). Build via
-`Configuration().network(...).set_emitter("homeostatic_ei", activation_rule=...,
-conductance_rule=..., homeostasis_rule=...).field(...).probe(...)` then
-`construct()`/`.simulate()` as normal — the family dispatches inside
-`construct()`/`Model.simulate()`, no special-case call needed by the caller.
-- State: `x=[E,I]` (continuous rate-like, not spike-reset), an explicit
-  differentiable `G0` matrix (2x2), `H0` HDP state — three EXPLICIT staged
-  updates per step (fast `x`, intermediate `G`, slow `H`), never fused.
-- Rule registries (real passed-in callables or names, resolved once before
-  `lax.scan`, not re-dispatched per step): `ACTIVATION_RULES` (linear/cubic/
-  logistic), `CONDUCTANCE_RULES` (hebbian/bcm/linear), `HOMEOSTASIS_RULES`
-  (linear/logistic) — all in `jaxfne.emitters_homeostatic_ei` and re-exported
-  from `jaxfne.emitters`.
-- Landmine (verified, not assumed): `activation_rule="linear"` is stable at
-  fixed `G` but diverges to NaN once `G`-adaptation is enabled — the shipped
-  canonical default is `"cubic"` (self-damping) for exactly this reason.
-- Tunable via the existing AGSDR path: `matrix_parameter(mask=..., bounds=...,
-  target="G0")` (the new `target` field on `MatrixParameterSpec`/
-  `matrix_parameter`, default `"W"` for backward compatibility with the
-  Izhikevich path).
-- NOT yet supported for this family (raises `NotImplementedError`, not a
-  silent wrong result): `Model.summary()`, `.neuron_table()`, `.checkpoint()`/
-  `.restore()`, `.with_emitter_parameters()`, `.simulate_batch()`.
-- Milestones 1-3 (fixed-G regime, G-adaptation convergence, HDP recovery)
-  verified via `tests/test_homeostatic_ei_*.py`; Milestones 4-6 (stimulus
-  sweeps, regime-classification regression, full AGSDR convergence demo) are
-  tracked but deferred — see `artifacts/developer/plans.json`'s
-  `homeostatic-ei-milestones-4-6-regime-sweep`.
+- **Purpose:** minimal 2-neuron E/I circuit with an explicit conductance
+  matrix `G` and HDP state `H`, updated as three separate staged steps (fast
+  `x`, intermediate `G`, slow `H`) instead of one fused rule. A separate
+  emitter family from Izhikevich, not built on `HDPColumnConfig`.
+- **Input:** `Configuration().network(...).set_emitter("homeostatic_ei",
+  activation_rule=..., conductance_rule=..., homeostasis_rule=...)` — rule
+  names from `ACTIVATION_RULES` (linear/cubic/logistic), `CONDUCTANCE_RULES`
+  (hebbian/bcm/linear), `HOMEOSTASIS_RULES` (linear/logistic), or a custom
+  callable passed directly to `simulate_homeostatic_ei()`.
+- **Output:** standard `Signals` (`V_m`, `spikes`, `sources`) plus
+  `metadata["hdp"]["G_trace"]`/`["H_trace"]`.
+- **How to use:** `construct(cfg)` then `.simulate(sim)` — dispatches
+  automatically, no special-case call needed. `G0` is tunable through the
+  existing AGSDR path via `matrix_parameter(mask=..., bounds=..., target="G0")`.
+- **Notes:** `activation_rule="linear"` diverges once `G`-adaptation is on —
+  the default is `"cubic"`. `Model.summary()`/`.neuron_table()`/
+  `.checkpoint()`/`.with_emitter_parameters()`/`.simulate_batch()` raise
+  `NotImplementedError` for this family. Milestones 1-3 covered by
+  `tests/test_homeostatic_ei_*.py`; Milestones 4-6 tracked in
+  `artifacts/developer/plans.json`.
 
 ## 2. Laminar-column TRIAL pipeline — `jtfne.tutorial_utils` (the one most often rediscovered)
 
