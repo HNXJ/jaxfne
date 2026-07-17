@@ -112,6 +112,30 @@ def test_enable_homeostasis_and_enable_hdp_mutually_exclusive():
         jtfne.RuntimeConfig(enable_homeostasis=True, enable_hdp=True)
 
 
+def test_record_weight_trace_false_drops_w_trace_but_keeps_dynamics_identical():
+    """hdp_params["record_weight_trace"]=False must thread through
+    Configuration/Model.simulate() to the kernel: last_hdp_diagnostics()'s
+    w_trace becomes None (avoiding the (n_steps, n_edges) memory cost at
+    scale -- plans.json:hdp-edge-trace-memory-scaling), while w_final/H_trace
+    and the actual simulated V_m trajectory are bit-identical to the default
+    (True) run with the same seed."""
+    hp = {"alpha": 0.05, "gamma": 0.5, "K_ctrl": 0.15, "K_HDP": 0.01, "tau_0_ms": 5.0}
+    model_true = _build({"enable_hdp": True, "hdp_params": hp})
+    sig_true = jtfne.simulate(model_true, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag_true = model_true.last_hdp_diagnostics()
+
+    model_false = _build({"enable_hdp": True,
+                          "hdp_params": {**hp, "record_weight_trace": False}})
+    sig_false = jtfne.simulate(model_false, duration_ms=D, dt_ms=DT, seed=SEED)
+    diag_false = model_false.last_hdp_diagnostics()
+
+    assert diag_true["w_trace"] is not None
+    assert diag_false["w_trace"] is None
+    np.testing.assert_array_equal(np.asarray(diag_true["H_trace"]), np.asarray(diag_false["H_trace"]))
+    np.testing.assert_allclose(np.asarray(diag_true["w_final"]), np.asarray(diag_false["w_final"]), atol=1e-6)
+    assert np.array_equal(np.asarray(sig_true.V_m), np.asarray(sig_false.V_m))
+
+
 def test_cache_key_isolated_across_hdp_params_on_reused_model():
     """A reused Model switching K_HDP (identical shapes) must not replay a stale
     compiled closure built for the first K_HDP -- mirrors

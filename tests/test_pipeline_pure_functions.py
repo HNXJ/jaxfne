@@ -229,3 +229,30 @@ def test_scan_network_shape_via_eval_shape():
     assert final_carry.w.shape == init.w.shape
     for leaf in outputs:
         assert leaf.shape[0] == n_steps
+
+
+def test_record_weight_trace_false_drops_w_slot_but_matches_dynamics():
+    """record_weight_trace=False (default True) must drop scan_network's
+    per-outer-step weight snapshot from the stacked outputs tuple (arity 4
+    instead of 5) -- avoiding the same (n_outer_steps, n_edges) memory
+    hazard as simulate_edge_recurrent_izhikevich_hdp's own w_trace
+    (plans.json:hdp-edge-trace-memory-scaling) -- while leaving the actual
+    carried weight state (and everything else) numerically identical."""
+    model = _small_model()
+    n_neurons = model.params["emitter"].n_neurons
+    n_steps = 10
+
+    step_fn_true, init_true = _pipeline.compile_step_fn(model, dt_ms=0.5)
+    step_fn_false, init_false = _pipeline.compile_step_fn(model, dt_ms=0.5, record_weight_trace=False)
+
+    sched = jnp.zeros((n_steps, n_neurons), dtype=init_true.v.dtype)
+    keys = jax.random.split(jax.random.PRNGKey(0), n_steps)
+
+    final_true, outputs_true = _pipeline.scan_network(step_fn_true, init_true, sched, keys)
+    final_false, outputs_false = _pipeline.scan_network(step_fn_false, init_false, sched, keys)
+
+    assert len(outputs_true) == 5
+    assert len(outputs_false) == 4
+    for a, b in zip(outputs_true[:4], outputs_false[:4]):
+        assert jnp.array_equal(a, b)
+    assert jnp.allclose(final_true.w, final_false.w, atol=1e-6)

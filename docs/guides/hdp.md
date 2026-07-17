@@ -79,11 +79,21 @@ diag = model.last_hdp_diagnostics()   # {"H_trace": ..., "w_trace": ..., ...}
 | `alpha`, `beta`, `gamma`, `delta`, `C_spike` | The five `dH/dt` income/drain terms (all default `0.0` — the null) |
 | `K_ctrl` | Restoring control gain pulling `H_i` back toward 1.0 |
 | `barrier_c`, `barrier_d` | Barrier-term coefficients near the `H_min`/`H_max` clamps |
+| `record_weight_trace` | Default `True`. Set `False` to skip stacking the per-step, per-edge weight trace (`w_trace`) -- see below |
 
 `model.last_hdp_diagnostics()` returns `H_final`/`H_trace` (shape
 `(n_steps, n_neurons)`) and `w_final`/`w_trace` (shape `(n_steps, n_edges)`)
 from the most recent `enable_hdp=True` run, or `None` if the last run had it
 off.
+
+**Memory at scale:** `w_trace` is `(n_steps, n_edges)`, which dominates
+memory for large networks run over many steps (e.g. 10,000 steps x
+2,000,000 edges x 4 bytes = 80GB -- a real reproduced OOM). `H_trace` and
+the spike/voltage traces are only `(n_steps, n_neurons)`, ~100x smaller at a
+typical `max_in_degree` and not the source of this. If you don't need the
+full per-step weight history, set `hdp_params={"record_weight_trace": False, ...}`
+-- `w_final` (the terminal weight state) and HDP's actual dynamics are
+unaffected either way; only `w_trace` becomes `None`.
 
 ## Tensor-first: enabling HDP on a NeuronalTensor-built Model
 

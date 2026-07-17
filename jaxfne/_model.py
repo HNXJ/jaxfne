@@ -619,6 +619,7 @@ class Model:
                     H_boost_gain=hp.get("H_boost_gain", 0.0),
                     size_scale_by_cell_type=hp.get("size_scale_by_cell_type"),
                     size_scale_override=hp.get("size_scale_override"),
+                    record_weight_trace=hp.get("record_weight_trace", True),
                 )
                 return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
 
@@ -1002,8 +1003,13 @@ class Model:
 
         Returns a dict with ``H_final``/``H_trace`` ``(n_steps, n_neurons)``
         and ``w_final``/``w_trace`` ``(n_steps, n_edges)``, or ``None`` if HDP
-        was not enabled on the last run. See
-        ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`` for the
+        was not enabled on the last run. If ``hdp_params["record_weight_trace"]``
+        was explicitly set to ``False`` (recommended when n_steps * n_edges
+        would exceed device memory -- e.g. 10,000 steps x 2,000,000 edges x
+        4 bytes = 80GB, a real reproduced OOM), ``w_trace`` is ``None`` while
+        ``w_final`` remains the correct terminal weight state either way; the
+        default (``True``) matches this method's documented contract exactly.
+        See ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`` for the
         underlying kernel and ``jaxfne.hdp_network.DEFAULT_HDP`` /
         ``DEFAULT_HDP_DESYNC`` for tuned presets. Computational-control
         diagnostics (proxy), not a biological-mechanism claim.

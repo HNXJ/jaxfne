@@ -396,7 +396,10 @@ tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_
 overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes
 `H_trace` and `w_trace` (each `(n_steps, ...)`), `H_final`/`w_final`, plus optional
 per-term `dH_*_trace` diagnostics when `record_dH_components=True` and `edge_current_trace` when
-`record_edge_current=True`. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
+`record_edge_current=True`. `record_weight_trace` (default `True`) controls whether `w_trace`
+(shape `(n_steps, n_edges)`, the dominant memory cost at scale — e.g. 10,000 steps x 2,000,000
+edges x 4 bytes = 80GB) is stacked at all; set `False` to get `w_trace=None` while `w_final` and
+HDP's actual dynamics stay unaffected. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
 reference — it is extensive and not duplicated here.
 
 ---
