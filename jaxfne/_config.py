@@ -865,6 +865,7 @@ class Configuration:
         activation_rule: str = "cubic",
         conductance_rule: str = "hebbian",
         homeostasis_rule: str = "linear",
+        bound_mode: str = "minimal",
     ) -> "Configuration":
         """Chainable config method to set/wrap emitter family and presets.
 
@@ -876,9 +877,14 @@ class Configuration:
         cannot pass through ``Configuration`` (which must stay JSON-safe for
         ``jtfne.io.json_safe``/``config_hash``); call
         :func:`jaxfne.emitters_homeostatic_ei.simulate_homeostatic_ei`
-        directly to use a custom callable rule. Validity of the names is
+        directly to use a custom callable rule (including a custom-gain
+        ``make_hebbian_pairwise_rule(...)`` closure). Validity of the names is
         checked at ``construct()`` time, not here (this method only records
-        metadata).
+        metadata). ``bound_mode`` ("minimal"/"stable", default "minimal" --
+        zero behavior change from before this kwarg existed) selects
+        ``simulate_homeostatic_ei``'s bound_mode; see that function's
+        docstring for what "stable" (smooth tanh soft-bound on x/G/H) buys
+        over the default hard-clip.
         """
         if family == "homeostatic_ei":
             return self.emitter(
@@ -888,6 +894,7 @@ class Configuration:
                     "conductance_rule": str(conductance_rule),
                     "homeostasis_rule": str(homeostasis_rule),
                 },
+                homeostatic_ei_bound_mode=str(bound_mode),
             )
         return self.emitter(family=family, preset=preset)
 

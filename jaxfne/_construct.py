@@ -1853,15 +1853,18 @@ def construct(
 # circuit (see tests/test_homeostatic_ei_*.py for the receipts: "linear"
 # activation is stable at fixed G but diverges once G-adaptation is enabled;
 # "cubic" activation's self-damping is required for that regime). These
-# numeric constants are fixed for this pass -- only the three rule names are
-# configurable via Configuration.set_emitter(); exposing the remaining
-# constants through the grammar is deferred (see artifacts/developer/plans.json
-# entry homeostatic-ei-milestones-4-6-regime-sweep).
+# numeric constants are fixed for this pass -- only the three rule names and
+# the network size (n_neurons, via Configuration.network(n=...)) are
+# configurable via the grammar; exposing per-neuron overrides is deferred
+# (see artifacts/developer/plans.json entry
+# homeostatic-ei-milestones-4-6-regime-sweep).
 _HOMEOSTATIC_EI_CANONICAL_DEFAULTS: dict[str, Any] = {
-    "x0": (0.1, 0.1),
-    "G0": ((0.5, -0.5), (0.5, -0.5)),
-    "H0": (0.3, 0.3),
-    "drive": (0.5, 0.3),
+    "x0_value": 0.1,
+    "G0_e_value": 0.5,
+    "G0_i_value": -0.5,
+    "H0_value": 0.3,
+    "drive_e_value": 0.5,
+    "drive_i_value": 0.3,
     "tau_x_ms": 5.0,
     "tau_G_ms": 200.0,
     "tau_H_ms": 1000.0,
@@ -1869,24 +1872,41 @@ _HOMEOSTATIC_EI_CANONICAL_DEFAULTS: dict[str, Any] = {
     "G_max": 5.0,
     "H_min": 0.1,
     "H_max": 10.0,
-    "source_scale": (1.0, 1.0),
+    "source_scale_value": 1.0,
     "activation_rule": "cubic",
     "conductance_rule": "hebbian",
     "homeostasis_rule": "linear",
 }
 
 
+def _homeostatic_ei_cell_type_split(n: int) -> "tuple[str, ...]":
+    """E/I label split for the homeostatic_ei canonical circuit: 1E/1I at
+    n=2 (the original 2-neuron circuit, kept bit-identical), else a 75/25
+    E/I split (matching ``scripts/major_sanity_test.py``'s 6E/2I convention
+    at n=8) with at least 1 I neuron. E neurons come first, I neurons last.
+    """
+    if n <= 2:
+        n_e = max(1, n - 1)
+    else:
+        n_e = max(1, min(n - 1, round(n * 0.75)))
+    n_i = n - n_e
+    return tuple(["E"] * n_e + ["I"] * n_i)
+
+
 def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     """Build a :class:`Model` for the ``homeostatic_ei`` emitter family --
-    the second canonical HDP sanity circuit (a minimal 2-neuron E/I circuit
-    with an explicit differentiable conductance matrix and HDP state; see
-    ``jaxfne/emitters_homeostatic_ei.py``'s module docstring).
+    the second canonical HDP sanity circuit (a minimal E/I circuit with an
+    explicit differentiable conductance matrix and HDP state; see
+    ``jaxfne/emitters_homeostatic_ei.py``'s module docstring). Network size
+    comes from ``cfg.networks[0]["n"]`` (default 2, the original minimal
+    circuit); at ``n=2`` every value below reduces exactly to the original
+    hardcoded 2-neuron defaults (verified bit-identical).
 
     This is a separate, self-contained build path -- it does not run
     ``_construct_build_network``/``_construct_resolve_edge_list``/
     ``_apply_canonical_biophysics`` (those are Izhikevich/edge-list/laminar-
     geometry specific and would build the wrong thing for a dense-``G``
-    2-neuron circuit). ``model.params["edge_list"]`` is populated with a real
+    E/I circuit). ``model.params["edge_list"]`` is populated with a real
     empty :class:`EdgeList` (via :func:`_empty_edge_list`), not ``None`` --
     several other ``Model`` methods (e.g. ``neuron_table``, ``checkpoint``)
     unconditionally type-annotate and unpack ``params["edge_list"]`` and are
@@ -1897,6 +1917,9 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     activation_rule = str(rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"]))
     conductance_rule = str(rules.get("conductance_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["conductance_rule"]))
     homeostasis_rule = str(rules.get("homeostasis_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["homeostasis_rule"]))
+    bound_mode = str((cfg.emitters[0].get("homeostatic_ei_bound_mode") if cfg.emitters else None) or "minimal")
+    if bound_mode not in ("minimal", "stable"):
+        raise ValueError(f"unknown bound_mode {bound_mode!r} for homeostatic_ei; expected 'minimal' or 'stable'")
     for name, registry, kind in (
         (activation_rule, ACTIVATION_RULES, "activation"),
         (conductance_rule, CONDUCTANCE_RULES, "conductance"),
@@ -1909,11 +1932,32 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
     jdtype = jnp.dtype(dtype_name_cfg)
     d = _HOMEOSTATIC_EI_CANONICAL_DEFAULTS
 
+    n = int(cfg.networks[0].get("n", 2)) if cfg.networks else 2
+    if n < 2:
+        raise ValueError(f"homeostatic_ei requires at least 2 neurons; got n={n}")
+    labels = _homeostatic_ei_cell_type_split(n)
+    is_e = jnp.asarray([label == "E" for label in labels])
+    n_e = int(is_e.sum())
+    n_i = n - n_e
+
+    x0 = jnp.full((n,), d["x0_value"], dtype=jdtype)
+    H0 = jnp.full((n,), d["H0_value"], dtype=jdtype)
+    source_scale = jnp.full((n,), d["source_scale_value"], dtype=jdtype)
+    drive = jnp.where(is_e, jnp.asarray(d["drive_e_value"], dtype=jdtype), jnp.asarray(d["drive_i_value"], dtype=jdtype))
+    # G0[i, j] = (per-type value) / (count of that type) for every row i --
+    # normalizes total incoming drive so it matches the original 2-neuron
+    # circuit's magnitude regardless of population size (1 E + 1 I there).
+    col_value = jnp.where(
+        is_e, jnp.asarray(d["G0_e_value"], dtype=jdtype) / max(n_e, 1),
+        jnp.asarray(d["G0_i_value"], dtype=jdtype) / max(n_i, 1),
+    )
+    G0 = jnp.broadcast_to(col_value[None, :], (n, n))
+
     emitter_params = HomeostaticEIParams(
-        x0=jnp.asarray(d["x0"], dtype=jdtype),
-        G0=jnp.asarray(d["G0"], dtype=jdtype),
-        H0=jnp.asarray(d["H0"], dtype=jdtype),
-        drive=jnp.asarray(d["drive"], dtype=jdtype),
+        x0=x0,
+        G0=G0,
+        H0=H0,
+        drive=drive,
         tau_x_ms=jnp.asarray(d["tau_x_ms"], dtype=jdtype),
         tau_G_ms=jnp.asarray(d["tau_G_ms"], dtype=jdtype),
         tau_H_ms=jnp.asarray(d["tau_H_ms"], dtype=jdtype),
@@ -1921,13 +1965,15 @@ def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
         G_max=jnp.asarray(d["G_max"], dtype=jdtype),
         H_min=jnp.asarray(d["H_min"], dtype=jdtype),
         H_max=jnp.asarray(d["H_max"], dtype=jdtype),
-        source_scale=jnp.asarray(d["source_scale"], dtype=jdtype),
-        labels=("E", "I"),
+        source_scale=source_scale,
+        labels=labels,
         activation_rule_name=activation_rule,
         conductance_rule_name=conductance_rule,
         homeostasis_rule_name=homeostasis_rule,
+        bound_mode=bound_mode,
     )
-    positions = jnp.asarray([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]], dtype=jdtype)
+    z = jnp.linspace(0.0, 1.0, n, dtype=jdtype) if n > 1 else jnp.zeros((1,), dtype=jdtype)
+    positions = jnp.stack([jnp.zeros_like(z), jnp.zeros_like(z), z], axis=1)
     edge_list = _empty_edge_list(jdtype)
     static = _construct_build_static(cfg, geometry_meta=None)
     return Model(

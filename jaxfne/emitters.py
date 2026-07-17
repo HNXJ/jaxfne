@@ -2127,4 +2127,6 @@ from .emitters_homeostatic_ei import (  # noqa: E402
     HOMEOSTASIS_RULES,
     HomeostaticEIParams,
     simulate_homeostatic_ei,
+    make_minimal_ei_params,
+    make_hebbian_pairwise_rule,
 )

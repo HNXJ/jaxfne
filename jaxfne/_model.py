@@ -937,6 +937,7 @@ class Model:
             conductance_rule=emitter.conductance_rule_name,
             homeostasis_rule=emitter.homeostasis_rule_name,
             dtype=runtime_cfg.actual_dtype,
+            bound_mode=emitter.bound_mode,
         )
         time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
             sim.dt_ms, dtype=runtime_cfg.jnp_dtype
@@ -965,6 +966,7 @@ class Model:
                     "activation_rule": emitter.activation_rule_name,
                     "conductance_rule": emitter.conductance_rule_name,
                     "homeostasis_rule": emitter.homeostasis_rule_name,
+                    "bound_mode": emitter.bound_mode,
                 },
                 "H_trace": H_history,
                 "G_trace": G_history,
