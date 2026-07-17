@@ -1,11 +1,14 @@
 ---
 name: jaxfne-worker-context-router
 description: >-
-  Route any jaxfne repo task to the correct module, current API, branch
-  state, and validation lane before editing. Use at the start of jaxfne
-  work — orienting in the repo, picking which module/skill applies,
-  checking branch/SHA state — before diving into a refactor, API change,
-  test, doc, tutorial, or release task.
+  Orient in the jaxfne (jtfne) repo before editing — route a task to the right
+  module, current API, branch/SHA state, and validation lane. Use at the start
+  of any jaxfne repo task: "where is X", "which file or module handles Y",
+  picking the right layer (core.py / _config / _model / emitters / fields /
+  vis / optim) before a refactor, API change, test, doc, tutorial, or release,
+  and checking branch state before a mutation — so you edit the right place
+  instead of guessing. Names the module-ownership map and verify-before-call
+  discipline.
 ---
 
 # jaxfne Worker Context Router

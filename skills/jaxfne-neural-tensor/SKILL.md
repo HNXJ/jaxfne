@@ -1,16 +1,14 @@
 ---
 name: jaxfne-neural-tensor
 description: >-
-  Verified NeuronalTensor build path (Areas × Layers × NeuronTypes ×
-  AreaConnections) and HDP homeostatic-plasticity module. USE when building or
-  editing a NeuronalTensor circuit, enabling HDP, or naming a NeuronalTensor
-  symbol. As of 2026-07-03, NeuronalTensor/Area raise TypeError at
-  construction time on wrong-typed elements (closes the old silent
-  type-confusion landmine — NeuronalTensor(some_configuration) now raises
-  immediately instead of corrupting state). There is still no
-  Configuration -> NeuronalTensor converter (deliberately out of scope —
-  Configuration is the simpler tier, promoting it up adds no information;
-  see AGENTS.md § "Config complexity tiers").
+  Build or edit a jaxfne NeuronalTensor circuit (Areas × Layers × NeuronTypes ×
+  AreaConnections) and enable the HDP homeostatic-plasticity module. Use when
+  constructing or naming a NeuronalTensor / Area / Layer / NeuronType /
+  InterConnection / AreaConnection, loading a canonical tensor JSON, or enabling
+  HDP / homeostasis (RuntimeConfig(enable_hdp=True, hdp_params=...),
+  DEFAULT_HDP, the cube-law tau_i = tau_0_ms * size_i**3, H-factor dynamics,
+  last_hdp_diagnostics). Covers the tensor-vs-Configuration tier split (no
+  Configuration→NeuronalTensor converter, by design).
 ---
 
 # jaxfne Neural Tensor

@@ -1,14 +1,13 @@
 ---
 name: jaxfne-objective-grammar
 description: >-
-  Mandatory top-level object-transform grammar for jaxfne workflows — the
-  verified public chain from Configuration/NeuronalTensor through simulate,
-  probe/readout, tune, and manifest. USE FIRST when structuring any jaxfne
-  script/notebook/new API, then route to the detailed skill for the stage
-  you're in. Do NOT use invented signals.rate()/jtfne.optimize()/jtfne.weld()
-  patterns from legacy drafts. Condensed 2026-06-30 — detailed per-stage
-  content moved to jaxfne-config / jaxfne-neural-tensor / jaxfne-neural-network
-  / jaxfne-vis-modules to avoid duplication across skills.
+  The mandatory top-level object-transform grammar for jaxfne: the verified
+  public chain Configuration/NeuronalTensor → construct → simulate → Signals →
+  probe/objective/tune → manifest. Use first when structuring any jaxfne
+  script, notebook, pipeline, or new API to pick the right stage, then route to
+  the detailed skill for that stage (jaxfne-config, jaxfne-neural-tensor,
+  jaxfne-neural-network, jaxfne-vis-modules). Flags invented
+  signals.rate()/jtfne.optimize()/jtfne.weld() patterns before they reach code.
 ---
 
 # jaxfne Objective Grammar

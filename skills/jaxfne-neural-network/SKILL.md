@@ -1,16 +1,15 @@
 ---
 name: jaxfne-neural-network
 description: >-
-  Verified Model/construct/simulate/Signals/probe/objective/tune runtime chain
-  — the compiled, jitted, simulatable "network" object. USE when constructing
-  a Model, running a simulation, reading Signals, probing/evaluating output,
-  or tuning. Merged from jaxfne-signals-probe-objective-chain + the
-  Model/Signals levels of jaxfne-objective-grammar (2026-06-30). Model has NO
-  __call__ (not a direct H(t+dt)=Net(X(t),H(t)) callable at the public level
-  — that exact scan pattern exists internally in jaxfne/_pipeline.py,
-  HDP-edge-list-only, see jaxfne-neural-tensor) and is NOT a registered JAX
-  pytree at the class level; jitting happens inside simulate()/construct(),
-  not by calling Model(x, h) directly.
+  The jaxfne runtime chain: construct → simulate → Signals →
+  probe/objective/Model.tune → manifest, the compiled jitted simulatable
+  network object. Use when constructing a Model, running simulate or
+  run_trials, reading a Signals object (sig.get, sig.V_m, sig.spikes,
+  sig.field, rate, PSD, kappa_synchrony), probing or evaluating output,
+  building an Objective (rate_targets), or tuning with Model.tune / AGSDR /
+  GSDR / Optax. Documents the real Signals method contract (no invented
+  .rate()/.psd()), that Model has no public __call__, and the Model.tune
+  differentiable-path caveat.
 ---
 
 # jaxfne Neural Network

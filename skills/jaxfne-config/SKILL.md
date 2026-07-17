@@ -1,12 +1,14 @@
 ---
 name: jaxfne-config
 description: >-
-  Verified Configuration fluent API + the canonical 1K-neuron laminar column
-  template (E-deep/I-superficial gradient). USE when composing, building, or
-  auditing a Configuration. Merged from jaxfne-configuration-fluent-api +
-  jaxfne-cortical-column-default (2026-06-30) — documents only methods and
-  fractions verified on disk, not aspirational cfg.geometry()/multi_area()/
-  weld() from legacy drafts.
+  Compose, build, or audit a jaxfne Configuration — the fluent builder chain
+  (.runtime, .connectivity, .set_emitter, .set_probes, .layer_fractions,
+  .area_layer_cell_types) and the canonical 1K-neuron laminar cortical column
+  (E-deep / I-superficial gradient, PV peaks at L4). Use whenever a task builds
+  or edits a Configuration, a laminar or cortical column, build_laminar_column
+  / laminar_cortex_config, layer fractions, per-layer E/PV/SST/VIP cell-type
+  composition, connectivity rules on a Configuration, emitter or probe
+  declarations, or asks for the default column prior.
 ---
 
 # jaxfne Config

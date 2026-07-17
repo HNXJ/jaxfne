@@ -1,18 +1,15 @@
 ---
 name: jaxfne-modeling-optimization-schema
 description: >-
-  Deep schema/truth-gate reference for jaxfne Config, connectivity, selectors,
-  and objective/trainer conventions. Use for connectivity rule schemas,
-  node-identity/selector conventions, or objective/trainer path conventions.
-  For Model/Signals/tune, use jaxfne-neural-network instead; for
-  NeuronalTensor/HDP, use jaxfne-neural-tensor instead. CORRECTED 2026-06-30:
-  the "Canonical Config structure" (cfg.circuit/.paradigm/.objective/.optimizer
-  typed sub-specs) and "Welding semantics" (jtfne.weld()) sections below were
-  found to be aspirational/fictional on verification — Configuration's real
-  dataclass fields are networks/emitters/fields/probes/metadata
-  (dataclasses.fields(Configuration)), and jtfne.weld does not exist. Kept
-  here as an explicit warning, not removed silently, so nobody re-adds them
-  from memory.
+  Deep schema and truth-gate reference for jaxfne connectivity rules,
+  node-identity selectors, and objective/trainer path conventions. Use when
+  defining a connectivity rule schema (pre/post selectors, mechanism, pattern,
+  weight), a node-identity or selector convention (area/layer/cell_type
+  quartet, allow_empty), trainable parameter paths (cell.E.drive, conn.gain,
+  mechanism.AMPA.g), objective/trainer output conventions, schema_version /
+  migrate_schema, or checking Configuration's real dataclass fields. For
+  Model/Signals/tune use jaxfne-neural-network; for NeuronalTensor/HDP use
+  jaxfne-neural-tensor. Flags the fictional jtfne.weld()/cfg.circuit APIs.
 ---
 
 # jaxfne Modeling and Optimization Schema
