@@ -334,6 +334,11 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         layer_labels=layer_labels,
         dtype=dtype,
         drive_overrides=baseline_drive,
+        # _suite2_apply_connectivity (called a few lines below) unconditionally
+        # replaces W in every branch (sparse-direct placeholder or a freshly
+        # rebuilt dense matrix) -- the dense W built here would be pure waste,
+        # confirmed as a real 40GB OOM at N=100,000 before this fix.
+        build_dense_connectivity=False,
     )
     
     # Compile and apply declared cell_params overrides

@@ -277,6 +277,7 @@ def izhikevich_params_from_labels(
     dtype: str = "float32",
     drive_overrides: Mapping[str, float] | None = None,
     source_scale: float = 1.0,
+    build_dense_connectivity: bool = True,
 ) -> IzhikevichParams:
     """Create reduced Izhikevich parameters from explicit cell labels.
 
@@ -285,6 +286,16 @@ def izhikevich_params_from_labels(
     returned native drive values are reduced-model drive units.  They are suited
     to relative proxy readouts unless a caller supplies an external calibration
     bridge.
+
+    ``build_dense_connectivity=False`` skips materializing the default dense
+    ``(N,N)`` ``W`` (returns a cheap ``(0,0)`` placeholder instead) -- for a
+    caller that is about to overwrite ``W`` unconditionally anyway (e.g.
+    ``jaxfne._construct._suite2_neuron_population_from_config``, whose very
+    next step, ``_suite2_apply_connectivity``, replaces ``W`` in every branch
+    regardless of this default). Found 2026-07-17: at N=100,000 the default
+    dense build alone allocates 40GB before being discarded, a real OOM on
+    real GPU hardware, not a theoretical concern. Default stays ``True`` --
+    zero behavior change for every other caller.
     """
 
     label_tuple = tuple(str(x) for x in labels)
@@ -315,6 +326,7 @@ def izhikevich_params_from_labels(
 
     n = len(label_tuple)
     sign_array = jnp.asarray(sign, dtype=jdtype)
+    W = _default_eig_connectivity(sign_array, jdtype) if build_dense_connectivity else jnp.zeros((0, 0), dtype=jdtype)
     return IzhikevichParams(
         a=jnp.asarray(a, dtype=jdtype),
         b=jnp.asarray(b, dtype=jdtype),
@@ -322,7 +334,7 @@ def izhikevich_params_from_labels(
         d=jnp.asarray(d, dtype=jdtype),
         drive=jnp.asarray(drive, dtype=jdtype),
         sign=sign_array,
-        W=_default_eig_connectivity(sign_array, jdtype),
+        W=W,
         v0=jnp.full((n,), -65.0, dtype=jdtype),
         u0=jnp.asarray(b, dtype=jdtype) * jnp.asarray(-65.0, dtype=jdtype),
         source_scale=jnp.asarray(source_scale, dtype=jdtype),
