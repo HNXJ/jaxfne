@@ -84,19 +84,44 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
   `x`, intermediate `G`, slow `H`) instead of one fused rule. A separate
   emitter family from Izhikevich, not built on `HDPColumnConfig`.
 - **Input:** `Configuration().network(...).set_emitter("homeostatic_ei",
-  activation_rule=..., conductance_rule=..., homeostasis_rule=...)` — rule
-  names from `ACTIVATION_RULES` (linear/cubic/logistic), `CONDUCTANCE_RULES`
-  (hebbian/bcm/linear), `HOMEOSTASIS_RULES` (linear/logistic), or a custom
-  callable passed directly to `simulate_homeostatic_ei()`.
+  activation_rule=..., conductance_rule=..., homeostasis_rule=...,
+  bound_mode="minimal")` — rule names from `ACTIVATION_RULES`
+  (linear/cubic/logistic), `CONDUCTANCE_RULES` (hebbian/bcm/linear/
+  **hebbian_pairwise**), `HOMEOSTASIS_RULES` (linear/logistic/cubic_penalty/
+  **cubic_penalty_coupled**), or a custom callable passed directly to
+  `simulate_homeostatic_ei()` (only registry *names* pass through
+  `Configuration`, which must stay JSON-safe).
 - **Output:** standard `Signals` (`V_m`, `spikes`, `sources`) plus
-  `metadata["hdp"]["G_trace"]`/`["H_trace"]`.
+  `metadata["hdp"]["G_trace"]`/`["H_trace"]`/`["rules"]["bound_mode"]`.
 - **How to use:** `construct(cfg)` then `.simulate(sim)` — dispatches
   automatically, no special-case call needed. `G0` is tunable through the
   existing AGSDR path via `matrix_parameter(mask=..., bounds=..., target="G0")`.
+  `make_minimal_ei_params(n, ...)` builds a `HomeostaticEIParams` directly
+  (any `n>=2`) for ad hoc scripts without going through `Configuration`.
+- **`bound_mode`** (2026-07-16, default `"minimal"` = unchanged prior
+  behavior): `"stable"` applies a smooth tanh soft-bound to `x`/`G`/`H`
+  instead of `jnp.clip` -- a bounded codomain that can't be numerically
+  outrun (verified: fixes a real N=16 divergence to NaN under the flat
+  canonical `G_max=5.0`, reproducible across seeds under `"minimal"`).
+  `x` was previously the only *unbounded* state (`G`/`H` were already
+  clipped) -- new `HomeostaticEIParams.x_min`/`.x_max` fields back this,
+  default a wide `+-1e6` (safe/inert under `"minimal"`).
+- **`hebbian_pairwise`** conductance rule (2026-07-16): independent gains
+  per population pair (E-E/E-I/I-E/I-I) via
+  `make_hebbian_pairwise_rule(k_ee, k_ei, k_ie, k_ii)`; default gains all
+  `1.0` == plain `hebbian`. Custom gains are a callable, so only reachable
+  by calling `simulate_homeostatic_ei` directly (same `Configuration`
+  JSON-safety limitation as any custom rule).
+- **`cubic_penalty_coupled`** homeostasis rule (2026-07-16): adds E<->I
+  cross-population coupling to `cubic_penalty` -- every other rule's `dH`
+  depends only on that neuron's own `x`; this one lets one population's H
+  respond to the other's activity.
 - **Notes:** `activation_rule="linear"` diverges once `G`-adaptation is on —
   the default is `"cubic"`. `Model.summary()`/`.neuron_table()`/
   `.checkpoint()`/`.with_emitter_parameters()`/`.simulate_batch()` raise
-  `NotImplementedError` for this family. Milestones 1-3 covered by
+  `NotImplementedError` for this family. `simulate_homeostatic_ei` is
+  `jax.jit`-compiled (repeated calls with the same static rule/mode config
+  reuse one compiled program). Milestones 1-3 covered by
   `tests/test_homeostatic_ei_*.py`; Milestones 4-6 tracked in
   `artifacts/developer/plans.json`.
 
