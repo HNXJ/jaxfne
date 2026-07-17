@@ -11,60 +11,32 @@ from __future__ import annotations
 
 import tempfile
 
+import numpy as np
+
 import jaxfne as jtfne
-from jaxfne._config import Configuration
-from jaxfne._model import Model
-from jaxfne.neuronal_tensor import (
-    Area,
-    InterConnection,
-    Layer,
-    NeuronalTensor,
-    NeuronType,
-    PlasticParams,
-    neuronal_tensor_to_configuration,
-)
 
 
-def action_1_minimal_tensor() -> NeuronalTensor:
+def action_1_minimal_tensor() -> jtfne.NeuronalTensor:
     """8 neurons (6E/2I), one flat layer, plastic=PlasticParams(H=1.0) on every
     connection -- regression-checks the PlasticParams.H=0.0 default footgun
     (an unset H seeds that neuron's initial HDP state outside the valid
     [H_min, H_max] range once HDP is enabled; see skills/FRICTIONS_STACK.md F-031)."""
-    e_type = NeuronType.make("E", fraction=0.75)  # 0.75 * 8 = 6
-    i_type = NeuronType.make("PV", fraction=0.25)  # 0.25 * 8 = 2
-    layer = Layer(name="L1", n_neurons=8, neuron_types=[e_type, i_type])
-
-    connections = []
-    for src in ("E", "PV"):
-        for tgt in ("E", "PV"):
-            mechanism = "AMPA" if src == "E" else "GABA"
-            connections.append(
-                InterConnection(
-                    source_layer="L1",
-                    source_neuron_type=src,
-                    target_layer="L1",
-                    target_neuron_type=tgt,
-                    mechanism=mechanism,
-                    plastic=PlasticParams(H=1.0),
-                )
-            )
-
-    area = Area(name="minimal", layers=[layer], inter_connections=connections)
-    return NeuronalTensor(areas=[area])
+    return jtfne.make_minimal_ei_tensor()
 
 
-def action_2_bridge_to_configuration(tensor: NeuronalTensor) -> Configuration:
+def action_2_bridge_to_configuration(tensor: jtfne.NeuronalTensor) -> jtfne.Configuration:
     """Bridge to Configuration via neuronal_tensor_to_configuration, then null
     construct()'s default dense same-area connectivity generator
     (within_gain=0.0) -- regression-checks the double-wiring landmine (F-031):
     without this, construct() layers its own default random recurrent wiring
     on top of the tensor's explicit InterConnection edges, silently doubling
     edge count. Edge-count verification itself happens at Action 3 (construct())."""
-    cfg = neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=100.0, dt_ms=0.1)
-    return cfg.connectivity(within_area="all_to_all_uniform_random", within_gain=0.0)
+    return jtfne.neuronal_tensor_to_configuration(
+        tensor, seed=0, duration_ms=100.0, dt_ms=0.1
+    ).connectivity(within_area="all_to_all_uniform_random", within_gain=0.0)
 
 
-def action_3_construct(cfg: Configuration) -> Model:
+def action_3_construct(cfg: jtfne.Configuration) -> jtfne.Model:
     """construct() -> Model; inspect neuron_table() + emitter params for sane
     Izhikevich ranges, and confirm the edge_list is NOT double-wired (Action
     2's within_gain=0.0 fix) -- 8 neurons (6E/2I), all-to-all-minus-self-loops
@@ -73,7 +45,7 @@ def action_3_construct(cfg: Configuration) -> Model:
     return jtfne.construct(cfg)
 
 
-def action_4_enable_hdp(model: Model, sim):
+def action_4_enable_hdp(model: jtfne.Model, sim):
     """Enable HDP via an explicit RuntimeConfig(enable_hdp=True,
     hdp_params=DEFAULT_HDP) on Simulation.runtime; confirm Model.simulate()
     needs it explicit -- regression-checks the Model.simulate()/jtfne.simulate()
@@ -84,14 +56,12 @@ def action_4_enable_hdp(model: Model, sim):
     (signals_without_hdp, diag_without_hdp, signals_with_hdp, diag_with_hdp) --
     diagnostics are captured immediately after each call since
     Model.last_hdp_diagnostics() reflects only the MOST RECENT simulate() call."""
-    from jaxfne.hdp_network import DEFAULT_HDP
-    from jaxfne._runtime_config import RuntimeConfig
     from dataclasses import replace as _replace
 
     signals_without_hdp = model.simulate(sim)
     diag_without_hdp = model.last_hdp_diagnostics()
 
-    sim_with_hdp = _replace(sim, runtime=RuntimeConfig(enable_hdp=True, hdp_params=dict(DEFAULT_HDP)))
+    sim_with_hdp = _replace(sim, runtime=jtfne.RuntimeConfig(enable_hdp=True, hdp_params=dict(jtfne.DEFAULT_HDP)))
     signals_with_hdp = model.simulate(sim_with_hdp)
     diag_with_hdp = model.last_hdp_diagnostics()
 
@@ -102,8 +72,6 @@ def action_5_check_baseline_signals(signals) -> None:
     """Baseline simulate() (100ms/dt=0.1ms), HDP off -- finite V_m/spikes, sane
     physiological ranges (|Vm| > 150 mV or NaN/Inf = blowup, per
     skills/neuro-biophysics-units-sanity's own sanity gate)."""
-    import numpy as np
-
     V_m = np.asarray(signals.V_m)
     spikes = np.asarray(signals.spikes)
     assert V_m.shape == (1000, 8), V_m.shape  # 100ms / 0.1ms = 1000 steps, 8 neurons
@@ -118,8 +86,6 @@ def action_6_check_hdp_signals(diag_hdp: dict) -> None:
     1.0, stays in [H_min, H_max] = [0.1, 10.0] (jaxfne/hdp_network.py's
     BASE_HDP_KWARGS_DEFAULT) for the full 1000-step trace, not just the final
     step."""
-    import numpy as np
-
     H_trace = np.asarray(diag_hdp["H_trace"])
     assert H_trace.shape == (1000, 8)
     assert np.all(np.isfinite(H_trace))
@@ -130,15 +96,12 @@ def action_6_check_hdp_signals(diag_hdp: dict) -> None:
     )
 
 
-def action_7_check_target_indices(model: Model, sim) -> None:
+def action_7_check_target_indices(model: jtfne.Model, sim) -> None:
     """Inject a StimulusSchedule with target_indices on a neuron subset --
     confirms per-neuron targeting works. target_indices lives on the EVENT
     dict, not the schedule constructor (see AGENTS.md's "Per-event layer
     targeting" note). Targets only the 2 PV neurons (indices 6, 7)."""
-    from jaxfne._signals import StimulusSchedule
-    import numpy as np
-
-    schedule = StimulusSchedule(
+    schedule = jtfne.StimulusSchedule(
         events=({"onset_ms": 10.0, "duration_ms": 50.0, "amplitude": 20.0,
                  "is_drive_event": True, "target_indices": [6, 7]},),
         n_neurons=8,
@@ -151,8 +114,6 @@ def action_7_check_target_indices(model: Model, sim) -> None:
 def action_8_check_three_read_paths(signals) -> None:
     """Read Signals 3 ways (.get('vm'), attribute access, selector filter) --
     all agree."""
-    import numpy as np
-
     via_get = np.asarray(signals.get("vm"))
     via_attr = np.asarray(signals.V_m)
     assert np.array_equal(via_get, via_attr), ".get('vm') must match .V_m exactly"
@@ -166,8 +127,6 @@ def action_9_check_rate_and_kappa(signals) -> tuple:
     """Compute rate_hz/kappa_synchrony via real free functions (not invented
     sig.rate()) -- jtfne.tutorial_utils.population_rate_hz and
     jtfne.kappa_synchrony."""
-    import numpy as np
-
     spikes = np.asarray(signals.spikes)
     rate_hz = jtfne.tutorial_utils.population_rate_hz(spikes, dt_ms=0.1)
     kappa = jtfne.kappa_synchrony(spikes, dt_ms=0.1)
@@ -177,10 +136,8 @@ def action_9_check_rate_and_kappa(signals) -> tuple:
     return rate_hz, kappa
 
 
-def action_10_check_probe_modes(model: Model, signals) -> dict:
+def action_10_check_probe_modes(model: jtfne.Model, signals) -> dict:
     """model.probe(sig, modes=[...]) across spikes/V_m/CSD/LFP."""
-    import numpy as np
-
     out = model.probe(signals, modes=["spikes", "V_m", "CSD", "LFP"])
     assert set(out["requested_modes"]) == {"spikes", "V_m", "CSD", "LFP"}
     assert np.asarray(out["spikes"]).shape == (1000, 8)
@@ -193,8 +150,6 @@ def action_10_check_probe_modes(model: Model, signals) -> dict:
 def action_11_check_eeg_proxy_manual(signals):
     """Derive EEG proxy manually via jtfne.fields.eeg_proxy_probe(lfp) --
     confirms it's not auto-produced by simulate()/model.probe()."""
-    import numpy as np
-
     try:
         signals.get("eeg")
         raise AssertionError("expected KeyError -- eeg_proxy must not be auto-produced")
@@ -208,7 +163,7 @@ def action_11_check_eeg_proxy_manual(signals):
     return eeg_readout
 
 
-def action_12_check_objective_evaluate(model: Model, signals):
+def action_12_check_objective_evaluate(model: jtfne.Model, signals):
     """Build an Objective (rate target), model.evaluate(sig, obj) --
     losses/gates report correctly."""
     objective = jtfne.objective().loss("rate_loss", metric="spike_rate_hz_mean", target=15.0)
@@ -223,7 +178,7 @@ def action_12_check_objective_evaluate(model: Model, signals):
     return report
 
 
-def action_13_check_tune_blackbox_and_stub(model: Model, sim):
+def action_13_check_tune_blackbox_and_stub(model: jtfne.Model, sim):
     """model.tune(obj, optimizer='AGSDR', steps=2) -- blackbox loop runs for
     real; confirms differentiable-path stub still correctly no-ops for an
     optax optimizer with the default (not_checked) differentiability status."""
@@ -239,12 +194,10 @@ def action_13_check_tune_blackbox_and_stub(model: Model, sim):
     return agsdr_result, optax_result
 
 
-def action_14_check_wee_wei_wie_wii(model: Model) -> dict:
+def action_14_check_wee_wei_wie_wii(model: jtfne.Model) -> dict:
     """Extract edge_list, compute Wee/Wei/Wie/Wii aggregates -- confirms edge
     counts (30/12/12/2, matching Action 3's no-double-wiring count) and signs
     (E excitatory positive, PV inhibitory negative)."""
-    import numpy as np
-
     edge_list = model.params["edge_list"]
     table = model.neuron_table()
     cell_types = np.array([row["cell_type"] for row in table])
@@ -267,12 +220,10 @@ def action_14_check_wee_wei_wie_wii(model: Model) -> dict:
     return aggregates
 
 
-def action_15_check_h_per_cell_type(model: Model, diag_hdp: dict) -> dict:
+def action_15_check_h_per_cell_type(model: jtfne.Model, diag_hdp: dict) -> dict:
     """last_hdp_diagnostics()'s H per cell-type -- respects H_min/H_max =
     [0.1, 10.0] and both E and PV groups stay near equilibrium under
     DEFAULT_HDP."""
-    import numpy as np
-
     table = model.neuron_table()
     cell_types = np.array([row["cell_type"] for row in table])
     H_final = np.asarray(diag_hdp["H_final"])
@@ -289,7 +240,7 @@ def action_15_check_h_per_cell_type(model: Model, diag_hdp: dict) -> dict:
     return per_cell_type
 
 
-def action_16_check_manifest_save_json(model: Model, signals, eval_report: dict, tmp_path: str):
+def action_16_check_manifest_save_json(model: jtfne.Model, signals, eval_report: dict, tmp_path: str):
     """jtfne.manifest(cfg, signals=sig, objective=obj) + save_json -- JSON-safe,
     zero NaN."""
     import json
@@ -306,7 +257,7 @@ def action_16_check_manifest_save_json(model: Model, signals, eval_report: dict,
     return m
 
 
-def action_17_check_run_receipt_write_once(model: Model, signals, receipt_path: str):
+def action_17_check_run_receipt_write_once(model: jtfne.Model, signals, receipt_path: str):
     """model.run_receipt() + save_receipt(), then attempt a second save
     without overwrite=True -- write-once guard actually raises (real
     ValueError, not silently overwriting or a FileExistsError)."""
@@ -341,7 +292,7 @@ def action_18_check_config_hash_determinism():
     return h1
 
 
-def action_19_check_vis_functions(model: Model, signals) -> list:
+def action_19_check_vis_functions(model: jtfne.Model, signals) -> list:
     """jtfne.vis.raster/vm/rate/lfp/psd/connectivity(sig) -- every plot
     function returns cleanly (a real matplotlib Figure, not an exception)."""
     import matplotlib
@@ -358,18 +309,16 @@ def action_19_check_vis_functions(model: Model, signals) -> list:
     return figs
 
 
-def action_20_check_recompilation_guard(model: Model) -> dict:
+def action_20_check_recompilation_guard(model: jtfne.Model) -> dict:
     """Run simulate() twice with identical shapes, check
     make_recompilation_guard/CompilationRegistry -- N_compile<=1, ties
     directly to this session's Factor 1 fix (a module-level
     CompilationRegistry singleton with no per-test reset)."""
-    from jaxfne.validation import compilation_registry
-    from jaxfne._runtime_config import RuntimeConfig
-
+    compilation_registry = jtfne.compilation_registry
     compilation_registry.reset()
     compilation_registry.set_mode("exception")
     try:
-        sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0, runtime=RuntimeConfig(jit=True))
+        sim = jtfne.simulation(duration_ms=100.0, dt_ms=0.1, seed=0, runtime=jtfne.RuntimeConfig(jit=True))
         model.simulate(sim)
         model.simulate(sim)  # identical shapes -- must not trigger a recompile alert
         traced = dict(compilation_registry.traced_signatures)
@@ -406,7 +355,6 @@ if __name__ == "__main__":
     emitter = model.params["emitter"]
     # Sane Izhikevich regular-spiking (E) / fast-spiking (PV) parameter ranges,
     # not NaN/blowup: a in (0, 1), c around -65mV, d > 0.
-    import numpy as np
     a, c, d = np.asarray(emitter.a), np.asarray(emitter.c), np.asarray(emitter.d)
     assert np.all((a > 0.0) & (a < 1.0)), a
     assert np.all((c > -100.0) & (c < -50.0)), c

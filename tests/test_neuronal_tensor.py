@@ -230,6 +230,27 @@ def test_default_relative_size():
     assert nt.default_relative_size("SST") == pytest.approx(1.5)
 
 
+def test_make_minimal_ei_tensor_default_matches_6e_2pv_shape():
+    t = nt.make_minimal_ei_tensor()
+    layer = t.areas[0].layers[0]
+    assert layer.n_neurons == 8
+    assert [ty.name for ty in layer.neuron_types] == ["E", "PV"]
+    assert layer.neuron_types[0].fraction == pytest.approx(0.75)
+    assert layer.neuron_types[1].fraction == pytest.approx(0.25)
+    assert len(t.areas[0].inter_connections) == 4
+    assert all(c.plastic.H == 1.0 for c in t.areas[0].inter_connections)
+
+
+def test_make_minimal_ei_tensor_respects_overrides():
+    t = nt.make_minimal_ei_tensor(n=4, e_fraction=0.5, layer_name="Lx", area_name="ax", h=2.0)
+    layer = t.areas[0].layers[0]
+    assert t.areas[0].name == "ax"
+    assert layer.name == "Lx"
+    assert layer.n_neurons == 4
+    assert layer.neuron_types[0].fraction == pytest.approx(0.5)
+    assert all(c.plastic.H == 2.0 for c in t.areas[0].inter_connections)
+
+
 def test_merge_neuronal_tensors_flattens_and_renames_collisions():
     t1 = _single_area_tensor()
     t2 = _single_area_tensor()  # same area name "V1" -> collision

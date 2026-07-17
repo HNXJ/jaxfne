@@ -410,7 +410,6 @@ def stim_window_response(
 
 def run() -> list[dict[str, Any]]:
     import jax
-    from jaxfne._pipeline import compile_step_fn, scan_network
 
     model = build_model()
     rows = model.neuron_table()
@@ -464,15 +463,15 @@ def run() -> list[dict[str, Any]]:
     # continuous multi-trial simulation, not a mistake specific to this script.
     #
     # The correct verified path for full v/u/prev_spikes/syn_state/H/w
-    # carryover is the lower-level jaxfne._pipeline.compile_step_fn/
-    # scan_network pair (DynamicState = v, u, prev_spikes, syn_state, H, w),
-    # documented in jaxfne-neural-tensor's "Internal pure-function layer"
-    # section as the real jax.lax.scan step pattern. HDP hyperparameters are
-    # captured once via closure (compile_step_fn), so it's compiled a single
-    # time and reused across all trials -- only `carry`, the per-trial PRNG
-    # keys, and the per-trial drive array (variable length, since each
-    # trial's random delays give it a different total duration) change.
-    step_fn, carry = compile_step_fn(model, dt_ms=DT_MS, **HDP_PARAMS)
+    # carryover is the lower-level jtfne.compile_step_fn/jtfne.scan_network
+    # pair (DynamicState = v, u, prev_spikes, syn_state, H, w), documented in
+    # jaxfne-neural-tensor's "Internal pure-function layer" section as the
+    # real jax.lax.scan step pattern. HDP hyperparameters are captured once
+    # via closure (compile_step_fn), so it's compiled a single time and
+    # reused across all trials -- only `carry`, the per-trial PRNG keys, and
+    # the per-trial drive array (variable length, since each trial's random
+    # delays give it a different total duration) change.
+    step_fn, carry = jtfne.compile_step_fn(model, dt_ms=DT_MS, **HDP_PARAMS)
     base_key = jax.random.PRNGKey(SEED)
 
     history: list[dict[str, Any]] = []
@@ -487,7 +486,7 @@ def run() -> list[dict[str, Any]]:
         drive_schedule = trial_drive_array(paradigm, n_steps)
 
         keys = jax.random.split(jax.random.fold_in(base_key, turn), n_steps)
-        carry, outputs = scan_network(step_fn, carry, jnp.asarray(drive_schedule), keys)
+        carry, outputs = jtfne.scan_network(step_fn, carry, jnp.asarray(drive_schedule), keys)
         v_trace, spikes_trace, source_trace, H_trace, w_trace = outputs
 
         if not bool(jnp.all(jnp.isfinite(v_trace))) or not bool(jnp.all(jnp.isfinite(spikes_trace))):

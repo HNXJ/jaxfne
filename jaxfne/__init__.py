@@ -155,6 +155,7 @@ from .emitters import (
     SynapseState,
     SynapseLayer,
 )
+from .hdp_network import DEFAULT_HDP
 from .presets import (
     CELL_TYPE_PRESETS,
     DEFAULT_SPIKE_IMPULSE_GAIN,
@@ -224,8 +225,9 @@ from .neuronal_tensor import (
     list_canonical_neuronal_tensors,
     load_canonical_neuronal_tensor,
     NEURONAL_TENSOR_SCHEMA_VERSION,
+    make_minimal_ei_tensor,
 )
-from ._pipeline import DynamicState, dynamic_state_from_model, checkpoint_state, restore_state
+from ._pipeline import DynamicState, dynamic_state_from_model, checkpoint_state, restore_state, compile_step_fn, scan_network
 from .util import (
     validate_runtime_config,
     runtime_config_diff,
@@ -443,6 +445,7 @@ __all__ = [
     "LIFEmitter",
     "SynapseState",
     "SynapseLayer",
+    "DEFAULT_HDP",
     "make_edge_list_from_dense",
     "make_eig_network",
     "izhikevich_params_from_labels",
@@ -483,6 +486,8 @@ __all__ = [
     "dynamic_state_from_model",
     "checkpoint_state",
     "restore_state",
+    "compile_step_fn",
+    "scan_network",
     "NeuronalTensor",
     "Area",
     "AreaConnection",
@@ -505,6 +510,7 @@ __all__ = [
     "list_canonical_neuronal_tensors",
     "load_canonical_neuronal_tensor",
     "NEURONAL_TENSOR_SCHEMA_VERSION",
+    "make_minimal_ei_tensor",
     "sha256_text",
     "validation_report",
     "probe_report",
