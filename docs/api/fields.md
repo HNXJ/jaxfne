@@ -424,11 +424,28 @@ from the fenced multi-dimensional placeholder below.
 
 **Parameters:**
 - `sources` (`jax.Array`): 1D array of current/charge sources.
-- `conductivity` (float): conductivity scalar.
+- `conductivity` (float or `jax.Array`): conductivity scalar (uniform medium,
+  original behavior, unchanged), or a per-face array of shape `(N-1,)` giving
+  the conductivity between each pair of adjacent grid nodes (a piecewise-
+  constant "layered" medium, e.g. distinct cortical-layer conductivities —
+  added 2026-07-18 toward `plans.json`'s
+  `novelty::tfne-differentiable-field-solver`). The layered case discretizes
+  the variable-coefficient flux divergence at cell faces, the standard
+  finite-difference treatment for `d/dx(sigma(x) dphi/dx)`. Passing a scalar
+  is bit-identical to the pre-2026-07-18 implementation (verified in
+  `tests/test_experimental_poisson_1d_layered.py`).
 - `dx` (float): grid spacing.
 - `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
 - `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
   minimum-norm least-squares solution, which satisfies the mean-zero gauge.
+
+**Analytic validation reference:** the layered case's ground truth is the
+classical "two half-space" point-source volume-conductor result (reflection
+coefficient `k=(sigma1-sigma2)/(sigma1+sigma2)`, derived from continuity of
+potential and normal current density) — see
+`tests/test_experimental_poisson_1d_layered.py`'s module docstring for the
+full derivation and 3 limiting-case sanity checks (uniform medium, insulating
+boundary, grounded boundary) before it's used to validate any solver output.
 
 **Returns:** `(phi, residual, manifest)` —
 - `phi` (`jax.Array`): solved potential array.
