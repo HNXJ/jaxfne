@@ -446,6 +446,16 @@ potential and normal current density) — see
 `tests/test_experimental_poisson_1d_layered.py`'s module docstring for the
 full derivation and 3 limiting-case sanity checks (uniform medium, insulating
 boundary, grounded boundary) before it's used to validate any solver output.
+A separate discrete-flux-conservation check (current is exactly zero outside
+a source/sink span and exactly constant within it) is verified directly
+against the solver's own output in `tests/test_experimental_poisson_1d_convergence.py`.
+
+**Known limitation (confirmed 2026-07-18):** the dense `jnp.linalg.lstsq`
+solve's residual grows sharply above roughly N~150-200 grid points in
+float32, on both the scalar and layered paths — `convergence_status`
+correctly self-reports `"failed"` in that regime rather than returning a
+silently wrong answer. Not yet fixed; treat this function as validated only
+up to roughly N~150 until a better-conditioned or sparse solve replaces it.
 
 **Returns:** `(phi, residual, manifest)` —
 - `phi` (`jax.Array`): solved potential array.

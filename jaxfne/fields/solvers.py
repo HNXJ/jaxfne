@@ -28,6 +28,18 @@ def experimental_poisson_1d(
     matrix (verified in tests/test_experimental_poisson_1d_layered.py) --
     zero behavior change for every existing caller.
 
+    KNOWN LIMITATION (confirmed 2026-07-18, both conductivity paths): the
+    dense ``jnp.linalg.lstsq`` solve's residual grows sharply above roughly
+    N~150-200 grid points in float32 -- ``convergence_status`` correctly
+    self-reports ``"failed"`` in that regime rather than returning a silently
+    wrong answer (see tests/test_experimental_poisson_1d_convergence.py,
+    which reproduces this on both the scalar and layered paths and confirms
+    it is NOT fixed by removing the 1/dx**2 matrix-scale factor before
+    solving -- that hypothesis was tested and rejected). Root cause is most
+    likely the dense discrete-Laplacian solve's inherent conditioning at
+    this size, not yet addressed; treat this function as validated only up
+    to roughly N~150 until a better-conditioned or sparse solve replaces it.
+
     Parameters
     ----------
     sources : jax.Array
