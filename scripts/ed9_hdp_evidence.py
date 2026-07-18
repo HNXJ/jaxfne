@@ -26,8 +26,12 @@ Metrics (mean +/- std across seeds): mean firing rate, hyper-vs-quiet rate
 spread, synchrony kappa, V_m finiteness, mean H, H std. A manifest + SHA256
 receipt are written.
 
+Also reports a Mann-Whitney U significance test + Cohen's d effect size between
+the null and both conditions' per-seed rate_spread_hz samples (added 2026-07-17
+-- prior versions reported mean+/-std/CI only, no formal hypothesis test).
+
 Usage:
-    python scripts/ed9_hdp_evidence.py --n 200 --seeds 5 --duration-ms 2000
+    python scripts/ed9_hdp_evidence.py --n 200 --seeds 20 --duration-ms 2000
 """
 from __future__ import annotations
 
@@ -40,7 +44,7 @@ import jaxfne as jtfne
 import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))
-from _ed9_common import build_imbalanced_model, _agg
+from _ed9_common import build_imbalanced_model, _agg, _significance_test
 
 
 def _runtime(cond: dict) -> jtfne.RuntimeConfig:
@@ -84,16 +88,18 @@ def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5,
     hyper, quiet = slice(0, n_real // 2), slice(n_real // 2, n_real)
 
     per_condition = {}
+    raw_rate_spread = {}
     for name, cond in conditions.items():
         runs = []
         for s in range(int(seeds)):
             sig = jtfne.simulate(model, sim=jtfne.Simulation(
                 duration_ms=duration_ms, dt_ms=dt_ms, seed=s, runtime=_runtime(cond)))
             runs.append(metrics(model, sig, hyper, quiet, duration_ms, dt_ms))
+        raw_rate_spread[name] = [r["rate_spread_hz"] for r in runs]
         per_condition[name] = {
             "config": cond,
             "mean_rate_hz": _agg([r["mean_rate_hz"] for r in runs]),
-            "rate_spread_hz": _agg([r["rate_spread_hz"] for r in runs]),
+            "rate_spread_hz": _agg(raw_rate_spread[name]),
             "kappa_synchrony": _agg([r["kappa_synchrony"] for r in runs]),
             "H_mean": _agg([r["H_mean"] for r in runs]),
             "H_std": _agg([r["H_std"] for r in runs]),
@@ -102,6 +108,7 @@ def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5,
 
     null_spread = per_condition["null"]["rate_spread_hz"]["mean"]
     both_spread = per_condition["both"]["rate_spread_hz"]["mean"]
+    significance = _significance_test(raw_rate_spread["null"], raw_rate_spread["both"])
     bundle = {
         "schema_version": "jaxfne.ed9_hdp_evidence.v0.1.0",
         "evidence_kind": "computational_method_stabilization_null_ablation_seeds",
@@ -123,6 +130,7 @@ def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5,
             "spread_reduction_fraction": (None if null_spread == 0
                                           else float(1.0 - both_spread / null_spread)),
             "all_conditions_finite": all(c["all_vm_finite"] for c in per_condition.values()),
+            "significance_null_vs_both_rate_spread": significance,
         },
     }
 
@@ -140,7 +148,7 @@ def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5,
 def main():
     ap = argparse.ArgumentParser(description="ED9 HDP controller ablation evidence bundle")
     ap.add_argument("--n", type=int, default=200)
-    ap.add_argument("--seeds", type=int, default=5)
+    ap.add_argument("--seeds", type=int, default=20)
     ap.add_argument("--duration-ms", type=float, default=2000.0)
     ap.add_argument("--dt-ms", type=float, default=0.5)
     ap.add_argument("--alpha", type=float, default=0.05)
@@ -160,6 +168,12 @@ def main():
     s = bundle["summary"]
     print(f"  spread reduction (both vs null): "
           f"{(s['spread_reduction_fraction'] or 0)*100:.0f}%   all_finite={s['all_conditions_finite']}")
+    sig = s["significance_null_vs_both_rate_spread"]
+    if sig["p_value"] is not None:
+        print(f"  significance (null vs both, rate_spread_hz): Mann-Whitney U p={sig['p_value']:.4g}, "
+              f"Cohen's d={sig['cohens_d']:.2f} (n={sig['n_a']} vs {sig['n_b']})")
+    else:
+        print(f"  significance: {sig['note']}")
 
 
 if __name__ == "__main__":
