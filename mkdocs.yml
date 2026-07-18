@@ -95,6 +95,7 @@ nav:
       - Homeostasis: guides/homeostasis.md
       - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
+      - Brian2 Benchmark Receipt: notes/brian2_benchmark_receipt.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
       - Interactive Tutorial Visualizations: interactive_visualizations.md

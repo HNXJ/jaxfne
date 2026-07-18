@@ -131,6 +131,16 @@ the current `linear_solver` placeholder) is the concrete target that would turn 
 in Tensor-Field Neural Equations into a demonstrated capability rather than a name.
 Tracked as `plans.json:nature-methods-publication-readiness-100`.
 
+**Update (2026-07-18):** `fig08_adjacent_tools_comparison.py`'s "no speedup claims"
+disclaimer covers a *general, systematic* performance claim, which still doesn't exist.
+A first, narrow, honestly-caveated quantitative data point now does: a matched
+Izhikevich sparse-network task (same N, same ~100-in-degree connectivity, same
+duration, CPU, default settings both sides) showed jaxfne 4.7-18.9x faster than Brian2
+at N=1,000 and 1.2-11.3x faster at N=5,000 (construct/simulate respectively). See
+[Brian2 Benchmark Receipt](brian2_benchmark_receipt.md) for the full setup, honest
+caveats (different RNG streams, small-scale smoke test not a benchmark suite, Brian2's
+default rather than maximally-tuned backend), and reproduction instructions.
+
 ---
 
 ## References
