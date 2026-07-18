@@ -160,7 +160,9 @@ When spawning subagents, pick `subagent_type` by task shape — do not default e
 |----------|----------|
 | `Explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation), read-only |
 | `general-purpose` | Multi-step implementation or research with unclear file ownership |
-| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files |
+| `antigravity-worker` | Short, single-target, mechanical/fast task or a second-model opinion — fast but higher error rate (GPT-OSS 120B via agy), every result gets independently verified; NOT for multi-file/large-context work |
+| `kimix` | Long, large, repo-scale multi-step implementation or analysis (Kimi Code CLI) — the general "do a big well-scoped chunk of work" delegate |
+| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files (Gamma-system, Gemini CLI) |
 | `Plan` | Design an implementation strategy before editing |
 | `code-reviewer` (if present) | User explicitly asks for review of a local diff |
 
