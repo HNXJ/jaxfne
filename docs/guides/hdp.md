@@ -95,6 +95,37 @@ full per-step weight history, set `hdp_params={"record_weight_trace": False, ...
 -- `w_final` (the terminal weight state) and HDP's actual dynamics are
 unaffected either way; only `w_trace` becomes `None`.
 
+## Barrier equilibrium (a numerical-methods result, independent of biology)
+
+The barrier term contributes an asymmetric double-barrier potential
+
+$$C(H) = \frac{\text{barrier\_c}}{H - H_{min}} + \frac{\text{barrier\_d}}{H_{max} - H}$$
+
+to `dH/dt` (as `-dC/dH`), repelling `H` from both clamp boundaries. Setting
+`dC/dH = 0` gives the potential's minimum:
+
+$$\frac{\text{barrier\_c}}{(H-H_{min})^2} = \frac{\text{barrier\_d}}{(H_{max}-H)^2}$$
+
+Solving for the minimum to sit exactly at the target equilibrium `H* = 1`
+requires:
+
+$$\frac{\text{barrier\_d}}{\text{barrier\_c}} = \left(\frac{H_{max}-1}{1-H_{min}}\right)^2$$
+
+At the canonical `H_min=0.1`, `H_max=10.0`, this ratio is `((10-1)/(1-0.1))^2 = 100`.
+This is a property of the barrier potential *alone* (independent of `alpha`/
+`beta`/`gamma`/`delta`/`K_ctrl`/`rho_passive`), and it holds regardless of the
+network, the drive, or any other simulation parameter -- a genuine stability
+guarantee, not a tuned/empirical fact. **`jaxfne.hdp_network.DEFAULT_HDP`
+ships `barrier_c=barrier_d=0.01` (ratio 1, not 100)** -- solving the same
+minimum-condition equation with equal coefficients gives a pure-barrier
+equilibrium of `H ≈ 5.05`, not `1.0`. `DEFAULT_HDP`'s real recovery-to-1
+comes from its `K_ctrl=5.0` linear restoring term, not the barrier; the
+barrier there is a boundary safety net, dormant under normal operation
+(confirmed: `tests/test_hdp_barrier_equilibrium.py` reproduces both the
+ratio-100 (`H→1.0`) and ratio-1 (`H→5.05`) cases directly against the
+kernel, with everything else (`alpha=beta=gamma=delta=K_ctrl=rho_passive=0`)
+held at the null so the barrier is the only active force).
+
 ## Tensor-first: enabling HDP on a NeuronalTensor-built Model
 
 The recipe above builds the `Model` via `Configuration`. HDP works identically
