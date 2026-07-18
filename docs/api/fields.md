@@ -478,6 +478,54 @@ assert manifest["convergence_status"] == "converged"
 
 ---
 
+### `jaxfne.fields.experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins, z_min=None, z_max=None, boundary="mean_zero_neumann", gauge="mean_zero") -> (phi, residual, manifest)`
+
+Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
+source values (e.g. a time-slice of `Signals.sources`) into
+`experimental_poisson_1d`'s 1D depth grid — the first integration of the
+experimental solver with the Model/Signals object model (added 2026-07-18,
+toward `plans.json:novelty::tfne-differentiable-field-solver`). This is a
+separate, explicitly opt-in accessor called after `construct()`/`simulate()`,
+kept fully independent of `project_laminar_sources` and the default
+`simulate()` field dispatch, which stay exactly as they are today.
+
+**Parameters:**
+- `neuron_table` (sequence of dict): from `Model.neuron_table()`; every row
+  needs a numeric `"z"` — raises `ValueError` when a row lacks one.
+- `sources` (array, shape `(n_neurons,)`): per-neuron source values. Neurons
+  sharing a depth bin are **summed** (jaxfne's source values are current-
+  like; summing is the physically sensible aggregation), and the summed
+  value is passed to `experimental_poisson_1d` exactly as-is — per that
+  function's own convention (a node value `Q` produces a flux jump of
+  `Q*dx`, confirmed in `tests/test_experimental_poisson_1d_convergence.py`).
+  An explicit modeling choice, always stated here rather than left implicit.
+- `conductivity` (float or `jax.Array`): scalar or per-face array of shape
+  `(n_bins-1,)`, always caller-supplied — jaxfne treats every conductivity
+  value as uncalibrated, so this is a required input here too, the same as
+  every other field-projection entry point.
+- `n_bins` (int): depth-grid resolution. Keep below ~150 per
+  `experimental_poisson_1d`'s documented convergence ceiling.
+- `z_min`, `z_max` (float, optional): depth range; default to the actual
+  min/max `z` in `neuron_table`.
+
+**Returns:** `(phi, residual, manifest)` — as `experimental_poisson_1d`, plus
+`manifest["bin_edges"]` (the depth grid) and `manifest["neurons_per_bin"]`
+(neuron count per bin, for transparency about the binning step — an empty
+bin simply gets source value 0).
+
+**Example:**
+```python
+model = jtfne.construct(cfg)  # a laminar_column-domain Configuration
+sig = jtfne.simulate(model, duration_ms=50.0, dt_ms=0.5, seed=0)
+rows = model.neuron_table()
+sources_last_step = sig.sources[-1]  # (n_neurons,) time-slice
+
+phi, residual, manifest = jtfne.fields.experimental_poisson_1d_from_neuron_table(
+    rows, sources_last_step, conductivity=1.5, n_bins=20)
+```
+
+---
+
 ## Boundary Conditions & Constraints
 
 ### Mean-Zero Constraint

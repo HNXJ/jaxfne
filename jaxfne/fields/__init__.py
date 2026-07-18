@@ -53,11 +53,13 @@ from .diagnostics import (
 )
 from .solvers import (
     experimental_poisson_1d,
+    experimental_poisson_1d_from_neuron_table,
 )
 
 __all__ = [
     "FieldOutput",
     "experimental_poisson_1d",
+    "experimental_poisson_1d_from_neuron_table",
     "project_laminar_sources",
     "project_sources_to_laminar_field",
     "validate_projection_invariants",

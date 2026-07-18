@@ -2,7 +2,8 @@
 
 import jax
 import jax.numpy as jnp
-from typing import Any, Tuple, Dict
+import numpy as np
+from typing import Any, Mapping, Sequence, Tuple, Dict
 
 def experimental_poisson_1d(
     sources: jax.Array,
@@ -108,4 +109,110 @@ def experimental_poisson_1d(
         "layered_conductivity": bool(layered),
     }
 
+    return phi, residual, manifest
+
+
+def experimental_poisson_1d_from_neuron_table(
+    neuron_table: Sequence[Mapping[str, Any]],
+    sources: "jax.Array | np.ndarray",
+    conductivity: "float | jax.Array",
+    n_bins: int,
+    z_min: "float | None" = None,
+    z_max: "float | None" = None,
+    boundary: str = "mean_zero_neumann",
+    gauge: str = "mean_zero",
+) -> Tuple[jax.Array, jax.Array, Dict[str, Any]]:
+    """Bridge real per-neuron depth positions and source values into
+    :func:`experimental_poisson_1d`'s 1D depth grid -- the first real
+    integration of the (previously standalone) experimental solver with the
+    Model/Signals object model, toward
+    ``plans.json:novelty::tfne-differentiable-field-solver``. Does NOT
+    touch the existing ``project_laminar_sources``/``simulate()`` dispatch
+    (that machinery is unchanged) -- this is a separate, explicitly opt-in
+    accessor a caller invokes after ``construct()``/``simulate()``, not a new
+    default source-projection mode.
+
+    Parameters
+    ----------
+    neuron_table : sequence of dict
+        From ``Model.neuron_table()``. Each row must have a numeric ``"z"``
+        (depth) field -- raises ``ValueError`` if any row's ``z`` is
+        ``None`` (e.g. a model built without laminar position metadata).
+    sources : array, shape (n_neurons,)
+        Per-neuron source values -- e.g. a single time-slice of
+        ``Signals.sources``, or a caller-computed time-average. Neurons
+        falling in the same depth bin are SUMMED (not averaged): jaxfne's
+        source values are current-like quantities, so summing multiple
+        neurons' contributions at the same depth is the physically sensible
+        aggregation. Per :func:`experimental_poisson_1d`'s own established
+        convention (confirmed empirically in
+        tests/test_experimental_poisson_1d_convergence.py: a node value
+        ``Q`` produces a discrete flux jump of ``Q*dx``, not ``Q``), the
+        summed value at each bin is used AS-IS as that bin's density-like
+        input -- no additional density normalization is applied. This is an
+        explicit modeling choice, not a hidden one: if a caller wants a
+        specific total injected current at a depth, they should pre-scale
+        their input accordingly.
+    conductivity : float or jax.Array
+        Conductivity scalar or per-face array of shape ``(n_bins-1,)`` --
+        caller-supplied; jaxfne has no calibrated conductivity data, so this
+        is never inferred from the network itself.
+    n_bins : int
+        Number of depth-grid nodes for the 1D solve. Per
+        :func:`experimental_poisson_1d`'s documented limitation, keep this
+        below roughly 150 for a reliably converged solve.
+    z_min, z_max : float, optional
+        Depth range for the grid; default to the min/max ``z`` actually
+        present in ``neuron_table``.
+    boundary, gauge : str
+        Forwarded to :func:`experimental_poisson_1d`.
+
+    Returns
+    -------
+    phi, residual : jax.Array
+        As :func:`experimental_poisson_1d`.
+    manifest : dict
+        As :func:`experimental_poisson_1d`, plus ``"bin_edges"`` (the depth
+        grid, shape ``(n_bins,)``) and ``"neurons_per_bin"`` (shape
+        ``(n_bins,)``, for transparency about how many neurons contributed
+        to each bin -- an empty bin gets source value 0, not an error).
+    """
+    z_values = np.array([row.get("z") for row in neuron_table], dtype=object)
+    if any(z is None for z in z_values):
+        raise ValueError(
+            "experimental_poisson_1d_from_neuron_table requires every neuron_table row "
+            "to have a numeric 'z' -- got at least one None (model built without laminar "
+            "position metadata?)."
+        )
+    z_values = z_values.astype(np.float64)
+    sources_np = np.asarray(sources, dtype=np.float64)
+    if sources_np.shape[0] != z_values.shape[0]:
+        raise ValueError(
+            f"sources length {sources_np.shape[0]} must match neuron_table length "
+            f"{z_values.shape[0]}"
+        )
+
+    z_lo = float(z_values.min()) if z_min is None else float(z_min)
+    z_hi = float(z_values.max()) if z_max is None else float(z_max)
+    if z_hi <= z_lo:
+        raise ValueError(f"z_max ({z_hi}) must be greater than z_min ({z_lo})")
+
+    bin_edges = np.linspace(z_lo, z_hi, n_bins)
+    dx = float(bin_edges[1] - bin_edges[0])
+    bin_index = np.clip(
+        np.searchsorted(bin_edges, z_values, side="right") - 1, 0, n_bins - 1
+    )
+
+    binned_sources = np.zeros(n_bins, dtype=np.float64)
+    neurons_per_bin = np.zeros(n_bins, dtype=np.int64)
+    np.add.at(binned_sources, bin_index, sources_np)
+    np.add.at(neurons_per_bin, bin_index, 1)
+
+    phi, residual, manifest = experimental_poisson_1d(
+        jnp.asarray(binned_sources, dtype=jnp.float32), conductivity, dx,
+        boundary=boundary, gauge=gauge,
+    )
+    manifest = dict(manifest)
+    manifest["bin_edges"] = bin_edges.tolist()
+    manifest["neurons_per_bin"] = neurons_per_bin.tolist()
     return phi, residual, manifest
