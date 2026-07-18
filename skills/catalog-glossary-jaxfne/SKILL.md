@@ -180,6 +180,9 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 ## 6. Paradigms & trials
 
 - `paradigm(name)`, `evoked_l4_drive_paradigm(...)`, `omission_oddball_paradigm(...)`, `standard_visual_omission()`.
+- `coop_omission_oddball_paradigm(duration_ms=..., freq_hz=..., omission_prob=...)` — Continuous Omission Oddball Paradigm (the original, narrower COOP).
+- **`general_sequential_oddball_paradigm(...)`** — the generic backbone (omission/global/local/sync/async/active/passive families via event windows + token sequences or explicit event lists). Prefer this over hand-rolling a new fixed-shape builder; see `jaxfne-paradigm-design` for the full grammar.
+- `general_delayed_match_to_sample_paradigm(...)` — thin DMS-flavored wrapper over the backbone.
 - `trial_batch(conditions, n_reps, seed, ...)` → `TrialBatch`.
 
 ## 7. Metrics & summaries
