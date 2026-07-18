@@ -123,7 +123,7 @@ from .export import (
 # this alias avoids confusion for tutorial users.
 build_tutorial_laminar_column = tutorial_utils.build_laminar_column
 
-from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace, hh_jaxley_reference_trace
+from .bridges import BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace, hh_jaxley_reference_trace, JaxFemFieldBridge, require_jax_fem
 from . import analysis
 # `vis` (and its plot_* convenience re-exports) is NOT imported here -- it
 # pulls in the full jaxfne.vis.plotly tree (matplotlib/plotly). Importing it
@@ -351,6 +351,8 @@ __all__ = [
     "JaxleyTraceSpec",
     "hh_numpy_reference_trace",
     "hh_jaxley_reference_trace",
+    "JaxFemFieldBridge",
+    "require_jax_fem",
     "LaminarPopulation",
     "LaminarSourceGeometry",
     "MatrixParameterSpec",

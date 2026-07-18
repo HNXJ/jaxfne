@@ -136,6 +136,7 @@ nav:
       - FAQ: faq.md
       - Plotly Visualization: guides/plotly_visualization.md
       - Jaxley Interoperability: guides/jaxley_interop.md
+      - jax-fem Interoperability (scoping): guides/jax_fem_interop.md
       - CI and Validation Policy: ci_policy.md
       - Operator Doctrine: operator_doctrine.md
       - Tensor-Network Ancestry: tensor_network_ancestry.md
