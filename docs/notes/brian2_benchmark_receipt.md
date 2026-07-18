@@ -28,14 +28,25 @@ settings on both sides (no hand-tuning either tool).
 
 ## Results
 
-| N | Tool | construct() | simulate() | edges/synapses | spikes |
-|---|---|---|---|---|---|
-| 1,000 | Brian2 | 8.067s | 14.101s | 99,738 | 3,000 |
-| 1,000 | jaxfne | 1.717s | 0.745s | 96,183 | 2,607 |
-| 1,000 | **ratio (Brian2/jaxfne)** | **4.70x** | **18.93x** | | |
-| 5,000 | Brian2 | 3.752s | 13.998s | 499,576 | 15,000 |
-| 5,000 | jaxfne | 3.056s | 1.244s | 500,000 | 15,956 |
-| 5,000 | **ratio (Brian2/jaxfne)** | **1.23x** | **11.25x** | | |
+Two independent runs (fresh Brian2 venv both times), confirming the ratios
+are reproducible, not a one-off fluke:
+
+| N | Tool | Run | construct() | simulate() |
+|---|---|---|---|---|
+| 1,000 | Brian2 | 1 | 8.067s | 14.101s |
+| 1,000 | Brian2 | 2 | 7.441s | 15.427s |
+| 1,000 | jaxfne | 1 | 1.717s | 0.745s |
+| 1,000 | jaxfne | 2 | 1.950s | 0.865s |
+| 1,000 | **ratio (Brian2/jaxfne)** | 1 / 2 | **4.70x / 3.82x** | **18.93x / 17.83x** |
+| 5,000 | Brian2 | 1 | 3.752s | 13.998s |
+| 5,000 | Brian2 | 2 | 3.942s | 15.430s |
+| 5,000 | jaxfne | 1 | 3.056s | 1.244s |
+| 5,000 | jaxfne | 2 | 3.348s | 1.262s |
+| 5,000 | **ratio (Brian2/jaxfne)** | 1 / 2 | **1.23x / 1.18x** | **11.25x / 12.23x** |
+
+(edges/synapses and spike counts are identical run-to-run within each tool,
+since both scripts use a fixed seed — 99,738 / 3,000 for Brian2 and 96,183 /
+2,607 for jaxfne at N=1,000; 499,576 / 15,000 and 500,000 / 15,956 at N=5,000.)
 
 ## Honest caveats
 
@@ -51,9 +62,10 @@ settings on both sides (no hand-tuning either tool).
   general — only that it was faster on this specific matched task at these
   two sizes, on this machine, with both tools' default settings.
 - **Brian2's `construct()` time includes JIT/compile overhead** that Brian2
-  itself would likely amortize across repeated runs at the same N (code-
-  generation is cached); this receipt is a single cold run per size, not a
-  warm-cache steady-state measurement for either tool.
+  itself would likely amortize across repeated runs at the same N within one
+  process (code-generation is cached); each of the 2 runs recorded here used
+  a fresh Brian2 venv/process, so both are cold-start measurements, not a
+  warm-cache steady-state comparison for either tool.
 - Neither tool's absolute wall-clock times here should be treated as
   hardware-independent — this ran on the same single machine for both
   sides, which is the correct way to compare, but the specific numbers
