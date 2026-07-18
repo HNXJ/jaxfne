@@ -163,12 +163,13 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 - Noise control on the Config-path is **kernel-dependent**, not uniform: `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, and the homeostatic variant accept `noise_scale=` (`None` = historical `0.5`); `simulate_receptor_exponential_izhikevich` hardcodes `0.5` inline with no override kwarg at all.
 - Read a signal: `Signals.get(key)` or free fn `get_signal(obj, key)`. Keys accept aliases: `"V_m"`/`"vm"`, `"spikes"`/`"spk"`, `"lfp_contacts"`, `"csd_contacts"`, `"source_native"`.
 
-## 4. Readouts, projections, fields (all PROXY — no PDE solve)
+## 4. Readouts, projections, fields (default path is PROXY; one real solver is experimental)
 
-- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003).
+- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003). This remains the default `simulate()` field dispatch, unaffected by the solver below.
 - `project_sources_to_laminar_field(...)`, `probe_laminar_modes(field_output, modes)`.
 - Lead-field proxies: `eeg_proxy_transform(source, leadfield)`, `meg_proxy_transform(source_oriented, leadfield)`, `emm_proxy_transform(...)`.
 - `construct_source_tensor(*, mode, ...)`, `compute_conservation_proxy_diagnostics(...)`, `validate_projection_invariants(...)`, `validate_source_field_status(...)`.
+- **Real (experimental) 1D Poisson solve, separate from the proxy path above**: `experimental_poisson_1d(sources, conductivity, dx)` (`jaxfne/fields/solvers.py`) actually assembles and solves a linear system (`field_solver_status="experimental_pde_solver"`), supporting uniform or layered (per-face array) conductivity. Confirmed convergence ceiling: reliable to roughly N~150 grid points in float32, degrades sharply above that (`convergence_status` self-reports `"failed"`, checked). `experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins)` bridges it to a real `Model.neuron_table()`/`Signals.sources` — an explicitly opt-in accessor called after `construct()`/`simulate()`, kept fully separate from the `project_laminar_sources` dispatch above. Toward `plans.json:novelty::tfne-differentiable-field-solver`.
 
 ## 5. Optimizers & tuning (AGSDR/GSDR/SDR/Optax)
 
