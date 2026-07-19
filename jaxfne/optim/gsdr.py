@@ -33,12 +33,21 @@ def step_gsdr_transform(
     field, this does NOT implement genetic deselection or any behavior
     beyond ``state``/``hyperparams`` plumbing -- ``state``
     (including ``deselection_counter``) is passed through unchanged, never
-    read or updated. The real Genetic SDR optimizer is
-    :func:`jaxfne.optim.core.gsdr_transform`, which production code
-    (``Model.tune(optimizer="GSDR", ...)``) actually uses -- this function
-    is not on that call path. Kept for backward compatibility with any
-    caller using the lower-level ``step(u_t, grad_l, state, hyperparams)``
-    signature.
+    read or updated. A separate, more elaborate Genetic SDR implementation
+    exists at :func:`jaxfne.optim.core.gsdr_transform` -- but it is NOT what
+    ``Model.tune(optimizer="GSDR", ...)`` calls either (confirmed
+    2026-07-18: that string dispatches through ``_resolve_optimizer`` to a
+    blackbox candidate-proposal path, ``propose_blackbox_candidates``, which
+    never references ``gsdr_transform``; passing the ``gsdr_transform()``
+    object itself as ``optimizer=`` also does not work, since
+    ``_resolve_optimizer`` has no branch for a raw ``GradientTransformation``
+    and silently falls through to the same generic blackbox path instead of
+    calling its ``init``/``update``). ``gsdr_transform`` is exercised only
+    by ``tests/test_optim_tune.py`` directly, not by any confirmed
+    production call path -- see ``jaxfne/optim/core.py::agsdr_transform-
+    production-path-unconfirmed`` in ``progress.json``. Kept for backward
+    compatibility with any caller using the lower-level
+    ``step(u_t, grad_l, state, hyperparams)`` signature.
     """
     target_dtype = u_t.dtype
     eta = jnp.array(hyperparams.get("eta", 0.01), dtype=target_dtype)
