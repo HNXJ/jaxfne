@@ -20,6 +20,12 @@ readouts for computational electrophysiology. Define a circuit (single column or
 multi-area hierarchy), run it, and inspect population activity, layer-targeted drive,
 and field readouts in one pipeline.
 
+jaxfne works at the population/field scale — layer-resolved circuits, spectrolaminar
+readouts, a tensor-algebraic source-to-sensor-proxy chain. For single/multi-compartment
+biophysical detail, [Jaxley](https://jaxley.readthedocs.io/) is the natural complement,
+not a competing tool: Jaxley models plug directly into jaxfne as emitters (see the
+Jaxley bridge in [Quickstart](docs/quickstart.md)).
+
 ## Install
 
 ```bash
@@ -65,6 +71,10 @@ Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `rea
 | Changelog | [docs/changelog.md](docs/changelog.md) |
 | Contributing | [docs/contributing.md](docs/contributing.md) |
 | AI agents | [docs/for_ai_agents.md](docs/for_ai_agents.md) |
+
+Documentation for AI coding agents ([skills/](skills/), [docs/for_ai_agents.md](docs/for_ai_agents.md))
+is a deliberate design choice, not incidental repo clutter — it's verified against the
+same source of truth as the human-facing docs above, not a separate, drifting spec.
 
 ## Citation
 

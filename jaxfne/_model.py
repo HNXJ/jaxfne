@@ -29,6 +29,7 @@ import jax
 import jax.numpy as jnp
 
 if TYPE_CHECKING:
+    from pathlib import Path
     from .optim import OptimizerSpec
 
 from .emitters import (

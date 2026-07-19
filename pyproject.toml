@@ -72,14 +72,30 @@ line-length = 100
 # to "fix" them risks reintroducing whatever load-order issue the staging
 # avoids. Not touching without a dedicated audit of why each import is
 # where it is.
+#
+# 2026-07-18 additions, each individually verified before adding (not a blind
+# blanket suppression): jaxfne/emitters.py's F401 is the exact same re-export
+# false-positive as above (a `ruff --fix` dry-run confirmed it would delete
+# the entire homeostatic_ei re-export block). jaxfne/_construct.py's and
+# jaxfne/_signals.py's F811 hits are all legitimate local shadowing of a
+# module-level name by a function parameter or dataclass field (e.g.
+# `simulate(..., paradigm=...)`, `ReadoutResult.warnings`/`Signals.warnings`)
+# -- real public API names, not accidental redefinitions; renaming them to
+# silence the lint would be a breaking change for a cosmetic warning.
+# jaxfne/paradigm.py and jaxfne/tutorial_utils.py's E402 hits are deliberate
+# deferred imports placed after the code that motivates deferring them
+# (matching the same staging rationale as jaxfne/__init__.py above).
 "jaxfne/__init__.py" = ["F401", "E402"]
 "jaxfne/core.py" = ["F401"]
-"jaxfne/_construct.py" = ["F401"]
-"jaxfne/_signals.py" = ["F401"]
+"jaxfne/_construct.py" = ["F401", "F811"]
+"jaxfne/_signals.py" = ["F401", "E402", "F811"]
 "jaxfne/_model.py" = ["F401"]
 "jaxfne/fields/proxy.py" = ["F401"]
 "jaxfne/optim/__init__.py" = ["F401"]
 "jaxfne/vis/__init__.py" = ["F401"]
+"jaxfne/emitters.py" = ["F401", "E402"]
+"jaxfne/paradigm.py" = ["E402"]
+"jaxfne/tutorial_utils.py" = ["E402"]
 
 [tool.hatch.build.targets.wheel]
 only-packages = true

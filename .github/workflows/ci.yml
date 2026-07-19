@@ -35,15 +35,22 @@ jobs:
       - name: Compileall
         run: python -m compileall -q jaxfne tests examples
 
-      - name: Lint (ruff) -- visibility only, not yet a hard gate
-        # 2026-07-14: reduced from 509 to 87 errors this session (see
-        # skills/FRICTIONS_STACK.md F-030 for the caught-and-corrected
-        # near-miss). Remaining categories (F821/F841/F811/E741) need
-        # per-site review before a hard fail is safe -- continue-on-error
-        # until that pass is done, tracked in artifacts/developer/plans.json
-        # (local-only) F6.
+      - name: Lint (ruff) -- hard gate
+        # 2026-07-18: 0 errors (was 509 on 2026-07-14, then 87, then 20).
+        # The last 20 were all individually verified, not blanket-suppressed:
+        # 7 F401 + 2 E402 were the same re-export/staged-import false-positive
+        # pattern jaxfne/__init__.py/core.py already carry a documented
+        # per-file-ignore for (a ruff --fix dry-run confirmed blind --fix
+        # would have deleted a real re-export block, same class of incident
+        # as the 2026-07-14 core.py/_construct.py near-miss); 6 F811 were
+        # legitimate local shadowing of a module-level name by a public
+        # function parameter or dataclass field (e.g. simulate(...,
+        # paradigm=...), ReadoutResult.warnings); 1 F821 was a string-quoted
+        # forward-reference type hint, fixed properly with a TYPE_CHECKING
+        # import rather than suppressed. See pyproject.toml's
+        # [tool.ruff.lint.per-file-ignores] comments for the exact rationale
+        # per file. Now a real, enforced gate -- no continue-on-error.
         run: python -m ruff check jaxfne/
-        continue-on-error: true
 
       - name: Audit public docs language (no leaked doctrine, no obfuscated identifiers)
         run: PYTHONPATH=. python scripts/audit_public_docs_language.py --check
