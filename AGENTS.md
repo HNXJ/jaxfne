@@ -69,6 +69,13 @@ concrete incident this rule exists because of.
 
 Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
 
+**Delegating jaxfne work to a fast/weak model (agy, Haiku-tier, any subagent):** don't just
+describe the task — paste the relevant skill's verified names/signatures into the prompt
+directly. This repo's own API surface is large and easy to guess wrong (`jtfne.weld()`,
+`cfg.circuit`, a fictional `FlatModel`/`FlatNet` alias were all found and struck from the skills
+this way — a plausible-sounding invented name a fast model would readily produce unprompted). A
+skill's contract handed inline removes that guesswork; an open-ended ask invites it.
+
 ## PRP backlog — local-only, not tracked
 
 `artifacts/developer/{plans,progress,review}.json` + `AGENT_CHANNEL.md`. Skill:
