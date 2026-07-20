@@ -290,8 +290,8 @@ def izhikevich_params_from_labels(
     ``build_dense_connectivity=False`` skips materializing the default dense
     ``(N,N)`` ``W`` (returns a cheap ``(0,0)`` placeholder instead) -- for a
     caller that is about to overwrite ``W`` unconditionally anyway (e.g.
-    ``jaxfne._construct._suite2_neuron_population_from_config``, whose very
-    next step, ``_suite2_apply_connectivity``, replaces ``W`` in every branch
+    ``jaxfne._construct._neuron_population_from_config``, whose very
+    next step, ``_apply_connectivity``, replaces ``W`` in every branch
     regardless of this default). Found 2026-07-17: at N=100,000 the default
     dense build alone allocates 40GB before being discarded, a real OOM on
     real GPU hardware, not a theoretical concern. Default stays ``True`` --

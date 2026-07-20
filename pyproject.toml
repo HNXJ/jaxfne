@@ -85,11 +85,22 @@ line-length = 100
 # jaxfne/paradigm.py and jaxfne/tutorial_utils.py's E402 hits are deliberate
 # deferred imports placed after the code that motivates deferring them
 # (matching the same staging rationale as jaxfne/__init__.py above).
+#
+# 2026-07-20: jaxfne/_model.py's E402 hits are the same deferred-import
+# pattern -- Phase 2 defragmentation split _model.py's non-lifecycle Model
+# methods into 5 sibling _model_*.py files, each of which does
+# `from ._model import X` at ITS OWN module level for shared constants/
+# classes (MatrixParameterSpec, TuneResult, _SOURCE_PROXY_METADATA, etc).
+# _model.py must therefore define those shared items BEFORE importing the 5
+# submodules' implementations, which necessarily happens after the file's
+# top-of-file external imports. Reordering to "fix" E402 here would break
+# the import (the submodules would try to import from a not-yet-populated
+# _model module).
 "jaxfne/__init__.py" = ["F401", "E402"]
 "jaxfne/core.py" = ["F401"]
 "jaxfne/_construct.py" = ["F401", "F811"]
 "jaxfne/_signals.py" = ["F401", "E402", "F811"]
-"jaxfne/_model.py" = ["F401"]
+"jaxfne/_model.py" = ["F401", "E402"]
 "jaxfne/fields/proxy.py" = ["F401"]
 "jaxfne/optim/__init__.py" = ["F401"]
 "jaxfne/vis/__init__.py" = ["F401"]

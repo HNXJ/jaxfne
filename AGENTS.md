@@ -68,6 +68,10 @@ concrete incident this rule exists because of.
 ## Before writing helpers
 
 Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
+Naming a new private helper, or suspect two functions overlap: `jaxfne-harden` rule 10
+(generalization over duplication) — don't encode a module/initiative name into a general
+helper's name; don't maintain near-identical function bodies when one parameter would unify
+them. Feeds the `full_scorecard` Generalization/Code-defragmentation axes (`plans.json`).
 
 **Delegating jaxfne work to a fast/weak model (agy, Haiku-tier, any subagent):** don't just
 describe the task — paste the relevant skill's verified names/signatures into the prompt
@@ -93,6 +97,16 @@ confirmed non-sensitive) — don't add a third without the same content review.
 
 `core.py` re-exports → `_config.py`, `_model.py`, `_signals.py`, `_construct.py`, `_runtime_config.py`, `emitters.py`, `fields/`.
 Plotting: **`jaxfne/vis/*` only** (modular-grammar rule 2).
+
+`_model.py` and `_construct.py` are themselves thin re-export aggregators as
+of 2026-07-20 (Phase 2 defragmentation, 0.4.8-0.4.48 roadmap) — same pattern
+as `core.py`. `_model.py` (Model dataclass + 7 lifecycle methods) re-exports
+from `_model_simulate.py`, `_model_readout.py`, `_model_evaluate.py`,
+`_model_tune.py`, `_model_manifest.py`. `_construct.py` re-exports from
+`_construct_population.py`, `_construct_connectivity.py`,
+`_construct_presets.py`, `_construct_core.py`, `_construct_extras.py`.
+Import from `jaxfne.core`, not any of these directly, unless working on the
+split itself.
 
 ## Root freeze
 

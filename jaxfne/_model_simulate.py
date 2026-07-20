@@ -1,0 +1,867 @@
+"""Model.simulate() and its supporting kernel-dispatch, stimulus-schedule
+resolution, batch/trial/condition wrappers, and HDP diagnostics accessors.
+
+Split out of ``jaxfne/_model.py`` (Phase 2 defragmentation, 2026-07-20, part
+of the 0.4.8-0.4.48 roadmap's Defragmentation wave 1). Every function here
+takes the ``Model`` instance as an explicit first argument named ``self``
+(matching the original method signatures exactly, since these were methods
+before the split) -- ``jaxfne/_model.py``'s ``Model`` class delegates to
+these as thin wrapper methods. Import from ``jaxfne.core`` or
+``jaxfne._model``, not this module, unless working on the split itself.
+"""
+
+from __future__ import annotations
+
+from dataclasses import replace
+from typing import TYPE_CHECKING, Any, Mapping, Optional
+
+import jax
+import jax.numpy as jnp
+
+if TYPE_CHECKING:
+    from ._model import Model
+
+from .emitters import (
+    EdgeList,
+    IzhikevichParams,
+    simulate_edge_recurrent_izhikevich,
+    simulate_edge_recurrent_izhikevich_homeostatic,
+    simulate_edge_recurrent_izhikevich_hdp,
+    simulate_eig_izhikevich,
+    simulate_receptor_exponential_izhikevich,
+)
+from .emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeostatic_ei
+from .fields import project_laminar_sources
+from .io import config_hash, json_safe
+from ._runtime_config import RuntimeConfig, _device_scope
+from ._signals import (
+    Signals,
+    Simulation,
+    StimulusSchedule,
+    TrialBatch,
+    TrialResult,
+    TrialBatchResult,
+    ParadigmCondition,
+    _make_poisson_drive,
+)
+from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
+
+
+def _simulate_arrays(
+    self: "Model",
+    sim: Simulation,
+    key: jax.Array,
+    runtime_cfg: RuntimeConfig,
+    drive_schedule: Optional[jax.Array] = None,
+) -> tuple[jax.Array, jax.Array, jax.Array]:
+    """Compile and execute the underlying simulation kernel.
+
+    This method resolves the ablation mode masks, updates parameters, and
+    dispatches to either the sparse/edge-list or dense JAX simulation kernels
+    with compile-time caching.
+
+    Parameters
+    ----------
+    sim : Simulation
+        Simulation configuration.
+    key : jax.Array
+        JAX PRNG key.
+    runtime_cfg : RuntimeConfig
+        Resolved runtime config.
+    drive_schedule : jax.Array, optional
+        Input drive schedule array, by default None.
+
+    Returns
+    -------
+    tuple[jax.Array, jax.Array, jax.Array]
+        Voltages, spikes, and source currents.
+    """
+    from .emitters import _dtype_from_policy
+    # Local import: _resolve_homeostasis_k_gain/_homeostasis_params_cache_fingerprint
+    # stay in core.py (group-6 construct-pipeline territory); Model is their only
+    # caller, so deferring the import here (rather than at module top) avoids a
+    # circular import with core.py's own `from ._model import Model`.
+    from .core import _resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint
+    emitter: IzhikevichParams = self.params["emitter"]
+    sched = drive_schedule  # None or (n_steps, n_neurons) array
+    
+    # Build silence_mask if E_silence or I_silence is requested
+    n_neurons = emitter.v0.shape[0]
+    jdtype = _dtype_from_policy(runtime_cfg.actual_dtype)
+    ablation_mode = getattr(sim, "ablation", None)
+
+    # Sparse-direct models carry a placeholder dense W (edges live only in
+    # params["edge_list"]); force the edge_list backend so the dense kernel is
+    # never handed the empty W.
+    if emitter.W.shape[0] != n_neurons and "edge_list" in self.params:
+        runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+
+    if not hasattr(self, "_silence_masks"):
+        object.__setattr__(self, "_silence_masks", {})
+
+    if ablation_mode == "E_silence":
+        if "E_silence" not in self._silence_masks:
+            mask_list = [0.0 if lbl.startswith("E") else 1.0 for lbl in emitter.labels]
+            self._silence_masks["E_silence"] = jnp.array(mask_list, dtype=jdtype)
+        silence_mask = self._silence_masks["E_silence"]
+    elif ablation_mode == "I_silence":
+        if "I_silence" not in self._silence_masks:
+            mask_list = [1.0 if lbl.startswith("E") else 0.0 for lbl in emitter.labels]
+            self._silence_masks["I_silence"] = jnp.array(mask_list, dtype=jdtype)
+        silence_mask = self._silence_masks["I_silence"]
+    else:
+        if "default" not in self._silence_masks:
+            self._silence_masks["default"] = jnp.ones((n_neurons,), dtype=jdtype)
+        silence_mask = self._silence_masks["default"]
+        
+    if ablation_mode == "disconnected_null":
+        if runtime_cfg.recurrent_backend == "edge_list":
+            edges: EdgeList = self.params["edge_list"]
+            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+        else:
+            emitter = replace(emitter, W=jnp.zeros_like(emitter.W))
+
+    # Reset per-call homeostasis/HDP diagnostics (populated only when enabled).
+    object.__setattr__(self, "_last_homeostasis_diag", None)
+    object.__setattr__(self, "_last_hdp_diag", None)
+
+    if getattr(runtime_cfg, "enable_homeostasis", False):
+        if runtime_cfg.synaptic_kernel == "receptor_exponential":
+            raise ValueError(
+                "enable_homeostasis is not supported with "
+                "synaptic_kernel='receptor_exponential'; use the default "
+                "exponential synaptic kernel."
+            )
+        # Homeostasis is sparse-edge based; edge_list always exists from construct().
+        edges: EdgeList = self.params["edge_list"]
+        if ablation_mode == "disconnected_null":
+            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+        hp = dict(runtime_cfg.homeostasis_params or {})
+        _plastic_active = float(hp.get("eta", 0.0) or 0.0) != 0.0
+
+        def _homeo_packed(k, s):
+            """Return (V, spikes, sources, g_bias, r_trace[, w_final, w_trace])."""
+            V, S, src, diag = simulate_edge_recurrent_izhikevich_homeostatic(
+                emitter, edges, sim.n_steps, sim.dt_ms, k,
+                dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                silence_mask=silence_mask,
+                r_star=hp.get("r_star", 0.05),
+                tau_r_ms=hp.get("tau_r_ms", 300.0),
+                alpha=hp.get("alpha", 1.0),
+                k_gain=_resolve_homeostasis_k_gain(hp, emitter),
+                g_min=hp.get("g_min", -12.0),
+                g_max=hp.get("g_max", 8.0),
+                r_max=hp.get("r_max", 1.0),
+                eta=hp.get("eta", 0.0),
+                tau_x_ms=hp.get("tau_x_ms", 100.0),
+                w_min=hp.get("w_min", -10.0),
+                w_max=hp.get("w_max", 10.0),
+                v_floor=hp.get("v_floor", -150.0),
+                v_ceiling=hp.get("v_ceiling", 100.0),
+                u_abs_max=hp.get("u_abs_max", 2000.0),
+                syn_abs_max=hp.get("syn_abs_max", 1.0e4),
+            )
+            if _plastic_active:
+                return V, S, src, diag["g_bias"], diag["r_trace"], diag["w_final"], diag["w_trace"]
+            return V, S, src, diag["g_bias"], diag["r_trace"]
+
+        effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+        if effective_jit:
+            if not hasattr(self, "_compiled_cache"):
+                object.__setattr__(self, "_compiled_cache", {})
+            from .validation import make_recompilation_guard
+            B = 1
+            Z = int(self.static.get("n_contacts", 16))
+            C = int(emitter.n_neurons)
+            T = int(sim.n_steps)
+            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+            cache_key = ("simulate_homeostatic", B, Z, C, T, runtime_cfg.actual_dtype,
+                         ablation_mode, runtime_cfg.selected_backend, _plastic_active,
+                         _homeostasis_params_cache_fingerprint(hp))
+            with _device_scope(runtime_cfg.selected_backend):
+                if cache_key not in self._compiled_cache:
+                    import time
+                    guard_name = ("simulate_homeostatic_plastic" if _plastic_active
+                                  else "simulate_homeostatic")
+                    target_fn = make_recompilation_guard(
+                        _homeo_packed, name=guard_name,
+                        recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    t0 = time.perf_counter()
+                    result = self._compiled_cache[cache_key](key, sched)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                else:
+                    result = self._compiled_cache[cache_key](key, sched)
+        else:
+            with _device_scope(runtime_cfg.selected_backend):
+                result = _homeo_packed(key, sched)
+        if _plastic_active:
+            V, S, src, g_bias, r_trace, w_final, w_trace = result
+            object.__setattr__(self, "_last_homeostasis_diag",
+                               {"g_bias": g_bias, "r_trace": r_trace,
+                                "w_final": w_final, "w_trace": w_trace})
+        else:
+            V, S, src, g_bias, r_trace = result
+            object.__setattr__(self, "_last_homeostasis_diag",
+                               {"g_bias": g_bias, "r_trace": r_trace})
+        return V, S, src
+
+    if getattr(runtime_cfg, "enable_hdp", False):
+        if runtime_cfg.synaptic_kernel == "receptor_exponential":
+            raise ValueError(
+                "enable_hdp is not supported with "
+                "synaptic_kernel='receptor_exponential'; use the default "
+                "exponential synaptic kernel."
+            )
+        # HDP is sparse-edge based; edge_list always exists from construct().
+        edges: EdgeList = self.params["edge_list"]
+        if ablation_mode == "disconnected_null":
+            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+        hp = dict(runtime_cfg.hdp_params or {})
+
+        # Optional caller-supplied initial HDP state (Model.with_hdp_initial_state).
+        # Absent by default -> init_state=None, the exact prior behavior
+        # (kernel's own equilibrium H=1.0, native edge weight).
+        _hdp_H0 = self.params.get("hdp_initial_H")
+        _hdp_w0 = self.params.get("hdp_initial_w")
+        init_state = None
+        if _hdp_H0 is not None or _hdp_w0 is not None:
+            _idt = runtime_cfg.actual_dtype
+            init_state = {
+                "v": emitter.v0.astype(_idt),
+                "u": emitter.u0.astype(_idt),
+                "prev_spikes": jnp.zeros_like(emitter.v0, dtype=_idt),
+                "syn_state": jnp.zeros_like(edges.weight, dtype=_idt),
+            }
+            if _hdp_H0 is not None:
+                init_state["H_final"] = jnp.asarray(_hdp_H0, dtype=_idt)
+            if _hdp_w0 is not None:
+                init_state["w_final"] = jnp.asarray(_hdp_w0, dtype=_idt)
+
+        def _hdp_packed(k, s):
+            """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
+            V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
+                emitter, edges, sim.n_steps, sim.dt_ms, k,
+                dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                silence_mask=silence_mask,
+                init_state=init_state,
+                H_min=hp.get("H_min", 0.1), H_max=hp.get("H_max", 10.0),
+                tau_0_ms=hp.get("tau_0_ms", 100.0),
+                alpha=hp.get("alpha", 0.0), beta=hp.get("beta", 0.0),
+                gamma=hp.get("gamma", 0.0), delta=hp.get("delta", 0.0),
+                C_spike=hp.get("C_spike", 0.0), K_HDP=hp.get("K_HDP", 1.0),
+                K_ctrl=hp.get("K_ctrl", 0.0),
+                K_w_ctrl=hp.get("K_w_ctrl", 0.0),
+                barrier_c=hp.get("barrier_c", 0.0), barrier_d=hp.get("barrier_d", 0.0),
+                barrier_eps=hp.get("barrier_eps", 1.0e-3),
+                w_floor=hp.get("w_floor", 1.0e-3), w_ceiling=hp.get("w_ceiling", 50.0),
+                v_floor=hp.get("v_floor", -150.0), v_ceiling=hp.get("v_ceiling", 100.0),
+                u_abs_max=hp.get("u_abs_max", 2000.0), syn_abs_max=hp.get("syn_abs_max", 1.0e4),
+                H_boost_gain=hp.get("H_boost_gain", 0.0),
+                size_scale_by_cell_type=hp.get("size_scale_by_cell_type"),
+                size_scale_override=hp.get("size_scale_override"),
+                record_weight_trace=hp.get("record_weight_trace", True),
+            )
+            return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
+
+        effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+        if effective_jit:
+            if not hasattr(self, "_compiled_cache"):
+                object.__setattr__(self, "_compiled_cache", {})
+            from .validation import make_recompilation_guard
+            B = 1
+            Z = int(self.static.get("n_contacts", 16))
+            C = int(emitter.n_neurons)
+            T = int(sim.n_steps)
+            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+            cache_key = ("simulate_hdp", B, Z, C, T, runtime_cfg.actual_dtype,
+                         ablation_mode, runtime_cfg.selected_backend,
+                         _homeostasis_params_cache_fingerprint(hp))
+            with _device_scope(runtime_cfg.selected_backend):
+                if cache_key not in self._compiled_cache:
+                    import time
+                    target_fn = make_recompilation_guard(
+                        _hdp_packed, name="simulate_hdp",
+                        recompilation_guard=guard_mode, B=B, Z=Z, C=C, T=T,
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    t0 = time.perf_counter()
+                    result = self._compiled_cache[cache_key](key, sched)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                else:
+                    result = self._compiled_cache[cache_key](key, sched)
+        else:
+            with _device_scope(runtime_cfg.selected_backend):
+                result = _hdp_packed(key, sched)
+        V, S, src, H_final, H_trace, w_final, w_trace = result
+        object.__setattr__(self, "_last_hdp_diag",
+                           {"H_final": H_final, "H_trace": H_trace,
+                            "w_final": w_final, "w_trace": w_trace})
+        return V, S, src
+
+    if runtime_cfg.recurrent_backend == "edge_list":
+        edges: EdgeList = self.params["edge_list"]
+        if ablation_mode == "disconnected_null":
+            edges = replace(edges, weight=jnp.zeros_like(edges.weight))
+        kernel_fn = (
+            simulate_receptor_exponential_izhikevich
+            if runtime_cfg.synaptic_kernel == "receptor_exponential"
+            else simulate_edge_recurrent_izhikevich
+        )
+        effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+        if effective_jit:
+            if not hasattr(self, "_compiled_cache"):
+                object.__setattr__(self, "_compiled_cache", {})
+            from .validation import make_recompilation_guard
+            B = 1
+            Z = int(self.static.get("n_contacts", 16))
+            C = int(emitter.n_neurons)
+            T = int(sim.n_steps)
+            guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+
+            cache_key = ("simulate_recurrent", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, ablation_mode, runtime_cfg.selected_backend)
+            with _device_scope(runtime_cfg.selected_backend):
+                if cache_key not in self._compiled_cache:
+                    import time
+                    def target_fn(k, s):
+                        return kernel_fn(
+                            emitter, edges, sim.n_steps, sim.dt_ms, k,
+                            dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                            silence_mask=silence_mask,
+                        )[:3]
+                    target_fn = make_recompilation_guard(
+                        target_fn,
+                        name="simulate",
+                        recompilation_guard=guard_mode,
+                        B=B, Z=Z, C=C, T=T
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(target_fn)
+                    t0 = time.perf_counter()
+                    res = self._compiled_cache[cache_key](key, sched)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                    return res
+                run = self._compiled_cache[cache_key]
+                return run(key, sched)
+        with _device_scope(runtime_cfg.selected_backend):
+            return kernel_fn(
+                emitter, edges, sim.n_steps, sim.dt_ms, key,
+                dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+                silence_mask=silence_mask,
+            )[:3]
+    effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
+    if effective_jit:
+        if not hasattr(self, "_compiled_cache"):
+            object.__setattr__(self, "_compiled_cache", {})
+        from .validation import make_recompilation_guard
+        B = 1
+        Z = int(self.static.get("n_contacts", 16))
+        C = int(emitter.n_neurons)
+        T = int(sim.n_steps)
+        guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+
+        cache_key = ("simulate_dense", B, Z, C, T, runtime_cfg.actual_dtype, ablation_mode, runtime_cfg.selected_backend)
+        with _device_scope(runtime_cfg.selected_backend):
+            if cache_key not in self._compiled_cache:
+                import time
+                def target_fn(k, s):
+                    return simulate_eig_izhikevich(
+                        emitter, sim.n_steps, sim.dt_ms, k,
+                        dtype=runtime_cfg.actual_dtype, drive_schedule=s,
+                        silence_mask=silence_mask,
+                    )
+                target_fn = make_recompilation_guard(
+                    target_fn,
+                    name="simulate",
+                    recompilation_guard=guard_mode,
+                    B=B, Z=Z, C=C, T=T
+                )
+                self._compiled_cache[cache_key] = jax.jit(target_fn)
+                t0 = time.perf_counter()
+                res = self._compiled_cache[cache_key](key, sched)
+                t1 = time.perf_counter()
+                if not hasattr(self, "_warmup_times"):
+                    object.__setattr__(self, "_warmup_times", [])
+                self._warmup_times.append(t1 - t0)
+                return res
+            run = self._compiled_cache[cache_key]
+            return run(key, sched)
+    with _device_scope(runtime_cfg.selected_backend):
+        return simulate_eig_izhikevich(
+            emitter, sim.n_steps, sim.dt_ms, key,
+            dtype=runtime_cfg.actual_dtype, drive_schedule=sched,
+            silence_mask=silence_mask,
+        )
+
+def _resolve_stimulus_schedule(
+    self,
+    paradigm: Any,
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+) -> Optional["StimulusSchedule"]:
+    """Return a StimulusSchedule from paradigm arg, or None."""
+    if paradigm is None:
+        return None
+    if isinstance(paradigm, StimulusSchedule):
+        return paradigm
+    if isinstance(paradigm, ParadigmCondition):
+        return stimulus_schedule(
+            paradigm.events,
+            n_neurons=self.params["emitter"].n_neurons,
+        )
+    return None
+
+def simulate(
+    self: "Model",
+    sim: Simulation,
+    paradigm: "Optional[Any]" = None,
+) -> Signals:
+    """Run the default EIG/Izhikevich vertical slice.
+
+    When ``paradigm`` is None, behavior is identical to v0.0.11.
+    When ``paradigm`` is a :class:`StimulusSchedule`, its drive array is
+    injected as native (uncalibrated) current at each timestep.
+    When ``paradigm`` is a :class:`ParadigmCondition`, its events are
+    converted to a ``StimulusSchedule`` and injected.
+
+    JIT is opt-in through ``Simulation(runtime=RuntimeConfig(jit=True))`` or
+    ``runtime(jit=True)``.  The compiled path preserves the same proxy-field
+    truth status as the eager path. No calibrated amplitude, PDE, or empirical
+    claim is introduced by stimulus injection.
+    """
+    # Local import: _simulate_homeostasis_metadata/_simulate_hdp_metadata stay
+    # in core.py (group-6 construct-pipeline territory); Model is their only
+    # caller, so deferring the import here avoids a circular import with
+    # core.py's own `from ._model import Model`.
+    from .core import _simulate_homeostasis_metadata, _simulate_hdp_metadata
+
+    runtime_cfg = sim.resolved_runtime
+    key = jax.random.PRNGKey(sim.seed)
+
+    if isinstance(self.params["emitter"], HomeostaticEIParams):
+        return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
+
+    schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
+    drive_array: Optional[Any] = None
+    if schedule is not None:
+        drive_array = schedule.to_array(sim.n_steps, sim.dt_ms, dtype=runtime_cfg.actual_dtype)
+    if sim.poisson_drive is not None:
+        _emitter: IzhikevichParams = self.params["emitter"]
+        _pd = sim.poisson_drive
+        _poisson_arr = _make_poisson_drive(
+            n_steps=sim.n_steps,
+            n_neurons=_emitter.n_neurons,
+            rate_hz=float(_pd.get("rate_hz", 2.0)),
+            amplitude=float(_pd.get("amplitude", 0.5)),
+            dt_ms=sim.dt_ms,
+            seed=int(_pd.get("seed", sim.seed + 7919)),
+            target=str(_pd.get("target", "all")),
+        )
+        drive_array = _poisson_arr if drive_array is None else drive_array + _poisson_arr
+
+    # shuffled_timing ablation: shuffle drive_array along time axis (axis 0) independently for each neuron
+    ablation_mode = getattr(sim, "ablation", None)
+    if ablation_mode == "shuffled_timing" and drive_array is not None:
+        shuffle_key = jax.random.PRNGKey(sim.seed + 12345)
+        n_neurons = drive_array.shape[1]
+        keys = jax.random.split(shuffle_key, n_neurons)
+        # Use vmap to shuffle each neuron's temporal drive independently
+        shuffled = jax.vmap(lambda arr, k: jax.random.permutation(k, arr))(drive_array.T, keys)
+        drive_array = shuffled.T
+
+    voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    )
+    positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+    field_output = None
+    if sim.record_fields:
+        field_output = project_laminar_sources(
+            sources=sources,
+            positions=positions,
+            n_contacts=self.static.get("n_contacts", 16),
+            dtype=runtime_cfg.actual_dtype,
+        )
+
+    paradigm_meta: Optional[dict[str, Any]] = None
+    if isinstance(paradigm, Mapping):
+        paradigm_meta = dict(paradigm)
+    elif hasattr(paradigm, "to_dict"):
+        paradigm_meta = paradigm.to_dict()
+
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
+        "field_claim_level": "proxy_readout",
+        "paradigm": paradigm_meta,
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "record_sources": bool(sim.record_sources),
+        "record_fields": bool(sim.record_fields),
+        "plasticity_gain": sim.plasticity,
+        "runtime": runtime_cfg.runtime_report(),
+        "recurrent_backend": runtime_cfg.recurrent_backend,
+        "synaptic_kernel": runtime_cfg.synaptic_kernel,
+        "source_model": _SOURCE_PROXY_METADATA,
+        "neuron_metadata": self.static.get("neuron_metadata"),
+        "neuron_metadata_summary": self.static.get("neuron_metadata_summary"),
+        "ablation": ablation_mode,
+    }
+    # v0.2.0: Add source bookkeeping metadata for theoretical validation.
+    metadata["source_bookkeeping"] = {
+        "source_mode": _SOURCE_PROXY_METADATA.get("source_mode"),
+        "source_projection_mode": self.cfg.metadata.get("source_projection_mode", "proxy_no_field_solve"),
+        "source_decomposition": self.cfg.metadata.get("source_decomposition", "proxy_reduced_emitter"),
+        "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
+        "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
+        "source_mode_exclusive": True,
+        "physical_amplitude_calibrated": _SOURCE_PROXY_METADATA.get("physical_amplitude_calibrated", False),
+        "double_count_guard": "passed",
+        "double_count_evidence": None,
+    }
+    if schedule is not None:
+        metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
+        metadata["stimulus_schedule"] = schedule.to_dict()
+        if isinstance(paradigm, ParadigmCondition):
+            metadata["condition_name"] = paradigm.name
+            metadata["has_omission"] = paradigm.has_omission()
+    if sim.poisson_drive is not None:
+        metadata["poisson_drive"] = {
+            "rate_hz": float(sim.poisson_drive.get("rate_hz", 2.0)),
+            "amplitude": float(sim.poisson_drive.get("amplitude", 0.5)),
+            "target": str(sim.poisson_drive.get("target", "all")),
+            "seed": int(sim.poisson_drive.get("seed", sim.seed + 7919)),
+            "status": "stochastic_drive_applied",
+        }
+    if getattr(runtime_cfg, "enable_homeostasis", False):
+        diag = getattr(self, "_last_homeostasis_diag", None)
+        metadata["homeostasis"] = _simulate_homeostasis_metadata(runtime_cfg, diag)
+    if getattr(runtime_cfg, "enable_hdp", False):
+        diag = getattr(self, "_last_hdp_diag", None)
+        metadata["hdp"] = _simulate_hdp_metadata(runtime_cfg, diag)
+    return Signals(
+        time_ms=time_ms,
+        V_m=voltages.astype(runtime_cfg.jnp_dtype),
+        spikes=spikes,
+        sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
+        field=field_output,
+        metadata=metadata,
+    )
+
+def _simulate_homeostatic_ei(
+    self: "Model",
+    sim: Simulation,
+    key: jax.Array,
+    runtime_cfg: RuntimeConfig,
+) -> Signals:
+    """The homeostatic_ei emitter family's ``simulate()`` path -- the
+    second canonical HDP sanity circuit (see
+    ``jaxfne/emitters_homeostatic_ei.py``). Duplicates only the
+    family-agnostic parts of :meth:`simulate` (time axis, field
+    projection, metadata scaffold, ``Signals`` construction); does not
+    call ``_simulate_homeostasis_metadata``/``_simulate_hdp_metadata``
+    (those assume the edge-list HDP kernel's diagnostic shape) -- HDP
+    metadata here is built directly from ``G_history``/``H_history``.
+    """
+    emitter: HomeostaticEIParams = self.params["emitter"]
+    voltages, spikes, sources, G_history, H_history, diag = simulate_homeostatic_ei(
+        emitter,
+        n_steps=sim.n_steps,
+        dt_ms=sim.dt_ms,
+        key=key,
+        activation_rule=emitter.activation_rule_name,
+        conductance_rule=emitter.conductance_rule_name,
+        homeostasis_rule=emitter.homeostasis_rule_name,
+        dtype=runtime_cfg.actual_dtype,
+        bound_mode=emitter.bound_mode,
+    )
+    time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
+        sim.dt_ms, dtype=runtime_cfg.jnp_dtype
+    )
+    field_output = None
+    if sim.record_fields:
+        positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
+        field_output = project_laminar_sources(
+            sources=sources,
+            positions=positions,
+            n_contacts=self.static.get("n_contacts", 16),
+            dtype=runtime_cfg.actual_dtype,
+        )
+    metadata: dict[str, Any] = {
+        "config_hash": config_hash(self.cfg),
+        "emitter_family": "homeostatic_ei",
+        "source_calibration_status": emitter.source_calibration_status,
+        "field_claim_level": "proxy_readout",
+        "duration_ms": float(sim.duration_ms),
+        "dt_ms": float(sim.dt_ms),
+        "n_steps": int(sim.n_steps),
+        "runtime": runtime_cfg.runtime_report(),
+        "hdp": {
+            "enabled": True,
+            "rules": {
+                "activation_rule": emitter.activation_rule_name,
+                "conductance_rule": emitter.conductance_rule_name,
+                "homeostasis_rule": emitter.homeostasis_rule_name,
+                "bound_mode": emitter.bound_mode,
+            },
+            "H_trace": H_history,
+            "G_trace": G_history,
+            "error": bool(diag["error"]),
+        },
+    }
+    return Signals(
+        time_ms=time_ms,
+        V_m=voltages.astype(runtime_cfg.jnp_dtype),
+        spikes=spikes,
+        sources=sources.astype(runtime_cfg.jnp_dtype) if sim.record_sources else None,
+        field=field_output,
+        metadata=metadata,
+    )
+
+def last_homeostasis_diagnostics(self) -> "Optional[dict[str, Any]]":
+    """Return the full per-step homeostasis diagnostics from the most recent
+    ``simulate(...)`` call with ``enable_homeostasis=True``.
+
+    Returns a dict with arrays ``g_bias`` and ``r_trace`` of shape
+    ``(n_steps, n_neurons)``, or ``None`` if homeostasis was not enabled on
+    the last run. When ``homeostasis_params["eta"] != 0`` (homeostatic
+    synaptic plasticity active), the dict also carries ``w_final``
+    ``(n_edges,)`` and ``w_trace`` ``(n_steps, n_edges)`` — the plastic
+    edge-weight trajectory. These are computational-control diagnostics
+    (proxy), not a biological-mechanism claim.
+    """
+    return getattr(self, "_last_homeostasis_diag", None)
+
+def last_hdp_diagnostics(self) -> "Optional[dict[str, Any]]":
+    """Return the full per-step HDP diagnostics from the most recent
+    ``simulate(...)`` call with ``enable_hdp=True``.
+
+    Returns a dict with ``H_final``/``H_trace`` ``(n_steps, n_neurons)``
+    and ``w_final``/``w_trace`` ``(n_steps, n_edges)``, or ``None`` if HDP
+    was not enabled on the last run. If ``hdp_params["record_weight_trace"]``
+    was explicitly set to ``False`` (recommended when n_steps * n_edges
+    would exceed device memory -- e.g. 10,000 steps x 2,000,000 edges x
+    4 bytes = 80GB, a real reproduced OOM), ``w_trace`` is ``None`` while
+    ``w_final`` remains the correct terminal weight state either way; the
+    default (``True``) matches this method's documented contract exactly.
+    See ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`` for the
+    underlying kernel and ``jaxfne.hdp_network.DEFAULT_HDP`` /
+    ``DEFAULT_HDP_DESYNC`` for tuned presets. Computational-control
+    diagnostics (proxy), not a biological-mechanism claim.
+    """
+    return getattr(self, "_last_hdp_diag", None)
+
+def simulate_condition(
+    self,
+    sim: Simulation,
+    condition: "ParadigmCondition",
+    *,
+    drive_amplitude: float = 5.0,
+    event_duration_ms: float = 50.0,
+) -> Signals:
+    """Convenience wrapper: simulate one trial condition with event-aligned drive injection.
+
+    Equivalent to ``simulate(sim, paradigm=condition)`` but allows per-call
+    override of ``drive_amplitude`` and ``event_duration_ms``.
+    No calibrated amplitude, PDE, or empirical claim is introduced.
+    """
+    schedule = stimulus_schedule(
+        condition.events,
+        n_neurons=self.params["emitter"].n_neurons,
+        drive_amplitude=drive_amplitude,
+        event_duration_ms=event_duration_ms,
+    )
+    signals = self.simulate(sim, paradigm=schedule)
+    signals.metadata["condition_name"] = condition.name
+    signals.metadata["has_omission"] = condition.has_omission()
+    return signals
+
+def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = None) -> dict[str, Any]:
+    """Run a vectorized seed batch and return JSON-safe metadata plus arrays.
+
+    This is a trial-replicate utility for notebook statistics.  It uses
+    ``jax.vmap`` over PRNG keys and returns proxy arrays without changing the
+    field-solver or calibration status.
+    """
+    # Local import: see _simulate_arrays' matching comment above.
+    from .core import _resolve_homeostasis_k_gain, _homeostasis_params_cache_fingerprint
+    runtime_cfg = sim.resolved_runtime
+    base_seed = sim.seed if seed is None else int(seed)
+    keys = jax.random.split(jax.random.PRNGKey(base_seed), int(n_seeds))
+    emitter = self._require_izhikevich_emitter("simulate_batch")
+
+    # Sparse-direct models (placeholder dense W) must use the edge_list backend.
+    if emitter.W.shape[0] != int(emitter.v0.shape[0]) and "edge_list" in self.params:
+        runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
+
+    homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
+    if homeo_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
+        raise ValueError(
+            "enable_homeostasis is not supported with "
+            "synaptic_kernel='receptor_exponential'."
+        )
+    edge_kernel_fn = (
+        simulate_receptor_exponential_izhikevich
+        if runtime_cfg.synaptic_kernel == "receptor_exponential"
+        else simulate_edge_recurrent_izhikevich
+    )
+    _hp = dict(runtime_cfg.homeostasis_params or {})
+
+    def one(k):
+        """Documented public function `one`."""
+        if homeo_on:
+            # Homeostasis engages the sparse-edge homeostatic kernel; per-step
+            # g_bias/r_trace diagnostics are dropped here (batch is a seed-replicate
+            # statistics utility — use simulate() for full diagnostics passthrough).
+            return simulate_edge_recurrent_izhikevich_homeostatic(
+                emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
+                dtype=runtime_cfg.actual_dtype,
+                r_star=_hp.get("r_star", 0.05), tau_r_ms=_hp.get("tau_r_ms", 300.0),
+                alpha=_hp.get("alpha", 1.0), k_gain=_resolve_homeostasis_k_gain(_hp, emitter),
+                g_min=_hp.get("g_min", -12.0), g_max=_hp.get("g_max", 8.0),
+                r_max=_hp.get("r_max", 1.0),
+                eta=_hp.get("eta", 0.0), tau_x_ms=_hp.get("tau_x_ms", 100.0),
+                w_min=_hp.get("w_min", -10.0), w_max=_hp.get("w_max", 10.0),
+                v_floor=_hp.get("v_floor", -150.0), v_ceiling=_hp.get("v_ceiling", 100.0),
+                u_abs_max=_hp.get("u_abs_max", 2000.0), syn_abs_max=_hp.get("syn_abs_max", 1.0e4),
+            )[:3]
+        if runtime_cfg.recurrent_backend == "edge_list":
+            return edge_kernel_fn(
+                emitter,
+                self.params["edge_list"],
+                sim.n_steps,
+                sim.dt_ms,
+                k,
+                dtype=runtime_cfg.actual_dtype,
+            )[:3]
+        return simulate_eig_izhikevich(
+            emitter, sim.n_steps, sim.dt_ms, k, dtype=runtime_cfg.actual_dtype
+        )
+
+    # v0.0.21: honor runtime.vmap flag behaviorally.
+    # vmap=True  → jax.vmap over keys (one compiled call, vectorized over batch).
+    # vmap=False → Python-loop + jnp.stack (each key runs independently, no vmap).
+    effective_vmap = runtime_cfg.resolve_vmap(int(n_seeds))
+    if effective_vmap:
+        if not hasattr(self, "_compiled_cache"):
+            object.__setattr__(self, "_compiled_cache", {})
+        B = int(n_seeds)
+        Z = int(self.static.get("n_contacts", 16))
+        C = int(emitter.n_neurons)
+        T = int(sim.n_steps)
+        cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, runtime_cfg.selected_backend,
+                     _homeostasis_params_cache_fingerprint(_hp) if homeo_on else ())
+        with _device_scope(runtime_cfg.selected_backend):
+            effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
+            if effective_jit:
+                if cache_key not in self._compiled_cache:
+                    import time
+                    from .validation import make_recompilation_guard
+                    guard_mode = getattr(runtime_cfg, "recompilation_guard", "warning")
+                    run_mapped = jax.vmap(one)
+                    run_mapped = make_recompilation_guard(
+                        run_mapped,
+                        name="simulate_batch",
+                        recompilation_guard=guard_mode,
+                        B=B, Z=Z, C=C, T=T
+                    )
+                    self._compiled_cache[cache_key] = jax.jit(run_mapped)
+                    t0 = time.perf_counter()
+                    results = self._compiled_cache[cache_key](keys)
+                    t1 = time.perf_counter()
+                    if not hasattr(self, "_warmup_times"):
+                        object.__setattr__(self, "_warmup_times", [])
+                    self._warmup_times.append(t1 - t0)
+                    voltages, spikes, sources = results
+                else:
+                    run = self._compiled_cache[cache_key]
+                    voltages, spikes, sources = run(keys)
+            else:
+                run = jax.vmap(one)
+                voltages, spikes, sources = run(keys)
+        batch_execution_mode = "jax_vmap"
+    else:
+        per_key = [one(k) for k in keys]
+        voltages = jnp.stack([t[0] for t in per_key], axis=0)
+        spikes = jnp.stack([t[1] for t in per_key], axis=0)
+        sources = jnp.stack([t[2] for t in per_key], axis=0)
+        batch_execution_mode = "python_loop_stack"
+
+    if runtime_cfg.recurrent_backend == "edge_list":
+        batch_status = (
+            "vmap_seed_batch_v0.0.11"
+            if runtime_cfg.synaptic_kernel == "receptor_exponential"
+            else "vmap_seed_batch_v0.0.9"
+        )
+    else:
+        batch_status = "vmap_seed_batch_v0.0.8"
+    return {
+        "V_m": voltages.astype(runtime_cfg.jnp_dtype),
+        "spikes": spikes,
+        "sources": sources.astype(runtime_cfg.jnp_dtype),
+        "metadata": json_safe({
+            "batch_status": batch_status,
+            "batch_execution_mode": batch_execution_mode,
+            "n_seeds": int(n_seeds),
+            "seed": base_seed,
+            "runtime": runtime_cfg.runtime_report(),
+            "field_claim_level": "proxy_readout",
+            "physical_amplitude_calibrated": False,
+            "recurrent_backend": runtime_cfg.recurrent_backend,
+            "synaptic_kernel": runtime_cfg.synaptic_kernel,
+            "enable_homeostasis": homeo_on,
+            "homeostasis_params": _hp if homeo_on else None,
+            "source_model": _SOURCE_PROXY_METADATA,
+        }),
+    }
+
+def run_trials(self, batch: TrialBatch, sim: Simulation, collect_errors: bool = False) -> TrialBatchResult:
+    """Execute a batch of trials sequentially.
+
+    For each trial in the batch, this method:
+    1. Replaces sim.seed with trial.seed.
+    2. Calls self.simulate(sim_trial, paradigm=trial.condition).
+    3. If collect_errors=False (default): raises immediately on failure.
+       If collect_errors=True: records exception in TrialResult and continues.
+
+    Returns a TrialBatchResult containing all individual TrialResults (or raises on first failure).
+    """
+    results: list[TrialResult] = []
+    for trial in batch.trials:
+        sim_trial = replace(sim, seed=trial.seed)
+        try:
+            signals = self.simulate(sim_trial, paradigm=trial.condition)
+            results.append(
+                TrialResult(
+                    trial_id=trial.trial_id,
+                    condition_label=trial.condition.name if trial.condition else None,
+                    signals=signals,
+                    success=True,
+                    metadata=trial.metadata,
+                )
+            )
+        except Exception as e:
+            if not collect_errors:
+                raise
+            results.append(
+                TrialResult(
+                    trial_id=trial.trial_id,
+                    condition_label=trial.condition.name if trial.condition else None,
+                    signals=None,
+                    success=False,
+                    error_message=str(e),
+                    metadata=trial.metadata,
+                )
+            )
+    return TrialBatchResult(batch_id=batch.batch_id, results=tuple(results), metadata=batch.metadata)
+
