@@ -68,6 +68,10 @@ concrete incident this rule exists because of.
 ## Before writing helpers
 
 Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
+Naming a new private helper, or suspect two functions overlap: `jaxfne-harden` rule 10
+(generalization over duplication) — don't encode a module/initiative name into a general
+helper's name; don't maintain near-identical function bodies when one parameter would unify
+them. Feeds the `full_scorecard` Generalization/Code-defragmentation axes (`plans.json`).
 
 **Delegating jaxfne work to a fast/weak model (agy, Haiku-tier, any subagent):** don't just
 describe the task — paste the relevant skill's verified names/signatures into the prompt
