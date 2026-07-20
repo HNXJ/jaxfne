@@ -1180,7 +1180,7 @@ class Configuration:
             "seed": seed,
         }
         # Accumulate specs: each call adds one source->target projection. The
-        # construct path (``_suite2_apply_connectivity``) already iterates a list of
+        # construct path (``_apply_connectivity``) already iterates a list of
         # specs, so multiple calls (e.g. one per adjacent area pair, or both
         # directions of a pair) all materialize. Using a list here — rather than
         # overwriting the single key — is what lets a full multi-area hierarchy wire.

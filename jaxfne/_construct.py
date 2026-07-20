@@ -33,9 +33,9 @@ from ._construct_population import (
     _area_layer_count_frac,
     _layer_ranges_for,
     _make_sparse_within_area_edges,
-    _suite2_apply_connectivity,
-    _suite2_default_layer_cell_types,
-    _suite2_neuron_population_from_config,
+    _apply_connectivity,
+    _default_layer_cell_types,
+    _neuron_population_from_config,
 )
 from ._construct_connectivity import (
     _CONNECTIONS_EXACT_PRODUCT_CAP,

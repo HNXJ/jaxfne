@@ -10,7 +10,7 @@ import warnings
 
 import jax.numpy as jnp
 import jaxfne as jtfne
-from jaxfne.core import _suite2_apply_connectivity, _DENSE_CONNECTIVITY_WARN_N
+from jaxfne.core import _apply_connectivity, _DENSE_CONNECTIVITY_WARN_N
 from jaxfne.emitters import IzhikevichParams
 
 
@@ -26,7 +26,7 @@ def _params(n):
 
 
 def _apply(n, conn):
-    return _suite2_apply_connectivity(
+    return _apply_connectivity(
         _params(n), ["V1"] * n, ["L4"] * n, ["E"] * n,
         {"connectivity": conn}, seed=0, dtype="float32")
 

@@ -53,7 +53,7 @@ _SUITE2_PROXY_MODES = (
 )
 
 
-def _suite2_default_layer_cell_types() -> dict[str, dict[str, float]]:
+def _default_layer_cell_types() -> dict[str, dict[str, float]]:
     return {k: dict(v) for k, v in _SUITE2_LAYER_CELL_TYPES_V1.items()}
 
 
@@ -83,7 +83,7 @@ def _area_layer_cell_type_map(metadata: Mapping[str, Any], area: str) -> dict[st
     # invisible here -- Configuration.cell_types() writes that key, but this
     # resolver only ever checked area_layer_cell_types/layer_cell_types, so a
     # bare .cell_types({...}) after .population()/.geometry() silently fell
-    # through to the hardcoded _suite2_default_layer_cell_types() table below
+    # through to the hardcoded _default_layer_cell_types() table below
     # instead (confirmed regression: {"E":0.5,"PV":0.5} at N=2 on layer "L4"
     # produced ["PV","VIP"], not ["E","PV"], because L4's hardcoded default is
     # {"E":0.25,"PV":0.45,"SST":0.15,"VIP":0.15}). Broadcasting the flat
@@ -94,7 +94,7 @@ def _area_layer_cell_type_map(metadata: Mapping[str, Any], area: str) -> dict[st
         clean = {str(k): float(v) for k, v in flat.items()}
         layers = metadata.get("layer_fractions") or _SUITE2_LAYER_FRACTIONS
         return {str(layer): dict(clean) for layer in layers}
-    return _suite2_default_layer_cell_types()
+    return _default_layer_cell_types()
 
 
 def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, float] | None:
@@ -115,7 +115,7 @@ def _area_layer_count_frac(metadata: Mapping[str, Any], area: str) -> dict[str, 
     return None
 
 
-def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
+def _neuron_population_from_config(cfg: "Configuration", *, dtype: str = "float32") -> tuple[IzhikevichParams, jax.Array, dict[str, Any]]:
     """Build explicit Suite No. 2 neuron metadata and reduced emitter arrays."""
 
     metadata = cfg.metadata
@@ -207,7 +207,7 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         layer_labels=layer_labels,
         dtype=dtype,
         drive_overrides=baseline_drive,
-        # _suite2_apply_connectivity (called a few lines below) unconditionally
+        # _apply_connectivity (called a few lines below) unconditionally
         # replaces W in every branch (sparse-direct placeholder or a freshly
         # rebuilt dense matrix) -- the dense W built here would be pure waste,
         # confirmed as a real 40GB OOM at N=100,000 before this fix.
@@ -254,7 +254,7 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         )
 
     positions = jnp.concatenate(position_chunks, axis=0) if position_chunks else jnp.zeros((0, 3), dtype=jdtype)
-    params, _prebuilt_edges = _suite2_apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
+    params, _prebuilt_edges = _apply_connectivity(params, area_labels, layer_labels, labels, metadata, seed=seed, dtype=dtype)
     geometry_meta = {
         "neuron_rows": neuron_rows,
         "area_labels": area_labels,
@@ -337,7 +337,7 @@ def _make_sparse_within_area_edges(area_labels, sign, n, *, within_gain, p_conne
     )
 
 
-def _suite2_apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str):
+def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str):
     n = len(cell_labels)
     if n == 0:
         return params, None

@@ -639,7 +639,7 @@ def _connection_edge_weight(conn: "InterConnection | AreaConnection", total_n: i
     ``w_mech`` (plastic gain) is scaled by ``g_mech`` (static conductance for
     this connection's mechanism, default 1.0 if undeclared) and normalized by
     ``1/sqrt(total_n)``, matching the native-weight convention used elsewhere
-    in ``core.py`` (e.g. ``_suite2_apply_connectivity``'s ``base_gain * rnd /
+    in ``core.py`` (e.g. ``_apply_connectivity``'s ``base_gain * rnd /
     sqrt(n)``) so bridged edges sit on the same magnitude scale as the rest
     of the network instead of dominating or vanishing relative to it.
     """
@@ -662,7 +662,7 @@ def _wire_connection(
     Uses the generic, selector-based :meth:`Configuration.connections` +
     :meth:`Configuration.mechanisms` hooks (source/target by area/layer/
     cell_type) rather than the same-area-masked dense ``W`` in
-    ``_suite2_apply_connectivity`` — selectors carry no same-area restriction,
+    ``_apply_connectivity`` — selectors carry no same-area restriction,
     so this is what actually couples two different areas (or two specific
     layer x cell-type populations within one area) into the simulated
     dynamics. ``mechanism`` -> ``tau_ms`` comes from ``static.dT_ms``;
@@ -728,7 +728,7 @@ def neuronal_tensor_to_configuration(
     rule via :meth:`Configuration.connections` + :meth:`Configuration.mechanisms`
     (selector-based: ``area``/``layer``/``cell_type``), which carries no
     same-area restriction — this is what actually couples two areas (jaxfne's
-    own default recurrent ``W`` in ``_suite2_apply_connectivity`` is
+    own default recurrent ``W`` in ``_apply_connectivity`` is
     same-area-masked and would leave bridged areas dynamically isolated).
     ``mechanism`` resolves to a real per-edge ``tau_ms`` (from
     ``static.dT_ms``); edge magnitude is ``w_mech * g_mech / sqrt(total_n)``

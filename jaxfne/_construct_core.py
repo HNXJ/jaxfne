@@ -33,7 +33,7 @@ from ._construct_connectivity import (
     _mark_connections_compiled,
     _empty_edge_list,
 )
-from ._construct_population import _suite2_neuron_population_from_config
+from ._construct_population import _neuron_population_from_config
 from ._construct_extras import operator_status
 
 
@@ -371,7 +371,7 @@ def _construct_build_network(
     n = int(net.get("n", 100))
     _prebuilt_edges = None
     if cfg.metadata.get("columns") or cfg.metadata.get("layer_cell_types") or cfg.metadata.get("uniform_3d"):
-        params, positions, geometry_meta, _prebuilt_edges = _suite2_neuron_population_from_config(cfg, dtype=dtype_name_cfg)
+        params, positions, geometry_meta, _prebuilt_edges = _neuron_population_from_config(cfg, dtype=dtype_name_cfg)
         network = EIGNetwork(
             params=params,
             positions=positions,

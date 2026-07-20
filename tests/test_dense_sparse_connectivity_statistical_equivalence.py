@@ -20,7 +20,7 @@ import numpy as np
 import jax.numpy as jnp
 
 from jaxfne.emitters import izhikevich_params_from_labels
-from jaxfne._construct import _suite2_apply_connectivity, _make_sparse_within_area_edges
+from jaxfne._construct import _apply_connectivity, _make_sparse_within_area_edges
 
 import sys as _sys
 from pathlib import Path as _Path
@@ -43,7 +43,7 @@ def _mean_incoming_weight(n, seed, p_connect=0.3, within_gain=0.45):
     params, labels, layer_labels, area_labels = _build_params(n)
     metadata = {"connectivity": {"p_connect": p_connect, "within_gain": within_gain}}
 
-    params_dense, edges_dense = _suite2_apply_connectivity(
+    params_dense, edges_dense = _apply_connectivity(
         params, area_labels, layer_labels, labels, metadata, seed=seed, dtype="float32")
     assert edges_dense is None, "expected the dense-masked path at this N"
     W = np.asarray(params_dense.W)
@@ -104,9 +104,9 @@ def test_dense_and_sparse_edge_counts_match_expected_degree():
     params, labels, layer_labels, area_labels = _build_params(n)
     metadata = {"connectivity": {"p_connect": p_connect, "within_gain": 0.45}}
 
-    _, edges_dense_none = _suite2_apply_connectivity(
+    _, edges_dense_none = _apply_connectivity(
         params, area_labels, layer_labels, labels, metadata, seed=1, dtype="float32")
-    params_dense, _ = _suite2_apply_connectivity(
+    params_dense, _ = _apply_connectivity(
         params, area_labels, layer_labels, labels, metadata, seed=1, dtype="float32")
     n_edges_dense = int(np.sum(np.asarray(params_dense.W) != 0.0))
 

@@ -23,7 +23,7 @@ from ._construct_population import (
     _SUITE2_LAYER_CELL_TYPES_V1,
     _SUITE2_LAYER_CELL_TYPES_V4,
     _SUITE2_PROXY_MODES,
-    _suite2_default_layer_cell_types,
+    _default_layer_cell_types,
 )
 
 
@@ -261,7 +261,7 @@ def suite2_v1_v4_config(
         .column("V1", layers=layers, n=int(n_per_area))
         .column("V4", layers=layers, n=int(n_per_area))
         .cell_types({"E": 0.50, "PV": 0.20, "SST": 0.15, "VIP": 0.15})
-        .layer_fractions(_SUITE2_LAYER_FRACTIONS, _suite2_default_layer_cell_types())
+        .layer_fractions(_SUITE2_LAYER_FRACTIONS, _default_layer_cell_types())
         .area_layer_cell_types("V1", v1_layer_cell_types or _SUITE2_LAYER_CELL_TYPES_V1)
         .area_layer_cell_types("V4", v4_layer_cell_types or _SUITE2_LAYER_CELL_TYPES_V4)
         .connectivity(
