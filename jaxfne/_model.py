@@ -2811,7 +2811,7 @@ def with_emitter_parameters(
 
 
 
-_JAXFNE_VERSION = "0.4.6"
+_JAXFNE_VERSION = "0.4.7"
 _RECEIPT_SCHEMA_VERSION = "run_receipt_v0.0.21"
 _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 
