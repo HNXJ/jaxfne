@@ -1,9 +1,9 @@
-# Google Colab Quick Start (development tree v0.4.6)
+# Google Colab Quick Start
 
 **Run jaxfne examples in Google Colab without local setup.**
 
-**Version:** development checkout `0.4.6` (PyPI latest remains `0.4.5` until a confirmed public release)  
-**Last updated:** 2026-07-12  
+**Version:** latest PyPI release `jaxfne==0.4.7` (tag `v0.4.7`)  
+**Last updated:** 2026-07-20  
 **run_status:** tutorial_scaffold, exploratory_simulated_proxy
 
 ---

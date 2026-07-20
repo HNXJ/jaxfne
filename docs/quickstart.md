@@ -4,7 +4,7 @@ Study **laminar population dynamics** — spikes, membrane traces, and depth-res
 proxy readouts (LFP, CSD, spectrolaminar PSD) — from a JAX circuit you
 define once and simulate reproducibly.
 
-> Verified against `jaxfne==0.4.6`. `NeuronalTensor` is the preferred path for new code.
+> Verified against `jaxfne==0.4.7`. `NeuronalTensor` is the preferred path for new code.
 
 ## Install & import
 
