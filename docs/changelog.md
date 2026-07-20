@@ -29,20 +29,20 @@ GitHub Release / TestPyPI / PyPI since v0.4.5.
 - Dense-connectivity `construct()` OOM at N=100,000 (skips a wasted dense
   (N,N) allocation the suite2 path discards anyway); N=100,000 HDP
   long-duration étude executed end-to-end post-fix (H settles near
-  equilibrium, no OOM).
+  equilibrium, memory stays bounded).
 - `step_sdr_transform`/`step_gsdr_transform`/`step_agsdr_transform` docstrings
-  corrected — `Model.tune()` never actually calls these functions.
+  corrected — `Model.tune()` never calls these functions.
 - Version-alignment: `pyproject.toml`, `jaxfne.__version__`, `mkdocs.yml`, and
   `docs/_generated/version.md` now kept in lockstep (a stale-source gap was
   caught by the release CI's own regression suite this cycle).
 
 ### Changed
 - `ruff` lint is now a hard CI gate (509 → 0 errors as of 2026-07-14, with
-  every per-file suppression individually verified, not blanket-applied).
+  every per-file suppression individually verified rather than blanket-applied).
 - Pre-0.4.7 four-chapter polish (P–S): human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema; dual-ask re-score leak 92 / overall 93.
 - Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog lives under `docs/changelog.md`.
 - API docs export note links [Scope & status](scope_and_status.md) instead of repeating gate jargon.
-- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md) only; states the Jaxley/jaxfne population-vs-compartment relationship directly.
+- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md); states the Jaxley/jaxfne population-vs-compartment relationship.
 
 ### Removed
 - Root `SECURITY.md` and `CODE_OF_CONDUCT.md`.
