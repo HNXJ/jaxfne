@@ -55,6 +55,92 @@ def test_generated_version_md_comparison():
         f"docs/_generated/version.md content ({repr(content)}) does not match expected ({repr(expected_content)})"
     )
 
+def test_install_md_latest_pypi_version():
+    """docs/install.md's 'latest PyPI release' claim must track pyproject.toml.
+
+    Regression guard for the 2026-07-20 incident: install.md, colab.md,
+    quickstart.md, api/index.md, citation.md, and CITATION.cff all hardcode
+    a 'latest release'/'current version' claim as free text, none of which
+    was covered by any existing version-alignment test -- they went stale by
+    two releases (0.4.5/0.4.6) before being caught by a user, not CI.
+    scripts/sync_docs_version.py now syncs all of them in one pass; this test
+    (and its siblings below) is what makes skipping that sync a CI failure
+    instead of a silent drift.
+    """
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "install.md").read_text(encoding="utf-8")
+
+    match = re.search(r"latest \*\*PyPI\*\* release is \*\*`jaxfne==([^`]+)`\*\*", content)
+    assert match, "Could not find the 'latest PyPI release' claim in docs/install.md"
+    assert match.group(1) == pyproject_version, (
+        f"docs/install.md claims latest PyPI release {match.group(1)!r}, "
+        f"pyproject.toml says {pyproject_version!r}"
+    )
+
+
+def test_colab_md_version():
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "colab.md").read_text(encoding="utf-8")
+
+    match = re.search(r"\*\*Version:\*\* latest PyPI release `jaxfne==([^`]+)`", content)
+    assert match, "Could not find the version line in docs/colab.md"
+    assert match.group(1) == pyproject_version, (
+        f"docs/colab.md claims version {match.group(1)!r}, pyproject.toml says {pyproject_version!r}"
+    )
+
+
+def test_quickstart_md_verified_version():
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "quickstart.md").read_text(encoding="utf-8")
+
+    match = re.search(r"Verified against `jaxfne==([^`]+)`", content)
+    assert match, "Could not find the 'Verified against' line in docs/quickstart.md"
+    assert match.group(1) == pyproject_version, (
+        f"docs/quickstart.md says 'Verified against {match.group(1)}', pyproject.toml says {pyproject_version!r}"
+    )
+
+
+def test_api_index_md_latest_pypi_version():
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "api" / "index.md").read_text(encoding="utf-8")
+
+    match = re.search(r"Latest PyPI release `jaxfne==([^`]+)`", content)
+    assert match, "Could not find the 'Latest PyPI release' claim in docs/api/index.md"
+    assert match.group(1) == pyproject_version, (
+        f"docs/api/index.md claims latest PyPI release {match.group(1)!r}, "
+        f"pyproject.toml says {pyproject_version!r}"
+    )
+
+
+def test_citation_md_version_fields():
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "docs" / "citation.md").read_text(encoding="utf-8")
+
+    matches = re.findall(r"version = \{([^}]+)\}", content)
+    assert matches, "Could not find any 'version = {...}' BibTeX fields in docs/citation.md"
+    for v in matches:
+        assert v == pyproject_version, (
+            f"docs/citation.md has a BibTeX version field {v!r}, pyproject.toml says {pyproject_version!r}"
+        )
+
+
+def test_citation_cff_version():
+    pyproject_version = get_pyproject_version()
+    root_dir = Path(__file__).resolve().parent.parent
+    content = (root_dir / "CITATION.cff").read_text(encoding="utf-8")
+
+    match = re.search(r"^version:\s*(.+)$", content, re.MULTILINE)
+    assert match, "Could not find version: in CITATION.cff"
+    assert match.group(1).strip() == pyproject_version, (
+        f"CITATION.cff version ({match.group(1).strip()!r}) does not match pyproject.toml version ({pyproject_version!r})"
+    )
+
+
 def test_no_stale_active_versions_in_public_docs():
     """Verify that active public docs do not present stale active-baseline versions (like stating current is 0.3.4)."""
     root_dir = Path(__file__).resolve().parent.parent
