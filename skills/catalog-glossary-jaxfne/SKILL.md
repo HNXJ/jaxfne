@@ -77,6 +77,54 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
 - Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `_model.py`'s `_hdp_packed` (moved from `core.py` during the 2026-07-04/05 monolith split — core.py is now a 233-line pure re-export aggregator); any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`, `K_w_ctrl`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/_model.py` before trusting a new `hdp_params` key reaches the kernel.
 - `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge `receptor_index`.
 
+### 1d. `homeostatic_ei` — second canonical HDP sanity emitter (`jaxfne/emitters_homeostatic_ei.py`)
+
+- **Purpose:** minimal 2-neuron E/I circuit with an explicit conductance
+  matrix `G` and HDP state `H`, updated as three separate staged steps (fast
+  `x`, intermediate `G`, slow `H`) instead of one fused rule. A separate
+  emitter family from Izhikevich, not built on `HDPColumnConfig`.
+- **Input:** `Configuration().network(...).set_emitter("homeostatic_ei",
+  activation_rule=..., conductance_rule=..., homeostasis_rule=...,
+  bound_mode="minimal")` — rule names from `ACTIVATION_RULES`
+  (linear/cubic/logistic), `CONDUCTANCE_RULES` (hebbian/bcm/linear/
+  **hebbian_pairwise**), `HOMEOSTASIS_RULES` (linear/logistic/cubic_penalty/
+  **cubic_penalty_coupled**), or a custom callable passed directly to
+  `simulate_homeostatic_ei()` (only registry *names* pass through
+  `Configuration`, which must stay JSON-safe).
+- **Output:** standard `Signals` (`V_m`, `spikes`, `sources`) plus
+  `metadata["hdp"]["G_trace"]`/`["H_trace"]`/`["rules"]["bound_mode"]`.
+- **How to use:** `construct(cfg)` then `.simulate(sim)` — dispatches
+  automatically, no special-case call needed. `G0` is tunable through the
+  existing AGSDR path via `matrix_parameter(mask=..., bounds=..., target="G0")`.
+  `make_minimal_ei_params(n, ...)` builds a `HomeostaticEIParams` directly
+  (any `n>=2`) for ad hoc scripts without going through `Configuration`.
+- **`bound_mode`** (2026-07-16, default `"minimal"` = unchanged prior
+  behavior): `"stable"` applies a smooth tanh soft-bound to `x`/`G`/`H`
+  instead of `jnp.clip` -- a bounded codomain that can't be numerically
+  outrun (verified: fixes a real N=16 divergence to NaN under the flat
+  canonical `G_max=5.0`, reproducible across seeds under `"minimal"`).
+  `x` was previously the only *unbounded* state (`G`/`H` were already
+  clipped) -- new `HomeostaticEIParams.x_min`/`.x_max` fields back this,
+  default a wide `+-1e6` (safe/inert under `"minimal"`).
+- **`hebbian_pairwise`** conductance rule (2026-07-16): independent gains
+  per population pair (E-E/E-I/I-E/I-I) via
+  `make_hebbian_pairwise_rule(k_ee, k_ei, k_ie, k_ii)`; default gains all
+  `1.0` == plain `hebbian`. Custom gains are a callable, so only reachable
+  by calling `simulate_homeostatic_ei` directly (same `Configuration`
+  JSON-safety limitation as any custom rule).
+- **`cubic_penalty_coupled`** homeostasis rule (2026-07-16): adds E<->I
+  cross-population coupling to `cubic_penalty` -- every other rule's `dH`
+  depends only on that neuron's own `x`; this one lets one population's H
+  respond to the other's activity.
+- **Notes:** `activation_rule="linear"` diverges once `G`-adaptation is on —
+  the default is `"cubic"`. `Model.summary()`/`.neuron_table()`/
+  `.checkpoint()`/`.with_emitter_parameters()`/`.simulate_batch()` raise
+  `NotImplementedError` for this family. `simulate_homeostatic_ei` is
+  `jax.jit`-compiled (repeated calls with the same static rule/mode config
+  reuse one compiled program). Milestones 1-3 covered by
+  `tests/test_homeostatic_ei_*.py`; Milestones 4-6 tracked in
+  `artifacts/developer/plans.json`.
+
 ## 2. Laminar-column TRIAL pipeline — `jtfne.tutorial_utils` (the one most often rediscovered)
 
 This is the canonical multi-trial laminar/spectrolaminar path. **Do not hand-roll PSDs.**
@@ -115,12 +163,13 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 - Noise control on the Config-path is **kernel-dependent**, not uniform: `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, and the homeostatic variant accept `noise_scale=` (`None` = historical `0.5`); `simulate_receptor_exponential_izhikevich` hardcodes `0.5` inline with no override kwarg at all.
 - Read a signal: `Signals.get(key)` or free fn `get_signal(obj, key)`. Keys accept aliases: `"V_m"`/`"vm"`, `"spikes"`/`"spk"`, `"lfp_contacts"`, `"csd_contacts"`, `"source_native"`.
 
-## 4. Readouts, projections, fields (all PROXY — no PDE solve)
+## 4. Readouts, projections, fields (default path is PROXY; one real solver is experimental)
 
-- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003).
+- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003). This remains the default `simulate()` field dispatch, unaffected by the solver below.
 - `project_sources_to_laminar_field(...)`, `probe_laminar_modes(field_output, modes)`.
 - Lead-field proxies: `eeg_proxy_transform(source, leadfield)`, `meg_proxy_transform(source_oriented, leadfield)`, `emm_proxy_transform(...)`.
 - `construct_source_tensor(*, mode, ...)`, `compute_conservation_proxy_diagnostics(...)`, `validate_projection_invariants(...)`, `validate_source_field_status(...)`.
+- **Real (experimental) 1D Poisson solve, separate from the proxy path above**: `experimental_poisson_1d(sources, conductivity, dx)` (`jaxfne/fields/solvers.py`) actually assembles and solves a linear system (`field_solver_status="experimental_pde_solver"`), supporting uniform or layered (per-face array) conductivity. Confirmed convergence ceiling: reliable to roughly N~150 grid points in float32, degrades sharply above that (`convergence_status` self-reports `"failed"`, checked). `experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins)` bridges it to a real `Model.neuron_table()`/`Signals.sources` — an explicitly opt-in accessor called after `construct()`/`simulate()`, kept fully separate from the `project_laminar_sources` dispatch above. Toward `plans.json:novelty::tfne-differentiable-field-solver`.
 
 ## 5. Optimizers & tuning (AGSDR/GSDR/SDR/Optax)
 
@@ -132,6 +181,9 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 ## 6. Paradigms & trials
 
 - `paradigm(name)`, `evoked_l4_drive_paradigm(...)`, `omission_oddball_paradigm(...)`, `standard_visual_omission()`.
+- `coop_omission_oddball_paradigm(duration_ms=..., freq_hz=..., omission_prob=...)` — Continuous Omission Oddball Paradigm (the original, narrower COOP).
+- **`general_sequential_oddball_paradigm(...)`** — the generic backbone (omission/global/local/sync/async/active/passive families via event windows + token sequences or explicit event lists). Prefer this over hand-rolling a new fixed-shape builder; see `jaxfne-paradigm-design` for the full grammar.
+- `general_delayed_match_to_sample_paradigm(...)` — thin DMS-flavored wrapper over the backbone.
 - `trial_batch(conditions, n_reps, seed, ...)` → `TrialBatch`.
 
 ## 7. Metrics & summaries
@@ -155,7 +207,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 - `visualize_laminar_column_3d(model, cfg, ...)`.
 
 ### `jtfne.tutorial_utils.plot_*` (array-driven quick plots)
-`plot_raster`, `plot_spectrolaminar_power(t, signal, freq_min, freq_max, n_freqs)`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`, `plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`.
+`plot_raster`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`, `plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`. (No `tutorial_utils` short-name wrapper exists for spectrolaminar-power plotting — use `jtfne.vis.plot_spectrolaminar_power_array(t, signal, freq_min=1.0, freq_max=120.0, n_freqs=96, ...)` directly, defined in `jaxfne/vis/tutorial_array_plots.py`.)
 
 ## 9. Manifests, receipts, JSON, hashing (Truth plane)
 

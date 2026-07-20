@@ -22,8 +22,27 @@ Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
 | **NeuronalTensor** → `construct(tensor, RuntimeConfiguration(...))` → `simulate` | multi-area, JSON tensors, explicit 3D | `Model` / `Signals` |
 
 HDP on tensor path: `simulate(..., runtime=RuntimeConfig(enable_hdp=True, hdp_params={...}))`.
+`Model.simulate()` does not inherit `Configuration.hdp(...)`/`.runtime(...)` the way
+top-level `simulate()` does — pass `runtime=RuntimeConfig(enable_hdp=True, ...)` explicitly
+when calling the `Model` method directly. For true turn-to-turn state continuity (not just
+`Model.with_hdp_initial_state()`'s partial `H`/`w`-only carry), use
+`jaxfne._pipeline.compile_step_fn`/`scan_network` with `DynamicState` (all six fields:
+`v, u, prev_spikes, syn_state, H, w`). Full detail: `skills/jaxfne-neural-tensor/SKILL.md`,
+`skills/FRICTIONS_STACK.md` F-031.
 
 Per-event layer targeting: `target_indices` on **event dict**, not schedule ctor. Build indices from `model.neuron_table()`.
+
+## Config complexity tiers
+
+`Configuration` (flat fluent builder) and `NeuronalTensor` (structured Areas ×
+Layers × NeuronTypes) are separate tiers, not a hierarchy — both converge on
+the same `Model` via `construct()`'s type-dispatch, neither wraps the other.
+There is deliberately no `Configuration -> NeuronalTensor` converter:
+`Configuration` is the simpler tier, and promoting it up to the structured
+tier adds no information a caller didn't already have. Only the reverse
+(`neuronal_tensor_to_configuration`) exists, since going from structured to
+flat is a real simplification. `HDPColumnConfig` is a third, narrower tier
+(canonical 6-layer laminar column only) — see `jaxfne-neural-tensor` skill.
 
 Laminar readout: `jtfne.vis.spectrolaminar_suite(sig)`.
 
@@ -50,6 +69,13 @@ concrete incident this rule exists because of.
 
 Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
 
+**Delegating jaxfne work to a fast/weak model (agy, Haiku-tier, any subagent):** don't just
+describe the task — paste the relevant skill's verified names/signatures into the prompt
+directly. This repo's own API surface is large and easy to guess wrong (`jtfne.weld()`,
+`cfg.circuit`, a fictional `FlatModel`/`FlatNet` alias were all found and struck from the skills
+this way — a plausible-sounding invented name a fast model would readily produce unprompted). A
+skill's contract handed inline removes that guesswork; an open-ended ask invites it.
+
 ## PRP backlog — local-only, not tracked
 
 `artifacts/developer/{plans,progress,review}.json` + `AGENT_CHANNEL.md`. Skill:
@@ -71,9 +97,8 @@ Plotting: **`jaxfne/vis/*` only** (modular-grammar rule 2).
 ## Root freeze
 
 Repo root frozen 2026-06-17 — no new top-level **folders** except approved patches (`skills/`
-kept by design). A single new top-level **file** (e.g. `SECURITY.md`, a GitHub-convention file
-expected at repo root) is not a folder-clutter violation — added 2026-07-14, don't treat this as
-reopening the freeze generally.
+kept by design). A single new top-level **file** (a GitHub-convention file expected at repo
+root) is not a folder-clutter violation on its own — this doesn't reopen the freeze generally.
 
 ## Known stubs
 
@@ -82,9 +107,8 @@ reopening the freeze generally.
 ## Known fragilities (track)
 
 1. `jaxfne/__init__.py` runtime wrapper — brittle function/submodule collision.
-2. `_CONFIG_RUNTIME_WARNINGS` global in `core.py` — not thread-safe.
-3. Hardcoded 20.0 spike gain in source proxy — dense/edge kernels must stay in sync.
-4. `DEFAULT_HDP`'s `K_w_ctrl=0.0` permits unbounded weight drift on long/custom HDP runs outside
+2. Hardcoded 20.0 spike gain in source proxy — dense/edge kernels must stay in sync.
+3. `DEFAULT_HDP`'s `K_w_ctrl=0.0` permits unbounded weight drift on long/custom HDP runs outside
    the specific presets already verified — see `plans.json`'s `hdp-k-w-ctrl-default-runaway-gap`
    (local-only, see PRP backlog above).
 

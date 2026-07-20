@@ -43,6 +43,8 @@ from .core import (
     quadratic_target_loss_grad,
     _resolve_optimizer,
     _tune_matrix_agsdr_optax,
+    _tune_source_scale_optax,
+    _tune_scalar_soft_rate_optax,
 )
 
 __all__ = [

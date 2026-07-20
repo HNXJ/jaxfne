@@ -396,7 +396,10 @@ tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_
 overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes
 `H_trace` and `w_trace` (each `(n_steps, ...)`), `H_final`/`w_final`, plus optional
 per-term `dH_*_trace` diagnostics when `record_dH_components=True` and `edge_current_trace` when
-`record_edge_current=True`. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
+`record_edge_current=True`. `record_weight_trace` (default `True`) controls whether `w_trace`
+(shape `(n_steps, n_edges)`, the dominant memory cost at scale — e.g. 10,000 steps x 2,000,000
+edges x 4 bytes = 80GB) is stacked at all; set `False` to get `w_trace=None` while `w_final` and
+HDP's actual dynamics stay unaffected. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
 reference — it is extensive and not duplicated here.
 
 ---
@@ -564,16 +567,77 @@ state, output = emitter.step(state, input_t=jnp.zeros(64), dt_ms=0.1)
 
 ---
 
-## Scope Notes
+## homeostatic_ei (second canonical HDP sanity emitter)
 
-- **Izhikevich model is phenomenological:** Not a detailed Hodgkin-Huxley model; suitable for tutorial and prototyping workflows.
-- **Spike threshold (v >= 30.0):** Fixed threshold; not voltage-dependent channels.
-- **Internal drive, not physical current:** every kernel's `source_calibration_status` defaults to an
-  `"uncalibrated_..."` value; there is no physical-amplitude claim without an explicit calibration
-  bridge.
-- **Synaptic kinetics:** Exponential decay only (no separate rise time constant); receptor
-  reversal potentials are metadata-only and never enter the dynamics as a conductance equation.
-- **Network connectivity:** Declared via `IzhikevichParams.W` (dense) or `EdgeList` (sparse);
-  not learned by default (see `simulate_edge_recurrent_izhikevich_homeostatic`'s `eta` and
-  `simulate_edge_recurrent_izhikevich_hdp` for the plasticity-enabled paths).
+`jaxfne/emitters_homeostatic_ei.py`. A **separate emitter family from Izhikevich** —
+not a variant of it. State `x` is continuous, bounded, differentiable rate-like state,
+**not** a hard Izhikevich threshold-and-reset (no `v`/`u`, no spike-triggered reset). It is
+the smallest dynamical system built to exercise HDP: three explicit, independently staged
+timescales (never fused into one rule):
+
+```
+dx/dt = f(x, G, u)        fast neuronal dynamics      (tau_x_ms)
+dG/dt = f_G(x, H, is_e)    intermediate conductance     (tau_G_ms)
+dH/dt = f_H(x, H, is_e)    slow HDP homeostasis         (tau_H_ms)
+```
+
+```python
+cfg = (
+    jtfne.Configuration()
+    .runtime(seed=0, duration_ms=1000.0, dt_ms=0.5)
+    .network(name="ei8", n=8)
+    .set_emitter("homeostatic_ei", activation_rule="cubic", conductance_rule="hebbian",
+                 homeostasis_rule="linear", bound_mode="minimal")
+    .field(domain="none")
+    .probe(modes=["vm"])
+)
+model = jtfne.construct(cfg)
+signals = model.simulate(jtfne.simulation(duration_ms=1000.0, dt_ms=0.5, seed=0))
+```
+
+`n` (from `.network(n=...)`) can be any value `>=2` — split E/I via
+`_homeostatic_ei_cell_type_split` (`~75%`/`~25%`, at least 1 of each).
+`Model.summary()`/`.neuron_table()`/`.checkpoint()`/`.with_emitter_parameters()`/
+`.simulate_batch()` all raise `NotImplementedError` for this family (not yet generalized).
+
+### Rule registries (`ACTIVATION_RULES`/`CONDUCTANCE_RULES`/`HOMEOSTASIS_RULES`)
+
+Registry **names** pass through `Configuration` (which must stay JSON-safe); a
+custom Python callable bypasses `Configuration` entirely, via
+`jaxfne.emitters_homeostatic_ei.simulate_homeostatic_ei(...)`.
+
+- **activation_rule**: `"linear"` (`dx = -x + G@x + u`), `"cubic"` (`dx = -x^3 + G@x + u`,
+  the default — bounds runaway growth; `"linear"` diverges once G-adaptation is on),
+  `"logistic"` (`dx = -x + G@sigmoid(x) + u`).
+- **conductance_rule**: `"hebbian"` (`dG_ij = H_i*x_i*x_j - G_ij`), `"bcm"`, `"linear"`,
+  **`"hebbian_pairwise"`** — independent gains per population pair (E-E/E-I/I-E/I-I)
+  instead of one flat Hebbian rate; default gains all `1.0` (numerically identical to
+  plain `"hebbian"`). Custom gains: `conductance_rule=jaxfne.emitters_homeostatic_ei.make_hebbian_pairwise_rule(k_ee=1.0, k_ei=5.0, k_ie=0.2, k_ii=1.0)` (a callable, reachable via
+  `simulate_homeostatic_ei`, bypassing `Configuration`).
+- **homeostasis_rule**: `"linear"` (`dH = -(x-1)*H` — one-sided rate-drain; collapses to
+  `H_min` at higher N, no term restoring H from below), `"logistic"`, `"cubic_penalty"`
+  (adds a two-sided cubic restoring force toward `H=1`, avoiding the floor-collapse),
+  **`"cubic_penalty_coupled"`** — adds an E<->I cross-population coupling term on top of
+  `cubic_penalty` (I's H rises when E's population-mean activity exceeds target, and
+  vice versa) — every other rule's `dH` depends solely on that neuron's own `x`.
+
+### `bound_mode` (`"minimal"` | `"stable"`, default `"minimal"`)
+
+- `"minimal"`: `jnp.clip` on `G`/`H`; `x` is entirely **unbounded**. A large enough
+  step (explicit Euler on the cubic activation term overshoots once `|x|` exceeds a
+  real numerical-stability radius, `~2.58` at the canonical `dt_x`) can diverge to
+  `NaN` — reproduced at N=16 with the shipped flat `G_max=5.0` default.
+- `"stable"`: a smooth `tanh` soft-bound (`_soft_bound`) applied to `x`, `G`, and `H`
+  every step instead of `jnp.clip` — a bounded *codomain*, not a *force*: cannot be
+  numerically outrun by any step size, N, or gain, and is gradient-friendly everywhere
+  (unlike `jnp.clip`'s zero-gradient boundary). Requires `HomeostaticEIParams.x_min`/
+  `.x_max` (new fields; default a very wide `+-1e6`, safe/inert for `"minimal"` mode).
+
+### `make_minimal_ei_params(n=8, e_fraction=0.75, **kwargs) -> HomeostaticEIParams`
+
+Builds a minimal all-pairwise E/I `HomeostaticEIParams` for any `n>=2` — the
+`scripts/`-level analog of `Configuration.set_emitter("homeostatic_ei")`, for ad hoc
+scripts/experiments that want a `HomeostaticEIParams` without going through
+`Configuration`/`construct()`. `G_max` defaults to `10.0/n` (not a flat constant) —
+holds the aggregate per-row Hebbian feedback ceiling (`n * G_max`) constant across `n`.
 </content>

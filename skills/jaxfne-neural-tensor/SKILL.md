@@ -1,16 +1,14 @@
 ---
 name: jaxfne-neural-tensor
 description: >-
-  Verified NeuronalTensor build path (Areas × Layers × NeuronTypes ×
-  AreaConnections) and HDP homeostatic-plasticity module. USE when building or
-  editing a NeuronalTensor circuit, enabling HDP, or naming a NeuronalTensor
-  symbol. As of 2026-07-03, NeuronalTensor/Area raise TypeError at
-  construction time on wrong-typed elements (closes the old silent
-  type-confusion landmine — NeuronalTensor(some_configuration) now raises
-  immediately instead of corrupting state). There is still no
-  Configuration -> NeuronalTensor converter (deliberately out of scope —
-  Configuration is the simpler tier, promoting it up adds no information;
-  see AGENTS.md § "Config complexity tiers").
+  Build or edit a jaxfne NeuronalTensor circuit (Areas × Layers × NeuronTypes ×
+  AreaConnections) and enable the HDP homeostatic-plasticity module. Use when
+  constructing or naming a NeuronalTensor / Area / Layer / NeuronType /
+  InterConnection / AreaConnection, loading a canonical tensor JSON, or enabling
+  HDP / homeostasis (RuntimeConfig(enable_hdp=True, hdp_params=...),
+  DEFAULT_HDP, the cube-law tau_i = tau_0_ms * size_i**3, H-factor dynamics,
+  last_hdp_diagnostics). Covers the tensor-vs-Configuration tier split (no
+  Configuration→NeuronalTensor converter, by design).
 ---
 
 # jaxfne Neural Tensor
@@ -111,6 +109,38 @@ from jaxfne.hdp_network import DEFAULT_HDP
 sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0,
                       runtime=jtfne.RuntimeConfig(enable_hdp=True, hdp_params=dict(DEFAULT_HDP)))
 ```
+
+**Two more landmines found 2026-07-14, building a small (N=20) chained-turn
+HDP habituation test:**
+
+1. **`Model.simulate(sim)` (the OO method) does NOT get the same
+   `cfg`-derived runtime inheritance as the top-level `jtfne.simulate(model,
+   ...)` shown above.** Verified via source: the top-level free function
+   (`_construct.py`'s module-level `simulate()`) calls
+   `_runtime_config_from_metadata(cfg.metadata)` when no explicit `runtime=`
+   is given, so a `Configuration.hdp(...)`/`.runtime(...)` declaration takes
+   effect automatically — but `Simulation.resolved_runtime` (what
+   `Model.simulate()` actually uses) never touches `cfg.metadata` at all; a
+   bare `Simulation(...)` there silently gets `enable_hdp=False` regardless
+   of what the `Configuration` declared. If you need the OO `.simulate()`
+   call (e.g. because you're also calling `Model.with_hdp_initial_state()`,
+   which only exists on `Model`), pass `runtime=RuntimeConfig(enable_hdp=True,
+   hdp_params={...})` explicitly every call — don't rely on `cfg.hdp(...)`
+   alone once you're off the top-level-function path.
+
+2. **`Model.with_hdp_initial_state(H0=..., w0=...)` does NOT give true
+   turn-to-turn simulation continuity.** It only carries `H` and edge weight
+   `w` forward — membrane voltage `v`, recovery `u`, `prev_spikes`, and
+   synaptic state `syn_state` are hard-reset to the model's native
+   `v0`/`u0`/zero on every call (see `_model.py`'s `init_state` construction
+   in the HDP dispatch branch). Combined with an identical PRNG seed across
+   calls, this can produce bit-identical firing-rate/oscillation output
+   across "chained" turns despite `H`/`w` visibly drifting — a real trap for
+   anyone building a genuinely continuous multi-turn simulation. The verified
+   full-state path is `jaxfne._pipeline.compile_step_fn`/`scan_network`'s
+   `DynamicState` (`v, u, prev_spikes, syn_state, H, w` — all six carried),
+   documented above under "Internal pure-function layer" but easy to miss
+   since `with_hdp_initial_state` looks like it should be sufficient.
 
 ## HDP module (`jaxfne/hdp_network.py`) — generic, config-driven, no per-N functions
 

@@ -9,6 +9,7 @@ expectations for human contributors.
 - [Documentation](https://jaxfne.readthedocs.io/)
 - [Scope & status](scope_and_status.md)
 - [For AI agents](for_ai_agents.md) — agent workflows, skills, and maintainer backlog
+- [Code of Conduct](https://github.com/HNXJ/jaxfne/blob/main/.github/CODE_OF_CONDUCT.md)
 - [GitHub Issues](https://github.com/HNXJ/jaxfne/issues) · [Discussions](https://github.com/HNXJ/jaxfne/discussions)
 
 ## Development setup

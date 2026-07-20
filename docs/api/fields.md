@@ -424,11 +424,38 @@ from the fenced multi-dimensional placeholder below.
 
 **Parameters:**
 - `sources` (`jax.Array`): 1D array of current/charge sources.
-- `conductivity` (float): conductivity scalar.
+- `conductivity` (float or `jax.Array`): conductivity scalar (uniform medium,
+  original behavior, unchanged), or a per-face array of shape `(N-1,)` giving
+  the conductivity between each pair of adjacent grid nodes (a piecewise-
+  constant "layered" medium, e.g. distinct cortical-layer conductivities —
+  added 2026-07-18 toward `plans.json`'s
+  `novelty::tfne-differentiable-field-solver`). The layered case discretizes
+  the variable-coefficient flux divergence at cell faces, the standard
+  finite-difference treatment for `d/dx(sigma(x) dphi/dx)`. Passing a scalar
+  is bit-identical to the pre-2026-07-18 implementation (verified in
+  `tests/test_experimental_poisson_1d_layered.py`).
 - `dx` (float): grid spacing.
 - `boundary` (str, default `"mean_zero_neumann"`): boundary condition declaration.
 - `gauge` (str, default `"mean_zero"`): gauge choice; the returned `phi` is the
   minimum-norm least-squares solution, which satisfies the mean-zero gauge.
+
+**Analytic validation reference:** the layered case's ground truth is the
+classical "two half-space" point-source volume-conductor result (reflection
+coefficient `k=(sigma1-sigma2)/(sigma1+sigma2)`, derived from continuity of
+potential and normal current density) — see
+`tests/test_experimental_poisson_1d_layered.py`'s module docstring for the
+full derivation and 3 limiting-case sanity checks (uniform medium, insulating
+boundary, grounded boundary) before it's used to validate any solver output.
+A separate discrete-flux-conservation check (current is exactly zero outside
+a source/sink span and exactly constant within it) is verified directly
+against the solver's own output in `tests/test_experimental_poisson_1d_convergence.py`.
+
+**Known limitation (confirmed 2026-07-18):** the dense `jnp.linalg.lstsq`
+solve's residual grows sharply above roughly N~150-200 grid points in
+float32, on both the scalar and layered paths — `convergence_status`
+correctly self-reports `"failed"` in that regime rather than returning a
+silently wrong answer. Not yet fixed; treat this function as validated only
+up to roughly N~150 until a better-conditioned or sparse solve replaces it.
 
 **Returns:** `(phi, residual, manifest)` —
 - `phi` (`jax.Array`): solved potential array.
@@ -447,6 +474,54 @@ import jax.numpy as jnp
 sources = jnp.zeros(32).at[8].set(1.0).at[24].set(-1.0)
 phi, residual, manifest = jtfne.fields.experimental_poisson_1d(sources, conductivity=1.0, dx=0.1)
 assert manifest["convergence_status"] == "converged"
+```
+
+---
+
+### `jaxfne.fields.experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins, z_min=None, z_max=None, boundary="mean_zero_neumann", gauge="mean_zero") -> (phi, residual, manifest)`
+
+Bridges real per-neuron depth positions (from `Model.neuron_table()`) and
+source values (e.g. a time-slice of `Signals.sources`) into
+`experimental_poisson_1d`'s 1D depth grid — the first integration of the
+experimental solver with the Model/Signals object model (added 2026-07-18,
+toward `plans.json:novelty::tfne-differentiable-field-solver`). This is a
+separate, explicitly opt-in accessor called after `construct()`/`simulate()`,
+kept fully independent of `project_laminar_sources` and the default
+`simulate()` field dispatch, which stay exactly as they are today.
+
+**Parameters:**
+- `neuron_table` (sequence of dict): from `Model.neuron_table()`; every row
+  needs a numeric `"z"` — raises `ValueError` when a row lacks one.
+- `sources` (array, shape `(n_neurons,)`): per-neuron source values. Neurons
+  sharing a depth bin are **summed** (jaxfne's source values are current-
+  like; summing is the physically sensible aggregation), and the summed
+  value is passed to `experimental_poisson_1d` exactly as-is — per that
+  function's own convention (a node value `Q` produces a flux jump of
+  `Q*dx`, confirmed in `tests/test_experimental_poisson_1d_convergence.py`).
+  An explicit modeling choice, always stated here rather than left implicit.
+- `conductivity` (float or `jax.Array`): scalar or per-face array of shape
+  `(n_bins-1,)`, always caller-supplied — jaxfne treats every conductivity
+  value as uncalibrated, so this is a required input here too, the same as
+  every other field-projection entry point.
+- `n_bins` (int): depth-grid resolution. Keep below ~150 per
+  `experimental_poisson_1d`'s documented convergence ceiling.
+- `z_min`, `z_max` (float, optional): depth range; default to the actual
+  min/max `z` in `neuron_table`.
+
+**Returns:** `(phi, residual, manifest)` — as `experimental_poisson_1d`, plus
+`manifest["bin_edges"]` (the depth grid) and `manifest["neurons_per_bin"]`
+(neuron count per bin, for transparency about the binning step — an empty
+bin simply gets source value 0).
+
+**Example:**
+```python
+model = jtfne.construct(cfg)  # a laminar_column-domain Configuration
+sig = jtfne.simulate(model, duration_ms=50.0, dt_ms=0.5, seed=0)
+rows = model.neuron_table()
+sources_last_step = sig.sources[-1]  # (n_neurons,) time-slice
+
+phi, residual, manifest = jtfne.fields.experimental_poisson_1d_from_neuron_table(
+    rows, sources_last_step, conductivity=1.5, n_bins=20)
 ```
 
 ---

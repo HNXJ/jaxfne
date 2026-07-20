@@ -960,6 +960,16 @@ def sdr_transform(
             should_checkpoint = new_reset_counter >= checkpoint_n_steps
             params_to_use = new_best_param if should_checkpoint else params
 
+            if should_checkpoint:
+                # Convert the checkpoint target into an update delta -- update()
+                # returns *updates* (added to params by the caller), not params
+                # directly, so reverting to best_param requires the delta that
+                # gets us there, not best_param itself.
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_reset_counter = 0
+
             # Simple EMA update of variance estimates
             # (In practice, these would be computed from historical losses)
             var_sup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(u)) for u in jax.tree_util.tree_leaves(inner_updates)]))
@@ -1073,6 +1083,15 @@ def gsdr_transform(
             new_desel_counter = 0 if is_improvement else gsdr_state.deselection_counter + 1
             should_reset = new_desel_counter >= deselection_threshold
             params_to_use = new_best_param if should_reset else params
+
+            if should_reset:
+                # Same gap as sdr_transform: update() returns a delta, not raw
+                # params, so the genetic reset must be expressed as the delta
+                # that carries params back to params_to_use (best_param).
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_desel_counter = 0
 
             var_sup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(u)) for u in jax.tree_util.tree_leaves(inner_updates)]))
             var_unsup = jnp.mean(jnp.asarray([jnp.mean(jnp.abs(d)) for d in jax.tree_util.tree_leaves(stochastic_delta)]))
@@ -1217,6 +1236,17 @@ def agsdr_transform(
 
             new_desel_counter = 0 if is_improvement else agsdr_state.deselection_counter + 1
             should_reset = new_desel_counter >= deselection_threshold
+            params_to_use = new_best_param if should_reset else params
+
+            if should_reset:
+                # Same gap already fixed in sdr_transform/gsdr_transform: update()
+                # returns a delta, not raw params, so the genetic reset must be
+                # expressed as the delta that carries params back to
+                # params_to_use (best_param).
+                combined_updates = jax.tree_util.tree_map(
+                    lambda p_use, p: p_use - p, params_to_use, params
+                )
+                new_desel_counter = 0
 
             # Apply Exponential Moving Average (EMA) to tracked variances
             new_var_sup_ema = agsdr_state.ema_decay * agsdr_state.var_sup_ema + (1.0 - agsdr_state.ema_decay) * var_d
@@ -1611,6 +1641,253 @@ def _tune_matrix_agsdr_optax(
         best_parameters=best_parameters,
         best_score=float(best_score) if _math.isfinite(best_score) else float("inf"),
         history=generation_records,
+        summary=json_safe(report),
+        model=best_model,
+    )
+
+
+_SOURCE_SCALE_LINEAR_METRICS = frozenset({"source_proxy_abs_mean"})
+
+
+def _tune_source_scale_optax(
+    model: Any,
+    simulation: Any,
+    objective: Any,
+    spec: Any,
+    bounds: tuple,
+    n_steps: int,
+    seed: int,
+    base_report: dict,
+) -> Any:
+    """Real jax.grad-based tuning loop for the single-scalar source_scale
+    parameter (proxy-scale calibration scaffold).
+
+    Scope: source_proxy = source_scale * (current_native + GAIN * spikes) is a
+    linear post-processing rescale of already-simulated, frozen arrays -- it
+    never crosses the spike/reset boundary, so this loop is genuinely
+    differentiable end to end without any surrogate gradient. This is
+    deliberately narrower than a general differentiable-tune path: only a
+    single loss on a metric that is linear in source_scale (currently just
+    source_proxy_abs_mean) is supported. Anything else falls back to the
+    existing metadata-only guard in Model.tune() -- this function must only
+    be called when that narrow condition is already confirmed by the caller.
+    """
+    import math as _math
+
+    optax = require_optax()
+
+    from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter
+
+    signals = model.simulate(simulation)
+    if signals.field is None or signals.field.source_proxy is None:
+        report = {
+            **base_report,
+            "tuning_status": "differentiable_source_scale_unavailable",
+            "acceptance_decision": "REVISE",
+            "warnings": ["no_field_output_to_differentiate_through"],
+        }
+        return TuneResult(best_parameters={}, best_score=float("inf"), history=[], summary=json_safe(report), model=model)
+
+    loss_spec = objective.losses[0]
+    target = float(loss_spec["target"])
+    weight = float(loss_spec.get("weight", 1.0))
+
+    old_scale = float(jnp.asarray(model.params["emitter"].source_scale))
+    if old_scale == 0.0:
+        report = {
+            **base_report,
+            "tuning_status": "differentiable_source_scale_unavailable",
+            "acceptance_decision": "REVISE",
+            "warnings": ["source_scale_zero_cannot_recover_raw_proxy"],
+        }
+        return TuneResult(best_parameters={}, best_score=float("inf"), history=[], summary=json_safe(report), model=model)
+
+    raw = jax.lax.stop_gradient(signals.field.source_proxy) / old_scale
+
+    def loss_fn(scale: jax.Array) -> jax.Array:
+        proxy = scale * raw
+        value = jnp.mean(jnp.abs(proxy))
+        return weight * (value - target) ** 2
+
+    scale = jnp.asarray(old_scale, dtype=raw.dtype)
+    lr = float(spec.learning_rate) if spec.learning_rate else 1e-2
+    tx = optax.adam(lr) if spec.optimizer == "optax_adam" else optax.sgd(lr)
+    opt_state = tx.init(scale)
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    history = []
+    best_scale = float(scale)
+    best_loss = float(loss_fn(scale))
+    for step in range(int(n_steps)):
+        loss_val, grad = jax.value_and_grad(loss_fn)(scale)
+        updates, opt_state = tx.update(grad, opt_state)
+        scale = optax.apply_updates(scale, updates)
+        scale = jnp.clip(scale, lo, hi)
+        loss_val = float(loss_val)
+        grad_val = float(grad)
+        if _math.isfinite(loss_val) and loss_val < best_loss:
+            best_loss = loss_val
+            best_scale = float(scale)
+        history.append({
+            "step": step,
+            "source_scale": float(scale),
+            "loss": _math.nan if not _math.isfinite(loss_val) else loss_val,
+            "gradient": grad_val,
+        })
+
+    best_model = _model_with_scalar_parameter(model, "source_scale", best_scale)
+
+    report = {
+        **base_report,
+        "same_model_unchanged": False,
+        "tuning_status": "differentiable_source_scale_loop_v0.1",
+        "acceptance_decision": "ACCEPT_CANDIDATE" if _math.isfinite(best_loss) else "REVISE",
+        "best_parameter_value": best_scale,
+        "best_score": best_loss if _math.isfinite(best_loss) else None,
+        "tuning_path": "scalar_differentiable_postprocessing_only",
+        "gradient_history": history,
+        "warnings": [
+            "differentiable_source_scale_is_computational_scaffold_only",
+            "gradient_flows_only_through_the_linear_postprocessing_rescale_not_the_spiking_dynamics",
+        ],
+    }
+
+    return TuneResult(
+        best_parameters={"source_scale": best_scale},
+        best_score=best_loss,
+        history=history,
+        summary=json_safe(report),
+        model=best_model,
+    )
+
+
+_SCALAR_SOFT_RATE_PARAMETERS = frozenset({"drive_gain", "synaptic_gain", "gAMPA"})
+
+
+def _tune_scalar_soft_rate_optax(
+    model: Any,
+    simulation: Any,
+    objective: Any,
+    spec: Any,
+    parameter: str,
+    bounds: tuple,
+    n_steps: int,
+    seed: int,
+    base_report: dict,
+) -> Any:
+    """Real jax.grad-based tuning loop for a scalar emitter parameter that
+    DOES cross the spike/reset boundary (drive_gain, synaptic_gain, gAMPA),
+    unlike _tune_source_scale_optax's pure post-processing case.
+
+    Scope: JAX already differentiates through Model.simulate()'s hard
+    jnp.where-based spike-reset dynamics without any custom surrogate
+    gradient on the kernel itself (verified empirically: a real nonzero
+    gradient flows end-to-end for drive_gain/synaptic_gain/gAMPA). The
+    "surrogate" needed is only at the LOSS level -- comparing a continuous
+    proxy (V_m via a sigmoid soft-spike approximation, _evaluate_soft_rate_targets,
+    already used and tested in _tune_matrix_agsdr_optax's inner loop) rather
+    than the discrete spike count, which is what makes the loss landscape
+    smooth enough for gradient descent to be useful. No change to
+    jaxfne/emitters.py's step kernels was needed or made.
+
+    Only supports a jtfne.rate_targets(...)-built Objective (kind
+    "group_rate_targets", groups/targets_hz in objective.gates[0].metadata) --
+    anything else falls back to the existing metadata-only stub in Model.tune().
+    """
+    import math as _math
+
+    optax = require_optax()
+
+    from jaxfne.core import TuneResult, json_safe, _model_with_scalar_parameter, _evaluate_soft_rate_targets
+
+    groups: dict = {}
+    targets_hz: dict = {}
+    for gate_spec in getattr(objective, "gates", []):
+        meta = gate_spec.get("metadata", {}) if isinstance(gate_spec, dict) else {}
+        if "groups" in meta and "targets_hz" in meta:
+            groups = dict(meta["groups"])
+            targets_hz = {k: float(v) for k, v in meta["targets_hz"].items()}
+            break
+
+    if not groups or not targets_hz:
+        report = {
+            **base_report,
+            "tuning_status": "differentiable_scalar_soft_rate_unavailable",
+            "acceptance_decision": "REVISE",
+            "warnings": ["objective_is_not_a_rate_targets_style_group_rate_targets_spec"],
+        }
+        return TuneResult(best_parameters={}, best_score=float("inf"), history=[], summary=json_safe(report), model=model)
+
+    def loss_fn(value: jax.Array) -> jax.Array:
+        candidate = _model_with_scalar_parameter(model, parameter, value)
+        signals = candidate.simulate(simulation)
+        return _evaluate_soft_rate_targets(
+            V_m=signals.V_m,
+            groups=groups,
+            targets_hz=targets_hz,
+            duration_ms=float(simulation.duration_ms),
+            dt_ms=float(simulation.dt_ms),
+        )
+
+    init_value = 1.0
+    value = jnp.asarray(init_value, dtype=jnp.float32)
+    lr = float(spec.learning_rate) if spec.learning_rate else 1e-2
+    tx = optax.adam(lr) if spec.optimizer == "optax_adam" else optax.sgd(lr)
+    opt_state = tx.init(value)
+
+    lo, hi = float(bounds[0]), float(bounds[1])
+    history = []
+    best_value = float(value)
+    best_loss = float(loss_fn(value))
+    fallback_count = 0
+    for step in range(int(n_steps)):
+        try:
+            loss_val, grad = jax.value_and_grad(loss_fn)(value)
+            loss_val = float(loss_val)
+            grad_val = float(grad)
+        except Exception:
+            fallback_count += 1
+            loss_val = float("nan")
+            grad_val = 0.0
+        if grad_val == 0.0 or not _math.isfinite(grad_val):
+            fallback_count += 1
+        else:
+            updates, opt_state = tx.update(jnp.asarray(grad_val), opt_state)
+            value = optax.apply_updates(value, updates)
+            value = jnp.clip(value, lo, hi)
+        if _math.isfinite(loss_val) and loss_val < best_loss:
+            best_loss = loss_val
+            best_value = float(value)
+        history.append({
+            "step": step,
+            "value": float(value),
+            "loss": loss_val,
+            "gradient": grad_val,
+        })
+
+    best_model = _model_with_scalar_parameter(model, parameter, best_value)
+
+    report = {
+        **base_report,
+        "same_model_unchanged": False,
+        "tuning_status": "differentiable_scalar_soft_rate_loop_v0.1",
+        "acceptance_decision": "ACCEPT_CANDIDATE" if _math.isfinite(best_loss) else "REVISE",
+        "best_parameter_value": best_value,
+        "best_score": best_loss if _math.isfinite(best_loss) else None,
+        "tuning_path": "scalar_differentiable_soft_rate_surrogate",
+        "gradient_history": history,
+        "fallback_step_count": fallback_count,
+        "warnings": [
+            "differentiable_scalar_soft_rate_is_computational_scaffold_only",
+            "loss_uses_a_soft_rate_surrogate_from_V_m_not_the_real_declared_objective_metric",
+            "inner_soft_rate_surrogate_is_not_biological_truth",
+        ],
+    }
+
+    return TuneResult(
+        best_parameters={parameter: best_value},
+        best_score=best_loss if _math.isfinite(best_loss) else float("inf"),
+        history=history,
         summary=json_safe(report),
         model=best_model,
     )

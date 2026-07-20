@@ -79,9 +79,12 @@ There is **no** top-level `spectrolaminar.py` or `connectivity.py` under `vis/`.
 
 ## `jtfne.tutorial_utils.plot_*` (array-driven quick plots)
 
-`plot_raster`, `plot_spectrolaminar_power(t, signal, freq_min, freq_max, n_freqs)`,
-`plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`,
+`plot_raster`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`,
 `plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`.
+No `plot_spectrolaminar_power` wrapper exists in `tutorial_utils.py` — the real function is
+`plot_spectrolaminar_power_array(t, signal, freq_min, freq_max, n_freqs)`, defined in
+`jaxfne/vis/tutorial_array_plots.py` (re-exported via `jaxfne.vis`), with no
+`tutorial_utils` forwarding wrapper (verified: `grep -n "plot_spectrolaminar_power" jaxfne/tutorial_utils.py` → no match).
 
 ## Required package options (implement notebook hacks as parameters, not one-offs)
 

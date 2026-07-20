@@ -14,7 +14,6 @@ This tutorial demonstrates the **chainable Configuration API** of jaxfne (introd
 - Configure a biologically-inspired E/I population (75% excitatory, 25% inhibitory)
 - Simulate with the Izhikevich neuron model (cortical parameters)
 - Extract multimodal readouts: spikes, voltage, source, and field proxies
-- Inspect scope metadata to understand computational statements and scope notes
 - Generate population-level metrics and visualizations
 
 ### Key Concepts
@@ -39,7 +38,7 @@ cfg = (jtfne.Configuration()
 
 ## Tutorial Workflow
 
-The notebook follows a 13-section structure:
+The notebook follows a 12-section structure:
 
 1. **Learning Objectives** — Expected outcomes
 2. **Biological Question** — The E/I coupling problem
@@ -53,7 +52,6 @@ The notebook follows a 13-section structure:
 10. **Interpretation** — Results and dynamics
 11. **Failure Modes** — Debugging silent or unstable networks
 12. **Exercises** — Extensions (vary E/I ratio, try presets, etc.)
-13. **Scope Boundaries** — What this tutorial is and is not
 
 ---
 
@@ -109,39 +107,6 @@ readouts = model.compute_readout(signals, readout_specs)
 | All outputs finite | True | — |
 
 ---
-
-## Scope notes and Extension Notess
-
-### ✓ What This Tutorial Is
-
-- A **computational scaffold** for learning E/I coupling principles
-- A demonstration of the **new chainable Configuration API**
-- A **proxy-scale** visualization and relative-comparison tool
-- **JAX-based, deterministic, and reproducible**
-
-### ✗ What This Tutorial Is NOT
-
-- A **biophysically realistic** neuron model (Izhikevich is phenomenological)
-- A **validated field solver** (LFP/CSD are proxy approximations, not PDE-solved)
-- A tool for **direct comparison with real recordings** (uncalibrated)
-- A framework for **source localization** (no inverse problem)
-- A **complete cortical circuit** (missing plasticity, neuromodulation)
-
-### Scope Metadata
-
-All outputs include manifest JSON with explicit scope statements:
-
-```json
-{
-  "scope_status": "computational_scaffold",
-  "calibration_status": "uncalibrated_phenomenological",
-  "readout_status": "proxy_scale",
-  "field_mode": "proxy_convolution_no_pde",
-  "amplitude_status": false
-}
-```
-
-**Key principle:** Proxy-scale outputs enable comparison and visualization without stating physical validity.
 
 ---
 

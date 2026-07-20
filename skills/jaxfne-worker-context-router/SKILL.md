@@ -1,11 +1,14 @@
 ---
 name: jaxfne-worker-context-router
 description: >-
-  Route any jaxfne repo task to the correct module, current API, branch
-  state, and validation lane before editing. Use at the start of jaxfne
-  work — orienting in the repo, picking which module/skill applies,
-  checking branch/SHA state — before diving into a refactor, API change,
-  test, doc, tutorial, or release task.
+  Orient in the jaxfne (jtfne) repo before editing — route a task to the right
+  module, current API, branch/SHA state, and validation lane. Use at the start
+  of any jaxfne repo task: "where is X", "which file or module handles Y",
+  picking the right layer (core.py / _config / _model / emitters / fields /
+  vis / optim) before a refactor, API change, test, doc, tutorial, or release,
+  and checking branch state before a mutation — so you edit the right place
+  instead of guessing. Names the module-ownership map and verify-before-call
+  discipline.
 ---
 
 # jaxfne Worker Context Router
@@ -157,7 +160,9 @@ When spawning subagents, pick `subagent_type` by task shape — do not default e
 |----------|----------|
 | `Explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation), read-only |
 | `general-purpose` | Multi-step implementation or research with unclear file ownership |
-| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files |
+| `antigravity-worker` | Short, single-target, mechanical/fast task or a second-model opinion — fast but higher error rate (GPT-OSS 120B via agy), every result gets independently verified; NOT for multi-file/large-context work |
+| `kimix` | Long, large, repo-scale multi-step implementation or analysis (Kimi Code CLI) — the general "do a big well-scoped chunk of work" delegate |
+| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files (Gamma-system, Gemini CLI) |
 | `Plan` | Design an implementation strategy before editing |
 | `code-reviewer` (if present) | User explicitly asks for review of a local diff |
 

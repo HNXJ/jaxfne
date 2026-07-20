@@ -70,6 +70,28 @@ def require_jaxley():
     return jaxley
 
 
+def require_jax_fem():
+    """Import jax-fem lazily.
+
+    jax-fem is GPLv3-licensed (commercial licensing available separately from
+    the author -- see https://github.com/deepmodeling/jax-fem). It is
+    deliberately NOT a core jaxfne dependency and NOT included in the `all`
+    extra: installing it is an explicit, separate opt-in
+    (`pip install jaxfne[jax-fem]`) so that jaxfne's own MIT-licensed core
+    stays usable by anyone who doesn't need this specific bridge. See
+    docs/guides/jax_fem_interop.md.
+    """
+    try:
+        import jax_fem  # type: ignore
+    except ImportError as exc:
+        raise ImportError(
+            "This optional feature requires 'jax-fem' (GPLv3 -- see "
+            "docs/guides/jax_fem_interop.md for licensing notes). "
+            "Install with: pip install jaxfne[jax-fem]"
+        ) from exc
+    return jax_fem
+
+
 @dataclass(frozen=True)
 class BridgeSpec:
     """JSON-safe optional-backend bridge declaration."""
@@ -118,6 +140,67 @@ class JaxleyEmitterBridge:
     def construct(self) -> dict[str, Any]:
         """Documented public function `construct`."""
         require_jaxley()
+        spec = self.to_spec().to_dict()
+        spec["status"] = "backend_available_contract_only"
+        return spec
+
+
+@dataclass(frozen=True)
+class JaxFemFieldBridge:
+    """jax-fem bridge contract for a future differentiable laminar-column
+    volume-conductor field solve.
+
+    STATUS: schema/contract only (`construct()` verifies jax-fem is
+    installed and returns a status dict -- it does NOT run a real solve
+    yet). This mirrors :class:`JaxleyEmitterBridge`'s own schema-first
+    landing pattern: the optional-dependency plumbing and public contract
+    land first, the real numerical implementation is separate follow-on
+    work (tracked as `plans.json`/`progress.json`'s
+    `novelty::tfne-differentiable-field-solver`).
+
+    Scoping notes (2026-07-18, see plans.json for the full trail): jax-fem
+    (https://github.com/deepmodeling/jax-fem) is a real, actively-maintained
+    differentiable GPU-accelerated FEM library in JAX -- proof the general
+    approach (a differentiable elliptic solve composing with jaxfne's
+    existing differentiable spiking/HDP pipeline) is feasible. Its typical
+    demos generate meshes via `gmsh` (an external mesh-generation tool), but
+    `jax_fem.generate_mesh.Mesh` itself only needs raw `(points, cells)`
+    arrays and a gmsh-free `box_mesh(Nx, Ny, Nz, ...)` helper also exists --
+    so a layered laminar-column geometry (a thin box, `Nx=Ny=1`, `Nz`=number
+    of depth layers) does not require adopting gmsh as a dependency. The
+    actual solve would subclass `jax_fem.problem.Problem` (`get_tensor_map`
+    for the flux/conductivity term, `get_mass_map` for the source term) and
+    call `jax_fem.solver.solver(problem)` -- not yet implemented here.
+
+    jax-fem is GPLv3 (commercial licensing available separately from the
+    author) -- deliberately kept as an optional extra
+    (`pip install jaxfne[jax-fem]`), never a core dependency, so jaxfne's
+    own MIT core stays usable by anyone who doesn't opt into this bridge.
+    """
+
+    geometry: str = "laminar_column"
+    n_layers: int | None = None
+    source_calibration_status: str = "uncalibrated_jax_fem_bridge"
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_spec(self) -> BridgeSpec:
+        """Documented public function `to_spec`."""
+        return BridgeSpec(
+            name="jax_fem_field_bridge",
+            backend="jax_fem",
+            status="schema_only_no_field_solve",
+            source_calibration_status=self.source_calibration_status,
+            metadata={
+                "geometry": self.geometry,
+                "n_layers": self.n_layers,
+                "license": "GPLv3-or-commercial (optional extra, not a core dependency)",
+                **self.metadata,
+            },
+        )
+
+    def construct(self) -> dict[str, Any]:
+        """Documented public function `construct`."""
+        require_jax_fem()
         spec = self.to_spec().to_dict()
         spec["status"] = "backend_available_contract_only"
         return spec

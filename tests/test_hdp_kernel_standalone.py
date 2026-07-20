@@ -286,6 +286,29 @@ def test_hdp_rule_families_signed_linear_signed_quadratic_hebbian():
     assert not np.allclose(w_quad, w_hebb, atol=1e-5)
 
 
+def test_record_weight_trace_false_matches_true_except_the_trace_itself():
+    """record_weight_trace=False must be a pure output-shaping change: the
+    same seed/config must produce bit-identical V/spikes/H_trace/w_final
+    with or without it (the flag never touches the actual HDP dynamics),
+    while w_trace itself becomes None instead of (n_steps, n_edges)."""
+    N, ne = 32, 256
+    p, edges = _make_params_edges(N, ne)
+    key = jax.random.PRNGKey(20)
+    kw = dict(alpha=0.05, gamma=0.5, K_ctrl=0.15, K_HDP=0.01,
+              barrier_c=0.01, barrier_d=0.01, tau_0_ms=5.0, noise_scale=0.1)
+    V_true, S_true, _, d_true = hdp_kernel(p, edges, 60, 0.5, key, **kw)
+    V_false, S_false, _, d_false = hdp_kernel(
+        p, edges, 60, 0.5, key, record_weight_trace=False, **kw)
+
+    assert np.array_equal(np.asarray(V_true), np.asarray(V_false))
+    assert np.array_equal(np.asarray(S_true), np.asarray(S_false))
+    np.testing.assert_array_equal(np.asarray(d_true["H_trace"]), np.asarray(d_false["H_trace"]))
+    np.testing.assert_allclose(np.asarray(d_true["w_final"]), np.asarray(d_false["w_final"]), atol=1e-6)
+
+    assert np.asarray(d_true["w_trace"]).shape == (60, ne)
+    assert d_false["w_trace"] is None
+
+
 def test_unknown_hdp_rule_raises_error():
     """hdp_rule parameter validation: passing an unrecognized rule name
     should raise ValueError."""

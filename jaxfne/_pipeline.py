@@ -270,10 +270,26 @@ def compile_step_fn(
     dt_ms: float,
     record_dH_components: bool = False,
     record_edge_current: bool = False,
+    record_weight_trace: bool = True,
     **hdp_kwargs: Any,
 ) -> "tuple[callable, DynamicState]":
     """Build a JIT-compiled single-step function over the canonical HDP
     edge-list carry, plus the model's cold-start :class:`DynamicState`.
+
+    ``record_weight_trace`` (default True, matching prior behavior exactly):
+    when False, ``step_fn``'s per-step ``outputs`` tuple drops the per-edge
+    weight snapshot (arity 4 instead of 5: v, spikes, sources, H_trace).
+    Matters specifically because ``scan_network`` stacks ``outputs`` over
+    every OUTER step it's driven with -- with the weight slot present, that
+    stack is ``(n_outer_steps, n_edges)``, the same memory-scaling hazard as
+    ``simulate_edge_recurrent_izhikevich_hdp``'s own ``w_trace`` (see that
+    function's docstring: 10,000 steps x 2,000,000 edges x 4 bytes = 80GB, a
+    real reproduced OOM). The inner per-call kernel here always runs at
+    n_steps=1, so its own trace is negligible regardless -- this flag only
+    controls whether the OUTER ``scan_network`` accumulates a weight history
+    across repeated calls. ``carry.w`` (the actual weight state driving HDP's
+    plasticity) is unaffected either way -- disabling the trace never
+    disables HDP itself, only the optional per-outer-step weight diagnostic.
 
     DEVIATION FROM SPEC, surfaced explicitly rather than papered over:
     ``simulate_edge_recurrent_izhikevich_hdp``'s inner ``step`` closure
@@ -332,8 +348,13 @@ def compile_step_fn(
         )
         # Matches the verified per-step output tuple at the real scan call
         # site (emitters.py line ~1368): (v_reset, spikes, source_proxy,
-        # H_final, w_next).
-        outputs = (diag["v"], diag["prev_spikes"], sources[0], diag["H_trace"][0], diag["w_trace"][0])
+        # H_final, w_next) -- w_next slot dropped when record_weight_trace=False
+        # (see this function's docstring: avoids scan_network stacking a
+        # (n_outer_steps, n_edges) weight history by default at scale).
+        if record_weight_trace:
+            outputs = (diag["v"], diag["prev_spikes"], sources[0], diag["H_trace"][0], diag["w_trace"][0])
+        else:
+            outputs = (diag["v"], diag["prev_spikes"], sources[0], diag["H_trace"][0])
         if record_dH_components:
             outputs = outputs + (
                 diag["dH_income_trace"][0], diag["dH_rate_trace"][0],

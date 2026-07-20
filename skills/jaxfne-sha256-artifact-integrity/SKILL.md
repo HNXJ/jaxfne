@@ -80,84 +80,27 @@ mechanism proven
 
 ## Core helper functions
 
-Use these helpers in scripts, notebooks, release checks, and debugging cells.
+Implemented in `scripts/hash_utils.py` (extracted 2026-07-14 so this skill is the contract, not
+the monolith — per `~/.claude/CLAUDE.md` § INTELLIGENCE-PER-TOKEN DOCTRINE). Import them rather
+than reimplementing:
 
 ```python
-import hashlib
-import json
-from pathlib import Path
-from typing import Any
-
-
-def sha256_file(path: str | Path, *, block_size: int = 1024 * 1024) -> str:
-    """Return SHA256 hex digest for a file's exact bytes."""
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for block in iter(lambda: f.read(block_size), b""):
-            h.update(block)
-    return h.hexdigest()
-
-
-def stable_json_bytes(obj: Any) -> bytes:
-    """Return stable strict-JSON bytes for deterministic hashing."""
-    return json.dumps(
-        obj,
-        sort_keys=True,
-        allow_nan=False,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-
-def sha256_json(obj: Any) -> str:
-    """Return SHA256 for stable strict JSON representation."""
-    return hashlib.sha256(stable_json_bytes(obj)).hexdigest()
-
-
-def notebook_source_sha256(path: str | Path) -> str:
-    """Hash notebook cell type + source only, ignoring outputs/execution counts."""
-    nb = json.loads(Path(path).read_text())
-    source_only = [
-        {
-            "cell_type": cell.get("cell_type"),
-            "source": cell.get("source", []),
-        }
-        for cell in nb.get("cells", [])
-    ]
-    return sha256_json(source_only)
-
-
-def make_asset_hashes(root: str | Path, patterns=("*.json", "*.png", "*.html", "*.npz")) -> dict[str, str]:
-    """Hash generated artifacts under a directory."""
-    root = Path(root)
-    paths = []
-    for pattern in patterns:
-        paths.extend(root.rglob(pattern))
-    out = {}
-    for path in sorted(set(paths)):
-        if path.is_file():
-            out[str(path.relative_to(root))] = sha256_file(path)
-    return out
-
-
-def write_asset_hashes(root: str | Path, output_name: str = "asset_hashes.json") -> dict[str, str]:
-    """Write asset_hashes.json with strict sorted JSON."""
-    root = Path(root)
-    hashes = make_asset_hashes(root)
-    (root / output_name).write_text(json.dumps(hashes, indent=2, sort_keys=True, allow_nan=False))
-    return hashes
-
-
-def diff_hashes(old: dict[str, str], new: dict[str, str]) -> dict[str, dict[str, str | None]]:
-    """Return changed/missing/new file hashes."""
-    keys = sorted(set(old) | set(new))
-    return {
-        k: {"old": old.get(k), "new": new.get(k)}
-        for k in keys
-        if old.get(k) != new.get(k)
-    }
+from scripts.hash_utils import (
+    sha256_file,            # SHA256 hex digest of a file's exact bytes
+    stable_json_bytes,      # sorted/allow_nan=False JSON bytes, for deterministic hashing
+    sha256_json,            # SHA256 of an object's stable_json_bytes
+    notebook_source_sha256, # hash notebook cell type+source only, ignoring outputs/exec counts
+    make_asset_hashes,      # {relpath: sha256} for *.json/*.png/*.html/*.npz under a directory
+    write_asset_hashes,     # make_asset_hashes(...) + write asset_hashes.json
+    diff_hashes,            # {path: {old, new}} for every changed/added/removed key
+    candidate_sha256,       # stable hash of an AGSDR/training candidate params dict
+    load_weight_artifact,   # load an artifact_ref's array, raising on hash mismatch
+)
 ```
 
-For Python 3.9 support, replace `str | Path` with `Union[str, Path]` if needed.
+All 9 are plain-Python, no jaxfne import required — safe to use from any script/notebook/release
+check. Verify the module still exports exactly these names before relying on it:
+`python3 -c "import scripts.hash_utils as h; print([n for n in dir(h) if not n.startswith('_')])"`.
 
 ## Method 1: freeze and compare repo/source files
 
@@ -238,18 +181,10 @@ full hash: exact packaged notebook changed
 
 ## Method 4: candidate hashes for AGSDR/training
 
-Use stable hashes to deduplicate and cache candidate evaluations.
+Use `candidate_sha256` (from `scripts/hash_utils.py`) to deduplicate and cache candidate evaluations.
 
 ```python
-def candidate_sha256(params: dict) -> str:
-    return sha256_json(params)
-
-params = {
-    "cell.E.drive": 4.5,
-    "cell.PV.drive": 3.5,
-    "conn.feedforward_gain": 1.2,
-}
-
+params = {"cell.E.drive": 4.5, "cell.PV.drive": 3.5, "conn.feedforward_gain": 1.2}
 key = candidate_sha256(params)
 print(key)
 ```
@@ -305,31 +240,11 @@ Do not store large raw arrays in config JSON. Use artifact refs.
 }
 ```
 
-Load with verification:
+Load with verification via `load_weight_artifact` (from `scripts/hash_utils.py` — raises
+`ValueError` naming expected vs actual hash on mismatch):
 
 ```python
-import numpy as np
-from pathlib import Path
-
-
-def load_weight_artifact(ref: dict, root: str | Path = "."):
-    path = Path(root) / ref["path"]
-    expected = str(ref["sha256"]).removeprefix("sha256:")
-    actual = sha256_file(path)
-    if actual != expected:
-        raise ValueError(
-            f"Weight artifact hash mismatch: {path}\n"
-            f"expected={expected}\n"
-            f"actual={actual}"
-        )
-    data = np.load(path)
-    return data[ref["array_name"]]
-```
-
-For Python 3.8/3.9 compatibility, replace `.removeprefix("sha256:")` with:
-
-```python
-expected = expected[7:] if expected.startswith("sha256:") else expected
+array = load_weight_artifact(ref, root=".")
 ```
 
 ## Method 6: JAX compile/performance keys

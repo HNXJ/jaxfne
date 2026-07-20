@@ -5,9 +5,12 @@ readouts for computational electrophysiology. Declarative circuit definition,
 canonical cortical priors, and optimization over population readouts, at population
 and field scale.
 
-Interoperability: a [Jaxley](https://jaxley.readthedocs.io) model plugs into jaxfne
-as an emitter via `JaxleyBridge` and uses the same readout stack as built-in
-Izhikevich emitters. Details: [Jaxley interoperability](guides/jaxley_interop.md).
+jaxfne and [Jaxley](https://jaxley.readthedocs.io) are complements, not competitors:
+Jaxley provides single/multi-compartment biophysical detail, jaxfne provides
+population/field-scale, tensor-algebraic circuit definition and source-to-sensor-proxy
+readouts. A Jaxley model plugs directly into jaxfne as an emitter via `JaxleyBridge`
+and uses the same readout stack as built-in Izhikevich emitters. Details:
+[Jaxley interoperability](guides/jaxley_interop.md).
 
 Scope & status: [Scope & status](scope_and_status.md).
 

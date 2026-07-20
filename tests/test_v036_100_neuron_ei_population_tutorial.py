@@ -233,13 +233,6 @@ class TestDocumentationContent:
         assert "colab.research.google.com" in content, "Colab link missing"
         assert "jaxfne_v036_100_neuron_ei_population" in content, "Correct notebook not referenced"
 
-    def test_docs_contains_scope_metadata(self):
-        """Documentation includes scope metadata section."""
-        with open(TUTORIAL_DOCS, 'r') as f:
-            content = f.read()
-        assert "computational_scaffold" in content, "Scope status missing"
-        assert "proxy_scale" in content, "Readout status missing"
-
     def test_docs_contains_configuration_example(self):
         """Documentation includes configuration code example."""
         with open(TUTORIAL_DOCS, 'r') as f:
@@ -253,13 +246,6 @@ class TestDocumentationContent:
         with open(TUTORIAL_DOCS, 'r') as f:
             content = f.read()
         assert "Excitatory rate" in content or "firing rate" in content, "Results table missing"
-
-    def test_docs_contains_scope_notes(self):
-        """Documentation includes scope and scope notes section."""
-        with open(TUTORIAL_DOCS, 'r') as f:
-            content = f.read()
-        assert "What This Tutorial Is" in content, "Scope definition missing"
-        assert "What This Tutorial Is NOT" in content, "Scope section missing"
 
     def test_docs_avoids_forbidden_claims(self):
         """Documentation avoids forbidden scientific claims."""

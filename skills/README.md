@@ -20,6 +20,8 @@ bash skills/SYNC_GLOBAL.sh
 | **TBI / TBD** | To-be-investigated / to-be-done items on a `progress.json` file row |
 | **P0 / P1** | Priority labels in audit notes — P0 = fix before release claim |
 | **Truth gates** | Conservative defaults (`claim_level`, `*_proxy`, etc.) — see [Scope & status](../docs/scope_and_status.md) |
+| **HDP** | Homeostasis-Dependent Plasticity — the H-factor stabilization module (`RuntimeConfig(enable_hdp=True, ...)`, `DEFAULT_HDP`); see `jaxfne-neural-tensor` |
+| **AGSDR / GSDR** | jaxfne's own optimizer families for `Model.tune` (Adaptive-Gradient/Gradient Stochastic Descent with Restarts) — not third-party optimizers; see `jaxfne-neural-network` |
 
 **Friction ledger:** `FRICTIONS_STACK.md` — contradictions between skills, docs,
 and code. Resolve before escalating claims.

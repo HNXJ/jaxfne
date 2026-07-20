@@ -277,6 +277,7 @@ def izhikevich_params_from_labels(
     dtype: str = "float32",
     drive_overrides: Mapping[str, float] | None = None,
     source_scale: float = 1.0,
+    build_dense_connectivity: bool = True,
 ) -> IzhikevichParams:
     """Create reduced Izhikevich parameters from explicit cell labels.
 
@@ -285,6 +286,16 @@ def izhikevich_params_from_labels(
     returned native drive values are reduced-model drive units.  They are suited
     to relative proxy readouts unless a caller supplies an external calibration
     bridge.
+
+    ``build_dense_connectivity=False`` skips materializing the default dense
+    ``(N,N)`` ``W`` (returns a cheap ``(0,0)`` placeholder instead) -- for a
+    caller that is about to overwrite ``W`` unconditionally anyway (e.g.
+    ``jaxfne._construct._suite2_neuron_population_from_config``, whose very
+    next step, ``_suite2_apply_connectivity``, replaces ``W`` in every branch
+    regardless of this default). Found 2026-07-17: at N=100,000 the default
+    dense build alone allocates 40GB before being discarded, a real OOM on
+    real GPU hardware, not a theoretical concern. Default stays ``True`` --
+    zero behavior change for every other caller.
     """
 
     label_tuple = tuple(str(x) for x in labels)
@@ -315,6 +326,7 @@ def izhikevich_params_from_labels(
 
     n = len(label_tuple)
     sign_array = jnp.asarray(sign, dtype=jdtype)
+    W = _default_eig_connectivity(sign_array, jdtype) if build_dense_connectivity else jnp.zeros((0, 0), dtype=jdtype)
     return IzhikevichParams(
         a=jnp.asarray(a, dtype=jdtype),
         b=jnp.asarray(b, dtype=jdtype),
@@ -322,7 +334,7 @@ def izhikevich_params_from_labels(
         d=jnp.asarray(d, dtype=jdtype),
         drive=jnp.asarray(drive, dtype=jdtype),
         sign=sign_array,
-        W=_default_eig_connectivity(sign_array, jdtype),
+        W=W,
         v0=jnp.full((n,), -65.0, dtype=jdtype),
         u0=jnp.asarray(b, dtype=jdtype) * jnp.asarray(-65.0, dtype=jdtype),
         source_scale=jnp.asarray(source_scale, dtype=jdtype),
@@ -1065,6 +1077,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     syn_abs_max: float = 1.0e4,
     record_dH_components: bool = False,
     record_edge_current: bool = False,
+    record_weight_trace: bool = True,
     H_boost_gain: float = 0.0,
     hdp_rule: str = "signed_linear",
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
@@ -1259,6 +1272,19 @@ def simulate_edge_recurrent_izhikevich_hdp(
             labels post-hoc to decompose I_syn by connection class
             (E->E, E->PV, PV->E, ...) and find which synaptic pathway
             drives an income-term runaway.
+        record_weight_trace: if False, do not stack the per-step, per-edge
+            plastic-weight snapshot into "w_trace" -- diagnostics_dict["w_trace"]
+            is then None (diagnostics_dict["w_final"] is always the correct
+            terminal weight state regardless). Default True (existing
+            behavior, matches the documented ``Model.last_hdp_diagnostics()``
+            contract). The kernel's actual H/weight dynamics are identical
+            either way -- this only controls what gets returned/stacked, not
+            what's computed. Set False for large N and/or long durations:
+            "w_trace" is (n_steps, n_edges), which dominates memory at scale
+            (e.g. 10,000 steps x 2,000,000 edges x 4 bytes = 80GB -- a real
+            reproduced OOM at N=20,000/5000ms; "H_trace"/"voltages"/"spikes"
+            are only (n_steps, n_neurons), ~100x smaller at typical
+            max_in_degree and not the source of this OOM).
         H_boost_gain: homeostatic drive compensation -- scales each
             neuron's (drive + sched_t) input by
             ``1 + H_boost_gain * max(0, 1 - H)`` using the carry's
@@ -1268,8 +1294,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
-        includes "H_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges),
-        and "*_final" vectors.
+        includes "H_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges)
+        or None if record_weight_trace=False, and "*_final" vectors (always
+        present regardless of record_weight_trace).
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -1468,7 +1495,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
         source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
-        outputs = (v_reset, spikes, source_proxy, H_final, w_next)
+        if record_weight_trace:
+            outputs = (v_reset, spikes, source_proxy, H_final, w_next)
+        else:
+            outputs = (v_reset, spikes, source_proxy, H_final)
         if record_dH_components:
             outputs = outputs + (dH_income, dH_rate, dH_weight, dH_passive, barrier_force)
         if record_edge_current:
@@ -1476,7 +1506,12 @@ def simulate_edge_recurrent_izhikevich_hdp(
         return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
 
     final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
-    voltages, spikes, sources, H_trace, w_trace = scan_outputs[:5]
+    base_arity = 5 if record_weight_trace else 4
+    if record_weight_trace:
+        voltages, spikes, sources, H_trace, w_trace = scan_outputs[:5]
+    else:
+        voltages, spikes, sources, H_trace = scan_outputs[:4]
+        w_trace = None
 
     final_state = {
         "v": final[0],
@@ -1491,7 +1526,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         "H_trace": H_trace,
         "w_trace": w_trace,
     }
-    tail = scan_outputs[5:]
+    tail = scan_outputs[base_arity:]
     if record_dH_components:
         dH_income_trace, dH_rate_trace, dH_weight_trace, dH_passive_trace, dH_barrier_trace = tail[:5]
         diagnostics_dict.update({
@@ -2115,3 +2150,18 @@ class SynapseLayer:
         trace_next = state.trace.astype(jdtype) * decay + jnp.asarray(pre_spikes, dtype=jdtype)
         current = self.W.astype(jdtype) @ trace_next
         return SynapseState(trace=trace_next), current
+
+
+# Re-export the second canonical HDP sanity emitter (jaxfne/emitters_homeostatic_ei.py)
+# so `jaxfne.emitters.HomeostaticEIParams`/`.simulate_homeostatic_ei` work without a
+# second import path -- the implementation lives in its own sibling module (this file
+# is already 2000+ lines and organized around the Izhikevich/EIG scaffold).
+from .emitters_homeostatic_ei import (  # noqa: E402
+    ACTIVATION_RULES,
+    CONDUCTANCE_RULES,
+    HOMEOSTASIS_RULES,
+    HomeostaticEIParams,
+    simulate_homeostatic_ei,
+    make_minimal_ei_params,
+    make_hebbian_pairwise_rule,
+)

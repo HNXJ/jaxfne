@@ -38,6 +38,12 @@ from .emitters import (
     simulate_eig_izhikevich,
     simulate_receptor_exponential_izhikevich,
 )
+from .emitters_homeostatic_ei import (
+    ACTIVATION_RULES,
+    CONDUCTANCE_RULES,
+    HOMEOSTASIS_RULES,
+    HomeostaticEIParams,
+)
 
 from .fields import FieldOutput, probe_laminar_modes, project_laminar_sources
 from .io import config_hash, json_safe, load_json, manifest as build_manifest
@@ -328,6 +334,11 @@ def _suite2_neuron_population_from_config(cfg: "Configuration", *, dtype: str = 
         layer_labels=layer_labels,
         dtype=dtype,
         drive_overrides=baseline_drive,
+        # _suite2_apply_connectivity (called a few lines below) unconditionally
+        # replaces W in every branch (sparse-direct placeholder or a freshly
+        # rebuilt dense matrix) -- the dense W built here would be pure waste,
+        # confirmed as a real 40GB OOM at N=100,000 before this fix.
+        build_dense_connectivity=False,
     )
     
     # Compile and apply declared cell_params overrides
@@ -1627,7 +1638,7 @@ def _homeostasis_params_cache_fingerprint(hp: Mapping[str, Any]) -> tuple:
     return tuple(items)
 
 
-_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich"})
+_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich", "homeostatic_ei"})
 
 
 def _construct_validate_config(cfg: "Configuration") -> None:
@@ -1843,18 +1854,155 @@ def construct(
     return _construct_from_configuration(cfg, geometry=geometry)
 
 
+# Canonical, empirically-verified-stable defaults for the homeostatic_ei
+# circuit (see tests/test_homeostatic_ei_*.py for the receipts: "linear"
+# activation is stable at fixed G but diverges once G-adaptation is enabled;
+# "cubic" activation's self-damping is required for that regime). These
+# numeric constants are fixed for this pass -- only the three rule names and
+# the network size (n_neurons, via Configuration.network(n=...)) are
+# configurable via the grammar; exposing per-neuron overrides is deferred
+# (see artifacts/developer/plans.json entry
+# homeostatic-ei-milestones-4-6-regime-sweep).
+_HOMEOSTATIC_EI_CANONICAL_DEFAULTS: dict[str, Any] = {
+    "x0_value": 0.1,
+    "G0_e_value": 0.5,
+    "G0_i_value": -0.5,
+    "H0_value": 0.3,
+    "drive_e_value": 0.5,
+    "drive_i_value": 0.3,
+    "tau_x_ms": 5.0,
+    "tau_G_ms": 200.0,
+    "tau_H_ms": 1000.0,
+    "G_min": -5.0,
+    "G_max": 5.0,
+    "H_min": 0.1,
+    "H_max": 10.0,
+    "source_scale_value": 1.0,
+    "activation_rule": "cubic",
+    "conductance_rule": "hebbian",
+    "homeostasis_rule": "linear",
+}
+
+
+def _homeostatic_ei_cell_type_split(n: int) -> "tuple[str, ...]":
+    """E/I label split for the homeostatic_ei canonical circuit: 1E/1I at
+    n=2 (the original 2-neuron circuit, kept bit-identical), else a 75/25
+    E/I split (matching ``scripts/major_sanity_test.py``'s 6E/2I convention
+    at n=8) with at least 1 I neuron. E neurons come first, I neurons last.
+    """
+    if n <= 2:
+        n_e = max(1, n - 1)
+    else:
+        n_e = max(1, min(n - 1, round(n * 0.75)))
+    n_i = n - n_e
+    return tuple(["E"] * n_e + ["I"] * n_i)
+
+
+def _construct_homeostatic_ei_model(cfg: Configuration) -> Model:
+    """Build a :class:`Model` for the ``homeostatic_ei`` emitter family --
+    the second canonical HDP sanity circuit (a minimal E/I circuit with an
+    explicit differentiable conductance matrix and HDP state; see
+    ``jaxfne/emitters_homeostatic_ei.py``'s module docstring). Network size
+    comes from ``cfg.networks[0]["n"]`` (default 2, the original minimal
+    circuit); at ``n=2`` every value below reduces exactly to the original
+    hardcoded 2-neuron defaults (verified bit-identical).
+
+    This is a separate, self-contained build path -- it does not run
+    ``_construct_build_network``/``_construct_resolve_edge_list``/
+    ``_apply_canonical_biophysics`` (those are Izhikevich/edge-list/laminar-
+    geometry specific and would build the wrong thing for a dense-``G``
+    E/I circuit). ``model.params["edge_list"]`` is populated with a real
+    empty :class:`EdgeList` (via :func:`_empty_edge_list`), not ``None`` --
+    several other ``Model`` methods (e.g. ``neuron_table``, ``checkpoint``)
+    unconditionally type-annotate and unpack ``params["edge_list"]`` and are
+    not yet generalized for this family (see the ``NotImplementedError``
+    guards added to those methods in ``jaxfne/_model.py``).
+    """
+    rules = dict((cfg.emitters[0].get("homeostatic_ei_rules") if cfg.emitters else None) or {})
+    activation_rule = str(rules.get("activation_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["activation_rule"]))
+    conductance_rule = str(rules.get("conductance_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["conductance_rule"]))
+    homeostasis_rule = str(rules.get("homeostasis_rule", _HOMEOSTATIC_EI_CANONICAL_DEFAULTS["homeostasis_rule"]))
+    bound_mode = str((cfg.emitters[0].get("homeostatic_ei_bound_mode") if cfg.emitters else None) or "minimal")
+    if bound_mode not in ("minimal", "stable"):
+        raise ValueError(f"unknown bound_mode {bound_mode!r} for homeostatic_ei; expected 'minimal' or 'stable'")
+    for name, registry, kind in (
+        (activation_rule, ACTIVATION_RULES, "activation"),
+        (conductance_rule, CONDUCTANCE_RULES, "conductance"),
+        (homeostasis_rule, HOMEOSTASIS_RULES, "homeostasis"),
+    ):
+        if name not in registry:
+            raise ValueError(f"unknown {kind}_rule {name!r} for homeostatic_ei; expected one of {sorted(registry)}")
+
+    dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
+    jdtype = jnp.dtype(dtype_name_cfg)
+    d = _HOMEOSTATIC_EI_CANONICAL_DEFAULTS
+
+    n = int(cfg.networks[0].get("n", 2)) if cfg.networks else 2
+    if n < 2:
+        raise ValueError(f"homeostatic_ei requires at least 2 neurons; got n={n}")
+    labels = _homeostatic_ei_cell_type_split(n)
+    is_e = jnp.asarray([label == "E" for label in labels])
+    n_e = int(is_e.sum())
+    n_i = n - n_e
+
+    x0 = jnp.full((n,), d["x0_value"], dtype=jdtype)
+    H0 = jnp.full((n,), d["H0_value"], dtype=jdtype)
+    source_scale = jnp.full((n,), d["source_scale_value"], dtype=jdtype)
+    drive = jnp.where(is_e, jnp.asarray(d["drive_e_value"], dtype=jdtype), jnp.asarray(d["drive_i_value"], dtype=jdtype))
+    # G0[i, j] = (per-type value) / (count of that type) for every row i --
+    # normalizes total incoming drive so it matches the original 2-neuron
+    # circuit's magnitude regardless of population size (1 E + 1 I there).
+    col_value = jnp.where(
+        is_e, jnp.asarray(d["G0_e_value"], dtype=jdtype) / max(n_e, 1),
+        jnp.asarray(d["G0_i_value"], dtype=jdtype) / max(n_i, 1),
+    )
+    G0 = jnp.broadcast_to(col_value[None, :], (n, n))
+
+    emitter_params = HomeostaticEIParams(
+        x0=x0,
+        G0=G0,
+        H0=H0,
+        drive=drive,
+        tau_x_ms=jnp.asarray(d["tau_x_ms"], dtype=jdtype),
+        tau_G_ms=jnp.asarray(d["tau_G_ms"], dtype=jdtype),
+        tau_H_ms=jnp.asarray(d["tau_H_ms"], dtype=jdtype),
+        G_min=jnp.asarray(d["G_min"], dtype=jdtype),
+        G_max=jnp.asarray(d["G_max"], dtype=jdtype),
+        H_min=jnp.asarray(d["H_min"], dtype=jdtype),
+        H_max=jnp.asarray(d["H_max"], dtype=jdtype),
+        source_scale=source_scale,
+        labels=labels,
+        activation_rule_name=activation_rule,
+        conductance_rule_name=conductance_rule,
+        homeostasis_rule_name=homeostasis_rule,
+        bound_mode=bound_mode,
+    )
+    z = jnp.linspace(0.0, 1.0, n, dtype=jdtype) if n > 1 else jnp.zeros((1,), dtype=jdtype)
+    positions = jnp.stack([jnp.zeros_like(z), jnp.zeros_like(z), z], axis=1)
+    edge_list = _empty_edge_list(jdtype)
+    static = _construct_build_static(cfg, geometry_meta=None)
+    return Model(
+        cfg=cfg,
+        params={"emitter": emitter_params, "positions": positions, "edge_list": edge_list},
+        static=static,
+    )
+
+
 def _construct_from_configuration(cfg: Configuration, *, geometry: "LaminarSourceGeometry | None" = None) -> Model:
     """Validate a :class:`Configuration` and build a runnable :class:`Model`.
 
     Raises ``ValueError`` if the configuration is invalid or names an
-    unsupported emitter family (only the Izhikevich kernel is implemented; an
-    explicitly declared family such as ``"lif"``/``"glif"`` fails loudly rather
-    than silently substituting Izhikevich). An optional
-    :class:`LaminarSourceGeometry` overrides geometry derived from the config.
-    The returned model is a computational scaffold; its field/probe outputs are
-    proxy readouts, not calibrated physical signals.
+    unsupported emitter family (only the Izhikevich and homeostatic_ei
+    kernels are implemented; an explicitly declared family such as
+    ``"lif"``/``"glif"`` fails loudly rather than silently substituting
+    Izhikevich). An optional :class:`LaminarSourceGeometry` overrides
+    geometry derived from the config. The returned model is a computational
+    scaffold; its field/probe outputs are proxy readouts, not calibrated
+    physical signals.
     """
     _construct_validate_config(cfg)
+    if cfg.emitters and cfg.emitters[0].get("family") == "homeostatic_ei":
+        return _construct_homeostatic_ei_model(cfg)
     net = cfg.networks[0]
     dtype_name_cfg = str(cfg.metadata.get("dtype", "float32"))
 

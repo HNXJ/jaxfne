@@ -198,6 +198,33 @@ class TestFieldArraysFiniteValidation:
         assert result["all_finite"] is False
         assert result["CSD_finite"] is False
 
+    def test_all_provided_true_when_all_three_given(self):
+        import numpy as np
+
+        result = validate_field_arrays_finite(
+            phi_e=np.random.randn(10, 16),
+            J_e=np.random.randn(10, 3),
+            CSD=np.random.randn(10, 16),
+        )
+        assert result["all_provided"] is True
+        assert result["all_finite"] is True
+
+    def test_all_provided_false_when_one_omitted(self):
+        import numpy as np
+
+        result = validate_field_arrays_finite(
+            phi_e=np.random.randn(10, 16), J_e=np.random.randn(10, 3)
+        )
+        assert result["all_provided"] is False
+        assert result["all_finite"] is True
+
+    def test_all_provided_false_and_all_finite_vacuously_true_when_none_given(self):
+        result = validate_field_arrays_finite()
+        assert result["all_provided"] is False
+        # Vacuous truth: nothing was checked, so all_finite being True here does
+        # NOT mean "confirmed finite" -- callers must check all_provided too.
+        assert result["all_finite"] is True
+
 
 class TestFieldAdmissibilityReport:
     """Field admissibility report generation."""

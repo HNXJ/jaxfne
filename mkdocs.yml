@@ -95,6 +95,7 @@ nav:
       - Homeostasis: guides/homeostasis.md
       - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
+      - Brian2 Benchmark Receipt: notes/brian2_benchmark_receipt.md
       - Calibration: guides/calibration.md
       - Output Bundles: guides/output_bundles.md
       - Interactive Tutorial Visualizations: interactive_visualizations.md
@@ -136,6 +137,7 @@ nav:
       - FAQ: faq.md
       - Plotly Visualization: guides/plotly_visualization.md
       - Jaxley Interoperability: guides/jaxley_interop.md
+      - jax-fem Interoperability (scoping): guides/jax_fem_interop.md
       - CI and Validation Policy: ci_policy.md
       - Operator Doctrine: operator_doctrine.md
       - Tensor-Network Ancestry: tensor_network_ancestry.md
@@ -163,4 +165,4 @@ nav:
               - v0.2.0: releases/v0.2.0.md
 
 extra:
-  jaxfne_version: "0.4.6"
+  jaxfne_version: "0.4.7"

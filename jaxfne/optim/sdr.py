@@ -27,11 +27,21 @@ def step_sdr_transform(u_t: jnp.ndarray, grad_l: jnp.ndarray, state: Any, hyperp
     Despite the ``SDRState``/``SDR`` naming, this does NOT implement a
     stochastic delta term, EMA variance tracking, or any other behavior
     beyond ``state``/``hyperparams`` plumbing -- ``state`` is passed through
-    unchanged. The real Stochastic Delta Rule optimizer (stochastic delta
-    term, adaptive alpha, Optax-integrated) is :func:`jaxfne.optim.core.sdr_transform`,
-    which production code (``Model.tune(optimizer="SDR", ...)``) actually
-    uses -- this function is not on that call path. Kept for backward
-    compatibility with any caller using the lower-level
+    unchanged. A separate, more elaborate Stochastic Delta Rule implementation
+    (stochastic delta term, adaptive alpha, Optax-integrated) exists at
+    :func:`jaxfne.optim.core.sdr_transform` -- but it is NOT what
+    ``Model.tune(optimizer="SDR", ...)`` calls either (confirmed 2026-07-18:
+    that string dispatches through ``_resolve_optimizer`` to a blackbox
+    candidate-proposal path, ``propose_blackbox_candidates``, which never
+    references ``sdr_transform``; passing the ``sdr_transform()`` object
+    itself as ``optimizer=`` also does not work, since ``_resolve_optimizer``
+    has no branch for a raw ``GradientTransformation`` and silently falls
+    through to the same generic blackbox path instead of calling its
+    ``init``/``update``). ``sdr_transform`` is exercised only by
+    ``tests/test_optim_tune.py`` directly, not by any confirmed production
+    call path -- see ``jaxfne/optim/core.py::agsdr_transform-production-
+    path-unconfirmed`` in ``progress.json``. Kept for backward compatibility
+    with any caller using the lower-level
     ``step(u_t, grad_l, state, hyperparams)`` signature.
     """
     target_dtype = u_t.dtype

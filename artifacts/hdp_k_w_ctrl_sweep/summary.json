@@ -1,0 +1,23 @@
+{
+  "0.0": {
+    "growth_ratio_mean": 1.0264971494674682,
+    "growth_ratio_std": 0.0006699775856991985,
+    "differentiation_ratio_mean": 1.0558658926407793,
+    "differentiation_ratio_std": 0.0025118585980117305,
+    "all_finite": true
+  },
+  "0.0001": {
+    "growth_ratio_mean": 1.0130382776260376,
+    "growth_ratio_std": 0.00034178510354518333,
+    "differentiation_ratio_mean": 1.0300459793077166,
+    "differentiation_ratio_std": 0.0013920302350008268,
+    "all_finite": true
+  },
+  "0.001": {
+    "growth_ratio_mean": 0.9979690551757813,
+    "growth_ratio_std": 4.2456762935969116e-05,
+    "differentiation_ratio_mean": 1.0025581846539464,
+    "differentiation_ratio_std": 0.00012973847775016843,
+    "all_finite": true
+  }
+}

@@ -239,6 +239,26 @@ class NeuronalTensor:
         return asdict(self)
 
 
+def make_minimal_ei_tensor(n: int = 8, e_fraction: float = 0.75, *,
+                            layer_name: str = "L1", area_name: str = "minimal",
+                            h: float = 1.0) -> NeuronalTensor:
+    """One flat Layer of n neurons split E/PV by e_fraction, all 4 pairwise
+    E/PV InterConnections (AMPA from E, GABA from PV), plastic.H=h on every
+    connection -- the minimal all-pairwise E/I circuit shape shared by both
+    canonical HDP sanity tests (scripts/major_sanity_test.py,
+    scripts/snt_pipeline.py)."""
+    e_type = NeuronType.make("E", fraction=e_fraction)
+    i_type = NeuronType.make("PV", fraction=1.0 - e_fraction)
+    layer = Layer(name=layer_name, n_neurons=n, neuron_types=[e_type, i_type])
+    connections = [
+        InterConnection(source_layer=layer_name, source_neuron_type=src, target_layer=layer_name,
+                         target_neuron_type=tgt, mechanism=("AMPA" if src == "E" else "GABA"),
+                         plastic=PlasticParams(H=h))
+        for src in ("E", "PV") for tgt in ("E", "PV")
+    ]
+    return NeuronalTensor(areas=[Area(name=area_name, layers=[layer], inter_connections=connections)])
+
+
 # Versioned JSON schema for saved NeuronalTensor configs. Bump on any
 # breaking change to the on-disk shape (field rename/removal, not additive
 # fields); load_neuronal_tensor accepts files with no "schema_version" key
