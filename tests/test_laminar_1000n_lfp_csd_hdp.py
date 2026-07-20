@@ -21,7 +21,10 @@ def test_1000n_laminar_hdp_lfp_csd_smoke():
 
     signals = jtfne.simulate(
         model, duration_ms=1000.0, dt_ms=0.1, seed=0, record_fields=True,
-        runtime=RuntimeConfig(enable_hdp=True, hdp_params=dict(DEFAULT_HDP)),
+        runtime=RuntimeConfig(
+            enable_hdp=True,
+            hdp_params=dict(DEFAULT_HDP, record_weight_trace=False),
+        ),
     )
 
     V_m = np.asarray(signals.V_m)
