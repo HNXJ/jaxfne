@@ -4,11 +4,45 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.7 (2026-07-20)
+
+Internal engineering scorecard: 100/100 (all 10 factors,
+`artifacts/developer/release_0_4_7_scorecard.md`). First release published to
+GitHub Release / TestPyPI / PyPI since v0.4.5.
+
+### Added
+- `homeostatic_ei` emitter: N-generalized cubic-penalty and cross-population
+  coupling homeostasis, soft bounds, `bound_mode`, pairwise synaptic HDP,
+  wired through `Configuration.set_emitter()`/`Model.simulate()`.
+- `experimental_poisson_1d` bridged to `Model.neuron_table()`/`Signals.sources`;
+  extended to piecewise (layered) conductivity with an analytic validation target.
+- `jax-fem` optional bridge (schema-first, mirrors `JaxleyBridge`).
+- `record_weight_trace` opt-out on the HDP kernel and `_pipeline.py`'s
+  `compile_step_fn`/`scan_network` path (closes an 80GB-scale OOM at large
+  N/step counts; additive, default unchanged).
+- First real cross-tool benchmark (jaxfne vs Brian2, matched Izhikevich task),
+  independently re-verified.
+- Formal HDP barrier-potential equilibrium stability proof; significance
+  testing added to the ED9 HDP evidence bundle.
+
+### Fixed
+- Dense-connectivity `construct()` OOM at N=100,000 (skips a wasted dense
+  (N,N) allocation the suite2 path discards anyway); N=100,000 HDP
+  long-duration étude executed end-to-end post-fix (H settles near
+  equilibrium, no OOM).
+- `step_sdr_transform`/`step_gsdr_transform`/`step_agsdr_transform` docstrings
+  corrected — `Model.tune()` never actually calls these functions.
+- Version-alignment: `pyproject.toml`, `jaxfne.__version__`, `mkdocs.yml`, and
+  `docs/_generated/version.md` now kept in lockstep (a stale-source gap was
+  caught by the release CI's own regression suite this cycle).
+
 ### Changed
+- `ruff` lint is now a hard CI gate (509 → 0 errors as of 2026-07-14, with
+  every per-file suppression individually verified, not blanket-applied).
 - Pre-0.4.7 four-chapter polish (P–S): human docs de-parrot agent jargon; `clamp_truth_gate_metadata` blocks claim escalation on update_metadata/manifest/migrate_schema; dual-ask re-score leak 92 / overall 93.
 - Root declutter: contributing guide under `docs/` + `.github/CONTRIBUTING.md`; changelog lives under `docs/changelog.md`.
 - API docs export note links [Scope & status](scope_and_status.md) instead of repeating gate jargon.
-- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md) only.
+- README: drop "Built for AI agents too" manifesto; quiet Documentation-table link to [for_ai_agents](for_ai_agents.md) only; states the Jaxley/jaxfne population-vs-compartment relationship directly.
 
 ### Removed
 - Root `SECURITY.md` and `CODE_OF_CONDUCT.md`.
