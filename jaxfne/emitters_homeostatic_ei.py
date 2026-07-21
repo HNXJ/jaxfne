@@ -497,6 +497,28 @@ def simulate_homeostatic_ei(
     if bound_mode not in ("minimal", "stable"):
         raise ValueError(f"unknown bound_mode {bound_mode!r}; expected 'minimal' or 'stable'")
 
+    # Transparency: G is an explicit dense (N,N) conductance matrix by design (this
+    # emitter has no sparse variant, unlike the Izhikevich/edge-list path in
+    # jaxfne._construct_population), and every step's full G is retained in the
+    # returned G_history -- (n_steps, N, N). That is O(n_steps * N^2) memory, not just
+    # O(N^2), and it is not a broadcast_to laziness artifact: G is a real carried scan
+    # array from step 0, verified via direct measurement (N=1000, 50 steps ->
+    # G_history.nbytes = 2.0e8, matching n_steps*N*N*4 bytes exactly). Warn once at
+    # trace time when this would be large (Phase 3 0.4.8-0.4.48 roadmap; closes
+    # plans::homeostatic-ei-g0-broadcast-per-step-realization-risk).
+    _n0 = params.x0.shape[0]
+    _hist_mb = (n_steps * _n0 * _n0 * (8 if jnp.dtype(dtype) == jnp.float64 else 4)) / 1e6
+    if _hist_mb >= 500:
+        import warnings as _warnings
+        _warnings.warn(
+            f"homeostatic_ei G_history at N={_n0}, n_steps={n_steps} materializes a "
+            f"dense (n_steps, N, N) array (~{_hist_mb:.0f} MB) -- this emitter's "
+            f"conductance matrix has no sparse variant. Reduce n_steps or N, or discard "
+            f"G_history downstream if only the final state is needed.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+
     act_fn = _resolve_rule(activation_rule, ACTIVATION_RULES, "activation")
     cond_fn = _resolve_rule(conductance_rule, CONDUCTANCE_RULES, "conductance")
     homeo_fn = _resolve_rule(homeostasis_rule, HOMEOSTASIS_RULES, "homeostasis")

@@ -379,14 +379,35 @@ def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], la
     # weight matrix and ~n^2 edges. That is inherent to all-to-all topology, not a
     # bug, but it is O(N^2) in memory and edge count. Make the cost visible at scale
     # and point to the sparse lever (p_connect < 1) rather than failing silently.
-    if n >= _DENSE_CONNECTIVITY_WARN_N and (p_connect is None or float(p_connect) >= 1.0):
+    #
+    # tcm_v1_6pop / suite2_interarea / inter_column_connectivity all force this dense
+    # path unconditionally (the sparse-direct escape above is explicitly gated OFF for
+    # them, since they need the full (n,n) matrix to apply population/inter-area masks
+    # or additive cross-area weights). That means p_connect<1 alone does not shrink
+    # their memory footprint the way it does for the plain within-area case -- warn
+    # whenever any of them is active at scale, independent of p_connect (Phase 3
+    # 0.4.8-0.4.48 roadmap; closes plans::multiarea-wadd-dense-alloc-o-n2-risk).
+    if n >= _DENSE_CONNECTIVITY_WARN_N and (
+        (p_connect is None or float(p_connect) >= 1.0) or _tcm or _interarea or _inter_col
+    ):
         import warnings as _warnings
         _mb = (n * n * (8 if jdtype == jnp.float64 else 4)) / 1e6
+        _reason = (
+            "tcm_v1_6pop/suite2_interarea/inter_column_connectivity forces the dense path"
+            if (_tcm or _interarea or _inter_col)
+            else "all-to-all within-area connectivity"
+        )
+        _extra = (
+            " p_connect<1 does not shrink this -- these specs require the full (n,n) "
+            "matrix regardless."
+            if (_tcm or _interarea or _inter_col)
+            else " For large columns set connectivity p_connect<1 (or a sparse rule) to "
+            "reduce memory and edge count."
+        )
         _warnings.warn(
-            f"dense all-to-all within-area connectivity at N={n} materializes an "
-            f"({n}x{n}) weight matrix (~{_mb:.0f} MB) and ~{n*n} edges (O(N^2)). "
-            f"For large columns set connectivity p_connect<1 (or a sparse rule) to "
-            f"reduce memory and edge count.",
+            f"dense connectivity at N={n} ({_reason}) materializes an ({n}x{n}) weight "
+            f"matrix (~{_mb:.0f} MB) and ~{n*n} edges (O(N^2))."
+            f"{_extra}",
             RuntimeWarning,
             stacklevel=2,
         )
