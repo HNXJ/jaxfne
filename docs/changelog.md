@@ -4,6 +4,49 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.8 (2026-07-22)
+
+First release of the 0.4.8-0.4.48 long-term roadmap (`full_scorecard >= 80/100`
+by 0.4.48). Ships Phases 1-3 (Baseline measurement, Defragmentation wave 1,
+Computational efficiency wave 1). `full_scorecard` total: 58.5/80 as of this
+version (Novelty 78.6, Computational efficiency 74, TFNE goals 30,
+Generalization 50, Code defragmentation 60).
+
+### Added
+- Committed, repeatable scaling étude at N=100/1,000/10,000/100,000
+  (`benchmarks/scaling_benchmark.py`) -- the N=100,000 case exercises the
+  sparse-connectivity lever (`p_connect<1`) via `Configuration.uniform3d()`,
+  since a dense (N,N) matrix at this N is infeasible (~40GB).
+
+### Fixed
+- `_apply_connectivity`'s dense-memory warning now covers
+  `tcm_v1_6pop`/`suite2_interarea`/`inter_column_connectivity` configs, which
+  previously bypassed it silently whenever `p_connect<1`.
+- `_construct_build_network`'s dense fallback (reached when a `Configuration`
+  doesn't set `columns`/`layer_cell_types`/`uniform_3d` metadata) now warns at
+  scale -- previously, a plausible-looking `.network(kind=..., layers=[...])`
+  recipe silently made any `connectivity(p_connect=...)` call inert, building
+  a dense (N,N) matrix regardless (confirmed: ~50GB/194s at N=100,000 before
+  the fix, ~1.1GB/11s after, at the identical N/p_connect).
+- `eeg_proxy_transform`/`meg_proxy_transform` (`jaxfne/fields/probes.py`)
+  merged into one internal `_leadfield_proxy_transform` implementation --
+  both were byte-identical bodies differing only in a parameter name. Both
+  public names kept as thin, signature-preserving wrappers.
+
+### Changed
+- `_model.py` (2,901 LOC) and `_construct.py` (2,946 LOC) split into cohesive
+  submodules (`_model_simulate.py`, `_model_readout.py`, `_model_evaluate.py`,
+  `_model_tune.py`, `_model_manifest.py`, `_construct_population.py`,
+  `_construct_connectivity.py`, `_construct_presets.py`, `_construct_core.py`,
+  `_construct_extras.py`) -- both files are now thin re-export aggregators,
+  matching `core.py`'s existing pattern. Zero public API surface change
+  (`jaxfne.__all__` count unchanged at 256 throughout).
+- `_suite2_apply_connectivity`/`_suite2_neuron_population_from_config`/
+  `_suite2_default_layer_cell_types` renamed to their general names
+  (`_apply_connectivity`/`_neuron_population_from_config`/
+  `_default_layer_cell_types`) -- all three were the sole implementation,
+  called broadly, with no suite2-gated behavior inside (jaxfne-harden rule 10).
+
 ## v0.4.7 (2026-07-20)
 
 Internal engineering scorecard: 100/100 (all 10 factors,
