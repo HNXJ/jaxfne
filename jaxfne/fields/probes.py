@@ -268,16 +268,21 @@ def emm_proxy_probe(
     return ProbeReadout(name="emm_proxy", kind="emm_proxy", data=emm, report=report)
 
 
-def eeg_proxy_transform(
-    source: jax.Array,
-    leadfield: jax.Array,
-) -> jax.Array:
-    """Compute EEG-proxy readout via linear leadfield projection."""
+def _leadfield_proxy_transform(source: jax.Array, leadfield: jax.Array, *, param_name: str) -> jax.Array:
+    """Shared linear leadfield projection behind ``eeg_proxy_transform``/``meg_proxy_transform``.
+
+    Both public functions are ``source @ leadfield.T`` with identical validation,
+    differing only in the source array's conventional parameter name (``source``
+    for EEG, ``source_oriented`` for MEG) -- ``param_name`` reproduces that name
+    in error messages so each public entry point's errors read exactly as before
+    (jaxfne-harden rule 10; merged 2026-07-21, both public names kept as thin
+    backward-compatible wrappers, zero call-site changes required).
+    """
     source = jnp.asarray(source)
     leadfield = jnp.asarray(leadfield)
 
     if source.ndim != 2:
-        raise ValueError(f"source must be 2D [T, K], got shape {source.shape}")
+        raise ValueError(f"{param_name} must be 2D [T, K], got shape {source.shape}")
     if leadfield.ndim != 2:
         raise ValueError(f"leadfield must be 2D [C, K], got shape {leadfield.shape}")
 
@@ -286,10 +291,18 @@ def eeg_proxy_transform(
 
     if K != K_lead:
         raise ValueError(
-            f"source and leadfield K dimension mismatch: {K} vs {K_lead}"
+            f"{param_name} and leadfield K dimension mismatch: {K} vs {K_lead}"
         )
 
     return source @ leadfield.T
+
+
+def eeg_proxy_transform(
+    source: jax.Array,
+    leadfield: jax.Array,
+) -> jax.Array:
+    """Compute EEG-proxy readout via linear leadfield projection."""
+    return _leadfield_proxy_transform(source, leadfield, param_name="source")
 
 
 def meg_proxy_transform(
@@ -297,23 +310,7 @@ def meg_proxy_transform(
     leadfield: jax.Array,
 ) -> jax.Array:
     """Compute MEG-proxy readout via linear leadfield projection."""
-    source_oriented = jnp.asarray(source_oriented)
-    leadfield = jnp.asarray(leadfield)
-
-    if source_oriented.ndim != 2:
-        raise ValueError(f"source_oriented must be 2D [T, K], got shape {source_oriented.shape}")
-    if leadfield.ndim != 2:
-        raise ValueError(f"leadfield must be 2D [C, K], got shape {leadfield.shape}")
-
-    T, K = source_oriented.shape
-    C, K_lead = leadfield.shape
-
-    if K != K_lead:
-        raise ValueError(
-            f"source_oriented and leadfield K dimension mismatch: {K} vs {K_lead}"
-        )
-
-    return source_oriented @ leadfield.T
+    return _leadfield_proxy_transform(source_oriented, leadfield, param_name="source_oriented")
 
 
 def emm_proxy_transform(

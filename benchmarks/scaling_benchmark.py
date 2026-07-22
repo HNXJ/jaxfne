@@ -84,6 +84,111 @@ print(json.dumps({{
 """
 
 
+_SPARSE_CASE_WORKER_SRC = """
+import json, platform, resource, time
+import jax
+import jaxfne as jtfne
+
+n_neurons = {n_neurons}
+duration_ms = {duration_ms}
+dt_ms = {dt_ms}
+p_connect = {p_connect}
+
+timings = {{}}
+
+t0 = time.perf_counter()
+cfg = (
+    jtfne.configuration()
+    .network(name="scaling_net", n=n_neurons, cell_types={{"E": 0.80, "PV": 0.10, "SST": 0.07, "VIP": 0.03}})
+    .uniform3d()
+    .connectivity(p_connect=p_connect)
+    .emitter(family="izhikevich", preset="cortical_eig")
+    .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann", gauge="mean_zero")
+    .probe(name="laminar_probe", modes=["spikes", "V_m"])
+)
+timings["configuration_setup_ms"] = (time.perf_counter() - t0) * 1000.0
+
+t0 = time.perf_counter()
+model = jtfne.construct(cfg)
+timings["construct_ms"] = (time.perf_counter() - t0) * 1000.0
+
+t0 = time.perf_counter()
+sim = jtfne.simulation(duration_ms=duration_ms, dt_ms=dt_ms, seed=0)
+signals = model.simulate(sim)
+timings["simulate_ms"] = (time.perf_counter() - t0) * 1000.0
+
+t0 = time.perf_counter()
+_ = model.probe(signals, modes=["spikes", "V_m"])
+timings["probe_ms"] = (time.perf_counter() - t0) * 1000.0
+
+raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+peak_rss_mb = raw_rss / (1024.0 * 1024.0) if platform.system() == "Darwin" else raw_rss / 1024.0
+
+print(json.dumps({{
+    "n_neurons": n_neurons,
+    "p_connect": p_connect,
+    "duration_ms": duration_ms,
+    "dt_ms": dt_ms,
+    "timings": timings,
+    "total_ms": sum(timings.values()),
+    "peak_rss_mb": peak_rss_mb,
+}}))
+"""
+
+
+def run_sparse_case_isolated(
+    name: str, n_neurons: int, p_connect: float,
+    duration_ms: float = 200.0, dt_ms: float = 0.1,
+) -> dict[str, Any]:
+    """Run one sparse-connectivity (``p_connect<1``) scaling case in a fresh subprocess.
+
+    A dense within-area matrix at N=100,000 would require ~40GB for ``W`` alone
+    (float32, ``n*n*4`` bytes) -- infeasible on most machines. The recommended
+    lever at that scale (jaxfne-harden rule 3, ``_DENSE_CONNECTIVITY_WARN_N``) is
+    a sparse ``p_connect<1`` request, which routes through
+    ``_apply_connectivity``'s sparse-direct escape (edge list built directly,
+    never materializing the (n,n) matrix) -- but ONLY when the ``Configuration``
+    also carries ``columns``/``layer_cell_types``/``uniform_3d`` metadata
+    (``_construct_build_network``'s routing condition); this worker calls
+    ``.uniform3d()`` for exactly that reason. A ``.network(kind=..., layers=[...])``
+    call alone does NOT set that metadata (``layers`` lives in the per-network
+    dict, not ``cfg.metadata``) and silently falls through to
+    ``make_eig_network``'s always-dense builder instead, making any
+    ``connectivity(p_connect=...)`` call inert. Confirmed directly 2026-07-21:
+    the pre-``.uniform3d()`` version of this worker ran ~370s and peaked at
+    ~50GB RSS at N=100,000, p_connect=0.0005 -- identical cost to the fully
+    dense path, because that is what actually ran. Fixed in two places: this
+    worker now uses the metadata-routing recipe (11s construct, 1.6s simulate,
+    1.15GB peak RSS at the same N/p_connect -- verified), and
+    ``_construct_build_network``'s dense fallback (``jaxfne/_construct_core.py``)
+    now warns (matching ``_DENSE_CONNECTIVITY_WARN_N``) whenever a large-N
+    config falls through to it, so a future recipe mistake is surfaced rather
+    than silently OOMing.
+
+    This is a DIFFERENT code path from ``run_case_isolated``'s dense
+    all-to-all cases above -- not comparable via growth ratios against them
+    (that would understate the dense path's real O(N^2) cost by conflating
+    it with the sparse path's near-linear one). ``p_connect`` should be
+    chosen to keep mean out-degree bounded (``p_connect = target_degree /
+    n_neurons``) -- an unbounded choice like a flat 0.01 at N=100,000 still
+    yields ~1e8 edges (mean degree 1000), a large, slow, memory-heavy graph
+    despite being "sparse" in the p_connect<1 sense.
+    """
+    src = _SPARSE_CASE_WORKER_SRC.format(
+        n_neurons=n_neurons, duration_ms=duration_ms, dt_ms=dt_ms, p_connect=p_connect,
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", src],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=Path(__file__).resolve().parent.parent,
+    )
+    result = json.loads(proc.stdout.strip().splitlines()[-1])
+    result["case_name"] = name
+    return result
+
+
 def _hardware_info() -> dict[str, Any]:
     import jax
 
@@ -154,6 +259,39 @@ def main() -> None:
             "in N is consistent with O(N^2) dense-weight-matrix behavior; a ratio near "
             "10x indicates near-linear/sparse-equivalent scaling. This script reports "
             "the measured ratio, it does not assume one."
+        ),
+    }
+
+    # Separate sparse-path case at N=100,000 -- the dense path above is not run
+    # at this N (a dense (n,n) float32 W would need ~40GB), so this exercises
+    # the actually-recommended lever at scale (p_connect<1, bounded mean
+    # out-degree) instead of extending the same dense growth-ratio series.
+    print("\nRunning n100000_sparse (N=100000, p_connect bounded to mean "
+          "degree ~50) in isolated subprocess...", flush=True)
+    target_mean_degree = 50.0
+    n_sparse = 100_000
+    p_connect_sparse = target_mean_degree / n_sparse
+    sparse_result = run_sparse_case_isolated(
+        "n100000_sparse", n_neurons=n_sparse, p_connect=p_connect_sparse,
+        duration_ms=50.0, dt_ms=0.5,
+    )
+    print(f"  construct={sparse_result['timings']['construct_ms']:.0f}ms  "
+          f"simulate={sparse_result['timings']['simulate_ms']:.0f}ms  "
+          f"peak_rss={sparse_result['peak_rss_mb']:.0f}MB", flush=True)
+    report["sparse_scaling_case"] = {
+        "benchmark_series": "sparse_scaling_evidence_n100000_p_connect_bounded_degree",
+        "claim_level": "local_environment_receipt_only",
+        "result": sparse_result,
+        "notes": (
+            "Distinct from the dense growth_ratios series above -- not directly "
+            "comparable (different code path: sparse-direct edge-list escape, "
+            "not the dense (n,n) matrix). p_connect chosen as "
+            f"target_mean_degree({target_mean_degree})/n to keep edge count "
+            "bounded (an unscaled flat p_connect at this N would itself be a "
+            "very large, slow graph despite being 'sparse' in the p_connect<1 "
+            "sense). This case's own purpose: confirm the sparse-direct escape "
+            "keeps memory/time bounded at N=100,000, where the dense path is "
+            "infeasible."
         ),
     }
 

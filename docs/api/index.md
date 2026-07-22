@@ -8,7 +8,7 @@ import jaxfne as jtfne
 
 This page is the complete index of the public API (`jaxfne.__all__`, 256 names),
 grouped by module. Per-module pages carry detailed signatures and examples.
-Latest PyPI release `jaxfne==0.4.7` (tag `v0.4.7`), matching the current
+Latest PyPI release `jaxfne==0.4.8` (tag `v0.4.8`), matching the current
 development tree (`pyproject.toml`). The root-level export
 helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 

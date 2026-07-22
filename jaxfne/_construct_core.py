@@ -33,7 +33,7 @@ from ._construct_connectivity import (
     _mark_connections_compiled,
     _empty_edge_list,
 )
-from ._construct_population import _neuron_population_from_config
+from ._construct_population import _DENSE_CONNECTIVITY_WARN_N, _neuron_population_from_config
 from ._construct_extras import operator_status
 
 
@@ -383,7 +383,34 @@ def _construct_build_network(
         )
         n = int(params.n_neurons)
     else:
+        # This branch's builder (make_eig_network -> _default_eig_connectivity)
+        # unconditionally materializes a dense (n,n) all-to-all weight matrix --
+        # it has no sparse-direct escape, unlike _neuron_population_from_config's
+        # _apply_connectivity above. A Configuration.connectivity(p_connect=...)
+        # call has NO effect here: p_connect is only read from cfg.metadata by
+        # _apply_connectivity, which this branch never reaches (routing above
+        # requires columns/layer_cell_types/uniform_3d in cfg.metadata -- a plain
+        # .network(kind=..., layers=[...]) call, without one of those three keys
+        # also set, silently falls through to here regardless of `layers`).
+        # Confirmed 2026-07-21: a 100,000-neuron .network(layers=[...]) config
+        # with .connectivity(p_connect=0.0005) still built a dense (n,n) matrix
+        # (~40GB) and ran ~370s -- p_connect was silently inert.
         cell_types = net.get("cell_types", {"E": 0.8, "PV": 0.1, "SST": 0.1})
+        if n >= _DENSE_CONNECTIVITY_WARN_N:
+            import warnings as _warnings
+            _mb = (n * n * 4) / 1e6
+            _warnings.warn(
+                f"dense all-to-all connectivity at N={n} materializes an "
+                f"({n}x{n}) weight matrix (~{_mb:.0f} MB) -- this Configuration "
+                f"did not set columns/layer_cell_types/uniform_3d metadata, so it "
+                f"routed to the non-sparse-aware network builder. Any "
+                f"connectivity(p_connect=...) call has NO effect on this path. "
+                f"Use build_laminar_column/laminar_cortex_config (or set one of "
+                f"those metadata keys directly) to reach the sparse-aware "
+                f"population builder at this scale.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
         network = make_eig_network(n=n, cell_type_fractions=cell_types)
         positions = network.positions
         geometry_meta = None

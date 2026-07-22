@@ -6,11 +6,11 @@
 pip install -U jaxfne
 ```
 
-The latest **PyPI** release is **`jaxfne==0.4.7`** (tag `v0.4.7`). To pin it
+The latest **PyPI** release is **`jaxfne==0.4.8`** (tag `v0.4.8`). To pin it
 explicitly:
 
 ```bash
-pip install "jaxfne==0.4.7"
+pip install "jaxfne==0.4.8"
 ```
 
 For the current development checkout, use editable install (below) and verify

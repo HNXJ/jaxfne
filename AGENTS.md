@@ -82,16 +82,21 @@ skill's contract handed inline removes that guesswork; an open-ended ask invites
 
 ## PRP backlog — local-only, not tracked
 
-`artifacts/developer/{plans,progress,review}.json` + `AGENT_CHANNEL.md`. Skill:
-`progress-review-plan`. **`git rm --cached` + gitignored 2026-07-14** — an independent audit
-confirmed this directory (internal roadmap, per-file scores, competitive citation-strategy notes)
-was tracked and pushed to this public repo. Stopped tracking going forward; git history was not
-scrubbed (explicit decision — repo stays public). **Do not re-add these paths to git.** Two files
-under `artifacts/legacy/internal_docs/` are kept tracked as explicit `.gitignore` exceptions
-(load-bearing for `tests/test_agent_context_hygiene.py` / `tests/test_docs_equations_plotly_v0214.py`,
-confirmed non-sensitive) — don't add a third without the same content review.
+`artifacts/developer/{plans,progress,review,adapt}.json` + `AGENT_CHANNEL.md`. Skill:
+`progress-review-plan` (`~/.claude/skills/progress-review-plan/SKILL.md`). **`git rm --cached` +
+gitignored 2026-07-14** — an independent audit confirmed this directory (internal roadmap,
+per-file scores, competitive citation-strategy notes) was tracked and pushed to this public repo.
+Stopped tracking going forward; git history was not scrubbed (explicit decision — repo stays
+public). **Do not re-add these paths to git.** Two files under `artifacts/legacy/internal_docs/`
+are kept tracked as explicit `.gitignore` exceptions (load-bearing for
+`tests/test_agent_context_hygiene.py` / `tests/test_docs_equations_plotly_v0214.py`, confirmed
+non-sensitive) — don't add a third without the same content review.
 
-**Done rule:** `status=done` requires `achieved_score >= target_score`. JSON edits ≠ work done.
+`AGENT_CHANNEL.md` is freeform session-handoff notes — no fixed schema exists yet; don't invent
+one when reading or writing it.
+
+**Done rule:** `status=done` requires `achieved_score >= target_score` **and** a real command/output
+receipt in `evidence` — a prose claim with no command shown is not evidence. JSON edits ≠ work done.
 
 ## Module map
 
