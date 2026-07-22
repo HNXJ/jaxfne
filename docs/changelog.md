@@ -20,17 +20,17 @@ Generalization 50, Code defragmentation 60).
 
 ### Fixed
 - `_apply_connectivity`'s dense-memory warning now covers
-  `tcm_v1_6pop`/`suite2_interarea`/`inter_column_connectivity` configs, which
-  previously bypassed it silently whenever `p_connect<1`.
+  `tcm_v1_6pop`/`suite2_interarea`/`inter_column_connectivity` configs; the
+  warning used to skip these whenever `p_connect<1`.
 - `_construct_build_network`'s dense fallback (reached when a `Configuration`
   doesn't set `columns`/`layer_cell_types`/`uniform_3d` metadata) now warns at
   scale -- previously, a plausible-looking `.network(kind=..., layers=[...])`
-  recipe silently made any `connectivity(p_connect=...)` call inert, building
+  recipe made any `connectivity(p_connect=...)` call inert, building
   a dense (N,N) matrix regardless (confirmed: ~50GB/194s at N=100,000 before
   the fix, ~1.1GB/11s after, at the identical N/p_connect).
 - `eeg_proxy_transform`/`meg_proxy_transform` (`jaxfne/fields/probes.py`)
   merged into one internal `_leadfield_proxy_transform` implementation --
-  both were byte-identical bodies differing only in a parameter name. Both
+  both were byte-identical bodies, differing purely in a parameter name. Both
   public names kept as thin, signature-preserving wrappers.
 
 ### Changed
@@ -45,7 +45,7 @@ Generalization 50, Code defragmentation 60).
   `_suite2_default_layer_cell_types` renamed to their general names
   (`_apply_connectivity`/`_neuron_population_from_config`/
   `_default_layer_cell_types`) -- all three were the sole implementation,
-  called broadly, with no suite2-gated behavior inside (jaxfne-harden rule 10).
+  called broadly, with behavior identical across every suite2 flag value (jaxfne-harden rule 10).
 
 ## v0.4.7 (2026-07-20)
 
