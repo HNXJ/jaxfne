@@ -2,6 +2,15 @@
 
 Invariant checks and validation functions for numerical consistency and structural integrity.
 
+**Module note (2026-07-24):** the functions in "Signal & Field Validation" and "Conservation
+Diagnostics" below (`validate_source_field_status`, `validate_projection_invariants`,
+`compute_conservation_proxy_diagnostics`) are physically implemented in
+`jaxfne/fields/proxy.py`/`jaxfne/fields/diagnostics.py`, not `jaxfne/validation.py` — they're
+documented here (and in [Fields](fields.md#validation-diagnostics)) because they're the
+signal/field-facing validation surface a caller reaches for alongside `is_valid_signal`.
+The rest of this page (Conductivity Validators onward) documents `jaxfne/validation.py`'s own
+API, which this page did not previously cover at all.
+
 ## Overview
 
 The validation module provides tools to:
@@ -176,6 +185,95 @@ else:
 > replacement; truth-gate/claim-level metadata for the fluent `Configuration`
 > pipeline is carried on the objects themselves (e.g. `FieldOutput`,
 > `RunReceipt`) rather than fetched via a standalone boundary-report call.
+
+---
+
+## Conductivity Validators
+
+`jaxfne/validation.py`'s own API starts here — each returns a JSON-safe `dict` with
+`is_valid`/`is_finite`/`status`/`evidence` keys, never raising on bad input:
+
+- `validate_scalar_conductivity(sigma, *, tolerance=1e-10)` (`:104`) — finite, positive scalar.
+- `validate_diagonal_conductivity(sigma, *, tolerance=1e-10)` (`:138`) — per-axis diagonal
+  conductivity tensor.
+- `validate_full_spd_conductivity(sigma, *, tolerance=1e-10)` (`:204`) — full symmetric
+  positive-definite conductivity tensor.
+- `validate_field_arrays_finite(**arrays)` (`:300`) — finiteness check over an arbitrary set
+  of named field arrays.
+
+## Field Admissibility Report
+
+### `build_field_admissibility_report(field_output=None, cfg_metadata=None, signals_field=None) -> dict`
+
+The v0.2.0 field-admissibility report (`:363`) — always sets
+`physical_amplitude_calibrated=False` and `conductivity_status="proxy_not_solved"` for the
+laminar proxy path; pulls `field_solver_status`/`field_claim_level`/`boundary_condition`/
+`gauge` from `cfg_metadata` or the field output's own diagnostics, falling back to the
+proxy defaults (`linear_solver`/`proxy_readout`/`mean_zero_neumann`/`mean_zero`) otherwise.
+
+## Calibration
+
+### `CalibrationSpec`
+
+Declares a calibration state without upgrading a physical-amplitude claim (`:417`,
+v0.2.5 contract). Constructor: `CalibrationSpec(*, name, target, mode="uncalibrated_native",
+scale=None, units=None, reference=None, description=None)` — `target` is one of
+`source`/`field`/`probe`/`readout`/`objective`; `mode` must be one of `ALLOWED_MODES`
+(`uncalibrated_native`, `toy_scale`, `relative_normalized`, `empirical_gain_candidate`,
+`physical_units_candidate`, `calibrated_empirical`) or the constructor raises `ValueError`.
+`.to_dict()` returns a JSON-safe representation.
+
+### `make_calibration_report(spec, *, readout_kind=None, ...) -> dict` (`:497`)
+
+Builds a report around a `CalibrationSpec` (or an equivalent dict).
+
+## Diagnostic Builders
+
+Each returns a JSON-safe `dict`, all under the same truth-gate discipline:
+
+- `make_source_balance_diagnostic(...)` (`:575`)
+- `make_gauge_diagnostic(...)` (`:622`)
+- `make_boundary_diagnostic(...)` (`:675`)
+- `make_manufactured_residual_diagnostic(...)` (`:708`)
+- `make_field_operator_status(...)` (`:753`) — **not** the same function as
+  `jtfne.operator_status()` documented above; this one builds a per-field-operator status
+  dict scoped to a single validation report.
+
+## Poisson Admissibility Gates
+
+Specification-only gates (nothing solved the Poisson equation numerically when these were written; the experimental
+solver that now exists, `jaxfne.fields.experimental_poisson_1d`, is documented in
+[Fields](fields.md#field-solvers) — these gates are not yet wired to it):
+
+- `validate_poisson_spd_conductivity(...)` (`:805`)
+- `validate_poisson_source_conservation(...)` (`:850`)
+- `validate_poisson_gauge_condition(...)` (`:898`) — only `gauge="mean_zero"` is implemented;
+  any other value raises `NotImplementedError`.
+- `validate_poisson_field_arrays(...)` (`:942`)
+- `build_poisson_admissibility_report(...) -> dict` (`:988`) — assembles the above into one report.
+
+## Basis Spec Validation
+
+- `validate_basis_spec(spec) -> dict` (`:1115`) — lazy-imports `BasisSpec`/
+  `_FUTURE_FIELD_REGIMES` from `.core` inside the function body specifically to avoid a
+  circular import (`core` imports `validation`, not vice versa).
+- `basis_claim_gate(...)` (`:1177`).
+
+## JAX Re-compilation Guard
+
+### `CompilationRegistry` / `compilation_registry` (`:1240`, singleton at `:1317`)
+
+Tracks shape signatures `(B, Z, C, T)` across JIT traces and warns/raises on an unexpected
+retrace. `.reset()` clears counters; `.set_mode("warning"|"exception"|"off")` controls
+alert behavior.
+
+### `make_recompilation_guard(fn, name, recompilation_guard, B, Z, C, T) -> wrapped` (`:1320`)
+
+Wraps `fn` to count trace/compile events. **Constraint (verified 2026-07-05):** the returned
+`wrapped` must be passed directly into `jax.jit(...)` before ever being called, and only the
+jitted result invoked — calling `wrapped` directly makes every Python call count as a
+"compile," producing false-positive re-compilation warnings. All current call sites
+(`jaxfne/_model_simulate.py`) follow `jax.jit(make_recompilation_guard(...))`.
 
 ---
 

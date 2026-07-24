@@ -12,9 +12,10 @@ The Izhikevich neuron model is a phenomenological spiking neuron model with two 
 
 `Configuration.set_emitter(family="izhikevich", preset="cortical_eig")` is a thin chainable
 wrapper over `Configuration.emitter(**kwargs)`; it records `family`/`preset` as metadata on
-the config (`jaxfne/core.py:1734`, `jaxfne/core.py:1153`). At build time the `"izhikevich"`
-family is the supported one (`_SUPPORTED_EMITTER_FAMILIES = frozenset({"izhikevich"})`,
-`jaxfne/core.py:7110`); other family strings raise at build time. `preset` is a
+the config (`jaxfne/_config.py:860`). At build time, `"izhikevich"` and `"homeostatic_ei"`
+are the two supported families (`_SUPPORTED_EMITTER_FAMILIES`, `jaxfne/_construct_core.py:389`
+— see the `homeostatic_ei` section further down this page for the second family); other family
+strings raise at build time. `preset` is a
 free-form string tag; `emitters.py` has no dedicated per-preset dynamics table. The emitter's
 per-neuron behavior differentiation comes from **cell type** (E/PV/SST/VIP/Inl/Ing), rather than
 from `preset`. Treat `preset="cortical_eig"` as the conventional default tag, rather than a switch between
