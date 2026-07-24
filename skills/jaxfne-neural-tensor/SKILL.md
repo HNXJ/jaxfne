@@ -142,6 +142,39 @@ HDP habituation test:**
    documented above under "Internal pure-function layer" but easy to miss
    since `with_hdp_initial_state` looks like it should be sufficient.
 
+**One more landmine found 2026-07-22, attempting to make HDP default-on
+across all emitters (jaxfne PRP entry
+`plans::hdp-universal-default-kernel-consolidation`; attempt stopped before
+landing, exactly because of this):**
+
+`RuntimeConfig.enable_hdp` cannot be safely flipped to a global default —
+it has three undocumented interactions that break existing callers:
+
+1. **Mutually exclusive with `enable_homeostasis`.** `_runtime_config.py`'s
+   `__post_init__` (~lines 102-105) raises `ValueError` if both are `True`.
+   Verified live: `dataclasses.replace(RuntimeConfig(), enable_hdp=True,
+   enable_homeostasis=True)` -> `ValueError: enable_homeostasis and
+   enable_hdp are mutually exclusive controllers`. 17 call sites repo-wide
+   pass `enable_homeostasis=True`; only 2 also pass `enable_hdp` explicitly
+   — the other 15 would break immediately if `enable_hdp`'s default ever
+   flipped to `True`.
+2. **Incompatible with `synaptic_kernel="receptor_exponential"`.**
+   `_model_simulate.py` (~lines 213-217) raises `ValueError` if
+   `enable_hdp=True` and the kernel is `receptor_exponential`. 8 non-test
+   files use that kernel.
+3. **`simulate_batch` never reads `enable_hdp` at all** (`_model_simulate.py`,
+   `simulate_batch` defined at line 689) — only `simulate()`/
+   `simulate_condition()` do. A global default flip would make
+   `simulate()` and `simulate_batch()` on the same `Model`/config silently
+   diverge (one HDP-active, one not).
+
+Net: `enable_hdp` default-on is not a value-change, it's a scoping problem —
+any future attempt needs to explicitly restrict to the izhikevich
+edge_list + default-exponential-kernel path, exclude `enable_homeostasis=True`
+callers and the `homeostatic_ei` emitter family (separate build/simulate
+path, own always-on `H`-state, doesn't read `hdp_params` at all), and add
+`enable_hdp` support to `simulate_batch` first.
+
 ## HDP module (`jaxfne/hdp_network.py`) — generic, config-driven, no per-N functions
 
 ```python

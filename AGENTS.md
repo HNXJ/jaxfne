@@ -27,7 +27,9 @@ top-level `simulate()` does — pass `runtime=RuntimeConfig(enable_hdp=True, ...
 when calling the `Model` method directly. For true turn-to-turn state continuity (not just
 `Model.with_hdp_initial_state()`'s partial `H`/`w`-only carry), use
 `jaxfne._pipeline.compile_step_fn`/`scan_network` with `DynamicState` (all six fields:
-`v, u, prev_spikes, syn_state, H, w`). Full detail: `skills/jaxfne-neural-tensor/SKILL.md`,
+`v, u, prev_spikes, syn_state, H, w`) — both wrap `emitters.simulate_edge_recurrent_izhikevich_hdp`
+directly, not `Model.simulate`, which is the canonical low-level HDP call pattern for a genuinely
+continuous multi-turn run. Full detail: `skills/jaxfne-neural-tensor/SKILL.md`,
 `skills/FRICTIONS_STACK.md` F-031.
 
 Per-event layer targeting: `target_indices` on **event dict**, not schedule ctor. Build indices from `model.neuron_table()`.

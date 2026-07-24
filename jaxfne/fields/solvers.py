@@ -11,6 +11,7 @@ def experimental_poisson_1d(
     dx: float,
     boundary: str = "mean_zero_neumann",
     gauge: str = "mean_zero",
+    precision: str = "float32",
 ) -> Tuple[jax.Array, jax.Array, Dict[str, Any]]:
     """Experimental 1D Poisson solver with Neumann boundaries and mean-zero gauge.
 
@@ -54,6 +55,25 @@ def experimental_poisson_1d(
         Boundary condition choice.
     gauge : str, default "mean_zero"
         Gauge choice.
+    precision : str, default "float32"
+        Numerical dtype for the assembly + solve. The default ``"float32"``
+        is the original, unchanged behavior (bit-identical to every prior
+        caller -- see tests/test_experimental_poisson_1d_layered.py's
+        ``test_original_smoke_case_unchanged``). Pass ``"float64"`` to opt
+        into the real double-precision solve path that resolves the
+        float32 convergence ceiling documented above (float64 converges
+        cleanly at every N up to 500 with the identical dense-Laplacian +
+        ``jnp.linalg.lstsq`` method -- confirmed empirically, not merely
+        expected). Requesting ``"float64"`` REQUIRES the caller to have
+        already run ``jax.config.update("jax_enable_x64", True)`` before
+        any array in this process was created (this repo's standing
+        x64-before-arrays convention, see the
+        ``neuro-biophysics-units-sanity`` skill) -- if x64 is not enabled,
+        this raises ``ValueError`` rather than silently downgrading to
+        float32 or silently returning truncated double-precision-looking
+        output that is actually still float32 under the hood. This
+        function never mutates the global JAX config itself -- enabling
+        x64 is the caller's responsibility, not this function's.
 
     Returns
     -------
@@ -64,10 +84,24 @@ def experimental_poisson_1d(
     manifest : dict
         Solver metadata manifest.
     """
-    sources_jnp = jnp.asarray(sources, dtype=jnp.float32)
+    if precision not in ("float32", "float64"):
+        raise ValueError(
+            f"precision must be 'float32' or 'float64', got {precision!r}"
+        )
+    if precision == "float64" and not jax.config.jax_enable_x64:
+        raise ValueError(
+            "experimental_poisson_1d(precision='float64') requires x64 to already be "
+            "enabled -- call jax.config.update('jax_enable_x64', True) before creating "
+            "any array in this process (this repo's standing x64-before-arrays "
+            "convention). Refusing to silently fall back to float32 or silently return "
+            "float64-labeled-but-actually-truncated output."
+        )
+    solve_dtype = jnp.float64 if precision == "float64" else jnp.float32
+
+    sources_jnp = jnp.asarray(sources, dtype=solve_dtype)
     N = sources_jnp.shape[0]
 
-    cond_arr = jnp.asarray(conductivity, dtype=jnp.float32)
+    cond_arr = jnp.asarray(conductivity, dtype=solve_dtype)
     layered = cond_arr.ndim > 0
     if layered:
         if cond_arr.shape[0] != N - 1:
@@ -75,18 +109,18 @@ def experimental_poisson_1d(
                 f"conductivity array must have shape (N-1,)={N - 1}, got {cond_arr.shape}"
             )
         sigma_face = cond_arr  # sigma_{i+1/2} for i in [0, N-2]
-        main_diag = jnp.zeros(N, dtype=jnp.float32)
+        main_diag = jnp.zeros(N, dtype=solve_dtype)
         main_diag = main_diag.at[1:-1].add(-(sigma_face[:-1] + sigma_face[1:])) if N > 2 else main_diag
         main_diag = main_diag.at[0].set(-sigma_face[0])
         main_diag = main_diag.at[N - 1].set(-sigma_face[-1])
         A = jnp.diag(main_diag) + jnp.diag(sigma_face, 1) + jnp.diag(sigma_face, -1)
         A = A / (dx ** 2)
     else:
-        main_diag = -2.0 * jnp.ones(N, dtype=jnp.float32)
+        main_diag = -2.0 * jnp.ones(N, dtype=solve_dtype)
         if N > 1:
             main_diag = main_diag.at[0].set(-1.0)
             main_diag = main_diag.at[N - 1].set(-1.0)
-        off_diag = jnp.ones(N - 1, dtype=jnp.float32)
+        off_diag = jnp.ones(N - 1, dtype=solve_dtype)
         A = jnp.diag(main_diag) + jnp.diag(off_diag, 1) + jnp.diag(off_diag, -1)
         A = (A / (dx ** 2)) * cond_arr
 
@@ -107,6 +141,7 @@ def experimental_poisson_1d(
         "convergence_status": "converged" if residual_norm < 1e-3 else "failed",
         "physical_amplitude_calibrated": False,
         "layered_conductivity": bool(layered),
+        "precision": precision,
     }
 
     return phi, residual, manifest

@@ -69,6 +69,9 @@ test_gpu.py
 # going forward; not scrubbed from history (explicit decision, repo stays
 # public) -- keep these local-only or in a private location from here on.
 artifacts/developer/
+# Labyrinth .lab/ graph -- generated tooling state (like .git/), regenerated
+# from the repo + PRP tracker files by repo_mapper.py, not authored content.
+artifacts/.lab/
 # artifacts/legacy/internal_docs/ is covered by the internal_docs/ rule above,
 # but two files under it are load-bearing for tests/test_agent_context_hygiene.py
 # and tests/test_docs_equations_plotly_v0214.py -- explicit force-tracked
