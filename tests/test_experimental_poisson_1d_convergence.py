@@ -34,7 +34,9 @@ now-documented limitation, not a silent landmine.
 from __future__ import annotations
 
 import numpy as np
+import jax
 import jax.numpy as jnp
+import pytest
 
 from jaxfne.fields.solvers import experimental_poisson_1d
 
@@ -106,3 +108,88 @@ def test_solver_honestly_self_reports_failure_above_the_confirmed_ceiling():
         "before trusting it, don't just relax this assertion"
     )
     assert status == "failed"
+
+
+# --- precision opt-in (Phase 4 wave1: explicit float64 solve path) ---------
+#
+# x64 is a process-wide JAX config flag, so the "x64 actually enabled" case
+# is run in an isolated subprocess -- flipping jax_enable_x64 globally in
+# this test process would leak into every other test collected in the same
+# pytest run (violates test isolation and the x64-before-arrays convention,
+# which requires x64 to be decided before any array is created).
+
+_X64_ENABLED_SUBPROCESS_SNIPPET = """
+import jax
+jax.config.update("jax_enable_x64", True)
+import numpy as np
+from jaxfne.fields.solvers import experimental_poisson_1d
+
+N = 300
+dx = 1.0 / (N - 1)
+rng = np.random.default_rng(0)
+sources = rng.normal(size=N)
+sources = sources - sources.mean()
+
+phi, residual, manifest = experimental_poisson_1d(sources, 1.5, dx, precision="float64")
+assert manifest["convergence_status"] == "converged", manifest
+assert manifest["residual_norm"] < 1e-3, manifest["residual_norm"]
+assert manifest["precision"] == "float64"
+assert phi.dtype == np.float64, phi.dtype
+print("OK")
+"""
+
+
+def test_precision_float64_converges_at_n300_when_x64_enabled():
+    """The explicit opt-in (precision='float64') resolves the documented
+    float32 N~150-200 convergence ceiling: N=300 -- previously failing in
+    float32 (see test_solver_honestly_self_reports_failure_above_the_
+    confirmed_ceiling, which fails already by N=321) -- converges cleanly
+    once the caller has enabled x64 and passes precision='float64'. Run in a
+    subprocess so this test's process-wide jax_enable_x64 flip cannot leak
+    into any other test in the suite."""
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-c", _X64_ENABLED_SUBPROCESS_SNIPPET],
+        capture_output=True, text=True, timeout=120,
+    )
+    assert result.returncode == 0, (
+        f"subprocess failed:\nstdout={result.stdout}\nstderr={result.stderr}"
+    )
+    assert "OK" in result.stdout
+
+
+def test_precision_float64_without_x64_enabled_raises_clear_error():
+    """Requesting precision='float64' without x64 enabled must raise a clear,
+    actionable ValueError -- never silently fall back to float32 and never
+    silently "succeed" with truncated precision. Runs in-process: this repo's
+    test suite does not enable x64 globally, so jax_enable_x64 is False here
+    (confirmed via jax.config.jax_enable_x64 itself, not assumed)."""
+    assert jax.config.jax_enable_x64 is False, (
+        "expected x64 to be disabled in this test process -- if some earlier-collected "
+        "test enabled it globally, this test's premise is invalid; investigate rather "
+        "than deleting this assertion"
+    )
+    sources = jnp.array([1.0, -1.0, 0.5, -0.5], dtype=jnp.float32)
+    with pytest.raises(ValueError, match="jax_enable_x64"):
+        experimental_poisson_1d(sources, 1.5, dx=0.1, precision="float64")
+
+
+def test_precision_default_omitted_reproduces_exact_current_float32_behavior():
+    """Omitting `precision` entirely must reproduce bit-identical output to
+    explicitly passing precision='float32' -- the default-unchanged
+    guarantee for this pass's new keyword argument."""
+    N = 81
+    dx = 1.0 / (N - 1)
+    rng = np.random.default_rng(1)
+    sources = jnp.asarray(rng.normal(size=N) - rng.normal(size=N).mean(), dtype=jnp.float32)
+
+    phi_default, residual_default, manifest_default = experimental_poisson_1d(sources, 1.5, dx)
+    phi_explicit, residual_explicit, manifest_explicit = experimental_poisson_1d(
+        sources, 1.5, dx, precision="float32")
+
+    np.testing.assert_array_equal(np.asarray(phi_default), np.asarray(phi_explicit))
+    np.testing.assert_array_equal(np.asarray(residual_default), np.asarray(residual_explicit))
+    assert phi_default.dtype == jnp.float32
+    assert manifest_default["precision"] == "float32" == manifest_explicit["precision"]

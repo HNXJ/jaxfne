@@ -705,10 +705,17 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
         runtime_cfg = replace(runtime_cfg, recurrent_backend="edge_list")
 
     homeo_on = bool(getattr(runtime_cfg, "enable_homeostasis", False))
+    hdp_on = bool(getattr(runtime_cfg, "enable_hdp", False))
     if homeo_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
         raise ValueError(
             "enable_homeostasis is not supported with "
             "synaptic_kernel='receptor_exponential'."
+        )
+    if hdp_on and runtime_cfg.synaptic_kernel == "receptor_exponential":
+        raise ValueError(
+            "enable_hdp is not supported with "
+            "synaptic_kernel='receptor_exponential'; use the default "
+            "exponential synaptic kernel."
         )
     edge_kernel_fn = (
         simulate_receptor_exponential_izhikevich
@@ -716,9 +723,34 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
         else simulate_edge_recurrent_izhikevich
     )
     _hp = dict(runtime_cfg.homeostasis_params or {})
+    _hdp = dict(runtime_cfg.hdp_params or {})
 
     def one(k):
         """Documented public function `one`."""
+        if hdp_on:
+            # HDP engages the sparse-edge HDP kernel; per-step H_trace/w_trace
+            # diagnostics are dropped here (batch is a seed-replicate statistics
+            # utility -- use simulate() for full diagnostics passthrough).
+            return simulate_edge_recurrent_izhikevich_hdp(
+                emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
+                dtype=runtime_cfg.actual_dtype,
+                H_min=_hdp.get("H_min", 0.1), H_max=_hdp.get("H_max", 10.0),
+                tau_0_ms=_hdp.get("tau_0_ms", 100.0),
+                alpha=_hdp.get("alpha", 0.0), beta=_hdp.get("beta", 0.0),
+                gamma=_hdp.get("gamma", 0.0), delta=_hdp.get("delta", 0.0),
+                C_spike=_hdp.get("C_spike", 0.0), K_HDP=_hdp.get("K_HDP", 1.0),
+                K_ctrl=_hdp.get("K_ctrl", 0.0),
+                K_w_ctrl=_hdp.get("K_w_ctrl", 0.0),
+                barrier_c=_hdp.get("barrier_c", 0.0), barrier_d=_hdp.get("barrier_d", 0.0),
+                barrier_eps=_hdp.get("barrier_eps", 1.0e-3),
+                w_floor=_hdp.get("w_floor", 1.0e-3), w_ceiling=_hdp.get("w_ceiling", 50.0),
+                v_floor=_hdp.get("v_floor", -150.0), v_ceiling=_hdp.get("v_ceiling", 100.0),
+                u_abs_max=_hdp.get("u_abs_max", 2000.0), syn_abs_max=_hdp.get("syn_abs_max", 1.0e4),
+                H_boost_gain=_hdp.get("H_boost_gain", 0.0),
+                size_scale_by_cell_type=_hdp.get("size_scale_by_cell_type"),
+                size_scale_override=_hdp.get("size_scale_override"),
+                record_weight_trace=False,
+            )[:3]
         if homeo_on:
             # Homeostasis engages the sparse-edge homeostatic kernel; per-step
             # g_bias/r_trace diagnostics are dropped here (batch is a seed-replicate
@@ -759,8 +791,9 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
         Z = int(self.static.get("n_contacts", 16))
         C = int(emitter.n_neurons)
         T = int(sim.n_steps)
-        cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, runtime_cfg.selected_backend,
-                     _homeostasis_params_cache_fingerprint(_hp) if homeo_on else ())
+        cache_key = ("simulate_batch", B, Z, C, T, runtime_cfg.actual_dtype, runtime_cfg.synaptic_kernel, runtime_cfg.recurrent_backend, homeo_on, hdp_on, runtime_cfg.selected_backend,
+                     _homeostasis_params_cache_fingerprint(_hp) if homeo_on else (),
+                     _homeostasis_params_cache_fingerprint(_hdp) if hdp_on else ())
         with _device_scope(runtime_cfg.selected_backend):
             effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons, batch=B)
             if effective_jit:
@@ -821,6 +854,8 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
             "synaptic_kernel": runtime_cfg.synaptic_kernel,
             "enable_homeostasis": homeo_on,
             "homeostasis_params": _hp if homeo_on else None,
+            "enable_hdp": hdp_on,
+            "hdp_params": _hdp if hdp_on else None,
             "source_model": _SOURCE_PROXY_METADATA,
         }),
     }

@@ -136,6 +136,43 @@ def test_record_weight_trace_false_drops_w_trace_but_keeps_dynamics_identical():
     assert np.array_equal(np.asarray(sig_true.V_m), np.asarray(sig_false.V_m))
 
 
+def test_simulate_batch_engages_hdp_and_default_is_unaffected():
+    """simulate_batch must dispatch to the HDP kernel when enable_hdp=True is
+    passed via RuntimeConfig, mirroring test_batch_engages_homeostasis_and_null_matches
+    in test_homeostasis_dispatch.py. Closes the gap documented in
+    jaxfne/skills/jaxfne-neural-tensor/SKILL.md's HDP landmines section
+    (2026-07-22): prior to this pass, simulate_batch never read enable_hdp at
+    all, so a caller enabling HDP via simulate() and calling simulate_batch()
+    on the same Model/config would silently diverge (HDP-active vs not)."""
+    model = _build()
+    sim_on = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                              runtime=jtfne.RuntimeConfig(
+                                  enable_hdp=True,
+                                  hdp_params={"alpha": 0.05, "gamma": 0.5,
+                                              "K_ctrl": 0.15, "K_HDP": 0.01,
+                                              "tau_0_ms": 5.0}))
+    b_on = model.simulate_batch(sim_on, n_seeds=3)
+    assert b_on["metadata"]["enable_hdp"] is True
+    assert bool(np.isfinite(np.asarray(b_on["V_m"])).all())
+
+    # Non-null HDP batch V_m must actually differ from the non-HDP baseline
+    # batch (proves the HDP kernel really ran, not just that no error occurred).
+    sim_base = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                                runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+    b_base = model.simulate_batch(sim_base, n_seeds=3)
+    assert not np.array_equal(np.asarray(b_on["V_m"]), np.asarray(b_base["V_m"]))
+
+    # enable_hdp omitted (default False) must be unaffected -- matches the
+    # non-HDP edge_list baseline bit-exactly when the same recurrent_backend
+    # is used (RuntimeConfig()'s own default backend is "dense", a different
+    # kernel entirely, so pin edge_list on both sides for a fair comparison).
+    sim_default = jtfne.Simulation(duration_ms=D, dt_ms=DT, seed=SEED,
+                                   runtime=jtfne.RuntimeConfig(recurrent_backend="edge_list"))
+    b_default = model.simulate_batch(sim_default, n_seeds=3)
+    assert b_default["metadata"]["enable_hdp"] is False
+    assert np.array_equal(np.asarray(b_default["V_m"]), np.asarray(b_base["V_m"]))
+
+
 def test_cache_key_isolated_across_hdp_params_on_reused_model():
     """A reused Model switching K_HDP (identical shapes) must not replay a stale
     compiled closure built for the first K_HDP -- mirrors
