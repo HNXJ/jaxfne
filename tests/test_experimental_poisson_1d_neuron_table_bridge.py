@@ -102,3 +102,64 @@ def test_bridge_sums_not_averages_within_a_bin():
     neurons_per_bin = np.asarray(manifest["neurons_per_bin"])
     first_bin_idx = np.searchsorted(bin_edges, 0.5, side="right") - 1
     assert neurons_per_bin[first_bin_idx] == 2
+
+
+# --- Opt-in simulate() wiring (2026-07-24, TFNE goals wave 2) --------------------
+#
+# The solver is single-timestep by construction, so it is wired into simulate()
+# as an ADDITIVE opt-in on the final timestep's sources -- signals.field remains
+# the unchanged all-timesteps proxy projection. These tests pin that contract:
+# default behavior byte-unchanged, opt-in produces a real solve, and a failure
+# in the opt-in path can never break an otherwise-valid simulate().
+
+import jaxfne as jtfne
+
+
+def _cfg(*, solver: bool):
+    field_kwargs = {"domain": "laminar"}
+    if solver:
+        field_kwargs.update(solver="experimental_poisson_1d", conductivity=1.0, n_bins=8)
+    return (
+        jtfne.Configuration()
+        .runtime(seed=0, duration_ms=50.0, dt_ms=0.5)
+        .uniform3d(radius_mm=1.0, height_mm=2.0)
+        .network(name="v1", n=40)
+        .set_emitter("izhikevich", "cortical_eig")
+        .field(**field_kwargs)
+        .probe(n_contacts=8)
+    )
+
+
+def _run(cfg):
+    model = jtfne.construct(cfg)
+    return model.simulate(
+        jtfne.simulation(duration_ms=50.0, dt_ms=0.5, seed=0, record_fields=True)
+    )
+
+
+def test_poisson_optin_absent_by_default():
+    """Without the opt-in, simulate() metadata carries no poisson key at all."""
+    signals = _run(_cfg(solver=False))
+    assert "poisson_field_final_step" not in signals.metadata
+    assert signals.field is not None  # proxy projection unaffected
+
+
+def test_poisson_optin_produces_real_solve_manifest():
+    """With the opt-in, a real experimental_pde_solver manifest is attached."""
+    signals = _run(_cfg(solver=True))
+    entry = signals.metadata.get("poisson_field_final_step")
+    assert entry is not None
+    assert entry["applied_to"] == "final_timestep_only"
+    manifest = entry["manifest"]
+    assert manifest["field_solver_status"] == "experimental_pde_solver"
+    # Truth gate must not be escalated by the real-solve path.
+    assert manifest["physical_amplitude_calibrated"] is False
+
+
+def test_poisson_optin_does_not_replace_proxy_field():
+    """The opt-in is additive: signals.field stays the proxy projection, and is
+    bit-identical to the non-opt-in run (same seed/config otherwise)."""
+    baseline = _run(_cfg(solver=False))
+    optin = _run(_cfg(solver=True))
+    assert optin.field is not None
+    assert np.array_equal(np.asarray(baseline.field.lfp), np.asarray(optin.field.lfp))
