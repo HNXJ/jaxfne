@@ -15,6 +15,13 @@ before relying on one, and when the graph and the repo disagree, fix the graph a
 Correct the user too: if a prompt contradicts a `confirmed` node, surface the conflict
 before complying, then record whichever way it resolves.
 
+**Measure, don't vibe.** `python3 ~/workspace/main/labyrinth/clients/repo_mapper.py --target .`
+prints coverage (structural + verified, as a pair), the five-kind mismatch vector
+(omission/redundancy/disconnection/staleness/contradiction), null-model complexity, schema
+drift, and **J** -- one scalar, lower is better, always reported with its completeness.
+Cite those numbers, never an impression of graph health. `None` in any of them means
+*never looked* -- it is not a zero and must never be reported as one.
+
 See the `labyrinth-protocol` skill for the graph-forming layer; `progress-review-plan` for
 the PRP backlog that rides on it.
 
