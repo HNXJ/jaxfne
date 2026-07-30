@@ -1,0 +1,67 @@
+{
+  "id": "pkg-plasticity",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "plasticity.py",
+  "generated": {
+    "summary": "\"\"\"STDP plasticity rules, state models, and analysis utilities.\"\"\" -- from __future__ import annotations",
+    "source_paths": [
+      "jaxfne/plasticity.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on purpose/structure/contracts/git-state (all directly read or grepped from the file and repo). Medium on the 'inhibitory synapses never updated' landmine -- this is a correct reading of the masking logic in the kernel but I did not trace whether callers rely on or compensate for this elsewhere. Medium on related_nodes' negative claim (test_plasticity_v034.py not covering these symbols) -- confirmed via grep on that one file only, not exhaustively confirmed absent from every other plasticity-named test file listed.",
+      "purpose": "jaxfne/plasticity.py (130 lines) implements STDP (spike-timing-dependent plasticity) synaptic weight updates: a config/state dataclass pair, a JIT-compiled JAX kernel computing LTP/LTD weight deltas from pre/post spike traces, and a numpy-based before/after adaptation-summary utility. It is the v0.3.34 STDP network plasticity API, re-exported at the jaxfne package top level (jaxfne/__init__.py:295-300, comment \"v0.3.34: STDP network plasticity API\") and consumed internally by jaxfne/streaming.py for its streaming simulation loop.",
+      "key_findings": [
+        "File is 130 lines total (wc -l jaxfne/plasticity.py).",
+        "Module docstring (line 1): \"STDP plasticity rules, state models, and analysis utilities.\"",
+        "Two dataclasses: STDPPlasticityConfig (lines 10-18: A_plus=0.01, A_minus=0.012, tau_plus=20.0ms, tau_minus=20.0ms, w_min=0.0, w_max=1.5) and STDPState (lines 20-25: W shape (n,n), trace_pre shape (n,), trace_post shape (n,)).",
+        "summarize_stdp_adaptation (lines 27-68): numpy-only function returning a dict of ltp_count/ltd_count/unchanged_count, W_before_mean/W_after_mean, W_after_sparsity, delta_W_min/max, finite_checks, sign_preservation.",
+        "update_stdp_weights_jax (lines 72-129): the only @jax.jit-decorated function; signature (W, trace_pre, trace_post, spiked, exc_mask, A_plus, A_minus, plasticity_scale, w_min, w_max) -> W; docstring gives full parameter/return contract (lines 85-109).",
+        "No TODO/FIXME/NotImplementedError anywhere in the file (grep clean).",
+        "git status --short and git diff --stat on this file are both empty -- no uncommitted changes; this file is untouched by the session's pending working-tree modifications.",
+        "git log --oneline for this file: ec4d289 (vis consolidation, incidental touch), 883cc20 (v0.3.41-dev JAX-optimized kernel port), 71366d8 (v0.3.34 modular package layout, public API snapshot), 5b014b9 (v0.3.34 docs/plasticity gate)."
+      ],
+      "contracts": [
+        "Public re-export: jaxfne/__init__.py:295-300 exports exactly STDPPlasticityConfig, STDPState, summarize_stdp_adaptation, update_stdp_weights_jax -- callers use jtfne.<name>, not module-path imports.",
+        "jaxfne/streaming.py:9 imports STDPPlasticityConfig and STDPState directly and threads STDPState through its streaming loop signature (streaming.py:80,84,94,172) -- changing STDPState's field names/shapes or STDPPlasticityConfig's defaults would break streaming.py.",
+        "update_stdp_weights_jax invariant (enforced in-kernel, lines 120-128): self-connections (diagonal) are always zero after update; only excitatory presynaptic columns (exc_mask) get an additive dW and are clipped to [w_min, w_max] -- inhibitory columns pass through unclipped and unmodified by dW.",
+        "summarize_stdp_adaptation's sign_preservation check (line 55) documents an assumed invariant that W_before and W_after never flip sign per-entry (product >= -1e-9); this is a diagnostic assertion-like output, not an enforced constraint in the kernel itself."
+      ],
+      "landmines": [
+        "skills/FRICTIONS_STACK.md has no row mentioning plasticity.py (grep -n \"plasticity\" returned nothing) -- no documented known friction for this file.",
+        "update_stdp_weights_jax only applies dW and clipping when exc_mask[None,:] is True for the presynaptic column (line 121, 125); inhibitory-presynaptic weights are never updated by this kernel at all (no LTP/LTD applied to inhibitory synapses) -- this is implicit in the mask logic, not stated in the docstring beyond 'Enforce E/I sign preservation', so a caller expecting inhibitory plasticity would be silently unmet.",
+        "No test in the repo directly imports/exercises update_stdp_weights_jax, STDPState, or STDPPlasticityConfig from tests/test_plasticity_v034.py despite its name (grep for those symbols in that file returns nothing) -- coverage for this file's actual public symbols lives elsewhere (test_streaming.py, test_v0341_kernels.py), not in the plasticity_v034 test."
+      ],
+      "related_nodes": [
+        "tests/test_streaming.py -- imports/exercises STDPPlasticityConfig/STDPState via jaxfne/streaming.py's streaming loop.",
+        "tests/test_v0341_kernels.py -- directly references update_stdp_weights_jax / summarize_stdp_adaptation / STDP types per grep.",
+        "jaxfne/streaming.py -- tightly coupled: direct import of STDPPlasticityConfig, STDPState (streaming.py:9), threads STDPState through its public streaming-loop signature.",
+        "jaxfne/__init__.py -- re-export point (lines 295-300) defining the public API surface for this module.",
+        "tests/test_plasticity_v034.py, test_sanity_delta_plasticity.py, test_hdp_kernel_standalone.py, test_config_plasticity_homeostasis_baseline.py, test_sanity_delta_plasticity_report_full.py -- named/adjacent plasticity test files found by grep -rln, but confirmed NOT directly referencing this file's four public symbols by name (not independently verified for indirect/behavioral coverage)."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

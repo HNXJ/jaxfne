@@ -1,0 +1,28 @@
+{
+  "id": "jaxfne-progress",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Progress (PRP verb node)",
+  "generated": {
+    "summary": "554 entries tracked, average score 92.0/100 (live from progress.json).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "scripts-evidence-figures-readme-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "README.md",
+  "generated": {
+    "summary": "Evidence figure generators (deliberate vis-grammar exception) -- These scripts produce **one-off release and documentation figures**, not",
+    "source_paths": [
+      "scripts/evidence_figures/README.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-scripts",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

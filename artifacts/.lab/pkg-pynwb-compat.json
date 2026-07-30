@@ -1,0 +1,58 @@
+{
+  "id": "pkg-pynwb-compat",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "pynwb_compat.py",
+  "generated": {
+    "summary": "\"\"\"PyNWB compatibility placeholder. -- This module is a placeholder for future NWB file I/O support.",
+    "source_paths": [
+      "jaxfne/pynwb_compat.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for all factual claims (file content, line numbers, git history, test coverage, and grep results were directly verified via Read/Bash in this session). No FRICTIONS_STACK.md row mentions this file, and no uncommitted diff exists on it \u2014 both confirmed by direct grep/git commands, not inferred.",
+      "purpose": "jaxfne/pynwb_compat.py (35 lines) is a deliberate placeholder module for future NWB (Neurodata Without Borders) file I/O support. It exposes two stub functions, write_nwb and read_nwb, both of which unconditionally raise NotImplementedError, and is exported into the public API via jaxfne/__init__.py so users get a clear, actionable error instead of an ImportError/AttributeError if they try to use NWB I/O today.",
+      "key_findings": [
+        "File is exactly 35 lines (`wc -l` confirms), module docstring lines 1-7 states 'no round-trip NWB write/read is implemented' and warns not to use production NWB files with jaxfne output yet.",
+        "Two functions only: write_nwb(*args, **kwargs) lines 10-20, read_nwb(*args, **kwargs) lines 23-32; both bodies are solely `raise NotImplementedError(...)` with a message referencing 'jaxfne v0.3.31' explicitly (lines 17, 30).",
+        "__all__ = ['write_nwb', 'read_nwb'] at line 35 \u2014 matches actual defined symbols, no drift.",
+        "git log -- jaxfne/pynwb_compat.py shows a single commit: fb39c32 'feat(v0.3.31): add PyNWB placeholder with clear error messages (step E)' \u2014 file has not been touched since creation.",
+        "git diff --stat -- jaxfne/pynwb_compat.py is empty: no uncommitted changes on this file (the repo's overall dirty status from git status is in other files, not this one).",
+        "Re-exported publicly: jaxfne/__init__.py:281 `from .pynwb_compat import write_nwb, read_nwb`, and both names appear in __init__.py's __all__ at lines 558-559.",
+        "Dedicated test file tests/test_v0331_pynwb_placeholder.py (56 lines) covers: both functions raise NotImplementedError with no args (lines 14-28), both are present/callable on jtfne (lines 30-35), and both still raise when called with positional args (lines 45-53) \u2014 i.e. args/kwargs are accepted but ignored, never validated."
+      ],
+      "contracts": [
+        "Both write_nwb and read_nwb accept arbitrary *args/**kwargs (permissive signature) but always raise NotImplementedError \u2014 callers must not assume any successful code path exists yet; this is enforced by test_write_nwb_with_args_fails/test_read_nwb_with_args_fails.",
+        "__all__ on this module (line 35) must stay in sync with what's actually defined and with __init__.py's re-export list (lines 558-559) \u2014 currently consistent, no drift found.",
+        "Module docstring line 6 documents the operative convention for now: 'Use manifest.json + Signals objects for now' as the sanctioned substitute for NWB I/O (this is jaxfne's existing manifest/receipt path per jaxfne-sha256-artifact-integrity skill, not reinvented here)."
+      ],
+      "landmines": [],
+      "related_nodes": [
+        "tests/test_v0331_pynwb_placeholder.py \u2014 the sole test file covering this module (verified by grep; no other test file references write_nwb/read_nwb/pynwb_compat)",
+        "jaxfne/__init__.py \u2014 tight coupling as the single import/re-export site (lines 281, 558-559); this is the only other module that references pynwb_compat"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "pkg-config-impl",
+  "kind": "module_group",
+  "title": "Configuration / RuntimeConfig implementation",
+  "generated": {
+    "summary": "Together these two files implement jaxfne's configuration layer: _runtime_config.py (314 lines) holds RuntimeConfig/SurrogateConfig -- the JAX runtime/dtype/device/backend policy plus homeostasis/HDP toggles used at simulate()...",
+    "source_paths": [
+      "jaxfne/_config.py",
+      "jaxfne/_runtime_config.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "high -- both files read in full (1492 + 314 lines), git log/git show verified for both extraction commits and _config.py's 4 subsequent commits, git status confirmed clean/no uncommitted diff, grep-verified TODO/FIXME absence, FRICTIONS_STACK.md row F-028 read in full, and every cited test file confirmed present via grep rather than assumed.",
+      "purpose": "Together these two files implement jaxfne's configuration layer: _runtime_config.py (314 lines) holds RuntimeConfig/SurrogateConfig -- the JAX runtime/dtype/device/backend policy plus homeostasis/HDP toggles used at simulate() time -- and _config.py (1492 lines) holds Configuration -- the frozen, purely-declarative TFNE model-declaration object (networks/emitters/fields/probes/metadata) built via a chainable fluent API. _config.py imports RuntimeConfig from _runtime_config.py (line 25) only to read its default homeostasis_params/hdp_params dicts when Configuration.homeostasis()/hdp() need to seed defaults (lines 599, 626) -- Configuration never constructs/consumes a compiled RuntimeConfig otherwise. Both were split out of the former jaxfne/core.py monolith (docs/v047_refactor_audit.md): _runtime_config.py first (commit ad87e85, \"zero internal core.py dependencies\"), then _config.py (commit 5a7e75d, \"Configuration ... plus 5 group-1 helpers\"), with core.py re-exporting everything from both for backward compatibility.",
+      "key_findings": [
+        "_config.py is 1492 lines, _runtime_config.py is 314 lines (wc -l).",
+        "Both module docstrings (lines 1-15 in _config.py, 1-7 in _runtime_config.py) explicitly state extraction from core.py and that core.py re-exports every symbol -- callers should import from jaxfne.core (or jaxfne.runtime for RuntimeConfig), not these modules directly.",
+        "Git history: _runtime_config.py has exactly 1 commit (ad87e85, 'extract RuntimeConfig ... zero internal core.py dependencies ... 26 test files (and 1 script) that import RuntimeConfig from jaxfne.core keep working unchanged'). _config.py has 5 commits (5a7e75d extraction as 'third slice', then 605c326, 2d0d4f4, 645d988, c084a8c -- the latter three are homeostatic_ei emitter feature work / naming cleanup, not config-specific restructuring).",
+        "git status shows no uncommitted changes to either file at HEAD -- not currently under active development in this working tree.",
+        "No TODO/FIXME/NotImplementedError markers in either file (grep confirmed empty).",
+        "skills/FRICTIONS_STACK.md row F-028 (2026-07-13, CLOSED partial) covers a deep-code review touching _config.py among others but landed its fixes in emitters.py/connectivity.py, not these two files; it flags an unrelated open item (_izhikevich_step duplication) elsewhere.",
+        "_config.py's clamp_truth_gate_metadata() (lines 99-127) force-sets physical_amplitude_calibrated=False unconditionally and pins claim_level/field_claim_level to allow-listed sets (_ALLOWED_CLAIM_LEVELS={'computational_scaffold'}, _ALLOWED_FIELD_CLAIM_LEVELS={'proxy_readout'}), called from update_metadata() (line 334) on every metadata merge.",
+        "RuntimeConfig.__post_init__ (lines 80-113) enforces: synaptic_kernel in _ALLOWED_SYNAPTIC_KERNELS, recompilation_guard in {warning,exception,off}, jit/vmap parse to bool/'auto', enable_homeostasis and enable_hdp mutually exclusive (raises ValueError, lines 102-106, verified exercised by tests/test_config_plasticity_homeostasis_baseline.py:135 and tests/test_hdp_dispatch.py:111), and dtype must be in _ALLOWED_DTYPES (comment line 111: previously silently fell back to float32, 'that silent fallback is now an explicit error')."
+      ],
+      "contracts": [
+        "Import discipline: import Configuration/RuntimeConfig from jaxfne.core (or jaxfne.runtime for RuntimeConfig) per both module docstrings -- these files exist to be re-exported, not imported directly by feature code.",
+        "Configuration is a frozen dataclass (line 232); every chainable method returns a new instance via dataclasses.replace, never mutates self -- stated explicitly in the class docstring (lines 234-239) and module docstring ('purely declarative... do not touch dynamics').",
+        "update_metadata() is the only sanctioned path to merge metadata; it always routes through clamp_truth_gate_metadata() (line 334) so claim_level/field_claim_level/field_solver_status/physical_amplitude_calibrated cannot be escalated by a caller.",
+        "connections(...) (lines 667-757): mechanism resolution to real tau/receptor_index at construct() time only happens when EVERY declared rule has a resolvable mechanism= reference; one rule omitting mechanism= falls the whole config back to the sign-only heuristic (exc=2ms/inh=5ms), per docstring lines 696-704 and core._all_connection_rules_declare_resolvable_mechanism.",
+        "probe()/set_probes() reject the retired '*_like' probe vocabulary via _reject_retired_like (lines 158-171) -- e.g. 'lfp_like' raises ValueError directing callers to 'lfp_proxy'; no backward-compat alias exists.",
+        "RuntimeConfig.enable_homeostasis and enable_hdp are mutually exclusive (lines 102-106) -- setting both True raises ValueError at construction, verified by two independent tests.",
+        "RuntimeConfig.dtype/dtype_primary must be one of ('float32','float64','bfloat16') (_ALLOWED_DTYPES, line 19) or construction raises -- no silent fallback remains.",
+        "set_emitter(family='homeostatic_ei', ...) (lines 860-899): activation_rule/conductance_rule/homeostasis_rule are registry name strings only (validated at construct() time) because Configuration must stay JSON-safe for jaxfne.io.json_safe/config_hash -- a custom callable rule must call emitters_homeostatic_ei.simulate_homeostatic_ei directly instead."
+      ],
+      "landmines": [
+        "Configuration.homeostasis()/hdp() (lines 578-630) instantiate a bare RuntimeConfig() purely to read its default homeostasis_params/hdp_params dict (lines 599, 626) every time either method is chained -- if RuntimeConfig's __post_init__ ever grows external-state dependence this becomes a surprising side effect inside a purely-declarative method.",
+        "_default_metadata's field_solver_status allow-list includes 'pde_solver' marked 'reserved token; amplitude still forced False' (line 94) -- even a nominally-real PDE solver status still hard-pins physical_amplitude_calibrated=False (line 126), so the token is a no-op today by design, not a real solver switch.",
+        "_ProbeDeclarations (lines 174-229) is a list subclass that is ALSO callable (cfg.probes([...])) -- naive reassignment of cfg.probes outside __post_init__'s owner-rebind check (lines 260-262) could silently detach the owner reference and raise TypeError only when called, not at assignment time.",
+        "RuntimeConfig.actual_dtype (lines 143-150) silently downgrades a requested float64 to float32 at read time if jax_enable_x64 is not globally enabled -- distinct from the hard dtype validation in __post_init__; a caller can request 'float64', pass validation, and still silently execute in float32 unless x64 was enabled process-wide first (classic jax-neuro-diffsim-guard x64-before-arrays landmine).",
+        "connections() only warns (UserWarning, not error) when mechanism= references an undeclared .mechanisms() name (lines 748-756) -- docstring explicitly flags this becomes a hard error in a future v0.3.30 compiler, so current warning-tolerant callers will break on a future version bump.",
+        "_config.py has 5 commits vs _runtime_config.py's 1 -- the runtime/dtype policy file has been stable since its single extraction commit, while _config.py keeps absorbing new declarative-DSL surface area (circuit/training declarations, Suite No.2/5 multi-area methods), making it the far larger, more actively-extended half of this pair despite the shared extraction origin."
+      ],
+      "related_nodes": [
+        "jaxfne/core.py -- re-exports every symbol from both files for backward compatibility; one-directional core.py -> _config.py import for _default_operator_status/_counts_from_fractions per _config.py docstring lines 11-14.",
+        "jaxfne/runtime.py -- re-exports RuntimeConfig from core per _runtime_config.py docstring line 6.",
+        "jaxfne/io.py -- config_hash (imported _config.py line 24, used in Configuration.validate() line 1486) and json_safe (imported lazily in SurrogateConfig.to_dict(), _runtime_config.py line 306).",
+        "jaxfne/_model_simulate.py, jaxfne/_construct.py, jaxfne/_construct_core.py, jaxfne/_model_tune.py, jaxfne/core.py -- all reference _runtime_config_from_metadata (grep-confirmed), the consumer path turning Configuration.metadata (enable_homeostasis/enable_hdp/homeostasis_params/hdp_params written by _config.py's homeostasis()/hdp()) into an actual RuntimeConfig at simulate()/construct() time.",
+        "jaxfne/emitters_homeostatic_ei.py -- referenced by _config.py's set_emitter(family='homeostatic_ei') docstring (lines 872-881) as the ACTIVATION_RULES/CONDUCTANCE_RULES/HOMEOSTASIS_RULES registries and direct-call escape hatch for custom callables.",
+        "Tests: tests/test_config_plasticity_homeostasis_baseline.py:135 and tests/test_hdp_dispatch.py:111 exercise the enable_homeostasis/enable_hdp mutual-exclusivity ValueError; tests/test_truth_gate_clamp_v046.py, tests/test_compact_facade_v034.py, tests/test_sanity_delta_hierarchical_oddball_config.py, tests/test_run_receipt_v016.py, tests/test_tutorial_utils.py, tests/test_homeostatic_ei_soft_bound.py all import/construct Configuration or RuntimeConfig (grep-confirmed).",
+        "skills/FRICTIONS_STACK.md row F-028 -- the most recent deep-review pass covering _config.py among 5 other files; jaxfne-config and jaxfne-modeling-optimization-schema skills document the higher-level Configuration builder-chain and connectivity-rule schema respectively."
+      ]
+    }
+  ]
+}

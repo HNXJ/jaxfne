@@ -1,0 +1,28 @@
+{
+  "id": "rules-balance",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Balance",
+  "generated": {
+    "summary": "Flags nodes whose link-degree is far above the graph's median (overloaded) or is zero while the rest of the graph isn't (isolated) -- a signal independent of Graft's root-reachability check.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

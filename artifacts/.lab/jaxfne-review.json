@@ -1,0 +1,28 @@
+{
+  "id": "jaxfne-review",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Review (PRP verb node)",
+  "generated": {
+    "summary": "0 entries pending -- caught up (live from review.json).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

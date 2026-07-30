@@ -1,0 +1,30 @@
+{
+  "id": "outputs-ff-fb-hypothesis-bundle-readme-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "README.md",
+  "generated": {
+    "summary": "FF/FB Spectrolaminar Hypothesis Testing Bundle -- Complete suite for testing feedforward (FF) and feedback (FB) effects on cortical spectrolaminar dynamics using jaxfne.",
+    "source_paths": [
+      "outputs/ff_fb_hypothesis_bundle/README.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-outputs",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

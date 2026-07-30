@@ -1,0 +1,70 @@
+{
+  "id": "pkg-hdp-network",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "hdp_network.py",
+  "generated": {
+    "summary": "\"\"\"Generic, size-agnostic builder for TFNE-Izhikevich+HDP laminar columns. -- Single reusable network maker for any neuron count. No function here is",
+    "source_paths": [
+      "jaxfne/hdp_network.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file contents, line citations, git-diff-clean status, and import/test grep results (all directly executed and quoted above). Medium on completeness of \"related modules\" beyond what grep surfaced -- did not trace every downstream script's usage pattern in depth, only confirmed import sites.",
+      "purpose": "jaxfne/hdp_network.py (355 lines) is a size-agnostic builder module for TFNE-Izhikevich+HDP laminar cortical columns, per its module docstring (lines 1-12): \"Single reusable network maker for any neuron count,\" consolidating near-duplicate build_model/apply_drive_correction pairs previously copy-pasted across scripts/hdp_1000_laminar_column_boosted.py and scripts/hdp_100_stability_sweep.py. It exports canonical layer/z-band/cell-type-fraction defaults, tuned HDP parameter presets (DEFAULT_HDP, DEFAULT_HDP_DESYNC, DEFAULT_HDP_V1_PFC_AAAB), the HDPColumnConfig dataclass, and functions to build a Model, apply post-hoc drive correction, compute per-neuron size-scale overrides, and run the HDP simulation kernel.",
+      "key_findings": [
+        "355 lines total. No __all__ defined (grep confirmed). No TODO/FIXME/NotImplementedError anywhere in the file.",
+        "Clean working tree for this file: `git status --short jaxfne/hdp_network.py` empty and `git diff -- jaxfne/hdp_network.py` empty \u2014 no uncommitted changes despite it appearing in the session's initial `git status` note (that diff must be transient/already resolved). Last commit touching it: 8e7bf316555b8dbcf7839a2d75ed45f96dc61eff.",
+        "Main symbols: dataclass HDPColumnConfig (L200-231); functions build_model (L234-259), apply_drive_correction (L262-305, modes 'multiplicative'/'absolute'), layer_size_scale_override (L308-327), run (L330-355), v1_pfc_aaab_hdp_params (L162-180).",
+        "Module-level preset dicts double as documented tuning history: DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT (L50-52), DEFAULT_HDP (L66-73, K_ctrl=5.0), DEFAULT_HDP_DESYNC (L129-139), DEFAULT_HDP_V1_PFC_AAAB (L155-159) \u2014 each preceded by dense inline provenance/verification comments citing specific re-verification dates and N/seed counts.",
+        "jaxfne/__init__.py:158 imports only `DEFAULT_HDP` from this module (`from .hdp_network import DEFAULT_HDP`) \u2014 the narrowest possible public surface; everything else is imported by scripts/tests directly from jaxfne.hdp_network.",
+        "Imported by 3 test files (test_ei_hdp_hebbian_angle.py, test_laminar_1000n_lfp_csd_hdp.py, test_ei_hdp_stability_rho_passive_sweep.py) and 9 scripts/*.py files (grep results above)."
+      ],
+      "contracts": [
+        "HDPColumnConfig.base_drive_by_cell_type: Optional[Mapping[str,float]] = None is a real F-023 passthrough sentinel (L218-226) \u2014 None means 'do not pass baseline_drive_by_cell_type at all, let emitters.py's IZHIKEVICH_PRESETS drive apply'; NOT equivalent to passing BASE_DRIVE_BY_CELL_TYPE_DEFAULT explicitly. Existing callers relying on the old always-4.0 default must pass it explicitly.",
+        "apply_drive_correction(mode='absolute') raises ValueError if cfg.base_drive_by_cell_type is None (L291-298) \u2014 hard precondition, not silently coerced.",
+        "build_model(cfg) never hardcodes n_neurons/layer count in a function name per module docstring (L1-12) \u2014 n_neurons is just a dataclass field; this is a documented anti-duplication convention (avoid adding size-specific build_model_N variants).",
+        "layer_size_scale_override returns None when cfg.layer_size_scale is falsy (L317-318), a documented passthrough so callers can forward it directly to simulate_edge_recurrent_izhikevich_hdp(size_scale_override=...)."
+      ],
+      "landmines": [
+        "DEFAULT_HDP ships barrier_c=barrier_d=0.01 (1:1 ratio) but emitters.py's own docstring requires a 100:1 ratio for the barrier minimum to coincide with H*=1 (comment L74-81, cross-referenced in FRICTIONS_STACK.md F-029 Issue 8) \u2014 left unfixed because K_ctrl keeps H pinned near 1 in practice, but 're-tune barrier_d before relying on barrier repulsion near a boundary.'",
+        "DEFAULT_HDP ships K_w_ctrl=0.0 implicitly (not set in the dict, so no weight-magnitude restoring term) \u2014 comment L83-93 documents an 80s custom-topology run showing unbounded |w| growth; explicitly warns 'sweep K_w_ctrl for that topology rather than assuming 0.0 is safe by default' for any new long-horizon/custom-topology caller.",
+        "DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT was derived at N=250 (comment L45-49) and explicitly flagged as 'a starting point, not guaranteed to hold exactly at every N -- re-verify stationarity before trusting a new size.'",
+        "DEFAULT_HDP_V1_PFC_AAAB combines H_boost_gain=4.0 (from BASE_HDP_KWARGS_DEFAULT) with gamma=0.5 (from DEFAULT_HDP_DESYNC), a combination FRICTIONS_STACK.md F-029 flags as a real starved-neuron feedback loop risk, only empirically stabilized via K_w_ctrl per prior 20-trial verification -- not via structural fix.",
+        "No FRICTIONS_STACK.md row cites hdp_network.py by filename directly as its own row, but F-029 (the emitters.py kernel review) and F-023 (config-schema boundary) both reference specific hdp_network.py line ranges/constants as corroborating evidence."
+      ],
+      "related_nodes": [
+        "tests/test_ei_hdp_hebbian_angle.py (imports from jaxfne.hdp_network)",
+        "tests/test_laminar_1000n_lfp_csd_hdp.py (imports DEFAULT_HDP)",
+        "tests/test_ei_hdp_stability_rho_passive_sweep.py (imports from jaxfne.hdp_network)",
+        "jaxfne/emitters.py -- tightly coupled: simulate_edge_recurrent_izhikevich_hdp (called in run()), DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, IZHIKEVICH_PRESETS",
+        "jaxfne/core.py -- Model, laminar_cortex_config, Configuration.area_layer_cell_types (build_model's builder chain)",
+        "jaxfne/neuronal_tensor.py -- referenced in FRICTIONS_STACK.md F-029 alongside this module's presets",
+        "jaxfne/__init__.py:158 -- re-exports DEFAULT_HDP",
+        "9 scripts/*.py callers listed in key_findings"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

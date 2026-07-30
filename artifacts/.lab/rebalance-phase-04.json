@@ -1,0 +1,44 @@
+{
+  "id": "rebalance-phase-04",
+  "kind": "plan_phase",
+  "title": "Phase 4: Extend the relation vocabulary",
+  "generated": {
+    "summary": "Add lateral relation types alongside the two hierarchical ones: tested_by, documents, implements, depends_on, constrains, contradicts, supersedes, co_evolves_with. Document them in the rules-* nodes.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "plan-lab-graph-rebalance",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-03",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 4,
+      "execution_status": "open",
+      "detail": "Add lateral relation types alongside the two hierarchical ones: tested_by, documents, implements, depends_on, constrains, contradicts, supersedes, co_evolves_with. Document them in the rules-* nodes.",
+      "exit_criterion": "Vocabulary defined, documented, and accepted by mapper + grammar.",
+      "record": "THE load-bearing phase. Root cause of the star: relations are refines (134) + derives_from (85), BOTH hierarchical. A parent-pointer vocabulary can only ever produce a tree -- log2(N) degree is unreachable without lateral relations. Must precede phases 5-7, or added edges just fatten the same hubs."
+    },
+    {
+      "id": "unblocked-2026-07-25",
+      "kind": "status_update",
+      "date": "2026-07-25",
+      "source": "post-seal verification against labyrinth HEAD be3779e",
+      "confidence": "high",
+      "record": "READY 2026-07-25: no longer blocked. Scope grew -- labyrinth's own graph shows the same star (Gini 0.530, max degree 75, no depth-3 tier), so the lateral-relation vocabulary is an upstream protocol feature, not a jaxfne-local fix."
+    }
+  ],
+  "issues": [],
+  "plan": "Vocabulary defined, documented, and accepted by mapper + grammar."
+}

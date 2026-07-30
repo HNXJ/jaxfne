@@ -1,0 +1,56 @@
+{
+  "id": "pkg-analysis",
+  "kind": "subpackage",
+  "title": "jaxfne/analysis/",
+  "generated": {
+    "summary": "jaxfne/analysis is jaxfne's population-level and spectral analysis toolkit: dimensionless numpy metrics on spike trains (metrics.py) plus JIT-compilable JAX spectral/spectrolaminar kernels (spectral.py). It is a...",
+    "source_paths": [
+      "jaxfne/analysis"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "high for metrics.py (read in full, 399/399 lines) and spectral.py (read in full, 168/168 lines) and __init__.py (read in full, 48/48 lines) -- this is a small subpackage (615 total source lines) so full reads were feasible, unlike a large one such as vis/. Medium confidence only on the related_nodes claim about spectral.py's test coverage being folded into the spectrolaminar-suite skill/tests elsewhere -- that was inferred from the skill listing description, not confirmed by grepping actual spectrolaminar test files for direct calls to spectral.py's functions.</confidence>\n",
+      "purpose": "jaxfne/analysis is jaxfne's population-level and spectral analysis toolkit: dimensionless numpy metrics on spike trains (metrics.py) plus JIT-compilable JAX spectral/spectrolaminar kernels (spectral.py). It is a flat 2-file-plus-init subpackage (no core+backends split, no subdirectories) \u2014 one file per concern: metrics.py = numpy spike-train statistics, spectral.py = jax.jit/vmap DFT-based PSD/bandpower/similarity kernels used by the spectrolaminar objective/tuning path.",
+      "key_findings": [
+        "File count: 4 entries in jaxfne/analysis/ (__init__.py 48 lines, metrics.py 399 lines, spectral.py 168 lines, plus a stray .DS_Store 6148 bytes and __pycache__/) \u2014 615 total lines of source across the 3 .py files.",
+        "__init__.py (lines 22-48) re-exports exactly 10 names as __all__: 4 from metrics.py (mean_pairwise_spike_correlation, burst_index, fano_factor, fleiss_kappa_binary) and 6 from spectral.py (spectrolaminar_psd_jax, bandpower_jax, spectrolaminar_readout_kernel_jax, spectrolaminar_similarity_kernel_jax, spectrolaminar_similarity_candidates_jax, spectrolaminar_similarity_candidates_seeds_jax) \u2014 this is the full public surface; nothing else in the two files is exported at the subpackage level.",
+        "metrics.py functions take numpy/jax arrays and return plain Python floats (docstring line 4-5, verified in each function's final `return float(...)`), all numpy-based (no jax.jit) \u2014 contrasts with spectral.py which is jax.jit/vmap throughout (spectral.py:16,57,89,127) and stays in jax.Array space.",
+        "spectral.py's two vmap'd batch entry points (lines 160-168) are built by wrapping spectrolaminar_similarity_kernel_jax with jax.vmap (single-batch) and a nested double jax.vmap (seeds x candidates) \u2014 no separate implementation, pure composition.",
+        "jaxfne/__init__.py imports this subpackage twice: `from . import analysis` (line 127, gives jaxfne.analysis.*) and separately re-exports the 6 spectral kernel names directly onto the jaxfne root namespace via `from .analysis.spectral import (...)` (jaxfne/__init__.py:301-308) -- so spectrolaminar_psd_jax etc. are reachable as both jaxfne.analysis.X and jaxfne.X.",
+        "Every metrics.py docstring carries an explicit truth-gate line: 'Claim level: computational_scaffold (no biological interpretation)' (e.g. metrics.py:60,155,234,331) and the module docstring states 'Metrics are dimensionless descriptors, not biological validation. No biological truth claims are supported.' (metrics.py:7-9).",
+        "Only 1 test file covers this subpackage: tests/test_analysis_metrics.py (458 lines) -- covers metrics.py; no test file name matched grep for spectral-specific coverage under this exact query (spectral kernels are exercised indirectly via the spectrolaminar suite tests elsewhere in the repo, not confirmed by name here)."
+      ],
+      "contracts": [
+        "jaxfne's root AGENTS.md:106 states the modular-grammar rule: 'Plotting: `jaxfne/vis/*` only (modular-grammar rule 2)' -- jaxfne/analysis contains zero plotting code (grep for matplotlib/plotly in analysis/ returned nothing during read; both files import only numpy/jax), consistent with that rule -- analysis computes, vis renders.",
+        "jaxfne/__init__.py:127-133 comment states a deliberate rule: `vis` is NOT eagerly imported at jaxfne/__init__ import time (unlike `analysis`, which IS eagerly imported at line 127) specifically so `import jaxfne.core` alone doesn't pull in matplotlib/plotly, enforced by test_v0321_migration_boundaries.py::test_simulation_engine_has_zero_graphics_overhead -- this subpackage's own eager import at line 127 is therefore itself a boundary case: analysis must stay graphics-free or it would break that same zero-graphics-overhead test.",
+        "All 4 metrics.py functions validate spikes.ndim == 2 and raise ValueError otherwise (metrics.py:64-65,159-160,238-239,340-341) -- (n_neurons, n_time) shape is a hard contract, not just documentation.",
+        "spectral.py's spectrolaminar_psd_jax has `fs` marked static_argnames under jax.jit (spectral.py:16) -- callers must not trace/vmap over fs; it's a Python float, not an array leaf."
+      ],
+      "landmines": [
+        "skills/FRICTIONS_STACK.md has no row citing jaxfne/analysis/metrics.py or spectral.py by name -- the only analysis-adjacent FRICTIONS_STACK hit (F-024) is about a stale Jupyter kernelspec (`python3` kernel pointing PYTHONPATH at the computational/jaxfne mirror instead of this repo) and is unrelated to this subpackage's code.",
+        "The apparent skill hit in skills/jaxfne-notebook-release-gate/SKILL.md:65-66 for 'analysis' is also a false positive -- it's the same F-024 kernel-name issue (`kernel_name=\"jaxfne_analysis\"`), not documentation of the jaxfne/analysis subpackage.",
+        "A stray .DS_Store file (6148 bytes) sits inside jaxfne/analysis/ -- macOS artifact, not part of the module; noted since the task asked to list files as-is.",
+        "No jaxfne-analysis-specific skill exists in ~/.claude/skills or skills/ -- coverage of spectral.py's spectrolaminar kernels is folded into the broader jaxfne-spectrolaminar-suite skill rather than a dedicated jaxfne-analysis skill (inferred from skill-name list in this session's system reminder; not independently re-verified beyond the grep above)."
+      ],
+      "related_nodes": [
+        "tests/test_analysis_metrics.py (458 lines) -- the one test file directly covering jaxfne/analysis (metrics.py)",
+        "jaxfne/__init__.py:127 and :301-308 -- root package's two distinct import paths into this subpackage",
+        "jaxfne-spectrolaminar-suite skill -- documents the spectrolaminar pipeline that spectral.py's kernels feed into (PSD/bandpower/similarity), per its description in the skill listing",
+        "jaxfne AGENTS.md:106 -- modular-grammar rule 2 (plotting confined to jaxfne/vis/*) that this subpackage's plot-free code stays consistent with",
+        "test_v0321_migration_boundaries.py::test_simulation_engine_has_zero_graphics_overhead -- the test the jaxfne/__init__.py:127-133 comment says would break if analysis (or vis) pulled in graphics libs"
+      ]
+    }
+  ]
+}

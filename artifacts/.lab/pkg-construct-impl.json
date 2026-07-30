@@ -1,0 +1,70 @@
+{
+  "id": "pkg-construct-impl",
+  "kind": "module_group",
+  "title": "construct() implementation slices",
+  "generated": {
+    "summary": "Together these 6 files implement the full construct()/connect() pipeline: turning a Configuration (or NeuronalTensor) into a runnable jaxfne Model. _construct.py (123 lines) is a...",
+    "source_paths": [
+      "jaxfne/_construct.py",
+      "jaxfne/_construct_core.py",
+      "jaxfne/_construct_connectivity.py",
+      "jaxfne/_construct_population.py",
+      "jaxfne/_construct_presets.py",
+      "jaxfne/_construct_extras.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "high -- read all 6 files in full (3121 LOC total, verified via wc -l), cross-checked git log for the split provenance, confirmed no uncommitted changes via git status/diff, grepped for TODO/FIXME/NotImplementedError markers, and located a real FRICTIONS_STACK.md landmine (F-031) plus 8+ specific test files via grep of tests/.",
+      "purpose": "Together these 6 files implement the full construct()/connect() pipeline: turning a Configuration (or NeuronalTensor) into a runnable jaxfne Model. _construct.py (123 lines) is a pure re-export aggregator; _construct_population.py builds Suite-No.2 neuron populations (per-layer/area sampling, cell-type composition, within-area connectivity/W); _construct_connectivity.py is the leaf module compiling declarative .connections() rules into EdgeLists, inter-area weight construction, and the connect() ensemble-merge machinery; _construct_presets.py holds top-level factories (configuration(), runtime(), suite2_*_config builders); _construct_core.py is the actual construct()/simulate()/compute_fields() hub tying the others together plus canonical biophysics and homeostasis/HDP metadata; _construct_extras.py has paradigm/trial/receipt/manifest helpers. Split (per docstrings, 2026-07-20, Phase 2 defragmentation of a former ~2946-LOC _construct.py monolith) to keep dependencies acyclic: _construct_connectivity and _construct_extras are leaves; _construct_population depends on _construct_connectivity; _construct_presets depends on _construct_population; _construct_core depends on all three of connectivity/population/extras. None of the 5 submodules import the aggregator.",
+      "key_findings": [
+        "Sizes (wc -l): _construct.py=123, _construct_core.py=756, _construct_connectivity.py=752, _construct_population.py=490, _construct_presets.py=411, _construct_extras.py=589; total 3121 LOC across the group.",
+        "git log confirms the split commit: 158988a 'refactor: split _construct.py (2946 LOC) into 5 submodules + thin re-export aggregator', preceded by 2712fff 'refactor(core): extract construct()/connect() hub into jaxfne/_construct.py (final slice)'.",
+        "No uncommitted diff on any of these 6 files right now (git status/diff --stat both empty for this group) -- nothing here is mid-edit.",
+        "One NotImplementedError reference at jaxfne/_construct_core.py:645-646, inside _construct_homeostatic_ei_model's docstring: it documents that Model.neuron_table()/checkpoint() (in jaxfne/_model.py, not this group) raise NotImplementedError guards for the homeostatic_ei family because they unconditionally unpack params['edge_list'] in a way not yet generalized for this emitter family.",
+        "_construct_core.py:366-417 (_construct_build_network) documents and warns about a confirmed real bug/gap: a plain .network(kind=..., layers=[...]) Configuration without columns/layer_cell_types/uniform_3d metadata routes to a dense-only builder where Configuration.connectivity(p_connect=...) has NO effect -- confirmed 2026-07-21 with a 100,000-neuron config building a ~40GB dense matrix and running ~370s despite p_connect=0.0005 being set.",
+        "_construct_population.py:118-267 (_neuron_population_from_config) module comment at lines 82-91 documents a fixed regression: a flat Configuration.cell_types({...}) call was previously invisible to _area_layer_cell_type_map (only checked area_layer_cell_types/layer_cell_types), silently falling through to hardcoded per-layer defaults instead of the caller's declared fractions.",
+        "_construct_population.py:340-489 (_apply_connectivity) has a documented sparse-direct escape path (_SPARSE_DIRECT_N=5000, _DENSE_CONNECTIVITY_WARN_N=5000) added specifically to avoid an O(N^2) dense (n,n) weight-matrix allocation at scale -- ties to the '44f32df fix: ... fix dense-fallback p_connect gap (Phase 3)' commit visible in git log.",
+        "skills/FRICTIONS_STACK.md row F-031 (medium severity) documents a real double-wiring landmine directly implicating this group's logic: construct()'s default dense same-area connectivity generator (now _apply_connectivity in _construct_population.py) layers ON TOP OF explicit NeuronalTensor-bridged InterConnection edges unless the caller nulls it via cfg.connectivity(within_area='all_to_all_uniform_random', within_gain=0.0) -- confirmed with a live repro (4 InterConnections at N=4 producing 24 edges instead of 12)."
+      ],
+      "contracts": [
+        "construct(cfg) / construct(cfg, geometry=...) is the stable Configuration-based public signature (jaxfne/_construct_core.py:530-581); construct(tensor, runtime) is the NeuronalTensor path added 0.4.7+ -- passing a runtime= kwarg together with a Configuration first argument raises ValueError (lines 574-580), enforcing that a Configuration's own .runtime(...) is the only route.",
+        "An emitter family explicitly declared but not in _SUPPORTED_EMITTER_FAMILIES = {'izhikevich','homeostatic_ei'} (jaxfne/_construct_core.py:341,344-363) raises ValueError rather than silently falling back to Izhikevich -- caller must not assume unknown families degrade gracefully.",
+        "connect(*models, ...) (jaxfne/_construct_connectivity.py:657-750) requires >=2 Model instances, each with an IzhikevichParams emitter only (_connect_validate_models, lines 412-428) -- raises TypeError otherwise; homeostatic_ei models cannot be passed to connect().",
+        "compute_fields(model, signals) (jaxfne/_construct_core.py:103-125) is documented as a thin accessor only -- it raises ValueError if signals.field is None rather than computing/fabricating a field; the field must already have been produced inside simulate().",
+        "_all_connection_rules_declare_resolvable_mechanism (jaxfne/_construct_connectivity.py:261-275) is the gate deciding sign-only vs mechanism-aware connection compilation: ALL rules must have a non-None mechanism resolving against a declared .mechanisms() name, or the entire rule set falls back to the sign-only compiler -- a caller cannot mix declared-mechanism and undeclared rules and expect partial mechanism-aware compilation.",
+        "_construct_compile_connections (jaxfne/_construct_core.py:452-499) forces cfg.runtime(recurrent_backend='edge_list') whenever any declarative connection rule materializes edges, since the dense backend runs on emitter.W which never carries these appended edges."
+      ],
+      "landmines": [
+        "skills/FRICTIONS_STACK.md F-031: default dense same-area connectivity (_apply_connectivity in _construct_population.py) silently double-wires on top of explicit NeuronalTensor-bridged InterConnection edges unless nulled via within_gain=0.0 -- verified live repro at N=4 (24 edges vs expected 12).",
+        "jaxfne/_construct_core.py:386-417: a plain .network(layers=[...]) Configuration lacking columns/layer_cell_types/uniform_3d metadata routes to a dense-only builder where connectivity(p_connect=...) is silently inert -- confirmed real (40GB alloc, ~370s) at N=100,000, not just theoretical.",
+        "jaxfne/_construct_core.py:628-647: the homeostatic_ei build path is a separate, self-contained construct branch that does NOT run _construct_build_network/_construct_resolve_edge_list/_apply_canonical_biophysics -- an edge_list is populated with a real empty EdgeList (not None) specifically because other Model methods unconditionally unpack params['edge_list'] and are not yet generalized for this family (NotImplementedError guards live in _model.py, outside this group).",
+        "jaxfne/_construct_connectivity.py:278-298 mechanism-aware compiler docstring: compile_connection_rules() itself stores a rule's declared sign as metadata only and never applies it to edge_weight -- an inhibitory-mechanism rule would silently keep a positive weight without the explicit _apply_edge_sign_policy post-correction applied afterward (lines 328-335).",
+        "jaxfne/_construct_population.py:340-489 _apply_connectivity: tcm_v1_6pop/suite2_interarea/inter_column_connectivity specs force the dense (n,n) path unconditionally, bypassing the sparse-direct escape even when p_connect<1 is set -- p_connect has NO memory-reduction effect for those three specs (documented in-code comment lines 383-389).",
+        "jaxfne/_construct_core.py:128-200 _apply_canonical_biophysics mutates emitter/edge_list in place via dataclasses.replace but is silently a no-op (returns unchanged emitter/edge_list) unless cfg.metadata['canonical_biophysics'] is True AND cell-type/layer labels exist AND depth (Z) is non-degenerate -- a caller expecting deep-E grading or PV<->E strengthening on a generic/non-laminar config gets nothing, no warning."
+      ],
+      "related_nodes": [
+        "tests/test_construct_golden_snapshot.py -- direct construct() output regression coverage",
+        "tests/test_mechanism_aware_connection_compiler.py and tests/test_connection_rule_compile_v0330.py / tests/test_connection_rule_mechanisms_v0330.py -- exercise _compile_connection_rules / _compile_mechanism_aware_connection_rules",
+        "tests/test_dense_sparse_connectivity_statistical_equivalence.py and tests/test_connectivity_scaling.py -- exercise _apply_connectivity's dense vs sparse-direct paths and _DENSE_CONNECTIVITY_WARN_N/_SPARSE_DIRECT_N thresholds",
+        "tests/test_suite_no2_upgrade.py, tests/test_suite_no1_public_grammar.py, tests/test_compact_facade_v034.py -- exercise the suite2_*_config presets in _construct_presets.py",
+        "tests/test_homeostatic_ei_n_generalization.py -- exercises _construct_homeostatic_ei_model / _homeostatic_ei_cell_type_split",
+        "tests/test_neuronal_tensor.py -- exercises the construct(tensor, runtime) NeuronalTensor path and connects to the F-031 double-wiring landmine",
+        "jaxfne/_model.py -- Model class consumed/returned throughout; holds the NotImplementedError guards referenced by _construct_homeostatic_ei_model's docstring",
+        "jaxfne/core.py -- the higher-level public re-export aggregator that this group's own aggregator (_construct.py) tells callers to import from instead",
+        "skills/jaxfne-neural-tensor/SKILL.md and skills/FRICTIONS_STACK.md (row F-031) -- document the double-wiring landmine and HDP continuity gaps directly tied to this group's connectivity logic"
+      ]
+    }
+  ]
+}

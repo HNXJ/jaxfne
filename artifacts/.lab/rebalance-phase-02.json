@@ -1,0 +1,44 @@
+{
+  "id": "rebalance-phase-02",
+  "kind": "plan_phase",
+  "title": "Phase 2: Resolve the durability blocker",
+  "generated": {
+    "summary": "Make lateral edges survive repo_mapper runs. Mapper owns hierarchy (refines/derives_from) and re-derives it every run; it does NOT own lateral relations, which no directory...",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "plan-lab-graph-rebalance",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-01",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "confirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 2,
+      "execution_status": "done",
+      "detail": "Make lateral edges survive repo_mapper runs. Mapper owns hierarchy (refines/derives_from) and re-derives it every run; it does NOT own lateral relations, which no directory scan can recover.",
+      "exit_criterion": "A hand-added lateral edge on a prp_item survives a full mapper re-run -- demonstrated, not argued.",
+      "record": "DONE 2026-07-24. MEASURED the blocker by injecting a DURABILITY_PROBE relation into one node per class and re-running: WIPED for prp_item/permanent/algorithm (61 of 135 nodes = 45%, including the entire jaxfne-plan subtree), SURVIVED for folder/subpackage. Fixed upstream in labyrinth clients/repo_mapper.py via _merge_lateral_links(), called from write_node(): carries forward any link whose relation is not in _MAPPER_OWNED_RELATIONS, deduped on (to, relation). Re-verified: all 5 classes SURVIVED, and stable at exactly 1 copy across 4 consecutive mapper runs (no duplicate accumulation). Probes then removed; 0 remain. NOT COMMITTED to labyrinth (its main is clean and needs separate authorization)."
+    },
+    {
+      "id": "unblocked-2026-07-25",
+      "kind": "status_update",
+      "date": "2026-07-25",
+      "source": "post-seal verification against labyrinth HEAD be3779e",
+      "confidence": "high",
+      "record": "UNBLOCKED 2026-07-25: _merge_lateral_links() is committed upstream (labyrinth 386a638) and live at write_node(). Phase 2 is now durable across machines, not just locally."
+    }
+  ],
+  "issues": [],
+  "plan": "A hand-added lateral edge on a prp_item survives a full mapper re-run -- demonstrated, not argued."
+}

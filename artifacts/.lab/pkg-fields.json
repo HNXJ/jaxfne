@@ -1,0 +1,53 @@
+{
+  "id": "pkg-fields",
+  "kind": "subpackage",
+  "title": "jaxfne/fields/",
+  "generated": {
+    "summary": "jaxfne/fields is the source\u2192field / laminar-projection subpackage: it turns simulated spike/Vm sources into proxy field readouts (LFP/CSD/EEG/MEG/EMM) and spectrolaminar analysis, plus one experimental PDE...",
+    "source_paths": [
+      "jaxfne/fields"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "medium-high: read __init__.py, all module docstrings, and the full function-name surface of probes.py; read proxy.py's and solvers.py's opening sections and docstrings but not their full ~1300/253 line bodies line-by-line, so internal implementation details of proxy.py's math (beyond what's named/exported) are not individually verified. All file sizes, line counts, __all__ contents, and the F-030 landmine are direct file/command evidence, not inference.",
+      "purpose": "jaxfne/fields is the source\u2192field / laminar-projection subpackage: it turns simulated spike/Vm sources into proxy field readouts (LFP/CSD/EEG/MEG/EMM) and spectrolaminar analysis, plus one experimental PDE solver. It's organized as 4 concern-split files (not one-file-per-concern-per-signal-type but a 4-way split by role): `proxy.py` (the big math engine: source projection, spectrolaminar PSD/bandpower/readout/objective, cable filters, csd_tensor \u2014 1309 lines, by far the largest file), `probes.py` (thin `ProbeReadout`-returning wrappers per modality: spk/vm/source/lfp/csd/eeg/meg/emm probes + eeg/meg/emm proxy_transform helpers, 363 lines), `diagnostics.py` (validation/reporting helpers factored out of proxy.py to \"keep mathematical projection code clean\" per its own module docstring, 166 lines), and `solvers.py` (an independent, explicitly \"experimental\" 1D Poisson PDE solver bridged to Model.neuron_table()/Signals.sources, 253 lines, most recently touched d387866). `__init__.py` (103 lines) is a pure re-export aggregator gathering all four files' public names into the subpackage surface, which `jaxfne/core.py` line 37 re-imports 3 of (FieldOutput, probe_laminar_modes, project_laminar_sources) into the top-level jtfne namespace.",
+      "key_findings": [
+        "File count: 4 .py files + __init__.py (ignoring __pycache__ and a stray .DS_Store). Sizes: proxy.py 50058 bytes/1309 lines, probes.py 12247 bytes/363 lines, solvers.py 11796 bytes/253 lines, diagnostics.py 7394 bytes/166 lines, __init__.py 2753 bytes/103 lines. Total ~2194 lines across the 4 substantive files.",
+        "__init__.py's __all__ (lines ~57-101) lists 39 names as the real public surface: FieldOutput, experimental_poisson_1d, experimental_poisson_1d_from_neuron_table, project_laminar_sources, project_sources_to_laminar_field, validate_projection_invariants, validate_source_field_status, compute_conservation_proxy_diagnostics, probe_laminar_modes, make_laminar_connectivity, exponential_synaptic_trace, synaptic_current, filtered_spike_source, teaching_control_spectrolaminar_resonance_source, spectrolaminar_psd/bandpower/readout, multi_area_spectrolaminar_readout, LinearReadout, construct_source_tensor, synaptic_resonance_source, combined_multi_area_source, spectrolaminar_similarity/objective, LegacyMultiAreaSpectrolaminarObjective, cable_filter_tau/sources/report, csd_tensor, _make_field_solution_report (underscore-prefixed but still exported), create_probe, ProbeReadout, spk/vm/source/lfp_proxy/csd_proxy/eeg_proxy/meg_proxy/emm_proxy_probe, eeg/meg/emm_proxy_transform.",
+        "diagnostics.py's _dtype_name, _finite_bool, _test_kernel_row_normalization are internal-only underscore helpers, but proxy.py deliberately re-imports them (proxy.py lines 24-29) with an explicit comment: 'Canonical source for these field diagnostics/validation helpers is diagnostics.py. They are imported (not redefined) here so that fields.proxy.<name> continues to resolve' -- this is a documented dedup pattern, not accidental duplication.",
+        "core.py line 37 imports only 3 of the 39 fields exports into the top-level namespace (FieldOutput, probe_laminar_modes, project_laminar_sources); core.py line 201 references compute_fields separately (likely from elsewhere, not fields/__init__ -- not verified further).",
+        "proxy.py's own module docstring (lines 1-8) states: 'This module implements structural simulation proxy calculations under linear_solver. Physical amplitude claims remain uncalibrated (amplitude_claim_allowed=False).' -- an explicit truth-gate declaration at the file level.",
+        "solvers.py is explicitly labeled experimental (module docstring line 1: 'Experimental PDE field solvers for jaxfne') and is the newest/most actively touched file (git log shows 3 recent commits: d387866 bridging it to Model.neuron_table()/Signals.sources, ef17134 verifying flux conservation + documenting an N~150-200 convergence ceiling, b62d560 extending it to layered conductivity)."
+      ],
+      "contracts": [
+        "core.py re-exports fields/ as one of its aggregator sources (AGENTS.md line 105: 'core.py re-exports \u2192 _config.py, _model.py, _signals.py, _construct.py, _runtime_config.py, emitters.py, fields/.') -- verified by core.py:37 actually importing from .fields.",
+        "Modular-grammar rule: plotting confined to jaxfne/vis/* only (AGENTS.md line 106: 'Plotting: jaxfne/vis/* only (modular-grammar rule 2)') -- fields/ itself contains no plotting code (grep of the 4 files shows no matplotlib/plotly imports), consistent with this rule; it produces numeric proxy arrays for vis/ to plot, not figures itself.",
+        "Amplitude-claim truth gate: proxy.py declares amplitude_claim_allowed=False and repeatedly uses 'uncalibrated'/'proxy' language (29 hits across fields/*.py for amplitude_claim_allowed/physical_amplitude_calibrated/uncalibrated) -- callers must not upgrade these proxy outputs to 'physical'/'calibrated' claims without a real calibration step elsewhere.",
+        "Re-export identity contract: diagnostics.py is the canonical source for _dtype_name/_finite_bool/_test_kernel_row_normalization; proxy.py must import (not redefine) them -- enforced by tests/test_fields_helper_dedup_v0330.py::test_proxy_names_are_identical_objects per FRICTIONS_STACK.md row F-030.",
+        "Docs contract: proxy.py's docstring (line 3) points to docs/api/fields.md ('update that page when this module's public API changes') -- not verified whether that doc file exists/is current, but it's a stated obligation on any public-API edit to proxy.py."
+      ],
+      "landmines": [
+        "FRICTIONS_STACK.md row F-030 (line 38) directly implicates this subpackage: a `ruff check --fix` pass previously gutted core.py/_construct.py of re-export blocks (breaking `import jaxfne` outright) AND separately, on a corrected second pass, silently deleted _dtype_name/_test_kernel_row_normalization from fields/proxy.py's re-export block from diagnostics.py -- caught only by the full test suite (tests/test_fields_helper_dedup_v0330.py::test_proxy_names_are_identical_objects), not by inspection, because proxy.py's F401 count (4) was below the heuristic threshold used to flag re-export files. Lesson stated in that row: low F401 count is not a safe proxy for 'not a re-export' when lint-auto-fixing this subpackage.",
+        "solvers.py's own docstring documents a real numerical limitation: 'a real N~150-200 convergence ceiling' for experimental_poisson_1d (per commit ef17134's message) -- this is stated as a known constraint, not a bug, but any caller pushing N higher should expect degraded convergence per that documented ceiling.",
+        "A stray jaxfne/fields/.DS_Store (6148 bytes) sits in the subpackage directory -- not a landmine in the functional sense but is repo-root-freeze noise the doctrine's 'keep repo roots thin' rule would flag if noticed during a commit."
+      ],
+      "related_nodes": [
+        "Tests: tests/test_fields_helper_dedup_v0330.py (re-export identity), tests/test_field_admissibility_v020.py, tests/test_field_diagnostics_v026.py, tests/test_field_proxy_admissibility_v024.py, tests/test_field_solution_metadata_v0213.py, tests/test_fields_projection_finite_and_normalization.py, tests/test_physical_field_solver_v040_placeholder.py, tests/test_ei_jaxley_hh_field_readout.py, tests/test_cable_filter_tensor.py, tests/test_csd_tensor.py, tests/test_conservation_proxy_diagnostics_v027.py, tests/test_experimental_poisson_1d_layered.py, tests/test_experimental_poisson_1d_convergence.py (modified per git status, uncommitted).",
+        "Skills documenting this subpackage: jaxfne-vis-modules (consumes fields' proxy outputs for LFP/CSD/EEG/MEG/spectrolaminar plotting), jaxfne-spectrolaminar-suite (documents the spectrolaminar_* functions exported here), neuro-biophysics-units-sanity (governs the amplitude_claim_allowed/uncalibrated truth-gate language used throughout proxy.py), jax-neuro-diffsim-guard (covers solver/dt stability relevant to solvers.py), catalog-glossary-jaxfne (should list the public fields API).",
+        "Depends on/depended by: jaxfne/core.py (imports FieldOutput, probe_laminar_modes, project_laminar_sources at line 37, part of the AGENTS.md-documented re-export aggregation into jtfne's top-level surface); jaxfne/_model_simulate.py (modified per git status, plausibly calls into fields for Signals construction, not directly verified by grep here); no plotting code lives in fields/ itself, consistent with vis/ being the sole plotting location per AGENTS.md rule."
+      ]
+    }
+  ]
+}

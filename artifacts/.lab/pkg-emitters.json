@@ -1,0 +1,68 @@
+{
+  "id": "pkg-emitters",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "emitters.py",
+  "generated": {
+    "summary": "\"\"\"Emitter kernels for :mod:`jaxfne`. -- Docs: ``docs/api/emitters.md`` (https://jaxfne.readthedocs.io/en/latest/api/emitters/) \u2014",
+    "source_paths": [
+      "jaxfne/emitters.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for lines 1-1106 and 1990-2167 (read in full). Lines 1107-1989 (the bulk of the HDP kernel's step function body and whatever else lies between) were NOT read in this pass -- key_findings/contracts about simulate_edge_recurrent_izhikevich_hdp are based only on its signature and docstring (visible through ~line 1150), not its full implementation. Flagging this gap rather than guessing at unread code.",
+      "purpose": "jaxfne/emitters.py (2167 lines) is the reduced Izhikevich E/PV/SST/VIP emitter scaffold: cell-type parameter tables, dense/sparse (EdgeList) recurrent simulation kernels (jax.lax.scan + segment_sum), homeostatic (r_i) and HDP (H_i master-state) plasticity variants, and thin OO facade classes (Emitter/IzhikevichEmitter/SynapseLayer). Module docstring (lines 1-9) states it is explicitly uncalibrated ('not a physical current in amperes'). It is imported by core.py, connectivity.py, _construct_core/_population/_connectivity.py, neuronal_tensor.py, hdp_network.py, _model.py, _model_simulate.py, _pipeline.py, tutorial_utils.py, and jaxfne/__init__.py (line 134) -- a load-bearing core module, not a leaf utility.",
+      "key_findings": [
+        "2167 lines total (wc -l). git status shows zero uncommitted diff on this file (the repo-wide `M` list in the prompt's gitStatus does not include jaxfne/emitters.py); last touching commits are c084a8c/c3b4889/d2267e5, all OOM/memory-scaling fixes, not in-progress work.",
+        "3 unimplemented stubs, all deliberate placeholders not bugs: Emitter.initial_state (line 2044-2045) and Emitter.step (2047-2048) raise NotImplementedError with 'TODO: implement ... in a concrete emitter' (base class contract, overridden by IzhikevichEmitter at 2051); GLIFEmitter.__init__ (2106-2107) and LIFEmitter.__init__ (2116-2117) unconditionally raise NotImplementedError -- documented stub classes for future emitter types, not exposed as working APIs.",
+        "Core data model: IzhikevichParams (frozen dataclass, line 100) registered as a JAX pytree (lines 128-174) with n_neurons property; EdgeList (line 482, @register_pytree_node_class) sparse (pre,post,weight,receptor_index,tau_ms) recurrent connectivity.",
+        "5 simulation entry points of increasing complexity: simulate_eig_izhikevich (dense W, line 381), simulate_edge_recurrent_izhikevich (sparse edges, line 555), simulate_edge_recurrent_izhikevich_homeostatic (adds r_i activity trace + optional synaptic plasticity, line 673), simulate_edge_recurrent_izhikevich_hdp (adds H_i master homeostasis state, line 1039, body continues past line 1106 -- not read in full this pass).",
+        "IZHIKEVICH_CELL_TYPE_DEFAULTS (line 27) is explicitly commented (lines 34-39) as the single source of truth for E/PV/SST/VIP/Inl/Ing/'I' parameters; 'I' is an explicit alias to VIP params, documented as intentionally replacing a since-removed silent fallback (dated 2026-07-13 in-code).",
+        "_get_cell_type_params (line 43) raises ValueError on unknown cell-type name -- explicitly documented as replacing a prior silent-fallback-to-VIP behavior for typo'd keys (e.g. 'pv' vs 'PV').",
+        "Last block (lines 2159-2167) re-exports HomeostaticEIParams/simulate_homeostatic_ei/etc. from the sibling module jaxfne/emitters_homeostatic_ei.py, with an explicit in-file comment explaining why: 'this file is already 2000+ lines and organized around the Izhikevich/EIG scaffold.'",
+        "izhikevich_params_from_labels has a build_dense_connectivity=False fast path (line 280, doc 290-298) added specifically because the default dense (N,N) W build allocated 40GB and OOM'd at N=100,000 in the real _construct.py caller path -- documented as a verified real failure, not theoretical."
+      ],
+      "contracts": [
+        "izhikevich_params_from_labels(labels, *, layer_labels=None, dtype='float32', drive_overrides=None, source_scale=1.0, build_dense_connectivity=True) -> IzhikevichParams -- raises ValueError on empty labels or mismatched layer_labels length (lines 302-305); default build_dense_connectivity=True is a stated zero-behavior-change guarantee for existing callers (comment line 298).",
+        "simulate_eig_izhikevich / simulate_edge_recurrent_izhikevich: when drive_schedule=None the scan path is documented as 'preserved exactly' (lines 393-394, 573-574) -- a stated backward-compatibility invariant callers may rely on.",
+        "EdgeList.to_dict() (line 514) always sets physical_amplitude_calibrated: False -- a truth-gate field per the repo's calibration doctrine (matches AGENTS.md truth-gate language).",
+        "_get_cell_type_params: only names in IZHIKEVICH_CELL_TYPE_DEFAULTS are valid; anything else raises ValueError rather than falling back silently (lines 43-55) -- callers must pass exact-case cell-type strings."
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row cites emitters.py specifically (checked skills/FRICTIONS_STACK.md, the only file by that name in the repo; grep for 'emitters.py' returned no match).",
+        "GLIFEmitter and LIFEmitter are advertised classes (public names in the module) that unconditionally raise NotImplementedError on construction (lines 2100-2117) -- any caller instantiating them fails immediately; documented behavior, not a silent gap, but worth flagging since the class names look usable at a glance.",
+        "The homeostatic k_gain docstring (lines 730-738) documents a real asymmetric-control limitation: k_gain is a one-sided damper that can suppress but not reliably raise firing above baseline, and k_gain > ~2.5 produces bursty bang-bang oscillation rather than smooth suppression -- a real caveat for tuning callers, not a code bug."
+      ],
+      "related_nodes": [
+        "tests/test_emitters_generalized.py, tests/test_emitter_equations_v020.py, tests/test_hdp_kernel_standalone.py, tests/test_synaptic_tensor.py, tests/test_v033_api_extensions.py, tests/test_canonical_biophysics.py, tests/test_jit_equivalence_v036.py, tests/test_backend_parity_v020.py, tests/test_connectivity_scaling.py, tests/test_hdp_barrier_equilibrium.py, tests/test_spectrolaminar_readiness_v011.py, tests/test_multi_area_emitter_runtime.py, tests/test_v033_two_neuron_ei.py, tests/test_tutorial_utils.py, tests/test_dense_sparse_connectivity_statistical_equivalence.py, tests/test_homeostasis_dispatch.py (all import directly from jaxfne.emitters per grep)",
+        "jaxfne/emitters_homeostatic_ei.py -- sibling module this file re-exports from at line 2159; tightly coupled by design",
+        "jaxfne/_construct_core.py, jaxfne/_construct_population.py, jaxfne/_construct_connectivity.py -- construction-path callers of EdgeList/IzhikevichParams/izhikevich_params_from_labels",
+        "jaxfne/hdp_network.py, jaxfne/neuronal_tensor.py -- consumers of DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE and simulate_edge_recurrent_izhikevich_hdp",
+        "jaxfne/core.py, jaxfne/_model.py, jaxfne/_model_simulate.py, jaxfne/_pipeline.py, jaxfne/connectivity.py, jaxfne/__init__.py -- other direct importers per grep, confirming this is a widely-depended-on core module",
+        "jaxfne/presets.py -- source of DEFAULT_SPIKE_IMPULSE_GAIN imported at line 22"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "rebalance-phase-01",
+  "kind": "plan_phase",
+  "title": "Phase 1: Measurement harness + baseline freeze",
+  "generated": {
+    "summary": "scripts/lab_balance.py: N, E, mean/median/max degree, Gini, depth histogram, orphan + pendant counts, dangling edges, repeated-segment ids, relation census, kind census. --json for machines, --gate...",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "plan-lab-graph-rebalance",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "confirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 1,
+      "execution_status": "done",
+      "detail": "scripts/lab_balance.py: N, E, mean/median/max degree, Gini, depth histogram, orphan + pendant counts, dangling edges, repeated-segment ids, relation census, kind census. --json for machines, --gate for CI.",
+      "exit_criterion": "Script reproduces the frozen baseline exactly.",
+      "record": "DONE 2026-07-24. Reproduced baseline exactly: N=134, E=217, mean 3.23, median 2, max 71, Gini 0.548, variance 58.5. --gate exits 1 as designed. Adjacent-only duplicate detection added after plan-file-by-file-review surfaced as a false positive (non-adjacent 'file' repeat is legitimate English)."
+    }
+  ],
+  "issues": [],
+  "plan": "Script reproduces the frozen baseline exactly."
+}

@@ -1,0 +1,68 @@
+{
+  "id": "jaxfne-docs",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "docs",
+  "generated": {
+    "summary": "Folder with 140 files, e.g. source_field_equations.md, ci_policy.md, STDP_HOMEOSTATIC_REPORT.md, BASELINE_DRIVE_REFERENCE.md, STDP_GLOBAL_SCALE_REPORT.md.",
+    "source_paths": [
+      "docs"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "docs/ is the mkdocs-material human-facing documentation source (mkdocs.yml, docs_dir: docs), published to https://jaxfne.readthedocs.io/. Verified live: `mkdocs build --strict` succeeds cleanly (1.80s, zero warnings/errors) on the current dev-branch tree.",
+        "Scale (via `find docs -type f`, ~140 files): api/ (13 pages), guides/ (18), tutorials/ (24, incl. versioned + 'Suite No.' variants + a legacy tutorials_v030/ tree with its own figures/manifests/reports), releases/ (7 version-pinned pages), notes/ (2), _static/tutorial_figures/ (12 PNGs + figure_manifest.json), assets/ (interactive HTML explorers + PNG showcases), _generated/ (operator_inventory.md, version.md), plus top-level pages (index.md, quickstart.md, changelog.md, scope_and_status.md, for_ai_agents.md, ci_policy.md, faq.md, migration_guide.md, etc).",
+        "docs/for_ai_agents.md (lines ~3-10) documents a deliberate three-surface split: docs/+README = humans (tutorials/API/guides); skills/+AGENTS.md = AI agents (verified workflows/API catalog, same source-of-truth as the package, not a parallel spec); artifacts/developer/ = maintainers/agents, local-only and gitignored since 2026-07-14 (absent from a fresh clone).",
+        "docs/_generated/version.md is machine-written by scripts/sync_docs_version.py (regex-reads pyproject.toml's [project].version) + scripts/sync_release_metadata.py, and is intentionally excluded from mkdocs nav via mkdocs.yml's `exclude_docs:` block (mkdocs.yml lines ~11-16) \u2014 this is a documented, deliberate exclusion, not an accidental orphan.",
+        "scripts/check_docs_orphans.py is a CI-only hard gate (not part of mkdocs itself) that fails if any docs/*.md file isn't reachable from mkdocs.yml's nav tree \u2014 it exists because `mkdocs build --strict` treats orphan pages as cosmetic INFO only, not a failure; added after 16 pages were once silently orphaned from nav (regression fixed 2026-07-08).",
+        "docs/ci_policy.md documents the real two-tier CI split relevant to docs changes: fast CI (ci.yml) runs on every push (compileall, ~2759 pytest tests minus two --ignored files and slow-marked tests, examples/00-08, wheel+sdist build, smoke test); release_ci.yml runs the full matrix + slow tests on main/nightly. Notebook execution (28 release-facing notebooks) is handled by a separate notebook_execution.yml workflow, not ci.yml.",
+        "skills/jaxfne-notebook-release-gate/SKILL.md is the operative skill for this subsystem \u2014 it explicitly covers notebook/tutorial/docs/manifest/release validation and its checklist includes running `mkdocs build --strict` (SKILL.md line ~84) before declaring a docs/release task done.",
+        "FRICTIONS_STACK.md F-027 (closed 2026-07-13) is the one directly-relevant historical incident: a stale canonical-column cell-type-fraction table (\u224877E:23I, 'PV absent in L1') had propagated from jaxfne/builders.py's docstring into 5 docs/ files \u2014 docs/quickstart.md, docs/api/index.md, docs/guides/configuration_grammar.md, docs/tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md, and docs/tutorials/13_canonical_column_etude.md (table + worked example + prose + a plot title). Real figures are \u224866E:34I overall, PV peaks at L2/L3 (25% each), absent at L6 not L1 \u2014 fixed at the source (builders.py) and in all 5 docs pages plus the skill. This demonstrates docs/ numeric claims can silently drift from the live `jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS` constant and must be spot-checked against a fresh `construct(cfg).neuron_table()` run, not trusted at face value.",
+        "AGENTS.md \u00a7 'Skills sync' and docs/for_ai_agents.md both note: repo skills mirror to global agent installs via `bash skills/SYNC_GLOBAL.sh` \u2014 relevant if a docs task also touches a skill's SKILL.md content that references docs/ pages, since skill edits need syncing separately from docs edits (docs/ itself has no sync step, it's committed directly)."
+      ],
+      "contracts": [
+        "mkdocs.yml is the single nav/build contract: any new docs/*.md page must be added to its `nav:` tree or scripts/check_docs_orphans.py will fail CI (this is enforced independently of mkdocs's own --strict, which only WARNs on orphans).",
+        "docs/_generated/version.md and mkdocs.yml's jaxfne_version extra field are machine-owned by scripts/sync_docs_version.py \u2014 should be regenerated via that script after a version bump, not hand-edited (mkdocs.yml's own comment at line ~11-14 states this explicitly).",
+        "docs/requirements.txt pins the doc-build toolchain: mkdocs>=1.6.1, mkdocs-material>=9.7.6, pymdown-extensions>=11.0.1 \u2014 the versions actually used for the successful --strict build verified in this session.",
+        "docs/for_ai_agents.md formally designates itself + skills/ + AGENTS.md as the AI-agent-facing surface, and docs/+README as the human surface \u2014 a docs/ page's job is human tutorials/guides/API reference, not agent workflow instructions (per AGENTS.md line ~59-61: 'Don't copy \"language: prefer X avoid Y\" phrasing ... into docs/ or README').",
+        "Interactive visualization assets under docs/assets/interactive/*.html and docs/assets/showcases/*.html are checked in as static pre-rendered artifacts (e.g. izhikevich_single_emitter_explorer.html, v037_source_column_3d.html) alongside a manifest.json \u2014 not generated at mkdocs build time."
+      ],
+      "landmines": [
+        "Numeric/prose claims in docs/ (config defaults, cell-type fractions, layer breakdowns) drift silently from the live package and are NOT caught by `mkdocs build --strict` (which only checks link/nav/config validity, not factual accuracy) \u2014 FRICTIONS_STACK F-027 found a stale canonical-column table propagated into 5 docs/ pages before being caught by an external review, not by CI. Any docs/ edit touching a numeric claim should be spot-checked against a fresh live run, not copied from an existing doc.",
+        "Orphaned docs pages (a .md file that exists but isn't linked from mkdocs.yml nav) do NOT fail `mkdocs build --strict` \u2014 only scripts/check_docs_orphans.py catches this, and only if it's actually wired into CI; don't rely on `mkdocs build --strict` alone as the completeness gate for a new page.",
+        "docs/_generated/version.md must stay excluded from mkdocs nav (mkdocs.yml `exclude_docs:`) \u2014 adding it to nav would make mkdocs treat a machine-written sync target as a human-navigable page, defeating its purpose; this exclusion is deliberate, don't 'fix' it by removing the exclude_docs entry.",
+        "This session ran `mkdocs build --strict`, which created/overwrote a `site/` directory in the repo root as a build artifact. It is not tracked by git (confirmed via `git status --short`, not listed) but a fresh agent running the same build command will do the same \u2014 clean it up if it matters, don't assume it's gitignored without checking (not verified against .gitignore contents in this pass)."
+      ],
+      "related_nodes": [
+        "jaxfne-skills (skills/*/SKILL.md + FRICTIONS_STACK.md) \u2014 docs/for_ai_agents.md explicitly designates skills/+AGENTS.md as the parallel AI-agent surface to docs/'s human surface, same source-of-truth as the package; jaxfne-notebook-release-gate skill's checklist directly gates docs/ changes via `mkdocs build --strict`.",
+        "jaxfne-tests (tests/) \u2014 docs/ci_policy.md's fast-CI gate runs pytest test counts (~2759) alongside the docs build/smoke-test steps in the same CI workflow; a docs/ change and a test-count/CI-policy change are often reported together.",
+        "jaxfne-core-package (jaxfne/builders.py, jaxfne/core.py etc.) \u2014 docs/ numeric claims (e.g. canonical column cell-type fractions) are meant to mirror live package constants like CANONICAL_LAYER_CELL_TYPE_FRACTIONS; FRICTIONS_STACK F-027 shows these two surfaces going stale relative to each other and needing a coordinated fix.",
+        "jaxfne-release-process (scripts/sync_docs_version.py, scripts/sync_release_metadata.py, docs/releases/*.md, docs/changelog.md) \u2014 version bumps mechanically touch docs/ via these sync scripts; release_ci.yml runs the full docs+test+build validation on main/nightly per docs/ci_policy.md."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

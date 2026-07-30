@@ -1,0 +1,28 @@
+{
+  "id": "jaxfne-rules",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Rules (graph algorithms)",
+  "generated": {
+    "summary": "The graph-maintenance algorithms that organize this graph -- see its children.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

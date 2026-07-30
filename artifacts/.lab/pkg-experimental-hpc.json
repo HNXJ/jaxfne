@@ -1,0 +1,60 @@
+{
+  "id": "pkg-experimental-hpc",
+  "kind": "subpackage",
+  "title": "jaxfne/experimental_hpc/",
+  "generated": {
+    "summary": "jaxfne/experimental_hpc/ is a frozen \"contracts\" package that documents future/planned architecture (a v0.3.28+ tensor-first refactor, and a v0.4.0 physical PDE field solver) without implementing it....",
+    "source_paths": [
+      "jaxfne/experimental_hpc"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "high for file inventory, __init__.py exports, and the fail-loudly/_tbi pattern (fully read both small files and grepped systematically); high-medium for the 'related_nodes' test/skill mapping (grep-verified but did not open test file bodies in detail, only line counts and grep hits); did not exhaustively read every one of the ~578 lines of contracts.py line-by-line beyond what was shown/grepped, so any additional subtle contract deep inside unread lines (e.g. exact ConnectionRuleSpec/WeightInitSpec semantics) is not independently verified beyond the class/def listing.",
+      "purpose": "jaxfne/experimental_hpc/ is a frozen \"contracts\" package that documents future/planned architecture (a v0.3.28+ tensor-first refactor, and a v0.4.0 physical PDE field solver) without implementing it. It is organized as: (1) contracts.py \u2014 the bulk of the package, declaring dataclasses/functions for a future tensor-first HPC/JAX architecture (Config, RuntimeStatic, CircuitSpec, ProbeSpec, NodeIdentity, SelectorSpec, MechanismSpec, WeightInitSpec, ConnectionRuleSpec, Net/FlatNet/TrackingMaps, SignalTensor/Signals, Paradigm, ObjectiveOutputSpec/ObjectiveResult, Trainer/TrainingResult, plus free functions compile_connection_rules/construct_net/flatten_net/unflatten_net/simulate_flat_izhikevich/weld_config/get_signal); (2) physical_field_solver_v040.py \u2014 a single-concern placeholder for a future physical/PDE volume-conductor field solver (PhysicalFieldSolverSpec, solve_physical_field). Both files follow the same \"fail loudly\" pattern: `_tbi()`/`_tbi_v040()` raise `NotImplementedError(\">TBI-not-ready\")` / `NotImplementedError(\">TBI-not-ready: v0.4 physical field solver\")` for every not-yet-real method/entry point (contracts.py: 35 occurrences of `_tbi()` per file-level grep at jaxfne/experimental_hpc/contracts.py; physical_field_solver_v040.py lines 27-29 and 56/67).",
+      "key_findings": [
+        "3 real Python files: __init__.py (71 lines), contracts.py (578 lines), physical_field_solver_v040.py (67 lines); total 716 lines (jaxfne/experimental_hpc/*.py wc -l sum)",
+        "__init__.py re-exports everything as the package's public surface: 20 names from .contracts (Config, RuntimeStatic, CircuitSpec, ProbeSpec, NodeIdentity, SelectorSpec, MechanismSpec, WeightInitSpec, ConnectionRuleSpec, ConnectionCompileResult, Net, FlatNet, TrackingMaps, SignalTensor, Signals, Paradigm, ObjectiveOutputSpec, ObjectiveResult, Trainer, TrainingResult, plus functions compile_connection_rules/construct_net/flatten_net/unflatten_net/simulate_flat_izhikevich/weld_config/get_signal) and 2 from .physical_field_solver_v040 (PhysicalFieldSolverSpec, solve_physical_field) -- jaxfne/experimental_hpc/__init__.py lines 7-71, all mirrored in __all__",
+        "Docstring at jaxfne/experimental_hpc/__init__.py lines 1-4 states explicitly: 'These symbols are not part of the stable public API. They exist to document the planned tensor-first architecture and to fail loudly until implemented.' So the __init__.py surface is entirely internal/experimental, not a real public API despite being fully exported",
+        "3 of the actually-used symbols already have real, non-stub callers today: NodeIdentity and SelectorSpec are imported and used outside this subpackage -- jaxfne/core.py line 63 ('from .experimental_hpc.contracts import NodeIdentity, SelectorSpec', with comment at line 61: 'v0.3.29: canonical selector/identity types live in experimental_hpc.contracts'), jaxfne/_signals.py line 25, jaxfne/_model.py line 49",
+        "SelectorSpec.resolve() (contracts.py lines 160-205) has a real implementation (not a _tbi() stub) -- it's live production code, not a placeholder, despite living in this 'experimental' package",
+        "physical_field_solver_v040.py's module docstring (lines 1-15) states the truth gate explicitly: stable field path is 'the laminar Gaussian proxy (field_solver_status=\"linear_solver\", physical_amplitude_calibrated=False)'; PhysicalFieldSolverSpec fixes field_solver_status='physical_solver_not_implemented_v040' and physical_amplitude_calibrated=False (lines 51-52), and validate()/solve_physical_field() both call _tbi_v040() unconditionally (lines 56, 67)",
+        "grep of contracts.py for '_tbi()' calls returns 35 hits -- most dataclass methods (CircuitSpec.validate, ProbeSpec.validate, MechanismSpec.validate, Net.simulate/select/neuron_table/etc, Trainer.fit, weld_config, etc.) are stubs that raise NotImplementedError(\">TBI-not-ready\")"
+      ],
+      "contracts": [
+        "Fail-loudly contract: every not-yet-implemented method/function in both files raises NotImplementedError with a fixed sentinel string ('>TBI-not-ready' in contracts.py line 18/22, '>TBI-not-ready: v0.4 physical field solver' in physical_field_solver_v040.py lines 24-29) -- checkable by grepping '_tbi()'/'_tbi_v040()' call sites and confirming no substitute logic precedes them",
+        "Truth-gate contract (physical_field_solver_v040.py lines 8-15): constructing/importing PhysicalFieldSolverSpec must not itself imply any physical-amplitude or PDE-solve claim is valid; field_solver_status is hardcoded to 'physical_solver_not_implemented_v040' and physical_amplitude_calibrated hardcoded False as dataclass field defaults (lines 51-52), i.e. this is enforced structurally, not just documented",
+        "RuntimeStatic contract (contracts.py lines 26-51): must contain only hashable/compile-time-static values (n_steps, dt_ms, dtype, backend/kernel names, feature switches) -- dynamic arrays (drives, params, PRNG keys) must be passed separately to compiled functions; RuntimeStatic.validate() enforces n_steps>0, dt_ms>0, dtype in {float32,float64} (lines 45-51)",
+        "CircuitSpec contract (contracts.py lines 54-67): 'config data, not compiled arrays' -- raw ndarrays disallowed unless routed through artifact_ref records with SHA256 (ties into jaxfne-sha256-artifact-integrity skill)",
+        "This subpackage is the canonical source for NodeIdentity/SelectorSpec per an explicit in-repo migration comment (jaxfne/core.py line 61: 'v0.3.29: canonical selector/identity types live in experimental_hpc.contracts') -- any new code needing these types should import from experimental_hpc.contracts, not redefine locally",
+        "AGENTS.md itself has zero mentions of experimental_hpc (grep returned no hits), so the authoritative pointer to this subpackage's status lives in the module docstrings and the jaxfne-worker-context-router skill, not AGENTS.md"
+      ],
+      "landmines": [
+        "skills/FRICTIONS_STACK.md has zero rows mentioning experimental_hpc (grep returned nothing) -- either no friction has been logged against this subpackage yet, or the file doesn't cover it; do not assume clean history from this, just note the absence",
+        "Despite the package being labeled 'not part of the stable public API,' two of its types (NodeIdentity, SelectorSpec) are load-bearing production imports in core.py, _signals.py, and _model.py -- so 'experimental' does not mean 'unused'; a naive reader could wrongly assume this whole directory is dead code",
+        "The __init__.py exports ALL symbols including the many still-_tbi()-stubbed ones (Net, Trainer, weld_config, etc.) at the same level as the two live ones (NodeIdentity, SelectorSpec) -- importing jaxfne.experimental_hpc.Net or .Trainer succeeds (no error at import time) but calling almost any of its methods raises NotImplementedError; only reading contracts.py tells you which of the 20 exported names are real vs stubs",
+        "jaxfne-modeling-optimization-schema skill's own description explicitly 'flags the fictional jtfne.weld()/cfg.circuit APIs' -- weld_config exists here as a declared-but-_tbi()-stubbed function (contracts.py line 567 area, confirmed via def listing), so it's easy to conflate the contract placeholder with a real working API; treat weld_config as not-callable today"
+      ],
+      "related_nodes": [
+        "tests/test_experimental_hpc_contracts.py (52 lines) -- direct test coverage of this subpackage's contracts",
+        "tests/test_physical_field_solver_v040_placeholder.py (28 lines) -- direct test coverage confirming the v0.4.0 solver placeholder fails loudly",
+        "tests/test_identity_v0329.py (49 lines) -- covers NodeIdentity/SelectorSpec identity behavior introduced at v0.3.29",
+        "skills/jaxfne-worker-context-router/SKILL.md line 127 -- documents the 'read the frozen contract, not the monolith' routing rule and names jaxfne/experimental_hpc/contracts.py as the canonical example",
+        "skills/jaxfne-modeling-optimization-schema/SKILL.md -- covers node-identity/selector conventions and explicitly flags fictional weld()/circuit APIs, directly relevant to this package's stubs",
+        "Depended on by: jaxfne/core.py (line 63), jaxfne/_signals.py (line 25), jaxfne/_model.py (line 49) -- all import NodeIdentity and/or SelectorSpec from experimental_hpc.contracts, making this subpackage an upstream dependency of core production modules despite its 'experimental' label",
+        "Depends on: jax, jax.numpy only (contracts.py lines 15-16; physical_field_solver_v040.py line 22) -- no other jaxfne-internal imports found in either file"
+      ]
+    }
+  ]
+}

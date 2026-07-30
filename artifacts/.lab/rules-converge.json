@@ -1,0 +1,28 @@
+{
+  "id": "rules-converge",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Converge",
+  "generated": {
+    "summary": "Proposes (never auto-merges) that two nodes with near-identical vocabulary might be duplicates worth reconciling by hand.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "id": "jaxfne-tests",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "tests",
+  "generated": {
+    "summary": "Folder with 242 files, e.g. test_notebook_execution_suite.py, test_global_superposition.py, test_scan_backends_v012.py, test_connect_ensemble.py, test_ei_20neuron_population_smoke.py.",
+    "source_paths": [
+      "tests"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "medium",
+      "key_findings": [
+        "tests/ contains 242 files (excluding __pycache__), matching the node's '240+ files' framing; ls confirms this via `ls tests | grep -v '^__pycache__' | wc -l` -> 242.",
+        "The suite is not a flat pile of generic unit tests -- it is heavily version/PRP-tagged: file names like test_backend_parity_v020.py, test_v0330_*.py, test_config_circuit_ownership_v0328_completion.py, test_calibration_contracts_v025.py tie individual test files to specific version numbers or PRP entries, i.e. the suite doubles as a changelog of behavior guarantees.",
+        "conftest.py has exactly one concern: an autouse fixture `_reset_compilation_registry` that resets jaxfne.compilation_registry (a module-level singleton tracking per-function shape baselines) before and after every test -- added because test order previously caused false 'Re-compilation guard alert' failures (only test_v0320_recompilation_guards.py used to reset it itself). Read directly from tests/conftest.py.",
+        "tests/_notebook_exec_helpers.py factors out a shared `portable_kernel_context` contextmanager (used by all notebook-execution test files) that builds a throwaway Jupyter kernelspec pointed at sys.executable rather than depending on any pre-registered system kernel -- this is what makes tests/test_notebook_execution_suite.py immune to a documented machine-level footgun (see landmines).",
+        "tests/test_agent_api_catalog.py is a live guard over internal_docs/JAXFNE_AGENT_API_CATALOG.md: it enforces that specific spectrolaminar pipeline symbols (make_laminar_column_config, build_laminar_column, simulate_laminar_trials, spectrolaminar_from_trials, summarize_spectrolaminar_similarity, spectrolaminar_suite_3panel) stay documented in that catalog and that forbidden naming patterns (lfp_like, csd_like, eeg_like, meg_like) never appear -- verified by reading the file's top ~30 lines directly.",
+        "AGENTS.md names an exact minimal validation command (jaxfne/AGENTS.md lines ~140-143): `python3 -m compileall -q jaxfne tests scripts` then a targeted pytest run of exactly tests/test_api_smoke.py, tests/test_root_import_lightweight.py, tests/test_signals_get_v0329.py as the fast pre-commit smoke gate, separate from a full suite run.",
+        "FRICTIONS_STACK.md (jaxfne/skills/FRICTIONS_STACK.md) documents multiple real, dated incidents where the tests/ suite was the thing that caught or nearly missed a regression: F-030 (ruff --fix gutting re-export files, caught by import breakage + full suite), F-029/F-028 (external code reviews of emitters.py/_construct.py etc., where a targeted test subset passed but the FULL suite surfaced real failures later), F-021 (a new regression test tests/test_pipeline_pure_functions.py::test_checkpoint_restore_roundtrip_preserves_bfloat16 added to lock in a bf16 checkpoint round-trip fix), F-024 (a manual/ad-hoc notebook run outside the pytest gate can silently execute against a different jaxfne checkout on this machine, but the actual pytest gate test_notebook_execution_suite.py is unaffected because of portable_kernel_context)."
+      ],
+      "contracts": [
+        "Session-wide fixture contract: any new test module that calls simulate()/construct() repeatedly across tests relies on conftest.py's autouse `_reset_compilation_registry` fixture for isolation -- do not add a competing reset or assume registry state carries between tests.",
+        "tests/_notebook_exec_helpers.py::portable_kernel_context is the canonical (only) way notebook-execution tests should spin up a Jupyter kernel; any new notebook-exec test should reuse it rather than re-implementing kernel setup or relying on a system-registered kernelspec.",
+        "internal_docs/JAXFNE_AGENT_API_CATALOG.md is contractually checked by tests/test_agent_api_catalog.py -- edits to that markdown file that drop a required spectrolaminar symbol or reintroduce a forbidden '*_like' naming pattern will fail this test; this is a live, enforced doc-code contract, not just a convention.",
+        "File-naming convention: test_<feature>_v<version>.py ties a test file to the version/PRP entry that introduced the behavior it guards (verifiable across dozens of files, e.g. test_backend_parity_v020.py, test_config_circuit_ownership_v0328_completion.py) -- a fresh agent adding a regression test for a fix should follow this pattern for discoverability.",
+        "AGENTS.md's Validation section names an exact 3-file smoke subset (test_api_smoke.py, test_root_import_lightweight.py, test_signals_get_v0329.py) as the fast pre-commit gate distinct from the full suite -- this is the stated minimal bar before any commit, per AGENTS.md line ~140-143."
+      ],
+      "landmines": [
+        "Full-suite pass on a scoped/targeted subset is not sufficient evidence of correctness for changes touching re-export aggregator files or shared fallback/alias logic -- FRICTIONS_STACK F-028/F-029/F-030 each independently document a targeted-subset false-green that a full run then caught. Always re-run the whole suite before claiming 'passes' for anything touching core.py, _construct.py, _model.py, fields/proxy.py, or similar re-export files.",
+        "Do not run notebooks manually via bare NotebookClient(nb, ...) without an explicit kernel_name -- the default python3 Jupyter kernelspec on this machine points PYTHONPATH at a completely different jaxfne checkout (~/workspace/computational/jaxfne), which silently produced a dramatic divergent result in a manual etude-8 run. The pytest gate itself (test_notebook_execution_suite.py) is unaffected because it goes through portable_kernel_context, which builds its own kernelspec from sys.executable -- but any ad-hoc manual notebook execution outside pytest is at risk. (FRICTIONS_STACK F-024)",
+        "Never re-add artifacts/developer/{plans,progress,review,adapt}.json or AGENT_CHANNEL.md to git tracking -- these were deliberately git-rm --cached + gitignored 2026-07-14 after being found tracked/pushed to this public repo; only two specific artifacts/legacy/internal_docs/ files stay as explicit .gitignore exceptions because two named tests (test_agent_context_hygiene.py, test_docs_equations_plotly_v0214.py) depend on them.",
+        "ruff --fix (or any automated lint auto-fix) run without first identifying re-export-aggregator files can silently gut public re-export blocks and break tests that check import identity (e.g. test_fields_helper_dedup_v0330.py::test_proxy_names_are_identical_objects) -- a LOW F401-hit-count file is not a safe signal that it isn't a re-export file (F-030 documents fields/proxy.py breaking with only 4 F401 hits)."
+      ],
+      "related_nodes": [
+        "jaxfne-core-model (Model/_construct/_signals chain) -- most test files exercise construct/simulate/Signals and depend on the re-export split documented in AGENTS.md's Module map; a refactor there needs the full test suite, not a subset",
+        "jaxfne-hdp-neural-tensor -- emitters.py/hdp_network.py/neuronal_tensor.py changes are covered by tests named test_ei_hdp_*, test_ed9_hdp_evidence.py, test_ed10_*, per F-029/F-030 receipts in FRICTIONS_STACK.md",
+        "jaxfne-notebooks-tutorials -- notebook release gate (test_notebook_execution_suite.py) shares the _notebook_exec_helpers.py kernel-isolation contract with this node and is the actual enforcement mechanism behind the jaxfne-notebook-release-gate skill",
+        "jaxfne-prp-backlog (artifacts/developer/*.json) -- PRP 'done' status requires a fresh test receipt, not just JSON edits; tests/ is where that receipt is generated",
+        "jaxfne-skills (skills/*/SKILL.md, FRICTIONS_STACK.md) -- FRICTIONS_STACK.md is the durable landmine record this investigation drew most verified facts from; keep it in sync when new test-suite footguns are discovered"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

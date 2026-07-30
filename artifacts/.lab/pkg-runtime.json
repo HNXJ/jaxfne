@@ -1,0 +1,63 @@
+{
+  "id": "pkg-runtime",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/runtime.py",
+  "generated": {
+    "summary": "\"\"\"Runtime configuration and execution-report helpers for jaxfne. -- Docs: ``docs/api/runtime.md`` (https://jaxfne.readthedocs.io/en/latest/api/runtime/) \u2014",
+    "source_paths": [
+      "jaxfne/runtime.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-retry",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (retry batch after 1st pass produced placeholder junk/crashed for these), spot-checked before commit",
+      "confidence": "High -- file was read in full, all grep results are real command output (not fabricated), and no FRICTIONS_STACK.md row references runtime.py (verified by grep returning empty).",
+      "purpose": "jaxfne/runtime.py (178 lines) is a thin public re-export/compatibility shim. Its module docstring (lines 1-18) states it \"provides a stable import surface for runtime-related public objects\" while \"Runtime behavior is implemented in the core package; this module re-exports the public runtime contracts for user convenience.\" It re-exports RuntimeConfig, runtime, and runtime_report from .core (line 23) and additionally defines four new helper functions locally: get_jax_backend_report, set_precision_policy, safe_jit, and safe_vmap.",
+      "key_findings": [
+        "The file is 178 lines total; __all__ (lines 25-33) lists exactly 7 public names: RuntimeConfig, runtime, runtime_report, get_jax_backend_report, set_precision_policy, safe_jit, safe_vmap.",
+        "get_jax_backend_report (lines 36-61) wraps jax.devices() in a bare try/except (lines 49-54) that swallows any Exception and silently falls back to default_backend='unknown' with no logging of the actual error.",
+        "set_precision_policy (lines 64-112), safe_jit (lines 118-146), and safe_vmap (lines 149-177) each independently read the same env var pattern os.environ.get('JAXFNE_STRICT', '0') in ('1','true','True') (lines 84, 139, 170) rather than factoring it into one shared helper.",
+        "safe_jit's docstring (lines 119-127) explicitly documents that jax.jit is lazy so its try/except at lines 140-146 only ever catches wrap-time failures (e.g. malformed static_argnums), never trace-time failures like shape mismatches; the same caveat is repeated near-verbatim in safe_vmap's docstring (lines 150-158).",
+        "No TODO/FIXME/NotImplementedError markers found anywhere in the file; git diff --stat jaxfne/runtime.py against the working tree shows no output, i.e. the file is unmodified relative to HEAD.",
+        "jaxfne/__init__.py lines 589-615 documents a real naming collision: jaxfne.runtime is both a module (this file) and a function (jaxfne.runtime() from core), requiring a custom __setattr__ override to prevent Python from clobbering the callable when 'import jaxfne.runtime' executes."
+      ],
+      "contracts": [
+        "jaxfne/_runtime_config.py:6 states an explicit rule: callers should use jaxfne.runtime (this module), not _runtime_config.py, unless they are working on core.py itself.",
+        "safe_jit and safe_vmap's docstrings (lines 119-127, 150-158) impose an implicit caller contract: these wrappers only guard wrap-time failures, not trace-time failures inside the wrapped function -- callers must not rely on them to make an arbitrary function 'safe to call' under jit/vmap."
+      ],
+      "landmines": [
+        "The module/function name collision for jaxfne.runtime (jaxfne/__init__.py:589-615) is a known landmine: a naive 'import jaxfne.runtime' can replace the callable jaxfne.runtime() in jaxfne's top-level namespace if the custom __setattr__ guard were ever removed or bypassed.",
+        "get_jax_backend_report's bare except-Exception fallback (lines 52-54) silently hides the real cause of a jax.devices() failure, reporting only 'unknown' backend with no diagnostic trail."
+      ],
+      "related_nodes": [
+        "tests/test_runtime_module_v0211.py",
+        "tests/test_v0321_migration_boundaries.py",
+        "tests/test_synapse_metadata_v010.py",
+        "tests/test_backend_parity_v020.py",
+        "jaxfne/_runtime_config.py",
+        "jaxfne/__init__.py"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

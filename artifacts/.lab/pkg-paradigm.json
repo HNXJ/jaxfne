@@ -1,0 +1,54 @@
+{
+  "id": "pkg-paradigm",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/paradigm.py",
+  "generated": {
+    "summary": "\"\"\"Task, condition, and event paradigms for jaxfne simulations. -- This module also carries the generic sequential-paradigm builders used to",
+    "source_paths": [
+      "jaxfne/paradigm.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-manual",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "Written directly (not via subagent) after the schema-based agent workflow failed on this file (StructuredOutput retry cap exceeded) -- read jaxfne/paradigm.py in full myself instead.",
+      "confidence": "high -- read the full 862-line file directly, verified test coverage/FRICTIONS_STACK/git status via grep, not delegated.",
+      "purpose": "Defines ParadigmEvent/ParadigmCondition (frozen dataclasses) and a Paradigm container class, plus the generic sequential-paradigm grammar (general_sequential_oddball_paradigm at line 244, general_delayed_match_to_sample_paradigm at line 423) that concrete named paradigms (omission_oddball_paradigm line 621, coop_omission_oddball_paradigm line 719, evoked_l4_drive_paradigm line 549) are built from.",
+      "key_findings": [
+        "862 lines, 4 real classes (ParadigmEvent:15, ParadigmCondition:40, Paradigm:462, _ParadigmModuleWrapper:851) and 12 module-level functions.",
+        "No uncommitted changes (git status/diff both empty) -- matches HEAD exactly.",
+        "_ParadigmModuleWrapper (line 851, end of file) is a module-level wrapper class -- worth checking on a future pass what mechanism this implements (not deeply investigated this pass)."
+      ],
+      "contracts": [
+        "paradigm_target_indices_from_model (line 787) and coop_omission_oddball_for_model/for_neuronal_tensor (lines 801, 819) are the documented bridges from a built Model/NeuronalTensor to per-event target_indices -- build indices from model.neuron_table(), per AGENTS.md's 'per-event layer targeting' convention."
+      ],
+      "landmines": [
+        "FRICTIONS_STACK F-022 (closed 2026-07-02): omission_oddball_paradigm's trial_start/post_stimulus/post_omission marker events needed an explicit metadata={'drive_amplitude': 0.0} override (added), matching coop_omission_oddball_paradigm's existing idiom -- already fixed. Note found live during that fix: coop_omission_oddball_paradigm's OWN trial_start event (paradigm.py line ~743) does NOT set that override (only its per-pulse is_omitted branch does) -- the 'already correct on markers' premise wasn't literally true for that function's trial_start either, though jaxfne/core.py::stimulus_schedule's is_drive heuristic already correctly zeroes is_omission=True events regardless, so this wasn't a functional bug for that specific event."
+      ],
+      "related_nodes": [
+        "tests/test_general_sequential_paradigm.py, tests/test_coop_v035.py, tests/test_v0313_omission_oddball_tutorial.py",
+        "jaxfne/core.py (stimulus_schedule's is_drive heuristic reads ParadigmEvent.is_omission/onset_ms), jaxfne/_signals.py, jaxfne/__init__.py"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

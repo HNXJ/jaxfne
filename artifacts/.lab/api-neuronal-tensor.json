@@ -1,0 +1,34 @@
+{
+  "id": "api-neuronal-tensor",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "NeuronalTensor",
+  "generated": {
+    "summary": "Neuronal Tensor API -- The `neuronal_tensor` module defines the **canonical network representation** for",
+    "source_paths": [
+      "docs/api/neuronal_tensor.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-neuronal-tensor",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

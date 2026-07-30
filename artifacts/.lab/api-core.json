@@ -1,0 +1,34 @@
+{
+  "id": "api-core",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Core",
+  "generated": {
+    "summary": "Core API -- Main classes for configuration, model construction, simulation, and signal handling.",
+    "source_paths": [
+      "docs/api/core.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "jaxfne-pkg",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

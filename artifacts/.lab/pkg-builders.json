@@ -1,0 +1,65 @@
+{
+  "id": "pkg-builders",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "builders.py",
+  "generated": {
+    "summary": "\"\"\"Public builder and helper functions for cortical-column configuration. -- Docs: ``docs/api/index.md`` \"Column builders & the canonical prior\"",
+    "source_paths": [
+      "jaxfne/builders.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file contents, imports, git state, and FRICTIONS_STACK references (all directly grepped/read). Medium on whether the 66:34 vs 72:28 discrepancy is a real unresolved drift versus referring to two different computations (e.g. 6-layer vs merged-5-layer weighting) -- flagged as a landmine but not independently recomputed against a live construct()/neuron_table() run.",
+      "purpose": "jaxfne/builders.py (948 lines) provides high-level construction helpers that return a fully-defaulted Configuration for common cortical-column/multi-area scenarios (module docstring, lines 1-31). It re-exports canonical layer/cell-type constants and offers builder functions (default_cortical_column_config, default_complete_configuration, build_laminar_column, build_multi_area_columns, connect_columns), connectivity-spec helpers, table/summary helpers (layer_celltype_count_table, column_density_table, configuration_table), a validate_configuration gate-checker, and laminar_cortex_config. It is imported by jaxfne/__init__.py:164 (`from .builders import (...)`), making these the package's public jtfne.* builder API.",
+      "key_findings": [
+        "948 lines total (wc -l). No TODO/FIXME/NotImplementedError found in the file.",
+        "git diff against HEAD for this file is empty -- no uncommitted changes; builders.py is not in the working-tree modified list (git status shows only .gitignore, AGENTS.md, jaxfne/_model_simulate.py, jaxfne/fields/solvers.py, skills/jaxfne-neural-tensor/SKILL.md, two test files).",
+        "Recent history (git log -5): cab54c9 lint cleanup, 6a32e4a lint cleanup, ea6e934 'skills API-coverage audit -- real canonical E:I ratio drift found and fixed', 1715ec2 'archive spectrolaminar and nuclei configs as JSON; remove functions', a16b0ea 'implement layer count and density tables'.",
+        "Key data constants: FLAT_CELL_TYPE_FRACTIONS (line 47), CANONICAL_LAYER_CELL_TYPE_FRACTIONS (55-62) and its 5-layer variant (65-71), CANONICAL_Z_BANDS / CANONICAL_Z_BANDS_5L (74-83).",
+        "Main functions: _canonical_z_bands (86), _resolve_layer_cell_types (96), default_cortical_column_config (124), default_complete_configuration (219), build_laminar_column (315), build_multi_area_columns (431), connect_columns (517), sparse_intercolumn_connectivity (563), all_to_all_intercolumn_connectivity (593), _metadata_for_table (616), _neuron_rows_for_table (628), _layer_thickness_mm (643), layer_celltype_count_table (661), column_density_table (690), configuration_table (725), validate_configuration (758), laminar_cortex_config (829).",
+        "FRICTIONS_STACK.md row F-027 (line 41) documents that this exact file's docstring previously carried a stale canonical E:I ratio (~77E:23I, wrong PV-peak layer) traced back here and fixed 2026-07-13; the live constant is stated there as ~66E:34I, PV peaks at L2/L3, absent at L6 (matches current docstring lines 49-52, 61). F-011 (line 67) attributes layer_celltype_count_table/column_density_table's origin to this file (2026-06-27)."
+      ],
+      "contracts": [
+        "build_laminar_column/build_multi_area_columns ei_profile='canonical' requires layers to exactly match CANONICAL_LAYERS_6L or DEFAULT_LAYERS (5-layer); otherwise raises ValueError rather than silently falling back to flat (_resolve_layer_cell_types, lines 110-121) -- an explicit no-silent-downgrade convention stated in its own docstring (101-107).",
+        "default_cortical_column_config's synaptic_kernel='receptor_exponential' forces recurrent_backend='edge_list' (line 198) and is documented as incompatible with the dense backend and with enable_homeostasis (lines 167-171) -- a real behavioral coupling, not just metadata.",
+        "All builders preserve the three truth gates stated in the module docstring (24-27) and re-checked in validate_configuration (802-820): claim_level='computational_scaffold', field_solver_status='linear_solver', physical_amplitude_calibrated=False (fails strict validation if True, line 812-813).",
+        "laminar_cortex_config requires cell_types fractions to sum to 0.99-1.01 or raises ValueError (912-918) -- an enforced invariant, not just documented.",
+        "_neuron_rows_for_table (628-640) accepts a Configuration (compiles it via construct() internally, 634-636) or a Model-like object with a callable neuron_table(); raises TypeError otherwise (637-640)."
+      ],
+      "landmines": [
+        "Internal inconsistency between two in-file statements of the same CANONICAL_LAYER_CELL_TYPE_FRACTIONS overall E:I ratio: module docstring line 17 says '\u2248 66E:34I overall' while the inline comment at line 52 (directly above the same table) says 'Overall \u2248 72E:28I' -- not independently recomputed here against a fresh construct()/neuron_table() run, but the two numbers do not match each other in the same file.",
+        "geometry='uniform3d' placement collapses per-neuron layer identity to a single 'uniform_3d' label (lines 365-367, 420-422). geometry='auto' correctly upgrades to 'laminar' when ei_profile='canonical' or an explicit layer_cell_type_fractions is given (line 408), but a caller who explicitly passes geometry='uniform3d' together with ei_profile='canonical' gets silently degraded per-layer composition with no error raised -- only the 'auto' path guards against this."
+      ],
+      "related_nodes": [
+        "tests/test_public_builders_complete.py (imports Configuration from jaxfne.builders; name suggests primary coverage file for this module)",
+        "tests/test_canonical_biophysics.py (imports CANONICAL_LAYER_CELL_TYPE_FRACTIONS directly, line 14)",
+        "tests/test_vis_phase5.py, tests/test_suite_no2_upgrade.py, tests/test_objectives.py, tests/test_etude1_agsdr_convergence.py (also reference builders/Configuration per grep)",
+        "jaxfne/__init__.py (line 164, re-exports builders' public symbols into the jtfne.* namespace)",
+        "jaxfne/core.py (tightly coupled: Configuration class imported at line 38, construct() imported lazily at line 634 for neuron_table resolution)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

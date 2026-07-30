@@ -1,0 +1,34 @@
+{
+  "id": "api-fields",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Fields",
+  "generated": {
+    "summary": "Fields API -- Field solvers, source projection, and spatial operators for neural field computation.",
+    "source_paths": [
+      "docs/api/fields.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-fields",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

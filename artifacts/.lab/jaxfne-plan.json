@@ -1,0 +1,28 @@
+{
+  "id": "jaxfne-plan",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Plan (PRP verb node)",
+  "generated": {
+    "summary": "49 items tracked, 32 done; 18 raw idea(s) in brainstorm[] as exploratory input (live from plans.json).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

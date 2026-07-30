@@ -1,0 +1,17 @@
+{
+  "id": "jaxfne-brainstorm",
+  "kind": "permanent",
+  "title": "Brainstorm (PRP verb node)",
+  "generated": {
+    "summary": "18 raw idea(s) logged (live from plans.json.brainstorm[]).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

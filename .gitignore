@@ -69,9 +69,18 @@ test_gpu.py
 # going forward; not scrubbed from history (explicit decision, repo stays
 # public) -- keep these local-only or in a private location from here on.
 artifacts/developer/
-# Labyrinth .lab/ graph -- generated tooling state (like .git/), regenerated
-# from the repo + PRP tracker files by repo_mapper.py, not authored content.
-artifacts/.lab/
+# Labyrinth .lab/ graph -- structural nodes ARE tracked (since 2026-07-30) so the
+# graph syncs across machines; regenerating it per-clone loses every hand-written
+# note/issue, which is the part that isn't derivable from the repo.
+# Excluded below: nodes generated from artifacts/developer/ (gitignored since
+# 2026-07-14 for leaking roadmap/competitive notes into this PUBLIC repo -- the
+# plan-* nodes mirror plans.json items, so tracking them would re-leak the same
+# content), plus per-run churn that would conflict between machines.
+artifacts/.lab/plan-*.json
+artifacts/.lab/Archive/
+artifacts/.lab/.formation_backups/
+artifacts/.lab/suggestions.json
+artifacts/.lab/metrics.json
 # artifacts/legacy/internal_docs/ is covered by the internal_docs/ rule above,
 # but two files under it are load-bearing for tests/test_agent_context_hygiene.py
 # and tests/test_docs_equations_plotly_v0214.py -- explicit force-tracked

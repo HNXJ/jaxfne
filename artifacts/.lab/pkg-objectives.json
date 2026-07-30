@@ -1,0 +1,68 @@
+{
+  "id": "pkg-objectives",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "objectives.py",
+  "generated": {
+    "summary": "\"\"\" -- Spectrolaminar objective and null distribution functions.",
+    "source_paths": [
+      "jaxfne/objectives.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file contents, line citations, git-diff/status, and the two consuming test files (all directly grepped/read). Lower confidence on where spectrolaminar_readout() itself lives and on docs/api/objectives.md's current accuracy -- neither was opened in this pass, so those are named but not verified.",
+      "purpose": "jaxfne/objectives.py implements spectrolaminar-profile scoring objectives: comparing a simulated spectrolaminar readout (alpha/beta and gamma depth profiles) to targets, optionally against shuffled/null distributions and a synchrony gate, returning a report dict. It is the objective/scoring stage of the jaxfne object-transform chain (Configuration/NeuronalTensor \u2192 construct \u2192 simulate \u2192 Signals \u2192 probe/objective/tune \u2192 manifest), consumed directly by two test files.",
+      "key_findings": [
+        "520 lines total (jaxfne/objectives.py). No __all__ defined.",
+        "No uncommitted git diff on this file: `git diff -- jaxfne/objectives.py` empty and file absent from `git status --short` output.",
+        "Public functions: spectrolaminar_profile_score (L21-95), _make_null helper (L99-111, private), layer_shuffle_null (L114), band_label_shuffle_null (L131), uniform_gain_null (L146), no_field_projection_null (L164), phase_randomized_null (L179), source_polarity_flip_null (L193), compute_synchrony_metric (L208-273), spectrolaminar_objective (L276-466, the main entry combining nulls+synchrony), spectrolaminar_objective_factory (L469-520, returns a closure objective_fn).",
+        "No TODO/FIXME/NotImplementedError found anywhere in the file.",
+        "compute_synchrony_metric has two methods: 'mean_pairwise_correlation' (vectorized via np.corrcoef, comment at L250-253 notes it replaced an O(N^2) Python loop) and 'variance'; raises ValueError for any other method string (L273).",
+        "Every report dict hardcodes 'physical_amplitude_calibrated': False (L88, L459) and bands {'alpha_beta':[8.0,25.0],'gamma':[40.0,150.0]} (L89-92, L460-463) -- consistent with the module docstring's 'Physical amplitude claims NOT allowed' (L13).",
+        "Null RNG contract: every *_null function takes rng: np.random.Generator|None keyword-only; None means an unseeded/nondeterministic default_rng() (documented per-function, e.g. L119-121, L154, L169-170, L184-185). Two nulls (band_label_shuffle, source_polarity_flip) are deterministic and ignore rng entirely (L139, L201).",
+        "spectrolaminar_objective threads a single shared null_gen = np.random.default_rng(null_seed) across all null types/samples (L355); docstring explicitly warns (L318-323) that reordering/adding/removing entries in `nulls` shifts downstream RNG state."
+      ],
+      "contracts": [
+        "spectrolaminar_objective_factory(target_alpha_beta, target_gamma, nulls=None, null_n_samples=10, synchrony_metric=None, synchrony_threshold=0.7, null_seed=None) -> callable; returned objective_fn(readout, synchrony_spikes=None) -> dict (L469-520) -- this is the 'jaxfne pattern' factory callers use to build a reusable objective.",
+        "spectrolaminar_objective(...) always returns a dict with fixed keys: objective_kind, score_type, profile_score_percent, motif_gate_percent, S_lam, nulls_run, null_distribution_n, null_normalization_method, synchrony_checked, synchrony_metric, synchrony_value, synchrony_threshold, synchrony_rejection, rejection_reasons, uses_teaching_control_source, default_evidence_path, physical_amplitude_calibrated, bands (L438-464) -- both spectrolaminar_profile_score and spectrolaminar_objective produce this same report shape (score_type differs: 'profile_score_no_null' vs 'null_normalized_similarity', L69/L427/L430).",
+        "readout dict input contract: must have keys 'alpha_beta' and 'gamma' (np.ndarray) plus optional 'metadata' dict with 'teaching_control_source'/'default_evidence_path' bools (used at L82-87, L104-105, L333, L453-458).",
+        "All *_null functions share the signature (readout, *, rng=None) -> dict with keys alpha_beta_shuffled, gamma_shuffled, null_type (contract enforced via _make_null at L99-111)."
+      ],
+      "landmines": [
+        "Silent exception swallowing: the per-null-sample scoring loop wraps everything in try/except Exception: pass (L363-385) -- a broken null function or shape mismatch silently drops that sample from null_scores rather than surfacing an error; if enough samples fail, null_distribution_n can be small or zero without any warning in the report.",
+        "synchrony computation also wraps in try/except Exception: synchrony_value=None (L410-423), silently disabling the synchrony gate on any runtime error instead of failing loud.",
+        "Magic numbers not derived from any config: similarity formula 100*exp(-3*mse_total) hardcoded twice (L58, L376) with the '3.0' scaling constant unexplained; band edges [8,25] and [40,150] Hz hardcoded in two places (L89-92, L460-463) rather than referencing a single shared constant.",
+        "compute_synchrony_metric silently returns 0.0 (not an error) for degenerate inputs: empty spikes, <2 neurons, or <2 bins (L233-234, L240-241) -- a caller could mistake a degenerate/too-short recording for genuinely zero synchrony.",
+        "grep of skills/FRICTIONS_STACK.md for this file/module found no matching row -- no documented friction specific to objectives.py exists in that file (checked, not found)."
+      ],
+      "related_nodes": [
+        "tests/test_spectrolaminar_objectives.py -- imports from jaxfne.objectives (line 17), primary functional test file",
+        "tests/test_objective_null_reproducibility_v0330.py -- imports from jaxfne.objectives (line 25), tests the null_seed reproducibility contract described in spectrolaminar_objective's docstring",
+        "Tightly coupled to the spectrolaminar readout producer (spectrolaminar_readout(), referenced in docstrings at L28/L294 but not defined in this file -- lives elsewhere, likely jaxfne.vis or a spectrolaminar module) since this module's input contract (readout dict shape) is defined by that producer, not by objectives.py itself.",
+        "docs/api/objectives.md referenced at L4 as the doc page to update alongside API changes -- not verified to exist/match in this pass."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

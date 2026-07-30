@@ -1,0 +1,30 @@
+{
+  "id": "skills-sync-global-sh",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "SYNC_GLOBAL.sh",
+  "generated": {
+    "summary": "!/usr/bin/env bash -- set -euo pipefail",
+    "source_paths": [
+      "skills/SYNC_GLOBAL.sh"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-skills",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

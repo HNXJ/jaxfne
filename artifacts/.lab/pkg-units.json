@@ -1,0 +1,64 @@
+{
+  "id": "pkg-units",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "units.py",
+  "generated": {
+    "summary": "\"\"\"Dtype-keyed declarative numeric defaults (epsilon, dither scale). -- Scope, deliberately narrow (see plans.json item",
+    "source_paths": [
+      "jaxfne/units.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on all grep-verified facts (imports, git diff status, line counts, docstring content, test function names) since each was checked directly against the live repo. Lower confidence only on forward-looking interpretation of 'future pass' wording in the docstring -- reported as a quote, not an inference about intent.",
+      "purpose": "jaxfne/units.py (90 lines) is a small, deliberately narrow module providing dtype-keyed numeric defaults for \"how small is negligible\" at a given JAX storage dtype (float32/float64/bfloat16): a shared epsilon and dither-scale table plus a dt/dtype mismatch warner. Per its module docstring (lines 1-11) it exists so callers stop hand-picking epsilon/dither constants per call site (references \"jaxfne-modular-grammar rule 6\") and explicitly does NOT touch dt_ms/dxyz, which stay physical/discretization choices independent of storage dtype.",
+      "key_findings": [
+        "File is 90 lines total (`wc -l`).",
+        "Two module-level dicts: `_EPSILON_BY_DTYPE` and `_DITHER_SCALE_BY_DTYPE` (lines 22-32), keyed by dtype name string for float32/float64/bfloat16.",
+        "Three public functions plus one private helper: `_dtype_key` (35-41), `epsilon` (44-53), `dither_scale` (56-67), `warn_dt_dtype_mismatch` (70-90). No classes.",
+        "No TODO/FIXME/NotImplementedError anywhere in the file (checked by reading full contents).",
+        "No uncommitted git diff on this file: `git status --short -- jaxfne/units.py` and `git diff --stat HEAD -- jaxfne/units.py` both return empty; last touching commit is cc0a50c ('feat(etudes+optim+testing): build 4 real \u00e9tude notebooks, fix HDP/checkpoint/optim bugs, verify pytest-xdist parallel-safety').",
+        "`grep -rn \"from .units import|from jaxfne.units import|import units|jaxfne\\.units\" jaxfne/ tests/` finds exactly one hit: `tests/test_units.py:7: from jaxfne import units`. No other module in jaxfne/ currently imports units.py -- it is not yet wired into core.py, emitters.py, or fields/, despite the module docstring's comment (lines 18-21) anticipating that core.py's `_ALLOWED_DTYPES` will need to stay in sync manually 'since this module must not import core.py, which imports this one transitively via emitters.py in a future pass' -- i.e. the described integration path is prospective/future, not yet real.",
+        "`grep -n \"_ALLOWED_DTYPES\" jaxfne/core.py` shows core.py imports `_ALLOWED_DTYPES` (line 43) from elsewhere, but core.py itself does not import jaxfne.units.",
+        "`skills/FRICTIONS_STACK.md` (only match found via `find . -iname FRICTIONS_STACK.md`) has zero lines mentioning 'units' -- no landmine row cites this file."
+      ],
+      "contracts": [
+        "`epsilon(dtype)` and `dither_scale(dtype)` accept any jnp/np dtype object or dtype-name string (normalized via `_dtype_key`, line 35-41 using `jnp.dtype(dtype).name`) and return a Python float; raises `ValueError` for any dtype not in {float32, float64, bfloat16} (lines 38-40).",
+        "Documented invariant (docstring lines 59-65): `dither_scale` must ONLY be applied to quantities that are strictly positive by construction (H, tau_i, barrier denominators) -- never to signed state that legitimately crosses zero (V_m, u, weight deltas, synaptic current). The function itself does not enforce this; it's a caller obligation.",
+        "`warn_dt_dtype_mismatch(dt_ms, dtype, *, quantity_name='dt_ms')` never mutates or auto-adjusts dt_ms -- warning-only by design (docstring lines 76-79, enforced by test `test_warn_dt_dtype_mismatch_does_not_mutate_dt`).",
+        "Module docstring states this module must not import core.py (to avoid a cycle via emitters.py) -- the `_EPSILON_BY_DTYPE`/`_DITHER_SCALE_BY_DTYPE` tables are kept in sync with core.py's `_ALLOWED_DTYPES` manually, not programmatically."
+      ],
+      "landmines": [
+        "The core.py/units.py sync is manual and one-directional by the module's own admission (lines 19-21): if `_ALLOWED_DTYPES` in core.py ever gains/loses a dtype, `_EPSILON_BY_DTYPE`/`_DITHER_SCALE_BY_DTYPE` here will silently drift out of sync -- `_dtype_key` would then raise ValueError for a dtype core.py otherwise allows, or accept a stale dtype key. Not yet a live bug: verified core.py does not currently import this module at all.",
+        "The module docstring's own claim about a future core.py/emitters.py import chain is aspirational, not current state -- worth flagging so it isn't mistaken for describing an existing wiring."
+      ],
+      "related_nodes": [
+        "tests/test_units.py (65 lines, 9 test functions: test_epsilon_known_dtypes, test_epsilon_ordering_reflects_precision, test_dither_scale_known_dtypes, test_dither_scale_ordering_reflects_precision, test_epsilon_accepts_jnp_dtype_object, test_unknown_dtype_raises, test_warn_dt_dtype_mismatch_fires_for_too_fine_dt_at_bf16, test_warn_dt_dtype_mismatch_silent_for_reasonable_dt_at_float32, test_warn_dt_dtype_mismatch_does_not_mutate_dt) -- this is the sole test coverage and sole other caller of jaxfne.units.",
+        "jaxfne/core.py -- owns `_ALLOWED_DTYPES` (line 43) that units.py's tables are meant to mirror manually; not currently coupled by import.",
+        "No other jaxfne module (emitters.py, fields/, _model_simulate.py, etc.) imports units.py yet, per grep -- it is currently an isolated, test-only-consumed utility awaiting integration."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

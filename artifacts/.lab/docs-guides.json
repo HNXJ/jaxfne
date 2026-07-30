@@ -1,0 +1,21 @@
+{
+  "id": "docs-guides",
+  "kind": "docs_nav_tab",
+  "title": "Guides (docs nav tab 3/5)",
+  "generated": {
+    "summary": "mkdocs.yml nav tab 3/5: Guides. Mirrors the docs/ site's actual navigation order (source of truth: mkdocs.yml's top-level nav: list), not repo_mapper's default flat folder...",
+    "source_paths": [
+      "guides/index.md",
+      "guides/showcases.md",
+      "... (16 guides + 9 Technical reports subpages)"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-docs",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

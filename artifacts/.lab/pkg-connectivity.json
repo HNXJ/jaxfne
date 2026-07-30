@@ -1,0 +1,59 @@
+{
+  "id": "pkg-connectivity",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/connectivity.py",
+  "generated": {
+    "summary": "\"\"\"v0.3.30 connectivity compiler. -- Compiles declarative connection rules (v0.3.28 ``metadata[\"circuit\"]``) into",
+    "source_paths": [
+      "jaxfne/connectivity.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-manual",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "Written directly (not via subagent) after the schema-based agent workflow failed twice on this file (StructuredOutput retry cap exceeded both times) -- read jaxfne/connectivity.py in full myself instead.",
+      "confidence": "high -- read the full 616-line file directly, verified test coverage/FRICTIONS_STACK/git status/callers via grep, not delegated.",
+      "purpose": "Compiles declarative connection rules (metadata['circuit']) into sparse finite edge arrays compatible with EdgeList. Two entry points: compile_connection_rules (host-side, free-function core called by Model.compile_connections()) and compile_connection_rules_jax (a separate jitted, tensorized compiler for static-shape use, connectivity.py:572).",
+      "key_findings": [
+        "616 lines total. __all__ = ['compile_connection_rules', 'ConnectionCompileResult', 'compile_connection_rules_jax'] (line 32).",
+        "compile_connection_rules (line 411) supports two sampling modes per rule: 'probability' (flat density, via _candidate_pairs) or 'max_in_degree' (constant per-post-neuron in-degree cap with spatially-local Gaussian-weighted sampling via _candidate_pairs_localized, line 216) -- the latter added specifically to avoid O(n_pre*n_post) density scaling at large N (docstring cites plans.json item localized-distance-limited-connectivity-rule).",
+        "No uncommitted changes (git status/diff both empty) -- matches HEAD exactly.",
+        "compile_connection_rules_jax (line 572) is a separate, jax.jit-decorated tensorized compiler -- its own docstring (verified earlier this session) documents that it still touches an O(n_pre*n_post) random-score array but no longer materializes two full index grids via jnp.tile, a documented partial-fix from an earlier finding."
+      ],
+      "contracts": [
+        "Structural selector errors (non-mapping source/target) always raise loudly, never silently recorded as an empty-selector skip -- explicit no-try/except comment at the rule-compile loop (~line 480-484).",
+        "Compiled edge weights are checked for finiteness before returning (ConnectionCompileResult) -- raises ValueError on any non-finite weight.",
+        "diagnostics always carries field_solver_status='linear_solver' and physical_amplitude_calibrated=False -- the truth-gate literals, matching the module's own 'computational scaffold' framing in its docstring."
+      ],
+      "landmines": [
+        "FRICTIONS_STACK F-028 (2026-07-13): this file's per-edge tau lookup was previously a Python-level list comprehension, replaced with a vectorized jnp.asarray(tau_by_mech)[mech_idx] gather (same output, no Python loop) -- already fixed, not an open issue.",
+        "F-028 also names a real, deliberately-NOT-fixed issue elsewhere (Model.simulate_batch() never reads sim.ablation) -- not in this file but discovered during the same review pass that covered connectivity.py."
+      ],
+      "related_nodes": [
+        "tests/test_connection_rule_compile_v0330.py, tests/test_connection_rule_mechanisms_v0330.py, tests/test_connection_weight_modes_v0330.py, tests/test_mechanism_aware_connection_compiler.py, tests/test_synaptic_tensor.py, tests/test_experimental_hpc_contracts.py",
+        "jaxfne/__init__.py, jaxfne/_construct_connectivity.py, jaxfne/_model.py (callers)",
+        "jaxfne-construct-impl (this module's output feeds _construct_connectivity.py's edge compilation)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "rebalance-phase-09",
+  "kind": "plan_phase",
+  "title": "Phase 9: Pollinate with a real discriminator",
+  "generated": {
+    "summary": "Stopword filtering + content-bearing token extraction + raised floor, before any suggestion is promoted to an edge.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "plan-lab-graph-rebalance",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-08",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 9,
+      "execution_status": "open",
+      "detail": "Stopword filtering + content-bearing token extraction + raised floor, before any suggestion is promoted to an edge.",
+      "exit_criterion": "Suggestions content-driven; a sampled 20 judged >= 80% plausible by hand.",
+      "record": "suggestions.json is currently UNUSABLE as-is: it scores api-* doc pairs at 0.75 on shared BOILERPLATE tokens (mkdocs, nav, yml, page, order, per, reference) -- it is matching template scaffolding, not meaning."
+    }
+  ],
+  "issues": [],
+  "plan": "Suggestions content-driven; a sampled 20 judged >= 80% plausible by hand."
+}

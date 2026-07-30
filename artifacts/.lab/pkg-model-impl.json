@@ -1,0 +1,61 @@
+{
+  "id": "pkg-model-impl",
+  "kind": "module_group",
+  "title": "Model implementation slices",
+  "generated": {
+    "summary": "Six files form a 2026-07-20 Phase 2 defragmentation split of a former single _model.py monolith.",
+    "source_paths": [
+      "jaxfne/_model.py",
+      "jaxfne/_model_simulate.py",
+      "jaxfne/_model_readout.py",
+      "jaxfne/_model_evaluate.py",
+      "jaxfne/_model_tune.py",
+      "jaxfne/_model_manifest.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for _model.py, _model_readout.py, _model_evaluate.py, _model_manifest.py (read in full); medium for unread bulk of _model_simulate.py and all of _model_tune.py.",
+      "purpose": "Six files form a 2026-07-20 Phase 2 defragmentation split of a former single _model.py monolith.",
+      "key_findings": [
+        "Line counts: _model.py 651, _model_simulate.py 902, _model_readout.py 244, _model_evaluate.py 359, _model_tune.py 880, _model_manifest.py 158, total 3194.",
+        "git log commit b7ad907 confirms split of a 2901 LOC _model.py into 5 submodules plus delegator methods, 2026-07-20.",
+        "Only _model_simulate.py has an uncommitted diff adding HDP dispatch to simulate_batch.",
+        "One NotImplementedError at _model.py line 367. No TODO/FIXME in any of the six files.",
+        "FRICTIONS_STACK.md has no rows for these six filenames."
+      ],
+      "contracts": [
+        "Import from jaxfne.core, not the sibling modules directly, except when editing the split itself.",
+        "Model is a frozen dataclass; new capability equals a module level function plus a thin delegator method.",
+        "Model._require_izhikevich_emitter must gate any method assuming Izhikevich-only fields.",
+        "Model.checkpoint/restore must use direct dataclass reconstruction, not JAX treedef unflatten."
+      ],
+      "landmines": [
+        "Uncommitted HDP branch in simulate_batch drops full diagnostics via record_weight_trace False and a return-tuple slice.",
+        "Legacy and canonical APIs both live simultaneously: manifest vs run_receipt/evaluate_report, probe/record vs compute_readout.",
+        "_simulate_arrays imports two core.py helpers locally to avoid a circular import."
+      ],
+      "related_nodes": [
+        "jaxfne/core.py",
+        "jaxfne/_signals.py",
+        "jaxfne/emitters.py",
+        "jaxfne/fields.py",
+        "jaxfne/io.py",
+        "jaxfne/_runtime_config.py",
+        "tests/test_model_checkpoint_restore.py",
+        "tests/test_run_receipt_v016.py"
+      ]
+    }
+  ]
+}

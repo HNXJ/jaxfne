@@ -1,0 +1,68 @@
+{
+  "id": "pkg-neuronal-tensor",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "neuronal_tensor.py",
+  "generated": {
+    "summary": "\"\"\"The \"neuronal tensor\" standard model \u2014 canonical network representation. -- Every jaxfne circuit reduces to one shape, regardless of how many areas,",
+    "source_paths": [
+      "jaxfne/neuronal_tensor.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file contents/structure/git state (read directly, grep-verified). Medium-high on landmines \u2014 F-031/F-029 citations copied from skills/FRICTIONS_STACK.md rather than independently re-executed against the live kernel this pass; test suite was not run.",
+      "purpose": "jaxfne/neuronal_tensor.py defines the tensor-first canonical circuit representation NeuronalTensor = [Areas, AreaConnections] (module docstring lines 1-44), an alternative build path to the existing Configuration/laminar_cortex_config path. It provides dataclasses for the full circuit spec (Area/Layer/NeuronType/InterConnection/AreaConnection/Pose3D/StaticParams/PlasticParams), JSON save/load, canonical-config loading, tensor merging for multi-area placement, and a bridge (neuronal_tensor_to_configuration / construct_neuronal_tensor) into jaxfne's real construct/simulate pipeline.",
+      "key_findings": [
+        "856 lines total (wc -l); no uncommitted diff \u2014 `git diff --stat HEAD -- jaxfne/neuronal_tensor.py` empty, last commit touching it is c084a8c9fe480149dd52950374a79fe7f7e21345",
+        "Main dataclasses: Geometry3D (l84), NeuronType (l94), Layer (l110), StaticParams (l117), PlasticParams (l126), InterConnection (l134), Pose3D (l146), Area (l163), AreaConnection (l185), NeuronalTensor (l199), RuntimeConfiguration (l491, frozen)",
+        "Key functions: make_minimal_ei_tensor (l242), configs_dir/list_canonical_neuronal_tensors/load_canonical_neuronal_tensor (l269-293), save_neuronal_tensor (l296), load/load_neuronal_tensor (l312-335), merge_neuronal_tensors (l393, the 'unifier'), _sample_local_positions/_apply_pose (l457/473, pose math), construct_neuronal_tensor (l523, public wrapper) / _construct_neuronal_tensor_impl (l540, real work: positions+HDP seeding), _connection_edge_weight (l636), _wire_connection (l650), neuronal_tensor_to_configuration (l701, core bridge, ~155 lines)",
+        "One NotImplementedError: `_sample_local_positions` (l457) raises for any Geometry3D.distribution other than 'uniform_random' (l460-463) \u2014 only uniform_random is implemented",
+        "No TODO/FIXME comments found in the file; open gaps are instead explicitly documented in docstrings rather than left silent (see landmines)",
+        "NEURONAL_TENSOR_SCHEMA_VERSION = 'neuronal_tensor_v1' (l266); load() accepts a missing schema_version as implicit v1 and warns (doesn't error) on a mismatched future version (l344-352)"
+      ],
+      "contracts": [
+        "load(path) requires a top-level 'areas' key in the JSON or raises ValueError (l312-330); load_neuronal_tensor is a compat wrapper for load (l333-335) \u2014 the legacy .jcfg.json/JaxFNEConfig format was removed 2026-06-30 (l319-320)",
+        "NeuronalTensor.__post_init__ (l216-236) raises TypeError if `areas` is a Configuration instance, or if areas/area_connections contain non-Area/non-AreaConnection instances \u2014 deliberate fail-fast guard against the documented Configuration-vs-NeuronalTensor type-confusion landmine (l203-211)",
+        "merge_neuronal_tensors(tensors, poses=None, name='merged') (l393): if `poses` given it must have exactly one entry per total area across all tensors (raises ValueError otherwise, l428-429); area-name collisions resolved by suffixing (_1, _2, ...); cross-tensor AreaConnections are NOT inferred (l421-425)",
+        "neuronal_tensor_to_configuration / construct_neuronal_tensor signatures are stable public bridge points imported by jaxfne/__init__.py (l205), _construct_core.py (l552), _pipeline.py (l48), paradigm.py (l831), util.py (l18) \u2014 changing their kwargs (seed/duration_ms/dt_ms/emitter) would break all these call sites",
+        "DEFAULT_RELATIVE_SIZE / default_relative_size(neuron_type) (l65/79) is documented as re-exporting emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE as the single source of truth (l63-65) \u2014 do not hardcode a second size table here"
+      ],
+      "landmines": [
+        "FRICTIONS_STACK.md F-031 (skills/jaxfne-neural-tensor/FRICTIONS_STACK.md line 29): construct()'s default dense same-area recurrent connectivity (_suite2_apply_connectivity) silently double-wires on top of explicit InterConnection/AreaConnection edges compiled by neuronal_tensor_to_configuration \u2014 confirmed 2026-07-14, a 4-InterConnection N=4 tensor produced 24 edges instead of 12. Workaround: cfg.connectivity(within_area='all_to_all_uniform_random', within_gain=0.0) after bridging, before construct()",
+        "FRICTIONS_STACK.md F-029 (line 39): this file's module docstring once wrongly stated E's relative size default as 2.0 vs the real 5.0 in DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE \u2014 already corrected; current docstring (l9) and l65 import are consistent at 5.0",
+        "StaticParams.reversal_potentials_mV is declared/surfaced into mechanism metadata but has zero numeric consumer \u2014 jaxfne's compiled edges are current-based (Izhikevich-style), never a conductance/reversal-potential scheme (l677-684, l752-758); explicitly documented, not a hidden bug",
+        "PlasticParams.H only takes effect if HDP is separately enabled (RuntimeConfig.enable_hdp default False) \u2014 inert by default, documented at l759-765 and l562-566",
+        "neuronal_tensor_to_configuration drops Layer.geometry entirely (positions instead come from jaxfne's default column sampler) unless the caller uses construct_neuronal_tensor, which re-applies Geometry3D+Pose3D after construct (l745-751) \u2014 calling the wrong one of the two functions silently loses declared 3D layout",
+        "Even/uniform-split heuristics used as fallbacks when data is underspecified: cell-type fractions default to 1/len(types) if not all NeuronTypes declare `fraction` (l806-817); InterConnection/AreaConnection wiring always uses probability=1.0 (full bipartite) regardless of any density concept (l737-741, l693) \u2014 could surprise a caller expecting sparse/probabilistic wiring",
+        "Edge weight magnitude uses a hardcoded 1/sqrt(total_n) normalization (_connection_edge_weight, l636-647) to match core.py's own convention \u2014 if that convention in core.py ever changes, this silently drifts out of sync"
+      ],
+      "related_nodes": [
+        "tests/test_neuronal_tensor.py (imports `from jaxfne import neuronal_tensor as nt`, l19) \u2014 primary test file",
+        "tests/test_neuronal_tensor_notebook_execution.py, tests/test_paradigm_model_targets.py, tests/test_pipeline_pure_functions.py, tests/test_util_config_tensor.py \u2014 all reference NeuronalTensor/neuronal_tensor per grep",
+        "Tightly coupled modules: jaxfne/core.py (Configuration, Model, construct \u2014 the bridge target), jaxfne/emitters.py (DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, imported l58 as single source of truth for relative sizes), jaxfne/io.py (save_json/load_json), jaxfne/__init__.py (l205, public re-exports), jaxfne/_construct_core.py (l552, lazy import of impl), jaxfne/_pipeline.py (l48), jaxfne/paradigm.py (l831), jaxfne/util.py (l18)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

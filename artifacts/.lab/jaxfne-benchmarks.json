@@ -1,0 +1,47 @@
+{
+  "id": "jaxfne-benchmarks",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "benchmarks",
+  "generated": {
+    "summary": "Folder with 1 files, e.g. scaling_benchmark.py.",
+    "source_paths": [
+      "benchmarks"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "benchmarks/ contains exactly one file, scaling_benchmark.py (12.5KB), plus a __pycache__ dir; it is a construction/simulation scaling receipt script (N=100/1000/10000) measuring wall-clock and peak RSS to check dense O(N^2) growth, explicitly labeled 'local_environment_receipt_only' claim status in its own docstring.",
+        "The script itself is tracked in git (git ls-files confirms benchmarks/scaling_benchmark.py); it is source code, not a generated artifact -- safe to regenerate its output data by re-running it, but the script itself is load-bearing/authored content, not disposable."
+      ],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": [
+        "jaxfne-release-mutation-guard (scaling_benchmark.py's receipt-style output feeds release/perf-claim evidence, per its own claim-language docstring reference to jaxfne/AGENTS.md)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "labyrinth-jaxfne",
+  "schema_version": 3,
+  "kind": "root",
+  "title": "Labyrinth map root",
+  "generated": {
+    "summary": "Root node for the JSON-node graph of jaxfne.",
+    "source_paths": [],
+    "links": []
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "rebalance-phase-06",
+  "kind": "plan_phase",
+  "title": "Phase 6: Mechanical harvest: code <-> docs <-> skills",
+  "generated": {
+    "summary": "documents edges: module <-> docs page <-> skill. Also closes the docs-nav tabs still standing as bare scaffolds.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "plan-lab-graph-rebalance",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-05",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 6,
+      "execution_status": "open",
+      "detail": "documents edges: module <-> docs page <-> skill. Also closes the docs-nav tabs still standing as bare scaffolds.",
+      "exit_criterion": "+50-70 edges; every docs_page node linked to the module it documents.",
+      "record": "Largely self-declared already -- e.g. fields/proxy.py's docstring names docs/api/fields.md as its own update obligation."
+    }
+  ],
+  "issues": [],
+  "plan": "+50-70 edges; every docs_page node linked to the module it documents."
+}

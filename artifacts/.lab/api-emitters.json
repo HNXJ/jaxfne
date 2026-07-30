@@ -1,0 +1,34 @@
+{
+  "id": "api-emitters",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Emitters",
+  "generated": {
+    "summary": "Emitters API -- Neuron models and emitter implementations for neural dynamics simulation.",
+    "source_paths": [
+      "docs/api/emitters.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-emitters",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

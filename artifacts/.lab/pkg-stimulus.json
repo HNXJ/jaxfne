@@ -1,0 +1,61 @@
+{
+  "id": "pkg-stimulus",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "stimulus.py",
+  "generated": {
+    "summary": "\"\"\"Stimulus generation for jaxfne.\"\"\" -- from __future__ import annotations",
+    "source_paths": [
+      "jaxfne/stimulus.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for size/structure/exports/test-coverage/git-diff claims (directly grepped/read). Moderate on the jit-compatibility landmine -- it's a reasonable inference from the code (host-side int()/np. calls) but I did not execute the function inside jax.jit to confirm a trace failure.",
+      "purpose": "jaxfne/stimulus.py is a tiny single-function utility module providing deterministic drive-signal generation for stimulus injection. Its sole export, triangular_drive, is re-exported at package top level (jaxfne/__init__.py:310,327) as part of the public API (jtfne.triangular_drive), used to build injected drive traces for simulations/paradigms.",
+      "key_findings": [
+        "File is 34 lines total, one public function: triangular_drive(duration_ms, dt_ms, freq_hz=6.0, amplitude=5.0) -> jnp.ndarray (lines 7-34).",
+        "No TODO/FIXME/NotImplementedError in the file.",
+        "No uncommitted git diff on this file (`git diff jaxfne/stimulus.py` empty); last commit touching it is 769af6a ('fix(jaxfne): implement 4 dead-stub vis plots... misc optim/pipeline hygiene'), prior commit 71366d8.",
+        "Re-exported at jaxfne/__init__.py:310 (`from .stimulus import triangular_drive`) and listed in __all__ at jaxfne/__init__.py:327.",
+        "Docstring (lines 15-16) explicitly notes the function is fully deterministic given its scalar args, taking no PRNG key/seed -- a documented convention, not an oversight.",
+        "Implementation computes n_steps = int(duration_ms/dt_ms) (line 27) using plain numpy (not jax.numpy) for the waveform construction, only wrapping the final array in jnp.array at return (line 34) -- jax.numpy is imported (line 4) but unused directly in the body."
+      ],
+      "contracts": [
+        "Public signature triangular_drive(duration_ms: float, dt_ms: float, freq_hz: float = 6.0, amplitude: float = 5.0) -> jnp.ndarray is relied on directly by tests/test_plasticity_v034.py:37 (`jtfne.triangular_drive(duration_ms=1000.0, dt_ms=0.5, freq_hz=6.0, amplitude=5.0)`) and by the jaxfne public API surface (__all__ entry).",
+        "Output length is n_steps = int(duration_ms/dt_ms), an integer truncation, not rounding -- callers relying on exact step counts must ensure duration_ms/dt_ms divides evenly or accept truncation.",
+        "Documented invariant: deterministic, no stochastic element -- no key/seed argument by design (module docstring lines 15-16)."
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row targets jaxfne/stimulus.py specifically (grep of skills/FRICTIONS_STACK.md only matches an unrelated F-022 row about jaxfne/paradigm.py's omission_oddball_paradigm).",
+        "np.arange/np.floor used inside a function returned as jnp.ndarray -- computation is plain-numpy (host-side, not traced/jittable) despite jax.numpy being imported; not jit-compatible if called inside a jitted context with traced duration_ms/dt_ms (int(duration_ms/dt_ms) at line 27 requires concrete Python floats)."
+      ],
+      "related_nodes": [
+        "tests/test_plasticity_v034.py (test_triangular_drive_wave, line 35-37) -- the only test file referencing triangular_drive.",
+        "jaxfne/__init__.py -- re-exports and lists triangular_drive in the public API (__all__).",
+        "No other jaxfne module imports from .stimulus (grep of jaxfne/ and tests/ found only the __init__.py re-export and the one test call site)."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

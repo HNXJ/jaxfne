@@ -1,0 +1,21 @@
+{
+  "id": "docs-tutorials",
+  "kind": "docs_nav_tab",
+  "title": "Tutorials (docs nav tab 2/5)",
+  "generated": {
+    "summary": "mkdocs.yml nav tab 2/5: Tutorials. Mirrors the docs/ site's actual navigation order (source of truth: mkdocs.yml's top-level nav: list), not repo_mapper's default flat folder...",
+    "source_paths": [
+      "tutorials/index.md",
+      "tutorials/notebook_standard.md",
+      "... (24 total, see tutorials/NOTEBOOK_STATUS.md)"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-docs",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "docs-getting-started",
+  "kind": "docs_nav_tab",
+  "title": "Getting started (docs nav tab 1/5)",
+  "generated": {
+    "summary": "mkdocs.yml nav tab 1/5: Getting started. Mirrors the docs/ site's actual navigation order (source of truth: mkdocs.yml's top-level nav: list), not repo_mapper's default flat...",
+    "source_paths": [
+      "index.md",
+      "install.md",
+      "quickstart.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-docs",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

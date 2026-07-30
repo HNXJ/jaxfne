@@ -1,0 +1,40 @@
+{
+  "id": "pkg-graph-hygiene",
+  "kind": "prune_pass",
+  "title": "jaxfne .lab/ graph hygiene pass (2026-07-23)",
+  "generated": {
+    "summary": "Prune-style pass over jaxfne's .lab/ graph: resolved 9 grammar violations + 6 loose leaves (real repo_mapper.py gap -- scan()-discovered folder/doc nodes never get an...",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "prune-pass-2026-07-23",
+      "kind": "prune_assessment",
+      "date": "2026-07-23",
+      "source": "User-requested Adapt pass with emphasis on friction inhibition/mismatch minimization -- 'adapting to mismatches via resolving them, adapting to matches via merging and compressing context'. Applied Labyrinth's own Prune concept (backtrack-on-contradiction / supersede-on-genuine-match) manually, since repo_mapper.py doesn't implement Prune as a standalone action yet.",
+      "confidence": "high -- every finding independently verified against live repo_mapper.py source and the actual node files, not assumed.",
+      "purpose": "Resolve real structural mismatches in the graph (grammar self-check violations) and assess genuine-match candidates (Pollinate suggestions) for merge/compress vs. correctly-distinct.",
+      "key_findings": [
+        "MISMATCH root cause found and fixed: all 15 scan()-discovered top-level folder/doc nodes (jaxfne-jaxfne, jaxfne-tests, jaxfne-scripts, jaxfne-docs, jaxfne-examples, jaxfne-tutorials, jaxfne-skills, jaxfne-agents, jaxfne-readme, jaxfne-figures, jaxfne-local, jaxfne-outputs, jaxfne-site, jaxfne-tutorial-outputs, jaxfne-benchmarks) had EMPTY generated.links -- verified via direct read of each node file. Root cause confirmed in repo_mapper.py: scan()'s write_node() calls use links=_existing_links(...) (preserve-only, never sets an initial root link), unlike bootstrap()'s explicit root-linking for the 6 permanent verb nodes. Cross-checked against labyrinth's own repo: its analogous folder nodes (e.g. labyrinth-clients) DO have a manually-added link back to root -- confirming this is a real, pre-existing repo_mapper.py gap that labyrinth's own maintainer worked around by hand for their repo, never fixed in the tool itself, and jaxfne had simply never received the same manual pass.",
+        "Fix applied: added {'to': 'labyrinth-jaxfne', 'relation': 'refines'} to all 15 nodes. Result (re-verified via repo_mapper rerun): grammar_violations 9 -> 0, loose_leaves 6 -> 0, balance_flags 32 -> 16 (jaxfne-jaxfne was disproportionately the sole hub before; now root shares the connection load directly).",
+        "MATCH review: 15 Pollinate suggestions reviewed. 14/15 are one false-positive class -- Jaccard similarity between the 6 permanent PRP-verb nodes (adapt/progress/review/plan/brainstorm/seal), driven entirely by shared templated summary vocabulary ('...entries tracked... live from X.json', 'prp', 'verb', 'node') -- these are semantically DISTINCT PRP stages, not duplicates. This exact false-positive pattern is independently documented in repo_mapper.py's own code comment above _PERMANENT_NODE_SUMMARIES ('near-identical boilerplate text here was caught for real by Converge during testing'). No merge -- correctly kept separate.",
+        "1/15 genuine candidate: jaxfne-outputs <-> jaxfne-tutorial-outputs (score 0.375, both generated-artifact directories). Read both nodes' full content: outputs/ (168 files, 33M, smoke-test/etude/sweep artifacts) and tutorial_outputs/ (6 files, 388K, tutorial-run artifacts) are genuinely distinct in scale/content -- neither subsumes the other (Convergence Principle's similarity-AND-coverage rule: a near-duplicate containing MORE information should not be collapsed away, and neither does here). NOT merged -- but cross-linked in both nodes' related_nodes (they weren't referencing each other before, only both independently referencing jaxfne-tutorials), so a future pass doesn't re-derive the relationship from scratch."
+      ],
+      "contracts": [],
+      "landmines": [
+        "The scan()-missing-root-link gap is NOT jaxfne-specific -- any NEW repo bootstrapped with repo_mapper.py will have the same 15-ish scan()-discovered nodes start with empty links until manually fixed, exactly as jaxfne did until this pass. Not fixed upstream in repo_mapper.py itself (would need scan() to pass links=[{'to': root_id, 'relation': 'refines'}] plus _existing_links() merged in, not just _existing_links() alone) -- reported as a candidate for that repo's own Adapt/Progress cycle, not fixed here."
+      ],
+      "related_nodes": [
+        "jaxfne-jaxfne (the hub whose balance-flag count dropped as a direct result of this fix)",
+        "jaxfne-outputs, jaxfne-tutorial-outputs (the one genuine Pollinate match, now cross-linked)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "pkg-emitters-homeostatic-ei",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/emitters_homeostatic_ei.py",
+  "generated": {
+    "summary": "\"\"\"The second canonical HDP sanity emitter: a minimal 2-neuron E/I circuit. -- Docs: ``docs/api/emitters.md`` \u2014 update that page when this module's public",
+    "source_paths": [
+      "jaxfne/emitters_homeostatic_ei.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-retry",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (retry batch after 1st pass produced placeholder junk/crashed for these), spot-checked before commit",
+      "confidence": "High for purpose/key_findings/contracts/landmines (all directly grounded in the file's actual line content and grep output). Moderate on FRICTIONS_STACK.md coverage \u2014 only one row (F-017) referenced homeostatic-ei-adjacent content by name; I did not find a row citing this exact filename, so that section of the requested check came up empty rather than a hit.",
+      "purpose": "jaxfne/emitters_homeostatic_ei.py (626 lines) implements the \"second canonical HDP sanity emitter\": a minimal, fully differentiable N-neuron E/I circuit with three explicitly staged dynamical systems per its module docstring (lines 1-27) \u2014 dx/dt (fast neuronal), dG/dt (intermediate conductance adaptation), dH/dt (slow HDP homeostasis) \u2014 as a companion to the Izhikevich/edge-list HDP scaffold in jaxfne.emitters. Its main entry point is the jitted simulate_homeostatic_ei function (decorated at line 431, defined at line 438), which runs this circuit for n_steps via jax.lax.scan and returns (voltages, spikes, sources, G_history, H_history, diagnostics).",
+      "key_findings": [
+        "The file is 626 lines with three pluggable rule registries: ACTIVATION_RULES (linear/cubic/logistic, lines 90-94), CONDUCTANCE_RULES (hebbian/bcm/linear/hebbian_pairwise, lines 165-170), and HOMEOSTASIS_RULES (linear/logistic/cubic_penalty/cubic_penalty_coupled, lines 260-265), plus the HomeostaticEIParams frozen dataclass registered as a JAX pytree (lines 276-373).",
+        "simulate_homeostatic_ei (lines 438-626) is jax.jit-compiled with static_argnames including n_steps/activation_rule/conductance_rule/homeostasis_rule/freeze_G/freeze_H/dtype/bound_mode (lines 431-437), and at lines 509-520 it emits a RuntimeWarning when the dense (n_steps, N, N) G_history would exceed ~500MB, citing that this emitter has no sparse conductance variant.",
+        "grep across the repo shows this module is imported/used by jaxfne/_construct_core.py, jaxfne/_model_simulate.py, jaxfne/_model.py, jaxfne/emitters.py, and jaxfne/_config.py, plus 10 dedicated test files (tests/test_homeostatic_ei_*.py) and 2 scripts (scripts/ed10_hdp_pairwise_ei_selective_rescue.py, scripts/homeostatic_ei_dc_pulse_adaptation.py).",
+        "git log shows this file was introduced in commit 2d0d4f4 ('homeostatic_ei canonical HDP sanity emitter'), extended in 645d988 (N-generalization, cubic_penalty, cross-population coupling, soft bounds, pairwise synaptic HDP), and last touched in 87961bd ('close 2 tracked O(N^2) risk gaps from Phase 1 audit'); `git status --short` on this file is currently clean (no uncommitted diff), contradicting the working-tree modification noted in the outer session's git status for other files.",
+        "make_minimal_ei_params (lines 376-428) documents a real fixed bug it corrects: prior test-local `_make_params`/`_make` helper duplicates in 3 test files never set `labels` explicitly at N>2, silently leaving the default length-2 labels while x0/H0/drive were length N (lines 394-401)."
+      ],
+      "contracts": [
+        "Rule signatures are a documented-but-unenforced contract per the comment block at lines 39-50: activation_rule(x, G, u)->dx, conductance_rule(x, H, G, is_e)->dG, homeostasis_rule(x, H, is_e)->dH; is_e is always passed by simulate_homeostatic_ei.",
+        "hebbian_pairwise's rule (built by make_hebbian_pairwise_rule, lines 116-162) raises ValueError if called directly with is_e=None (lines 145-148) \u2014 callers must go through simulate_homeostatic_ei which always supplies is_e.",
+        "_resolve_rule (lines 268-273) raises ValueError listing the sorted registry keys if a rule name string is not found in ACTIVATION_RULES/CONDUCTANCE_RULES/HOMEOSTASIS_RULES and is not itself callable \u2014 so custom rules must be passed as callables, not arbitrary strings.",
+        "bound_mode must be 'minimal' or 'stable' (validated at line 497-498) \u2014 'minimal' leaves x unbounded and clips G/H with jnp.clip; 'stable' applies the smooth _soft_bound to x, G, and H every step (lines 593-600)."
+      ],
+      "landmines": [
+        "_soft_bound's own docstring (lines 53-68) states that a force-based barrier (e.g. cubic_penalty's restoring term, or barrier_c/barrier_d in the main HDP kernel) 'can still be outrun by a large enough Euler step' and cites a verified-this-session N=16 divergence where x had no bound at all under bound_mode='minimal', causing overshoot to compound to inf.",
+        "The G_history/H_history outputs are dense (n_steps, N, N) / (n_steps, N) arrays with no sparse variant (lines 500-520); at large N or n_steps this materializes hundreds of MB, and the module explicitly warns rather than guards against it.",
+        "FRICTIONS_STACK.md row F-017 (line 61) documents a resolved but related HDP failure mode in the companion jaxfne/emitters.py kernel (rho_passive/H^2 formula being >=0 everywhere so H never restored except via hard H_max clip) \u2014 the same collapse-to-floor failure mode is explicitly cited in this file's _homeostasis_cubic_penalty docstring (lines 188-217) as the reason cubic_penalty adds a genuine two-sided restoring term instead of pure rate-drain.",
+        "Noise injection in the scan step (lines 563-575) requires the noise_std to be pre-scaled by 1/sqrt(dt_x) for correct Euler-Maruyama SDE convergence; the code comments this is otherwise NOT a self-evident correction (dt_ms-dependent stationary statistics if omitted)."
+      ],
+      "related_nodes": [
+        "tests/test_homeostatic_ei_fixed_g_regime.py",
+        "tests/test_homeostatic_ei_hdp_recovery.py",
+        "tests/test_homeostatic_ei_cross_population_coupling.py",
+        "tests/test_homeostatic_ei_matrix_parameter_target.py",
+        "tests/test_homeostatic_ei_n_generalization.py",
+        "tests/test_homeostatic_ei_g_adaptation_convergence.py",
+        "tests/test_homeostatic_ei_pairwise_conductance.py",
+        "tests/test_homeostatic_ei_cubic_penalty_rule.py",
+        "tests/test_homeostatic_ei_dt_invariance.py",
+        "tests/test_homeostatic_ei_soft_bound.py",
+        "scripts/ed10_hdp_pairwise_ei_selective_rescue.py",
+        "scripts/homeostatic_ei_dc_pulse_adaptation.py",
+        "jaxfne/_construct_core.py",
+        "jaxfne/_model_simulate.py",
+        "jaxfne/_model.py",
+        "jaxfne/emitters.py",
+        "jaxfne/_config.py"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

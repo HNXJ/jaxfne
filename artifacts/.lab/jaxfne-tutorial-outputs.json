@@ -1,0 +1,48 @@
+{
+  "id": "jaxfne-tutorial-outputs",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "tutorial_outputs",
+  "generated": {
+    "summary": "Folder with 6 files, e.g. tutorial_tensor_first_raster.png, tutorial_tensor_first.json, tutorial_tensor_first_manifest.json.",
+    "source_paths": [
+      "tutorial_outputs"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "tutorial_outputs/ (388K total) holds generated run artifacts from running jaxfne tutorials: a subdir macaque_v1_smoke/ and top-level files tutorial_tensor_first.json, tutorial_tensor_first_manifest.json, tutorial_tensor_first_raster.png.",
+        "All contents are reproducible outputs of tutorial scripts (config JSON, manifest JSON, raster PNG) -- nothing here looks load-bearing; safe to delete/regenerate by re-running the corresponding tutorial."
+      ],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": [
+        "jaxfne-tutorials (generates the contents of this directory when tutorials are run)",
+        "jaxfne-outputs (Pollinate-flagged sibling, 2026-07-23: both generated-artifact dirs, genuinely distinct content/scale -- not merged, per Convergence Principle's similarity-AND-coverage rule; cross-linked so a future pass doesn't re-derive this)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

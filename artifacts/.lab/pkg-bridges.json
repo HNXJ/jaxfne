@@ -1,0 +1,67 @@
+{
+  "id": "pkg-bridges",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "bridges.py",
+  "generated": {
+    "summary": "\"\"\"Optional bridges to external biophysical tools. -- Bridge objects are manifest-safe contracts. They do not import optional",
+    "source_paths": [
+      "jaxfne/bridges.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file contents, structure, git status, and grep-verified import sites -- all read directly from the file and live grep/git output in this turn. Lower confidence only on whether other repo docs (e.g. AGENTS.md prose, not grepped in full) describe additional conventions for this file beyond what's in the code itself; I did not exhaustively search AGENTS.md for bridges-specific prose.",
+      "purpose": "jaxfne/bridges.py (1192 lines) provides optional, manifest-safe bridges from jaxfne to two external biophysical/numerical libraries: Jaxley (compartmental HH neuron simulation) and jax-fem (differentiable FEM, GPLv3, opt-in extra). Per its module docstring (lines 1-6) bridge objects \"do not import optional libraries at module import time and do not create physical source claims without explicit calibration metadata.\" It is re-exported at package level via jaxfne/__init__.py:126 (BridgeSpec, JaxleyEmitterBridge, JaxleyTraceSpec, jaxley_trace_to_signals, jaxley_to_signals, require_jaxley, JaxleyBridge, hh_numpy_reference_trace, hh_jaxley_reference_trace, JaxFemFieldBridge, require_jax_fem) and used by jaxfne/tutorial_utils.py (lines 116, 131) for tutorial HH reference traces.",
+      "key_findings": [
+        "File is 1192 lines, no __all__ defined (grep confirmed).",
+        "No uncommitted git diff on this file -- `git status --short -- jaxfne/bridges.py` returned empty; it is not among the modified files listed in the session's initial gitStatus block either. Last commit touching it: 8173aaf 'feat: add jax-fem optional bridge (schema-first, mirroring JaxleyBridge)'.",
+        "Key symbols: _install_jax_clip_compat/require_jaxley (lines 17-70, JAX clip-arg compat shim for jaxley<=0.13), require_jax_fem (73-92), dataclasses BridgeSpec (95-114), JaxleyEmitterBridge (117-145, schema-only stub), JaxFemFieldBridge (148-206, schema-only stub, explicitly documented as not-yet-implementing a real FEM solve), JaxleyTraceSpec (209-268, frozen dataclass with __post_init__ invariants), _normalize_trace_layout (271-315), jaxley_trace_to_signals (318-449), _recorded_compartment_positions (452-475, best-effort, swallows all exceptions), jaxley_to_signals (478-549), hh_jaxley_reference_trace (552-614), hh_numpy_reference_trace (617-687, standalone NumPy HH reference, explicitly NOT jaxley-bridge evidence), _hh_compartment_indices (690-711), _reconstruct_hh_ionic_current (714-743), and the main JaxleyBridge class (746-1192) with simulate(), simulate_homeostatic() (797-971, windowed homeostatic controller), simulate_laminar_field() (973-1148, HH ionic-current-driven LFP/CSD field), extract_sources() (1150-1182), report() (1184-1192).",
+        "No TODO/FIXME/NotImplementedError markers found in the file (grep for these terms turned up none in the reviewed content); JaxFemFieldBridge.construct() does exist and returns a status dict rather than raising NotImplementedError -- it only checks jax_fem is importable, real solve is deferred per its own docstring (lines 156-159, cites plans.json/progress.json 'novelty::tfne-differentiable-field-solver').",
+        "Truth-gate discipline is pervasive: every returned dict/Signals sets physical_amplitude_calibrated=False and claim_level='computational_scaffold'; JaxleyTraceSpec.__post_init__ (242-250) hard-enforces both as immutable invariants, raising ValueError if violated."
+      ],
+      "contracts": [
+        "require_jaxley()/require_jax_fem() are the single lazy-import entry points -- every Jaxley code path in this file routes through require_jaxley() first (JaxleyEmitterBridge.construct L142, jaxley_to_signals L521, hh_jaxley_reference_trace L590, JaxleyBridge.simulate L775/simulate_homeostatic L870/simulate_laminar_field L1047) so the JAX clip-compat shim (_install_jax_clip_compat) is always installed before any jaxley integration runs (docstring L58-60 states this explicitly).",
+        "JaxleyTraceSpec.__post_init__ (L233-250) enforces: dt_ms > 0, layout in {'time_by_unit','unit_by_time','recording_by_time'}, physical_amplitude_calibrated must stay False, claim_level must stay 'computational_scaffold' -- violating any raises ValueError, making these compile-time-checkable invariants rather than documentation.",
+        "simulate_laminar_field() (L973) requires the module to contain HH compartments (checked via _hh_compartment_indices, L1054-1062) -- raises ValueError otherwise, since only HH exports nonzero transmembrane current (Izhikevich/Fire are documented non-capacitive, L695-696, L994-995).",
+        "jax-fem is deliberately excluded from the `all` extra and kept GPLv3-separate (L73-92, L175-179) -- a licensing/packaging contract, not just code."
+      ],
+      "landmines": [
+        "_recorded_compartment_positions (L452-475) catches bare `except Exception` and silently returns None on any structural mismatch -- documented as deliberate ('Never raises -- geometry is an optional enrichment, not a contract', L459) rather than a hidden bug, but it is a genuine silent-fallback pattern worth knowing about if compartment positions ever silently vanish from metadata.",
+        "simulate_homeostatic's feedback loop runs at *window* cadence, not per-integration-step, a documented approximation vs. the per-step Izhikevich homeostatic kernel elsewhere in the codebase (L833-835) -- callers comparing the two kernels' dynamics directly would get different temporal resolution.",
+        "hh_jaxley_reference_trace hardcodes current_amplitude scaling `* 0.01` to nA (L597) and i_delay/i_dur fractions of duration_ms (L599-600) -- magic-number defaults tuned for 'physiological spiking on the single HH compartment' per the docstring, not derived.",
+        "No FRICTIONS_STACK.md row cites bridges.py specifically -- checked `skills/FRICTIONS_STACK.md` (the only file by that name in the repo) and found zero hits for 'bridges', 'Jaxley', 'jax-fem', or 'jax_fem'."
+      ],
+      "related_nodes": [
+        "tests/test_v006_v008.py:5 imports BridgeSpec, JaxleyEmitterBridge",
+        "tests/test_jaxley_optional_dependency.py (lines 10, 25, 31) tests require_jaxley/hh_jaxley_reference_trace/hh_numpy_reference_trace under optional-dependency conditions",
+        "tests/test_jaxley_emitter_bridge_e2e.py:12 imports the whole `bridges` module for an end-to-end emitter-bridge test",
+        "tests/test_api_smoke.py:140 smoke-tests require_jaxley import",
+        "jaxfne/__init__.py:126 re-exports 10 bridges symbols at package top level",
+        "jaxfne/tutorial_utils.py:116,131 uses hh_jaxley_reference_trace/hh_numpy_reference_trace for tutorials",
+        "Tightly coupled to jaxfne/core.py (Signals dataclass, imported at L371, L1051), jaxfne/fields.py (project_laminar_sources, imported L1050), and jaxfne/_config.py (clamp_truth_gate_metadata, imported L437)."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}
