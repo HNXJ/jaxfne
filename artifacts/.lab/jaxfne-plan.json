@@ -14,9 +14,27 @@
     ]
   },
   "status": "verified",
-  "notes": [],
-  "issues": [],
-  "plan": "",
+  "notes": [
+    {
+      "id": "plan-2026-07-30-vocab-proposal-drafted",
+      "kind": "planning_note",
+      "date": "2026-07-30",
+      "source": "rebalance-phase-04.json issues[]",
+      "confidence": "high",
+      "detail": "Lateral-relation vocabulary draft for the .lab/ side is written and recorded (rebalance-phase-04.json: depends_on/supports/contradicts/questions/tested_by/documents/implements/supersedes), grounded in verbatim clients/repo_mapper.md + docs/DESIGN.md. Not sent upstream -- needs explicit go/no-go."
+    }
+  ],
+  "issues": [
+    {
+      "id": "depends-on-edges-unvalidated",
+      "date": "2026-07-30",
+      "severity": "low",
+      "title": "jaxfne's .lab graph has 9 hand-added depends_on edges with no grammar validation",
+      "detail": "repo_mapper.py only formally emits refines/derives_from; depends_on survives re-scans but isn't checked against any vocabulary. Independent of whether the upstream proposal is accepted, this is a local decision to make either way.",
+      "next_action": "Decide: formalize as an accepted local convention (document in a rules-* node) or revert to only mapper-emitted relations until upstream accepts a vocabulary."
+    }
+  ],
+  "plan": "1) Get go/no-go on sending the rebalance-phase-04 vocabulary proposal upstream to labyrinth (outbound action, needs explicit confirmation). 2) If approved and landed, phases 5-10 of the rebalance plan become actionable. 3) Independent of (1), decide on the depends_on-edges-unvalidated issue above.",
   "verification": {
     "checks": {
       "sources_resolve": null,
