@@ -37,8 +37,35 @@
       "source": "post-seal verification against labyrinth HEAD be3779e",
       "confidence": "high",
       "record": "READY 2026-07-25: no longer blocked. Scope grew -- labyrinth's own graph shows the same star (Gini 0.530, max degree 75, no depth-3 tier), so the lateral-relation vocabulary is an upstream protocol feature, not a jaxfne-local fix."
+    },
+    {
+      "id": "findings-relocated-2026-07-30",
+      "kind": "provenance",
+      "date": "2026-07-30",
+      "source": "gitignore split: plan-* nodes are excluded from git (they mirror the gitignored plans.json), so findings recorded there do not sync across machines",
+      "confidence": "high",
+      "record": "The two protocol-level findings (star topology is generic to repo_mapper, not jaxfne-specific; and repo_mapper's convergence metric exempts hubs so it cannot detect a star) were originally written to plan-lab-graph-rebalance, which is untracked. Copied here because rebalance-phase-04 IS tracked and phase 4 is the phase they change."
     }
   ],
-  "issues": [],
+  "issues": [
+    {
+      "id": "star-topology-is-generic-not-jaxfne-specific",
+      "date": "2026-07-25",
+      "severity": "high",
+      "title": "The star topology is produced by repo_mapper itself -- labyrinth's own graph has it worse",
+      "detail": "Ran scripts/lab_balance.py against labyrinth's OWN artifacts/.lab (106 nodes): Gini 0.530, max degree 75 (labyrinth-plan), degree variance 80.6, 91/106 nodes never referenced, and a depth histogram of {0:1, 1:14, 2:91} -- no depth-3 tier exists at all. jaxfne's numbers are Gini 0.539, max 71, variance 53.4. Labyrinth's graph is by some measures MORE star-shaped than the repo it maps.",
+      "implication": "The 10-phase rebalance plan is not jaxfne remediation -- it is a protocol-level gap. Any repo repo_mapper touches inherits this shape, because the mapper only ever emits the two hierarchical relations (refines/derives_from) and a parent-pointer vocabulary cannot express anything but a tree. Phase 4 (lateral relation vocabulary) is therefore an upstream feature request, not a local workaround.",
+      "next_action": "Report to labyrinth: the fix belongs in the mapper's relation vocabulary, so every adopting repo benefits."
+    },
+    {
+      "id": "convergence-metric-exempts-hubs-so-cannot-see-stars",
+      "date": "2026-07-25",
+      "severity": "high",
+      "title": "repo_mapper's own degree-variance metric exempts hubs, making it blind to the star it creates",
+      "detail": "On the same labyrinth graph, repo_mapper self-reports 'degree variance 1.08 (n=96, 11 hub-exempt)' while scripts/lab_balance.py measures 80.6 over all 106 nodes. The gap is entirely the hub exemption: excluding the 11 highest-degree nodes removes precisely the evidence of a star. Same pattern on jaxfne -- mapper says 2.96 (21 hub-exempt), harness says 53.4.",
+      "risk": "A graph can report near-perfect convergence (1.08, Fano 0.49) while containing a degree-75 hub and 91 never-referenced nodes. Any agent trusting the mapper's own health number would conclude this graph is fine. It is the metric, not the graph, that is passing.",
+      "next_action": "Report upstream: publish the unexempted variance/Gini alongside the exempted figure, or at minimum print the exempted node count AND their degrees so the exemption is visible rather than silent."
+    }
+  ],
   "plan": "Vocabulary defined, documented, and accepted by mapper + grammar."
 }
