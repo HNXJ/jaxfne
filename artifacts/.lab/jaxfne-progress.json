@@ -14,7 +14,17 @@
     ]
   },
   "status": "verified",
-  "notes": [],
+  "notes": [
+    {
+      "id": "progress-2026-07-30-merge-heuristic",
+      "kind": "progress_entry",
+      "date": "2026-07-30",
+      "source": "jaxfne/emitters.py, skills/FRICTIONS_STACK.md F-028, commits b165072/f37f989",
+      "confidence": "high",
+      "detail": "Applied the merge heuristic (two heavily-duplicated things -> one, when it reduces friction/fragmentation without losing functionality): closed the duplication half of F-028, deferred since 2026-07-13 as needing its own scoped session. Found the count had grown 11 -> 12 sites since that note was written; extracted the 11 structurally-identical ones to _izhikevich_dv_du, correctly left the 1 structurally-different one (dataclass carry) alone rather than forcing a false unification.",
+      "record": "Receipts: py_compile + import clean; full pytest suite run before (git stash) and after -- identical 19 pre-existing failures both times, none newly introduced; tests/test_v033_two_neuron_ei.py (26 tests on this exact code path) run baseline vs refactored, 26/26 passed both times. No unmerge (heuristic 2) candidate found this pass -- didn't go looking broadly for one to avoid an unscoped fishing expedition; worth a dedicated look next time this heuristic is invoked."
+    }
+  ],
   "issues": [],
   "plan": "",
   "verification": {
