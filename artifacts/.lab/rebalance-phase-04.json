@@ -45,6 +45,14 @@
       "source": "gitignore split: plan-* nodes are excluded from git (they mirror the gitignored plans.json), so findings recorded there do not sync across machines",
       "confidence": "high",
       "record": "The two protocol-level findings (star topology is generic to repo_mapper, not jaxfne-specific; and repo_mapper's convergence metric exempts hubs so it cannot detect a star) were originally written to plan-lab-graph-rebalance, which is untracked. Copied here because rebalance-phase-04 IS tracked and phase 4 is the phase they change."
+    },
+    {
+      "id": "labyrinth-docs-received-2026-07-30",
+      "kind": "provenance",
+      "date": "2026-07-30",
+      "source": "verbatim clients/repo_mapper.md + docs/DESIGN.md, plus direct grep lines from clients/repo_mapper.py and server/tools.py, received from the labyrinth checkout on a second machine",
+      "confidence": "high",
+      "record": "Two things this changes: (1) jaxfne's .lab graph already has 9 depends_on edges (see lab_balance.py RELATIONS output) that repo_mapper.py does not emit -- these are hand-added and survive re-scan per repo_mapper.md's 'links added by hand also survive a re-scan' contract, but there is no grammar/closed-set validation on the .lab/ side (unlike server/tools.py's _VALID_RELATIONS, which governs a separate live MCP claim-graph, not .lab/ JSON files) -- so this is informal, undocumented drift, not an accepted vocabulary extension. (2) DESIGN.md names supports/contradicts/questions as real edge-template relations, but only for the live claim graph's claim_links table, which the docs explicitly say has reasoning/confidence fields (title/action/transformation/context/confidence/fitness) that .lab/'s links[] does not carry at all. None of tested_by/documents/implements/constrains/supersedes/co_evolves_with (5 of the original 8 proposed here) appear anywhere in either doc -- phase 4 is a genuinely new proposal to send upstream, not adoption of an existing labyrinth spec."
     }
   ],
   "issues": [
@@ -65,6 +73,15 @@
       "detail": "On the same labyrinth graph, repo_mapper self-reports 'degree variance 1.08 (n=96, 11 hub-exempt)' while scripts/lab_balance.py measures 80.6 over all 106 nodes. The gap is entirely the hub exemption: excluding the 11 highest-degree nodes removes precisely the evidence of a star. Same pattern on jaxfne -- mapper says 2.96 (21 hub-exempt), harness says 53.4.",
       "risk": "A graph can report near-perfect convergence (1.08, Fano 0.49) while containing a degree-75 hub and 91 never-referenced nodes. Any agent trusting the mapper's own health number would conclude this graph is fine. It is the metric, not the graph, that is passing.",
       "next_action": "Report upstream: publish the unexempted variance/Gini alongside the exempted figure, or at minimum print the exempted node count AND their degrees so the exemption is visible rather than silent."
+    },
+    {
+      "id": "lateral-relation-vocabulary-proposal-draft",
+      "date": "2026-07-30",
+      "severity": "medium",
+      "title": "Draft proposal: extend .lab/ (repo_mapper.py) relation vocabulary from 2 to a documented, grammar-checked set",
+      "detail": "Scoped to the .lab/ JSON side only -- explicitly NOT proposing changes to server/tools.py's separate _VALID_RELATIONS (that governs the live MCP claim-graph, a different data store with its own reasoning/confidence edge fields .lab/ does not have). Proposed set, in three tiers: (a) already informally in use -- depends_on (9 real edges in jaxfne's graph today, currently unvalidated); (b) already named in DESIGN.md for the sibling live-graph vocabulary, reusable as-is since the semantics transfer -- supports, contradicts, questions; (c) new, not in either doc, needed for a code-repo graph specifically -- tested_by, documents, implements, supersedes. Dropped from the original 8: constrains and co_evolves_with -- too semantically close to depends_on/supports respectively to justify as distinct grammar-checked relations without a concrete jaxfne use case demonstrating the difference; can be reconsidered if a real need surfaces.",
+      "implication": "find_violations() in server/objective_grammar.py checks node-id lineage against real links but (per the verbatim docs) has no relation-vocabulary check at all today -- so this proposal's second half, alongside the vocabulary itself, is that analyze() gain a closed-set check for .lab/ relation strings (mirroring _VALID_RELATIONS' role on the live-graph side), so an unrecognized relation string surfaces as a grammar violation instead of silently surviving re-scans the way depends_on has been.",
+      "next_action": "This is a draft for human review before anything is sent upstream to the labyrinth maintainers -- not committed as accepted, per Reflexivity of Amendment (protocol-tier changes need explicit human approval, not agent self-confirmation)."
     }
   ],
   "plan": "Vocabulary defined, documented, and accepted by mapper + grammar."
