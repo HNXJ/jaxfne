@@ -1,0 +1,63 @@
+{
+  "id": "pkg-validation",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "validation.py",
+  "generated": {
+    "summary": "\"\"\"Field admissibility validation for v0.2.0 theoretical gates. -- Docs: ``docs/api/validation.md`` (https://jaxfne.readthedocs.io/en/latest/api/validation/) \u2014",
+    "source_paths": [
+      "jaxfne/validation.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on structural facts (line numbers, imports, git history, __all__ absence, git diff cleanliness) -- all directly grepped/read from the file and repo. Moderate on landmines: the _is_finite_value bare-except behavior is real but I did not trace whether any real caller could pass a non-numeric-but-should-be-invalid value into it, so its practical severity is unverified and flagged as low-impact accordingly.",
+      "purpose": "jaxfne/validation.py is the field/proxy admissibility validation module. It provides pure functions and small stateful helpers to (1) check signal/array finiteness, (2) validate conductivity tensors (scalar/diagonal/full SPD) and Poisson-solver admissibility gates that are currently specification-only (no solver exists yet), (3) build JSON-safe admissibility/calibration/diagnostic reports that hardcode physical_amplitude_calibrated=False as a truth-gate invariant, and (4) a JAX re-compilation detection guard (CompilationRegistry) used by jaxfne/_model_simulate.py. It is re-exported at the package root (jaxfne/__init__.py:269 exposes compilation_registry and is_valid_signal) and consumed internally by _model_manifest.py and _model_simulate.py.",
+      "key_findings": [
+        "1369 lines, module docstring lines 1-8 points to docs/api/validation.md",
+        "No __all__ defined (grep found none)",
+        "Public functions/classes with line numbers: is_valid_signal (43), validate_scalar_conductivity (104), validate_diagonal_conductivity (138), validate_full_spd_conductivity (204), validate_field_arrays_finite (300), build_field_admissibility_report (363), CalibrationSpec class (417-494), make_calibration_report (497), make_source_balance_diagnostic (575), make_gauge_diagnostic (622), make_boundary_diagnostic (675), make_manufactured_residual_diagnostic (708), make_field_operator_status (753), validate_poisson_spd_conductivity (805), validate_poisson_source_conservation (850), validate_poisson_gauge_condition (898), validate_poisson_field_arrays (942), build_poisson_admissibility_report (988), validate_basis_spec (1115), basis_claim_gate (1177), CompilationRegistry class + global singleton compilation_registry (1240-1317), make_recompilation_guard (1320)",
+        "One real NotImplementedError: validate_poisson_gauge_condition (lines 932-935) raises for any gauge other than 'mean_zero' -- deliberate, not a stub marker",
+        "git status --short -- jaxfne/validation.py and git diff --stat -- jaxfne/validation.py are both empty: no uncommitted changes on this file, despite the task-level repo status header listing other files (jaxfne/_model_simulate.py, jaxfne/fields/solvers.py) as dirty -- this file itself is clean",
+        "Recent commit history touching this file: 27295c6 'fix: 3 real HDP/optim/validation bugs + add sphere20 HDP habituation script', 6a32e4a lint cleanup, 53e0df0 '5 real bugs found during PRP review pass (...validation)' -- repeatedly a target of bugfix passes",
+        "physical_amplitude_calibrated is hardcoded False in every report-building function (lines 408, 528, 614, 667, 700, 744, 793, 1100, 1173, 1224) -- deliberate truth-gate invariant per repo doctrine, not a bug"
+      ],
+      "contracts": [
+        "make_recompilation_guard's docstring (lines 1331-1343) documents a verified-2026-07-05 constraint: the returned `wrapped` must be passed directly into jax.jit(...) before being called, and only the jitted result may be invoked -- calling `wrapped` directly makes every Python call count as a 'compile', causing false-positive warnings/exceptions. All 5 current call sites in jaxfne/_model_simulate.py (lines 172, 275, 322, 365, 802) follow the jax.jit(make_recompilation_guard(...)) pattern",
+        "validate_basis_spec (line 1115) lazy-imports BasisSpec/_FUTURE_FIELD_REGIMES from .core inside the function body, explicitly 'to avoid circular import; core imports validation, not vice versa' (lines 1129-1130) -- a real architectural direction constraint",
+        "build_poisson_admissibility_report and build_field_admissibility_report always set physical_amplitude_calibrated: False regardless of whether input gates pass (docstring lines 1009-1012 states this explicitly as a v0.2.15 invariant), matching the repo's truth-gate doctrine (never escalate a claim upward from code)",
+        "is_valid_signal's docstring (lines 63-70) gives a doctest-style contract: accepts Signals-like objects exposing V_m/spikes or vm/spk, or a dict with either key pair; returns False (never raises) for missing/invalid input"
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row cites validation.py specifically (grep for 'validation.py' in skills/FRICTIONS_STACK.md returned nothing)",
+        "_is_finite_value (lines 28-40) silently treats bool/int/str values as always finite without a numeric range check, and falls through to `return True` on any conversion exception (line 40) -- a genuinely non-finite non-numeric input would be reported finite; low practical impact since real callers pass numeric arrays, but it's a silent-pass-by-default design",
+        "make_field_operator_status and sibling diagnostic-builder functions only accept operator_path in {'proxy','physical_candidate'} and raise ValueError otherwise -- correct/loud failure, but means any future third mode requires a code change here rather than just a caller-side addition"
+      ],
+      "related_nodes": [
+        "Direct test coverage confirmed by import grep: tests/test_field_diagnostics_v026.py, tests/test_optim_jax_native_audit.py, tests/test_computation_basis_v026.py, tests/test_poisson_admissibility_v0215.py, tests/test_calibration_contracts_v025.py, tests/test_field_admissibility_v020.py (all `from jaxfne.validation import ...`); tests/test_is_valid_signal.py and tests/test_suite_no1_public_grammar_validation.py matched by a looser grep for the word 'validation' but their actual import lines weren't individually confirmed",
+        "Tightly coupled modules: jaxfne/__init__.py:269 (re-exports compilation_registry, is_valid_signal as public API), jaxfne/_model_manifest.py:94 (lazy-imports build_field_admissibility_report for manifest construction), jaxfne/_model_simulate.py:172,275,322,365,802 (lazy-import make_recompilation_guard for JIT retrace guarding), jaxfne/core.py (validate_basis_spec depends on BasisSpec/_FUTURE_FIELD_REGIMES defined there, imported lazily to avoid an import cycle)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "id": "pkg-geometry",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "geometry.py",
+  "generated": {
+    "summary": "\"\"\"Geometry helper functions for jaxfne.\"\"\" -- from __future__ import annotations",
+    "source_paths": [
+      "jaxfne/geometry.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on file content, git status, and grep-based usage/coupling facts (all directly verified by commands above). Moderate on landmines/frictions since absence-of-evidence (no FRICTIONS_STACK.md row) doesn't prove no friction exists, only that none is documented.",
+      "purpose": "jaxfne/geometry.py (49 lines) provides a single geometry helper, make_ei_cloud_network, that generates synthetic 3D positions (uniform-in-unit-sphere) and an initial signed E/I weight matrix for a small \"cloud\" network topology. It's re-exported at the package level (jaxfne/__init__.py:309, 326) as part of the public jtfne API, used by tests and presumably example/streaming demos as a quick synthetic-network generator rather than the primary laminar-column config path.",
+      "key_findings": [
+        "File is 49 lines total, one function only: make_ei_cloud_network(n_neurons: int = 100, seed: int = 42) -> Tuple[jnp.ndarray]*4 (lines 8-49).",
+        "No classes, no TODO/FIXME/NotImplementedError markers anywhere in the file (grep-verified).",
+        "No uncommitted git diff on this file: `git status --short jaxfne/geometry.py` and `git diff --stat -- jaxfne/geometry.py` both empty; last touching commits are 0dd4a1e and 71366d8 (v0.3.34), not in the current session's modified-files list.",
+        "Re-exported publicly: jaxfne/__init__.py:309 (`from .geometry import make_ei_cloud_network`) and listed in __all__ at jaxfne/__init__.py:326.",
+        "70%/30% E/I split is hardcoded via `n_exc = int(0.7 * n_neurons)` (line 36) \u2014 not a parameter.",
+        "Positions are sampled uniformly inside a unit sphere via the standard cube-root-radius technique (r = u**(1/3), line 27) \u2014 a real, correct rejection-free sampling identity, not a magic number.",
+        "Weight matrix W is uniform magnitude in [0.01, 0.1] (line 41), sign applied by presynaptic (column) identity (line 44), self-connections zeroed via `(1 - eye(n_neurons))` (line 47)."
+      ],
+      "contracts": [
+        "Return signature is a 4-tuple (positions[N,3], exc_mask[N] bool, inh_mask[N] bool, W[N,N] signed) per the docstring (lines 11-15) and consumed positionally by both call sites: tests/test_streaming.py:16 and tests/test_plasticity_v034.py:9,22 (`pos, exc_mask, inh_mask, W = jtfne.make_ei_cloud_network(...)`).",
+        "W convention is W[post, pre] i.e. W[dst, src] (docstring line 15, reiterated in comment line 40) \u2014 callers must index accordingly.",
+        "exc_mask/inh_mask are complementary boolean masks (inh_mask = ~exc_mask, line 38), not independently sampled.",
+        "Function is deterministic given (n_neurons, seed) via jr.PRNGKey(seed) (line 17) \u2014 no implicit global RNG state."
+      ],
+      "landmines": [
+        "70% excitatory / 30% inhibitory split is hardcoded (line 36) with no parameter to override it \u2014 callers needing a different E/I ratio must build their own geometry.",
+        "No FRICTIONS_STACK.md row cites geometry.py or make_ei_cloud_network (checked skills/FRICTIONS_STACK.md, no jaxfne-specific per-file frictions doc found under jaxfne/skills/); nothing flagged there."
+      ],
+      "related_nodes": [
+        "tests/test_plasticity_v034.py \u2014 directly tests make_ei_cloud_network shapes/splits (line 9) and weight signs/diagonal (line 22).",
+        "tests/test_streaming.py \u2014 uses make_ei_cloud_network (line 16) to build a network for a streaming/plasticity demo.",
+        "jaxfne/__init__.py \u2014 the only other module directly coupled to geometry.py, via the public re-export at lines 309/326.",
+        "jaxfne/vis/network3d.py (geometry3d, referenced from jaxfne/vis/canonical.py:121) is a separate, unrelated 3D-geometry symbol \u2014 naming-adjacent but not the same module; worth noting to avoid confusion."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

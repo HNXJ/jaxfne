@@ -1,0 +1,49 @@
+{
+  "id": "jaxfne-figures",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "figures",
+  "generated": {
+    "summary": "Folder with 1 files, e.g. none.",
+    "source_paths": [
+      "figures"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "figures/ contains a single subdirectory 'evidence/' (ls shows no other entries); it is a generated-plot-output directory, not source code.",
+        "The path is git-ignored: .gitignore root has an explicit 'figures/' entry under the '# Development & local experimentation' section, so nothing here is tracked in git.",
+        "Being both gitignored and containing only regenerable plot outputs, this directory is safe to delete/regenerate on demand; no exception-tracked files were found inside it."
+      ],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": [
+        "jaxfne-vis-modules (generates plot outputs that would land here)",
+        "jaxfne-notebook-release-gate (validates figures/artifacts before release)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

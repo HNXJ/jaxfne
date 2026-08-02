@@ -1,0 +1,69 @@
+{
+  "id": "jaxfne-scripts",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "scripts",
+  "generated": {
+    "summary": "Folder with 90 files, e.g. characterize_neuron_io_curves.py, hdp_1000_neuronal_tensor_column.py, ed9_hdp_evidence.py, hdp_bifurcation_trace.py, ed9_homeostasis_evidence.py.",
+    "source_paths": [
+      "scripts"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "scripts/ is a flat directory of ~60 standalone Python files (top-level, not a package) plus three subdirs: scripts/benchmarks/ (2 files: brian2 vs jaxfne Izhikevich comparison), scripts/evidence_figures/ (19 files: fig0X architecture/backend/scaling figures + ed0X evidence-receipt generators, verified via `ls scripts/evidence_figures/*.py | wc -l`), and scripts/release/ (4 files: assert_release_freeze.py, reconcile_release_target.py, validate_release_artifacts.py, print_tag_receipt.sh).",
+        "Purpose split: (1) evidence/release-receipt generation (ed*, fig*, evidence_inventory.py, evidence_figures_inventory.py), (2) HDP/homeostasis sweep and workflow scripts (hdp_*.py, ed9/ed10 files, sphere20_ei_hdp_habituation.py, cortical_column_localized_workflow.py), (3) audit/CI-gate scripts invoked by name from AGENTS.md and skills (audit_public_docs_language.py, audit_notebooks_and_assets.py, validate_json_safe.py, snapshot_public_api.py, report_hygiene_check.py, check_docs_orphans.py), (4) shared library modules imported by skills/other scripts but not run directly: scripts/hash_utils.py (SHA256 helpers backing jaxfne-sha256-artifact-integrity skill) and underscore-prefixed private helpers scripts/_ed9_common.py, scripts/_neuron_sweep_common.py, scripts/evidence_figures/_figure_common.py.",
+        "Deliberate, documented exception to the jaxfne-modular-grammar vis rule: scripts/evidence_figures/*.py call matplotlib/plotly directly instead of routing through jaxfne/vis/* -- explicitly reconsidered and reaffirmed as correct design (FRICTIONS_STACK F-026, closed 2026-07-08); scripts/evidence_figures/README.md documents the same carve-out. The matplotlib save/close path still routes through jaxfne/vis/evidence_export.py::save_matplotlib_figure and jaxfne/vis/evidence_manifest.py.",
+        "scripts/audit_public_docs_language.py --check is wired into CI and referenced directly from AGENTS.md line 63 as the doc-language guard.",
+        "scripts/spectrolaminar_tfne_izhikevich_pipeline.py deliberately bypasses HDPColumnConfig/hdp_network.build_model() and uses the lower-level Configuration.laminar_cortex_config()/.area_layer_cell_types() builder directly, because its 5-layer (merged L2/3) + flat cell-type-fraction shape doesn't fit HDPColumnConfig's canonical 6-layer per-layer-fraction schema -- documented as intentional (FRICTIONS_STACK F-023, closed 2026-07-03), not a migration gap.",
+        "scripts/cortical_column_localized_workflow.py::save_column/load_column is the fix site for a real pytree-treedef corruption bug (F-020): IzhikevichParams/EdgeList treedef aux data is N-size-dependent, so reload must reconstruct dataclasses directly from persisted labels/layer_labels/calibration/cfg.metadata rather than via a dummy-treedef jax.tree_util.tree_unflatten shortcut.",
+        "scripts/sphere20_ei_hdp_habituation.py is the reproduction case for F-031: construct()'s default dense same-area recurrent wiring (_suite2_apply_connectivity in jaxfne/_construct.py) silently layers on top of explicit NeuronalTensor-bridged InterConnection edges unless neutralized with cfg.connectivity(within_area=..., within_gain=0.0) before construct()."
+      ],
+      "contracts": [
+        "scripts/hash_utils.py exports sha256_file, stable_json_bytes, sha256_json (and per jaxfne-sha256-artifact-integrity/SKILL.md lines 83-244, candidate_sha256 and load_weight_artifact) -- canonical hashing helpers; the skill explicitly says import them rather than reimplementing.",
+        "scripts/audit_public_docs_language.py supports a `--check` CLI flag used by CI (AGENTS.md:63).",
+        "scripts/release/assert_release_freeze.py: reads AGENTS.md and/or .release_target.json for freeze state; exit 0 = freeze inactive or all SHA invariants hold, exit 1 = freeze active and an invariant violated, exit 2 = freeze state undeterminable (verified from its own docstring, lines 1-20).",
+        "Full pre-release validation sequence from jaxfne-notebook-release-gate/SKILL.md lines 80-85: `python -m compileall -q jaxfne tests examples scripts`, `pytest tests/ -q --tb=line`, `python scripts/audit_notebooks_and_assets.py --check`, `mkdocs build --strict`, plus a smoke nbconvert execute -- scripts/ is compiled and gated as part of this chain.",
+        "Underscore-prefixed files (scripts/_ed9_common.py, scripts/_neuron_sweep_common.py, scripts/evidence_figures/_figure_common.py) are shared-helper modules meant to be imported by sibling scripts, not run standalone.",
+        "scripts/evidence_figures/README.md is the authoritative in-repo statement of the vis-grammar exception for that subdirectory; cite it rather than re-deriving when auditing whether evidence_figures/ should migrate into jaxfne/vis/."
+      ],
+      "landmines": [
+        "Do not 'fix' scripts/evidence_figures/*.py's direct matplotlib/plotly calls as a grammar violation -- explicitly reviewed and closed as intentional (FRICTIONS_STACK F-026); re-flagging wastes a pass.",
+        "Do not attempt to migrate scripts/spectrolaminar_tfne_izhikevich_pipeline.py onto HDPColumnConfig/hdp_network.build_model() -- closed as intentional non-consolidation (F-023); its layer/fraction shape is genuinely outside HDPColumnConfig's scope.",
+        "Any script that saves/reloads a constructed Model/Configuration via jax.tree_util pytree machinery must NOT rely on a differently-sized dummy-construct() treedef for reconstruction -- silently produces a wrong-but-finite result, no error (F-020); scripts/cortical_column_localized_workflow.py shows the correct pattern (explicit field persistence + direct dataclass reconstruction).",
+        "Any script bridging a NeuronalTensor (via neuronal_tensor_to_configuration) that then calls construct() must null out construct()'s default same-area dense recurrent generator (cfg.connectivity(within_area=..., within_gain=0.0)) or edges silently double-wire on top of explicit InterConnection edges (F-031).",
+        "The generic 'I' (Inhibitory) cell-type shorthand used across scripts/evidence_figures/ (and examples/, tests/) previously silently fell back to VIP parameters via a masked fallback in jaxfne/emitters.py::_get_cell_type_params; closed by adding 'I' as an explicit VIP alias (F-028) rather than raising -- only 5 keys are ever valid repo-wide for cell_type dict literals: E, I, PV, SST, VIP."
+      ],
+      "related_nodes": [
+        "jaxfne-vis (jaxfne/vis/*) -- scripts/evidence_figures/ deliberately does NOT route plotting through it, but does route save/manifest bookkeeping through jaxfne/vis/evidence_export.py and evidence_manifest.py",
+        "jaxfne-core-package (jaxfne/_construct.py, jaxfne/neuronal_tensor.py, jaxfne/emitters.py) -- several scripts are the documented repro/fix sites for real bugs in construct()'s default connectivity generator and pytree treedef handling",
+        "jaxfne-tests -- scripts/ is compiled and referenced alongside tests/ in the pre-release compileall + pytest gate; scripts/audit_notebooks_and_assets.py --check and scripts/audit_public_docs_language.py --check are part of that same CI/release gate",
+        "jaxfne-skills (skills/jaxfne-sha256-artifact-integrity, jaxfne-notebook-release-gate, jaxfne-release-mutation-guard) -- these skills' documented contracts are backed directly by code in scripts/hash_utils.py and scripts/release/*",
+        "jaxfne-release (release/ mechanics, AGENTS.md, .release_target.json) -- scripts/release/*.py and scripts/upload_pypi.sh/upload_testpypi.sh/release_rehearsal.sh implement release-gate/publish mechanics referenced by jaxfne-release-mutation-guard"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "docs-appendix",
+  "kind": "docs_nav_tab",
+  "title": "Appendix (docs nav tab 5/5)",
+  "generated": {
+    "summary": "mkdocs.yml nav tab 5/5: Appendix. Mirrors the docs/ site's actual navigation order (source of truth: mkdocs.yml's top-level nav: list), not repo_mapper's default flat folder...",
+    "source_paths": [
+      "scope_and_status.md",
+      "for_ai_agents.md",
+      "... (~20 pages incl. Reference/About/Releases sub-nav)"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-docs",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

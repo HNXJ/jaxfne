@@ -1,0 +1,44 @@
+{
+  "id": "rebalance-phase-03",
+  "kind": "plan_phase",
+  "title": "Phase 3: Repair existing defects",
+  "generated": {
+    "summary": "Dangling jaxfne-solvers edge; jaxfne-jaxfne double name. Grammar self-check must end at 0 violations.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-plan",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-02",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "confirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 3,
+      "execution_status": "done",
+      "detail": "Dangling jaxfne-solvers edge; jaxfne-jaxfne double name. Grammar self-check must end at 0 violations.",
+      "exit_criterion": "0 dangling edges, 0 adjacent-repeated-segment ids, 0 grammar violations.",
+      "record": "DONE 2026-07-24. (a) api-solvers pointed at a fabricated jaxfne-solvers node; retargeted to jaxfne-fields (now pkg-fields), which actually owns fields/solvers.py -- there is no per-file node for it. (b) Root-caused jaxfne-jaxfne: root key 'jaxfne' == package dir 'jaxfne', so child_name() stutters. Grammar CANNOT dedup cheaply (collapsing leaves 1 segment; a valid name needs 2), so fixed at the mapper layer with repo_child_id() -> 'jaxfne-pkg'; all three id-forming sites routed through it so scan() and _folder_link_targets() cannot disagree. Migration: renamed the node, retargeted 70 inbound links, then renamed the 38 cascade children to pkg-* (matching the existing docs-api->api-* and jaxfne-plan->plan-* pattern) and retargeted 11 more files. Ends at 0 violations, 0 dangling, 0 disconnection."
+    },
+    {
+      "id": "unblocked-2026-07-25",
+      "kind": "status_update",
+      "date": "2026-07-25",
+      "source": "post-seal verification against labyrinth HEAD be3779e",
+      "confidence": "high",
+      "record": "UNBLOCKED 2026-07-25: repo_child_id() is committed upstream and extended to 5 call sites. Re-verified empirically: deleted a stale zero-inbound jaxfne-jaxfne duplicate, re-ran the current mapper, and it was NOT recreated. The 38 pkg-* children and all 49 inbound links resolve to jaxfne-pkg."
+    }
+  ],
+  "issues": [],
+  "plan": "0 dangling edges, 0 adjacent-repeated-segment ids, 0 grammar violations."
+}

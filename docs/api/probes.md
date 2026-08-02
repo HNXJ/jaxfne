@@ -257,7 +257,7 @@ removed `ProbeReport`:
    report = probe_report(n_probes=2, probe_types={"V_m": 1, "spikes": 1})
    ```
 
-2. **`jaxfne.operator_status()`** (`jaxfne/core.py:7726-7738`) — returns a
+2. **`jaxfne.operator_status()`** (`jaxfne/_construct_extras.py:38`) — returns a
    dict mapping operator symbol names to readiness strings (e.g.
    `"prototype_api"`, `"not_implemented"`), a registry-level status snapshot,
    not a per-call probe result.

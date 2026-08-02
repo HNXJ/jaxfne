@@ -1,0 +1,67 @@
+{
+  "id": "jaxfne-examples",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "examples",
+  "generated": {
+    "summary": "Folder with 20 files, e.g. 07_jaxley_trace_bridge.py, 03_jaxley_bridge_smoke.py, 02_generalized_vis_smoke.py, 05_network_100_ei_multimodal.py, 03_objective_and_tune_smoke.py.",
+    "source_paths": [
+      "examples"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "examples/ contains 19 runnable Python scripts (verified via ls/wc), ~4374 lines total. Numbered 00-08 scripts (recent, e.g. 00_minimal_column.py, 08_neuronal_tensor_first.py) are the current API surface; three v03x-prefixed scripts (v031/v032/v033, 474/592/848 lines) are older tutorial-generation scripts that write canonical docs manifests.",
+        "Several examples are executed as real subprocess-based tests, not just read/inspected: tests/test_manifest_v005.py::test_examples_02_omission_scaffold_runs and test_examples_03_objective_and_tune_smoke_runs run examples/02_omission_scaffold.py and 03_objective_and_tune_smoke.py via subprocess.run(...) with a 120s timeout and assert on stdout content and returncode==0. tests/test_neuronal_tensor.py has a similar test for examples/08_neuronal_tensor_first.py. This means editing an example's stdout output or its behavior can silently break tests/ (verified by reading tests/test_manifest_v005.py lines ~110-145).",
+        "examples/00_minimal_column.py (44 lines) is the canonical Configuration-path minimal example: jtfne.configuration() -> .network()/.emitter()/.field()/.probe()/.update_metadata() -> jtfne.construct(cfg) -> model.simulate(sim) -> model.probe(...) -> model.evaluate(...) -> model.manifest(...). It explicitly comments that 08_neuronal_tensor_first.py is the declarative Areas/Layers/NeuronTypes alternative -- the two files together document jaxfne's two parallel top-level construction paths (Configuration vs NeuronalTensor).",
+        "examples/08_neuronal_tensor_first.py is the canonical NeuronalTensor-first entry point (per its own docstring, referencing docs/api/neuronal_tensor.md): builds NeuronType/Layer/Area/InterConnection/AreaConnection objects directly, saves/reloads as JSON via save_neuronal_tensor/load_neuronal_tensor, then bridges via construct_neuronal_tensor -- Configuration is stated as touched only internally by that bridge, never built directly by the user in this path.",
+        "git log -- examples/ shows a recurring pattern of 'fix(examples): repair example API drift' commits (e.g. 4466080, f96fe9a, 9ec593a) -- examples are a known drift-prone surface that breaks when core APIs change (tune-report keys, manifest keys, dt_ms kwarg, raster kwarg), i.e. they are living integration checks against the public API, not static docs.",
+        "Commit 142b063 ('fix(examples): quarantine canonical manifest drift from test runs') added an update_canonical: bool = False parameter to main() in all three v03x scripts specifically because they wrote to docs/tutorials_v030/manifests/ on every call, causing tracked-file drift during test runs; verified examples/v031_single_izhikevich_neuron.py has def main(update_canonical: bool = False) with the docstring 'Tests should call main() with update_canonical=False (the default)' and the write gated behind `if update_canonical:` at line 430.",
+        "No dedicated entry for examples/ was found in AGENTS.md (repo root, no jaxfne/AGENTS.md exists -- confirmed AGENTS.md lives only at repo root) or in skills/FRICTIONS_STACK.md; the closest FRICTIONS_STACK.md hit (F-028) is about emitters.py/_config.py etc. and only mentions examples/ in passing as one place a cell-type shorthand ('I' as VIP alias) was found via repo-wide grep -- not a dedicated examples/ landmine entry."
+      ],
+      "contracts": [
+        "Configuration-path convention (examples/00_minimal_column.py): jtfne.configuration() -> .network(name, kind, n, layers, cell_types) -> .emitter(family, preset) -> .field(domain, conductivity, boundary, gauge) -> .probe(name, modes) -> .update_metadata(run_status, model_status) -> jtfne.construct(cfg) -> model.simulate(sim) -> model.probe(signals, modes) -> model.evaluate(signals, objective) -> model.manifest(signals).",
+        "NeuronalTensor-path convention (examples/08_neuronal_tensor_first.py): construct NeuronType.make(name), Layer(name, n_neurons, neuron_types), Area(name, layers, inter_connections, pose), AreaConnection(...) -> NeuronalTensor(areas=[...], area_connections=[...], name=...) -> save_neuronal_tensor/load_neuronal_tensor round-trip to JSON -> construct_neuronal_tensor(tensor, seed, duration_ms, dt_ms) -> jtfne.simulate(model, ...).",
+        "Several examples double as pytest fixtures via subprocess execution (tests/test_manifest_v005.py _run_example helper, lines ~108-120): run with sys.executable, PYTHONPATH set to repo root, 120s timeout, and assertions on both returncode==0 and specific substrings in stdout -- any stdout wording change in a covered example is a de facto public contract.",
+        "v03x tutorial scripts require a main(update_canonical: bool = False) signature so test invocation never mutates tracked docs/tutorials_v030/manifests/ files; update_canonical=True is reserved for an explicit docs-build workflow (per commit 142b063 and the docstring in examples/v031_single_izhikevich_neuron.py)."
+      ],
+      "landmines": [
+        "Examples are a live, recurring drift target: at least 3 separate historical commits (4466080, f96fe9a, 9ec593a) had to repair examples after core API changes (manifest keys, tune-report keys, dt_ms kwarg, raster kwarg) -- any change to Model/Signals/manifest/tune public surfaces should be checked against examples/ before merge, not just tests/.",
+        "Three examples (02_omission_scaffold.py, 03_objective_and_tune_smoke.py, 08_neuronal_tensor_first.py) are wired into the pytest suite via subprocess -- editing their printed output strings ('standard_visual_omission', 'AAAX', 'not_claimed', 'metadata_only_no_steps_requested', 'not_empirically_validated') will fail tests/test_manifest_v005.py or tests/test_neuronal_tensor.py even if the example's actual computation is still correct.",
+        "The v03x scripts (v031/v032/v033) silently write to tracked docs/tutorials_v030/manifests/ files unless update_canonical stays False -- calling main() with update_canonical=True outside the deliberate docs-build workflow will cause tracked-file drift (git status noise / accidental commits of regenerated manifests with new timestamps/run_ids), per the exact failure mode fixed in commit 142b063.",
+        "No examples/-specific section exists in AGENTS.md or FRICTIONS_STACK.md -- unlike other subsystems (jaxfne-config, jaxfne-neural-tensor, etc.) there is no dedicated skill or landmine record for this directory; a fresh agent must rely on git log and direct code reading (as done here), not a pre-digested skill card."
+      ],
+      "related_nodes": [
+        "jaxfne-tests (examples/02_omission_scaffold.py, 03_objective_and_tune_smoke.py, 08_neuronal_tensor_first.py are directly subprocess-invoked by tests/test_manifest_v005.py and tests/test_neuronal_tensor.py -- example stdout/behavior is a de facto test contract)",
+        "jaxfne-objective-grammar (examples/00_minimal_column.py and 08_neuronal_tensor_first.py are the canonical worked demonstrations of the Configuration vs NeuronalTensor top-level paths that skill documents)",
+        "jaxfne-neural-tensor (examples/08_neuronal_tensor_first.py is explicitly named in that skill's description as the canonical tensor-first entry point)",
+        "jaxfne-paradigm-design (examples/02_omission_scaffold.py and 02_spectrolaminar_oddball_scaffold.py exercise the Paradigm/ParadigmCondition/ParadigmEvent grammar that skill covers)",
+        "jaxfne-release-mutation-guard / docs (v03x example scripts' update_canonical=True path writes into docs/tutorials_v030/manifests/, coupling examples/ to the docs-build release workflow)"
+      ],
+      "verification_correction": "VERIFICATION NOTE (2026-07-23): the agent's '19 runnable Python scripts' count is off by one -- `ls examples/*.py | wc -l` -> 20 (line-count total of ~4374 was still correct). Minor, non-fabricated miscount, corrected here."
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

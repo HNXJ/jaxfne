@@ -1,0 +1,36 @@
+{
+  "id": "rebalance-phase-07",
+  "kind": "plan_phase",
+  "title": "Phase 7: Import-graph harvest",
+  "generated": {
+    "summary": "depends_on edges from actual Python imports between jaxfne modules, via AST -- not guesswork.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-plan",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-06",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 7,
+      "execution_status": "open",
+      "detail": "depends_on edges from actual Python imports between jaxfne modules, via AST -- not guesswork.",
+      "exit_criterion": "+60-90 edges; module tier mean degree >= 6.",
+      "record": "Converts the flat module tier into a mesh reflecting true coupling."
+    }
+  ],
+  "issues": [],
+  "plan": "+60-90 edges; module tier mean degree >= 6."
+}

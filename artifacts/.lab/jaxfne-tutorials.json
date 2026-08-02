@@ -1,0 +1,68 @@
+{
+  "id": "jaxfne-tutorials",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "tutorials",
+  "generated": {
+    "summary": "Folder with 52 files, e.g. tutorial_madelane_2026_jaxfne_spectrolaminar.ipynb, jaxfne_v033_two_neuron_ei.ipynb, NOTEBOOK_STATUS.md, jaxfne-sanity-checker-notebook-01.ipynb, jaxfne_v032_parameter_sweep.ipynb.",
+    "source_paths": [
+      "tutorials"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "tutorials/ has 37 notebooks total per tutorials/NOTEBOOK_STATUS.md: 29 release-facing (strict grammar/API/scope gates), 7 archived (legacy/experimental, excluded from strict validation), 1 template (tutorials/templates/jaxfne_notebook_template.ipynb).",
+        "tutorials/etudes/ is the pedagogical-notebook subfolder (etude no.1-12 plus jaxfne_etude_tcm_v1_6pop.ipynb); tutorials/ root also holds 'suite_no_*' notebooks, 'v0.3x/v0.4x' version tutorials, a sanity-checker notebook, and tutorial_manifest.json (a real captured-run manifest with fields like model_status='computational_scaffold', source_projection_mode='proxy_no_field_solve', readout_status describing LFP/CSD as proxy).",
+        "All 29 release-facing notebooks have real nbclient-based execution coverage (per NOTEBOOK_STATUS.md, verified 2026-06-25): Suite No.1 and Suite No.4 each have dedicated test files (tests/test_suite_no1_notebook_execution.py, tests/test_suite_no4_notebook_execution.py), jaxfne_neuronal_tensor_first.ipynb has tests/test_neuronal_tensor_notebook_execution.py, Etude 3 has tests/test_etude3_v1_spectrolaminar_1k.py (dedicated artifact-contract test), and the remaining 26 are parametrized in tests/test_notebook_execution_suite.py -- 5 of those (Etude 8-12) are intentional skeleton placeholders that correctly xfail.",
+        "The heavy shared logic layer for the etude/tutorial suite lives in jaxfne/tutorial_utils.py (2084 lines, verified via grep of top-level def/class): LaminarColumnConfig/CellTypePreset dataclasses, make_laminar_column_config -> build_laminar_column -> simulate_laminar_trials pipeline, spectrolaminar_from_trials/spectrolaminar_motif_score, tune_laminar_agsdr, export_tutorial_artifacts, plus plotting helpers (plot_population_raster, plot_laminar_readout, etc.).",
+        "AGENTS.md (line 21, its 3-build-paths table) documents tutorial_utils' own pipeline as a distinct third construction path from the two core jaxfne paths: 'tutorial_utils make_laminar_column_config -> build_laminar_column -> simulate_laminar_trials' returns a plain dict (not a Model/Signals object) -- it is a parallel, notebook-only convenience layer, not the same object grammar as Configuration/NeuronalTensor.",
+        "tutorials/TUTORIAL_TEMPLATE_GUIDE.md documents concrete, enforced authoring rules for new notebooks: workflow code cells <=8 lines (setup cells may be longer), no consecutive code cells (must alternate with markdown), unified setup cell installs both PyPI jaxfne[viz] and main-branch git install, canonical import 'import jaxfne as jtfne', mandatory Scope Gates markdown block (run_status/model_status/field_solver_status/amplitude_status), and TFNE_SMOKE env var support for smoke vs full execution modes.",
+        "skills/jaxfne-notebook-release-gate/SKILL.md (the accumulated landmine record for this exact subsystem) lists hard gates for tutorials specifically: duration_ms>=1000 in full mode, dt_ms=0.1, dtype=float32, deterministic seed, finite outputs, strict JSON, PNG figures present, canonical import, proxy-safe figure titles, SMOKE receipt + FULL receipt for release-facing changes; and required sections (learning objectives, question/scope, configuration, simulation, probe/readout, figures, interpretation, failure modes, exercises, run/status metadata)."
+      ],
+      "contracts": [
+        "Directory convention: tutorials/etudes/*.ipynb for pedagogical etudes (naming jaxfne_etude_no_N_<topic>.ipynb), tutorials/*.ipynb for suite/version tutorials, tutorials/templates/jaxfne_notebook_template.ipynb as the only sanctioned authoring scaffold -- new notebooks are copied from it (documented copy commands in TUTORIAL_TEMPLATE_GUIDE.md).",
+        "tutorials/NOTEBOOK_STATUS.md is the authoritative release-facing/archived/template classification list -- any new or moved notebook must be added there, and its counts (37 total / 29 / 7 / 1) are the ground truth to re-verify (wc -l / grep), not assume.",
+        "tutorial_utils public pipeline (jaxfne/tutorial_utils.py, verified via grep of def signatures): make_laminar_column_config(...) -> build_laminar_column(cfg) -> simulate_laminar_trials(...) -> spectrolaminar_from_trials(...); returns plain dict, distinct from the core Configuration/NeuronalTensor -> construct -> simulate -> Signals grammar documented elsewhere in AGENTS.md.",
+        "Notebook execution test contract: release-facing notebooks are parametrized in tests/test_notebook_execution_suite.py (uses an ephemeral kernelspec via portable_kernel_context built from sys.executable, per SKILL.md) unless they have a dedicated test file (test_etude3_v1_spectrolaminar_1k.py, test_suite_no1_notebook_execution.py, test_suite_no4_notebook_execution.py, test_neuronal_tensor_notebook_execution.py).",
+        "Scope-gate markdown block is a required, machine-checkable convention per notebook (run_status, model_status, field_solver_status, amplitude_status fields), enforced by scripts/audit_notebooks_and_assets.py --check per the release-gate skill's validation commands."
+      ],
+      "landmines": [
+        "F-024 (skills/FRICTIONS_STACK.md, confirmed 2026-07-02, restated in skills/jaxfne-notebook-release-gate/SKILL.md): manually executing a tutorial notebook via nbclient.NotebookClient without an explicit kernel_name silently falls back to the default python3 Jupyter kernelspec, which via a hardcoded PYTHONPATH can point at a completely different, stale jaxfne checkout -- produced a dramatic, wrong, reproducible divergence for an HDP-kernel notebook while other notebooks looked fine (not something to assume holds for any given notebook). Mitigation: always pass kernel_name='jaxfne_analysis' for manual runs, and print jaxfne.__file__ (not just __version__, which can match across checkouts) as the first executed line. The automated pytest gate (test_notebook_execution_suite.py) is NOT affected -- it builds an ephemeral kernelspec from sys.executable directly.",
+        "jaxfne_colab_gpu_tpu_100k_column.ipynb (archived, added 2026-07-14) is intentionally excluded from nbclient-based CI execution because it needs real GPU/TPU hardware this repo's CI lacks -- must be run manually in Colab, never assume its outputs are CI-verified.",
+        "5 of the 26 general-suite-parametrized notebooks (Etude 8-12) are intentional skeleton placeholders that correctly xfail in test_notebook_execution_suite.py -- an xfail there is expected, not a regression to fix.",
+        "jaxfne_etude_no_2_spectrolaminar_power.ipynb is archived specifically because it uses local simulation helpers instead of the shared public API and 'requires API extraction before release-facing status' -- do not treat it as a template for new work without first extracting its logic into tutorial_utils or core.",
+        "jaxfne_etude_no_1_multi_laminar_cortical_agsdr.ipynb is legacy/archived, superseded by jaxfne_etude_no_1_base.ipynb -- despite the release-gate SKILL.md's own example validation commands still referencing the old etude1 filename in its smoke/full nbconvert examples, which is stale and should be cross-checked against NOTEBOOK_STATUS.md before reuse."
+      ],
+      "related_nodes": [
+        "jaxfne-tests (tests/test_notebook_execution_suite.py, test_etude3_v1_spectrolaminar_1k.py, test_suite_no1/no4_notebook_execution.py, test_neuronal_tensor_notebook_execution.py all provide the real execution coverage for this subsystem's notebooks)",
+        "jaxfne-neural-network (tutorial_utils' make_laminar_column_config/build_laminar_column/simulate_laminar_trials pipeline is a parallel, dict-returning convenience layer alongside the core Configuration->construct->simulate->Signals grammar that jaxfne-neural-network documents)",
+        "jaxfne-spectrolaminar-suite (Etude No.3 V1 1k and the TCM 6-population etude are explicitly the worked examples that skill documents; spectrolaminar_from_trials/spectrolaminar_motif_score in tutorial_utils.py implement the readout it covers)",
+        "jaxfne-notebook-release-gate (owns the hard gates, required sections, and F-024 kernel landmine for every notebook in this directory -- the primary accumulated-knowledge source for this node)",
+        "jaxfne-config and jaxfne-neural-tensor (jaxfne_neuronal_tensor_first.ipynb is the release-facing tutorial demonstrating the NeuronalTensor-first construction path those skills cover)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

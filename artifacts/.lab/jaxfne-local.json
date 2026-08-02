@@ -1,0 +1,51 @@
+{
+  "id": "jaxfne-local",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "local",
+  "generated": {
+    "summary": "Folder with 24 files, e.g. raster_enhanced_layerfrac_v0rand_2000ms.png, gen_test_data_100n_1000ms.py, raster_100_column_2000ms.png, etude5_spectrolaminar_V1.png, verify_plotly_pipeline.py.",
+    "source_paths": [
+      "local"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "medium",
+      "key_findings": [
+        "local/ is fully gitignored (root .gitignore line 111: `local/`), confirmed untracked scratch space, ~1.7M total.",
+        "Contents are ad hoc dev scratch: PNG figure dumps (raster/spectrolaminar plots), one-off scripts (extract.py, gen_test_data_100n_1000ms.py, verify_plotly_pipeline.py), a __pycache__, an etude4/ subdir, and skills/ + skills_extracted/ subdirs that look like personal skill-authoring scratch copies (separate from the repo's real skills/ at root).",
+        "Everything here reads as regenerable/disposable (plots and one-off test scripts); nothing was found that's referenced by tests or core package code \u2014 safe to delete/regenerate on inspection, no exception-tracked load-bearing file identified."
+      ],
+      "contracts": [],
+      "landmines": [
+        "local/skills/ and local/skills_extracted/ subdirectories could be confused with the repo's real top-level skills/ directory (which IS tracked) -- worth a name check if anyone ever scripts against 'skills/' paths from repo root context, though not verified as an active bug."
+      ],
+      "related_nodes": [
+        "jaxfne-spectrolaminar-suite (etude4/, spectrolaminar_initial_V1.png, etude5_spectrolaminar_V1.png look like outputs of that suite)",
+        "jaxfne-neural-network (raster_*.png outputs plausibly generated via Model.simulate/vis raster calls)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

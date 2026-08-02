@@ -1,0 +1,56 @@
+{
+  "id": "pkg-vis",
+  "kind": "subpackage",
+  "title": "jaxfne/vis/ (core, non-plotly)",
+  "generated": {
+    "summary": "jaxfne/vis (excluding vis/plotly/) is the package's static/NumPy-isolated matplotlib visualization layer for simulation output: raster plots, Vm/rate/LFP/CSD/EEG/MEG traces, PSD/spectrogram, spectrolaminar suites, 3D network/column geometry, HDP...",
+    "source_paths": [
+      "jaxfne/vis (excluding vis/plotly/)"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "medium -- __init__.py and core.py were read in full and give a reliable picture of the public surface and shared utilities, and FRICTIONS_STACK.md/AGENTS.md citations were grep-verified directly; but the 6 largest files (fields.py, traces.py, script_reports.py, tutorial_panels.py, network3d.py, hdp_diagnostics.py -- roughly 4,600 of the 6,268 total lines) were sampled only via their import lists in __init__.py, not read internally, so internal-organization claims about those files are inferred from names/exports rather than directly verified line-by-line.",
+      "purpose": "jaxfne/vis (excluding vis/plotly/) is the package's static/NumPy-isolated matplotlib visualization layer for simulation output: raster plots, Vm/rate/LFP/CSD/EEG/MEG traces, PSD/spectrogram, spectrolaminar suites, 3D network/column geometry, HDP diagnostics, tutorial/report figure assembly, and evidence/export bundling. Organized as one-file-per-concern (rasters.py, traces.py, spectra.py, fields.py, network3d.py) plus a canonical.py dispatch layer offering backend-agnostic entry points (plot_raster, plot_lfp, plot_psd, etc., default backend='plotly' per __init__.py lines 80-93/210) sitting on top of both the matplotlib-native modules and the separate vis/plotly/ subpackage. core.py (61 lines) supplies shared low-level utilities (FigureResult dataclass, require_matplotlib, close_all, prepare_static_plot_matrix for JAX-device-array-to-host extraction) used across the other modules. Larger files (fields.py 818 lines, traces.py 762, script_reports.py 707, tutorial_panels.py 697, network3d.py 684) hold clustered concerns rather than being further split.",
+      "key_findings": [
+        "18 real .py files in jaxfne/vis top level (excluding plotly/ subpackage, __pycache__, .DS_Store), totaling 6,268 lines per `wc -l jaxfne/vis/*.py`; largest are fields.py (818), traces.py (762), script_reports.py (707), tutorial_panels.py (697), network3d.py (684), canonical.py (426); smallest are layout.py (57), core.py (61)",
+        "__init__.py (271 lines) is the real public surface: it imports/re-exports from every module and defines an explicit __all__ list of ~110 names (lines 144-271) -- e.g. FigureResult, raster, vm, lfp, csd, eeg, meg, psd, spectrolaminar_suite, plot_raster, plot_lfp, export_figure, column_network_3d_scatter",
+        "canonical.py's backend-dispatching entry points (plot_network_3d, plot_raster, plot_lfp, ..., plot_objective_history) default to backend='plotly' per __init__.py's inline comment at line 210, meaning some 'canonical' calls in this matplotlib-oriented node route into the excluded vis/plotly/ subpackage by default",
+        "core.py's module docstring (lines 1-5) and FigureResult docstring (lines 14-18) carry explicit truth-gate language: 'Evaluated as an uncalibrated computational scaffold' / 'amplitude_claim_allowed=False'",
+        "pyproject.toml has an explicit F401 ruff exemption for vis/__init__.py (per FRICTIONS_STACK.md row F-030) because it is a pure re-export aggregator, same class of file as jaxfne/core.py and _construct.py"
+      ],
+      "contracts": [
+        "AGENTS.md line 106: 'Plotting: jaxfne/vis/* only (modular-grammar rule 2)' -- grep-verified present in repo AGENTS.md, confining all plotting code to this subpackage",
+        "AGENTS.md line 49 cites the canonical laminar-readout entry point 'jtfne.vis.spectrolaminar_suite(sig)', verifiably exported at jaxfne/vis/__init__.py lines 46 and 183 (imported from fields.py and listed in __all__)",
+        "FRICTIONS_STACK.md row F-026 (CLOSED 2026-07-08) documents a carve-out: one-off illustration scripts under scripts/evidence_figures/ (bespoke matplotlib figures) are intentionally NOT migrated into jaxfne/vis/ -- vis/ is scoped to reusable simulation-output plotting, not single-use publication illustrations; documented exception to rule 2, not a violation",
+        "skills/FRICTIONS_STACK.md row at line 73 (undated, 2026-06-27) asserts the jaxfne-vis-modules skill's module map matches jaxfne/vis/*.py -- cited but not independently line-by-line diffed against the current file list in this pass",
+        "vis/__init__.py is registered as an F401 ruff-ignore in pyproject.toml (per FRICTIONS_STACK.md F-030) since its entire purpose is re-export -- future lint autofix passes on this file must check that exemption first"
+      ],
+      "landmines": [
+        "FRICTIONS_STACK.md F-030 (CLOSED 2026-07-14): a blind `ruff check --fix` previously gutted jaxfne/core.py and _construct.py (re-export aggregators), breaking `import jaxfne`; vis/__init__.py was added to the same per-file F401 ignore list preemptively",
+        "FRICTIONS_STACK.md F-026 (CLOSED 2026-07-08): scripts/evidence_figures/ deliberately calls matplotlib directly outside jaxfne/vis/ -- not a rule-2 violation, documented exception",
+        "canonical.py's dispatch functions default to backend='plotly' even though they live in the matplotlib-oriented vis/ package proper -- this node is not fully decoupled from the excluded vis/plotly/ subpackage; canonical.py is the seam between them",
+        "core.py's FigureResult/module docstrings encode the amplitude_claim_allowed=False truth gate directly in the vis layer -- edits to these docstrings are truth-gate edits, not routine copy cleanup",
+        "Only __init__.py and core.py were read in full; fields.py, traces.py, network3d.py, script_reports.py, tutorial_panels.py, hdp_diagnostics.py (each 500-800+ lines, ~4,600 of 6,268 total lines) were inventoried by name/size/import list only, not opened"
+      ],
+      "related_nodes": [
+        "tests/test_vis_network3d_public_api.py, tests/test_vis_deduplication.py, tests/test_vis_phase5.py, tests/test_vis_plotly_network_model_path.py, tests/test_vis_smoke_all.py, tests/test_network3d_visualize.py, tests/test_neuronal_tensor_notebook_execution.py (per grep -rl 'jaxfne.vis' tests/) exercise this subpackage",
+        "skills/jaxfne-vis-modules/SKILL.md documents this subpackage (single file in that skill directory per ls)",
+        "jaxfne/AGENTS.md lines 49 and 106 reference this subpackage's contract and canonical entry point",
+        "depends on: jax, numpy (core.py lines 10-11), matplotlib (lazily via require_matplotlib), and the excluded vis/plotly/ subpackage (imported at __init__.py line 79 `from . import plotly`)",
+        "depended on by: jaxfne/export.py (per FRICTIONS_STACK.md F-016, save_figure is deprecated in favor of vis/exporters.py::export_figure) and scripts/*.py (script_reports.py's module comment: 'scripts/*.py rendering helpers')"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "id": "api-bridges",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Bridges",
+  "generated": {
+    "summary": "Bridges API -- Optional bridges that let external biophysical simulators participate in the",
+    "source_paths": [
+      "docs/api/bridges.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-bridges",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

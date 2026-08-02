@@ -1,0 +1,60 @@
+{
+  "id": "pkg-sanity-runtime",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/sanity_runtime.py",
+  "generated": {
+    "summary": "\"\"\"v0.3.32: Pure numerical/runtime simulation kernels and helpers. -- This module implements the underlying mathematical operations for the",
+    "source_paths": [
+      "jaxfne/sanity_runtime.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-retry",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (retry batch after 1st pass produced placeholder junk/crashed for these), spot-checked before commit",
+      "confidence": "High confidence on file contents, importer/caller graph, and lack of uncommitted diff -- all directly verified via Read and grep. Did not exhaustively grep every possible TODO/FIXME spelling variant, but a full read of all 351 lines found none.",
+      "purpose": "jaxfne/sanity_runtime.py (351 lines) is, per its module docstring (lines 1-10), \"Pure numerical/runtime simulation kernels and helpers\" for the hierarchical global-local oddball task, explicitly constrained to no filesystem I/O, no JSON serialization, no plotting, and no public physical claims. Its first real function, `_build_area_index` (line 17), constructs Izhikevich neuron parameter arrays (a, b, c, d, base_drive) for a 5-area x 100-neuron setup with E/PV/SST/VIP cell-type blocks.",
+      "key_findings": [
+        "The file is exactly 351 lines (confirmed via `wc -l`) and defines 9 underscore-prefixed private helper functions: _build_area_index (17), _build_stimulus_drive (63), _build_weight_matrix (81), _scan_task_runtime (101, with nested step_fn at 116), _apply_segment_homeostasis (136), _restore_runtime_state (197), _compute_proxy_readouts (206), _compare_backup_resume (235), _make_probe_metrics (273), and _make_plasticity_metrics (286).",
+        "grep across jaxfne/ and tests/ shows exactly one importer: jaxfne/__init__.py line 292 does `from . import sanity_runtime`, and jaxfne/sanity_delta.py is the sole caller, invoking 9 of sanity_runtime's functions at lines 138, 275, 277, 289, 317, 336, 353, 764, 803, and 808.",
+        "Line 280 (_make_probe_metrics) and lines 348-349 (_make_plasticity_metrics) hard-code 'physical_amplitude_calibrated': False and 'biological_learning_claim': False / 'placeholder_values' flags, i.e. the module self-enforces the truth-gate convention (proxy, not calibrated/validated claims) directly in code rather than only in docs.",
+        "No TODO/FIXME/NotImplementedError strings found in the file (not grepped explicitly here but none observed while reading all 351 lines), and `git status`/`git diff` show zero uncommitted changes to this file -- it matches HEAD exactly."
+      ],
+      "contracts": [
+        "Per the module docstring (lines 1-10), the file must remain free of filesystem I/O, JSON serialization, plotting/markdown strings, and public physical-amplitude claims -- this is directly tested by tests/test_sanity_delta_runtime_architecture.py, which at line 28-29 does `inspect.getsource(sanity_runtime)` and at line 43 asserts forbidden call names are absent from the source.",
+        "tests/test_sanity_delta_runtime_architecture.py line 8-10 asserts `hasattr(jtfne, \"sanity_runtime\")` and line 25 asserts specific helper names exist on the module (via a list `h` iterated starting line ~11-25), so renaming/removing any of the 9 helper functions listed above would break this architecture test.",
+        "Callers (sanity_delta.py) pass raw jnp arrays and plain Python/dict arguments only -- e.g. _build_weight_matrix(n_neurons) at sanity_delta.py:138 and _compute_proxy_readouts(vm_jnp, n_neurons) at line 353 -- implying the module's functions are meant to stay pure/stateless with no config-object coupling."
+      ],
+      "landmines": [
+        "_make_plasticity_metrics (lines 286-351) returns fabricated placeholder numeric weight stats (pre_weight_min=0.0, pre_weight_max=0.08, pre_weight_mean=0.01, etc., lines 316-322) when plasticity is disabled or arrays aren't provided, flagged only via a `placeholder_values: True` field (line 325/349) -- a caller that reads the numeric fields without checking `placeholder_values` would mistake these hardcoded constants for real measurements.",
+        "_compute_proxy_readouts (lines 206-233) seeds EEG/MEG projection matrices with `np.random.default_rng(42)` (line 222) -- a fixed seed baked into the function itself, so any change to this seed or the projection dimensionality (16 columns) would silently change all downstream EEG/MEG proxy outputs without any config-level visibility.",
+        "No entry for sanity_runtime.py exists in skills/FRICTIONS_STACK.md (grep returned zero matches), so no previously-documented friction/gotcha is on record for this specific file beyond what is visible in the code itself."
+      ],
+      "related_nodes": [
+        "jaxfne/sanity_delta.py (sole caller of all 9 sanity_runtime helpers, lines 138, 275, 277, 289, 317, 336, 353, 764, 803, 808)",
+        "jaxfne/__init__.py (line 292, `from . import sanity_runtime`)",
+        "tests/test_sanity_delta_runtime_architecture.py (architecture/contract test asserting module existence, helper presence, and absence of forbidden I/O/JSON/plot calls in source)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

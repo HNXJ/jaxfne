@@ -1,0 +1,28 @@
+{
+  "id": "rules-bloom",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Bloom",
+  "generated": {
+    "summary": "A pure-rendering status badge (bud/growing/bloom/forked/composted) mapped from a node's status -- no new data, just legibility in the graph view.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

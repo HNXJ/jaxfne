@@ -1,0 +1,39 @@
+{
+  "id": "jaxfne-seal",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Seal (PRP verb node)",
+  "generated": {
+    "summary": "4 checkpoint(s) sealed (live from plans.json.checkpoints[]).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "checkpoint-2026-07-30-dangling-edge-fix",
+      "kind": "checkpoint",
+      "date": "2026-07-30",
+      "source": "scripts/lab_balance.py, git log/status",
+      "confidence": "high",
+      "detail": "Fixed the one dangling edge in the tracked .lab graph (all 10 rebalance-phase-* nodes pointed at the untracked plan-lab-graph-rebalance; repointed to jaxfne-plan). Committed a7e3f0f, pushed to origin/dev, HEAD == origin/dev, tree clean.",
+      "record": "lab_balance.py defects section now empty. --gate still fails on the pre-existing, separately-tracked star-topology targets (gini 0.495, max degree 40, 63 pendants) -- out of scope here, owned by rebalance-phase-04 as an upstream repo_mapper gap, not touched by this checkpoint.",
+      "caveat": "This note is hand-authored directly on the tracked node, not appended to plans.json.checkpoints[] -- artifacts/developer/plans.json does not exist in this checkout (gitignored, local-only). No fabricated checkpoint entry was written to a file that isn't present."
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "scripts-upload-pypi-sh",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "upload_pypi.sh",
+  "generated": {
+    "summary": "!/usr/bin/env bash -- set -euo pipefail",
+    "source_paths": [
+      "scripts/upload_pypi.sh"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-scripts",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

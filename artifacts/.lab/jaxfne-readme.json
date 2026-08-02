@@ -1,0 +1,65 @@
+{
+  "id": "jaxfne-readme",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "README.md",
+  "generated": {
+    "summary": "<p align=\"center\"> -- <img src=\"https://raw.githubusercontent.com/HNXJ/jaxfne/main/docs/assets/jaxfne-itxt.png\" alt=\"jaxfne\" width=\"200\">",
+    "source_paths": [
+      "README.md"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "README.md (top-level, 82 lines) is jaxfne's public-facing entry point: badges (PyPI, Python versions, ReadTheDocs, CI fast + release_ci workflows, coverage, contributing, MIT license), a one-paragraph pitch ('JAX-based simulation of Tensor-Field Neural Equations'), Install section, a runnable Minimal example, a Scope & status section, a Documentation table, and a Citation section.",
+        "The minimal example in README.md lines 40-50 uses the canonical import alias `import jaxfne as jtfne`, calls `jtfne.enable_x64()`, `jtfne.load_canonical_neuronal_tensor('canonical-v1-column-1000n')`, `jtfne.construct(tensor, jtfne.RuntimeConfiguration(...))`, `jtfne.simulate(model)`, `jtfne.vis.raster(signals)`, `jtfne.vis.spectrolaminar_suite(signals)` -- this matches the jaxfne-objective-grammar chain (Configuration/NeuronalTensor -> construct -> simulate -> Signals -> vis).",
+        "README.md explicitly states 'Exported but not yet implemented: GLIFEmitter, LIFEmitter, write_nwb, read_nwb' (line 62) -- verified real: `grep -n` in jaxfne/__init__.py shows these are genuinely imported/re-exported (GLIFEmitter/LIFEmitter at lines 153-154, write_nwb/read_nwb from .pynwb_compat at line 281, and all four appear in __all__ at lines 446-447, 558-559) but the repo does not claim they're functional -- README accurately mirrors an incomplete-but-exported state rather than hiding it.",
+        "pyproject.toml version is 0.4.8, matching the most recent commit '5f9d7d3 chore: bump version to 0.4.8' -- README's PyPI badge is dynamic (shields.io) so it doesn't hardcode a version, avoiding version-drift risk.",
+        "AGENTS.md (repo root, not jaxfne/AGENTS.md -- that path does not exist) has an explicit, enforced rule governing this file: 'This section is agent-facing, not for public docs. README/docs/** get the *result* of this rule (every value stated as Relative or Absolute, nothing else), never the rule itself. Don't copy \"language: prefer X avoid Y\" phrasing... into docs/ or README.md. Don't compare jaxfne to other named projects in public docs.' -- guarded by `python3 scripts/audit_public_docs_language.py --check`, wired into CI.",
+        "All docs the README table links to were verified to exist: docs/quickstart.md, docs/scope_and_status.md, docs/for_ai_agents.md, docs/citation.md, docs/changelog.md, docs/contributing.md, CITATION.cff -- all present at time of check.",
+        "README.md positions Jaxley (biophysical/compartmental) explicitly as a complementary, non-competing tool to jaxfne (population/field-scale), with a stated Jaxley bridge documented in docs/quickstart.md -- this is the one exception to the 'don't compare to other named projects' rule, evidently deliberate and pre-existing."
+      ],
+      "contracts": [
+        "Canonical import convention: `import jaxfne as jtfne` -- stated in README.md line 52 and used throughout the codebase/skills; any code sample or doc using a different alias is non-canonical.",
+        "Truth-gate labeling contract: every jaxfne output must be labeled Relative or Absolute (README.md lines 57-60, docs/scope_and_status.md) -- Relative is default/no-evidence-required, Absolute requires an explicit evidenced calibration step. This is the public-facing surface of AGENTS.md's stricter internal truth gates (claim_level=computational_scaffold, physical_amplitude_calibrated=False, etc.), which must NOT leak verbatim into README/docs per AGENTS.md lines 59-64.",
+        "README.md is machine-checked for policy compliance via `scripts/audit_public_docs_language.py --check`, run in CI -- any edit to README.md's language should be validated against this script before commit.",
+        "docs/for_ai_agents.md and skills/ are declared (README.md lines 75-77) to be verified against the same source of truth as human-facing docs, not a separately-drifting spec -- implies README + docs/for_ai_agents.md + skills/ should stay mutually consistent."
+      ],
+      "landmines": [
+        "Do not add 'language: prefer X avoid Y' / 'does not claim' style meta-commentary, or named competitive comparisons (other than the pre-existing Jaxley complement framing), into README.md or docs/ -- this is an explicit repeat-offense rule in AGENTS.md (lines 59-64) with its own CI guard script, meaning it was violated before and is now actively fenced.",
+        "Nothing describing internal roadmap, competitive positioning, per-file audit scores, or agent-to-agent working notes may be tracked anywhere in this repo, public or not (AGENTS.md, same section) -- this was the concrete incident behind the 2026-07-14 `git rm --cached` + gitignore of artifacts/developer/ (PRP backlog), so README/docs edits should never reintroduce that class of content.",
+        "The repo root AGENTS.md exists at ./AGENTS.md, NOT jaxfne/AGENTS.md -- a fresh agent guessing the latter path (as this task's prompt did) will get a file-not-found; always verify the path first."
+      ],
+      "related_nodes": [
+        "jaxfne-objective-grammar (README's minimal example is a literal instance of the Configuration/NeuronalTensor -> construct -> simulate -> Signals -> vis chain that skill documents)",
+        "jaxfne-worker-context-router (orientation skill referenced implicitly by 'Documentation for AI coding agents' section of README pointing to docs/for_ai_agents.md and skills/)",
+        "jaxfne-release-mutation-guard (README's PyPI/version badges and Install section are downstream of release mechanics that skill gates -- version bumps, PyPI publishes)",
+        "jaxfne-notebook-release-gate (validates docs/tutorials, docs site, and other artifacts the README's Documentation table links to)",
+        "AGENTS.md / repo-audit (owns the 'agent-facing vs public-facing language' rule that directly constrains what can be written in README.md; script scripts/audit_public_docs_language.py enforces it)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

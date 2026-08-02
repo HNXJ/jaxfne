@@ -1,0 +1,30 @@
+{
+  "id": "skills-readme-md",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "README.md",
+  "generated": {
+    "summary": "jaxfne skills -- **Documentation written for AI coding agents** \u2014 same package source-of-truth as",
+    "source_paths": [
+      "skills/README.md"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-skills",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

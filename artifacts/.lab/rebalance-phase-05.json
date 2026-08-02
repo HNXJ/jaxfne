@@ -1,0 +1,36 @@
+{
+  "id": "rebalance-phase-05",
+  "kind": "plan_phase",
+  "title": "Phase 5: Mechanical harvest: code <-> tests",
+  "generated": {
+    "summary": "tested_by edges from every module node to its test files, derived from imports + filename convention.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-plan",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-04",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 5,
+      "execution_status": "open",
+      "detail": "tested_by edges from every module node to its test files, derived from imports + filename convention.",
+      "exit_criterion": "+60-80 edges; every module node with tests has degree >= 3.",
+      "record": "High confidence, no judgement calls. pkg-fields alone already names 13 test files in its notes."
+    }
+  ],
+  "issues": [],
+  "plan": "+60-80 edges; every module node with tests has degree >= 3."
+}

@@ -1,0 +1,28 @@
+{
+  "id": "rules-graft",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Graft",
+  "generated": {
+    "summary": "Computes each node's shortest path back to the root over generated.links (BFS, undirected). A node with no such path is a loose leaf.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "rules-pollinate",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Pollinate",
+  "generated": {
+    "summary": "Proposes (never auto-creates) a connection between two unlinked nodes with overlapping vocabulary -- Jaccard score above a floor, never acted on directly.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

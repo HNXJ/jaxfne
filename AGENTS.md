@@ -2,6 +2,30 @@
 
 **Clone:** this repo · **Import:** `import jaxfne as jtfne`
 
+## Labyrinth is not optional
+
+**Every user turn is a graph update.** Before acting on a prompt, read the repo's `.lab/`
+graph; after acting, write back what changed — a note, an issue, a link, a corrected claim.
+A prompt is evidence about the project *and* about the user; a session that ends without
+touching a `.lab/` node has thrown its own learning away.
+
+**Read it skeptically.** Nodes are claims, not facts — `status: unconfirmed` means
+unconfirmed, and a `note` records what was true when written. Verify against code/tests
+before relying on one, and when the graph and the repo disagree, fix the graph and say so.
+Correct the user too: if a prompt contradicts a `confirmed` node, surface the conflict
+before complying, then record whichever way it resolves.
+
+**Measure, don't vibe.** `python3 ~/workspace/main/labyrinth/clients/repo_mapper.py --target .`
+prints coverage (structural + verified, as a pair), the five-kind mismatch vector
+(omission/redundancy/disconnection/staleness/contradiction), null-model complexity, schema
+drift, and **J** -- one scalar, lower is better, always reported with its completeness.
+Cite those numbers, never an impression of graph health. `None` in any of them means
+*never looked* -- it is not a zero and must never be reported as one.
+
+See the `labyrinth-protocol` skill for the graph-forming layer; `progress-review-plan` for
+the PRP backlog that rides on it.
+
+
 Depth lives in **`skills/`**, **`docs/`**, and (local-only, see below) **`artifacts/developer/`**
 — not here. Full AI-agent guide: [docs/for_ai_agents.md](docs/for_ai_agents.md).
 

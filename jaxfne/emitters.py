@@ -179,6 +179,14 @@ def _segment_sum(data, segment_ids, num_segments):
     return jax.ops.segment_sum(data, segment_ids, num_segments=num_segments)
 
 
+def _izhikevich_dv_du(v, u, current_native, a, b):
+    """Izhikevich (2003) fast-subsystem derivatives -- shared by every scan-body
+    closure in this module (F-028: was duplicated verbatim 11 times)."""
+    dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
+    du = a * (b * v - u)
+    return dv, du
+
+
 @dataclass(frozen=True)
 class EIGNetwork:
     """Lightweight description of an E/PV/SST/VIP-like reduced network."""
@@ -432,8 +440,7 @@ def simulate_eig_izhikevich(
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
             current_native = drive + syn + noise_coef * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -457,8 +464,7 @@ def simulate_eig_izhikevich(
             v, u, prev_spikes = carry
             syn = weights @ prev_spikes
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -616,8 +622,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + syn + noise_coef * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -643,8 +648,7 @@ def simulate_edge_recurrent_izhikevich(
             edge_current = weight * syn_state
             syn = _segment_sum(edge_current, post, n_neurons)
             current_native = drive + sched_t + syn + noise_coef * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -846,8 +850,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             syn = _segment_sum(edge_current, post, n_neurons)
             g = jnp.clip(k_gain_arr * (r_star_arr - r), g_min_arr, g_max_arr)
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -884,8 +887,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             current_native = drive + syn + noise_coef * noise_t + g
 
             # Izhikevich dynamics
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -936,8 +938,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             current_native = drive + sched_t + syn + noise_coef * noise_t + g
 
             # Izhikevich dynamics
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
 
@@ -1472,8 +1473,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         w_next = jnp.where(exc_mask, wmag_next, -wmag_next)
 
         # (4) Integrate the neuron (Izhikevich) and detect spikes.
-        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-        du = a * (b * v - u)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
         v_next = v + dt * dv
         u_next = u + dt * du
         v_next = jnp.where(s_mask > 0.5, v_next, c)
@@ -1730,8 +1730,7 @@ def simulate_receptor_exponential_izhikevich(
             edge_drive = weight * syn_state
             syn = _segment_sum(edge_drive, post, n_neurons)
             current_native = drive + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -1757,8 +1756,7 @@ def simulate_receptor_exponential_izhikevich(
             edge_drive = weight * syn_state
             syn = _segment_sum(edge_drive, post, n_neurons)
             current_native = drive + sched_t + syn + jnp.asarray(0.5, dtype=jdtype) * noise_t
-            dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-            du = a * (b * v - u)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
             
@@ -1869,8 +1867,7 @@ def simulate_dynamic_ei_coupling(
         syn_currents = jnp.asarray([syn_current_ie, syn_current_ei], dtype=jdtype)
 
         current_native = drive + syn_currents + noise
-        dv = 0.04 * v * v + 5.0 * v + 140.0 - u + current_native
-        du = a * (b * v - u)
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
         v_next = v + dt * dv
         u_next = u + dt * du
         spikes_bool = v_next >= 30.0

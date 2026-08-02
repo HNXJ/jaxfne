@@ -1,0 +1,64 @@
+{
+  "id": "pkg-sanity-delta",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "sanity_delta.py",
+  "generated": {
+    "summary": "\"\"\"v0.3.32: Hierarchical global-local oddball API hardening. -- Package-native orchestration objects for structured oddball task with:",
+    "source_paths": [
+      "jaxfne/sanity_delta.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on structural facts (line numbers, class list, __all__, git diff/status, test file list) -- all directly grepped/read. Read module docstring and lines 1-180 in detail plus targeted greps across the full 944 lines; did not line-by-line read the internals of SanityDeltaModel/HierarchicalOddballParadigm/BehaviorGate/BackupState/TaskEpisode/Manifest bodies (lines ~180-935) beyond grep sampling, so their internal behavior beyond what's cited is not individually verified.",
+      "purpose": "sanity_delta.py (jaxfne/sanity_delta.py, 944 lines) is a self-contained package-native orchestration module for a hierarchical global-local oddball task: a fixed 5-area (V1a/V1b/V4/MT/PFC), 500-neuron laminar model with an AAAB stimulus sequence, fixation-gated behavior, resumable backup state, and proxy-only readouts (lfp_proxy/csd_proxy/eeg_proxy/meg_proxy), per its module docstring (lines 1-16). It is exported at package top level: jaxfne/__init__.py:283-291 imports SanityDeltaConfig, SanityDeltaModel, HierarchicalOddballParadigm, BehaviorGate, BackupState, TaskEpisode, Manifest directly from it (labeled 'v0.3.32: Hierarchical global-local oddball API hardening').",
+      "key_findings": [
+        "944 lines total (wc -l). 7 dataclasses: SanityDeltaConfig (line 35), SanityDeltaModel (179), HierarchicalOddballParadigm (384), BehaviorGate (515), BackupState (558), TaskEpisode (599), Manifest (900).",
+        "__all__ at line 936 exports exactly the 7 classes above, matching jaxfne/__init__.py's import list verbatim.",
+        "No TODO/FIXME/NotImplementedError found (grep matched nothing for those tokens).",
+        "git status/diff on this file is clean -- no uncommitted changes (git diff and git status --short both empty for jaxfne/sanity_delta.py).",
+        "SanityDeltaConfig.__post_init__ (lines 57-70) hardcodes rigid assertions: exactly 5 areas equal to ('V1a','V1b','V4','MT','PFC'), neurons_per_area==100, total==500, cell_counts summing to 100 with exactly 70E/30I split, hierarchy exactly 4 edges, stimulus_map A/B with fixed 0.75/0.25 mixing weights, runtime_mode in {'scaffold','full'} -- a single fixed topology, not a flexible config.",
+        "Truth-gate handling: hierarchical_global_local_oddball() factory (lines 72-124) routes claim_level/field_solver_status through _config.clamp_truth_gate_metadata() and force-sets physical_amplitude_calibrated=False unconditionally after clamping (line 108), with an inline comment (lines 96-102) documenting this was added specifically to close an escalation path where a caller could previously pass claim_level='validated' unchecked.",
+        "construct() (lines 124-152) calls sanity_runtime._build_weight_matrix(n_neurons) -- a private (underscore-prefixed) function from the sibling sanity_runtime module -- showing tight, non-public-API coupling between the two modules."
+      ],
+      "contracts": [
+        "SanityDeltaConfig is frozen to the canonical 5-area/500-neuron/70E-30I topology by __post_init__ assertions (lines 58-69); constructing it with any other shape raises AssertionError immediately -- callers must go through hierarchical_global_local_oddball()'s defaults or match them exactly.",
+        "physical_amplitude_calibrated is always forced False by the factory (sanity_delta.py:108) regardless of what a caller passes -- an enforced truth-gate invariant, consistent with the module docstring's 'physical_amplitude_calibrated=False' gate (line 14).",
+        "__all__ (line 936) is the real public contract; jaxfne/__init__.py:283-291 imports exactly those 7 names, so adding/removing exports here must stay in sync with __init__.py or the package import breaks."
+      ],
+      "landmines": [
+        "No row for sanity_delta.py found in skills/FRICTIONS_STACK.md (grep returned nothing) -- no documented friction history for this specific file to cross-check against.",
+        "construct() reaches into sanity_runtime._build_weight_matrix, a name-mangled/private function of another module -- a refactor of sanity_runtime's internals could silently break this module without any public-API signal.",
+        "The rigid __post_init__ assertions (5 areas, exactly 500 neurons, exactly 70/30 E/I, exactly 4 hierarchy edges, fixed 0.75/0.25 stimulus mix) mean this dataclass cannot be reused for any other topology size or composition -- any 'scale this up' request will hit hard AssertionErrors, not graceful config."
+      ],
+      "related_nodes": [
+        "tests/test_sanity_delta_plasticity.py, tests/test_sanity_delta_runtime_architecture.py, tests/test_sanity_delta_backup_resume.py, tests/test_sanity_delta_optional_imports.py, tests/test_sanity_delta_task_schedule.py, tests/test_sanity_delta_proxy_readout_names.py, tests/test_sanity_delta_report_schema_full.py, tests/test_sanity_delta_plasticity_report_full.py, tests/test_sanity_delta_resume_equivalence_full.py, tests/test_sanity_delta_full_runtime_mode.py, tests/test_sanity_delta_hierarchical_oddball_config.py (11 test files, matched via grep for the module's class names)",
+        "jaxfne/sanity_runtime.py -- imported as `from . import sanity_runtime` (line 30) and called directly (sanity_runtime._build_weight_matrix), a private-function dependency",
+        "jaxfne/_config.py -- imports clamp_truth_gate_metadata (line 31), used in the factory to enforce truth-gate invariants",
+        "jaxfne/__init__.py:283-291 -- re-exports this module's full __all__ at package top level"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "api-sharding",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Sharding",
+  "generated": {
+    "summary": "Sharding Utilities API -- Multi-device (multi-GPU/TPU) population-sweep sharding for jaxfne.",
+    "source_paths": [
+      "docs/api/sharding.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-sharding-utils",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

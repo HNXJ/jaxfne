@@ -1,0 +1,34 @@
+{
+  "id": "api-objectives",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Objectives",
+  "generated": {
+    "summary": "Objectives API -- Objectives define numerical targets for `Model.tune`.",
+    "source_paths": [
+      "docs/api/objectives.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-objectives",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

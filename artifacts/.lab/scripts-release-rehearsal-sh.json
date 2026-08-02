@@ -1,0 +1,30 @@
+{
+  "id": "scripts-release-rehearsal-sh",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "release_rehearsal.sh",
+  "generated": {
+    "summary": "!/usr/bin/env bash -- set -euo pipefail",
+    "source_paths": [
+      "scripts/release_rehearsal.sh"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-scripts",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

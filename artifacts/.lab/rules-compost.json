@@ -1,0 +1,28 @@
+{
+  "id": "rules-compost",
+  "schema_version": 3,
+  "kind": "algorithm",
+  "title": "Compost",
+  "generated": {
+    "summary": "A node whose status is 'superseded' moves to Archive/<id>.json instead of <id>.json. Never deleted -- reversible if the status changes back.",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-rules",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

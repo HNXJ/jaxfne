@@ -125,25 +125,42 @@ def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":
     return signals.field
 
 
-def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
-    """Apply canonical cortical-column biophysics at construct time.
+def _canonical_biophysics_depth_gating(emitter, positions):
+    """Shared gating precondition for the two canonical-column laminar effects
+    (deep-E grading and PV<->E strengthening): both require cell-type labels,
+    layer labels, and a non-degenerate depth (Z) axis.
 
-    Three effects, all reproducible from ``cfg`` seed:
+    Returns ``None`` if the precondition fails (caller should no-op), else
+    ``(lab, Z, zd, isE, n)`` -- the shared label/depth arrays both effects read.
+    """
+    import numpy as _np
+    cts = emitter.labels
+    if cts is None or emitter.layer_labels is None:
+        return None
+    n = int(emitter.v0.shape[0])
+    lab = _np.asarray([str(x) for x in cts])
+    Z = _np.asarray(positions)[:, 2]
+    if Z.shape[0] != n or float(_np.ptp(Z)) == 0.0:
+        return None
+    zd = (Z - Z.min()) / (float(_np.ptp(Z)) + 1e-9)
+    isE = lab == "E"
+    return lab, Z, zd, isE, n
 
-    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron — ALWAYS applied. Identical
-      initial potentials cause a synchronized t=0 onset volley (raster banding);
-      randomizing removes that onset-response synchrony bias. Disable with
-      ``cfg.runtime(random_v0=False)``.
-    * **Deep-E "larger" grading** (laminar columns only): excitatory neurons get a
-      depth gradient — ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
-      (slower recovery), ``d`` 8->10 (wider/stronger). Larger deep pyramidals fire
-      sparser, slower, wider.
-    * **PV<->E local connectivity x3** (laminar columns only): the fast feedback-
-      inhibition (PING) loop is strengthened, distance-gated by laminar depth.
 
-    The two laminar effects are gated on the presence of cell-type + layer labels
-    and a non-degenerate depth axis, so non-laminar/test configs only get random v0.
-    Returns ``(emitter, edge_list)``. Proxy/scaffold truth status is unchanged.
+def _apply_canonical_dynamics_init(emitter, positions, cfg):
+    """DYNAMICS-INIT half of canonical biophysics: random ``v0`` + deep-E grading.
+
+    * **Random ``v0``** ~ Uniform(-70, 0) mV per neuron — ALWAYS applied (keyed off
+      ``cfg.metadata["seed"]``). Identical initial potentials cause a synchronized
+      t=0 onset volley (raster banding); randomizing removes that onset-response
+      synchrony bias. Disable with ``cfg.runtime(random_v0=False)``.
+    * **Deep-E "larger" grading** (laminar columns only, gated on
+      ``cfg.metadata["canonical_biophysics"]``): excitatory neurons get a depth
+      gradient — ``source_scale`` 1.0->1.8 (bigger dipole), ``a`` 0.020->0.015
+      (slower recovery), ``d`` 8->10 (wider/stronger).
+
+    Touches only the emitter (v0/a/d/source_scale) -- never edge_list. Returns
+    the (possibly replaced) ``emitter``. Proxy/scaffold truth status unchanged.
     """
     import numpy as _np
     jdtype = emitter.v0.dtype
@@ -155,24 +172,14 @@ def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
         v0 = jax.random.uniform(vkey, (n,), dtype=jdtype, minval=-70.0, maxval=0.0)
         emitter = replace(emitter, v0=v0)
 
-    # Deep-E grading + PV<->E strengthening are canonical-column features: they only
-    # apply when the canonical biophysics profile is requested (build_laminar_column
-    # ei_profile="canonical"), so generic/test configs and explicit user cell_params
-    # are left untouched. Random v0 above is always applied.
     if not cfg.metadata.get("canonical_biophysics", False):
-        return emitter, edge_list
+        return emitter
 
-    cts = emitter.labels
-    if cts is None or emitter.layer_labels is None:
-        return emitter, edge_list
-    lab = _np.asarray([str(x) for x in cts])
-    Z = _np.asarray(positions)[:, 2]
-    if Z.shape[0] != n or float(_np.ptp(Z)) == 0.0:
-        return emitter, edge_list
-    zd = (Z - Z.min()) / (float(_np.ptp(Z)) + 1e-9)
-    isE = lab == "E"
+    gating = _canonical_biophysics_depth_gating(emitter, positions)
+    if gating is None:
+        return emitter
+    _lab, _Z, zd, isE, _n = gating
 
-    # Deep-E "larger" grading (E only, by depth).
     if isE.any():
         a = _np.asarray(emitter.a, dtype=float).copy()
         d = _np.asarray(emitter.d, dtype=float).copy()
@@ -185,7 +192,29 @@ def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
                           d=jnp.asarray(d, dtype=jdtype),
                           source_scale=jnp.asarray(ss, dtype=jdtype))
 
-    # PV<->E local connectivity x3 (distance-gated by laminar depth).
+    return emitter
+
+
+def _apply_canonical_edge_strengthening(emitter, positions, edge_list, cfg):
+    """GRAPH-EDIT half of canonical biophysics: PV<->E local connectivity x3
+    (laminar columns only, gated on ``cfg.metadata["canonical_biophysics"]``).
+
+    The fast feedback-inhibition (PING) loop is strengthened, distance-gated by
+    laminar depth. Reads ``emitter.labels``/``positions`` (post deep-E grading or
+    not -- labels/positions are unaffected by dynamics-init) but touches only
+    ``edge_list.weight`` -- never the emitter. Returns the (possibly replaced)
+    ``edge_list``. Proxy/scaffold truth status unchanged.
+    """
+    import numpy as _np
+    if not cfg.metadata.get("canonical_biophysics", False):
+        return edge_list
+
+    gating = _canonical_biophysics_depth_gating(emitter, positions)
+    if gating is None:
+        return edge_list
+    lab, Z, _zd, _isE, _n = gating
+    jdtype = emitter.v0.dtype
+
     pre = _np.asarray(edge_list.pre)
     post = _np.asarray(edge_list.post)
     pc = lab[pre]
@@ -197,6 +226,25 @@ def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
         w[pv_e] = w[pv_e] * (1.0 + 2.0 * gate[pv_e])
         edge_list = replace(edge_list, weight=jnp.asarray(w, dtype=jdtype))
 
+    return edge_list
+
+
+def _apply_canonical_biophysics(emitter, positions, edge_list, cfg):
+    """Apply canonical cortical-column biophysics at construct time.
+
+    Backward-compatible wrapper: dispatches to the DYNAMICS-INIT half
+    (:func:`_apply_canonical_dynamics_init` -- random v0 + deep-E grading) and
+    the GRAPH-EDIT half (:func:`_apply_canonical_edge_strengthening` -- PV<->E
+    local strengthening) in sequence, in this order because the edge-strengthening
+    gate reads ``emitter.labels`` (unaffected by dynamics-init) but not any
+    dynamics-init output, so ordering does not change the result. Split out
+    2026-07-24 so a future ``tensor_to_graph()`` can call the graph-edit half
+    alone without touching emitter dynamics state. Returns ``(emitter,
+    edge_list)``, identical to the pre-split behavior. Proxy/scaffold truth
+    status unchanged.
+    """
+    emitter = _apply_canonical_dynamics_init(emitter, positions, cfg)
+    edge_list = _apply_canonical_edge_strengthening(emitter, positions, edge_list, cfg)
     return emitter, edge_list
 
 

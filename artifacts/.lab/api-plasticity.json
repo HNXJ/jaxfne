@@ -1,0 +1,34 @@
+{
+  "id": "api-plasticity",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Plasticity",
+  "generated": {
+    "summary": "Plasticity API -- STDP (Spike-Timing Dependent Plasticity) support for jaxfne models.",
+    "source_paths": [
+      "docs/api/plasticity.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-plasticity",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

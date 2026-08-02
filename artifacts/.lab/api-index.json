@@ -1,0 +1,42 @@
+{
+  "id": "api-index",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Overview",
+  "generated": {
+    "summary": "API Reference -- Canonical import:",
+    "source_paths": [
+      "docs/api/index.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "unmapped-2026-07-24",
+      "kind": "gap",
+      "date": "2026-07-24",
+      "purpose": "No single existing jaxfne-* module node clearly corresponds to api/index.md -- an overview/index page spanning the whole package. Left unlinked to a module node rather than guessing; a future pass should resolve this.",
+      "key_findings": [],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": [],
+      "confidence": "n/a - gap note, not a finding"
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

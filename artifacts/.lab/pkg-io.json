@@ -1,0 +1,64 @@
+{
+  "id": "pkg-io",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "io.py",
+  "generated": {
+    "summary": "\"\"\"I/O, hashing, strict JSON, and manifest helpers.\"\"\" -- from __future__ import annotations",
+    "source_paths": [
+      "jaxfne/io.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for structural facts (verified via file read, grep, git diff). Moderate for design-intent claims (circular-import workaround, deliberate truth-gate clamp) inferred from code shape and surrounding doctrine rather than explicit in-file confirmation.",
+      "purpose": "jaxfne/io.py provides strict JSON serialization, SHA256 hashing, and the run-manifest builder for jaxfne (module docstring, line 1). It is a foundational leaf utility imported by nearly all core modules.",
+      "key_findings": [
+        "262 lines, no classes, 10 functions: json_safe(L15), config_hash(L42), sha256_text(L49), sha256_file(L55), manifest(L65-158), save_receipt(L161), save_json(L180), load_json(L190), validation_report(L197), probe_report(L219), asset_hashes(L241), plus alias hash_file=sha256_file(L262)",
+        "No TODO/FIXME/NotImplementedError found",
+        "git diff on this file is empty; last commit 605c326",
+        "manifest() hardcodes physical_amplitude_calibrated: False at L103/L140/L156 as a truth-gate clamp",
+        "save_receipt raises ValueError('receipt_file_exists: ...') on existing path unless overwrite=True (L174-175)",
+        "No __all__ in io.py; public surface curated at jaxfne/__init__.py:204; load_json deliberately not re-exported at root"
+      ],
+      "contracts": [
+        "json_safe(obj) recursively serializes dataclasses/dict/list/tuple/set/Path/ndarray/duck-typed array-like objects, mapping non-finite floats to None (L34,L36)",
+        "save_json/load_json/save_receipt use allow_nan=False (L186), raising on any non-finite float that escapes json_safe",
+        "manifest()'s kwarg signature (L65-74) is relied on package-wide via 'manifest as build_manifest' imports in core.py, _model.py, _model_manifest.py, _model_readout.py, _model_simulate.py",
+        "hash_file=sha256_file (L262) is a documented v0.0.1 backwards-compat alias"
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row cites io.py specifically",
+        "json_safe's fallback str(obj) (L39) silently stringifies unrecognized types instead of raising",
+        "manifest() lazily imports .fields.validate_source_field_status and ._config.clamp_truth_gate_metadata inside the function body (L83-84) to dodge circular imports; failures surface only at call time"
+      ],
+      "related_nodes": [
+        "Tests referencing jaxfne.io incidentally (none dedicated solely to it): tests/test_compact_facade_v034.py, tests/test_probe_report_contract_v0212.py, tests/test_field_solution_metadata_v0213.py, tests/test_semantic_correctness_v020.py, tests/test_source_bookkeeping_v020.py, tests/test_probe_operators_v021.py, tests/test_spectrolaminar_readiness_v011.py, tests/test_jaxley_trace_bridge.py, tests/test_delta_notebook_01_static.py",
+        "Tightly coupled importers: _signals.py (heaviest, 12 call sites), core.py, _model.py, _model_manifest.py, _model_readout.py, _model_simulate.py, _config.py, _runtime_config.py, _model_evaluate.py, _pipeline.py, _construct_presets.py, _model_tune.py, emitters.py, neuronal_tensor.py, paradigm.py, fields/probes.py, optim/core.py, jaxfne/__init__.py:204",
+        "jaxfne-sha256-artifact-integrity skill covers the hashing conventions here",
+        "jaxfne-notebook-release-gate skill covers manifest.json validation consuming manifest()'s output"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "id": "pkg-tutorial-utils",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "tutorial_utils.py",
+  "generated": {
+    "summary": "\"\"\"Small plotting and summary helpers for tutorial notebooks. -- Docs: the laminar/spectrolaminar trial pipeline is documented in",
+    "source_paths": [
+      "jaxfne/tutorial_utils.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for size/structure/imports/deprecation/truth-gate-clamp facts (all grepped/read directly). Lower confidence on runtime behavior of simulate_laminar_trials/spectrolaminar_from_trials/tune_laminar_agsdr (lines 1318-1960) since I read their signatures and surrounding comments but did not read their full bodies in this pass (file is 2084 lines; last read page covered through line 1331 plus a targeted tail read of lines 2040-2084) -- no landmines found there is not the same as none existing.",
+      "purpose": "jaxfne/tutorial_utils.py (2084 lines, jaxfne/tutorial_utils.py:1-6 docstring) is a tutorial/notebook-support module: it provides run-summary/plotting helpers (finite_status, population_rate_hz, display_run_summary, save_png \u2014 deprecated per line 39-46), HH reference traces delegating to jaxfne/bridges.py, AGSDR/Suite-No.2 objective/selection helpers (select_neurons, kappa_synchrony, rate_synchrony_targets), and the bulk of the file (lines 320-2040) is \"Etude No. 1\" \u2014 a compact multi-area (V1/V4/PFC) laminar column scaffold builder (LaminarColumnConfig, make_laminar_column_config, build_laminar_column, simulate_laminar_trials, spectrolaminar_from_trials, tune_laminar_agsdr, export_tutorial_artifacts). It is re-exported at package top level via jaxfne/__init__.py:86,88 and used by jaxfne/export.py and jaxfne/vis/tutorial_panels.py.",
+      "key_findings": [
+        "File is 2084 lines (wc -l), 35 top-level def/class definitions (grep '^def |^class ').",
+        "No uncommitted git diff on this file: `git diff --stat -- jaxfne/tutorial_utils.py` returned empty.",
+        "No raised NotImplementedError in-module; the only NotImplementedError mention (line 113) is in hh_reference_trace_jaxley's docstring describing the delegate .bridges.hh_jaxley_reference_trace behavior, not code here.",
+        "save_png() (line 38-53) is explicitly DEPRECATED, emits DeprecationWarning pointing to jaxfne.vis.export_figure (lines 39-46).",
+        "Lines 1191-1199 and 1222-1227 contain explicit self-documented dead-weight: build_laminar_column's W_parts (dense N x N random matrices) and build_laminar_connections() are never read by the real pipeline simulate_laminar_trials -- kept only because tests/test_tutorial_utils.py exercises their shapes directly.",
+        "make_laminar_column_config (line 608-926) truth-gate clamps claim_level/field_solver_status/field_claim_level through jaxfne/_config.py's clamp_truth_gate_metadata (imported at line 883) specifically to prevent a caller from escalating claim language unchecked -- documented as a past bug fix in the code comment (lines 876-889); physical_amplitude_calibrated is hardcoded False at line 889 regardless of the kwarg passed in.",
+        "kappa_synchrony (line 188-240) is a vectorized BLAS-matmul reimplementation of a pairwise correlation loop, self-documented as ~1000x faster at N~400 and 'the only tractable form at N~1000' (docstring lines 209-216).",
+        "plot_raster (line 2050-2060) has an explicit NAME COLLISION NOTE: it is a different function from the root-exported jtfne.plot_raster (jaxfne.vis.canonical.plot_raster takes Signals/Model, not raw arrays).",
+        "FRICTIONS_STACK.md row F-009 references this file: confirms simulate_laminar_trials exists and that a related core.py NotImplementedError message was patched to point users at tutorial_utils.simulate_laminar_trials (dated 2026-07-02)."
+      ],
+      "contracts": [
+        "jaxfne/__init__.py:86,88 re-exports tutorial_utils symbols at package top level (`from . import tutorial_utils` and `from .tutorial_utils import (...)`) -- treat exported names as part of the public jaxfne API surface, not just internal.",
+        "rate_synchrony_targets()'s loss metric names must match jaxfne.core._KNOWN_METRICS / _compute_all_metrics (explicit comment at lines 284-285): 'spike_rate_hz_mean' and 'kappa_synchrony' are the exact metric strings relied upon.",
+        "make_laminar_column_config's truth-gate kwargs (claim_level, field_solver_status, field_claim_level, physical_amplitude_calibrated) are clamped through jaxfne/_config.py::clamp_truth_gate_metadata and physical_amplitude_calibrated is force-set to False (line 889) -- callers cannot escalate these regardless of arguments passed.",
+        "LaminarColumnConfig is a frozen dataclass (line 341-342) -- fields are immutable post-construction by design, including the truth-gate fields.",
+        "plot_raster/plot_population_raster/plot_population_rate/plot_voltage_samples/plot_connectivity_matrix/plot_laminar_readout (lines 2044-2084) are thin forwarding wrappers to jaxfne.vis -- real implementations live in vis, not here."
+      ],
+      "landmines": [
+        "build_laminar_column's W_parts and build_laminar_connections() produce dense random N x N connectivity matrices that are dead weight -- never consumed by simulate_laminar_trials, the actual pipeline (self-documented at lines 1191-1199, 1222-1227); a caller who assumes build_laminar_column's connectivity feeds the simulation would be wrong.",
+        "plot_raster (tutorial_utils) silently collides in name with jtfne.plot_raster (vis.canonical) but takes a completely different call signature (raw arrays vs Signals/Model) -- easy to import the wrong one (explicit warning at lines 2053-2058).",
+        "save_png is deprecated (DeprecationWarning at call time) but still fully functional -- a caller ignoring warnings will not know to migrate to jaxfne.vis.export_figure.",
+        "No FRICTIONS_STACK.md row is specifically *about* a defect in this file beyond F-009's confirmation grep; nothing found citing a landmine unique to tutorial_utils.py beyond what's noted above."
+      ],
+      "related_nodes": [
+        "tests/test_tutorial_utils.py (primary, imports LaminarColumnConfig-family symbols, single_cell_waveforms, tune_laminar_agsdr, _laminar_match_mask, make_laminar_column_config)",
+        "tests/test_kappa_synchrony_vectorized.py (imports kappa_synchrony directly)",
+        "tests/test_suite_no1_public_grammar.py and tests/test_suite_no1_public_grammar_validation.py (assert on the public import string 'from jaxfne.tutorial_utils import' and exercise save_png)",
+        "jaxfne/export.py:152 (imports LaminarColumnConfig)",
+        "jaxfne/vis/tutorial_panels.py:357 (imports spectrolaminar_from_trials)",
+        "jaxfne/vis/tutorial_array_plots.py (tightly coupled: _finish_figure delegates here at line 34, and the forwarding plot_* wrappers at file end delegate to jaxfne.vis)",
+        "jaxfne/bridges.py (hh_reference_trace_jaxley / hh_numpy_reference_trace delegate here)",
+        "jaxfne/_config.py (clamp_truth_gate_metadata, used by make_laminar_column_config)",
+        "jaxfne/__init__.py (top-level re-export surface)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

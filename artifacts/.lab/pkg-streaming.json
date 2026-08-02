@@ -1,0 +1,67 @@
+{
+  "id": "pkg-streaming",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "streaming.py",
+  "generated": {
+    "summary": "\"\"\"Memory-safe chunked streaming simulation runner for jaxfne.\"\"\" -- from __future__ import annotations",
+    "source_paths": [
+      "jaxfne/streaming.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "high \u2014 file read in full (180 lines), all claims grep-verified against __init__.py, tests/, and git log/diff; no fabricated symbols.",
+      "purpose": "jaxfne/streaming.py implements a memory-safe, chunked alternative to running a full jax.lax.scan over an entire STDP-plasticity Izhikevich-network simulation in one shot (module docstring, line 1). It exposes run_stdp_stream, which slices the total timestep range into fixed-duration chunks, jit-compiles one lax.scan per chunk shape, and returns downsampled Vm/spike trajectories plus per-chunk diagnostic summaries (finite checks, firing rate, mean weight) instead of materializing the full-resolution trajectory in memory. It is re-exported as part of jaxfne's public API (jaxfne/__init__.py:311,328) for long-duration STDP runs.",
+      "key_findings": [
+        "File is 180 lines total (wc -l), module docstring line 1: \"Memory-safe chunked streaming simulation runner for jaxfne.\"",
+        "Two functions only: simulate_stdp_euler_step (lines 11-74, single Izhikevich+STDP Euler step) and run_stdp_stream (lines 76-180, chunked jax.lax.scan driver over chunk_size_ms windows with downsampling)",
+        "No __all__ in this file itself; public surface is controlled by jaxfne/__init__.py which imports run_stdp_stream at line 311 and lists it in __all__ at line 328 (simulate_stdp_euler_step is NOT re-exported)",
+        "No TODO/FIXME/NotImplementedError anywhere in the file (grep empty)",
+        "git diff on this file is empty (no uncommitted changes) despite this file appearing 'M' in the session's overall git status header note -- that git status snapshot was stale/about other files, not streaming.py",
+        "git log shows most relevant recent commit 913fbbf 'hoist jitd scan out of streaming chunk loop' -- matches the large in-code comment at lines 115-122 explaining why run_chunk_scan is defined once outside the for loop rather than per-chunk",
+        "Imports SolverConfig from .solvers (jaxfne/solvers.py) and STDPPlasticityConfig/STDPState from .plasticity (jaxfne/plasticity.py) -- both classes confirmed present by grep",
+        "No row for streaming.py found in skills/FRICTIONS_STACK.md (grep returned nothing)"
+      ],
+      "contracts": [
+        "run_stdp_stream(v_init,u_init,s_init,stdp_state,stim_drive,noise,solver_config,plasticity_config,plasticity_scale,exc_mask,inh_mask,a,b,c,d,chunk_size_ms=10000.0,downsample_factor=10) -> ((v,u,s,final_stdp_state), trajectories_dict) \u2014 public signature at jaxfne/streaming.py:76-94, re-exported in jaxfne/__init__.py:311 and listed in __all__ at line 328",
+        "trajectories dict has fixed keys 'vm','spk','chunk_summaries' (streaming.py:174-178); each chunk_summaries entry has chunk_index, mean_firing_rate_hz, mean_weight, finite_status (lines 161-166)",
+        "W update enforces exc_mask-only plasticity and zero diagonal (self-connection) invariant every step (lines 63-72), and clips only excitatory weights to [w_min,w_max] (line 69)",
+        "the inner @jax.jit run_chunk_scan closure (line 123) is defined once outside the chunk loop (per code comment lines 115-122) specifically to preserve JAX's trace-cache identity across chunks of identical shape \u2014 moving it back inside the for-loop would silently reintroduce a per-chunk recompile"
+      ],
+      "landmines": [
+        "Downsampling uses simple Python slicing vm_traj[::downsample_factor] (line 169) per chunk independently rather than across the whole concatenated trajectory -- if chunk_steps is not an exact multiple of downsample_factor, the phase of the decimation resets at each chunk boundary, which could produce a subtly uneven downsample grid across chunk boundaries (not flagged in the code itself, no comment addresses this)",
+        "chunk_steps = int(chunk_size_ms / dt_ms) (line 103) silently truncates via int() -- if chunk_size_ms isn't an exact multiple of dt_ms this silently drops a fractional step per chunk with no warning",
+        "finite_status per chunk (line 165) is computed and stored but the function never checks/raises on it -- a non-finite W chunk is silently recorded, not halted on, so a caller not inspecting chunk_summaries could miss divergence"
+      ],
+      "related_nodes": [
+        "tests/test_streaming.py -- dedicated test file per its own docstring line 1 (\"Dedicated tests for the chunked streaming runner (jaxfne/streaming.py)\")",
+        "tests/test_plasticity_v034.py -- also greps/covers streaming per grep -rln match",
+        "jaxfne/plasticity.py -- supplies STDPPlasticityConfig and STDPState consumed directly by run_stdp_stream",
+        "jaxfne/solvers.py -- supplies SolverConfig (dt_ms source) consumed directly",
+        "jaxfne/__init__.py -- controls public re-export/__all__ entry for run_stdp_stream"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

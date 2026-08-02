@@ -1,0 +1,28 @@
+{
+  "id": "jaxfne-adapt",
+  "schema_version": 3,
+  "kind": "permanent",
+  "title": "Adapt (PRP verb node)",
+  "generated": {
+    "summary": "24 meta-proposal(s) tracked (live from adapt.json).",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": null,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 1
+  }
+}

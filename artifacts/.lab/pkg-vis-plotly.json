@@ -1,0 +1,53 @@
+{
+  "id": "pkg-vis-plotly",
+  "kind": "subpackage",
+  "title": "jaxfne/vis/plotly/",
+  "generated": {
+    "summary": "jaxfne/vis/plotly is the Plotly-backend visualization pipeline for jaxfne. Per its own module docstring (jaxfne/vis/plotly/__init__.py lines 1-11): \"Generic, package-native, manuscript-agnostic. Every function takes a jaxfne.Signals...",
+    "source_paths": [
+      "jaxfne/vis/plotly"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "medium -- read __init__.py, _common.py, dashboard.py, and manuscript/__init__.py in full, and grepped the rest (csd.py, metrics.py, lfp.py, connectivity.py, raster.py, network.py, spectra.py, exporters.py, and manuscript/figure0-4.py) only by name/size, not by content. The purpose/contracts/organization claims are solid (docstring-backed); any claim about the internals of individual plot functions (raster.py, network.py, spectra.py, manuscript figures) would need a follow-up read.",
+      "purpose": "jaxfne/vis/plotly is the Plotly-backend visualization pipeline for jaxfne. Per its own module docstring (jaxfne/vis/plotly/__init__.py lines 1-11): \"Generic, package-native, manuscript-agnostic. Every function takes a jaxfne.Signals (and usually a jaxfne.Model) and returns a plotly.graph_objects.Figure \u2014 no manuscript-specific preprocessing.\" It is organized as one file per plot concern (network.py, raster.py, lfp.py, csd.py, spectra.py, connectivity.py, metrics.py) + a shared internal helper module (_common.py) + an assembled multi-panel dashboard (dashboard.py) + export helpers (exporters.py) + a separate `manuscript/` sub-package that layers manuscript-specific figure recipes (figure0..figure4.py) on top of the generic primitives.",
+      "key_findings": [
+        "11 top-level .py files + a manuscript/ subdir with 6 files (__init__.py, figure0-4.py); total non-manuscript .py size sums to 643 lines per `wc -l` (exporters.py 6, csd.py 29, metrics.py 29, __init__.py 43, lfp.py 46, connectivity.py 47, dashboard.py 63, _common.py 82, raster.py 92, network.py 95, spectra.py 111).",
+        "__init__.py (lines 24-43) declares __all__ with 16 names: plot_network_3d, plot_raster, plot_population_rates, plot_membrane_potentials, plot_lfp, plot_csd, plot_psd, plot_spectrogram, plot_band_power, plot_depth_profile, plot_connectivity, plot_objective_history, create_dashboard, export_figure, export_figures, FigureBundle, manuscript_figures, manuscript -- this is the real public surface.",
+        "_common.py line 1 docstring: 'Shared helpers for the Plotly visualization pipeline. Not public API.' -- it is not imported into __init__.py's __all__, confirming it is internal-only (helpers: require_plotly, neuron_table_arrays, field_proxy, contact_depths_mm, time_ms, dt_ms, population_rate_hz, color_for_cell_types).",
+        "dashboard.py's create_dashboard (lines 12-63) assembles network/raster/rates/lfp/csd/psd/depth_profile panels into one 3x3 plotly subplot figure via make_subplots, and can write standalone HTML (output_html arg, line 40 write_html with include_plotlyjs='cdn').",
+        "manuscript/__init__.py (lines 1-27) documents manuscript_figures(signals, model, *, perturbation_signals=None, hierarchy_signals=None) building a 5-figure FigureBundle (figure0_background .. figure4_hierarchical_manipulations), explicitly built on the generic Plotly primitives, not the other way around.",
+        "Proxy-readout caveat is stated twice: __init__.py lines 7-10 and dashboard.py lines 15-16 -- LFP/CSD/source fields are *_proxy fields from the linear laminar-source kernel and the plotting code is documented to never escalate that claim."
+      ],
+      "contracts": [
+        "AGENTS.md line 106: 'Plotting: `jaxfne/vis/*` only (modular-grammar rule 2).' -- confirmed verbatim in /Users/hamednejat/workspace/analysis/jaxfne/AGENTS.md; all plotting code in the repo must live under jaxfne/vis/*, and this subpackage (jaxfne/vis/plotly/) is one of its backends.",
+        "_common.require_plotly() (lines 15-21) is the lazy-import guard pattern used before touching the `plotly` package -- raises a clear ImportError with install instructions rather than failing on a bare `import plotly` at module load, so plotly stays an optional dependency.",
+        "Every plotting function's real signature takes a Signals object (and usually a Model) and returns a plotly.graph_objects.Figure, per the __init__.py docstring contract (lines 3-5) -- no manuscript-specific args leak into the generic primitives.",
+        "Field proxy naming is fixed by _common.field_proxy's dict (lines 42-47): short keys 'lfp'/'csd'/'phi_e'/'source' map to signals.field.{lfp,csd,phi_e,source}_proxy attributes -- any new consumer of signals.field should use this mapping rather than re-deriving attribute names."
+      ],
+      "landmines": [
+        "FRICTIONS_STACK.md row F-016 documents that jaxfne/export.py::save_figure is now deprecated in favor of jaxfne.vis.export_figure (jaxfne/vis/exporters.py, a different file from jaxfne/vis/plotly/exporters.py -- there are two exporters.py files, one at jaxfne/vis/ level and one at jaxfne/vis/plotly/ level) and the two are NOT signature-compatible (path/suffix handling, bbox_inches, fig-closing behavior all differ) -- worth double-checking which exporters.py a caller means before touching either.",
+        "jaxfne/vis/plotly/exporters.py itself is only 6 lines -- I did not read its content in this pass (only grepped __init__ imports of export_figure/export_figures/FigureBundle from it); confidence on its exact contract is lower than for the files actually read.",
+        "manuscript/ subpackage's figure0-4.py were not opened in this pass -- only manuscript/__init__.py's assembly contract was verified; the actual plotting content of each figureN.py is unverified."
+      ],
+      "related_nodes": [
+        "tests/test_vis_plotly_network_model_path.py and tests/test_vis_smoke_all.py grep-confirmed to reference vis/plotly (via `grep -rln \"vis.plotly|vis/plotly\" tests/`).",
+        "skills/jaxfne-vis-modules/SKILL.md, skills/jaxfne-notebook-release-gate/SKILL.md, and skills/jaxfne-sha256-artifact-integrity/SKILL.md all mention 'plotly' per grep -- jaxfne-vis-modules is the primary skill documenting this subpackage.",
+        "Depends on jaxfne.Signals and jaxfne.Model objects (per __init__.py docstring) and on signals.field.*_proxy attributes (per _common.py field_proxy/contact_depths_mm) -- i.e. depends on the simulation/field-solver layer upstream, not the reverse.",
+        "Sibling backend implied by naming ('plotly' subpackage under jaxfne/vis/) -- not directly inspected in this pass, but jaxfne/vis/exporters.py (top-level, distinct from jaxfne/vis/plotly/exporters.py per FRICTIONS_STACK F-016) is a related/adjacent file worth checking separately."
+      ]
+    }
+  ]
+}

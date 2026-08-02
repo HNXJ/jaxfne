@@ -1,0 +1,70 @@
+{
+  "id": "api-validation",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Validation",
+  "generated": {
+    "summary": "Validation API -- Invariant checks and validation functions for numerical consistency and structural integrity.",
+    "source_paths": [
+      "docs/api/validation.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-validation",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "agy-pilot-audit-2026-07-24",
+      "kind": "docs_content_mismatch",
+      "date": "2026-07-24",
+      "source": "Pilot agy (GPT-OSS 120B) delegation, per user request to test per-page docs-vs-graph auditing -- result independently re-verified directly (grep across jaxfne/*.py and jaxfne/fields/*.py) before recording.",
+      "confidence": "high -- every specific claim independently confirmed by direct grep, not taken on agy's word.",
+      "purpose": "docs/api/validation.md is almost entirely about the WRONG module.",
+      "key_findings": [
+        "All 4 H3-documented functions on this page (validate_source_field_status L39, validate_projection_invariants L69, compute_conservation_proxy_diagnostics L100, operator_status L123) are real functions, but NONE live in jaxfne/validation.py -- confirmed via grep: operator_status is in jaxfne/_construct_extras.py:38; validate_projection_invariants is in jaxfne/fields/diagnostics.py:43; validate_source_field_status and compute_conservation_proxy_diagnostics are in jaxfne/fields/proxy.py:247/319.",
+        "Of jaxfne/validation.py's 24 real public symbols (is_valid_signal, validate_scalar/diagonal/full_spd_conductivity, build_field_admissibility_report, CalibrationSpec, make_calibration_report, make_source/gauge/boundary/manufactured_residual _diagnostic, make_field_operator_status, validate_poisson_* x5, build_poisson_admissibility_report, validate_basis_spec, basis_claim_gate, CompilationRegistry/compilation_registry, make_recompilation_guard), only is_valid_signal gets even a passing mention -- and only as inline example code (lines 159/163/202), not a documented section. The other 23 real symbols (~1200 lines of validation.py, including the entire Poisson-admissibility gate family and the JAX recompilation-guard mechanism) have zero documentation on this page."
+      ],
+      "contracts": [],
+      "landmines": [
+        "This is not a staleness problem fixable by editing a few lines -- the page needs either a full rewrite to document validation.py's actual API, with the current 4-function content relocated to whichever doc page(s) correctly cover _construct_extras.py/fields/proxy.py/fields/diagnostics.py (fields.md is the likely home, given fields/proxy.py and fields/diagnostics.py are both already part of that subpackage), or a deliberate scope note explaining the mismatch if leaving it as-is is intentional (unlikely, given no such note currently exists on the page)."
+      ],
+      "related_nodes": [
+        "jaxfne-fields (fields/proxy.py, fields/diagnostics.py -- the likely correct home for this page's current 4-function content)",
+        "jaxfne-validation (the module node whose real API is undocumented by this page)"
+      ]
+    },
+    {
+      "id": "validation-md-fixed-2026-07-24",
+      "kind": "docs_fix",
+      "date": "2026-07-24",
+      "source": "Direct fix following the agy pilot finding above -- on closer read, the existing content was actually accurate (real root-level jtfne.* functions, correctly documented), not a wrong-module error as first framed. Corrected approach: kept the existing content, added the ~20 missing validation.py-native sections, added one clarifying module-location note.",
+      "confidence": "high -- verified via mkdocs build --strict (clean), scripts/audit_public_docs_language.py --check (pass=true), scripts/check_docs_orphans.py (no orphans), all re-run after the fix.",
+      "purpose": "docs/api/validation.md now documents validation.py's full real API.",
+      "key_findings": [
+        "Added 7 new sections (Conductivity Validators, Field Admissibility Report, Calibration, Diagnostic Builders, Poisson Admissibility Gates, Basis/Claim Gates, JAX Re-compilation Guard) covering all ~20 previously-undocumented validation.py symbols, each with real line-number citations grep-verified fresh this pass.",
+        "Also fixed a separate stale citation found while cross-referencing: docs/api/probes.md cited jaxfne/core.py:7726-7738 for operator_status(); real location is jaxfne/_construct_extras.py:38."
+      ],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": []
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

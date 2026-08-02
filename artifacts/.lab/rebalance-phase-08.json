@@ -1,0 +1,36 @@
+{
+  "id": "rebalance-phase-08",
+  "kind": "plan_phase",
+  "title": "Phase 8: Tier interposition (depth 2 -> 3)",
+  "generated": {
+    "summary": "Break both stars with a mid-tier: jaxfne-pkg's 71 children fan into ~7 concern clusters of ~7; jaxfne-plan's 49 prp_items group by theme (field-solver /...",
+    "source_paths": [],
+    "links": [
+      {
+        "to": "jaxfne-plan",
+        "relation": "refines"
+      },
+      {
+        "to": "rebalance-phase-07",
+        "relation": "depends_on"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": [
+    {
+      "id": "phase-spec-2026-07-24",
+      "kind": "phase_spec",
+      "date": "2026-07-24",
+      "source": "10-phase graph-rebalance plan, authored against a measured baseline (scripts/lab_balance.py)",
+      "confidence": "high",
+      "phase": 8,
+      "execution_status": "open",
+      "detail": "Break both stars with a mid-tier: jaxfne-pkg's 71 children fan into ~7 concern clusters of ~7; jaxfne-plan's 49 prp_items group by theme (field-solver / HDP / docs / release / scale).",
+      "exit_criterion": "No node above the degree cap; depth histogram peaks at 3.",
+      "record": "This is the phase that actually buys log2(log2(N)) depth. Baseline depth histogram {0:1, 1:22, 2:99, 3:13} is a star, not a hierarchy."
+    }
+  ],
+  "issues": [],
+  "plan": "No node above the degree cap; depth histogram peaks at 3."
+}

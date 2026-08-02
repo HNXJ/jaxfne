@@ -1,0 +1,34 @@
+{
+  "id": "api-runtime",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Runtime",
+  "generated": {
+    "summary": "Runtime API -- Runtime configuration and execution helpers for neural simulations.",
+    "source_paths": [
+      "docs/api/runtime.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-runtime",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

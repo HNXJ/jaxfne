@@ -1,0 +1,34 @@
+{
+  "id": "api-probes",
+  "schema_version": 3,
+  "kind": "docs_page",
+  "title": "Probes",
+  "generated": {
+    "summary": "Probes API -- Probe declarations and multimodal readout channels for neural simulation output.",
+    "source_paths": [
+      "docs/api/probes.md"
+    ],
+    "links": [
+      {
+        "to": "docs-api",
+        "relation": "refines"
+      },
+      {
+        "to": "pkg-fields",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

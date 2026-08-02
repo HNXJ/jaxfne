@@ -1,0 +1,64 @@
+{
+  "id": "pkg-presets",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "jaxfne/presets.py",
+  "generated": {
+    "summary": "\"\"\"Preset registries for cell types and receptor kinetics. -- These are metadata only \u2014 no biological calibration or empirical validation.",
+    "source_paths": [
+      "jaxfne/presets.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23-retry",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (retry batch after 1st pass produced placeholder junk/crashed for these), spot-checked before commit",
+      "confidence": "High confidence on file content, import graph, and git-diff-clean status (all directly grepped/read). Moderate confidence that FRICTIONS_STACK.md has zero rows for this exact filename \u2014 verified via targeted grep for 'presets' in that file, which only matched the F-029 row about a different module.",
+      "purpose": "jaxfne/presets.py (122 lines) is a pure metadata-registry module \u2014 its docstring (lines 1-4) states it holds \"Preset registries for cell types and receptor kinetics... no biological calibration or empirical validation. Truth status: computational_scaffold.\" It defines two dicts, CELL_TYPE_PRESETS (Izhikevich a/b/c/d/drive/sign parameters for E_RS, PV_FS, SST_LTS, VIP_IS, lines 11-64) and RECEPTOR_KINETICS (AMPA/NMDA/GABA_A/GABA_B tau/reversal metadata, lines 68-113), plus one scalar constant DEFAULT_SPIKE_IMPULSE_GAIN = 20.0 (line 117).",
+      "key_findings": [
+        "Every entry in both CELL_TYPE_PRESETS (lines 11-64) and RECEPTOR_KINETICS (lines 68-113) carries an explicit physical_amplitude_calibrated: False field and a truth_status/source_calibration_status string of 'uncalibrated_izhikevich_native_current' or 'metadata_only_uncalibrated' \u2014 no hidden calibration claim anywhere in the file.",
+        "DEFAULT_SPIKE_IMPULSE_GAIN = 20.0 (line 117) is imported directly (not via CELL_TYPE_PRESETS/RECEPTOR_KINETICS) by jaxfne/core.py:39, jaxfne/_model.py:48, and jaxfne/emitters.py:22 \u2014 it is the one symbol from this file with real runtime call sites beyond re-export.",
+        "CELL_TYPE_PRESETS and RECEPTOR_KINETICS are re-exported through jaxfne/__init__.py lines 159-163 (public package API), so any key rename or schema change here is a public API break.",
+        "grep across jaxfne/ and tests/ found zero uncommitted git diff for this file (git diff --stat jaxfne/presets.py returned empty) and no TODO/FIXME/NotImplementedError anywhere in its 122 lines.",
+        "tests/test_spectrolaminar_readiness_v011.py has three tests directly exercising this module's exports: test_d_cell_type_presets_accessible (line 209), test_d_cell_type_presets_have_expected_keys (line 216), and test_d_presets_are_json_safe (line 250-257), the latter asserting CELL_TYPE_PRESETS round-trips through json.dumps/loads with allow_nan=False."
+      ],
+      "contracts": [
+        "Callers importing CELL_TYPE_PRESETS must keep every value JSON-safe (no NaN/Inf, no non-primitive types) since test_d_presets_are_json_safe enforces json.dumps(..., allow_nan=False) round-trip equality.",
+        "DEFAULT_SPIKE_IMPULSE_GAIN is a shared scaling constant consumed identically by core.py, _model.py, and emitters.py \u2014 changing its value changes source-proxy amplitude across all three call sites simultaneously, not just one.",
+        "Do not present any preset here as biologically validated in downstream docs/reports \u2014 the module's own docstring and per-entry truth_status fields fix the claim ceiling at 'uncalibrated'/'metadata_only_uncalibrated', per the repo's truth-gate doctrine (never escalate a false/uncalibrated status upward)."
+      ],
+      "landmines": [
+        "FRICTIONS_STACK.md's only presets-adjacent row (F-029) is about hdp_network.py's DEFAULT_HDP/DEFAULT_HDP_DESYNC/DEFAULT_HDP_V1_PFC_AAAB presets and neuronal_tensor.py, not jaxfne/presets.py itself \u2014 there is no FRICTIONS_STACK.md row citing presets.py by filename; do not conflate the HDP preset dicts (a different file) with this module's CELL_TYPE_PRESETS/RECEPTOR_KINETICS.",
+        "There is a second, separate 'presets' concept in the repo \u2014 _construct_presets.py's suite2_celltype_presets() function (line 185, re-exported via __init__.py and core.py) \u2014 which is a distinct construct-layer helper, not this file; naming/grepping 'presets' loosely risks conflating the two."
+      ],
+      "related_nodes": [
+        "jaxfne/__init__.py (lines 159-163, 70, 419 \u2014 re-exports CELL_TYPE_PRESETS/RECEPTOR_KINETICS/DEFAULT_SPIKE_IMPULSE_GAIN and suite2_celltype_presets)",
+        "jaxfne/core.py:39 (imports DEFAULT_SPIKE_IMPULSE_GAIN)",
+        "jaxfne/_model.py:48,214 (imports DEFAULT_SPIKE_IMPULSE_GAIN)",
+        "jaxfne/emitters.py:22 (imports DEFAULT_SPIKE_IMPULSE_GAIN)",
+        "jaxfne/_construct_presets.py:185 (separate suite2_celltype_presets() function, not part of presets.py)",
+        "tests/test_spectrolaminar_readiness_v011.py (lines 209, 216, 250-257 \u2014 direct tests of CELL_TYPE_PRESETS)",
+        "skills/FRICTIONS_STACK.md F-029 row (about hdp_network.py presets, not this file)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

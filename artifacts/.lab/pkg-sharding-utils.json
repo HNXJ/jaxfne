@@ -1,0 +1,67 @@
+{
+  "id": "pkg-sharding-utils",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "sharding_utils.py",
+  "generated": {
+    "summary": "\"\"\"Distributed sharding mesh stubs. -- Provides trace-safe, single-axis logical mesh construction for candidate-population",
+    "source_paths": [
+      "jaxfne/sharding_utils.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for size/API/test-coverage/git-history facts (directly grepped/read). Medium-high for the 'no real caller drives multi-device dispatch' claim -- verified via grep against jaxfne/ and tests/ in this session, consistent with the module's own docstring, but I did not exhaustively audit every optimization/AGSDR code path by hand.",
+      "purpose": "jaxfne/sharding_utils.py (158 lines) provides trace-safe, single-axis logical JAX mesh construction for candidate-population parallelism (module docstring, lines 1-17). It builds a 1-D named Mesh across visible devices and PartitionSpec/NamedSharding factories for candidate-batch vs. replicated arrays, falling back to None on single-device setups so callers need no branching. Its own docstring (lines 11-17) states these are stubs: no caller anywhere in jaxfne invokes the functions to drive real multi-device dispatch in the AGSDR loop, confirmed still true by grep.",
+      "key_findings": [
+        "File is 158 lines total (wc -l).",
+        "No uncommitted diff: `git status --short jaxfne/sharding_utils.py` returned nothing; this file is not among the modified files listed at session start.",
+        "Introduced in commit b8c7fd3 'feat(v0.3.18): distributed sharding mesh stubs and replicated parameter fallbacks' (git log).",
+        "Public API per docstring lines 19-24 and __all__-equivalent import list in jaxfne/__init__.py:262-266: make_population_mesh, make_candidate_sharding, make_replicated_sharding, get_sharding_context -- all 4 re-exported at package top level with the comment (jaxfne/__init__.py:261) 'v0.3.18: sharding stubs \u2014 imported lazily so single-device users have no overhead.'",
+        "make_population_mesh() (lines 48-71): returns None if len(jax.devices())<=1, else a 1-D Mesh named 'population_sweep' (module constant _POPULATION_AXIS, line 39).",
+        "make_candidate_sharding(mesh) (lines 79-95): NamedSharding with PartitionSpec('population_sweep', None) -- assumes/documents shape convention (B, n_params).",
+        "make_replicated_sharding(mesh) (lines 98-115): NamedSharding with PartitionSpec(None), fully replicated.",
+        "get_sharding_context() (lines 123-158): bundles the above into a dict {mesh, candidate, replicated} or returns None on single-device.",
+        "No TODO/FIXME/NotImplementedError markers found in the file.",
+        "Docstring explicitly documents that a prior 'planned for v0.3.20+' integration-timeline note was deliberately dropped (lines 14-17) since that version shipped without the feature landing -- an intentional doctrine choice, not an oversight."
+      ],
+      "contracts": [
+        "make_population_mesh() -> Optional[Mesh]: returns None on single-device envs, Mesh(axis_names=('population_sweep',)) otherwise -- callers must gate on `is not None`.",
+        "make_candidate_sharding(mesh) and make_replicated_sharding(mesh) both require a Mesh built by make_population_mesh (not any arbitrary Mesh) per their docstrings.",
+        "get_sharding_context() -> Optional[dict] with fixed keys 'mesh'/'candidate'/'replicated', or None -- documented convenience contract for 'if ctx is not None' gating.",
+        "catalog-glossary-jaxfne/SKILL.md:225 documents this exact same 4-function public API, confirming it as the catalog's canonical sharding entry point.",
+        "Module docstring functions as the truth gate here: explicitly states 'no committed target version for full integration' and warns future edits not to re-add a version promise without a real implementation plan (lines 14-17) -- a doctrine constraint specific to this file."
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row references this file (grep 'sharding_utils' skills/FRICTIONS_STACK.md returned nothing).",
+        "The functions are stubs with zero real callers in the AGSDR loop or anywhere else in jaxfne/tests besides the dedicated stub test -- calling them today produces mesh/sharding objects that are never actually applied to any array via jax.device_put or similar in this codebase, so 'sharding' is currently inert scaffolding despite being part of the public re-exported API."
+      ],
+      "related_nodes": [
+        "tests/test_v0318_sharding_stubs.py -- the only test file covering this module (verifies clean import, correct types, no side effects for all 4 public functions).",
+        "jaxfne/__init__.py:261-266 -- package-level re-export point, tightly coupled (this is the sole consumer of the module).",
+        "skills/catalog-glossary-jaxfne/SKILL.md:221-225 -- documents this API in the 'Runtime / JAX / x64 / sharding' catalog section."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

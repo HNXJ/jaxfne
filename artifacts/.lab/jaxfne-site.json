@@ -1,0 +1,49 @@
+{
+  "id": "jaxfne-site",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "site",
+  "generated": {
+    "summary": "Folder with 186 files, e.g. index.html, requirements.txt, _theme_override.css, 404.html, sitemap.xml.",
+    "source_paths": [
+      "site"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "site/ is the built mkdocs static site output (31M on disk), containing generated HTML/assets for docs, tutorials, API reference, changelog, guides, etc. \u2014 dozens of top-level subdirs (api, tutorials, guides, changelog, reference, releases, sitemap.xml, search index, _generated, _static).",
+        "Confirmed via .gitignore line 39 ('site/') that the entire directory is ignored, and `git ls-files site` returns 0 tracked files \u2014 nothing in it is committed to the repo.",
+        "Fully generated/reproducible (mkdocs build output): safe to delete and regenerate at any time; nothing load-bearing lives here by exception."
+      ],
+      "contracts": [],
+      "landmines": [],
+      "related_nodes": [
+        "jaxfne-tutorials (site/tutorials, site/tutorial_figures likely generated from that node's source docs/notebooks)",
+        "docs source (whatever mkdocs.yml/docs/ tree feeds this build \u2014 not separately inspected here)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

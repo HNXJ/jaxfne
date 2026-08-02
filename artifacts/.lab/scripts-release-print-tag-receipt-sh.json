@@ -1,0 +1,30 @@
+{
+  "id": "scripts-release-print-tag-receipt-sh",
+  "schema_version": 3,
+  "kind": "doc",
+  "title": "print_tag_receipt.sh",
+  "generated": {
+    "summary": "!/bin/bash -- set -euo pipefail",
+    "source_paths": [
+      "scripts/release/print_tag_receipt.sh"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-scripts",
+        "relation": "derives_from"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "id": "jaxfne-pkg",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "jaxfne",
+  "generated": {
+    "summary": "Folder with 110 files, e.g. _signals.py, builders.py, sanity_delta.py, bridges.py, connectivity.py.",
+    "source_paths": [
+      "jaxfne"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "medium",
+      "key_findings": [
+        "jaxfne is a compact JAX-based source-to-field neurophysiology engine ('Tensor-Field Neural Equations', TFNE); package docstring in jaxfne/__init__.py:1-5 calls it 'a compact source-to-field neurophysiology engine'.",
+        "116 tracked files under jaxfne/ (excluding __pycache__), 100 of them .py (find count, 2026-07-23); .py files total 38,609 lines (wc -l). Non-.py files are .DS_Store (untracked cruft) and JSON configs under jaxfne/configs/ (+legacy/).",
+        "core.py was deliberately split (FRICTIONS_STACK.md F-025, 2026-07-05): the monolith went from ~8370 to 5 slices; core.py is now only 237 lines and is a thin re-export aggregator, confirmed by `wc -l jaxfne/core.py` = 237 and by reading its top (imports from .emitters, .fields, .io, .presets, ._runtime_config, ._config, then re-exports). AGENTS.md (lines 108-116) confirms _model.py and _construct.py are likewise thin re-export aggregators as of 2026-07-20 (Phase 2 defragmentation) delegating to _model_simulate.py/_model_readout.py/_model_evaluate.py/_model_tune.py/_model_manifest.py and _construct_population.py/_construct_connectivity.py/_construct_presets.py/_construct_core.py/_construct_extras.py respectively.",
+        "Public API surface is large: jaxfne/__init__.py re-exports from .core the object grammar types (Configuration/Config, Model, Signals, Objective, Paradigm, RuntimeConfig, TrialBatch/TrialSpec/TuneResult, etc.) plus builder/dispatch functions (configuration, construct, connect, simulate, run_trials, objective, paradigm builders, runtime, manifest/receipt helpers). jaxfne/core.py's own __all__ (line ~313 onward) lists 100+ names spanning validation helpers, STDP plasticity, spectral analysis (spectrolaminar_psd_jax etc.), geometry, streaming, plus the whole Config/Model/Paradigm/Objective grammar.",
+        "emitters.py (2167 lines) is the largest single module -- holds the Izhikevich edge-recurrent simulation kernels (simulate_edge_recurrent_izhikevich, ..._homeostatic, ..._hdp, simulate_eig_izhikevich, simulate_receptor_exponential_izhikevich) that core.py imports directly.",
+        "Currently uncommitted (git status, branch dev): jaxfne/_model_simulate.py (+39/-lines) and jaxfne/fields/solvers.py (+45/-lines) have local working-tree changes not yet committed -- a fresh agent should run `git diff jaxfne/_model_simulate.py jaxfne/fields/solvers.py` before assuming HEAD reflects current simulate/solver behavior.",
+        "Two documented, still-open known fragilities per AGENTS.md lines 128-134: (1) jaxfne/__init__.py's runtime wrapper is a 'brittle function/submodule collision'; (2) a hardcoded 20.0 spike gain in the source proxy that dense/edge kernels must keep in sync; (3) DEFAULT_HDP's K_w_ctrl=0.0 permits unbounded weight drift on long/custom HDP runs outside already-verified presets."
+      ],
+      "contracts": [
+        "Object grammar (AGENTS.md lines 8-14): Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export, with construct() as the single dispatch point for turning a Configuration or NeuronalTensor into a Model -- extend it, don't bypass it.",
+        "Three build paths converge on Model/Signals via construct()'s type-dispatch (AGENTS.md lines 16-23): Configuration-based (laminar_cortex_config/build_laminar_column -> construct -> simulate), tutorial_utils path (make_laminar_column_config -> build_laminar_column -> simulate_laminar_trials, returns plain dict not Model), and NeuronalTensor path (construct(tensor, RuntimeConfiguration(...)) -> simulate). No Configuration->NeuronalTensor converter exists by design; only the reverse neuronal_tensor_to_configuration.",
+        "Import convention: import from jaxfne.core (or top-level jaxfne/jtfne), never directly from _model.py/_construct.py/_config.py/_runtime_config.py/_signals.py aggregator internals, unless working on the split itself (AGENTS.md lines 103-116, verified against actual core.py imports).",
+        "Plotting is confined to jaxfne/vis/* only (AGENTS.md line 106, 'modular-grammar rule 2') -- no plotting code should live in core modules.",
+        "Truth-gate metadata fields (AGENTS.md line 53) are never escalated from code: claim_level=computational_scaffold, field_solver_status=linear_solver, field_claim_level=proxy_readout, physical_amplitude_calibrated=False.",
+        "Known intentional stubs exported but raising NotImplementedError on use (AGENTS.md line 126): GLIFEmitter, LIFEmitter, write_nwb, read_nwb -- their presence in __all__ is not a bug."
+      ],
+      "landmines": [
+        "F-020 (FRICTIONS_STACK.md): IzhikevichParams/EdgeList pytree treedef is NOT N-independent -- labels/layer_labels are pytree aux data (length N, not leaves), so a treedef built from a differently-sized dummy construct() silently produces a corrupted model on jax.tree_util.tree_unflatten (no error, just wrong simulate() output; confirmed 2026-07-01 by a bit-identical-output check that failed). Also construct() mutates Configuration.metadata in place (recurrent_backend key, circuit.connections[*].status) -- reusing a pre-construct cfg's metadata after a checkpoint reload silently reproduces a different, still-finite V_m trace, not an error. Located in jaxfne/emitters.py (pytree registration) and scripts/cortical_column_localized_workflow.py.",
+        "F-031 (FRICTIONS_STACK.md, confirmed 2026-07-14): construct()'s default dense recurrent connectivity (_suite2_apply_connectivity in jaxfne/_construct.py) silently double-wires on top of a NeuronalTensor bridge's explicit InterConnection/AreaConnection edges compiled by neuronal_tensor_to_configuration in jaxfne/neuronal_tensor.py -- a real 4-InterConnection tensor at N=4 produced 24 edges instead of 12. Fix: call cfg.connectivity(within_area='all_to_all_uniform_random', within_gain=0.0) before construct() after bridging a tensor. Related: Model.simulate(sim) does NOT inherit Configuration.hdp(...)/.runtime(...) the way top-level jtfne.simulate(model,...) does, and Model.with_hdp_initial_state() only carries H/w state across calls, not v/u/prev_spikes/syn_state -- documented as working-as-implemented, not a bug to fix.",
+        "F-025: any citation like 'core.py:1866' from before the split is unreliable -- core.py is now 237 lines; verify the actual current file/line (in _config.py/_model.py/_construct.py/_runtime_config.py/_signals.py) before trusting a stale line-number citation.",
+        "Fragility #1 in AGENTS.md: jaxfne/__init__.py's runtime wrapper has a brittle function/submodule name collision -- not further detailed in this pass, flagged as a tracked known issue rather than derived here.",
+        "DEFAULT_HDP's K_w_ctrl=0.0 (AGENTS.md line 132-134) permits unbounded weight drift on long/custom HDP runs outside the specific presets already verified -- tracked in the (gitignored, local-only) plans.json as hdp-k-w-ctrl-default-runaway-gap, not yet fixed in code."
+      ],
+      "related_nodes": [
+        "jaxfne-tests (every public function/re-export surface here needs matching coverage there; tests/test_hdp_dispatch.py and tests/test_experimental_poisson_1d_convergence.py are both currently modified in the working tree alongside jaxfne/ changes, suggesting active coupled work)",
+        "jaxfne-skills (skills/jaxfne-neural-tensor, jaxfne-neural-network, jaxfne-config, jaxfne-modeling-optimization-schema, jaxfne-vis-modules each document one slice of this package's API in detail; skills/FRICTIONS_STACK.md is the accumulated landmine ledger for this exact subsystem and should be treated as more current than re-deriving from source)",
+        "jaxfne-docs (docs/api/core.md and docs/for_ai_agents.md are the doc surfaces required to stay in sync with core.py's public API per its own module docstring)",
+        "jaxfne-experimental_hpc (jaxfne/experimental_hpc/ is a subdirectory of this same package but likely a separate, less-stable node given the naming and the 'experimental' prefix -- not deeply investigated in this pass)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

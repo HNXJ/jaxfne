@@ -1,0 +1,21 @@
+{
+  "id": "docs-api",
+  "kind": "docs_nav_tab",
+  "title": "API reference (docs nav tab 4/5)",
+  "generated": {
+    "summary": "mkdocs.yml nav tab 4/5: API reference. Mirrors the docs/ site's actual navigation order (source of truth: mkdocs.yml's top-level nav: list), not repo_mapper's default flat...",
+    "source_paths": [
+      "api/index.md",
+      "api/core.md",
+      "... (14 pages, 1:1 with jaxfne module/group nodes)"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-docs",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "unconfirmed",
+  "notes": []
+}

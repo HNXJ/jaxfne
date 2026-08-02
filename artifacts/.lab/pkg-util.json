@@ -1,0 +1,65 @@
+{
+  "id": "pkg-util",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "util.py",
+  "generated": {
+    "summary": "\"\"\"Config/Tensor consistency helpers: validate, diff, merge, summarize. -- Internal-only additions layered on top of the real ``RuntimeConfig`` and",
+    "source_paths": [
+      "jaxfne/util.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High for size/structure/exports/git-state/test-coverage (directly grepped/read). Moderate-high for 'no landmines beyond the two noted' -- based on a full single read of a 301-line file plus a FRICTIONS_STACK grep, not a deep runtime/behavioral audit of every branch.",
+      "purpose": "jaxfne/util.py (301 lines) is a config/tensor consistency-helper module layered on top of core.py's RuntimeConfig/NeuronalTensor/Model/Configuration dataclasses. Per its module docstring (lines 1-8) it provides validate/diff/merge/summarize helpers that check cross-field or runtime-only invariants the dataclasses' own __post_init__ cannot (e.g. dtype vs jax_enable_x64, device availability, homeostasis/HDP param-key completeness, out-of-bounds edge indices, non-finite arrays). It is re-exported at package top level via jaxfne/__init__.py:231-239, making it part of the public jtfne API.",
+      "key_findings": [
+        "301 lines total; 8 public functions, all listed in __all__ (lines 20-29): validate_runtime_config, runtime_config_diff, merge_runtime_configs, validate_neuronal_tensor, tensor_summary, validate_model, model_diff, configuration_diff.",
+        "No classes -- pure functions module.",
+        "No TODO/FIXME/NotImplementedError anywhere in the file (grep of the read content confirms none).",
+        "git status --short -- jaxfne/util.py and git diff --stat -- jaxfne/util.py both return empty -- no uncommitted changes to this file; last two touching commits are 8f62f01 ('E701/E702/E741 lint cleanup') and 0dd4a1e ('macaque-v1 config + N-parametrized pipeline').",
+        "Two module-level constants: _REQUIRED_HOMEOSTASIS_KEYS (line 31, 7 keys) and _REQUIRED_HDP_KEYS (lines 32-35, 10 keys) used only by validate_runtime_config's completeness checks.",
+        "Imports jax and jax.numpy lazily inside function bodies (lines 55, 193, 233) rather than at module top -- deliberate to keep module import cheap."
+      ],
+      "contracts": [
+        "All 6 validate_*/*_diff functions with a `strict` kwarg (validate_runtime_config, validate_neuronal_tensor, validate_model) raise ValueError on the FIRST warning only when strict=True, otherwise return list[str] of all warnings (lines 86-88, 173-175, 218-220).",
+        "merge_runtime_configs(*cfgs, **overrides) requires >=1 config (raises ValueError, line 116) and does field-level last-write-wins via dataclasses.replace, not a default-aware deep merge (docstring lines 107-113) -- a later cfg explicitly setting a field to its default still overwrites.",
+        "validate_neuronal_tensor's NeuronType-fraction-sum check only fires when every NeuronType in a Layer declares a fraction (line 165) -- partial fractions are explicitly not flagged, per NeuronType.fraction's own documented even-split fallback.",
+        "configuration_diff intentionally excludes `probes` (line 264-266) because it's a `_ProbeDeclarations` proxy without stable equality -- callers must not expect probes in the diff dict.",
+        "All 8 functions are re-exported from jaxfne/__init__.py (lines 231-239) with identical names -- this is the frozen public contract callers import against (confirmed via `from .util import (...)` at __init__.py:231)."
+      ],
+      "landmines": [
+        "No FRICTIONS_STACK.md row cites util.py specifically (grep -n 'util' skills/FRICTIONS_STACK.md only hit unrelated F-020/F-009 rows about emitters.py/core.py).",
+        "validate_runtime_config's backend-availability check (lines 65-69) swallows both RuntimeError and ValueError from jax.devices() into a silent `available = False` -- broad except-by-type, not a bug per se but worth knowing if a future jax API change raises a different exception type it wouldn't catch.",
+        "model_diff's mean-edge-weight comparison (lines 250-253) only runs `if la.n_edges and lb.n_edges` -- an empty-vs-nonempty edge_list difference is only surfaced via the earlier n_edges check, not silently dropped, so this is fine but easy to misread as an omission."
+      ],
+      "related_nodes": [
+        "tests/test_util_config_tensor.py (209 lines, 25 test_ functions) -- the dedicated test file per its own docstring line 1: 'Tests for jaxfne.util: RuntimeConfig/NeuronalTensor/Model/Configuration validate/diff/merge/summary.'",
+        "jaxfne/core.py -- tightly coupled: defines Configuration, EdgeList, Model, RuntimeConfig (imported at util.py:17), the dataclasses every util.py function operates on.",
+        "jaxfne/neuronal_tensor.py -- tightly coupled: defines NeuronalTensor/Area/Layer/NeuronType (imported at util.py:18), operated on by validate_neuronal_tensor and tensor_summary.",
+        "jaxfne/__init__.py -- re-exports all 8 util.py functions at package top level (lines 231-239)."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

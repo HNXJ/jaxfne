@@ -1,0 +1,64 @@
+{
+  "id": "pkg-signals",
+  "schema_version": 3,
+  "kind": "module",
+  "title": "_signals.py",
+  "generated": {
+    "summary": "\"\"\"Signals/Objective schema, trial specs, and paradigm-adjacent readout types. -- Split out of ``jaxfne/core.py`` (second slice of the core.py monolith split,",
+    "source_paths": [
+      "jaxfne/_signals.py"
+    ],
+    "links": [
+      {
+        "to": "jaxfne-pkg",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "module-formation-pass-2026-07-23",
+      "kind": "module_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth module-level formation pass (Workflow tool, one agent per module/group/subpackage), spot-checked before commit",
+      "confidence": "High on structural facts: file read in full, all claims tied to specific line numbers, imports/tests/git-diff/FRICTIONS_STACK grep results directly verified above. Lower confidence on two things I did not chase further: (1) whether to_array_jax has any live caller elsewhere in the repo (only checked its own docstring's claim, did not grep call sites); (2) the tests/related_nodes list is a substring grep on '_signals' across test files, not a verified claim that each test file specifically targets this module's contracts.",
+      "purpose": "jaxfne/_signals.py (1527 lines) is the second slice of the core.py monolith split (its own docstring, lines 1-11): it defines the Signals/Objective/TrialSpec schema layer -- simulation output containers, declarative objective/gate/readout specs, and computation-basis (AxisSpec/BasisSpec) contracts. core.py re-exports everything here for backward compatibility; callers should import from jaxfne.core, not this module directly. One-directional leaf: consumed by Model/construct (in core.py and sibling _model_*.py files) via metric/objective-evaluation helpers, and never calls back into Model or Configuration (lines 8-10).",
+      "key_findings": [
+        "1527 lines total.",
+        "No uncommitted diff: `git diff --stat -- jaxfne/_signals.py` and `git status --short -- jaxfne/_signals.py` both empty; file at HEAD matches last touching commit 82610ea 'feat(progress): vis evidence bridge and NeuronalTensor paradigm targets' (git log).",
+        "grep for TODO/FIXME finds nothing; the only NotImplementedError is deliberate: Signals.get(..., trial=...) raises it (lines 188-197) because core Signals has no declared trial axis, directing callers to jtfne.run_trials/tutorial_utils.simulate_laminar_trials instead.",
+        "Main classes/functions: Simulation (43-91, __post_init__ validates duration_ms/dt_ms finite+positive and n_steps=round(duration/dt)>0), Probe (94-106), Signals (132-265, container: time_ms/V_m/spikes/sources/field/metadata plus .summary()/.get()), key-alias table _SIGNALS_GET_KEY_ALIASES (112-125, e.g. vm->V_m, lfp->lfp_proxy, explicitly notes NO eeg/meg/emm readout on the core proxy field), Objective/DatasetSpec/TrialSpec/TrialBatch/TrialResult/TrialBatchResult (272-498), ReadoutSpec/ReadoutResult (503-581), ObjectiveReport/RunReceipt (585-665), StimulusSchedule (692-816: numpy to_array() used by Model.simulate vs. to_array_jax() explicitly documented at lines 772-775 as NOT called by Model.simulate and missing frequency_hz sinusoid support), LaminarPopulation/LaminarSourceGeometry (822-963), _KNOWN_METRICS/_KNOWN_CONFIG_GATE_METRICS/_CONSERVATIVE_TRUTH_DEFAULTS (966-1172, conservative truth-gate defaults e.g. physical_amplitude_calibrated=False), AxisSpec/BasisSpec (1285-1469, 'v0.2.26 computation-basis contracts', doc-only, do not affect JAX execution per their own docstrings).",
+        "10 internal modules import from it directly (grep): _model_evaluate.py:21, core.py:64, _construct_core.py:26, _model_manifest.py:13, _construct_presets.py:18, _model_simulate.py:37, _construct_extras.py:20, _model.py:52, _model_readout.py:17, _model_tune.py:25.",
+        "26 test files reference '_signals' by grep -- but that grep matches the substring anywhere (e.g. within 'Signals'), so this is a Signals-object usage count, not a dedicated-test-file count (no tests/test_signals*.py file exists)."
+      ],
+      "contracts": [
+        "Signals.get(key, ..., trial=None): trial is never supported and always raises NotImplementedError when passed (lines 188-197) -- a stable, documented refusal, not a bug.",
+        "Signals.get(selector=...) vs area/layer/cell_type/ids: mutually exclusive -- passing both raises ValueError (lines 199-204); selector only applies to neuron-axis keys in _SIGNALS_GET_NEURON_AXIS_KEYS={V_m,spikes,sources} (line 127), raises ValueError on laminar field keys (lfp_proxy/csd_proxy/phi_e_proxy/source_proxy, line 129).",
+        "Simulation is frozen/immutable (dataclass(frozen=True)) with a hard invariant enforced in __post_init__: duration_ms>0 finite, dt_ms>0 finite, derived n_steps=round(duration_ms/dt_ms) must be >0, else ValueError (lines 65-79).",
+        "StimulusSchedule.to_array is the one Model.simulate actually calls per its own docstring (line 774: 'Model.simulate calls to_array, not this method') -- to_array_jax is a separate, not-fully-equivalent JAX path (no frequency_hz support).",
+        "Truth-gate convention (repo-wide doctrine, applied concretely here): every proxy/scaffold dataclass (ReadoutResult, StimulusSchedule, LaminarPopulation, LaminarSourceGeometry) carries physical_amplitude_calibrated: bool = False and claim_level: str = 'computational_scaffold' as frozen defaults that validate() methods explicitly refuse to let escalate (e.g. LaminarPopulation.validate() lines 856-859 flags a raised claim as an issue)."
+      ],
+      "landmines": [
+        "skills/FRICTIONS_STACK.md F-030 and F-028 both name _signals.py explicitly: F-030 documents that _signals.py is an F401-heavy re-export-aggregator requiring a pyproject.toml per-file-ignore (ruff --fix nearly gutted files like it); F-028 was a deep-code review of _signals.py among others that found/rejected several overstated findings -- no fix was applied specifically inside _signals.py itself in that pass. Neither is a live bug in the current file, both are process/history notes.",
+        "StimulusSchedule.to_array_jax (766-801) is a parallel, not-behaviorally-identical implementation of to_array (715-764) -- it silently omits frequency_hz sinusoid support, documented explicitly (772-775) but easy to call by mistake expecting parity with the numpy path.",
+        "_evaluate_gate_spec's config-metadata gate branch defaults `criterion` to 'exact' (line 1208) while the general numeric-gate default is 'below' (line 1193/1231) -- an inconsistent default between the two gate kinds in the same function, not documented as intentional beyond the code itself."
+      ],
+      "related_nodes": [
+        "No dedicated tests/test_signals.py exists; Signals/Objective/etc. are exercised indirectly across many test files (grep -l '_signals' tests/ hit 26 files, substring match on 'Signals' token) including tests/test_objectives.py, tests/test_objectives_v020.py, tests/test_objective_report_v018.py, tests/test_readout_spec_v017.py, tests/test_run_receipt_v016.py, tests/test_is_valid_signal.py, tests/test_probe_operators_eeg_meg_emm.py.",
+        "Tightly coupled to: jaxfne/core.py (re-exports everything, line 64 import), jaxfne/_model.py, _model_evaluate.py, _model_manifest.py, _model_readout.py, _model_simulate.py, _model_tune.py, _construct_core.py, _construct_extras.py, _construct_presets.py (all 10 import directly, per grep above) -- i.e. the entire Model/construct split-file family depends on this module.",
+        "Also imports from jaxfne/fields (FieldOutput), jaxfne/io (config_hash, json_safe), jaxfne/experimental_hpc/contracts (SelectorSpec), jaxfne/_runtime_config (RuntimeConfig), jaxfne/paradigm (Paradigm/ParadigmCondition/etc.) -- so it is downstream of those five modules."
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

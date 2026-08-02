@@ -1,0 +1,63 @@
+{
+  "id": "jaxfne-skills",
+  "schema_version": 3,
+  "kind": "folder",
+  "title": "skills",
+  "generated": {
+    "summary": "Folder with 30 files, e.g. 05_projection_semantics.md, 11_catalog_glossary.md, 02_analysis_integrity.md, SYNC_GLOBAL.sh, 10_objective_grammar.md.",
+    "source_paths": [
+      "skills"
+    ],
+    "links": [
+      {
+        "to": "labyrinth-jaxfne",
+        "relation": "refines"
+      }
+    ]
+  },
+  "status": "verified",
+  "notes": [
+    {
+      "id": "formation-pass-2026-07-23",
+      "kind": "subsystem_investigation",
+      "date": "2026-07-23",
+      "source": "multi-agent Labyrinth formation pass (Workflow tool, one agent per subsystem node), independently spot-checked before commit",
+      "confidence": "high",
+      "key_findings": [
+        "skills/ contains exactly 13 first-class SKILL.md-bearing folders (verified: `find skills -name SKILL.md | wc -l` = 13), each with frontmatter `name:`/`description:` (verified format in skills/catalog-glossary-jaxfne/SKILL.md lines 1-13). Folders: catalog-glossary-jaxfne, jaxfne-config, jaxfne-modeling-optimization-schema, jaxfne-neural-network, jaxfne-neural-tensor, jaxfne-notebook-release-gate, jaxfne-objective-grammar, jaxfne-paradigm-design, jaxfne-release-mutation-guard, jaxfne-sha256-artifact-integrity, jaxfne-spectrolaminar-suite, jaxfne-vis-modules, jaxfne-worker-context-router.",
+        "skills/ root also holds 11 numbered friction/topic notes (00_INDEX.md..11_catalog_glossary.md), FRICTIONS_STACK.md (the living contradiction ledger), PATCH.md, README.md, ANTIGRAVITY_PROMPT.md, and SYNC_GLOBAL.sh \u2014 these are repo-internal support docs, not synced skill folders.",
+        "SYNC_GLOBAL.sh (skills/SYNC_GLOBAL.sh) is the actual sync mechanism: rsyncs the 13 FOLDERS array to two destinations, ${HOME}/.claude/skills and ${HOME}/.agents/skills, and also explicitly deletes STALE_FOLDERS left over from a 2026-06-30 consolidation (jaxfne-configuration-fluent-api, jaxfne-cortical-column-default, jaxfne-visualization-schema, jaxfne-signals-probe-objective-chain) plus an extensionless-STALE list \u2014 i.e. the sync is not purely additive, it actively prunes renamed/merged skills from global dirs.",
+        "FRICTIONS_STACK.md is large (37KB+, entries F-002 through at least F-031 seen) and is the accumulated real-landmine record for this subsystem specifically \u2014 F-027 (closed 2026-07-13) documents a full re-verification pass of all 13 SKILL.md files against live source and found one real material staleness (jaxfne-config's canonical column E/I fraction table was off by up to 25 points vs live code, since fixed in both builders.py docstrings and 5 doc locations).",
+        "There are 12 other skills described as 'global-only' (not sourced from this repo) per the user's global CLAUDE.md/MEMORY.md, distinct from these 13 repo-sourced ones \u2014 editing the 13 anywhere except jaxfne/skills/ gets silently overwritten by the next SYNC_GLOBAL.sh run."
+      ],
+      "contracts": [
+        "Each skill folder requires a SKILL.md with YAML frontmatter `name:` (matching the folder name) and a `description:` block written to double as the auto-router trigger text (verified in skills/catalog-glossary-jaxfne/SKILL.md:1-13) \u2014 description keywords are load-bearing for routing, not just documentation.",
+        "skills/SYNC_GLOBAL.sh's FOLDERS array (lines ~10-22) is the canonical list of which folders are considered first-class/synced; a folder existing under skills/ but absent from FOLDERS is not propagated to global dirs.",
+        "AGENTS.md directs: 'Before writing helpers, read skills/catalog-glossary-jaxfne/SKILL.md. Contradictions: skills/FRICTIONS_STACK.md.' (AGENTS.md, 'Before writing helpers' section) \u2014 i.e. catalog-glossary-jaxfne is the load-bearing entry point other subsystems are expected to consult, and FRICTIONS_STACK.md is the canonical place to check/log skill-vs-code mismatches before trusting a skill claim.",
+        "AGENTS.md also states the repo-agnostic delegation contract: when handing jaxfne work to a fast/weak model, paste the relevant skill's verified names/signatures inline rather than describing the task open-endedly (AGENTS.md 'Before writing helpers' section, citing jtfne.weld()/cfg.circuit/FlatModel as real invented-API failures this guards against)."
+      ],
+      "landmines": [
+        "Stale line-number citations: F-025 in FRICTIONS_STACK.md flags that the 2026-07-04/05 core.py monolith split (8370->233 lines) invalidated every FRICTIONS_STACK row citing a specific jaxfne/core.py:<line> before that date \u2014 symbols still resolve via jaxfne.core.X re-exports but not at the cited line; must re-verify any line citation against current source before trusting it.",
+        "Skills can silently drift from live code: F-027 found jaxfne-config's canonical-column E/I ratio table stale by up to 25 percentage points versus the live jtfne.CANONICAL_LAYER_CELL_TYPE_FRACTIONS constant, traced back to a stale docstring in jaxfne/builders.py that had propagated into the skill and 5 more doc files \u2014 a skill's numeric claims are not automatically trustworthy even though they're the 'authoritative' source; verify against a fresh construct(cfg).neuron_table() run before repeating a numeric claim from a skill.",
+        "Global-only edits get overwritten: per the user's own doctrine (~/.claude/CLAUDE.md, MEMORY.md reference_repo_skills_source_of_truth.md), editing one of these 13 skills directly in ~/.claude/skills/ or ~/.agents/skills/ instead of jaxfne/skills/ is silently clobbered by the next SYNC_GLOBAL.sh run \u2014 jaxfne/skills/ is the only writable source of truth for these 13.",
+        "SYNC_GLOBAL.sh actively deletes stale global folders/names not in its current FOLDERS/STALE_EXTENSIONLESS lists (jaxfne-configuration-fluent-api, jaxfne-cortical-column-default, jaxfne-visualization-schema, jaxfne-signals-probe-objective-chain) \u2014 a renamed skill (e.g. jaxfne-visualization-schema -> jaxfne-vis-modules, renamed 2026-06-30 per its own description) leaves a real removal step in the sync script, not just an addition; a fresh agent editing the sync script must update both FOLDERS and the stale-removal lists together or a dead folder lingers on other machines."
+      ],
+      "related_nodes": [
+        "jaxfne-agents-md (AGENTS.md is the pointer/router that sends agents into skills/ for depth, and states the 'read catalog-glossary-jaxfne first' + delegation-inline contracts that this subsystem exists to serve)",
+        "jaxfne-core-api (core.py/_config.py/_model.py/etc \u2014 the actual implementation these skills document; FRICTIONS_STACK F-025/F-027 show skill content must be periodically re-verified against this code, it does not update automatically)",
+        "jaxfne-prp-backlog (artifacts/developer/{plans,progress,review,adapt}.json \u2014 the PRP tracker where skill staleness/consolidation work like F-027 gets logged and closed, and which itself was recently made gitignored per a public-repo leak incident referenced in AGENTS.md)",
+        "jaxfne-docs (docs/ \u2014 F-027 shows canonical-column staleness propagated identically into both a skill and 5 docs/ files, meaning skill and docs content must be kept in sync together, not independently)"
+      ]
+    }
+  ],
+  "issues": [],
+  "plan": "",
+  "verification": {
+    "checks": {
+      "sources_resolve": true,
+      "reproducible": true
+    },
+    "verdict": "verified",
+    "checks_run": 2
+  }
+}

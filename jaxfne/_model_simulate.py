@@ -420,6 +420,44 @@ def _resolve_stimulus_schedule(
         )
     return None
 
+
+def _maybe_poisson_final_step(self: "Model", sources: Any) -> "Optional[dict[str, Any]]":
+    """Opt-in real 1D Poisson solve on the FINAL timestep's sources.
+
+    Returns ``None`` unless the caller explicitly opted in via
+    ``Configuration.field(solver="experimental_poisson_1d")``. This is
+    ADDITIVE: ``signals.field`` remains the unchanged proxy projection over
+    every timestep. The solver is single-timestep by construction (it takes a
+    ``(n_neurons,)`` source vector, not the ``(n_steps, n_neurons)`` series),
+    so wiring it as a drop-in replacement for ``project_laminar_sources``
+    would require a per-step dense solve and a different output shape --
+    deliberately not attempted here.
+
+    Any solver failure is captured as an ``error`` entry rather than raised:
+    this is an opt-in diagnostic accessory, and it must not be able to break
+    an otherwise-valid ``simulate()`` call.
+    """
+    declared = [f for f in (self.cfg.fields or []) if f.get("solver") == "experimental_poisson_1d"]
+    if not declared:
+        return None
+
+    from .fields import experimental_poisson_1d_from_neuron_table
+
+    spec = declared[0]
+    try:
+        table = self.neuron_table()
+        final = jnp.asarray(sources)[-1]
+        _phi, _residual, manifest = experimental_poisson_1d_from_neuron_table(
+            neuron_table=table,
+            sources=final,
+            conductivity=float(spec.get("conductivity", 1.0)),
+            n_bins=int(spec.get("n_bins", self.static.get("n_contacts", 16))),
+        )
+        return {"applied_to": "final_timestep_only", "manifest": manifest}
+    except Exception as exc:  # noqa: BLE001 - opt-in accessory must not break simulate()
+        return {"applied_to": "final_timestep_only", "error": f"{type(exc).__name__}: {exc}"}
+
+
 def simulate(
     self: "Model",
     sim: Simulation,
@@ -484,6 +522,7 @@ def simulate(
     )
     positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
     field_output = None
+    poisson_final_step = None
     if sim.record_fields:
         field_output = project_laminar_sources(
             sources=sources,
@@ -491,6 +530,7 @@ def simulate(
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.actual_dtype,
         )
+        poisson_final_step = _maybe_poisson_final_step(self, sources)
 
     paradigm_meta: Optional[dict[str, Any]] = None
     if isinstance(paradigm, Mapping):
@@ -529,6 +569,8 @@ def simulate(
         "double_count_guard": "passed",
         "double_count_evidence": None,
     }
+    if poisson_final_step is not None:
+        metadata["poisson_field_final_step"] = poisson_final_step
     if schedule is not None:
         metadata["stimulus_injection_status"] = "native_drive_schedule_v0.0.12"
         metadata["stimulus_schedule"] = schedule.to_dict()
