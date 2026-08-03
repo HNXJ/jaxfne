@@ -32,7 +32,7 @@ Zenodo watches **published GitHub Releases**, not bare git tags.
 
 | Event | Zenodo archives? |
 |-------|------------------|
-| `git tag` / `git push --tags` only (e.g. internal `v0.4.6`) | No |
+| `git tag` / `git push --tags` only (e.g. internal `v0.4.8`) | No |
 | GitHub Release published for a tag | Yes (new version DOI; Concept DOI unchanged) |
 | Draft Release | No |
 

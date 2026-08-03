@@ -207,7 +207,7 @@ run_status: tutorial_scaffold
 model_status: computational_scaffold (new domain, candidate-status)
 amplitude_status: False (connectivity not empirically calibrated)
 source_calibration_status: uncalibrated_multi_area_izhikevich
-field_solver_status: linear_solver (even for 3D, still proxy in v0.2.24)
+field_solver_status: linear_solver (even for 3D, still proxy)
 Validation required: None yet; this is exploratory setup
 ```
 
@@ -289,9 +289,9 @@ for seed in range(10):
 
 ---
 
-## Implemented in v0.2.26
+## Implemented
 
-The following computation-basis contract objects are implemented in jaxfne v0.2.26:
+The following computation-basis contract objects are implemented in jaxfne:
 
 | Object / Function | Location | Purpose |
 |-------------------|----------|---------|
@@ -318,7 +318,7 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 |--------|--------|-------------|---------------|
 | `laminar_proxy` | Active (default) | True | False |
 | `quasi_static_resistive` | Reserved | False | False |
-| `solved_poisson` | Gated reserved (no solver in v0.2.x) | **False** | **False** |
+| `solved_poisson` | Gated reserved (no solver) | **False** | **False** |
 | `reserved_admittive` | Declared reserved (v0.3.x) | **False** | **False** |
 | `reserved_maxwell` | Declared reserved (v0.3.x) | **False** | **False** |
 
@@ -330,7 +330,7 @@ The following computation-basis contract objects are implemented in jaxfne v0.2.
 
 - [Mathematical Glossary Flow](mathematical_glossary_flow.md) — Core TFNE equations
 - [Source/Field Equations](source_field_equations.md) — Source modes, forbidden patterns, field metadata
-- [Tensor-Network Ancestry](tensor_network_ancestry.md) — v0.2.29 conceptual context: basis-transform doctrine and historical parallels
+- [Tensor-Network Ancestry](tensor_network_ancestry.md) — conceptual context: basis-transform doctrine and historical parallels
 - [Probe Operators](guides/probe_operators.md) — Readout operators and their statement boundaries
 - [Scope and Limitations](limitations_and_future_plans.md) — What TFNE statements and stays scoped to
 - [TFNE Operator Doctrine](operator_doctrine.md) — Per-stage contract table built on these tensor shapes

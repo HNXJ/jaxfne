@@ -1,7 +1,7 @@
 # Tensor-Network Ancestry and Basis-Transform Doctrine
 
-**Status:** v0.2.29 conceptual documentation  
-**Version:** v0.2.28-aligned  
+**Status:** conceptual documentation  
+**Version:** current  
 **run_status:** tutorial_scaffold  
 **Scope:** Terminology, historical context, architectural parallels; no implementation notes
 
@@ -230,5 +230,5 @@ This path is **deferred and not promised.** If pursued, it would:
 
 ---
 
-**Status:** v0.2.29 conceptual documentation (no implementation notes)  
+**Status:** conceptual documentation (no implementation notes)  
 **run_status:** tutorial_scaffold

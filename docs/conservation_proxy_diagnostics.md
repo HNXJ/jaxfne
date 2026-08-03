@@ -2,18 +2,18 @@
 
 ## Purpose
 
-This document describes the v0.2.27 conservation-inspired proxy diagnostics in TFNE
+This document describes the conservation-inspired proxy diagnostics in TFNE
 (`compute_conservation_proxy_diagnostics`). These diagnostics operate over the existing
 laminar-proxy field outputs — `source_proxy`, `phi_e_proxy`, `csd_proxy`, `lfp_proxy` —
 and produce JSON-safe scalar summaries for source/field validation.
 
-**Run boundary (v0.2.27):**
+**Run boundary:**
 - Proxy diagnostics only — proxy-based computation over existing proxy arrays. Calibration and the reserved physical-field regimes are catalogued in [Limitations and future plans](limitations_and_future_plans.md).
 - All values are derived from existing proxy arrays; nothing is fabricated.
 - `amplitude_status: false` (immutable).
 - `metabolism_status: false` (immutable).
 - `j_dot_e_proxy: null` — J_e is not computed in `linear_solver` mode.
-- `poynting_flux_proxy: null` — not implemented in v0.2.x.
+- `poynting_flux_proxy: null` — not implemented.
 - `poisson_solver_status: not_implemented`.
 - `maxwell_solver_status: not_implemented`.
 - `stress_energy_tensor_status: not_implemented`.
@@ -75,7 +75,7 @@ distinguish it as a proxy analog of field energy density; it is not a physical e
 
 $$\mathbf{J} \cdot \mathbf{E} \approx -\sigma |\nabla \phi_e|^2$$
 
-This product is the local Ohmic power density. In TFNE v0.2.27:
+This product is the local Ohmic power density. In TFNE:
 
 - J_e is not computed in `linear_solver` mode.
 - `j_dot_e_proxy` is always `null`.
@@ -101,7 +101,7 @@ Proxy mode reports `poynting_flux_proxy: null`. Poynting flux, stress-energy ten
 | Field | Type | Description |
 |---|---|---|
 | `diagnostic_status` | `"proxy"` | Always `"proxy"` — no physical status |
-| `diagnostic_version` | `"v0.2.27"` | Version tag |
+| `diagnostic_version` | `"current"` | Version tag |
 | `model_status` | `"computational_scaffold"` | Always scaffold |
 | `field_solver_status` | str | Passed through; `"linear_solver"` by default |
 | `field_model_status` | str | Passed through; `"proxy_readout"` by default |

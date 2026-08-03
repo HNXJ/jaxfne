@@ -23,9 +23,9 @@ To prepare a workflow for calibration:
 3. **Collect reference data:** Identify empirical EEG/MEG/LFP/CSD for comparison
 4. **Validate:** Compare proxy readouts to empirical data; compute residuals and comparison metrics
 
-## Calibration Specification and Reporting (v0.2.5)
+## Calibration Specification and Reporting
 
-jaxfne v0.2.5 introduces calibration specification and reporting contracts. These allow workflows to declare calibration state without changing the default proxy readout behavior.
+jaxfne provides calibration specification and reporting contracts. These allow workflows to declare calibration state without changing the default proxy readout behavior.
 
 ### CalibrationSpec
 
@@ -50,7 +50,7 @@ spec = CalibrationSpec(
     reference="toy_leadfield"
 )
 
-# Declare empirical calibration candidate (metadata declared, pending validation in v0.2.5)
+# Declare empirical calibration candidate (metadata declared, validation pending)
 spec = CalibrationSpec(
     name="eeg_candidate",
     target="readout",
@@ -68,7 +68,7 @@ spec = CalibrationSpec(
 - `relative_normalized` — Normalized relative to proxy baseline
 - `empirical_gain_candidate` — Candidate gain estimate, pending validation
 - `physical_units_candidate` — Candidate physical units, pending validation
-- `calibrated_empirical` — Calibration metadata declared (pending validation in v0.2.5)
+- `calibrated_empirical` — Calibration metadata declared (validation pending)
 
 ### Calibration Reports
 
@@ -80,25 +80,25 @@ report = make_calibration_report(spec, readout_kind="lfp_proxy")
 # report contains:
 # - calibration_name, target, mode, status
 # - units, scale, reference, description
-# - amplitude_status: false (always in v0.2.5)
+# - amplitude_status: false (always)
 # - calibration_model_status: computational_proxy_with_declared_metadata
 # - assumptions and warnings
 ```
 
-### Important: v0.2.5 Behavior
+### Important: Behavior
 
 - **All proxy readouts remain computational proxies** by default
-- `amplitude_status` stays `false` for all modes in v0.2.5
+- `amplitude_status` stays `false` for all modes
 - Calibration metadata is declared for future validation, validation pending
 - Empirical calibration requires separate geometry, reference data, and validation evidence beyond the spec
 
-## Current status (v0.2.3–v0.2.5)
+## Current status
 
 - ✓ Metadata fields support calibration annotations
 - ✓ JSON output bundles preserve geometry and source information
-- ✓ Calibration specification contracts: v0.2.5 (metadata only, no physical amplitude upgrade)
-- ◐ Empirically validated calibration examples: v0.2.6–v0.2.7
-- ◐ Empirically calibrated readouts: v0.3.x and beyond
+- ✓ Calibration specification contracts (metadata only, no physical amplitude upgrade)
+- ◐ Empirically validated calibration examples: planned
+- ◐ Empirically calibrated readouts: planned
 
 ## Example: Declaring a calibration-ready workflow
 

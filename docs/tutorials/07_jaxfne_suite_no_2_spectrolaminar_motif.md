@@ -271,7 +271,7 @@ matches the question:
 | `H` behavior | Pinned (`H_mean≈1.001-1.003`, `H_std≈0.0006`) | Fluctuating (`H=1.028±0.023`, range `[0.953, 1.227]`) |
 | `kappa_synchrony` | ~0.04-0.05 | ~0.044 |
 | Validation evidence | 5-seed × 20s stability gate | 5-seed × 2s grid-search refinement, N=500 |
-| Status | Frozen (0.4.6 candidate) | Best-of-two-pass; still open |
+| Status | Frozen | Best-of-two-pass; still open |
 
 ## Figures
 
@@ -566,7 +566,7 @@ The manifest includes:
 
 ```json
 {
-  "version":      "0.4.1",
+  "version":      "0.4.8",
   "duration_ms":  1000.0,
   "dt_ms":        0.1,
   "n_steps":      10000,

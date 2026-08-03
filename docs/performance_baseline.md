@@ -1,6 +1,6 @@
-# jaxfne Performance Baseline (v0.2.30)
+# jaxfne Performance Baseline
 
-**Status:** v0.2.30 performance receipts  
+**Status:** performance receipts  
 **Statement Level:** `local_environment_receipt_only`  
 **Status Mode:** `tutorial_scaffold`  
 **Date:** 2026-05-23
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-jaxfne v0.2.30 introduces deterministic performance benchmarking receipts to document computational efficiency under controlled local conditions. **No universal performance statements are made.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
+jaxfne provides deterministic performance benchmarking receipts to document computational efficiency under controlled local conditions. **No universal performance statements are made.** All measurements are environment-specific (CPU type, Python version, JAX version, load state).
 
 ---
 
@@ -118,7 +118,7 @@ Where:
 T_sim ≈ (T_duration / dt) × n_neurons × mean_connectivity × cost_per_spike
 ```
 
-For exponential synaptic kernel (v0.2.30 default):
+For exponential synaptic kernel (current default):
 ```
 T_sim ≈ 1–2 ms per (neuron × step)
 ```
@@ -193,7 +193,7 @@ PYTHONPATH=. python benchmarks/scaling_benchmark.py
 
 ## Integration with CI/CD
 
-v0.2.30 does NOT add CI/CD performance gates. Benchmarks are informational only:
+The performance baseline does NOT add CI/CD performance gates. Benchmarks are informational only:
 - No hard "maximum time" thresholds
 - No automated performance regression detection
 - Local baseline serves as human-readable documentation
@@ -202,7 +202,7 @@ Rationale: Performance depends on machine load, network contention, and hardware
 
 ---
 
-## Reserved Directions (Post-v0.2.30)
+## Reserved Directions
 
 **Potential reserved work (not committed):**
 - Profiling breakdown per neuron type (E, PV, SST, VIP)
@@ -237,4 +237,4 @@ Performance measurements are **audit artifacts** (reproducibility, determinism),
 
 ---
 
-*jaxfne v0.2.30 — Tensor-Field Neural Equations source-to-field computational framework*
+*jaxfne — Tensor-Field Neural Equations source-to-field computational framework*

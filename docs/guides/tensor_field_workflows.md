@@ -127,11 +127,11 @@ Report declares solver path (proxy vs. physical), convergence status, and statem
 
 ---
 
-## Field/proxy diagnostics (v0.2.6+)
+## Field/proxy diagnostics
 
 jaxfne distinguishes between proxy readout paths and physical solver paths using field diagnostics:
 
-### Proxy readout path (v0.2.3–present)
+### Proxy readout path
 
 Laminar proxy operators project source tensors directly to contacts without solving a PDE:
 
@@ -167,7 +167,7 @@ operator = make_field_operator_status(operator_path="physical_candidate")
 # → field_solver_status: "physical_field_solver_candidate"
 ```
 
-All diagnostics keep `amplitude_status: false` in v0.2.6. Physical amplitude statuss require separate calibration and validation evidence.
+All diagnostics keep `amplitude_status: false`. Physical amplitude claims require separate calibration and validation evidence.
 
 ## Local and global summaries
 

@@ -103,7 +103,7 @@ These gates are enforced in validation scripts and cannot be escalated without e
 
 ### Benchmark scope
 
-jaxfne v0.2.30 includes deterministic performance benchmarking scripts (not CI gates):
+jaxfne includes deterministic performance benchmarking scripts (not CI gates):
 
 - `scripts/benchmark_jaxfne.py`: Measures 7 computational phases with hardware metadata
 - `scripts/validate_json_safe.py`: Detects NaN/Infinity in JSON outputs

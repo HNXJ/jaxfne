@@ -1,6 +1,6 @@
 # Tutorial Output Contract
 
-**Status:** Stable specification, introduced in jaxfne 0.2.19/2026-05-21, still in effect (current development tree: 0.4.5)  
+**Status:** Stable specification, introduced in jaxfne 0.2.19/2026-05-21, still in effect (current development tree: 0.4.8)  
 **run_status:** tutorial_scaffold
 
 ---
@@ -41,7 +41,7 @@ Each tutorial creates an output directory with 5 required JSON files plus option
 ```
 
 **Constraints:**
-- `amplitude_status` is **always False** in v0.2.19
+- `amplitude_status` is **always False**
 - `model_status` must be `"computational_scaffold"`
 - `field_model_status` must be `"proxy_readout"`
 - All values must be JSON-safe (no NaN/Inf)
@@ -312,7 +312,7 @@ python scripts/validate_tutorial_outputs.py outputs/
 ## Implementation Status
 
 **Note:** the checklist below is a historical implementation-status snapshot
-from v0.2.19/v0.2.20 and may not reflect the current package (0.4.4) status.
+from v0.2.19/v0.2.20 and may not reflect the current package (0.4.8) status.
 
 **v0.2.19:**
 - ✓ All 4 tutorials generate figures
