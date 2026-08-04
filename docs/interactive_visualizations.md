@@ -1,6 +1,6 @@
-# Interactive Tutorial Visualizations (v0.2.21)
+# Interactive Tutorial Visualizations
 
-**Status:** v0.2.21 Optional Interactive HTML Layer  
+**Status:** Optional Interactive HTML Layer  
 **Date:** 2026-05-21  
 **run_status:** tutorial_scaffold  
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-v0.2.21 adds optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default and unchanged. Interactive HTML is opt-in, Plotly is optional, and all original status checks remain frozen.
+jaxfne provides optional interactive Plotly HTML visualizations for tutorial outputs, generated from source simulation data. Static PNG figures remain the default and unchanged. Interactive HTML is opt-in, Plotly is optional, and all original status checks remain frozen.
 
 **Key principle:** Interactive visualizations are derived from the same source data as static PNG figures. No separate data sources, no additional statements, no biological validation added.
 
@@ -245,4 +245,4 @@ This validates static PNG without interactive generation overhead. Full interact
 
 **Status Status:** Interactive visualizations are computational artifacts, not empirically validated evidence. All status checks remain frozen.
 
-**Version:** v0.2.21 (optional layer, static PNG default preserved)
+**Version:** optional layer, static PNG default preserved

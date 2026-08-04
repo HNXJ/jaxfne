@@ -18,9 +18,9 @@ This document specifies the mathematical contract for the elliptic field regime 
 **Status:** Specification of the admissibility conditions. The elliptic field regime is reserved; see
 [../computation_basis.md](../computation_basis.md) for the `solved_poisson` regime gating doctrine.
 
-⚠️ **v0.2.x Critical Invariant:**
-- **Physical amplitude statuss are disallowed in all v0.2.x releases**, even if admissibility gates pass on synthetic data.
-- `amplitude_status` is **always false** in v0.2.x reports.
+⚠️ **Critical invariant:**
+- **Physical amplitude claims are disallowed**, even if admissibility gates pass on synthetic data.
+- `amplitude_status` is **always false** in reports.
 - Elliptic field solver implementation must be separately approved. Until then, `solved_poisson` regime remains `implemented=False`.
 
 ## Mathematical Problem
@@ -242,17 +242,17 @@ When a elliptic field solver is separately approved and implemented:
 4. **Gate:** Only pass solution downstream if `admissibility_status == "admissible"`
 5. **Statement:** Physical amplitudes stay unscaled until calibration is validated
 
-## Current Status (v0.2.27)
+## Current Status
 
 - ✓ Admissibility specification defined
 - ✓ Five gates mathematically specified
 - ✓ Validation helpers implemented in `jaxfne.validation`
 - ✓ Conservation proxy diagnostics — proxy-scale mode
 - ⧉ Elliptic field solver — reserved regime ([Limitations and future plans](../limitations_and_future_plans.md))
-- ⧉ Physical amplitude statuss — pending field solver implementation and calibration validation
+- ⧉ Physical amplitude claims — pending field solver implementation and calibration validation
 
 **Public-output status:** Specification of admissibility conditions; proxy amplitudes stay relative pending calibration.
-`solved_poisson` regime is gated: `implemented=False`, `status_enabled=False` in v0.2.26+.
+`solved_poisson` regime is gated: `implemented=False`, `status_enabled=False`.
 
 ---
 

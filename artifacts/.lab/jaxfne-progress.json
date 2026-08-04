@@ -23,6 +23,15 @@
       "confidence": "high",
       "detail": "Applied the merge heuristic (two heavily-duplicated things -> one, when it reduces friction/fragmentation without losing functionality): closed the duplication half of F-028, deferred since 2026-07-13 as needing its own scoped session. Found the count had grown 11 -> 12 sites since that note was written; extracted the 11 structurally-identical ones to _izhikevich_dv_du, correctly left the 1 structurally-different one (dataclass carry) alone rather than forcing a false unification.",
       "record": "Receipts: py_compile + import clean; full pytest suite run before (git stash) and after -- identical 19 pre-existing failures both times, none newly introduced; tests/test_v033_two_neuron_ei.py (26 tests on this exact code path) run baseline vs refactored, 26/26 passed both times. No unmerge (heuristic 2) candidate found this pass -- didn't go looking broadly for one to avoid an unscoped fishing expedition; worth a dedicated look next time this heuristic is invoked."
+    },
+    {
+      "id": "progress-2026-08-03-metal-cable-filter",
+      "kind": "progress_entry",
+      "date": "2026-08-03",
+      "source": "jaxfne/fields/proxy.py cable_filter_sources, commit 9a0d034",
+      "confidence": "high",
+      "detail": "Package deep-eval audit: gates green everywhere while jtfne.cable_filter_sources crashed on the JAX Metal backend — root cause was jnp.fft.rfft itself (Metal cannot legalize FFT/complex output; verified standalone). Rewrote the operator as a time-domain matched-pole one-pole IIR cascade (lax.scan, real arithmetic). Verified magnitude/band-power preservation vs the FFT form (ratio 1.000-1.006 in validated bands <=90 Hz; deep:superf gamma 0.0996->0.0993) so documented validated claims carry over; filter is now causal and backend-portable. Also pinned ruff==0.15.17 (CI Lint gate red since 2026-07-30 was unpinned-ruff drift) and made stub fences explicit (GLIF/LIF/NWB).",
+      "record": "Receipts: cable_filter+tensor_pipeline 9/9 on Metal (was 4 failed) and 30p on CPU; api smoke 34p/1s; ruff 0.15.17 clean; mkdocs --strict exit 0; compileall clean; numerical equivalence 3.3e-16 (FFT form) and band-power ~1.00-1.02 (IIR vs analytic |H|)."
     }
   ],
   "issues": [],

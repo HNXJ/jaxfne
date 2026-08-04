@@ -24,8 +24,8 @@ A jaxfne model declares **exactly one** source mode per simulation run. All othe
 
 | Mode | Equation | Status | Implementation |
 |------|----------|--------|-----------------|
-| **total_membrane_current** | $q = I_\mathrm{mem}(z, t)$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
-| **decomposed_cap_ion_syn** | $q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}$ | Reserved (reserved) | Not in v0.2.24–v0.2.27 |
+| **total_membrane_current** | $q = I_\mathrm{mem}(z, t)$ | Reserved (reserved) | Not active |
+| **decomposed_cap_ion_syn** | $q = I_\mathrm{cap} + I_\mathrm{ion} + I_\mathrm{syn}$ | Reserved (reserved) | Not active |
 | **proxy_no_field_solve** | $q = \text{declared proxy} \approx I_\mathrm{model}$ | **Active (current default)** | `jaxfne.fields.project_laminar_sources()` |
 | (none declared) | Signals.sources = None | Allowed (no source) | Field=None, no readouts |
 
@@ -33,7 +33,7 @@ A jaxfne model declares **exactly one** source mode per simulation run. All othe
 
 ### Current Default: proxy_no_field_solve
 
-In v0.2.24–v0.2.27, the active mode is:
+The active mode is:
 
 ```
 source_projection_mode = "proxy_no_field_solve"
@@ -107,7 +107,7 @@ q_syn(x,t) = χ(x) · I_syn(t)
 → Requires explicit source_decomposition contract
 ```
 
-**Option C: Proxy current (current default v0.2.24)**
+**Option C: Proxy current (current default)**
 ```
 ALLOWED (active):
 q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
@@ -153,9 +153,9 @@ The **field_solver_status** field in Manifest declares whether the field PDE is 
 | Status | Solver | φ_e | Current | CSD | Statement |
 |--------|--------|-----|---------|-----|-------|
 | `linear_solver` | **None** | Proxy | Proxy | **Proxy** | Computational scaffold; no physical conductivity statement |
-| `specified_reserved_solver` | **Reserved** | To be solved | To be solved | **Solved** | Reserved v0.2.27+; reserved status yet |
+| `specified_reserved_solver` | **Reserved** | To be solved | To be solved | **Solved** | Reserved; status yet |
 
-**Current default (v0.2.24–v0.2.27):**
+**Current default:**
 ```
 field_solver_status = "linear_solver"
 ```
@@ -166,26 +166,26 @@ field_solver_status = "linear_solver"
 - Boundary conditions and gauge are metadata-only (informational, separate from proxy computation)
 - CSD sign convention is declared: positive = extracellular source (current flowing outward)
 
-### Boundary Conditions and Gauge (Metadata-Only in v0.2.24)
+### Boundary Conditions and Gauge (Metadata-Only)
 
 ```python
 cfg = jtfne.configuration()
     .field(
         domain="laminar_column",
         conductivity="proxy",
-        boundary="mean_zero_neumann",  ← Metadata field (v0.2.24)
-        gauge="mean_zero",              ← Metadata field (v0.2.24)
+        boundary="mean_zero_neumann",  ← Metadata field
+        gauge="mean_zero",              ← Metadata field
     )
 ```
 
-In v0.2.24–v0.2.27, these are stored in Manifest but do **not** affect simulation:
+These are stored in Manifest but do **not** affect simulation:
 
 ```
 boundary_condition: Specifies Neumann (zero-flux) condition (reserved solver regime)
 gauge: Specifies mean-zero constraint (reserved solver regime)
 ```
 
-**In v0.2.27+ (future)**, when a field solver is added:
+**Future:** when a field solver is added:
 - boundary_condition will be enforced during PDE solve
 - gauge will be applied to enforce $\int \phi_e \, dx = 0$ (mean-zero potential)
 
@@ -196,7 +196,7 @@ print(manifest["field_solver_status"])  # → "linear_solver"
 print(manifest["boundary_condition"])  # → "mean_zero_neumann"
 print(manifest["gauge"])  # → "mean_zero"
 
-# These fields are informational only in v0.2.24.
+# These fields are informational only.
 # They document intended reserved behavior.
 ```
 
@@ -229,10 +229,10 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 | Status | Meaning | Biological Statement | Allowed? |
 |--------|---------|------------------|----------|
-| `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ v0.2.24+ default |
+| `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ default |
 | `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
-| `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ v0.2.22+ bridge |
-| `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ v0.2.24–v0.2.26; reserved |
+| `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ bridge |
+| `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ reserved |
 
 **Current constraint:**
 ```
@@ -285,9 +285,9 @@ manifest["conductivity_status"]          # E.g. "proxy" (not "calibrated_physica
 
 **Validation gates (immutable):**
 ```python
-manifest["amplitude_status"]  # Always False in v0.2.24
-manifest["scope_status"]                      # Always "computational_scaffold" in v0.2.24
-manifest["run_status"]                        # Always "tutorial_scaffold" in v0.2.24
+manifest["amplitude_status"]  # Always False
+manifest["scope_status"]                      # Always "computational_scaffold"
+manifest["run_status"]                        # Always "tutorial_scaffold"
 ```
 
 ### Readout Report Fields
@@ -402,7 +402,7 @@ Before releasing a model, verify:
 - [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
 - [ ] Source projection mode is declared (if source_calibration_status is not None)
 - [ ] Field solver status is declared and is either "linear_solver" or a reserved solver name
-- [ ] Boundary condition and gauge are documented (metadata-only in v0.2.24)
+- [ ] Boundary condition and gauge are documented (metadata-only)
 - [ ] CSD sign convention is documented: positive = extracellular source (current flowing outward)
 - [ ] amplitude_status is False
 - [ ] No forbidden synaptic double-counting pattern in source computation

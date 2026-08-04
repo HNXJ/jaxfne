@@ -205,7 +205,7 @@ else:
 
 ### `build_field_admissibility_report(field_output=None, cfg_metadata=None, signals_field=None) -> dict`
 
-The v0.2.0 field-admissibility report (`:363`) — always sets
+The field-admissibility report — always sets
 `physical_amplitude_calibrated=False` and `conductivity_status="proxy_not_solved"` for the
 laminar proxy path; pulls `field_solver_status`/`field_claim_level`/`boundary_condition`/
 `gauge` from `cfg_metadata` or the field output's own diagnostics, falling back to the

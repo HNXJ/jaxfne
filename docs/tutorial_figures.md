@@ -1,12 +1,12 @@
 # Tutorial Figures
 
-**Status:** Stable contract, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.5).
+**Status:** Stable contract, regenerated with visual confirmation; introduced in jaxfne 0.2.27/2026-05-22, still exercised by `tests/test_tutorial_figure_manifest_v028.py` (current development tree: 0.4.8).
 
 ---
 
 ## Overview
 
-v0.2.28 includes a complete set of regenerated tutorial PNG figures demonstrating the jaxfne forward-field workflow. All figures are:
+The current figure set includes complete regenerated tutorial PNG figures demonstrating the jaxfne forward-field workflow. All figures are:
 
 - **Simulated:** Generated from `cortical_column` network with Izhikevich emitters
 - **Proxy-safe:** No biological statements or solver status overstates
@@ -198,7 +198,7 @@ Global manifest fields:
   "figure_count": 12,
   "real_data_figure_count": 11,
   "min_required": 10,
-  "jaxfne_version": "0.2.27",
+  "jaxfne_version": "0.3.4",
   "run_status": "tutorial_scaffold",
   "model_status": "computational_scaffold",
   "field_solver_status": "linear_solver",
@@ -225,7 +225,7 @@ All figures are:
 ## Related Documentation
 
 - **[Index](index.md)** — Documentation index
-- **[Computation Basis](computation_basis.md)** — Computation contract (v0.2.27 basis)
+- **[Computation Basis](computation_basis.md)** — Computation contract
 - **[Conservation Proxy Diagnostics](conservation_proxy_diagnostics.md)** — Conservation diagnostic framework
 
 ---

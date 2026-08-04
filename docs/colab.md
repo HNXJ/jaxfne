@@ -23,7 +23,7 @@ Open a new Colab notebook: https://colab.research.google.com/
 **Expected output:**
 ```
 Installing collected packages: jaxfne
-Successfully installed jaxfne-0.4.4
+Successfully installed jaxfne-0.4.8
 ```
 
 ---
@@ -53,14 +53,14 @@ signals = simulate(model, duration_ms=100, dt_ms=0.1)
 manifest = model.manifest(signals)
 
 # Print key outputs
-print("=== v0.4.4 BASIS (Computation Contract) ===")
+print("=== v0.4.8 BASIS (Computation Contract) ===")
 basis = manifest["basis"]
 print(f"Version: {basis['jaxfne_version']}")
 print(f"Computational scaffold: {basis['model_status']}")
 print(f"Physical amplitude status allowed: {basis['amplitude_status']}")
 print(f"Field solver status: {basis['field_solver_status']}")
 
-print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.4.4) ===")
+print("\n=== CONSERVATION PROXY DIAGNOSTICS (v0.4.8) ===")
 cpd = manifest.get("conservation_proxy_diagnostics")
 if cpd:
     print(f"Status: {cpd['diagnostic_status']}")
@@ -87,13 +87,13 @@ print(f"Spike rate: {signals.spikes.sum() / len(signals.time_ms):.2f} spikes/ms"
 
 **Expected output:**
 ```
-=== v0.4.4 BASIS (Computation Contract) ===
-Version: 0.4.4
+=== v0.4.8 BASIS (Computation Contract) ===
+Version: 0.4.8
 Computational scaffold: computational_scaffold
 Physical amplitude status allowed: False
 Field solver status: linear_solver
 
-=== CONSERVATION PROXY DIAGNOSTICS (v0.4.4) ===
+=== CONSERVATION PROXY DIAGNOSTICS (v0.4.8) ===
 Status: proxy
 Source norm (L1): ~0.15
 Source norm (L2): ~0.20
@@ -206,7 +206,7 @@ print("✓ Simulation output saved to simulation_output.json")
 **Value status:** every output below is Relative unless you supply an explicit
 calibration step. See [Scope & status](scope_and_status.md).
 
-### Statement boundaries (v0.4.4)
+### Statement boundaries (v0.4.8)
 
 | Statement | Value | Notes |
 |-------|--------|-------|
@@ -215,7 +215,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 | **Field readouts** | Relative | CSD/LFP outputs are forward-field projections |
 | **Solver** | `linear_solver` | Elliptic/volumetric solvers are a reserved future regime; current diagnostics use a Relative-value projection |
 
-### What v0.4.4 is
+### What v0.4.8 is
 
 - Exploratory computational neuroscience framework
 - Multi-scale emitter (Izhikevich, HH) to field-proxy pipeline
@@ -224,7 +224,7 @@ calibration step. See [Scope & status](scope_and_status.md).
 
 ---
 
-## Example: Conservation Proxy Diagnostics (v0.4.4)
+## Example: Conservation Proxy Diagnostics (v0.4.8)
 
 If your model includes field outputs, conservation diagnostics are available:
 

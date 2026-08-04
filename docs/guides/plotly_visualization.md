@@ -21,7 +21,7 @@ pip install plotly>=5.0
 Or include in a project `requirements.txt`:
 
 ```
-jaxfne>=0.4.4  # development tree tested at 0.4.5
+jaxfne>=0.4.4  # development tree tested at 0.4.8
 plotly>=5.0
 numpy
 scipy
@@ -361,6 +361,6 @@ fig.write_html("outputs/myrun/figures/trace.html")
 
 ---
 
-**Status:** v0.4.5 (development tree)  
+**Status:** v0.4.8 (development tree)  
 **Last updated:** 2026-07-03  
 **Plotly:** Optional jaxfne addition for interactive visualizations

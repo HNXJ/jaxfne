@@ -10,7 +10,7 @@ A typical output bundle includes:
 ```python
 {
   "receipt_id": "uuid-...",
-  "version": "0.2.3",
+  "version": "0.4.8",
   "signals": {
     "spikes": [[...], [...], ...],
     "V_m": [[...], [...], ...],
@@ -64,11 +64,11 @@ This ensures:
 - All arrays converted to lists for JSON portability
 - Metadata is human-readable and auditable
 
-## The canonical v0.1 path: `run_receipt` and `evaluate_report`
+## The canonical path: `run_receipt` and `evaluate_report`
 
 `Model.manifest()` (shown above) is a **compatibility method retained from
 v0.0.4–v0.0.14**. It still works and is not scheduled for removal, but for
-new code the canonical v0.1 workflow is two typed, immutable, JSON-safe
+new code the canonical workflow is two typed, immutable, JSON-safe
 alternatives:
 
 - **`Model.run_receipt(signals, *, tags=None) -> RunReceipt`** — captures a

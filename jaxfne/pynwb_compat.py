@@ -8,26 +8,32 @@ Do not use production NWB files with jaxfne output yet.
 
 
 def write_nwb(*args, **kwargs):
-    """Placeholder for NWB write (not implemented).
+    """NWB write — NOT implemented (intentional placeholder).
+
+    Exported for API-surface stability only. No round-trip NWB write exists;
+    calling this always raises ``NotImplementedError``.
 
     Raises:
         NotImplementedError: Always. NWB I/O is not yet implemented.
     """
     raise NotImplementedError(
-        "NWB write is not yet implemented in jaxfne v0.3.31. "
+        "NWB write is not yet implemented in jaxfne. "
         "This is a placeholder for future compatibility. "
         "Use manifest.json + Signals objects for now."
     )
 
 
 def read_nwb(*args, **kwargs):
-    """Placeholder for NWB read (not implemented).
+    """NWB read — NOT implemented (intentional placeholder).
+
+    Exported for API-surface stability only. No round-trip NWB read exists;
+    calling this always raises ``NotImplementedError``.
 
     Raises:
         NotImplementedError: Always. NWB I/O is not yet implemented.
     """
     raise NotImplementedError(
-        "NWB read is not yet implemented in jaxfne v0.3.31. "
+        "NWB read is not yet implemented in jaxfne. "
         "This is a placeholder for future compatibility."
     )
 

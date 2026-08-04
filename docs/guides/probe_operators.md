@@ -31,7 +31,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - Spike matrix: `[T, N]` (time × neurons)
 - Event table: rows with timestamp, neuron_id, area, layer, cell_type
 
-**Status (verified v0.4.5, development tree):** Simulated spike readout from emitter.
+**Status (verified v0.4.8, development tree):** Simulated spike readout from emitter.
 
 ---
 
@@ -45,7 +45,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `units_or_status: mV_or_model_state_variable`
 - `operator_status: simulated_proxy`
 
-**Status (verified v0.4.5, development tree):** State voltage from emitter; proxy readout.
+**Status (verified v0.4.8, development tree):** State voltage from emitter; proxy readout.
 
 ---
 
@@ -59,7 +59,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `source_decomposition: proxy_reduced_emitter` (or other declared mode)
 - `source_calibration_status: proxy_izhikevich_current` (or calibrated status)
 
-**Status (verified v0.4.5, development tree):** Proxy source from emitter state; computational readout.
+**Status (verified v0.4.8, development tree):** Proxy source from emitter state; computational readout.
 
 ---
 
@@ -79,9 +79,9 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - `field_solver_status: linear_solver`
 - `amplitude_status: false`
 
-**Important:** v0.2.1 uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
+**Important:** jaxfne uses `-proxy` terminology to declare operator status explicitly. Proxy-scale operators are computational readouts suitable for tutorial and validation workflows.
 
-**Status (verified v0.4.5, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.8, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -106,7 +106,7 @@ Emitter → Source → Field → Probe → Objective → Optimizer
 - Finite output
 - Sign convention exported
 
-**Status (verified v0.4.5, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
+**Status (verified v0.4.8, development tree):** Laminar proxy-scale readout; calibration metadata available for calibrated workflows.
 
 ---
 
@@ -133,7 +133,7 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 **Scope:** EEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.5, development tree):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.8, development tree):** Simulated EEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -159,7 +159,7 @@ y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
 
 **Scope:** MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
-**Status (verified v0.4.5, development tree):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
+**Status (verified v0.4.8, development tree):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 
 ---
 
@@ -196,7 +196,7 @@ EMM(t) = w_spk * normalized_spike_rate(t)
 
 **Important:** EMM-proxy is valid for relative within-run comparisons. It represents a signaling-energy proxy suitable for optimization workflows in v0.2.x.
 
-**Status (verified v0.4.5, development tree):** Normalized activity cost proxy; exploratory metric for optimization.
+**Status (verified v0.4.8, development tree):** Normalized activity cost proxy; exploratory metric for optimization.
 
 ---
 
@@ -260,9 +260,9 @@ Each operator returns a JSON-safe report $R_k$ declaring operator type, computat
 
 ---
 
-## Current Status: Simulated / Proxy (verified as of v0.4.5 development tree)
+## Current Status: Simulated / Proxy (verified as of v0.4.8 development tree)
 
-All eight operators remain simulated or proxy readouts as of v0.4.5:
+All eight operators remain simulated or proxy readouts as of v0.4.8:
 
 | Operator | Status | Notes |
 |----------|--------|-------|
@@ -279,18 +279,18 @@ All eight operators remain simulated or proxy readouts as of v0.4.5:
 
 ## Future Path
 
-The v0.2.x line preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.
+jaxfne preserves proxy operators as stable public readouts while adding clearer validation metadata, calibration specifications, and tutorial coverage.
 
 Planned areas include:
-- **v0.2.4–v0.2.6:** field/proxy mathematics and admissibility diagnostics
-- **v0.2.5 and v0.2.17:** calibration specification and reporting workflows
-- **v0.2.7–v0.2.15:** Colab-ready tutorial stack and tutorial smoke tests
-- **v0.2.13–v0.2.14:** laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
-- **v0.2.18–v0.2.21:** operator status export, package audit, release candidate, and consolidated practical scaffold release
+- field/proxy mathematics and admissibility diagnostics
+- calibration specification and reporting workflows
+- Colab-ready tutorial stack and tutorial smoke tests
+- laminar profile templates using literature-derived technical references, including Lichtenfeld et al. (2024) and Mendoza-Halliday et al. (2024). These templates support declared profile construction and tutorial design; they reference literature without stating reproduction of the reference datasets.
+- operator status export, package audit, release candidate, and consolidated practical scaffold release
 
 Calibration workflows and advanced tutorials are developed in the docs and examples.
 
-**Beyond v0.2.x (v0.3.x and later):**
+**Beyond the current line:**
 - Receptor-level synaptic dynamics (synaptic current modeling)
 - Empirically calibrated source projection
 - Hodgkin-Huxley ion channels with biophysical parameters
@@ -328,12 +328,12 @@ print(emm_readout.report)
 
 ## Terminology Notes
 
-- Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels in v0.2.1+.
+- Use `*-proxy` to denote declared computational operators: `lfp_proxy`, `csd_proxy`, `eeg_proxy`, `meg_proxy` are the canonical public labels.
 - This terminology explicitly declares computational intent and prevents informal analogy with empirically validated readouts.
 - All operators are "simulated" or "proxy" in v0.2.x. Statements of physical equivalence require separate calibration and validation evidence.
 - EMM-proxy is valid for relative within-run comparisons; it represents a signaling-energy proxy in v0.2.x.
 
 ---
 
-**Document version:** v0.4.5 (development tree)  
+**Document version:** v0.4.8 (development tree)  
 **Last updated:** 2026-07-03

@@ -2039,10 +2039,16 @@ class Emitter:
     """Base class for package-level emitter facades."""
 
     def initial_state(self, seed: int = 0) -> EmitterState:
-        raise NotImplementedError("TODO: implement Emitter.initial_state in a concrete emitter")
+        raise NotImplementedError(
+            "Emitter.initial_state is not implemented on the base Emitter class; "
+            "use a concrete emitter such as IzhikevichEmitter"
+        )
 
     def step(self, state: EmitterState, input_t: jax.Array, *, dt_ms: float = 0.1) -> tuple[EmitterState, EmitterOutput]:
-        raise NotImplementedError("TODO: implement Emitter.step in a concrete emitter")
+        raise NotImplementedError(
+            "Emitter.step is not implemented on the base Emitter class; "
+            "use a concrete emitter such as IzhikevichEmitter"
+        )
 
 
 class IzhikevichEmitter(Emitter):
@@ -2095,23 +2101,31 @@ class IzhikevichEmitter(Emitter):
 
 
 class GLIFEmitter(Emitter):
-    """Generalized Leaky Integrate-and-Fire emitter facade stub.
+    """Generalized Leaky Integrate-and-Fire emitter — NOT implemented.
 
-    Provides a placeholder for future implementation of multi-compartment or
-    highly parameterized GLIF models. Raises NotImplementedError on construction.
+    Intentional placeholder (exported for API-surface stability) for a future
+    multi-compartment or highly parameterized GLIF implementation. It cannot be
+    constructed; instantiating it raises ``NotImplementedError``.
     """
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError("TODO: implement GLIFEmitter dynamics before exposing this emitter")
+        raise NotImplementedError(
+            "GLIFEmitter is an intentional placeholder with no dynamics "
+            "implemented; it cannot be constructed"
+        )
 
 
 class LIFEmitter(Emitter):
-    """Leaky Integrate-and-Fire emitter facade stub.
+    """Leaky Integrate-and-Fire emitter — NOT implemented.
 
-    Provides a placeholder for standard LIF single-compartment dynamics.
-    Raises NotImplementedError on construction.
+    Intentional placeholder (exported for API-surface stability) for a future
+    standard single-compartment LIF implementation. It cannot be constructed;
+    instantiating it raises ``NotImplementedError``.
     """
     def __init__(self, *args, **kwargs):
-        raise NotImplementedError("TODO: implement LIFEmitter dynamics before exposing this emitter")
+        raise NotImplementedError(
+            "LIFEmitter is an intentional placeholder with no dynamics "
+            "implemented; it cannot be constructed"
+        )
 
 
 class SynapseState(_NamedTuple):

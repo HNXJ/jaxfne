@@ -125,7 +125,7 @@ $\sigma_e$ is the **Field → Current** bridge. It encodes how tissue converts e
 
 **Run boundary:**
 
-- **Proxy** in current v0.2.24–v0.2.27 linear_solver path (assumed isotropic, no PDE solve)
+- **Proxy** in the current linear_solver path (assumed isotropic, no PDE solve)
 - **Physical only** when:
   - Field solver is active and verified (`field_solver_status != linear_solver`)
   - Conductivity is calibrated (`conductivity_status == calibrated_physical`)
@@ -199,7 +199,7 @@ CSD turns a field-current pattern into a source/sink-like readout. It is the pri
 
 - **CSD-proxy** unless source AND field are calibrated/solved
 - **Sign convention** in jaxfne: `positive_equals_extracellular_source` (positive CSD = current flowing outward)
-- **Not a direct biological measurement** in v0.2.24–v0.2.27 (no physical conductivity or solved field)
+- **Not a direct biological measurement** (no physical conductivity or solved field)
 
 **Implementation:**
 - `jaxfne.fields.project_laminar_sources()` — computes CSD proxy directly
@@ -265,7 +265,7 @@ EMM-proxy is a **relative within-run cost/activity index**, not a biological ene
 
 **Run boundary:**
 
-- **Proxy-only** in v0.2.24–v0.2.27
+- **Proxy-only**
 - **Computational cost metric** — combines source and field norms, not ATP consumption or metabolic rate
 - **Valid for relative within-run comparison** (e.g., which timestep is most active)
 - **Requires empirical calibration** for any biological interpretation statements
