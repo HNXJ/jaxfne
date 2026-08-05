@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-05-phaseC-C05-C06-gate",
+      "kind": "progress_entry",
+      "date": "2026-08-05",
+      "source": "docs/fullroadmap.md C-05/C-06, AGENTS.md, C05_receipt.txt, commit after C-05 on dev",
+      "confidence": "high",
+      "detail": "Phase C gate passed. C-05 GATE green: pytest on test_phaseC_H_carry_resume.py + test_sanity_delta_backup_resume.py + test_sanity_delta_resume_equivalence_full.py -> 12 passed in 17.54s (JAX_PLATFORMS=cpu; 2 C-04 + 9 backup/resume + 1 resume-equivalence), exit 0. C-06 already satisfied without edit: AGENTS.md 'Three build paths' material (lines 48-56) already states the canonical-carries contract for DynamicState (all six fields: v,u,prev_spikes,syn_state,H,w) as the low-level HDP call pattern for continuous multi-turn runs; per the repo no-duplicate rule no second sentence was added. fullroadmap updated: C-05 [DONE] with receipt, C-06 [DONE] with existing-wording evidence, Phase C header [DONE], exit criteria met, Checkpoint C [DONE] filed.",
+      "record": "Receipts: C-05 -> 12 passed in 17.54s (exit 0); post-C-06 re-runs: C-05 12 passed in 17.59s, audit_public_docs_language --check pass:true (exit 0), smoke suite 34 passed/1 skipped; no production code touched this session."
+    },
+    {
       "id": "progress-2026-08-05-phaseC-C04-resume",
       "kind": "progress_entry",
       "date": "2026-08-05",

@@ -199,7 +199,7 @@ Wait for Perplexity confirmation before Phase C.
 
 ---
 
-## Phase C — Izhikevich H(t) Carry `[BLOCKED on Phase B]`
+## Phase C — Izhikevich H(t) Carry `[DONE]`
 
 **Goal:** `simulate_edge_recurrent_izhikevich_hdp` + `DynamicState` carry H(t)
 across multi-chunk simulations; pause/resume output is byte-identical to a
@@ -207,6 +207,7 @@ continuous run.
 
 **Entry gate:** Phase B exit criteria met.
 **Key files:** `jaxfne/emitters.py`, `jaxfne/_pipeline.py`
+**Completed:** 2026-08-05, C-05 gate green (12 passed), C-06 already satisfied.
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
@@ -216,8 +217,8 @@ continuous run.
 | C-03 | Read `tests/test_sanity_delta_backup_resume.py` and `tests/test_sanity_delta_resume_equivalence_full.py`; confirm whether H- carry is already gated byte-identically | `tests/test_sanity_delta_*.py` | `[DONE]` | `[PARALLEL-OK]` with C-01/C-02 | The two named files do NOT gate it (BackupState/task-resume level, no HDP state-carry traces). But `test_hdp_kernel_standalone.py::test_init_state_resume_matches_full_run` + `test_homeostasis_dispatch.py::test_homeostatic_kernel_init_state_resume_matches_full_run` DO prove chunk-resume at 200-step scale (100+100); 2000-step scale + explicit H byte-equality un-gated → C-04 required. |
 | C-04 | Write `tests/test_phaseC_H_carry_resume.py`: (a) 2000-step one-chunk run; (b) two 1000-step chunks; assert `jnp.allclose(one_chunk_H[-1000:], two_chunk_H, atol=1e-5)`; `[NULL-CTRL]` k_gain=0 → H constant throughout both chunks | `tests/test_phaseC_H_carry_resume.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | REQUIRED (not SKIP): no existing 2000-step reference; named C-03 files un-gated; 200-step chunk-resume proof exists at kernel level but not 2000-scale byte-equality of H. Add explicit H byte-identity + null control at 2000/1000+1000. **Done:** 2 passed (3.87s CPU, JAX_PLATFORMS=cpu). Byte-identity via `jnp.array_equal` for H/V/spikes (2000 vs 1000+1000) + `w_final`; `allclose(atol=1e-5)` asserted separately; chunk 2's first recorded step matches the continuous trace at the boundary (`H2[0]==H_full[1000]`, plus V/S); H finite throughout. Null control: `K_HDP=0.0` (the HDP kernel's actual "k_gain=0" mechanism — disables HDP outright per its docstring) with zeroed homeostasis gains holds H constant at 1.0 in continuous/chunk1/chunk2 and resumed/continuous null H traces are array-equal. No production code touched (source trace showed no carry defect). Receipt: `/tmp/C04_receipt.txt` (2 passed). Regression: `tests/test_hdp_kernel_standalone.py` + `tests/test_homeostasis_dispatch.py` 29 passed, no regressions. |
 | C-04a | `[DOCONLY]` Fix `scripts/audit_public_docs_language.py` Windows path-separator bug: `relative_to()` returns backslash paths on win32, silently disabling the forward-slash `EXEMPT_PREFIXES` and `_SELF_PATH` exemptions → pre-flight audit falsely failed on `docs/releases/` + `docs/changelog.md` (both legitimately exempt); use `.as_posix()` | `scripts/audit_public_docs_language.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | 2 edits (`rel = path.relative_to(ROOT).as_posix()` in both `audit_docs` and `audit_obfuscated_identifiers`); `--check` → `pass: true`, exit 0. Same commit as C-04. |
-| C-05 | `[GATE]` `pytest tests/test_phaseC_H_carry_resume.py tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_resume_equivalence_full.py -v`; all pass | above | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | |
-| C-06 | `[DOCONLY]` In AGENTS.md "Three build paths" table, add note: "`DynamicState` (all six fields) is the canonical carry for multi-chunk HDP runs" | `AGENTS.md` | `[DOCONLY]` `[PARALLEL-OK]` with C-05 | `[SERIAL]` after C-02 | |
+| C-05 | `[GATE]` `pytest tests/test_phaseC_H_carry_resume.py tests/test_sanity_delta_backup_resume.py tests/test_sanity_delta_resume_equivalence_full.py -v`; all pass | above | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | 12 passed in 17.54s (JAX_PLATFORMS=cpu, Python 3.14.3, jax 0.10.1): test_phaseC_H_carry_resume 2 passed; test_sanity_delta_backup_resume 9 passed; test_sanity_delta_resume_equivalence_full 1 passed. Exit 0. Receipt: `/tmp/C05_receipt.txt` (full stdout/stderr, 12 items collected, 0 failed). Byte-identity claims limited to the C-04 test's actual `jnp.array_equal` assertions (H/V/spikes/w_final); no broader identity claim made. |
+| C-06 | `[DOCONLY]` In AGENTS.md "Three build paths" table, add note: "`DynamicState` (all six fields) is the canonical carry for multi-chunk HDP runs" | `AGENTS.md` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` after C-02 | Already satisfied — substantively equivalent wording pre-exists at AGENTS.md lines 48-56 ("HDP on tensor path" paragraph, part of the "Three build paths" material): "For true turn-to-turn state continuity ... use `jaxfne._pipeline.compile_step_fn`/`scan_network` with `DynamicState` (all six fields: `v, u, prev_spikes, syn_state, H, w`) — both wrap `emitters.simulate_edge_recurrent_izhikevich_hdp` directly, not `Model.simulate`, which is the canonical low-level HDP call pattern for a genuinely continuous multi-turn run." No duplicate sentence added per repo no-duplication rule; verified against file at commit ed6d9d2. |
 
 ### Phase C exit criteria
 
@@ -225,9 +226,15 @@ continuous run.
 - `DynamicState` has all six fields confirmed.
 - AGENTS.md note added.
 
+**Exit criteria met:** C-05 green (12 passed); six-field `DynamicState` confirmed
+(C-02); AGENTS.md note confirmed already present (C-06, no duplicate added).
+
 ### `[ALIGN]` Checkpoint C
 
 Report: DynamicState field list, resume test result, any field gap found and action taken.
+**Status: `[DONE]` — report filed 2026-08-05:** DynamicState carries all six fields
+`(v, u, prev_spikes, syn_state, H, w)`; C-05 gate green (12 passed); no field gap found
+(C-02a SKIPPED). Phase C is complete and checkpoint C is ready for alignment.
 
 ---
 
