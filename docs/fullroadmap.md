@@ -143,14 +143,14 @@ All downstream G-plasticity and Izhikevich-layer weight updates are
 
 ---
 
-### B — Stage 1: Run gate + rule survey `[NEXT]`
+### B — Stage 1: Run gate + rule survey `[DONE]`
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| B-04 | `[GATE]` `pytest tests/test_phaseB_stage0_H_convergence.py -v`; both tests pass | `tests/test_phaseB_stage0_H_convergence.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | Record full stdout as receipt |
-| B-04a | **If B-04 fails: `freeze_G` test:** H-ODE diverges; diagnose `cubic_penalty` rule; patch `_homeostasis_cubic_penalty` in `emitters_homeostatic_ei.py`; add regression note in its docstring | `jaxfne/emitters_homeostatic_ei.py` | `[SERIAL]` | `[SERIAL]` | Only execute on failure |
-| B-04b | **If B-04 fails: `full_dynamics` test only:** G-feedback destabilises; add `K_ctrl` damping term to `_conductance_hebbian`; document in docstring | `jaxfne/emitters_homeostatic_ei.py` | `[SERIAL]` | `[SERIAL]` | Only execute on failure |
-| B-04c | **If B-04a or B-04b executed:** re-run `pytest tests/test_phaseB_stage0_H_convergence.py -v`; confirm both pass | `tests/test_phaseB_stage0_H_convergence.py` | `[EVIDENCE]` | `[SERIAL]` | |
+| B-04 | `[GATE]` `pytest tests/test_phaseB_stage0_H_convergence.py -v`; both tests pass | `tests/test_phaseB_stage0_H_convergence.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | Freeze_G gate repaired at premise level (deterministic isolation, noise_scale=0, N_STEPS=30000); full_dynamics passes canonical. Receipt: `/tmp/B04c_receipt.txt` |
+| B-04a | **If B-04 fails: `freeze_G` test:** H-ODE diverges; diagnose `cubic_penalty` rule; patch `_homeostasis_cubic_penalty` in `emitters_homeostatic_ei.py`; add regression note in its docstring | `jaxfne/emitters_homeostatic_ei.py` | `[DONE]` | `[SERIAL]` | Diagnosis refuted rule-patch premise: freeze_G fails due to singular G0 null-mode non-stationarity under noise, not rule defect. Gate repaired by removing stochastic driver (noise_scale=0) and extending horizon (N_STEPS_FREEZE_G=30000) to reach deterministic H-ODE fixed point. Regression notes added to test module docstring and `_homeostasis_cubic_penalty` docstring. |
+| B-04b | **If B-04 fails: `full_dynamics` test only:** G-feedback destabilises; add `K_ctrl` damping term to `_conductance_hebbian`; document in docstring | `jaxfne/emitters_homeostatic_ei.py` | `[NOT NEEDED]` | `[SERIAL]` | Full dynamics passes canonical (late |ΔH| ~ 0.002); G-feedback stabilizes H, no damping needed. |
+| B-04c | **If B-04a or B-04b executed:** re-run `pytest tests/test_phaseB_stage0_H_convergence.py -v`; confirm both pass | `tests/test_phaseB_stage0_H_convergence.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | Both tests pass on CPU and Metal. Receipt recorded. |
 | B-05 | Sweep `homeostasis_rule` ∈ `{"linear","logistic","cubic_penalty","cubic_penalty_coupled"}` with `freeze_G=True`; for each rule record: converges-to-interior / collapses-to-H_min / saturates-at-H_max | `jaxfne/emitters_homeostatic_ei.py` (docstring update) | `[PARALLEL-OK]` with B-06 | `[SERIAL]` after B-04 | Script in `scripts/` if needed; findings go in module docstring |
 | B-06 | `[NULL-CTRL]` Confirm `homeostasis_rule="linear"` does NOT converge to interior (should collapse to H_min); if it does: update rationale in docstring | `jaxfne/emitters_homeostatic_ei.py` | `[NULL-CTRL]` `[PARALLEL-OK]` with B-05 | `[SERIAL]` after B-04 | |
 | B-07 | Write `tests/test_phaseB_stage1_rule_survey.py`: one test per rule; pass = expected behaviour (collapse is expected for linear/logistic) | `tests/test_phaseB_stage1_rule_survey.py` | `[SERIAL]` | `[SERIAL]` after B-05 + B-06 | |

@@ -768,7 +768,7 @@ complete. `CHANGELOG.md` updated. Version bumped. No open issues tagged
 - [ ] S-05: Write `CHANGELOG.md` entry for `0.5.0`:
   - Phases A–R summary in plain language.
   - Breaking changes (if any).
-  - Language: proxy/scaffold — not calibrated/physical.
+  - Language: proxy/scaffold; Relative-default framing only.
 - [ ] S-06: Open PR `dev → main` titled "Release 0.5.0".
   PR body: link to this ROADMAP_PHASES.md, pytest receipt from S-01.
 - [ ] S-07: `[GATE]` PR passes CI. Maintainer approves. Merge.

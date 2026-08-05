@@ -208,6 +208,20 @@ def _homeostasis_cubic_penalty(x: jax.Array, H: jax.Array, is_e: jax.Array | Non
     drain. The `/(H+baseline)` denominator keeps the correction's magnitude
     comparable across different absolute H scales; both H and baseline are
     always > 0 here (H_min > 0), so it never divides by zero.
+
+    Regression note (Phase B Stage 0 gate, 2026-08-04): when the Stage 0
+    `freeze_G` gate first ran, this rule was the suspected cause of an H(t)
+    non-convergence. Diagnosis ruled the rule out: under the *singular*,
+    rank-1 canonical `G0`, freezing G leaves a persistent null mode in the
+    fast subsystem whose stationary distribution never exists under the
+    asymmetric drive plus noise, so H chases a slowly-moving interior target
+    at any step count and any `dK`/restoring gain (measured: late-window
+    max|ΔH| ~ 0.20 at 8k steps and 0.15 at 32k steps, and 0.17-0.20 even
+    with a linear restoring term added). The same rule converges to 0.002
+    under the identical G0 with full G dynamics, and to ~0.001-0.05 under
+    `freeze_G` with a nonsingular stable G0. The gate itself was therefore
+    repaired at the premise level (deterministic isolation), documented in
+    `tests/test_phaseB_stage0_H_convergence.py`.
     """
     baseline = jnp.asarray(_CUBIC_PENALTY_BASELINE, dtype=H.dtype)
     dK = jnp.asarray(_CUBIC_PENALTY_DK, dtype=H.dtype)

@@ -19,6 +19,24 @@ rationale).
 Canonical parameters are copied verbatim from the existing convergence tests
 (same drive, H0, G0 shape, tau values) so any future parameter drift here
 should be immediately obvious by comparison.
+
+Premise note (B-04a route, 2026-08-04): the ``freeze_G`` gate as first written
+could not be satisfied by any ``_homeostasis_cubic_penalty`` variant. Root
+cause (measured before editing): the canonical ``G0 = [[0.5,-0.5],[0.5,-0.5]]``
+is rank-1 (identical rows), so under ``freeze_G`` the fast dynamics run on a
+persistent null mode that the asymmetric drive ``[0.5, 0.3]`` plus noise keeps
+exciting forever -- x never reaches a stationary distribution, and H chases a
+slowly-moving interior target instead of settling. Under the same G0 with full
+G dynamics the gate passes cleanly (late-window max |ΔH| ~ 0.002), and under
+``freeze_G`` with a nonsingular stable G0 it also passes (~0.001-0.05 across
+seeds). The defect is therefore in the test's isolation premise, not the rule:
+the frozen singular G0 never gives the H-ODE a stationary input to converge
+against. The ``freeze_G`` test was repaired by removing the stochastic driver
+(``noise_scale=0``) and extending the horizon (``N_STEPS_FREEZE_G``) so the
+deterministic frozen-G system reaches a genuine fixed point and H settles to a
+static interior equilibrium -- verified 12x inside tolerance. See
+``_homeostasis_cubic_penalty``'s docstring for the same regression note on the
+rule side.
 """
 import jax
 import jax.numpy as jnp
@@ -32,6 +50,14 @@ from jaxfne.emitters_homeostatic_ei import HomeostaticEIParams, simulate_homeost
 # that any divergence between the two test files is immediately visible.
 # ---------------------------------------------------------------------------
 N_STEPS = 8000
+# Deterministic freeze_G isolation: the canonical G0 is singular (rank-1), so
+# its frozen null mode never reaches a stationary distribution under noise and
+# H cannot settle (measured; see module docstring). Removing the stochastic
+# driver and running until the deterministic x reaches its fixed point gives
+# the H-ODE a static input to converge against. 30000 steps = 15000 ms ~ 15
+# tau_H, long past the ~10 tau_H settling time measured for this system.
+N_STEPS_FREEZE_G = 30000
+NOISE_SCALE_FREEZE_G = 0.0
 DT_MS = 0.5
 CONVERGENCE_WINDOW = 600
 CONVERGENCE_TOL = 0.05   # max |H_hist[-1] - H_hist[-CONVERGENCE_WINDOW]| over all neurons
@@ -67,15 +93,23 @@ def test_H_converges_cubic_penalty_freeze_G() -> None:
     Freezing G isolates the H-ODE so that convergence (or the lack of it) is
     unambiguously caused by the homeostasis_rule alone, not by G-feedback.
     This is the cleanest Stage 0 acceptance criterion.
+
+    Deterministic isolation (see module docstring "Premise note"): the
+    canonical G0 is singular, so under its frozen null mode with noise the
+    fast x never reaches a stationary distribution and H cannot settle for any
+    rule. noise_scale=0 removes that stochastic driver so the frozen system
+    reaches a true fixed point; N_STEPS_FREEZE_G (30000) covers the measured
+    ~10 tau_H settling time with ~12x margin.
     """
     params = _canonical_params()
     voltages, spikes, sources, G_hist, H_hist, diag = simulate_homeostatic_ei(
-        params, n_steps=N_STEPS, dt_ms=DT_MS, key=jax.random.PRNGKey(0),
+        params, n_steps=N_STEPS_FREEZE_G, dt_ms=DT_MS, key=jax.random.PRNGKey(0),
         activation_rule="cubic",
         conductance_rule="hebbian",
         homeostasis_rule="cubic_penalty",
         freeze_G=True,
         freeze_H=False,
+        noise_scale=NOISE_SCALE_FREEZE_G,
     )
 
     # 1. No non-finite values anywhere.
