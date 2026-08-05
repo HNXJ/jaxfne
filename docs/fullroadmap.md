@@ -169,14 +169,14 @@ All downstream G-plasticity and Izhikevich-layer weight updates are
 
 ---
 
-### B — Stage 3: N-scaling `[NEXT]`
+### B — Stage 3: N-scaling `[DONE]`
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| B-11 | `[SKIP-IF]` Check if `make_minimal_ei_params` exists in `emitters_homeostatic_ei.py` or `tutorial_utils`; if not, write it (n, bound_mode params) | `jaxfne/emitters_homeostatic_ei.py` | `[SKIP-IF]` | `[SERIAL]` | |
-| B-12 | Run N=8 and N=16 with `bound_mode="stable"`; confirm no divergence; `[EVIDENCE]` required | — | `[EVIDENCE]` | `[SERIAL]` after B-11 | |
-| B-13 | Write `tests/test_phaseB_stage3_N_scaling.py`: N=4, N=8, N=16, `bound_mode="stable"`, `homeostasis_rule="cubic_penalty"`, full dynamics; four assertions each | `tests/test_phaseB_stage3_N_scaling.py` | `[SERIAL]` | `[SERIAL]` after B-12 | |
-| B-13a | `[GATE]` `pytest tests/test_phaseB_stage3_N_scaling.py -v`; all pass | `tests/test_phaseB_stage3_N_scaling.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | |
+| B-11 | `[SKIP-IF]` Check if `make_minimal_ei_params` exists in `emitters_homeostatic_ei.py` or `tutorial_utils`; if not, write it (n, bound_mode params) | `jaxfne/emitters_homeostatic_ei.py` | `[SKIP-IF]→[SKIPPED]` | `[SERIAL]` | `make_minimal_ei_params(n)` exists (line 400), supports any N≥2. `_soft_bound` exists (line 63) for bound_mode="stable". |
+| B-12 | Run N=8 and N=16 with `bound_mode="stable"`; confirm no divergence; `[EVIDENCE]` required | — | `[DONE]` | `[SERIAL]` after B-11 | N=8: finite, H→[4.67,4.77], H_tail_delta=0.0; N=16: finite, H→[4.69,4.79], H_tail_delta=0.0. BCM+stable and hebbian+stable both no-divergence. |
+| B-13 | Write `tests/test_phaseB_stage3_N_scaling.py`: N=4, N=8, N=16, `bound_mode="stable"`, `homeostasis_rule="cubic_penalty"`, full dynamics; four assertions each | `tests/test_phaseB_stage3_N_scaling.py` | `[DONE]` | `[SERIAL]` after B-12 | Config: cubic activation, BCM conductance, dt=0.5, noise=0, 10k steps. Four shared assertions + interior bonus. |
+| B-13a | `[GATE]` `pytest tests/test_phaseB_stage3_N_scaling.py -v`; all pass | `tests/test_phaseB_stage3_N_scaling.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | | 3 passed (1.80s CPU). Receipt: /tmp/B13a_receipt.txt |
 
 ---
 
@@ -184,7 +184,7 @@ All downstream G-plasticity and Izhikevich-layer weight updates are
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| B-14 | `[GATE]` Run all pre-existing `test_homeostatic_ei_*` tests; zero regressions | `tests/test_homeostatic_ei_*.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | |
+| B-14 | `[GATE]` Run all pre-existing `test_homeostatic_ei_*` tests; zero regressions | `tests/test_homeostatic_ei_*.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` last | 14 passed (fixed_g_regime, g_adaptation_convergence, cross_population_coupling, n_generalization). test_homeostatic_ei_cubic_penalty_rule.py: 2/4 fail on CPU backend (pre-existing drift, confirmed at HEAD 5a0f76c in Stage 0 via stash; docstring-only emitter changes; passes Metal). Zero NEW regressions. |
 
 ### Phase B exit criteria
 
