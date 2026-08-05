@@ -86,7 +86,7 @@ def audit_docs() -> list[dict]:
     results = []
     paths = sorted({p for glob in DOC_GLOBS for p in ROOT.glob(glob)})
     for path in paths:
-        rel = str(path.relative_to(ROOT))
+        rel = path.relative_to(ROOT).as_posix()
         if is_exempt(rel):
             continue
         text = path.read_text(encoding="utf-8")
@@ -109,7 +109,7 @@ def audit_obfuscated_identifiers() -> list[dict]:
     results = []
     paths = sorted({p for glob in CODE_GLOBS for p in ROOT.glob(glob)})
     for path in paths:
-        rel = str(path.relative_to(ROOT))
+        rel = path.relative_to(ROOT).as_posix()
         if rel == _SELF_PATH:
             continue
         text = path.read_text(encoding="utf-8")

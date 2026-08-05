@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-05-phaseC-C04-resume",
+      "kind": "progress_entry",
+      "date": "2026-08-05",
+      "source": "tests/test_phaseC_H_carry_resume.py, jaxfne/emitters.py, commit C-04 on dev",
+      "confidence": "high",
+      "detail": "Phase C-04 done: 2000-step vs 1000+1000 chunk-resume byte-identity for the HDP kernel gated. Confirmed at source (emitters.py init_state consumes v,u,prev_spikes,syn_state,H_final,w_final; diagnostics returns the same six keys via final_state). Continuous 2000-step vs two 1000-step chunks (init_state seeded from chunk-1 final state): H/V/spikes/w_final byte-identical via jnp.array_equal; allclose(atol=1e-5) on H asserted separately (never conflated with byte-identity). chunk2 first recorded step == continuous boundary. Null: K_HDP=0.0 (the HDP kernel's documented 'k_gain=0' mechanism) with zeroed homeostasis gains -> H constant at 1.0 in continuous/chunk1/chunk2, resumed null H trace array-equal. Also fixed a Windows bug in scripts/audit_public_docs_language.py: str(path.relative_to()) yields backslash paths on win32, silently disabling forward-slash EXEMPT_PREFIXES/_SELF_PATH -> pre-flight falsely flagged two legitimately exempt docs; as_posix() repaired it.",
+      "record": "Receipts: pytest tests/test_phaseC_H_carry_resume.py -v -> 2 passed in 3.87s (JAX_PLATFORMS=cpu); fullroadmap C-04 marked DONE with receipt; smoke suite 34 passed/1 skipped; audit_public_docs_language --check pass:true; no production code touched (C-01/C-02 source trace found no carry defect)."
+    },
+    {
       "id": "progress-2026-07-30-merge-heuristic",
       "kind": "progress_entry",
       "date": "2026-07-30",
