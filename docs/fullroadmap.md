@@ -158,18 +158,18 @@ All downstream G-plasticity and Izhikevich-layer weight updates are
 
 ---
 
-### B — Stage 2: G-adaptation stability `[BLOCKED on Stage 1]`
+### B — Stage 2: G-adaptation stability `[DONE]`
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| B-08 | Sweep `conductance_rule` ∈ `{"hebbian","bcm","linear","hebbian_pairwise"}` with `freeze_G=False, freeze_H=False, homeostasis_rule="cubic_penalty"`; for each: record G bounded + 3-timescale convergence | `jaxfne/emitters_homeostatic_ei.py` (docstring) | `[BLOCKED]` until B-07a | `[SERIAL]` | |
-| B-09 | Write `tests/test_phaseB_stage2_G_stability.py`: four tests, one per conductance_rule; G finite, G bounded, late-window |ΔG| check; bcm saturation documented not asserted-convergent | `tests/test_phaseB_stage2_G_stability.py` | `[SERIAL]` | `[SERIAL]` after B-08 | |
-| B-09a | `[GATE]` `pytest tests/test_phaseB_stage2_G_stability.py -v`; all pass | `tests/test_phaseB_stage2_G_stability.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | |
-| B-10 | `[DOCONLY]` Add 2×4 compatibility table (homeostasis_rule × conductance_rule) with confirmed convergence outcomes to `simulate_homeostatic_ei` docstring | `jaxfne/emitters_homeostatic_ei.py` | `[DOCONLY]` `[PARALLEL-OK]` with B-09a | `[SERIAL]` after B-08 | |
+| B-08 | Sweep `conductance_rule` ∈ `{"hebbian","bcm","linear","hebbian_pairwise"}` with `freeze_G=False, freeze_H=False, homeostasis_rule="cubic_penalty"`; for each: record G bounded + 3-timescale convergence | `jaxfne/emitters_homeostatic_ei.py` (docstring) | `[DONE]` | `[SERIAL]` | Only BCM stabilizes: hebbian/linear/hebbian_pairwise diverge (NaN) with linear activation; BCM converges (late |ΔG|≈0), bounded, H interior ~[4.0,4.4]. Findings in simulate_homeostatic_ei docstring. |
+| B-09 | Write `tests/test_phaseB_stage2_G_stability.py`: four tests, one per conductance_rule; G finite, G bounded, late-window |ΔG| check; bcm saturation documented not asserted-convergent | `tests/test_phaseB_stage2_G_stability.py` | `[DONE]` | `[SERIAL]` after B-08 | 4 tests: hebbian/linear/hebbian_pairwise assert divergence (non-finite); BCM asserts finite+bounded+H interior. |
+| B-09a | `[GATE]` `pytest tests/test_phaseB_stage2_G_stability.py -v`; all pass | `tests/test_phaseB_stage2_G_stability.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` | 4 passed (1.01s CPU). Receipt: /tmp/B09a_receipt.txt |
+| B-10 | `[DOCONLY]` Add 2×4 compatibility table (homeostasis_rule × conductance_rule) with confirmed convergence outcomes to `simulate_homeostatic_ei` docstring | `jaxfne/emitters_homeostatic_ei.py` | `[DONE]` | `[PARALLEL-OK]` with B-09a | Table added with measured cells; untested marked. Notes on config differences between B-05 (freeze_G, cubic) and B-08 (full, linear). |
 
 ---
 
-### B — Stage 3: N-scaling `[BLOCKED on Stage 2]`
+### B — Stage 3: N-scaling `[NEXT]`
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|

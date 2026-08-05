@@ -517,6 +517,41 @@ def simulate_homeostatic_ei(
     - H_history: shape (n_steps, N).
     - diagnostics: dict with "error" (bool, True if any non-finite value was
       produced) and "final_state" (dict of the last x/G/H).
+
+    Conductance-rule stability (freeze_G=False, homeostasis_rule=cubic_penalty,
+    activation_rule=linear, bound_mode=minimal, dt_ms=1.0, noise_scale=0.0,
+    N=2 canonical params, 30000 steps):
+    - hebbian: G diverges to NaN (positive feedback loop with unbounded linear
+      activation); H becomes NaN.
+    - bcm: G converges (late |ΔG| ≈ 0.0), bounded in [G_min, G_max]; H reaches
+      interior equilibrium ~[4.0, 4.4].
+    - linear: G diverges to NaN; H becomes NaN.
+    - hebbian_pairwise: G diverges to NaN; H becomes NaN.
+    Only BCM's sliding-threshold mechanism stabilizes the three-timescale
+    system under linear activation. Other rules require a saturating activation
+    (e.g., cubic) or smaller dt for stability.
+
+    Homeostasis × Conductance compatibility (measured cells only; "untested"
+    = not evaluated in B-05 freeze_G sweep or B-08 full-dynamics sweep):
+    | homeostasis_rule       | hebbian | bcm      | linear   | hebbian_pairwise |
+    |------------------------|---------|----------|----------|------------------|
+    | linear                 | H_max   | untested | untested | untested         |
+    | logistic               | H_min   | untested | untested | untested         |
+    | cubic_penalty          | interior| interior | untested | untested         |
+    | cubic_penalty_coupled  | interior| untested | untested | untested         |
+
+    Notes:
+    - B-05 (freeze_G=True, cubic activation, dt=0.5): measured 4 homeostasis
+      rules with hebbian conductance.
+    - B-08 (freeze_G=False, linear activation, dt=1.0, cubic_penalty H): measured
+      4 conductance rules.
+    - cubic_penalty + hebbian appears in both sweeps with different configs:
+      freeze_G=True/cubic → interior; freeze_G=False/linear → G diverges.
+    - "G-saturates" = G bounded but non-convergent (BCM sliding threshold);
+      H still reaches interior equilibrium. In B-08, BCM actually converges
+      (late |ΔG| ≈ 0), not merely saturates.
+    - Cells where G diverges (hebbian/linear/hebbian_pairwise with linear
+      activation) leave H non-finite; marked "untested" for H outcome.
     """
     if bound_mode not in ("minimal", "stable"):
         raise ValueError(f"unknown bound_mode {bound_mode!r}; expected 'minimal' or 'stable'")
