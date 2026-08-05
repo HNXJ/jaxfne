@@ -15,7 +15,8 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 2. **API catalog:** read `skills/catalog-glossary-jaxfne/SKILL.md` before hand-rolling PSD, LFP/CSD-proxy, or spectrolaminar logic.
 3. **Task router:** `skills/jaxfne-worker-context-router/SKILL.md` picks config / tensor / paradigm / vis skills.
 4. **Lean orientation:** root `AGENTS.md` (pointer only — depth lives in skills and docs).
-5. **Backlog:** `artifacts/developer/progress.json` if present locally — verify scores before claiming a file is done. Not in a fresh clone; maintainers keep it locally.
+5. **Roadmap:** `docs/fullroadmap.md` — canonical ordered action list (agent-facing, not in MkDocs nav).
+6. **Backlog:** `artifacts/developer/progress.json` if present locally — verify scores before claiming a file is done. Not in a fresh clone; maintainers keep it locally.
 
 ## Object grammar (one line)
 
@@ -23,7 +24,7 @@ jaxfne treats **AI-agent readability as a first-class design goal**, alongside h
 Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
 ```
 
-`construct()` is the single dispatch — extend it, don't bypass.
+`construct()` is the single dispatch — extend it, don’t bypass.
 
 ## Truth gates (non-negotiable)
 
