@@ -26,6 +26,16 @@ unless a future calibration bridge declares otherwise (same caveat as every
 other emitter in this package -- see ``jaxfne.emitters``'s module docstring).
 """
 
+# Phase B Stage 1 rule survey (B-05/B-06, 2026-08-04, freeze_G=True, deterministic
+# isolation noise_scale=0, N=2 canonical G0/drive, 30000 steps):
+#   linear:        saturates-at-H_max (I neuron -> 10.0, E -> 4.3; not settled, late_delta=0.22)
+#   logistic:      collapses-to-H_min (both neurons -> 0.1; settled, late_delta=0.00)  [B-06 null control confirmed]
+#   cubic_penalty: converges-to-interior (H -> [2.42, 2.86]; settled, late_delta=0.004)
+#   cubic_penalty_coupled: converges-to-interior (H -> [2.50, 2.82]; settled, late_delta=0.001)
+# The linear rule under frozen singular G0 has no restoring term; x < 1 drives H upward
+# until H_max clip. The logistic rule's bounded drain collapses H to floor.
+# Both cubic rules reach genuine interior equilibria.
+
 from __future__ import annotations
 
 import functools
