@@ -117,6 +117,7 @@ nav:
       - Core: api/core.md
       - Runtime: api/runtime.md
       - Emitters: api/emitters.md
+      - Source Schema: api/source_schema.md
       - Bridges: api/bridges.md
       - Fields: api/fields.md
       - Probes: api/probes.md
@@ -150,8 +151,6 @@ nav:
           - Glossary of Methods: reference/glossary_of_methods.md
       - About jaxfne:
           - Limitations and future plans: limitations_and_future_plans.md
-          - Documentation quality report: publication/docs_quality_report.md
-          - Publication: publication/index.md
           - v0.4.7 Refactor Audit: v047_refactor_audit.md
           - Changelog: changelog.md
           - Citation: citation.md
