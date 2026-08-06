@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseE-E03-E05-gates",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-03..E-05, jaxfne/fields/solvers.py, tests/test_phaseE_field_schema.py, commit deecbff on dev, %TEMP%/E05_receipt.txt",
+      "confidence": "high",
+      "detail": "Phase E implementation (E-03..E-05) complete. E-03: added field_claim_level=proxy_readout to experimental_poisson_1d canonical manifest (one-line additive; wrapper inherits via dict copy). Chosen value proxy_readout per user decision matching repo field-output truth boundary; field_solver_status=experimental_pde_solver unchanged. E-04: tests/test_phaseE_field_schema.py, 12 tests / 3 classes, trio assertions + finiteness at each solver's actual surface (FieldOutput.diagnostics for projection, manifests for Poisson entry points). E-05 GATE green: three-file pytest -> 60 passed in 10.33s, exit 0. Also created artifacts/developer/context.md (local-only, gitignored, non-authoritative execution index) per approved operational decision.",
+      "record": "Receipts: E-05 -> 60 passed in 10.33s (exit 0, %TEMP%/E05_receipt.txt); pre-flight compileall 0, smoke 34/1, audit pass:true, mkdocs strict exit 0; committed deecbff pushed to dev. Stopped before E-06/E-07/E-08 and Phase F per handoff; roadmap cleanup (ROADMAP_PHASES.md deletion) and AGENTS.md tooling note deferred to post-Phase-E docs commit."
+    },
+    {
       "id": "progress-2026-08-06-phaseD-D05-D08-gates",
       "kind": "progress_entry",
       "date": "2026-08-06",
