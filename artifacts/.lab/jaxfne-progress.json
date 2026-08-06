@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseE-E06-E08-closure",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-06..E-08, docs/api/field_schema.md, mkdocs.yml, commit (post 88fdea1) on dev, %TEMP%/E08_*.receipt",
+      "confidence": "high",
+      "detail": "Phase E closure (E-06..E-08) complete. E-06: docs/api/field_schema.md written (Scope / Common metadata table / 4-entry solver contract table / Metadata surfaces / Use guidance / Tests); all four solver surfaces verified at runtime before writing (project_laminar_sources + alias -> FieldOutput.diagnostics with linear_solver; both Poisson entry points -> manifest with experimental_pde_solver; all physical_amplitude_calibrated False). E-07: one nav entry Field Schema: api/field_schema.md under API reference adjacent to Source Schema. E-08 GATE: all four gates green first-run - audit pass:true, mkdocs strict exit 0 (4.27s), phaseE+admissibility pytest 60 passed in 12.10s, smoke 34 passed/1 skipped in 29.04s. Phase E header [DONE], exit criteria MET, Checkpoint E COMPLETE in fullroadmap.",
+      "record": "Receipts: %TEMP%/E08_audit_receipt.txt, %TEMP%/E08_mkdocs_receipt.txt, %TEMP%/E08_pytest_receipt.txt, %TEMP%/E08_smoke_receipt.txt (all exit 0). Phase F not started; ROADMAP_PHASES.md deletion + AGENTS.md tooling note + skill field map remain deferred per user direction."
+    },
+    {
       "id": "progress-2026-08-06-phaseE-E03-E05-gates",
       "kind": "progress_entry",
       "date": "2026-08-06",

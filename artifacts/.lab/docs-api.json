@@ -8,7 +8,8 @@
       "api/index.md",
       "api/core.md",
       "api/source_schema.md",
-      "... (15 pages now, 1:1 with jaxfne module/group nodes)"
+      "api/field_schema.md",
+      "... (16 pages now, 1:1 with jaxfne module/group nodes)"
     ],
     "links": [
       {
@@ -19,6 +20,7 @@
   },
   "status": "unconfirmed",
   "notes": [
-    "2026-08-06: D-06/D-07 added api/source_schema.md (source proxy-current trace contract + source_bookkeeping metadata schema, 5 emitter paths) under API reference in mkdocs.yml; nav entry inserted after Emitters. D-08 strict build green (817e682)."
+    "2026-08-06: D-06/D-07 added api/source_schema.md (source proxy-current trace contract + source_bookkeeping metadata schema, 5 emitter paths) under API reference in mkdocs.yml; nav entry inserted after Emitters. D-08 strict build green (817e682).",
+    "2026-08-06: E-06/E-07 added api/field_schema.md (field solver metadata contract: field_claim_level/field_solver_status/physical_amplitude_calibrated across 4 solver entry points) under API reference adjacent to Source Schema. E-08 four-gate green (post 88fdea1 commit). Phase E complete."
   ]
 }

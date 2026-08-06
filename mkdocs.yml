@@ -118,6 +118,7 @@ nav:
       - Runtime: api/runtime.md
       - Emitters: api/emitters.md
       - Source Schema: api/source_schema.md
+      - Field Schema: api/field_schema.md
       - Bridges: api/bridges.md
       - Fields: api/fields.md
       - Probes: api/probes.md

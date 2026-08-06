@@ -281,7 +281,7 @@ contract) — both remain. No schema version bump, metadata key, or public API a
 
 ---
 
-## Phase E — Field Schema Stability `[BLOCKED on Phase D]`
+## Phase E — Field Schema Stability `[DONE]`
 
 **Goal:** Every field solver carries stable `field_claim_level`, `solver_status`,
 and `physical_amplitude_calibrated=False` metadata. Probe operators select
@@ -297,27 +297,27 @@ field components by name, not by axis index.
 | E-03 | For each solver: confirm output has `field_claim_level`, `solver_status`, `physical_amplitude_calibrated=False`; for any solver missing a key: add the key assignment in the solver's `forward` / `__call__` | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` after E-01 | `[DONE]` Minimal additive change: added `"field_claim_level": "proxy_readout"` to the canonical manifest in `experimental_poisson_1d` (solvers.py:135-146 region); `experimental_poisson_1d_from_neuron_table` copies the manifest (`manifest = dict(manifest)`, solvers.py:250) so it inherits the key — no duplicate. Chosen value per user decision: `proxy_readout` matches the repo's field-output truth boundary; `field_solver_status="experimental_pde_solver"` unchanged. Runtime probe (CPU): both entry points return `field_claim_level="proxy_readout"`, `field_solver_status="experimental_pde_solver"`, `physical_amplitude_calibrated=False`, finite arrays. |
 | E-04 | Write `tests/test_phaseE_field_schema.py`: one test per solver; three assertions per test | `tests/test_phaseE_field_schema.py` | `[SERIAL]` | `[SERIAL]` after E-03 | `[DONE]` 12 tests across three classes (`TestProjectLaminarSourcesSchema` on FieldOutput.diagnostics, `TestExperimentalPoisson1dSchema` + `TestExperimentalPoisson1dFromNeuronTableSchema` on returned manifests): trio assertions (claim level / solver status / `physical_amplitude_calibrated is False`) + finiteness on minimal deterministic inputs. Surfaces per solver, not forced into one object. |
 | E-05 | `[GATE]` `pytest tests/test_phaseE_field_schema.py tests/test_field_admissibility_v020.py tests/test_field_proxy_admissibility_v024.py -v`; all pass | above | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | `[DONE]` `[EVIDENCE]` — Receipt: `JAX_PLATFORMS=cpu PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_phaseE_field_schema.py tests/test_field_admissibility_v020.py tests/test_field_proxy_admissibility_v024.py -v` → **60 passed in 10.33s**, exit 0 (12 new + 48 existing; full stdout `%TEMP%\E05_receipt.txt`). |
-| E-06 | `[DOCONLY]` Write `docs/api/field_schema.md`: table of solver → `field_claim_level` → `solver_status` → notes; language: proxy/readout | `docs/api/field_schema.md` | `[DOCONLY]` | `[SERIAL]` after E-04 | |
-| E-07 | `[DOCONLY]` Add `field_schema.md` to `mkdocs.yml` nav | `mkdocs.yml` | `[DOCONLY]` | `[SERIAL]` after E-06 | |
-| E-08 | `[GATE]` `python3 -m mkdocs build --strict`; zero errors | — | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | |
+| E-06 | `[DOCONLY]` Write `docs/api/field_schema.md`: table of solver → `field_claim_level` → `solver_status` → notes; language: proxy/readout | `docs/api/field_schema.md` | `[DOCONLY]` | `[SERIAL]` after E-04 | `[DONE]` `docs/api/field_schema.md` written (Scope / Common metadata table / Solver contract table with all 4 entry points / Metadata surfaces / Use guidance / Tests). Style follows `docs/api/source_schema.md`; values verified at runtime against source before writing; `physical_amplitude_calibrated` stated `False` on every path; no denylisted phrases. |
+| E-07 | `[DOCONLY]` Add `field_schema.md` to `mkdocs.yml` nav | `mkdocs.yml` | `[DOCONLY]` | `[SERIAL]` after E-06 | `[DONE]` — `- Field Schema: api/field_schema.md` inserted once under `API reference`, adjacent to Source Schema. No unrelated nav items touched. |
+| E-08 | `[GATE]` `python3 -m mkdocs build --strict`; zero errors | — | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | `[DONE]` `[EVIDENCE]` — All four E-08 gates green on first run (receipts: `%TEMP%\E08_audit_receipt.txt` → `"pass": true` exit 0; `%TEMP%\E08_mkdocs_receipt.txt` → exit 0, "Documentation built in 4.27 seconds"; `%TEMP%\E08_pytest_receipt.txt` → **60 passed in 12.10s**, exit 0; `%TEMP%\E08_smoke_receipt.txt` → **34 passed, 1 skipped in 29.04s**, exit 0). No build-fix was required. |
 
 ### Phase E exit criteria
 
-- E-05 + E-08 `[GATE]` green.
-- Every solver has confirmed field schema.
+- E-05 + E-08 `[GATE]` green. — **MET** (E-05 2026-08-06: 60 passed in 10.33s; E-08 2026-08-06: four gates green).
+- Every solver has confirmed field schema. — **MET** (all four entry points carry `field_claim_level`, `field_solver_status`, `physical_amplitude_calibrated=False`).
 
 ### `[ALIGN]` Checkpoint E
 
 Report: solver list, metadata gaps found/fixed, mkdocs build status.
 
-**Partial (E-03..E-05 filed; E-06..E-08 pending approval):** solver list and
-gap findings in E-01/E-02 notes above; the one verified gap (`field_claim_level`
-missing from the Poisson manifest) fixed in E-03 with `"proxy_readout"` per
-user decision; E-04 regression file + E-05 gate green (60 passed, receipt
-`%TEMP%\E05_receipt.txt`). E-06/E-07/E-08 (field_schema.md page + nav + strict
-mkdocs gate) intentionally not started — waiting for approval. Roadmap cleanup
-(delete `docs/ROADMAP_PHASES.md`) and AGENTS.md tooling note deferred to a
-separate post-Phase-E docs commit per user direction.
+**Phase E COMPLETE.** Solver list and gap findings in E-01/E-02 notes above;
+`field_claim_level="proxy_readout"` added to the Poisson manifest (E-03,
+user-approved value); E-04 regression file; E-05 gate green (60 passed,
+`%TEMP%\E05_receipt.txt`); E-06 `docs/api/field_schema.md` written (four-entry
+solver table, verified at runtime); E-07 nav entry added; E-08 all four gates
+green with receipts (`%TEMP%\E08_*.txt`). Roadmap cleanup (delete
+`docs/ROADMAP_PHASES.md`) and AGENTS.md tooling note remain deferred to a
+separate post-Phase-E docs commit per user direction. Phase F not started.
 
 ---
 
