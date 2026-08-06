@@ -292,11 +292,11 @@ field components by name, not by axis index.
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| E-01 | List `jaxfne/fields/` directory; read every solver file; map: solver name → output fields → metadata keys present | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` | |
-| E-02 | Read `tests/test_field_admissibility_v020.py` and `tests/test_field_proxy_admissibility_v024.py` in full; record what is already gated | `tests/test_field_admissibility_*.py` | `[PARALLEL-OK]` with E-01 | `[SERIAL]` | |
-| E-03 | For each solver: confirm output has `field_claim_level`, `solver_status`, `physical_amplitude_calibrated=False`; for any solver missing a key: add the key assignment in the solver's `forward` / `__call__` | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` after E-01 | |
-| E-04 | Write `tests/test_phaseE_field_schema.py`: one test per solver; three assertions per test | `tests/test_phaseE_field_schema.py` | `[SERIAL]` | `[SERIAL]` after E-03 | |
-| E-05 | `[GATE]` `pytest tests/test_phaseE_field_schema.py tests/test_field_admissibility_v020.py tests/test_field_proxy_admissibility_v024.py -v`; all pass | above | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | |
+| E-01 | List `jaxfne/fields/` directory; read every solver file; map: solver name → output fields → metadata keys present | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` | `[COMPLETED]` 2026-08-06 (review session): all 5 files of `jaxfne/fields/` read in full. Verified map: `project_laminar_sources` (proxy.py:115, `linear_solver`, `field_claim_level="proxy_readout"`, trio present) + alias `project_sources_to_laminar_field`; `experimental_poisson_1d` (solvers.py:8) and `experimental_poisson_1d_from_neuron_table` (solvers.py:150) manifest carried `claim_level`/`field_solver_status`/`physical_amplitude_calibrated` but NOT `field_claim_level`. Model wiring: `_model_simulate.py:527` (record_fields), `:424` `_maybe_poisson_final_step` (opt-in, final timestep, additive). Full map recorded in `.lab/pkg-fields.json` note `phaseE-E01-E02-discovery-2026-08-06`. |
+| E-02 | Read `tests/test_field_admissibility_v020.py` and `tests/test_field_proxy_admissibility_v024.py` in full; record what is already gated | `tests/test_field_admissibility_*.py` | `[PARALLEL-OK]` with E-01 | `[SERIAL]` | `[COMPLETED]` 2026-08-06: v020 gates `jaxfne.validation` (conductivity tensors, field-array finiteness, `build_field_admissibility_report` incl. `field_claim_level="proxy_readout"`, manifest integration, truth-gate freeze); v024 gates `project_laminar_sources`/`validate_source_field_status` (kernel normalization, conservation not-applicable, boundary/gauge declared-metadata-only, `physical_amplitude_calibrated=False`, JSON-safe diagnostics). Uncovered: Poisson manifest `field_claim_level` (gap → E-03); no cross-solver trio test (→ E-04). |
+| E-03 | For each solver: confirm output has `field_claim_level`, `solver_status`, `physical_amplitude_calibrated=False`; for any solver missing a key: add the key assignment in the solver's `forward` / `__call__` | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` after E-01 | `[DONE]` Minimal additive change: added `"field_claim_level": "proxy_readout"` to the canonical manifest in `experimental_poisson_1d` (solvers.py:135-146 region); `experimental_poisson_1d_from_neuron_table` copies the manifest (`manifest = dict(manifest)`, solvers.py:250) so it inherits the key — no duplicate. Chosen value per user decision: `proxy_readout` matches the repo's field-output truth boundary; `field_solver_status="experimental_pde_solver"` unchanged. Runtime probe (CPU): both entry points return `field_claim_level="proxy_readout"`, `field_solver_status="experimental_pde_solver"`, `physical_amplitude_calibrated=False`, finite arrays. |
+| E-04 | Write `tests/test_phaseE_field_schema.py`: one test per solver; three assertions per test | `tests/test_phaseE_field_schema.py` | `[SERIAL]` | `[SERIAL]` after E-03 | `[DONE]` 12 tests across three classes (`TestProjectLaminarSourcesSchema` on FieldOutput.diagnostics, `TestExperimentalPoisson1dSchema` + `TestExperimentalPoisson1dFromNeuronTableSchema` on returned manifests): trio assertions (claim level / solver status / `physical_amplitude_calibrated is False`) + finiteness on minimal deterministic inputs. Surfaces per solver, not forced into one object. |
+| E-05 | `[GATE]` `pytest tests/test_phaseE_field_schema.py tests/test_field_admissibility_v020.py tests/test_field_proxy_admissibility_v024.py -v`; all pass | above | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | `[DONE]` `[EVIDENCE]` — Receipt: `JAX_PLATFORMS=cpu PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_phaseE_field_schema.py tests/test_field_admissibility_v020.py tests/test_field_proxy_admissibility_v024.py -v` → **60 passed in 10.33s**, exit 0 (12 new + 48 existing; full stdout `%TEMP%\E05_receipt.txt`). |
 | E-06 | `[DOCONLY]` Write `docs/api/field_schema.md`: table of solver → `field_claim_level` → `solver_status` → notes; language: proxy/readout | `docs/api/field_schema.md` | `[DOCONLY]` | `[SERIAL]` after E-04 | |
 | E-07 | `[DOCONLY]` Add `field_schema.md` to `mkdocs.yml` nav | `mkdocs.yml` | `[DOCONLY]` | `[SERIAL]` after E-06 | |
 | E-08 | `[GATE]` `python3 -m mkdocs build --strict`; zero errors | — | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | |
@@ -309,6 +309,15 @@ field components by name, not by axis index.
 ### `[ALIGN]` Checkpoint E
 
 Report: solver list, metadata gaps found/fixed, mkdocs build status.
+
+**Partial (E-03..E-05 filed; E-06..E-08 pending approval):** solver list and
+gap findings in E-01/E-02 notes above; the one verified gap (`field_claim_level`
+missing from the Poisson manifest) fixed in E-03 with `"proxy_readout"` per
+user decision; E-04 regression file + E-05 gate green (60 passed, receipt
+`%TEMP%\E05_receipt.txt`). E-06/E-07/E-08 (field_schema.md page + nav + strict
+mkdocs gate) intentionally not started — waiting for approval. Roadmap cleanup
+(delete `docs/ROADMAP_PHASES.md`) and AGENTS.md tooling note deferred to a
+separate post-Phase-E docs commit per user direction.
 
 ---
 
