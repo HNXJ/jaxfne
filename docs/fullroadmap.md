@@ -315,9 +315,18 @@ Report: solver list, metadata gaps found/fixed, mkdocs build status.
 user-approved value); E-04 regression file; E-05 gate green (60 passed,
 `%TEMP%\E05_receipt.txt`); E-06 `docs/api/field_schema.md` written (four-entry
 solver table, verified at runtime); E-07 nav entry added; E-08 all four gates
-green with receipts (`%TEMP%\E08_*.txt`). Roadmap cleanup (delete
-`docs/ROADMAP_PHASES.md`) and AGENTS.md tooling note remain deferred to a
-separate post-Phase-E docs commit per user direction. Phase F not started.
+green with receipts (`%TEMP%\E08_*.txt`). Post-Phase-E maintenance pass
+(E-M01..E-M04 below: retire `docs/ROADMAP_PHASES.md`, AGENTS.md tooling note,
+skill refresh) completed 2026-08-06. Phase F not started.
+
+### Phase E maintenance pass (post-Phase-E docs/skill cleanup, 2026-08-06)
+
+| # | Action | File(s) | Tag | Notes |
+|---|--------|---------|-----|-------|
+| E-M01 | Retire superseded `docs/ROADMAP_PHASES.md` (`git rm`; no redirect/stub/link — git history preserves it) | `docs/ROADMAP_PHASES.md` | `[DONE]` | Confirmed zero public references before deletion: `README.md`, `docs/**` pages, `mkdocs.yml` nav, `scripts/`, `tests/` all clean (only agent-facing supersession notes in `fullroadmap.md:4` and `.lab` remain). `fullroadmap.md` is now the sole roadmap. |
+| E-M02 | Add conditional MkDocs dependency guidance to AGENTS.md Validation block | `AGENTS.md` | `[DONE]` | One line before the mkdocs command: `if ! python3 -m mkdocs --version >/dev/null 2>&1; then python3 -m pip install -r docs/requirements.txt; fi`. Uses existing `docs/requirements.txt`; no new pins. |
+| E-M03 | Refresh existing schema skill with the Phase E field metadata contract | `skills/jaxfne-modeling-optimization-schema/SKILL.md` | `[DONE]` | New verified `Field metadata contract` section (canonical trio table, per-solver metadata surfaces, delegation relationships, `docs/api/fcsv test pointers`). All values re-verified against `jaxne/fields/proxy.py`, `jaxne/fields/solvers.py`, and the three field tests before writing. |
+| E-M04 | `[GATE]` Full maintenance validation (compileall + 6-file pytest + doc-lang audit + mkdocs strict) | — | `[DONE]` `[EVIDENCE]` | Receipt: `%TEMP%\post_phaseE_maintenance_pytest.txt` → **94 passed, 1 skipped in 36.42s**, exit 0; `%TEMP%\post_phaseE_maintenance_audit.txt` → `"pass": true`; `%TEMP%\post_phaseE_maintenance_mkdocs.txt` → exit 0, built in 4.24s (orphan nav list now shows only `fullroadmap.md`). |
 
 ---
 

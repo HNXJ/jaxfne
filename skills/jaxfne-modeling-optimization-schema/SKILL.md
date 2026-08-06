@@ -107,6 +107,28 @@ readout shapes declared, source calibration status exported, field solver
 status exported, mean firing rate in declared range unless null/instability
 lesson.
 
+## Field metadata contract (verified 2026-08-06, Phase E)
+
+Every field solver output must carry the canonical trio:
+
+| Key | Value |
+|-----|-------|
+| `field_claim_level` | `"proxy_readout"` |
+| `field_solver_status` | `"linear_solver"` (proxy projection) or `"experimental_pde_solver"` (both Poisson entry points) |
+| `physical_amplitude_calibrated` | `False` |
+
+Metadata surfaces — the trio lives at each solver's actual output surface:
+
+- `project_laminar_sources` and its wrapper `project_sources_to_laminar_field` → `FieldOutput.diagnostics` (`jaxfne/fields/proxy.py`, `jaxfne/fields/diagnostics.py`).
+- `experimental_poisson_1d` and `experimental_poisson_1d_from_neuron_table` → the returned `manifest` dict (`jaxfne/fields/solvers.py`).
+
+Solver relationships:
+
+- `project_sources_to_laminar_field` delegates to `project_laminar_sources`.
+- `experimental_poisson_1d_from_neuron_table` bins `z` rows from a neuron table into `n_bins`, then delegates to `experimental_poisson_1d` and copies its manifest (adding `bin_edges` + `neurons_per_bin`).
+
+There is no unified output object across both families — verify metadata per surface. Regression gates: `tests/test_phaseE_field_schema.py`, `tests/test_field_admissibility_v020.py`, `tests/test_field_proxy_admissibility_v024.py`.
+
 ## Homeostasis / HDP / plasticity — see the detailed skills
 
 Full behavior and wiring status: `jaxfne-config` (`.homeostasis`/`.plasticity`

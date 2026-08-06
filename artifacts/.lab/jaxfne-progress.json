@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseE-postE-maintenance",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-M01..E-M04, docs/ROADMAP_PHASES.md (deleted), AGENTS.md, skills/jaxfne-modeling-optimization-schema/SKILL.md, commit on dev",
+      "confidence": "high",
+      "detail": "Post-Phase-E maintenance pass complete. E-M01: docs/ROADMAP_PHASES.md git rm'd (zero public references - README/docs/mkdocs.yml nav/scripts/tests all clean before deletion; supersession preserved in fullroadmap.md:4 + git history). E-M02: one conditional mkdocs-requirements line added to AGENTS.md Validation block (uses docs/requirements.txt, no pins). E-M03: Field metadata contract section added to jaxfne-modeling-optimization-schema skill - canonical trio table (field_claim_level=proxy_readout; field_solver_status=linear_solver|experimental_pde_solver; physical_amplitude_calibrated=False), surfaces (FieldOutput.diagnostics vs returned manifest), delegation relationships (alias -> project_laminar_sources; from_neuron_table -> poisson_1d with bin bookkeeping), test pointers. E-M04 gate: compileall 0, pytest 94 passed/1 skipped in 36.42s, audit pass:true, mkdocs strict exit 0 (orphan list now only fullroadmap.md).",
+      "record": "Receipts: %TEMP%/post_phaseE_maintenance_pytest.txt, post_phaseE_maintenance_audit.txt, post_phaseE_maintenance_mkdocs.txt (all exit 0). artifacts/developer/context.md + receipts/ confirmed gitignored (.gitignore:71). Phase F not started; dev only; no merge main. Deleted-file reference in E-03/E-05 progress detail lines superseded by this entry."
+    },
+    {
       "id": "progress-2026-08-06-phaseE-E06-E08-closure",
       "kind": "progress_entry",
       "date": "2026-08-06",
