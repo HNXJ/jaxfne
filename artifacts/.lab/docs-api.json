@@ -7,7 +7,8 @@
     "source_paths": [
       "api/index.md",
       "api/core.md",
-      "... (14 pages, 1:1 with jaxfne module/group nodes)"
+      "api/source_schema.md",
+      "... (15 pages now, 1:1 with jaxfne module/group nodes)"
     ],
     "links": [
       {
@@ -17,5 +18,7 @@
     ]
   },
   "status": "unconfirmed",
-  "notes": []
+  "notes": [
+    "2026-08-06: D-06/D-07 added api/source_schema.md (source proxy-current trace contract + source_bookkeeping metadata schema, 5 emitter paths) under API reference in mkdocs.yml; nav entry inserted after Emitters. D-08 strict build green (817e682)."
+  ]
 }

@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseD-D05-D08-gates",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md D-05..D-08, docs/api/source_schema.md, mkdocs.yml, commit 817e682 on dev, %TEMP%/D05_receipt.txt + %TEMP%/D08_receipt.txt",
+      "confidence": "high",
+      "detail": "Phase D complete. D-05 GATE green: pytest tests/test_phaseD_source_schema.py -v -> 8 passed in 13.24s, exit 0. D-06: docs/api/source_schema.md written (scope, (T,N) array convention, metadata surfaces incl. homeostatic-E/I top-level divergence, 5-row emitter-path table, truth boundary physical_amplitude_calibrated=False, testing). D-07: nav entry added after Emitters. D-08 GATE green: mkdocs was not installed on host (pip install -r docs/requirements.txt first), strict build initially failed on pre-existing dead nav refs to publication/index.md + publication/docs_quality_report.md (deleted 2026-08-04 as internal, commits 6102f4e/d6f13e8) - removed both dead refs; then mkdocs build --strict exit 0, built in 8.79s. Regression: phaseD + source_bookkeeping_v020 = 29 passed in 17.96s; language audit pass:true.",
+      "record": "Receipts: D-05 -> 8 passed in 13.24s; D-08 -> exit 0 (8.79s build); regression 29 passed in 17.96s; audit pass:true; committed 817e682 pushed to dev. Phase E blocked on user approval of Checkpoint D alignment."
+    },
+    {
       "id": "progress-2026-08-05-phaseC-C05-C06-gate",
       "kind": "progress_entry",
       "date": "2026-08-05",
