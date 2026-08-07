@@ -330,7 +330,7 @@ skill refresh) completed 2026-08-06. Phase F not started.
 
 ---
 
-## Phase F — Solver Acceptance Criteria `[BLOCKED on Phase E]`
+## Phase F — Solver Acceptance Criteria `[DONE]`
 
 **Goal:** Define and codify the acceptance checklist any field solver must pass
 before entering the public API. Implement and gate the checklist for the
@@ -343,26 +343,38 @@ and acceptance criteria exist (Phase F). All three are now prerequisites.
 
 | # | Action | File(s) | Tag | Seq | Notes |
 |---|--------|---------|-----|-----|-------|
-| F-01 | Read `jaxfne/fields/` linear solver implementation in full; write one-paragraph description of its equations, assumptions, inputs/outputs | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` | |
-| F-02 | Add solver acceptance checklist as a comment block at top of `jaxfne/fields/__init__.py`; items: (1) finite output for any finite input, (2) linear superposition, (3) `jax.jit`-compatible, (4) carries `field_claim_level`, (5) must not claim physical amplitude | `jaxfne/fields/__init__.py` | `[DOCONLY]` `[SERIAL]` | `[SERIAL]` after F-01 | |
-| F-03 | Write `tests/test_phaseF_solver_acceptance.py`: one test per checklist item; `[NULL-CTRL]` zero-source → zero-field output | `tests/test_phaseF_solver_acceptance.py` | `[SERIAL]` | `[SERIAL]` after F-02 | |
-| F-04 | `[GATE]` `pytest tests/test_phaseF_solver_acceptance.py -v`; all pass | `tests/test_phaseF_solver_acceptance.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | |
-| F-05 | `[DOCONLY]` Write `docs/guides/solver_acceptance.md`: human-readable checklist; section on how to add a second solver; add to mkdocs nav | `docs/guides/solver_acceptance.md`, `mkdocs.yml` | `[DOCONLY]` `[PARALLEL-OK]` with F-04 | `[SERIAL]` after F-02 | |
-| F-06 | `[GATE]` `python3 -m mkdocs build --strict`; zero errors | — | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | |
+| F-01 | Read `jaxfne/fields/` linear solver implementation in full; write one-paragraph description of its equations, assumptions, inputs/outputs | `jaxfne/fields/` | `[SERIAL]` | `[SERIAL]` | `[DONE]` 2026-08-06 — Linear proxy solver: `jaxfne.fields.project_laminar_sources` (proxy.py:115-224). **Construction:** Gaussian-leadfield laminar projection — contact weights `kernel[c,n] = exp(-0.5·((contacts[c]−depth[n])/width)²)` with `contacts = linspace(0,1,n_contacts)` and `depth = positions[:,2]` (relative laminar depth ∈ [0,1]); `mode="density_preserving"` (default) uses the raw kernel, `mode="row_normalize"` divides each contact row by its sum (+1e-8 eps). **Inputs:** `sources` shape `[T, N]`, `positions` shape `[N, 3]`; kwargs `n_contacts=16`, `width=0.10`, `mode`, `dtype="float32"` (float64 only with x64). **Outputs `[T, n_contacts]`:** `source_proxy = sources @ kernel.T`; `lfp_proxy = source_proxy`; `phi_e_proxy = lfp_proxy`; `csd_proxy = csd_tensor(phi_e_proxy, dz)` (proxy.py:934, stencil `−(φ[c+1]−2φ[c]+φ[c−1])/dz²` along the contact axis, edge-padded; zero array when `n_contacts<3`); plus `kernel`, `contact_depths=contacts`, and `diagnostics`. **Relation:** `kernel` maps the N source depths to `n_contacts` contacts; all four readout arrays share the trace axis T and contact axis; `contact_depths` is the same linspace used for the kernel. **Assumptions (proxy/scaffold only):** no PDE/volume-conductor solve — `field_solver_status="linear_solver"`, `field_claim_level="proxy_readout"`, `physical_amplitude_calibrated=False`; boundary `mean_zero_neumann` and gauge `mean_zero` are declared-metadata-only (`source_projection_mode="proxy_no_field_solve"`, `source_current_conservation_status="not_applicable_proxy_mode"`); `source_calibration_status="uncalibrated_izhikevich_native_current"`; invalid `mode` raises `ValueError`. **JAX compatibility:** pure `jnp` operators only (`jnp.asarray`, `jnp.linspace`, `jnp.exp`, matmul `@`, `jnp.pad`, scalar arithmetic) — no Python loops over array dims, all kwargs static; behaviorally confirmed by `jax.jit` in F-03. **Existing tests:** `tests/test_field_proxy_admissibility_v024.py` (kernel row normalization both modes, normalization definition in diagnostics, conservation not claimed, boundary/gauge declared-metadata-only, finiteness flags, JSON-safe diagnostics, non-negative kernel, stencil numerical parity); `tests/test_field_admissibility_v020.py` (via `signals.field` — arrays finite `phi_e`/`csd`, `kernel_normalization_valid`, report keys, `linear_solver` status); `tests/test_phaseE_field_schema.py` (canonical trio on `FieldOutput.diagnostics`, output finiteness). Helper note: `project_sources_to_laminar_field` (proxy.py:227) is a thin wrapper delegating to `project_laminar_sources` — same contract. |
+| F-02 | Add solver acceptance checklist as a comment block at top of `jaxfne/fields/__init__.py`; items: (1) finite output for any finite input, (2) linear superposition, (3) `jax.jit`-compatible, (4) carries `field_claim_level`, (5) must not claim physical amplitude | `jaxfne/fields/__init__.py` | `[DOCONLY]` `[SERIAL]` | `[SERIAL]` after F-01 | `[DONE]` 2026-08-06 — checklist comment block `# Field solver acceptance checklist (maintainer contract, Phase F)` added at the top of `jaxfne/fields/__init__.py` (after the module docstring): (1) finite field outputs for finite inputs, (2) additive linear superposition, (3) callable under `jax.jit` verified by execution, (4) carries `field_claim_level`/`field_solver_status`/`physical_amplitude_calibrated` metadata keys, (5) amplitude truth gate `physical_amplitude_calibrated` is `False`. No decorator/registry/class/import-time behavior; no export changes; no duplicate checklist anywhere else. |
+| F-03 | Write `tests/test_phaseF_solver_acceptance.py`: one test per checklist item; `[NULL-CTRL]` zero-source → zero-field output | `tests/test_phaseF_solver_acceptance.py` | `[SERIAL]` | `[SERIAL]` after F-02 | `[DONE]` 2026-08-06 — 6 behavioral tests on `project_laminar_sources`: (01) finite outputs for finite inputs (all 4 readout arrays), (02) linear superposition `project(a+b) == project(a)+project(b)` per component with `rtol/atol=1e-4` (float32 justification measured at runtime: kernel matmul residual ~1.8e-7, CSD second-derivative stencil amplifies to ~2.7e-5), (03) `jax.jit` execution — computed through JIT, arrays finite; not source-inspected, (04) `field_claim_level="proxy_readout"` + `field_solver_status="linear_solver"` on `FieldOutput.diagnostics`, (05) `physical_amplitude_calibrated is False`, plus `[NULL-CTRL]` zero-source → exact-zero outputs with correct shapes, all finite. Poisson entry points intentionally excluded (Phase E schema suite covers them). **JIT-requiring solver change (approved during F-03):** the standard solver now runs inside `jax.jit`. Two surgical edits, eager path byte-identical: (a) `jaxfne/fields/diagnostics.py` gained tracer-aware `_finite_flag` (Python bool eager / tracer under JIT) replacing `_finite_bool` in report values, with the two non-finite warning guards `isinstance`-checked; (b) `jaxfne/fields/proxy.py` registered `FieldOutput` as a JAX pytree and returns empty `diagnostics` when traced (JAX jit rejects str/int/tuple leaves), keeping the metadata report on the eager surface. Existing v020/v024/phaseE tests (eager) still green. |
+| F-04 | `[GATE]` `pytest tests/test_phaseF_solver_acceptance.py -v`; all pass | `tests/test_phaseF_solver_acceptance.py` | `[GATE]` `[EVIDENCE]` | `[SERIAL]` | `[DONE]` `[EVIDENCE]` — `JAX_PLATFORMS=cpu PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python -m pytest tests/test_phaseF_solver_acceptance.py -v` → **6 passed in 1.93s**, exit 0. Full stdout receipt `%TEMP%\F04_receipt.txt`. No failures to triage; no tolerance or code weakening. |
+| F-05 | `[DOCONLY]` Write `docs/guides/solver_acceptance.md`: human-readable checklist; section on how to add a second solver; add to mkdocs nav | `docs/guides/solver_acceptance.md`, `mkdocs.yml` | `[DOCONLY]` `[PARALLEL-OK]` with F-04 | `[SERIAL]` after F-02 | `[DONE]` 2026-08-06 — `docs/guides/solver_acceptance.md` written in the `poisson_admissibility.md` guide style: acceptance checklist (5 conditions + zero-source control), proxy-readout truth boundary statement, per-solver metadata contract table (`field_claim_level` / `field_solver_status` / `physical_amplitude_calibrated`), JIT note (metadata surface eager-only, arrays jittable), tolerance note, "where regression tests live". One nav entry added under Guides: `- Solver Acceptance: guides/solver_acceptance.md` (after Poisson Admissibility). No unrelated nav items; no roadmap/agent/receipt references; doc-language audit pass on first check. |
+| F-06 | `[GATE]` `python3 -m mkdocs build --strict`; zero errors | — | `[GATE]` `[EVIDENCE]` | `[SERIAL]` last | `[DONE]` `[EVIDENCE]` — all four F-06 gates green 2026-08-06: audit → `"pass": true`, exit 0 (`%TEMP%\F06_audit_receipt.txt`); mkdocs strict → exit 0, "Documentation built in 14.04 seconds", orphan list only `fullroadmap.md` (`%TEMP%\F06_mkdocs_receipt.txt`); field suite 4-file pytest → **66 passed in 18.75s**, exit 0 — 60 pre-existing field tests plus 6 new, zero regressions from the F-03 diagnostics/pytree change (`%TEMP%\F06_pytest_receipt.txt`); smoke trio → **34 passed, 1 skipped in 40.14s**, exit 0 (`%TEMP%\F06_smoke_receipt.txt`). |
 
 ### Phase F exit criteria
 
-- F-04 + F-06 `[GATE]` green.
-- Checklist exists in code (`__init__.py` comment) and in docs.
-- Path to second solver documented.
+- F-04 + F-06 `[GATE]` green. — **MET** (F-04 2026-08-06: 6 passed in 1.93s; F-06 2026-08-06: audit pass + mkdocs strict exit 0 + 66 field-tests passed + 34 smoke passed).
+- Checklist exists in code (`__init__.py` comment) and in docs. — **MET** (`jaxfne/fields/__init__.py` comment block (F-02); `docs/guides/solver_acceptance.md` (F-05)).
+- Path to second solver documented. — **MET** (F-05 guide: metadata contract + where tests live for a future solver).
 
 ### `[ALIGN]` Checkpoint F
 
 Report: checklist written, tests passing, second-solver path documented.
 
+**Phase F COMPLETE.** F-01 solver description recorded (Gaussian-leadfield
+linear projection, proxy/scaffold only); F-02 acceptance checklist comment in
+`jaxfne/fields/__init__.py`; F-03 `tests/test_phaseF_solver_acceptance.py`
+(6 tests: finite / superposition / JIT / metadata / truth gate / zero-source
+control); F-04 gate 6 passed in 1.93s; F-05 `docs/guides/solver_acceptance.md`
++ one nav entry; F-06 four gates green (66 + 34 field/smoke tests, mkdocs
+strict exit 0, audit pass). **Verified solver gap closed during F-03**
+(user-approved): the linear solver now executes under `jax.jit` —
+`diagnostics.py` tracer-aware `_finite_flag` + tract-enabled warning guards, and
+`FieldOutput` registered as a JAX pytree with eager-only metadata. Phase G not
+started.
+
 ---
 
-## Phase G — Public API Catalog Completion `[BLOCKED on Phase F]`
+## Phase G — Public API Catalog Completion `[NEXT]`
 
 **Goal:** Every public name in `jaxfne` is findable in
 `skills/catalog-glossary-jaxfne/SKILL.md` with its correct signature,

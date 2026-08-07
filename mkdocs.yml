@@ -92,6 +92,7 @@ nav:
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
       - Poisson Admissibility: guides/poisson_admissibility.md
+      - Solver Acceptance: guides/solver_acceptance.md
       - Homeostasis: guides/homeostasis.md
       - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md

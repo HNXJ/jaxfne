@@ -16,6 +16,15 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseF-solver-acceptance",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md F-01..F-06, jaxfne/fields/{__init__,diagnostics,proxy}.py, tests/test_phaseF_solver_acceptance.py, docs/guides/solver_acceptance.md, mkdocs.yml, commit on dev",
+      "confidence": "high",
+      "detail": "Phase F complete. F-01 solver description (Gaussian-leadfield laminar projection, proxy/scaffold, recorded in roadmap). F-02 acceptance checklist comment in jaxfne/fields/__init__.py (5 conditions, no runtime API). F-03 tests/test_phaseF_solver_acceptance.py (6 tests: finite, superposition at rtol/atol=1e-4, jax.jit behavioral, metadata, truth gate, zero-source null control). JIT gap found and FIXED (user-approved): solver now executes under jax.jit - diagnostics.py tracer-aware _finite_flag + guard=True isinstance checks (eager bools byte-identical), proxy.py registers FieldOutput as JAX pytree, diagnostics empty-dict under trace (JAX disallows str/int leaves), metadata surface stays eager. F-04 gate 6 passed 1.93s. F-05 guide + one nav entry, audit-clean. F-06 four gates green: audit pass, mkdocs strict exit 0 (14.04s), field suite 66 passed 18.75s (no regressions from the diagnostics change), smoke 34/1 40.14s.",
+      "record": "Receipts: %TEMP%/F04_receipt.txt, F06_audit_receipt.txt, F06_mkdocs_receipt.txt, F06_pytest_receipt.txt, F06_smoke_receipt.txt (all exit 0). Fullroadmap Phase F header [DONE], exit criteria MET, Checkpoint F COMPLETE, Phase G [NEXT] but not started. dev only; main untouched; no force-push."
+    },
+    {
       "id": "progress-2026-08-06-phaseE-postE-maintenance",
       "kind": "progress_entry",
       "date": "2026-08-06",
