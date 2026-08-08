@@ -147,7 +147,7 @@ root) is not a folder-clutter violation on its own — this doesn't reopen the f
 
 ## Known stubs
 
-`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb` — exported names, `NotImplementedError` on use.
+`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`, `solve_volume_conductor_experimental` — exported names, `NotImplementedError` on use (the last confirmed 2026-08-07: root export, raises immediately).
 
 ## Known fragilities (track)
 
