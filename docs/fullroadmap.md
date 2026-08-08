@@ -374,12 +374,18 @@ started.
 
 ---
 
-## Phase G — Public API Catalog Completion `[NEXT]`
+## Phase G — Public API Catalog Completion `[PAUSED]`
 
 **Goal:** Every public name in `jaxfne` is findable in
 `skills/catalog-glossary-jaxfne/SKILL.md` with its correct signature,
 one-line description, and status tag (`[STABLE]`, `[EXPERIMENTAL]`, `[STUB]`).
 Catalog only — no new API added this phase.
+
+**2026-08-08 PAUSE NOTICE:** Catalog expansion is FROZEN at the committed
+Batch 2 state by the strategic pivot to Phase P (Performance and 3D Field
+Readiness). Do not continue G callable batches without explicit instruction.
+Do not discard G-01/G-02 evidence. Remaining inventory preserved in the
+Deferred queue below.
 
 **Entry gate:** Phase F exit criteria met.
 **Key file:** `skills/catalog-glossary-jaxfne/SKILL.md`
@@ -402,9 +408,70 @@ Catalog only — no new API added this phase.
 - Every public name has a SKILL.md entry with status tag.
 - No invented signatures in SKILL.md.
 
+### Phase G deferred queue (frozen inventory, `[PAUSED]` 2026-08-08)
+
+**42 callables** remain missing from SKILL.md (Batch 1 + Batch 2 added 36
+constants/classes + 17 core/config/model callables; of the original 59
+missing callables, 59 − 17 = 42 remain — 41 actual absent entries plus
+`default_relative_size`, which was corrected-and-cataloged in Batch 1).
+Do NOT run these as G batches now. The full 59-name survey with modules and
+inspect-verified signatures is preserved at
+`artifacts/developer/receipts/G03_batch2_survey.txt` (local-only); batch
+plans at `G03_batch2_planning_receipt.txt`. Remaining groups (and per-batch
+recommendation): fields/proxy (5), analysis.spectral (5), `_pipeline` HDP (5),
+paradigm (3), bridges (3), emitters/synapse (3), export (3), optimization (2),
+plasticity (2), solvers (2, incl. stub `solve_volume_conductor_experimental`),
+I/O stubs (2: `read_nwb`/`write_nwb`), tutorial_utils (2), stimulus (1),
+validation (1), connectivity (1), neuronal-tensor I-O (1). Stub entries
+(`GLIFEmitter`, `LIFEmitter`, `read_nwb`, `write_nwb`,
+`solve_volume_conductor_experimental`) still need `[STUB]` tags when G
+resumes (G-04, currently `[IN PROGRESS]`).
+
 ### `[ALIGN]` Checkpoint G
 
 Report: gap count, corrected entries, stub count, both catalog tests passing.
+
+---
+
+## Phase P — Performance and 3D Field Readiness `[ACTIVE]` `[DISCOVERY]`
+
+**Goal:** Improve existing simulation paths via measurement before
+optimization; establish float32 CUDA acceptance criteria; stabilize a 3D
+source/geometry + time-indexed field contract; scope a bounded
+volume-conductor workflow only after acceptance criteria exist.
+Discovery-first: profile → verified bottleneck removal → float32 CUDA
+acceptance → 3D source/field schema → bounded volume-conductor solver.
+
+**Scope and truth boundary:** this phase does NOT add public APIs, does NOT
+add a general-purpose PDE/volume-conductor framework, and does NOT claim
+calibrated EEG/MEG, biological validation, or mechanism proof. Target
+terminology: "3D geometry with time-indexed field readouts", "Relative proxy
+source values", "computational-scaffold field representation", "experimental
+PDE path" where source marks it so. Avoid in public docs: "4D physical field
+solution", "real EEG/MEG", "calibrated conductivity", "biologically
+validated volume conductor".
+
+**Pause notice 2026-08-08:** Phase P replaces expansion phases (F → G → H
+chain) as the priority; G is `[PAUSED]` per G deferred queue above. Do not
+start large GPU sweeps; do not rewrite emitters/fields/HDP/optimizers.
+
+| # | Action | File(s) | Tag | Seq | Notes |
+|---|--------|---------|-----|-----|-------|
+| P-01 | Existing performance map (discovery only): standard path (Emitter → source proxy → Field → probe → objective → manifest), HDP-enabled path, field paths (`project_laminar_sources`, `project_sources_to_laminar_field`, `experimental_poisson_1d(_from_neuron_table)`, `solve_volume_conductor_experimental`): primary entry, core functions, shapes, python-loop/JIT boundaries, scan/vmap, allocation risks, existing perf/acceptance tests. No bottleneck labels without profiling | source reads | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` first | `[COMPLETED]` 2026-08-08 discovery pass — full table in `artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt`. Key facts: dense `W` (N,N) materialization and `w_trace` (T,E) stacking are the documented allocation risks (40 GB @ N=100k dense; 80 GB w_trace @ T=10k, E=2M); kernels are single `lax.scan`, Model-level JIT when T*N>50k (`resolve_jit`); existing benchmarks do NOT sync (`block_until_ready`) nor warm up — flags for P-02. |
+| P-02 | Benchmark protocol design (design only, no implementation committed): CPU float32 deterministic baseline + CUDA-readiness baseline with device report; synchronized timing via `block_until_ready`; skip cleanly when CUDA unavailable; record device/backend, JAX/JAXLIB versions, dtype, jit state, warm-up vs measured, seed, steps/neurons/edges/contacts, wall-clock, peak-memory only if portable. | `scripts/benchmark_jaxfne.py`, `benchmarks/scaling_benchmark.py` (reuse) | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-01 | `[COMPLETED]` 2026-08-08 design: reuse `scripts/benchmark_jaxfne.py` + `scaling_benchmark.py` patterns with a proposed `scripts/benchmark_protocol_v1.py` interface (deferred workload set; parameters listed in receipt). Not created (per handout). No timing valid without sync; no CPU → GPU claim until identical workload/configuration. |
+| P-03 | Float32 + CUDA + HDP stability audit: dtype policy table (state carry, recurrent accumulation, adaptation/homeostasis/HDP updates, exponentials, divisions, clipping, normalization, long horizons, NaN/Inf, RNG, MATCH-strategy, host/device), and design a future acceptance experiment: matched standard/HDP float32; null control; ≥3 fixed seeds; evidence: finite state/output, shape invariants, explicit dtype, deterministic-repeat, no unexpected host conversion; HDP-vs-non-HDP only compared, not claimed-superior | `jaxfne/`, `tests/` (read-only) | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-01 | `[COMPLETED]` 2026-08-08 audit table + acceptance-experiment spec in P-01-P05 receipt. No new claim in docs that HDP "keeps networks stable" — acceptance experiment retains 'measure, don't claim' framing. |
+| P-04 | 3D / time-indexed field architecture inventory: existing spatial/time representations, output surfaces, reusability for `S[t,n]`/`X[n,3]`/time+location readouts; identify smallest schema/contract gap only if source-verified block; prefer adapters at existing boundaries | `jaxfne/fields/`, `jaxfne/_signals.py` (read-only) | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-01 | `[COMPLETED]` 2026-08-08 — inventory in receipt: positions (N,3), proxy (T,N), 1D depth only; no 3D voxel/electrode geometry; conductivity scalar/per-face only; no 3D solver. No gap blocks existing paths → no schema change yet (adapter-first principle respected). |
+| P-05 | Volume-conductor feasibility boundary: read full source+tests for `solve_volume_conductor_experimental`; document exact signature, failure message, missing prerequisites, relation to 1D Poisson/proxy paths; staged feasibility recommendation with acceptance matrix (finite outputs, zero-source null, linearity, declared boundary/gauge, residual/convergence, CPU/JIT, float32 CUDA, seed control, proxy/scaffold metadata, `physical_amplitude_calibrated=False`) | `jaxfne/solvers.py` | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-04 | `[COMPLETED]` 2026-08-08 — stub verified (`NotImplementedError("experimental solver skeleton...")`). Expected default outcome held: no implementation; staged prerequisites documented in `P01-P05_pivot_discovery_receipt.txt`. |
+
+### Phase P exit criteria (future, not yet met)
+
+- P-01/P-02 receipts exist with synchronized, deterministic baseline;
+- P-03 acceptance experiment run (≥3 seeds incl. null control; finite outputs,
+  stated dtype, deterministic-repeat) and result recorded — no claim that HDP
+  stabilizes before that measurement;
+- P-04 contract committed (or confirmed no change needed);
+- P-05 staged feasibility accepted with bounded scope (no 3D impl before
+  P-03 acceptance).
 
 ---
 

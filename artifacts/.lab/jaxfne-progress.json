@@ -121,6 +121,15 @@
       "confidence": "high",
       "detail": "Phase G Batch 2 (partial G-02/G-03) COMPLETE: 17 core/config/model callables added to SKILL.md, all [STABLE], all with inspect.signature-verified signatures and source-derived descriptions (planning table G03_batch2_planning_receipt.txt; every row from G-01 missing-callable inventory, none added in Batch 1). Added: configuration, default_complete_configuration, configuration_diff, model_diff, validate_model, connect (fuse Models), laminar_source_geometry, dataset_spec, operator_status, default_basis_spec, configs_dir, make_minimal_ei_tensor, tensor_summary, validate_neuronal_tensor, merge_runtime_configs, runtime_config_diff, validate_runtime_config. Gates: compileall 0; catalog 6 skipped by design; snapshot 2 passed; audit pass:true. Remaining: 42 callable (41 actual absent; default_relative_size cataloged Batch 1). Deferred groups recorded: fields/proxy (5), spectral (5), pipeline (5), paradigm (3), bridges (3), emitters (3), export (3), optim (2), plasticity (2), solvers (1+1 stub), stubs (2), tutorial (2), stimulus (1), validation (1), connectivity (1), tensor-I/O (1). Roadmap G-02b/G-03 updated IN PROGRESS (not DONE).",
       "record": "Receipts: G03_batch2_survey.txt, G03_batch2_planning_receipt.txt, G03_batch2_catalog.txt, G03_batch2_snapshot.txt, G03_batch2_audit.txt."
+    },
+    {
+      "id": "progress-2026-08-08-phaseP-pivot-performance-3d-discovery",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "docs/fullroadmap.md, artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt",
+      "confidence": "high",
+      "detail": "STRATEGIC PIVOT (authorized): Phase G catalog FROZEN after Batch 2 (42 callables deferred in explicit queue); new Phase P (Performance and 3D Field Readiness) active. P-01..P-05 discovery complete with detailed receipt: (a) all simulation kernels are single lax.scan over T with Model-level jax.jit when T*N>50k; dense W (N,N) and HDP w_trace (T,E) are the documented allocation risks; (b) existing benchmarks lack block_until_ready sync and warm-up - the P-02 protocol must add them; (c) float32 CUDA/HDP audit: state carries clipped, barrier_eps floors divisions, x64 gating intact, no float64 requirement; acceptance experiment spec defined (matched HDP/non-HDP, 3 seeds, disconnected_null + K_HDP=0 null controls); (d) 3D inventory: positions (N,3), sources (T,N), 1D depth-only, conductivity scalar/per-face (N-1,) only - no schema change needed yet; (e) solve_volume_conductor_experimental confirmed stub raising NotImplementedError (solvers.py:157) - staged feasibility recommendation, no implementation. Gates: compileall 0; 52 passed/1 skipped; audit pass:true; mkdocs strict 0.",
+      "record": "Pre-flight receipts in artifacts/developer/preflight_pivot.txt + preflight_audit_pivot.txt + preflight_mkdocs_pivot.txt; full P-01..P-05 tables in artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt."
     }
   ],
   "issues": [],
