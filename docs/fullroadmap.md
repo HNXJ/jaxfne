@@ -442,9 +442,9 @@ volume-conductor workflow only after acceptance criteria exist.
 Discovery-first: profile → verified bottleneck removal → float32 CUDA
 acceptance → 3D source/field schema → bounded volume-conductor solver.
 
-**Scope and truth boundary:** this phase does NOT add public APIs, does NOT
-add a general-purpose PDE/volume-conductor framework, and does NOT claim
-calibrated EEG/MEG, biological validation, or mechanism proof. Target
+**Scope and truth boundary:** this phase adds no public APIs, no
+general-purpose PDE/volume-conductor framework; calibrated EEG/MEG,
+biological validation, and mechanism proof are out of scope. Target
 terminology: "3D geometry with time-indexed field readouts", "Relative proxy
 source values", "computational-scaffold field representation", "experimental
 PDE path" where source marks it so. Avoid in public docs: "4D physical field
@@ -462,6 +462,8 @@ start large GPU sweeps; do not rewrite emitters/fields/HDP/optimizers.
 | P-03 | Float32 + CUDA + HDP stability audit: dtype policy table (state carry, recurrent accumulation, adaptation/homeostasis/HDP updates, exponentials, divisions, clipping, normalization, long horizons, NaN/Inf, RNG, MATCH-strategy, host/device), and design a future acceptance experiment: matched standard/HDP float32; null control; ≥3 fixed seeds; evidence: finite state/output, shape invariants, explicit dtype, deterministic-repeat, no unexpected host conversion; HDP-vs-non-HDP only compared, not claimed-superior | `jaxfne/`, `tests/` (read-only) | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-01 | `[COMPLETED]` 2026-08-08 audit table + acceptance-experiment spec in P-01-P05 receipt. No new claim in docs that HDP "keeps networks stable" — acceptance experiment retains 'measure, don't claim' framing. |
 | P-04 | 3D / time-indexed field architecture inventory: existing spatial/time representations, output surfaces, reusability for `S[t,n]`/`X[n,3]`/time+location readouts; identify smallest schema/contract gap only if source-verified block; prefer adapters at existing boundaries | `jaxfne/fields/`, `jaxfne/_signals.py` (read-only) | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-01 | `[COMPLETED]` 2026-08-08 — inventory in receipt: positions (N,3), proxy (T,N), 1D depth only; no 3D voxel/electrode geometry; conductivity scalar/per-face only; no 3D solver. No gap blocks existing paths → no schema change yet (adapter-first principle respected). |
 | P-05 | Volume-conductor feasibility boundary: read full source+tests for `solve_volume_conductor_experimental`; document exact signature, failure message, missing prerequisites, relation to 1D Poisson/proxy paths; staged feasibility recommendation with acceptance matrix (finite outputs, zero-source null, linearity, declared boundary/gauge, residual/convergence, CPU/JIT, float32 CUDA, seed control, proxy/scaffold metadata, `physical_amplitude_calibrated=False`) | `jaxfne/solvers.py` | `[ACTIVE]` `[DISCOVERY]` | `[SERIAL]` after P-04 | `[COMPLETED]` 2026-08-08 — stub verified (`NotImplementedError("experimental solver skeleton...")`). Expected default outcome held: no implementation; staged prerequisites documented in `P01-P05_pivot_discovery_receipt.txt`. |
+| P-06 | Benchmark protocol v1 implementation: new CLI `scripts/benchmark_protocol_v1.py` (synchronized timing via `block_until_ready`, warmup-vs-measured, structured GPU SKIP with no fallback, JSON schema per P-02 design) + focused non-timing tests | `scripts/benchmark_protocol_v1.py`, `tests/test_benchmark_protocol_v1.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` after P-02 | `[COMPLETED]` 2026-08-08 receipt pair `P06_cpu_smoke.json`+`P06_cpu_smoke2.json` (identical command, `--backend cpu --mode both --warmup 1 --runs 1 --record-fields off --record-weight-trace off`), GPU skip `P06_gpu_skip.json` (exit 0), audit pass, mkdocs strict build pass. |
+| P-07 | Float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence (next gated action) | `scripts/`, `tests/` | `[ACTIVE]` `[SERIAL]` | `[SERIAL]` after P-06 | |
 
 ### Phase P exit criteria (future, not yet met)
 

@@ -130,6 +130,15 @@
       "confidence": "high",
       "detail": "STRATEGIC PIVOT (authorized): Phase G catalog FROZEN after Batch 2 (42 callables deferred in explicit queue); new Phase P (Performance and 3D Field Readiness) active. P-01..P-05 discovery complete with detailed receipt: (a) all simulation kernels are single lax.scan over T with Model-level jax.jit when T*N>50k; dense W (N,N) and HDP w_trace (T,E) are the documented allocation risks; (b) existing benchmarks lack block_until_ready sync and warm-up - the P-02 protocol must add them; (c) float32 CUDA/HDP audit: state carries clipped, barrier_eps floors divisions, x64 gating intact, no float64 requirement; acceptance experiment spec defined (matched HDP/non-HDP, 3 seeds, disconnected_null + K_HDP=0 null controls); (d) 3D inventory: positions (N,3), sources (T,N), 1D depth-only, conductivity scalar/per-face (N-1,) only - no schema change needed yet; (e) solve_volume_conductor_experimental confirmed stub raising NotImplementedError (solvers.py:157) - staged feasibility recommendation, no implementation. Gates: compileall 0; 52 passed/1 skipped; audit pass:true; mkdocs strict 0.",
       "record": "Pre-flight receipts in artifacts/developer/preflight_pivot.txt + preflight_audit_pivot.txt + preflight_mkdocs_pivot.txt; full P-01..P-05 tables in artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt."
+    },
+    {
+      "id": "progress-2026-08-08-phaseP-P06-benchmark-protocol",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md P-06/P-07, artifacts/developer/receipts/P06_*.json",
+      "confidence": "high",
+      "detail": "P-06 DONE [EVIDENCE] 2026-08-08: benchmark_protocol_v1.py CLI committed (synchronized block_until_ready timing, deterministic fixed seed, warmup-vs-measured, GPU-requested structured SKIP with no fallback, JSON report schema). Workload default N=400/T=200ms verified by probe (N=1000/T=1000ms HDP arm ~143s/run on CPU -> kept as 'large' preset instead of default). 7 focused non-timing tests pass. Two identical CPU smokes (standard ~0.168s, hdp ~5.27s, float32, seed 0) + GPU skip exit 0. Gates: compileall 0, smoke trio 34 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap: P-06 tagged [DONE][EVIDENCE], P-07 row added (float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence).",
+      "record": "Receipts: artifacts/developer/receipts/P06_cpu_smoke.json, P06_cpu_smoke2.json, P06_gpu_skip.json (gitignored). Commit on dev includes only scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md."
     }
   ],
   "issues": [],
