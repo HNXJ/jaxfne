@@ -112,6 +112,15 @@
       "confidence": "high",
       "detail": "Phase G Batch 1 (partial G-02/G-03, no G-04 done mark) COMPLETE on dev 949b03f->new. Added all 12 constants + 24 classes (36 entries, zero overlap, zero stubs) to SKILL.md with source-derived signatures/values. Corrected DEFAULT_RELATIVE_SIZE -> default_relative_size(neuron_type: str) -> float (neuronal_tensor.py:79) and stale header count (~210/~85 -> 162 fns + 82 classes + 12 consts = 256 __all__). AGENTS.md known-stubs + solve_volume_conductor_experimental (verified root export raising NotImplementedError). Gates: compileall 0, catalog 6 skipped by design, snapshot 2 passed, audit pass:true. Roadmap G-02/G-03/G-04 marked IN PROGRESS (not DONE); 59 callables remain.",
       "record": "Receipts: G02_survey_receipt.txt, G02_catalog_receipt.txt, G02_snapshot_receipt.txt, G02_audit_receipt.txt (all in artifacts/developer/receipts/, gitignored)."
+    },
+    {
+      "id": "progress-2026-08-08-phaseG-batch2-core-config-model",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "skills/catalog-glossary-jaxfne/SKILL.md, docs/fullroadmap.md, artifacts/developer/receipts/G03_batch2_*.txt",
+      "confidence": "high",
+      "detail": "Phase G Batch 2 (partial G-02/G-03) COMPLETE: 17 core/config/model callables added to SKILL.md, all [STABLE], all with inspect.signature-verified signatures and source-derived descriptions (planning table G03_batch2_planning_receipt.txt; every row from G-01 missing-callable inventory, none added in Batch 1). Added: configuration, default_complete_configuration, configuration_diff, model_diff, validate_model, connect (fuse Models), laminar_source_geometry, dataset_spec, operator_status, default_basis_spec, configs_dir, make_minimal_ei_tensor, tensor_summary, validate_neuronal_tensor, merge_runtime_configs, runtime_config_diff, validate_runtime_config. Gates: compileall 0; catalog 6 skipped by design; snapshot 2 passed; audit pass:true. Remaining: 42 callable (41 actual absent; default_relative_size cataloged Batch 1). Deferred groups recorded: fields/proxy (5), spectral (5), pipeline (5), paradigm (3), bridges (3), emitters (3), export (3), optim (2), plasticity (2), solvers (1+1 stub), stubs (2), tutorial (2), stimulus (1), validation (1), connectivity (1), tensor-I/O (1). Roadmap G-02b/G-03 updated IN PROGRESS (not DONE).",
+      "record": "Receipts: G03_batch2_survey.txt, G03_batch2_planning_receipt.txt, G03_batch2_catalog.txt, G03_batch2_snapshot.txt, G03_batch2_audit.txt."
     }
   ],
   "issues": [],

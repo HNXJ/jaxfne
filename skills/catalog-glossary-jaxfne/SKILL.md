@@ -42,8 +42,11 @@ if you need exact kwargs — the name itself is confirmed present on disk.
 - Cell/receptor presets (`jaxfne/presets.py`): `CELL_TYPE_PRESETS` (Izhikevich presets by label: `E_RS`, `PV_FS`, `SST_LTS`, `VIP_IS`); `RECEPTOR_KINETICS` (AMPA/NMDA/GABA_A/GABA_B kinetics: `receptor_index`, `tau_ms`, `reversal_mV`, `sign`); `DEFAULT_SPIKE_IMPULSE_GAIN = 20.0` (hardcoded spike gain; **keep `emitters` dense/edge kernels in sync with it** — see AGENTS.md fragility).
 - `construct(cfg, *, geometry=None)` → `Model` — turn a Configuration into a runnable Model.
 - `build_laminar_column(name, n, ...)` → `Configuration` (single column; top-level).
+- Fresh/complete builders: `configuration()` → empty `Configuration` builder; `default_complete_configuration(column_name="V1", nucleus_name="thalamus", n_column=100, n_nucleus=60, layers=None, seed=None, duration_ms=1000.0, dt_ms=0.1)` → broadest default: laminar cortical column wired to a non-laminar nucleus (cortex + subcortex in one config).
+- Model diff/validation helpers (`jaxfne/util.py`): `configuration_diff(a, b)` → `{field: (a_val, b_val)}` for differing declarative fields; `model_diff(a, b, *, atol=1e-6)` → sweep-comparison summary between two built Models; `validate_model(model, *, strict=False)` → structural/numerical consistency warnings as `list[str]`.
 - Suite No. 2 configs: `suite2_single_neuron_config`, `suite2_four_celltype_config`, `suite2_net1_config`, `suite2_v1_v4_config`, `suite2_simulation`, `suite2_run_bundle`, `suite2_celltype_presets`.
-- Connectivity: `connect_columns(cfg, src, tgt, mode, ...)`, `all_to_all_intercolumn_connectivity(...)`, `sparse_intercolumn_connectivity(...)`, `build_laminar_connections(model, cfg)`, `compile_connection_rules(...)`, `make_edge_list_from_dense(weights, ...)`.
+- Connectivity: `connect_columns(cfg, src, tgt, mode, ...)`, `all_to_all_intercolumn_connectivity(...)`, `sparse_intercolumn_connectivity(...)`, `build_laminar_connections(model, cfg)`, `compile_connection_rules(...)`, `make_edge_list_from_dense(weights, ...)`. Model-level fusion: `connect(*models, edges=None, namespace=None, layout="offset_x", strict=True, name=None)` → `Model` — fuse two or more constructed Models into one ensemble (distinct from the config-level `connect_columns`).
+- Construct extras (`jaxfne/_construct_extras.py`): `laminar_source_geometry(populations)` → `LaminarSourceGeometry` (source geometry from an ordered population sequence, for `construct(..., geometry=...)`); `dataset_spec(**kwargs)` → `DatasetSpec`; `operator_status()` → `dict[str, str]` (operator status registry).
 - Cells/emitters: `make_cell_dist`, `make_cell_type_catalog`, `make_eig_network`, `izhikevich_params_from_labels(labels, *, drive_overrides=...)`, `with_emitter_parameters(model, ...)`, `standard_receptor_specs`, `standard_receptor_tau_table`.
 - **`.jcfg.json`/`JaxFNEConfig` format DELETED (2026-06-30)**: `load_config`, `validate_config`, `config_to_configuration`, `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`, `config_truth_boundary`, `ConfigValidationResult`, `JaxFNEConfig` no longer exist — legacy format lived only in tests, never a real asset. `validate_configuration` (the `Configuration`-native validator, distinct name) still exists.
 
@@ -61,6 +64,9 @@ This is a SEPARATE build path from `Configuration` — both converge on the same
 - `construct(tensor, runtime_configuration)` → `Model` — same top-level `construct` as the `Configuration` path, dispatches on input type.
 - `RuntimeConfiguration` (`neuronal_tensor.py`, frozen, execution-only: seed/duration_ms/dt_ms/etc.) — **distinct from** `RuntimeConfig` (now in `jaxfne/_runtime_config.py`, re-exported unchanged from `jaxfne.core`/top-level `jaxfne`; has `enable_hdp`/`hdp_params`). `RuntimeConfiguration` has NO HDP field.
 - `load`, `load_neuronal_tensor`, `load_canonical_neuronal_tensor`, `list_canonical_neuronal_tensors`, `merge_neuronal_tensors`, `construct_neuronal_tensor`.
+- `configs_dir()` → `Path` — package-data location of the canonical NeuronalTensor JSON library (`jaxfne/configs/`).
+- `make_minimal_ei_tensor(n=8, e_fraction=0.75, *, layer_name="L1", area_name="minimal", h=1.0)` → `NeuronalTensor` — one flat Layer split E/PV by `e_fraction`, all four pairwise E/PV InterConnections (AMPA from E, GABA from PV), `plastic.H=h` on every edge — the canonical small-HDP test tensor.
+- Tensor introspection (`jaxfne/util.py`): `tensor_summary(nt)` → JSON-safe `dict` (counts + cell-type inventory); `validate_neuronal_tensor(nt, *, strict=False)` → structural-consistency warnings `list[str]`.
 - `default_relative_size(neuron_type: str) -> float` — default relative soma size
   by cell type (E=5.0, PV=1.0, SST/VIP=1.5, … from
   `emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`); single source of truth for NeuronType sizes and
@@ -232,12 +238,13 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 - `save_json(obj, path)` (allow_nan=False), `json_safe(obj)`.
 - Hashing: `asset_hashes(assets)`, `sha256_file(path)`, `sha256_text(text)`, `config_hash(cfg)`.
 - `export_tutorial_artifacts(cfg, manifest_dict, metrics_dict, validation_dict, output_dir)`.
-- Declarative descriptors (`jaxfne/_signals.py`, manifest-safe): `AxisSpec(name, status="active", size=None, units_or_status="declared")` — typed descriptor for one tensor axis; `BasisSpec(space_basis="laminar_depth", time_basis="continuous_ms", field_regime="laminar_proxy", source_mode="proxy_no_field_solve", probe_basis="multimodal_proxy", axes=...)` — computation basis of a run; `DatasetSpec(name="unnamed_dataset", modality="unspecified", source_format="unspecified", comparison_label="p1", comparison_code=101, ...)` — manifest-safe dataset/comparison declaration for observed data.
+- Declarative descriptors (`jaxfne/_signals.py`, manifest-safe): `AxisSpec(name, status="active", size=None, units_or_status="declared")` — typed descriptor for one tensor axis; `BasisSpec(space_basis="laminar_depth", time_basis="continuous_ms", field_regime="laminar_proxy", source_mode="proxy_no_field_solve", probe_basis="multimodal_proxy", axes=...)` — computation basis of a run; `DatasetSpec(name="unnamed_dataset", modality="unspecified", source_format="unspecified", comparison_label="p1", comparison_code=101, ...)` — manifest-safe dataset/comparison declaration for observed data. Factories: `default_basis_spec()` → `BasisSpec` (default matching the laminar-proxy scaffold).
 
 ## 10. Runtime / JAX / x64 / sharding
 
 - `enable_x64()` — call **before** building arrays; verify with `runtime_report()["actual_dtype"]`.
 - `runtime_report(runtime_config=None)`, `RuntimeConfig`.
+- RuntimeConfig helpers (`jaxfne/util.py`): `merge_runtime_configs(*cfgs, **overrides)` → `RuntimeConfig` (layers configs left-to-right, later wins per field, then `overrides` on top); `runtime_config_diff(a, b)` → `{field: (a_val, b_val)}` for every differing field; `validate_runtime_config(cfg, *, strict=False)` → consistency warnings `list[str]` beyond `__post_init__`.
 - `compilation_registry` — module-level `CompilationRegistry` instance (`jaxfne/validation.py`) tracking trace-shape compilation guarding (set mode with `set_mode(recompilation_guard)`); read `is_valid_signal`/registry state before trusting compiled-program reuse.
 - Sharding: `make_population_mesh()`, `make_candidate_sharding(mesh)`, `make_replicated_sharding(mesh)`, `get_sharding_context()`.
 - Lazy optional deps: `require_jaxley()`, `require_optax()` (and `vis.require_matplotlib()`).
