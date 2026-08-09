@@ -150,6 +150,16 @@
       "detail": "P-07 DONE [EVIDENCE] 2026-08-08: tests/test_perf_float32_hdp_acceptance.py 6 passed (3 fixed seeds finite float32/shapes/record_weight_trace=False; same-seed repeat bitwise-identical on CPU, full-seed scope emitters.py:422-435; matched non-HDP control metadata has no hdp block; disconnected_null ablation -> w stays at w_floor 1e-3 scale (|w_final|max=1.0038e-3), H in [0.98,1.02] box, spikes nonzero by kernel noise design). Regression 66 passed/1 skipped; audit pass:true; mkdocs strict exit 0. Explicit: no CUDA evidence, no HDP-superiority claim.",
       "record": "Receipts: artifacts/developer/receipts/P07_hdp_acceptance.txt, P07_regression.txt, P07_audit.txt, P07_mkdocs.txt (gitignored). roadmap P-07 tagged [DONE][EVIDENCE]."
     }
+,
+    {
+      "id": "note-P07-ci-green-promotion-2026-08-08",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": ".github/workflows/ci.yml, gh run, local pytest mirrors",
+      "confidence": "high",
+      "detail": "CI (Fast) on dev df2aa82 = SUCCESS (first green dev push since the orphan gate): compileall, ruff 0.15.17, docs audit, notebook audit, mkdocs strict, orphan check, pytest -m not slow on 3.10/3.12, 18 examples, wheel build+twine+install smoke. Fixes that unblocked CI: (1) scripts/check_docs_orphans.py as_posix() -- win32 backslash paths never matched nav entries (same portability fix as audit_public_docs_language.py C-04); (2) mkdocs.yml exclude_docs added fullroadmap.md (agent-facing roadmap, intentionally non-navigable) -- this single orphan had failed every dev push since the P pivot. Root-cause of MAIN's pre-existing release-CI failure (test_agent_context_hygiene test_report_hygiene_check): docs/ROADMAP_PHASES.md still tracked on main with a forbidden 'claude' line -- deleted on dev in E-M01, so the dev->main merge removes it. Local Windows mirrors showed 19 fails NOT reproduced by CI: cp1252 locale hygiene failures (fixed via PYTHONUTF8=1), optax absent (fallback status string), Unix-only `import resource` in benchmarks/scaling_benchmark.py, bash-required release_scripts, stale local outputs/ manifests, notebook execution kernel absent; none in P-07 paths. Pending: dev->main PR + merge + main CI green + roadmap promotion record.",
+      "record": "gh run 31288821938 df2aa82 success. Local receipts: P07_ci_mirror_fast.txt, P07_ci_mirror_fast_utf8.txt, P07_ci_mirror_all.txt (gitignored)."
+    }
 ],
   "issues": [],
   "plan": "",
