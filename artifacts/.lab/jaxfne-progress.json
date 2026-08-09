@@ -140,7 +140,17 @@
       "detail": "P-06 DONE [EVIDENCE] 2026-08-08: benchmark_protocol_v1.py CLI committed (synchronized block_until_ready timing, deterministic fixed seed, warmup-vs-measured, GPU-requested structured SKIP with no fallback, JSON report schema). Workload default N=400/T=200ms verified by probe (N=1000/T=1000ms HDP arm ~143s/run on CPU -> kept as 'large' preset instead of default). 7 focused non-timing tests pass. Two identical CPU smokes (standard ~0.168s, hdp ~5.27s, float32, seed 0) + GPU skip exit 0. Gates: compileall 0, smoke trio 34 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap: P-06 tagged [DONE][EVIDENCE], P-07 row added (float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence).",
       "record": "Receipts: artifacts/developer/receipts/P06_cpu_smoke.json, P06_cpu_smoke2.json, P06_gpu_skip.json (gitignored). Commit on dev includes only scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md."
     }
-  ],
+  ,
+    {
+      "id": "note-P07-float32-hdp-acceptance-2026-08-08",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "tests/test_perf_float32_hdp_acceptance.py, docs/fullroadmap.md P-07, artifacts/developer/receipts/P07_*.txt",
+      "confidence": "high",
+      "detail": "P-07 DONE [EVIDENCE] 2026-08-08: tests/test_perf_float32_hdp_acceptance.py 6 passed (3 fixed seeds finite float32/shapes/record_weight_trace=False; same-seed repeat bitwise-identical on CPU, full-seed scope emitters.py:422-435; matched non-HDP control metadata has no hdp block; disconnected_null ablation -> w stays at w_floor 1e-3 scale (|w_final|max=1.0038e-3), H in [0.98,1.02] box, spikes nonzero by kernel noise design). Regression 66 passed/1 skipped; audit pass:true; mkdocs strict exit 0. Explicit: no CUDA evidence, no HDP-superiority claim.",
+      "record": "Receipts: artifacts/developer/receipts/P07_hdp_acceptance.txt, P07_regression.txt, P07_audit.txt, P07_mkdocs.txt (gitignored). roadmap P-07 tagged [DONE][EVIDENCE]."
+    }
+],
   "issues": [],
   "plan": "",
   "verification": {
