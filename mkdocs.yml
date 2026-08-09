@@ -12,8 +12,13 @@ docs_dir: docs
 # human-facing page -- excluded so mkdocs stops flagging it as an orphan not
 # in nav (cosmetic INFO warning only, never failed --strict, but the file was
 # never meant to be navigable).
+#
+# docs/fullroadmap.md is the canonical agent-facing phase roadmap (working
+# notes for roadmap upkeep, not user-facing docs content) -- intentionally
+# non-navigable, same exclude treatment.
 exclude_docs: |
   _generated/version.md
+  fullroadmap.md
 
 theme:
   name: material
