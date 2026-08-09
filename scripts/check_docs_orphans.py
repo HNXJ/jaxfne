@@ -47,7 +47,7 @@ def find_orphans() -> list[str]:
     excluded = {line.strip() for line in exclude_raw.splitlines() if line.strip()}
 
     all_md = {
-        str(p.relative_to(DOCS_DIR))
+        p.relative_to(DOCS_DIR).as_posix()
         for p in DOCS_DIR.rglob("*.md")
     }
 

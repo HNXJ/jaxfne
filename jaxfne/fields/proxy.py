@@ -25,6 +25,7 @@ from scipy import signal
 from .diagnostics import (
     _dtype_name,
     _finite_bool,
+    _finite_flag,
     _test_kernel_row_normalization,
     validate_projection_invariants,
     _make_field_solution_report,
@@ -65,6 +66,36 @@ class FieldOutput:
     def kernel_matrix(self) -> jax.Array:
         """Alias for projection row-normalization check."""
         return self.kernel
+
+
+# Register FieldOutput as a JAX pytree so the projection can run inside
+# jax.jit / scan / vmap and still return its full container (arrays plus the
+# diagnostics dict). Dataclass fields are used as children in declaration
+# order; no auxiliary metadata is needed for round-trip reconstruction.
+def _field_output_flatten(field_output: FieldOutput):
+    return (
+        (
+            field_output.source_proxy,
+            field_output.phi_e_proxy,
+            field_output.csd_proxy,
+            field_output.lfp_proxy,
+            field_output.kernel,
+            field_output.contact_depths,
+            field_output.diagnostics,
+        ),
+        None,
+    )
+
+
+def _field_output_unflatten(_aux, children):
+    return FieldOutput(*children)
+
+
+jax.tree_util.register_pytree_node(
+    FieldOutput,
+    _field_output_flatten,
+    _field_output_unflatten,
+)
 
 
 def _row_normalize(kernel: jax.Array, eps: float = 1e-8) -> jax.Array:
@@ -194,9 +225,9 @@ def project_laminar_sources(
         solver_residual_l2_relative=None,
         n_iterations=None,
         converged=None,
-        finite_phi_e=_finite_bool(phi_e_proxy),
+        finite_phi_e=_finite_flag(phi_e_proxy),
         finite_J_e=False,
-        finite_CSD=_finite_bool(csd_proxy),
+        finite_CSD=_finite_flag(csd_proxy),
         field_claim_level="proxy_readout",
         physical_amplitude_calibrated=False,
         source_projection_mode="proxy_no_field_solve",
@@ -205,13 +236,21 @@ def project_laminar_sources(
         source_conservation_claim_allowed=False,
     )
 
-    diagnostics.update(field_solution_report)
-    diagnostics.update({
-        "field_solver": "linear_solver",
-        "source_projection_status": "contact_row_normalized_proxy",
-        "source_calibration_status": "uncalibrated_izhikevich_native_current",
-        "source_decomposition": "proxy_reduced_emitter",
-    })
+    _traced = isinstance(sources, jax.core.Tracer) or isinstance(positions, jax.core.Tracer)
+    if _traced:
+        # JAX jit output validation permits array leaves only; the diagnostics
+        # dict (strings, shape tuples, Python bools) cannot be a traced return
+        # value. Under jit the arrays are returned through an empty diagnostics
+        # dict; the full metadata report stays on the eager path.
+        diagnostics = {}
+    else:
+        diagnostics.update(field_solution_report)
+        diagnostics.update({
+            "field_solver": "linear_solver",
+            "source_projection_status": "contact_row_normalized_proxy",
+            "source_calibration_status": "uncalibrated_izhikevich_native_current",
+            "source_decomposition": "proxy_reduced_emitter",
+        })
 
     return FieldOutput(
         source_proxy=source_proxy,

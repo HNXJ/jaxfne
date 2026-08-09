@@ -12,8 +12,13 @@ docs_dir: docs
 # human-facing page -- excluded so mkdocs stops flagging it as an orphan not
 # in nav (cosmetic INFO warning only, never failed --strict, but the file was
 # never meant to be navigable).
+#
+# docs/fullroadmap.md is the canonical agent-facing phase roadmap (working
+# notes for roadmap upkeep, not user-facing docs content) -- intentionally
+# non-navigable, same exclude treatment.
 exclude_docs: |
   _generated/version.md
+  fullroadmap.md
 
 theme:
   name: material
@@ -92,6 +97,7 @@ nav:
       - Probe Operators: guides/probe_operators.md
       - Tensor-Field Workflows: guides/tensor_field_workflows.md
       - Poisson Admissibility: guides/poisson_admissibility.md
+      - Solver Acceptance: guides/solver_acceptance.md
       - Homeostasis: guides/homeostasis.md
       - HDP: guides/hdp.md
       - Biophysical Model Comparison: notes/biophysical_model_comparison.md
@@ -117,6 +123,8 @@ nav:
       - Core: api/core.md
       - Runtime: api/runtime.md
       - Emitters: api/emitters.md
+      - Source Schema: api/source_schema.md
+      - Field Schema: api/field_schema.md
       - Bridges: api/bridges.md
       - Fields: api/fields.md
       - Probes: api/probes.md
@@ -150,8 +158,6 @@ nav:
           - Glossary of Methods: reference/glossary_of_methods.md
       - About jaxfne:
           - Limitations and future plans: limitations_and_future_plans.md
-          - Documentation quality report: publication/docs_quality_report.md
-          - Publication: publication/index.md
           - v0.4.7 Refactor Audit: v047_refactor_audit.md
           - Changelog: changelog.md
           - Citation: citation.md

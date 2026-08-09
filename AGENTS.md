@@ -147,7 +147,7 @@ root) is not a folder-clutter violation on its own — this doesn't reopen the f
 
 ## Known stubs
 
-`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb` — exported names, `NotImplementedError` on use.
+`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`, `solve_volume_conductor_experimental` — exported names, `NotImplementedError` on use (the last confirmed 2026-08-07: root export, raises immediately).
 
 ## Known fragilities (track)
 
@@ -162,6 +162,7 @@ root) is not a folder-clutter violation on its own — this doesn't reopen the f
 ```bash
 git status --short --branch && git rev-parse HEAD
 python3 -m compileall -q jaxfne tests scripts
+if ! python3 -m mkdocs --version >/dev/null 2>&1; then python3 -m pip install -r docs/requirements.txt; fi
 python3 -m mkdocs build --strict
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
   tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short

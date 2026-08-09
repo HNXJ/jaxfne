@@ -16,6 +16,20 @@ def _finite_bool(array: jax.Array) -> bool:
     return bool(jnp.all(jnp.isfinite(array)))
 
 
+def _finite_flag(array: jax.Array):
+    """Finiteness flag usable inside a traced region.
+
+    Returns a Python ``bool`` in eager mode (reporting stays unchanged) and a
+    traced boolean under ``jax.jit``/``vmap``, where forcing a Python bool
+    would raise ``TracerBoolConversionError``. The output dtype is identical
+    in both modes; only the value's host vs. trace status differs.
+    """
+    finite = jnp.all(jnp.isfinite(array))
+    if isinstance(finite, jax.core.Tracer):
+        return finite
+    return bool(finite)
+
+
 def _test_kernel_row_normalization(kernel: jax.Array, tol: float = 1e-6) -> dict[str, Any]:
     """Verify that projection kernel is row-stochastic (rows sum to 1.0)."""
     row_sums = jnp.sum(kernel, axis=1)
@@ -73,14 +87,21 @@ def validate_projection_invariants(
     t_steps = int(sources.shape[0])
     n_emitters = int(sources.shape[1])
     n_contacts = int(kernel.shape[0])
+    finite_sources = _finite_flag(sources)
+    finite_positions = _finite_flag(positions)
+    finite_kernel = _finite_flag(kernel)
+    finite_source_proxy = _finite_flag(source_proxy)
+    finite_phi_e_proxy = _finite_flag(phi_e_proxy)
+    finite_csd_proxy = _finite_flag(csd_proxy)
+    finite_lfp_proxy = _finite_flag(lfp_proxy)
     warnings: list[str] = []
     if positions.shape != (n_emitters, 3):
         warnings.append("positions_shape_not_N_by_3")
     if source_proxy.shape != (t_steps, n_contacts):
         warnings.append("source_proxy_shape_mismatch")
-    if not _finite_bool(source_proxy):
+    if not isinstance(finite_source_proxy, jax.core.Tracer) and not finite_source_proxy:
         warnings.append("non_finite_source_proxy")
-    if not _finite_bool(csd_proxy):
+    if not isinstance(finite_csd_proxy, jax.core.Tracer) and not finite_csd_proxy:
         warnings.append("non_finite_csd_proxy")
 
     return {
@@ -93,20 +114,20 @@ def validate_projection_invariants(
         "lfp_proxy_shape": tuple(int(x) for x in lfp_proxy.shape),
         "dtype": _dtype_name(sources),
         "kernel_row_sum_max_abs_error": kernel_row_sum_max_abs_error_val,
-        "finite_sources": _finite_bool(sources),
-        "finite_positions": _finite_bool(positions),
-        "finite_kernel": _finite_bool(kernel),
-        "finite_source_proxy": _finite_bool(source_proxy),
-        "finite_phi_e_proxy": _finite_bool(phi_e_proxy),
-        "finite_csd_proxy": _finite_bool(csd_proxy),
-        "finite_lfp_proxy": _finite_bool(lfp_proxy),
-        "finite_phi_e": _finite_bool(phi_e_proxy),
-        "finite_CSD": _finite_bool(csd_proxy),
+        "finite_sources": finite_sources,
+        "finite_positions": finite_positions,
+        "finite_kernel": finite_kernel,
+        "finite_source_proxy": finite_source_proxy,
+        "finite_phi_e_proxy": finite_phi_e_proxy,
+        "finite_csd_proxy": finite_csd_proxy,
+        "finite_lfp_proxy": finite_lfp_proxy,
+        "finite_phi_e": finite_phi_e_proxy,
+        "finite_CSD": finite_csd_proxy,
         "field_admissibility": {
             "field_arrays_finite": {
-                "phi_e_finite": _finite_bool(phi_e_proxy),
-                "csd_finite": _finite_bool(csd_proxy),
-                "lfp_finite": _finite_bool(lfp_proxy),
+                "phi_e_finite": finite_phi_e_proxy,
+                "csd_finite": finite_csd_proxy,
+                "lfp_finite": finite_lfp_proxy,
             },
             "kernel_normalization_valid": normalization_valid,
             "source_conservation_status": "proxy_not_solved",

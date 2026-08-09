@@ -16,6 +16,69 @@
   "status": "verified",
   "notes": [
     {
+      "id": "progress-2026-08-06-phaseF-solver-acceptance",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md F-01..F-06, jaxfne/fields/{__init__,diagnostics,proxy}.py, tests/test_phaseF_solver_acceptance.py, docs/guides/solver_acceptance.md, mkdocs.yml, commit on dev",
+      "confidence": "high",
+      "detail": "Phase F complete. F-01 solver description (Gaussian-leadfield laminar projection, proxy/scaffold, recorded in roadmap). F-02 acceptance checklist comment in jaxfne/fields/__init__.py (5 conditions, no runtime API). F-03 tests/test_phaseF_solver_acceptance.py (6 tests: finite, superposition at rtol/atol=1e-4, jax.jit behavioral, metadata, truth gate, zero-source null control). JIT gap found and FIXED (user-approved): solver now executes under jax.jit - diagnostics.py tracer-aware _finite_flag + guard=True isinstance checks (eager bools byte-identical), proxy.py registers FieldOutput as JAX pytree, diagnostics empty-dict under trace (JAX disallows str/int leaves), metadata surface stays eager. F-04 gate 6 passed 1.93s. F-05 guide + one nav entry, audit-clean. F-06 four gates green: audit pass, mkdocs strict exit 0 (14.04s), field suite 66 passed 18.75s (no regressions from the diagnostics change), smoke 34/1 40.14s.",
+      "record": "Receipts: %TEMP%/F04_receipt.txt, F06_audit_receipt.txt, F06_mkdocs_receipt.txt, F06_pytest_receipt.txt, F06_smoke_receipt.txt (all exit 0). Fullroadmap Phase F header [DONE], exit criteria MET, Checkpoint F COMPLETE, Phase G [NEXT] but not started. dev only; main untouched; no force-push."
+    },
+    {
+      "id": "progress-2026-08-06-phaseE-postE-maintenance",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-M01..E-M04, docs/ROADMAP_PHASES.md (deleted), AGENTS.md, skills/jaxfne-modeling-optimization-schema/SKILL.md, commit on dev",
+      "confidence": "high",
+      "detail": "Post-Phase-E maintenance pass complete. E-M01: docs/ROADMAP_PHASES.md git rm'd (zero public references - README/docs/mkdocs.yml nav/scripts/tests all clean before deletion; supersession preserved in fullroadmap.md:4 + git history). E-M02: one conditional mkdocs-requirements line added to AGENTS.md Validation block (uses docs/requirements.txt, no pins). E-M03: Field metadata contract section added to jaxfne-modeling-optimization-schema skill - canonical trio table (field_claim_level=proxy_readout; field_solver_status=linear_solver|experimental_pde_solver; physical_amplitude_calibrated=False), surfaces (FieldOutput.diagnostics vs returned manifest), delegation relationships (alias -> project_laminar_sources; from_neuron_table -> poisson_1d with bin bookkeeping), test pointers. E-M04 gate: compileall 0, pytest 94 passed/1 skipped in 36.42s, audit pass:true, mkdocs strict exit 0 (orphan list now only fullroadmap.md).",
+      "record": "Receipts: %TEMP%/post_phaseE_maintenance_pytest.txt, post_phaseE_maintenance_audit.txt, post_phaseE_maintenance_mkdocs.txt (all exit 0). artifacts/developer/context.md + receipts/ confirmed gitignored (.gitignore:71). Phase F not started; dev only; no merge main. Deleted-file reference in E-03/E-05 progress detail lines superseded by this entry."
+    },
+    {
+      "id": "progress-2026-08-06-phaseE-E06-E08-closure",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-06..E-08, docs/api/field_schema.md, mkdocs.yml, commit (post 88fdea1) on dev, %TEMP%/E08_*.receipt",
+      "confidence": "high",
+      "detail": "Phase E closure (E-06..E-08) complete. E-06: docs/api/field_schema.md written (Scope / Common metadata table / 4-entry solver contract table / Metadata surfaces / Use guidance / Tests); all four solver surfaces verified at runtime before writing (project_laminar_sources + alias -> FieldOutput.diagnostics with linear_solver; both Poisson entry points -> manifest with experimental_pde_solver; all physical_amplitude_calibrated False). E-07: one nav entry Field Schema: api/field_schema.md under API reference adjacent to Source Schema. E-08 GATE: all four gates green first-run - audit pass:true, mkdocs strict exit 0 (4.27s), phaseE+admissibility pytest 60 passed in 12.10s, smoke 34 passed/1 skipped in 29.04s. Phase E header [DONE], exit criteria MET, Checkpoint E COMPLETE in fullroadmap.",
+      "record": "Receipts: %TEMP%/E08_audit_receipt.txt, %TEMP%/E08_mkdocs_receipt.txt, %TEMP%/E08_pytest_receipt.txt, %TEMP%/E08_smoke_receipt.txt (all exit 0). Phase F not started; ROADMAP_PHASES.md deletion + AGENTS.md tooling note + skill field map remain deferred per user direction."
+    },
+    {
+      "id": "progress-2026-08-06-phaseE-E03-E05-gates",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md E-03..E-05, jaxfne/fields/solvers.py, tests/test_phaseE_field_schema.py, commit deecbff on dev, %TEMP%/E05_receipt.txt",
+      "confidence": "high",
+      "detail": "Phase E implementation (E-03..E-05) complete. E-03: added field_claim_level=proxy_readout to experimental_poisson_1d canonical manifest (one-line additive; wrapper inherits via dict copy). Chosen value proxy_readout per user decision matching repo field-output truth boundary; field_solver_status=experimental_pde_solver unchanged. E-04: tests/test_phaseE_field_schema.py, 12 tests / 3 classes, trio assertions + finiteness at each solver's actual surface (FieldOutput.diagnostics for projection, manifests for Poisson entry points). E-05 GATE green: three-file pytest -> 60 passed in 10.33s, exit 0. Also created artifacts/developer/context.md (local-only, gitignored, non-authoritative execution index) per approved operational decision.",
+      "record": "Receipts: E-05 -> 60 passed in 10.33s (exit 0, %TEMP%/E05_receipt.txt); pre-flight compileall 0, smoke 34/1, audit pass:true, mkdocs strict exit 0; committed deecbff pushed to dev. Stopped before E-06/E-07/E-08 and Phase F per handoff; roadmap cleanup (ROADMAP_PHASES.md deletion) and AGENTS.md tooling note deferred to post-Phase-E docs commit."
+    },
+    {
+      "id": "progress-2026-08-06-phaseD-D05-D08-gates",
+      "kind": "progress_entry",
+      "date": "2026-08-06",
+      "source": "docs/fullroadmap.md D-05..D-08, docs/api/source_schema.md, mkdocs.yml, commit 817e682 on dev, %TEMP%/D05_receipt.txt + %TEMP%/D08_receipt.txt",
+      "confidence": "high",
+      "detail": "Phase D complete. D-05 GATE green: pytest tests/test_phaseD_source_schema.py -v -> 8 passed in 13.24s, exit 0. D-06: docs/api/source_schema.md written (scope, (T,N) array convention, metadata surfaces incl. homeostatic-E/I top-level divergence, 5-row emitter-path table, truth boundary physical_amplitude_calibrated=False, testing). D-07: nav entry added after Emitters. D-08 GATE green: mkdocs was not installed on host (pip install -r docs/requirements.txt first), strict build initially failed on pre-existing dead nav refs to publication/index.md + publication/docs_quality_report.md (deleted 2026-08-04 as internal, commits 6102f4e/d6f13e8) - removed both dead refs; then mkdocs build --strict exit 0, built in 8.79s. Regression: phaseD + source_bookkeeping_v020 = 29 passed in 17.96s; language audit pass:true.",
+      "record": "Receipts: D-05 -> 8 passed in 13.24s; D-08 -> exit 0 (8.79s build); regression 29 passed in 17.96s; audit pass:true; committed 817e682 pushed to dev. Phase E blocked on user approval of Checkpoint D alignment."
+    },
+    {
+      "id": "progress-2026-08-05-phaseC-C05-C06-gate",
+      "kind": "progress_entry",
+      "date": "2026-08-05",
+      "source": "docs/fullroadmap.md C-05/C-06, AGENTS.md, C05_receipt.txt, commit after C-05 on dev",
+      "confidence": "high",
+      "detail": "Phase C gate passed. C-05 GATE green: pytest on test_phaseC_H_carry_resume.py + test_sanity_delta_backup_resume.py + test_sanity_delta_resume_equivalence_full.py -> 12 passed in 17.54s (JAX_PLATFORMS=cpu; 2 C-04 + 9 backup/resume + 1 resume-equivalence), exit 0. C-06 already satisfied without edit: AGENTS.md 'Three build paths' material (lines 48-56) already states the canonical-carries contract for DynamicState (all six fields: v,u,prev_spikes,syn_state,H,w) as the low-level HDP call pattern for continuous multi-turn runs; per the repo no-duplicate rule no second sentence was added. fullroadmap updated: C-05 [DONE] with receipt, C-06 [DONE] with existing-wording evidence, Phase C header [DONE], exit criteria met, Checkpoint C [DONE] filed.",
+      "record": "Receipts: C-05 -> 12 passed in 17.54s (exit 0); post-C-06 re-runs: C-05 12 passed in 17.59s, audit_public_docs_language --check pass:true (exit 0), smoke suite 34 passed/1 skipped; no production code touched this session."
+    },
+    {
+      "id": "progress-2026-08-05-phaseC-C04-resume",
+      "kind": "progress_entry",
+      "date": "2026-08-05",
+      "source": "tests/test_phaseC_H_carry_resume.py, jaxfne/emitters.py, commit C-04 on dev",
+      "confidence": "high",
+      "detail": "Phase C-04 done: 2000-step vs 1000+1000 chunk-resume byte-identity for the HDP kernel gated. Confirmed at source (emitters.py init_state consumes v,u,prev_spikes,syn_state,H_final,w_final; diagnostics returns the same six keys via final_state). Continuous 2000-step vs two 1000-step chunks (init_state seeded from chunk-1 final state): H/V/spikes/w_final byte-identical via jnp.array_equal; allclose(atol=1e-5) on H asserted separately (never conflated with byte-identity). chunk2 first recorded step == continuous boundary. Null: K_HDP=0.0 (the HDP kernel's documented 'k_gain=0' mechanism) with zeroed homeostasis gains -> H constant at 1.0 in continuous/chunk1/chunk2, resumed null H trace array-equal. Also fixed a Windows bug in scripts/audit_public_docs_language.py: str(path.relative_to()) yields backslash paths on win32, silently disabling forward-slash EXEMPT_PREFIXES/_SELF_PATH -> pre-flight falsely flagged two legitimately exempt docs; as_posix() repaired it.",
+      "record": "Receipts: pytest tests/test_phaseC_H_carry_resume.py -v -> 2 passed in 3.87s (JAX_PLATFORMS=cpu); fullroadmap C-04 marked DONE with receipt; smoke suite 34 passed/1 skipped; audit_public_docs_language --check pass:true; no production code touched (C-01/C-02 source trace found no carry defect)."
+    },
+    {
       "id": "progress-2026-07-30-merge-heuristic",
       "kind": "progress_entry",
       "date": "2026-07-30",
@@ -32,8 +95,72 @@
       "confidence": "high",
       "detail": "Package deep-eval audit: gates green everywhere while jtfne.cable_filter_sources crashed on the JAX Metal backend — root cause was jnp.fft.rfft itself (Metal cannot legalize FFT/complex output; verified standalone). Rewrote the operator as a time-domain matched-pole one-pole IIR cascade (lax.scan, real arithmetic). Verified magnitude/band-power preservation vs the FFT form (ratio 1.000-1.006 in validated bands <=90 Hz; deep:superf gamma 0.0996->0.0993) so documented validated claims carry over; filter is now causal and backend-portable. Also pinned ruff==0.15.17 (CI Lint gate red since 2026-07-30 was unpinned-ruff drift) and made stub fences explicit (GLIF/LIF/NWB).",
       "record": "Receipts: cable_filter+tensor_pipeline 9/9 on Metal (was 4 failed) and 30p on CPU; api smoke 34p/1s; ruff 0.15.17 clean; mkdocs --strict exit 0; compileall clean; numerical equivalence 3.3e-16 (FFT form) and band-power ~1.00-1.02 (IIR vs analytic |H|)."
+    },
+    {
+      "id": "progress-2026-08-07-phaseG-G01-catalog-gap-survey",
+      "kind": "progress_entry",
+      "date": "2026-08-07",
+      "source": "repo: jaxfne/__init__.py __all__ (256), skills/catalog-glossary-jaxfne/SKILL.md, dir() capture, snapshot artifacts/public_api_before.json; receipts under artifacts/developer/receipts/G01_*.txt",
+      "confidence": "high",
+      "detail": "Phase G-01 (catalog gap survey) DONE [EVIDENCE] 2026-08-07. Namespace: 273 root public attrs, __all__=256 entries, public_api_before.json snapshot == __all__ (256/256, snapshot gate green: test_public_api_snapshot_v034.py 2 passed; test_agent_api_catalog.py 6 skipped because the internal catalog it guards is gitignored/absent - by test design, not a failure). SKILL.md diff (word-boundary + scope-aware resolver): 95 root names absent from SKILL.md (24 classes + 59 callables + 12 constants); 269 SKILL tokens resolve; 78 raw tokens are kwargs/params/deleted-legacy names. Signature catches: SKILL.md says DEFAULT_RELATIVE_SIZE (root) but the real name is lowercase default_relative_size (verified); not-a-real signature for solve_volume_conductor_experimental. 5 confirmed NotImplementedError stubs: GLIFEmitter, LIFEmitter, write_nwb, read_nwb, solve_volume_conductor_experimental (all exported in __all__). Action total for G-02..G-04: add=95, correct signature=1, correct description=1 (header count ~210/~85 is stale; now 162 fns + 82 classes + 12 consts). No implementation performed in G-01. Pre-flight green: compileall exit 0; audit pass:true; smoke 34 passed/1 skipped; mkdocs strict exit 0 (only fullroadmap.md orphan, by design)."
+    },
+    {
+      "id": "progress-2026-08-07-phaseG-batch1-constants-classes",
+      "kind": "progress_entry",
+      "date": "2026-08-07",
+      "source": "skills/catalog-glossary-jaxfne/SKILL.md, AGENTS.md, docs/fullroadmap.md, artifacts/developer/receipts/G02_*.txt",
+      "confidence": "high",
+      "detail": "Phase G Batch 1 (partial G-02/G-03, no G-04 done mark) COMPLETE on dev 949b03f->new. Added all 12 constants + 24 classes (36 entries, zero overlap, zero stubs) to SKILL.md with source-derived signatures/values. Corrected DEFAULT_RELATIVE_SIZE -> default_relative_size(neuron_type: str) -> float (neuronal_tensor.py:79) and stale header count (~210/~85 -> 162 fns + 82 classes + 12 consts = 256 __all__). AGENTS.md known-stubs + solve_volume_conductor_experimental (verified root export raising NotImplementedError). Gates: compileall 0, catalog 6 skipped by design, snapshot 2 passed, audit pass:true. Roadmap G-02/G-03/G-04 marked IN PROGRESS (not DONE); 59 callables remain.",
+      "record": "Receipts: G02_survey_receipt.txt, G02_catalog_receipt.txt, G02_snapshot_receipt.txt, G02_audit_receipt.txt (all in artifacts/developer/receipts/, gitignored)."
+    },
+    {
+      "id": "progress-2026-08-08-phaseG-batch2-core-config-model",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "skills/catalog-glossary-jaxfne/SKILL.md, docs/fullroadmap.md, artifacts/developer/receipts/G03_batch2_*.txt",
+      "confidence": "high",
+      "detail": "Phase G Batch 2 (partial G-02/G-03) COMPLETE: 17 core/config/model callables added to SKILL.md, all [STABLE], all with inspect.signature-verified signatures and source-derived descriptions (planning table G03_batch2_planning_receipt.txt; every row from G-01 missing-callable inventory, none added in Batch 1). Added: configuration, default_complete_configuration, configuration_diff, model_diff, validate_model, connect (fuse Models), laminar_source_geometry, dataset_spec, operator_status, default_basis_spec, configs_dir, make_minimal_ei_tensor, tensor_summary, validate_neuronal_tensor, merge_runtime_configs, runtime_config_diff, validate_runtime_config. Gates: compileall 0; catalog 6 skipped by design; snapshot 2 passed; audit pass:true. Remaining: 42 callable (41 actual absent; default_relative_size cataloged Batch 1). Deferred groups recorded: fields/proxy (5), spectral (5), pipeline (5), paradigm (3), bridges (3), emitters (3), export (3), optim (2), plasticity (2), solvers (1+1 stub), stubs (2), tutorial (2), stimulus (1), validation (1), connectivity (1), tensor-I/O (1). Roadmap G-02b/G-03 updated IN PROGRESS (not DONE).",
+      "record": "Receipts: G03_batch2_survey.txt, G03_batch2_planning_receipt.txt, G03_batch2_catalog.txt, G03_batch2_snapshot.txt, G03_batch2_audit.txt."
+    },
+    {
+      "id": "progress-2026-08-08-phaseP-pivot-performance-3d-discovery",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "docs/fullroadmap.md, artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt",
+      "confidence": "high",
+      "detail": "STRATEGIC PIVOT (authorized): Phase G catalog FROZEN after Batch 2 (42 callables deferred in explicit queue); new Phase P (Performance and 3D Field Readiness) active. P-01..P-05 discovery complete with detailed receipt: (a) all simulation kernels are single lax.scan over T with Model-level jax.jit when T*N>50k; dense W (N,N) and HDP w_trace (T,E) are the documented allocation risks; (b) existing benchmarks lack block_until_ready sync and warm-up - the P-02 protocol must add them; (c) float32 CUDA/HDP audit: state carries clipped, barrier_eps floors divisions, x64 gating intact, no float64 requirement; acceptance experiment spec defined (matched HDP/non-HDP, 3 seeds, disconnected_null + K_HDP=0 null controls); (d) 3D inventory: positions (N,3), sources (T,N), 1D depth-only, conductivity scalar/per-face (N-1,) only - no schema change needed yet; (e) solve_volume_conductor_experimental confirmed stub raising NotImplementedError (solvers.py:157) - staged feasibility recommendation, no implementation. Gates: compileall 0; 52 passed/1 skipped; audit pass:true; mkdocs strict 0.",
+      "record": "Pre-flight receipts in artifacts/developer/preflight_pivot.txt + preflight_audit_pivot.txt + preflight_mkdocs_pivot.txt; full P-01..P-05 tables in artifacts/developer/receipts/P01-P05_pivot_discovery_receipt.txt."
+    },
+    {
+      "id": "progress-2026-08-08-phaseP-P06-benchmark-protocol",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md P-06/P-07, artifacts/developer/receipts/P06_*.json",
+      "confidence": "high",
+      "detail": "P-06 DONE [EVIDENCE] 2026-08-08: benchmark_protocol_v1.py CLI committed (synchronized block_until_ready timing, deterministic fixed seed, warmup-vs-measured, GPU-requested structured SKIP with no fallback, JSON report schema). Workload default N=400/T=200ms verified by probe (N=1000/T=1000ms HDP arm ~143s/run on CPU -> kept as 'large' preset instead of default). 7 focused non-timing tests pass. Two identical CPU smokes (standard ~0.168s, hdp ~5.27s, float32, seed 0) + GPU skip exit 0. Gates: compileall 0, smoke trio 34 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap: P-06 tagged [DONE][EVIDENCE], P-07 row added (float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence).",
+      "record": "Receipts: artifacts/developer/receipts/P06_cpu_smoke.json, P06_cpu_smoke2.json, P06_gpu_skip.json (gitignored). Commit on dev includes only scripts/benchmark_protocol_v1.py, tests/test_benchmark_protocol_v1.py, docs/fullroadmap.md."
     }
-  ],
+  ,
+    {
+      "id": "note-P07-float32-hdp-acceptance-2026-08-08",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "tests/test_perf_float32_hdp_acceptance.py, docs/fullroadmap.md P-07, artifacts/developer/receipts/P07_*.txt",
+      "confidence": "high",
+      "detail": "P-07 DONE [EVIDENCE] 2026-08-08: tests/test_perf_float32_hdp_acceptance.py 6 passed (3 fixed seeds finite float32/shapes/record_weight_trace=False; same-seed repeat bitwise-identical on CPU, full-seed scope emitters.py:422-435; matched non-HDP control metadata has no hdp block; disconnected_null ablation -> w stays at w_floor 1e-3 scale (|w_final|max=1.0038e-3), H in [0.98,1.02] box, spikes nonzero by kernel noise design). Regression 66 passed/1 skipped; audit pass:true; mkdocs strict exit 0. Explicit: no CUDA evidence, no HDP-superiority claim.",
+      "record": "Receipts: artifacts/developer/receipts/P07_hdp_acceptance.txt, P07_regression.txt, P07_audit.txt, P07_mkdocs.txt (gitignored). roadmap P-07 tagged [DONE][EVIDENCE]."
+    }
+,
+    {
+      "id": "note-P07-ci-green-promotion-2026-08-08",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": ".github/workflows/ci.yml, gh run, local pytest mirrors",
+      "confidence": "high",
+      "detail": "CI (Fast) on dev df2aa82 = SUCCESS (first green dev push since the orphan gate): compileall, ruff 0.15.17, docs audit, notebook audit, mkdocs strict, orphan check, pytest -m not slow on 3.10/3.12, 18 examples, wheel build+twine+install smoke. Fixes that unblocked CI: (1) scripts/check_docs_orphans.py as_posix() -- win32 backslash paths never matched nav entries (same portability fix as audit_public_docs_language.py C-04); (2) mkdocs.yml exclude_docs added fullroadmap.md (agent-facing roadmap, intentionally non-navigable) -- this single orphan had failed every dev push since the P pivot. Root-cause of MAIN's pre-existing release-CI failure (test_agent_context_hygiene test_report_hygiene_check): docs/ROADMAP_PHASES.md still tracked on main with a forbidden 'claude' line -- deleted on dev in E-M01, so the dev->main merge removes it. Local Windows mirrors showed 19 fails NOT reproduced by CI: cp1252 locale hygiene failures (fixed via PYTHONUTF8=1), optax absent (fallback status string), Unix-only `import resource` in benchmarks/scaling_benchmark.py, bash-required release_scripts, stale local outputs/ manifests, notebook execution kernel absent; none in P-07 paths. Pending: dev->main PR + merge + main CI green + roadmap promotion record.",
+      "record": "gh run 31288821938 df2aa82 success. Local receipts: P07_ci_mirror_fast.txt, P07_ci_mirror_fast_utf8.txt, P07_ci_mirror_all.txt (gitignored)."
+    }
+],
   "issues": [],
   "plan": "",
   "verification": {

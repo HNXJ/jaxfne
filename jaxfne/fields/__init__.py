@@ -2,6 +2,17 @@
 
 Isolates localized laminar projection computations from higher-level multimodal probe transformations.
 """
+# Field solver acceptance checklist (maintainer contract, Phase F).
+# A field solver may join the public API surface only when all five hold:
+#   1. finite field outputs for any finite inputs;
+#   2. additive (linear) superposition -- project(a + b) equals
+#      project(a) + project(b) within the platform tolerance;
+#   3. callable under jax.jit, verified by executing on valid array inputs;
+#   4. carries the field metadata keys on its output surface
+#      (field_claim_level, field_solver_status, physical_amplitude_calibrated);
+#   5. amplitude truth gate -- physical_amplitude_calibrated is False
+#      (proxy-readout state, never a physical-amplitude statement).
+# Reference: tests/test_phaseF_solver_acceptance.py.
 from __future__ import annotations
 
 from .proxy import (
