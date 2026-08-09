@@ -465,6 +465,19 @@ start large GPU sweeps; do not rewrite emitters/fields/HDP/optimizers.
 | P-06 | Benchmark protocol v1 implementation: new CLI `scripts/benchmark_protocol_v1.py` (synchronized timing via `block_until_ready`, warmup-vs-measured, structured GPU SKIP with no fallback, JSON schema per P-02 design) + focused non-timing tests | `scripts/benchmark_protocol_v1.py`, `tests/test_benchmark_protocol_v1.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` after P-02 | `[COMPLETED]` 2026-08-08 receipt pair `P06_cpu_smoke.json`+`P06_cpu_smoke2.json` (identical command, `--backend cpu --mode both --warmup 1 --runs 1 --record-fields off --record-weight-trace off`), GPU skip `P06_gpu_skip.json` (exit 0), audit pass, mkdocs strict build pass. |
 | P-07 | Float32 HDP acceptance test: three seeds, matched control, null control, finite/dtype/determinism evidence | `tests/test_perf_float32_hdp_acceptance.py` | `[DONE]` `[EVIDENCE]` | `[SERIAL]` after P-06 | `[COMPLETED]` 2026-08-08 — `P07_hdp_acceptance.txt`: 6 passed (fixed seeds 1,2,3 finite float32 + shapes + `record_weight_trace=False`; same-seed repeat bit-identical via full-seed scope; matched non-HDP control, `metadata` no `hdp` block; disconnected-null via existing ablation zeroing, `ablation` meta asserted, w stays at floor scale (`|w_final|max=1.0038e-3`), H in equilibrium box [0.98, 1.02]; null not claimed zero-spike — kernel `noise_scale=None`->0.5 noise). `P07_regression.txt`: 66 passed/1 skipped; compileall ok; docs audit `pass:true`; mkdocs strict build exit 0. Explicit out-of-scope: no CUDA/GPU evidence, no HDP-superiority/stability claim. |
 
+### Promotion log (dev → main)
+
+- **2026-08-08: P-06/P-07 slice + CI repairs promoted.** PR #77, merge commit
+  `a8178bf` (main_before `27923e0`). Final dev SHA `2bda4e0` (CI Fast run
+  31290836875 SUCCESS: compileall, ruff 0.15.17, both audits, mkdocs strict,
+  orphan check, pytest `-m "not slow"` on 3.10/3.12, examples, wheel smoke).
+  Main CI (Release & Scheduled) on merge commit `a8178bf` (run 31291869518):
+  SUCCESS — first green main release CI since the orphan/hygiene baseline
+  issues; merge also removed `docs/ROADMAP_PHASES.md` (forbidden-pattern line)
+  from main, resolving its hygiene-gate failure. Post-merge local gates on main:
+  compileall 0, 73 passed/1 skipped, audit `pass:true`, mkdocs strict exit 0.
+  No force-push; merge committed normally.
+
 ### Phase P exit criteria (future, not yet met)
 
 - P-01/P-02 receipts exist with synchronized, deterministic baseline;

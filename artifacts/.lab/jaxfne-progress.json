@@ -160,6 +160,16 @@
       "detail": "CI (Fast) on dev df2aa82 = SUCCESS (first green dev push since the orphan gate): compileall, ruff 0.15.17, docs audit, notebook audit, mkdocs strict, orphan check, pytest -m not slow on 3.10/3.12, 18 examples, wheel build+twine+install smoke. Fixes that unblocked CI: (1) scripts/check_docs_orphans.py as_posix() -- win32 backslash paths never matched nav entries (same portability fix as audit_public_docs_language.py C-04); (2) mkdocs.yml exclude_docs added fullroadmap.md (agent-facing roadmap, intentionally non-navigable) -- this single orphan had failed every dev push since the P pivot. Root-cause of MAIN's pre-existing release-CI failure (test_agent_context_hygiene test_report_hygiene_check): docs/ROADMAP_PHASES.md still tracked on main with a forbidden 'claude' line -- deleted on dev in E-M01, so the dev->main merge removes it. Local Windows mirrors showed 19 fails NOT reproduced by CI: cp1252 locale hygiene failures (fixed via PYTHONUTF8=1), optax absent (fallback status string), Unix-only `import resource` in benchmarks/scaling_benchmark.py, bash-required release_scripts, stale local outputs/ manifests, notebook execution kernel absent; none in P-07 paths. Pending: dev->main PR + merge + main CI green + roadmap promotion record.",
       "record": "gh run 31288821938 df2aa82 success. Local receipts: P07_ci_mirror_fast.txt, P07_ci_mirror_fast_utf8.txt, P07_ci_mirror_all.txt (gitignored)."
     }
+,
+    {
+      "id": "note-P07-promotion-to-main-2026-08-08",
+      "kind": "progress_entry",
+      "date": "2026-08-08",
+      "source": "gh pr merge, gh run, local main-tree gates",
+      "confidence": "high",
+      "detail": "dev->main promotion COMPLETE 2026-08-08. PR #77 merged normally (no force-push); merge commit a8178bf (main_before 27923e0; main_after a8178bf). Final dev SHA 2bda4e0 with CI (Fast) SUCCESS (run 31290836875). Main CI (Release & Scheduled) on a8178bf SUCCESS (run 31291869518, all 3.10/3.11/3.12 full suites + examples + wheel build/twine/smoke) -- first green main release CI since the ROADMAP_PHASES.md hygiene violation; that file now absent from main. Post-merge local gates on main: compileall 0, 73 passed/1 skipped, audit pass:true, mkdocs strict exit 0. Roadmap Promotion log entry added under Phase P. Remaining phase work: P-03/P-08 CUDA float32 acceptance needs GPU hardware; Phase P exit criteria not yet met.",
+      "record": "Receipts: artifacts/developer/receipts/P07_main_postmerge_gate.txt, P07_main_audit.txt, P07_main_mkdocs.txt (gitignored). Commit on main: roadmap Promotion log + this note."
+    }
 ],
   "issues": [],
   "plan": "",
