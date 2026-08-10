@@ -505,16 +505,70 @@ def _construct_apply_geometry_override(
     return positions, geometry_meta
 
 
+def _record_connectivity_compilation(
+    cfg: "Configuration",
+    *,
+    mode: str,
+    default_edge_count: int,
+    declared_edge_count: int,
+    total_edge_count: int,
+) -> "Configuration":
+    """Attach mechanically derived tensor connectivity counts to the config."""
+    metadata = dict(cfg.metadata)
+    metadata["connectivity_compilation"] = {
+        "connectivity_mode": mode,
+        "default_edge_count": int(default_edge_count),
+        "declared_rule_edge_count": int(declared_edge_count),
+        "total_compiled_edge_count": int(total_edge_count),
+    }
+    return replace(cfg, metadata=metadata)
+
+
+def _reject_duplicate_explicit_edges(edge_list: "EdgeList") -> None:
+    """Reject accidental duplicate explicit synaptic identities.
+
+    Distinct receptor/mechanism indices are valid parallel edges. The identity
+    rejected here is exactly ``(pre, post, receptor_index)``.
+    """
+    import numpy as _np
+
+    if edge_list.n_edges < 2:
+        return
+    identities = _np.stack(
+        (
+            _np.asarray(edge_list.pre, dtype=_np.int64),
+            _np.asarray(edge_list.post, dtype=_np.int64),
+            _np.asarray(edge_list.receptor_index, dtype=_np.int64),
+        ),
+        axis=1,
+    )
+    if len(_np.unique(identities, axis=0)) != edge_list.n_edges:
+        raise ValueError(
+            "explicit NeuronalTensor connectivity produced duplicate "
+            "executable synaptic identities; identity is "
+            "(pre, post, receptor_index)"
+        )
+
+
 def _construct_compile_connections(
     cfg: "Configuration", network: "EIGNetwork", n: int, geometry_meta: "dict[str, Any] | None",
     net: Mapping[str, Any], edge_list: "EdgeList", positions: "jax.Array | None" = None,
 ) -> "tuple[Configuration, EdgeList]":
     """``construct()`` stage: compile declarative ``.connections()`` rules into
-    real edges -> ``(cfg, edge_list)``. They append to ``edge_list``; because the
-    dense backend runs on ``emitter.W`` (which does not carry these edges), force
-    the edge_list backend whenever any rule materializes so the connections
-    actually drive dynamics. Rule statuses flip declared->compiled.
+    real edges -> ``(cfg, edge_list)``. Explicit tensor mode starts from an
+    empty prebuilt graph; unspecified mode retains the configured graph.
+    Because the dense backend runs on ``emitter.W`` (which does not carry
+    declared rules), force the edge_list backend whenever a rule materializes.
+    Rule statuses flip declared->compiled.
     """
+    connectivity_mode = cfg.metadata.get("connectivity_mode")
+    if connectivity_mode not in (None, "unspecified", "explicit"):
+        raise ValueError(
+            "unsupported connectivity_mode for construction: "
+            f"{connectivity_mode!r}"
+        )
+    default_edge_count = int(edge_list.n_edges)
+    declared_edge_count = 0
     _conn_rules = (cfg.metadata.get("circuit", {}) or {}).get("connections", [])
     _conn_mechanisms = (cfg.metadata.get("circuit", {}) or {}).get("mechanisms", [])
     if _conn_rules:
@@ -548,10 +602,23 @@ def _construct_compile_connections(
                 _np.asarray(_ep.sign), n, edge_list.weight.dtype,
                 int(cfg.metadata.get("seed", 0) or 0),
             )
+        declared_edge_count = sum(int(count) for count in _counts)
+        if connectivity_mode == "explicit" and _conn_edges is not None:
+            _reject_duplicate_explicit_edges(_conn_edges)
         if _conn_edges is not None and _conn_edges.n_edges > 0:
             edge_list = _concat_edge_lists(edge_list, _conn_edges)
             cfg = cfg.runtime(recurrent_backend="edge_list")
         cfg = _mark_connections_compiled(cfg, _counts)
+    if connectivity_mode is not None:
+        cfg = _record_connectivity_compilation(
+            cfg,
+            mode=connectivity_mode,
+            default_edge_count=(
+                0 if connectivity_mode == "explicit" else default_edge_count
+            ),
+            declared_edge_count=declared_edge_count,
+            total_edge_count=int(edge_list.n_edges),
+        )
     return cfg, edge_list
 
 

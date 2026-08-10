@@ -5,6 +5,7 @@ layers, or cell types it has:
 
     NeuronalTensor = [Areas, AreaConnections]
     Area           = [Layers x NeuronTypes, InterConnections]
+    connectivity   = omitted (UNSPECIFIED) or declared (EXPLICIT)
     Layer          = always 3D geometry (collapse an axis to 0.0 for 2D/1D)
     NeuronType     = E (relative size 5.0 default), PV (1.0), SST/VIP (1.5)
                       -- see emitters.DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE, the
@@ -58,6 +59,7 @@ from .core import Configuration, Model, construct
 from .emitters import DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE
 
 ValueTag = Literal["calibrated", "calibrated_proxy", "relative"]
+ConnectivityMode = Literal["unspecified", "explicit"]
 Plane = Literal["xy", "xz", "yz"]
 
 # Single source of truth for NeuronType relative sizes — same table as HDP
@@ -74,6 +76,7 @@ _PLANE_AXIS_MAP: dict[str, tuple[int, int, int]] = {
     "xz": (0, 2, 1),
     "yz": (2, 0, 1),
 }
+_UNSPECIFIED_CONNECTIONS = object()
 
 
 def default_relative_size(neuron_type: str) -> float:
@@ -164,10 +167,47 @@ class Pose3D:
 class Area:
     name: str
     layers: Sequence[Layer] = field(default_factory=tuple)
-    inter_connections: Sequence[InterConnection] = field(default_factory=tuple)
+    inter_connections: Sequence[InterConnection] = field(
+        default_factory=lambda: _UNSPECIFIED_CONNECTIONS,
+        repr=False,
+    )
     pose: Pose3D = field(default_factory=Pose3D)
+    connectivity_mode: ConnectivityMode | None = None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "inter_connections" and "_connectivity_initialized" in self.__dict__:
+            object.__setattr__(self, "_connectivity_specified", True)
+            object.__setattr__(self, "connectivity_mode", "explicit")
+        elif name == "connectivity_mode" and "_connectivity_initialized" in self.__dict__:
+            if value not in {"unspecified", "explicit"}:
+                raise ValueError(
+                    "Area.connectivity_mode must be 'unspecified' or 'explicit'"
+                )
+            if value == "unspecified" and self._connectivity_specified:
+                raise ValueError(
+                    "Area with a provided inter_connections sequence cannot be "
+                    "marked as unspecified"
+                )
+        object.__setattr__(self, name, value)
 
     def __post_init__(self):
+        specified = self.inter_connections is not _UNSPECIFIED_CONNECTIONS
+        connections = () if not specified else self.inter_connections
+        mode = self.connectivity_mode
+        if mode is None:
+            mode = "explicit" if specified else "unspecified"
+        if mode not in {"unspecified", "explicit"}:
+            raise ValueError(
+                "Area.connectivity_mode must be 'unspecified' or 'explicit'"
+            )
+        if mode == "unspecified" and specified:
+            raise ValueError(
+                "Area with a provided inter_connections sequence cannot be "
+                "marked as unspecified"
+            )
+        object.__setattr__(self, "inter_connections", connections)
+        object.__setattr__(self, "connectivity_mode", mode)
+        object.__setattr__(self, "_connectivity_specified", specified)
         if not isinstance(self.name, str):
             raise TypeError(f"Area.name must be a str, got {type(self.name).__name__}")
         if not all(isinstance(layer, Layer) for layer in self.layers):
@@ -180,6 +220,7 @@ class Area:
                 "Area.inter_connections must contain only InterConnection instances, got "
                 f"{[type(c).__name__ for c in self.inter_connections]}"
             )
+        object.__setattr__(self, "_connectivity_initialized", True)
 
 
 @dataclass
@@ -200,6 +241,10 @@ class AreaConnection:
 class NeuronalTensor:
     """The canonical network representation: [Areas, AreaConnections].
 
+    Connectivity is inferred from omission versus a provided connection
+    sequence. Omitted connectivity uses the configured default topology;
+    provided connectivity, including an empty sequence, is authoritative.
+
     Deliberately unvalidated against arbitrary Python objects beyond a basic
     type check on ``areas``/``area_connections`` — this is a build-time spec,
     not a runtime pytree, so keep validation cheap and loud rather than
@@ -210,8 +255,36 @@ class NeuronalTensor:
     and more confusing broke.
     """
     areas: Sequence[Area] = field(default_factory=tuple)
-    area_connections: Sequence[AreaConnection] = field(default_factory=tuple)
+    area_connections: Sequence[AreaConnection] = field(
+        default_factory=lambda: _UNSPECIFIED_CONNECTIONS,
+        repr=False,
+    )
     name: str = "untitled"
+    connectivity_mode: ConnectivityMode | None = None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "area_connections" and "_connectivity_initialized" in self.__dict__:
+            object.__setattr__(self, "_connectivity_specified", True)
+            object.__setattr__(self, "connectivity_mode", "explicit")
+            object.__setattr__(self, "_connectivity_mode_declared", True)
+        elif name == "connectivity_mode" and "_connectivity_initialized" in self.__dict__:
+            if value not in {"unspecified", "explicit"}:
+                raise ValueError(
+                    "NeuronalTensor.connectivity_mode must be "
+                    "'unspecified' or 'explicit'"
+                )
+            if value == "unspecified" and (
+                self._connectivity_specified
+                or any(a.connectivity_mode == "explicit" for a in self.areas)
+            ):
+                raise ValueError(
+                    "NeuronalTensor with declared connectivity cannot be "
+                    "marked as unspecified"
+                )
+            object.__setattr__(
+                self, "_connectivity_mode_declared", value == "explicit"
+            )
+        object.__setattr__(self, name, value)
 
     def __post_init__(self):
         if isinstance(self.areas, Configuration):
@@ -227,11 +300,41 @@ class NeuronalTensor:
                 "NeuronalTensor.areas must contain only Area instances, got "
                 f"{[type(a).__name__ for a in self.areas]}"
             )
+        specified = self.area_connections is not _UNSPECIFIED_CONNECTIONS
+        connections = () if not specified else self.area_connections
+        mode = self.connectivity_mode
+        mode_was_provided = mode is not None
+        if mode is None:
+            mode = (
+                "explicit"
+                if specified or any(a.connectivity_mode == "explicit" for a in self.areas)
+                else "unspecified"
+            )
+        if mode not in {"unspecified", "explicit"}:
+            raise ValueError(
+                "NeuronalTensor.connectivity_mode must be 'unspecified' or 'explicit'"
+            )
+        if mode == "unspecified" and (
+            specified or any(a.connectivity_mode == "explicit" for a in self.areas)
+        ):
+            raise ValueError(
+                "NeuronalTensor with declared connectivity cannot be marked "
+                "as unspecified"
+            )
+        object.__setattr__(self, "area_connections", connections)
+        object.__setattr__(self, "connectivity_mode", mode)
+        object.__setattr__(self, "_connectivity_specified", specified)
+        object.__setattr__(
+            self,
+            "_connectivity_mode_declared",
+            mode == "explicit" and (mode_was_provided or specified),
+        )
         if not all(isinstance(c, AreaConnection) for c in self.area_connections):
             raise TypeError(
                 "NeuronalTensor.area_connections must contain only AreaConnection "
                 f"instances, got {[type(c).__name__ for c in self.area_connections]}"
             )
+        object.__setattr__(self, "_connectivity_initialized", True)
         if not isinstance(self.name, str):
             raise TypeError(f"NeuronalTensor.name must be a str, got {type(self.name).__name__}")
 
@@ -350,6 +453,30 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
             "diverged.",
             stacklevel=2,
         )
+    legacy_mode = raw.get("connectivity_mode")
+    if legacy_mode is None:
+        has_declared_connections = bool(raw.get("area_connections"))
+        has_declared_connections = has_declared_connections or any(
+            bool(area_raw.get("inter_connections"))
+            for area_raw in raw.get("areas", [])
+        )
+        legacy_mode = "explicit" if has_declared_connections else "unspecified"
+    raw_area_connections = raw.get("area_connections", [])
+    area_connections_value = (
+        _UNSPECIFIED_CONNECTIONS
+        if legacy_mode == "unspecified" and not raw_area_connections
+        else [
+            AreaConnection(
+                source_area=ac["source_area"], source_layer=ac["source_layer"],
+                source_neuron_type=ac["source_neuron_type"], target_area=ac["target_area"],
+                target_layer=ac["target_layer"], target_neuron_type=ac["target_neuron_type"],
+                mechanism=ac.get("mechanism", DEFAULT_AREA_CONNECTION_MECHANISM),
+                static=StaticParams(**ac.get("static", {})),
+                plastic=PlasticParams(**ac.get("plastic", {})),
+            )
+            for ac in raw_area_connections
+        ]
+    )
     areas = [
         Area(
             name=a["name"],
@@ -362,32 +489,39 @@ def _load_neuronal_tensor_impl(path: str | Path, raw: dict) -> NeuronalTensor:
                 )
                 for layer in a.get("layers", [])
             ],
-            inter_connections=[
-                InterConnection(
-                    source_layer=ic["source_layer"], source_neuron_type=ic["source_neuron_type"],
-                    target_layer=ic["target_layer"], target_neuron_type=ic["target_neuron_type"],
-                    mechanism=ic["mechanism"],
-                    static=StaticParams(**ic.get("static", {})),
-                    plastic=PlasticParams(**ic.get("plastic", {})),
+            inter_connections=(
+                _UNSPECIFIED_CONNECTIONS
+                if (
+                    not a.get("inter_connections", [])
+                    and a.get("connectivity_mode") != "explicit"
                 )
-                for ic in a.get("inter_connections", [])
-            ],
+                else [
+                    InterConnection(
+                        source_layer=ic["source_layer"], source_neuron_type=ic["source_neuron_type"],
+                        target_layer=ic["target_layer"], target_neuron_type=ic["target_neuron_type"],
+                        mechanism=ic["mechanism"],
+                        static=StaticParams(**ic.get("static", {})),
+                        plastic=PlasticParams(**ic.get("plastic", {})),
+                    )
+                    for ic in a.get("inter_connections", [])
+                ]
+            ),
             pose=_load_pose(a),
+            connectivity_mode=(
+                a.get(
+                    "connectivity_mode",
+                    "explicit" if a.get("inter_connections", []) else legacy_mode,
+                )
+            ),
         )
         for a in raw.get("areas", [])
     ]
-    area_connections = [
-        AreaConnection(
-            source_area=ac["source_area"], source_layer=ac["source_layer"],
-            source_neuron_type=ac["source_neuron_type"], target_area=ac["target_area"],
-            target_layer=ac["target_layer"], target_neuron_type=ac["target_neuron_type"],
-            mechanism=ac.get("mechanism", DEFAULT_AREA_CONNECTION_MECHANISM),
-            static=StaticParams(**ac.get("static", {})),
-            plastic=PlasticParams(**ac.get("plastic", {})),
-        )
-        for ac in raw.get("area_connections", [])
-    ]
-    return NeuronalTensor(areas=areas, area_connections=area_connections, name=raw.get("name", "untitled"))
+    return NeuronalTensor(
+        areas=areas,
+        area_connections=area_connections_value,
+        name=raw.get("name", "untitled"),
+        connectivity_mode=legacy_mode,
+    )
 
 
 def merge_neuronal_tensors(
@@ -444,14 +578,39 @@ def merge_neuronal_tensors(
             rename_map[area.name] = new_name
             pose = poses[pose_idx] if poses is not None else area.pose
             pose_idx += 1
-            merged_areas.append(replace(area, name=new_name, pose=pose))
+            if area.connectivity_mode == "unspecified":
+                merged_areas.append(
+                    replace(
+                        area,
+                        name=new_name,
+                        pose=pose,
+                        inter_connections=_UNSPECIFIED_CONNECTIONS,
+                    )
+                )
+            else:
+                merged_areas.append(replace(area, name=new_name, pose=pose))
         for ac in tensor.area_connections:
             merged_connections.append(replace(
                 ac,
                 source_area=rename_map.get(ac.source_area, ac.source_area),
                 target_area=rename_map.get(ac.target_area, ac.target_area),
             ))
-    return NeuronalTensor(areas=merged_areas, area_connections=merged_connections, name=name)
+    merged_mode: ConnectivityMode = (
+        "explicit"
+        if any(t.connectivity_mode == "explicit" for t in tensors)
+        else "unspecified"
+    )
+    merged_area_connections = (
+        _UNSPECIFIED_CONNECTIONS
+        if merged_mode == "unspecified" and not merged_connections
+        else merged_connections
+    )
+    return NeuronalTensor(
+        areas=merged_areas,
+        area_connections=merged_area_connections,
+        name=name,
+        connectivity_mode=merged_mode,
+    )
 
 
 def _sample_local_positions(geometry: Geometry3D, n: int, key: "jax.Array") -> "jax.Array":
@@ -565,8 +724,9 @@ def _construct_neuronal_tensor_impl(
     :func:`jaxfne.simulate` time) — matching ``RuntimeConfig.enable_hdp``'s
     default of ``False``.
 
-    Still does not wire ``AreaConnection``/``InterConnection`` into recurrent
-    dynamics (see :func:`neuronal_tensor_to_configuration`'s docstring).
+    Connectivity mode is preserved from the tensor: omitted connectivity uses
+    the configuration default topology, while explicit connectivity (including
+    an explicit empty declaration) compiles only the declared graph.
     """
     cfg = neuronal_tensor_to_configuration(
         tensor, seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter,
@@ -723,7 +883,10 @@ def neuronal_tensor_to_configuration(
     (total count only), so per-layer sizes were silently dropped in favor
     of that default split regardless of what a tensor declared.
 
-    Cross-area / within-area wiring: every ``InterConnection`` (within an
+    Connectivity semantics: when the tensor omits connectivity, the existing
+    configuration default topology is retained. When connectivity is explicit,
+    including an explicit empty declaration, the compiled graph contains only
+    the tensor-declared edges. Every ``InterConnection`` (within an
     area) and ``AreaConnection`` (between areas) is compiled into a REAL edge
     rule via :meth:`Configuration.connections` + :meth:`Configuration.mechanisms`
     (selector-based: ``area``/``layer``/``cell_type``), which carries no
@@ -772,7 +935,17 @@ def neuronal_tensor_to_configuration(
     if not tensor.areas:
         raise ValueError("NeuronalTensor must declare at least one area to bridge")
 
+    connectivity_mode: ConnectivityMode
+    if getattr(tensor, "_connectivity_mode_declared", False):
+        connectivity_mode = tensor.connectivity_mode
+    else:
+        connectivity_mode = (
+            "explicit"
+            if any(area.connectivity_mode == "explicit" for area in tensor.areas)
+            else "unspecified"
+        )
     cfg = Configuration().runtime(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, dtype="float32")
+    cfg = cfg.update_metadata(connectivity_mode=connectivity_mode)
     fallback_weight: dict[str, float] = {}
     area_n_by_name: dict[str, int] = {}
     for area in tensor.areas:

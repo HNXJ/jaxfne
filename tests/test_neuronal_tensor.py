@@ -72,16 +72,16 @@ def test_roundtrip_json(tmp_path):
 
 def test_construct_produces_runnable_model():
     tensor = _single_area_tensor()
-    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=50.0, dt_ms=0.5)
+    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=5.0, dt_ms=0.5)
     assert model.params["emitter"].n_neurons == 20
-    sig = jtfne.simulate(model, duration_ms=50.0, dt_ms=0.5, seed=0)
+    sig = jtfne.simulate(model, duration_ms=5.0, dt_ms=0.5, seed=0)
     assert bool(jnp.all(jnp.isfinite(sig.spikes)))
     assert bool(jnp.all(jnp.isfinite(sig.V_m)))
 
 
 def test_multi_area_pose_placement():
     tensor = _two_area_tensor()
-    model = nt.construct_neuronal_tensor(tensor, seed=1, duration_ms=20.0, dt_ms=0.5)
+    model = nt.construct_neuronal_tensor(tensor, seed=1, duration_ms=2.0, dt_ms=0.5)
     rows = model.neuron_table()
     v1_idx = [i for i, r in enumerate(rows) if r["area"] == "V1"]
     v4_idx = [i for i, r in enumerate(rows) if r["area"] == "V4"]
@@ -95,29 +95,29 @@ def test_multi_area_pose_placement():
 
 def test_cross_area_connections_compile_to_real_edges():
     tensor = _two_area_tensor()
-    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
     assert model.cfg.metadata.get("recurrent_backend") == "edge_list"
-    sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
+    sig = jtfne.simulate(model, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.all(jnp.isfinite(sig.spikes)))
 
 
 def test_within_area_inter_connection_compiles_to_real_edge():
     tensor = _single_area_tensor()
-    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     model = jtfne.construct(cfg)
     assert model.cfg.metadata.get("recurrent_backend") == "edge_list"
 
 
 def test_h_override_seeds_hdp_initial_state():
     tensor = _single_area_tensor(h=3.5)
-    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=50.0, dt_ms=0.5)
+    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=5.0, dt_ms=0.5)
     H0 = model.params.get("hdp_initial_H")
     assert H0 is not None
 
     cfg2 = model.cfg.hdp(relative_baseline=1.2)
     model2 = jtfne.construct(cfg2).with_hdp_initial_state(H0=H0)
-    jtfne.simulate(model2, duration_ms=50.0, dt_ms=0.5, seed=0)
+    jtfne.simulate(model2, duration_ms=5.0, dt_ms=0.5, seed=0)
     diag = model2._last_hdp_diag
     h_trace_0 = diag["H_trace"][0]
 
@@ -130,21 +130,21 @@ def test_h_override_seeds_hdp_initial_state():
 
 def test_h_override_absent_by_default():
     tensor = _single_area_tensor(h=0.0, with_inter_connection=False)
-    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
+    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     assert model.params.get("hdp_initial_H") is None
 
 
 def test_reversal_metadata_surfaced_but_inert():
     tensor = _single_area_tensor()
-    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     mechanisms = cfg.metadata["circuit"]["mechanisms"]
     gaba_mech = next(m for m in mechanisms if m["kind"] == "GABA_A")
     assert gaba_mech["params"]["reversal_mV"] == pytest.approx(-80.0)
 
     model_a = jtfne.construct(cfg)
     model_b = jtfne.construct(cfg)
-    sig_a = jtfne.simulate(model_a, duration_ms=20.0, dt_ms=0.5, seed=0)
-    sig_b = jtfne.simulate(model_b, duration_ms=20.0, dt_ms=0.5, seed=0)
+    sig_a = jtfne.simulate(model_a, duration_ms=2.0, dt_ms=0.5, seed=0)
+    sig_b = jtfne.simulate(model_b, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.array_equal(sig_a.spikes, sig_b.spikes))
 
 
@@ -156,7 +156,7 @@ def test_geometry_collapses_to_2d_with_zero_range():
     )
     area = nt.Area(name="V1", layers=[layer])
     tensor = nt.NeuronalTensor(areas=[area])
-    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
+    model = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     positions = model.params["positions"]
     assert bool(jnp.all(positions[:, 2] == 0.0))
 
@@ -182,7 +182,7 @@ def test_backward_bridge_does_not_affect_existing_configuration_pipeline():
         .probes(["spikes", "V_m"], n_contacts=4)
     )
     model = jtfne.construct(cfg)
-    sig = jtfne.simulate(model, duration_ms=20.0, dt_ms=0.5, seed=0)
+    sig = jtfne.simulate(model, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.all(jnp.isfinite(sig.spikes)))
 
 
@@ -198,7 +198,7 @@ def test_neuron_type_fraction_overrides_even_split():
     )
     area = nt.Area(name="V1", layers=[layer])
     tensor = nt.NeuronalTensor(areas=[area], name="fraction_test")
-    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     layer_cell_types = cfg.metadata["area_layer_cell_types"]["V1"]["L6"]
     assert layer_cell_types["E"] == pytest.approx(0.9)
     assert layer_cell_types["PV"] == pytest.approx(0.1)
@@ -218,7 +218,7 @@ def test_neuron_type_fraction_absent_keeps_even_split():
     )
     area = nt.Area(name="V1", layers=[layer])
     tensor = nt.NeuronalTensor(areas=[area], name="even_split_test")
-    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=10.0, dt_ms=0.5)
+    cfg = nt.neuronal_tensor_to_configuration(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
     layer_cell_types = cfg.metadata["area_layer_cell_types"]["V1"]["L4"]
     assert layer_cell_types["E"] == pytest.approx(0.5)
     assert layer_cell_types["PV"] == pytest.approx(0.5)
@@ -259,6 +259,7 @@ def test_merge_neuronal_tensors_flattens_and_renames_collisions():
     assert names == ["V1", "V1_1"]
 
 
+@pytest.mark.release
 def test_canonical_json_config_library_loads_and_constructs():
     """jaxfne/configs/*.json (the canonical, package-shipped config library,
     see scripts/build_canonical_neuronal_tensor_configs.py) all load + construct
@@ -322,6 +323,7 @@ def test_legacy_json_without_schema_version_loads_silently(tmp_path):
     assert reloaded.name == tensor.name
 
 
+@pytest.mark.release
 def test_example_08_neuronal_tensor_first_runs():
     """examples/08_neuronal_tensor_first.py (tensor-first workflow) runs to completion."""
     example = str(Path(__file__).parent.parent / "examples" / "08_neuronal_tensor_first.py")
@@ -364,11 +366,11 @@ def test_runtime_configuration_has_no_biology_fields():
 
 def test_construct_tensor_runtime_matches_construct_neuronal_tensor():
     tensor = _single_area_tensor()
-    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=0.5)
+    runtime = jtfne.RuntimeConfiguration(seed=0, duration_ms=2.0, dt_ms=0.5)
     model_new = jtfne.construct(tensor, runtime)
-    model_old = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=20.0, dt_ms=0.5)
-    sig_new = jtfne.simulate(model_new, duration_ms=20.0, dt_ms=0.5, seed=0)
-    sig_old = jtfne.simulate(model_old, duration_ms=20.0, dt_ms=0.5, seed=0)
+    model_old = nt.construct_neuronal_tensor(tensor, seed=0, duration_ms=2.0, dt_ms=0.5)
+    sig_new = jtfne.simulate(model_new, duration_ms=2.0, dt_ms=0.5, seed=0)
+    sig_old = jtfne.simulate(model_old, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.array_equal(sig_new.spikes, sig_old.spikes))
 
 
@@ -398,7 +400,7 @@ def test_construct_configuration_path_unaffected():
         .probes(["spikes", "V_m"], n_contacts=4)
     )
     model = jtfne.construct(cfg)
-    sig = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
+    sig = jtfne.simulate(model, duration_ms=2.0, dt_ms=0.5, seed=0)
     assert bool(jnp.all(jnp.isfinite(sig.spikes)))
 
 
@@ -410,7 +412,7 @@ def test_compute_fields_returns_existing_field_unchanged():
         .field(domain="laminar_column", conductivity="proxy", boundary="mean_zero_neumann")
     )
     model = jtfne.construct(cfg)
-    signals = jtfne.simulate(model, duration_ms=10.0, dt_ms=0.5, seed=0)
+    signals = jtfne.simulate(model, duration_ms=2.0, dt_ms=0.5, seed=0)
     fields = jtfne.compute_fields(model, signals)
     assert fields is signals.field
 

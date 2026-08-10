@@ -24,6 +24,7 @@ from mcc_fixtures import (
     edge_list_runtime,
     hdp_runtime,
     mcc_model,
+    mcc_tensor_model,
     mcc_stimulus,
     objective_dict,
 )
@@ -42,6 +43,11 @@ EXPECTED_EDGE_CLASSES = {
 @pytest.fixture(scope="module")
 def model() -> Any:
     return mcc_model()
+
+
+@pytest.fixture(scope="module")
+def tensor_model() -> Any:
+    return mcc_tensor_model()
 
 
 def _topology(model: Any) -> tuple[np.ndarray, np.ndarray, Any]:
@@ -165,6 +171,59 @@ def hdp_cases(model: Any) -> dict[float, tuple[Any, Any, Any, Any, Any, Any]]:
     return cases
 
 
+@pytest.fixture(scope="module")
+def mcc1_result(model: Any) -> dict[str, Any]:
+    """Run MCC-1's two repeatability executions once for all assertions."""
+    stimulus = mcc_stimulus()
+    runtime = edge_list_runtime()
+    first = jtfne.simulate(
+        model,
+        duration_ms=10.0,
+        dt_ms=0.5,
+        seed=23,
+        runtime=runtime,
+        paradigm=stimulus,
+        record_sources=True,
+        record_fields=True,
+    )
+    repeat = jtfne.simulate(
+        model,
+        duration_ms=10.0,
+        dt_ms=0.5,
+        seed=23,
+        runtime=runtime,
+        paradigm=stimulus,
+        record_sources=True,
+        record_fields=True,
+    )
+    readout = model.probe(first, modes=["spikes", "V_m", "CSD", "LFP"])
+    objective = jtfne.Objective(name="mcc1_rate_objective").loss(
+        "target_rate",
+        metric="spike_rate_hz_mean",
+        target=0.0,
+        weight=1.0,
+    )
+    evaluation = model.evaluate(first, objective)
+    manifest = model.manifest(
+        signals=first,
+        readout=readout,
+        objective=objective_dict(objective),
+        evaluation=evaluation,
+    )
+    receipt = model.run_receipt(first, tags={"mcc": "MCC-1"})
+    return {
+        "stimulus": stimulus,
+        "drive": stimulus.to_array(n_steps=20, dt_ms=0.5),
+        "first": first,
+        "repeat": repeat,
+        "readout": readout,
+        "objective": objective,
+        "evaluation": evaluation,
+        "manifest": manifest,
+        "receipt": receipt,
+    }
+
+
 def _assert_segmented_matches(
     full: Any,
     full_state: Any,
@@ -214,38 +273,16 @@ def test_mcc_coverage_map_is_machine_readable() -> None:
     json.dumps(MCC_COVERAGE_MAP, allow_nan=False)
 
 
-def test_mcc1_tfne_operator_closure(model: Any) -> None:
-    """MCC-1 closes structure -> operators -> readout -> objective -> manifest."""
-
+def test_mcc1_configuration_topology(model: Any) -> None:
     _assert_topology(model)
-    stimulus = mcc_stimulus()
-    drive = stimulus.to_array(n_steps=20, dt_ms=0.5)
+
+
+def test_mcc1_stimulus_and_signal_shapes(mcc1_result: dict[str, Any]) -> None:
+    drive = mcc1_result["drive"]
+    first = mcc1_result["first"]
     assert drive.shape == (20, EXPECTED_NEURONS)
     assert jnp.all(drive[:, [1, 2, 3, 4, 6, 7, 8, 9]] == 0.0)
     assert jnp.any(drive[:, [0, 5]] != 0.0)
-
-    runtime = edge_list_runtime()
-    first = jtfne.simulate(
-        model,
-        duration_ms=10.0,
-        dt_ms=0.5,
-        seed=23,
-        runtime=runtime,
-        paradigm=stimulus,
-        record_sources=True,
-        record_fields=True,
-    )
-    repeat = jtfne.simulate(
-        model,
-        duration_ms=10.0,
-        dt_ms=0.5,
-        seed=23,
-        runtime=runtime,
-        paradigm=stimulus,
-        record_sources=True,
-        record_fields=True,
-    )
-
     assert first.V_m.shape == (20, EXPECTED_NEURONS)
     assert first.spikes.shape == first.V_m.shape
     assert first.sources.shape == first.V_m.shape
@@ -254,38 +291,74 @@ def test_mcc1_tfne_operator_closure(model: Any) -> None:
     assert first.field.csd_proxy.shape[0] == 20
     assert first.metadata["field_claim_level"] == "proxy_readout"
     assert first.metadata["stimulus_injection_status"] == "native_drive_schedule_v0.0.12"
+    _assert_signal_outputs_finite(first)
+
+
+def test_mcc1_repeatability(mcc1_result: dict[str, Any]) -> None:
+    first = mcc1_result["first"]
+    repeat = mcc1_result["repeat"]
     assert jnp.array_equal(first.V_m, repeat.V_m)
     assert jnp.array_equal(first.spikes, repeat.spikes)
     assert jnp.array_equal(first.sources, repeat.sources)
-    _assert_signal_outputs_finite(first)
 
-    readout = model.probe(first, modes=["spikes", "V_m", "CSD", "LFP"])
+
+def test_mcc1_probe_and_field_readouts(mcc1_result: dict[str, Any]) -> None:
+    readout = mcc1_result["readout"]
     assert set(("spikes", "V_m", "CSD", "LFP")).issubset(readout)
     _assert_readout_finite(readout)
 
-    objective = jtfne.Objective(name="mcc1_rate_objective").loss(
-        "target_rate",
-        metric="spike_rate_hz_mean",
-        target=0.0,
-        weight=1.0,
-    )
-    evaluation = model.evaluate(first, objective)
+
+def test_mcc1_objective_manifest_and_receipt(mcc1_result: dict[str, Any]) -> None:
+    evaluation = mcc1_result["evaluation"]
     assert evaluation["objective_name"] == "mcc1_rate_objective"
     assert jnp.isfinite(jnp.asarray(evaluation["total_loss"]))
 
-    manifest = model.manifest(
-        signals=first,
-        readout=readout,
-        objective=objective_dict(objective),
-        evaluation=evaluation,
-    )
+    manifest = mcc1_result["manifest"]
     json.dumps(manifest, allow_nan=False)
     assert manifest["backend_metadata"]["edge_count"] == EXPECTED_EDGES
     assert manifest["field_claim_level"] == "proxy_readout"
 
-    receipt = model.run_receipt(first, tags={"mcc": "MCC-1"})
+    receipt = mcc1_result["receipt"]
     json.dumps(receipt.to_dict(), allow_nan=False)
     assert receipt.truth["physical_amplitude_calibrated"] is False
+
+
+def test_mcc1_tensor_graph_is_structurally_equivalent(
+    model: Any,
+    tensor_model: Any,
+) -> None:
+    """The tensor path preserves MCC-1's exact executable graph."""
+
+    _assert_topology(tensor_model)
+    config_labels, config_layers, _ = _topology(model)
+    tensor_labels, tensor_layers, tensor_edges = _topology(tensor_model)
+    actual_pairs = {
+        (int(pre), int(post))
+        for pre, post in zip(
+            np.asarray(tensor_edges.pre),
+            np.asarray(tensor_edges.post),
+        )
+    }
+    expected_pairs = {
+        (source, target)
+        for source in range(EXPECTED_NEURONS)
+        for target in range(EXPECTED_NEURONS)
+        if source != target
+    }
+
+    assert tensor_model.cfg.metadata["connectivity_mode"] == "explicit"
+    assert tensor_edges.n_edges == EXPECTED_EDGES
+    assert len(actual_pairs) == EXPECTED_EDGES
+    assert actual_pairs == expected_pairs
+    assert np.all(np.asarray(tensor_edges.pre) != np.asarray(tensor_edges.post))
+    np.testing.assert_array_equal(tensor_labels, config_labels)
+    np.testing.assert_array_equal(tensor_layers, config_layers)
+    assert tensor_model.cfg.metadata["connectivity_compilation"] == {
+        "connectivity_mode": "explicit",
+        "default_edge_count": 0,
+        "declared_rule_edge_count": EXPECTED_EDGES,
+        "total_compiled_edge_count": EXPECTED_EDGES,
+    }
 
 
 @pytest.mark.parametrize("noise_scale", (0.0, 0.2))

@@ -27,6 +27,36 @@ from jaxfne import (
 > `neuronal_tensor_to_configuration` bridges a `NeuronalTensor` into that
 > existing `construct` / `simulate` pipeline.
 
+### Connectivity modes
+
+Tensor connectivity has two derived specification states:
+
+```text
+UNSPECIFIED -> the configured default topology
+EXPLICIT    -> exactly the declared topology
+```
+
+The distinction between omission and an explicit empty declaration is
+structural:
+
+```python
+Area(name="V1", layers=[layer])
+# connectivity_mode == "unspecified"
+
+Area(name="V1", layers=[layer], inter_connections=[])
+# connectivity_mode == "explicit"; the compiled graph has zero edges
+```
+
+For an explicit tensor, the executable edge list is the declared graph. An
+explicit graph may contain parallel edges only when their receptor/mechanism
+identity differs; repeated `(pre, post, receptor)` identities are rejected.
+Compilation exposes `connectivity_mode`, `default_edge_count`,
+`declared_rule_edge_count`, and `total_compiled_edge_count` in
+`model.cfg.metadata["connectivity_compilation"]`.
+Serialized tensors include the mode so explicit emptiness survives a JSON
+round trip; legacy files without the mode retain their default-topology
+interpretation when their connection arrays are empty.
+
 ---
 
 ## Value tags
@@ -216,8 +246,9 @@ Controls where an `Area`'s layer stack sits in global 3D space.
 class Area:
     name: str
     layers: Sequence[Layer] = ()
-    inter_connections: Sequence[InterConnection] = ()
+    inter_connections: Sequence[InterConnection] = omitted
     pose: Pose3D = field(default_factory=Pose3D)
+    connectivity_mode: Literal["unspecified", "explicit"] | None = None
 ```
 
 One cortical area. Contains its `Layer` population structure, all
@@ -254,11 +285,15 @@ Unlike `InterConnection`, `mechanism` has a default of
 @dataclass
 class NeuronalTensor:
     areas: Sequence[Area] = ()
-    area_connections: Sequence[AreaConnection] = ()
+    area_connections: Sequence[AreaConnection] = omitted
     name: str = "untitled"
+    connectivity_mode: Literal["unspecified", "explicit"] | None = None
 ```
 
 The top-level container. Holds all areas and all between-area connections.
+`connectivity_mode` is inferred from whether connectivity fields were omitted or
+provided. It is `"unspecified"` when no connectivity field is provided and
+`"explicit"` when a connection list is provided, including an empty list.
 
 **Method:**
 
@@ -434,12 +469,15 @@ Returns a `Configuration` object suitable for `jaxfne.construct`.
   split evenly across declared `NeuronType` entries — unless every `NeuronType`
   in the layer declares a `fraction`, in which case those (normalized)
   fractions are used instead.
+- Omitted tensor connectivity retains the configured default topology.
 - Every `InterConnection` (within-area) and `AreaConnection` (between-area)
   compiled into a real selector-based edge rule via
   `Configuration.connections` + `Configuration.mechanisms`. Edge magnitude is
   `w_mech × g_mech / √total_n`. Sign follows the source neuron type
   (E → excitatory, else inhibitory). Connection probability is `1.0`
-  (full bipartite between the declared layer × cell-type pair).
+  (full bipartite between the declared layer × cell-type pair). For explicit
+  tensor connectivity, these are the complete executable edges; implicit
+  recurrent defaults are not added.
 
 **Known fidelity gaps (not yet wired):**
 

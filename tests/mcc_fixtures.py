@@ -14,6 +14,7 @@ import jaxfne as jtfne
 
 MCC_COVERAGE_MAP: dict[str, dict[str, bool]] = {
     "CircuitSpec": {"MCC-1": True, "MCC-2": True, "MCC-3": True},
+    "NeuronalTensor": {"MCC-1": True, "MCC-2": False, "MCC-3": False},
     "Model": {"MCC-1": True, "MCC-2": True, "MCC-3": True},
     "emitter": {"MCC-1": True, "MCC-2": True, "MCC-3": True},
     "source": {"MCC-1": True, "MCC-2": True, "MCC-3": True},
@@ -66,6 +67,48 @@ def mcc_model() -> Any:
     """Construct one canonical MCC model."""
 
     return jtfne.construct(mcc_configuration())
+
+
+def mcc_tensor() -> Any:
+    """Return the tensor realization of the canonical MCC-1 graph."""
+    neuron_types = [
+        jtfne.NeuronType.make("E", fraction=0.5),
+        jtfne.NeuronType.make("PV", fraction=0.5),
+    ]
+    layers = [
+        jtfne.Layer(name="L2/3", n_neurons=5, neuron_types=neuron_types),
+        jtfne.Layer(name="L4", n_neurons=5, neuron_types=neuron_types),
+    ]
+    connections = [
+        jtfne.InterConnection(
+            source_layer=source_layer,
+            source_neuron_type=source_type,
+            target_layer=target_layer,
+            target_neuron_type=target_type,
+            mechanism="AMPA" if source_type == "E" else "GABA_A",
+        )
+        for source_layer in ("L2/3", "L4")
+        for target_layer in ("L2/3", "L4")
+        for source_type in ("E", "PV")
+        for target_type in ("E", "PV")
+    ]
+    return jtfne.NeuronalTensor(
+        areas=[
+            jtfne.Area(
+                name="V1",
+                layers=layers,
+                inter_connections=connections,
+            )
+        ]
+    )
+
+
+def mcc_tensor_model() -> Any:
+    """Construct the tensor realization of MCC-1."""
+    return jtfne.construct(
+        mcc_tensor(),
+        jtfne.RuntimeConfiguration(seed=0, duration_ms=20.0, dt_ms=0.5),
+    )
 
 
 def edge_list_runtime(*, enable_hdp: bool = False, synaptic_kernel: str = "exponential") -> Any:
