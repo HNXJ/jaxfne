@@ -1,7 +1,8 @@
-# Antigravity prompt for jaxfne skills
+# Archived delegation note
 
-Install the markdown skills from this bundle into repo-root `skills/` as flat root-level files and `*/SKILL.md` folders (see `skills/README.md`).
-Do not recreate nested skill folders inside the bundle or in the repo copy.
+This file is retained as historical prompt material. It is not an active
+skill or source of mathematical meaning. Use `skills/README.md` and the
+canonical `skills/*/SKILL.md` procedures instead.
 
 ## Goal
 Make the skills sufficient for both repo usage and repo understanding, and make them strong enough to enforce the review findings rather than merely describe them.

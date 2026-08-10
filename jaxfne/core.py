@@ -235,3 +235,8 @@ from ._construct import (
 # connectivity helpers, group-8 paradigm/receipt/manifest functions) moved
 # to jaxfne/_construct.py and re-exported above (slice 5/5, final slice, of
 # the core.py monolith split).
+
+# Runtime continuation state is defined in the pure-function layer after the
+# Model/Signals symbols above are available, preserving the existing import
+# direction while exposing one public state owner.
+from ._pipeline import ContinuationState

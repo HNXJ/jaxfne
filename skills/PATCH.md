@@ -1,4 +1,8 @@
-# Patch note
+# Archived patch note
+
+ARCHIVAL ONLY. This file records an earlier skill-bundle migration and is not
+current procedure or authority. Use `skills/README.md` and the live skill
+directories for current routing and synchronization.
 
 This bundle is a structural cleanup of the earlier skill package.
 

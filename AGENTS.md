@@ -1,180 +1,142 @@
-# AGENTS.md — jaxfne (agent pointer)
+# AGENTS.md — jaxfne operational context
 
-**Clone:** this repo · **Import:** `import jaxfne as jtfne`
+## Identity
 
-## Labyrinth is not optional
+jaxfne is a JAX computational scaffold. The public import is:
 
-**Every user turn is a graph update.** Before acting on a prompt, read the repo's `.lab/`
-graph; after acting, write back what changed — a note, an issue, a link, a corrected claim.
-A prompt is evidence about the project *and* about the user; a session that ends without
-touching a `.lab/` node has thrown its own learning away.
+```python
+import jaxfne as jtfne
+```
 
-**Read it skeptically.** Nodes are claims, not facts — `status: unconfirmed` means
-unconfirmed, and a `note` records what was true when written. Verify against code/tests
-before relying on one, and when the graph and the repo disagree, fix the graph and say so.
-Correct the user too: if a prompt contradicts a `confirmed` node, surface the conflict
-before complying, then record whichever way it resolves.
+Public wording follows `docs/scope_and_status.md`: outputs are Relative by
+default; Absolute values require an explicit calibration step.
 
-**Measure, don't vibe.** `python3 ~/workspace/main/labyrinth/clients/repo_mapper.py --target .`
-prints coverage (structural + verified, as a pair), the five-kind mismatch vector
-(omission/redundancy/disconnection/staleness/contradiction), null-model complexity, schema
-drift, and **J** -- one scalar, lower is better, always reported with its completeness.
-Cite those numbers, never an impression of graph health. `None` in any of them means
-*never looked* -- it is not a zero and must never be reported as one.
+## Two grammars
 
-See the `labyrinth-protocol` skill for the graph-forming layer; `progress-review-plan` for
-the PRP backlog that rides on it.
-
-
-Depth lives in **`skills/`**, **`docs/`**, and (local-only, see below) **`artifacts/developer/`**
-— not here. Full AI-agent guide: [docs/for_ai_agents.md](docs/for_ai_agents.md).
-
-## Object grammar
+Scientific operator grammar:
 
 ```text
-Config → Net → Paradigm → Objective → Trainer → Signals → Vis/Export
+Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest/Validation
 ```
 
-`construct()` is the single dispatch — extend it, don't bypass.
+Software execution grammar:
 
-## Three build paths (pick one per script)
+```text
+CircuitSpec -> construct -> Model -> simulate -> Signals
+```
 
-| Path | When | Returns |
-|------|------|---------|
-| **Config** `laminar_cortex_config` / `build_laminar_column` → `construct` → `simulate` | single run, AGSDR, homeostasis, per-neuron drive, HDP via `RuntimeConfig` | `Model` / `Signals` |
-| **tutorial_utils** `make_laminar_column_config` → `build_laminar_column` → `simulate_laminar_trials` | multi-trial spectrolaminar sweeps | plain `dict` |
-| **NeuronalTensor** → `construct(tensor, RuntimeConfiguration(...))` → `simulate` | multi-area, JSON tensors, explicit 3D | `Model` / `Signals` |
+`CircuitSpec` includes supported `Configuration` and `NeuronalTensor` tiers.
+`Paradigm`, readouts, objectives, tuning, and export attach to this execution
+path; compatibility aliases are not the scientific grammar.
 
-HDP on tensor path: `simulate(..., runtime=RuntimeConfig(enable_hdp=True, hdp_params={...}))`.
-`Model.simulate()` does not inherit `Configuration.hdp(...)`/`.runtime(...)` the way
-top-level `simulate()` does — pass `runtime=RuntimeConfig(enable_hdp=True, ...)` explicitly
-when calling the `Model` method directly. For true turn-to-turn state continuity (not just
-`Model.with_hdp_initial_state()`'s partial `H`/`w`-only carry), use
-`jaxfne._pipeline.compile_step_fn`/`scan_network` with `DynamicState` (all six fields:
-`v, u, prev_spikes, syn_state, H, w`) — both wrap `emitters.simulate_edge_recurrent_izhikevich_hdp`
-directly, not `Model.simulate`, which is the canonical low-level HDP call pattern for a genuinely
-continuous multi-turn run. Full detail: `skills/jaxfne-neural-tensor/SKILL.md`,
-`skills/FRICTIONS_STACK.md` F-031.
+Continuation state is shape-preserving and treats the H-state as an opaque JAX
+array. The current HDP kernel uses the scalar special case; generic
+continuation prose must not equate H-state with one homeostatic variable or
+with a required physical unit. Internal relative coordinates remain valid
+until an explicit calibration transformation at a semantic boundary.
 
-Per-event layer targeting: `target_indices` on **event dict**, not schedule ctor. Build indices from `model.neuron_table()`.
+## Authority and evidence
 
-## Config complexity tiers
+Mathematical meaning belongs to the six-file revised project source set under
+`artifacts/project_sources/`. Do not duplicate its equations into skills or
+agent context. Current public explanation and executable references are:
 
-`Configuration` (flat fluent builder) and `NeuronalTensor` (structured Areas ×
-Layers × NeuronTypes) are separate tiers, not a hierarchy — both converge on
-the same `Model` via `construct()`'s type-dispatch, neither wraps the other.
-There is deliberately no `Configuration -> NeuronalTensor` converter:
-`Configuration` is the simpler tier, and promoting it up to the structured
-tier adds no information a caller didn't already have. Only the reverse
-(`neuronal_tensor_to_configuration`) exists, since going from structured to
-flat is a real simplification. `HDPColumnConfig` is a third, narrower tier
-(canonical 6-layer laminar column only) — see `jaxfne-neural-tensor` skill.
+- `docs/operator_doctrine.md` — public operator contracts and stage vocabulary.
+- `docs/scope_and_status.md` — public Relative/Absolute and status fields.
+- `docs/guides/objective_grammar.md` — executable software sequence.
+- `docs/guides/tensor_field_workflows.md` — source/field/probe contracts.
+- `docs/tutorials/` and `docs/tutorials/notebook_standard.md` — public
+  executable evidence protocol.
 
-Laminar readout: `jtfne.vis.spectrolaminar_suite(sig)`.
+Implemented API truth belongs to live `jaxfne/` code and `tests/`. Public
+explanation belongs to `README.md` and `docs/`. Skills are procedures and
+references, not parallel scientific specifications. Generated state comes from
+`scripts/repo_state_snapshot.py`; archival material is not current authority.
 
-## Truth gates (never escalate)
+## Evidence classification and scope discipline
 
-`claim_level=computational_scaffold` · `field_solver_status=linear_solver` · `field_claim_level=proxy_readout` · `physical_amplitude_calibrated=False`
+Reports keep these categories separate:
 
-Language: simulated/proxy/scaffold — not validated/physical/mechanism without receipts.
+- `SPECIFIED`: required by the authoritative project specification.
+- `IMPLEMENTED`: present in the current checkout.
+- `TESTED`: covered by an executable test with a command receipt.
+- `OBSERVED`: measured in one named run/environment.
 
-Plausible Izhikevich sanity: rest ≈ −66 mV, spike peak ≈ +30 mV, mean rate ≈ 8–25 Hz. `|Vm| > 150` or NaN/Inf = blowup.
+Do not promote one category into another. Before implementation, declare the
+target invariant, expected files, API/mathematical/numerical/claim/
+documentation/compatibility deltas, forbidden adjacent changes, and the stop
+condition. Stop when the requested invariant is resolved, targeted tests pass,
+directly affected documentation agrees, and no directly blocking discrepancy
+remains. Do not clean neighboring modules, add convenience helpers, expand
+tutorials, or repair unrelated scientific behavior.
 
-**This section is agent-facing, not for public docs.** README/`docs/**` get the *result* of this
-rule (every value stated as **Relative** or **Absolute**, nothing else), never the rule itself.
-Don't copy "language: prefer X avoid Y" phrasing or "does not claim" framing into `docs/` or
-`README.md`. Don't compare jaxfne to other named projects in public docs. Don't build dict keys
-via string concatenation to dodge a grep check. Guard: `python3 scripts/audit_public_docs_language.py --check` (wired into CI).
+Skills and agent context teach recovery and verification procedures; they do not
+store current equations, SHAs, versions, defaults, test counts, bug
+inventories, or implementation line locations as durable facts.
 
-**Same rule applies to non-doc-language leaks.** Nothing describing internal roadmap, competitive
-positioning, per-file audit scores, or agent-to-agent working notes gets tracked at any path in
-this repo — public or not, since the whole repo is public. See "PRP backlog" below for the
-concrete incident this rule exists because of.
+## JAX and API invariants
 
-## Before writing helpers
+- Use `jax.numpy` in numerical kernels and explicit PRNG keys for randomness.
+- Use pure numerical functions and `jax.lax.scan` for hot time evolution.
+- Use `jax.vmap` for batches/seeds when shapes and semantics permit.
+- Use `jax.jit` only for stable numerical hot paths; report effective runtime
+  state rather than requested state.
+- Default to float32. Enable x64 explicitly before array construction.
+- Keep plotting, JSON, serialization, and file I/O outside JIT.
+- Preserve public APIs; prefer additive compatibility wrappers.
+- Keep optional dependencies lazy and fail explicitly when unavailable.
+- Use package APIs for reusable scientific computation; do not create notebook
+  engines that duplicate package behavior.
+- Preserve conservative truth/status metadata. `linear_solver` is compatibility
+  metadata for the current proxy path, not proof of a solved PDE.
 
-Read `skills/catalog-glossary-jaxfne/SKILL.md`. Contradictions: `skills/FRICTIONS_STACK.md`.
-Naming a new private helper, or suspect two functions overlap: `jaxfne-harden` rule 10
-(generalization over duplication) — don't encode a module/initiative name into a general
-helper's name; don't maintain near-identical function bodies when one parameter would unify
-them. Feeds the `full_scorecard` Generalization/Code-defragmentation axes (`plans.json`).
+## Repository workflow
 
-**Delegating jaxfne work to a fast/weak model (agy, Haiku-tier, any subagent):** don't just
-describe the task — paste the relevant skill's verified names/signatures into the prompt
-directly. This repo's own API surface is large and easy to guess wrong (`jtfne.weld()`,
-`cfg.circuit`, a fictional `FlatModel`/`FlatNet` alias were all found and struck from the skills
-this way — a plausible-sounding invented name a fast model would readily produce unprompted). A
-skill's contract handed inline removes that guesswork; an open-ended ask invites it.
-
-## PRP backlog — local-only, not tracked
-
-`artifacts/developer/{plans,progress,review,adapt}.json` + `AGENT_CHANNEL.md`. Skill:
-`progress-review-plan` (`~/.claude/skills/progress-review-plan/SKILL.md`). **`git rm --cached` +
-gitignored 2026-07-14** — an independent audit confirmed this directory (internal roadmap,
-per-file scores, competitive citation-strategy notes) was tracked and pushed to this public repo.
-Stopped tracking going forward; git history was not scrubbed (explicit decision — repo stays
-public). **Do not re-add these paths to git.** Two files under `artifacts/legacy/internal_docs/`
-are kept tracked as explicit `.gitignore` exceptions (load-bearing for
-`tests/test_agent_context_hygiene.py` / `tests/test_docs_equations_plotly_v0214.py`, confirmed
-non-sensitive) — don't add a third without the same content review.
-
-`AGENT_CHANNEL.md` is freeform session-handoff notes — no fixed schema exists yet; don't invent
-one when reading or writing it.
-
-**Done rule:** `status=done` requires `achieved_score >= target_score` **and** a real command/output
-receipt in `evidence` — a prose claim with no command shown is not evidence. JSON edits ≠ work done.
-
-## Module map
-
-`core.py` re-exports → `_config.py`, `_model.py`, `_signals.py`, `_construct.py`, `_runtime_config.py`, `emitters.py`, `fields/`.
-Plotting: **`jaxfne/vis/*` only** (modular-grammar rule 2).
-
-`_model.py` and `_construct.py` are themselves thin re-export aggregators as
-of 2026-07-20 (Phase 2 defragmentation, 0.4.8-0.4.48 roadmap) — same pattern
-as `core.py`. `_model.py` (Model dataclass + 7 lifecycle methods) re-exports
-from `_model_simulate.py`, `_model_readout.py`, `_model_evaluate.py`,
-`_model_tune.py`, `_model_manifest.py`. `_construct.py` re-exports from
-`_construct_population.py`, `_construct_connectivity.py`,
-`_construct_presets.py`, `_construct_core.py`, `_construct_extras.py`.
-Import from `jaxfne.core`, not any of these directly, unless working on the
-split itself.
-
-## Root freeze
-
-Repo root frozen 2026-06-17 — no new top-level **folders** except approved patches (`skills/`
-kept by design). A single new top-level **file** (a GitHub-convention file expected at repo
-root) is not a folder-clutter violation on its own — this doesn't reopen the freeze generally.
-
-## Known stubs
-
-`GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`, `solve_volume_conductor_experimental` — exported names, `NotImplementedError` on use (the last confirmed 2026-08-07: root export, raises immediately).
-
-## Known fragilities (track)
-
-1. `jaxfne/__init__.py` runtime wrapper — brittle function/submodule collision.
-2. Hardcoded 20.0 spike gain in source proxy — dense/edge kernels must stay in sync.
-3. `DEFAULT_HDP`'s `K_w_ctrl=0.0` permits unbounded weight drift on long/custom HDP runs outside
-   the specific presets already verified — see `plans.json`'s `hdp-k-w-ctrl-default-runaway-gap`
-   (local-only, see PRP backlog above).
-
-## Validation (`python3`)
+Before repository work, run:
 
 ```bash
-git status --short --branch && git rev-parse HEAD
-python3 -m compileall -q jaxfne tests scripts
-if ! python3 -m mkdocs --version >/dev/null 2>&1; then python3 -m pip install -r docs/requirements.txt; fi
-python3 -m mkdocs build --strict
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest \
-  tests/test_api_smoke.py tests/test_root_import_lightweight.py tests/test_signals_get_v0329.py -q --tb=short
+git branch --show-current
+git rev-parse HEAD
+git status --short
+git ls-remote origin refs/heads/main refs/heads/dev
 ```
 
-## Branches
 
-`main`, `dev`, `agy`, `cur` — verify SHA before mutations; no force-push without approval. Push
-PRP work to `dev` as autosave. `ops` was deleted 2026-07-08 — do not reference it; if you see it
-in a stale local ref, `git branch -d ops`.
+Before naming an unfamiliar API or helper, read
+`skills/catalog-glossary-jaxfne/SKILL.md` and verify the live symbol. Use
+`skills/jaxfne-harden/SKILL.md` for implementation safeguards.
 
-## Agent channel
+Preferred validation entrypoints:
 
-Read `artifacts/developer/AGENT_CHANNEL.md` (local-only, see PRP backlog above) before starting;
-append before finishing. Treat other agents' claims as hypotheses — verify against source/tests.
+```bash
+python3 -m compileall -q jaxfne tests scripts
+python3 scripts/repo_state_snapshot.py
+python3 scripts/audit_public_docs_language.py --check
+python3 -m mkdocs build --strict
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest -q --tb=short
+```
+
+Run only the gates relevant to the task and report exact results. Do not claim
+full validation when the full suite or docs build was not run.
+
+## Planning, reports, and mutations
+
+Use PRP only for implementation/release work that needs persistent planning.
+Simple inspection, factual questions, and one-session context work do not
+require PRP files. `AGENT_CHANNEL.md` is optional handoff state; do not create
+or append it during a read-only task.
+
+Reports include:
+
+```text
+API delta:
+Mathematical delta:
+Numerical delta:
+Claim/evidence delta:
+Documentation delta:
+Compatibility delta:
+```
+
+Before remote or irreversible Git mutation, obtain applicable explicit
+authorization. Never commit, push, merge, tag, release, or upload merely
+because a workflow suggests it.

@@ -1,7 +1,8 @@
-# Claude Code Context - jaxfne
+# Archived Claude Code Context - jaxfne
 
-Last updated: 2026-06-02
-Scope: active worker context for repo edits, notebooks, releases, and API migration.
+ARCHIVAL ONLY: this file is historical evidence, not active worker authority.
+Do not use its versions, paths, grammars, or status claims without re-verifying
+against the current checkout.
 
 ## Fast trigger terms
 

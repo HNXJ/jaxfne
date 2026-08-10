@@ -131,13 +131,43 @@ class TestAgentContextHygiene:
         for keyword in mistake_keywords:
             assert keyword.lower() in content.lower(), f"Missing failure mode guidance: {keyword}"
 
-    def test_durable_context_jaxfne_version_stable(self):
-        """Assert context confirms package version remains 0.3.5."""
+    def test_archived_context_is_explicitly_non_authoritative(self):
+        """Historical context must not masquerade as current doctrine."""
         context_path = Path("artifacts/legacy/internal_docs/agent_context/claude/CLAUDE.md")
         content = context_path.read_text(encoding='utf-8')
 
-        # Should mention version staying at 0.3.5
-        assert "0.3.5" in content, "Missing version stability note"
+        assert "ARCHIVAL ONLY" in content
+        assert "not active worker authority" in content
+
+    def test_active_context_uses_current_grammars(self):
+        """The active guide keeps scientific and software grammars distinct."""
+        content = Path("AGENTS.md").read_text(encoding="utf-8")
+
+        assert "Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest/Validation" in content
+        assert "CircuitSpec -> construct -> Model -> simulate -> Signals" in content
+        assert "Config -> Net -> Paradigm -> Objective -> Trainer" not in content
+
+    def test_repository_state_script_is_present(self):
+        """Volatile checkout facts have a read-only derivation command."""
+        script = Path("scripts/repo_state_snapshot.py")
+        assert script.exists()
+        assert "read-only" in script.read_text(encoding="utf-8")
+
+    def test_revised_project_source_set_is_present(self):
+        """The six-file mathematical source set has one canonical location."""
+        source_root = Path("artifacts/project_sources")
+        source_names = [
+            "1_global_rules_and_restrictions.md",
+            "2_jaxfne_objective_grammar.md",
+            "3_jaxfne_visualization_rules.md",
+            "4_tfne_theory_and_neural_tensor.md",
+            "5_docs_tutorials_etudes_and_suites.md",
+            "6_other_important_notes.md",
+        ]
+        for name in source_names:
+            source = source_root / name
+            assert source.is_file(), f"Missing project source: {source}"
+            assert source.read_text(encoding="utf-8").strip()
 
     def test_no_secrets_in_context(self):
         """Assert context contains no API keys or credentials."""

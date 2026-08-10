@@ -174,21 +174,29 @@ seconds via automatic feedback rather than hand-retuning the drive correction.
 
 ```python
 I_syn_i = sum_j w_ji * x_j                                 # incoming synaptic current
-tau_i * dH_i/dt = alpha*I_syn_i - gamma*r_i - delta*W_i + K_ctrl*(1 - H_i) - dC/dH_i
-dw_E^ij/dt = +K_HDP * (H_i - 1) * w_E^ij                   # excitatory incoming edges
-dw_I^ij/dt = -K_HDP * (H_i - 1) * w_I^ij                   # inhibitory incoming edges
+tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
+                  + rho_passive/H_i**2 + K_ctrl*(1 - H_i) - dC/dH_i
+Delta_H_ij = H_post - H_pre
+w_ij = q_ij * m_ij,  q_ij in {-1, +1}
+dm_ij/dt = q_ij*K_HDP*phi(Delta_H_ij)*m_ij
+           + K_w_ctrl*(m0_ij - m_ij)
 ```
 
-`K_ctrl*(1-H_i)` is the linear restoring force that pins the equilibrium at `H_i=1`;
-`tau_i = tau_0_ms * size_i**2` makes larger (e.g. E) cells integrate `H_i` more
+For the difference family, `phi(x)=x` for `signed_linear` and
+`phi(x)=x*abs(x)` for `signed_quadratic`. `hebbian_product` is separate
+product modulation with `phi=H_pre*H_post`; it is not another difference rule.
+`K_ctrl*(1-H_i)` is the H-state restoring force toward `H_i=1`;
+`K_w_ctrl*(m0_ij-m_ij)` independently restores edge magnitude. `tau_i =
+tau_0_ms * size_i**3` makes larger (e.g. E) cells integrate `H_i` more
 slowly. Implementation: `jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`. A
 single config-driven builder for HDP-ready laminar columns of any size lives in
 `jaxfne.hdp_network` (`HDPColumnConfig` + `build_model`/`apply_drive_correction`/`run`) —
 size is a config field rather than a per-N function.
 
-**HDP integration into `core.py`/`RuntimeConfig` remains an open task**, so it is driven
-directly against a `jtfne.construct()`-built `Model`'s `emitter`/`edge_list` params,
-then hand-assembled into a `jtfne.Signals` container for `jtfne.vis.spectrolaminar_suite`:
+HDP is reachable through `RuntimeConfig(enable_hdp=True, hdp_params=...)`. This
+tutorial also shows the `jaxfne.hdp_network` convenience builder, which drives
+the same kernel and returns diagnostics that can be passed to the
+`jtfne.vis.spectrolaminar_suite` workflow:
 
 ```python
 import jax, jax.numpy as jnp, numpy as np
@@ -217,7 +225,7 @@ config to reach for when the goal is a **long, stationary** run.
 ### Avoiding HDP-induced oversynchrony
 
 `DEFAULT_HDP`'s strong restoring force (`K_ctrl=5.0`) combined with `tau_i =
-tau_0_ms * size_i**2` (E cells default to `size=5`, so `tau_i=5000` ms) makes `H_i`
+tau_0_ms * size_i**3` (E cells default to `size=5`, so `tau_i=25000` ms) makes `H_i`
 almost static (`H_std ≈ 0.0006`). Lacking a per-neuron variability driver, population
 spiking reads as near-regular ("ECG-like") rather than async-irregular — exactly the
 high-synchrony failure mode the **low synchrony** prerequisite above warns about.

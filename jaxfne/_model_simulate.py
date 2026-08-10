@@ -458,11 +458,142 @@ def _maybe_poisson_final_step(self: "Model", sources: Any) -> "Optional[dict[str
         return {"applied_to": "final_timestep_only", "error": f"{type(exc).__name__}: {exc}"}
 
 
+def _simulate_continuation_arrays(
+    self: "Model",
+    sim: Simulation,
+    runtime_cfg: RuntimeConfig,
+    drive_schedule: Optional[jax.Array],
+    continuation: "Any | None",
+):
+    """Run one segment through the explicit full-state continuation path."""
+    from ._pipeline import (
+        ContinuationState,
+        compile_step_fn,
+        continuation_state_from_model,
+        run_continuation,
+    )
+
+    if runtime_cfg.enable_homeostasis:
+        raise ValueError(
+            "full-state continuation currently supports recurrent and HDP "
+            "edge-list kernels, not the homeostasis dispatch"
+        )
+    ablation_mode = getattr(sim, "ablation", None)
+    if ablation_mode is not None:
+        raise ValueError(
+            "full-state continuation temporarily does not support "
+            f"ablation={ablation_mode!r}; the continuation kernel does not "
+            "propagate ablation semantics"
+        )
+    if runtime_cfg.recurrent_backend != "edge_list":
+        raise ValueError(
+            "full-state continuation requires recurrent_backend='edge_list'"
+        )
+    if runtime_cfg.synaptic_kernel != "exponential":
+        raise ValueError(
+            "full-state continuation temporarily supports only "
+            "synaptic_kernel='exponential'; requested "
+            f"{runtime_cfg.synaptic_kernel!r}"
+        )
+    if sim.poisson_drive is not None:
+        raise ValueError(
+            "full-state continuation requires an explicit drive schedule; "
+            "poisson_drive is pre-generated per simulation and cannot be "
+            "continued without its drive cursor"
+        )
+
+    emitter: IzhikevichParams = self.params["emitter"]
+    n_neurons = emitter.n_neurons
+    if drive_schedule is None:
+        schedule = jnp.zeros(
+            (sim.n_steps, n_neurons), dtype=runtime_cfg.jnp_dtype
+        )
+    else:
+        schedule = jnp.asarray(drive_schedule, dtype=runtime_cfg.jnp_dtype)
+        if schedule.shape != (sim.n_steps, n_neurons):
+            raise ValueError(
+                "drive schedule shape must be "
+                f"({sim.n_steps}, {n_neurons}), got {schedule.shape}"
+            )
+
+    if continuation is None:
+        state = continuation_state_from_model(self, seed=sim.seed)
+    elif isinstance(continuation, ContinuationState):
+        state = continuation
+    else:
+        raise TypeError(
+            "continuation must be a jaxfne.ContinuationState returned by "
+            "simulate(..., return_state=True)"
+        )
+
+    if runtime_cfg.enable_hdp:
+        hp = dict(runtime_cfg.hdp_params or {})
+        hdp_kwargs = {
+            "H_min": hp.get("H_min", 0.1),
+            "H_max": hp.get("H_max", 10.0),
+            "tau_0_ms": hp.get("tau_0_ms", 100.0),
+            "alpha": hp.get("alpha", 0.0),
+            "beta": hp.get("beta", 0.0),
+            "gamma": hp.get("gamma", 0.0),
+            "delta": hp.get("delta", 0.0),
+            "C_spike": hp.get("C_spike", 0.0),
+            "K_HDP": hp.get("K_HDP", 1.0),
+            "K_ctrl": hp.get("K_ctrl", 0.0),
+            "K_w_ctrl": hp.get("K_w_ctrl", 0.0),
+            "rho_passive": hp.get("rho_passive", 0.0),
+            "barrier_c": hp.get("barrier_c", 0.0),
+            "barrier_d": hp.get("barrier_d", 0.0),
+            "barrier_eps": hp.get("barrier_eps", 1.0e-3),
+            "w_floor": hp.get("w_floor", 1.0e-3),
+            "w_ceiling": hp.get("w_ceiling", 50.0),
+            "v_floor": hp.get("v_floor", -150.0),
+            "v_ceiling": hp.get("v_ceiling", 100.0),
+            "u_abs_max": hp.get("u_abs_max", 2000.0),
+            "syn_abs_max": hp.get("syn_abs_max", 1.0e4),
+            "H_boost_gain": hp.get("H_boost_gain", 0.0),
+            "size_scale_by_cell_type": hp.get("size_scale_by_cell_type"),
+            "size_scale_override": hp.get("size_scale_override"),
+            "noise_scale": hp.get("noise_scale"),
+            "hdp_rule": hp.get("hdp_rule", "signed_linear"),
+        }
+        step_fn, _ = compile_step_fn(
+            self,
+            dt_ms=sim.dt_ms,
+            kernel="hdp",
+            record_weight_trace=bool(hp.get("record_weight_trace", True)),
+            **hdp_kwargs,
+        )
+    else:
+        step_fn, _ = compile_step_fn(
+            self,
+            dt_ms=sim.dt_ms,
+            kernel="baseline",
+        )
+
+    next_state, outputs = run_continuation(step_fn, state, schedule)
+    voltages, spikes, sources = outputs[:3]
+    if runtime_cfg.enable_hdp:
+        object.__setattr__(
+            self,
+            "_last_hdp_diag",
+            {
+                "H_final": next_state.dynamic.H,
+                "H_trace": outputs[3],
+                "w_final": next_state.dynamic.w,
+                "w_trace": outputs[4] if len(outputs) > 4 else None,
+            },
+        )
+    return voltages, spikes, sources, next_state
+
+
 def simulate(
     self: "Model",
     sim: Simulation,
     paradigm: "Optional[Any]" = None,
-) -> Signals:
+    *,
+    continuation: "Any | None" = None,
+    return_state: bool = False,
+) -> "Signals | tuple[Signals, Any]":
     """Run the default EIG/Izhikevich vertical slice.
 
     When ``paradigm`` is None, behavior is identical to v0.0.11.
@@ -475,6 +606,11 @@ def simulate(
     ``runtime(jit=True)``.  The compiled path preserves the same proxy-field
     truth status as the eager path. No calibrated amplitude, PDE, or empirical
     claim is introduced by stimulus injection.
+
+    ``return_state=True`` opts into the additive full-state continuation path.
+    It returns ``(Signals, ContinuationState)``; pass that state back through
+    ``continuation=`` for the next segment. ``with_hdp_initial_state`` remains
+    a partial H/W initializer and is not changed by this contract.
     """
     # Local import: _simulate_homeostasis_metadata/_simulate_hdp_metadata stay
     # in core.py (group-6 construct-pipeline territory); Model is their only
@@ -486,7 +622,17 @@ def simulate(
     key = jax.random.PRNGKey(sim.seed)
 
     if isinstance(self.params["emitter"], HomeostaticEIParams):
+        if continuation is not None or return_state:
+            raise ValueError(
+                "full-state continuation is not available for homeostatic_ei"
+            )
         return self._simulate_homeostatic_ei(sim, key, runtime_cfg)
+
+    if (continuation is not None or return_state) and sim.poisson_drive is not None:
+        raise ValueError(
+            "full-state continuation does not support poisson_drive; provide "
+            "an explicit schedule so its cursor is unambiguous"
+        )
 
     schedule = self._resolve_stimulus_schedule(paradigm, sim, runtime_cfg)
     drive_array: Optional[Any] = None
@@ -516,7 +662,19 @@ def simulate(
         shuffled = jax.vmap(lambda arr, k: jax.random.permutation(k, arr))(drive_array.T, keys)
         drive_array = shuffled.T
 
-    voltages, spikes, sources = self._simulate_arrays(sim, key, runtime_cfg, drive_schedule=drive_array)
+    if continuation is not None or return_state:
+        voltages, spikes, sources, continuation_out = _simulate_continuation_arrays(
+            self,
+            sim,
+            runtime_cfg,
+            drive_array,
+            continuation,
+        )
+    else:
+        voltages, spikes, sources = self._simulate_arrays(
+            sim, key, runtime_cfg, drive_schedule=drive_array
+        )
+        continuation_out = None
     time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
         sim.dt_ms, dtype=runtime_cfg.jnp_dtype
     )
@@ -591,7 +749,7 @@ def simulate(
     if getattr(runtime_cfg, "enable_hdp", False):
         diag = getattr(self, "_last_hdp_diag", None)
         metadata["hdp"] = _simulate_hdp_metadata(runtime_cfg, diag)
-    return Signals(
+    signals = Signals(
         time_ms=time_ms,
         V_m=voltages.astype(runtime_cfg.jnp_dtype),
         spikes=spikes,
@@ -599,6 +757,9 @@ def simulate(
         field=field_output,
         metadata=metadata,
     )
+    if return_state:
+        return signals, continuation_out
+    return signals
 
 def _simulate_homeostatic_ei(
     self: "Model",

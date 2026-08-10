@@ -25,7 +25,7 @@ def test_ed9_hdp_bundle_structure_and_stabilization(tmp_path):
     for c in bundle["conditions"].values():
         assert c["rate_spread_hz"]["n"] == 2 and "std" in c["rate_spread_hz"]
         assert c["all_vm_finite"] is True
-    # null control: H stays pinned at 1.0
+    # baseline condition: H-state null and HDP weight-term null
     assert bundle["conditions"]["null"]["H_mean"]["mean"] == 1.0
     assert bundle["conditions"]["null"]["H_std"]["mean"] == 0.0
     # h_dynamics: H moves away from 1.0 once alpha/gamma/K_ctrl are nonzero

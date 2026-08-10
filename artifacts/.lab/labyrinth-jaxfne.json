@@ -9,7 +9,9 @@
     "links": []
   },
   "status": "verified",
-  "notes": [],
+  "notes": [
+    "Context governance cleanup verified current execution grammars, generated checkout-state reporting, and archival markers; the revised mathematical source set is installed under artifacts/project_sources and byte-for-byte verified, while mirror synchronization remains deferred for user-change review."
+  ],
   "issues": [],
   "plan": "",
   "verification": {

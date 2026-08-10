@@ -14,32 +14,48 @@ fields; enabling both raises `ValueError`.
 
 ## The control law
 
-Per neuron, a master state `H_i` (default 1.0) integrates five additive terms:
+Per neuron, a master state `H_i` (default 1.0) integrates the implemented
+income, spending, restoration, and barrier terms:
 
 ```
-tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*r_i - delta*W_i
-                  + K_ctrl*(1 - H_i) - dC/dH_i
+tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
+                  + rho_passive/H_i**2 + K_ctrl*(1 - H_i) - dC/dH_i
 ```
 
 `tau_i = tau_0_ms * size_i**3` (cube law, verified 2026-06-25; size depends on
 cell type via `size_scale_by_cell_type`, or an explicit `size_scale_override` —
 default E `relative_size=5.0` integrates `H` exactly $5^3/1^3 = 125$ times slower
-than `relative_size=1.0`). The five terms are: synaptic income (`alpha`), a
-constant bias (`beta`), an activity drain (`gamma`), a weight-budget drain
-(`delta`), and a restoring control term (`K_ctrl`) plus an optional barrier
-term. `H_i` then drives excitatory/inhibitory weight ODEs:
+than `relative_size=1.0`). The terms are synaptic income (`alpha`), a constant
+bias (`beta`), an H-taxed activity drain (`gamma`), a weight-budget drain
+(`delta`), passive income (`rho_passive`), and a linear restoring control
+(`K_ctrl`), plus an optional barrier term.
 
 ```
-dw_E/dt = +K_HDP * (H_i - 1) * w_E
-dw_I/dt = -K_HDP * (H_i - 1) * w_I
+Delta_H_ij = H_post - H_pre
+w_ij = q_ij * m_ij,  q_ij in {-1, +1}
+
+dm_ij/dt = q_ij * K_HDP * phi(Delta_H_ij) * m_ij
+           + K_w_ctrl * (m0_ij - m_ij)
 ```
 
-**The null control:** `alpha = beta = gamma = delta = C_spike = 0.0` holds
-`H_i` pinned at exactly `1.0` forever, which makes the `K_HDP`-scaled weight
-term identically zero regardless of `K_HDP`'s value. Equivalently, `K_HDP = 0`
-disables plasticity outright even if `H_i` is moving — these are two
-independent ablation axes (whether `H` moves vs. whether weights respond to
-it), unlike homeostasis's single `k_gain` dial.
+For the difference family, `phi(x) = x` for `signed_linear` and
+`phi(x) = x*abs(x)` for `signed_quadratic`. `hebbian_product` is a separate
+product modulation with `phi = H_pre*H_post`; it does not compare pre/post
+homeostatic state.
+
+Use explicit null names:
+
+```
+N_W^HDP       K_HDP * phi(Delta_H_ij) * m_ij = 0
+N_H           dH_i/dt = 0 and C_spike * spike_i = 0
+N_system      (X, W, H)_HDP == (X, W, H)_baseline
+              under matched initial state, inputs, and PRNG
+```
+
+`K_HDP=0` nulls the difference/product weight term, but does not disable the
+H equation or `K_w_ctrl`. `K_ctrl` and `K_w_ctrl` are independent controls:
+the former restores `H` toward 1, while the latter restores edge magnitude
+`m_ij` toward its declared baseline `m0_ij`.
 
 ## Built-in emitter (per-step kernel)
 
@@ -73,11 +89,13 @@ diag = model.last_hdp_diagnostics()   # {"H_trace": ..., "w_trace": ..., ...}
 
 | Key | Meaning |
 |-----|---------|
-| `K_HDP` | Weight-ODE gain (`0` = plasticity disabled / null; default in presets `0.01`) |
+| `K_HDP` | Gain on the selected difference/product weight term (`0` = `N_W^HDP`; does not disable H dynamics or `K_w_ctrl`) |
 | `tau_0_ms` | Base time constant multiplying `size_i**3` (cube law) |
 | `size_scale_by_cell_type`, `size_scale_override` | Per-cell-type (or per-neuron) `size_i` for the cube-law `tau_i`; must be forwarded explicitly — see note below |
-| `alpha`, `beta`, `gamma`, `delta`, `C_spike` | The five `dH/dt` income/drain terms (all default `0.0` — the null) |
-| `K_ctrl` | Restoring control gain pulling `H_i` back toward 1.0 |
+| `alpha`, `beta`, `gamma`, `delta`, `C_spike` | H income/spending terms; `C_spike` is the discrete spike drain |
+| `rho_passive` | Passive H income term, stronger at low positive H |
+| `K_ctrl` | H-state restoring control gain pulling `H_i` back toward 1.0 |
+| `K_w_ctrl` | Independent edge-magnitude restoring gain toward `abs(edges.weight)` |
 | `barrier_c`, `barrier_d` | Barrier-term coefficients near the `H_min`/`H_max` clamps |
 | `record_weight_trace` | Default `True`. Set `False` to skip stacking the per-step, per-edge weight trace (`w_trace`) -- see below |
 
@@ -114,8 +132,9 @@ $$\frac{\text{barrier\_d}}{\text{barrier\_c}} = \left(\frac{H_{max}-1}{1-H_{min}
 At the canonical `H_min=0.1`, `H_max=10.0`, this ratio is `((10-1)/(1-0.1))^2 = 100`.
 This is a property of the barrier potential *alone* (independent of `alpha`/
 `beta`/`gamma`/`delta`/`K_ctrl`/`rho_passive`), and it holds regardless of the
-network, the drive, or any other simulation parameter -- a genuine stability
-guarantee, not a tuned/empirical fact. **`jaxfne.hdp_network.DEFAULT_HDP`
+network, the drive, or any other simulation parameter -- a genuine
+force-balance result, not a tuned/empirical fact. It is not a
+proof of coupled-system convergence or asymptotic stability. **`jaxfne.hdp_network.DEFAULT_HDP`
 ships `barrier_c=barrier_d=0.01` (ratio 1, not 100)** -- solving the same
 minimum-condition equation with equal coefficients gives a pure-barrier
 equilibrium of `H ≈ 5.05`, not `1.0`. `DEFAULT_HDP`'s real recovery-to-1
@@ -185,14 +204,17 @@ tuned for) — never merge them; pick the one matching your goal
 
 The built-in kernel hard-bounds its state (`v`/`u`/synaptic variables, `H_i`
 clamped to `[H_min, H_max]`, weights clamped to `[w_floor, w_ceiling]`) so the
-dynamics stay finite even under extreme drive — verified in
+state remains numerically bounded even under extreme drive — verified in
 `tests/test_homeostatic_stability_v042.py`'s HDP parity tests.
+Bounded is not synonymous with locally stable, asymptotically stable, or
+empirically stable over a specified horizon.
 
 ## Using it as evidence
 
-Because the null control is exact (`H` pinned, weights frozen), HDP is built
-for clean ablation comparisons. `scripts/ed9_hdp_evidence.py` runs a 3-way
-ablation grid (`null` / `h_dynamics` / `both`) over repeated seeds on a
+The H-state and HDP weight-term nulls are separate controls for clean
+ablation comparisons; neither should be called full-system null equivalence.
+`scripts/ed9_hdp_evidence.py` runs a 3-way ablation grid
+(`null` / `h_dynamics` / `both`) over repeated seeds on a
 deliberately imbalanced column and reports rate-spread reduction alongside
 `H_mean`/`H_std`, with the same conservative truth gates as
 `scripts/ed9_homeostasis_evidence.py`.

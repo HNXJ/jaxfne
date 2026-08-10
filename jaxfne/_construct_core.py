@@ -64,8 +64,11 @@ def simulate(
     model: Model,
     sim: Optional[Simulation] = None,
     paradigm: Optional[Any] = None,
+    *,
+    continuation: Any = None,
+    return_state: bool = False,
     **kwargs: Any,
-) -> Signals:
+) -> "Signals | tuple[Signals, Any]":
     """Run a simulation with the given model.
 
     Allows passing either an explicit :class:`Simulation` object, or passing
@@ -97,7 +100,12 @@ def simulate(
         raise ValueError(
             "Cannot specify both a Simulation object and individual simulation parameters as keyword arguments."
         )
-    return model.simulate(sim, paradigm=paradigm)
+    return model.simulate(
+        sim,
+        paradigm=paradigm,
+        continuation=continuation,
+        return_state=return_state,
+    )
 
 
 def compute_fields(model: "Model", signals: "Signals") -> "FieldOutput":

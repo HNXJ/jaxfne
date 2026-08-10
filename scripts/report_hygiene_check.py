@@ -37,6 +37,12 @@ EXCLUDED_PREFIXES = (
 # Excluded files
 EXCLUDED_FILES = {
     Path("scripts/report_hygiene_check.py"),
+    # Governance/context sources intentionally name mirror directories and
+    # audit exclusions; scripts/audit_agent_context.py checks those surfaces.
+    Path("scripts/audit_agent_context.py"),
+    Path("skills/README.md"),
+    Path("skills/PATCH.md"),
+    Path("skills/ANTIGRAVITY_PROMPT.md"),
     Path("tests/test_agent_context_hygiene.py"),
     Path("pyproject.toml"), # references /.claude
 }

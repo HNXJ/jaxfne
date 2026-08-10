@@ -389,9 +389,16 @@ As `simulate_edge_recurrent_izhikevich`, plus Homeostasis-Dependent Plasticity (
 per-neuron resource state `H_i` (default 1.0, clamped to `[H_min, H_max]`) that both synaptic
 drive and the neuron's own spiking feed back into, and that drives a weight-update rule selected
 by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_product"`)
-(`jaxfne/emitters.py:999`). All plasticity/HDP gains (`alpha`, `beta`, `gamma`, `delta`,
-`C_spike`) default to `0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
-term when those gains are `0.0` — so the defaults are a null control. Per-neuron `tau_i =
+(`jaxfne/emitters.py:1039`). For an edge `i -> j`, define
+`Delta_H = H_post - H_pre` and `w = q*m`; the difference-family magnitude term is
+`q*K_HDP*phi(Delta_H)*m`, with `phi(x)=x` for `"signed_linear"` and
+`phi(x)=x*abs(x)` for `"signed_quadratic"`. `"hebbian_product"` is separate product
+modulation using `H_pre*H_post`, not another difference rule. The independent
+`K_w_ctrl*(m0-m)` term restores magnitude toward the declared baseline. All
+H income/spending gains (`alpha`, `beta`, `gamma`, `delta`, `C_spike`) default to
+`0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
+term when those gains are `0.0` — so the defaults are an H-state/weight-term null,
+not a general full-system equivalence claim. Per-neuron `tau_i =
 tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`
 (`jaxfne/emitters.py:978`: `E=5.0`, `PV=1.0`, `Inl=1.0`, `SST=1.5`, `Ing=1.5`, `VIP=1.5`), unless
 overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes

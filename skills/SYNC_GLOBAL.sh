@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Sync repo-root skills/ (source of truth) to global agent skill directories.
-# Run from repo root after merging skill changes: bash skills/SYNC_GLOBAL.sh
+#
+# Synchronize canonical repository skills to user-level mirrors.
+# Default: read-only drift check.
+# Apply: bash skills/SYNC_GLOBAL.sh --apply
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,6 +11,7 @@ SRC="${REPO_ROOT}/skills"
 FOLDERS=(
   catalog-glossary-jaxfne
   jaxfne-config
+  jaxfne-harden
   jaxfne-modeling-optimization-schema
   jaxfne-neural-network
   jaxfne-neural-tensor
@@ -27,48 +30,72 @@ DESTS=(
   "${HOME}/.agents/skills"
 )
 
-STALE_EXTENSIONLESS=(
-  jaxfne-objective-grammar
-  jaxfne-cortical-column-default
-  jaxfne-signals-probe-objective-chain
-  jaxfne-configuration-fluent-api
-)
+MODE="check"
+case "${1:-}" in
+  "") ;;
+  --check) MODE="check" ;;
+  --apply) MODE="apply" ;;
+  --help|-h)
+    printf '%s\n' \
+      "Usage: bash skills/SYNC_GLOBAL.sh [--check|--apply]" \
+      "  --check  report mirror drift without writing (default)" \
+      "  --apply  copy repository skills to named mirrors"
+    exit 0
+    ;;
+  *)
+    printf 'unknown option: %s\n' "$1" >&2
+    exit 2
+    ;;
+esac
 
-# Folders merged away in the 2026-06-30 consolidation -- remove their old
-# global copies outright (rsync --delete only cleans WITHIN a synced folder,
-# it does not remove a destination folder that's no longer in FOLDERS above).
-STALE_FOLDERS=(
-  jaxfne-configuration-fluent-api
-  jaxfne-cortical-column-default
-  jaxfne-visualization-schema
-  jaxfne-signals-probe-objective-chain
-)
+if ! command -v rsync >/dev/null 2>&1; then
+  printf '%s\n' "rsync is required for skill mirror checks" >&2
+  exit 2
+fi
 
-echo "Source: ${SRC}"
-echo "Repo SHA: $(git -C "${REPO_ROOT}" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+printf 'canonical_source=%s\n' "${SRC}"
+printf 'mode=%s\n' "${MODE}"
 
+status=0
 for dest in "${DESTS[@]}"; do
-  mkdir -p "${dest}"
-  for stale in "${STALE_EXTENSIONLESS[@]}"; do
-    if [[ -e "${dest}/${stale}" && ! -d "${dest}/${stale}" ]]; then
-      rm -f "${dest}/${stale}"
-      echo "removed stale extensionless ${dest}/${stale}"
-    fi
-  done
-  for stale in "${STALE_FOLDERS[@]}"; do
-    if [[ -d "${dest}/${stale}" ]]; then
-      rm -rf "${dest}/${stale}"
-      echo "removed merged-away folder ${dest}/${stale}"
-    fi
-  done
-  for folder in "${FOLDERS[@]}"; do
-    if [[ ! -d "${SRC}/${folder}" ]]; then
-      echo "WARN: missing ${SRC}/${folder}" >&2
+  if [[ "${MODE}" == "apply" && -d "${dest}/.git" ]]; then
+    mirror_status="$(git -C "${dest}" status --porcelain)"
+    if [[ -n "${mirror_status}" ]]; then
+      printf 'refusing_dirty_mirror=%s\n' "${dest}" >&2
+      status=1
       continue
     fi
-    rsync -a --delete "${SRC}/${folder}/" "${dest}/${folder}/"
-    echo "synced ${folder} -> ${dest}/"
+  fi
+  for folder in "${FOLDERS[@]}"; do
+    source="${SRC}/${folder}/"
+    target="${dest}/${folder}/"
+    if [[ ! -d "${source}" ]]; then
+      printf 'missing_source=%s\n' "${folder}" >&2
+      status=1
+      continue
+    fi
+    if [[ "${MODE}" == "apply" ]]; then
+      mkdir -p "${dest}/${folder}"
+      rsync -a --delete "${source}" "${target}"
+      printf 'synced=%s:%s\n' "${dest}" "${folder}"
+    else
+      if [[ ! -d "${target}" ]]; then
+        printf 'drift=%s:%s (missing mirror)\n' "${dest}" "${folder}"
+        status=1
+        continue
+      fi
+      dry_run="$(rsync -ain --delete "${source}" "${target}")"
+      if [[ -n "${dry_run}" ]]; then
+        printf 'drift=%s:%s\n' "${dest}" "${folder}"
+        status=1
+      else
+        printf 'ok=%s:%s\n' "${dest}" "${folder}"
+      fi
+    fi
   done
 done
 
-echo "Done. Verify: ls ~/.claude/skills/ | grep jaxfne"
+if [[ "${MODE}" == "check" && "${status}" -ne 0 ]]; then
+  printf '%s\n' "mirror drift detected; review the dry-run output before --apply" >&2
+fi
+exit "${status}"

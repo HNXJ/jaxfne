@@ -569,6 +569,7 @@ def simulate_edge_recurrent_izhikevich(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -581,6 +582,8 @@ def simulate_edge_recurrent_izhikevich(
     native uncalibrated current at each timestep. ``noise_scale`` sets the
     stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
+    ``syn_state`` for deterministic or explicitly keyed segmented continuation.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -608,12 +611,20 @@ def simulate_edge_recurrent_izhikevich(
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
-    init = (
-        params.v0.astype(jdtype),
-        params.u0.astype(jdtype),
-        jnp.zeros_like(params.v0, dtype=jdtype),
-        jnp.zeros((edges.n_edges,), dtype=jdtype),
-    )
+    if init_state is None:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+        )
+    else:
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+        )
 
     if drive_schedule is None:
         def step(carry, noise_t):
@@ -1049,10 +1060,10 @@ def simulate_edge_recurrent_izhikevich_hdp(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
-    # Homeostasis-Dependent Plasticity (HDP) parameters. alpha=beta=gamma=
-    # delta=C_spike=0.0 (the default) hold H_i fixed at its 1.0 initial value
-    # forever, which makes the K_HDP-scaled weight term identically zero
-    # regardless of K_HDP -- the null control.
+    # Homeostasis-Dependent Plasticity (HDP) parameters. With the default
+    # zero H-driving terms, H_i stays at its 1.0 initial value and the
+    # difference/product weight term is null regardless of K_HDP. This is the
+    # default H-state/weight-term null, not a general full-system equivalence.
     H_min: float = 0.1,
     H_max: float = 10.0,
     tau_0_ms: float = 100.0,
@@ -1096,13 +1107,24 @@ def simulate_edge_recurrent_izhikevich_hdp(
                           + rho_passive/H_i**2 - dC/dH_i        (r_i = previous step's spike indicator)
         H_i    <- H_i - C_spike                                 (discrete drain on H_i when i itself spikes)
 
-    ``hdp_rule`` determines the weight-update family (default "signed_linear"):
-        signed_linear: dw_E/dt = +K_HDP * (H_pre - H_post) * w_E,
-                       dw_I/dt = -K_HDP * (H_pre - H_post) * w_I
-        signed_quadratic: dw_E/dt = +K_HDP * (H_pre - H_post)|H_pre - H_post| * w_E,
-                          dw_I/dt = -K_HDP * (H_pre - H_post)|H_pre - H_post| * w_I
-        hebbian_product: dw_E/dt = +K_HDP * H_pre * H_post * w_E,
-                         dw_I/dt = -K_HDP * H_pre * H_post * w_I
+    ``hdp_rule`` determines the weight-magnitude update family (default
+    "signed_linear").  Let ``m = abs(w)`` and
+    ``delta_H = H_post - H_pre``:
+
+        difference family:
+          signed_linear:    dm_E/dt = +K_HDP * delta_H * m_E
+                            dm_I/dt = -K_HDP * delta_H * m_I
+          signed_quadratic: dm_E/dt = +K_HDP * delta_H*abs(delta_H) * m_E
+                            dm_I/dt = -K_HDP * delta_H*abs(delta_H) * m_I
+
+        product modulation:
+          hebbian_product:  dm_E/dt = +K_HDP * H_pre * H_post * m_E
+                            dm_I/dt = -K_HDP * H_pre * H_post * m_I
+
+    ``signed_linear`` and ``signed_quadratic`` are the difference-family HDP
+    rules.  ``hebbian_product`` is a separate product modulation: it does not
+    compare pre/post homeostatic state and is not sign-equivalent to either
+    difference rule.
 
     ``gamma*H_i*r_i`` is an H-taxed output drain: firing costs more for neurons
     with higher H_i (resource-abundant neurons can sustain more activity without
@@ -1133,14 +1155,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
     gap). ``K_ctrl=0.0`` (default) is the null control -- no behavior change
     unless explicitly set.
 
-    ``i`` indexes the postsynaptic neuron in the weight ODEs (matching the
-    existing homeostatic-plasticity sign convention elsewhere in this
-    module). ``K_HDP`` is a single global gain so HDP composes additively
-    with any future plasticity rule applied to the same edges
-    (``dw/dt = dw/dt_other + K_HDP * dw/dt_HDP``): ``K_HDP=1`` is normal
-    stabilization, ``K_HDP=0`` disables HDP outright, ``K_HDP<0`` is an
+    ``pre`` and ``post`` index the presynaptic and postsynaptic endpoints in
+    the weight update. ``K_HDP`` is a single global gain for the
+    homeostatic-difference-driven term (or the separate product-modulation
+    term when ``hdp_rule="hebbian_product"``): ``K_HDP=0`` makes that
+    plasticity term null, but does not disable the H equation or the
+    independent ``K_w_ctrl`` weight-restoration term. ``K_HDP<0`` is an
     explicit anti-homeostatic stress-test mode, and ``|K_HDP|>1``/``<1``
-    over/under-weights the stabilizing term relative to other rules.
+    over/under-weights the selected term.
 
     H_i is a resource-capacity reading, not a stress accumulator: synaptic
     *input* (``alpha*I_syn_i``) raises it (income), while the neuron's own
@@ -1150,15 +1172,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
     for stability: an overactive neuron spends faster than it earns, so
     ``H_i`` falls below 1; this must *weaken* its excitatory weights and
     *strengthen* its inhibitory weights to correct the overactivity. With the
-    ``hdp_rule="signed_linear"`` (the default), ``H_i < 1`` gives
-    ``dw_E/dt < 0`` (weakens, since ``K_HDP*(H_pre-H_post)`` is negative
-    if ``H_pre`` is the presynaptic neuron with typical inputs and
-    ``H_post`` is the resource-starved postsynaptic target) and ``dw_I/dt > 0``
-    (strengthens, since ``-K_HDP*(H_pre-H_post)`` is positive) -- the
-    restoring direction. The ``signed_quadratic`` and ``hebbian_product``
-    rules are alternative weight-basis functions; their sign orientation is
-    preserved via the same E-branch / I-branch split (``exc_mask`` and its
-    negation) that stabilizes the linear rule.
+    ``hdp_rule="signed_linear"`` (the default), a lower-H target has
+    ``H_post-H_pre < 0``, so ``dm_E/dt < 0`` (weakens excitation) and
+    ``dm_I/dt > 0`` (strengthens inhibitory magnitude) -- the restoring
+    direction. The ``signed_quadratic`` rule preserves this orientation while
+    scaling the difference quadratically. ``hebbian_product`` is different:
+    for positive H and positive ``K_HDP`` it increases excitatory magnitude and
+    decreases inhibitory magnitude unless another term or a bound opposes it.
 
     Update order per step (as specified): (1) synaptic current, (2) update
     H_i, (3) update plastic weights from the updated H_i, (4) integrate the
@@ -1205,8 +1225,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             weight burden W_i (default 0.0)
         C_spike: discrete H_i drain charged when the neuron itself spikes,
             not scaled by tau_i (default 0.0)
-        K_HDP: global plasticity gain shared by both weight ODEs (default
-            1.0; 0.0 disables HDP, negative is anti-homeostatic)
+        K_HDP: global gain on the selected weight-modulation term (default
+            1.0; 0.0 nulls that term, negative is anti-homeostatic for the
+            difference family)
         K_ctrl: linear restoring-force gain, dH/dt += K_ctrl*(1-H_i) (default
             0.0, null control). Two-sided: pulls H_i up when below 1, down
             when above -- unlike rho_passive (always >=0, floor-only rescue).
@@ -1231,9 +1252,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
             add rho_passive/H_i**2 to dH_i/dt, pulling H_i toward 1 without
             an explicit linear controller)
         hdp_rule: weight-update rule family (default "signed_linear"):
-            "signed_linear": dw ~ (H_pre - H_post)
-            "signed_quadratic": dw ~ (H_pre - H_post)|H_pre - H_post|
-            "hebbian_product": dw ~ H_pre * H_post
+            difference family:
+              "signed_linear": dw_mag ~ (H_post - H_pre)
+              "signed_quadratic": dw_mag ~ (H_post - H_pre)|H_post - H_pre|
+            separate product modulation:
+              "hebbian_product": dw_mag ~ H_pre * H_post
         barrier_c, barrier_d: asymmetric double-barrier safety-potential
             coefficients repelling H_i from H_min/H_max respectively
             (default 0.0/0.0, no contribution); for the minimum of
