@@ -607,9 +607,10 @@ def with_hdp_initial_state(
     additive-override pattern.
 
     Args:
-        H0: Per-neuron initial homeostatic factor (shape: [n_neurons]).
+        H0: Per-neuron initial H-state. Scalar HDP uses shape
+            ``[n_neurons]``; vector-H uses ``[n_neurons, h_state_dim]``.
             Defaults to the HDP kernel's own equilibrium value (1.0 for
-            every neuron) when not provided.
+            every coordinate) when not provided.
         w0: Per-edge initial weight (shape: [n_edges], aligned to
             ``self.params["edge_list"]``). Defaults to the edge list's
             native ``weight`` when not provided.

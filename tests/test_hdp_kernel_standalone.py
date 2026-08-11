@@ -134,6 +134,41 @@ def _run_two_neuron_edge(
     return diag
 
 
+def test_h_state_dim_one_is_exact_scalar_kernel_embedding():
+    params, edges = _make_params_edges(3, 4, seed=7)
+    common = dict(
+        n_steps=5,
+        dt_ms=0.5,
+        key=jax.random.PRNGKey(12),
+        dtype="float32",
+        drive_schedule=jnp.zeros((5, 3)),
+        noise_scale=0.0,
+        alpha=0.02,
+        beta=0.01,
+        gamma=0.03,
+        delta=0.01,
+        K_HDP=0.02,
+        K_ctrl=0.1,
+        K_w_ctrl=0.001,
+        rho_passive=0.01,
+        barrier_c=0.0,
+        barrier_d=0.0,
+    )
+    legacy = hdp_kernel(params, edges, **common)
+    generalized = hdp_kernel(
+        params,
+        edges,
+        **common,
+        h_state_dim=1,
+        h_state_readout=jnp.array([1.0]),
+        h_state_coupling=jnp.zeros((1, 1)),
+    )
+    for legacy_arr, generalized_arr in zip(legacy[:3], generalized[:3]):
+        assert jnp.array_equal(legacy_arr, generalized_arr)
+    for key in ("H_trace", "H_final", "w_trace", "w_final"):
+        assert jnp.array_equal(legacy[3][key], generalized[3][key])
+
+
 def test_difference_family_signs_cover_all_four_canonical_edge_types():
     """The adopted delta_H = H_post - H_pre convention has one E/I magnitude
     direction for each of E->E, E->I, I->E, and I->I."""

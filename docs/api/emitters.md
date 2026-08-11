@@ -386,7 +386,8 @@ keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1
 ### `simulate_edge_recurrent_izhikevich_hdp(...) -> (voltages, spikes, sources, diagnostics_dict)`
 
 As `simulate_edge_recurrent_izhikevich`, plus Homeostasis-Dependent Plasticity (HDP): a
-per-neuron resource state `H_i` (default 1.0, clamped to `[H_min, H_max]`) that both synaptic
+per-neuron finite-dimensional hidden biophysical H-state `H_i` (default scalar
+1.0, clamped to `[H_min, H_max]`) that both synaptic
 drive and the neuron's own spiking feed back into, and that drives a weight-update rule selected
 by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_product"`)
 (`jaxfne/emitters.py:1039`). For an edge `i -> j`, define
@@ -402,13 +403,19 @@ not a general full-system equivalence claim. Per-neuron `tau_i =
 tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`
 (`jaxfne/emitters.py:978`: `E=5.0`, `PV=1.0`, `Inl=1.0`, `SST=1.5`, `Ing=1.5`, `VIP=1.5`), unless
 overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes
-`H_trace` and `w_trace` (each `(n_steps, ...)`), `H_final`/`w_final`, plus optional
+The current scalar HDP realization is the `d_H=1` case. `H_trace` has shape
+`(n_steps, n_neurons)` for `h_state_dim=1` and
+`(n_steps, n_neurons, h_state_dim)` for vector H. The diagnostics also include
+`w_trace`, `H_final`, and `w_final`, plus optional
 per-term `dH_*_trace` diagnostics when `record_dH_components=True` and `edge_current_trace` when
 `record_edge_current=True`. `record_weight_trace` (default `True`) controls whether `w_trace`
 (shape `(n_steps, n_edges)`, the dominant memory cost at scale — e.g. 10,000 steps x 2,000,000
 edges x 4 bytes = 80GB) is stacked at all; set `False` to get `w_trace=None` while `w_final` and
-HDP's actual dynamics stay unaffected. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
-reference — it is extensive and not duplicated here.
+HDP's actual dynamics stay unaffected. For `h_state_dim>1`, componentwise H
+dynamics are the default; `h_state_readout` supplies the current scalar
+adaptation projection and `h_state_coupling` supplies an optional square
+component-coupling matrix. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
+reference — it is extensive and kept in the source docstring.
 
 ---
 

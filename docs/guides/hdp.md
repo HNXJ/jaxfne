@@ -1,21 +1,23 @@
 # HDP (Homeostasis-Dependent Plasticity)
 
 **Stabilize population activity and adapt synaptic weights** with a structured
-homeostatic controller: each neuron carries a slow master state `H_i` that
-drives both intrinsic dynamics and edge-weight updates.
+H-state. For each modeled biological entity, `H_i(t)` is a finite-dimensional
+hidden biophysical state propagated with the neural dynamics. Its coordinates
+provide latent variables that adaptation rules can use.
 
-Where [homeostasis](homeostasis.md) adapts an excitability bias per neuron, HDP
-couples activity, synaptic budget, and weight plasticity in one loop. Like
-homeostasis, it is a *control method* for simulations — not a claimed biological
-learning mechanism.
+The current scalar HDP realization uses one homeostatic-like/resource-regulatory
+coordinate, `d_H=1`, and couples activity, synaptic budget, and weight
+adaptation in one loop. The generalized H-state supports multiple coordinates,
+optional coupling, and adaptation-specific readouts.
 
 `enable_homeostasis` and `enable_hdp` are mutually exclusive `RuntimeConfig`
 fields; enabling both raises `ValueError`.
 
 ## The control law
 
-Per neuron, a master state `H_i` (default 1.0) integrates the implemented
-income, spending, restoration, and barrier terms:
+The scalar compatibility form uses a per-neuron master state `H_i` (default
+1.0) and integrates the implemented income, spending, restoration, and barrier
+terms:
 
 ```
 tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
@@ -57,6 +59,57 @@ H equation or `K_w_ctrl`. `K_ctrl` and `K_w_ctrl` are independent controls:
 the former restores `H` toward 1, while the latter restores edge magnitude
 `m_ij` toward its declared baseline `m0_ij`.
 
+### Generalized H-state
+
+The general H-state associated with entity `i` is:
+
+$$H_i(t)\in\mathbb{R}^{d_H}.$$
+
+The canonical sparse edge-list execution propagates it with:
+
+$$H_{t+1}=F_H(H_t,X_t,U_t,\Theta_t).$$
+
+Adaptation rules may consume the full state:
+
+$$\dot{\Theta}=G_\Theta(H_{\mathrm{pre}},H_{\mathrm{post}},X,\Theta).$$
+
+`h_state_dim=1` preserves the external legacy shape `(n_neurons)`. For
+`h_state_dim>1`, `H` has shape `(n_neurons, h_state_dim)` and its coordinates
+follow componentwise dynamics by default. An optional `h_state_coupling`
+matrix supplies the initial supported coupling mechanism; omitting it means
+zero coupling.
+
+The current scalar HDP weight rule uses one supported adaptation-specific
+readout:
+
+$$h_i=R_H(H_i).$$
+
+The initial implementation supports the linear form `r^T H_i`, configured with
+`h_state_readout`; when omitted, the first coordinate is selected. The readout
+serves the current scalar weight rule while the general H-state contract
+remains vector-valued for future adaptation rules.
+
+```python
+runtime_hdp = jtfne.RuntimeConfig(
+    enable_hdp=True,
+    hdp_params={
+        "h_state_dim": 2,
+        "h_state_readout": [0.5, 0.5],
+        "h_state_coupling": [[-0.02, 0.01], [0.01, -0.02]],
+        "noise_scale": 0.0,
+    },
+)
+signals, state = jtfne.simulate(
+    model, duration_ms=10.0, dt_ms=0.5, runtime=runtime_hdp,
+    return_state=True,
+)
+```
+
+The continuation state carries vector `H` without a second state
+representation. Ordinary and continuation HDP dispatch share the same
+deterministic per-step PRNG contract, so matched scalar runs remain identical.
+Readout and coupling dimensions are validated explicitly.
+
 ## Built-in emitter (per-step kernel)
 
 Enable it on the runtime; the built-in Izhikevich kernel applies the weight
@@ -97,18 +150,23 @@ diag = model.last_hdp_diagnostics()   # {"H_trace": ..., "w_trace": ..., ...}
 | `K_ctrl` | H-state restoring control gain pulling `H_i` back toward 1.0 |
 | `K_w_ctrl` | Independent edge-magnitude restoring gain toward `abs(edges.weight)` |
 | `barrier_c`, `barrier_d` | Barrier-term coefficients near the `H_min`/`H_max` clamps |
+| `h_state_dim` | H-state dimensionality; `1` keeps legacy `(n_neurons)`, larger values use `(n_neurons, h_state_dim)` |
+| `h_state_readout` | Linear readout vector for the current scalar HDP weight rule; defaults to the first coordinate |
+| `h_state_coupling` | Optional square component-coupling matrix; omitted means zero coupling |
 | `record_weight_trace` | Default `True`. Set `False` to skip stacking the per-step, per-edge weight trace (`w_trace`) -- see below |
 
 `model.last_hdp_diagnostics()` returns `H_final`/`H_trace` (shape
-`(n_steps, n_neurons)`) and `w_final`/`w_trace` (shape `(n_steps, n_edges)`)
+`(n_steps, n_neurons)` for scalar H or `(n_steps, n_neurons, h_state_dim)` for
+vector H) and `w_final`/`w_trace` (shape `(n_steps, n_edges)`)
 from the most recent `enable_hdp=True` run, or `None` if the last run had it
 off.
 
 **Memory at scale:** `w_trace` is `(n_steps, n_edges)`, which dominates
 memory for large networks run over many steps (e.g. 10,000 steps x
-2,000,000 edges x 4 bytes = 80GB -- a real reproduced OOM). `H_trace` and
-the spike/voltage traces are only `(n_steps, n_neurons)`, ~100x smaller at a
-typical `max_in_degree` and not the source of this. If you don't need the
+2,000,000 edges x 4 bytes = 80GB -- a real reproduced OOM). Scalar `H_trace`
+and spike/voltage traces use `(n_steps, n_neurons)`; vector `H_trace` uses
+`(n_steps, n_neurons, h_state_dim)`. These remain ~100x smaller at a typical
+`max_in_degree` and are not the source of this. If you don't need the
 full per-step weight history, set `hdp_params={"record_weight_trace": False, ...}`
 -- `w_final` (the terminal weight state) and HDP's actual dynamics are
 unaffected either way; only `w_trace` becomes `None`.

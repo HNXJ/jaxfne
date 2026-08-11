@@ -572,6 +572,267 @@ def test_mcc2_h_carrier_preserves_future_trailing_shape() -> None:
     assert restored.dynamic.H.shape == (EXPECTED_NEURONS, 2)
 
 
+@pytest.fixture(scope="module")
+def vector_h_cases(model: Any) -> dict[str, Any]:
+    """Execute one independent/coupled vector-H continuation matrix."""
+    H0 = jnp.tile(jnp.asarray([[1.0, 0.5]], dtype=jnp.float32), (EXPECTED_NEURONS, 1))
+    vector_model = model.with_hdp_initial_state(H0=H0)
+    independent_runtime = hdp_runtime(
+        noise_scale=0.2,
+        h_state_dim=2,
+        h_state_readout=(0.5, 0.5),
+        h_state_coupling=((0.0, 0.0), (0.0, 0.0)),
+        alpha=0.2,
+        K_ctrl=0.1,
+    )
+    coupled_runtime = hdp_runtime(
+        noise_scale=0.2,
+        h_state_dim=2,
+        h_state_readout=(0.5, 0.5),
+        h_state_coupling=((-0.02, 0.01), (0.01, -0.02)),
+        alpha=0.2,
+        K_ctrl=0.1,
+    )
+    common = dict(
+        dt_ms=0.5,
+        seed=17,
+        record_sources=True,
+        record_fields=False,
+        return_state=True,
+    )
+    independent_full, independent_full_state = jtfne.simulate(
+        vector_model,
+        duration_ms=6.0,
+        runtime=independent_runtime,
+        **common,
+    )
+    independent_first, independent_first_state = jtfne.simulate(
+        vector_model,
+        duration_ms=3.0,
+        runtime=independent_runtime,
+        **common,
+    )
+    independent_second, independent_second_state = jtfne.simulate(
+        vector_model,
+        duration_ms=3.0,
+        runtime=independent_runtime,
+        seed=999,
+        continuation=independent_first_state,
+        **{key: value for key, value in common.items() if key != "seed"},
+    )
+    coupled, coupled_state = jtfne.simulate(
+        vector_model,
+        duration_ms=6.0,
+        runtime=coupled_runtime,
+        **common,
+    )
+    return {
+        "full": independent_full,
+        "full_state": independent_full_state,
+        "first": independent_first,
+        "second": independent_second,
+        "second_state": independent_second_state,
+        "coupled": coupled,
+        "coupled_state": coupled_state,
+        "model": vector_model,
+        "runtime": independent_runtime,
+    }
+
+
+def test_mcc2_vector_h_independent_components_are_finite(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    state = vector_h_cases["full_state"]
+    assert state.dynamic.H.shape == (EXPECTED_NEURONS, 2)
+    assert state.dynamic.w.shape == (EXPECTED_EDGES,)
+    assert jnp.all(jnp.isfinite(state.dynamic.H))
+    assert jnp.all(jnp.isfinite(state.dynamic.v))
+    assert jnp.all(jnp.isfinite(state.dynamic.w))
+    assert vector_h_cases["full"].metadata["hdp"]["h_state"]["h_state_dim"] == 2
+    json.dumps(vector_h_cases["full"].metadata, allow_nan=False)
+
+
+def test_mcc2_vector_h_continuation_matches_uninterrupted_run(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    full = vector_h_cases["full"]
+    first = vector_h_cases["first"]
+    second = vector_h_cases["second"]
+    full_state = vector_h_cases["full_state"]
+    second_state = vector_h_cases["second_state"]
+    for full_arr, segmented_arr in (
+        (full.V_m, jnp.concatenate((first.V_m, second.V_m), axis=0)),
+        (full.spikes, jnp.concatenate((first.spikes, second.spikes), axis=0)),
+        (full.sources, jnp.concatenate((first.sources, second.sources), axis=0)),
+    ):
+        assert jnp.array_equal(full_arr, segmented_arr)
+    assert jnp.array_equal(full_state.dynamic.H, second_state.dynamic.H)
+    assert jnp.array_equal(full_state.dynamic.w, second_state.dynamic.w)
+
+
+def test_mcc2_vector_h_coupling_is_explicit_and_changes_the_state(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    independent = vector_h_cases["full_state"].dynamic.H
+    coupled = vector_h_cases["coupled_state"].dynamic.H
+    assert coupled.shape == independent.shape
+    assert jnp.all(jnp.isfinite(coupled))
+    assert not jnp.array_equal(independent, coupled)
+    assert vector_h_cases["coupled"].metadata["hdp"]["h_state"]["coupling"]["enabled"]
+
+
+def test_mcc2_vector_h_nulls_remain_componentwise_distinct(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    model = vector_h_cases["model"]
+    h_null_runtime = hdp_runtime(
+        noise_scale=0.2,
+        h_state_dim=2,
+        h_state_readout=(0.5, 0.5),
+        alpha=0.0,
+        beta=0.0,
+        gamma=0.0,
+        delta=0.0,
+        rho_passive=0.0,
+        K_ctrl=0.0,
+        C_spike=0.0,
+        barrier_c=0.0,
+        barrier_d=0.0,
+        h_state_coupling=((0.0, 0.0), (0.0, 0.0)),
+    )
+    _, h_null_state = jtfne.simulate(
+        model,
+        duration_ms=2.0,
+        dt_ms=0.5,
+        seed=17,
+        runtime=h_null_runtime,
+        record_fields=False,
+        return_state=True,
+    )
+    assert jnp.array_equal(
+        h_null_state.dynamic.H,
+        model.params["hdp_initial_H"],
+    )
+
+    weight_null_runtime = hdp_runtime(
+        noise_scale=0.0,
+        h_state_dim=2,
+        K_HDP=0.0,
+        K_w_ctrl=0.0,
+        alpha=0.2,
+    )
+    _, weight_null_state = jtfne.simulate(
+        model,
+        duration_ms=2.0,
+        dt_ms=0.5,
+        seed=17,
+        runtime=weight_null_runtime,
+        record_fields=False,
+        return_state=True,
+    )
+    assert jnp.array_equal(
+        weight_null_state.dynamic.w,
+        model.params["edge_list"].weight,
+    )
+    assert not jnp.array_equal(
+        weight_null_state.dynamic.H,
+        model.params["hdp_initial_H"],
+    )
+
+
+def test_mcc2_vector_h_shape_contract_rejects_incompatible_inputs(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    model = vector_h_cases["model"]
+    runtime = vector_h_cases["runtime"]
+    with pytest.raises(ValueError, match="H_final must have shape"):
+        jtfne.simulate(
+            model.with_hdp_initial_state(H0=jnp.ones((EXPECTED_NEURONS - 1, 2))),
+            duration_ms=1.0,
+            dt_ms=0.5,
+            seed=17,
+            runtime=runtime,
+            record_fields=False,
+        )
+    with pytest.raises(ValueError, match="h_state_readout must have shape"):
+        jtfne.simulate(
+            model,
+            duration_ms=1.0,
+            dt_ms=0.5,
+            seed=17,
+            runtime=hdp_runtime(
+                noise_scale=0.0,
+                h_state_dim=2,
+                h_state_readout=(1.0,),
+            ),
+            record_fields=False,
+        )
+    with pytest.raises(ValueError, match="h_state_coupling must have shape"):
+        jtfne.simulate(
+            model,
+            duration_ms=1.0,
+            dt_ms=0.5,
+            seed=17,
+            runtime=hdp_runtime(
+                noise_scale=0.0,
+                h_state_dim=2,
+                h_state_coupling=((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),
+            ),
+            record_fields=False,
+        )
+
+
+def test_mcc2_scalar_ordinary_and_continuation_dispatch_are_identical(
+    model: Any,
+) -> None:
+    runtime = hdp_runtime(
+        noise_scale=0.2,
+        rho_passive=0.1,
+        hdp_rule="hebbian_product",
+    )
+    ordinary = jtfne.simulate(
+        model,
+        duration_ms=2.0,
+        dt_ms=0.5,
+        seed=17,
+        runtime=runtime,
+        record_sources=True,
+        record_fields=False,
+    )
+    continuation, _ = jtfne.simulate(
+        model,
+        duration_ms=2.0,
+        dt_ms=0.5,
+        seed=17,
+        runtime=runtime,
+        record_sources=True,
+        record_fields=False,
+        return_state=True,
+    )
+    for ordinary_arr, continuation_arr in (
+        (ordinary.V_m, continuation.V_m),
+        (ordinary.spikes, continuation.spikes),
+        (ordinary.sources, continuation.sources),
+    ):
+        assert jnp.array_equal(ordinary_arr, continuation_arr)
+
+
+def test_mcc2_vector_h_batch_dispatch_forwards_configuration(
+    vector_h_cases: dict[str, Any],
+) -> None:
+    simulation = jtfne.simulation(
+        duration_ms=1.0,
+        dt_ms=0.5,
+        seed=17,
+        runtime=vector_h_cases["runtime"],
+        record_fields=False,
+    )
+    batch = vector_h_cases["model"].simulate_batch(simulation, n_seeds=2)
+    assert batch["V_m"].shape == (2, 2, EXPECTED_NEURONS)
+    assert batch["spikes"].shape == (2, 2, EXPECTED_NEURONS)
+    assert batch["metadata"]["hdp_params"]["h_state_dim"] == 2
+
+
 @pytest.mark.parametrize("mode", ("E_silence", "I_silence", "disconnected_null"))
 def test_mcc2_unsupported_ablations_are_rejected(mode: str, model: Any) -> None:
     with pytest.raises(ValueError, match="does not support ablation"):

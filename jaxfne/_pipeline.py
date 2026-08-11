@@ -65,7 +65,7 @@ class DynamicState(NamedTuple):
     u: jax.Array            # (n_neurons,)  recovery variable
     prev_spikes: jax.Array  # (n_neurons,)  spikes from t-1 on entry
     syn_state: jax.Array    # (n_edges,)    synaptic gating variable
-    H: jax.Array            # opaque H-state leaf; current HDP uses per-neuron scalar
+    H: jax.Array            # (n_neurons,) scalar or (n_neurons, d_H) vector H
     w: jax.Array            # (n_edges,)    synaptic weights
 
 
@@ -84,6 +84,22 @@ class ContinuationState(NamedTuple):
     dynamic: DynamicState
     prng_key: jax.Array
     step_index: int = 0
+
+
+def continuation_noise_schedule(
+    key: jax.Array,
+    n_steps: int,
+    n_neurons: int,
+    dtype: jnp.dtype,
+) -> jax.Array:
+    """Generate the Gaussian draws used by the continuation PRNG contract."""
+    _, step_keys = _advance_prng_key(key, n_steps)
+    noise_keys = jax.vmap(lambda step_key: jax.random.split(step_key)[1])(step_keys)
+    return jax.vmap(
+        lambda noise_key: jax.random.normal(
+            noise_key, shape=(int(n_neurons),), dtype=dtype
+        )
+    )(noise_keys)
 
 
 def load_tensor(path: str | Path) -> NeuronalTensor:
@@ -238,7 +254,11 @@ def restore_state(path: str | Path) -> tuple[list, dict]:
     return leaves, static
 
 
-def dynamic_state_from_model(model: Model) -> DynamicState:
+def dynamic_state_from_model(
+    model: Model,
+    *,
+    h_state_dim: int = 1,
+) -> DynamicState:
     """Build a cold-start :class:`DynamicState` from ``model.params``.
 
     Mirrors the ``init_state=None`` branch of
@@ -249,6 +269,8 @@ def dynamic_state_from_model(model: Model) -> DynamicState:
     HDP edge-list; a model built without an edge list (dense-only) cannot
     produce a valid DynamicState.
     """
+    if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, int) or h_state_dim < 1:
+        raise ValueError("h_state_dim must be a positive integer")
     emitter = model.params["emitter"]
     if "edge_list" not in model.params:
         raise ValueError(
@@ -260,8 +282,20 @@ def dynamic_state_from_model(model: Model) -> DynamicState:
     n_neurons = emitter.n_neurons
     n_edges = edges.n_edges
     dtype = emitter.v0.dtype
+    expected_h_shape = (
+        (n_neurons,) if h_state_dim == 1 else (n_neurons, int(h_state_dim))
+    )
     H0 = model.params.get("hdp_initial_H")
-    H0 = jnp.asarray(H0, dtype=dtype) if H0 is not None else jnp.ones((n_neurons,), dtype=dtype)
+    H0 = (
+        jnp.asarray(H0, dtype=dtype)
+        if H0 is not None
+        else jnp.ones(expected_h_shape, dtype=dtype)
+    )
+    if H0.shape != expected_h_shape:
+        raise ValueError(
+            "hdp_initial_H must have shape "
+            f"{expected_h_shape} for h_state_dim={h_state_dim}, got {H0.shape}"
+        )
     w0 = model.params.get("hdp_initial_w")
     w0 = jnp.asarray(w0, dtype=dtype) if w0 is not None else edges.weight.astype(dtype)
     return DynamicState(
@@ -411,7 +445,10 @@ def compile_step_fn(
             outputs = outputs + (diag["edge_current_trace"][0],)
         return new_carry, outputs
 
-    init = dynamic_state_from_model(model)
+    init = dynamic_state_from_model(
+        model,
+        h_state_dim=int(hdp_kwargs.get("h_state_dim", 1)),
+    )
     return jax.jit(step_fn), init
 
 
@@ -456,10 +493,11 @@ def continuation_state_from_model(
     *,
     seed: int = 0,
     step_index: int = 0,
+    h_state_dim: int = 1,
 ) -> ContinuationState:
     """Create a cold-start continuation state without running a simulation."""
     return ContinuationState(
-        dynamic=dynamic_state_from_model(model),
+        dynamic=dynamic_state_from_model(model, h_state_dim=h_state_dim),
         prng_key=jax.random.PRNGKey(int(seed)),
         step_index=int(step_index),
     )

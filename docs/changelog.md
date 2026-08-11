@@ -4,6 +4,18 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+### Changed
+- Generalized HDP execution now documents `H_i(t) ∈ R^d_H` as a finite-dimensional
+  hidden biophysical state associated with each modeled biological entity. The
+  current scalar homeostatic-like HDP realization is the `d_H=1` case; vector
+  coordinates, optional coupling, and adaptation-specific readouts are supported.
+- Canonical HDP simulation paths now use one explicit per-step PRNG sequence
+  across ordinary, continuation, and batch execution. Replaying a stochastic
+  HDP configuration created under the earlier bulk-noise sequence may produce a
+  different trajectory for the same seed. Deterministic scalar-H behavior is
+  preserved, and current ordinary/continuation/batch paths share the same
+  stochastic sequencing contract.
+
 ## v0.4.8 (2026-07-22)
 
 First release of the 0.4.8-0.4.48 long-term roadmap (`full_scorecard >= 80/100`

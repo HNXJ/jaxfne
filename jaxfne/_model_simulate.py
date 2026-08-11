@@ -47,6 +47,44 @@ from ._signals import (
 from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 
+def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
+    """Resolve one shared HDP parameter contract for every execution path."""
+    return {
+        "H_min": hp.get("H_min", 0.1),
+        "H_max": hp.get("H_max", 10.0),
+        "tau_0_ms": hp.get("tau_0_ms", 100.0),
+        "alpha": hp.get("alpha", 0.0),
+        "beta": hp.get("beta", 0.0),
+        "gamma": hp.get("gamma", 0.0),
+        "delta": hp.get("delta", 0.0),
+        "C_spike": hp.get("C_spike", 0.0),
+        "K_HDP": hp.get("K_HDP", 1.0),
+        "K_ctrl": hp.get("K_ctrl", 0.0),
+        "K_w_ctrl": hp.get("K_w_ctrl", 0.0),
+        "rho_passive": hp.get("rho_passive", 0.0),
+        "barrier_c": hp.get("barrier_c", 0.0),
+        "barrier_d": hp.get("barrier_d", 0.0),
+        "barrier_eps": hp.get("barrier_eps", 1.0e-3),
+        "w_floor": hp.get("w_floor", 1.0e-3),
+        "w_ceiling": hp.get("w_ceiling", 50.0),
+        "v_floor": hp.get("v_floor", -150.0),
+        "v_ceiling": hp.get("v_ceiling", 100.0),
+        "u_abs_max": hp.get("u_abs_max", 2000.0),
+        "syn_abs_max": hp.get("syn_abs_max", 1.0e4),
+        "H_boost_gain": hp.get("H_boost_gain", 0.0),
+        "size_scale_by_cell_type": hp.get("size_scale_by_cell_type"),
+        "size_scale_override": hp.get("size_scale_override"),
+        "noise_scale": hp.get("noise_scale"),
+        "hdp_rule": hp.get("hdp_rule", "signed_linear"),
+        "h_state_dim": hp.get("h_state_dim", 1),
+        "h_state_readout": hp.get("h_state_readout"),
+        "h_state_coupling": hp.get("h_state_coupling"),
+        "record_dH_components": bool(hp.get("record_dH_components", False)),
+        "record_edge_current": bool(hp.get("record_edge_current", False)),
+        "record_weight_trace": bool(hp.get("record_weight_trace", True)),
+    }
+
+
 def _simulate_arrays(
     self: "Model",
     sim: Simulation,
@@ -244,27 +282,18 @@ def _simulate_arrays(
 
         def _hdp_packed(k, s):
             """Return (V, spikes, sources, H_final, H_trace, w_final, w_trace)."""
+            from ._pipeline import continuation_noise_schedule
+
+            kernel_kwargs = _hdp_kernel_kwargs(hp)
             V, S, src, diag = simulate_edge_recurrent_izhikevich_hdp(
                 emitter, edges, sim.n_steps, sim.dt_ms, k,
                 dtype=runtime_cfg.actual_dtype, drive_schedule=s,
                 silence_mask=silence_mask,
                 init_state=init_state,
-                H_min=hp.get("H_min", 0.1), H_max=hp.get("H_max", 10.0),
-                tau_0_ms=hp.get("tau_0_ms", 100.0),
-                alpha=hp.get("alpha", 0.0), beta=hp.get("beta", 0.0),
-                gamma=hp.get("gamma", 0.0), delta=hp.get("delta", 0.0),
-                C_spike=hp.get("C_spike", 0.0), K_HDP=hp.get("K_HDP", 1.0),
-                K_ctrl=hp.get("K_ctrl", 0.0),
-                K_w_ctrl=hp.get("K_w_ctrl", 0.0),
-                barrier_c=hp.get("barrier_c", 0.0), barrier_d=hp.get("barrier_d", 0.0),
-                barrier_eps=hp.get("barrier_eps", 1.0e-3),
-                w_floor=hp.get("w_floor", 1.0e-3), w_ceiling=hp.get("w_ceiling", 50.0),
-                v_floor=hp.get("v_floor", -150.0), v_ceiling=hp.get("v_ceiling", 100.0),
-                u_abs_max=hp.get("u_abs_max", 2000.0), syn_abs_max=hp.get("syn_abs_max", 1.0e4),
-                H_boost_gain=hp.get("H_boost_gain", 0.0),
-                size_scale_by_cell_type=hp.get("size_scale_by_cell_type"),
-                size_scale_override=hp.get("size_scale_override"),
-                record_weight_trace=hp.get("record_weight_trace", True),
+                noise_schedule=continuation_noise_schedule(
+                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                ),
+                **kernel_kwargs,
             )
             return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
 
@@ -516,8 +545,13 @@ def _simulate_continuation_arrays(
                 f"({sim.n_steps}, {n_neurons}), got {schedule.shape}"
             )
 
+    hp = dict(runtime_cfg.hdp_params or {}) if runtime_cfg.enable_hdp else {}
     if continuation is None:
-        state = continuation_state_from_model(self, seed=sim.seed)
+        state = continuation_state_from_model(
+            self,
+            seed=sim.seed,
+            h_state_dim=int(hp.get("h_state_dim", 1)),
+        )
     elif isinstance(continuation, ContinuationState):
         state = continuation
     else:
@@ -527,40 +561,11 @@ def _simulate_continuation_arrays(
         )
 
     if runtime_cfg.enable_hdp:
-        hp = dict(runtime_cfg.hdp_params or {})
-        hdp_kwargs = {
-            "H_min": hp.get("H_min", 0.1),
-            "H_max": hp.get("H_max", 10.0),
-            "tau_0_ms": hp.get("tau_0_ms", 100.0),
-            "alpha": hp.get("alpha", 0.0),
-            "beta": hp.get("beta", 0.0),
-            "gamma": hp.get("gamma", 0.0),
-            "delta": hp.get("delta", 0.0),
-            "C_spike": hp.get("C_spike", 0.0),
-            "K_HDP": hp.get("K_HDP", 1.0),
-            "K_ctrl": hp.get("K_ctrl", 0.0),
-            "K_w_ctrl": hp.get("K_w_ctrl", 0.0),
-            "rho_passive": hp.get("rho_passive", 0.0),
-            "barrier_c": hp.get("barrier_c", 0.0),
-            "barrier_d": hp.get("barrier_d", 0.0),
-            "barrier_eps": hp.get("barrier_eps", 1.0e-3),
-            "w_floor": hp.get("w_floor", 1.0e-3),
-            "w_ceiling": hp.get("w_ceiling", 50.0),
-            "v_floor": hp.get("v_floor", -150.0),
-            "v_ceiling": hp.get("v_ceiling", 100.0),
-            "u_abs_max": hp.get("u_abs_max", 2000.0),
-            "syn_abs_max": hp.get("syn_abs_max", 1.0e4),
-            "H_boost_gain": hp.get("H_boost_gain", 0.0),
-            "size_scale_by_cell_type": hp.get("size_scale_by_cell_type"),
-            "size_scale_override": hp.get("size_scale_override"),
-            "noise_scale": hp.get("noise_scale"),
-            "hdp_rule": hp.get("hdp_rule", "signed_linear"),
-        }
+        hdp_kwargs = _hdp_kernel_kwargs(hp)
         step_fn, _ = compile_step_fn(
             self,
             dt_ms=sim.dt_ms,
             kernel="hdp",
-            record_weight_trace=bool(hp.get("record_weight_trace", True)),
             **hdp_kwargs,
         )
     else:
@@ -849,8 +854,10 @@ def last_hdp_diagnostics(self) -> "Optional[dict[str, Any]]":
     """Return the full per-step HDP diagnostics from the most recent
     ``simulate(...)`` call with ``enable_hdp=True``.
 
-    Returns a dict with ``H_final``/``H_trace`` ``(n_steps, n_neurons)``
-    and ``w_final``/``w_trace`` ``(n_steps, n_edges)``, or ``None`` if HDP
+    Returns a dict with ``H_final``/``H_trace`` shaped
+    ``(n_steps, n_neurons)`` for scalar H or
+    ``(n_steps, n_neurons, h_state_dim)`` for vector H, plus
+    ``w_final``/``w_trace`` ``(n_steps, n_edges)``, or ``None`` if HDP
     was not enabled on the last run. If ``hdp_params["record_weight_trace"]``
     was explicitly set to ``False`` (recommended when n_steps * n_edges
     would exceed device memory -- e.g. 10,000 steps x 2,000,000 edges x
@@ -934,25 +941,17 @@ def simulate_batch(self, sim: Simulation, n_seeds: int = 4, seed: int | None = N
             # HDP engages the sparse-edge HDP kernel; per-step H_trace/w_trace
             # diagnostics are dropped here (batch is a seed-replicate statistics
             # utility -- use simulate() for full diagnostics passthrough).
+            from ._pipeline import continuation_noise_schedule
+
+            kernel_kwargs = _hdp_kernel_kwargs(_hdp)
+            kernel_kwargs["record_weight_trace"] = False
             return simulate_edge_recurrent_izhikevich_hdp(
                 emitter, self.params["edge_list"], sim.n_steps, sim.dt_ms, k,
                 dtype=runtime_cfg.actual_dtype,
-                H_min=_hdp.get("H_min", 0.1), H_max=_hdp.get("H_max", 10.0),
-                tau_0_ms=_hdp.get("tau_0_ms", 100.0),
-                alpha=_hdp.get("alpha", 0.0), beta=_hdp.get("beta", 0.0),
-                gamma=_hdp.get("gamma", 0.0), delta=_hdp.get("delta", 0.0),
-                C_spike=_hdp.get("C_spike", 0.0), K_HDP=_hdp.get("K_HDP", 1.0),
-                K_ctrl=_hdp.get("K_ctrl", 0.0),
-                K_w_ctrl=_hdp.get("K_w_ctrl", 0.0),
-                barrier_c=_hdp.get("barrier_c", 0.0), barrier_d=_hdp.get("barrier_d", 0.0),
-                barrier_eps=_hdp.get("barrier_eps", 1.0e-3),
-                w_floor=_hdp.get("w_floor", 1.0e-3), w_ceiling=_hdp.get("w_ceiling", 50.0),
-                v_floor=_hdp.get("v_floor", -150.0), v_ceiling=_hdp.get("v_ceiling", 100.0),
-                u_abs_max=_hdp.get("u_abs_max", 2000.0), syn_abs_max=_hdp.get("syn_abs_max", 1.0e4),
-                H_boost_gain=_hdp.get("H_boost_gain", 0.0),
-                size_scale_by_cell_type=_hdp.get("size_scale_by_cell_type"),
-                size_scale_override=_hdp.get("size_scale_override"),
-                record_weight_trace=False,
+                noise_schedule=continuation_noise_schedule(
+                    k, sim.n_steps, emitter.n_neurons, runtime_cfg.jnp_dtype
+                ),
+                **kernel_kwargs,
             )[:3]
         if homeo_on:
             # Homeostasis engages the sparse-edge homeostatic kernel; per-step

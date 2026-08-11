@@ -316,10 +316,10 @@ def _simulate_hdp_metadata(
 ) -> dict[str, Any]:
     """``Model.simulate()`` helper: the HDP metadata sub-block.
 
-    Called only when ``runtime_cfg.enable_hdp`` is True. Framing: a single
-    per-neuron master-state (H_i) plasticity controller -- a COMPUTATIONAL
-    method, NOT a biological mechanism, matching the homeostasis controller's
-    claim discipline.
+    Called only when ``runtime_cfg.enable_hdp`` is True. Framing: a
+    finite-dimensional per-neuron H-state plasticity controller -- a
+    COMPUTATIONAL method, NOT a biological mechanism, matching the
+    homeostasis controller's claim discipline.
     """
     _hp_meta = dict(runtime_cfg.hdp_params or {})
     hdp_meta: dict[str, Any] = {
@@ -335,6 +335,21 @@ def _simulate_hdp_metadata(
         "diagnostics_passthrough": "Signals.metadata['hdp'] summary; full "
                                     "per-step H_trace/w_trace via "
                                     "Model.last_hdp_diagnostics()",
+    }
+    h_state_dim = int(_hp_meta.get("h_state_dim", 1))
+    readout = _hp_meta.get("h_state_readout")
+    coupling = _hp_meta.get("h_state_coupling")
+    hdp_meta["h_state"] = {
+        "h_state_dim": h_state_dim,
+        "readout": {
+            "kind": "linear",
+            "shape": [h_state_dim],
+            "configured": readout is not None,
+        },
+        "coupling": {
+            "enabled": coupling is not None,
+            "shape": [h_state_dim, h_state_dim],
+        },
     }
     if diag is not None:
         H = diag["H_trace"]

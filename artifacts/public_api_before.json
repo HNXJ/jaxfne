@@ -20,6 +20,7 @@
         "Config",
         "Configuration",
         "ConnectionCompileResult",
+        "ContinuationState",
         "DEFAULT_HDP",
         "DEFAULT_LAYERS",
         "DEFAULT_SPIKE_IMPULSE_GAIN",
