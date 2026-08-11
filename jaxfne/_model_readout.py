@@ -70,9 +70,29 @@ def run_receipt(self, signals: Signals, *, tags: Optional[dict[str, Any]] = None
         json.dumps(json_safe(receipt_payload), sort_keys=True, allow_nan=False)
     )[:16]
 
+    source_model = signals.metadata.get("source_model") or {}
+    source_calibration_status = signals.metadata.get(
+        "source_calibration_status",
+        source_model.get(
+            "source_calibration_status",
+            "uncalibrated_izhikevich_native_current",
+        ),
+    )
+    if not source_model:
+        source_model = {
+            "source_model": signals.metadata.get("source_mode"),
+            "source_mode": signals.metadata.get("source_mode"),
+            "source_mode_class": signals.metadata.get("source_mode_class"),
+            "source_decomposition": signals.metadata.get("source_decomposition"),
+            "source_contract": signals.metadata.get("source_contract"),
+            "source_calibration_status": source_calibration_status,
+            "physical_amplitude_calibrated": signals.metadata.get(
+                "physical_amplitude_calibrated", False
+            ),
+        }
     truth: dict[str, Any] = {
         "claim_level": "computational_scaffold",
-        "source_calibration_status": "uncalibrated_izhikevich_native_current",
+        "source_calibration_status": source_calibration_status,
         "field_solver_status": "linear_solver",
         "field_claim_level": "proxy_readout",
         "physical_amplitude_calibrated": False,
@@ -90,9 +110,11 @@ def run_receipt(self, signals: Signals, *, tags: Optional[dict[str, Any]] = None
     backend: dict[str, Any] = {
         "recurrent_backend": signals.metadata.get("recurrent_backend", "dense"),
         "synaptic_kernel": signals.metadata.get("synaptic_kernel", "exponential"),
-        "source_calibration_status": "uncalibrated_izhikevich_native_current",
+        "source_calibration_status": source_calibration_status,
         "physical_amplitude_calibrated": False,
-        "source_model": signals.metadata.get("source_model"),
+        "source_model": source_model,
+        "source_mode": signals.metadata.get("source_mode"),
+        "source_mode_class": signals.metadata.get("source_mode_class"),
         "source_bookkeeping": signals.metadata.get("source_bookkeeping"),
     }
     if "edge_list" in self.params:

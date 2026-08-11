@@ -378,6 +378,22 @@ def build_field_admissibility_report(
         field_diag = dict(signals_field.diagnostics)
 
     report: dict[str, Any] = {
+        "operator_type": metadata.get(
+            "operator_type", field_diag.get("operator_type", "linear_projection")
+        ),
+        "representation": metadata.get(
+            "representation", field_diag.get("representation", "relative")
+        ),
+        "validation_status": metadata.get(
+            "validation_status", field_diag.get("validation_status", "computational")
+        ),
+        "calibration_transform": metadata.get(
+            "calibration_transform",
+            field_diag.get("calibration_transform", "explicit_boundary_transform"),
+        ),
+        "normalization_mode": metadata.get(
+            "normalization_mode", field_diag.get("normalization_mode", "density_preserving")
+        ),
         "field_solver_status": metadata.get(
             "field_solver_status", field_diag.get("field_solver_status", "linear_solver")
         ),
@@ -388,7 +404,13 @@ def build_field_admissibility_report(
         "gauge": metadata.get("gauge", "mean_zero"),
         "CSD_sign_convention": metadata.get(
             "CSD_sign_convention",
-            field_diag.get("CSD_sign_convention", "proxy_positive_equals_extracellular_source_like"),
+            field_diag.get(
+                "CSD_sign_convention",
+                field_diag.get(
+                    "csd_sign_convention",
+                    "proxy_positive_equals_extracellular_source_like",
+                ),
+            ),
         ),
         "conductivity_status": "proxy_not_solved",  # For laminar proxy paths
         "conductivity_is_spd": None,  # Not applicable for proxy mode
@@ -550,6 +572,13 @@ def make_calibration_report(
         "target": target,
         "mode": mode,
         "status": "metadata_declared",
+        "operator_type": "calibration_transform",
+        "input_representation": "relative",
+        "output_representation": "relative",
+        "declared_target_representation": (
+            "calibrated" if mode == "calibrated_empirical" else "relative"
+        ),
+        "validation_status": "computational",
         "units": spec.units,
         "scale": spec.scale,
         "reference": spec.reference,

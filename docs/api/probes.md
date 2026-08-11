@@ -53,6 +53,26 @@ produced by explicit transform functions in `jaxfne/fields/probes.py`
 the caller invokes with a leadfield/weighting matrix it supplies, separately
 from `simulate()`.
 
+## Probe operator contract
+
+Each probe declares an input representation, operator type, output
+representation, validation status, and calibration boundary:
+
+| Probe | Map | Operator |
+|---|---|---|
+| source | `Q^(r) -> Q^(r)` | direct readout |
+| Vm/state | `X^(r) -> V_m^(r)` | direct readout |
+| spike/event | `S -> S` | direct readout |
+| LFP-like | `Phi^(r) -> Y_LFP^(r)` | direct readout |
+| CSD-like | `Phi^(r) -> Y_CSD^(r)` | spatial derivative |
+| EEG-like | `Q^(r) -> L Q^(r)` | linear projection |
+| MEG-like | `Q^(r) -> L Q^(r)` | linear projection |
+
+The canonical EEG/MEG transform input is the relative source representation
+`Q^(r)` supplied explicitly by the caller. The transform is deterministic for
+fixed source and leadfield arrays; Vm-derived sanity readouts carry separate
+`relative_vm_state` provenance.
+
 All readouts here are **proxy readouts**: an uncalibrated computational
 scaffold (`physical_amplitude_calibrated=False` throughout), always short of
 physical measurements.

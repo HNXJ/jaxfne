@@ -306,6 +306,22 @@ def test_mcc1_probe_and_field_readouts(mcc1_result: dict[str, Any]) -> None:
     readout = mcc1_result["readout"]
     assert set(("spikes", "V_m", "CSD", "LFP")).issubset(readout)
     _assert_readout_finite(readout)
+    assert readout["readout_metadata"]["operator_type"] == "linear_projection"
+    assert readout["readout_metadata"]["representation"] == "relative"
+    assert readout["readout_metadata"]["normalization_mode"] == "density_preserving"
+
+
+def test_mcc1_source_field_probe_contract(mcc1_result: dict[str, Any]) -> None:
+    """MCC-1 carries the observational chain without another simulation."""
+    first = mcc1_result["first"]
+    source_bookkeeping = first.metadata["source_bookkeeping"]
+    assert source_bookkeeping["source_mode_class"] == "canonical"
+    assert source_bookkeeping["representation"] == "relative"
+    assert source_bookkeeping["double_count_evidence"]["status"] == "helper_backed"
+    assert first.field.diagnostics["operator_type"] == "linear_projection"
+    assert first.field.diagnostics["normalization_mode"] == "density_preserving"
+    assert first.field.diagnostics["csd_operator"]["boundary"] == "edge_padded"
+    assert first.field.diagnostics["physical_amplitude_calibrated"] is False
 
 
 def test_mcc1_objective_manifest_and_receipt(mcc1_result: dict[str, Any]) -> None:

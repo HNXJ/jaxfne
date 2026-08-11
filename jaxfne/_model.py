@@ -221,17 +221,35 @@ _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "source_model": "izhikevich_native_current_plus_spike_impulse_proxy",
     "source_mode": "native_current_plus_spike_impulse_proxy",
+    "source_mode_class": "canonical",
     "includes_native_current": True,
     "includes_drive_current": True,
     "includes_recurrent_synaptic_current": True,
     "includes_noise_current": True,
     "includes_spike_impulse": True,
     "spike_impulse_gain": DEFAULT_SPIKE_IMPULSE_GAIN,
+    "source_contract": {
+        "native_current": "drive + recurrent_synaptic + noise",
+        "spike_term": "DEFAULT_SPIKE_IMPULSE_GAIN * spikes",
+        "gain_owner": "jaxfne.presets.DEFAULT_SPIKE_IMPULSE_GAIN",
+        "sign_convention": "positive additive spike impulse; recurrent weights carry signs",
+        "support": "time_by_neuron",
+        "normalization": "per_neuron_source_scale",
+        "representation": "relative",
+        "calibration": "explicit_boundary_transform",
+    },
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "physical_amplitude_calibrated": False,
     "double_count_synaptic_current_guard": (
         "single_proxy_expression_no_extra_synaptic_source"
     ),
+    "double_count_evidence": {
+        "status": "helper_backed",
+        "composition": "source_scale * (current_native + spike_gain * spikes)",
+        "synaptic_term_location": "current_native",
+        "separate_synaptic_source": False,
+        "implementation": "emitters._source_proxy_from_components",
+    },
 }
 
 _KNOWN_READOUT_METRICS = frozenset({

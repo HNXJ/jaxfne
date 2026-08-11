@@ -10,6 +10,22 @@ The fields module provides spatial projection operators to transform point-sourc
 Emitter currents → Source projection → Field convolution → Probe readouts
 ```
 
+## Operator ontology
+
+The observational chain uses orthogonal metadata dimensions:
+
+```text
+operator_type: linear_projection | pde_solve
+validation_status: computational | numerical | external
+representation: relative | calibrated
+```
+
+`linear_projection` applies a fixed kernel, `Phi^(r) = K Q^(r)`.
+`pde_solve` evaluates a declared discretized field equation,
+`A_gamma Phi = Q`. The compatibility field key
+`field_solver_status="linear_solver"` remains available for existing consumers;
+the canonical mathematical type is `operator_type`.
+
 ---
 
 ## Source Projection
@@ -130,6 +146,11 @@ positional parameter.
 
 **Returns:** `FieldOutput` containing LFP and CSD proxy arrays
 
+The returned diagnostics identify `operator_type="linear_projection"`,
+`representation="relative"`, the selected `normalization_mode`, and the
+explicit calibration boundary. `density_preserving` and `row_normalize` are
+distinct projection operators.
+
 **Example:**
 ```python
 field = jtfne.project_sources_to_laminar_field(sources, positions, n_contacts=16, mode="density_preserving")
@@ -184,7 +205,7 @@ field_dict = json_safe(field.diagnostics)
 
 `diagnostics` is produced by `validate_projection_invariants` (structural
 invariants) merged with a field-solution report from
-`_make_field_solution_report`, plus a few extra keys — 40 keys total as of
+`_make_field_solution_report`, plus a few extra keys — 46 keys total as of
 this writing (verified via `sorted(field.diagnostics.keys())` on a live
 `project_laminar_sources` call). Every key below is required — it is always
 present on the returned dict, regardless of which projection `mode` was
@@ -192,6 +213,14 @@ used. The keys relevant to truth-gate/claim status:
 
 | Field | Type | Purpose |
 |-------|------|---------|
+| `operator_type` | str | Mathematical operator: `"linear_projection"` |
+| `representation` | str | Output representation: `"relative"` |
+| `validation_status` | str | Validation plane: `"computational"` |
+| `calibration_transform` | str | Explicit boundary transform: `"explicit_boundary_transform"` |
+| `normalization_mode` | str | `"density_preserving"` or `"row_normalize"` |
+| `kernel_row_normalization_applied` | bool | Whether row normalization was selected |
+| `kernel_row_normalization_valid` | bool \| None | Row-sum check; `None` for density-preserving mode |
+| `kernel_row_stochastic_status` | str | Compatibility status: mode validity or row-sum validity |
 | `field_solver_status` | str | Solver type: always `"linear_solver"` for these proxy operators |
 | `solver_name` | str | Human-readable ID: `"laminar_proxy"` |
 | `boundary_condition` | str | BC declaration: `"mean_zero_neumann"` |
@@ -213,6 +242,7 @@ used. The keys relevant to truth-gate/claim status:
 | `source_conservation_claim_allowed` | bool | Can statement conserved sources? Always `False` for proxy |
 | `source_calibration_status` | str | `"uncalibrated_izhikevich_native_current"` |
 | `source_decomposition` | str | `"proxy_reduced_emitter"` |
+| `csd_operator` | dict | Declared CSD-like stencil, spacing, boundary, and representations |
 | `field_admissibility` | dict | Nested dict of kernel-normalization/finiteness sub-checks |
 | `warnings` | list[str] | Any structural-invariant warnings raised during validation |
 | `*_shape` keys | tuple[int, ...] | Shapes of `source`/`positions`/`kernel`/`source_proxy`/`phi_e_proxy`/`csd_proxy`/`lfp_proxy` |
@@ -625,7 +655,11 @@ $$\phi_{\mathrm{proxy}}(t,c) = \sum_{n=1}^{N} W_{cn} S_n(t)$$
 
 **Optional (`mode="row_normalize"`):** row-stochastic $W$ with $\sum_n W_{cn} = 1$ for all contacts $c$.
 
-$$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = \frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
+$$\mathrm{CSD}_{\mathrm{proxy}}(t,c) = -\frac{\phi_{\mathrm{proxy}}(t,c+1) - 2\phi_{\mathrm{proxy}}(t,c) + \phi_{\mathrm{proxy}}(t,c-1)}{(\Delta z)^2}$$
+
+The spacing `Δz` is the relative contact-depth spacing. Boundaries use edge
+padding, the input is `phi_e_proxy`, and the output is the relative
+`csd_proxy` representation.
 
 ---
 

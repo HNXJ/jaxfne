@@ -704,6 +704,7 @@ def simulate(
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "source_calibration_status": self.cfg.metadata.get("source_calibration_status"),
+        "representation": "relative",
         "field_claim_level": "proxy_readout",
         "paradigm": paradigm_meta,
         "duration_ms": float(sim.duration_ms),
@@ -723,14 +724,18 @@ def simulate(
     # v0.2.0: Add source bookkeeping metadata for theoretical validation.
     metadata["source_bookkeeping"] = {
         "source_mode": _SOURCE_PROXY_METADATA.get("source_mode"),
+        "source_mode_class": _SOURCE_PROXY_METADATA.get("source_mode_class"),
+        "source_contract": _SOURCE_PROXY_METADATA.get("source_contract"),
         "source_projection_mode": self.cfg.metadata.get("source_projection_mode", "proxy_no_field_solve"),
         "source_decomposition": self.cfg.metadata.get("source_decomposition", "proxy_reduced_emitter"),
         "source_calibration_status": _SOURCE_PROXY_METADATA.get("source_calibration_status"),
+        "representation": _SOURCE_PROXY_METADATA["source_contract"]["representation"],
+        "calibration_transform": _SOURCE_PROXY_METADATA["source_contract"]["calibration"],
         "synaptic_current_counting": _SOURCE_PROXY_METADATA.get("double_count_synaptic_current_guard"),
         "source_mode_exclusive": True,
         "physical_amplitude_calibrated": _SOURCE_PROXY_METADATA.get("physical_amplitude_calibrated", False),
         "double_count_guard": "passed",
-        "double_count_evidence": None,
+        "double_count_evidence": _SOURCE_PROXY_METADATA.get("double_count_evidence"),
     }
     if poisson_final_step is not None:
         metadata["poisson_field_final_step"] = poisson_final_step
@@ -796,6 +801,19 @@ def _simulate_homeostatic_ei(
     time_ms = jnp.arange(sim.n_steps, dtype=runtime_cfg.jnp_dtype) * jnp.asarray(
         sim.dt_ms, dtype=runtime_cfg.jnp_dtype
     )
+    source_mode = "homeostatic_ei_activity_proxy"
+    source_mode_class = "specialized"
+    source_decomposition = "homeostatic_ei_activity_trace"
+    source_contract = {
+        "native_current": "homeostatic_ei_activity_trace",
+        "spike_term": "none",
+        "gain_owner": "HomeostaticEIParams.source_scale",
+        "sign_convention": "activity trace sign follows emitter state",
+        "support": "time_by_neuron",
+        "normalization": "per_neuron_source_scale",
+        "representation": "relative",
+        "calibration": "explicit_boundary_transform",
+    }
     field_output = None
     if sim.record_fields:
         positions = jnp.asarray(self.params["positions"], dtype=runtime_cfg.jnp_dtype)
@@ -805,10 +823,28 @@ def _simulate_homeostatic_ei(
             n_contacts=self.static.get("n_contacts", 16),
             dtype=runtime_cfg.actual_dtype,
         )
+        field_output = replace(
+            field_output,
+            diagnostics={
+                **field_output.diagnostics,
+                "source_calibration_status": emitter.source_calibration_status,
+                "source_mode": source_mode,
+                "source_mode_class": source_mode_class,
+                "source_decomposition": source_decomposition,
+                "source_contract": source_contract,
+            },
+        )
     metadata: dict[str, Any] = {
         "config_hash": config_hash(self.cfg),
         "emitter_family": "homeostatic_ei",
+        "source_mode": source_mode,
+        "source_mode_class": source_mode_class,
+        "source_decomposition": source_decomposition,
+        "source_contract": source_contract,
+        "representation": "relative",
         "source_calibration_status": emitter.source_calibration_status,
+        "calibration_transform": "explicit_boundary_transform",
+        "physical_amplitude_calibrated": False,
         "field_claim_level": "proxy_readout",
         "duration_ms": float(sim.duration_ms),
         "dt_ms": float(sim.dt_ms),

@@ -22,6 +22,24 @@ import numpy as np
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
 
 
+def _source_proxy_from_components(
+    current_native: jax.Array,
+    spikes: jax.Array,
+    source_scale: jax.Array,
+    *,
+    dtype: Any,
+) -> jax.Array:
+    """Compose the canonical relative source from its declared components.
+
+    ``current_native`` already contains the drive, recurrent synaptic, and
+    stochastic-current terms for the active emitter path.  The spike impulse is
+    added exactly once at this boundary, using the canonical gain owned by
+    :mod:`jaxfne.presets`.
+    """
+    spike_gain = jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=dtype)
+    return source_scale * (current_native + spike_gain * spikes)
+
+
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV/SST/VIP reduced-model parameters.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
@@ -451,7 +469,7 @@ def simulate_eig_izhikevich(
             
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
         _, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -475,7 +493,7 @@ def simulate_eig_izhikevich(
             
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
         _, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -645,7 +663,7 @@ def simulate_edge_recurrent_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -671,7 +689,7 @@ def simulate_edge_recurrent_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -876,7 +894,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             dw = eta_arr * (r_star_arr - r_next[post]) * x_next[pre]
             w_next = jnp.clip(w + dt * dw, w_min_arr, w_max_arr)
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next, r_next, w_next, x_next), \
                    (v_reset, spikes, source_proxy, g, r_next, w_next)
 
@@ -925,7 +943,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
 
             return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
 
@@ -976,7 +994,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
 
             return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
 
@@ -1618,7 +1636,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
         )
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
-        source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
         if record_weight_trace:
             outputs = (v_reset, spikes, source_proxy, H_final, w_next)
         else:
@@ -1866,7 +1884,7 @@ def simulate_receptor_exponential_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -1892,7 +1910,7 @@ def simulate_receptor_exponential_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -2002,7 +2020,7 @@ def simulate_dynamic_ei_coupling(
         # Update synaptic traces (exponential decay + spike injection)
         syn_traces_next = syn_traces * decay + spikes
 
-        source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
         return (v_reset, u_reset, spikes, syn_traces_next, rng), (
             v_reset, spikes, syn_currents, source_proxy
         )
@@ -2213,7 +2231,12 @@ class IzhikevichEmitter(Emitter):
         spikes = spikes_bool.astype(jdtype)
         v_reset = jnp.where(spikes_bool, self.params.c.astype(jdtype), v_next)
         u_reset = jnp.where(spikes_bool, u_next + self.params.d.astype(jdtype), u_next)
-        source = self.params.source_scale.astype(jdtype) * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source = _source_proxy_from_components(
+            current_native,
+            spikes,
+            self.params.source_scale.astype(jdtype),
+            dtype=jdtype,
+        )
         next_state = EmitterState(v=v_reset, u=u_reset, spikes=spikes, key=rng, step_count=state.step_count + 1)
         output = EmitterOutput(
             voltage=v_reset,

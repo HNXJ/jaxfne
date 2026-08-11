@@ -51,6 +51,21 @@ synaptic/plasticity wrapper, rather than sharing one standalone "Izhikevich inte
 amperes — every kernel in this module sets `source_calibration_status` to a value such as
 `"uncalibrated_izhikevich_native_current"`, always short of a physical-calibration claim.
 
+### Canonical source representation
+
+The canonical emitter source is the relative state-to-source map
+
+```text
+Q^(r) = source_scale * (current_native + DEFAULT_SPIKE_IMPULSE_GAIN * spikes)
+current_native = drive + recurrent_synaptic + noise
+```
+
+`DEFAULT_SPIKE_IMPULSE_GAIN` is defined once in
+`jaxfne.presets` and shared by the dense, edge, homeostasis, HDP, and
+receptor-exponential Izhikevich kernels. The source support is
+time-by-neuron, signs are carried by recurrent weights and the positive spike
+impulse, and normalization is per-neuron `source_scale`.
+
 ### Parameters
 
 Canonical per-cell-type parameter defaults live in

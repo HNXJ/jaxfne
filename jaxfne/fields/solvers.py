@@ -134,6 +134,10 @@ def experimental_poisson_1d(
 
     manifest = {
         "claim_level": "computational_scaffold",
+        "operator_type": "pde_solve",
+        "representation": "relative",
+        "validation_status": "numerical",
+        "calibration_transform": "explicit_boundary_transform",
         "field_solver_status": "experimental_pde_solver",
         "field_claim_level": "proxy_readout",
         "boundary_condition": boundary,

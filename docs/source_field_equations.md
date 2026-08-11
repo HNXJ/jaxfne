@@ -37,7 +37,7 @@ The active mode is:
 
 ```
 source_projection_mode = "proxy_no_field_solve"
-source_calibration_status = "uncalibrated_izhikevich_model_current"
+source_calibration_status = "uncalibrated_izhikevich_native_current"
 ```
 
 **What this means:**
@@ -62,7 +62,7 @@ cfg = (
 
 # In the Manifest:
 manifest = model.manifest(signals, readouts)
-print(manifest["source_calibration_status"])  # → "uncalibrated_izhikevich_model_current"
+print(manifest["source_calibration_status"])  # → "uncalibrated_izhikevich_native_current"
 print(manifest["source_projection_mode"])  # → "proxy_no_field_solve"
 print(manifest["field_solver_status"])  # → "linear_solver"
 ```
@@ -114,7 +114,7 @@ q_proxy(x,t) = χ(x) · (I_Iz(t) + I_spike_impulse(t))
               ↑ Izhikevich model current (preserved as-is)
               ↑ Spike impulse proxy (20× gain, derived)
 → Single proxy source, no decomposition
-→ source_calibration_status: "uncalibrated_izhikevich_model_current"
+→ source_calibration_status: "uncalibrated_izhikevich_native_current"
 ```
 
 ### How to Audit Your Code
@@ -130,7 +130,7 @@ source_decomp = manifest.get("source_decomposition", "unknown")
 
 # Assertion:
 assert source_cal in [
-    "uncalibrated_izhikevich_model_current",
+    "uncalibrated_izhikevich_native_current",
     "uncalibrated_hh_model_current",
     "uncalibrated_jaxley_voltage_proxy",
     None,  # no source declared
@@ -229,7 +229,7 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 | Status | Meaning | Biological Statement | Allowed? |
 |--------|---------|------------------|----------|
-| `uncalibrated_izhikevich_model_current` | Izhikevich model current, lacks empirical validation | None; computational scaffold | ✓ default |
+| `uncalibrated_izhikevich_native_current` | Izhikevich native-current proxy | Relative; computational scaffold | ✓ default |
 | `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
 | `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ bridge |
 | `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ reserved |
@@ -268,7 +268,7 @@ $$z(t) \xrightarrow{\text{Emitter}} \text{state} \xrightarrow{\text{Model curren
 
 **Source declaration:**
 ```python
-manifest["source_calibration_status"]    # E.g. "uncalibrated_izhikevich_model_current"
+manifest["source_calibration_status"]    # E.g. "uncalibrated_izhikevich_native_current"
 manifest["source_projection_mode"]       # E.g. "proxy_no_field_solve"
 manifest["source_decomposition"]         # E.g. "proxy_voltage_trace_not_current" (if applicable)
 manifest["source_model"]                 # Struct: {"izhikevich_model_current_plus_spike_impulse_proxy": {...}}
@@ -347,7 +347,7 @@ signals = model.simulate(sim)
 # Check source declaration
 manifest = model.manifest(signals, [])
 print(f"Source calibration: {manifest['source_calibration_status']}")
-# → "uncalibrated_izhikevich_model_current"
+# → "uncalibrated_izhikevich_native_current"
 
 print(f"Field solver: {manifest['field_solver_status']}")
 # → "linear_solver"
@@ -399,7 +399,7 @@ print(f"Physical amplitude allowed: {signals.metadata.get('amplitude_status')}")
 
 Before releasing a model, verify:
 
-- [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_model_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
+- [ ] Source calibration status is declared and one of: uncalibrated_izhikevich_native_current, uncalibrated_hh_model_current, uncalibrated_jaxley_voltage_proxy, or None
 - [ ] Source projection mode is declared (if source_calibration_status is not None)
 - [ ] Field solver status is declared and is either "linear_solver" or a reserved solver name
 - [ ] Boundary condition and gauge are documented (metadata-only)
