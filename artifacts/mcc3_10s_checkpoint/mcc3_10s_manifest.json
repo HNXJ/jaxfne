@@ -1,0 +1,73 @@
+{
+  "checkpoint": "mcc3_10s_scientific",
+  "identity": {
+    "branch": "dev",
+    "sha": "c9e12f8dbc026bd1b5a5f6d7e53d10d3ba06a52e",
+    "package_version": "0.4.8",
+    "working_tree_status": "M docs/ci_policy.md\n?? Makefile\n?? scripts/generate_surface_contract.py\n?? scripts/mcc3_10s_scientific_checkpoint.py\n?? scripts/run_test_gate.py",
+    "simulation_seed": 17,
+    "optimizer_seed": 42,
+    "duration_ms": 10000.0,
+    "dt_ms": 0.1,
+    "burn_in_ms": 20.0,
+    "target_firing_rate_hz": 20.0,
+    "agsdr_training_duration_ms": 100.0,
+    "agsdr_generations": 2,
+    "agsdr_population_size": 4,
+    "agsdr_regenerated": true,
+    "agsdr_note": "AGSDR rerun with exact accepted MCC-3 optimizer configuration; training sim remains 100 ms, evaluation sim is 10 s."
+  },
+  "artifacts": {
+    "figure_png": "artifacts/mcc3_10s_checkpoint/mcc3_10s_pre_post.png",
+    "metrics_json": "artifacts/mcc3_10s_checkpoint/mcc3_10s_metrics.json",
+    "rates_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_rates.csv",
+    "weights_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_weights.csv",
+    "H_csv": "artifacts/mcc3_10s_checkpoint/mcc3_10s_H.csv"
+  },
+  "hashes": {
+    "mcc3_10s_pre_post.png": "5699bca1b50b956b972e3cf01db894629e711869c7ae83a2b875974751d1efae",
+    "mcc3_10s_metrics.json": "423781063dfd118f04fb03004792d9cc0ff8482ba8a20f20b6d0c30e7fa32aed"
+  },
+  "abc_table": {
+    "population_rate_hz": {
+      "A": 5.31062126159668,
+      "B": 10.62124252319336,
+      "C": 10.62124252319336
+    },
+    "target_error_hz": {
+      "A": 14.68937873840332,
+      "B": 9.37875747680664,
+      "C": 9.37875747680664
+    },
+    "E_rate_hz": {
+      "A": 10.62124252319336,
+      "B": 10.62124252319336,
+      "C": 10.62124252319336
+    },
+    "I_rate_hz": {
+      "A": 0.0,
+      "B": 10.62124252319336,
+      "C": 10.62124252319336
+    },
+    "total_spikes": {
+      "A": 539,
+      "B": 1069,
+      "C": 1069
+    },
+    "source_rms": {
+      "A": 4.208344459533691,
+      "B": 4.307272911071777,
+      "C": 4.298046588897705
+    },
+    "readout_rms": {
+      "A": 8.919227600097656,
+      "B": 9.091331481933594,
+      "C": 9.069587707519531
+    },
+    "objective_total_score_10s": {
+      "A": 0.5394446543228475,
+      "B": 0.21990277424329405,
+      "C": 0.21990277424329405
+    }
+  }
+}
