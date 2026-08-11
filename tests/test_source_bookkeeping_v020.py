@@ -75,10 +75,14 @@ class TestSourceBookkeepingMetadata:
         model, signals = _model_and_signals()
         assert signals.metadata["source_bookkeeping"]["double_count_guard"] == "passed"
 
-    def test_double_count_evidence_none(self):
-        """double_count_evidence must be None (no issues found)."""
+    def test_double_count_evidence_is_mechanical(self):
+        """double_count_evidence records the source composition check."""
         model, signals = _model_and_signals()
-        assert signals.metadata["source_bookkeeping"]["double_count_evidence"] is None
+        evidence = signals.metadata["source_bookkeeping"]["double_count_evidence"]
+        assert evidence["status"] == "helper_backed"
+        assert evidence["synaptic_term_location"] == "current_native"
+        assert evidence["separate_synaptic_source"] is False
+        assert evidence["implementation"] == "emitters._source_proxy_from_components"
 
 
 class TestSourceBookkeepingInRunReceipt:

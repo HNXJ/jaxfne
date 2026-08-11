@@ -47,6 +47,42 @@ def manifest(
     runtime_cfg = None
     if signals is not None and "runtime" in signals.metadata:
         runtime_cfg = _RuntimeReportAdapter(signals.metadata["runtime"])
+    source_model = dict(_SOURCE_PROXY_METADATA)
+    if signals is not None:
+        source_mode_class = signals.metadata.get("source_mode_class")
+        if source_mode_class == "specialized":
+            source_model = {
+                "source_model": signals.metadata.get("source_mode"),
+                "source_mode": signals.metadata.get("source_mode"),
+                "source_mode_class": source_mode_class,
+                "source_decomposition": signals.metadata.get("source_decomposition"),
+                "source_contract": signals.metadata.get("source_contract"),
+                "source_calibration_status": signals.metadata.get(
+                    "source_calibration_status"
+                ),
+                "representation": signals.metadata.get("representation", "relative"),
+                "calibration_transform": signals.metadata.get(
+                    "calibration_transform", "explicit_boundary_transform"
+                ),
+                "physical_amplitude_calibrated": signals.metadata.get(
+                    "physical_amplitude_calibrated", False
+                ),
+            }
+        else:
+            source_model.update(
+                {
+                    key: value
+                    for key, value in {
+                        "source_calibration_status": signals.metadata.get(
+                            "source_calibration_status"
+                        ),
+                        "source_mode": signals.metadata.get("source_mode"),
+                        "source_mode_class": signals.metadata.get("source_mode_class"),
+                        "source_contract": signals.metadata.get("source_contract"),
+                    }.items()
+                    if value is not None
+                }
+            )
     res = build_manifest(
         self.cfg,
         signals=signals,
@@ -87,7 +123,7 @@ def manifest(
         # shared name was a real trap for a future reader. This key
         # versions only this backend_metadata block, not the manifest.
         "backend_metadata_schema_version": _MANIFEST_SCHEMA_VERSION,
-        "source_model": dict(_SOURCE_PROXY_METADATA),
+        "source_model": source_model,
     }
     # v0.2.0: Field admissibility metadata
     if signals is not None and signals.field is not None:
@@ -134,7 +170,7 @@ def manifest(
             for name, spec in standard_receptor_specs().items()
         }
     # v0.0.21: explicit source model in manifest.
-    res["source_model"] = dict(_SOURCE_PROXY_METADATA)
+    res["source_model"] = source_model
     res["backend_metadata"] = backend_meta
     if "geometry" in self.static:
         res["source_geometry"] = self.static["geometry"]

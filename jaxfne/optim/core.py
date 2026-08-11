@@ -415,7 +415,15 @@ def _resolve_optimizer(optimizer: Any) -> OptimizerSpec:
             deselect_factor=float(optimizer.deselect_factor),
             metadata={
                 "parameters": {
-                    k: ([float(v[0]), float(v[1])] if not hasattr(v, "mask") else {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)})
+                    k: (
+                        v.to_dict()
+                        if hasattr(v, "to_dict")
+                        else (
+                            {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)}
+                            if hasattr(v, "mask")
+                            else [float(v[0]), float(v[1])]
+                        )
+                    )
                     for k, v in optimizer.parameters.items()
                 },
                 "generations": int(optimizer.generations),
@@ -579,6 +587,7 @@ def _run_agsdr_optimization_loop(
     exploration: float = 0.18,
     seed: int = 0,
     rejections_map: Optional[dict] = None,
+    initial_parameters: Optional[dict[str, float]] = None,
 ) -> dict[str, Any]:
     """Run a stateful multi-parameter AGSDR (Adaptive Genetic Stochastic Delta Rule) loop.
 
@@ -672,7 +681,7 @@ def _run_agsdr_optimization_loop(
     for name, (lo_raw, hi_raw) in zip(param_names, bounds_list):
         lo = float(lo_raw)
         hi = float(hi_raw)
-        if not (lo == lo and hi == hi):
+        if not (math.isfinite(lo) and math.isfinite(hi)):
             raise ValueError(f"non-finite bounds for parameter {name!r}: {(lo_raw, hi_raw)!r}")
         if hi < lo:
             lo, hi = hi, lo
@@ -690,8 +699,18 @@ def _run_agsdr_optimization_loop(
     lows = jnp.asarray([b[0] for b in bounds_list], dtype=_wdtype)
     highs = jnp.asarray([b[1] for b in bounds_list], dtype=_wdtype)
 
-    # Initialize center: start at midpoint of each parameter's bounds
+    # Initialize at the declared theta_0 when provided; midpoint remains the
+    # backward-compatible default for scalar callers without an initial state.
     center_arr = 0.5 * (lows + highs)
+    if initial_parameters:
+        center_arr = jnp.asarray(
+            [
+                float(initial_parameters.get(name, center_arr[i]))
+                for i, name in enumerate(param_names)
+            ],
+            dtype=_wdtype,
+        )
+        center_arr = jnp.clip(center_arr, lows, highs)
     theta_center = {
         name: float(center_arr[i])
         for i, name in enumerate(param_names)

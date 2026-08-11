@@ -1,6 +1,6 @@
-"""``enable_hdp`` must route ``simulate()`` through the HDP kernel, expose
-diagnostics, and reduce to the baseline edge-list kernel exactly when all
-income/spending/control gains are zero (the documented null control).
+"""``enable_hdp`` must route ``simulate()`` through the HDP kernel and expose
+diagnostics. These tests cover the H-state and weight-term null behavior; they
+do not claim full-system equivalence with the baseline edge-list kernel.
 
 The kernel itself is validated standalone in test_hdp_kernel_standalone.py;
 these tests pin the *dispatch wiring* mirroring test_homeostasis_dispatch.py:
@@ -26,15 +26,15 @@ def _build(runtime_kwargs=None, n=80):
 
 
 def test_null_gains_freeze_H_and_weights():
-    """All income/spending/control gains default to 0.0 -- the documented null
-    control. Confirmed bit-exact at the kernel level in
+    """All income/spending/control gains default to 0.0 -- the documented
+    H-state and HDP-term null. Confirmed bit-exact at the kernel level in
     test_hdp_kernel_standalone.py; through the dispatch path the resulting
     V_m trajectory is *not* asserted bit-identical to the baseline kernel,
     since the HDP step function carries extra (unused-at-null) terms (e.g.
     H_boost_gain's boost factor, per-edge |w| bookkeeping) that XLA may fuse
     differently from the baseline kernel's leaner graph -- a sub-ULP
     floating-point difference that a chaotic spiking system amplifies over
-    hundreds of steps, not a dispatch-wiring bug. What the null control
+    hundreds of steps, not a dispatch-wiring bug. What this null configuration
     *does* guarantee, and what this test checks directly: H stays pinned at
     1.0 and edge weights are unchanged."""
     model_obj = _build({"enable_hdp": True})

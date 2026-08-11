@@ -38,6 +38,7 @@ def evaluate(
     objective: "Objective | str",
     readout: Optional[dict[str, Any]] = None,
     strict: bool = False,
+    state_diagnostics: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Full objective/gate evaluation with JSON-safe report.
 
@@ -54,7 +55,13 @@ def evaluate(
 
     # Special dispatch for group-rate targets objective
     if getattr(objective, "kind", "generic") == "group_rate_targets":
-        return self._evaluate_group_rate_targets(signals, objective, warnings, cfg_meta)
+        return self._evaluate_group_rate_targets(
+            signals,
+            objective,
+            warnings,
+            cfg_meta,
+            state_diagnostics=state_diagnostics,
+        )
 
     computed_metrics = _compute_all_metrics(signals, readout)
 
@@ -163,6 +170,7 @@ def _evaluate_group_rate_targets(
     objective: "Objective",
     warnings: list[str],
     cfg_meta: dict[str, Any],
+    state_diagnostics: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     """Evaluate group-wise firing rate targets objective.
 
@@ -211,6 +219,34 @@ def _evaluate_group_rate_targets(
     if dt_ms <= 0:
         dt_ms = 0.05
 
+    rate_meta = next(
+        (
+            gate.get("metadata", {})
+            for gate in objective.gates
+            if isinstance(gate, dict)
+            and "metadata" in gate
+            and "groups" in gate.get("metadata", {})
+        ),
+        {},
+    )
+    burn_in_ms = float(rate_meta.get("burn_in_ms", 0.0))
+    window_end_ms = rate_meta.get("window_end_ms")
+    epsilon = float(rate_meta.get("epsilon", 1e-6))
+    n_steps = int(signals.spikes.shape[0])
+    start_idx = int(math.ceil(burn_in_ms / dt_ms))
+    end_idx = (
+        n_steps
+        if window_end_ms is None
+        else min(n_steps, int(math.ceil(float(window_end_ms) / dt_ms)))
+    )
+    invalid_status = None
+    if start_idx < 0 or start_idx >= n_steps or end_idx <= start_idx:
+        invalid_status = "empty_rate_window"
+
+    state_validity = _state_validity_report(signals, state_diagnostics)
+    if state_validity["status"] != "valid":
+        invalid_status = state_validity["status"]
+
     # Compute group-wise firing rates and loss
     total_loss = 0.0
     loss_details = []
@@ -229,23 +265,20 @@ def _evaluate_group_rate_targets(
 
         if not idx_list:
             warnings.append(f"group_{group_name}_empty")
+            all_gates_pass = False
             continue
 
         try:
             # Extract spikes for this group
-            group_spikes = signals.spikes[:, idx_list]  # Shape: [n_steps, n_neurons_in_group]
+            if invalid_status is not None:
+                raise ValueError(invalid_status)
+            group_spikes = signals.spikes[start_idx:end_idx, idx_list]
 
             # Compute mean spike rate over time and neurons in group
             group_rate_hz = float(jnp.mean(group_spikes) * (1000.0 / dt_ms))
 
-            # Compute squared relative error: ((rate - target) / target)^2
-            if target_hz == 0:
-                if group_rate_hz == 0:
-                    raw_loss = 0.0
-                else:
-                    raw_loss = float("inf")
-            else:
-                raw_loss = ((group_rate_hz - target_hz) / target_hz) ** 2
+            # Compute squared relative error over the declared measurement window.
+            raw_loss = ((group_rate_hz - target_hz) / max(abs(target_hz), epsilon)) ** 2
 
             weighted_loss = weight * raw_loss
             total_loss += weighted_loss
@@ -257,6 +290,8 @@ def _evaluate_group_rate_targets(
                 "weight": float(weight),
                 "raw_loss": _finite_or_none(raw_loss),
                 "weighted_loss": _finite_or_none(weighted_loss),
+                "window_start_ms": float(start_idx * dt_ms),
+                "window_end_ms": float(end_idx * dt_ms),
                 "status": "ok",
             })
         except Exception as e:
@@ -272,20 +307,62 @@ def _evaluate_group_rate_targets(
             })
             all_gates_pass = False
 
-    # Check if loss is finite
-    has_loss_value = math.isfinite(total_loss)
+    state_metrics = {
+        "hdp_H_abs_max": state_validity.get("H_abs_max"),
+        "hdp_W_abs_max": state_validity.get("W_abs_max"),
+    }
+    regularizer_results = []
+    regularizer_total = 0.0
+    for spec in getattr(objective, "regularizers", []):
+        result = _evaluate_regularizer_spec(spec, state_metrics, warnings, strict=False)
+        regularizer_results.append(result)
+        weighted = result.get("weighted_value")
+        if weighted is None or not math.isfinite(float(weighted)):
+            all_gates_pass = False
+        else:
+            regularizer_total += float(weighted)
+
+    rate_loss = float(total_loss)
+    total_score = rate_loss + regularizer_total
+    # Check if loss and state are finite.
+    has_loss_value = math.isfinite(total_score) and invalid_status is None
     if not has_loss_value:
         all_gates_pass = False
 
     acceptance = "gates_pass" if (all_gates_pass and has_loss_value) else "gates_fail"
+    single_group = len(loss_details) == 1
+    single_rate = loss_details[0]["achieved_hz"] if single_group else None
+    single_target = loss_details[0]["target_hz"] if single_group else None
 
     return json_safe({
         "evaluation_status": "objective_evaluate_group_rate_targets_v0.0.1",
         "objective_name": getattr(objective, "name", "spectrolaminar_objective"),
-        "total_loss": _finite_or_none(total_loss) if has_loss_value else None,
+        "total_loss": _finite_or_none(total_score) if has_loss_value else None,
+        "total_score": _finite_or_none(total_score) if has_loss_value else None,
+        "rate": single_rate,
+        "target_rate": single_target,
+        "rate_loss": _finite_or_none(rate_loss),
+        "weight_regularizer": _finite_or_none(
+            sum(
+                float(r.get("weighted_value"))
+                for r in regularizer_results
+                if "W" in str(r.get("metric", "")).upper()
+                and r.get("weighted_value") is not None
+            )
+        ),
+        "H_regularizer": _finite_or_none(
+            sum(
+                float(r.get("weighted_value"))
+                for r in regularizer_results
+                if "H" in str(r.get("metric", ""))
+                and r.get("weighted_value") is not None
+            )
+        ),
+        "invalid_status": invalid_status,
+        "state_validity": state_validity,
         "group_rate_losses": loss_details,
         "losses": [],
-        "regularizers": [],
+        "regularizers": regularizer_results,
         "gates": [],
         "all_gates_pass": all_gates_pass,
         "acceptance_decision": acceptance,
@@ -294,6 +371,75 @@ def _evaluate_group_rate_targets(
         "physical_amplitude_calibrated": False,
         "warnings": warnings,
     })
+
+
+def _state_validity_report(
+    signals: Signals,
+    state_diagnostics: Optional[dict[str, Any]],
+) -> dict[str, Any]:
+    """Check finite neural/HDP state without imposing optimizer bounds on HDP."""
+    arrays: dict[str, Any] = {
+        "X": signals.V_m,
+        "spikes": signals.spikes,
+        "sources": signals.sources,
+    }
+    if state_diagnostics:
+        arrays.update(
+            {
+                key: state_diagnostics.get(key)
+                for key in ("H_trace", "H_final", "w_trace", "w_final")
+                if state_diagnostics.get(key) is not None
+            }
+        )
+    finite = {
+        name: bool(jnp.all(jnp.isfinite(value)))
+        for name, value in arrays.items()
+        if value is not None
+    }
+    if not all(finite.values()):
+        return {
+            "status": "nonfinite_state",
+            "finite": finite,
+            "H_abs_max": None,
+            "W_abs_max": None,
+            "bounds": {},
+        }
+    H_values = [value for name, value in arrays.items() if name.startswith("H_")]
+    W_values = [value for name, value in arrays.items() if name.startswith("w_")]
+    hdp_params = signals.metadata.get("hdp", {}).get("params", {})
+    bounds: dict[str, Any] = {}
+    violations: list[str] = []
+    if "H_min" in hdp_params and "H_max" in hdp_params:
+        bounds["H"] = [float(hdp_params["H_min"]), float(hdp_params["H_max"])]
+        if any(
+            bool(jnp.any(value < bounds["H"][0])) or
+            bool(jnp.any(value > bounds["H"][1]))
+            for value in H_values
+        ):
+            violations.append("H_bounds")
+    if "w_min" in hdp_params and "w_max" in hdp_params:
+        bounds["W"] = [float(hdp_params["w_min"]), float(hdp_params["w_max"])]
+        if any(
+            bool(jnp.any(value < bounds["W"][0])) or
+            bool(jnp.any(value > bounds["W"][1]))
+            for value in W_values
+        ):
+            violations.append("W_bounds")
+    return {
+        "status": "state_bounds_violation" if violations else "valid",
+        "finite": finite,
+        "H_abs_max": max(
+            (float(jnp.max(jnp.abs(value))) for value in H_values),
+            default=None,
+        ),
+        "W_abs_max": max(
+            (float(jnp.max(jnp.abs(value))) for value in W_values),
+            default=None,
+        ),
+        "bounds": bounds,
+        "bound_violations": violations,
+    }
+
 
 def _evaluate_soft_rate_targets(
     V_m: "jax.Array",

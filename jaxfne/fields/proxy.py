@@ -217,6 +217,7 @@ def project_laminar_sources(
 
     field_solution_report = _make_field_solution_report(
         field_solver_status="linear_solver",
+        operator_type="linear_projection",
         solver_name="laminar_proxy",
         boundary_condition="mean_zero_neumann",
         gauge="mean_zero",
@@ -230,6 +231,10 @@ def project_laminar_sources(
         finite_CSD=_finite_flag(csd_proxy),
         field_claim_level="proxy_readout",
         physical_amplitude_calibrated=False,
+        representation="relative",
+        validation_status="computational",
+        calibration_transform="explicit_boundary_transform",
+        normalization_mode=mode,
         source_projection_mode="proxy_no_field_solve",
         source_current_conservation_status="not_applicable_proxy_mode",
         source_conservation_tested=False,
@@ -247,7 +252,7 @@ def project_laminar_sources(
         diagnostics.update(field_solution_report)
         diagnostics.update({
             "field_solver": "linear_solver",
-            "source_projection_status": "contact_row_normalized_proxy",
+            "source_projection_status": f"laminar_{mode}_projection",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_decomposition": "proxy_reduced_emitter",
         })
@@ -279,7 +284,13 @@ def project_sources_to_laminar_field(
     (``field_solver_status = "linear_solver"``); outputs are relative-unit
     proxies.
     """
-    return project_laminar_sources(sources, positions, n_contacts=n_contacts, mode=mode, dtype=dtype)
+    return project_laminar_sources(
+        sources,
+        positions,
+        n_contacts=n_contacts,
+        mode=mode,
+        dtype=dtype,
+    )
 
 
 
@@ -336,6 +347,19 @@ def validate_source_field_status(
         "finite_lfp_proxy": diagnostics.get("finite_lfp_proxy"),
     }
     return {
+        "operator_type": metadata.get(
+            "operator_type", diagnostics.get("operator_type", "linear_projection")
+        ),
+        "representation": metadata.get(
+            "representation", diagnostics.get("representation", "relative")
+        ),
+        "normalization_mode": metadata.get(
+            "normalization_mode", diagnostics.get("normalization_mode", "density_preserving")
+        ),
+        "calibration_transform": metadata.get(
+            "calibration_transform",
+            diagnostics.get("calibration_transform", "explicit_boundary_transform"),
+        ),
         "source_projection_mode": source_projection_mode,
         "source_decomposition": source_decomposition,
         "source_calibration_status": source_calibration_status,
@@ -684,6 +708,10 @@ def filtered_spike_source(
 
     metadata = {
         "source_mode": "dynamics_derived_filtered_spike_source",
+        "source_mode_class": "specialized",
+        "operator_type": "direct_readout",
+        "representation": "relative",
+        "calibration_transform": "explicit_boundary_transform",
         "dynamics_derived": True,
         "spectrolaminar_profile_injected": False,
         "default_evidence_path": True,
@@ -720,6 +748,10 @@ def teaching_control_spectrolaminar_resonance_source(
             jnp.zeros((n_steps, 1), dtype=jnp.float32),
             {
                 "source_mode": "teaching_control_resonance_source",
+                "source_mode_class": "experimental",
+                "operator_type": "direct_readout",
+                "representation": "relative",
+                "calibration_transform": "explicit_boundary_transform",
                 "dynamics_derived": False,
                 "spectrolaminar_profile_injected": True,
                 "default_evidence_path": False,
@@ -755,6 +787,10 @@ def teaching_control_spectrolaminar_resonance_source(
 
     metadata = {
         "source_mode": "teaching_control_resonance_source",
+        "source_mode_class": "experimental",
+        "operator_type": "direct_readout",
+        "representation": "relative",
+        "calibration_transform": "explicit_boundary_transform",
         "dynamics_derived": False,
         "spectrolaminar_profile_injected": True,
         "default_evidence_path": False,
@@ -1232,6 +1268,7 @@ def construct_source_tensor(
 
     report = {
         "source_mode": source_mode,
+        "source_mode_class": "specialized",
         "mode": source_mode,
         "source_shape": list(source.shape),
         "source_calibration_status": "uncalibrated_spike_only"
@@ -1239,7 +1276,20 @@ def construct_source_tensor(
         else "toy_scale_A_per_reduced_not_empirical",
         "source_projection_mode": "proxy_no_field_solve",
         "source_decomposition": source_mode,
+        "operator_type": "direct_readout",
+        "representation": "relative",
+        "normalization": "per_source_scale",
+        "calibration_transform": "explicit_boundary_transform",
         "double_count_guard": "passed",
+        "double_count_evidence": {
+            "status": "input_contract_checked",
+            "synaptic_term": (
+                "included_in_total_membrane_current"
+                if source_mode == "total_membrane_current_proxy"
+                else "explicit_decomposed_term"
+            ),
+            "separate_synaptic_source": False,
+        },
         "physical_amplitude_calibrated": False,
         "finite": finite_bool,
     }

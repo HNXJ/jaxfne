@@ -1,46 +1,73 @@
 ---
 name: jaxfne-modeling-optimization-schema
 description: >-
-  Deep schema and truth-gate reference for jaxfne connectivity rules,
-  node-identity selectors, and objective/trainer path conventions. Use when
-  defining a connectivity rule schema (pre/post selectors, mechanism, pattern,
-  weight), a node-identity or selector convention (area/layer/cell_type
-  quartet, allow_empty), trainable parameter paths (cell.E.drive, conn.gain,
-  mechanism.AMPA.g), objective/trainer output conventions, schema_version /
-  migrate_schema, or checking Configuration's real dataclass fields. For
-  Model/Signals/tune use jaxfne-neural-network; for NeuronalTensor/HDP use
-  jaxfne-neural-tensor. Flags the fictional jtfne.weld()/cfg.circuit APIs.
+  Audit jaxfne connectivity rules, selectors, serialized configuration,
+  trainable parameter paths, objectives, and optimization reports. Use when
+  changing schema or model-selection contracts.
 ---
 
-# jaxfne Modeling and Optimization Schema
+# jaxfne modeling and optimization procedure
 
-## FICTIONAL — do not use (verified false 2026-06-30)
+Read `catalog-glossary-jaxfne` and the mathematical project source first. This
+skill defines checks and routing, not objective or HDP mathematics.
 
-```python
-jtfne.weld(cfg_a, cfg_b, duplicate_policy="suffix")   # jtfne.weld does not exist
-cfg.circuit; cfg.paradigm; cfg.objective; cfg.optimizer  # not real fields
-```
+## Public configuration boundary
 
-`Configuration`'s real fields (verified via `dataclasses.fields`):
-`networks, emitters, fields, probes, metadata`. See `jaxfne-config`.
+Verify `Configuration` fields and methods with the live dataclass and public
+import. Do not invent typed `.circuit`, `.paradigm`, `.objective`, or
+`.optimizer` sub-specs, or a `jtfne.weld(...)` helper.
 
-## Identity and selector rules (verified: `quartet`/id selector exists in `jaxfne/connectivity.py`)
+## Identity and selectors
 
-Canonical node identity:
+Use the fields emitted by `model.neuron_table()` and the selector contract in
+`jaxfne/connectivity.py`. Do not assume a key name such as `global_id` or
+`quartet` without checking the current return value.
+
+Empty selector behavior must be explicit. A rule that selects zero nodes should
+raise or require an explicit `allow_empty=True` policy.
+
+## Connection rule checks
+
+Before changing a serialized connection rule:
+
+1. Verify the current `compile_connection_rules` signature.
+2. Verify pre/post selector scope and mechanism names.
+3. Verify pattern and weight modes in code/tests.
+4. Check deterministic seed handling.
+5. Check edge count and finite weights after compilation.
+6. Check sparse/dense semantic equivalence on a small case when both paths
+   exist.
+
+Keep raw arrays out of JSON unless the current artifact-reference contract
+encodes path, array name, and content identity.
+
+## Objective and tuning checks
+
+Objective output should declare its source, metric, target/gate, weight, and
+selector. Tuning reports should preserve parameters, score, history, validation,
+seed/search budget, and current status metadata.
+
+Verify the actual `Model.tune()` path before describing an optimizer as
+differentiable or gradient-based.
+
+## Truth and serialization
+
+Preserve current conservative fields:
 
 ```text
-area_id:local_id:layer:cell_type
+claim_level
+field_solver_status
+field_claim_level
+physical_amplitude_calibrated
 ```
 
-Six-digit local IDs, e.g. `V1:000042:L4:PV`. Every node row (from
-`model.neuron_table()`) carries `neuron_id, area, layer, cell_type, x, y, z`
-— verify exact field names against `neuron_table()` output before assuming
-`global_id`/`area_id`/`quartet` are literal dict keys; `quartet` is the
-selector-resolution concept in `connectivity.py`, not necessarily a dict key
-name. Empty selectors fail unless `allow_empty=True` is explicit
-(`compile_connection_rules(..., allow_empty=False)`).
+`field_solver_status="linear_solver"` is compatibility metadata for the current
+proxy path. It does not establish a solved field.
 
-## Connectivity rule schema (real: `compile_connection_rules(neurons, connections, mechanisms, ...)`)
+## Connectivity rule schema
+
+Use the live `compile_connection_rules` signature and tests before relying on
+this conceptual shape:
 
 ```python
 {
@@ -107,7 +134,7 @@ readout shapes declared, source calibration status exported, field solver
 status exported, mean firing rate in declared range unless null/instability
 lesson.
 
-## Field metadata contract (verified 2026-08-06, Phase E)
+## Field metadata contract
 
 Every field solver output must carry the canonical trio:
 
@@ -117,32 +144,17 @@ Every field solver output must carry the canonical trio:
 | `field_solver_status` | `"linear_solver"` (proxy projection) or `"experimental_pde_solver"` (both Poisson entry points) |
 | `physical_amplitude_calibrated` | `False` |
 
-Metadata surfaces — the trio lives at each solver's actual output surface:
-
-- `project_laminar_sources` and its wrapper `project_sources_to_laminar_field` → `FieldOutput.diagnostics` (`jaxfne/fields/proxy.py`, `jaxfne/fields/diagnostics.py`).
-- `experimental_poisson_1d` and `experimental_poisson_1d_from_neuron_table` → the returned `manifest` dict (`jaxfne/fields/solvers.py`).
-
-Solver relationships:
-
-- `project_sources_to_laminar_field` delegates to `project_laminar_sources`.
-- `experimental_poisson_1d_from_neuron_table` bins `z` rows from a neuron table into `n_bins`, then delegates to `experimental_poisson_1d` and copies its manifest (adding `bin_edges` + `neurons_per_bin`).
-
-There is no unified output object across both families — verify metadata per surface. Regression gates: `tests/test_phaseE_field_schema.py`, `tests/test_field_admissibility_v020.py`, `tests/test_field_proxy_admissibility_v024.py`.
+Verify the metadata surface for each selected solver/projection path in the
+active implementation and its tests; do not assume a unified output object.
 
 ## Homeostasis / HDP / plasticity — see the detailed skills
 
 Full behavior and wiring status: `jaxfne-config` (`.homeostasis`/`.plasticity`
 fluent methods) and `jaxfne-neural-tensor` (HDP module, tau-law, `RuntimeConfig`).
+Require finite arrays, explicit randomness, declared shapes, and strict JSON.
 
 ## Stop conditions
 
-```text
-invented public API (weld/circuit/paradigm/objective/optimizer typed sub-specs — see above)
-hidden local scientific engine
-NaN/Inf export
-proxy path described as solved field
-uncalibrated source described as physical amplitude
-silent placeholder success
-connection rule silently selects zero neurons
-raw ndarray stored in JSON config without encoding/artifact_ref
-```
+Stop for invented APIs, silent zero-node selection, hidden local engines,
+NaN/Inf export, unencoded arrays, proxy-as-solver language, or a schema change
+without an explicit migration plan and compatibility test.

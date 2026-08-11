@@ -22,6 +22,24 @@ import numpy as np
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
 
 
+def _source_proxy_from_components(
+    current_native: jax.Array,
+    spikes: jax.Array,
+    source_scale: jax.Array,
+    *,
+    dtype: Any,
+) -> jax.Array:
+    """Compose the canonical relative source from its declared components.
+
+    ``current_native`` already contains the drive, recurrent synaptic, and
+    stochastic-current terms for the active emitter path.  The spike impulse is
+    added exactly once at this boundary, using the canonical gain owned by
+    :mod:`jaxfne.presets`.
+    """
+    spike_gain = jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=dtype)
+    return source_scale * (current_native + spike_gain * spikes)
+
+
 # Canonical Izhikevich cell-type parameter defaults.
 # Single source of truth for E/PV/SST/VIP reduced-model parameters.
 IZHIKEVICH_CELL_TYPE_DEFAULTS: dict[str, dict[str, float]] = {
@@ -451,7 +469,7 @@ def simulate_eig_izhikevich(
             
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
         _, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -475,7 +493,7 @@ def simulate_eig_izhikevich(
             
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes), (v_reset, spikes, source_proxy)
 
         _, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -569,6 +587,7 @@ def simulate_edge_recurrent_izhikevich(
     drive_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -581,6 +600,8 @@ def simulate_edge_recurrent_izhikevich(
     native uncalibrated current at each timestep. ``noise_scale`` sets the
     stochastic-current coefficient: ``None`` keeps the historical 0.5 scalar; a
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
+    ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
+    ``syn_state`` for deterministic or explicitly keyed segmented continuation.
     """
 
     jdtype = _dtype_from_policy(dtype)
@@ -608,12 +629,20 @@ def simulate_edge_recurrent_izhikevich(
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
 
-    init = (
-        params.v0.astype(jdtype),
-        params.u0.astype(jdtype),
-        jnp.zeros_like(params.v0, dtype=jdtype),
-        jnp.zeros((edges.n_edges,), dtype=jdtype),
-    )
+    if init_state is None:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+        )
+    else:
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+        )
 
     if drive_schedule is None:
         def step(carry, noise_t):
@@ -634,7 +663,7 @@ def simulate_edge_recurrent_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -660,7 +689,7 @@ def simulate_edge_recurrent_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -865,7 +894,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             dw = eta_arr * (r_star_arr - r_next[post]) * x_next[pre]
             w_next = jnp.clip(w + dt * dw, w_min_arr, w_max_arr)
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next, r_next, w_next, x_next), \
                    (v_reset, spikes, source_proxy, g, r_next, w_next)
 
@@ -914,7 +943,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
 
             return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
 
@@ -965,7 +994,7 @@ def simulate_edge_recurrent_izhikevich_homeostatic(
             v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
 
             # Proxy current for field source
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
 
             return (v_reset, u_reset, spikes, syn_next, r_next), (v_reset, spikes, source_proxy, g, r_next)
 
@@ -1046,13 +1075,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
     *,
     dtype: str = "float32",
     drive_schedule: "jax.Array | None" = None,
+    noise_schedule: "jax.Array | None" = None,
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
-    # Homeostasis-Dependent Plasticity (HDP) parameters. alpha=beta=gamma=
-    # delta=C_spike=0.0 (the default) hold H_i fixed at its 1.0 initial value
-    # forever, which makes the K_HDP-scaled weight term identically zero
-    # regardless of K_HDP -- the null control.
+    # Homeostasis-Dependent Plasticity (HDP) parameters. With the default
+    # zero H-driving terms, H_i stays at its 1.0 initial value and the
+    # difference/product weight term is null regardless of K_HDP. This is the
+    # default H-state/weight-term null, not a general full-system equivalence.
     H_min: float = 0.1,
     H_max: float = 10.0,
     tau_0_ms: float = 100.0,
@@ -1081,13 +1111,18 @@ def simulate_edge_recurrent_izhikevich_hdp(
     record_weight_trace: bool = True,
     H_boost_gain: float = 0.0,
     hdp_rule: str = "signed_linear",
+    h_state_dim: int = 1,
+    h_state_readout: "jax.Array | None" = None,
+    h_state_coupling: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
-    Homeostasis-Dependent Plasticity (HDP) is a single per-neuron master
-    state ``H_i`` (default 1.0, clamped to ``[H_min, H_max]``) that all of a
-    neuron's incoming excitatory/inhibitory weight updates read from, and
-    that both synaptic drive and the neuron's own spiking feed back into:
+    Homeostasis-Dependent Plasticity (HDP) carries a per-neuron state ``H_i``.
+    The legacy scalar state has shape ``(n_neurons,)``; a generalized state has
+    shape ``(n_neurons, h_state_dim)``. Componentwise H dynamics are the
+    default, with optional explicit linear coupling. The current weight rules
+    consume a configurable readout of the generalized state; this is a
+    compatibility projection, not the definition of the H-state abstraction.
 
         I_syn_i = sum_j w_ji * x_j                              (incoming synaptic current; this module's existing ``syn``)
         W_i     = sum_j |w_ij|                                  (i's own outgoing synaptic burden)
@@ -1096,13 +1131,24 @@ def simulate_edge_recurrent_izhikevich_hdp(
                           + rho_passive/H_i**2 - dC/dH_i        (r_i = previous step's spike indicator)
         H_i    <- H_i - C_spike                                 (discrete drain on H_i when i itself spikes)
 
-    ``hdp_rule`` determines the weight-update family (default "signed_linear"):
-        signed_linear: dw_E/dt = +K_HDP * (H_pre - H_post) * w_E,
-                       dw_I/dt = -K_HDP * (H_pre - H_post) * w_I
-        signed_quadratic: dw_E/dt = +K_HDP * (H_pre - H_post)|H_pre - H_post| * w_E,
-                          dw_I/dt = -K_HDP * (H_pre - H_post)|H_pre - H_post| * w_I
-        hebbian_product: dw_E/dt = +K_HDP * H_pre * H_post * w_E,
-                         dw_I/dt = -K_HDP * H_pre * H_post * w_I
+    ``hdp_rule`` determines the weight-magnitude update family (default
+    "signed_linear").  Let ``m = abs(w)`` and
+    ``delta_H = H_post - H_pre``:
+
+        difference family:
+          signed_linear:    dm_E/dt = +K_HDP * delta_H * m_E
+                            dm_I/dt = -K_HDP * delta_H * m_I
+          signed_quadratic: dm_E/dt = +K_HDP * delta_H*abs(delta_H) * m_E
+                            dm_I/dt = -K_HDP * delta_H*abs(delta_H) * m_I
+
+        product modulation:
+          hebbian_product:  dm_E/dt = +K_HDP * H_pre * H_post * m_E
+                            dm_I/dt = -K_HDP * H_pre * H_post * m_I
+
+    ``signed_linear`` and ``signed_quadratic`` are the difference-family HDP
+    rules.  ``hebbian_product`` is a separate product modulation: it does not
+    compare pre/post homeostatic state and is not sign-equivalent to either
+    difference rule.
 
     ``gamma*H_i*r_i`` is an H-taxed output drain: firing costs more for neurons
     with higher H_i (resource-abundant neurons can sustain more activity without
@@ -1133,14 +1179,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
     gap). ``K_ctrl=0.0`` (default) is the null control -- no behavior change
     unless explicitly set.
 
-    ``i`` indexes the postsynaptic neuron in the weight ODEs (matching the
-    existing homeostatic-plasticity sign convention elsewhere in this
-    module). ``K_HDP`` is a single global gain so HDP composes additively
-    with any future plasticity rule applied to the same edges
-    (``dw/dt = dw/dt_other + K_HDP * dw/dt_HDP``): ``K_HDP=1`` is normal
-    stabilization, ``K_HDP=0`` disables HDP outright, ``K_HDP<0`` is an
+    ``pre`` and ``post`` index the presynaptic and postsynaptic endpoints in
+    the weight update. ``K_HDP`` is a single global gain for the
+    homeostatic-difference-driven term (or the separate product-modulation
+    term when ``hdp_rule="hebbian_product"``): ``K_HDP=0`` makes that
+    plasticity term null, but does not disable the H equation or the
+    independent ``K_w_ctrl`` weight-restoration term. ``K_HDP<0`` is an
     explicit anti-homeostatic stress-test mode, and ``|K_HDP|>1``/``<1``
-    over/under-weights the stabilizing term relative to other rules.
+    over/under-weights the selected term.
 
     H_i is a resource-capacity reading, not a stress accumulator: synaptic
     *input* (``alpha*I_syn_i``) raises it (income), while the neuron's own
@@ -1150,15 +1196,13 @@ def simulate_edge_recurrent_izhikevich_hdp(
     for stability: an overactive neuron spends faster than it earns, so
     ``H_i`` falls below 1; this must *weaken* its excitatory weights and
     *strengthen* its inhibitory weights to correct the overactivity. With the
-    ``hdp_rule="signed_linear"`` (the default), ``H_i < 1`` gives
-    ``dw_E/dt < 0`` (weakens, since ``K_HDP*(H_pre-H_post)`` is negative
-    if ``H_pre`` is the presynaptic neuron with typical inputs and
-    ``H_post`` is the resource-starved postsynaptic target) and ``dw_I/dt > 0``
-    (strengthens, since ``-K_HDP*(H_pre-H_post)`` is positive) -- the
-    restoring direction. The ``signed_quadratic`` and ``hebbian_product``
-    rules are alternative weight-basis functions; their sign orientation is
-    preserved via the same E-branch / I-branch split (``exc_mask`` and its
-    negation) that stabilizes the linear rule.
+    ``hdp_rule="signed_linear"`` (the default), a lower-H target has
+    ``H_post-H_pre < 0``, so ``dm_E/dt < 0`` (weakens excitation) and
+    ``dm_I/dt > 0`` (strengthens inhibitory magnitude) -- the restoring
+    direction. The ``signed_quadratic`` rule preserves this orientation while
+    scaling the difference quadratically. ``hebbian_product`` is different:
+    for positive H and positive ``K_HDP`` it increases excitatory magnitude and
+    decreases inhibitory magnitude unless another term or a bound opposes it.
 
     Update order per step (as specified): (1) synaptic current, (2) update
     H_i, (3) update plastic weights from the updated H_i, (4) integrate the
@@ -1205,8 +1249,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             weight burden W_i (default 0.0)
         C_spike: discrete H_i drain charged when the neuron itself spikes,
             not scaled by tau_i (default 0.0)
-        K_HDP: global plasticity gain shared by both weight ODEs (default
-            1.0; 0.0 disables HDP, negative is anti-homeostatic)
+        K_HDP: global gain on the selected weight-modulation term (default
+            1.0; 0.0 nulls that term, negative is anti-homeostatic for the
+            difference family)
         K_ctrl: linear restoring-force gain, dH/dt += K_ctrl*(1-H_i) (default
             0.0, null control). Two-sided: pulls H_i up when below 1, down
             when above -- unlike rho_passive (always >=0, floor-only rescue).
@@ -1231,9 +1276,11 @@ def simulate_edge_recurrent_izhikevich_hdp(
             add rho_passive/H_i**2 to dH_i/dt, pulling H_i toward 1 without
             an explicit linear controller)
         hdp_rule: weight-update rule family (default "signed_linear"):
-            "signed_linear": dw ~ (H_pre - H_post)
-            "signed_quadratic": dw ~ (H_pre - H_post)|H_pre - H_post|
-            "hebbian_product": dw ~ H_pre * H_post
+            difference family:
+              "signed_linear": dw_mag ~ (H_post - H_pre)
+              "signed_quadratic": dw_mag ~ (H_post - H_pre)|H_post - H_pre|
+            separate product modulation:
+              "hebbian_product": dw_mag ~ H_pre * H_post
         barrier_c, barrier_d: asymmetric double-barrier safety-potential
             coefficients repelling H_i from H_min/H_max respectively
             (default 0.0/0.0, no contribution); for the minimum of
@@ -1261,7 +1308,9 @@ def simulate_edge_recurrent_izhikevich_hdp(
             (-delta*W), passive-income restoring (rho_passive/H_i**2), and the
             barrier force -- as "dH_income_trace"/"dH_rate_trace"/
             "dH_weight_trace"/"dH_passive_trace"/"dH_barrier_trace" (each
-            (n_steps, n_neurons)) in diagnostics_dict. Default False (no extra
+            ``(n_steps, n_neurons)`` for scalar H or
+            ``(n_steps, n_neurons, h_state_dim)`` for vector H) in
+            diagnostics_dict. Default False (no extra
             compute/memory); for isolating which term drives an observed
             H/weight runaway.
         record_edge_current: if True, also return the per-step, per-edge
@@ -1292,10 +1341,19 @@ def simulate_edge_recurrent_izhikevich_hdp(
             incoming (previous-step) H_i, so a neuron starved below its
             H=1.0 equilibrium receives a proportionally larger drive.
             Default 0.0 reproduces existing (unboosted) behavior exactly.
+        h_state_dim: number of H coordinates. ``1`` preserves the legacy
+            external shape ``(n_neurons,)``; values greater than one use
+            ``(n_neurons, h_state_dim)``.
+        h_state_readout: optional linear readout vector used by the current
+            scalar drive/weight rules. Defaults to the first coordinate.
+        h_state_coupling: optional ``(h_state_dim, h_state_dim)`` matrix added
+            to the componentwise H derivative. Omitted means zero coupling.
 
     Returns:
         (voltages, spikes, sources, diagnostics_dict) where diagnostics_dict
-        includes "H_trace" (n_steps, n_neurons), "w_trace" (n_steps, n_edges)
+        includes "H_trace" (n_steps, n_neurons) for scalar H or
+        (n_steps, n_neurons, h_state_dim) for vector H, "w_trace"
+        (n_steps, n_edges)
         or None if record_weight_trace=False, and "*_final" vectors (always
         present regardless of record_weight_trace).
     """
@@ -1317,6 +1375,41 @@ def simulate_edge_recurrent_izhikevich_hdp(
     n_neurons = params.v0.shape[0]
     exc_mask = (edges.receptor_index.astype(jnp.int32) == 0)
 
+    if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, (int, np.integer)):
+        raise ValueError("h_state_dim must be a positive integer")
+    h_dim = int(h_state_dim)
+    if h_dim < 1:
+        raise ValueError("h_state_dim must be a positive integer")
+
+    def _h_component_param(value: Any, name: str) -> jax.Array:
+        arr = jnp.asarray(value, dtype=jdtype)
+        if arr.ndim == 0:
+            return arr
+        if arr.shape == (h_dim,):
+            return arr
+        raise ValueError(
+            f"{name} must be scalar or have shape ({h_dim},), got {arr.shape}"
+        )
+
+    if h_state_readout is None:
+        readout = jnp.zeros((h_dim,), dtype=jdtype).at[0].set(1.0)
+    else:
+        readout = jnp.asarray(h_state_readout, dtype=jdtype)
+        if readout.shape != (h_dim,):
+            raise ValueError(
+                "h_state_readout must have shape "
+                f"({h_dim},), got {readout.shape}"
+            )
+    if h_state_coupling is None:
+        coupling = jnp.zeros((h_dim, h_dim), dtype=jdtype)
+    else:
+        coupling = jnp.asarray(h_state_coupling, dtype=jdtype)
+        if coupling.shape != (h_dim, h_dim):
+            raise ValueError(
+                "h_state_coupling must have shape "
+                f"({h_dim}, {h_dim}), got {coupling.shape}"
+            )
+
     if size_scale_override is not None:
         size_arr = jnp.asarray(size_scale_override, dtype=jdtype)
     else:
@@ -1324,20 +1417,20 @@ def simulate_edge_recurrent_izhikevich_hdp(
     tau_i = jnp.asarray(tau_0_ms, dtype=jdtype) * size_arr * size_arr * size_arr
     tau_i = jnp.maximum(tau_i, jnp.asarray(1e-6, dtype=jdtype))
 
-    H_min_arr = jnp.asarray(H_min, dtype=jdtype)
-    H_max_arr = jnp.asarray(H_max, dtype=jdtype)
+    H_min_arr = _h_component_param(H_min, "H_min")
+    H_max_arr = _h_component_param(H_max, "H_max")
     alpha_arr = jnp.asarray(alpha, dtype=jdtype)
     beta_arr = jnp.asarray(beta, dtype=jdtype)
     gamma_arr = jnp.asarray(gamma, dtype=jdtype)
     delta_arr = jnp.asarray(delta, dtype=jdtype)
-    C_spike_arr = jnp.asarray(C_spike, dtype=jdtype)
+    C_spike_arr = _h_component_param(C_spike, "C_spike")
     K_HDP_arr = jnp.asarray(K_HDP, dtype=jdtype)
     K_ctrl_arr = jnp.asarray(K_ctrl, dtype=jdtype)  # Live linear restoring term (revived 2026-07-01)
     K_w_ctrl_arr = jnp.asarray(K_w_ctrl, dtype=jdtype)  # Weight restoring term (added 2026-07-04)
     wmag_baseline_arr = jnp.abs(edges.weight).astype(jdtype)  # Calibrated wiring, not the carried w
-    rho_passive_arr = jnp.asarray(rho_passive, dtype=jdtype)
-    barrier_c_arr = jnp.asarray(barrier_c, dtype=jdtype)
-    barrier_d_arr = jnp.asarray(barrier_d, dtype=jdtype)
+    rho_passive_arr = _h_component_param(rho_passive, "rho_passive")
+    barrier_c_arr = _h_component_param(barrier_c, "barrier_c")
+    barrier_d_arr = _h_component_param(barrier_d, "barrier_d")
     barrier_eps_arr = jnp.asarray(barrier_eps, dtype=jdtype)
     w_floor_arr = jnp.asarray(w_floor, dtype=jdtype)
     w_ceiling_arr = jnp.asarray(w_ceiling, dtype=jdtype)
@@ -1360,13 +1453,33 @@ def simulate_edge_recurrent_izhikevich_hdp(
     else:
         s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
 
-    key, noise_key = jax.random.split(key)
-    bulk_noise = jax.random.normal(noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype)
+    if noise_schedule is None:
+        key, noise_key = jax.random.split(key)
+        bulk_noise = jax.random.normal(
+            noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+        )
+    else:
+        bulk_noise = jnp.asarray(noise_schedule, dtype=jdtype)
+        expected_noise_shape = (int(n_steps), int(n_neurons))
+        if bulk_noise.shape != expected_noise_shape:
+            raise ValueError(
+                "noise_schedule must have shape "
+                f"{expected_noise_shape}, got {bulk_noise.shape}"
+            )
     sched = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
              if drive_schedule is None else drive_schedule.astype(jdtype))
 
+    expected_h_shape = (int(n_neurons),) if h_dim == 1 else (int(n_neurons), h_dim)
     if init_state is not None:
-        H0 = jnp.asarray(init_state.get("H_final", jnp.ones((n_neurons,), dtype=jdtype)), dtype=jdtype)
+        H0 = jnp.asarray(
+            init_state.get("H_final", jnp.ones(expected_h_shape, dtype=jdtype)),
+            dtype=jdtype,
+        )
+        if H0.shape != expected_h_shape:
+            raise ValueError(
+                "H_final must have shape "
+                f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
+            )
         w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
         init = (
             jnp.asarray(init_state["v"], dtype=jdtype),
@@ -1381,7 +1494,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
             params.u0.astype(jdtype),
             jnp.zeros_like(params.v0, dtype=jdtype),
             jnp.zeros((edges.n_edges,), dtype=jdtype),
-            jnp.ones((n_neurons,), dtype=jdtype),     # H_i(0) = 1.0
+            jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
             edges.weight.astype(jdtype),              # w(0) = native edge weight
         )
 
@@ -1393,6 +1506,8 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # (1) Synaptic current.
         edge_current = w * syn_state
         syn = _segment_sum(edge_current, post, n_neurons)
+        wmag = jnp.abs(w)
+        W_burden = _segment_sum(wmag, pre, n_neurons)
         # NOTE: uses the carry (previous-step) H, one step lagged behind H_next
         # computed below in (2) -- negligible at small dt but not exact. Also
         # note dH_income below is alpha*syn only, so the extra current this
@@ -1401,7 +1516,17 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # loop. DEFAULT_HDP_V1_PFC_AAAB does combine both (H_boost_gain=4.0,
         # gamma=0.5) but is stabilized empirically via K_w_ctrl bounding weight
         # growth, not by this income-term asymmetry -- external review 2026-07-14.
-        boost = 1.0 + H_boost_gain_arr * jnp.maximum(0.0, 1.0 - H)
+        if h_dim == 1:
+            h_readout = H
+            syn_h = syn
+            prev_spikes_h = prev_spikes
+            W_burden_h = W_burden
+        else:
+            h_readout = H @ readout
+            syn_h = syn[:, None]
+            prev_spikes_h = prev_spikes[:, None]
+            W_burden_h = W_burden[:, None]
+        boost = 1.0 + H_boost_gain_arr * jnp.maximum(0.0, 1.0 - h_readout)
         current_native = (drive + sched_t) * boost + syn + noise_coef * noise_t
 
         # (2) Update H_i: income from incoming synaptic current, spending
@@ -1409,19 +1534,17 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # burden (prev_spikes avoids circularity with this step's spikes,
         # which are only known after step 4). Passive income restores H toward
         # 1 without an explicit linear controller (rho_passive/H_i**2).
-        wmag = jnp.abs(w)
         # W_burden is an abs-sum over a neuron's outgoing edges (E and I
         # pooled) -- intentional metabolic-cost framing (both excitation and
         # inhibition consume resources), not an E/I-signed drive term; it can
         # therefore stay near-constant even while HDP redistributes weight
         # between E and I edges on the same neuron.
-        W_burden = _segment_sum(wmag, pre, n_neurons)
         dist_floor = jnp.clip(H - H_min_arr, barrier_eps_arr, None)
         dist_ceil = jnp.clip(H_max_arr - H, barrier_eps_arr, None)
         barrier_force = barrier_c_arr / (dist_floor * dist_floor) - barrier_d_arr / (dist_ceil * dist_ceil)
-        dH_income = alpha_arr * syn + beta_arr
-        dH_rate = -gamma_arr * H * prev_spikes  # H-taxed: output spending scaled by resource level
-        dH_weight = -delta_arr * W_burden
+        dH_income = alpha_arr * syn_h + beta_arr
+        dH_rate = -gamma_arr * H * prev_spikes_h  # H-taxed: output spending scaled by resource level
+        dH_weight = -delta_arr * W_burden_h
         dH_passive = rho_passive_arr / jnp.maximum(H * H, 1e-8)  # Passive income: stronger at low H -- NOTE this
         # term is >=0 everywhere H>0, so it can cushion H near the floor but can NEVER pull H back
         # down from above H*=1 on its own. Root-caused 2026-07-01 (F-017/F-019): with gamma=delta=0
@@ -1432,13 +1555,27 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # the hard clip, never by a real restoring force. K_ctrl_arr*(1-H) is genuinely two-sided
         # (positive below H*=1, negative above) -- reviving it as a live term below closes this gap.
         dH_ctrl = K_ctrl_arr * (1.0 - H)  # Revived 2026-07-01 -- was dead code (computed, unused).
-        dH = dH_income + dH_rate + dH_weight + dH_passive + dH_ctrl + barrier_force
-        H_next = jnp.clip(H + (dt / tau_i) * dH, H_min_arr, H_max_arr)
+        dH = (
+            dH_income
+            + dH_rate
+            + dH_weight
+            + dH_passive
+            + dH_ctrl
+            + barrier_force
+        )
+        if h_dim > 1:
+            dH = dH + H @ coupling.T
+        tau_factor = dt / tau_i if h_dim == 1 else (dt / tau_i)[:, None]
+        H_next = jnp.clip(H + tau_factor * dH, H_min_arr, H_max_arr)
 
         # (3) Update plastic weights from the updated H_i using the selected rule family.
         # All rules use postsynaptic-indexed weight updates (sign safety applied via exc_mask).
-        H_pre = H_next[pre]
-        H_post = H_next[post]
+        if h_dim == 1:
+            H_pre = H_next[pre]
+            H_post = H_next[post]
+        else:
+            H_pre = H_next[pre] @ readout
+            H_post = H_next[post] @ readout
 
         # Compute rule basis per edge, depending on hdp_rule.
         # signed_linear: basis ~ (H_post - H_pre), flipped to preserve postsynaptic-indexing invariant
@@ -1491,10 +1628,15 @@ def simulate_edge_recurrent_izhikevich_hdp(
         # C_spike=0.0 in every shipped preset today, so this is currently
         # inert everywhere; flagged, not changed, without re-verifying presets
         # that would enable it -- external review 2026-07-14.
-        H_final = jnp.clip(H_next - C_spike_arr * spikes, H_min_arr, H_max_arr)
+        spike_drain = spikes if h_dim == 1 else spikes[:, None]
+        H_final = jnp.clip(
+            H_next - C_spike_arr * spike_drain,
+            H_min_arr,
+            H_max_arr,
+        )
 
         v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
-        source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
         if record_weight_trace:
             outputs = (v_reset, spikes, source_proxy, H_final, w_next)
         else:
@@ -1742,7 +1884,7 @@ def simulate_receptor_exponential_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step, init, xs=bulk_noise)
@@ -1768,7 +1910,7 @@ def simulate_receptor_exponential_izhikevich(
             v_reset = jnp.where(spikes_bool, c, v_next)
             u_reset = jnp.where(spikes_bool, u_next + d, u_next)
             syn_next = syn_state * decay + spikes[pre]
-            source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+            source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
             return (v_reset, u_reset, spikes, syn_next), (v_reset, spikes, source_proxy)
 
         final, (voltages, spikes, sources) = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
@@ -1878,7 +2020,7 @@ def simulate_dynamic_ei_coupling(
         # Update synaptic traces (exponential decay + spike injection)
         syn_traces_next = syn_traces * decay + spikes
 
-        source_proxy = source_scale * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source_proxy = _source_proxy_from_components(current_native, spikes, source_scale, dtype=jdtype)
         return (v_reset, u_reset, spikes, syn_traces_next, rng), (
             v_reset, spikes, syn_currents, source_proxy
         )
@@ -2089,7 +2231,12 @@ class IzhikevichEmitter(Emitter):
         spikes = spikes_bool.astype(jdtype)
         v_reset = jnp.where(spikes_bool, self.params.c.astype(jdtype), v_next)
         u_reset = jnp.where(spikes_bool, u_next + self.params.d.astype(jdtype), u_next)
-        source = self.params.source_scale.astype(jdtype) * (current_native + jnp.asarray(DEFAULT_SPIKE_IMPULSE_GAIN, dtype=jdtype) * spikes)
+        source = _source_proxy_from_components(
+            current_native,
+            spikes,
+            self.params.source_scale.astype(jdtype),
+            dtype=jdtype,
+        )
         next_state = EmitterState(v=v_reset, u=u_reset, spikes=spikes, key=rng, step_count=state.step_count + 1)
         output = EmitterOutput(
             voltage=v_reset,

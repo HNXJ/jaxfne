@@ -1,169 +1,92 @@
 ---
 name: jaxfne-worker-context-router
 description: >-
-  Orient in the jaxfne (jtfne) repo before editing — route a task to the right
-  module, current API, branch/SHA state, and validation lane. Use at the start
-  of any jaxfne repo task: "where is X", "which file or module handles Y",
-  picking the right layer (core.py / _config / _model / emitters / fields /
-  vis / optim) before a refactor, API change, test, doc, tutorial, or release,
-  and checking branch state before a mutation — so you edit the right place
-  instead of guessing. Names the module-ownership map and verify-before-call
-  discipline.
+  Route a jaxfne task to the owning module, current public API, and relevant
+  validation lane. Use before editing, refactoring, testing, documenting, or
+  releasing jaxfne.
 ---
 
-# jaxfne Worker Context Router
+# jaxfne worker context router
 
-## Purpose
+Read `AGENTS.md` and `catalog-glossary-jaxfne` first. This skill routes work; it
+does not define TFNE mathematics.
 
-Use this first for most jaxfne work. It prevents the common agent error: editing the wrong layer.
-
-## Canonical package story
-
-```text
-Config -> Net -> Paradigm -> Objective -> Trainer -> Signals -> Vis/Export
-```
-
-Legacy names remain compatibility aliases for one release line:
+## Canonical software path
 
 ```text
-Configuration -> Config
-Model -> Net
+CircuitSpec -> construct -> Model -> simulate -> Signals
 ```
-(Verified 2026-07-01: `jtfne.Config is jtfne.Configuration` and `jtfne.Net is jtfne.Model` are both `True`.
-No `FlatModel`/`FlatNet` names exist anywhere in the package — don't invent that pair.)
 
-## Required preflight
+`CircuitSpec` includes `Configuration` and `NeuronalTensor`. Compatibility
+aliases such as `Config`/`Configuration` and `Net`/`Model` are API conveniences,
+not a scientific grammar. Do not invent `FlatNet`, `FlatModel`, `weld`, or
+typed `Configuration.circuit`/`.objective` fields.
+
+## Owning modules
+
+- configuration builders: `jaxfne/_config.py`, `jaxfne/builders.py`
+- model lifecycle: `jaxfne/_model*.py`
+- dispatch and construction: `jaxfne/_construct*.py`
+- runtime policy: `jaxfne/_runtime_config.py`
+- signals, simulation, objectives: `jaxfne/_signals.py`
+- tensor bridge: `jaxfne/neuronal_tensor.py`
+- emitters and kernels: `jaxfne/emitters.py`
+- connectivity: `jaxfne/connectivity.py`
+- source, field, and probes: `jaxfne/fields/`
+- optimization: `jaxfne/optim/`
+- visualization: `jaxfne/vis/`
+- manifests and validation: `jaxfne/io.py`, `jaxfne/validation.py`
+- notebook glue: `jaxfne/tutorial_utils.py`, `scripts/`
+
+`jaxfne/core.py` is a public re-export facade. Verify the defining module
+before editing a symbol.
+
+## Routing
+
+- `Configuration` or laminar builder → `jaxfne-config`.
+- `NeuronalTensor`, `RuntimeConfiguration`, or HDP dispatch → `jaxfne-neural-tensor`.
+- `construct`, `simulate`, `Signals`, probe, objective, or tune → `jaxfne-neural-network`.
+- selectors, serialized connection rules, or schema → `jaxfne-modeling-optimization-schema`.
+- paradigms and event schedules → `jaxfne-paradigm-design`.
+- figures/readouts → `jaxfne-vis-modules` and, for depth-frequency suites,
+  `jaxfne-spectrolaminar-suite`.
+- notebooks/docs/artifacts → `jaxfne-notebook-release-gate`.
+- remote mutation or publication → `jaxfne-release-mutation-guard`.
+- content identity → `jaxfne-sha256-artifact-integrity`.
+- implementation safeguards → `jaxfne-harden`.
+
+## Preflight
 
 ```bash
-git status --short
 git branch --show-current
 git rev-parse HEAD
-find jaxfne -maxdepth 2 -type f -name '*.py' | sort
+git status --short
+git ls-remote origin refs/heads/main refs/heads/dev
+python3 scripts/repo_state_snapshot.py
 ```
 
-Before adding or changing an API, inspect existing names:
+Verify unfamiliar names with the public import and current tests. Do not use
+remembered line numbers, branch state, or test counts.
 
-```bash
-grep -R "def <name>\|class <name>" -n jaxfne tests docs examples tutorials scripts
-```
+## Boundaries
 
-## Ownership map (verified on disk — no jaxfne/config.py or net.py)
+- Keep package APIs ahead of notebook-local engines.
+- Keep optional dependencies lazy.
+- Keep plotting and serialization out of numerical kernels.
+- Preserve the current proxy/scaffold evidence boundary.
+- Do not change scientific behavior under a context/governance-only task.
 
-**core.py monolith split COMPLETE (2026-07-04/05, 5 slices, 8370 -> ~237 lines).**
-`jaxfne/core.py` is now a pure re-export aggregator — every public/private symbol
-still resolves via `from jaxfne.core import X` / `from jaxfne import X` unchanged,
-but the real implementations live in:
+## Worker report
+
+Report exact repository state, changed files, commands and results, evidence
+status, unresolved risks, and one next safe action. For implementation work,
+also report:
 
 ```text
-Config/Model                     -> jaxfne/_config.py (Configuration class + group-1 helpers)
-                                     and jaxfne/_model.py (Model class, ~2640 lines, the biggest
-                                     single integration surface, including the HDP dispatch --
-                                     see jaxfne-neural-tensor's K_w_ctrl/_hdp_packed note)
-Signals/Simulation/Objective/     -> jaxfne/_runtime_config.py (RuntimeConfig, SurrogateConfig,
-RuntimeConfig/SurrogateConfig/       backend-device helpers) and jaxfne/_signals.py (Signals,
-StimulusSchedule/TrialSpec/etc.     Objective, Simulation, Probe, TrialSpec, StimulusSchedule,
-                                     ReadoutSpec, AxisSpec, BasisSpec, metric/gate helpers).
-construct()/connect() hub         -> jaxfne/_construct.py (final slice -- also holds the
-                                     remaining group-1 connectivity-compiler helpers and
-                                     group-8 paradigm/receipt/manifest module-level functions
-                                     that didn't move with Configuration/Model).
-                                     core.py re-exports every symbol in full, so `from
-                                     jaxfne.core import X` / `from jaxfne import X` public
-                                     import paths are unchanged. When grepping for a private
-                                     helper, check the specific slice file first, not core.py
-                                     (which is now only ~237 lines and holds no real logic) --
-                                     e.g. `_hdp_packed` lives in `_model.py`;
-                                     `_resolve_homeostasis_k_gain`/
-                                     `_homeostasis_params_cache_fingerprint`/
-                                     `_runtime_config_from_metadata` (Model's group-6
-                                     dependencies) ended up in `_construct.py`, reached via
-                                     deferred (in-method-body) imports from `_model.py`,
-                                     matching an established
-                                     circular-import-avoidance pattern in this codebase.
-Builders / canonical columns     -> jaxfne/builders.py
-NeuronalTensor / tensor bridge   -> jaxfne/neuronal_tensor.py
-HDP builder / defaults           -> jaxfne/hdp_network.py
-Paradigm/task/stimulus           -> jaxfne/paradigm.py, jaxfne/stimulus.py
-Objective/metrics                -> jaxfne/objectives.py (+ Objective in core.py)
-Trainer/AGSDR/tuning             -> jaxfne/optim/*
-Emitters/kernels                 -> jaxfne/emitters.py
-Source/field/probe/readout       -> jaxfne/fields/*, jaxfne/bridges.py
-Connectivity                     -> jaxfne/connectivity.py
-Validation/manifest              -> jaxfne/validation.py, jaxfne/io.py
-Visualization                    -> jaxfne/vis/* only
-Notebook glue                    -> jaxfne/tutorial_utils.py, scripts/*
-Agent skills (reference)         -> skills/* (this folder), NOT jaxfne/skills/
-Release/package mutation         -> release skills and scripts only
+API delta:
+Mathematical delta:
+Numerical delta:
+Claim/evidence delta:
+Documentation delta:
+Compatibility delta:
 ```
-
-## Routing rules
-
-- Do not add plotting imports to core, config, net, fields, or optim.
-- Do not add optimizer/trainer loops to vis.
-- Do not add scientific source/field/probe operators to notebooks.
-- Do not add notebook-only helper code to stable package APIs unless it has tests.
-- Preserve public API with wrappers during 0.3.x migrations.
-- Placeholder future APIs must fail loudly with `NotImplementedError(">TBI-not-ready")`.
-
-## Report contract
-
-Every worker report must include:
-
-```text
-repo / branch / SHA
-changed files
-commands run
-exact results
-runtime facts
-truth/evidence status
-blockers
-next safe action
-```
-
-Treat test counts as unverified unless the exact commands and receipts are shown.
-
-## Intelligence-per-token + fleet routing
-
-**Root rule: declare the boundary, don't rediscover it.** Read the contract, not the monolith. Before grepping a 1000-line module (e.g. `core.py`), check for a frozen contract (docstrings + `>TBI-not-ready` guards, e.g. `jaxfne/experimental_hpc/contracts.py`) and route from that.
-
-**Levers:** contract-first not discovery-first · skills are the cache (run the skill, don't re-reason its checklist) · receipts beat justification (command + `N passed`) · verify-before-call (grep `__all__`/the contract before naming any symbol, flag, path, or skill — never invoke by remembered name).
-
-**Repo skills index (consolidated 2026-06-30, 17→13 skills):** see `skills/README.md`.
-Use first on most tasks:
-
-`jaxfne-worker-context-router` (this) · `catalog-glossary-jaxfne` · `jaxfne-objective-grammar`
-(top-level chain, routes into the 4 below) · `jaxfne-config` (Configuration fluent API +
-canonical column template) · `jaxfne-neural-tensor` (NeuronalTensor build path + HDP) ·
-`jaxfne-neural-network` (construct/simulate/Signals/probe/objective/tune) ·
-`jaxfne-vis-modules` (jaxfne.vis) · `jaxfne-modeling-optimization-schema` (deep
-schema/truth-gate reference) · `jaxfne-paradigm-design` · `jaxfne-spectrolaminar-suite` ·
-`jaxfne-notebook-release-gate` · `jaxfne-release-mutation-guard` · `jaxfne-sha256-artifact-integrity`.
-
-Merged away 2026-06-30 (content absorbed into the skills above, do not look for these
-names): `jaxfne-configuration-fluent-api` → `jaxfne-config`, `jaxfne-cortical-column-default`
-→ `jaxfne-config`, `jaxfne-visualization-schema` → `jaxfne-vis-modules`,
-`jaxfne-signals-probe-objective-chain` → `jaxfne-neural-network`.
-
-Flat enforcement checklist: `skills/00_INDEX.md` → `01_–11_` markdown files.
-
-Open contradictions: `skills/FRICTIONS_STACK.md` (check before claiming API/science ground truth).
-
-Global-only (not in repo): `jax-jit-pmap-performance-guard`, `jax-neuro-diffsim-guard`, `neuro-biophysics-units-sanity`.
-
-**Route by altitude:** Opus → architecture/contract authoring/truth-gate review. Sonnet → implement against a frozen contract + the relevant skill. Gemini → large-context cross-file synthesis + repo-scale batch edits. Frozen contracts + skills + the truth-gate principle (global `~/.claude/CLAUDE.md`) are what make the cheaper tiers safe.
-
-## Claude Code subagent routing (`Agent` tool)
-
-When spawning subagents, pick `subagent_type` by task shape — do not default everything to `general-purpose`. Confirm current names with `ToolSearch`/the Agent tool's own listing before invoking, since the roster can change:
-
-| Subagent | Use when |
-|----------|----------|
-| `Explore` | Find files/APIs quickly (`jaxfne/vis/*.py`, grep-style orientation), read-only |
-| `general-purpose` | Multi-step implementation or research with unclear file ownership |
-| `antigravity-worker` | Short, single-target, mechanical/fast task or a second-model opinion — fast but higher error rate (GPT-OSS 120B via agy), every result gets independently verified; NOT for multi-file/large-context work |
-| `kimix` | Long, large, repo-scale multi-step implementation or analysis (Kimi Code CLI) — the general "do a big well-scoped chunk of work" delegate |
-| `gemini-worker` | Repo-scale mechanical edits / large-context cross-file synthesis across many files (Gamma-system, Gemini CLI) |
-| `Plan` | Design an implementation strategy before editing |
-| `code-reviewer` (if present) | User explicitly asks for review of a local diff |
-
-Always pass repo path, branch/SHA, and which skill contract applies. Subagents do not inherit chat context — brief them like a colleague who just walked in.

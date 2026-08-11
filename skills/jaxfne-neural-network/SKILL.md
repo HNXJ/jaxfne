@@ -1,178 +1,110 @@
 ---
 name: jaxfne-neural-network
 description: >-
-  The jaxfne runtime chain: construct → simulate → Signals →
-  probe/objective/Model.tune → manifest, the compiled jitted simulatable
-  network object. Use when constructing a Model, running simulate or
-  run_trials, reading a Signals object (sig.get, sig.V_m, sig.spikes,
-  sig.field, rate, PSD, kappa_synchrony), probing or evaluating output,
-  building an Objective (rate_targets), or tuning with Model.tune / AGSDR /
-  GSDR / Optax. Documents the real Signals method contract (no invented
-  .rate()/.psd()), that Model has no public __call__, and the Model.tune
-  differentiable-path caveat.
+  Use the current jaxfne runtime chain: construct, simulate, Signals, probes,
+  objectives, tuning, and manifests. Use when running or reading a Model.
 ---
 
-# jaxfne Neural Network
+# jaxfne runtime procedure
 
-USE FIRST: `catalog-glossary-jaxfne`, `jaxfne-config` or `jaxfne-neural-tensor`
-(whichever built your input).
+Read `catalog-glossary-jaxfne`, then the configuration or tensor procedure that
+produced the input. Mathematical stage meaning belongs to the project source
+documents.
 
-## What `Model` actually is (verified via source)
-
-```python
-Model(cfg: Configuration, params: dict, static: dict)
-```
-
-Immutable. `params` = dynamic pytree (tunable/traced arrays). `static` = JIT-static
-metadata (non-array). Also exported as alias `Net`. **No `__call__`** — you do
-not call `model(x_t, h_t)` directly; the dynamic-system step happens inside
-`jtfne.simulate(model, ...)`.
-
-## Level 2 — Model
+## Model
 
 ```python
-model = jtfne.construct(cfg)                 # Configuration path
-model = jtfne.construct(tensor, runtime)      # NeuronalTensor path (jaxfne-neural-tensor)
-nt = model.neuron_table()                     # list[dict] — authoritative per-neuron counts
-idx = model.select(layer="L4", cell_type="E")
-model = model.with_emitter_parameters(drive_per_neuron=arr)
+model = jtfne.construct(specification)
+table = model.neuron_table()
+signals = jtfne.simulate(model, duration_ms=100.0, dt_ms=0.5, seed=0)
 ```
 
-`construct()` is the expensive step at scale (231s at N=100k) — if you need
-to avoid re-paying it across runs, see `jaxfne-neural-tensor`'s
-"Construct-once / checkpoint / reload" section before reaching for
-`jax.tree_util.tree_unflatten` with a dummy-sized model; that shortcut is a
-verified landmine (F-020/F-021 in `skills/FRICTIONS_STACK.md`), not a
-shortcut.
+`Model` is the runnable compiled object and `Net` is a compatibility alias.
+There is no general public `Model.__call__`; use the simulation entrypoints.
+Construction may be expensive; reuse the model when structure is unchanged.
 
-## Level 3 — Simulation → Signals
+## Signals
 
-**Canonical:** top-level `simulate` (not notebook-local kernels):
+Use the current `Signals` contract:
 
 ```python
-sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
-# or
-sim = jtfne.simulation(duration_ms=1000.0, dt_ms=0.5, seed=0)
-sig = jtfne.simulate(model, sim=sim)
+signals.get("vm")
+signals.get("spk")
+signals.get("lfp")
+signals.get("csd")
+signals.summary()
 ```
 
-`Model.simulate(...)` and `Model.run_trials(...)` exist for batch/condition paths.
+Verify exact keys and shapes with `signals.metadata` and tests. Trial selection
+through `Signals.get(trial=...)` is not a general contract; use the supported
+trial APIs when a trial axis is required.
 
-### Reading `Signals` — no invented methods
+## Probes and objectives
 
-| Access | Pattern |
-|--------|---------|
-| Named arrays | `sig.get("vm")`, `sig.get("spk")`, `sig.get("lfp")`, `sig.get("csd")` |
-| Selector filter | `sig.get("vm", layer="L4", cell_type="E")` |
-| Field bundle | `sig.field` → `FieldOutput` with `lfp_proxy`, `csd_proxy`, … |
-| Metadata | `sig.metadata`, `sig.summary()` |
-| Trial axis | **`trial=` not supported** on `get()` → raises `NotImplementedError`; use `run_trials` or `tutorial_utils` |
-
-Attributes on the dataclass: `sig.time_ms`, `sig.V_m`, `sig.spikes`, `sig.sources`, `sig.field`.
-
-**Do not call** (not on `Signals`, will `AttributeError`): `.rate()`, `.psd()`,
-`.bandpower()`, `.coherence()`, `.cv_isi()`, `.probe(...)`. Use:
+Keep stages separate:
 
 ```python
-import jax.numpy as jnp
-dt = float(sig.time_ms[1] - sig.time_ms[0])
-rate_hz = float(jnp.mean(sig.spikes) * (1000.0 / dt))
-kappa = jtfne.kappa_synchrony(sig.spikes, dt_ms=dt)
-jtfne.vis.raster(sig); jtfne.vis.rate(sig); jtfne.vis.lfp(sig); jtfne.vis.psd(sig)
+readout = model.probe(signals, modes=["lfp_proxy", "csd_proxy"])
+objective = jtfne.rate_targets(groups, targets_hz)
+report = model.evaluate(signals, objective)
 ```
 
-## Level 4 — Probe / readout
+Verify objective signatures before use. Do not invent `Signals.rate()`,
+`Signals.psd()`, `jtfne.optimize()`, or an optimizer object method that the
+live API does not expose.
+
+## Tuning
+
+`Model.tune(...)` is the tuning entrypoint and returns a `TuneResult`.
+Verify the selected optimizer path and its evidence before describing it as a
+gradient or differentiable result. Do not infer numerical behavior from class
+names or docstrings alone.
+
+## Multi-trial paths
+
+- Typed model path: `TrialBatch`/`Model.run_trials(...)`.
+- Tutorial path: `tutorial_utils.simulate_laminar_trials(...)` with its model
+  dictionary.
+
+Do not mix those input contracts.
+
+## Manifest and receipts
 
 ```python
-readout = model.probe(sig, modes=["lfp_proxy", "csd_proxy", "source_native"])
-# alias: model.record(sig, modes)
-```
-For EEG/MEG proxies, lead-field transforms are separate (`eeg_proxy_transform`,
-`meg_proxy_transform`) — not auto-computed on every simulate.
-
-## Level 5 — Objective
-
-```python
-obj = jtfne.rate_targets(groups={"L4": idx}, targets_hz={...}, weights={...})
-obj = obj.compose(other_obj)          # Objective.compose exists
-report = model.evaluate(sig, obj)     # Model.evaluate(signals, objective)
+manifest = jtfne.manifest(cfg, signals=signals)
+jtfne.save_json(manifest, path)
 ```
 
-**Not public:** `jtfne.band_power`, `jtfne.phase_locking`, objective `+`/`*` algebra.
+Use write-once receipts for run-facing artifacts. Require finite JSON and
+preserve current status metadata.
 
-## Level 6 — Tune / optimize
+## Validation
 
-```python
-result = model.tune(obj, optimizer=jtfne.agsdr(...), ...)
-# or suite helpers: jtfne.suite2_tune_noise_agsdr_adam(...)
-```
-
-**Not public:** `jtfne.optimize(...)`, `optimizer.optimize(...)`, `result.apply(model)`.
-
-**Caveat (verified 2026-06-30):** `Model.tune()`'s differentiable-optimizer
-branch (`optax_guarded_path_no_loop_v0.0.8`) is currently a metadata-only guard
-that returns `REVISE`/`ACCEPT_CANDIDATE` without ever entering a real gradient
-loop — `jaxfne.optim.gsgd.step_gsgd_transform`/`step_sdr_transform`/
-`step_gsdr_transform`/`step_agsdr_transform` are NOT invoked by production
-tuning despite their docstrings/`OptimizerSpec` names suggesting they are. The
-real, wired blackbox path uses `propose_blackbox_candidates` +
-`optim/core.py`'s `sdr_transform`/`gsdr_transform`/`agsdr_transform` Optax
-factories.
-
-## Stimulus drive injection — `StimulusSchedule`
-
-`StimulusSchedule` (moved 2026-07-03 from `core.py` to `jaxfne/_signals.py`,
-re-exported from `jaxfne.core` unchanged) declares per-event drive pulses;
-`.to_array(n_steps, dt_ms)` renders them to a dense per-step array consumed
-by the emitter. Each event may now optionally carry `frequency_hz`: when
-present, the flat `amplitude` plateau is replaced by a sinusoid
-`amplitude * sin(2*pi*frequency_hz*t)` (`t` = seconds since that event's own
-onset, phase restarts at 0 per event). Omitting `frequency_hz` reproduces the
-original flat-amplitude behavior unchanged — fully backward compatible.
-
-## Multi-trial / batch — two paths, pick by object type in hand
-
-```python
-batch = jtfne.trial_batch(...)
-result = model.run_trials(batch, sim)
-# or tutorial_utils.simulate_laminar_trials(model_dict, cfg, n_trials=8)
-```
-
-Not two competing APIs for the same job — pick by what you're holding:
-`model.run_trials(batch, sim)` operates on a real `Model` (from `construct()`)
-and a typed `TrialBatch`/`Simulation` — the production/typed path. `tutorial_utils.simulate_laminar_trials(model_dict, cfg, ...)` operates on the
-plain-`dict` output of `build_laminar_column()` with a looser `control`
-dict/`stimulus` array signature — the notebook-friendly quick-iteration path.
-Don't mix inputs across them (a `Model` won't work with
-`simulate_laminar_trials`, a `build_laminar_column()` dict won't work with
-`run_trials`).
-
-## Level 7 — Manifest / receipt
-
-```python
-m = jtfne.manifest(cfg, signals=sig, objective=obj, ...)
-jtfne.save_json(m, path)
-receipt = model.run_receipt(sig, tags={...})
-jtfne.save_receipt(receipt, path, overwrite=False)  # write-once
-```
-
-## Full chain
+Test through the public path that users will call. For changed behavior report:
 
 ```text
-Configuration/NeuronalTensor → construct → simulate → Signals → (vis | probe | objective | manifest)
-                                                              ↘ Model.tune → TuneResult
+API delta:
+Mathematical delta:
+Numerical delta:
+Claim/evidence delta:
+Documentation delta:
+Compatibility delta:
 ```
 
-## Violations (rewrite if you see these)
+Current implementation truth is in `jaxfne/_model*.py`, `jaxfne/_signals.py`,
+`jaxfne/_construct*.py`, `jaxfne/io.py`, and tests.
 
-- Hand-rolled PSD/raster when `jtfne.vis.*` or `tutorial_utils` pipeline exists
-- `signals.rate()` / `signals.probe()` invented methods
-- Global `cell_types=` for laminar E:I gradient (use per-layer table, `jaxfne-config`)
-- Skipping manifest/receipt on release-facing runs without explicit reason
-- Assuming `Model.tune(optimizer="GSGD"/"SDR"/"GSDR"/"AGSDR")` runs a real
-  differentiable gradient loop without checking which path is actually wired
+## Continuation verification
 
-## Related skills
-
-- `jaxfne-config` / `jaxfne-neural-tensor` — the two ways to build the `Configuration`/`NeuronalTensor` this chain consumes
-- `jaxfne-vis-modules` — the `jtfne.vis.*` readout/plotting surface
+Treat `with_hdp_initial_state(H0=..., w0=...)` as partial H-state/plastic
+initialization. Exact recurrent continuation requires the selected kernel's
+complete dynamic carry plus deterministic stochastic sequencing. Keep the
+H-state leaf shape-preserving and opaque; the current scalar HDP coordinate is
+only the implemented special case.
+Recover the live step function before naming the state; classify evidence as
+`SPECIFIED`, `IMPLEMENTED`, `TESTED`, or `OBSERVED`, and report the command
+receipt for each executable claim. Prefer the existing `DynamicState`/
+`ContinuationState` path and compare uninterrupted versus segmented voltage,
+spikes, source, H-state, weight, and exposed synaptic-state outputs. Treat
+internal coordinates as relative until an explicit calibration boundary; a
+changed seed is a negative control, not a continuation strategy.

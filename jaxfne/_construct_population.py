@@ -337,11 +337,35 @@ def _make_sparse_within_area_edges(area_labels, sign, n, *, within_gain, p_conne
     )
 
 
+def _empty_edge_list(jdtype: Any) -> EdgeList:
+    """Return an explicit empty recurrent graph for tensor topology mode."""
+    z_i = jnp.zeros((0,), dtype=jnp.int32)
+    z_f = jnp.zeros((0,), dtype=jdtype)
+    return EdgeList(
+        pre=z_i,
+        post=z_i,
+        weight=z_f,
+        receptor_index=z_i,
+        tau_ms=z_f,
+        source_calibration_status="uncalibrated_izhikevich_native_current",
+    )
+
+
 def _apply_connectivity(params: IzhikevichParams, area_labels: Sequence[str], layer_labels: Sequence[str], cell_labels: Sequence[str], metadata: Mapping[str, Any], *, seed: int, dtype: str):
     n = len(cell_labels)
     if n == 0:
         return params, None
     jdtype = jnp.float64 if dtype == "float64" and bool(jax.config.read("jax_enable_x64")) else jnp.float32
+    connectivity_mode = metadata.get("connectivity_mode")
+    if connectivity_mode == "explicit":
+        # NeuronalTensor explicit topology is authoritative. Return an empty
+        # prebuilt graph so construct() can append only declared tensor rules.
+        return replace(params, W=jnp.zeros((0, 0), dtype=jdtype)), _empty_edge_list(jdtype)
+    if connectivity_mode not in (None, "unspecified"):
+        raise ValueError(
+            "unsupported connectivity_mode for construction: "
+            f"{connectivity_mode!r}"
+        )
     connectivity_spec = metadata.get("connectivity", {}) or {}
     p_connect = connectivity_spec.get("p_connect")
     base_gain = float(connectivity_spec.get("within_gain", 0.45))

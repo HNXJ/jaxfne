@@ -41,9 +41,14 @@ def _make_probe_report(
     kind: str,
     method: str,
     operator_status: str = "simulated_proxy",
+    operator_type: str = "direct_readout",
     data_shape: tuple | str = None,
     units_or_status: str = "proxy_units",
     calibration_status: str = "uncalibrated_proxy",
+    input_representation: str = "relative",
+    representation: str = "relative",
+    validation_status: str = "computational",
+    calibration_transform: str = "explicit_boundary_transform",
     field_solver_status: str = "linear_solver",
     field_claim_level: str = "proxy_readout",
     source_calibration_status: str = "uncalibrated_izhikevich_native_current",
@@ -60,10 +65,15 @@ def _make_probe_report(
         "name": kind,
         "kind": kind,
         "operator_status": operator_status,
+        "operator_type": operator_type,
         "method": method,
         "data_shape": str(data_shape) if data_shape is not None else "unknown",
         "units_or_status": units_or_status,
         "calibration_status": calibration_status,
+        "input_representation": input_representation,
+        "representation": representation,
+        "validation_status": validation_status,
+        "calibration_transform": calibration_transform,
         "source_calibration_status": source_calibration_status,
         "source_projection_mode": source_projection_mode,
         "source_decomposition": source_decomposition,
@@ -113,6 +123,7 @@ def spk_probe(spikes: jax.Array) -> ProbeReadout:
         "spk", spikes,
         method="threshold_or_emitter_spike_array",
         units_or_status="binary_spike_indicator",
+        input_representation="relative_spike_events",
         assumptions=["spike_array_from_emitter_or_threshold", "binary_or_threshold_values"],
     )
 
@@ -123,6 +134,7 @@ def vm_probe(voltage: jax.Array) -> ProbeReadout:
         "vm", voltage,
         method="emitter_state_voltage_trace",
         units_or_status="mV_or_native_model_voltage",
+        input_representation="relative_vm_state",
         assumptions=["voltage_from_emitter_native_state", "not_physical_membrane_voltage_unless_calibrated"],
     )
 
@@ -133,6 +145,7 @@ def source_probe(source: jax.Array) -> ProbeReadout:
         "source", source,
         method="declared_source_projection_or_proxy",
         units_or_status="native_current_units_or_proxy",
+        input_representation="canonical_relative_source",
         source_decomposition="proxy_reduced_emitter",
         assumptions=["source_from_emitter_native_state", "not_physical_membrane_current_unless_calibrated"],
     )
@@ -152,6 +165,7 @@ def lfp_proxy_probe(
     report = _make_probe_report(
         kind="lfp_proxy",
         method="point_or_finite_contact_phi_proxy",
+        input_representation="relative_phi_e_proxy",
         data_shape=phi_e.shape,
         units_or_status="proxy_voltage_units_or_V_if_calibrated",
         assumptions=[
@@ -173,6 +187,8 @@ def csd_proxy_probe(
     report = _make_probe_report(
         kind="csd_proxy",
         method="divergence_proxy_or_second_derivative_laminar",
+        operator_type="spatial_derivative",
+        input_representation="relative_phi_e_proxy",
         data_shape=csd.shape,
         units_or_status="proxy_A_m^-3_or_proxy_units",
         assumptions=[
@@ -202,6 +218,8 @@ def eeg_proxy_probe(
     report = _make_probe_report(
         kind="eeg_proxy",
         method="linear_leadfield_proxy",
+        operator_type="linear_projection",
+        input_representation="canonical_relative_source",
         data_shape=eeg.shape,
         units_or_status="arbitrary_proxy_units",
         assumptions=[
@@ -232,6 +250,8 @@ def meg_proxy_probe(
     report = _make_probe_report(
         kind="meg_proxy",
         method="linear_current_orientation_proxy",
+        operator_type="linear_projection",
+        input_representation="canonical_relative_source",
         data_shape=meg.shape,
         units_or_status="arbitrary_proxy_units",
         assumptions=[
@@ -255,6 +275,7 @@ def emm_proxy_probe(
     report = _make_probe_report(
         kind="emm_proxy",
         method=method,
+        input_representation="relative_activity_source_field",
         data_shape=emm.shape,
         units_or_status="normalized_proxy_units",
         calibration_status="uncalibrated_proxy",

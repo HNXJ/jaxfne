@@ -1,16 +1,6 @@
-# Batch-First Simulation Skill
+# Compatibility pointer
 
-## Purpose
-Make multi-seed and multi-trial simulation fast by default.
+Batch and repeated-run procedure is consolidated in
+`skills/jaxfne-harden/SKILL.md`, under “Connectivity and batches”.
 
-## Rules
-- Prefer `vmap` or other vectorized execution when more than one seed, candidate, or trial is present.
-- Keep Python loops only as a deliberate fallback when vectorization is not viable.
-- Reuse compiled models; rebuild only when structure changes.
-- Keep hot numerical paths in JAX arrays and JAX control flow.
-- Use `lax.scan` for time loops when the path is hot and traceable.
-
-## Acceptance checks
-- Batched runs use vectorized execution on the common path.
-- Python loops are not the default path for repeated trials.
-- Performance-sensitive tests confirm that the batch path is the fast path.
+Use `vmap` only when batch shapes and semantics support it.

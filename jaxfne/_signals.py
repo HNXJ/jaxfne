@@ -1270,6 +1270,24 @@ _SOURCE_MODE_BASIS_VALUES: frozenset[str] = frozenset(
     {"total_membrane_current", "decomposed_cap_ion_syn", "proxy_no_field_solve"}
 )
 
+_SOURCE_MODE_BASIS_STATUS: dict[str, dict[str, Any]] = {
+    "proxy_no_field_solve": {
+        "status": "active",
+        "executable": True,
+        "operator_type": "linear_projection",
+    },
+    "total_membrane_current": {
+        "status": "reserved",
+        "executable": False,
+        "operator_type": "direct_readout",
+    },
+    "decomposed_cap_ion_syn": {
+        "status": "reserved",
+        "executable": False,
+        "operator_type": "direct_readout",
+    },
+}
+
 #: Allowed values for BasisSpec.probe_basis
 _PROBE_BASIS_VALUES: frozenset[str] = frozenset(
     {
@@ -1399,6 +1417,20 @@ class BasisSpec:
         # Claims require solved field with calibrated conductivity — not in v0.2.x
         return False
 
+    @property
+    def source_mode_status(self) -> dict[str, Any]:
+        """Return the execution status of the declared source mode."""
+        return dict(
+            _SOURCE_MODE_BASIS_STATUS.get(
+                self.source_mode,
+                {
+                    "status": "invalid",
+                    "executable": False,
+                    "operator_type": "unresolved",
+                },
+            )
+        )
+
 
     def validate(self) -> dict[str, Any]:
         """Return a JSON-safe validation dict. Raises ValueError on invalid enum."""
@@ -1442,6 +1474,8 @@ class BasisSpec:
             "time_basis": self.time_basis,
             "field_regime": self.field_regime,
             "source_mode": self.source_mode,
+            "source_mode_status": self.source_mode_status["status"],
+            "source_mode_executable": self.source_mode_status["executable"],
             "probe_basis": self.probe_basis,
             "implemented": self.implemented,
             "future_regime": self.field_regime in _FUTURE_FIELD_REGIMES,
@@ -1456,6 +1490,8 @@ class BasisSpec:
             "time_basis": self.time_basis,
             "field_regime": self.field_regime,
             "source_mode": self.source_mode,
+            "source_mode_status": self.source_mode_status["status"],
+            "source_mode_executable": self.source_mode_status["executable"],
             "probe_basis": self.probe_basis,
             "dimension_status": dim_status,
             "implemented": self.implemented,

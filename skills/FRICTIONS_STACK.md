@@ -1,10 +1,9 @@
-# jaxfne skills — friction & contradiction stack
+# jaxfne friction archive
 
-**Purpose:** Durable ledger of known mismatches between skills, docs, code, and
-external doctrine. Resolve items here before claiming a skill is authoritative.
-**Do not delete rows** — mark `status: resolved` with SHA/date when fixed.
-
-Last audited: 2026-07-02 (F-024 added — default Jupyter kernel points at a different jaxfne checkout; F-007/F-008 re-verified and closed as documented, F-009 re-verified and closed after a one-line `NotImplementedError` message fix pointing at `run_trials`).
+This file is historical evidence, not a mathematical specification or current
+implementation ledger. Do not use its dates, line numbers, counts, branches, or
+“resolved” labels as current facts without re-running the referenced command.
+New implementation work belongs in code/tests or an explicitly scoped plan.
 
 **F-025 (new, 2026-07-05):** the core.py monolith split (5 slices, 8370 -> 233
 lines, landed 2026-07-04/05) makes any OLDER row in this ledger that cites a

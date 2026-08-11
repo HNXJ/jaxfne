@@ -16,10 +16,10 @@ description: >-
 
 # jaxfne API Catalog & Glossary
 
-**jaxfne has 162 public functions + 82 public classes + 12 public constants at the top level (checked 2026-08-07 by inspecting the runtime package: 256 `__all__` entries, all resolvable; the earlier "~210/~85" (2026-06-25) and "~120/~60" estimates were stale — re-run the inventory snippet at the bottom of this file before trusting either number again), plus a
-laminar-column tutorial pipeline (`jaxfne.tutorial_utils`) and a visualization
-package (`jaxfne.vis`). Do not reinvent any of it.** This catalog exists so you
-recognize what is already built instead of "rediscovering" it.
+The public surface includes functions, classes, the laminar-column tutorial
+pipeline (`jaxfne.tutorial_utils`), and visualization (`jaxfne.vis`). Counts
+are volatile; run the inventory snippet at the bottom before reporting them.
+Do not reinvent package behavior.
 
 Canonical import: `import jaxfne as jtfne`. Everything in §1–§11 below is
 `jtfne.<name>` unless a submodule is shown (`jtfne.tutorial_utils.*`,
@@ -37,9 +37,7 @@ if you need exact kwargs — the name itself is confirmed present on disk.
 ## 1. Build & configure a model (Configuration → Model)
 
 - `laminar_cortex_config(*, seed, duration_ms, dt_ms, areas, layers, cell_types, n, emitter, baseline_drive_by_cell_type)` → `Configuration` — **the** multi-area laminar builder; `baseline_drive_by_cell_type` injects native Izhikevich drive (eliminates silent neurons at the ODE source).
-- `default_cortical_column_config(...)`, `build_multi_area_columns(areas, n_per_area, layers, connectivity_mode)` — ready-made `Configuration`s. **`default_spectrolaminar_config`/`default_nuclei_config` were REMOVED** (2026-06-30) — their JSON output is archived read-only at `jaxfne/configs/legacy/{spectrolaminar_default,nuclei_default}.json` (reproduce inline via the fluent builder if you need the shape, don't try to call the removed functions).
-- Canonical layer/geometry constants (`jaxfne/builders.py`): `CANONICAL_LAYERS_6L = ("L1","L2","L3","L4","L5","L6")`; `DEFAULT_LAYERS = ("L1","L2/3","L4","L5","L6")` (5-layer, L2/3 merged); `CANONICAL_LAYER_CELL_TYPE_FRACTIONS` / `CANONICAL_LAYER_CELL_TYPE_FRACTIONS_5L` (per-layer E/PV/SST/VIP fractions); `CANONICAL_Z_BANDS` / `CANONICAL_Z_BANDS_5L` (normalized depth bands per layer); `FLAT_CELL_TYPE_FRACTIONS = {"E":0.75,"PV":0.10,"SST":0.08,"VIP":0.07}`. These drive `ei_profile="canonical"` layout checks — feed them to `laminar_cortex_config`/`NeuronalTensor`, don't hand-roll competing tables.
-- Cell/receptor presets (`jaxfne/presets.py`): `CELL_TYPE_PRESETS` (Izhikevich presets by label: `E_RS`, `PV_FS`, `SST_LTS`, `VIP_IS`); `RECEPTOR_KINETICS` (AMPA/NMDA/GABA_A/GABA_B kinetics: `receptor_index`, `tau_ms`, `reversal_mV`, `sign`); `DEFAULT_SPIKE_IMPULSE_GAIN = 20.0` (hardcoded spike gain; **keep `emitters` dense/edge kernels in sync with it** — see AGENTS.md fragility).
+- `default_cortical_column_config(...)`, `build_multi_area_columns(areas, n_per_area, layers, connectivity_mode)` — ready-made `Configuration`s. Verify any other builder name against the live export surface.
 - `construct(cfg, *, geometry=None)` → `Model` — turn a Configuration into a runnable Model.
 - `build_laminar_column(name, n, ...)` → `Configuration` (single column; top-level).
 - Fresh/complete builders: `configuration()` → empty `Configuration` builder; `default_complete_configuration(column_name="V1", nucleus_name="thalamus", n_column=100, n_nucleus=60, layers=None, seed=None, duration_ms=1000.0, dt_ms=0.1)` → broadest default: laminar cortical column wired to a non-laminar nucleus (cortex + subcortex in one config).
@@ -48,18 +46,27 @@ if you need exact kwargs — the name itself is confirmed present on disk.
 - Connectivity: `connect_columns(cfg, src, tgt, mode, ...)`, `all_to_all_intercolumn_connectivity(...)`, `sparse_intercolumn_connectivity(...)`, `build_laminar_connections(model, cfg)`, `compile_connection_rules(...)`, `make_edge_list_from_dense(weights, ...)`. Model-level fusion: `connect(*models, edges=None, namespace=None, layout="offset_x", strict=True, name=None)` → `Model` — fuse two or more constructed Models into one ensemble (distinct from the config-level `connect_columns`).
 - Construct extras (`jaxfne/_construct_extras.py`): `laminar_source_geometry(populations)` → `LaminarSourceGeometry` (source geometry from an ordered population sequence, for `construct(..., geometry=...)`); `dataset_spec(**kwargs)` → `DatasetSpec`; `operator_status()` → `dict[str, str]` (operator status registry).
 - Cells/emitters: `make_cell_dist`, `make_cell_type_catalog`, `make_eig_network`, `izhikevich_params_from_labels(labels, *, drive_overrides=...)`, `with_emitter_parameters(model, ...)`, `standard_receptor_specs`, `standard_receptor_tau_table`.
-- **`.jcfg.json`/`JaxFNEConfig` format DELETED (2026-06-30)**: `load_config`, `validate_config`, `config_to_configuration`, `config_to_simulation`, `config_to_geometry`, `config_to_trial_batch`, `config_truth_boundary`, `ConfigValidationResult`, `JaxFNEConfig` no longer exist — legacy format lived only in tests, never a real asset. `validate_configuration` (the `Configuration`-native validator, distinct name) still exists.
+- Legacy `.jcfg.json`/`JaxFNEConfig` names are not part of the current public
+  API. Verify the current `Configuration`-native validator and loaders before use.
 
-### 1b. NeuronalTensor (0.4.7) — tensor-first build path (`jtfne.NeuronalTensor`, `jtfne.NeuronType`, etc. are top-level, no submodule import needed)
+### 1b. NeuronalTensor — tensor-first build path (`jtfne.NeuronalTensor`,
+`jtfne.NeuronType`, etc. are top-level, no submodule import needed)
 
 `NeuronalTensor = [Areas, AreaConnections]`, `Area = [Layers x NeuronTypes, InterConnections]`.
 This is a SEPARATE build path from `Configuration` — both converge on the same
 `Model` type via `construct()`:
 
 - `NeuronalTensor(areas=[...], name=...)`, `Area(name, layers=[...])`, `Layer(name, n_neurons, neuron_types=[...])`, `InterConnection(...)`, `AreaConnection(...)`.
-- Tensor geometry/placement classes: `Geometry3D(distribution="uniform_random", x_range=(0,1), y_range=(0,1), z_range=(0,1), value_tag="relative")` (always 3D; fix an axis at 0.0 to collapse it); `Pose3D(plane="xy", rotation_deg=0.0, translation=(0,0,0), value_tag="relative")` (where an Area's layer stack sits in global 3D space); `PlasticParams(w_mech=1.0, H=0.0, value_tag="relative")` (trainable per-connection gain + homeostatic H factor); `StaticParams(g_mech=..., reversal_potentials_mV=..., dT_ms=0.1, value_tag="relative")` (never plastic: conductances, reversal potentials, dT). All dataclasses from `jaxfne/neuronal_tensor.py`.
-- `NEURONAL_TENSOR_SCHEMA_VERSION = "neuronal_tensor_v1"` — schema tag checked by `load_neuronal_tensor`/canonical-tensor loading; migrate, don't patch around mismatches.
-- `NeuronType.make(name, *, relative_size=None, fraction=None, value_tag=...)` — `fraction` (0.4.7 addition, default `None`) declares an explicit population fraction; if **every** type in a `Layer` declares one, those normalized fractions populate `Configuration.metadata["area_layer_cell_types"][area][layer]`; if any type omits it, the whole layer falls back to an even split (backward-compatible).
+- Tensor geometry/placement classes include `Geometry3D`, `Pose3D`, `PlasticParams`,
+  and `StaticParams`; verify their live signatures and relative-value semantics
+  before use.
+- `NEURONAL_TENSOR_SCHEMA_VERSION` is the schema tag for tensor loading; verify
+  the active value and migrate rather than patch around mismatches.
+- `NeuronType.make(name, *, relative_size=None, fraction=None, value_tag=...)` —
+  `fraction` declares an explicit population fraction; if every type in a
+  `Layer` declares one, normalized fractions populate
+  `Configuration.metadata["area_layer_cell_types"][area][layer]`; otherwise the
+  layer uses its documented fallback.
 - `neuronal_tensor_to_configuration(tensor, *, seed, duration_ms, dt_ms)` → `Configuration` — the internal bridge `construct()` uses.
 - `construct(tensor, runtime_configuration)` → `Model` — same top-level `construct` as the `Configuration` path, dispatches on input type.
 - `RuntimeConfiguration` (`neuronal_tensor.py`, frozen, execution-only: seed/duration_ms/dt_ms/etc.) — **distinct from** `RuntimeConfig` (now in `jaxfne/_runtime_config.py`, re-exported unchanged from `jaxfne.core`/top-level `jaxfne`; has `enable_hdp`/`hdp_params`). `RuntimeConfiguration` has NO HDP field.
@@ -80,13 +87,17 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
 
 ### 1c. HDP homeostatic plasticity module (`jaxfne/hdp_network.py`) — generic config-driven builder, no per-N functions
 
-- `DEFAULT_HDP = dict(K_HDP=0.01, tau_0_ms=200.0, K_ctrl=5.0, barrier_c=0.01, barrier_d=0.01)`.
-- `DEFAULT_HDP_DESYNC = dict(K_HDP=0.01, tau_0_ms=5.0, K_ctrl=0.15, rho_passive=0.0, barrier_c=0.01, barrier_d=0.01, alpha=0.05, gamma=0.5, C_spike=0.0)` — "responsive H" family (faster `tau_0_ms`, rate-drain `gamma`), vs. `DEFAULT_HDP`'s near-static profile.
-- `DEFAULT_HDP_V1_PFC_AAAB = dict(DEFAULT_HDP_DESYNC, K_HDP=0.003, K_w_ctrl=0.001)` + `v1_pfc_aaab_hdp_params()` (added 2026-07-05) — the named preset for the V1-PFC continuous AAAB paradigm; `v1_pfc_aaab_hdp_params()` returns the full `BASE_HDP_KWARGS_DEFAULT` + preset + `size_scale_by_cell_type` assembly, single source of truth (don't hand-roll this dict in a script).
-- `K_w_ctrl` (added 2026-07-04) — weight-magnitude two-sided restoring force, `dwmag/dt += K_w_ctrl*(wmag_baseline - wmag)`, mirroring `K_ctrl`'s form for `H`; default `0.0` (backward compatible). Fixes the previously-real weight-carryover runaway when chaining `Model.with_hdp_initial_state(H0=..., w0=...)` across trials. Verified stable at 100 chained trials with `K_w_ctrl=0.001`.
+- HDP presets and parameters are defined in `jaxfne/hdp_network.py`; query the
+  live dictionaries rather than copying values into a skill.
+- `K_w_ctrl` is a current parameter in the HDP dispatch. Verify its effect,
+  defaults, and stability for the specific topology and run.
 - `BASE_HDP_KWARGS_DEFAULT` (H_min=0.1, H_max=10.0, alpha=0.01, beta=0.0, gamma=0.0, delta=0.0, C_spike=0.0, ...), `BASE_DRIVE_BY_CELL_TYPE_DEFAULT = {"E":4.0,"PV":4.0,"SST":4.0,"VIP":4.0}`, `DRIVE_CORRECTION_BY_CELL_TYPE_DEFAULT`.
-- Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`) — `tau_i = tau_0_ms * size_i**3` (cube law, verified 0.4.7; NOT `size_i**2`). `hdp_params` is a free-form dict forwarded through `_model.py`'s `_hdp_packed` (moved from `core.py` during the 2026-07-04/05 monolith split — core.py is now a 233-line pure re-export aggregator); any new key (e.g. `size_scale_by_cell_type`, `size_scale_override`, `K_w_ctrl`) must be explicitly added there or it is silently dropped — verify with `grep -n size_scale_by_cell_type jaxfne/_model.py` before trusting a new `hdp_params` key reaches the kernel.
-- True turn-to-turn HDP state (low-level, `_pipeline.py`): `DynamicState(v, u, prev_spikes, syn_state, H, w)` — full six-field carry tuple for continuous multi-turn runs via `compile_step_fn`/`scan_network` (the canonical low-level HDP call pattern; `Model.with_hdp_initial_state` only carries H/w partially).
+- Kernel: `simulate_edge_recurrent_izhikevich_hdp` (`emitters.py`). Verify the
+  active parameter-forwarding path, scaling law, and supported `hdp_params` keys
+  in the current model implementation before relying on them.
+- True turn-to-turn HDP state uses the six-field `DynamicState(v, u,
+  prev_spikes, syn_state, H, w)` carrier through the continuation pipeline;
+  `Model.with_hdp_initial_state` remains partial H/W initialization.
 - `model.last_hdp_diagnostics()` → dict with `H_trace`, weight trace, per-edge `receptor_index`.
 
 ### 1d. `homeostatic_ei` — second canonical HDP sanity emitter (`jaxfne/emitters_homeostatic_ei.py`)
@@ -110,32 +121,23 @@ See `jaxfne-modeling-optimization-schema` for the full pattern + cube-law tau fo
   existing AGSDR path via `matrix_parameter(mask=..., bounds=..., target="G0")`.
   `make_minimal_ei_params(n, ...)` builds a `HomeostaticEIParams` directly
   (any `n>=2`) for ad hoc scripts without going through `Configuration`.
-- **`bound_mode`** (2026-07-16, default `"minimal"` = unchanged prior
-  behavior): `"stable"` applies a smooth tanh soft-bound to `x`/`G`/`H`
+- **`bound_mode`** (default `"minimal"`): `"stable"` applies a smooth tanh
+  soft-bound to `x`/`G`/`H`
   instead of `jnp.clip` -- a bounded codomain that can't be numerically
-  outrun (verified: fixes a real N=16 divergence to NaN under the flat
-  canonical `G_max=5.0`, reproducible across seeds under `"minimal"`).
-  `x` was previously the only *unbounded* state (`G`/`H` were already
-  clipped) -- new `HomeostaticEIParams.x_min`/`.x_max` fields back this,
-  default a wide `+-1e6` (safe/inert under `"minimal"`).
-- **`hebbian_pairwise`** conductance rule (2026-07-16): independent gains
+  outrun. Verify the selected bounds and finite behavior for the requested
+  configuration.
+- **`hebbian_pairwise`** conductance rule: independent gains
   per population pair (E-E/E-I/I-E/I-I) via
   `make_hebbian_pairwise_rule(k_ee, k_ei, k_ie, k_ii)`; default gains all
   `1.0` == plain `hebbian`. Custom gains are a callable, so only reachable
   by calling `simulate_homeostatic_ei` directly (same `Configuration`
   JSON-safety limitation as any custom rule).
-- **`cubic_penalty_coupled`** homeostasis rule (2026-07-16): adds E<->I
+- **`cubic_penalty_coupled`** homeostasis rule: adds E<->I
   cross-population coupling to `cubic_penalty` -- every other rule's `dH`
   depends only on that neuron's own `x`; this one lets one population's H
   respond to the other's activity.
-- **Notes:** `activation_rule="linear"` diverges once `G`-adaptation is on —
-  the default is `"cubic"`. `Model.summary()`/`.neuron_table()`/
-  `.checkpoint()`/`.with_emitter_parameters()`/`.simulate_batch()` raise
-  `NotImplementedError` for this family. `simulate_homeostatic_ei` is
-  `jax.jit`-compiled (repeated calls with the same static rule/mode config
-  reuse one compiled program). Milestones 1-3 covered by
-  `tests/test_homeostatic_ei_*.py`; Milestones 4-6 tracked in
-  `artifacts/developer/plans.json`.
+- **Notes:** Verify supported `Model` lifecycle methods, rule behavior, and
+  compilation through the current tests before relying on them.
 
 ## 2. Laminar-column TRIAL pipeline — `jtfne.tutorial_utils` (the one most often rediscovered)
 
@@ -170,18 +172,28 @@ prof, info = spectrolaminar_from_trials(trials, cfg, signal_key="csd_contacts", 
 - `simulate(model, sim=None, paradigm=None, **kwargs)` → `Signals` — main entry. kwargs include `duration_ms`, `dt_ms`, `seed`.
 - Kernels (advanced): `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, `simulate_receptor_exponential_izhikevich`.
 - `run_trials(model, batch, sim, ...)` → `TrialBatchResult`.
-- ODE: `euler_scan(y_init, t_start, dt, n_steps, dydt_fn)`, `euler_step(...)` (use `lax.scan`-based `euler_scan` for grad-through-time). Solver classes (`jaxfne/solvers.py`): `EulerSolver(dt)` (forward Euler via JAX `lax.scan`), `DiffraxSolver(dt, rtol=1e-3, atol=1e-6, solver_type=None)` (optional diffrax Runge-Kutta, lazily imported), `SolverConfig(method="euler", dt=0.1, rtol=1e-3, atol=1e-6, solver_type=None)` (dataclass for ODE solver configuration).
-- Stimulus: `make_stimulus(*, kind, duration_ms, dt_ms, amplitude, frequency_hz, ...)`, `stimulus_schedule(events, n_neurons, ...)` (builder function, `jaxfne/core.py`). **Per-neuron-subset targeting:** `target_indices` is a per-event dict key (not a `StimulusSchedule` constructor kwarg), read by `StimulusSchedule.to_array`/`to_array_jax` (`StimulusSchedule` class now lives in `jaxfne/_signals.py`, re-exported from `jaxfne.core`/top-level `jaxfne` unchanged) to restrict that event to a specific neuron subset (e.g. only L4 E cells) instead of the whole column — build the index list from `model.neuron_table()` filtered by `layer`/`cell_type` and put it on each event dict, e.g. `StimulusSchedule(events=({"onset_ms":0.0,"duration_ms":50.0,"amplitude":5.0,"target_indices":l4e_idx},), n_neurons=model.n_neurons)`. Don't hand-roll a per-neuron drive mask for this; see `jaxfne-paradigm-design` for the full pattern. An event dict may also carry `frequency_hz` (added since): when present, the flat `amplitude` plateau is replaced by a true sinusoidal drive `amplitude * sin(2*pi*frequency_hz*t)` instead of a flat plateau; absent `frequency_hz` reproduces the old flat-plateau behavior unchanged.
-- Noise control on the Config-path is **kernel-dependent**, not uniform: `simulate_eig_izhikevich`, `simulate_edge_recurrent_izhikevich`, and the homeostatic variant accept `noise_scale=` (`None` = historical `0.5`); `simulate_receptor_exponential_izhikevich` hardcodes `0.5` inline with no override kwarg at all.
+- ODE: `euler_scan(y_init, t_start, dt, n_steps, dydt_fn)` and `euler_step(...)`;
+  use the `lax.scan`-based path for grad-through-time and verify any solver
+  class signature against the active checkout.
+- Stimulus: `make_stimulus(...)`, `stimulus_schedule(...)`. Per-neuron
+  targeting uses `target_indices` on the event dictionary, not a schedule
+  constructor argument; derive indices from `model.neuron_table()`.
+- Noise controls are kernel-dependent. Verify supported kwargs and defaults
+  against the current emitter signature.
 - Read a signal: `Signals.get(key)` or free fn `get_signal(obj, key)`. Keys accept aliases: `"V_m"`/`"vm"`, `"spikes"`/`"spk"`, `"lfp_contacts"`, `"csd_contacts"`, `"source_native"`.
 
 ## 4. Readouts, projections, fields (default path is PROXY; one real solver is experimental)
 
-- `project_laminar_sources(sources, positions, *, n_contacts, width, mode="density_preserving")` → `FieldOutput`. Default **`mode="density_preserving"`** (SUM-like, preserves density). Use **`mode="row_normalize"`** only for explicit opt-in / backward compatibility — it flattens depth structure when contacts fall outside the population (see `skills/FRICTIONS_STACK.md` F-003). This remains the default `simulate()` field dispatch, unaffected by the solver below.
+- `project_laminar_sources(...)` → `FieldOutput`. Verify the projection mode
+  and normalization choice in the current implementation and state it in the
+  readout metadata.
 - `project_sources_to_laminar_field(...)`, `probe_laminar_modes(field_output, modes)`.
 - Lead-field proxies: `eeg_proxy_transform(source, leadfield)`, `meg_proxy_transform(source_oriented, leadfield)`, `emm_proxy_transform(...)`.
 - `construct_source_tensor(*, mode, ...)`, `compute_conservation_proxy_diagnostics(...)`, `validate_projection_invariants(...)`, `validate_source_field_status(...)`.
-- **Real (experimental) 1D Poisson solve, separate from the proxy path above**: `experimental_poisson_1d(sources, conductivity, dx)` (`jaxfne/fields/solvers.py`) actually assembles and solves a linear system (`field_solver_status="experimental_pde_solver"`), supporting uniform or layered (per-face array) conductivity. Confirmed convergence ceiling: reliable to roughly N~150 grid points in float32, degrades sharply above that (`convergence_status` self-reports `"failed"`, checked). `experimental_poisson_1d_from_neuron_table(neuron_table, sources, conductivity, n_bins)` bridges it to a real `Model.neuron_table()`/`Signals.sources` — an explicitly opt-in accessor called after `construct()`/`simulate()`, kept fully separate from the `project_laminar_sources` dispatch above. Toward `plans.json:novelty::tfne-differentiable-field-solver`.
+- **Experimental 1D Poisson solve, separate from the proxy path above**:
+  `experimental_poisson_1d(...)` is an opt-in solver path. Verify convergence
+  and admissibility for the requested grid and dtype; do not copy a
+  performance ceiling into persistent context.
 
 ## 5. Optimizers & tuning (AGSDR/GSDR/SDR/Optax)
 
@@ -254,10 +266,8 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
   no optional deps) and `hh_jaxley_reference_trace(duration_ms, dt_ms,
   current_amplitude)` (real Jaxley HH channel, raises via `require_jaxley()`
   if not installed — its `jaxley` import is deferred inside the function body,
-  so `import jaxfne` never fails regardless). Both exported at root as of
-  2026-07-05 (the jaxley-backed one was previously only reachable via
-  `jaxfne.bridges.hh_jaxley_reference_trace` — fixed as an inconsistency, not
-  a design choice).
+  so `import jaxfne` remains independent of the optional dependency). Verify
+  current export paths before use.
 
 ## 11. Selection helpers
 
@@ -266,7 +276,7 @@ Pass a `Signals` object; each returns a matplotlib fig (and a `*_with_meta` vari
 
 ## Key classes (recognize, don't redefine)
 
-Config/model: `Configuration`, `Config`, `LaminarColumnConfig`, `RuntimeConfig`, `RuntimeConfiguration`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`. (`JaxFNEConfig` DELETED 2026-06-30.)
+Config/model: `Configuration`, `Config`, `LaminarColumnConfig`, `RuntimeConfig`, `RuntimeConfiguration`, `Simulation`, `Model`, `Net`, `EIGNetwork`, `LaminarPopulation`, `LaminarSourceGeometry`.
 Emitters: `Emitter`, `IzhikevichEmitter`, `IzhikevichParams`, `LIFEmitter`, `GLIFEmitter`.
 Edges/synapses: `EdgeList`, `SynapseLayer`, `SynapseSpec`, `SynapseState`, `ReceptorSpec`, `ConnectionCompileResult`.
 Signals/probes/fields: `Signals`, `Signal`, `Probe`, `ReadoutSpec`, `ReadoutResult`, `LinearReadout`, `FieldOutput`.
@@ -291,7 +301,9 @@ STDP config/state classes (`jaxfne/plasticity.py`): `STDPPlasticityConfig(A_plus
 ## Truth-plane reminders (always)
 
 - Wording: **proxy only** — EEG-proxy, MEG-proxy, LFP-proxy, CSD-proxy, spectrolaminar-proxy, field-laminar-proxy. Never "real EEG/MEG", "calibrated amplitude", "solved field", "physical CSD", "mechanism proof", "biological validation/learning".
-- Gates that ride along on dataclasses (v0.4.0 canonical schema): `claim_level=computational_scaffold`, `field_solver_status=linear_solver`, `field_claim_level=proxy_readout`, `physical_amplitude_calibrated=False`, `biological_learning_claim=False`, `mechanism_claim_status=not_claimed`. Read them; never escalate. (RETIRED, do not emit: `truth_mode`/`truth_safe_unverified`, `laminar_proxy_no_pde`, `proxy_readout_only`, `physical_amplitude_claim_allowed`. Migrate legacy JSON via `jtfne.migrate_schema`.)
+- Read the current status fields from `docs/scope_and_status.md` and live
+  manifests. Never escalate them. Legacy status keys are migration inputs, not
+  current output keys.
 
 ## Keeping this catalog honest
 

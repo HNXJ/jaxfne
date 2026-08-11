@@ -51,6 +51,21 @@ synaptic/plasticity wrapper, rather than sharing one standalone "Izhikevich inte
 amperes — every kernel in this module sets `source_calibration_status` to a value such as
 `"uncalibrated_izhikevich_native_current"`, always short of a physical-calibration claim.
 
+### Canonical source representation
+
+The canonical emitter source is the relative state-to-source map
+
+```text
+Q^(r) = source_scale * (current_native + DEFAULT_SPIKE_IMPULSE_GAIN * spikes)
+current_native = drive + recurrent_synaptic + noise
+```
+
+`DEFAULT_SPIKE_IMPULSE_GAIN` is defined once in
+`jaxfne.presets` and shared by the dense, edge, homeostasis, HDP, and
+receptor-exponential Izhikevich kernels. The source support is
+time-by-neuron, signs are carried by recurrent weights and the positive spike
+impulse, and normalization is per-neuron `source_scale`.
+
 ### Parameters
 
 Canonical per-cell-type parameter defaults live in
@@ -386,22 +401,36 @@ keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1
 ### `simulate_edge_recurrent_izhikevich_hdp(...) -> (voltages, spikes, sources, diagnostics_dict)`
 
 As `simulate_edge_recurrent_izhikevich`, plus Homeostasis-Dependent Plasticity (HDP): a
-per-neuron resource state `H_i` (default 1.0, clamped to `[H_min, H_max]`) that both synaptic
+per-neuron finite-dimensional hidden biophysical H-state `H_i` (default scalar
+1.0, clamped to `[H_min, H_max]`) that both synaptic
 drive and the neuron's own spiking feed back into, and that drives a weight-update rule selected
 by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_product"`)
-(`jaxfne/emitters.py:999`). All plasticity/HDP gains (`alpha`, `beta`, `gamma`, `delta`,
-`C_spike`) default to `0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
-term when those gains are `0.0` — so the defaults are a null control. Per-neuron `tau_i =
+(`jaxfne/emitters.py:1039`). For an edge `i -> j`, define
+`Delta_H = H_post - H_pre` and `w = q*m`; the difference-family magnitude term is
+`q*K_HDP*phi(Delta_H)*m`, with `phi(x)=x` for `"signed_linear"` and
+`phi(x)=x*abs(x)` for `"signed_quadratic"`. `"hebbian_product"` is separate product
+modulation using `H_pre*H_post`, not another difference rule. The independent
+`K_w_ctrl*(m0-m)` term restores magnitude toward the declared baseline. All
+H income/spending gains (`alpha`, `beta`, `gamma`, `delta`, `C_spike`) default to
+`0.0`, and `K_HDP` defaults to `1.0` but multiplies a zero weight-update
+term when those gains are `0.0` — so the defaults are an H-state/weight-term null,
+not a general full-system equivalence claim. Per-neuron `tau_i =
 tau_0_ms * size_i**3`, with per-cell-type `size_i` from `DEFAULT_HDP_SIZE_SCALE_BY_CELL_TYPE`
 (`jaxfne/emitters.py:978`: `E=5.0`, `PV=1.0`, `Inl=1.0`, `SST=1.5`, `Ing=1.5`, `VIP=1.5`), unless
 overridden via `size_scale_by_cell_type` or `size_scale_override`. `diagnostics_dict` includes
-`H_trace` and `w_trace` (each `(n_steps, ...)`), `H_final`/`w_final`, plus optional
+The current scalar HDP realization is the `d_H=1` case. `H_trace` has shape
+`(n_steps, n_neurons)` for `h_state_dim=1` and
+`(n_steps, n_neurons, h_state_dim)` for vector H. The diagnostics also include
+`w_trace`, `H_final`, and `w_final`, plus optional
 per-term `dH_*_trace` diagnostics when `record_dH_components=True` and `edge_current_trace` when
 `record_edge_current=True`. `record_weight_trace` (default `True`) controls whether `w_trace`
 (shape `(n_steps, n_edges)`, the dominant memory cost at scale — e.g. 10,000 steps x 2,000,000
 edges x 4 bytes = 80GB) is stacked at all; set `False` to get `w_trace=None` while `w_final` and
-HDP's actual dynamics stay unaffected. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
-reference — it is extensive and not duplicated here.
+HDP's actual dynamics stay unaffected. For `h_state_dim>1`, componentwise H
+dynamics are the default; `h_state_readout` supplies the current scalar
+adaptation projection and `h_state_coupling` supplies an optional square
+component-coupling matrix. See the docstring in `jaxfne/emitters.py:1042` for the full parameter
+reference — it is extensive and kept in the source docstring.
 
 ---
 

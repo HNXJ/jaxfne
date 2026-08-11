@@ -1,51 +1,56 @@
 ---
 name: jaxfne-objective-grammar
 description: >-
-  The mandatory top-level object-transform grammar for jaxfne: the verified
-  public chain Configuration/NeuronalTensor → construct → simulate → Signals →
-  probe/objective/tune → manifest. Use first when structuring any jaxfne
-  script, notebook, pipeline, or new API to pick the right stage, then route to
-  the detailed skill for that stage (jaxfne-config, jaxfne-neural-tensor,
-  jaxfne-neural-network, jaxfne-vis-modules). Flags invented
-  signals.rate()/jtfne.optimize()/jtfne.weld() patterns before they reach code.
+  Route jaxfne software stages from a supported CircuitSpec through
+  construction, simulation, Signals, readouts, objectives, tuning, and
+  manifests. Use when structuring a script, notebook, pipeline, or API change.
 ---
 
-# jaxfne Objective Grammar
+# jaxfne objective-stage routing
 
-USE FIRST: `catalog-glossary-jaxfne`, then the detailed skill for your stage.
+This is a procedure. Objective, null, optimizer, and operator meaning belongs
+to the project mathematical source documents and the live implementation.
 
-## Mandatory chain (verified public surface)
+## Software chain
 
 ```text
-Configuration/NeuronalTensor → construct → simulate → Signals → (vis | probe | objective | manifest)
-                                                              ↘ Model.tune → TuneResult
+Configuration/NeuronalTensor -> construct -> Model -> simulate -> Signals
+                                                     -> readout/objective/manifest
+                                                     -> Model.tune -> TuneResult
 ```
 
-Legacy aliases still import: `Configuration`/`Config`, `Model`/`Net`.
-
-```python
-import jaxfne as jtfne
-jtfne.enable_x64()  # before array construction if x64 needed
-```
+Use `import jaxfne as jtfne`. Verify the exact public symbol before calling it.
 
 ## Route by stage
 
-| Stage | Skill |
-|-------|-------|
-| Declaring static circuit structure via the fluent `Configuration` builder | `jaxfne-config` |
-| Declaring static circuit structure via `NeuronalTensor` (Areas × Layers × NeuronTypes), or enabling HDP | `jaxfne-neural-tensor` |
-| `construct → simulate → Signals`, reading signals, probe/objective/tune, manifest/receipt | `jaxfne-neural-network` |
-| Any plotting/figure work on a `Signals` object | `jaxfne-vis-modules` |
-| Deep dataclass/truth-gate schema reference | `jaxfne-modeling-optimization-schema` |
+- configuration builder → `jaxfne-config`
+- tensor or HDP path → `jaxfne-neural-tensor`
+- model, simulation, Signals, probe, objective, or tuning → `jaxfne-neural-network`
+- selector/connectivity/schema → `jaxfne-modeling-optimization-schema`
+- visualization → `jaxfne-vis-modules`
+- notebook, documentation, or artifact validation → `jaxfne-notebook-release-gate`
 
-## Violations (rewrite if you see these)
+## Procedure
 
-- Hand-rolled PSD/raster when `jtfne.vis.*` or `tutorial_utils` pipeline exists
-- `signals.rate()` / `signals.probe()` / `jtfne.optimize()` / `jtfne.weld()` invented API
-- Global `cell_types=` for laminar E:I gradient (use `.area_layer_cell_types`, see `jaxfne-config`)
-- Skipping manifest/receipt on release-facing runs without explicit reason
+1. Identify the specification tier already held by the caller.
+2. Build through `construct()` rather than a local numerical engine.
+3. Keep simulation output in `Signals`.
+4. Keep readout and objective evaluation separate from simulation.
+5. Keep optimization and manifest/export separate from plotting.
+6. Reuse the model for repeated runs when structure is unchanged.
+7. Add a targeted test at the public entry point for changed behavior.
 
-## Related
+## Common invalid assumptions
 
-- Multi-trial spectrolaminar: `tutorial_utils` path (`catalog-glossary-jaxfne` §2)
-- Open contradictions: `skills/FRICTIONS_STACK.md`
+- `Signals` does not gain invented `.rate()`, `.psd()`, or `.probe()` methods.
+- There is no generic top-level `jtfne.optimize()` contract.
+- Do not infer a typed `Configuration.circuit`, `.objective`, or `.optimizer`
+  sub-spec from conceptual vocabulary.
+- Do not hand-roll PSD, raster, field, or manifest logic when a package API
+  already owns that computation.
+
+## Evidence
+
+Use `docs/guides/objective_grammar.md` for executable examples and
+`docs/operator_doctrine.md` for stage contracts. Code and tests decide what is
+currently implemented.

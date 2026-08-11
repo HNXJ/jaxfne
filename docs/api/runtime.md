@@ -40,7 +40,7 @@ requested and actual dtype policy.
 - `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
 - `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables
 - `enable_hdp` (bool): per-neuron master-state (H) plasticity controller, default `False`; mutually exclusive with `enable_homeostasis`
-- `hdp_params` (dict): `{K_HDP, tau_0_ms, alpha, beta, gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d}`; all gains default `0.0` (the null). See [the HDP guide](../guides/hdp.md)
+- `hdp_params` (dict): includes `{K_HDP, tau_0_ms, alpha, beta, gamma, delta, C_spike, K_ctrl, K_w_ctrl, barrier_c, barrier_d}`. `K_HDP` nulls the HDP weight-modulation term; `K_ctrl` restores H toward 1; `K_w_ctrl` independently restores edge magnitude toward its declared baseline. See the [HDP guide](../guides/hdp.md) for `N_W^HDP`, `N_H`, and `N_system`.
 
 To change a setting, construct a new `RuntimeConfig(...)` with the desired
 fields — there is no `with_seed`/`with_dtype`/`with_device` mutator API.
@@ -158,6 +158,35 @@ for trial_idx in range(10):
     signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.1, seed=trial_idx)
     # ... process signals ...
 ```
+
+---
+
+## Full-state continuation
+
+For recurrent edge-list and HDP simulations, request the computational
+continuation state explicitly:
+
+```python
+signals_a, state_a = jtfne.simulate(
+    model, duration_ms=50.0, dt_ms=0.5, seed=7, return_state=True
+)
+signals_b, state_b = jtfne.simulate(
+    model, duration_ms=50.0, dt_ms=0.5,
+    continuation=state_a, return_state=True,
+)
+```
+
+The returned `ContinuationState` carries the complete recurrent dynamic state
+and the next explicit PRNG key. The same model, timestep, runtime kernel, and
+segment drive schedule must be used for exact continuation. This is a runtime
+state object, not a manifest or archive format.
+
+The continuation path currently supports the exponential edge-list kernel only.
+Unsupported synaptic kernels and ablation modes are rejected explicitly.
+
+`Model.with_hdp_initial_state(H0=..., w0=...)` remains partial initialization
+of homeostatic/plastic variables. It does not restore membrane, previous-spike,
+or synaptic state and is not an exact recurrent continuation contract.
 
 ---
 

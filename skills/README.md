@@ -1,56 +1,84 @@
 # jaxfne skills
 
-**Documentation written for AI coding agents** — same package source-of-truth as
-the human docs under `docs/`, not a parallel spec. Human-oriented overview:
-[docs/for_ai_agents.md](../docs/for_ai_agents.md).
+Skills are procedural guidance for AI coding agents. They are not a second
+mathematical specification and must not duplicate equations or claim semantics
+from the project source documents.
 
-Versioned skills live in this folder (`skills/`). Global copies may also exist in
-each contributor's `~/.claude/skills/` and `~/.agents/skills/` — **the repo copy
-wins** when they diverge:
+## Authority order
+
+For jaxfne work:
+
+1. Mathematical meaning: the six-file revised project source set in
+   `artifacts/project_sources/`.
+2. Implemented behavior: `jaxfne/` and `tests/`.
+3. Public explanation: `README.md` and `docs/`.
+4. Procedures: this directory's skills.
+5. Current state: `scripts/repo_state_snapshot.py`.
+6. History: `artifacts/legacy/` and explicitly labeled historical files.
+
+Public explanation and executable references remain in:
+
+- `docs/operator_doctrine.md`
+- `docs/scope_and_status.md`
+- `docs/guides/objective_grammar.md`
+- `docs/guides/tensor_field_workflows.md`
+- `docs/tutorials/notebook_standard.md`
+
+These documents do not replace the mathematical source set.
+
+## Canonical editable skill source
+
+The repository copy under `skills/` is canonical. Copies under
+`~/.claude/skills/` and `~/.agents/skills/` are synchronized mirrors only.
+Never edit those mirrors independently.
+
+Use the synchronization script in read-only mode first:
 
 ```bash
-bash skills/SYNC_GLOBAL.sh
+bash skills/SYNC_GLOBAL.sh --check
 ```
 
-## Glossary (agent shorthand)
+Apply a reviewed synchronization explicitly:
 
-| Term | Meaning |
-|------|---------|
-| **PRP** | Progress–Review–Plan backlog in `artifacts/developer/{plans,progress,review}.json` (local-only, gitignored — not in a fresh clone) |
-| **TBI / TBD** | To-be-investigated / to-be-done items on a `progress.json` file row |
-| **P0 / P1** | Priority labels in audit notes — P0 = fix before release claim |
-| **Truth gates** | Conservative defaults (`claim_level`, `*_proxy`, etc.) — see [Scope & status](../docs/scope_and_status.md) |
-| **HDP** | Homeostasis-Dependent Plasticity — the H-factor stabilization module (`RuntimeConfig(enable_hdp=True, ...)`, `DEFAULT_HDP`); see `jaxfne-neural-tensor` |
-| **AGSDR / GSDR** | jaxfne's own optimizer families for `Model.tune` (Adaptive-Gradient/Gradient Stochastic Descent with Restarts) — not third-party optimizers; see `jaxfne-neural-network` |
+```bash
+bash skills/SYNC_GLOBAL.sh --apply
+```
 
-**Friction ledger:** `FRICTIONS_STACK.md` — contradictions between skills, docs,
-and code. Resolve before escalating claims.
+The script never removes unrelated or archived skill directories.
 
-## First-class skills (`skill-name/SKILL.md`)
+## First-class procedures
 
-Consolidated 2026-06-30 (17 → 13 folders). Merged-away names are listed in `PATCH.md`.
+- `catalog-glossary-jaxfne` — verify current public API names before implementation.
+- `jaxfne-worker-context-router` — select the owning module and validation lane.
+- `jaxfne-harden` — consolidated implementation safeguards.
+- `jaxfne-config` — `Configuration` construction procedure.
+- `jaxfne-neural-tensor` — `NeuronalTensor` construction and runtime procedure.
+- `jaxfne-neural-network` — construct/simulate/Signals/readout procedure.
+- `jaxfne-objective-grammar` — route software stages without redefining mathematics.
+- `jaxfne-modeling-optimization-schema` — selectors and serialized schema checks.
+- `jaxfne-paradigm-design` — event and trial construction procedure.
+- `jaxfne-vis-modules` — signal-driven visualization procedure.
+- `jaxfne-spectrolaminar-suite` — spectrolaminar execution/readout procedure.
+- `jaxfne-notebook-release-gate` — notebook and artifact validation procedure.
+- `jaxfne-sha256-artifact-integrity` — content-identity procedure.
+- `jaxfne-release-mutation-guard` — remote mutation authorization procedure.
 
-| Skill | Role |
-|-------|------|
-| `catalog-glossary-jaxfne` | Public API catalog — check before writing helpers |
-| `jaxfne-objective-grammar` | Top-level chain: Config → Model → Signals → tune → manifest |
-| `jaxfne-config` | `Configuration` fluent API + canonical laminar column |
-| `jaxfne-neural-tensor` | `NeuronalTensor` path + HDP |
-| `jaxfne-neural-network` | `construct` → `simulate` → probe/tune/manifest |
-| `jaxfne-vis-modules` | `jaxfne.vis` plotting — package-level, proxy-safe |
-| `jaxfne-modeling-optimization-schema` | Connectivity, selectors, objective conventions |
-| `jaxfne-paradigm-design` | Sequential paradigms / oddball builders |
-| `jaxfne-notebook-release-gate` | Notebook/tutorial validation before "done" claims |
-| `jaxfne-release-mutation-guard` | Remote mutation gates (push, tag, PyPI) |
-| `jaxfne-sha256-artifact-integrity` | Content hashes for configs/figures/wheels |
-| `jaxfne-worker-context-router` | Route tasks to the right skill/lane |
-| `jaxfne-spectrolaminar-suite` | Spectrolaminar études and LFP-proxy caveats |
+## Consolidated hardening
 
-These are guidance files, not importable package code (`jaxfne/` is the package).
+`jaxfne-harden/SKILL.md` is the only editable hardening skill. The numbered
+`00_INDEX.md`–`11_*.md` files are compatibility pointers and must not contain
+independent rules. Historical friction notes belong in `FRICTIONS_STACK.md`
+only as archival evidence; executable tests and current code decide behavior.
 
-## Repo-hardening rules (flat `0N_*.md`)
+These files are not active skills:
 
-Numbered enforcement checklists (`00_INDEX.md` … `11_*.md`) at this folder root.
-Start at `00_INDEX.md`. They overlap the folder skills at a shorter rule altitude.
+- `PATCH.md` — historical consolidation note.
+- `ANTIGRAVITY_PROMPT.md` — delegation note.
+- `SYNC_GLOBAL.sh` — synchronization utility.
 
-Keep this flat set at the repo root of `skills/` — do not nest duplicate folders.
+## Scope rule
+
+Before changing a skill, remove current versions, SHAs, branch lists, test
+counts, benchmark timings, line-number citations, and incident narratives
+unless the item is explicitly labeled historical. Prefer a symbol, test name,
+or generated state command over a line number or remembered fact.

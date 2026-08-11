@@ -12,13 +12,17 @@ computational_control_proxy_not_biological_mechanism, biological_learning_claim
 imply mechanism support.
 
 Ablation grid. Unlike the older homeostasis controller (whose two components,
-k_gain and eta, are independently zeroable), HDP's weight-update term is
-*itself* gated on H deviating from 1.0 (dw/dt ~ K_HDP*(H-1)*w) — so
-"plasticity active with H pinned at 1.0" is not a distinct, meaningful
-condition; it reduces to the null. The grid is therefore 3-way, not 4-way:
-  null        : controller OFF (alpha=gamma=K_ctrl=K_HDP=0)        -> the null control
-  h_dynamics  : H moves (alpha/gamma/K_ctrl>0) but K_HDP=0          -> weights frozen
-  both        : H moves AND drives weight plasticity (K_HDP>0 too) -> full HDP
+k_gain and eta, are independently zeroable), the difference-family weight
+term is gated by the pre/post H difference
+(`dm/dt ~ q*K_HDP*phi(H_post-H_pre)*m`). The grid is therefore 3-way, not
+4-way:
+  null        : baseline configuration; H-state and HDP weight-term null
+  h_dynamics  : H moves (alpha/gamma/K_ctrl>0), HDP weight term null
+  both        : H moves and drives the HDP weight term
+
+These are experiment conditions, not interchangeable definitions of
+`N_W^HDP`, `N_H`, or `N_system`; `K_w_ctrl` is an independent weight-restoration
+axis and is not enabled by this harness.
 
 Each condition is run over N repeated seeds on a deliberately IMBALANCED column
 (a hyperactive group + a quiet group), so the stabilizing effect is measurable.
@@ -117,9 +121,9 @@ def run(n=200, seeds=5, duration_ms=2000.0, dt_ms=0.5,
         "mechanism_claim_status": "not_claimed",
         "note": ("Method evidence only: HDP controller stabilizes rates / reduces "
                  "imbalance. Mechanism support requires empirical comparison beyond "
-                 "this bundle. 3-way grid (not 4-way): HDP's weight term is gated on "
-                 "H deviating from 1.0, so K_HDP>0 with H pinned at 1.0 reduces to "
-                 "the null and is not a distinct condition."),
+                 "this bundle. The 3-way grid distinguishes the H-state and "
+                 "difference-driven weight-term axes; it is not a full-system-null "
+                 "test, and K_w_ctrl is not enabled by this harness."),
         "setup": {"n": n_real, "seeds": int(seeds), "duration_ms": duration_ms, "dt_ms": dt_ms,
                   "alpha": alpha, "gamma": gamma, "K_ctrl": k_ctrl, "K_HDP": k_hdp,
                   "hi_drive": hi_drive, "lo_drive": lo_drive},

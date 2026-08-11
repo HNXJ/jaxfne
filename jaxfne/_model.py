@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 import math
 import warnings
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
 
 import jax
@@ -149,6 +149,94 @@ def matrix_parameter(
     return MatrixParameterSpec(mask=mask, bounds=bounds, init=init, trainable=trainable, target=target)
 
 
+@dataclass(frozen=True)
+class EdgeParameterSpec:
+    """Declarative grouped parameter over executable ``EdgeList.weight`` entries.
+
+    ``pre`` and ``post`` reuse the package's canonical :class:`SelectorSpec`
+    grammar.  ``receptor_indices`` and ``edge_indices`` add optional mechanism
+    and explicit-edge constraints.  The parameter value is a positive edge
+    magnitude; each selected edge keeps the sign already carried by its
+    executable weight.
+    """
+
+    pre: Optional[SelectorSpec | Mapping[str, Any]] = None
+    post: Optional[SelectorSpec | Mapping[str, Any]] = None
+    receptor_indices: Optional[tuple[int, ...]] = None
+    edge_indices: Optional[tuple[int, ...]] = None
+    bounds: tuple[float, float] = (0.1, 5.0)
+    init: str = "current"
+    trainable: bool = True
+
+    def __post_init__(self) -> None:
+        for name in ("pre", "post"):
+            value = getattr(self, name)
+            if value is not None and not isinstance(value, SelectorSpec):
+                if isinstance(value, Mapping):
+                    value = SelectorSpec(**dict(value))
+                else:
+                    raise TypeError(
+                        f"EdgeParameterSpec.{name} must be a SelectorSpec or mapping"
+                    )
+                object.__setattr__(self, name, value)
+        for name in ("receptor_indices", "edge_indices"):
+            value = getattr(self, name)
+            if value is not None:
+                object.__setattr__(self, name, tuple(int(x) for x in value))
+        lo, hi = (float(self.bounds[0]), float(self.bounds[1]))
+        if not (math.isfinite(lo) and math.isfinite(hi) and 0.0 < lo <= hi):
+            raise ValueError(
+                "EdgeParameterSpec.bounds must be finite positive "
+                f"(lower, upper), got {self.bounds!r}"
+            )
+        object.__setattr__(self, "bounds", (lo, hi))
+        if self.pre is None and self.post is None and self.receptor_indices is None and self.edge_indices is None:
+            raise ValueError(
+                "EdgeParameterSpec requires a pre/post selector, receptor_indices, "
+                "or explicit edge_indices"
+            )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a compact JSON-safe selector and bounds declaration."""
+        return {
+            "type": "EdgeParameterSpec",
+            "pre": asdict(self.pre) if self.pre is not None else None,
+            "post": asdict(self.post) if self.post is not None else None,
+            "receptor_indices": list(self.receptor_indices)
+            if self.receptor_indices is not None
+            else None,
+            "edge_indices": list(self.edge_indices)
+            if self.edge_indices is not None
+            else None,
+            "bounds": list(self.bounds),
+            "init": self.init,
+            "trainable": self.trainable,
+            "parameterization": "positive_magnitude_fixed_edge_sign",
+        }
+
+
+def edge_parameter(
+    *,
+    pre: Optional[SelectorSpec | Mapping[str, Any]] = None,
+    post: Optional[SelectorSpec | Mapping[str, Any]] = None,
+    receptor_indices: Optional[Sequence[int]] = None,
+    edge_indices: Optional[Sequence[int]] = None,
+    bounds: tuple[float, float] = (0.1, 5.0),
+    init: str = "current",
+    trainable: bool = True,
+) -> EdgeParameterSpec:
+    """Declare a positive grouped magnitude over executable recurrent edges."""
+    return EdgeParameterSpec(
+        pre=pre,
+        post=post,
+        receptor_indices=tuple(receptor_indices) if receptor_indices is not None else None,
+        edge_indices=tuple(edge_indices) if edge_indices is not None else None,
+        bounds=bounds,
+        init=init,
+        trainable=trainable,
+    )
+
+
 @dataclass
 class TuneResult:
     """Result object returned by Model.tune() with multi-parameter optimization.
@@ -221,17 +309,35 @@ _MANIFEST_SCHEMA_VERSION = "manifest.v0.0.21"
 _SOURCE_PROXY_METADATA: dict[str, Any] = {
     "source_model": "izhikevich_native_current_plus_spike_impulse_proxy",
     "source_mode": "native_current_plus_spike_impulse_proxy",
+    "source_mode_class": "canonical",
     "includes_native_current": True,
     "includes_drive_current": True,
     "includes_recurrent_synaptic_current": True,
     "includes_noise_current": True,
     "includes_spike_impulse": True,
     "spike_impulse_gain": DEFAULT_SPIKE_IMPULSE_GAIN,
+    "source_contract": {
+        "native_current": "drive + recurrent_synaptic + noise",
+        "spike_term": "DEFAULT_SPIKE_IMPULSE_GAIN * spikes",
+        "gain_owner": "jaxfne.presets.DEFAULT_SPIKE_IMPULSE_GAIN",
+        "sign_convention": "positive additive spike impulse; recurrent weights carry signs",
+        "support": "time_by_neuron",
+        "normalization": "per_neuron_source_scale",
+        "representation": "relative",
+        "calibration": "explicit_boundary_transform",
+    },
     "source_calibration_status": "uncalibrated_izhikevich_native_current",
     "physical_amplitude_calibrated": False,
     "double_count_synaptic_current_guard": (
         "single_proxy_expression_no_extra_synaptic_source"
     ),
+    "double_count_evidence": {
+        "status": "helper_backed",
+        "composition": "source_scale * (current_native + spike_gain * spikes)",
+        "synaptic_term_location": "current_native",
+        "separate_synaptic_source": False,
+        "implementation": "emitters._source_proxy_from_components",
+    },
 }
 
 _KNOWN_READOUT_METRICS = frozenset({

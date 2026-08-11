@@ -15,13 +15,18 @@ lives, how it's verified, and its measured overhead.
 ## What was built
 
 1. **Kernel** (`jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp`) —
-   integrates `H_i` (five additive `dH/dt` terms: synaptic income `alpha`,
-   bias `beta`, activity drain `gamma`, weight-budget drain `delta`, restoring
-   control `K_ctrl`, plus a barrier term) and the weight ODEs
-   `dw_E/dt = +K_HDP*(H_i-1)*w_E`, `dw_I/dt = -K_HDP*(H_i-1)*w_I`. Hard-bounds
-   `H_i` to `[H_min, H_max]` and weights to `[w_floor, w_ceiling]`. Supports
-   `record_dH_components`/`record_edge_current` diagnostics, `init_state`
-   pause/resume, and `size_scale_override`.
+   integrates `H_i` (synaptic income `alpha`, bias `beta`, H-taxed activity
+   drain `gamma`, weight-budget drain `delta`, passive income
+   `rho_passive`, restoring control `K_ctrl`, and a barrier term) and
+   signed edge-magnitude updates. For edge `i -> j`, the canonical
+   difference-family basis is `Delta_H = H_post - H_pre`:
+   `dm/dt = q*K_HDP*phi(Delta_H)*m + K_w_ctrl*(m0-m)`, with
+   `phi(x)=x` for `signed_linear` and `phi(x)=x*abs(x)` for
+   `signed_quadratic`. `hebbian_product` is separate product modulation
+   using `H_pre*H_post`. Hard-bounds `H_i` to `[H_min, H_max]` and weights to
+   `[w_floor, w_ceiling]`. Supports `record_dH_components`/
+   `record_edge_current` diagnostics, `init_state` pause/resume, and
+   `size_scale_override`.
 2. **Generic builder** (`jaxfne.hdp_network`) — config-driven (no per-N
    functions), with two frozen tuned presets, `DEFAULT_HDP` (long-term stable,
    verified 20s/5-seed) and `DEFAULT_HDP_DESYNC` (faster, less-overdamped `H`
@@ -41,19 +46,20 @@ lives, how it's verified, and its measured overhead.
 5. **ED9 ablation evidence** (`scripts/ed9_hdp_evidence.py`) — null +
    ablation + repeated-seed evidence bundle on a deliberately imbalanced
    column, mirroring `scripts/ed9_homeostasis_evidence.py`. The grid is
-   **3-way, not 4-way**: `null` / `h_dynamics` (H moves, weights frozen) /
-   `both` (H moves and drives weights) — because HDP's weight term is itself
-   gated on `H` deviating from 1.0, so "plasticity active with `H` pinned"
-   collapses to the null and isn't a distinct condition.
+   **3-way, not 4-way**: `null` / `h_dynamics` (H moves, HDP weight term
+   null) / `both` (H moves and HDP weight term active). These are ablation
+   configurations, not interchangeable definitions of `N_W^HDP`, `N_H`, or
+   `N_system`; `K_w_ctrl` must be reported separately.
 6. **Docs** — [`docs/guides/hdp.md`](guides/hdp.md), wired into `mkdocs.yml`
    nav and cross-linked from `homeostasis.md`/`showcases.md`; `enable_hdp`/
    `hdp_params` documented in `docs/api/runtime.md`.
 
 ## Verification
 
-- **Standalone kernel** (`tests/test_hdp_kernel_standalone.py`, 13 tests):
-  null control (`H` pinned at exactly 1.0, weights bit-identical),
-  `K_HDP=0` disabling plasticity independent of other gains, nonzero-gain
+- **Standalone kernel** (`tests/test_hdp_kernel_standalone.py`):
+  H-state null (`H` pinned at exactly 1.0, weights bit-identical),
+  difference-term null (`K_HDP=0`) independent of other gains, orthogonal
+  `K_ctrl`/`K_w_ctrl` controls, four-edge sign regression, nonzero-gain
   finite/bounded trajectories, `record_dH_components`/`record_edge_current`
   trace shapes, `init_state` pause/resume determinism, `size_scale_override`
   changing dynamics, and `K_HDP<0` (anti-homeostatic stress mode) staying

@@ -67,9 +67,12 @@ def validate_projection_invariants(
 ) -> dict[str, Any]:
     """Check structural invariants of the laminar proxy projection.
 
-    Verifies kernel row-normalization (row-stochastic to ``tol=1e-6``) and the
-    finiteness/consistency of the ``source_proxy``/``phi_e_proxy``/``csd_proxy``/
-    ``lfp_proxy`` arrays for the given ``sources``/``positions``/``kernel``.
+    Verifies the selected kernel normalization contract and the
+    finiteness/consistency of the ``source_proxy``/``phi_e_proxy``/
+    ``csd_proxy``/``lfp_proxy`` arrays for the given
+    ``sources``/``positions``/``kernel``. Row sums are checked to
+    ``tol=1e-6`` for ``row_normalize``; density-preserving mode reports the
+    row-normalization check as not applicable.
     Returns a JSON-safe dict of per-invariant pass/fail diagnostics. This checks
     the proxy operator's internal consistency only — it makes no claim of
     physical correctness.
@@ -79,10 +82,21 @@ def validate_projection_invariants(
 
     if isinstance(kernel_row_sum_max_abs_error, jax.core.Tracer):
         kernel_row_sum_max_abs_error_val = kernel_row_sum_max_abs_error
-        normalization_valid = kernel_row_sum_max_abs_error < 1e-6 if mode != "density_preserving" else True
+        row_normalization_valid = (
+            kernel_row_sum_max_abs_error < 1e-6
+            if mode != "density_preserving"
+            else None
+        )
     else:
         kernel_row_sum_max_abs_error_val = float(kernel_row_sum_max_abs_error)
-        normalization_valid = kernel_row_sum_max_abs_error_val < 1e-6 if mode != "density_preserving" else True
+        row_normalization_valid = (
+            kernel_row_sum_max_abs_error_val < 1e-6
+            if mode != "density_preserving"
+            else None
+        )
+    normalization_valid = (
+        True if mode == "density_preserving" else row_normalization_valid
+    )
 
     t_steps = int(sources.shape[0])
     n_emitters = int(sources.shape[1])
@@ -105,6 +119,11 @@ def validate_projection_invariants(
         warnings.append("non_finite_csd_proxy")
 
     return {
+        "operator_type": "linear_projection",
+        "representation": "relative",
+        "normalization_mode": mode,
+        "validation_status": "computational",
+        "calibration_transform": "explicit_boundary_transform",
         "source_shape": tuple(int(x) for x in sources.shape),
         "positions_shape": tuple(int(x) for x in positions.shape),
         "kernel_shape": tuple(int(x) for x in kernel.shape),
@@ -129,15 +148,23 @@ def validate_projection_invariants(
                 "csd_finite": finite_csd_proxy,
                 "lfp_finite": finite_lfp_proxy,
             },
-            "kernel_normalization_valid": normalization_valid,
             "source_conservation_status": "proxy_not_solved",
-            "kernel_row_stochastic_valid": normalization_valid,
             "kernel_normalization_definition": "contact_rows_density_preserving" if mode == "density_preserving" else "contact_rows_sum_to_one_proxy",
             "source_current_conservation_status": "not_applicable_proxy_mode",
             "source_current_conservation_test": "not_applicable_proxy_mode",
             "boundary_condition_status": "declared_metadata_only",
             "gauge_status": "declared_metadata_only",
-            "kernel_row_normalization_valid": kernel_norm_tests["kernel_row_normalization_valid"] if mode != "density_preserving" else True,
+            "kernel_row_normalization_applied": mode == "row_normalize",
+            "kernel_row_normalization_valid": row_normalization_valid,
+            "kernel_normalization_valid": normalization_valid,
+            # Compatibility key: this is validity of the selected mode, not a
+            # claim that density-preserving rows sum to one.
+            "kernel_row_stochastic_valid": normalization_valid,
+            "kernel_row_stochastic_status": (
+                "mode_valid_density_preserving"
+                if mode == "density_preserving"
+                else "row_sum_valid"
+            ),
             "kernel_row_sum_max_abs_error_v024": kernel_norm_tests["kernel_row_sum_max_abs_error"],
             "kernel_row_sum_tolerance_v024": kernel_norm_tests["kernel_row_sum_tolerance"],
         },
@@ -147,6 +174,7 @@ def validate_projection_invariants(
 
 def _make_field_solution_report(
     field_solver_status: str = "linear_solver",
+    operator_type: str = "linear_projection",
     solver_name: str = "laminar_proxy",
     boundary_condition: str = "declared_metadata_only",
     gauge: str = "declared_metadata_only",
@@ -160,12 +188,29 @@ def _make_field_solution_report(
     finite_CSD: bool = True,
     field_claim_level: str = "proxy_readout",
     physical_amplitude_calibrated: bool = False,
+    representation: str = "relative",
+    validation_status: str = "computational",
+    calibration_transform: str = "explicit_boundary_transform",
+    normalization_mode: str | None = None,
     source_projection_mode: str = "proxy_no_field_solve",
     source_current_conservation_status: str = "not_applicable_proxy_mode",
     source_conservation_tested: bool = False,
     source_conservation_claim_allowed: bool = False,
 ) -> dict:
     return {
+        "operator_type": operator_type,
+        "representation": representation,
+        "validation_status": validation_status,
+        "calibration_transform": calibration_transform,
+        "normalization_mode": normalization_mode,
+        "csd_operator": {
+            "type": "negative_second_difference",
+            "spacing": "relative_contact_depth_dz",
+            "boundary": "edge_padded",
+            "input": "phi_e_proxy",
+            "output": "csd_proxy",
+            "representation": representation,
+        },
         "field_solver_status": field_solver_status,
         "solver_name": solver_name,
         "boundary_condition": boundary_condition,

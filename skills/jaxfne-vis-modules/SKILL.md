@@ -1,137 +1,57 @@
 ---
 name: jaxfne-vis-modules
 description: >-
-  Design, fix, or audit jaxfne.vis — raster, Vm/LFP/CSD/EEG/MEG traces, PSD,
-  spectrogram, spectrolaminar suites, activity suites, connectivity
-  weightmaps, 3D scaffold, and 2-photon proxy visualizations. Renamed from
-  jaxfne-visualization-schema (2026-06-30). USE whenever the task mentions
-  plot, figure, visualization, vis, raster, trace, LFP, CSD, EEG, MEG, EMM,
-  PSD, spectrogram, spectrolaminar, activity suite, connectivity map,
-  weightmap, Plotly, 3D, scaffold, or PNG/HTML export.
+  Use package-level jaxfne.vis functions for signal-driven raster, trace,
+  field, spectral, spectrolaminar, connectivity, 3D, and artifact plotting.
+  Use when changing or auditing visualization behavior.
 ---
 
-# jaxfne Vis Modules
+# jaxfne visualization procedure
 
-USE FIRST: `catalog-glossary-jaxfne` §8, `jaxfne-neural-network` (for the
-`Signals` object every vis function consumes).
+Read `catalog-glossary-jaxfne` and `jaxfne-neural-network` first. Visualization
+is a readout procedure; it must not redefine source or field mathematics.
 
-## Purpose
-
-Make visualization package-level, stable, and proxy-safe. Do not leave reusable
-plotting behavior as notebook-only patches.
-
-## Signal-driven signature (pass a `Signals`, get a `Figure`)
+## Signal-driven path
 
 ```python
-sig = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
-jtfne.vis.raster(sig); jtfne.vis.vm(sig); jtfne.vis.rate(sig); jtfne.vis.source(sig)
-jtfne.vis.lfp(sig); jtfne.vis.lfp_traces(sig); jtfne.vis.csd(sig); jtfne.vis.csd_traces(sig)
-jtfne.vis.eeg(sig); jtfne.vis.meg(sig); jtfne.vis.emm(sig)
-jtfne.vis.psd(sig); jtfne.vis.spectrogram(sig); jtfne.vis.bandpower(sig)
-jtfne.vis.connectivity(model)  # / connectivity_matrix
-jtfne.vis.laminar_profile(sig)  # / layer_celltype_counts
-jtfne.vis.geometry3d(model)  # / circuit3d / column_geometry
-jtfne.vis.multi_area_layout(...); jtfne.vis.summary(sig); jtfne.vis.objective_report(...)
-jtfne.vis.spectrolaminar(sig)          # 3-panel spectrolaminar from a Signals object
-jtfne.vis.spectrolaminar_suite(sig)    # Suite No. 2 readout panel — preferred single-run readout
+signals = jtfne.simulate(model, duration_ms=100.0, dt_ms=0.5, seed=0)
+figure = jtfne.vis.lfp(signals)
 ```
 
-Each returns a matplotlib `Figure`; a `*_with_meta` variant returns a JSON-safe
-metadata container alongside it.
-
-**All 4 previously-dead-stub functions were fixed 2026-06-30** — they now
-render real data instead of an empty title-only figure: `plot_laminar_field_interpolation`
-(fields.py, imshow), `plot_spike_rasters` (rasters.py, scatter from nonzero spike
-coords), `plot_continuous_traces` (traces.py, overlaid line plots),
-`plot_spectrogram_profiles` (spectra.py, real `scipy.signal.spectrogram` +
-pcolormesh). All 4 now return the `Figure` (previously returned `None`).
-
-## Module ownership (actual `jaxfne/vis/` layout — verified on disk)
+Use the package functions for reusable simulation-output plots:
 
 ```text
-rasters.py            -> spike rasters and event plots
-raster_arrays.py      -> raw-array raster helpers
-traces.py             -> Vm/rate/source/LFP/CSD/EEG/MEG/EMM traces
-spectra.py             -> PSD, spectrogram, windowed_band_power
-fields.py              -> spectrolaminar(), spectrolaminar_suite(), laminar field plots
-canonical.py           -> canonical/report plot wrappers (incl. plot_band_power)
-tutorial_panels.py     -> spectrolaminar_suite_3panel, activity_trace_suite (trial/specs-driven)
-tutorial_array_plots.py -> array-driven quick plots (also wrapped in tutorial_utils)
-network3d.py           -> Plotly 3D scaffold and camera/axis controls
-layout.py              -> shared figure layout/grid helpers
-plotly/*               -> interactive Plotly dashboards, manuscript figures
-report_plots.py        -> script/report figure helpers
-script_reports.py      -> batch report generation
-hdp_diagnostics.py     -> HDP-specific diagnostic plots
-plasticity_viz.py      -> plasticity/homeostasis visualization
-exporters.py           -> figure export helpers
-core.py                -> require_matplotlib, close_all, prepare_static_plot_matrix
+raster, vm, rate, source, lfp, csd, eeg, meg, emm,
+psd, spectrogram, bandpower, connectivity,
+laminar_profile, geometry3d, summary, objective_report,
+spectrolaminar, spectrolaminar_suite
 ```
 
-There is **no** top-level `spectrolaminar.py` or `connectivity.py` under `vis/`.
+Verify exact signatures and return types against the live package.
 
-## `jtfne.vis.tutorial_panels.*` (trial/specs-driven suites)
+## Semantics and labeling
 
-- `spectrolaminar_suite_3panel(specs, model, cfg, areas=..., output_dir=..., theme="dark")` → `{area: Figure}` (re-exported at `jtfne.vis.spectrolaminar_suite_3panel`)
-- `activity_trace_suite(trials, cfg, ...)` — raster + LFP + CSD + PSD
-- `visualize_laminar_column_3d(model, cfg, ...)`
-- `visualize_network_3d(data, *, output_html=..., show_edges=...)` — **interactive Plotly** 3D network, HTML export, pan/zoom
+- Keep proxy/readout labels aligned with `docs/scope_and_status.md`.
+- Use Relative/Absolute terminology from the public status contract.
+- State normalization and projection choices in metadata or figure labels.
+- Check time/contact/frequency axes explicitly.
+- Do not turn a proxy plot into a physical or calibrated claim.
 
-## `jtfne.tutorial_utils.plot_*` (array-driven quick plots)
+## Ownership
 
-`plot_raster`, `plot_laminar_readout`, `plot_population_rate`, `plot_voltage_samples`,
-`plot_connectivity_matrix`, `save_png(fig, name, fig_dir)`.
-No `plot_spectrolaminar_power` wrapper exists in `tutorial_utils.py` — the real function is
-`plot_spectrolaminar_power_array(t, signal, freq_min, freq_max, n_freqs)`, defined in
-`jaxfne/vis/tutorial_array_plots.py` (re-exported via `jaxfne.vis`), with no
-`tutorial_utils` forwarding wrapper (verified: `grep -n "plot_spectrolaminar_power" jaxfne/tutorial_utils.py` → no match).
+Reusable simulation-output plotting belongs in `jaxfne/vis/`.
+One-off architecture diagrams, receipt layouts, and publication illustrations
+may remain in `scripts/evidence_figures/` when they do not define reusable
+scientific readout behavior. Route their export through the existing evidence
+helpers.
 
-## Required package options (implement notebook hacks as parameters, not one-offs)
+Optional matplotlib and Plotly dependencies remain lazy. Do not import plotting
+libraries into numerical kernels.
 
-```python
-jtfne.vis.spectrolaminar_suite_3panel(specs, model, cfg,
-    relative_power_mode="per_frequency_depth_max", power_vmin=0.0, power_vmax=1.0, theme="light")
-jtfne.vis.visualize_network_3d(neurons, theme="dark", z_flip=True,
-    axis_aspect=(1, 1, 3), camera_eye=(1.7, -1.8, 1.2))
-jtfne.vis.activity_trace_suite(trials, cfg, figure_size=(14, 16), dpi=180)
-```
+## Validation
 
-## Relative power rule
-
-For reference-style spectrolaminar heatmaps, frequency stays in Hz and power is
-normalized per frequency over depth. If power has shape `(n_freqs, n_contacts)`:
-
-```python
-relative_power = power / power.max(axis=1, keepdims=True)
-```
-
-Set heatmap color range to `0.0-1.0` for this mode.
-
-## Proxy wording (always)
-
-Titles/colorbars: `LFP proxy`, `CSD proxy`, `EEG-like proxy`, `MEG-like proxy`,
-`spectrolaminar proxy readout`, `relative power`. Never title a proxy plot as
-real EEG/MEG/CSD or calibrated amplitude.
-
-## Release artifact rules
-
-- PNG required for core figures; Plotly HTML optional.
-- Save after post-processing figure size/theme/camera changes.
-- Do not put matplotlib/plotly imports in core numerical modules (`core.py`, `fields/*`, `optim/*`).
-
-## Stop conditions
-
-```text
-plotting code added to core/net/fields numerical kernels
-vis function changes data/operator semantics silently
-frequency axis confused with relative power normalization
-contact/frequency axes transposed without shape check
-proxy readout titled as real EEG/MEG/CSD
-PNG artifact missing for release/tutorial figure
-new plotting function that builds a Figure, sets only title/labels, never plots data (the dead-stub pattern fixed 2026-06-30)
-```
-
-## Related skills
-
-- `jaxfne-neural-network` — the `Signals` object every function here consumes
-- `jaxfne-spectrolaminar-suite` — scale path (N≥1000), crossover-regime caveats
+- Test a real `Signals` object or a declared readout contract.
+- Verify finite data and expected axes.
+- Verify the figure contains the intended data, not only labels.
+- Save required artifacts with provenance and hashes.
+- Run targeted visualization tests and inspect generated media when applicable.

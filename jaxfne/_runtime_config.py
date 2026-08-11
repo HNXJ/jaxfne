@@ -32,13 +32,17 @@ class RuntimeConfig:
     k_gain=0 disables the feedback.
 
     HDP (Homeostasis-Dependent Plasticity): when ``enable_hdp=True``, emitters
-    use a per-neuron master state H_i driving excitatory/inhibitory weight
-    ODEs (see ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp``).
+    use a finite-dimensional per-neuron H_i state driving
+    excitatory/inhibitory weight ODEs (see
+    ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp``).
     Pass ``hdp_params`` as a dict with keys {K_HDP, tau_0_ms, alpha, beta,
-    gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d}; all income/spending/
-    control gains default to 0.0 (the null control: H pinned at 1.0, no
-    weight change). ``jaxfne.hdp_network.DEFAULT_HDP`` / ``DEFAULT_HDP_DESYNC``
-    are tuned presets. Mutually exclusive with ``enable_homeostasis``.
+    gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d, h_state_dim,
+    h_state_readout, h_state_coupling}; all income/spending/control gains
+    default to 0.0 (the null control: H pinned at 1.0, no weight change).
+    ``h_state_dim=1`` preserves scalar H shape; larger values use
+    ``(n_neurons, h_state_dim)``. ``jaxfne.hdp_network.DEFAULT_HDP`` /
+    ``DEFAULT_HDP_DESYNC`` are tuned presets. Mutually exclusive with
+    ``enable_homeostasis``.
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"
@@ -70,6 +74,7 @@ class RuntimeConfig:
         "K_HDP": 1.0, "tau_0_ms": 100.0, "alpha": 0.0, "beta": 0.0,
         "gamma": 0.0, "delta": 0.0, "C_spike": 0.0, "K_ctrl": 0.0,
         "barrier_c": 0.0, "barrier_d": 0.0,
+        "h_state_dim": 1, "h_state_readout": None, "h_state_coupling": None,
     })  # All income/spending/control gains default to 0.0 -- the documented
     # null control (H_i pinned at 1.0, weight term identically zero).
     # v0.0.3 compatibility names; if provided by old caller, they are folded in.
@@ -169,6 +174,8 @@ class RuntimeConfig:
         dict[str, Any]
             System configuration report metadata.
         """
+        from .io import json_safe
+
         devices = [str(device) for device in jax.devices()]
         default_backend = jax.default_backend()
         requested_backend = self.selected_backend  # alias for selected (user-requested)
@@ -232,7 +239,7 @@ class RuntimeConfig:
             "enable_homeostasis": bool(self.enable_homeostasis),
             "homeostasis_params": dict(self.homeostasis_params) if self.enable_homeostasis else None,
             "enable_hdp": bool(self.enable_hdp),
-            "hdp_params": dict(self.hdp_params) if self.enable_hdp else None,
+            "hdp_params": json_safe(dict(self.hdp_params)) if self.enable_hdp else None,
             # Compatibility keys from v0.0.3.
             "device_type": self.selected_backend,
             "dtype_primary": self.actual_dtype,

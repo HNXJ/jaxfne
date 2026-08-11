@@ -204,7 +204,12 @@ def _restore_runtime_state(backup: Any) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.n
     return v, u, s, W, start_ms
 
 def _compute_proxy_readouts(vm_jnp: jnp.ndarray, n_neurons: int) -> Dict[str, jnp.ndarray]:
-    """Generates the linear combinations of membrane potentials for the local and scalp proxies."""
+    """Project the relative Vm state into sanity-runtime readout proxies.
+
+    These readouts use ``vm_jnp`` as their declared input representation. They
+    therefore carry membrane-voltage provenance rather than the canonical
+    current-derived source contract used by ``Model.simulate``.
+    """
     # Block-diagonal area projections for local LFP/CSD
     W_lfp = np.zeros((n_neurons, 20))
     for area_idx in range(5):
@@ -281,6 +286,11 @@ def _make_probe_metrics(signals_dict: Dict[str, jnp.ndarray]) -> Dict[str, Any]:
         "readouts_present": list(signals_dict.keys()),
         "shape_by_readout": shapes,
         "finite_by_readout": finites,
+        "operator_type": "linear_projection",
+        "input_representation": "relative_vm_state",
+        "readout_provenance": "sanity_runtime_membrane_voltage_proxy",
+        "representation": "relative",
+        "calibration_transform": "explicit_boundary_transform",
     }
 
 def _make_plasticity_metrics(
