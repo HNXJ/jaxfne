@@ -107,6 +107,10 @@ def rate_targets(
     groups: dict[str, Any],
     targets_hz: dict[str, float],
     weights: Optional[dict[str, float]] = None,
+    *,
+    burn_in_ms: float = 0.0,
+    window_end_ms: Optional[float] = None,
+    epsilon: float = 1e-6,
 ) -> Objective:
     """Create a multi-group firing-rate objective.
 
@@ -125,6 +129,13 @@ def rate_targets(
         E.g., {"first_half": 5.0, "second_half": 10.0}.
     weights : Optional[dict[str, float]]
         Mapping from group names to loss weights (default: 1.0 each).
+    burn_in_ms : float
+        Start of the measurement window in milliseconds.
+    window_end_ms : float, optional
+        End of the measurement window in milliseconds. ``None`` uses the
+        simulation end.
+    epsilon : float
+        Positive denominator floor for relative rate loss.
 
     Returns
     -------
@@ -154,6 +165,14 @@ def rate_targets(
 
     if weights is None:
         weights = {name: 1.0 for name in groups.keys()}
+    if not (math.isfinite(float(burn_in_ms)) and float(burn_in_ms) >= 0.0):
+        raise ValueError("burn_in_ms must be finite and non-negative")
+    if window_end_ms is not None and not math.isfinite(float(window_end_ms)):
+        raise ValueError("window_end_ms must be finite when provided")
+    if window_end_ms is not None and float(window_end_ms) <= float(burn_in_ms):
+        raise ValueError("window_end_ms must be greater than burn_in_ms")
+    if not (math.isfinite(float(epsilon)) and float(epsilon) > 0.0):
+        raise ValueError("epsilon must be finite and positive")
 
     # Convert to JSON-safe lists
     groups_lists = {}
@@ -178,6 +197,11 @@ def rate_targets(
             "groups": groups_lists,
             "targets_hz": {k: float(v) for k, v in targets_hz.items()},
             "weights": {k: float(weights.get(k, 1.0)) for k in groups.keys()},
+            "burn_in_ms": float(burn_in_ms),
+            "window_end_ms": (
+                float(window_end_ms) if window_end_ms is not None else None
+            ),
+            "epsilon": float(epsilon),
         },
     )
 

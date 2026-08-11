@@ -8,8 +8,14 @@ Objectives define numerical targets for `Model.tune`.
 objectives = jtfne.rate_targets(
     groups={"first_half": range(24), "second_half": range(24, 48)},
     targets_hz={"first_half": 5.0, "second_half": 10.0},
+    burn_in_ms=100.0,
 )
 ```
+
+`burn_in_ms` defines the start of the rate-measurement window; the optional
+`window_end_ms` argument defines its end, with the simulation endpoint as the
+default. The report exposes the achieved rate, target rate, rate loss, and
+measurement window.
 
 ## AGSDR optimizer spec
 
@@ -22,6 +28,26 @@ optimizer = jtfne.agsdr(
 )
 ```
 
+For an edge-list simulation, grouped synaptic magnitudes use the executable
+`EdgeList.weight` storage directly:
+
+```python
+parameters = {
+    "m_EE": jtfne.edge_parameter(
+        pre={"cell_type": "E"}, post={"cell_type": "E"}, bounds=(0.1, 5.0)
+    ),
+    "m_EI": jtfne.edge_parameter(
+        pre={"cell_type": "E"}, post={"cell_type": "PV"}, bounds=(0.1, 5.0)
+    ),
+}
+```
+
+Each selected edge receives the declared positive magnitude while retaining
+the sign already carried by that executable edge. `EdgeParameterSpec` also
+accepts `layer`, `area`, `ids`, `receptor_indices`, and explicit
+`edge_indices` constraints through the shared selector grammar. Use
+`MatrixParameterSpec` for dense backends that consume `emitter.W`.
+
 ## Tune
 
 ```python
@@ -30,6 +56,12 @@ print(result.best_score)
 print(result.best_parameters)
 print(result.summary)
 ```
+
+For a grouped rate objective, `result.summary` retains compact candidate
+reports with `rate`, `target_rate`, `rate_loss`, `weight_regularizer`,
+`H_regularizer`, `invalid_status`, `total_score`, and hashes/statistics for
+initial and terminal adaptive weights. Candidate failures are represented as
+rejected scores and do not terminate the search.
 
 ## Single objective
 

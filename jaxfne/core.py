@@ -121,6 +121,8 @@ from ._signals import (
 )
 from ._model import (
     Model,
+    EdgeParameterSpec,
+    edge_parameter,
     MatrixParameterSpec,
     matrix_parameter,
     TuneResult,
@@ -138,7 +140,8 @@ from ._model import (
     _KNOWN_READOUT_METRICS,
 )
 
-# MatrixParameterSpec, matrix_parameter, TuneResult, Model, stimulus_schedule,
+# EdgeParameterSpec, edge_parameter, MatrixParameterSpec, matrix_parameter,
+# TuneResult, Model, stimulus_schedule,
 # _JAXFNE_VERSION, _RECEIPT_SCHEMA_VERSION, _MANIFEST_SCHEMA_VERSION,
 # _SOURCE_PROXY_METADATA, _KNOWN_READOUT_METRICS moved to jaxfne/_model.py and
 # re-exported above (slice 4 of the core.py monolith split).

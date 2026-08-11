@@ -625,6 +625,11 @@ def simulate(
 
     runtime_cfg = sim.resolved_runtime
     key = jax.random.PRNGKey(sim.seed)
+    # Diagnostics belong to the current evaluation. Clear prior adaptive-state
+    # receipts so an HDP-off control cannot inherit W/H evidence from a prior
+    # HDP-on candidate on the same immutable model instance.
+    object.__setattr__(self, "_last_hdp_diag", None)
+    object.__setattr__(self, "_last_homeostasis_diag", None)
 
     if isinstance(self.params["emitter"], HomeostaticEIParams):
         if continuation is not None or return_state:

@@ -10,12 +10,14 @@ of the 0.4.8-0.4.48 roadmap's Defragmentation wave 1).
 
 from __future__ import annotations
 
+import hashlib
 import math
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, Optional
 
 import jax
 import jax.numpy as jnp
+import numpy as np
 
 if TYPE_CHECKING:
     from .optim import OptimizerSpec
@@ -23,7 +25,53 @@ if TYPE_CHECKING:
 
 from .io import json_safe
 from ._signals import Objective, Simulation, _finite_or_none
-from ._model import MatrixParameterSpec, TuneResult
+from ._model import EdgeParameterSpec, MatrixParameterSpec, TuneResult
+
+
+def _parameter_spec_to_dict(value: Any) -> Any:
+    """Return the compact JSON-safe declaration used in tuning reports."""
+    if isinstance(value, EdgeParameterSpec):
+        return value.to_dict()
+    if isinstance(value, MatrixParameterSpec):
+        return {
+            "type": "MatrixParameterSpec",
+            "mask": value.mask,
+            "bounds": list(value.bounds),
+            "init": value.init,
+            "trainable": value.trainable,
+            "target": value.target,
+        }
+    return [float(value[0]), float(value[1])]
+
+
+def _array_evidence(value: Any) -> dict[str, Any] | None:
+    """Summarize an array for tuning evidence without embedding trajectories."""
+    if value is None:
+        return None
+    arr = np.asarray(value)
+    raw = np.ascontiguousarray(arr).tobytes()
+    finite = bool(np.all(np.isfinite(arr)))
+    return {
+        "shape": list(arr.shape),
+        "dtype": str(arr.dtype),
+        "finite": finite,
+        "min": float(np.min(arr)) if arr.size else None,
+        "max": float(np.max(arr)) if arr.size else None,
+        "mean": float(np.mean(arr)) if arr.size else None,
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
+def _candidate_state_evidence(model: "Model", state_diagnostics: Any) -> dict[str, Any]:
+    """Return compact W0/Wfinal/H evidence for one candidate evaluation."""
+    evidence: dict[str, Any] = {}
+    if "edge_list" in model.params:
+        evidence["W0"] = _array_evidence(model.params["edge_list"].weight)
+    if state_diagnostics:
+        evidence["W_final"] = _array_evidence(state_diagnostics.get("w_final"))
+        evidence["H_final"] = _array_evidence(state_diagnostics.get("H_final"))
+        evidence["H_trace"] = _array_evidence(state_diagnostics.get("H_trace"))
+    return evidence
 
 
 def tune(
@@ -38,7 +86,7 @@ def tune(
     parameter: Optional[str] = None,
     bounds: Optional[tuple[float, float]] = None,
     # Multi-parameter optimization path
-    parameters: Optional[dict[str, tuple[float, float]]] = None,
+    parameters: Optional[dict[str, Any]] = None,
     generations: Optional[int] = None,
     population_size: Optional[int] = None,
     # New plural form for public API
@@ -366,16 +414,13 @@ def _tune_multiparameter(
         "same_model_unchanged": True,
         "seed": int(seed),
         "scope": "agsdr_multiparameter",
-        "parameters": {
-            k: (
-                {"type": "MatrixParameterSpec", "mask": v.mask, "bounds": list(v.bounds)}
-                if isinstance(v, MatrixParameterSpec)
-                else [float(v[0]), float(v[1])]
-            )
-            for k, v in parameters.items()
-        },
+        "parameters": {k: _parameter_spec_to_dict(v) for k, v in parameters.items()},
         "generations": int(generations),
         "population_size": int(population_size),
+        "simulation_seed": int(simulation.seed),
+        "optimizer_seed": int(seed),
+        "runtime": simulation.resolved_runtime.runtime_report(),
+        "initial_weight_evidence": _candidate_state_evidence(self, None).get("W0"),
         "optimizer": spec.to_dict(),
         "objective_name": getattr(objective, "name", "spectrolaminar_objective") if not isinstance(objective, str) else objective,
         "losses_declared": len(getattr(objective, "losses", [])) if not isinstance(objective, str) else 0,
@@ -401,7 +446,7 @@ def _tune_multiparameter(
     param_specs: dict[str, Any] = {}
     scalar_bounds: dict[str, tuple] = {}
     for k, v in parameters.items():
-        if isinstance(v, MatrixParameterSpec):
+        if isinstance(v, (MatrixParameterSpec, EdgeParameterSpec)):
             param_specs[k] = v
             scalar_bounds[k] = v.bounds
         else:
@@ -411,7 +456,15 @@ def _tune_multiparameter(
     inner_optimizer = getattr(optimizer, "inner_optimizer", None)
     inner_steps = getattr(optimizer, "inner_steps", 0)
     inner_objective = getattr(optimizer, "inner_objective", None)
-    has_matrix = bool(param_specs)
+    _validate_parameter_specs(self, param_specs, simulation)
+    theta_0 = _initial_parameter_values(self, param_specs, scalar_bounds)
+    base_report["theta_0"] = theta_0
+    has_matrix = any(isinstance(value, MatrixParameterSpec) for value in param_specs.values())
+    if any(isinstance(value, EdgeParameterSpec) for value in param_specs.values()) and inner_optimizer is not None:
+        raise ValueError(
+            "EdgeParameterSpec currently uses the black-box AGSDR path; "
+            "inner gradient refinement is not wired to EdgeList.weight"
+        )
 
     if has_matrix and inner_optimizer is not None:
         return _tune_matrix_agsdr_optax(
@@ -433,15 +486,62 @@ def _tune_multiparameter(
         )
 
     rejections_map = []
+    candidate_evaluations: list[dict[str, Any]] = []
 
     # Define scoring function for AGSDR loop
     def evaluate_fn(candidate_params: dict[str, float]) -> float:
         """Evaluate a candidate parameter dict and return loss."""
         reasons = []
-        candidate_model = _model_with_parameters(self, candidate_params, param_specs if param_specs else None)
-        candidate_signals = candidate_model.simulate(simulation)
-        candidate_report = candidate_model.evaluate(candidate_signals, objective, strict=strict)
-        score = candidate_report.get("total_loss")
+        candidate_model = None
+        candidate_report: dict[str, Any]
+        state_diagnostics = None
+        try:
+            candidate_model = _model_with_parameters(
+                self,
+                candidate_params,
+                param_specs if param_specs else None,
+            )
+            candidate_signals = candidate_model.simulate(simulation)
+            state_diagnostics = candidate_model.last_hdp_diagnostics()
+            if state_diagnostics is None:
+                candidate_report = candidate_model.evaluate(
+                    candidate_signals,
+                    objective,
+                    strict=strict,
+                )
+            else:
+                try:
+                    candidate_report = candidate_model.evaluate(
+                        candidate_signals,
+                        objective,
+                        strict=strict,
+                        state_diagnostics=state_diagnostics,
+                    )
+                except TypeError as exc:
+                    # Preserve compatibility with user-supplied evaluators
+                    # implementing the pre-HDP Model.evaluate signature.
+                    if "state_diagnostics" not in str(exc):
+                        raise
+                    candidate_report = candidate_model.evaluate(
+                        candidate_signals,
+                        objective,
+                        strict=strict,
+                    )
+        except (ValueError, FloatingPointError, OverflowError) as exc:
+            candidate_report = {
+                "evaluation_status": "candidate_evaluation_rejected",
+                "total_loss": None,
+                "total_score": None,
+                "all_gates_pass": False,
+                "invalid_status": f"{type(exc).__name__}: {exc}",
+                "score_status": "positive_infinity",
+                "warnings": ["expected_candidate_evaluation_failure"],
+            }
+            reasons.append(candidate_report["invalid_status"])
+
+        score = candidate_report.get("total_score")
+        if score is None:
+            score = candidate_report.get("total_loss")
         gates_pass = bool(candidate_report.get("all_gates_pass", False))
         if score is None:
             score = 0.0 if gates_pass else float("inf")
@@ -451,8 +551,29 @@ def _tune_multiparameter(
             reasons.append("failed_objective_gates")
         if not math.isfinite(score):
             reasons.append("non_finite_loss")
+        if not (gates_pass and math.isfinite(score)):
+            candidate_report = {
+                **candidate_report,
+                "score_status": "positive_infinity",
+            }
 
         rejections_map.append(reasons)
+        candidate_evaluations.append({
+            "parameters": {key: float(value) for key, value in candidate_params.items()},
+            "score": _finite_or_none(score),
+            "score_status": (
+                "finite" if gates_pass and math.isfinite(score)
+                else "positive_infinity"
+            ),
+            "accepted": bool(gates_pass and math.isfinite(score)),
+            "rejection_reasons": reasons,
+            "objective": candidate_report,
+            "state_evidence": (
+                _candidate_state_evidence(candidate_model, state_diagnostics)
+                if candidate_model is not None
+                else {}
+            ),
+        })
 
         return float(score)
 
@@ -467,14 +588,34 @@ def _tune_multiparameter(
             exploration=float(spec.exploration),
             seed=int(seed),
             rejections_map=rejections_map,
+            initial_parameters=theta_0,
         )
 
         best_parameters = agsdr_result["best_parameters"]
         best_score = agsdr_result["best_score"]
         generation_records = agsdr_result["generation_records"]
+        best_evaluation = next(
+            (
+                item
+                for item in reversed(candidate_evaluations)
+                if item["parameters"] == {
+                    key: float(value) for key, value in best_parameters.items()
+                }
+            ),
+            None,
+        )
 
-        # Apply best parameters to model
-        best_model = _model_with_parameters(self, best_parameters, param_specs if param_specs else None)
+        # Apply best parameters only when AGSDR found an accepted candidate.
+        # An all-rejected population has no parameter vector to apply.
+        best_model = (
+            _model_with_parameters(
+                self,
+                best_parameters,
+                param_specs if param_specs else None,
+            )
+            if best_parameters
+            else self
+        )
 
         # Build detailed report
         report = {
@@ -483,10 +624,16 @@ def _tune_multiparameter(
             "tuning_status": "multiparameter_agsdr_v0.0.7",
             "acceptance_decision": "ACCEPT_CANDIDATE" if math.isfinite(best_score) else "REVISE",
             "best_parameters": best_parameters,
+            "theta_best": best_parameters,
             "best_score": _finite_or_none(best_score),
             "generation_records": generation_records,
             "all_scores": agsdr_result["all_scores"],
             "n_candidates_evaluated": len(agsdr_result["all_scores"]),
+            "candidate_evaluations": candidate_evaluations,
+            "candidate_rejection_count": sum(
+                1 for item in candidate_evaluations if item["rejection_reasons"]
+            ),
+            "best_evaluation": best_evaluation,
             "tuning_path": "multiparameter_black_box",
             "warnings": [
                 "blackbox_loop_is_computational_scaffold_only",
@@ -795,6 +942,142 @@ def _mask_for_parameter(
     )
 
 
+def _edge_parameter_mask(model: "Model", parameter_name: str, spec: EdgeParameterSpec) -> np.ndarray:
+    """Resolve an edge parameter declaration to an executable edge mask."""
+    if "edge_list" not in model.params:
+        raise ValueError(
+            f"Edge parameter {parameter_name!r} requires a model with an EdgeList"
+        )
+    edges = model.params["edge_list"]
+    n_edges = int(edges.n_edges)
+    mask = np.ones(n_edges, dtype=bool)
+    constrained = False
+
+    if spec.edge_indices is not None:
+        constrained = True
+        explicit = np.asarray(spec.edge_indices, dtype=int)
+        if np.any(explicit < 0) or np.any(explicit >= n_edges):
+            raise ValueError(
+                f"Edge parameter {parameter_name!r} contains an out-of-range edge index"
+            )
+        explicit_mask = np.zeros(n_edges, dtype=bool)
+        explicit_mask[explicit] = True
+        mask &= explicit_mask
+
+    table = model.neuron_table()
+    if spec.pre is not None:
+        constrained = True
+        pre_ids = np.asarray(spec.pre.resolve(table), dtype=int)
+        mask &= np.isin(np.asarray(edges.pre), pre_ids)
+    if spec.post is not None:
+        constrained = True
+        post_ids = np.asarray(spec.post.resolve(table), dtype=int)
+        mask &= np.isin(np.asarray(edges.post), post_ids)
+    if spec.receptor_indices is not None:
+        constrained = True
+        mask &= np.isin(
+            np.asarray(edges.receptor_index),
+            np.asarray(spec.receptor_indices, dtype=int),
+        )
+
+    if not constrained or not np.any(mask):
+        raise ValueError(
+            f"Edge parameter {parameter_name!r} matched no executable edges"
+        )
+    return mask
+
+
+def _validate_parameter_specs(
+    model: "Model",
+    param_specs: dict[str, Any],
+    simulation: Simulation,
+) -> None:
+    """Reject parameter declarations that cannot affect the selected backend."""
+    backend = simulation.resolved_runtime.recurrent_backend
+    edge_specs = {
+        name: spec
+        for name, spec in param_specs.items()
+        if isinstance(spec, EdgeParameterSpec)
+    }
+    if edge_specs and backend != "edge_list":
+        raise ValueError(
+            "EdgeParameterSpec requires simulation.runtime.recurrent_backend="
+            "'edge_list'"
+        )
+    if backend == "edge_list":
+        inactive_matrix = [
+            name
+            for name, spec in param_specs.items()
+            if isinstance(spec, MatrixParameterSpec) and spec.target == "W"
+        ]
+        if inactive_matrix:
+            raise ValueError(
+                "MatrixParameterSpec(target='W') addresses emitter.W, while the "
+                "selected edge_list backend consumes edge_list.weight; use "
+                f"EdgeParameterSpec for {inactive_matrix!r}"
+            )
+
+    seen = np.zeros(int(model.params["edge_list"].n_edges), dtype=bool) if edge_specs else None
+    if seen is not None:
+        for name, spec in edge_specs.items():
+            mask = _edge_parameter_mask(model, name, spec)
+            if np.any(seen & mask):
+                raise ValueError(
+                    f"Edge parameter {name!r} overlaps another grouped edge parameter"
+                )
+            seen |= mask
+
+
+def _initial_parameter_values(
+    model: "Model",
+    param_specs: dict[str, Any],
+    scalar_bounds: dict[str, tuple[float, float]],
+) -> dict[str, float]:
+    """Recover theta_0 from current executable parameters where defined."""
+    initial: dict[str, float] = {}
+    for name, bounds in scalar_bounds.items():
+        value = 0.5 * (float(bounds[0]) + float(bounds[1]))
+        spec = param_specs.get(name)
+        if isinstance(spec, EdgeParameterSpec):
+            mask = _edge_parameter_mask(model, name, spec)
+            weights = np.asarray(model.params["edge_list"].weight, dtype=float)
+            value = float(np.mean(np.abs(weights[mask])))
+        initial[name] = float(np.clip(value, *bounds))
+    return initial
+
+
+def _model_with_edge_parameter(
+    model: "Model",
+    parameter_name: str,
+    spec: EdgeParameterSpec,
+    value: float,
+) -> "Model":
+    """Apply one positive magnitude to the selected executable edge weights."""
+    mask = _edge_parameter_mask(model, parameter_name, spec)
+    edges = model.params["edge_list"]
+    weights = np.asarray(edges.weight, dtype=float)
+    selected = weights[mask]
+    if not np.all(np.isfinite(selected)) or np.any(selected == 0.0):
+        raise ValueError(
+            f"Edge parameter {parameter_name!r} requires finite nonzero signed "
+            "weights to preserve edge identity"
+        )
+    magnitude = float(value)
+    if not (math.isfinite(magnitude) and spec.bounds[0] <= magnitude <= spec.bounds[1]):
+        raise ValueError(
+            f"Edge parameter {parameter_name!r} value {value!r} is outside "
+            f"declared bounds {spec.bounds!r}"
+        )
+    weights[mask] = np.sign(selected) * magnitude
+    params = dict(model.params)
+    params["edge_list"] = replace(
+        edges,
+        weight=jnp.asarray(weights, dtype=edges.weight.dtype),
+    )
+    from ._model import Model
+    return Model(cfg=model.cfg, params=params, static=dict(model.static))
+
+
 def _model_with_matrix_parameter(
     model: "Model",
     parameter_name: str,
@@ -872,6 +1155,11 @@ def _model_with_parameters(
     for param_name, param_value in parameters.items():
         if param_specs is not None and param_name in param_specs:
             spec = param_specs[param_name]
+            if isinstance(spec, EdgeParameterSpec):
+                result = _model_with_edge_parameter(
+                    result, param_name, spec, float(param_value)
+                )
+                continue
             if isinstance(spec, MatrixParameterSpec):
                 result = _model_with_matrix_parameter(result, param_name, spec, float(param_value))
                 continue

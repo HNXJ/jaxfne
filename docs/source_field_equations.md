@@ -229,7 +229,7 @@ The **source_calibration_status** field documents the empirical grounding of the
 
 | Status | Meaning | Biological Statement | Allowed? |
 |--------|---------|------------------|----------|
-| `uncalibrated_izhikevich_native_current` | Izhikevich native-current proxy | Relative; computational scaffold | ✓ default |
+| `uncalibrated_izhikevich_native_current` | Izhikevich model-current proxy | Relative; computational scaffold | ✓ default |
 | `uncalibrated_hh_model_current` | Hodgkin-Huxley model current, lacks empirical validation | None; computational scaffold | ✓ Reserved |
 | `uncalibrated_jaxley_voltage_proxy` | Voltage trace proxy from external emitter, no empirical validation | None; computational scaffold | ✓ bridge |
 | `calibrated_*` | Validated against empirical current/field data | Conditional; requires methods section & receipt | ✗ reserved |
