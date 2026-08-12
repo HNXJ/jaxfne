@@ -139,25 +139,25 @@ where `s_k(t)` is a declared source/current/potential feature and `L_eeg` is a t
 
 ### MEG-proxy
 
-**Purpose:** Provide a simulated magnetometer proxy readout using a declared current-orientation or lead-field proxy.
+**Purpose:** Provide a relative linear map of scalar source ``Q``. This is not a physical MEG forward operator and does not construct oriented current.
 
 **Acceptable implementation:**
 
 ```
-y_meg(t, c) = sum_k L_meg[c, k] * j_oriented_k(t)
+y_meg(t, c) = sum_k L_meg[c, k] * Q_k(t)
 ```
 
 **Minimum report:**
 - `kind: meg_proxy`
-- `method: linear_current_orientation_proxy`
+- `method: relative_linear_map_proxy`
 - `leadfield_status: toy_or_declared_proxy`
 - `sensor_geometry_status: simulated_minimal`
-- `orientation_convention: declared`
+- `orientation_convention: none`
 - `units_or_status: arbitrary_proxy_units`
 - `operator_status: simulated_proxy`
 - `amplitude_status: false`
 
-**Scope:** MEG readouts are computational proxies with declared toy leadfields. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
+**Scope:** MEG-proxy readouts are relative linear maps on scalar ``Q``. They do not claim current orientation or physical MEG semantics. Calibration against empirical reference data is covered in [Limitations and future plans](../limitations_and_future_plans.md).
 
 **Status (verified v0.4.8, development tree):** Simulated MEG-proxy readout; proxy-scale calibration for tutorial workflows.
 

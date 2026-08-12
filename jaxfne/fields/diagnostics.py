@@ -230,3 +230,167 @@ def _make_field_solution_report(
         "source_conservation_tested": source_conservation_tested,
         "source_conservation_claim_allowed": source_conservation_claim_allowed,
     }
+
+
+def observation_operator_chain(
+    *,
+    execution_form: str,
+    source: dict[str, Any],
+    field: dict[str, Any],
+    probe: dict[str, Any],
+    amplitude_semantics: str = "relative",
+    validation_status: str = "computational",
+    physical_claim: str = "proxy_readout",
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """JSON-safe observation receipt: conceptual S→F→P even when execution is fused.
+
+    Orthogonal axes are stored separately and must not be collapsed:
+    operator identity (chain), numerical validation, amplitude semantics,
+    physical claim. ``amplitude_semantics`` uses the NeuronalTensor vocabulary
+    ``relative | calibrated_proxy | calibrated``.
+    """
+    if execution_form not in {"fused", "materialized"}:
+        raise ValueError(
+            f"execution_form must be 'fused' or 'materialized', got {execution_form!r}"
+        )
+    receipt = {
+        "execution_form": execution_form,
+        "operator_chain": {
+            "source": dict(source),
+            "field": dict(field),
+            "probe": dict(probe),
+        },
+        "amplitude_semantics": amplitude_semantics,
+        "validation_status": validation_status,
+        "physical_claim": physical_claim,
+    }
+    if extra:
+        receipt.update(extra)
+    return receipt
+
+
+def laminar_projection_observation_receipt(
+    *,
+    n_sources: int,
+    n_contacts: int,
+    width: float,
+    normalization_mode: str,
+    contact_z_min: float,
+    contact_z_max: float,
+) -> dict[str, Any]:
+    """Receipt for ``project_laminar_sources``: fused KQ plus fused CSD D_zz(KQ)."""
+    source = {
+        "identity": "canonical_relative_source",
+        "representation": "relative",
+        "n_sources": int(n_sources),
+        "geometry": "model_or_caller_positions_z_relative",
+    }
+    field = {
+        "identity": "gaussian_laminar_projection",
+        "geometry": "source_positions_z_relative",
+        "normalization": str(normalization_mode),
+        "kernel_width_relative": float(width),
+        "operator_type": "linear_projection",
+    }
+    lfp_probe = {
+        "identity": "contact_sampling_compiled_into_kernel",
+        "geometry": {
+            "kind": "relative_laminar_contacts",
+            "n_contacts": int(n_contacts),
+            "z_min": float(contact_z_min),
+            "z_max": float(contact_z_max),
+            "construction": "linspace_relative_depth",
+        },
+    }
+    csd_probe = {
+        "identity": "laminar_second_derivative",
+        "input": "phi_e_proxy",
+        "stencil": "negative_second_difference_edge_padded",
+        "operator_type": "spatial_derivative",
+    }
+    shared = dict(
+        amplitude_semantics="relative",
+        validation_status="computational",
+        physical_claim="proxy_readout",
+    )
+    return {
+        "execution_form": "fused",
+        "operator_chain": {
+            "source": source,
+            "field": field,
+            "probe": lfp_probe,
+        },
+        "csd": observation_operator_chain(
+            execution_form="fused",
+            source=source,
+            field=field,
+            probe=csd_probe,
+            **shared,
+        ),
+        "output_identities": {
+            "source_proxy": "KQ_relative_field_and_fused_lfp",
+            "phi_e_proxy": "alias_of_source_proxy",
+            "lfp_proxy": "alias_of_source_proxy",
+            "csd_proxy": "Dzz_of_phi_e_proxy",
+        },
+        **shared,
+    }
+
+
+def linear_readout_observation_receipt(
+    *,
+    name: str,
+    leadfield_status: str,
+    matrix_shape: tuple[int, int],
+) -> dict[str, Any]:
+    """Receipt for ``LinearReadout`` / EEG-MEG-like ``Y = Q Wᵀ`` fused maps."""
+    lowered = str(name).lower()
+    is_meg = "meg" in lowered
+    is_eeg = "eeg" in lowered
+    source = {
+        "identity": "canonical_relative_source",
+        "representation": "relative",
+        "n_sources": int(matrix_shape[1]),
+    }
+    if is_meg:
+        field = {
+            "identity": "not_separately_materialized",
+            "note": "relative_linear_map_on_scalar_Q",
+        }
+        probe = {
+            "identity": "relative_linear_map",
+            "orientation_claim": "none",
+            "leadfield_status": leadfield_status,
+            "matrix_shape": [int(matrix_shape[0]), int(matrix_shape[1])],
+        }
+        extra = {"output_identity": "meg_relative_proxy"}
+    elif is_eeg:
+        field = {
+            "identity": "compiled_into_leadfield",
+            "note": "P_circ_F_not_separately_materialized",
+        }
+        probe = {
+            "identity": "linear_leadfield",
+            "leadfield_status": leadfield_status,
+            "matrix_shape": [int(matrix_shape[0]), int(matrix_shape[1])],
+        }
+        extra = {"output_identity": "eeg_proxy"}
+    else:
+        field = {
+            "identity": "compiled_into_linear_map",
+            "note": "P_circ_F_not_separately_materialized",
+        }
+        probe = {
+            "identity": "linear_readout_matrix",
+            "leadfield_status": leadfield_status,
+            "matrix_shape": [int(matrix_shape[0]), int(matrix_shape[1])],
+        }
+        extra = {"output_identity": str(name)}
+    return observation_operator_chain(
+        execution_form="fused",
+        source=source,
+        field=field,
+        probe=probe,
+        extra=extra,
+    )

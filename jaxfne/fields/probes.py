@@ -198,6 +198,29 @@ def csd_proxy_probe(
         ],
         extra_fields={
             "CSD_sign_convention": csd_sign_convention,
+            "amplitude_semantics": "relative",
+            "physical_claim": "proxy_readout",
+            "observation": {
+                "execution_form": "fused",
+                "operator_chain": {
+                    "source": {
+                        "identity": "canonical_relative_source",
+                        "representation": "relative",
+                    },
+                    "field": {
+                        "identity": "caller_supplied_or_projected_phi_e_proxy",
+                        "note": "wrapper_does_not_recompute_F",
+                    },
+                    "probe": {
+                        "identity": "laminar_second_derivative",
+                        "stencil": "negative_second_difference_edge_padded",
+                    },
+                },
+                "amplitude_semantics": "relative",
+                "validation_status": "computational",
+                "physical_claim": "proxy_readout",
+                "output_identity": "csd_proxy",
+            },
         },
     )
     return ProbeReadout(name="csd_proxy", kind="csd_proxy", data=csd, report=report)
@@ -213,6 +236,30 @@ def eeg_proxy_probe(
     extra = {
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
+        "amplitude_semantics": "relative",
+        "physical_claim": "proxy_readout",
+        "observation": {
+            "execution_form": "fused",
+            "operator_chain": {
+                "source": {
+                    "identity": "canonical_relative_source",
+                    "representation": "relative",
+                },
+                "field": {
+                    "identity": "compiled_into_leadfield",
+                    "note": "P_circ_F_not_separately_materialized",
+                },
+                "probe": {
+                    "identity": "linear_leadfield",
+                    "leadfield_status": leadfield_status,
+                    "n_sensors": int(eeg.shape[-1]) if n_sensors is None else int(n_sensors),
+                },
+            },
+            "amplitude_semantics": "relative",
+            "validation_status": "computational",
+            "physical_claim": "proxy_readout",
+            "output_identity": "eeg_proxy",
+        },
     }
 
     report = _make_probe_report(
@@ -239,17 +286,49 @@ def meg_proxy_probe(
     orientation_convention: str = "declared",
     n_sensors: int = None,
 ) -> ProbeReadout:
-    """MEG-proxy probe operator: simulated magnetometer MEG-proxy readout."""
+    """MEG-proxy probe operator: wrap a relative linear map of scalar source ``Q``.
+
+    Does not construct oriented current or a physical MEG forward operator.
+    ``orientation_convention`` is retained as a compatibility argument and is
+    not interpreted as a current-orientation claim.
+    """
     meg = jnp.asarray(meg)
+    _ = orientation_convention  # compatibility argument; not a current-orientation claim
     extra = {
         "leadfield_status": leadfield_status,
         "sensor_geometry_status": "simulated_minimal",
-        "orientation_convention": orientation_convention,
+        "orientation_convention": "none",
+        "amplitude_semantics": "relative",
+        "physical_claim": "proxy_readout",
+        "observation": {
+            "execution_form": "fused",
+            "operator_chain": {
+                "source": {
+                    "identity": "canonical_relative_source",
+                    "representation": "relative",
+                    "vector_current": False,
+                },
+                "field": {
+                    "identity": "not_a_physical_forward_operator",
+                    "note": "relative_linear_map_on_scalar_Q",
+                },
+                "probe": {
+                    "identity": "relative_linear_map",
+                    "orientation_claim": "none",
+                    "leadfield_status": leadfield_status,
+                    "n_sensors": int(meg.shape[-1]) if n_sensors is None else int(n_sensors),
+                },
+            },
+            "amplitude_semantics": "relative",
+            "validation_status": "computational",
+            "physical_claim": "proxy_readout",
+            "output_identity": "meg_relative_proxy",
+        },
     }
 
     report = _make_probe_report(
         kind="meg_proxy",
-        method="linear_current_orientation_proxy",
+        method="relative_linear_map_proxy",
         operator_type="linear_projection",
         input_representation="canonical_relative_source",
         data_shape=meg.shape,
@@ -257,7 +336,8 @@ def meg_proxy_probe(
         assumptions=[
             "simulated_meg_proxy_readout",
             "toy_or_declared_leadfield",
-            "current_orientation_proxy",
+            "scalar_Q_relative_linear_map",
+            "no_current_orientation_claim",
             "not_validated_against_real_meg",
             "not_empirically_calibrated",
         ],

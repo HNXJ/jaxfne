@@ -50,7 +50,8 @@ def test_v0310_operator_separation():
     assert emm_readout.report["kind"] == "emm_proxy"
     
     assert "linear_leadfield" in eeg_readout.report["method"]
-    assert "current_orientation" in meg_readout.report["method"]
+    assert meg_readout.report["method"] == "relative_linear_map_proxy"
+    assert meg_readout.report["orientation_convention"] == "none"
     assert "activity_field" in emm_readout.report["method"]
 
 

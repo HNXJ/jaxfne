@@ -29,6 +29,8 @@ from .diagnostics import (
     _test_kernel_row_normalization,
     validate_projection_invariants,
     _make_field_solution_report,
+    laminar_projection_observation_receipt,
+    linear_readout_observation_receipt,
 )
 
 
@@ -244,9 +246,9 @@ def project_laminar_sources(
     _traced = isinstance(sources, jax.core.Tracer) or isinstance(positions, jax.core.Tracer)
     if _traced:
         # JAX jit output validation permits array leaves only; the diagnostics
-        # dict (strings, shape tuples, Python bools) cannot be a traced return
-        # value. Under jit the arrays are returned through an empty diagnostics
-        # dict; the full metadata report stays on the eager path.
+        # dict (including observation provenance) cannot be a traced return
+        # value. Under jit the arrays are unchanged and diagnostics is empty;
+        # the full S→F→P receipt stays on the eager/evidence path.
         diagnostics = {}
     else:
         diagnostics.update(field_solution_report)
@@ -255,6 +257,14 @@ def project_laminar_sources(
             "source_projection_status": f"laminar_{mode}_projection",
             "source_calibration_status": "uncalibrated_izhikevich_native_current",
             "source_decomposition": "proxy_reduced_emitter",
+            "observation": laminar_projection_observation_receipt(
+                n_sources=int(sources.shape[1]),
+                n_contacts=int(n_contacts),
+                width=float(width),
+                normalization_mode=str(mode),
+                contact_z_min=float(contacts[0]),
+                contact_z_max=float(contacts[-1]),
+            ),
         })
 
     return FieldOutput(
@@ -997,12 +1007,21 @@ class LinearReadout:
 
     def report(self) -> dict[str, Any]:
         """Documented public function `report`."""
+        W = jnp.asarray(self.W)
         return {
             "name": self.name,
             "operator_status": self.operator_status,
             "leadfield_status": self.leadfield_status,
             "units_or_status": self.units_or_status,
             "physical_amplitude_calibrated": False,
+            "amplitude_semantics": "relative",
+            "validation_status": "computational",
+            "physical_claim": "proxy_readout",
+            "observation": linear_readout_observation_receipt(
+                name=self.name,
+                leadfield_status=self.leadfield_status,
+                matrix_shape=(int(W.shape[0]), int(W.shape[1])),
+            ),
         }
 
 
