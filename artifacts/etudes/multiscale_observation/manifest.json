@@ -1,0 +1,19 @@
+{
+  "cause_hashes": {
+    "Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "V_m": "57b58914a6efedbfdd03eaa3ed45d0927376a7eb458a77ebc327570fc09ad5fd",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac"
+  },
+  "etude": "multiscale_observation_v0415",
+  "figure_sha256": "a47a59495811d41361104934ddda2d421f6ca549e6866a545c5b9a59c701d2b5",
+  "levels": {
+    "A": true,
+    "B": true,
+    "C": true
+  },
+  "metrics_sha256": "148f599a28303260993aff1d03939eebc00392ab7987c8a4e5295452f0a498c7",
+  "package_head": "d5cf9a6a525ce1dc1bee3b411bd10a6db4f8bc56",
+  "protocol_sha256": "391e895658b1cd985ba744148603099da1ed9b7380388fd1c5b038e5727102b7",
+  "representation": "relative_proxy"
+}

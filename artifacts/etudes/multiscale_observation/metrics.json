@@ -1,0 +1,76 @@
+{
+  "amplitude_semantics": "relative",
+  "band_r90_span": 0.003706641960889101,
+  "cause_hashes": {
+    "Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "V_m": "57b58914a6efedbfdd03eaa3ed45d0927376a7eb458a77ebc327570fc09ad5fd",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac"
+  },
+  "compilation_identity_max_abs": 0.0,
+  "distinctness": {
+    "eeg_sup_vs_deep": 0.08190755989294807,
+    "lfp_vs_csd": 0.9921651392040306,
+    "narrow_vs_wide": 0.7686987014688431,
+    "shallow_vs_deep_contact": 0.11374732242989952,
+    "sparse_vs_dense": 0.41057726693575175,
+    "sparse_vs_dense_mean": 0.06684185409934407
+  },
+  "dt_ms": 0.5,
+  "eeg_transform_vs_linearreadout_max_abs": 0.0,
+  "levels": {
+    "A": true,
+    "B": true,
+    "C": true
+  },
+  "mean_V_m": -66.47718048095703,
+  "mean_rate_hz": 7.799999713897705,
+  "meg_orientation_claim": "none",
+  "meg_transform_vs_linearreadout_max_abs": 0.0,
+  "n_neurons": 40,
+  "n_steps": 4000,
+  "negative_control_max_abs": 0.0,
+  "package_head": "d5cf9a6a525ce1dc1bee3b411bd10a6db4f8bc56",
+  "physical_claim": "proxy_readout",
+  "protocol": "multiscale_observation_v0415",
+  "q_hash_invariant": true,
+  "r90": {
+    "lfp_dense": 0.15808389972274503,
+    "lfp_narrow": 0.07976396777667105,
+    "lfp_ref": 0.1627770783379674,
+    "lfp_sparse": 0.15617954917252064,
+    "lfp_wide": 0.3706348310224712
+  },
+  "r90_bands_lfp_ref": {
+    "alpha": {
+      "mean_r90": 0.1614986346103251,
+      "static_mean_r90": 0.1627770783379674
+    },
+    "beta": {
+      "mean_r90": 0.1615014774724841,
+      "static_mean_r90": 0.1627770783379674
+    },
+    "delta": {
+      "mean_r90": 0.1652052765712142,
+      "static_mean_r90": 0.1627770783379674
+    },
+    "gamma": {
+      "mean_r90": 0.16307364543899894,
+      "static_mean_r90": 0.1627770783379674
+    },
+    "theta": {
+      "mean_r90": 0.16418138053268194,
+      "static_mean_r90": 0.1627770783379674
+    }
+  },
+  "r90_width_delta": 0.29087086324580014,
+  "spectral_centroid_hz": {
+    "CSD": 43.83680068224271,
+    "EEG_deep": 28.20076742669704,
+    "EEG_sup": 27.23970567481704,
+    "LFP": 29.63667852679251,
+    "Q": 46.70724533480392
+  },
+  "spike_count": 624,
+  "validation_status": "computational"
+}
