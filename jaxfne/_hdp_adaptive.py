@@ -111,7 +111,7 @@ def parse_population_restoring_layout(
         raise ValueError("population restoring HDP requires m_ei_edge_mask")
     mei_mask = jnp.asarray(m_ei_mask, dtype=dtype)
     if e_neuron_mask is None:
-        e_mask = jnp.array([str(l).startswith("E") for l in labels], dtype=dtype)
+        e_mask = jnp.array([str(label).startswith("E") for label in labels], dtype=dtype)
     else:
         e_mask = jnp.asarray(e_neuron_mask, dtype=dtype)
     i_mask = 1.0 - e_mask
