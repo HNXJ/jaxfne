@@ -1,0 +1,117 @@
+{
+  "P_LFP_relative_difference": 0.9858900904655457,
+  "Q_mean_relative_difference": 0.8285038471221924,
+  "Q_sha256": {
+    "hei": "962c2e5c40c79ed36d201f627d3465aa658d0437c8e192f66616b8dd02e1fc97",
+    "izh": "0a3be54c567794b3c1c5feda34de4111cee6bca24e5824f8c83f802525dc65a5"
+  },
+  "agsdr_fit": false,
+  "amplitude_semantics": "relative",
+  "cross_family_physical_equivalence": false,
+  "dt_ms": 0.5,
+  "duration_ms": 1000.0,
+  "fi": {
+    "hei": [
+      {
+        "amplitude_native": 0.0,
+        "finite_Q": true,
+        "rate_hz": 0.0
+      },
+      {
+        "amplitude_native": 0.05,
+        "finite_Q": true,
+        "rate_hz": 0.0
+      },
+      {
+        "amplitude_native": 0.1,
+        "finite_Q": true,
+        "rate_hz": 0.0
+      },
+      {
+        "amplitude_native": 0.2,
+        "finite_Q": true,
+        "rate_hz": 0.0
+      },
+      {
+        "amplitude_native": 0.3,
+        "finite_Q": true,
+        "rate_hz": 0.0
+      }
+    ],
+    "izh": [
+      {
+        "amplitude_native": 0.0,
+        "finite_Q": true,
+        "rate_hz": 8.0
+      },
+      {
+        "amplitude_native": 2.0,
+        "finite_Q": true,
+        "rate_hz": 21.66666603088379
+      },
+      {
+        "amplitude_native": 4.0,
+        "finite_Q": true,
+        "rate_hz": 29.333332061767578
+      },
+      {
+        "amplitude_native": 8.0,
+        "finite_Q": true,
+        "rate_hz": 47.33333206176758
+      },
+      {
+        "amplitude_native": 12.0,
+        "finite_Q": true,
+        "rate_hz": 66.0
+      }
+    ]
+  },
+  "gates": {
+    "A": true,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+  },
+  "hei_error": false,
+  "jaxley_primary": false,
+  "n": {
+    "hei": 2,
+    "izh": 10
+  },
+  "native_state": {
+    "hei": "homeostatic_ei_x_activity_not_mV",
+    "izh": "izhikevich_V_m_mV_native"
+  },
+  "package_head": "593cfb3c6ac3e97bed14dea7f666b76426a9984a",
+  "physical_claim": "proxy_readout",
+  "protocol": "heterogeneous_emitters_v0415b",
+  "rate_relative_difference": 0.9612403117967807,
+  "rates_hz": {
+    "hei": 1.0,
+    "izh": 25.80000114440918
+  },
+  "similar_rate_different_Q": false,
+  "source_calibration_status": {
+    "hei": "uncalibrated_homeostatic_ei_native_current",
+    "izh": "uncalibrated_izhikevich_native_current"
+  },
+  "spectral_centroid_hz": {
+    "hei": {
+      "P_CSD": 35.46671228339965,
+      "P_EEG": 36.42514526996212,
+      "P_LFP": 35.46685876123042,
+      "P_Q": 35.46686053666029
+    },
+    "izh": {
+      "P_CSD": 37.80703830250513,
+      "P_EEG": 27.851778051077073,
+      "P_LFP": 29.79579941082284,
+      "P_Q": 36.03993507413327
+    }
+  },
+  "u_scale_native": {
+    "hei": 0.2,
+    "izh": 6.0
+  }
+}

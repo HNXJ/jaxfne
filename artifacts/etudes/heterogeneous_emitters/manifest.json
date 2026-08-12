@@ -1,0 +1,16 @@
+{
+  "cross_family_physical_equivalence": false,
+  "etude": "heterogeneous_emitters_v0415b",
+  "figure_sha256": "3d85caf31ba15ae508553d5658d978f4cb2b0a94b1c136dda6ace90340ab96f4",
+  "gates": {
+    "A": true,
+    "B": true,
+    "C": true,
+    "D": true,
+    "E": true
+  },
+  "metrics_sha256": "366a8084642a86b7568d1a427b14c4e7e1fcff3dc9b2c15d49ece74fe8d7741d",
+  "package_head": "593cfb3c6ac3e97bed14dea7f666b76426a9984a",
+  "protocol_sha256": "3cf173581516eaa7b3855ea7e0b50e91b55a7447516f1ea152f2fda1629cd277",
+  "representation": "relative_proxy"
+}
