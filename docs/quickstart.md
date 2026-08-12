@@ -4,7 +4,7 @@ Study **laminar population dynamics** — spikes, membrane traces, and depth-res
 proxy readouts (LFP, CSD, spectrolaminar PSD) — from a JAX circuit you
 define once and simulate reproducibly.
 
-> Verified against `jaxfne==0.4.8`. `NeuronalTensor` is the preferred path for new code.
+> Documentation targets **jaxfne 0.4.13-dev** (`dev` branch). `NeuronalTensor` is the preferred CircuitSpec path.
 
 ## Install & import
 
@@ -131,7 +131,7 @@ cfg = (cfg
 setup → config → construct → simulate → visualize → tune/objective → optimize → export
 ```
 
-Agent-oriented object chain (Config → Net → …): [For AI agents](for_ai_agents.md).
+See [H-state / HDP guide](guides/hdp.md) and the [controllability étude](etudes/hdp_controllability_reachability.md).
 
 ## Interactive 3D circuit view
 

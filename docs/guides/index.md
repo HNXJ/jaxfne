@@ -11,7 +11,7 @@ field proxies, tuning objectives, and exporting manifests.
 ## Plasticity and homeostasis
 
 - **[Homeostasis](homeostasis.md)** — the minimal computational excitability controller (single `k_gain` dial)
-- **[HDP (Homeostasis-Dependent Plasticity)](hdp.md)** — the structured per-neuron `H_i` controller driving synaptic weight ODEs; includes the tensor-first `NeuronalTensor` + `RuntimeConfiguration` HDP recipe
+- **[H-state and HDP](hdp.md)** — latent \(H\) representation and adaptive parameter dynamics \(\Theta\); population locality and continuation scope
 
 ## Showcases
 
@@ -35,3 +35,4 @@ field proxies, tuning objectives, and exporting manifests.
 
 - **[API reference](../api/index.md)** for class/function documentation
 - **[Tutorials](../tutorials/index.md)** for progressively detailed examples
+- **[Études](../etudes/index.md)** for frozen scientific demonstrations

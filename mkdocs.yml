@@ -1,5 +1,5 @@
 site_name: jaxfne
-site_description: JAX-based TFNE scaffold for multimodal source-to-field/readout workflows
+site_description: Tensor-Field Neural Equations — JAX simulation for neural circuits, fields, and adaptation
 site_url: https://jaxfne.readthedocs.io/
 
 repo_url: https://github.com/HNXJ/jaxfne
@@ -7,18 +7,28 @@ repo_name: HNXJ/jaxfne
 
 docs_dir: docs
 
-# docs/_generated/version.md is a machine-written/machine-read source-of-truth
-# for scripts/sync_docs_version.py + scripts/sync_release_metadata.py, not a
-# human-facing page -- excluded so mkdocs stops flagging it as an orphan not
-# in nav (cosmetic INFO warning only, never failed --strict, but the file was
-# never meant to be navigable).
-#
-# docs/fullroadmap.md is the canonical agent-facing phase roadmap (working
-# notes for roadmap upkeep, not user-facing docs content) -- intentionally
-# non-navigable, same exclude treatment.
 exclude_docs: |
   _generated/version.md
   fullroadmap.md
+  for_ai_agents.md
+  v047_refactor_audit.md
+  HDP_REPORT.md
+  STDP_HOMEOSTATIC_REPORT.md
+  STDP_CLOSED_LOOP_REPORT.md
+  STDP_GLOBAL_SCALE_REPORT.md
+  STDP_LOWRATE_REGIME_REPORT.md
+  STDP_REAL_TEST_REPORT.md
+  BASELINE_DRIVE_REFERENCE.md
+  CORTEX_CALIBRATION_CHECKLIST.md
+  NEURON_IO_CHARACTERIZATION.md
+  performance_baseline.md
+  notes/brian2_benchmark_receipt.md
+  releases/v0.2.0.md
+  releases/v0.2.1.md
+  releases/v0.2.3.md
+  releases/v0.2.10.md
+  releases/v0.2.18.md
+  releases/v0.3.4.md
 
 theme:
   name: material
@@ -62,114 +72,77 @@ nav:
       - Welcome: index.md
       - Installation: install.md
       - Quickstart: quickstart.md
+      - Public API contract: public_surface_contract.md
+      - Scope & status: scope_and_status.md
 
   - Tutorials:
-      - Atlas Overview: tutorials/index.md
-      - Notebook Standard: tutorials/notebook_standard.md
-      - Tutorial Output Contract: tutorials/tutorial_outputs.md
+      - Overview: tutorials/index.md
+      - Notebook standard: tutorials/notebook_standard.md
+      - Output contract: tutorials/tutorial_outputs.md
       - Suites:
-          - Suite No. 1 (Computational Biophysics): tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
-          - Suite No. 2 (Corticospectrolaminar Motif): tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
-          - Suite No. 2 (Evoked L4 Drive): tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
-          - Suite No. 3 (Low-Frequency Scaling): tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
-      - Versioned tutorials:
-          - "01: Single-neuron Multimodal": tutorials/01_single_neuron_multimodal.md
-          - "02: Two-neuron E/I": tutorials/02_two_neuron_ei.md
-          - "03: 100-neuron Network": tutorials/03_network_100_ei.md
-          - "04: V1 Six-layer Column": tutorials/04_v1_column.md
-          - "05: V1-PFC Dual Column": tutorials/05_v1_pfc_dual_column.md
-          - "06: v0.3.6 Chainable Config": tutorials/06_v036_100_neuron_ei_population.md
-          - "07: v0.3.7 Source Bookkeeping": tutorials/07_v037_source_bookkeeping.md
-          - "08: v0.3.8 LFP/CSD Readout": tutorials/08_v038_lfp_csd_readout.md
-          - "09: EEG/MEG/EMM Proxy Bundle": tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
-          - "10: Sensory Omission Oddball": tutorials/10_v0313_omission_oddball.md
-          - "11: Multi-area Laminar Model": tutorials/11_multi_laminar_cortical_agsdr.md
-          - "12: Izhikevich Single Emitter Explorer": tutorials/12_izhikevich_single_emitter_explorer.md
-          - "13: Canonical Cortical Column": tutorials/13_canonical_column_etude.md
-
+          - Computational biophysics: tutorials/06_jaxfne_suite_no_1_computational_biophysics.md
+          - Corticospectrolaminar motif: tutorials/07_jaxfne_suite_no_2_spectrolaminar_motif.md
+          - Evoked L4 drive: tutorials/08_jaxfne_suite_no_2_evoked_l4_drive.md
+          - Low-frequency scaling: tutorials/08_jaxfne_suite_no_3_low_frequency_scaling.md
+      - Circuit construction:
+          - Single-neuron multimodal: tutorials/01_single_neuron_multimodal.md
+          - Two-neuron E/I: tutorials/02_two_neuron_ei.md
+          - Population E/I network: tutorials/03_network_100_ei.md
+          - V1 laminar column: tutorials/04_v1_column.md
+          - V1–PFC dual column: tutorials/05_v1_pfc_dual_column.md
+          - Configuration API population: tutorials/06_v036_100_neuron_ei_population.md
+          - Canonical cortical column: tutorials/13_canonical_column_etude.md
+      - Source, field, and readout:
+          - Source bookkeeping: tutorials/07_v037_source_bookkeeping.md
+          - LFP and CSD proxies: tutorials/08_v038_lfp_csd_readout.md
+          - EEG, MEG, EMM proxies: tutorials/09_v0310_eeg_meg_emm_proxy_bundle.md
+      - Paradigms and optimization:
+          - Sensory omission oddball: tutorials/10_v0313_omission_oddball.md
+          - Multi-area laminar AGSDR: tutorials/11_multi_laminar_cortical_agsdr.md
+          - Izhikevich emitter explorer: tutorials/12_izhikevich_single_emitter_explorer.md
 
   - Guides:
       - Overview: guides/index.md
-      - Showcases: guides/showcases.md
-      - Configuration Grammar: guides/configuration_grammar.md
-      - Objective Grammar: guides/objective_grammar.md
-      - Operator Composition: guides/operator_composition.md
-      - Probe Operators: guides/probe_operators.md
-      - Tensor-Field Workflows: guides/tensor_field_workflows.md
-      - Poisson Admissibility: guides/poisson_admissibility.md
-      - Solver Acceptance: guides/solver_acceptance.md
-      - Homeostasis: guides/homeostasis.md
-      - HDP: guides/hdp.md
-      - Biophysical Model Comparison: notes/biophysical_model_comparison.md
-      - Brian2 Benchmark Receipt: notes/brian2_benchmark_receipt.md
+      - Configuration grammar: guides/configuration_grammar.md
+      - Objective grammar: guides/objective_grammar.md
+      - Tensor-field workflows: guides/tensor_field_workflows.md
+      - Operator composition: guides/operator_composition.md
+      - Probe operators: guides/probe_operators.md
       - Calibration: guides/calibration.md
-      - Output Bundles: guides/output_bundles.md
-      - Interactive Tutorial Visualizations: interactive_visualizations.md
-      - Performance Baseline: performance_baseline.md
-      - Tutorial Figures: tutorial_figures.md
-      - Technical reports:
-          - Baseline Drive Reference: BASELINE_DRIVE_REFERENCE.md
-          - Cortex Calibration Checklist: CORTEX_CALIBRATION_CHECKLIST.md
-          - Neuron I/O Characterization: NEURON_IO_CHARACTERIZATION.md
-          - HDP Implementation Report: HDP_REPORT.md
-          - "STDP: Homeostatic (Canonical)": STDP_HOMEOSTATIC_REPORT.md
-          - "STDP: Closed-Loop Online": STDP_CLOSED_LOOP_REPORT.md
-          - "STDP: Global Scale": STDP_GLOBAL_SCALE_REPORT.md
-          - "STDP: Low-Rate Regime": STDP_LOWRATE_REGIME_REPORT.md
-          - "STDP: Real Test Report": STDP_REAL_TEST_REPORT.md
+      - Homeostasis: guides/homeostasis.md
+      - H-state and HDP: guides/hdp.md
+      - Output bundles: guides/output_bundles.md
+      - Jaxley interoperability: guides/jaxley_interop.md
 
-  - API reference:
+  - Études:
+      - Overview: etudes/index.md
+      - HDP controllability & reachability: etudes/hdp_controllability_reachability.md
+
+  - API:
       - Overview: api/index.md
       - Core: api/core.md
       - Runtime: api/runtime.md
       - Emitters: api/emitters.md
-      - Source Schema: api/source_schema.md
-      - Field Schema: api/field_schema.md
-      - Bridges: api/bridges.md
+      - Source schema: api/source_schema.md
+      - Field schema: api/field_schema.md
       - Fields: api/fields.md
       - Probes: api/probes.md
       - Objectives: api/objectives.md
-      - Validation: api/validation.md
       - NeuronalTensor: api/neuronal_tensor.md
-      - Plasticity: api/plasticity.md
-      - Solvers: api/solvers.md
-      - Sharding: api/sharding.md
-      - Tensor Operator Registry: api/tensor_operators.md
-      - Operator Inventory (generated): _generated/operator_inventory.md
+      - Validation: api/validation.md
 
   - Appendix:
-      - Scope & status: scope_and_status.md
-      - For AI agents: for_ai_agents.md
-      - Google Colab Quick Start: colab.md
-      - Migration Guide (Configuration -> NeuronalTensor): migration_guide.md
+      - Source and field equations: source_field_equations.md
+      - Computation basis: computation_basis.md
+      - Mathematical glossary: mathematical_glossary_flow.md
+      - Migration guide: migration_guide.md
       - FAQ: faq.md
-      - Plotly Visualization: guides/plotly_visualization.md
-      - Jaxley Interoperability: guides/jaxley_interop.md
-      - jax-fem Interoperability (scoping): guides/jax_fem_interop.md
-      - CI and Validation Policy: ci_policy.md
-      - Operator Doctrine: operator_doctrine.md
-      - Tensor-Network Ancestry: tensor_network_ancestry.md
-      - Mathematical Glossary Flow: mathematical_glossary_flow.md
-      - Computation Basis: computation_basis.md
-      - Source/Field Equations: source_field_equations.md
-      - Conservation Proxy Diagnostics: conservation_proxy_diagnostics.md
-      - Tensor Electromagnetics Scope: tensor_electromagnetics_scope.md
-      - Reference:
-          - Glossary of Methods: reference/glossary_of_methods.md
-      - About jaxfne:
-          - Limitations and future plans: limitations_and_future_plans.md
-          - v0.4.7 Refactor Audit: v047_refactor_audit.md
-          - Changelog: changelog.md
-          - Citation: citation.md
-          - Zenodo release DOI: guides/zenodo_doi.md
-          - Contributing: contributing.md
-          - Releases:
-              - v0.3.4: releases/v0.3.4.md
-              - v0.2.18: releases/v0.2.18.md
-              - v0.2.10: releases/v0.2.10.md
-              - v0.2.3: releases/v0.2.3.md
-              - v0.2.1: releases/v0.2.1.md
-              - v0.2.0: releases/v0.2.0.md
+      - Changelog: changelog.md
+      - Citation: citation.md
+      - Contributing: contributing.md
+      - Colab quick start: colab.md
+      - CI policy: ci_policy.md
+      - Limitations: limitations_and_future_plans.md
 
 extra:
-  jaxfne_version: "0.4.8"
+  jaxfne_version: "0.4.13-dev"

@@ -1,23 +1,49 @@
-# HDP (Homeostasis-Dependent Plasticity)
+# H-state and HDP (Homeostasis-Dependent Plasticity)
 
-**Stabilize population activity and adapt synaptic weights** with a structured
-H-state. For each modeled biological entity, `H_i(t)` is a finite-dimensional
-hidden biophysical state propagated with the neural dynamics. Its coordinates
-provide latent variables that adaptation rules can use.
+**H-state** is a finite-dimensional hidden biophysical state \(H\) carried with
+the neural dynamics. **HDP** is the adaptive dynamical formulation that uses
+\(H\) to drive updates to adaptive parameter coordinates \(\Theta\) (synaptic
+weights, intrinsic parameters, and other declared channels). H-state is the
+latent representation; HDP is the family of laws that act through it.
 
-The current scalar HDP realization uses one homeostatic-like/resource-regulatory
-coordinate, `d_H=1`, and couples activity, synaptic budget, and weight
-adaptation in one loop. The generalized H-state supports multiple coordinates,
-optional coupling, and adaptation-specific readouts.
+\[
+\dot X = F_X(X,H,\Theta,U),\qquad
+\dot H = F_H(H,X,\Theta,U),\qquad
+\dot\Theta = F_\Theta(H,X,\Theta).
+\]
 
 `enable_homeostasis` and `enable_hdp` are mutually exclusive `RuntimeConfig`
-fields; enabling both raises `ValueError`.
+fields.
 
-## The control law
+For the principal executable generalized-\(H\) demonstration, see the
+[controllability / reachability étude](../etudes/hdp_controllability_reachability.md).
 
-The scalar compatibility form uses a per-neuron master state `H_i` (default
-1.0) and integrates the implemented income, spending, restoration, and barrier
-terms:
+## Locality and shape
+
+| locality | \(H\) shape | role |
+|----------|-------------|------|
+| `node` | \((N, d_H)\) or \((N,)\) when \(d_H=1\) | per-neuron H-state on the edge-list kernel |
+| `population` | \((d_H,)\) for a single population summary | population-local H-state (supported \(d_H=2\) in current release) |
+
+Public population semantics: set `h_state_locality="population"` with the
+adaptive-parameter coefficients (`controller_*`, channel masks, bounds).
+The runtime resolves the internal dispatch; callers do not supply MVC-specific
+rule identifiers.
+
+## Continuation scope
+
+| capability | status |
+|------------|--------|
+| Node-local H-state continuation (`DynamicState`, `return_state=True`) | supported for scalar and vector \(d_H\) on the edge-list HDP kernel |
+| Population-local H-state continuation | not supported in 0.4.13 (explicit error) |
+
+## Scalar node HDP (compatibility form)
+
+The scalar node realization uses one coordinate per neuron, \(d_H=1\), and
+couples activity, synaptic budget, and weight adaptation in one loop. The
+generalized contract supports \(d_H>1\) with optional readout and coupling.
+
+## Node control law
 
 ```
 tau_i * dH_i/dt = alpha*I_syn_i + beta - gamma*H_i*r_i - delta*W_i
@@ -281,4 +307,4 @@ deliberately imbalanced column and reports rate-spread reduction alongside
 
 - [Homeostasis](homeostasis.md) — the simpler, single-dial excitability controller.
 - [Configuration Grammar](configuration_grammar.md) — where the runtime and emitter fit in the chain.
-- [HDP Implementation Report](../HDP_REPORT.md) — what was built, how it's verified, and measured overhead.
+- [HDP controllability / reachability étude](../etudes/hdp_controllability_reachability.md) — principal executable generalized-\(H\) demonstration with committed metrics

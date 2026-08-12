@@ -1,7 +1,7 @@
 # Public surface contract (0.4.13 Pass 1)
 
-This page records the **frozen public export contract** for jaxfne 0.4.14
-preparation. Implementation checkpoint: `dev @ 2be0d9c`.
+This page records the **frozen public export contract** for jaxfne 0.4.13.
+Implementation checkpoint: `dev @ 0678557` (Pass 1).
 
 Machine-readable receipt: `artifacts/public_surface_contract_v0413.json`.
 

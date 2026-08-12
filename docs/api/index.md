@@ -6,11 +6,11 @@ Canonical import:
 import jaxfne as jtfne
 ```
 
-This page is the complete index of the public API (`jaxfne.__all__`, 256 names),
-grouped by module. Per-module pages carry detailed signatures and examples.
-Latest PyPI release `jaxfne==0.4.8` (tag `v0.4.8`), matching the current
-development tree (`pyproject.toml`). The root-level export
-helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
+This page is the complete index of the public API (`jaxfne.__all__`, **186**
+names: 173 CANONICAL + 13 COMPATIBILITY), grouped by module. Per-module pages
+carry detailed signatures and examples. Documentation targets the **0.4.13-dev**
+contract on `dev` (checkpoint `0678557`). See
+[Public surface contract](../public_surface_contract.md).
 
 !!! note "Scope"
     All field/EEG/MEG/EMM outputs are computational proxies
@@ -40,8 +40,8 @@ helpers introduced in the v0.3.37/v0.3.38 line remain formal `__all__` members.
 > solvers) do not yet have a dedicated module page — they are listed with full
 > signatures in the complete symbol index below. Per-module counts above are
 > indicative groupings, not an exact partition; the authoritative count is the
-> live `len(jaxfne.__all__)` (**246**) checked against the complete symbol index
-> below.
+> live `len(jaxfne.__all__)` (**186**) checked against
+> `artifacts/public_surface_contract_v0413.json`.
 
 ## Minimal workflow (verified)
 

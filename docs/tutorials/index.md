@@ -1,9 +1,9 @@
 # Tutorials
 
-Learn jaxfne by working through progressively detailed examples, organized into
-three families: **Suites** (multi-part interactive courses), **Versioned
-tutorials** (the numbered single-topic progression), and **Étude notebooks**
-(focused research-style circuits grouped by theme).
+Tutorials teach **how to use the jaxfne grammar**: progressively detailed
+examples organized by mathematical purpose (circuit construction, source/field
+readout, paradigms, optimization). For frozen scientific demonstrations, see
+**[Études](../etudes/index.md)**.
 
 ## Notebook standard
 
@@ -89,9 +89,12 @@ signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0)
 
 ## Étude notebooks
 
-Research-style circuits under [`tutorials/etudes/`](https://github.com/HNXJ/jaxfne/tree/main/tutorials/etudes),
-each a focused, runnable study rather than a step-by-step lesson. Grouped by
-theme; all execute cleanly under CI (`tests/test_notebook_execution_suite.py`).
+Notebook études under
+[`tutorials/etudes/`](https://github.com/HNXJ/jaxfne/tree/main/tutorials/etudes)
+remain runnable from the repository. The primary **documented étude** with
+committed metrics is indexed under **[Études](../etudes/index.md)** (HDP
+controllability / reachability). The table below lists legacy notebook études
+by theme.
 
 **Foundational**
 

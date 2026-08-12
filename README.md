@@ -3,37 +3,52 @@
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI package"></a>
-  <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/pyversions/jaxfne" alt="Python versions"></a>
-  <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Documentation"></a>
-  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml/badge.svg?branch=dev" alt="CI (fast)"></a>
-  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml"><img src="https://github.com/HNXJ/jaxfne/actions/workflows/release_ci.yml/badge.svg?branch=main" alt="Release CI"></a>
-  <a href="https://github.com/HNXJ/jaxfne/actions/workflows/ci.yml"><img src="https://img.shields.io/badge/coverage-reported%20in%20CI-blue" alt="Coverage"></a>
-  <a href="docs/contributing.md"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg" alt="Contributions welcome"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License: MIT"></a>
+  <a href="https://pypi.org/project/jaxfne/"><img src="https://img.shields.io/pypi/v/jaxfne?color=brightgreen" alt="PyPI"></a>
+  <a href="https://jaxfne.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/jaxfne/badge/?version=latest" alt="Docs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License"></a>
 </p>
 
 # jaxfne
 
-**JAX-based simulation of Tensor-Field Neural Equations** — emitter-to-source-to-field
-readouts for computational electrophysiology. Define a circuit (single column or
-multi-area hierarchy), run it, and inspect population activity, layer-targeted drive,
-and field readouts in one pipeline.
+**Tensor-Field Neural Equations (TFNE)** expressed as a JAX simulation engine for
+layer-resolved neural circuits, source operators, field proxies, probes, objectives,
+and evidence receipts.
 
-jaxfne works at the population/field scale — layer-resolved circuits, spectrolaminar
-readouts, a tensor-algebraic source-to-sensor-proxy chain. For single/multi-compartment
-biophysical detail, [Jaxley](https://jaxley.readthedocs.io/) is the natural complement,
-not a competing tool: Jaxley models plug directly into jaxfne as emitters (see the
-Jaxley bridge in [Quickstart](docs/quickstart.md)).
+**Scientific grammar**
+
+\[
+\text{Emitter} \rightarrow \text{Source} \rightarrow \text{Field} \rightarrow \text{Probe}
+\rightarrow \text{Objective} \rightarrow \text{Optimizer} \rightarrow \text{Evidence}
+\]
+
+**Execution grammar**
+
+\[
+\text{CircuitSpec} \rightarrow \texttt{construct} \rightarrow \texttt{Model}
+\rightarrow \texttt{simulate} \rightarrow \texttt{Signals}
+\]
+
+**Adaptation** (optional HDP family): finite-dimensional hidden biophysical state
+\(H\) and adaptive parameter coordinates \(\Theta\) (synaptic and intrinsic),
+mediated by
+
+\[
+\dot X = F_X(X,H,\Theta,U),\quad
+\dot H = F_H(H,X,\Theta,U),\quad
+\dot\Theta = F_\Theta(H,X,\Theta).
+\]
+
+\(H\)-state is the latent representation; HDP is the adaptive dynamical formulation
+that uses it. See [H-state / HDP guide](docs/guides/hdp.md).
 
 ## Install
 
 ```bash
 pip install jaxfne
-pip install "jaxfne[viz]"   # matplotlib/plotly readouts
+pip install "jaxfne[viz]"   # optional plotting
 ```
 
-Development checkout: `pip install -e ".[dev,viz]"` after cloning.
+Development: `pip install -e ".[dev,viz]"` after cloning.
 
 ## Minimal example
 
@@ -44,39 +59,27 @@ jtfne.enable_x64()
 tensor  = jtfne.load_canonical_neuronal_tensor("canonical-v1-column-1000n")
 model   = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1000.0, dt_ms=0.5))
 signals = jtfne.simulate(model)
-
-jtfne.vis.raster(signals)                    # population raster
-jtfne.vis.spectrolaminar_suite(signals)      # laminar PSD readout
 ```
 
-Canonical import: `import jaxfne as jtfne`. More paths (fluent `Configuration`,
-multi-trial sweeps, HDP plasticity, Jaxley bridge): **[Quickstart](docs/quickstart.md)**.
+Import convention: `import jaxfne as jtfne`. Builder paths, paradigms, and
+optimization: [Quickstart](docs/quickstart.md).
 
-## Scope & status
+## Relative and calibrated outputs
 
-Every jaxfne output is labeled **Relative** or **Absolute**. Relative values are
-the default and require no external evidence; Absolute (physically calibrated)
-values require an explicit, evidenced calibration step. Reference:
-[Scope & status](docs/scope_and_status.md).
-
-Exported but not yet implemented: `GLIFEmitter`, `LIFEmitter`, `write_nwb`, `read_nwb`.
+Simulated quantities are **relative** by default. **Calibrated** claims require an
+explicit transformation with evidence. See [Scope & status](docs/scope_and_status.md).
 
 ## Documentation
 
 | Resource | Link |
 |----------|------|
-| Quickstart (three build paths, canonical column, Jaxley) | [docs/quickstart.md](docs/quickstart.md) |
-| Full docs site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
-| Tutorials & études | [docs/tutorials/](docs/tutorials/) |
+| Quickstart | [docs/quickstart.md](docs/quickstart.md) |
+| Site | [jaxfne.readthedocs.io](https://jaxfne.readthedocs.io/) |
+| Tutorials | [docs/tutorials/](docs/tutorials/) |
+| Études | [docs/etudes/](docs/etudes/) |
+| Public API contract (0.4.13) | [docs/public_surface_contract.md](docs/public_surface_contract.md) |
 | Changelog | [docs/changelog.md](docs/changelog.md) |
-| Contributing | [docs/contributing.md](docs/contributing.md) |
-| AI agents | [docs/for_ai_agents.md](docs/for_ai_agents.md) |
-
-Documentation for AI coding agents ([skills/](skills/), [docs/for_ai_agents.md](docs/for_ai_agents.md))
-is a deliberate design choice, not incidental repo clutter — it's verified against the
-same source of truth as the human-facing docs above, not a separate, drifting spec.
 
 ## Citation
 
-Machine-readable metadata: [`CITATION.cff`](CITATION.cff) (GitHub **Cite this repository**).
-BibTeX and Zenodo DOI setup: [docs/citation.md](docs/citation.md).
+[`CITATION.cff`](CITATION.cff) · [citation guide](docs/citation.md)
