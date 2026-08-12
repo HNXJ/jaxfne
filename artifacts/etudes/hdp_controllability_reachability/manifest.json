@@ -1,0 +1,56 @@
+{
+  "schema": "hdp_controllability_reachability_manifest.v0.1",
+  "etude_id": "hdp_controllability_reachability",
+  "status": "CONSOLIDATED",
+  "repository": {
+    "branch": "dev",
+    "sha": "6b7a6b324d9e9c5862a7f62e244cbd4ba82b5f66"
+  },
+  "documentation": "docs/etudes/hdp_controllability_reachability.md",
+  "artifacts": {
+    "figure": "figure.png",
+    "metrics": "metrics.json",
+    "readme": "README.md"
+  },
+  "frozen_receipts": {
+    "protocol": "artifacts/msvc_hdp_diagnostic/hdp_mvc_protocol_v2.json",
+    "controller_spec": "artifacts/msvc_hdp_diagnostic/hdp_mvc_frozen_controller_spec.json",
+    "alignment": "artifacts/msvc_hdp_diagnostic/hdp_mvc_alignment_diagnostic.json",
+    "j_theta_inventory": "artifacts/msvc_hdp_diagnostic/hdp_mvc_j_theta_actuator_inventory.json",
+    "intrinsic_inventory": "artifacts/msvc_hdp_diagnostic/hdp_mvc_intrinsic_actuator_inventory.json",
+    "authority_boundary": "artifacts/msvc_hdp_diagnostic/hdp_mvc_authority_boundary.json",
+    "frozen_validation": "artifacts/msvc_hdp_diagnostic/hdp_mvc_frozen_validation.json",
+    "posthoc_scalar_vector": "artifacts/msvc_hdp_diagnostic/hdp_mvc_posthoc_scalar_vector.json",
+    "etude_diagnostic": "artifacts/msvc_hdp_diagnostic/hdp_mvc_etude.json"
+  },
+  "receipt_sha256": {
+    "protocol": "034487dbb5b0b1f3436359160eee9dced8d856419e339cc4a5c1fc26ce488b64",
+    "controller_spec": "132aeb2edcae444536ecb1c0b796ab47a3db6c3d63bbe48e67eb691aefbde4a4",
+    "alignment": "6de3f48d92cb61fcc9243b4ac1bcac26e72e5d5624079a64bea875b15a11e452",
+    "j_theta_inventory": "499beb9e4ee5780ba7007724d52a162be4262325dea450e6f8a06ff1f89ccb0b",
+    "intrinsic_inventory": "436421a2ece7d398fc03b0abb2b7b47ddb1135180e72887b47335d17ca716d28",
+    "authority_boundary": "57f1b8fbc60e28c873f9afbe602cfb70544b4f1f3a5c0c40484bb24c31845f8d",
+    "frozen_validation": "a48fd6aafe5c0b9594ddd0595a863ad5ff571939e06b80e8dd89984d9f551bff",
+    "posthoc_scalar_vector": "edd05edac120f8029b1d712bdfee73a88f1026692f82bda87ca94937b2920001",
+    "etude_diagnostic": "2f95ff4088db27d3a0be588f64572c913eaea806c41a04645b4ce287caa506b4"
+  },
+  "runners": {
+    "etude_simulation": "scripts/hdp_mvc_etude.py",
+    "frozen_validation": "scripts/hdp_mvc_frozen_validation.py",
+    "authority_boundary": "scripts/hdp_mvc_authority_boundary.py",
+    "frozen_controller_spec": "scripts/hdp_mvc_frozen_controller_spec.py"
+  },
+  "runner_sha256": {
+    "etude_simulation": "6133623b8ef261cae64deb55283af48e59ea9a430597630e8df120071d8f8815",
+    "frozen_validation": "b947b0f43e5e4401dde5c5407bee2c3ad2c1904cd34e266058d4309eea4bfccd",
+    "authority_boundary": "9f5a904f147e36eb9cb7889d4a257896e7974212a51e00648d32631d87087d8c",
+    "frozen_controller_spec": "ca2713ab5b04ad901f5341085325bfe0b0c9b9485b1576d80772bbe8a74a9dd7"
+  },
+  "reproduce": {
+    "full_etude": "python scripts/hdp_mvc_etude.py",
+    "consolidate_only": "python scripts/consolidate_hdp_controllability_etude.py",
+    "note": "Large trajectories are not versioned; regenerate via etude runner with frozen protocol/controller hashes."
+  },
+  "protocol_sha256": "034487dbb5b0b1f3436359160eee9dced8d856419e339cc4a5c1fc26ce488b64",
+  "controller_spec_sha256": "132aeb2edcae444536ecb1c0b796ab47a3db6c3d63bbe48e67eb691aefbde4a4"
+}
