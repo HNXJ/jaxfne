@@ -258,6 +258,7 @@ def dynamic_state_from_model(
     model: Model,
     *,
     h_state_dim: int = 1,
+    h_state_locality: str | None = None,
 ) -> DynamicState:
     """Build a cold-start :class:`DynamicState` from ``model.params``.
 
@@ -269,6 +270,12 @@ def dynamic_state_from_model(
     HDP edge-list; a model built without an edge list (dense-only) cannot
     produce a valid DynamicState.
     """
+    from ._hdp_adaptive import expected_h_shape as compute_expected_h_shape, reject_population_continuation, resolve_h_state_locality
+
+    locality = resolve_h_state_locality(
+        {"h_state_locality": h_state_locality, "h_state_dim": h_state_dim}
+    )
+    reject_population_continuation(locality, context="dynamic_state_from_model")
     if isinstance(h_state_dim, bool) or not isinstance(h_state_dim, int) or h_state_dim < 1:
         raise ValueError("h_state_dim must be a positive integer")
     emitter = model.params["emitter"]
@@ -282,8 +289,8 @@ def dynamic_state_from_model(
     n_neurons = emitter.n_neurons
     n_edges = edges.n_edges
     dtype = emitter.v0.dtype
-    expected_h_shape = (
-        (n_neurons,) if h_state_dim == 1 else (n_neurons, int(h_state_dim))
+    expected_h_shape = compute_expected_h_shape(
+        locality="node", n_neurons=n_neurons, h_state_dim=h_state_dim
     )
     H0 = model.params.get("hdp_initial_H")
     H0 = (

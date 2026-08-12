@@ -339,8 +339,16 @@ def _simulate_hdp_metadata(
     h_state_dim = int(_hp_meta.get("h_state_dim", 1))
     readout = _hp_meta.get("h_state_readout")
     coupling = _hp_meta.get("h_state_coupling")
+    h_state_locality = _hp_meta.get("h_state_locality")
+    if h_state_locality is None and _hp_meta.get("hdp_rule") == "population_vector_restoring":
+        h_state_locality = "population"
+    if h_state_locality is None:
+        h_state_locality = "per_neuron"
+    if _hp_meta.get("hdp_rule") == "population_vector_restoring":
+        h_state_locality = "population"
     hdp_meta["h_state"] = {
         "h_state_dim": h_state_dim,
+        "h_state_locality": h_state_locality,
         "readout": {
             "kind": "linear",
             "shape": [h_state_dim],

@@ -19,6 +19,16 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 
+from ._hdp_adaptive import (
+    bind_theta_to_plant,
+    expected_h_shape as _expected_h_shape,
+    initial_theta_vector,
+    parse_population_restoring_layout,
+    population_rate_error,
+    population_restoring_derivatives,
+    resolve_h_state_locality,
+    theta_bounds,
+)
 from .presets import DEFAULT_SPIKE_IMPULSE_GAIN
 
 
@@ -1114,6 +1124,18 @@ def simulate_edge_recurrent_izhikevich_hdp(
     h_state_dim: int = 1,
     h_state_readout: "jax.Array | None" = None,
     h_state_coupling: "jax.Array | None" = None,
+    h_state_locality: "str | None" = None,
+    controller_B: "jax.Array | None" = None,
+    controller_lambda: float | None = None,
+    controller_tau_H_s: float | None = None,
+    controller_tau_theta_s: float | None = None,
+    controller_rate_setpoint_E_hz: float | None = None,
+    controller_rate_setpoint_I_hz: float | None = None,
+    controller_theta_S_init: "Sequence[float] | None" = None,
+    m_ei_edge_mask: "jax.Array | None" = None,
+    e_neuron_mask: "jax.Array | None" = None,
+    theta_m_EI_bounds: "tuple[float, float]" = (0.1, 5.0),
+    theta_eta_a_bounds: "tuple[float, float]" = (0.25, 4.0),
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
@@ -1381,6 +1403,41 @@ def simulate_edge_recurrent_izhikevich_hdp(
     if h_dim < 1:
         raise ValueError("h_state_dim must be a positive integer")
 
+    _adaptive_hp = {
+        "hdp_rule": hdp_rule,
+        "h_state_locality": h_state_locality,
+        "h_state_dim": h_dim,
+        "controller_B": controller_B,
+        "controller_lambda": controller_lambda if controller_lambda is not None else 0.45,
+        "controller_tau_H_s": controller_tau_H_s if controller_tau_H_s is not None else 0.2,
+        "controller_tau_theta_s": controller_tau_theta_s if controller_tau_theta_s is not None else 2.0,
+        "controller_rate_setpoint_E_hz": controller_rate_setpoint_E_hz,
+        "controller_rate_setpoint_I_hz": controller_rate_setpoint_I_hz,
+        "controller_theta_S_init": controller_theta_S_init,
+        "m_ei_edge_mask": m_ei_edge_mask,
+        "e_neuron_mask": e_neuron_mask,
+        "theta_m_EI_bounds": theta_m_EI_bounds,
+        "theta_eta_a_bounds": theta_eta_a_bounds,
+    }
+    locality = resolve_h_state_locality(_adaptive_hp)
+    pop_layout = None
+    theta_lo = theta_hi = None
+    dt_s = None
+    if locality == "population":
+        if hdp_rule != "population_vector_restoring":
+            raise ValueError(
+                "population h_state_locality requires "
+                "hdp_rule='population_vector_restoring'"
+            )
+        pop_layout = parse_population_restoring_layout(
+            _adaptive_hp,
+            edges_weight=edges.weight,
+            labels=params.labels,
+            dtype=jdtype,
+        )
+        theta_lo, theta_hi = theta_bounds(pop_layout, dtype=jdtype)
+        dt_s = dt / jnp.asarray(1000.0, dtype=jdtype)
+
     def _h_component_param(value: Any, name: str) -> jax.Array:
         arr = jnp.asarray(value, dtype=jdtype)
         if arr.ndim == 0:
@@ -1469,38 +1526,119 @@ def simulate_edge_recurrent_izhikevich_hdp(
     sched = (jnp.zeros((int(n_steps), n_neurons), dtype=jdtype)
              if drive_schedule is None else drive_schedule.astype(jdtype))
 
-    expected_h_shape = (int(n_neurons),) if h_dim == 1 else (int(n_neurons), h_dim)
-    if init_state is not None:
-        H0 = jnp.asarray(
-            init_state.get("H_final", jnp.ones(expected_h_shape, dtype=jdtype)),
-            dtype=jdtype,
+    if pop_layout is not None:
+        expected_h_shape_pop = _expected_h_shape(
+            locality="population", n_neurons=n_neurons, h_state_dim=h_dim
         )
-        if H0.shape != expected_h_shape:
-            raise ValueError(
-                "H_final must have shape "
-                f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
+        theta_default = initial_theta_vector(pop_layout, dtype=jdtype)
+        if init_state is not None:
+            H0 = jnp.asarray(
+                init_state.get("H_final", jnp.zeros(expected_h_shape_pop, dtype=jdtype)),
+                dtype=jdtype,
             )
-        w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
-        init = (
-            jnp.asarray(init_state["v"], dtype=jdtype),
-            jnp.asarray(init_state["u"], dtype=jdtype),
-            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
-            jnp.asarray(init_state["syn_state"], dtype=jdtype),
-            H0, w0,
-        )
+            if H0.shape != expected_h_shape_pop:
+                raise ValueError(
+                    "H_final must have shape "
+                    f"{expected_h_shape_pop} for population H, got {H0.shape}"
+                )
+            theta0 = jnp.asarray(
+                init_state.get("theta_S_final", theta_default), dtype=jdtype
+            )
+            if theta0.shape != (len(pop_layout.channels),):
+                raise ValueError(
+                    f"theta_S_final must have shape ({len(pop_layout.channels)},), "
+                    f"got {theta0.shape}"
+                )
+            init = (
+                jnp.asarray(init_state["v"], dtype=jdtype),
+                jnp.asarray(init_state["u"], dtype=jdtype),
+                jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+                jnp.asarray(init_state["syn_state"], dtype=jdtype),
+                H0,
+                theta0,
+            )
+        else:
+            init = (
+                params.v0.astype(jdtype),
+                params.u0.astype(jdtype),
+                jnp.zeros_like(params.v0, dtype=jdtype),
+                jnp.zeros((edges.n_edges,), dtype=jdtype),
+                jnp.zeros(expected_h_shape_pop, dtype=jdtype),
+                jnp.clip(theta_default, theta_lo, theta_hi),
+            )
     else:
-        init = (
-            params.v0.astype(jdtype),
-            params.u0.astype(jdtype),
-            jnp.zeros_like(params.v0, dtype=jdtype),
-            jnp.zeros((edges.n_edges,), dtype=jdtype),
-            jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
-            edges.weight.astype(jdtype),              # w(0) = native edge weight
+        expected_h_shape = _expected_h_shape(
+            locality="node", n_neurons=n_neurons, h_state_dim=h_dim
         )
+        if init_state is not None:
+            H0 = jnp.asarray(
+                init_state.get("H_final", jnp.ones(expected_h_shape, dtype=jdtype)),
+                dtype=jdtype,
+            )
+            if H0.shape != expected_h_shape:
+                raise ValueError(
+                    "H_final must have shape "
+                    f"{expected_h_shape} for h_state_dim={h_dim}, got {H0.shape}"
+                )
+            w0 = jnp.asarray(init_state.get("w_final", edges.weight), dtype=jdtype)
+            init = (
+                jnp.asarray(init_state["v"], dtype=jdtype),
+                jnp.asarray(init_state["u"], dtype=jdtype),
+                jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+                jnp.asarray(init_state["syn_state"], dtype=jdtype),
+                H0, w0,
+            )
+        else:
+            init = (
+                params.v0.astype(jdtype),
+                params.u0.astype(jdtype),
+                jnp.zeros_like(params.v0, dtype=jdtype),
+                jnp.zeros((edges.n_edges,), dtype=jdtype),
+                jnp.ones(expected_h_shape, dtype=jdtype), # H_i(0) = 1.0
+                edges.weight.astype(jdtype),              # w(0) = native edge weight
+            )
 
     def step(carry, xs_t):
-        """HDP step: (1) synaptic current, (2) update H, (3) update weights from H, (4) integrate neuron, (5) spikes consume H."""
+        """HDP step: population restoring or node-local income/spending plasticity."""
         sched_t, noise_t = xs_t
+        if pop_layout is not None:
+            v, u, prev_spikes, syn_state, H_pop, theta_S = carry
+            w_eff, a_eff = bind_theta_to_plant(
+                theta_S,
+                pop_layout,
+                a_base=a,
+                w_ceiling=w_ceiling_arr,
+            )
+            edge_current = w_eff * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = (drive + sched_t) * s_mask + syn + noise_coef * noise_t
+            e_vec = population_rate_error(
+                prev_spikes, pop_layout, dt_ms=dt, dtype=jdtype
+            )
+            dH, d_theta = population_restoring_derivatives(
+                H_pop, e_vec, pop_layout, dtype=jdtype
+            )
+            H_next = H_pop + dt_s * dH
+            theta_next = jnp.clip(theta_S + dt_s * d_theta, theta_lo, theta_hi)
+            dv, du = _izhikevich_dv_du(v, u, current_native, a_eff, b)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + spikes[pre]
+            v_reset, u_reset, syn_next = _bound_state(v_reset, u_reset, syn_next)
+            source_proxy = _source_proxy_from_components(
+                current_native, spikes, source_scale, dtype=jdtype
+            )
+            if record_weight_trace:
+                outputs = (v_reset, spikes, source_proxy, H_next, theta_next, w_eff)
+            else:
+                outputs = (v_reset, spikes, source_proxy, H_next, theta_next)
+            return (v_reset, u_reset, spikes, syn_next, H_next, theta_next), outputs
+
         v, u, prev_spikes, syn_state, H, w = carry
 
         # (1) Synaptic current.
@@ -1648,6 +1786,30 @@ def simulate_edge_recurrent_izhikevich_hdp(
         return (v_reset, u_reset, spikes, syn_next, H_final, w_next), outputs
 
     final, scan_outputs = jax.lax.scan(step, init, xs=(sched, bulk_noise))
+    if pop_layout is not None:
+        if record_weight_trace:
+            voltages, spikes, sources, H_trace, theta_trace, w_trace = scan_outputs
+        else:
+            voltages, spikes, sources, H_trace, theta_trace = scan_outputs
+            w_trace = None
+        w_final, _ = bind_theta_to_plant(
+            final[5], pop_layout, a_base=a, w_ceiling=w_ceiling_arr
+        )
+        diagnostics_dict = {
+            "v": final[0],
+            "u": final[1],
+            "prev_spikes": final[2],
+            "syn_state": final[3],
+            "H_final": final[4],
+            "theta_S_final": final[5],
+            "w_final": w_final,
+            "H_trace": H_trace,
+            "theta_S_trace": theta_trace,
+            "w_trace": w_trace,
+            "h_state_locality": "population",
+        }
+        return voltages, spikes, sources, diagnostics_dict
+
     base_arity = 5 if record_weight_trace else 4
     if record_weight_trace:
         voltages, spikes, sources, H_trace, w_trace = scan_outputs[:5]

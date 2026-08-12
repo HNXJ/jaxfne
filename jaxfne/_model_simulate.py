@@ -77,8 +77,20 @@ def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
         "noise_scale": hp.get("noise_scale"),
         "hdp_rule": hp.get("hdp_rule", "signed_linear"),
         "h_state_dim": hp.get("h_state_dim", 1),
+        "h_state_locality": hp.get("h_state_locality"),
         "h_state_readout": hp.get("h_state_readout"),
         "h_state_coupling": hp.get("h_state_coupling"),
+        "controller_B": hp.get("controller_B"),
+        "controller_lambda": hp.get("controller_lambda", 0.45),
+        "controller_tau_H_s": hp.get("controller_tau_H_s", 0.2),
+        "controller_tau_theta_s": hp.get("controller_tau_theta_s", 2.0),
+        "controller_rate_setpoint_E_hz": hp.get("controller_rate_setpoint_E_hz"),
+        "controller_rate_setpoint_I_hz": hp.get("controller_rate_setpoint_I_hz"),
+        "controller_theta_S_init": hp.get("controller_theta_S_init"),
+        "m_ei_edge_mask": hp.get("m_ei_edge_mask"),
+        "e_neuron_mask": hp.get("e_neuron_mask"),
+        "theta_m_EI_bounds": hp.get("theta_m_EI_bounds", (0.1, 5.0)),
+        "theta_eta_a_bounds": hp.get("theta_eta_a_bounds", (0.25, 4.0)),
         "record_dH_components": bool(hp.get("record_dH_components", False)),
         "record_edge_current": bool(hp.get("record_edge_current", False)),
         "record_weight_trace": bool(hp.get("record_weight_trace", True)),
@@ -295,7 +307,19 @@ def _simulate_arrays(
                 ),
                 **kernel_kwargs,
             )
-            return V, S, src, diag["H_final"], diag["H_trace"], diag["w_final"], diag["w_trace"]
+            theta_trace = diag.get("theta_S_trace")
+            theta_final = diag.get("theta_S_final")
+            return (
+                V,
+                S,
+                src,
+                diag["H_final"],
+                diag["H_trace"],
+                diag["w_final"],
+                diag["w_trace"],
+                theta_final,
+                theta_trace,
+            )
 
         effective_jit = runtime_cfg.resolve_jit(sim.n_steps, emitter.n_neurons)
         if effective_jit:
@@ -329,10 +353,18 @@ def _simulate_arrays(
         else:
             with _device_scope(runtime_cfg.selected_backend):
                 result = _hdp_packed(key, sched)
-        V, S, src, H_final, H_trace, w_final, w_trace = result
-        object.__setattr__(self, "_last_hdp_diag",
-                           {"H_final": H_final, "H_trace": H_trace,
-                            "w_final": w_final, "w_trace": w_trace})
+        V, S, src, H_final, H_trace, w_final, w_trace, theta_final, theta_trace = result
+        diag_store = {
+            "H_final": H_final,
+            "H_trace": H_trace,
+            "w_final": w_final,
+            "w_trace": w_trace,
+        }
+        if theta_final is not None:
+            diag_store["theta_S_final"] = theta_final
+        if theta_trace is not None:
+            diag_store["theta_S_trace"] = theta_trace
+        object.__setattr__(self, "_last_hdp_diag", diag_store)
         return V, S, src
 
     if runtime_cfg.recurrent_backend == "edge_list":
@@ -546,6 +578,13 @@ def _simulate_continuation_arrays(
             )
 
     hp = dict(runtime_cfg.hdp_params or {}) if runtime_cfg.enable_hdp else {}
+    if runtime_cfg.enable_hdp:
+        from ._hdp_adaptive import reject_population_continuation, resolve_h_state_locality
+
+        reject_population_continuation(
+            resolve_h_state_locality(hp),
+            context="simulate_continuation",
+        )
     if continuation is None:
         state = continuation_state_from_model(
             self,
