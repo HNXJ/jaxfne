@@ -126,6 +126,8 @@ exclude = [
   "/outputs",
   "/test_execution_output",
   "/site",
+  "/artifacts/msvc_hdp_diagnostic",
+  "/scripts/hdp_mvc_*.py",
 ]
 
 [tool.pytest.ini_options]

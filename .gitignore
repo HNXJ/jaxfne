@@ -59,31 +59,9 @@ test_execution_output/
 composer_2_5_harness_audit_staging/
 composer_2_5_agent_harness_audit.zip
 
-# Exploratory HDP-MVC diagnostics (local extensions; committed etude under artifacts/etudes/)
-artifacts/msvc_hdp_diagnostic/hdp_mvc_alignment_diagnostic.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_authority_boundary.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_etude.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_failure_diagnostics*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_frozen_*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_intrinsic_actuator_inventory.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_j_theta_actuator_inventory.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_posthoc_scalar_vector.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_protocol_v2.json
-artifacts/msvc_hdp_diagnostic/hdp_mvc_validation_v2.*
-artifacts/msvc_hdp_diagnostic/hdp_mvc_vector_h_controller_spec.*
-scripts/hdp_mvc_alignment_diagnostic.py
-scripts/hdp_mvc_authority_boundary.py
-scripts/hdp_mvc_etude.py
-scripts/hdp_mvc_etude_physiology.py
-scripts/hdp_mvc_failure_diagnostics.py
-scripts/hdp_mvc_frozen_controller_spec.py
-scripts/hdp_mvc_frozen_validation.py
-scripts/hdp_mvc_intrinsic_actuator_inventory.py
-scripts/hdp_mvc_j_theta_actuator_inventory.py
-scripts/hdp_mvc_metrics.py
-scripts/hdp_mvc_posthoc_scalar_vector.py
-scripts/hdp_mvc_validation_v2.py
-scripts/hdp_mvc_vector_h_controller_spec.py
+# Exploratory HDP-MVC diagnostics (local only; committed etude under artifacts/etudes/)
+artifacts/msvc_hdp_diagnostic/
+scripts/hdp_mvc_*.py
 
 # Development & local experimentation
 .cursor/

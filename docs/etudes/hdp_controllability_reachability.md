@@ -76,7 +76,7 @@ At the scientific operating point (`scientific_agsdr_theta_star`), the synaptic-
 
 so \(\mathrm{rank}(J_W B)\le 1\) for all actuator maps \(B\). Scalar per-neuron H-state adds at most one additional adaptive direction, insufficient for independent 2D E/I regulation.
 
-**Receipt:** `artifacts/msvc_hdp_diagnostic/hdp_mvc_alignment_diagnostic.json`  
+**Receipt:** `artifacts/etudes/hdp_controllability_reachability/metrics.json` (`mvc2_recovery.scalar`)  
 **MVC #2 scalar-H control:** \(R_{EI}^{\mathrm{scalar}}=0.434\), terminal weighted error \(0.525\) — marginal improvement over HDP-off.
 
 ---
