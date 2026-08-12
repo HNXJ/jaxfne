@@ -149,12 +149,22 @@ documents.
 
 #### `simulate(sim: Simulation, paradigm: Any | None = None) -> Signals`
 
-`core.py:4560`. Runs the default EIG/Izhikevich vertical slice. `sim` is a
-**required, positional `Simulation` object** — not `duration_ms`/`dt_ms`/`seed`
+`core.py:4560`. Runs the default **Izhikevich / edge-list EIG vertical slice**.
+`sim` is a **required, positional `Simulation` object** — not `duration_ms`/`dt_ms`/`seed`
 keywords directly on `Model.simulate`. Use the module-level `jtfne.simulate(model,
-duration_ms=..., ...)` helper (below) for the kwarg form. When `paradigm` is a
-`StimulusSchedule` or `ParadigmCondition`, its drive is injected in internal (uncalibrated)
-(uncalibrated) current.
+duration_ms=..., ...)` helper (below) for the kwarg form.
+
+When the constructed emitter is Izhikevich (or another edge-list path that
+reaches `_simulate_arrays`), and `paradigm` is a `StimulusSchedule` or
+`ParadigmCondition`, its drive array is injected as internal (uncalibrated)
+current at each timestep.
+
+**`homeostatic_ei` is a separate emitter family.** `Model.simulate` dispatches
+to `_simulate_homeostatic_ei` before paradigm resolution; a `paradigm`
+argument is **not** applied on that path. Supported extra drive for HEI is the
+kernel argument `drive_schedule` on `simulate_homeostatic_ei(...)`, or the
+family's declared baseline drive in params. Do not infer cross-family stimulus
+equivalence from the Izhikevich `paradigm` contract.
 
 **Example:**
 ```python
@@ -454,6 +464,10 @@ directly as keyword arguments. Passing both `sim=` and other kwargs raises
 `ValueError`. When no explicit `runtime`/`Simulation` is given, the runtime
 declared on `model.cfg` via `.runtime(...)` is inherited; a `dtype=` kwarg
 overrides the inherited dtype (and cannot be combined with `runtime=`).
+
+`paradigm` injection follows the **Izhikevich vertical-slice** contract
+documented on `Model.simulate` above. It does not apply to `homeostatic_ei`
+models constructed via `set_emitter("homeostatic_ei")`.
 
 **Example:**
 ```python

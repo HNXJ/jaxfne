@@ -26,6 +26,21 @@ representation: relative | calibrated
 `field_solver_status="linear_solver"` remains available for existing consumers;
 the canonical mathematical type is `operator_type`.
 
+### Observation provenance (0.4.15+)
+
+Eager `diagnostics["observation"]` and `LinearReadout.report()["observation"]`
+record conceptual **S→F→P** identity under fused or materialized execution.
+
+| key | role |
+|-----|------|
+| `execution_form` | `fused` (`Y=(P∘F)Q`) or `materialized` (retained `Φ`) |
+| `operator_chain` | `{source, field, probe}` identity dicts |
+| `amplitude_semantics` | `relative` \| `calibrated_proxy` \| `calibrated` |
+
+EEG separates operator identity (`linear_leadfield`) from
+`leadfield_status`. MEG sets `orientation_claim: none` on scalar `Q`. Under
+`jax.jit`, metadata is omitted from traced returns; array values are unchanged.
+
 ---
 
 ## Source Projection

@@ -4,6 +4,27 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.15 (2026-08-12)
+
+Observation-composability release: explicit fused-operator provenance,
+observation-authority tests, Multiscale and Heterogeneous Emitter Études.
+
+### Added
+- O1 observation provenance on eager diagnostics/reports (`execution_form`,
+  `operator_chain`, orthogonal amplitude/validation/physical-claim axes).
+- O3 observation authority regression (frozen \(Q\), distinct \(O\),
+  identical-\(W\) control, linear superposition, `O(0)=0`).
+- Études: [multiscale observation](etudes/multiscale_observation.md);
+  [heterogeneous emitters](etudes/heterogeneous_emitters.md).
+
+### Changed
+- MEG-proxy receipts: `relative_linear_map_proxy`, `orientation_claim: none`.
+- API/docs: HEI `drive_schedule` path; observation vocabulary in fields API.
+
+### Unchanged
+- 186 root exports; fused \(F/P\) execution; `Signals`/`FieldOutput` layouts;
+  compatibility parameter names.
+
 ## v0.4.14 (2026-08-12)
 
 Stable TFNE core release: frozen public API contract (186 root exports), compact

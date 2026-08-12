@@ -73,6 +73,11 @@ The canonical EEG/MEG transform input is the relative source representation
 fixed source and leadfield arrays; Vm-derived sanity readouts carry separate
 `relative_vm_state` provenance.
 
+EEG-proxy reports distinguish operator identity (`linear_leadfield`) from
+`leadfield_status` (default `toy_or_declared_proxy`). MEG-proxy reports use
+`relative_linear_map_proxy` with `orientation_convention: none` and
+`orientation_claim: none` on scalar `Q`.
+
 All readouts here are **proxy readouts**: an uncalibrated computational
 scaffold (`physical_amplitude_calibrated=False` throughout), always short of
 physical measurements.
