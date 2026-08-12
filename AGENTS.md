@@ -1,142 +1,54 @@
-# AGENTS.md — jaxfne operational context
+# jaxfne — minimal persistent context
 
-## Identity
+## Purpose
 
-jaxfne is a JAX computational scaffold. The public import is:
+jaxfne expresses neural biophysics as modular Tensor-Field Neural Equations (TFNE): nested biological semantics and geometry are preserved while numerical tensors may be computationally flattened.
 
-```python
-import jaxfne as jtfne
-```
-
-Public wording follows `docs/scope_and_status.md`: outputs are Relative by
-default; Absolute values require an explicit calibration step.
-
-## Two grammars
-
-Scientific operator grammar:
+Scientific grammar:
 
 ```text
-Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Manifest/Validation
+Emitter -> Source -> Field -> Probe -> Objective -> Optimizer -> Evidence
 ```
 
-Software execution grammar:
+Execution grammar:
 
 ```text
 CircuitSpec -> construct -> Model -> simulate -> Signals
 ```
 
-`CircuitSpec` includes supported `Configuration` and `NeuronalTensor` tiers.
-`Paradigm`, readouts, objectives, tuning, and export attach to this execution
-path; compatibility aliases are not the scientific grammar.
+`CircuitSpec` includes supported Configuration and NeuronalTensor forms.
 
-Continuation state is shape-preserving and treats the H-state as an opaque JAX
-array. The current HDP kernel uses the scalar special case; generic
-continuation prose must not equate H-state with one homeostatic variable or
-with a required physical unit. Internal relative coordinates remain valid
-until an explicit calibration transformation at a semantic boundary.
+## Mathematical invariants
 
-## Authority and evidence
+- Internal quantities may remain relative. Absolute units arise through explicit calibration transformations at semantic boundaries.
+- H is a finite-dimensional hidden biophysical state. Do not define H intrinsically as homeostasis or as a scalar. Specific H dynamics may encode homeostatic-like state, timing traces, ions, transmitters, resources, neuromodulators, or other sufficient latent variables.
+- General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. Particular plasticity/adaptation rules are realizations of this grammar, not separate architectural subsystems by default.
+- Preserve biological identity, topology, signs, receptor/mechanism identity, geometry, locality, and declared parameter ownership through compilation and optimization.
+- Source, field, probe, objective, and calibration semantics remain explicit. A projection, proxy, PDE solve, calibration, and validation status are distinct concepts.
 
-Mathematical meaning belongs to the six-file revised project source set under
-`artifacts/project_sources/`. Do not duplicate its equations into skills or
-agent context. Current public explanation and executable references are:
+## Authority
 
-- `docs/operator_doctrine.md` — public operator contracts and stage vocabulary.
-- `docs/scope_and_status.md` — public Relative/Absolute and status fields.
-- `docs/guides/objective_grammar.md` — executable software sequence.
-- `docs/guides/tensor_field_workflows.md` — source/field/probe contracts.
-- `docs/tutorials/` and `docs/tutorials/notebook_standard.md` — public
-  executable evidence protocol.
+For current mathematical specification, use the repository's authoritative project-source set when present. For implemented truth, inspect live `jaxfne/` code and tests. For public explanation, inspect README/docs. For current repository state, use generated state/audit scripts when available.
 
-Implemented API truth belongs to live `jaxfne/` code and `tests/`. Public
-explanation belongs to `README.md` and `docs/`. Skills are procedures and
-references, not parallel scientific specifications. Generated state comes from
-`scripts/repo_state_snapshot.py`; archival material is not current authority.
+Do not store SHAs, versions, benchmark timings, test counts, bug lists, implementation line numbers, or temporary release state in persistent doctrine.
 
-## Evidence classification and scope discipline
+## Evidence
 
-Reports keep these categories separate:
+Keep these distinct:
 
-- `SPECIFIED`: required by the authoritative project specification.
-- `IMPLEMENTED`: present in the current checkout.
-- `TESTED`: covered by an executable test with a command receipt.
-- `OBSERVED`: measured in one named run/environment.
+- SPECIFIED — required by authoritative specification.
+- IMPLEMENTED — present in the checkout.
+- TESTED — covered by an executable test/verification receipt.
+- OBSERVED — measured in a named run/environment.
 
-Do not promote one category into another. Before implementation, declare the
-target invariant, expected files, API/mathematical/numerical/claim/
-documentation/compatibility deltas, forbidden adjacent changes, and the stop
-condition. Stop when the requested invariant is resolved, targeted tests pass,
-directly affected documentation agrees, and no directly blocking discrepancy
-remains. Do not clean neighboring modules, add convenience helpers, expand
-tutorials, or repair unrelated scientific behavior.
+Scientific experiments preserve failed prospective receipts. Do not tune a frozen protocol/controller after observing its validation outcome unless a new protocol is explicitly declared.
 
-Skills and agent context teach recovery and verification procedures; they do not
-store current equations, SHAs, versions, defaults, test counts, bug
-inventories, or implementation line locations as durable facts.
+## Repository behavior
 
-## JAX and API invariants
-
-- Use `jax.numpy` in numerical kernels and explicit PRNG keys for randomness.
-- Use pure numerical functions and `jax.lax.scan` for hot time evolution.
-- Use `jax.vmap` for batches/seeds when shapes and semantics permit.
-- Use `jax.jit` only for stable numerical hot paths; report effective runtime
-  state rather than requested state.
-- Default to float32. Enable x64 explicitly before array construction.
-- Keep plotting, JSON, serialization, and file I/O outside JIT.
-- Preserve public APIs; prefer additive compatibility wrappers.
-- Keep optional dependencies lazy and fail explicitly when unavailable.
-- Use package APIs for reusable scientific computation; do not create notebook
-  engines that duplicate package behavior.
-- Preserve conservative truth/status metadata. `linear_solver` is compatibility
-  metadata for the current proxy path, not proof of a solved PDE.
-
-## Repository workflow
-
-Before repository work, run:
-
-```bash
-git branch --show-current
-git rev-parse HEAD
-git status --short
-git ls-remote origin refs/heads/main refs/heads/dev
-```
-
-
-Before naming an unfamiliar API or helper, read
-`skills/catalog-glossary-jaxfne/SKILL.md` and verify the live symbol. Use
-`skills/jaxfne-harden/SKILL.md` for implementation safeguards.
-
-Preferred validation entrypoints:
-
-```bash
-python3 -m compileall -q jaxfne tests scripts
-python3 scripts/repo_state_snapshot.py
-python3 scripts/audit_public_docs_language.py --check
-python3 -m mkdocs build --strict
-PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=. python3 -m pytest -q --tb=short
-```
-
-Run only the gates relevant to the task and report exact results. Do not claim
-full validation when the full suite or docs build was not run.
-
-## Planning, reports, and mutations
-
-Use PRP only for implementation/release work that needs persistent planning.
-Simple inspection, factual questions, and one-session context work do not
-require PRP files. `AGENT_CHANNEL.md` is optional handoff state; do not create
-or append it during a read-only task.
-
-Reports include:
-
-```text
-API delta:
-Mathematical delta:
-Numerical delta:
-Claim/evidence delta:
-Documentation delta:
-Compatibility delta:
-```
-
-Before remote or irreversible Git mutation, obtain applicable explicit
-authorization. Never commit, push, merge, tag, release, or upload merely
-because a workflow suggests it.
+- Read the smallest relevant skill under `skills/` for procedure.
+- Verify unfamiliar public symbols against live code before using them.
+- Prefer package-native scientific operators over notebook/script-local duplicate engines.
+- Keep reusable plotting in the visualization layer.
+- Use targeted tests during development; broader/release gates are separate evidence tiers.
+- Do not commit, push, tag, release, or mutate remote state without explicit authorization.
+- Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
