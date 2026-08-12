@@ -253,13 +253,13 @@ def test_visual_outputs_skill_has_validation_commands():
 
 # ─── Navigation Tests ────────────────────────────────────────────────────────
 
-def test_mkdocs_nav_includes_plotly_guide():
-    """mkdocs.yml navigation must include Plotly visualization guide."""
+def test_plotly_guide_exists_but_not_in_primary_nav():
+    """Plotly guide remains available; primary nav contracts to core grammar (Pass 2)."""
+    assert Path("docs/guides/plotly_visualization.md").exists()
     mkdocs_path = Path("mkdocs.yml")
-    with open(mkdocs_path, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    assert "plotly_visualization" in content, "Plotly guide not in navigation"
+    content = mkdocs_path.read_text(encoding="utf-8")
+    assert "guides/plotly_visualization.md" in content
+    assert "plotly_visualization" not in content.split("nav:")[1].split("Appendix:")[0]
 
 
 def test_mkdocs_nav_includes_visual_outputs_skill():

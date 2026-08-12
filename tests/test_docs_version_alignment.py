@@ -91,29 +91,23 @@ def test_colab_md_version():
     )
 
 
-def test_quickstart_md_verified_version():
-    pyproject_version = get_pyproject_version()
+def test_quickstart_md_documents_dev_contract():
+    """quickstart.md tracks the development public contract (not a pinned PyPI stamp)."""
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "quickstart.md").read_text(encoding="utf-8")
 
-    match = re.search(r"Verified against `jaxfne==([^`]+)`", content)
-    assert match, "Could not find the 'Verified against' line in docs/quickstart.md"
-    assert match.group(1) == pyproject_version, (
-        f"docs/quickstart.md says 'Verified against {match.group(1)}', pyproject.toml says {pyproject_version!r}"
-    )
+    assert "dev" in content.lower() or "NeuronalTensor" in content
+    assert "Verified against `jaxfne==" not in content
 
 
-def test_api_index_md_latest_pypi_version():
-    pyproject_version = get_pyproject_version()
+def test_api_index_md_structural_contract_reference():
+    """api/index.md references the frozen public surface contract, not a symbol inventory."""
     root_dir = Path(__file__).resolve().parent.parent
     content = (root_dir / "docs" / "api" / "index.md").read_text(encoding="utf-8")
 
-    match = re.search(r"Latest PyPI release `jaxfne==([^`]+)`", content)
-    assert match, "Could not find the 'Latest PyPI release' claim in docs/api/index.md"
-    assert match.group(1) == pyproject_version, (
-        f"docs/api/index.md claims latest PyPI release {match.group(1)!r}, "
-        f"pyproject.toml says {pyproject_version!r}"
-    )
+    assert "186" in content
+    assert "public_surface_contract" in content
+    assert "Latest PyPI release" not in content
 
 
 def test_citation_md_version_fields():

@@ -29,6 +29,26 @@ exclude_docs: |
   releases/v0.2.10.md
   releases/v0.2.18.md
   releases/v0.3.4.md
+  conservation_proxy_diagnostics.md
+  interactive_visualizations.md
+  operator_doctrine.md
+  tensor_electromagnetics_scope.md
+  tensor_network_ancestry.md
+  tutorial_figures.md
+  _generated/operator_inventory.md
+  api/bridges.md
+  api/plasticity.md
+  api/sharding.md
+  api/solvers.md
+  api/tensor_operators.md
+  guides/jax_fem_interop.md
+  guides/plotly_visualization.md
+  guides/poisson_admissibility.md
+  guides/showcases.md
+  guides/solver_acceptance.md
+  guides/zenodo_doi.md
+  notes/biophysical_model_comparison.md
+  reference/glossary_of_methods.md
 
 theme:
   name: material
@@ -145,4 +165,4 @@ nav:
       - Limitations: limitations_and_future_plans.md
 
 extra:
-  jaxfne_version: "0.4.13-dev"
+  jaxfne_version: "0.4.14"

@@ -17,7 +17,7 @@ The circuit is the MCC-3 minimal TFNE motif: 5 E + 5 PV Izhikevich neurons with 
 (X,H,\Theta)\;\Rightarrow\; Q(t)\;\Rightarrow\;\Phi(z,t)\;\Rightarrow\;\text{readouts},
 \]
 
-with explicit proxy (not calibrated empirical) field status.
+with explicit proxy readout status (`physical_amplitude_calibrated = False`).
 
 ---
 
@@ -187,7 +187,7 @@ The neurophysiology extends this claim: vector-H achieves near-complete rate rec
 
 **Scope limits (non-negotiable):**
 
-- Relative/proxy readouts only; not calibrated empirical LFP/CSD amplitudes
+- Relative/proxy readouts with `physical_amplitude_calibrated = False`; empirical LFP/CSD calibration out of scope
 - Single seed (17), single minimal circuit topology
 - Controller derived from local Jacobian at one operating point; no anti-windup
 - Diagnostic receipts used at consolidation (local provenance; not committed): hashes in `manifest.json`

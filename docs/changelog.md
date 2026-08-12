@@ -4,17 +4,36 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.14 (2026-08-12)
+
+Stable TFNE core release: frozen public API contract (186 root exports), compact
+release-facing documentation, H-state/HDP evidence semantics (`param_groups`),
+MCC-1/2/3 and HDP controllability/reachability Etude regression. Package
+semantics match the 0.4.13 freeze at `4a0e887`.
+
+### Added
+- Structural API documentation map and Études top-level documentation group.
+- Public surface contract (`artifacts/public_surface_contract_v0413.json`) and
+  `jaxfne.public_surface` tier authority.
+- HDP metadata `param_groups` (H-state | H-dynamics | adaptive parameter dynamics).
+
 ### Changed
-- Generalized HDP execution now documents `H_i(t) ∈ R^d_H` as a finite-dimensional
-  hidden biophysical state associated with each modeled biological entity. The
-  current scalar homeostatic-like HDP realization is the `d_H=1` case; vector
-  coordinates, optional coupling, and adaptation-specific readouts are supported.
-- Canonical HDP simulation paths now use one explicit per-step PRNG sequence
-  across ordinary, continuation, and batch execution. Replaying a stochastic
-  HDP configuration created under the earlier bulk-noise sequence may produce a
-  different trajectory for the same seed. Deterministic scalar-H behavior is
-  preserved, and current ordinary/continuation/batch paths share the same
-  stochastic sequencing contract.
+- Root public exports: 173 CANONICAL + 13 COMPATIBILITY (186 total).
+- Population-H public semantics via `h_state_locality="population"`; user-facing
+  docs and metadata use locality labels.
+- Agent context (`AGENTS.md`) and four router skills under `skills/jaxfne-*`.
+
+### Fixed
+- Release-facing documentation and tutorial index normalized by mathematical
+  purpose; mechanical test alignment for Pass 2 doc contraction.
+
+### Changed (0.4.13 development, included in 0.4.14)
+- Generalized HDP execution documents `H_i(t) ∈ R^d_H` as a finite-dimensional
+  hidden biophysical state. The scalar homeostatic-like HDP realization is the
+  `d_H=1` case; vector coordinates, optional coupling, and adaptation-specific
+  readouts are supported.
+- Canonical HDP simulation paths use one explicit per-step PRNG sequence across
+  ordinary, continuation, and batch execution.
 
 ## v0.4.8 (2026-07-22)
 
