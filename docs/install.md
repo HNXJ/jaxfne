@@ -7,9 +7,9 @@ pip install -U jaxfne
 ```
 
 The latest **PyPI** release is **`jaxfne==0.4.8`** (tag `v0.4.8`). The current
-**development** contract on `dev` is **0.4.13-dev** (186-symbol public surface;
-see [Public API contract](public_surface_contract.md)). To pin the last PyPI
-release explicitly:
+**development** public contract on `dev` is documented in
+[Public API contract](public_surface_contract.md) (186-symbol surface). To pin
+the last PyPI release explicitly:
 
 ```bash
 pip install "jaxfne==0.4.8"

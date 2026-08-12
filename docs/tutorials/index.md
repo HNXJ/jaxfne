@@ -23,12 +23,12 @@ Start with the [notebook standard](notebook_standard.md) to understand the struc
 Multi-part interactive courses. Each is a single notebook covering a full
 workflow arc (models → circuits → readouts → optimization).
 
-| Suite | Topic | Focus | Version |
-|-------|-------|-------|---------|
-| **[Suite 1](06_jaxfne_suite_no_1_computational_biophysics.md)** | Computational Biophysics | 4-part course: single-neuron models → vectorized circuits → laminar readouts (LFP/CSD-proxy, spectral) → optimization. 22 figures. | v0.3.3+ |
-| **[Suite 2](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** | Corticospectrolaminar Motif | Cortical column anatomy → JAX-first population sim → multimodal proxies (MUA/LFP/CSD/EEG/MEG/EMM) → spectrolaminar visualization → CPU-safe tuning. 13 figures. | v0.3.4+ |
-| **[Suite 2 (Evoked L4)](08_jaxfne_suite_no_2_evoked_l4_drive.md)** | Evoked L4 Drive | Compact evoked-response variant of Suite 2's motif, baseline-vs-driven L4 layer contrast. | v0.3.4+ |
-| **[Suite 3](08_jaxfne_suite_no_3_low_frequency_scaling.md)** | Low-Frequency Scaling | Scale-dependent proxy configs → population sims across sizes → PSD/bandpower → synchrony/Fano diagnostics → strict validation export. 5 figures. | v0.3.9+ |
+| Suite | Topic | Focus |
+|-------|-------|-------|
+| **[Suite 1](06_jaxfne_suite_no_1_computational_biophysics.md)** | Computational Biophysics | Single-neuron models → vectorized circuits → laminar readouts (LFP/CSD-proxy, spectral) → optimization |
+| **[Suite 2](07_jaxfne_suite_no_2_spectrolaminar_motif.md)** | Corticospectrolaminar Motif | Cortical column anatomy → population simulation → multimodal proxies → spectrolaminar visualization |
+| **[Suite 2 (Evoked L4)](08_jaxfne_suite_no_2_evoked_l4_drive.md)** | Evoked L4 Drive | Baseline-vs-driven L4 layer contrast within the spectrolaminar motif |
+| **[Suite 3](08_jaxfne_suite_no_3_low_frequency_scaling.md)** | Low-Frequency Scaling | Scale-dependent proxy configs → population PSD/bandpower → synchrony/Fano diagnostics |
 
 [![Open Suite 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_1_computational_biophysics.ipynb)
 [![Open Suite 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/HNXJ/jaxfne/blob/main/tutorials/jaxfne_suite_no_2_spectrolaminar_motif.ipynb)
@@ -36,47 +36,46 @@ workflow arc (models → circuits → readouts → optimization).
 
 ---
 
-## Versioned tutorials
+## Single-topic progression
 
-The numbered single-topic progression, teaching the source-to-field/readout
-workflow from single-neuron models to multi-area laminar circuits. Grouped by
-level.
+Progressive lessons on the source-to-field/readout workflow, from single-neuron
+models to multi-area laminar circuits.
 
 **Beginner**
 
-| # | Topic | Focus | Version |
-|---|-------|-------|---------|
-| [**01**](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts | v0.2.8+ |
-| [**02**](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics | v0.2.9+ |
+| # | Topic | Focus |
+|---|-------|-------|
+| [**01**](01_single_neuron_multimodal.md) | Single-neuron Multimodal | Izhikevich emitter, spikes, voltage, field readouts |
+| [**02**](02_two_neuron_ei.md) | Two-neuron E/I | Coupling, recurrent dynamics |
 
 **Intermediate**
 
-| # | Topic | Focus | Version |
-|---|-------|-------|---------|
-| [**03**](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability | v0.2.10+ |
-| [**04**](04_v1_column.md) | V1 Six-layer Column | Laminar anatomy, depth-specific readouts | v0.2.11+ |
-| [**06**](06_v036_100_neuron_ei_population.md) | Chainable Configuration | New fluent `Configuration` method-chaining API | v0.3.6+ |
-| [**07**](07_v037_source_bookkeeping.md) | Source Bookkeeping | 3D visualization of source/field/probe workflow | v0.3.7+ |
-| [**08**](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy | v0.3.8+ |
-| [**09**](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Separate sensor pathways: scalp potential, magnetic field, metabolic proxy | v0.3.10+ |
-| [**10**](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, unexpected deviants, sensory omissions | v0.3.13+ |
+| # | Topic | Focus |
+|---|-------|-------|
+| [**03**](03_network_100_ei.md) | 100-neuron Network | Population dynamics, stability |
+| [**04**](04_v1_column.md) | V1 Six-layer Column | Laminar anatomy, depth-specific readouts |
+| [**06**](06_v036_100_neuron_ei_population.md) | Chainable Configuration | Fluent `Configuration` method-chaining API |
+| [**07**](07_v037_source_bookkeeping.md) | Source Bookkeeping | Source/field/probe workflow and metadata |
+| [**08**](08_v038_lfp_csd_readout.md) | LFP/CSD Readout | Laminar contact projection, Gaussian kernels, CSD-proxy |
+| [**09**](09_v0310_eeg_meg_emm_proxy_bundle.md) | EEG/MEG/EMM Proxy Bundle | Scalp potential, magnetic field, metabolic proxy pathways |
+| [**10**](10_v0313_omission_oddball.md) | Sensory Omission & Oddball | Expected stimuli, deviants, sensory omissions |
 
 **Advanced**
 
-| # | Topic | Focus | Version |
-|---|-------|-------|---------|
-| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, traveling waves, continuous AAAB local-oddball adaptation with real trial-to-trial HDP carryover (100 chained trials, verified stable) | v0.2.14+ |
-| [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event `target_indices` L4-E-only targeting, `general_sequential_oddball_paradigm` backbone | v0.4.0+ |
-| [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration | — |
-| [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | The canonical 1000-neuron laminar column reference | 0.4.7+ |
+| # | Topic | Focus |
+|---|-------|-------|
+| [**05**](05_v1_pfc_dual_column.md) | V1-PFC Dual Column | Cross-area interaction, traveling waves, trial-chained HDP carryover |
+| [**11**](11_multi_laminar_cortical_agsdr.md) | Multi-area Laminar Model | Per-event targeting, sequential oddball paradigm backbone |
+| [**12**](12_izhikevich_single_emitter_explorer.md) | TFNE-Izhikevich Explorer | Single-emitter parameter exploration |
+| [**13**](13_canonical_column_etude.md) | Canonical Cortical Column | Canonical 1000-neuron laminar column reference |
 
 **NeuronalTensor (tensor-first circuits)** — [`jaxfne_neuronal_tensor_first.ipynb`](https://github.com/HNXJ/jaxfne/blob/main/tutorials/jaxfne_neuronal_tensor_first.ipynb)
 (script version: [`08_neuronal_tensor_first.py`](https://github.com/HNXJ/jaxfne/blob/main/examples/08_neuronal_tensor_first.py)).
 `NeuronalTensor` is a second, declarative `Areas x Layers x NeuronTypes` circuit
 definition that JSON round-trips and converges on the same `Model`/`Signals` as
 the `Configuration` path used above. Carries the canonical 1000-neuron V1
-column and is the path for **HDP homeostatic plasticity** — see the
-[HDP guide](../guides/hdp.md) § "Tensor-first" and the
+column and is the path for **H-state / HDP adaptation** — see the
+[H-state / HDP guide](../guides/hdp.md) and the
 [API reference](../api/neuronal_tensor.md).
 
 ```python

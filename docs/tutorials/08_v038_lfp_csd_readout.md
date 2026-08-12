@@ -1,4 +1,4 @@
-# v0.3.8: LFP/CSD Readout Tutorial
+# LFP/CSD Readout Tutorial
 
 **Version:** 0.3.8  
 **Difficulty:** Intermediate  
@@ -182,7 +182,7 @@ A 48-neuron laminar column (12 neurons per layer, 4 layers) with mixed E/I compo
 - **LFP-proxy shape:** [T=10000, C=16]
 - **Emerges laminar structure:** Layer-wise E/I interactions produce distinct laminar profiles
 - **CSD-proxy shows layer boundaries:** Second derivative reveals where sources concentrate
-- **Population rate:** Typically 2–25 Hz (active-state regime for v0.3.8)
+- **Population rate:** Typically 2–25 Hz (active-state regime in this tutorial)
 
 ---
 
@@ -309,16 +309,16 @@ if not metadata["amplitude_status"]:
     # ✓ "The kernel width of 0.10 produces smoother estimates than 0.05"
 ```
 
-### v0.3.8 Scope
+### Tutorial scope
 
 - No biophysical compartments (soma, dendrite, axon)
 - No temperature sensitivity, frequency-dependent effects
 - No subject-specific anatomy
 - No experimental validation
-- Kernels are fixed defaults (not tunable in v0.3.8; reserved for v0.3.9)
+- Kernels are fixed defaults (not tunable in this tutorial)
 - Amplitudes are uncalibrated (proxy-scale only)
 
-### Reserved Work (v0.3.9+)
+### Reserved extensions
 
 - Custom convolution kernels via `.field_kernel()` method
 - PDE-based field solvers (optional)
@@ -363,14 +363,14 @@ json.dump(signals.metadata, fp, allow_nan=False)
 
 ## References
 
-- **v0.3.7 Tutorial:** [Source Bookkeeping](./07_v037_source_bookkeeping.md)
-- **v0.3.6 Tutorial:** [Configuration API & E/I Networks](./06_v036_100_neuron_ei_population.md)
+- **[Source bookkeeping](./07_v037_source_bookkeeping.md)**
+- **[Configuration API population](./06_v036_100_neuron_ei_population.md)**
 - **API Reference:** [API Overview](../api/index.md)
 - **Guides:** [Probe Operators](../guides/probe_operators.md) | [Tensor-Field Workflows](../guides/tensor_field_workflows.md)
 - **GitHub:** [jaxfne Issues](https://github.com/HNXJ/jaxfne/issues)
 
 ---
 
-**End of v0.3.8 Tutorial**
+**End of tutorial**
 
 Feedback? Open an issue: [jaxfne/issues](https://github.com/HNXJ/jaxfne/issues)

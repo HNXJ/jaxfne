@@ -1,6 +1,5 @@
-# v0.3.7: Source Bookkeeping, Field Handoff & Probe Readout
+# Source Bookkeeping, Field Handoff & Probe Readout
 
-**Version:** 0.3.7  
 **Difficulty:** Intermediate  
 **Duration:** 20–30 minutes  
 **Scope:** Computational scaffold, simulated proxy fields, tutorial-scale learning
@@ -259,15 +258,15 @@ if not metadata["amplitude_status"]:
     # "Layer 5 sources dominate the field"
 ```
 
-### v0.3.7 Scope
+### Tutorial scope
 
 - No biophysical compartments (soma, dendrite, axon)
 - No temperature sensitivity, frequency-dependent effects
 - No subject-specific anatomy
 - No experimental validation
-- Kernels are fixed defaults (not tunable in v0.3.7)
+- Kernels are fixed defaults (not tunable in this tutorial)
 
-### Reserved Work (v0.3.8+)
+### Reserved extensions
 
 - Custom convolution kernels via `.field_kernel()` method
 - PDE-based field solvers (optional)
@@ -311,7 +310,7 @@ json.dump(signals.metadata, fp, allow_nan=False)
 
 ## References
 
-- **v0.3.6 Tutorial:** [Configuration API & E/I Networks](./06_v036_100_neuron_ei_population.md)
+- **[Configuration API population](./06_v036_100_neuron_ei_population.md)**
 - **API Reference:** [API Overview](../api/index.md)
 - **Guides:** [Probe Operators](../guides/probe_operators.md) | [Tensor-Field Workflows](../guides/tensor_field_workflows.md)
 - **Interactive Visualization:** The 3D source/field/probe column is embedded above via Plotly (interactive HTML)
@@ -319,6 +318,6 @@ json.dump(signals.metadata, fp, allow_nan=False)
 
 ---
 
-**End of v0.3.7 Tutorial**
+**End of tutorial**
 
 Feedback? Open an issue: [jaxfne/issues](https://github.com/HNXJ/jaxfne/issues)

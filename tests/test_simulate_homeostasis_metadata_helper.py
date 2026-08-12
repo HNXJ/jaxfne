@@ -87,7 +87,7 @@ def test_simulate_homeostasis_metadata_helper_per_neuron_array_param():
 
     runtime_cfg = RuntimeConfig(homeostasis_params={"k_gain": jnp.array([0.1, 0.2, 0.3])})
     meta = _simulate_homeostasis_metadata(runtime_cfg, diag=None)
-    assert meta["params"]["k_gain"] == "per_neuron_array"
+    assert meta["params"]["k_gain"] == "node_level_array"
 
 
 # --- _simulate_hdp_metadata (mirrors _simulate_homeostasis_metadata) --------
@@ -152,4 +152,25 @@ def test_simulate_hdp_metadata_helper_per_neuron_array_param():
         enable_hdp=True, hdp_params={"K_HDP": jnp.array([0.1, 0.2, 0.3])}
     )
     meta = _simulate_hdp_metadata(runtime_cfg, diag=None)
-    assert meta["params"]["K_HDP"] == "per_neuron_array"
+    assert meta["params"]["K_HDP"] == "node_level_array"
+
+
+def test_simulate_hdp_metadata_groups_and_locality_normalization():
+    from jaxfne.core import RuntimeConfig
+    import jax.numpy as jnp
+
+    runtime_cfg = RuntimeConfig(
+        enable_hdp=True,
+        hdp_params={
+            "h_state_locality": "per_neuron",
+            "h_state_dim": 2,
+            "K_HDP": 0.01,
+            "controller_B": jnp.array([[0.0, 0.0], [0.0, 0.0]]),
+        },
+    )
+    meta = _simulate_hdp_metadata(runtime_cfg, diag=None)
+    assert meta["h_state"]["h_state_locality"] == "node"
+    assert "h_state" in meta["param_groups"]
+    assert "h_dynamics" in meta["param_groups"]
+    assert meta["formulation"]["theta_distinct_from_synaptic_storage_W"] is True
+    assert "population_vector_restoring" not in str(meta)

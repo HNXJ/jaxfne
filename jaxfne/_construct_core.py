@@ -261,6 +261,32 @@ def _np_isscalar_param(v: Any) -> bool:
     return isinstance(v, (int, float, bool, str)) or v is None
 
 
+def _metadata_param_value(v: Any) -> Any:
+    """JSON-safe scalar or compact array marker for public metadata."""
+    return v if _np_isscalar_param(v) else "node_level_array"
+
+
+def _public_hdp_param_groups(hp_meta: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Partition ``hdp_params`` for public evidence (H-state | dynamics | Θ)."""
+    from jaxfne.public_surface import INTERNAL_HDP_RULE_IDS, classify_hdp_params
+
+    grouped = classify_hdp_params(hp_meta)
+    public: dict[str, dict[str, Any]] = {}
+    for group_name in ("h_state", "h_dynamics", "theta_adaptation"):
+        block: dict[str, Any] = {}
+        for key, value in grouped[group_name].items():
+            if key == "hdp_rule" and value in INTERNAL_HDP_RULE_IDS:
+                continue
+            block[key] = _metadata_param_value(value)
+        if block:
+            public[group_name] = block
+    if grouped["unclassified"]:
+        public["unclassified"] = {
+            k: _metadata_param_value(v) for k, v in grouped["unclassified"].items()
+        }
+    return public
+
+
 def _simulate_homeostasis_metadata(
     runtime_cfg: "RuntimeConfig", diag: "dict[str, Any] | None"
 ) -> dict[str, Any]:
@@ -278,7 +304,7 @@ def _simulate_homeostasis_metadata(
     homeo_meta: dict[str, Any] = {
         "enabled": True,
         "params": {
-            k: (v if _np_isscalar_param(v) else "per_neuron_array")
+            k: _metadata_param_value(v)
             for k, v in _hp_meta.items()
         },
         "method": "minimal_homeostatic_resource_adaptation_controller",
@@ -322,11 +348,20 @@ def _simulate_hdp_metadata(
     homeostasis controller's claim discipline.
     """
     _hp_meta = dict(runtime_cfg.hdp_params or {})
+    param_groups = _public_hdp_param_groups(_hp_meta)
     hdp_meta: dict[str, Any] = {
         "enabled": True,
+        "param_groups": param_groups,
         "params": {
-            k: (v if _np_isscalar_param(v) else "per_neuron_array")
-            for k, v in _hp_meta.items()
+            k: v
+            for group in param_groups.values()
+            for k, v in group.items()
+        },
+        "formulation": {
+            "h_state_is_latent_representation": True,
+            "hdp_is_adaptive_dynamics_family": True,
+            "theta_are_adaptive_coordinates": True,
+            "theta_distinct_from_synaptic_storage_W": True,
         },
         "method": "homeostasis_dependent_plasticity_master_state_controller",
         "claim_status": "computational_control_proxy_not_biological_mechanism",

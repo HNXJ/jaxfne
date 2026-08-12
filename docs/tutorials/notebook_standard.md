@@ -117,11 +117,11 @@ Before pushing a notebook:
 
 The tutorial stack is:
 
-1. **01_single_neuron_multimodal** (v0.2.8) — Single Izhikevich neuron with spikes, voltage, LFP-proxy
-2. **02_two_neuron_ei** (v0.2.9) — Excitatory-inhibitory pair, recurrent coupling
-3. **03_network_100_ei** (v0.2.10) — Balanced network (100 neurons), population dynamics
-4. **04_v1_column** (v0.2.11) — Laminar V1 column (six layers), depth-specific readouts
-5. **05_v1_pfc_dual_column** (v0.2.14) — Two-column cross-area model, traveling waves
+1. **01_single_neuron_multimodal** — Single Izhikevich neuron with spikes, voltage, LFP-proxy
+2. **02_two_neuron_ei** — Excitatory-inhibitory pair, recurrent coupling
+3. **03_network_100_ei** — Balanced network (100 neurons), population dynamics
+4. **04_v1_column** — Laminar V1 column (six layers), depth-specific readouts
+5. **05_v1_pfc_dual_column** — Two-column cross-area model, traveling waves
 
 Each notebook teaches a progressively more complex workflow using the same source-to-field/readout framework.
 

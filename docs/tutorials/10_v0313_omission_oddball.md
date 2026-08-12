@@ -1,4 +1,4 @@
-# v0.3.13: Sensory Omission & Oddball Detection Paradigm
+# Sensory Omission & Oddball Detection Paradigm
 
 **A tutorial demonstrating expected sensory stimuli, unexpected deviants, and sensory omission detection under package-native paradigm configuration.**
 

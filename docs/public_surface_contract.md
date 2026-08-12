@@ -1,7 +1,8 @@
 # Public surface contract (0.4.13 Pass 1)
 
 This page records the **frozen public export contract** for jaxfne 0.4.13.
-Implementation checkpoint: `dev @ 0678557` (Pass 1).
+Implementation checkpoint: `dev @ 0678557` (Pass 1); closure reconciles
+documentation, tutorial metadata, and public evidence semantics.
 
 Machine-readable receipt: `artifacts/public_surface_contract_v0413.json`.
 
@@ -32,10 +33,10 @@ formulation; H-state ≠ HDP.
 - `hdp_rule` (node plasticity families: `signed_linear`, `signed_quadratic`, `hebbian_product`)
 - income/spending/barrier coefficients, `K_HDP`, `K_ctrl`, `tau_0_ms`, bounds, diagnostics flags
 
-### Theta-adaptation
+### Theta-adaptation (adaptive parameter dynamics)
 
 - `controller_*` coefficients, channel masks, bounds
-- Θ (adaptive coordinates) is distinct from synaptic weight storage W
+- \(\Theta\) (adaptive coordinates, synaptic and intrinsic) is distinct from synaptic weight storage \(W\)
 
 **Internal dispatch identifiers** (e.g. population restoring controller rule ids)
 are not public vocabulary. Population-H semantics are expressed via

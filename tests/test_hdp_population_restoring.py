@@ -160,6 +160,10 @@ def test_public_population_h_semantics_without_internal_rule_id():
     assert diag is not None
     assert np.asarray(diag["H_final"]).shape == (2,)
     assert sig.metadata["hdp"]["h_state"]["h_state_locality"] == "population"
+    hdp_meta = sig.metadata["hdp"]
+    assert "param_groups" in hdp_meta
+    assert "population_vector_restoring" not in str(hdp_meta)
+    assert "hdp_rule" not in hdp_meta.get("param_groups", {}).get("h_dynamics", {})
 
 
 @pytest.mark.skipif(not ETUDE_METRICS.exists(), reason="committed Etude metrics bundle required")
@@ -174,6 +178,10 @@ def test_population_restoring_structural_invariants():
     assert np.asarray(diag["H_final"]).shape == (2,)
     assert np.asarray(diag["theta_S_final"]).shape == (2,)
     assert sig.metadata["hdp"]["h_state"]["h_state_locality"] == "population"
+    hdp_meta = sig.metadata["hdp"]
+    assert "param_groups" in hdp_meta
+    assert "population_vector_restoring" not in str(hdp_meta)
+    assert "hdp_rule" not in hdp_meta.get("param_groups", {}).get("h_dynamics", {})
     B = np.asarray(hp["controller_B"])
     assert np.linalg.matrix_rank(B) == 2
 
