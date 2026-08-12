@@ -115,7 +115,6 @@ def _population_hdp_params(mei_mask, e_mask, *, r0_e: float, r0_i: float):
         "beta": 0.0,
         "gamma": 0.0,
         "delta": 0.0,
-        "hdp_rule": "population_vector_restoring",
         "h_state_locality": "population",
         "h_state_dim": 2,
         "controller_B": ctrl["B"],
@@ -131,6 +130,36 @@ def _population_hdp_params(mei_mask, e_mask, *, r0_e: float, r0_i: float):
         "theta_m_EI_bounds": ctrl["theta_m_EI_bounds"],
         "theta_eta_a_bounds": ctrl["theta_eta_a_bounds"],
     }
+
+
+def test_public_population_h_semantics_without_internal_rule_id():
+    """Public contract: locality + theta coefficients, no MVC dispatch string."""
+    model, mei_mask, e_mask = _mcc3_model()
+    ctrl = ETUDE_CONTROLLER
+    hp = {
+        "K_HDP": 0.0,
+        "h_state_locality": "population",
+        "h_state_dim": 2,
+        "controller_B": ctrl["B"],
+        "controller_lambda": ctrl["Lambda"],
+        "controller_tau_H_s": ctrl["tau_H_s"],
+        "controller_tau_theta_s": ctrl["tau_Theta_s"],
+        "controller_rate_setpoint_E_hz": 10.9,
+        "controller_rate_setpoint_I_hz": 9.14,
+        "controller_theta_S_init": ctrl["theta_S_init"],
+        "m_ei_edge_mask": mei_mask.astype(bool),
+        "e_neuron_mask": e_mask.astype(bool),
+        "theta_m_EI_bounds": ctrl["theta_m_EI_bounds"],
+        "theta_eta_a_bounds": ctrl["theta_eta_a_bounds"],
+    }
+    assert "hdp_rule" not in hp
+    runtime = jtfne.RuntimeConfig(enable_hdp=True, recurrent_backend="edge_list", jit=False, hdp_params=hp)
+    sig = model.simulate(jtfne.simulation(duration_ms=500.0, dt_ms=0.1, seed=17, runtime=runtime))
+    assert jnp.all(jnp.isfinite(sig.spikes))
+    diag = model.last_hdp_diagnostics()
+    assert diag is not None
+    assert np.asarray(diag["H_final"]).shape == (2,)
+    assert sig.metadata["hdp"]["h_state"]["h_state_locality"] == "population"
 
 
 @pytest.mark.skipif(not ETUDE_METRICS.exists(), reason="committed Etude metrics bundle required")

@@ -15,6 +15,8 @@ import numpy as np
 Locality = Literal["node", "population"]
 ChannelKind = Literal["edge", "intrinsic"]
 
+INTERNAL_HDP_RULE_POPULATION = "population_vector_restoring"
+
 
 @dataclass(frozen=True)
 class ThetaChannelSpec:
@@ -50,12 +52,27 @@ class PopulationRestoringLayout:
 def resolve_h_state_locality(hp: Mapping[str, Any]) -> Locality:
     loc = hp.get("h_state_locality")
     if loc is None:
-        if hp.get("hdp_rule") == "population_vector_restoring":
+        if hp.get("hdp_rule") == INTERNAL_HDP_RULE_POPULATION:
             return "population"
         return "node"
     if loc not in ("node", "population"):
         raise ValueError(f"h_state_locality must be 'node' or 'population', got {loc!r}")
     return loc  # type: ignore[return-value]
+
+
+def normalize_hdp_params_boundary(hp: Mapping[str, Any]) -> dict[str, Any]:
+    """Map public H-state configuration to kernel-ready ``hdp_params``.
+
+    Public population-H semantics are expressed via ``h_state_locality``
+    and adaptive-parameter coefficients. The internal restoring-controller
+    dispatch identifier is injected here and must not be required from callers.
+    """
+    out = dict(hp)
+    locality = resolve_h_state_locality(out)
+    out["h_state_locality"] = locality
+    if locality == "population":
+        out["hdp_rule"] = INTERNAL_HDP_RULE_POPULATION
+    return out
 
 
 def expected_h_shape(

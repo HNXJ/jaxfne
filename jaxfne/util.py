@@ -82,6 +82,9 @@ def validate_runtime_config(cfg: RuntimeConfig, *, strict: bool = False) -> list
         missing = _REQUIRED_HDP_KEYS - set(cfg.hdp_params)
         if missing:
             warnings.append(f"hdp_params missing keys: {sorted(missing)}")
+        from .public_surface import validate_hdp_params_semantics
+
+        warnings.extend(validate_hdp_params_semantics(cfg.hdp_params))
 
     if strict and warnings:
         raise ValueError(f"validate_runtime_config: {warnings[0]}")

@@ -28,11 +28,12 @@ class TestImportSmoke:
             make_replicated_sharding,
         )
 
-    def test_symbols_in_all(self):
+    def test_symbols_importable_experimental(self):
         import jaxfne
         for sym in ("get_sharding_context", "make_population_mesh",
                     "make_candidate_sharding", "make_replicated_sharding"):
-            assert sym in jaxfne.__all__, f"{sym!r} missing from jaxfne.__all__"
+            assert sym not in jaxfne.__all__, f"{sym!r} should not be in jaxfne.__all__"
+            assert hasattr(jaxfne, sym), f"{sym!r} must remain importable from jaxfne"
 
 
 # ---------------------------------------------------------------------------

@@ -32,17 +32,26 @@ class RuntimeConfig:
     k_gain=0 disables the feedback.
 
     HDP (Homeostasis-Dependent Plasticity): when ``enable_hdp=True``, emitters
-    use a finite-dimensional per-neuron H_i state driving
-    excitatory/inhibitory weight ODEs (see
+    use a finite-dimensional H-state representation driving adaptive updates to
+    biophysical parameter coordinates (see
     ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp``).
-    Pass ``hdp_params`` as a dict with keys {K_HDP, tau_0_ms, alpha, beta,
-    gamma, delta, C_spike, K_ctrl, barrier_c, barrier_d, h_state_dim,
-    h_state_readout, h_state_coupling}; all income/spending/control gains
-    default to 0.0 (the null control: H pinned at 1.0, no weight change).
-    ``h_state_dim=1`` preserves scalar H shape; larger values use
-    ``(n_neurons, h_state_dim)``. ``jaxfne.hdp_network.DEFAULT_HDP`` /
-    ``DEFAULT_HDP_DESYNC`` are tuned presets. Mutually exclusive with
-    ``enable_homeostasis``.
+    H-state is the latent carrier within the HDP formulation; it is not
+    synonymous with HDP itself.
+
+    ``hdp_params`` is a **compatibility transport dict**, not the conceptual
+    API. Keys are grouped semantically (see ``jaxfne.public_surface``):
+
+    - **H-state**: ``h_state_dim``, ``h_state_locality`` (``node`` | ``population``),
+      ``h_state_readout``, ``h_state_coupling``
+    - **H-dynamics**: ``hdp_rule``, income/spending/barrier coefficients,
+      ``K_HDP``, ``K_ctrl``, ``tau_0_ms``, ...
+    - **Theta-adaptation**: ``controller_*``, channel masks/bounds for adaptive
+      coordinates (Θ distinct from synaptic weight storage W)
+
+    Internal dispatch rule identifiers (e.g. population restoring controllers)
+    must not be treated as public vocabulary; use ``h_state_locality`` and the
+    grouped coefficients instead. See ``validate_hdp_params_semantics`` in
+    ``jaxfne.public_surface`` / ``validate_runtime_config``.
     """
 
     backend: str = "auto"  # "auto" | "cpu" | "gpu" | "tpu"

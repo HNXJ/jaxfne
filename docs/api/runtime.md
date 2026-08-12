@@ -39,8 +39,8 @@ requested and actual dtype policy.
 - `recompilation_guard` (str): `"warning"` | `"exception"` | `"off"`
 - `enable_homeostasis` (bool): per-neuron activity-trace feedback, default `False`
 - `homeostasis_params` (dict): `{r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max}`; `k_gain=0` disables
-- `enable_hdp` (bool): per-neuron master-state (H) plasticity controller, default `False`; mutually exclusive with `enable_homeostasis`
-- `hdp_params` (dict): includes `{K_HDP, tau_0_ms, alpha, beta, gamma, delta, C_spike, K_ctrl, K_w_ctrl, barrier_c, barrier_d}`. `K_HDP` nulls the HDP weight-modulation term; `K_ctrl` restores H toward 1; `K_w_ctrl` independently restores edge magnitude toward its declared baseline. See the [HDP guide](../guides/hdp.md) for `N_W^HDP`, `N_H`, and `N_system`.
+- `enable_hdp` (bool): H-state-mediated adaptive dynamics within the HDP family, default `False`; mutually exclusive with `enable_homeostasis`
+- `hdp_params` (dict): compatibility transport for grouped H-state / H-dynamics / Theta-adaptation keys (see [Public surface contract](../public_surface_contract.md) and `jaxfne.public_surface`). `K_HDP` nulls the weight-modulation term; `K_ctrl` restores H toward 1; population locality uses `h_state_locality="population"` (not MVC dispatch names).
 
 To change a setting, construct a new `RuntimeConfig(...)` with the desired
 fields — there is no `with_seed`/`with_dtype`/`with_device` mutator API.

@@ -147,8 +147,9 @@ class TestIsValidSignalExportedInPublicAPI:
         assert callable(jtfne.is_valid_signal)
 
     def test_in_all(self):
-        """is_valid_signal should be in __all__."""
-        assert "is_valid_signal" in jtfne.__all__
+        """is_valid_signal is advanced-tier: importable, not root __all__."""
+        assert "is_valid_signal" not in jtfne.__all__
+        assert hasattr(jtfne, "is_valid_signal")
 
 
 class TestIsValidSignalAliases:

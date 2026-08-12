@@ -1424,11 +1424,6 @@ def simulate_edge_recurrent_izhikevich_hdp(
     theta_lo = theta_hi = None
     dt_s = None
     if locality == "population":
-        if hdp_rule != "population_vector_restoring":
-            raise ValueError(
-                "population h_state_locality requires "
-                "hdp_rule='population_vector_restoring'"
-            )
         pop_layout = parse_population_restoring_layout(
             _adaptive_hp,
             edges_weight=edges.weight,

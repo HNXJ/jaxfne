@@ -27,8 +27,10 @@ class TestPyNWBPlaceholder:
         ):
             jtfne.read_nwb()
 
-    def test_pynwb_functions_in_api(self):
-        """write_nwb and read_nwb should be in public API."""
+    def test_pynwb_functions_importable_experimental(self):
+        """PyNWB placeholders remain importable but are not public exports."""
+        assert "write_nwb" not in jtfne.__all__
+        assert "read_nwb" not in jtfne.__all__
         assert hasattr(jtfne, "write_nwb")
         assert hasattr(jtfne, "read_nwb")
         assert callable(jtfne.write_nwb)

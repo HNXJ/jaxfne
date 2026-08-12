@@ -434,7 +434,10 @@ def load(path: str | Path) -> NeuronalTensor:
 
 
 def load_neuronal_tensor(path: str | Path) -> NeuronalTensor:
-    """Compatibility wrapper. Prefer :func:`load`."""
+    """Compatibility wrapper. Prefer :func:`load`.
+
+    Deprecated for 0.4.14 removal; see ``jaxfne.public_surface.COMPATIBILITY_DEPRECATIONS``.
+    """
     return load(path)
 
 
@@ -691,6 +694,8 @@ def construct_neuronal_tensor(
 
     Prefer ``jtfne.construct(tensor, RuntimeConfiguration(seed=..., ...))``
     for new code -- this kwarg-style call remains supported unchanged.
+
+    Deprecated for 0.4.14 removal; see ``jaxfne.public_surface.COMPATIBILITY_DEPRECATIONS``.
     """
     runtime = RuntimeConfiguration(seed=seed, duration_ms=duration_ms, dt_ms=dt_ms, emitter=emitter)
     return construct(tensor, runtime)

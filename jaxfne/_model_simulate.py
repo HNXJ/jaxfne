@@ -49,6 +49,9 @@ from ._model import _SOURCE_PROXY_METADATA, stimulus_schedule
 
 def _hdp_kernel_kwargs(hp: Mapping[str, Any]) -> dict[str, Any]:
     """Resolve one shared HDP parameter contract for every execution path."""
+    from ._hdp_adaptive import normalize_hdp_params_boundary
+
+    hp = normalize_hdp_params_boundary(hp)
     return {
         "H_min": hp.get("H_min", 0.1),
         "H_max": hp.get("H_max", 10.0),
