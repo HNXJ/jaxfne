@@ -92,7 +92,7 @@ distinct.
 
 | Resource | Page |
 |----------|------|
-| H-state / HDP guide | [H-state and HDP](../guides/hdp.md) |
+| RBS / RBD / HDP guide | [RBS, RBD, and HDP](../guides/hdp.md) |
 | Controllability étude | [HDP controllability / reachability](../etudes/hdp_controllability_reachability.md) |
 | Runtime `hdp_params` groups | [Runtime](runtime.md) |
 

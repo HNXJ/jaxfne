@@ -15,7 +15,7 @@ Emitter
 -> Objective
 -> Optimization
 -> structured circuit specification
--> HDP/adaptation
+-> RBS/RBD and optional HDP (hidden-state dependent plasticity)
 -> experimental physical solver only after proxy semantics are clear
 ```
 
@@ -126,9 +126,12 @@ Demonstrate deterministic neural dynamics -> source -> proxy field -> probe -> o
 
 Demonstrate Areas/Layers/NeuronTypes, geometry/connectivity, laminar readouts, and layer/cell-type accounting. Include structure-shuffle controls.
 
-### T3 — HDP adaptation and omission
+### T3 — RBS/RBD adaptation and omission
 
-Demonstrate H/weight trajectories, perturbation, recovery, omission/oddball conditions, HDP-off null, parameter/time-scale sensitivity, repeated seeds, and full-state continuation where segmented paradigms are used.
+Demonstrate RBS and optional HDP weight trajectories, perturbation, recovery,
+omission/oddball conditions, explicit nulls (`N_W^{HDP}`, `N_H`,
+`N_{\mathrm{system}}`), parameter/time-scale sensitivity, repeated seeds, and
+full \(\mathcal X_t\) continuation where segmented paradigms are used.
 
 ### T4 — Objective/optimization recovery
 

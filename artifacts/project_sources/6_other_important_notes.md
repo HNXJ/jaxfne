@@ -40,7 +40,7 @@ The repository exposes NWB-related names but current agent context records them 
 ### P0 — semantic and mathematical closure
 
 1. **`linear_solver` ambiguity.** Proxy projection and actual equation solving are semantically conflated in metadata. Preserve compatibility but introduce orthogonal operator/solver/amplitude status.
-2. **HDP continuation semantics.** Partial `(H,W)` restoration is not necessarily full recurrent-state continuation. Add a complete dynamic-state contract and equivalence test.
+2. **HDP continuation semantics.** Partial \((\mathbf H,\mathbf W)\) restoration is not necessarily full \(\mathcal X_t\) continuation (see `4_tfne_theory_and_neural_tensor.md` §2.3, §8.6), including delay history \(\mathcal B_t\) when edge delays are enabled. Add a complete dynamic-state contract and equivalence test.
 3. **HDP long-run stability domain.** The repository itself documents `K_w_ctrl` sensitivity/preset-specific stability concerns. Establish supported parameter domains and boundedness evidence rather than generalizing from short runs.
 4. **Source proxy duplicated gain.** The repo context identifies a hard-coded spike/source gain that must remain synchronized across dense/edge kernels. Centralize it or property-test equivalence.
 5. **Competing context grammars.** Retire old API grammars from current project sources.
@@ -129,7 +129,7 @@ Purpose: demonstrate that a declared objective can recover a known synthetic par
 Required controls across the matrix:
 
 ```text
-HDP weight-update null, H-state null, or full-system null as appropriate
+HDP weight-update null, RBS-dynamics null (`N_H`), or full-system null as appropriate
 structure shuffle
 cell-type/layer shuffle where meaningful
 source/readout ablation
@@ -174,7 +174,7 @@ jaxfne provides a typed, differentiable computational factorization that separat
 3. **JAX execution** — recurrence, batching, PRNG, differentiability and complexity discipline.
 4. **Source/readout hierarchy** — native/normalized/calibrated source ladder; proxy vs PDE operator distinction.
 5. **Objectives and optimization** — gated metrics, nulls, bounded search/gradient paths.
-6. **HDP** — state equations, timescales, stability domain, continuation semantics and nulls.
+6. **RBS/RBD/HDP** — RBS definition, RBD with optional fixed \(W\), HDP plasticity subset, timescales, stability domain, full \(\mathcal X_t\) continuation semantics and nulls (`artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` §8).
 7. **Validation** — mathematical properties, numerical tests, repeated seeds, ablations and convergence.
 8. **Experiments** — EI, laminar, HDP/oddball, parameter recovery.
 9. **Scope and limitations** — proxy semantics, calibration boundary, experimental solver status, mechanism-claim boundary.
@@ -200,19 +200,15 @@ truth/readout status ontology
 
 Success means new emitters/readouts can be added without changing the conceptual grammar.
 
-### Stage 2 — HDP as a rigorously characterized dynamical family
+### Stage 2 — RBS/RBD/HDP as a rigorously characterized dynamical family
 
-Develop:
+Develop equilibrium analysis, local stability, timescale separation,
+boundedness domains, omission/global-local oddball predictions, and comparison
+against simpler adaptation alternatives. HDP is the plasticity subset
+(\(F_W\)); RBD with \(\dot W=0\) remains in scope.
 
-- equilibrium analysis;
-- local stability/Jacobian analysis on minimal EI systems;
-- timescale separation studies;
-- boundedness domains;
-- bifurcation/sensitivity maps where useful;
-- omission/global-local oddball predictions;
-- comparison against simpler adaptation/homeostasis alternatives.
-
-The goal is not to declare HDP biologically true; it is to make its mathematical predictions precise and falsifiable.
+The goal is not to declare the equations biologically true; it is to make
+mathematical predictions precise and falsifiable.
 
 ### Stage 3 — calibrated source bridges
 

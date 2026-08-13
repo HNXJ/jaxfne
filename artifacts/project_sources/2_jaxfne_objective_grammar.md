@@ -99,8 +99,9 @@ Every publication-facing objective should have at least one meaningful null/cont
 
 - shuffled layer labels;
 - shuffled cell-type labels;
-- HDP weight-update null (`N_W^{HDP}`), H-state null (`N_H`), or full-system
-  null (`N_system`) as defined by the selected kernel; never infer one from
+- HDP weight-update null (`N_W^{HDP}`), RBS-dynamics null (`N_H`), or
+  full-system null (`N_{\mathrm{system}}`) as defined in
+  `4_tfne_theory_and_neural_tensor.md` §8.4; never infer one from
   `K_HDP=0` alone;
 - source-map ablation;
 - field/readout operator ablation;
@@ -149,9 +150,10 @@ Where gradient-free, the same objective report contract applies. AGSDR or any ot
 
 Gradient checks should compare autodiff with finite differences on small deterministic problems before relying on gradients for publication claims.
 
-## 9. HDP objectives
+## 9. RBS/RBD/HDP objectives
 
-For HDP, distinguish at least:
+For kernels with Relative Biophysical State (RBS) and optional Hidden-state
+Dependent Plasticity (HDP), distinguish at least:
 
 1. regulation/stability objectives;
 2. adaptation/recovery objectives;

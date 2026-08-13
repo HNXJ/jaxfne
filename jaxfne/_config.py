@@ -603,7 +603,7 @@ class Configuration:
         return replace(self, metadata=metadata)
 
     def hdp(self, relative_baseline: float = 1.0, **kwargs: Any) -> "Configuration":
-        """Declare an HDP (Homeostasis-Dependent Plasticity) baseline, mirroring
+        """Declare an HDP (Hidden-state Dependent Plasticity) baseline, mirroring
         :meth:`homeostasis`.
 
         ``relative_baseline=1.0`` is the identity/neutral setting: it leaves

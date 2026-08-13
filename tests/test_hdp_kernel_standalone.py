@@ -1,4 +1,4 @@
-"""Standalone tests for the HDP (Homeostasis-Dependent Plasticity) kernel.
+"""Standalone tests for the HDP (Hidden-state Dependent Plasticity) kernel.
 
 Exercises jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp directly
 (no Configuration/Model layer), matching the existing

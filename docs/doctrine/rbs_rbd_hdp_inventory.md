@@ -1,8 +1,9 @@
 # RBS/RBD/HDP semantic inventory (read-only)
 
-**Checkout:** `dev` @ `58cafef` (published `v0.4.15`) + uncommitted Protocol D₀/D₁  
+**Checkout:** `dev` @ `724aa32` (post D₀/D₁)  
 **Inventory date:** 2026-08-13  
-**Status:** read-only classification — **no terminology migration applied**
+**Migration executed:** 2026-08-13 (semantic refactor commit pending)  
+**Status:** inventory record — see `docs/doctrine/rbs_rbd_hdp.md` for current doctrine
 
 Target doctrine: [`rbs_rbd_hdp.md`](rbs_rbd_hdp.md)  
 Upstream authority (pending revision): `artifacts/project_sources/*.md`

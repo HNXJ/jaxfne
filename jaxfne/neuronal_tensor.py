@@ -722,7 +722,7 @@ def _construct_neuronal_tensor_impl(
     Each connection's ``PlasticParams.H`` is aggregated (mean, across every
     connection whose target layer/cell_type touches a given neuron;
     untouched neurons default to the HDP equilibrium ``1.0``) into a
-    per-neuron initial homeostatic state, applied via
+    per-neuron initial RBS (``h_state`` API), applied via
     :meth:`Model.with_hdp_initial_state`. This is stored but inert unless
     the caller separately enables HDP (``cfg.hdp(...)`` before
     :func:`jaxfne.construct`, or via a post-hoc ``RuntimeConfig`` override at

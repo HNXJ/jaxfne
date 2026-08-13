@@ -400,8 +400,8 @@ keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1
 
 ### `simulate_edge_recurrent_izhikevich_hdp(...) -> (voltages, spikes, sources, diagnostics_dict)`
 
-As `simulate_edge_recurrent_izhikevich`, plus Homeostasis-Dependent Plasticity (HDP): a
-per-neuron finite-dimensional hidden biophysical H-state `H_i` (default scalar
+As `simulate_edge_recurrent_izhikevich`, plus **Hidden-state Dependent Plasticity (HDP)**:
+per-neuron Relative Biophysical State (RBS) coordinates `H_i` (default scalar
 1.0, clamped to `[H_min, H_max]`) that both synaptic
 drive and the neuron's own spiking feed back into, and that drives a weight-update rule selected
 by `hdp_rule` (`"signed_linear"` default, or `"signed_quadratic"`, `"hebbian_product"`)

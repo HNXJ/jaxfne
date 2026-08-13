@@ -21,8 +21,8 @@ CircuitSpec -> construct -> Model -> simulate -> Signals
 ## Mathematical invariants
 
 - Internal quantities may remain relative. Absolute units arise through explicit calibration transformations at semantic boundaries.
-- H is a finite-dimensional hidden biophysical state. Do not define H intrinsically as homeostasis or as a scalar. Specific H dynamics may encode homeostatic-like state, timing traces, ions, transmitters, resources, neuromodulators, or other sufficient latent variables.
-- General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. Particular plasticity/adaptation rules are realizations of this grammar, not separate architectural subsystems by default.
+- **RBS (Relative Biophysical State):** `H` is a finite-dimensional relative hidden biophysical state — not intrinsically homeostasis and not intrinsically a scalar. Coordinates may be normalized ratios \(z/z^\*\) or reduced \(\mathcal R(\mathbf z)\). **RBD** is dynamics of \(\mathbf x\) and \(\mathbf H\); **HDP** is hidden-state dependent plasticity (\(\dot W\)). Homeostasis is a possible regime of selected kernels (e.g. `homeostatic_ei`), not the definition of `H`. Authority: `docs/doctrine/rbs_rbd_hdp.md`, `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`.
+- General adaptive dynamics are conceptually `dX/dt = F_X`, `dH/dt = F_H`, `dTheta/dt = F_Theta`. RBD with fixed `W` is valid; plasticity rules are realizations of this grammar, not separate architectural subsystems by default.
 - Preserve biological identity, topology, signs, receptor/mechanism identity, geometry, locality, and declared parameter ownership through compilation and optimization.
 - Source, field, probe, objective, and calibration semantics remain explicit. A projection, proxy, PDE solve, calibration, and validation status are distinct concepts.
 

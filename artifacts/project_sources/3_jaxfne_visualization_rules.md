@@ -118,6 +118,6 @@ If a simulation fails validity checks, figures should not hide the failure throu
 - PSD/spectrolaminar summaries;
 - objective component traces;
 - optimizer convergence/search diagnostics;
-- HDP H/weight/rate trajectories;
+- RBS/weight/rate trajectories (HDP diagnostics when plasticity enabled);
 - null/ablation comparisons;
 - validation/convergence plots for experimental solvers.

@@ -85,7 +85,7 @@ that kernel. The migration applies to **generic** `H` doctrine:
 H_{\text{generic}}:\quad \text{“homeostatic state”}\rightarrow\text{RBS},
 \qquad
 \text{not}\quad
-\text{homeostasis}\rightarrow\text{forbidden word}.
+\text{homeostasis}\rightarrow\text{definition of }H.
 \]
 
 ## 2. RBD — Relative Biophysical Dynamics

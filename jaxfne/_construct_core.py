@@ -343,7 +343,7 @@ def _simulate_hdp_metadata(
     """``Model.simulate()`` helper: the HDP metadata sub-block.
 
     Called only when ``runtime_cfg.enable_hdp`` is True. Framing: a
-    finite-dimensional per-neuron H-state plasticity controller -- a
+    finite-dimensional per-neuron RBS plasticity controller (``h_state`` API) -- a
     COMPUTATIONAL method, NOT a biological mechanism, matching the
     homeostasis controller's claim discipline.
     """

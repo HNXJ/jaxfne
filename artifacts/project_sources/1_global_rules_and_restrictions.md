@@ -125,7 +125,16 @@ Readouts such as LFP-like, CSD-like, EEG-like, MEG-like, EMM proxy, and spectrol
 
 ## 9. State-continuation discipline
 
-A recurrent simulation continuation is valid only if the carried state is sufficient for the Markov state of the selected kernel. For HDP/recurrent dynamics this may include membrane state, recovery state, previous spikes, synaptic state, H state, and weights. Restoring only `H` and `W` is partial homeostatic/parameter initialization unless equivalence to full continuation is proven.
+A recurrent simulation continuation is valid only if the carried state is
+sufficient for the Markov state of the selected kernel. Authority:
+`artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` §2.3.
+
+For RBD/HDP recurrent dynamics this may include membrane state, recovery
+state, previous spikes, synaptic filter state, **Relative Biophysical State
+(RBS)** coordinates \(\mathbf H\), weights \(\mathbf W\), and **delay history
+\(\mathcal B_t\)** when finite edge delays are enabled. Restoring only
+\((\mathbf H,\mathbf W)\) is partial hidden-state/parameter initialization
+unless equivalence to full \(\mathcal X_t\) continuation is proven.
 
 ## 10. Documentation and context discipline
 

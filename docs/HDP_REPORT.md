@@ -1,5 +1,9 @@
 # HDP (Homeostasis-Dependent Plasticity) — Implementation Report
 
+> **Historical (pre–RBS/RBD migration):** title uses legacy HDP expansion.
+> Current doctrine: Hidden-state Dependent Plasticity; RBS/RBD/HDP hierarchy
+> in `docs/doctrine/rbs_rbd_hdp.md`.
+
 **Status:** Technical report · computational-control method, not a biological
 mechanism claim · 2026-06-24
 Scope: computational-control proxy (not a biological mechanism claim) — see [Scope & status](scope_and_status.md).

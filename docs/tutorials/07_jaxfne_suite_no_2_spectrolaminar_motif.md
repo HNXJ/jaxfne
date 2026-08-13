@@ -161,12 +161,12 @@ superficial-γ crossing requires band-limited **oscillations** localized by laye
 while global κ stays low — see `skills/jaxfne-spectrolaminar-suite/SKILL.md`.
 Multi-trial averaging and ≥1k neurons help **estimate** the readout, not create the regime.
 
-## Homeostasis-Dependent Plasticity (HDP) for long-duration spectrolaminar runs
+## Hidden-state Dependent Plasticity (HDP) for long-duration spectrolaminar runs
 
 The two readout prerequisites above — low synchrony and balanced per-layer rates —
 get harder to hold by hand as run duration grows: a drive correction tuned at a short
 window can drift out of the target rate band over a longer one, and weight plasticity
-left unconstrained can run away. **Homeostasis-Dependent Plasticity (HDP)** is
+left unconstrained can run away. **Hidden-state Dependent Plasticity (HDP)** is
 a per-neuron master state `H_i` (default 1.0) that all of a neuron's incoming
 excitatory/inhibitory weight updates read from, and that synaptic drive and the
 neuron's own spiking feed back into — keeping a population stationary over many

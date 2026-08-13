@@ -223,7 +223,7 @@ _CANONICAL: Final[frozenset[str]] = frozenset(
         "optax_sgd",
         "random_search",
         "require_optax",
-        # HDP family (H-state is the latent representation; not identical to HDP theory)
+        # HDP family (RBS / h_state_* are compatibility API names for hidden state)
         "DEFAULT_HDP",
         # Emitters (family types, not low-level kernels)
         "Emitter",
@@ -448,10 +448,10 @@ def validate_hdp_params_semantics(
     *,
     strict: bool = False,
 ) -> list[str]:
-    """Validate ``hdp_params`` semantic grouping and public H-state contracts."""
+    """Validate ``hdp_params`` semantic grouping and public RBS (``h_state_*``) contracts."""
     issues: list[str] = []
     if not isinstance(hdp_params, dict):
-        msg = "hdp_params must be a dict (compatibility transport for H-state groups)"
+        msg = "hdp_params must be a dict (compatibility transport for RBS/h_state groups)"
         return [msg] if strict else issues
 
     unknown = set(hdp_params) - KNOWN_HDP_PARAM_KEYS

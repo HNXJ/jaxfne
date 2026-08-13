@@ -31,17 +31,17 @@ class RuntimeConfig:
     as a dict with keys {r_star, tau_r_ms, alpha, k_gain, g_min, g_max, r_max};
     k_gain=0 disables the feedback.
 
-    HDP (Homeostasis-Dependent Plasticity): when ``enable_hdp=True``, emitters
-    use a finite-dimensional H-state representation driving adaptive updates to
-    biophysical parameter coordinates (see
+    HDP (Hidden-state Dependent Plasticity): when ``enable_hdp=True``, emitters
+    use a finite-dimensional RBS representation (public API: ``h_state_*``)
+    driving adaptive updates to biophysical parameter coordinates (see
     ``jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp``).
-    H-state is the latent carrier within the HDP formulation; it is not
-    synonymous with HDP itself.
+    RBS is the latent carrier within the HDP formulation; it is not
+    synonymous with HDP itself and not intrinsically homeostatic.
 
     ``hdp_params`` is a **compatibility transport dict**, not the conceptual
     API. Keys are grouped semantically (see ``jaxfne.public_surface``):
 
-    - **H-state**: ``h_state_dim``, ``h_state_locality`` (``node`` | ``population``),
+    - **RBS (``h_state_*``)**: ``h_state_dim``, ``h_state_locality`` (``node`` | ``population``),
       ``h_state_readout``, ``h_state_coupling``
     - **H-dynamics**: ``hdp_rule``, income/spending/barrier coefficients,
       ``K_HDP``, ``K_ctrl``, ``tau_0_ms``, ...
@@ -74,8 +74,8 @@ class RuntimeConfig:
         "g_max": 8.0,
         "r_max": 1.0,
     })  # Homeostasis parameters; k_gain=0 disables, default 1.0 is a gentle in-band nudge
-    enable_hdp: bool = False  # Enable Homeostasis-Dependent Plasticity (per-neuron
-    # master state H_i driving excitatory/inhibitory weight ODEs); see
+    enable_hdp: bool = False  # Enable Hidden-state Dependent Plasticity (per-neuron
+    # RBS H_i driving excitatory/inhibitory weight ODEs); see
     # jaxfne.emitters.simulate_edge_recurrent_izhikevich_hdp and
     # jaxfne.hdp_network.DEFAULT_HDP / DEFAULT_HDP_DESYNC for tuned presets.
     # Mutually exclusive with enable_homeostasis (distinct controllers).

@@ -1,16 +1,39 @@
-# H-state and HDP (Homeostasis-Dependent Plasticity)
+# RBS, RBD, and HDP
 
-**H-state** is a finite-dimensional hidden biophysical state \(H\) carried with
-the neural dynamics. **HDP** is the adaptive dynamical formulation that uses
-\(H\) to drive updates to adaptive parameter coordinates \(\Theta\) (synaptic
-weights, intrinsic parameters, and other declared channels). H-state is the
-latent representation; HDP is the family of laws that act through it.
+**Relative Biophysical State (RBS)** is a finite-dimensional hidden biophysical
+state \(\mathbf H_i(t)\in\mathbb R^{d_H}\) carried with the neural dynamics.
+**Relative Biophysical Dynamics (RBD)** is the coupled evolution of activity
+\(\mathbf x\) and RBS. **HDP (Hidden-state Dependent Plasticity)** is the
+optional subset in which persistent parameters (e.g. synaptic weights) evolve
+from RBS and activity:
 
 \[
-\dot X = F_X(X,H,\Theta,U),\qquad
-\dot H = F_H(H,X,\Theta,U),\qquad
-\dot\Theta = F_\Theta(H,X,\Theta).
+\dot{\mathbf x}_i = F_x(\mathbf x_i,\mathbf I_i;\mathbf H_i),
+\qquad
+\dot{\mathbf H}_i = F_H(\mathbf H_i,\mathbf x_i,\mathbf I_i,\ldots),
+\qquad
+\dot{\mathbf W} = F_W(\mathbf W,\mathbf H,\mathbf x,\ldots)\quad\text{(HDP only)}.
 \]
+
+RBS is **relative biophysical state**, not necessarily a normalized copy of
+individually identifiable physical variables. Coordinates may be
+\(H_k=z_k/z_k^\star\) or reduced \(H_k=\mathcal R_k(\mathbf z)\). Homeostasis
+is a possible **regime** of selected \(F_H\) or kernel-specific mechanisms (see
+[Homeostasis](homeostasis.md), `homeostatic_ei`); it is **not** the definition
+of RBS.
+
+RBD remains meaningful with \(\dot W=0\). Adaptation, memory, and delayed
+recurrent coupling are RBD phenomena and do not require plasticity.
+
+Full Markov continuation requires the complete dynamical state
+\(\mathcal X_t=(\mathbf x_t,\mathbf H_t,\mathbf W_t,\mathcal B_t,\ldots)\),
+including delay history \(\mathcal B_t\) when finite edge delays are enabled
+(Protocol D). See `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md`
+§2.3 and `docs/doctrine/rbs_rbd_hdp.md`.
+
+Public API names (`enable_hdp`, `hdp_params`, `DEFAULT_HDP`, `h_state_*`) are
+compatibility surfaces; the acronym **HDP** denotes Hidden-state Dependent
+Plasticity.
 
 `enable_homeostasis` and `enable_hdp` are mutually exclusive `RuntimeConfig`
 fields.
@@ -20,10 +43,10 @@ For the principal executable generalized-\(H\) demonstration, see the
 
 ## Locality and shape
 
-| locality | \(H\) shape | role |
-|----------|-------------|------|
-| `node` | \((N, d_H)\) or \((N,)\) when \(d_H=1\) | per-neuron H-state on the edge-list kernel |
-| `population` | \((d_H,)\) for a single population summary | population-local H-state (supported \(d_H=2\) in current release) |
+| locality | RBS \(H\) shape | role |
+|----------|-----------------|------|
+| `node` | \((N, d_H)\) or \((N,)\) when \(d_H=1\) | per-neuron RBS on the edge-list kernel |
+| `population` | \((d_H,)\) for a single population summary | population-local RBS (supported \(d_H=2\) in current release) |
 
 Public population semantics: set `h_state_locality="population"` with the
 adaptive-parameter coefficients (`controller_*`, channel masks, bounds).
@@ -34,12 +57,13 @@ rule identifiers.
 
 | capability | status |
 |------------|--------|
-| Node-local H-state continuation (`DynamicState`, `return_state=True`) | supported for scalar and vector \(d_H\) on the edge-list HDP kernel |
-| Population-local H-state continuation | not supported in 0.4.13 (explicit error) |
+| Node-local RBS continuation (`DynamicState`, `return_state=True`) | supported for scalar and vector \(d_H\) on the edge-list HDP kernel |
+| Population-local RBS continuation | not supported in 0.4.13+ (explicit error) |
+| Continuation with nonzero edge delays | not supported until \(\mathcal B_t\) carry is implemented |
 
-## Scalar node HDP (compatibility form)
+## Scalar node HDP kernel (compatibility form)
 
-The scalar node realization uses one coordinate per neuron, \(d_H=1\), and
+The scalar node realization uses one RBS coordinate per neuron, \(d_H=1\), and
 couples activity, synaptic budget, and weight adaptation in one loop. The
 generalized contract supports \(d_H>1\) with optional readout and coupling.
 
@@ -69,25 +93,24 @@ dm_ij/dt = q_ij * K_HDP * phi(Delta_H_ij) * m_ij
 For the difference family, `phi(x) = x` for `signed_linear` and
 `phi(x) = x*abs(x)` for `signed_quadratic`. `hebbian_product` is a separate
 product modulation with `phi = H_pre*H_post`; it does not compare pre/post
-homeostatic state.
+RBS coordinates.
 
-Use explicit null names:
+Use explicit null names (see `4_tfne_theory_and_neural_tensor.md` §8.4):
 
 ```
 N_W^HDP       K_HDP * phi(Delta_H_ij) * m_ij = 0
-N_H           dH_i/dt = 0 and C_spike * spike_i = 0
-N_system      (X, W, H)_HDP == (X, W, H)_baseline
-              under matched initial state, inputs, and PRNG
+N_H           dH_i/dt = 0 and C_spike * spike_i = 0   (RBS-dynamics null)
+N_system      full X_t, W match baseline under matched PRNG/inputs
 ```
 
 `K_HDP=0` nulls the difference/product weight term, but does not disable the
-H equation or `K_w_ctrl`. `K_ctrl` and `K_w_ctrl` are independent controls:
+RBS equation or `K_w_ctrl`. `K_ctrl` and `K_w_ctrl` are independent controls:
 the former restores `H` toward 1, while the latter restores edge magnitude
 `m_ij` toward its declared baseline `m0_ij`.
 
-### Generalized H-state
+### Generalized RBS
 
-The general H-state associated with entity `i` is:
+The general RBS associated with entity `i` is:
 
 $$H_i(t)\in\mathbb{R}^{d_H}.$$
 
@@ -111,9 +134,7 @@ readout:
 $$h_i=R_H(H_i).$$
 
 The initial implementation supports the linear form `r^T H_i`, configured with
-`h_state_readout`; when omitted, the first coordinate is selected. The readout
-serves the current scalar weight rule while the general H-state contract
-remains vector-valued for future adaptation rules.
+`h_state_readout`; when omitted, the first coordinate is selected.
 
 ```python
 runtime_hdp = jtfne.RuntimeConfig(
@@ -168,15 +189,15 @@ diag = model.last_hdp_diagnostics()   # {"H_trace": ..., "w_trace": ..., ...}
 
 | Key | Meaning |
 |-----|---------|
-| `K_HDP` | Gain on the selected difference/product weight term (`0` = `N_W^HDP`; does not disable H dynamics or `K_w_ctrl`) |
+| `K_HDP` | Gain on the selected difference/product weight term (`0` = `N_W^HDP`; does not disable RBS dynamics or `K_w_ctrl`) |
 | `tau_0_ms` | Base time constant multiplying `size_i**3` (cube law) |
 | `size_scale_by_cell_type`, `size_scale_override` | Per-cell-type (or per-neuron) `size_i` for the cube-law `tau_i`; must be forwarded explicitly — see note below |
-| `alpha`, `beta`, `gamma`, `delta`, `C_spike` | H income/spending terms; `C_spike` is the discrete spike drain |
-| `rho_passive` | Passive H income term, stronger at low positive H |
-| `K_ctrl` | H-state restoring control gain pulling `H_i` back toward 1.0 |
+| `alpha`, `beta`, `gamma`, `delta`, `C_spike` | RBS income/spending terms; `C_spike` is the discrete spike drain |
+| `rho_passive` | Passive RBS income term, stronger at low positive H |
+| `K_ctrl` | RBS restoring control gain pulling `H_i` back toward 1.0 |
 | `K_w_ctrl` | Independent edge-magnitude restoring gain toward `abs(edges.weight)` |
 | `barrier_c`, `barrier_d` | Barrier-term coefficients near the `H_min`/`H_max` clamps |
-| `h_state_dim` | H-state dimensionality; `1` keeps legacy `(n_neurons)`, larger values use `(n_neurons, h_state_dim)` |
+| `h_state_dim` | RBS dimensionality; `1` keeps legacy `(n_neurons)`, larger values use `(n_neurons, h_state_dim)` |
 | `h_state_readout` | Linear readout vector for the current scalar HDP weight rule; defaults to the first coordinate |
 | `h_state_coupling` | Optional square component-coupling matrix; omitted means zero coupling |
 | `record_weight_trace` | Default `True`. Set `False` to skip stacking the per-step, per-edge weight trace (`w_trace`) -- see below |
@@ -206,38 +227,17 @@ $$C(H) = \frac{\text{barrier\_c}}{H - H_{min}} + \frac{\text{barrier\_d}}{H_{max
 to `dH/dt` (as `-dC/dH`), repelling `H` from both clamp boundaries. Setting
 `dC/dH = 0` gives the potential's minimum:
 
-$$\frac{\text{barrier\_c}}{(H-H_{min})^2} = \frac{\text{barrier\_d}}{(H_{max}-H)^2}$$
-
-Solving for the minimum to sit exactly at the target equilibrium `H* = 1`
-requires:
-
 $$\frac{\text{barrier\_d}}{\text{barrier\_c}} = \left(\frac{H_{max}-1}{1-H_{min}}\right)^2$$
 
-At the canonical `H_min=0.1`, `H_max=10.0`, this ratio is `((10-1)/(1-0.1))^2 = 100`.
-This is a property of the barrier potential *alone* (independent of `alpha`/
-`beta`/`gamma`/`delta`/`K_ctrl`/`rho_passive`), and it holds regardless of the
-network, the drive, or any other simulation parameter -- a genuine
-force-balance result, not a tuned/empirical fact. It is not a
-proof of coupled-system convergence or asymptotic stability. **`jaxfne.hdp_network.DEFAULT_HDP`
-ships `barrier_c=barrier_d=0.01` (ratio 1, not 100)** -- solving the same
-minimum-condition equation with equal coefficients gives a pure-barrier
-equilibrium of `H ≈ 5.05`, not `1.0`. `DEFAULT_HDP`'s real recovery-to-1
-comes from its `K_ctrl=5.0` linear restoring term, not the barrier; the
-barrier there is a boundary safety net, dormant under normal operation
-(confirmed: `tests/test_hdp_barrier_equilibrium.py` reproduces both the
-ratio-100 (`H→1.0`) and ratio-1 (`H→5.05`) cases directly against the
-kernel, with everything else (`alpha=beta=gamma=delta=K_ctrl=rho_passive=0`)
-held at the null so the barrier is the only active force).
+Solving for the minimum to sit exactly at the target equilibrium `H* = 1`
+requires ratio \(100\) at canonical `H_min=0.1`, `H_max=10.0`. See
+`tests/test_hdp_barrier_equilibrium.py`.
 
 ## Tensor-first: enabling HDP on a NeuronalTensor-built Model
 
 The recipe above builds the `Model` via `Configuration`. HDP works identically
-on a `Model` built from a `NeuronalTensor` (the declarative `Areas x Layers x
-NeuronTypes` data model — see [`docs/api/neuronal_tensor.md`](../api/neuronal_tensor.md)):
-construct the tensor with `RuntimeConfiguration` (which has no HDP field),
-then pass an explicit `runtime=RuntimeConfig(enable_hdp=True, ...)` override
-to `simulate()` — this works with zero new public API because the explicit
-`runtime=` kwarg overrides any `Configuration`-derived metadata entirely:
+on a `Model` built from a `NeuronalTensor` — pass an explicit
+`runtime=RuntimeConfig(enable_hdp=True, ...)` override to `simulate()`:
 
 ```python
 import jaxfne as jtfne
@@ -251,60 +251,41 @@ model = jtfne.construct(tensor, jtfne.RuntimeConfiguration(seed=0, duration_ms=1
 
 runtime_hdp = jtfne.RuntimeConfig(enable_hdp=True, hdp_params={
     "K_HDP": 0.01, "tau_0_ms": 200.0, "K_ctrl": 5.0,
-    "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0},   # tau_i = tau_0_ms * size_i**3
+    "size_scale_by_cell_type": {"E": 2.0, "PV": 1.0},
 })
 signals = jtfne.simulate(model, duration_ms=1000.0, dt_ms=0.5, seed=0, runtime=runtime_hdp)
 diag = model.last_hdp_diagnostics()
 ```
 
-`size_scale_by_cell_type`/`size_scale_override` are free-form `hdp_params`
-keys — they must be explicitly forwarded by `core.py`'s internal HDP dispatch
-to reach the kernel (fixed 2026-06-25; previously silently dropped). Verify
-with `grep -n size_scale_by_cell_type jaxfne/core.py` before relying on a new
-`hdp_params` key reaching the simulation.
-
 ## Fluent verb
 
 `Configuration.hdp(relative_baseline=1.0, **kwargs)` mirrors
 `Configuration.homeostasis(...)`: `relative_baseline=1.0` is the identity
-baseline (`enable_hdp=False`, unchanged `simulate()` output); deviating from
-`1.0` (or passing any `hdp_params` override) resolves
-`K_HDP = relative_baseline - 1.0` and activates the controller. The spec is
-visible in `manifest()["hdp"]` from the first call.
-
-```python
-cfg = jtfne.Configuration()...hdp(K_HDP=0.01, alpha=0.05, gamma=0.5, K_ctrl=0.15)
-```
+baseline (`enable_hdp=False`); deviating activates the HDP controller. The spec
+is visible in `manifest()["hdp"]` from the first call.
 
 ## Tuned presets
 
-`jaxfne.hdp_network.DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` are frozen, verified
-starting points for a canonical laminar column (see
-`jaxfne/hdp_network.py` docstrings for the stability/desync tradeoffs each was
-tuned for) — never merge them; pick the one matching your goal
-(long-term-stable vs. faster-desynchronizing `H` dynamics).
+`jaxfne.hdp_network.DEFAULT_HDP` and `DEFAULT_HDP_DESYNC` are frozen,
+verified starting points — see `jaxfne/hdp_network.py` docstrings.
 
 ## Stability
 
-The built-in kernel hard-bounds its state (`v`/`u`/synaptic variables, `H_i`
-clamped to `[H_min, H_max]`, weights clamped to `[w_floor, w_ceiling]`) so the
-state remains numerically bounded even under extreme drive — verified in
-`tests/test_homeostatic_stability_v042.py`'s HDP parity tests.
-Bounded is not synonymous with locally stable, asymptotically stable, or
-empirically stable over a specified horizon.
+The built-in kernel hard-bounds its state so trajectories remain numerically
+finite under extreme drive — verified in
+`tests/test_homeostatic_stability_v042.py`. Bounded is not synonymous with
+locally stable, asymptotically stable, or empirically stable over a specified
+horizon.
 
 ## Using it as evidence
 
-The H-state and HDP weight-term nulls are separate controls for clean
-ablation comparisons; neither should be called full-system null equivalence.
-`scripts/ed9_hdp_evidence.py` runs a 3-way ablation grid
-(`null` / `h_dynamics` / `both`) over repeated seeds on a
-deliberately imbalanced column and reports rate-spread reduction alongside
-`H_mean`/`H_std`, with the same conservative truth gates as
-`scripts/ed9_homeostasis_evidence.py`.
+The RBS-dynamics null (`N_H`) and HDP weight-term null (`N_W^HDP`) are separate
+controls; neither is full-system null equivalence.
+`scripts/ed9_hdp_evidence.py` runs a 3-way ablation grid over repeated seeds.
 
 ## See also
 
-- [Homeostasis](homeostasis.md) — the simpler, single-dial excitability controller.
-- [Configuration Grammar](configuration_grammar.md) — where the runtime and emitter fit in the chain.
-- [HDP controllability / reachability étude](../etudes/hdp_controllability_reachability.md) — principal executable generalized-\(H\) demonstration with committed metrics
+- [Doctrine: RBS/RBD/HDP](../doctrine/rbs_rbd_hdp.md)
+- [Homeostasis](homeostasis.md) — kernel-specific homeostatic excitability controller (distinct from generic RBS)
+- [Configuration Grammar](configuration_grammar.md)
+- [HDP controllability / reachability étude](../etudes/hdp_controllability_reachability.md)

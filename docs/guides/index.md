@@ -11,7 +11,7 @@ field proxies, tuning objectives, and exporting manifests.
 ## Plasticity and homeostasis
 
 - **[Homeostasis](homeostasis.md)** — the minimal computational excitability controller (single `k_gain` dial)
-- **[H-state and HDP](hdp.md)** — latent \(H\) representation and adaptive parameter dynamics \(\Theta\); population locality and continuation scope
+- **[RBS, RBD, and HDP](hdp.md)** — Relative Biophysical State, dynamics, and optional hidden-state dependent plasticity; population locality and continuation scope
 
 ## Showcases
 

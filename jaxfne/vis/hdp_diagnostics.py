@@ -1,6 +1,5 @@
-"""Rendering helpers for the HDP (homeostatic-dynamic-plasticity) diagnostic
-scripts under ``scripts/hdp_*.py`` and the standalone 5 Hz sweep/verify
-scripts.
+"""Rendering helpers for HDP (Hidden-state Dependent Plasticity) diagnostic
+scripts under ``scripts/hdp_*.py`` and related sweep/verify scripts.
 
 These plain functions take pre-extracted NumPy/JAX-host arrays (or simple
 dict/list records the calling script already built) and return a matplotlib
@@ -9,8 +8,8 @@ of direct ``matplotlib`` imports, per the package-wide vis-isolation rule
 (all rendering lives under ``jaxfne.vis``).
 
 Evaluated as an uncalibrated computational scaffold; all readouts here are
-simulated proxy diagnostics of the HDP homeostatic-plasticity controller,
-not physical measurements or biological mechanism claims.
+simulated proxy diagnostics of the HDP controller (RBS trajectories and
+weight traces), not physical measurements or biological mechanism claims.
 """
 from __future__ import annotations
 

@@ -1374,7 +1374,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
-    # Homeostasis-Dependent Plasticity (HDP) parameters. With the default
+    # Hidden-state Dependent Plasticity (HDP) parameters. With the default
     # zero H-driving terms, H_i stays at its 1.0 initial value and the
     # difference/product weight term is null regardless of K_HDP. This is the
     # default H-state/weight-term null, not a general full-system equivalence.
@@ -1424,12 +1424,14 @@ def simulate_edge_recurrent_izhikevich_hdp(
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate Izhikevich emitters with sparse recurrent synapses and HDP.
 
-    Homeostasis-Dependent Plasticity (HDP) carries a per-neuron state ``H_i``.
-    The legacy scalar state has shape ``(n_neurons,)``; a generalized state has
-    shape ``(n_neurons, h_state_dim)``. Componentwise H dynamics are the
-    default, with optional explicit linear coupling. The current weight rules
-    consume a configurable readout of the generalized state; this is a
-    compatibility projection, not the definition of the H-state abstraction.
+    **Hidden-state Dependent Plasticity (HDP)** carries per-neuron Relative
+    Biophysical State (RBS) coordinates ``H_i`` (public/API field names retain
+    ``H``/``h_state_*`` for compatibility). The legacy scalar state has shape
+    ``(n_neurons,)``; a generalized state has shape ``(n_neurons, h_state_dim)``.
+    Componentwise RBS dynamics are the default, with optional explicit linear
+    coupling. The current weight rules consume a configurable readout of the
+    generalized state; this is a compatibility projection, not the definition
+    of RBS.
 
         I_syn_i = sum_j w_ji * x_j                              (incoming synaptic current; this module's existing ``syn``)
         W_i     = sum_j |w_ij|                                  (i's own outgoing synaptic burden)
@@ -1454,7 +1456,7 @@ def simulate_edge_recurrent_izhikevich_hdp(
 
     ``signed_linear`` and ``signed_quadratic`` are the difference-family HDP
     rules.  ``hebbian_product`` is a separate product modulation: it does not
-    compare pre/post homeostatic state and is not sign-equivalent to either
+    compare pre/post RBS coordinates and is not sign-equivalent to either
     difference rule.
 
     ``gamma*H_i*r_i`` is an H-taxed output drain: firing costs more for neurons
