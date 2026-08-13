@@ -3,9 +3,11 @@
 Repository-facing realization of the jaxfne hidden-state refactor. **Upstream
 authority:** the six project-source markdowns under
 `artifacts/project_sources/`, with `4_tfne_theory_and_neural_tensor.md` as the
-principal theoretical source. Those sources require synchronized revision during
-the semantic migration; until then, treat this document as the target doctrine
-and the project sources as **pending upstream alignment**.
+principal theoretical source. Project sources were aligned in the `4a8e54b`
+semantic migration; this document remains the compact repository index.
+
+**Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
+(state memory under \(\dot W=0\), specification `docs/doctrine/protocol_h_rbd_memory.md`).
 
 ## Mission
 
@@ -311,15 +313,27 @@ Derive and test before claiming predictive or variational interpretations.
 
 ## 10. Minimal falsification program
 
-| Test | Claim |
-|------|-------|
-| T1 | RBS state closure / full-state continuation |
-| T2 | RBD equilibrium/stability (homeostasis established per equation, not by name) |
-| T3 | H-only fading memory with \(W\) frozen |
-| T4 | Topology/delay memory (no extension is valid) |
-| T5 | HDP persistent parameter traces |
-| T6 | Canonical phenomena (adaptation, oddball, omission, …) |
-| T7 | Prediction/surprise — only after T1–T6 |
+Experimental ladder (see `docs/doctrine/protocol_h_rbd_memory.md`):
+
+\[
+\text{Protocol H (state memory)}
+\rightarrow
+\text{Protocol W}
+\rightarrow
+\text{phenomena}
+\rightarrow
+\text{surprise/prediction}.
+\]
+
+| Test | Claim | Protocol |
+|------|-------|----------|
+| T1 | RBS state closure / full-state continuation (incl. \(\mathcal B_t\)) | H |
+| T2 | RBD equilibrium/stability (homeostasis established per equation, not by name) | H |
+| T3 | H-only fading memory with \(W\) frozen — quantitative \(M(\Delta)\) | H |
+| T4 | Topology/delay memory (no extension is valid) | H |
+| T5 | HDP persistent parameter traces | W (after H) |
+| T6 | Canonical phenomena (adaptation, oddball, omission, …) | post-H/W |
+| T7 | Prediction/surprise — only after T1–T6 | post-H/W |
 
 ## 11. Repository migration procedure
 
