@@ -1,8 +1,11 @@
-# Protocol W — HDP parameter memory (specification only)
+# Protocol W — HDP parameter memory (W0 frozen; implementation closed)
 
-**Status:** SPECIFICATION OPEN · IMPLEMENTATION **not** authorized  
-**Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`, interpretation receipt `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`)  
-**Out of scope:** H4 rescue, Protocol H extensions (H5), full RBD+HDP+delays+hierarchy composition before W is characterized
+**Status:** **W0 mathematical contract FROZEN** · IMPLEMENTATION **not** authorized  
+**Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`)  
+**W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
+**Out of scope:** H4 rescue, Protocol H extensions, W implementation, conservation/competition in W1
+
+Protocol W is a **new dynamical problem** — not an extension of the H4 topology/delay experiment.
 
 ## 1. Scientific question
 
@@ -12,164 +15,303 @@
 }
 \]
 
-Protocol W is **independent** of the H4 topology/delay falsification. It must **not** be introduced to “fix” H4 or to recover the Checkpoint-1 conjecture that longer heterogeneous recurrence extends activity-expressed fading memory.
+Protocol W must **not** be introduced to “fix” H4.
 
-## 2. Causal hierarchy (composition grammar)
+## 2. Causal hierarchy
 
-Protocol H established the RBD path with \(\dot W=0\):
+| Path | Grammar | Protocol |
+|------|---------|----------|
+| RBD | \(u \rightarrow H \rightarrow X\) | H (closed) |
+| HDP | \(u \rightarrow H \rightarrow W \rightarrow X\) | W |
 
-\[
-u \rightarrow H \rightarrow X.
-\]
-
-Protocol W opens the HDP path:
-
-\[
-u \rightarrow H \rightarrow W \rightarrow X.
-\]
-
-| Layer | State | Dynamics | Protocol |
-|-------|-------|----------|----------|
-| RBD | \(H\) | \(\dot H = F_H(\ldots)\) | H (closed) |
-| HDP | \(W\) | \(\dot W = F_W(H,\ldots)\) | W (this spec) |
-| Activity | \(X\) | \(F_x\) with typed gains | shared kernels |
-
-RBD and HDP are **compositional**. W must be mathematically characterized on a **minimal topology** before composing
+**Conceptual unification:** HDP is a slower **RBD realization** on parameter coordinates. Hidden biophysical history is read out through typed plasticity maps:
 
 \[
-\text{RBD} + \text{HDP} + \text{delays} + \text{hierarchy}.
+H \xrightarrow{F_W} \omega \xrightarrow{\exp} W.
 \]
 
-Complexity is added by composition, not piled together from the beginning.
+STDP, BCM, neuromodulated learning, and scaling are future alternative choices for the drive \(D\), not separate architectural species.
 
-## 3. What Protocol H established (inputs to W)
+## 3. Inputs from Protocol H
 
-From H1–H4 (see H closure receipt):
+| Proposition | Status |
+|-------------|--------|
+| **P1** RBS retains perturbation history | Supported (H1–H3) |
+| **P2** RBS history influences activity | Supported (H1c, H3) |
+| **P3** Geometry/delays extend activity memory (preregistered) | Not supported (H4) |
 
-| Proposition | Content | H evidence |
-|-------------|---------|------------|
-| **P1** | RBS retains perturbation history | H1a/H2 continuation, H3 \(M_H\) |
-| **P2** | RBS history can influence neural activity | H1c \(G_H\), H3 \(\beta_H\) null structure |
-| **P3** | Network geometry/delays extend activity-expressed memory (preregistered form) | **Not supported** (H4) |
+W does not reopen H4 design choices.
 
-Checkpoint H (frozen):
+## 4. W0 design checkpoint — lesson from toy experiments
+
+The naive rule \(\dot W_{ij}\propto H_i-H_j\) has a desirable directional interpretation but **insufficient stability structure**. Under asynchronous activity it can:
+
+- manufacture total coupling,
+- cross zero,
+- couple increasing \(W\) to increasing transmission cost.
+
+W0 therefore **separates three previously conflated ingredients**:
 
 \[
 \boxed{
-\begin{array}{l}
-\text{RBS state grammar} + \text{RBD dynamics} + \text{typed }H\!\rightarrow\!X\text{ coupling} \\
-+ \text{exact delayed continuation} + \text{quantified fading-memory assay} \\
-+ \text{prospective topology/delay falsification}.
-\end{array}}
+\text{plastic drive}
+\;+\;
+\text{admissibility}
+\;+\;
+\text{forgetting/stabilization}
+\;[\;+\;\text{optional conservation/competition}\;].
 }
 \]
 
-W builds on this closure; it does not reopen H4 design choices (\(\Delta_{\max}\), decoder, \(F_H\), \(\beta_H\), perturbation magnitude, delay distributions).
+Each ingredient is **independently switchable** so falsification can identify what is actually necessary.
 
-## 4. Primary W experiment (pre-registered sketch)
+## 5. Minimal admissible HDP grammar (W0 — **frozen**)
 
-**Minimal topology first** — not the 12-node heterogeneous ring. Use the smallest system where
+### 5.1 Generic edge equation
 
 \[
-\Delta H_{\mathrm{pre/post}} \rightarrow \Delta W
+\boxed{
+\tau_W\dot W_{ij}
+=
+D_{ij}(H_i,H_j,X_i,X_j)
+-
+R_{ij}(W_{ij})
++
+C_{ij}(W)
+}
 \]
 
-is **identifiable**, **bounded**, and **retentive/reversible** under explicit \(F_W\) rules.
+| Term | Role | W1 status |
+|------|------|-----------|
+| \(D_{ij}\) | Hidden-state-dependent **plastic drive** | \(\kappa_W(H_{\mathrm{pre}}-H_{\mathrm{post}})\) |
+| \(R_{ij}\) | Intrinsic restoring / regularization | mapped to \(R_\omega=\lambda_W\omega\) |
+| \(C_{ij}\) | Optional conservation / competition | **absent** |
 
-Candidate observables (to be frozen before implementation):
+**Conservation is a separate hypothesis.** W1 does **not** impose \(\sum W=\mathrm{const}\). Exponential admissibility plus linear \(\omega\)-restoration already address positivity and zero-drive drift; adding conservation simultaneously would confound which constraint produced stability.
 
-- \(\|\Delta W\|\) after declared \(H\) perturbation or input protocol
-- retention of \(\Delta W\) after \(H\) returns toward baseline
-- activity readout \(X\) change attributable to \(\Delta W\) rather than transient \(H\) alone
-- null: \(F_W \equiv 0\), shuffle controls, matched input without \(H\) excursion
+### 5.2 Structural positivity via log-parameterization (admissibility)
 
-**Not the primary W question:** decodability of perturbation identity across long rings (that was Protocol H4).
-
-## 5. Conservation and boundedness grammar (mandatory before code)
-
-Legacy toy HDP experiments already demonstrated failure modes: unconstrained \(H\)-gradient plasticity can **manufacture coupling** and **destabilize** the system. Protocol W implementation is blocked until the following are specified in writing:
-
-### 5.1 \(F_W\) contract
+Do **not** rely on clipping, projection, or \(1/W\) singularities. Freeze:
 
 \[
-\dot W = F_W(H, W, x, I; \Theta_W),
+\boxed{
+W_{ij} = W_{ij}^{0}\,e^{\omega_{ij}},
 \qquad
-W \in \mathcal W_{\mathrm{adm}},
+\omega_{ij}\in\mathbb R.
+}
 \]
 
-with explicit:
+HDP evolves \(\omega\):
 
-| Requirement | Specification obligation |
-|-------------|------------------------|
-| **Domain** | Admissible set \(\mathcal W_{\mathrm{adm}}\) (sign, magnitude, sparsity, Dale) |
-| **Conservation** | Quantities conserved or dissipated per step (if any); no hidden mass creation |
-| **Boundedness** | Invariants or contractive terms preventing runaway \(W\) |
-| **Gain sanity** | Maps from \(W\) to synaptic drive remain in biophysically declared range |
-| **Separation** | \(F_W\) must not duplicate \(F_H\) state storage or smuggle \(H\rightarrow X\) through unbounded \(W\) |
-| **Null recovery** | \(F_W=0\) recovers RBD-only Protocol H behavior on shared kernels |
+\[
+\boxed{
+\tau_W\dot\omega_{ij}
+=
+D_{ij} - R_\omega(\omega_{ij}) + C_\omega.
+}
+\]
 
-### 5.2 Stability receipts (pre-implementation)
+Immediately \(W_{ij}>0\) without discontinuous projection. Relative interpretation:
 
-Before any W kernel is authorized:
+\[
+\boxed{
+\omega_{ij} = \log\frac{W_{ij}}{W_{ij}^{0}}.
+}
+\]
 
-1. **Local** — fixed point or bounded orbit under constant \(H\)
-2. **Perturbation** — finite \(\Delta H\) produces finite \(\Delta W\)
-3. **Coupling** — \(\partial X/\partial W\) and \(\partial W/\partial H\) paths do not create positive feedback without declared saturation
-4. **Continuation** — if delays enabled later, full Markov state includes \(W_t\) in segment handoff
+- \(\omega=0\) — baseline coupling  
+- \(\omega>0\) — potentiation  
+- \(\omega<0\) — depression  
 
-### 5.3 Forbidden shortcuts
+This is the preferred W0 admissibility architecture (replaces any earlier implicit “clip \(W\)” boundedness sketch).
 
-- No tuning \(F_W\) after viewing held-out retention metrics
-- No “rescue H4” objective in W loss functions or acceptance criteria
-- No conflation of RBD fading memory with synaptic long-term memory without separate receipts
+### 5.3 Excitatory / inhibitory sign (typed, not via \(W\) sign)
 
-## 6. Implementation phases (ordered, not authorized)
+\(W_{ij}>0\) is appropriate for **magnitude / gain**. Synaptic **sign** is a separate typed property:
 
-| Phase | Deliverable | Gate |
-|-------|-------------|------|
-| **W0** | This specification + boundedness grammar frozen | **Current** |
-| **W1** | Minimal \(F_W\) on smallest topology; \(\dot W\) only, RBD \(F_H\) fixed | Boundedness proofs + unit tests |
-| **W2** | \(\Delta H \rightarrow \Delta W\) identification experiment | Prospective receipt |
-| **W3** | Retention/reversibility of \(W\) traces | Prospective receipt |
-| **W4** | Compose RBD + HDP (still minimal topology) | No regression of H nulls |
-| **W5+** | Delays, hierarchy, larger graphs | Only after W1–W4 |
+\[
+s_{ij}\in\{-1,+1\},
+\qquad
+\text{effective coupling} = s_{ij}\,W_{ij}.
+\]
 
-## 7. Relation to existing code
+Inhibitory versus excitatory plasticity must not be encoded by the sign of \(W\) under \(W=W_0 e^\omega\). This separation is mandatory for eventual E/I HDP.
 
-| Artifact | Protocol W role |
-|----------|-----------------|
-| `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference implementation — **not** canonical W without boundedness audit |
-| `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)); W must reduce to this when plasticity disabled |
-| `docs/doctrine/rbs_rbd_hdp.md` | Mathematical authority for RBS/RBD/HDP grammar |
+### 5.4 W1 restoring law (forgetting / stabilization)
 
-Do not promote legacy HDP paths to Protocol W without explicit \(F_W\) specification and falsification receipts.
+Do **not** use the nonlinear \((1/W - W)\) rule in W1. Freeze linear restoration in \(\omega\):
 
-## 8. Evidence and receipts
+\[
+\boxed{R_\omega = \lambda_W\,\omega.}
+\]
 
-Each prospective W run (when authorized) exports:
+Thus the W1 edge law is:
 
-- protocol ID (`protocol_w_hdp_parameter_memory`)
-- git SHA, frozen \(F_W\) and \(\mathcal W_{\mathrm{adm}}\)
-- topology receipt (minimal graph)
-- perturbation protocol for \(\Delta H\)
-- \(\Delta W\) trajectories and null controls
-- boundedness/stability checks (finite, in-domain)
+\[
+\boxed{
+\tau_W\dot\omega_{ij}
+=
+\kappa_W\,(H_{\mathrm{pre},ij}-H_{\mathrm{post},ij})
+-
+\lambda_W\,\omega_{ij}.
+}
+\]
 
-Failed prospective runs are preserved.
+With RBS baseline \(H=1\), the drive is the **explicit normalized difference** \(\kappa_W(H_i-H_j)\). There is no legacy `/100` scaling from toy experiments.
 
-## 9. Stop rules
+### 5.5 Known memory timescale
 
-Stop and report rather than extend scope if:
+If the \(H\)-gradient drive vanishes (\(H_i-H_j=0\)):
 
-- \(F_W\) is implemented before boundedness grammar is frozen
-- W experiments use long heterogeneous rings “because H4”
-- plasticity explains an effect that RBD already explains under Protocol H nulls
-- \(\Delta W\) is not identifiable separately from transient \(H\)
-- implementation begins without W0 specification sign-off
+\[
+\omega(t) = \omega(t_0)\,e^{-\lambda_W(t-t_0)/\tau_W}.
+\]
 
-## 10. References
+Parameter memory timescale:
+
+\[
+\boxed{\tau_{\mathrm{mem},W} = \frac{\tau_W}{\lambda_W}.}
+\]
+
+### 5.6 Relation to RBD (timescale separation)
+
+\[
+\boxed{\tau_H\dot H = F_H(H,\ldots)}
+\qquad\text{then}\qquad
+\boxed{
+\tau_W\dot\omega = \kappa_W\,\Delta H - \lambda_W\,\omega,
+\qquad
+W = W_0 e^\omega.
+}
+\]
+
+If \(\tau_W \gg \tau_H\), a transient \(H\) perturbation can decay while \(\omega\neq 0\) — the parameter-memory phenomenon W is designed to test.
+
+### 5.7 W1a analytic ground truth (prescribed \(\Delta H\))
+
+**Preferred W1a topology:** a **single plastic directed edge** with **prescribed**
+
+\[
+H_{\mathrm{pre}}(t)-H_{\mathrm{post}}(t)=\Delta H(t),
+\]
+
+not a full network. Verify \(\omega(t)\) integrates prescribed history before closing the loop to emitters.
+
+Rectangular RBS-gradient pulse (\(\omega(0)=0\)):
+
+\[
+\Delta H(t)=
+\begin{cases}
+\delta, & 0<t<T_p \\
+0, & t\ge T_p
+\end{cases}
+\]
+
+During pulse:
+
+\[
+\omega(t)=\frac{\kappa_W\delta}{\lambda_W}
+\left(1-e^{-\lambda_W t/\tau_W}\right).
+\]
+
+At offset:
+
+\[
+\omega(T_p)=\frac{\kappa_W\delta}{\lambda_W}
+\left(1-e^{-\lambda_W T_p/\tau_W}\right).
+\]
+
+Afterward:
+
+\[
+\boxed{
+\omega(t)=\omega(T_p)\,e^{-\lambda_W(t-T_p)/\tau_W}.
+}
+\]
+
+This is the W1 analytic receipt — analogous to F1 transparency in Protocol H.
+
+Causal chain for W1:
+
+\[
+\Delta H(t) \rightarrow \omega(t) \rightarrow W(t).
+\]
+
+**Do not** connect \(W\rightarrow X\) until W1a passes.
+
+## 6. Experimental ladder (frozen order)
+
+\[
+\boxed{
+\begin{aligned}
+\text{W1a} &: H \rightarrow \omega && \text{parameter writing (prescribed }\Delta H\text{, analytic)} \\
+\text{W1b} &: H \rightarrow \omega && \text{parameter writing (minimal 2-node or single edge, simulated }H\text{)} \\
+\text{W2}  &: \omega \rightarrow W \rightarrow X && \text{parameter expression} \\
+\text{W3}  &: H \rightarrow W \rightarrow X && \text{closed HDP loop} \\
+\text{W4}  &: \text{parameter-memory quantification / nulls} && \text{prospective assay}
+\end{aligned}
+}
+\]
+
+| Phase | Conservation \(C\) | Topology |
+|-------|-------------------|----------|
+| W1 | **off** | single edge (W1a) → \(A\rightleftarrows B\) optional (W1b) |
+| W2+ | optional only if W1 falsification requires it | minimal until W3 passes |
+
+\(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
+
+## 7. Implementation authorization gates
+
+Implementation remains **closed** until:
+
+1. W0 contract frozen (this document + JSON receipt) — **done**
+2. W1a analytic tests specified with closed-form tolerances
+3. Explicit sign typing \(s_{ij}\) in edge schema receipt
+4. Null: \(\kappa_W=0\), \(\lambda_W=0\) (separate receipts), \(\Delta H=0\)
+
+### 7.1 Stability receipts (pre-code)
+
+| Receipt | Criterion |
+|---------|-----------|
+| **Positivity** | \(W_{ij}>0\) for all finite \(\omega_{ij}\) |
+| **Zero-drive decay** | \(\Delta H=0 \Rightarrow \omega\to 0\) (or fixed point \(\omega^\*\)) |
+| **Finite perturbation** | finite \(\Delta H\) pulse \(\Rightarrow\) finite \(\omega(T_p)\) |
+| **No manufactured coupling** | \(\omega=0 \Rightarrow W=W_0\) exactly |
+| **RBD recovery** | \(\kappa_W=0, \omega\equiv 0 \Rightarrow\) RBD kernel |
+
+### 7.2 Forbidden shortcuts
+
+- No tuning \(\kappa_W,\lambda_W,\tau_W\) after viewing W4 memory metrics
+- No H4-topology experiments in W1–W3
+- No conflation of RBD fading memory with \(W\) retention without separate nulls
+- No conservation and restoration enabled simultaneously in W1
+
+## 8. Relation to existing code
+
+| Artifact | Role |
+|----------|------|
+| `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
+| `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
+| `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |
+
+## 9. Evidence and receipts
+
+W0 exports:
+
+- `artifacts/protocol_w/w0_mathematical_contract.json`
+
+Future W runs (when authorized) add prospective receipts per phase.
+
+## 10. Stop rules
+
+- Implementation before W0 sign-off — **blocked** (W0 now frozen; W1 still blocked)
+- Using long heterogeneous rings in W1
+- Encoding E/I sign in \(\mathrm{sign}(W)\) under log-parameterization
+- Enabling \(C_{ij}\) in W1 without separate W2\(_{\mathrm{competition}}\) protocol ID
+
+## 11. References
 
 - `docs/doctrine/protocol_h_rbd_memory.md` — Protocol H (closed)
-- `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json` — H4 frozen negative result
-- `docs/doctrine/rbs_rbd_hdp.md` — RBS/RBD/HDP definitions, falsification ladder
+- `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`
+- `docs/doctrine/rbs_rbd_hdp.md`
 - `docs/doctrine/tfne_containment_architecture.md` — typed coupling maps

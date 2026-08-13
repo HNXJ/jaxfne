@@ -1,0 +1,54 @@
+{
+  "schema": "protocol_w_w0_mathematical_contract.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory",
+  "status": "W0_FROZEN",
+  "implementation_authorized": false,
+  "scientific_question": "Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?",
+  "separation_principle": {
+    "plastic_drive": "D_ij(H,X,...)",
+    "admissibility": "W = W0 * exp(omega), omega in R",
+    "forgetting_stabilization": "R_omega = lambda_W * omega",
+    "conservation_competition": "C_ij(W) optional, absent from W1"
+  },
+  "generic_equation": "tau_W * dW_ij/dt = D_ij - R_ij(W) + C_ij(W)",
+  "w0_frozen_parameterization": {
+    "admissibility": "W_ij = W_ij^0 * exp(omega_ij)",
+    "evolution": "tau_W * domega_ij/dt = D_ij - R_omega(omega_ij) + C_omega",
+    "relative_interpretation": "omega_ij = log(W_ij / W_ij^0)"
+  },
+  "w1_plastic_drive": {
+    "form": "D_ij = kappa_W * (H_pre - H_post)",
+    "note": "RBS baseline H=1; no legacy /100 scaling"
+  },
+  "w1_restoring": {
+    "form": "R_omega = lambda_W * omega",
+    "memory_timescale": "tau_mem_W = tau_W / lambda_W",
+    "zero_drive_solution": "omega(t) = omega(t0) * exp(-lambda_W * (t-t0) / tau_W)"
+  },
+  "synaptic_sign_typing": {
+    "magnitude": "W_ij > 0 via exp parameterization",
+    "sign": "s_ij in {-1, +1}, effective_coupling = s_ij * W_ij",
+    "rule": "do not encode E/I sign in sign(W) under log parameterization"
+  },
+  "w1a_analytic_pulse": {
+    "delta_H": "delta for 0 < t < T_p, else 0",
+    "during_pulse": "omega(t) = (kappa_W*delta/lambda_W) * (1 - exp(-lambda_W*t/tau_W))",
+    "at_offset": "omega(T_p) = (kappa_W*delta/lambda_W) * (1 - exp(-lambda_W*T_p/tau_W))",
+    "after_pulse": "omega(t) = omega(T_p) * exp(-lambda_W*(t-T_p)/tau_W)"
+  },
+  "experimental_ladder": [
+    "W1a: prescribed Delta H -> omega (analytic)",
+    "W1b: simulated H -> omega (minimal topology)",
+    "W2: omega -> W -> X (parameter expression)",
+    "W3: H -> W -> X (closed HDP loop)",
+    "W4: parameter-memory quantification and nulls"
+  ],
+  "w1_exclusions": [
+    "conservation of total W",
+    "nonlinear (1/W - W) restoring law",
+    "W -> X coupling before W1a passes",
+    "H4 long heterogeneous ring topology"
+  ],
+  "hdp_as_rbd_realization": "H -> F_W -> omega -> exp -> W",
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}

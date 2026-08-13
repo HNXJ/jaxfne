@@ -360,7 +360,7 @@ Experimental ladder (see `docs/doctrine/protocol_h_rbd_memory.md`):
 | T2 | RBD equilibrium/stability (homeostasis established per equation, not by name) | H |
 | T3 | H-only fading memory with \(W\) frozen — quantitative \(M(\Delta)\) | H |
 | T4 | Topology/delay memory (no extension is valid) | H (**negative at H4**) |
-| T5 | HDP persistent parameter traces | W (spec open; `docs/doctrine/protocol_w_hdp_parameter_memory.md`) |
+| T5 | HDP persistent parameter traces | W (W0 frozen; `docs/doctrine/protocol_w_hdp_parameter_memory.md`) |
 | T6 | Canonical phenomena (adaptation, oddball, omission, …) | post-H/W |
 | T7 | Prediction/surprise — only after T1–T6 | post-H/W |
 

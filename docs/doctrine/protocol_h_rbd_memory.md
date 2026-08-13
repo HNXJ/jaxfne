@@ -2,7 +2,7 @@
 
 **Status:** Protocol H **CLOSED** at H4 (prospective negative result frozen)  
 **H4 interpretation:** `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`  
-**Next ladder rung:** Protocol W specification open — `docs/doctrine/protocol_w_hdp_parameter_memory.md` (implementation not authorized)  
+**Next ladder rung:** Protocol W — W0 contract frozen (`docs/doctrine/protocol_w_hdp_parameter_memory.md`, `artifacts/protocol_w/w0_mathematical_contract.json`); **implementation not authorized**  
 **Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
 **Out of scope:** H5/H4 rescue, W implementation, D₂ geometry compiler
