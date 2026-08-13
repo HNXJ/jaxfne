@@ -1,6 +1,6 @@
 # Protocol W — HDP parameter memory (W0 frozen; implementation closed)
 
-**Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · W1b+ **not** authorized  
+**Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · **W1b IMPLEMENTED** · W2+ **not** authorized  
 **Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`)  
 **W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
 **Out of scope:** H4 rescue, Protocol H extensions, W implementation, conservation/competition in W1
@@ -246,7 +246,24 @@ Causal chain for W1a:
 \Delta H(t) \rightarrow \omega(t) \rightarrow W(t).
 \]
 
-**Do not** connect \(W\rightarrow X\) until W1a passes.
+**Do not** connect \(W\rightarrow X\) until **W2** (W1b remains shadow-only).
+
+### 5.8 W1b — RBD-generated shadow plasticity (**implemented**)
+
+**Question:** can simulated RBD history write the same well-characterized \(\omega\) state?
+
+Shadow contract: simulation at fixed \(W_0\); passive
+\(\tau_W\dot\omega_{AB}=\kappa_W(H_A-H_B)-\lambda_W\omega_{AB}\) (and BA with reversed
+gradient). **No** \(\omega\rightarrow W\rightarrow X\).
+
+**Update ordering:** \(\omega_{n+1}=F(\omega_n,H_n)\) using pre-step \(H_n\).
+
+**Emergent symmetry:** \(\omega_{AB}=-\omega_{BA}\); \(W_{AB}W_{BA}=W^0_{AB}W^0_{BA}\).
+
+**Principal phenomenon:** timescale-separated parameter retention when
+\(\tau_{\mathrm{mem},W}\gg\tau_H\).
+
+Implementation: `jaxfne/w1b_shadow_plasticity.py`, `tests/test_protocol_w_w1b.py`.
 
 ## 6. Experimental ladder (frozen order)
 
@@ -265,7 +282,7 @@ Causal chain for W1a:
 | Phase | Status |
 |-------|--------|
 | **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
-| **W1b** | not authorized |
+| **W1b** | **IMPLEMENTED** — RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
 | **W2** | not authorized |
 | **W3** | not authorized |
 | **W4** | not authorized |
@@ -278,7 +295,8 @@ Causal chain for W1a:
 |-------|------------|
 | W0 | frozen |
 | W1a | **yes** — scalar integrator only |
-| W1b+ | **no** |
+| W1b | **yes** — shadow plasticity, no feedback |
+| W2+ | **no** |
 
 W1b+ remains closed until W1a review.
 
@@ -304,7 +322,8 @@ W1b+ remains closed until W1a review.
 | Artifact | Role |
 |----------|------|
 | `jaxfne/w1a_omega_plasticity.py` | W1a scalar \(\omega\) integrator + analytic references |
-| `tests/test_protocol_w_w1a.py` | W1a preregistered gates |
+| `jaxfne/w1b_shadow_plasticity.py` | W1b shadow \(\omega\) from RBD-recorded \(\Delta H\) |
+| `tests/test_protocol_w_w1b.py` | W1b composition, symmetry, F1, nulls, timescale receipts |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
 | `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |

@@ -4,7 +4,7 @@
   "status": "W0_FROZEN",
   "implementation_authorized": {
     "W1a": true,
-    "W1b": false,
+    "W1b": true,
     "W2": false
   },
   "scientific_question": "Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?",
