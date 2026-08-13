@@ -7,13 +7,25 @@ principal theoretical source. Project sources were aligned in the `4a8e54b`
 semantic migration; this document remains the compact repository index.
 
 **Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
-(state memory under \(\dot W=0\), specification `docs/doctrine/protocol_h_rbd_memory.md`).
+(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`).
+
+**Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
+— TFNE as composition framework; \(H\) as unified dependency state; typed
+operator couplings.
 
 ## Mission
+
+> **TFNE does not prescribe a neural model; it provides a common relative state,
+> operator, and geometry grammar in which neural models of different physical
+> resolution can be composed.**
 
 Refactor jaxfne's hidden-state doctrine around a physically disciplined,
 relative state-space formulation while preserving validated behavior and
 compatibility.
+
+> **RBS is a finite-dimensional relative biophysical state whose coordinates may
+> represent explicit physical quantities or reduced sufficient states, and whose
+> influence on TFNE operators is declared through typed gain/coupling maps.**
 
 Target hierarchy:
 
@@ -77,6 +89,23 @@ realization, even when that realization is not uniquely identifiable or
 calibrated.
 
 The scalar toy model is simply \(d_H=1\).
+
+**State-space container, not one equation.** \(\dot{\mathbf H}=F_H(\ldots)\)
+subsumes ionic, metabolic, trace, neuromodulatory, and plasticity coordinates
+as **realizations** with typed readouts (e.g. \(\dot W=F_W(\mathbf H,\ldots)\)),
+not parallel architectural subsystems. Unification:
+
+\[
+H_{\mathrm{Na}},\,H_{\mathrm{DA}},\,H_{\mathrm{STDP}}
+\in
+\text{same grammar};\quad
+H_{\mathrm{Na}}\neq H_{\mathrm{DA}}\neq H_{\mathrm{STDP}}.
+\]
+
+**Operator scope.** RBS may eventually parameterize any physically appropriate
+TFNE operator (\(E,S,F,P\)), not only the emitter. Current code (H1a/H1b) is
+the minimal emitter-local slice. Cross-operator coupling requires explicit typed
+maps — see `docs/doctrine/tfne_containment_architecture.md`.
 
 **Kernel-specific homeostasis is not erased.** A mechanism that genuinely
 implements homeostatic regulation (e.g. `homeostatic_ei`, legacy

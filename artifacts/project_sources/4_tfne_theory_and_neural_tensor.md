@@ -1,11 +1,28 @@
 # TFNE Theory, NeuralTensor, RBS/RBD/HDP
 
-Repository-facing doctrine: `docs/doctrine/rbs_rbd_hdp.md`. This file is the
-upstream mathematical authority for the RBS/RBD/HDP semantic migration.
+Repository-facing doctrine: `docs/doctrine/rbs_rbd_hdp.md`,
+`docs/doctrine/tfne_containment_architecture.md`. This file is the upstream
+mathematical authority for the RBS/RBD/HDP semantic migration.
 
-## 1. TFNE as an operator factorization
+## 1. TFNE as containment and operator factorization
 
-Tensor-Field Neural Equations (TFNE) are best treated as a typed composition rather than a claim that every neural model obeys one physical field equation.
+\[
+\boxed{\text{TFNE is a containment and composition framework for neural biophysics.}}
+\]
+
+Tensor-Field Neural Equations (TFNE) provide a **common relative state, operator,
+and geometry grammar** in which neural models of different physical resolution
+can be composed. TFNE does not prescribe one neural model; Hodgkin–Huxley,
+Izhikevich, Jaxley, STDP, BCM, field forward models, and metabolic reductions
+are **realizations inside the grammar**, not competitors to it.
+
+Three separable pillars:
+
+| Pillar | Role |
+|--------|------|
+| **State** \(\mathcal X=(X,H,\Theta,\mathcal B,\mathcal G,\ldots)\) | Complete Markov state; \(H\) = relative biophysical dependency state |
+| **Operators** \(E,S,F,P,O,A\) | Typed evolution and transformation roles |
+| **Geometry** \(\mathcal G\) | Spatial support, coupling, and placement |
 
 For parameters and metadata
 
@@ -45,6 +62,16 @@ Y_{0:T}=\mathcal T_\Theta(X_0,U_{0:T},K).
 
 This factorization is the scientific invariant of jaxfne. Individual emitters, source maps, projections, probes, objectives, and optimizers are replaceable implementations of these typed roles.
 
+**RBS beyond the emitter.** \(\mathbf H\in\mathbb R^{d_H}\) is a unified
+finite-dimensional **dependency state** whose coordinates may represent ions,
+resources, transmitters, neuromodulators, plasticity traces, or other reduced
+sufficient variables — sharing a state-space interface without semantic
+equivalence. Influence on TFNE operators is declared through **typed
+gain/coupling maps** (e.g. \(\theta(H)\), \(\gamma(H)\), \(F_W(H,\ldots)\));
+see `docs/doctrine/tfne_containment_architecture.md`. Strict typing: no
+emitter-local \(H\) may modulate \(S\) or \(F\) without an explicit coupling
+declaration.
+
 ## 2. Emitter
 
 The emitter contains local neural dynamics coupled to optional hidden relative
@@ -59,8 +86,10 @@ recovery variables, conductances, spikes, etc.). Let
 \mathbf H_i(t)\in\mathbb R^{d_H}
 \]
 
-denote **Relative Biophysical State (RBS)** — a finite-dimensional reduced
-representation of physically realizable internal emitter state. RBS is
+denote **Relative Biophysical State (RBS)** — a finite-dimensional
+**state-space container** for relative biophysical dependencies. Coordinates may
+represent explicit physical quantities or reduced sufficient states; they share
+an interface, not semantic identity (see containment architecture doc). RBS is
 **relative biophysical state**, not necessarily a normalized copy of
 individually identifiable physical variables. Two supported realizations:
 

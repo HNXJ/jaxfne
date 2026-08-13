@@ -3,7 +3,23 @@
 **Status:** OPEN (specification only; **no implementation**)  
 **Baseline:** `dev` @ `cf0eb43` (Protocol H1 kernel)  
 **Prerequisite:** H1a complete (\(x/I \rightarrow H\) via \(\kappa_H\))  
-**Blocks:** H2 continuation, H3 perturbation/\(M(\Delta)\) until H1b design is frozen
+**Blocks:** H2 continuation, H3 perturbation/\(M(\Delta)\) until H1b design is frozen  
+**Architecture:** `docs/doctrine/tfne_containment_architecture.md` — H1b is the
+**first emitter-local** typed gain map; RBS may eventually couple to \(S,F,P\)
+with strict typing.
+
+## 0. Architectural scope (refinement post-H1a)
+
+RBS is not intrinsically emitter-centered. The containment formulation allows
+
+\[
+\mathcal T_H:(E,S,F,P,O,A)_t\rightarrow(E,S,F,P,O,A)_{t+1},
+\]
+
+with declared maps such as \(H_{\mathrm{ion}}\rightarrow\gamma(H)\) or
+\(H_{\mathrm{ATP}}\rightarrow\theta(H)\). **H1b addresses only**
+\(H\rightarrow x\) on the emitter — the smallest coupling needed before neural
+memory tests. Field/source couplings are out of scope until explicitly specified.
 
 ## 1. Scientific issue (why H1b exists)
 
