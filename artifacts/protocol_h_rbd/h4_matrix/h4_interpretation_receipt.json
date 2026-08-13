@@ -1,0 +1,55 @@
+{
+  "schema": "protocol_h_rbd_h4_interpretation.v1",
+  "protocol_id": "protocol_h_rbd_memory_h4",
+  "status": "FROZEN_NEGATIVE_RESULT",
+  "prospective_receipt": "artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json",
+  "repository_sha_at_run": "8f01ae7592ada446d64de5b8cb15be33a947f123",
+  "checkpoint_h_conclusion": "RBD supports fading state memory, but increased recurrent length and heterogeneous delays did not generally extend activity-expressed memory under the preregistered regime.",
+  "proposition_separation": {
+    "P1_RBS_retains_perturbation_history": "supported (H1-H3 machinery)",
+    "P2_RBS_influences_neural_activity": "supported (H1c, H3 beta_H null structure)",
+    "P3_geometry_delays_extend_activity_memory": "preregistered version not supported (H4)"
+  },
+  "primary_endpoint_results": {
+    "M_X_short_uniform": 0.0,
+    "M_X_short_heterogeneous": 0.05208333333333384,
+    "M_X_long_uniform": 0.0,
+    "M_X_long_heterogeneous": 0.0
+  },
+  "directional_conjecture": {
+    "statement": "M_X^{long,hetero} > M_X^{short,uniform}",
+    "supported": false
+  },
+  "factorial_estimates": {
+    "mu": 0.0,
+    "alpha_length": 0.0,
+    "alpha_heterogeneity": 0.05208333333333385,
+    "alpha_interaction": -0.05208333333333385
+  },
+  "factorial_interpretation": {
+    "alpha_length": "no positive length effect detected by preregistered identity-decoding assay",
+    "alpha_heterogeneity": "observed +0.052 is entirely from short+heterogeneous cell; not a general heterogeneity effect",
+    "alpha_interaction": "cancels short-hetero signal in long-hetero cell",
+    "bootstrap_cis": "not computed; +0.052 is prospective point estimate only, not statistically established"
+  },
+  "exploratory_note": {
+    "short_heterogeneous_M_X": 0.05208333333333384,
+    "status": "exploratory only; not a revised confirmation; candidate for future independently preregistered protocol"
+  },
+  "recurrence_diagnostic": {
+    "loop_aligned_secondary_peaks_detected": false,
+    "interpretation": "no detected recurrence peaks under H4 frozen detector and Delta_max",
+    "note": "extending Delta_max would be H5/new protocol, not H4 correction"
+  },
+  "methodological_limitations": [
+    "Cross-N identity decoding confounded by different class counts (P_chance=1/3 vs 1/12), sample complexity, and feature dimensionality",
+    "Do not conclude 'length has no effect on memory'; only that no positive length effect was detected by the preregistered H4 assay",
+    "Future topology-specific protocols may use matched binary perturbation decoding or information-normalized metrics"
+  ],
+  "doctrine_updates": {
+    "deprecated_claim": "long heterogeneous networks maintain memory much longer",
+    "replacement_claim": "recurrent geometry and delays determine how RBS perturbations are distributed in time and space, but increased path length or delay heterogeneity does not by itself guarantee increased decodable memory"
+  },
+  "protocol_h_status": "CLOSED at H4",
+  "protocol_w_status": "SPECIFICATION OPEN; implementation not authorized"
+}

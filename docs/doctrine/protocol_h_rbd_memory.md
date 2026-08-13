@@ -1,9 +1,11 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1a/H1c/H2/H3/H4 IMPLEMENTED (H4 receipt frozen); Protocol W closed
+**Status:** Protocol H **CLOSED** at H4 (prospective negative result frozen)  
+**H4 interpretation:** `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`  
+**Next ladder rung:** Protocol W specification open — `docs/doctrine/protocol_w_hdp_parameter_memory.md` (implementation not authorized)  
 **Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
-**Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler
+**Out of scope:** H5/H4 rescue, W implementation, D₂ geometry compiler
 
 ## 1. Scientific question
 
@@ -17,9 +19,9 @@ If plasticity is enabled too early, a successful memory result is **ambiguous** 
 hidden-state dynamics and synaptic modification. Protocol H isolates the intrinsic
 **RBD memory kernel**.
 
-**Checkpoint-1 conjecture (falsifiable, not assumed):** recurrent geometry and delay
+**Checkpoint-1 conjecture (falsifiable, tested at H4):** recurrent geometry and delay
 heterogeneity can prolong or distribute fading state memory across \(\mathcal X_t\).
-Protocol H must be able to **reject** this conjecture.
+**H4 outcome:** preregistered form **not supported** — see §6 and §13.
 
 ## 2. Experimental ladder
 
@@ -37,10 +39,10 @@ Protocol H is the first rung. Do not develop H and W simultaneously.
 }
 \]
 
-Protocol W opens only after the intrinsic RBD retention function \(M(\Delta)\) is
-characterized under \(\dot W=0\). Its question is whether
+Protocol W specification opens after Protocol H closure (H4). Its question is whether
 \(\Delta\mathbf H \rightarrow \Delta\mathbf W\) extends memory onto another
-timescale — not whether delays alone produce waves.
+timescale — not whether delays alone produce waves, and **not** to rescue H4.
+See `docs/doctrine/protocol_w_hdp_parameter_memory.md`.
 
 ## 3. Markov state
 
@@ -300,10 +302,12 @@ Secondary metrics (optional, not substitutes): perturbation-aligned response
 difference between matched-input trajectories, autocorrelation of \(H\), recovery
 time constants — all pre-registered.
 
-## 6. Primary experiment matrix (H4 — preregistered, **closed**)
+## 6. Primary experiment matrix (H4 — **closed**, prospective negative result)
 
-**Status:** matrix **authorized and executed**; receipt frozen at
-`artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json` (write-once).
+**Status:** executed and frozen. Prospective receipt:
+`artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json`.  
+Interpretation receipt:
+`artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json`.
 
 **Primary endpoint (pre-registered):**
 
@@ -343,7 +347,22 @@ distinct kernels, e.g. exponential decay vs delayed recurrent peaks).
 
 "No memory extension" (\(\alpha_{\mathrm{length}}\approx 0\),
 \(\alpha_{\mathrm{heterogeneity}}\approx 0\), interaction null) is a **valid**
-H4 outcome.
+H4 outcome — **observed** under the frozen prospective run (see §13).
+
+**H4 prospective cell means (\(\mathcal M_X\)):**
+
+| Cell | \(\mathcal M_X\) |
+|------|-----------------|
+| short + uniform (SU) | 0.000 |
+| short + heterogeneous (SH) | 0.052 |
+| long + uniform (LU) | 0.000 |
+| long + heterogeneous (LH) | 0.000 |
+
+Directional conjecture \(\mathcal M_X^{LH} > \mathcal M_X^{SU}\): **not supported**
+(0 vs 0). Factorial point estimates: \(\alpha_L\simeq 0\), \(\alpha_D=+0.052\),
+\(\alpha_{L\times D}=-0.052\). The positive \(\alpha_D\) is **entirely** from the
+short+heterogeneous cell; it is an exploratory prospective estimate, not a
+general heterogeneity confirmation (no bootstrap CIs).
 
 Fixed \(\dot W=0\), fixed \(F_H\) family per row block, shared H3 decoder protocol:
 
@@ -375,9 +394,10 @@ exact edge lists are frozen in the étude/script receipt.
 \(T_{\mathrm{loop}}=\sum_{e\in\mathrm{loop}}\tau_e\) (and harmonics). Peaks must
 emerge from data; they are not hypothesis targets.
 
-**Interpretation scope:** even a positive H4 result establishes only distributed
-fading dynamical memory in RBD — not long-term memory, plastic memory, predictive
-coding, or surprise minimization. Protocol W remains closed until H4 review.
+**Interpretation scope:** H4 tests only distributed **fading dynamical** memory in
+RBD. A negative H4 does not negate P1/P2 (RBS retention and \(H\!\rightarrow\!X\)
+coupling established in H1–H3). Protocol W specification is open; implementation
+is not authorized (`docs/doctrine/protocol_w_hdp_parameter_memory.md`).
 
 ## 7. Nulls and controls
 
@@ -401,7 +421,9 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
 | **H2** | Full-state continuation incl. `delay_state` + `continuation_step_offset` | `tests/test_protocol_h_rbd_h2.py` |
 | **H3** | Localized RBS perturbation + label-independent \(M_H,M_X,M_{X,H}\); \(D_H\) diagnostic | `jaxfne/h3_decodability.py`, `tests/test_protocol_h_rbd_h3.py` |
-| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | `jaxfne/h4_matrix.py`, `tests/test_protocol_h_rbd_h4.py`, frozen receipt |
+| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | `jaxfne/h4_matrix.py`, frozen receipts — **negative result** |
+
+**Protocol H:** **CLOSED** at H4. No H5 before W.
 
 **API note:** reuse compatibility names (`h_state_*`, `enable_hdp`) only where
 semantically accurate; prefer a distinct **RBD-only** dispatch flag or kernel entry
@@ -438,18 +460,73 @@ viewing held-out \(M(\Delta)\) without declaring a new protocol revision.
 
 ## 11. Stop rules
 
-Stop and report rather than silently extend scope if:
+Protocol H is **closed**. Do not extend H4 (\(\Delta_{\max}\), decoder, topology)
+without a new protocol ID. Stop and report if:
 
-- Protocol W must not open until H4 receipt is reviewed
 - \(F_H\) is selected by visual raster appeal without \(M(\Delta)\)
 - continuation omits \(\mathcal B_t\) under nonzero delays
 - plasticity (\(\dot W\)) is required to obtain the reported memory effect
 - decoder performance is not above shuffle-null on F0
 - a single \(F_H\) family is promoted to canonical RBD without comparative runs
 
-## 12. References
+## 12. Protocol H closure (Checkpoint H)
+
+**Frozen conclusion:**
+
+\[
+\boxed{
+\text{RBD supports fading state memory, but increased recurrent length and heterogeneous delays did not generally extend activity-expressed memory under the preregistered regime.}
+}
+\]
+
+**Proposition separation (experimental):**
+
+\[
+\begin{aligned}
+P_1 &: \text{RBS retains perturbation history} && \text{(H1--H3)}\\
+P_2 &: \text{RBS history can influence neural activity} && \text{(H1c, H3)}\\
+P_3 &: \text{network geometry/delays extend activity memory} && \text{(H4: preregistered form not supported)}
+\end{aligned}
+\]
+
+**Doctrine language (permanent):**
+
+- Do **not** claim: “long heterogeneous networks maintain memory much longer.”
+- Do claim: recurrent geometry and delays shape how RBS perturbations distribute in
+  time and space, but increased path length or delay heterogeneity does **not by
+  itself** guarantee increased decodable memory.
+
+**H4 methodological limitation (permanent):** cross-\(N\) identity decoding differs
+in chance level (\(1/3\) vs \(1/12\)), sample complexity, and feature dimensionality.
+The defensible length statement is narrower: **no positive length effect was detected
+by the preregistered H4 identity-decoding assay** — not “length has no effect on
+memory.” Future protocols may use matched binary perturbation decoding or
+information-normalized metrics.
+
+**Recurrence diagnostic:** no loop-aligned secondary \(M_X\) peaks under the frozen
+detector and \(\Delta_{\max}\). Extending the observation window is H5/new protocol,
+not H4 correction.
+
+**Exploratory only:** \(\mathcal M_X^{SH}=0.052\) — candidate regime for a future
+independently preregistered study; not a revised H4 confirmation.
+
+**Scientific closure delivered by Protocol H:**
+
+\[
+\boxed{
+\begin{array}{l}
+\text{RBS state grammar} + \text{RBD dynamics} + \text{typed }H\!\rightarrow\!X\text{ coupling} \\
++ \text{exact delayed continuation} + \text{quantified fading-memory assay} \\
++ \text{prospective topology/delay falsification}.
+\end{array}}
+}
+\]
+
+## 13. References
 
 - `docs/doctrine/rbs_rbd_hdp.md` — RBS/RBD/HDP definitions, §8 memory hypothesis
+- `docs/doctrine/protocol_w_hdp_parameter_memory.md` — Protocol W (spec open)
+- `artifacts/protocol_h_rbd/h4_matrix/h4_interpretation_receipt.json` — H4 frozen interpretation
 - `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` — mathematical authority
 - `tests/test_edge_delay_protocol_d016.py` — Protocol D₀/D₁ tests
 - `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` — H1b \(H\rightarrow x\) gain specification

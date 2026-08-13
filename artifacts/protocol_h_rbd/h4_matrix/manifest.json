@@ -1,15 +1,18 @@
 {
   "artifacts": {
-    "receipt": "h4_matrix_receipt.json"
+    "receipt": "h4_matrix_receipt.json",
+    "interpretation": "h4_interpretation_receipt.json"
   },
   "config_hash": "324fc820b687eab5",
-  "note": "Receipt is write-once. Delete manually only to re-run under a new protocol revision.",
+  "note": "Prospective receipt is write-once. Interpretation frozen as valid negative result. Protocol H closed; Protocol W spec open.",
   "protocol_id": "protocol_h_rbd_memory_h4",
+  "protocol_h_status": "CLOSED",
+  "protocol_w_status": "SPEC_OPEN_IMPLEMENTATION_CLOSED",
   "repository": {
     "branch": "dev",
     "sha": "8f01ae7592ada446d64de5b8cb15be33a947f123"
   },
   "reproduce": "python scripts/run_protocol_h_h4_matrix.py",
   "schema": "protocol_h_rbd_h4_manifest.v1",
-  "status": "FROZEN_PROSPECTIVE"
+  "status": "FROZEN_NEGATIVE_RESULT"
 }
