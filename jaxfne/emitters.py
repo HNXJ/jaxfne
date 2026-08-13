@@ -511,6 +511,63 @@ def simulate_eig_izhikevich(
     return voltages, spikes, sources
 
 
+def edge_delay_steps_from_ms(
+    delay_ms: float | np.ndarray | jax.Array,
+    dt_ms: float,
+) -> np.ndarray:
+    """Convert grid-aligned edge delays in ms to integer step counts.
+
+  Protocol D (0.4.16): ``n_ij = delay_ms / dt_ms`` must be an integer within
+  tolerance. Non-grid-aligned values reject rather than round.
+    """
+    if dt_ms <= 0.0:
+        raise ValueError(f"dt_ms must be positive, got {dt_ms}")
+    arr = np.asarray(delay_ms, dtype=np.float64)
+    if np.any(arr < 0.0):
+        raise ValueError("edge delay_ms must be >= 0")
+    steps = arr / float(dt_ms)
+    rounded = np.rint(steps)
+    if not np.allclose(steps, rounded, rtol=0.0, atol=1e-9):
+        raise ValueError(
+            "edge delay_ms must be grid-aligned to dt_ms "
+            f"(delay_ms/dt_ms not integer within tolerance; dt_ms={dt_ms})"
+        )
+    return rounded.astype(np.int32)
+
+
+def edge_list_with_delay_ms(
+    edges: "EdgeList",
+    delay_ms: float | np.ndarray | jax.Array,
+    dt_ms: float,
+) -> "EdgeList":
+    """Return a copy of ``edges`` with per-edge ``delay_steps`` from ms delays."""
+    steps = edge_delay_steps_from_ms(delay_ms, dt_ms)
+    if np.ndim(steps) == 0:
+        steps_arr = jnp.full((edges.n_edges,), int(steps), dtype=jnp.int32)
+    else:
+        steps_arr = jnp.asarray(steps, dtype=jnp.int32)
+        if int(steps_arr.shape[0]) != edges.n_edges:
+            raise ValueError(
+                f"delay_ms length {steps_arr.shape[0]} != n_edges {edges.n_edges}"
+            )
+    return dataclass_replace(edges, delay_steps=steps_arr)
+
+
+def dataclass_replace(edges: "EdgeList", **kwargs: Any) -> "EdgeList":
+    """Frozen-dataclass replace helper local to emitters."""
+    return EdgeList(
+        pre=kwargs.get("pre", edges.pre),
+        post=kwargs.get("post", edges.post),
+        weight=kwargs.get("weight", edges.weight),
+        receptor_index=kwargs.get("receptor_index", edges.receptor_index),
+        tau_ms=kwargs.get("tau_ms", edges.tau_ms),
+        delay_steps=kwargs.get("delay_steps", edges.delay_steps),
+        source_calibration_status=kwargs.get(
+            "source_calibration_status", edges.source_calibration_status
+        ),
+    )
+
+
 @jax.tree_util.register_pytree_node_class
 @dataclass(frozen=True)
 class EdgeList:
@@ -519,6 +576,10 @@ class EdgeList:
     Edges carry signed native weights and first-order synaptic decay constants.
     This is a computational backend for recurrent reduced emitters; weights are
     native/unphysical unless a future calibration bridge declares otherwise.
+
+    Optional ``delay_steps`` (integer axonal delay per edge, in simulation steps)
+    implements Protocol D finite edge delay. When all entries are zero, the
+    legacy instantaneous recurrent kernel is used unchanged.
     """
 
     pre: jax.Array
@@ -527,6 +588,15 @@ class EdgeList:
     receptor_index: jax.Array
     tau_ms: jax.Array
     source_calibration_status: str = "uncalibrated_izhikevich_native_current"
+    delay_steps: jax.Array | None = None
+
+    def __post_init__(self) -> None:
+        if self.delay_steps is None:
+            object.__setattr__(
+                self,
+                "delay_steps",
+                jnp.zeros(self.pre.shape[0], dtype=jnp.int32),
+            )
 
     @property
     def n_edges(self) -> int:
@@ -535,15 +605,34 @@ class EdgeList:
 
     def tree_flatten(self):
         """Documented public function `tree_flatten`."""
-        children = (self.pre, self.post, self.weight, self.receptor_index, self.tau_ms)
+        children = (
+            self.pre,
+            self.post,
+            self.weight,
+            self.receptor_index,
+            self.tau_ms,
+            self.delay_steps,
+        )
         aux = {"source_calibration_status": self.source_calibration_status}
         return children, aux
 
     @classmethod
     def tree_unflatten(cls, aux, children):
         """Documented public function `tree_unflatten`."""
-        pre, post, weight, receptor_index, tau_ms = children
-        return cls(pre, post, weight, receptor_index, tau_ms, aux["source_calibration_status"])
+        if len(children) == 5:
+            pre, post, weight, receptor_index, tau_ms = children
+            delay_steps = jnp.zeros(pre.shape[0], dtype=jnp.int32)
+        else:
+            pre, post, weight, receptor_index, tau_ms, delay_steps = children
+        return cls(
+            pre,
+            post,
+            weight,
+            receptor_index,
+            tau_ms,
+            aux["source_calibration_status"],
+            delay_steps,
+        )
 
     def to_dict(self) -> dict:
         """Documented public function `to_dict`."""
@@ -586,6 +675,182 @@ def make_edge_list_from_dense(
     )
 
 
+def _edge_delay_steps_host(edges: EdgeList) -> np.ndarray:
+    """Host-side delay_steps array for dispatch before JIT."""
+    return np.asarray(edges.delay_steps, dtype=np.int32)
+
+
+def _delayed_presynaptic_spikes(
+    spikes: jax.Array,
+    spike_hist: jax.Array,
+    t_idx: jax.Array,
+    pre: jax.Array,
+    delay_steps: jax.Array,
+) -> jax.Array:
+    """Per-edge presynaptic spikes entering the synaptic update at step ``t_idx``.
+
+    Indexing convention (Protocol D0/D1):
+      - ``delay_steps[e] == 0``: use presynaptic spikes from the *current* step
+        ``spikes[pre[e]]`` (matches the legacy kernel's ``spikes[pre]`` term).
+      - ``delay_steps[e] == n > 0``: use ``spikes_{t-n}[pre[e]]`` from the ring
+        buffer; invalid when ``t < n`` yields zero.
+    """
+    bufsize = spike_hist.shape[0]
+    hist_slots = (t_idx - delay_steps) % bufsize
+    from_hist = spike_hist[hist_slots, pre]
+    valid_hist = (delay_steps > 0) & (t_idx >= delay_steps)
+    from_hist = jnp.where(valid_hist, from_hist, jnp.zeros_like(from_hist))
+    from_current = spikes[pre]
+    return jnp.where(delay_steps == 0, from_current, from_hist)
+
+
+def _simulate_edge_recurrent_izhikevich_delayed(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    dtype: str = "float32",
+    drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Finite edge-delay recurrent kernel (Protocol D).
+
+    Memory: ``O(N * D_max)`` spike-history ring per neuron plus ``O(E)`` synaptic
+    state, where ``D_max = max(delay_steps)``.
+    """
+    if init_state is not None:
+        raise ValueError(
+            "init_state continuation is not supported when edge delay_steps > 0 "
+            "(Protocol D0/D1); delay history is required dynamical state"
+        )
+
+    jdtype = _dtype_from_policy(dtype)
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    noise_coef = (
+        jnp.asarray(0.5, dtype=jdtype)
+        if noise_scale is None
+        else jnp.asarray(noise_scale, dtype=jdtype)
+    )
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_ms)
+    delay_steps = edges.delay_steps.astype(jnp.int32)
+    n_neurons = params.v0.shape[0]
+    max_delay = int(np.max(_edge_delay_steps_host(edges)))
+    bufsize = max_delay + 1
+
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(
+        noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+    )
+    step_indices = jnp.arange(int(n_steps), dtype=jnp.int32)
+
+    init = (
+        params.v0.astype(jdtype),
+        params.u0.astype(jdtype),
+        jnp.zeros_like(params.v0, dtype=jdtype),
+        jnp.zeros((edges.n_edges,), dtype=jdtype),
+        jnp.zeros((bufsize, n_neurons), dtype=jdtype),
+    )
+
+    def step_delayed(carry, xs_t):
+        t_idx, noise_t = xs_t
+        v, u, prev_spikes, syn_state, spike_hist = carry
+        edge_current = weight * syn_state
+        syn = _segment_sum(edge_current, post, n_neurons)
+        current_native = drive + syn + noise_coef * noise_t
+        dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+        v_next = v + dt * dv
+        u_next = u + dt * du
+        v_next = jnp.where(s_mask > 0.5, v_next, c)
+        spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+        spikes = spikes_bool.astype(jdtype)
+        v_reset = jnp.where(spikes_bool, c, v_next)
+        u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+        presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
+        syn_next = syn_state * decay + presyn
+        slot = jnp.mod(t_idx, bufsize)
+        spike_hist_next = spike_hist.at[slot].set(spikes)
+        source_proxy = _source_proxy_from_components(
+            current_native, spikes, source_scale, dtype=jdtype
+        )
+        return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
+            v_reset,
+            spikes,
+            source_proxy,
+            presyn,
+        )
+
+    if drive_schedule is not None:
+        sched = drive_schedule.astype(jdtype)
+
+        def step_delayed_sched(carry, xs_t):
+            t_idx, sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state, spike_hist = carry
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = drive + sched_t + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            spikes = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            presyn = _delayed_presynaptic_spikes(spikes, spike_hist, t_idx, pre, delay_steps)
+            syn_next = syn_state * decay + presyn
+            slot = jnp.mod(t_idx, bufsize)
+            spike_hist_next = spike_hist.at[slot].set(spikes)
+            source_proxy = _source_proxy_from_components(
+                current_native, spikes, source_scale, dtype=jdtype
+            )
+            return (v_reset, u_reset, spikes, syn_next, spike_hist_next), (
+                v_reset,
+                spikes,
+                source_proxy,
+                presyn,
+            )
+
+        final, (voltages, spikes, sources, presyn_trace) = jax.lax.scan(
+            step_delayed_sched,
+            init,
+            xs=(step_indices, sched, bulk_noise),
+        )
+    else:
+        final, (voltages, spikes, sources, presyn_trace) = jax.lax.scan(
+            step_delayed, init, xs=(step_indices, bulk_noise)
+        )
+
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "spike_history": final[4],
+        "delay_steps_max": jnp.asarray(max_delay, dtype=jnp.int32),
+        "presynaptic_drive_trace": presyn_trace,
+    }
+    return voltages, spikes, sources, final_state
+
+
 def simulate_edge_recurrent_izhikevich(
     params: IzhikevichParams,
     edges: EdgeList,
@@ -612,7 +877,27 @@ def simulate_edge_recurrent_izhikevich(
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
     ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
     ``syn_state`` for deterministic or explicitly keyed segmented continuation.
+    Nonzero ``edges.delay_steps`` select the finite-delay kernel; continuation
+    with ``init_state`` is rejected when any delay is positive (delay history is
+    required dynamical state).
     """
+
+    delay_host = _edge_delay_steps_host(edges)
+    if np.any(delay_host < 0):
+        raise ValueError("edge delay_steps must be >= 0")
+    if np.any(delay_host > 0):
+        return _simulate_edge_recurrent_izhikevich_delayed(
+            params,
+            edges,
+            n_steps,
+            dt_ms,
+            key,
+            dtype=dtype,
+            drive_schedule=drive_schedule,
+            silence_mask=silence_mask,
+            noise_scale=noise_scale,
+            init_state=init_state,
+        )
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
