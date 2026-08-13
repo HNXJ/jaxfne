@@ -278,8 +278,8 @@ def test_d0_f0_parity_with_legacy_kernel():
     assert jnp.allclose(st1["H_trace"], 1.0)
 
 
-def test_activity_unchanged_across_families_when_kappa_zero():
-    """H1 does not feed H back into F_x; v/s/q identical across F0/F1/F2."""
+def test_activity_unchanged_across_families_when_beta_h_zero():
+    """With beta_H=0, H does not feed back into F_x; v/s/q identical across F0/F1/F2."""
     params, edges = _two_neuron_ring()
     n_steps = 50
     drive = jnp.zeros((n_steps, 2), dtype=jnp.float32)

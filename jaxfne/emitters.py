@@ -1044,6 +1044,54 @@ def _rbd_advance_h(
     return H_next
 
 
+def _rbd_recurrent_gain_affine(
+    family: str,
+    H: jax.Array,
+    beta_h: jax.Array,
+    *,
+    jdtype: jnp.dtype,
+) -> jax.Array:
+    """Postsynaptic recurrent gain ``G_H(H;beta_H)=1+beta_H(H-1)`` (Protocol H1c-C)."""
+    one = jnp.ones_like(H, dtype=jdtype)
+    if family == "f0":
+        return one
+    g = 1.0 + beta_h * (H - 1.0)
+    g = jnp.where(beta_h == 0.0, one, g)
+    return jnp.where(g > 0, g, jnp.nan)
+
+
+def _rbd_compose_native_current(
+    I_ext: jax.Array,
+    I_rec: jax.Array,
+    H: jax.Array,
+    family: str,
+    beta_h: jax.Array,
+    noise: jax.Array,
+    *,
+    jdtype: jnp.dtype,
+) -> jax.Array:
+    """``I_drive = I_ext + G_H(H) * I_rec + noise``; ``F_H`` uses pre-gain ``I_rec``."""
+    g_h = _rbd_recurrent_gain_affine(family, H, beta_h, jdtype=jdtype)
+    return I_ext + g_h * I_rec + noise
+
+
+def _rbd_host_validate_gain_if_concrete(
+    family: str, H0: jax.Array, beta_h: float
+) -> None:
+    if family == "f0" or beta_h == 0.0:
+        return
+    try:
+        h_host = np.asarray(jax.device_get(H0))
+    except (jax.errors.TracerArrayConversionError, TypeError, ValueError):
+        return
+    g0 = 1.0 + beta_h * (h_host - 1.0)
+    if np.any(g0 <= 0):
+        raise ValueError(
+            "Protocol H1c requires G_H(H;beta_H)>0; nonpositive recurrent gain "
+            "invalidates the trajectory"
+        )
+
+
 def _rbd_host_validate_h0_if_concrete(family: str, H0: jax.Array) -> None:
     if family != "f2":
         return
@@ -1077,26 +1125,29 @@ def simulate_edge_recurrent_izhikevich_rbd(
     tau_h_ms: float = 100.0,
     kappa_h: float = 0.0,
     i_ref: float = 1.0,
+    beta_h: float = 0.0,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Protocol H1 — RBD with fixed weights (``d_H=1``, ``dot W=0``).
 
     Couples the standard edge-recurrent Izhikevich kernel (including Protocol D
-    finite delays when ``delay_steps > 0``) to a scalar per-neuron Relative
-    Biophysical State ``H_i``. **H1a only:** activity ``F_x`` is unchanged; ``F_H``
-    receives optional ``kappa_H * I_i^rel`` but there is no ``H -> x`` coupling
-    until H1c (see ``docs/doctrine/protocol_h_h1b_h_to_x_gain.md``). ``F_H``
-    evolves:
+    finite delays when ``delay_steps > 0``) to scalar per-neuron RBS ``H_i``.
+
+    **H1c-C (postsynaptic recurrent gain):** native drive is
+
+    ``I_i^drive = I_i^ext + G_H(H_i; beta_H) * I_i^rec + noise``,
+
+    with ``G_H(H; beta_H) = 1 + beta_H (H - 1)``. External drive is untouched.
+    ``F_H`` sees **pre-gain** recurrent aggregate ``I_i^rec`` (not
+    ``G_H * I_i^rec``). ``beta_H=0`` and ``H=1`` (F0) recover H1a activity.
+
+    ``F_H`` families:
 
     * **F0** — RBS disabled: ``H_i \\equiv 1``
     * **F1** — ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
     * **F2** — ``tau_H * dH_i/dt = (1/H_i - 1) + kappa_H * I_i^rel`` (requires ``H>0``)
 
-    ``I_i^rel`` is the total recurrent synaptic input current at neuron ``i``
-    divided by ``i_ref``. Without active input and with ``kappa_H=0``, F1 relaxes
-    analytically as ``H_i(t)-1 = (H_i(0)-1) exp(-t/tau_H)``.
-
-    F2 trajectories that reach ``H<=0`` propagate ``nan`` in ``H_trace`` rather
-    than clip — the singular boundary is part of the candidate model.
+    ``I_i^rel = I_i^rec / i_ref`` uses pre-gain recurrent input. Nonpositive
+    ``G_H`` propagates non-finite activity (no clip).
 
     Nonzero delays use the D kernel's spike ring buffer; ``init_state``
     continuation is rejected when any ``delay_steps > 0`` (H2 scope).
@@ -1126,6 +1177,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     dt = jnp.asarray(dt_ms, dtype=jdtype)
     tau_h = jnp.asarray(tau_h_ms, dtype=jdtype)
     kappa = jnp.asarray(kappa_h, dtype=jdtype)
+    beta = jnp.asarray(beta_h, dtype=jdtype)
     i_ref_arr = jnp.asarray(i_ref, dtype=jdtype)
     noise_coef = (
         jnp.asarray(0.5, dtype=jdtype)
@@ -1154,6 +1206,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
     if H0.shape != (n_neurons,):
         raise ValueError(f"H0 must have shape ({n_neurons},), got {H0.shape}")
     _rbd_host_validate_h0_if_concrete(family, H0)
+    _rbd_host_validate_gain_if_concrete(family, H0, beta_h)
 
     key, noise_key = jax.random.split(key)
     bulk_noise = jax.random.normal(
@@ -1180,11 +1233,19 @@ def simulate_edge_recurrent_izhikevich_rbd(
             t_idx, noise_t = xs_t
             v, u, prev_spikes, syn_state, spike_hist, H = carry
             edge_current = weight * syn_state
-            syn = _segment_sum(edge_current, post, n_neurons)
+            I_rec = _segment_sum(edge_current, post, n_neurons)
             H_next = _rbd_advance_h(
-                family, H, syn, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
+                family, H, I_rec, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
             )
-            current_native = drive + syn + noise_coef * noise_t
+            current_native = _rbd_compose_native_current(
+                drive,
+                I_rec,
+                H,
+                family,
+                beta,
+                noise_coef * noise_t,
+                jdtype=jdtype,
+            )
             dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
@@ -1218,11 +1279,19 @@ def simulate_edge_recurrent_izhikevich_rbd(
                 t_idx, sched_t, noise_t = xs_t
                 v, u, prev_spikes, syn_state, spike_hist, H = carry
                 edge_current = weight * syn_state
-                syn = _segment_sum(edge_current, post, n_neurons)
+                I_rec = _segment_sum(edge_current, post, n_neurons)
                 H_next = _rbd_advance_h(
-                    family, H, syn, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
+                    family, H, I_rec, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
                 )
-                current_native = drive + sched_t + syn + noise_coef * noise_t
+                current_native = _rbd_compose_native_current(
+                    drive + sched_t,
+                    I_rec,
+                    H,
+                    family,
+                    beta,
+                    noise_coef * noise_t,
+                    jdtype=jdtype,
+                )
                 dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
                 v_next = v + dt * dv
                 u_next = u + dt * du
@@ -1272,6 +1341,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
             "H_trace": H_trace,
             "tau_h_ms": tau_h,
             "kappa_h": kappa,
+            "beta_h": beta,
             "i_ref": i_ref_arr,
             "w_fixed": weight,
         }
@@ -1299,11 +1369,19 @@ def simulate_edge_recurrent_izhikevich_rbd(
         def step_rbd(carry, noise_t):
             v, u, prev_spikes, syn_state, H = carry
             edge_current = weight * syn_state
-            syn = _segment_sum(edge_current, post, n_neurons)
+            I_rec = _segment_sum(edge_current, post, n_neurons)
             H_next = _rbd_advance_h(
-                family, H, syn, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
+                family, H, I_rec, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
             )
-            current_native = drive + syn + noise_coef * noise_t
+            current_native = _rbd_compose_native_current(
+                drive,
+                I_rec,
+                H,
+                family,
+                beta,
+                noise_coef * noise_t,
+                jdtype=jdtype,
+            )
             dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
@@ -1333,11 +1411,19 @@ def simulate_edge_recurrent_izhikevich_rbd(
             sched_t, noise_t = xs_t
             v, u, prev_spikes, syn_state, H = carry
             edge_current = weight * syn_state
-            syn = _segment_sum(edge_current, post, n_neurons)
+            I_rec = _segment_sum(edge_current, post, n_neurons)
             H_next = _rbd_advance_h(
-                family, H, syn, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
+                family, H, I_rec, dt, tau_h, kappa, i_ref_arr, jdtype=jdtype
             )
-            current_native = drive + sched_t + syn + noise_coef * noise_t
+            current_native = _rbd_compose_native_current(
+                drive + sched_t,
+                I_rec,
+                H,
+                family,
+                beta,
+                noise_coef * noise_t,
+                jdtype=jdtype,
+            )
             dv, du = _izhikevich_dv_du(v, u, current_native, a, b)
             v_next = v + dt * dv
             u_next = u + dt * du
@@ -1370,6 +1456,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
         "H_trace": H_trace,
         "tau_h_ms": tau_h,
         "kappa_h": kappa,
+        "beta_h": beta,
         "i_ref": i_ref_arr,
         "w_fixed": weight,
     }

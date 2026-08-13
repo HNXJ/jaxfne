@@ -1,9 +1,9 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1a IMPLEMENTED; H1b SPEC OPEN; H2–H4 not started  
-**Baseline:** `dev` @ `cf0eb43` (H1 kernel)  
+**Status:** H1a/H1c IMPLEMENTED; H2–H4 not started  
+**Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
-**Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler, H1c implementation (until H1b frozen)
+**Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler
 
 ## 1. Scientific question
 
@@ -297,8 +297,8 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H0** | Parent protocol frozen | `81700a4` |
 | **H1a** | `simulate_edge_recurrent_izhikevich_rbd`: \(\kappa_{x\rightarrow H}\), F0/F1/F2, D delays | `tests/test_protocol_h_rbd_h1.py` |
 | **H1b** | \(H\rightarrow x\) gain specification + \(I^{\mathrm{rel}}\) semantics | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
-| **H1c** | Implement selected gain interface | Blocked — not authorized |
-| **H2** | Full-state continuation incl. \(\mathcal B_t\) | After H1c |
+| **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
+| **H2** | Full-state continuation incl. \(\mathcal B_t\) | After H1c review |
 | **H3** | Localized RBS perturbation + \(M(\Delta)\) | After H1c; requires \(H\rightarrow x\) |
 | **H4** | Matrix §6 + evidence receipt | After H3 |
 

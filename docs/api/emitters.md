@@ -403,7 +403,17 @@ keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1
 Protocol H1 — **Relative Biophysical Dynamics** with **fixed weights** (\(\dot W=0\),
 \(d_H=1\)). Composes the edge-recurrent Izhikevich kernel (including Protocol D
 ``delay_steps`` when nonzero) with scalar per-neuron RBS coordinates ``H_i``.
-Activity ``F_x`` is unchanged in H1; only ``F_H`` evolves.
+
+**H1c-C (postsynaptic recurrent gain):**
+
+\[
+I_i^{\mathrm{drive}} = I_i^{\mathrm{ext}} + G_H(H_i;\beta_H)\,I_i^{\mathrm{rec}} + \text{noise},
+\quad G_H = 1 + \beta_H(H-1).
+\]
+
+External drive is untouched. ``F_H`` uses **pre-gain** ``I_i^rec`` for
+``kappa_H * I_i^rel``. ``beta_h=0`` and ``H=1`` recover H1a / legacy activity.
+Nonpositive ``G_H`` invalidates (no clip). Parameter: ``beta_h`` (default ``0.0``).
 
 ``rbd_family`` selects:
 

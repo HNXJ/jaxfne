@@ -1,9 +1,6 @@
 # Protocol H1b — \(H \rightarrow x\) gain interface (specification)
 
-**Status:** OPEN (specification only; **no implementation**)  
-**Baseline:** `dev` @ `cf0eb43` (Protocol H1 kernel)  
-**Prerequisite:** H1a complete (\(x/I \rightarrow H\) via \(\kappa_H\))  
-**Blocks:** H2 continuation, H3 perturbation/\(M(\Delta)\) until H1b design is frozen  
+**Status:** CLOSED (H1c-C implemented); see `protocol_h_rbd_memory.md`  
 **Architecture:** `docs/doctrine/tfne_containment_architecture.md` — H1b is the
 **first emitter-local** typed gain map; RBS may eventually couple to \(S,F,P\)
 with strict typing.
@@ -188,14 +185,34 @@ Same local Jacobian at \(H=1\); nonlinear distinction appears away from equilibr
 
 Executable receipt: `tests/test_protocol_h_rbd_h1_phase_portrait.py`.
 
-## 7. H1c implementation gate (not authorized)
+## 7. H1c implementation gate (authorized: C — postsynaptic recurrent gain)
 
-When H1b is approved, minimal H1c should add:
+**Frozen coupling (H1c-C):**
 
-- One selected gain target from §4 shortlist
-- \(g(1)=1\), null \(\kappa_{H\rightarrow x}=0 \Rightarrow g\equiv 1\)
-- Unit tests: null recovers H1a activity parity; \(H\)-perturbation changes \(x\)
-- **Still** no H2/H3 until H1c passes review
+\[
+I_i^{\mathrm{drive}} = I_i^{\mathrm{ext}} + G_H(H_i;\beta_H)\,I_i^{\mathrm{rec}} + \text{noise},
+\qquad
+G_H(H;\beta_H)=1+\beta_H(H-1).
+\]
+
+| Rule | Requirement |
+|------|-------------|
+| External drive | Untouched: \(I^{\mathrm{ext,eff}}=I^{\mathrm{ext}}\) |
+| \(F_H\) input | **Pre-gain** \(I^{\mathrm{rec}}\) only (not \(G_H I^{\mathrm{rec}}\)) |
+| Admissibility | \(G_H>0\); nonpositive gain invalidates (no clip) |
+| Null F0 | \(H\equiv 1 \Rightarrow G_H=1\) |
+| Null \(\beta_H=0\) | H1a activity |
+| Null \(I^{\mathrm{rec}}=0\) | \(H\) invisible to \(x\) via this map |
+| Null \(W\) | Fixed throughout |
+
+**Sign-symmetry test (pre-H2/H3):** \(H_k=1\pm\delta\) with \(\beta_H>0\) must
+respectively increase/decrease recurrent susceptibility on neuron \(k\).
+
+A and B (total deterministic / extrinsic drive gain) remain **later typed maps**,
+not replacements.
+
+Implementation: `beta_h` on `simulate_edge_recurrent_izhikevich_rbd`;
+receipt: `tests/test_protocol_h_rbd_h1c.py`.
 
 ## 8. Stop rules
 
