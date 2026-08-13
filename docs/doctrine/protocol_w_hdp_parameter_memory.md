@@ -1,9 +1,9 @@
 # Protocol W — HDP parameter memory (W0 frozen; implementation closed)
 
-**Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · **W1b IMPLEMENTED** · W2+ **not** authorized  
+**Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · **W1b IMPLEMENTED** · **W2 FROZEN** · **W3 SPEC OPEN** · W3 implementation **not** authorized  
 **Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`)  
 **W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
-**Out of scope:** H4 rescue, Protocol H extensions, W implementation, conservation/competition in W1
+**Out of scope:** H4 rescue, Protocol H extensions, W3 implementation, conservation/competition in W1
 
 Protocol W is a **new dynamical problem** — not an extension of the H4 topology/delay experiment.
 
@@ -265,6 +265,103 @@ gradient). **No** \(\omega\rightarrow W\rightarrow X\).
 
 Implementation: `jaxfne/w1b_shadow_plasticity.py`, `tests/test_protocol_w_w1b.py`.
 
+### 5.9 W2 — frozen-\(\omega\) parameter expression (**frozen**)
+
+**Question:** does a previously written \(\omega\) produce the expected change in neural dynamics through \(W\)?
+
+Causal graph (W2 only):
+
+\[
+\omega^\star \rightarrow W^\star \rightarrow X,
+\qquad
+\dot\omega = 0 \text{ throughout.}
+\]
+
+No \(H\rightarrow\omega\) during expression (W3 closure is separate).
+
+**Architectural rule:** canonical stored plastic state is \(\omega\); typed edge readout is
+\(W_{ij}=W^0_{ij}e^{\omega_{ij}}\) at the operator boundary. Effective signed coupling is
+\(J_{ij}=s_{ij}W_{ij}\), \(s_{ij}\in\{-1,+1\}\). Do not repeatedly exponentiate and overwrite stored \(W\).
+
+**Frozen receipt (write-once):** `artifacts/protocol_w/w2_expression/w2_expression_receipt.json`
+
+**Frozen configuration symbol:** `FROZEN_W2_CONFIG` in `jaxfne/w2_parameter_expression.py`
+
+Implementation: `jaxfne/w2_parameter_expression.py`, `tests/test_protocol_w_w2.py`.
+
+### 5.10 W3 — closed HDP loop (**specification open; implementation not authorized**)
+
+W3 composes validated W1 and W2 maps before feedback:
+
+\[
+H \xrightarrow[\mathrm{W1}]{F_W} \omega
+\xrightarrow[\mathrm{W2}]{W=W_0e^\omega}
+W \rightarrow X \rightarrow I^{\mathrm{rec}} \rightarrow H.
+\]
+
+Minimal closed system on \(A\rightleftarrows B\):
+
+\[
+\boxed{
+\begin{aligned}
+\tau_H\dot H_i &= F_H(H_i,I_i^{\mathrm{rec}},\ldots),\\
+\tau_W\dot\omega_{ij} &= \kappa_W(H_i-H_j)-\lambda_W\omega_{ij},\\
+W_{ij} &= W_{ij}^{0}e^{\omega_{ij}},\\
+I_i^{\mathrm{rec}} &= \sum_j s_{ji}W_{ji}S_j.
+\end{aligned}}
+\]
+
+Equilibrium: \(H_A=H_B=1\), \(\omega_{AB}=\omega_{BA}=0\). Linearize with \(h_i=H_i-1\).
+
+**Dangerous loop:**
+
+\[
+h_A-h_B \rightarrow \omega \rightarrow \delta W \rightarrow \delta I \rightarrow h_A-h_B.
+\]
+
+**Closed-loop stability gate (required before implementation):** derive Jacobian
+\(J=\left.\partial\dot{\mathcal X}/\partial\mathcal X\right|_{\mathcal X^\star}\)
+for the smallest reduced deterministic linearization and require
+\(\max_k\Re\lambda_k(J)<0\) for the nominal W3 parameter set.
+
+Schematic antisymmetric reduction \((\delta,\omega_{AB})\):
+
+\[
+\tau_H\dot\delta = -\delta + 2\kappa_H g_{\mathrm{syn}} W_0\,\omega_{AB},
+\qquad
+\tau_W\dot\omega_{AB} = \kappa_W\delta - \lambda_W\omega_{AB},
+\]
+
+with \(g_{\mathrm{syn}}\) identified from linearized synaptic/Izhikevich coupling at equilibrium.
+
+**Reduction/null regimes (preregistered):**
+
+| Regime | Setting | Expected reduction |
+|--------|---------|-------------------|
+| RBD null | \(\kappa_W=0\) | RBD/H substrate; \(\omega\) frozen |
+| Expression null | \(\kappa_H=0\) | \(H\to\omega\to W\to X\) without \(I^{\mathrm{rec}}\to H\) |
+| Closed HDP | \(\kappa_H>0,\kappa_W>0\) | full loop; stability-gated |
+
+**Timescale hierarchy (primary regime):** \(\tau_W/\lambda_W > \tau_H\).
+
+**Primary experiment:** perturbation \(\rightarrow\) relaxation \(\rightarrow\) probe.
+
+**Success criterion (not permanent \(H\) memory):**
+
+\[
+H_{\mathrm{perturbed}}\approx H_{\mathrm{control}}
+\quad\text{while}\quad
+\omega_{\mathrm{perturbed}}\neq\omega_{\mathrm{control}}
+\Rightarrow
+X_{\mathrm{perturbed}}\neq X_{\mathrm{control}}
+\]
+
+under identical probe input — fast RBS memory faded, slower parameter trace changes future response.
+
+**Specification artifact:** `artifacts/protocol_w/w3_closed_loop_spec.json`
+
+**Forbidden:** tuning closed-loop parameters after observing W3 memory outcome; using \(\lambda_W=0\) as the only W3 demonstration.
+
 ## 6. Experimental ladder (frozen order)
 
 \[
@@ -283,8 +380,8 @@ Implementation: `jaxfne/w1b_shadow_plasticity.py`, `tests/test_protocol_w_w1b.py
 |-------|--------|
 | **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
 | **W1b** | **IMPLEMENTED** — RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
-| **W2** | not authorized |
-| **W3** | not authorized |
+| **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
+| **W3** | **SPEC OPEN** — closed loop spec; implementation blocked pending stability gate |
 | **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
@@ -296,9 +393,11 @@ Implementation: `jaxfne/w1b_shadow_plasticity.py`, `tests/test_protocol_w_w1b.py
 | W0 | frozen |
 | W1a | **yes** — scalar integrator only |
 | W1b | **yes** — shadow plasticity, no feedback |
-| W2+ | **no** |
+| W2 | **frozen** — receipt locked; do not mutate configuration |
+| W3 | **spec only** — Jacobian stability gate required before code |
+| W4+ | **no** |
 
-W1b+ remains closed until W1a review.
+W3 implementation remains blocked until stability analysis receipt passes.
 
 ### 7.1 Stability receipts (pre-code)
 
@@ -323,7 +422,9 @@ W1b+ remains closed until W1a review.
 |----------|------|
 | `jaxfne/w1a_omega_plasticity.py` | W1a scalar \(\omega\) integrator + analytic references |
 | `jaxfne/w1b_shadow_plasticity.py` | W1b shadow \(\omega\) from RBD-recorded \(\Delta H\) |
+| `jaxfne/w2_parameter_expression.py` | W2 frozen \(\omega\to W\to X\) expression |
 | `tests/test_protocol_w_w1b.py` | W1b composition, symmetry, F1, nulls, timescale receipts |
+| `tests/test_protocol_w_w2.py` | W2 monotonicity, E/I sign, structural + W1b-memory contrast |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
 | `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |
@@ -334,7 +435,13 @@ W0 exports:
 
 - `artifacts/protocol_w/w0_mathematical_contract.json`
 
-Future W runs (when authorized) add prospective receipts per phase.
+W2 frozen receipt:
+
+- `artifacts/protocol_w/w2_expression/w2_expression_receipt.json`
+
+W3 specification (open):
+
+- `artifacts/protocol_w/w3_closed_loop_spec.json`
 
 ## 10. Stop rules
 

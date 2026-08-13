@@ -1,0 +1,103 @@
+{
+  "schema": "protocol_w_w3_closed_loop_spec.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory_w3",
+  "status": "SPECIFICATION_OPEN",
+  "implementation_authorized": false,
+  "prerequisite_receipts": [
+    "artifacts/protocol_w/w0_mathematical_contract.json",
+    "artifacts/protocol_w/w2_expression/w2_expression_receipt.json"
+  ],
+  "scientific_question": "Does the closed HDP loop H -> omega -> W -> X -> I_rec -> H produce bounded dynamics with timescale-separated parameter retention and history-dependent future response?",
+  "composition": {
+    "W1": "H --F_W--> omega",
+    "W2": "omega --exp--> W --coupling--> X",
+    "W3_closure": "X --I_rec--> H"
+  },
+  "closed_system": {
+    "rbd_f1_linearization": "tau_H * dh_i/dt = -h_i + kappa_H * delta_I_i,  h_i = H_i - 1",
+    "plasticity": "tau_W * domega_ij/dt = kappa_W * (H_i - H_j) - lambda_W * omega_ij",
+    "admissibility": "W_ij = W_ij^0 * exp(omega_ij)",
+    "recurrent_current": "I_i^rec = sum_j s_ji * W_ji * S_j",
+    "equilibrium": {
+      "H_A": 1.0,
+      "H_B": 1.0,
+      "omega_AB": 0.0,
+      "omega_BA": 0.0,
+      "W_ij": "W_ij^0"
+    }
+  },
+  "dangerous_loop": "h_A - h_B -> omega -> delta_W -> delta_I -> h_A - h_B",
+  "stability_gate": {
+    "requirement": "max_k Re(lambda_k(J)) < 0 at equilibrium for nominal W3 parameter set",
+    "jacobian": "J = d(dot_X) / dX |_{X^*} for smallest reduced deterministic linearization",
+    "reduced_state_example": [
+      "delta = h_A - h_B (antisymmetric RBS perturbation)",
+      "omega = omega_AB (with omega_BA = -omega_AB under symmetric W1b convention)",
+      "optional synaptic filter state z_AB for linearized presynaptic-postsynaptic coupling"
+    ],
+    "schematic_2x2_block": {
+      "state": ["delta", "omega_AB"],
+      "delta_dot": "(-delta + 2 * kappa_H * g_syn * W0 * omega_AB) / tau_H",
+      "omega_dot": "(kappa_W * delta - lambda_W * omega_AB) / tau_W",
+      "gain_g_syn": "linearized map from delta_W_AB to antisymmetric delta_I at equilibrium; must be identified before implementation from Izhikevich+synapse linearization",
+      "characteristic_note": "2x2 Jacobian eigenvalues set closed-loop stability margin; full state Jacobian may be larger but must satisfy same gate"
+    },
+    "blocking_rule": "Do not implement W3 simulation until stability analysis receipt is written and nominal parameters pass the gate"
+  },
+  "timescale_hierarchy": {
+    "primary_regime": "tau_W / lambda_W > tau_H",
+    "rationale": "parameter memory must not forget faster than the RBS state that wrote it",
+    "lambda_W_zero": "supported boundary regime (permanent omega) but not primary W3 demonstration"
+  },
+  "reduction_null_regimes": [
+    {
+      "id": "W3_null_kappa_W_zero",
+      "setting": "kappa_W = 0",
+      "expected_reduction": "exact RBD / Protocol H substrate; omega frozen at initial value",
+      "purpose": "isolate H <-> X loop without plastic writing"
+    },
+    {
+      "id": "W3_null_kappa_H_zero",
+      "setting": "kappa_H = 0",
+      "expected_reduction": "H -> omega -> W -> X expression without recurrent activity feeding back into H",
+      "purpose": "isolate plastic expression path without RBS closure"
+    },
+    {
+      "id": "W3_closed",
+      "setting": "kappa_H > 0, kappa_W > 0",
+      "expected_behavior": "full closed HDP loop; subject to stability gate",
+      "purpose": "primary W3 demonstration regime"
+    }
+  ],
+  "primary_experiment": {
+    "topology": "A <-> B",
+    "phases": [
+      "perturbation: localized RBS pulse on A (or prescribed delta_H)",
+      "relaxation: free evolution until H_perturbed ~ H_control",
+      "probe: identical input to perturbed and control; compare omega, H, X"
+    ],
+    "success_criteria": {
+      "not_primary": "permanent memory of H",
+      "required": [
+        "bounded closed-loop dynamics (no runaway omega or H)",
+        "timescale-separated parameter retention: omega_perturbed != omega_control after H equilibration",
+        "history-dependent neural response: X_perturbed != X_control under identical probe input",
+        "H_perturbed approximately equals H_control at probe time (fast state faded)"
+      ],
+      "interpretation": "fast hidden-state memory has faded, but slower parameter trace changes future neural response"
+    },
+    "failure_criteria": [
+      "max Re(lambda(J)) >= 0 under nominal parameters (unstable equilibrium)",
+      "runaway |omega| or non-finite H during perturbation-relaxation-probe",
+      "probe response identical despite omega separation (expression failure)",
+      "H not equilibrated between perturbed and control at probe (confounded fast memory)"
+    ]
+  },
+  "forbidden_shortcuts": [
+    "Tuning kappa_W, kappa_H, lambda_W, tau_W, or probe parameters after observing W3 memory outcome",
+    "Using lambda_W = 0 as the only W3 success demonstration",
+    "Skipping stability Jacobian receipt before implementation",
+    "Reopening W2 frozen configuration or receipts during W3 debugging"
+  ],
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}

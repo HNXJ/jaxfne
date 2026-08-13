@@ -5,8 +5,18 @@
   "implementation_authorized": {
     "W1a": true,
     "W1b": true,
-    "W2": false
+    "W2": true,
+    "W3": false
   },
+  "phase_status": {
+    "W0": "FROZEN",
+    "W1a": "IMPLEMENTED",
+    "W1b": "IMPLEMENTED",
+    "W2": "FROZEN",
+    "W3": "SPECIFICATION_OPEN"
+  },
+  "w2_frozen_receipt": "artifacts/protocol_w/w2_expression/w2_expression_receipt.json",
+  "w3_specification": "artifacts/protocol_w/w3_closed_loop_spec.json",
   "scientific_question": "Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?",
   "separation_principle": {
     "plastic_drive": "D_ij(H,X,...)",

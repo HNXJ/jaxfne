@@ -1,0 +1,129 @@
+{
+  "schema": "protocol_w_w2_expression_receipt.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory_w2",
+  "status": "FROZEN_POSITIVE_RESULT",
+  "write_once": true,
+  "modification_policy": "Do not edit after freeze; new runs require a new protocol phase ID.",
+  "repository_sha_at_run": "6e9cc1fcdb053bdaf4e67d739d4c593ed5a5a4fa",
+  "causal_graph": "omega_star -> W_star -> X; dot_omega = 0 throughout; no H -> omega during expression",
+  "scientific_question": "Does a previously written omega produce the expected change in neural dynamics through W?",
+  "w1_w2_composition_note": "W1 (H -> omega) and W2 (omega -> W -> X) evidence frozen before W3 closed-loop feedback.",
+  "frozen_configuration": {
+    "topology": "A <-> B minimal pair; BA edge weight zero (isolate AB) for monotonic receipts",
+    "w0_ab": 6.0,
+    "w0_ba": 6.0,
+    "omega_levels": [-0.25, 0.0, 0.25],
+    "sign_ab_excitatory": 1,
+    "sign_ab_inhibitory": -1,
+    "sign_ba": 1,
+    "dt_ms": 1.0,
+    "n_steps": 80,
+    "pulse_step": 8,
+    "pulse_amp": 38.0,
+    "response_start": 8,
+    "response_end": 35,
+    "v_rest_mv": -65.0,
+    "rbd_family": "f1",
+    "beta_h": 0.0,
+    "kappa_h": 0.0,
+    "tau_h_ms": 80.0,
+    "syn_tau_ms": 3.0,
+    "delay_steps": 0,
+    "noise_scale": 0.0,
+    "dtype": "float32"
+  },
+  "response_metric_R_B": {
+    "primary": "subthreshold postsynaptic deflection on B in [response_start, response_end)",
+    "excitatory": "max(V_B) - V_rest",
+    "inhibitory": "V_rest - min(V_B)",
+    "secondary": "spike_count_b in response window (not primary gate)"
+  },
+  "w1b_source_provenance": {
+    "phase": "W1b shadow plasticity",
+    "artifact": "jaxfne/w1b_shadow_plasticity.py",
+    "memory_pick_step": 40,
+    "memory_contrast_seed": 5,
+    "w1b_config": {
+      "w1a": {"tau_w": 100.0, "kappa_w": 1.0, "lambda_w": 0.1, "w0": 1.0, "dt": 1.0},
+      "w0_ab": 1.0,
+      "w0_ba": 1.0,
+      "delta_h": 0.2,
+      "perturbation_step": 0,
+      "tau_h_ms": 80.0,
+      "rbd_family": "f1",
+      "beta_h": 0.0,
+      "kappa_h": 0.0,
+      "edge_weight": 6.0,
+      "syn_tau_ms": 3.0,
+      "delay_steps": 0
+    },
+    "omega_star_definition": "omega_AB(memory_pick_step) from run_rbd_shadow_w1b under frozen W1b config"
+  },
+  "preregistered_gates": {
+    "structural_omega_zero": "omega=0 => effective_weight_ab == W0",
+    "structural_weight_product": "W(+a) * W(-a) == W0^2",
+    "structural_omega_frozen": "omega_state immutable for entire W2 run",
+    "excitatory_monotonicity": "W_- < W_0 < W_+ => R_B(W_-) < R_B(W_0) < R_B(W_+)",
+    "inhibitory_sign": "increasing omega increases |J| without sign flip; R_B(inhibitory) monotone",
+    "w1b_memory_contrast": "identical drive; omega_star != 0; X_memory != X_null via R_B"
+  },
+  "test_command": "python -m pytest tests/test_protocol_w_w2.py -q",
+  "test_seeds": {
+    "monotonic_excitatory": 3,
+    "inhibitory": 4,
+    "w1b_memory_contrast": 5
+  },
+  "observed_results": {
+    "monotonic_excitatory_seed_3": {
+      "-0.25": {
+        "omega_ab": -0.25,
+        "effective_weight_ab": 4.672804832458496,
+        "response_b": -10.307815551757812,
+        "spike_count_b": 0.0
+      },
+      "0.0": {
+        "omega_ab": 0.0,
+        "effective_weight_ab": 6.0,
+        "response_b": -8.980621337890625,
+        "spike_count_b": 0.0
+      },
+      "0.25": {
+        "omega_ab": 0.25,
+        "effective_weight_ab": 7.704152584075928,
+        "response_b": -7.276466369628906,
+        "spike_count_b": 0.0
+      },
+      "monotonicity_pass": true
+    },
+    "inhibitory_seed_4": {
+      "omega_low": -0.25,
+      "omega_high": 0.25,
+      "weight_low": -4.672804832458496,
+      "weight_high": -7.704152584075928,
+      "response_b_low": 19.653427124023438,
+      "response_b_high": 22.684768676757812,
+      "inhibitory_monotonicity_pass": true
+    },
+    "w1b_memory_contrast_seed_5": {
+      "omega_star": 0.0630860862458015,
+      "omega_pick_step": 40,
+      "response_b_memory": -8.58990478515625,
+      "response_b_null": -8.980621337890625,
+      "response_b_delta": 0.390716552734375,
+      "w1b_omega_ab_at_pick": 0.0630860862458015,
+      "memory_contrast_pass": true
+    },
+    "structural": {
+      "w0": 6.0,
+      "weight_product_at_pm_a": 36.000001424867605,
+      "w0_squared": 36.0,
+      "weight_product_pass": true
+    }
+  },
+  "implementation_artifacts": {
+    "module": "jaxfne/w2_parameter_expression.py",
+    "tests": "tests/test_protocol_w_w2.py",
+    "frozen_config_symbol": "FROZEN_W2_CONFIG"
+  },
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}
