@@ -1,0 +1,332 @@
+{
+  "cell_M_X_area": {
+    "long_heterogeneous": 0.0,
+    "long_uniform": 0.0,
+    "short_heterogeneous": 0.05208333333333384,
+    "short_uniform": 0.0
+  },
+  "cells": {
+    "long_heterogeneous": {
+      "chance": 0.08333333333333333,
+      "circuit": {
+        "delay_class": "heterogeneous",
+        "delay_steps": [
+          2,
+          8,
+          2,
+          8,
+          2,
+          8,
+          2,
+          8,
+          2,
+          8,
+          2,
+          8
+        ],
+        "edge_weight": 6.0,
+        "length_class": "long",
+        "n_neurons": 12,
+        "syn_tau_ms": 3.0,
+        "t_loop_ms": 60.0
+      },
+      "n_classes": 12,
+      "summary": {
+        "D_H": {
+          "10": 0.0,
+          "2": 0.0,
+          "20": 0.0,
+          "35": 0.0,
+          "5": 0.0
+        },
+        "M_H": {
+          "10": 1.0,
+          "2": 1.0,
+          "20": 1.0,
+          "35": 1.0,
+          "5": 1.0
+        },
+        "M_X": {
+          "10": 0.08333333333333333,
+          "2": 0.08333333333333333,
+          "20": 0.08333333333333333,
+          "35": 0.08333333333333333,
+          "5": 0.08333333333333333
+        },
+        "M_X_area": 0.0,
+        "M_X_excess_peaks": [],
+        "M_X_secondary_peaks": [],
+        "M_X_shuffle": {
+          "10": 0.08333333333333333,
+          "2": 0.08333333333333333,
+          "20": 0.08333333333333333,
+          "35": 0.08333333333333333,
+          "5": 0.08333333333333333
+        }
+      }
+    },
+    "long_uniform": {
+      "chance": 0.08333333333333333,
+      "circuit": {
+        "delay_class": "uniform",
+        "delay_steps": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "edge_weight": 6.0,
+        "length_class": "long",
+        "n_neurons": 12,
+        "syn_tau_ms": 3.0,
+        "t_loop_ms": 48.0
+      },
+      "n_classes": 12,
+      "summary": {
+        "D_H": {
+          "10": 0.0,
+          "2": 0.0,
+          "20": 0.0,
+          "35": 0.0,
+          "5": 0.0
+        },
+        "M_H": {
+          "10": 1.0,
+          "2": 1.0,
+          "20": 1.0,
+          "35": 1.0,
+          "5": 1.0
+        },
+        "M_X": {
+          "10": 0.08333333333333333,
+          "2": 0.08333333333333333,
+          "20": 0.08333333333333333,
+          "35": 0.08333333333333333,
+          "5": 0.08333333333333333
+        },
+        "M_X_area": 0.0,
+        "M_X_excess_peaks": [],
+        "M_X_secondary_peaks": [],
+        "M_X_shuffle": {
+          "10": 0.08333333333333333,
+          "2": 0.08333333333333333,
+          "20": 0.08333333333333333,
+          "35": 0.08333333333333333,
+          "5": 0.08333333333333333
+        }
+      }
+    },
+    "short_heterogeneous": {
+      "chance": 0.3333333333333333,
+      "circuit": {
+        "delay_class": "heterogeneous",
+        "delay_steps": [
+          2,
+          8,
+          2
+        ],
+        "edge_weight": 6.0,
+        "length_class": "short",
+        "n_neurons": 3,
+        "syn_tau_ms": 3.0,
+        "t_loop_ms": 12.0
+      },
+      "n_classes": 3,
+      "summary": {
+        "D_H": {
+          "10": 0.0,
+          "2": 0.0,
+          "20": 0.0,
+          "35": 0.0,
+          "5": 0.0
+        },
+        "M_H": {
+          "10": 1.0,
+          "2": 1.0,
+          "20": 1.0,
+          "35": 1.0,
+          "5": 1.0
+        },
+        "M_X": {
+          "10": 0.3333333333333333,
+          "2": 0.3333333333333333,
+          "20": 0.3333333333333333,
+          "35": 0.3333333333333333,
+          "5": 0.3333333333333333
+        },
+        "M_X_area": 0.05208333333333384,
+        "M_X_excess_peaks": [],
+        "M_X_secondary_peaks": [],
+        "M_X_shuffle": {
+          "10": 0.3333333333333333,
+          "2": 0.3333333333333333,
+          "20": 0.3291666666666666,
+          "35": 0.3333333333333333,
+          "5": 0.3333333333333333
+        }
+      }
+    },
+    "short_uniform": {
+      "chance": 0.3333333333333333,
+      "circuit": {
+        "delay_class": "uniform",
+        "delay_steps": [
+          4,
+          4,
+          4
+        ],
+        "edge_weight": 6.0,
+        "length_class": "short",
+        "n_neurons": 3,
+        "syn_tau_ms": 3.0,
+        "t_loop_ms": 12.0
+      },
+      "n_classes": 3,
+      "summary": {
+        "D_H": {
+          "10": 0.0,
+          "2": 0.0,
+          "20": 0.0,
+          "35": 0.0,
+          "5": 0.0
+        },
+        "M_H": {
+          "10": 1.0,
+          "2": 1.0,
+          "20": 1.0,
+          "35": 1.0,
+          "5": 1.0
+        },
+        "M_X": {
+          "10": 0.3333333333333333,
+          "2": 0.3333333333333333,
+          "20": 0.3333333333333333,
+          "35": 0.3333333333333333,
+          "5": 0.3333333333333333
+        },
+        "M_X_area": 0.0,
+        "M_X_excess_peaks": [],
+        "M_X_secondary_peaks": [],
+        "M_X_shuffle": {
+          "10": 0.3333333333333333,
+          "2": 0.3333333333333333,
+          "20": 0.3333333333333333,
+          "35": 0.3333333333333333,
+          "5": 0.3333333333333333
+        }
+      }
+    }
+  },
+  "config": {
+    "edge_weight": 6.0,
+    "h3": {
+      "beta_h": 0.5,
+      "delta_h": 0.2,
+      "dt_ms": 1.0,
+      "kappa_h": 0.0,
+      "lag_steps": [
+        2,
+        5,
+        10,
+        20,
+        35
+      ],
+      "n_shuffle": 8,
+      "perturbation_step": 0,
+      "rbd_family": "f1",
+      "ridge_lambda": 0.01,
+      "tau_h_ms": 80.0,
+      "test_seeds": [
+        200,
+        201,
+        202,
+        203,
+        204,
+        205,
+        206,
+        207,
+        208,
+        209
+      ],
+      "train_seeds": [
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109
+      ]
+    },
+    "hetero_delay_steps": [
+      2,
+      8
+    ],
+    "n_long": 12,
+    "n_short": 3,
+    "n_steps": 80,
+    "syn_tau_ms": 3.0,
+    "uniform_delay_steps": 4
+  },
+  "config_hash": "324fc820b687eab5",
+  "factorial": {
+    "alpha_heterogeneity": 0.05208333333333385,
+    "alpha_interaction": -0.05208333333333385,
+    "alpha_length": 2.043118760594907e-17,
+    "mu": -1.1275702593849246e-17,
+    "residuals": {
+      "long_heterogeneous": -6.938893903907228e-18,
+      "long_uniform": -9.155485012099823e-18,
+      "short_heterogeneous": 6.938893903907228e-18,
+      "short_uniform": 1.1275702593849246e-17
+    }
+  },
+  "interpretation_gates": {
+    "all_alphas_near_0": "valid falsification of topology extension under tested regime",
+    "alpha_heterogeneity_gt_0": "delay-heterogeneity contribution",
+    "alpha_interaction_gt_0": "synergy",
+    "alpha_length_gt_0": "length contribution"
+  },
+  "interpretation_scope": "Positive H4 supports distributed fading dynamical memory in RBD only; not long-term memory, plastic memory, predictive coding, or surprise minimization.",
+  "loop_peak_alignment": {
+    "long_heterogeneous": {
+      "harmonic_table": [],
+      "peaks_used": [],
+      "t_loop_ms": 60.0
+    },
+    "long_uniform": {
+      "harmonic_table": [],
+      "peaks_used": [],
+      "t_loop_ms": 48.0
+    },
+    "short_heterogeneous": {
+      "harmonic_table": [],
+      "peaks_used": [],
+      "t_loop_ms": 12.0
+    },
+    "short_uniform": {
+      "harmonic_table": [],
+      "peaks_used": [],
+      "t_loop_ms": 12.0
+    }
+  },
+  "primary_endpoint": "M_X_area = integral [M_X(Delta)-M_X_shuffle(Delta)]_+ dDelta",
+  "protocol_id": "protocol_h_rbd_memory_h4",
+  "repository": {
+    "branch": "dev",
+    "sha": "8f01ae7592ada446d64de5b8cb15be33a947f123"
+  },
+  "runner": "scripts/run_protocol_h_h4_matrix.py",
+  "scientific_question": "Does recurrent geometry alter activity-expressed RBD memory?"
+}

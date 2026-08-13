@@ -1,6 +1,6 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1a/H1c/H2/H3 IMPLEMENTED; H4 not started  
+**Status:** H1a/H1c/H2/H3/H4 IMPLEMENTED (H4 receipt frozen); Protocol W closed
 **Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
 **Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler
@@ -302,8 +302,8 @@ time constants — all pre-registered.
 
 ## 6. Primary experiment matrix (H4 — preregistered, **closed**)
 
-**Status:** matrix **not yet run**. H3 checkpoint complete; open H4 only after
-explicit authorization.
+**Status:** matrix **authorized and executed**; receipt frozen at
+`artifacts/protocol_h_rbd/h4_matrix/h4_matrix_receipt.json` (write-once).
 
 **Primary endpoint (pre-registered):**
 
@@ -370,6 +370,15 @@ Definitions:
 Ring topology uses directed recurrent edges (one neighbor or k-nearest on a ring);
 exact edge lists are frozen in the étude/script receipt.
 
+**Mechanistic alignment (diagnostic only, not scored):** compare secondary
+\(M_X(\Delta)\) peaks to predicted loop-return times
+\(T_{\mathrm{loop}}=\sum_{e\in\mathrm{loop}}\tau_e\) (and harmonics). Peaks must
+emerge from data; they are not hypothesis targets.
+
+**Interpretation scope:** even a positive H4 result establishes only distributed
+fading dynamical memory in RBD — not long-term memory, plastic memory, predictive
+coding, or surprise minimization. Protocol W remains closed until H4 review.
+
 ## 7. Nulls and controls
 
 | Null | Purpose |
@@ -392,7 +401,7 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
 | **H2** | Full-state continuation incl. `delay_state` + `continuation_step_offset` | `tests/test_protocol_h_rbd_h2.py` |
 | **H3** | Localized RBS perturbation + label-independent \(M_H,M_X,M_{X,H}\); \(D_H\) diagnostic | `jaxfne/h3_decodability.py`, `tests/test_protocol_h_rbd_h3.py` |
-| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | **Closed** — preregistered, not run |
+| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | `jaxfne/h4_matrix.py`, `tests/test_protocol_h_rbd_h4.py`, frozen receipt |
 
 **API note:** reuse compatibility names (`h_state_*`, `enable_hdp`) only where
 semantically accurate; prefer a distinct **RBD-only** dispatch flag or kernel entry
@@ -431,7 +440,7 @@ viewing held-out \(M(\Delta)\) without declaring a new protocol revision.
 
 Stop and report rather than silently extend scope if:
 
-- H4 matrix must not run until explicitly authorized (§6 preregistered)
+- Protocol W must not open until H4 receipt is reviewed
 - \(F_H\) is selected by visual raster appeal without \(M(\Delta)\)
 - continuation omits \(\mathcal B_t\) under nonzero delays
 - plasticity (\(\dot W\)) is required to obtain the reported memory effect
