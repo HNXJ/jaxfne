@@ -1082,8 +1082,10 @@ def simulate_edge_recurrent_izhikevich_rbd(
 
     Couples the standard edge-recurrent Izhikevich kernel (including Protocol D
     finite delays when ``delay_steps > 0``) to a scalar per-neuron Relative
-    Biophysical State ``H_i``. Activity ``F_x`` is unchanged in H1; only
-    ``F_H`` evolves:
+    Biophysical State ``H_i``. **H1a only:** activity ``F_x`` is unchanged; ``F_H``
+    receives optional ``kappa_H * I_i^rel`` but there is no ``H -> x`` coupling
+    until H1c (see ``docs/doctrine/protocol_h_h1b_h_to_x_gain.md``). ``F_H``
+    evolves:
 
     * **F0** — RBS disabled: ``H_i \\equiv 1``
     * **F1** — ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel``
@@ -1091,7 +1093,7 @@ def simulate_edge_recurrent_izhikevich_rbd(
 
     ``I_i^rel`` is the total recurrent synaptic input current at neuron ``i``
     divided by ``i_ref``. Without active input and with ``kappa_H=0``, F1 relaxes
-    analytically as     ``H_i(t)-1 = (H_i(0)-1) exp(-t/tau_H)``.
+    analytically as ``H_i(t)-1 = (H_i(0)-1) exp(-t/tau_H)``.
 
     F2 trajectories that reach ``H<=0`` propagate ``nan`` in ``H_trace`` rather
     than clip — the singular boundary is part of the candidate model.

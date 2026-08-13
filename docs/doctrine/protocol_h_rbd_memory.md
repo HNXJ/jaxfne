@@ -1,9 +1,9 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1 IMPLEMENTED (kernel + tests); H2–H4 not started  
-**Baseline:** `dev` @ `81700a4` + H1 commit  
+**Status:** H1a IMPLEMENTED; H1b SPEC OPEN; H2–H4 not started  
+**Baseline:** `dev` @ `cf0eb43` (H1 kernel)  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
-**Out of scope:** Protocol W (wave inference), HDP (\(\dot W \neq 0\)), D₂ geometry compiler
+**Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler, H1c implementation (until H1b frozen)
 
 ## 1. Scientific question
 
@@ -87,17 +87,27 @@ Relative coordinates use baseline-one where appropriate:
 Protocol H **phase 1** requires scalar support (\(d_H=1\)) with a path to
 \(d_H>1\). Initial condition default: \(H_i(0)=1\) (relative equilibrium).
 
-### 4.2 RBD
-
-Coupled dynamics:
+### 4.2 RBD — two coupling directions
 
 \[
-\dot{\mathbf x}_i = F_x(\mathbf x_i,\mathbf I_i;\mathbf H_i),
+\dot H_i = F_H(H_i, x_i, I_i;\kappa_{x\rightarrow H}),
 \qquad
-\dot{\mathbf H}_i = F_H(\mathbf H_i,\mathbf x_i,\mathbf I_i,\ldots),
+\dot x_i = F_x(x_i, I_i; G(H_i;\kappa_{H\rightarrow x})),
 \qquad
 \dot{\mathbf W}=0.
 \]
+
+| Checkpoint | Content | Status |
+|------------|---------|--------|
+| **H1a** | \(x/I \rightarrow H\) via \(\kappa_H I_i^{\mathrm{rel}}\) | Implemented (`simulate_edge_recurrent_izhikevich_rbd`) |
+| **H1b** | Specify minimal \(H \rightarrow x\) gain \(G\) | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
+| **H1c** | Implement selected gain (not authorized) | Blocked on H1b |
+
+**H1a limitation:** \(F_x\) is **unchanged** in the current kernel. With
+\(\kappa_H=0\), a localized \(H_k=1+\delta_H\) perturbation can relax in \(H\)
+without affecting spikes or voltages. That validates RBS state dynamics but is
+**not sufficient** for the RBD memory hypothesis \(H\rightarrow x\). Do not open
+H3 \(M(\Delta)\) until H1c provides a null-recoverable \(H\rightarrow x\) interface.
 
 Delayed recurrent input (when enabled):
 
@@ -105,8 +115,37 @@ Delayed recurrent input (when enabled):
 \mathbf I_i(t)= \sum_j \mathcal C_{ji}\bigl(\mathbf x_j(t-\tau_{ji}),\,W_{ji}\bigr).
 \]
 
-Activity may feed back into \(F_H\) via spikes, rates, synaptic drive, or other
-declared readouts — but **must be declared** in the protocol receipt.
+Activity may feed back into \(F_H\) via \(\kappa_H I_i^{\mathrm{rel}}\) — see §4.5.
+
+### 4.5 \(I^{\mathrm{rel}}\) and baseline-one vs driven steady state
+
+**Implemented definition:**
+
+\[
+I_i^{\mathrm{rel}} = I_{\mathrm{syn},i}/i_{\mathrm{ref}},
+\qquad
+I_{\mathrm{syn},i}=\sum_{e:\,\mathrm{post}(e)=i} w_e s_e .
+\]
+
+\(I^{\mathrm{rel}}\) is **not zero-centered**: ongoing recurrent activity with
+nonnegative filter states typically yields \(\mathbb E[I^{\mathrm{rel}}]>0\).
+
+Distinguish:
+
+| Term | Meaning |
+|------|---------|
+| **Coordinate reference** | RBS baseline \(H=1\) where \(R(1)=0\) |
+| **Driven steady state** | \(H^\*\) solving \(R(H^\*)+\kappa_H\mathbb E[I^{\mathrm{rel}}]=0\) |
+
+When \(\kappa_H>0\), generally \(H^\*\neq 1\). Baseline-one is a **reference
+calibration**, not a claim that the driven attractor is at \(H=1\). With
+\(\kappa_H=0\) and no input coupling, \(H^\*=1\) for F1/F2.
+
+### 4.6 H1 phase portrait (isolated, \(I^{\mathrm{rel}}=0\))
+
+F1: \(R_1(H)=1-H\) — antisymmetric about \(H=1\).  
+F2: \(R_2(H)=H^{-1}-1\) — stronger recovery below 1, slower decay above 1 despite
+matched Jacobian at \(H=1\). Receipt: `tests/test_protocol_h_rbd_h1_phase_portrait.py`.
 
 ### 4.3 \(F_H\) candidate families (not one canonical equation)
 
@@ -255,11 +294,13 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 
 | Phase | Deliverable | Acceptance |
 |-------|-------------|------------|
-| **H0** | This document frozen | Reviewed against doctrine `4a8e54b` |
-| **H1** | `simulate_edge_recurrent_izhikevich_rbd`: \(d_H=1\), \(\dot W=0\), F0/F1/F2, D delays | Unit tests: F1 analytic relaxation, equilibrium, matched Jacobian, F0 D0 parity, F2 \(H>0\) gate, finiteness |
-| **H2** | Full-state continuation: \(\mathcal X\) includes \(\mathcal B_t\) when delays active | Segmented simulation bit-match single run |
-| **H3** | Perturbation driver + \(M(\Delta)\) decoder pipeline | Synthetic known-offset recovery on F1 |
-| **H4** | Matrix §6 étude + evidence receipt | Pre-registered \(M(\Delta)\) curves for all cells |
+| **H0** | Parent protocol frozen | `81700a4` |
+| **H1a** | `simulate_edge_recurrent_izhikevich_rbd`: \(\kappa_{x\rightarrow H}\), F0/F1/F2, D delays | `tests/test_protocol_h_rbd_h1.py` |
+| **H1b** | \(H\rightarrow x\) gain specification + \(I^{\mathrm{rel}}\) semantics | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
+| **H1c** | Implement selected gain interface | Blocked — not authorized |
+| **H2** | Full-state continuation incl. \(\mathcal B_t\) | After H1c |
+| **H3** | Localized RBS perturbation + \(M(\Delta)\) | After H1c; requires \(H\rightarrow x\) |
+| **H4** | Matrix §6 + evidence receipt | After H3 |
 
 **API note:** reuse compatibility names (`h_state_*`, `enable_hdp`) only where
 semantically accurate; prefer a distinct **RBD-only** dispatch flag or kernel entry
@@ -298,6 +339,7 @@ viewing held-out \(M(\Delta)\) without declaring a new protocol revision.
 
 Stop and report rather than silently extend scope if:
 
+- Do not open H3 \(M(\Delta)\) without H1c \(H\rightarrow x\) (see H1b spec)
 - \(F_H\) is selected by visual raster appeal without \(M(\Delta)\)
 - continuation omits \(\mathcal B_t\) under nonzero delays
 - plasticity (\(\dot W\)) is required to obtain the reported memory effect
@@ -309,4 +351,4 @@ Stop and report rather than silently extend scope if:
 - `docs/doctrine/rbs_rbd_hdp.md` — RBS/RBD/HDP definitions, §8 memory hypothesis
 - `artifacts/project_sources/4_tfne_theory_and_neural_tensor.md` — mathematical authority
 - `tests/test_edge_delay_protocol_d016.py` — Protocol D₀/D₁ tests
-- `docs/doctrine/rbs_rbd_hdp_inventory.md` — terminology classification (complete)
+- `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` — H1b \(H\rightarrow x\) gain specification
