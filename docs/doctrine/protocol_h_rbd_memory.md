@@ -1,6 +1,6 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1a/H1c/H2 IMPLEMENTED; H3 not started  
+**Status:** H1a/H1c/H2/H3 IMPLEMENTED; H4 not started  
 **Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
 **Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler
@@ -251,25 +251,46 @@ Permitted features from \(\mathcal X_{t_0+\Delta}\) must be declared (e.g.
 Using \(\mathcal B_t\) directly tests delay-buffer memory; excluding it tests
 RBS-mediated memory only.
 
-### 5.3 Retention function (H3 — not yet open)
+### 5.3 Retention function (H3 — implemented machinery; H4 matrix closed)
 
-Report **nested** decodability metrics:
+**Question:** does a localized RBS perturbation \(H_k(t_0^+)=1+\delta_H\) remain
+decodable after the offset is applied (no ongoing forcing, \(\dot W=0\))?
 
-\[
-M_H(\Delta),\qquad M_X(\Delta),\qquad M_{X,H}(\Delta),
-\]
+**Target:** perturbation identity \(U=k\in\{1,\ldots,N\}\) (amplitude secondary).
 
-distinguishing information that remains in explicit \(H\) from information
-expressed in neural activity \(X\). The stronger RBD claim targets
-\(M_X(\Delta)\): retention in observables without privileged \(H\) access.
+**Primary decoders (label-independent features only):**
 
 \[
-M(\Delta) =
-\operatorname{Decodability}\bigl[
-u(t_0);\;
-\mathcal X(t_0+\Delta)
-\bigr].
+M_H(\Delta)\rightarrow M_X(\Delta)\rightarrow M_{X,H}(\Delta).
 \]
+
+| Metric | Features at \(t_0+\Delta\) |
+|--------|---------------------------|
+| \(M_H\) | Full \(H=(H_1,\ldots,H_N)\) |
+| \(M_X\) | Strict activity: \(V\), spikes (not synaptic/delay state) |
+| \(M_{X,H}\) | Concatenated \((X,H)\) |
+
+Target-conditioned coordinate selection (\(H_k\) only, or \(H_{-k}\) with
+label-dependent masking) is **not** a valid identity decoder. Use instead:
+
+| Diagnostic | Definition | Role |
+|------------|------------|------|
+| **local \(H_k\)** | \(\|H_k(t_0+\Delta)-1\|\) at intervened \(k\) | Local persistence |
+| **\(D_H(\Delta)\)** | \(\sum_{j\neq k}\|H_j(t_0+\Delta)-1\|\) | Distributed RBS propagation |
+
+**Trials:** independent seeds for train/test (\(\cap=\varnothing\)); shared
+background drive per seed across perturbation identities; no timepoint
+subsamples from one trajectory as pseudo-replicates.
+
+**Nulls (H3 receipt):** F0, label shuffle, \(\delta_H=0\), \(\beta_H=0\) (expect
+\(M_H>\) chance while \(M_X\approx\) chance).
+
+**Summary metric (H3 exploratory):** area above shuffle
+\(\mathcal M=\int_0^{\Delta_{\max}}[M(\Delta)-M_{\mathrm{shuffle}}(\Delta)]_+\,d\Delta\);
+the full \(M(\Delta)\) curve remains primary evidence.
+
+Implementation: `jaxfne/h3_decodability.py`. **H4 remains closed** until
+preregistered endpoints in §6 are reviewed.
 
 Report \(M(\Delta)\) vs \(\Delta\) (in ms or steps), with confidence intervals
 over seeds and perturbation instances. **No memory claim** without a quantitative
@@ -279,9 +300,52 @@ Secondary metrics (optional, not substitutes): perturbation-aligned response
 difference between matched-input trajectories, autocorrelation of \(H\), recovery
 time constants — all pre-registered.
 
-## 6. Primary experiment matrix
+## 6. Primary experiment matrix (H4 — preregistered, **closed**)
 
-Fixed \(\dot W=0\), fixed \(F_H\) family per row block, shared decoder protocol:
+**Status:** matrix **not yet run**. H3 checkpoint complete; open H4 only after
+explicit authorization.
+
+**Primary endpoint (pre-registered):**
+
+\[
+\boxed{
+\mathcal M_X
+===========
+
+\int_0^{\Delta_{\max}}
+\bigl[M_X(\Delta)-M_{X,\mathrm{shuffle}}(\Delta)\bigr]_+\,d\Delta
+}
+\]
+
+Complete \(M_X(\Delta)\) curves are mandatory evidence (area alone can hide
+distinct kernels, e.g. exponential decay vs delayed recurrent peaks).
+
+**Directional conjecture (falsifiable, not acceptance criterion):**
+
+\[
+\mathcal M_X^{\mathrm{long,hetero}}
+>
+\mathcal M_X^{\mathrm{short,uniform}}.
+\]
+
+**Factorial decomposition (primary inference target):**
+
+\[
+\mathcal M_X
+============
+
+\mu
++\alpha_{\mathrm{length}}
++\alpha_{\mathrm{heterogeneity}}
++\alpha_{\mathrm{interaction}}
++\epsilon.
+\]
+
+"No memory extension" (\(\alpha_{\mathrm{length}}\approx 0\),
+\(\alpha_{\mathrm{heterogeneity}}\approx 0\), interaction null) is a **valid**
+H4 outcome.
+
+Fixed \(\dot W=0\), fixed \(F_H\) family per row block, shared H3 decoder protocol:
 
 \[
 \begin{array}{c|c|c}
@@ -327,8 +391,8 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H1b** | \(H\rightarrow x\) gain specification + \(I^{\mathrm{rel}}\) semantics | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
 | **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
 | **H2** | Full-state continuation incl. `delay_state` + `continuation_step_offset` | `tests/test_protocol_h_rbd_h2.py` |
-| **H3** | Localized RBS perturbation + nested \(M_H, M_X, M_{X,H}(\Delta)\) | Blocked until H2 review |
-| **H4** | Matrix §6 + evidence receipt | After H3 |
+| **H3** | Localized RBS perturbation + label-independent \(M_H,M_X,M_{X,H}\); \(D_H\) diagnostic | `jaxfne/h3_decodability.py`, `tests/test_protocol_h_rbd_h3.py` |
+| **H4** | Topology/delay matrix + \(\mathcal M_X\) factorial (§6) | **Closed** — preregistered, not run |
 
 **API note:** reuse compatibility names (`h_state_*`, `enable_hdp`) only where
 semantically accurate; prefer a distinct **RBD-only** dispatch flag or kernel entry
@@ -367,7 +431,7 @@ viewing held-out \(M(\Delta)\) without declaring a new protocol revision.
 
 Stop and report rather than silently extend scope if:
 
-- Do not open H3 \(M(\Delta)\) without H1c \(H\rightarrow x\) (see H1b spec)
+- H4 matrix must not run until explicitly authorized (§6 preregistered)
 - \(F_H\) is selected by visual raster appeal without \(M(\Delta)\)
 - continuation omits \(\mathcal B_t\) under nonzero delays
 - plasticity (\(\dot W\)) is required to obtain the reported memory effect
