@@ -398,6 +398,30 @@ keyword-only parameters: `r_star=0.05`, `tau_r_ms=300.0`, `alpha=1.0`, `k_gain=1
 
 ---
 
+### `simulate_edge_recurrent_izhikevich_rbd(...) -> (voltages, spikes, sources, final_state)`
+
+Protocol H1 — **Relative Biophysical Dynamics** with **fixed weights** (\(\dot W=0\),
+\(d_H=1\)). Composes the edge-recurrent Izhikevich kernel (including Protocol D
+``delay_steps`` when nonzero) with scalar per-neuron RBS coordinates ``H_i``.
+Activity ``F_x`` is unchanged in H1; only ``F_H`` evolves.
+
+``rbd_family`` selects:
+
+| ID | Dynamics |
+|----|----------|
+| ``"f0"`` | RBS disabled: ``H_i ≡ 1`` |
+| ``"f1"`` | ``tau_H * dH_i/dt = (1 - H_i) + kappa_H * I_i^rel`` |
+| ``"f2"`` | ``tau_H * dH_i/dt = (H_i^{-1} - 1) + kappa_H * I_i^rel`` (requires ``H>0``) |
+
+``I_i^rel`` is total recurrent synaptic input at neuron ``i`` divided by ``i_ref``.
+F2 trajectories that reach ``H<=0`` propagate non-finite ``H`` (no clip).
+``final_state`` includes ``H_trace``, ``H_final``, and ``w_fixed`` (the constant edge
+weights). Nonzero-delay continuation is rejected until Protocol H2.
+
+Authority: ``docs/doctrine/protocol_h_rbd_memory.md``.
+
+---
+
 ### `simulate_edge_recurrent_izhikevich_hdp(...) -> (voltages, spikes, sources, diagnostics_dict)`
 
 As `simulate_edge_recurrent_izhikevich`, plus **Hidden-state Dependent Plasticity (HDP)**:

@@ -1,7 +1,7 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** OPEN (specification frozen; implementation not started)  
-**Baseline:** `dev` @ `4a8e54b` (RBS/RBD/HDP doctrine + Protocol D₀/D₁)  
+**Status:** H1 IMPLEMENTED (kernel + tests); H2–H4 not started  
+**Baseline:** `dev` @ `81700a4` + H1 commit  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
 **Out of scope:** Protocol W (wave inference), HDP (\(\dot W \neq 0\)), D₂ geometry compiler
 
@@ -117,11 +117,31 @@ The legacy HDP income/spending kernel (including the exploratory scalar term
 Protocol H must compare **at least two** scalar \(F_H\) families under identical
 falsification metrics:
 
-| ID | Family | Sketch (scalar \(H_i\), per-neuron) | Role |
-|----|--------|--------------------------------------|------|
+**Pre-implementation correction (H1, post-`81700a4`):** F2 is **not** the literal
+legacy \(\rho/H^2\) (“100/H”) scaling. It is the baseline-one matched inverse-state
+candidate
+
+\[
+R_2(H)=H^{-1}-1,\qquad
+\tau_H\dot H_i = R_2(H_i)+\kappa_H I_i^{\mathrm{rel}},
+\]
+
+documented as **ancestry** from the toy passive-income rule, not mathematical
+identity. F1 and F2 share equilibrium \(H^\*=1\) and first-order relaxation
+rate at \(H=1\): \(R_1'(1)=R_2'(1)=-1\).
+
+| ID | Family | \(F_H\) restoring term (scalar \(H_i\), \(\kappa_H I_i^{\mathrm{rel}}\) optional) | Role |
+|----|--------|-------------------------------------------------------------------------------------|------|
 | **F0** | RBS-disabled null | \(\dot H_i=0\); \(H_i\equiv 1\) | Separates delay-only / activity-only memory |
-| **F1** | Linear restoring | \(\tau_H \dot H_i = K_H(1-H_i) + \text{(optional activity coupling)}\) | Minimal stable RBS without inverse-power passive term |
-| **F2** | Legacy passive-income | \(\tau_H \dot H_i = \alpha I_{\mathrm{syn},i} + \beta - \gamma H_i r_i + \rho/H_i^2 + \ldots\) | Exploratory toy; compare against F1, do not promote to theory |
+| **F1** | Linear restoring | \(\tau_H\dot H_i = (1-H_i) + \kappa_H I_i^{\mathrm{rel}}\) | Analytic reference; \(H^\*=1\), \(\partial\dot H/\partial H|_{1}=-1/\tau_H\) |
+| **F2** | Inverse-state matched | \(\tau_H\dot H_i = (H_i^{-1}-1) + \kappa_H I_i^{\mathrm{rel}}\); **requires \(H>0\)** | Same local Jacobian as F1 at \(H=1\); nonlinear away from equilibrium |
+
+\[
+R_1(H)=1-H,\qquad R_2(H)=H^{-1}-1,\qquad R_1(1)=R_2(1)=0,\qquad R_1'(1)=R_2'(1)=-1.
+\]
+
+F2 trajectories that reach \(H\le 0\) are **invalidated** (propagate non-finite
+\(H\)); no hidden clipping or arbitrary epsilon floor.
 
 Additional families (e.g. trace-filtered activity drive) may be added only if they
 are **pre-registered** with the same \(M(\Delta)\) pipeline.
@@ -139,12 +159,19 @@ axes; the primary matrix is §6.
 
 ### 5.1 Perturbation
 
-Apply a brief perturbation \(u(t_0)\) at known time \(t_0\). Examples (pre-register
-one primary class per run series):
+**Primary (pre-registered):** localized RBS intervention at time \(t_0\):
 
-- pulse current on a tagged neuron subset
-- brief conductance or drive increment
-- localized initial \(H_i\) offset with recovery to baseline input
+\[
+H_k(t_0^-)=1 \rightarrow H_k(t_0^+)=1+\delta_H,\qquad H_{i\neq k}=1.
+\]
+
+This interrogates \(\Delta H \rightarrow x/H/\mathcal B \rightarrow\) distributed
+fading state without the confound \(u\rightarrow x\rightarrow H\).
+
+**Secondary:** pulse-current perturbation — introduces an additional transfer path
+and is reserved for later cross-checks, not the first memory test.
+
+Other examples (optional, pre-register before use):
 
 Post-perturbation, external input returns to a **declared baseline** \(I^{\mathrm{base}}(t)\)
 identical across trials that differ only in perturbation identity or magnitude.
@@ -229,7 +256,7 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | Phase | Deliverable | Acceptance |
 |-------|-------------|------------|
 | **H0** | This document frozen | Reviewed against doctrine `4a8e54b` |
-| **H1** | RBD emitter path: \(d_H=1\), \(\dot W=0\), F1+F2 selectable, couples to D₀/D₁ delays | Unit tests: equilibrium, finiteness, F0 parity |
+| **H1** | `simulate_edge_recurrent_izhikevich_rbd`: \(d_H=1\), \(\dot W=0\), F0/F1/F2, D delays | Unit tests: F1 analytic relaxation, equilibrium, matched Jacobian, F0 D0 parity, F2 \(H>0\) gate, finiteness |
 | **H2** | Full-state continuation: \(\mathcal X\) includes \(\mathcal B_t\) when delays active | Segmented simulation bit-match single run |
 | **H3** | Perturbation driver + \(M(\Delta)\) decoder pipeline | Synthetic known-offset recovery on F1 |
 | **H4** | Matrix §6 étude + evidence receipt | Pre-registered \(M(\Delta)\) curves for all cells |
@@ -244,11 +271,12 @@ D-class renames remain out of scope unless explicitly authorized.
 | Artifact | Protocol H role |
 |----------|-----------------|
 | `simulate_edge_recurrent_izhikevich` + delays | Activity + \(\mathcal B_t\) substrate (D) |
-| `simulate_edge_recurrent_izhikevich_hdp` | **Not** the Protocol H kernel; includes \(\dot W\) and legacy F2-style \(F_H\) |
+| `simulate_edge_recurrent_izhikevich_hdp` | **Not** Protocol H; includes \(\dot W\) and legacy multi-term \(F_H\) |
+| `simulate_edge_recurrent_izhikevich_rbd` | **Protocol H1** kernel (\(\dot W=0\), F0/F1/F2) |
 | `enable_homeostasis` / `homeostatic_ei` | Kernel-specific homeostasis (B-class); not generic RBD |
 
-Extract F2 behavior from the HDP kernel only as an **candidate** implementation of
-family F2; do not treat the full HDP path as Protocol H.
+Extract F2's matched inverse-state form in the H1 kernel; do not treat the full
+HDP path as Protocol H.
 
 ## 10. Evidence and receipts
 
