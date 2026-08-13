@@ -415,6 +415,10 @@ External drive is untouched. ``F_H`` uses **pre-gain** ``I_i^rec`` for
 ``kappa_H * I_i^rel``. ``beta_h=0`` and ``H=1`` recover H1a / legacy activity.
 Nonpositive ``G_H`` invalidates (no clip). Parameter: ``beta_h`` (default ``0.0``).
 
+**H2 continuation:** pass ``init_state`` with ``v``, ``u``, ``prev_spikes``,
+``syn_state``, ``H_final``/``H``, ``delay_state`` (when delays active), and
+``continuation_step_offset``. Returns the same fields plus ``H_trace``.
+
 ``rbd_family`` selects:
 
 | ID | Dynamics |

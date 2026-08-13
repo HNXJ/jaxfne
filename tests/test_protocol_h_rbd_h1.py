@@ -312,15 +312,20 @@ def test_delayed_rbd_finite():
     assert "spike_history" in st
 
 
-def test_delayed_rbd_rejects_init_state():
+def test_delayed_rbd_requires_delay_state_for_continuation():
     params, edges = _two_neuron_ring(delay_steps=2)
-    with pytest.raises(ValueError, match="delay history"):
+    with pytest.raises(ValueError, match="delay_state"):
         _run_rbd(
             params,
             edges,
             n_steps=10,
             rbd_family="f1",
-            init_state={"v": params.v0, "u": params.u0, "prev_spikes": jnp.zeros(2), "syn_state": jnp.zeros(2)},
+            init_state={
+                "v": params.v0,
+                "u": params.u0,
+                "prev_spikes": jnp.zeros(2),
+                "syn_state": jnp.zeros(2),
+            },
         )
 
 

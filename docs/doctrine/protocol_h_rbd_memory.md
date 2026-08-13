@@ -1,6 +1,6 @@
 # Protocol H — RBD state memory (fixed weights)
 
-**Status:** H1a/H1c IMPLEMENTED; H2–H4 not started  
+**Status:** H1a/H1c/H2 IMPLEMENTED; H3 not started  
 **Baseline:** `dev` @ `4569b5e` + H1c  
 **Prerequisite:** Protocol D₀/D₁ (`724aa32`) — finite edge-delay semantics  
 **Out of scope:** Protocol W, HDP (\(\dot W \neq 0\)), D₂ geometry compiler
@@ -67,10 +67,28 @@ where:
 - \(\mathcal B_t\) — delay history (spike ring buffer) whenever any
   `delay_steps > 0` (Protocol D)
 
-**Continuation contract:** segmented simulation must accept and return the **full**
-\(\mathcal X_t\) needed by the selected kernel. Nonzero-delay continuation without
-\(\mathcal B_t\) is invalid (D₀/D₁ currently reject `init_state` when delays are
-active; Protocol H implementation must **lift** this by threading `spike_history`).
+**Continuation contract (H2, implemented):** the RBD Markov state is
+
+\[
+\boxed{
+\mathcal X_t^{\mathrm{RBD}}=
+\bigl(x_t,\,H_t,\,W,\,\mathcal B_t,\,\text{emitter recurrence state}\bigr)
+}
+\]
+
+with canonical delay-line field **`delay_state`** (\(\mathcal B_t\); legacy alias
+`spike_history`) and **`continuation_step_offset`** (global step index at segment
+start). Segmented simulation must satisfy
+
+\[
+\operatorname{Sim}_{T_1+T_2}(\mathcal X_0)
+\approx
+\operatorname{Sim}_{T_2}\!\left(\operatorname{Sim}_{T_1}(\mathcal X_0)\right)
+\]
+
+for \(F_H\in\{F0,F1,F2\}\), \(\beta_H\in\{0,\beta_{\mathrm{test}}\}\), zero and
+heterogeneous delays. **Pre-registered tolerance:** bit-exact float32 at
+`noise_scale=0` (`tests/test_protocol_h_rbd_h2.py`).
 
 Relative coordinates use baseline-one where appropriate:
 \(H_{ik}=z_{ik}/z_{ik}^\star\) with nominal \(H=1\), or reduced
@@ -233,7 +251,17 @@ Permitted features from \(\mathcal X_{t_0+\Delta}\) must be declared (e.g.
 Using \(\mathcal B_t\) directly tests delay-buffer memory; excluding it tests
 RBS-mediated memory only.
 
-### 5.3 Retention function
+### 5.3 Retention function (H3 — not yet open)
+
+Report **nested** decodability metrics:
+
+\[
+M_H(\Delta),\qquad M_X(\Delta),\qquad M_{X,H}(\Delta),
+\]
+
+distinguishing information that remains in explicit \(H\) from information
+expressed in neural activity \(X\). The stronger RBD claim targets
+\(M_X(\Delta)\): retention in observables without privileged \(H\) access.
 
 \[
 M(\Delta) =
@@ -298,8 +326,8 @@ HDP / \(\dot W \neq 0\) is **excluded** from Protocol H runs.
 | **H1a** | `simulate_edge_recurrent_izhikevich_rbd`: \(\kappa_{x\rightarrow H}\), F0/F1/F2, D delays | `tests/test_protocol_h_rbd_h1.py` |
 | **H1b** | \(H\rightarrow x\) gain specification + \(I^{\mathrm{rel}}\) semantics | `docs/doctrine/protocol_h_h1b_h_to_x_gain.md` |
 | **H1c** | Postsynaptic recurrent gain \(G_H=1+\beta_H(H-1)\) | `tests/test_protocol_h_rbd_h1c.py` |
-| **H2** | Full-state continuation incl. \(\mathcal B_t\) | After H1c review |
-| **H3** | Localized RBS perturbation + \(M(\Delta)\) | After H1c; requires \(H\rightarrow x\) |
+| **H2** | Full-state continuation incl. `delay_state` + `continuation_step_offset` | `tests/test_protocol_h_rbd_h2.py` |
+| **H3** | Localized RBS perturbation + nested \(M_H, M_X, M_{X,H}(\Delta)\) | Blocked until H2 review |
 | **H4** | Matrix §6 + evidence receipt | After H3 |
 
 **API note:** reuse compatibility names (`h_state_*`, `enable_hdp`) only where

@@ -1109,6 +1109,64 @@ def _rbd_host_validate_h0(family: str, H0_host: np.ndarray) -> None:
         )
 
 
+def _rbd_delay_state_from_init(
+    init_state: "dict | None",
+    *,
+    bufsize: int,
+    n_neurons: int,
+    jdtype: jnp.dtype,
+) -> jax.Array:
+    """Protocol H2: canonical delay-line state ``delay_state`` (alias ``spike_history``)."""
+    if init_state is None:
+        return jnp.zeros((bufsize, n_neurons), dtype=jdtype)
+    if "delay_state" in init_state:
+        return jnp.asarray(init_state["delay_state"], dtype=jdtype)
+    if "spike_history" in init_state:
+        return jnp.asarray(init_state["spike_history"], dtype=jdtype)
+    return jnp.zeros((bufsize, n_neurons), dtype=jdtype)
+
+
+def _rbd_continuation_step_offset(init_state: "dict | None") -> int:
+    if init_state is None:
+        return 0
+    if "continuation_step_offset" in init_state:
+        return int(np.asarray(init_state["continuation_step_offset"]))
+    if "time_step_offset" in init_state:
+        return int(np.asarray(init_state["time_step_offset"]))
+    return 0
+
+
+def _rbd_validate_delayed_init_state(
+    init_state: dict,
+    *,
+    bufsize: int,
+    n_neurons: int,
+    n_edges: int,
+) -> None:
+    required = ("v", "u", "prev_spikes", "syn_state")
+    missing = [k for k in required if k not in init_state]
+    if missing:
+        raise ValueError(
+            "delayed RBD continuation requires init_state keys "
+            f"{list(required)}; missing {missing}"
+        )
+    if "delay_state" not in init_state and "spike_history" not in init_state:
+        raise ValueError(
+            "delayed RBD continuation requires delay_state (or legacy spike_history)"
+        )
+    ds = init_state.get("delay_state", init_state.get("spike_history"))
+    ds_host = np.asarray(ds)
+    if ds_host.shape != (bufsize, n_neurons):
+        raise ValueError(
+            f"delay_state must have shape ({bufsize}, {n_neurons}), got {ds_host.shape}"
+        )
+    syn = np.asarray(init_state["syn_state"])
+    if syn.shape != (n_edges,):
+        raise ValueError(
+            f"syn_state must have shape ({n_edges},), got {syn.shape}"
+        )
+
+
 def simulate_edge_recurrent_izhikevich_rbd(
     params: IzhikevichParams,
     edges: EdgeList,
@@ -1149,8 +1207,10 @@ def simulate_edge_recurrent_izhikevich_rbd(
     ``I_i^rel = I_i^rec / i_ref`` uses pre-gain recurrent input. Nonpositive
     ``G_H`` propagates non-finite activity (no clip).
 
-    Nonzero delays use the D kernel's spike ring buffer; ``init_state``
-    continuation is rejected when any ``delay_steps > 0`` (H2 scope).
+    Nonzero delays use the D kernel's spike ring buffer. Protocol H2 continuation
+    requires full ``init_state`` including ``delay_state`` (alias
+    ``spike_history``) and ``continuation_step_offset`` (global step index at
+    segment start).
     """
     family = _validate_rbd_family(rbd_family)
     if tau_h_ms <= 0:
@@ -1161,11 +1221,6 @@ def simulate_edge_recurrent_izhikevich_rbd(
     delay_host = _edge_delay_steps_host(edges)
     if np.any(delay_host < 0):
         raise ValueError("edge delay_steps must be >= 0")
-    if np.any(delay_host > 0) and init_state is not None:
-        raise ValueError(
-            "init_state continuation is not supported when edge delay_steps > 0 "
-            "(Protocol H1; delay history B_t continuation is H2 scope)"
-        )
 
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
@@ -1218,15 +1273,38 @@ def simulate_edge_recurrent_izhikevich_rbd(
         delay_steps = edges.delay_steps.astype(jnp.int32)
         max_delay = int(np.max(delay_host))
         bufsize = max_delay + 1
-        step_indices = jnp.arange(int(n_steps), dtype=jnp.int32)
-
-        init = (
-            params.v0.astype(jdtype),
-            params.u0.astype(jdtype),
-            jnp.zeros_like(params.v0, dtype=jdtype),
-            jnp.zeros((edges.n_edges,), dtype=jdtype),
-            jnp.zeros((bufsize, n_neurons), dtype=jdtype),
-            H0,
+        time_step_offset = _rbd_continuation_step_offset(init_state)
+        if init_state is not None and "v" in init_state:
+            _rbd_validate_delayed_init_state(
+                init_state,
+                bufsize=bufsize,
+                n_neurons=n_neurons,
+                n_edges=edges.n_edges,
+            )
+            delay0 = _rbd_delay_state_from_init(
+                init_state, bufsize=bufsize, n_neurons=n_neurons, jdtype=jdtype
+            )
+            init = (
+                jnp.asarray(init_state["v"], dtype=jdtype),
+                jnp.asarray(init_state["u"], dtype=jdtype),
+                jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+                jnp.asarray(init_state["syn_state"], dtype=jdtype),
+                delay0,
+                H0,
+            )
+        else:
+            init = (
+                params.v0.astype(jdtype),
+                params.u0.astype(jdtype),
+                jnp.zeros_like(params.v0, dtype=jdtype),
+                jnp.zeros((edges.n_edges,), dtype=jdtype),
+                jnp.zeros((bufsize, n_neurons), dtype=jdtype),
+                H0,
+            )
+        step_indices = jnp.arange(
+            int(time_step_offset),
+            int(time_step_offset) + int(n_steps),
+            dtype=jnp.int32,
         )
 
         def step_delayed_rbd(carry, xs_t):
@@ -1335,8 +1413,12 @@ def simulate_edge_recurrent_izhikevich_rbd(
             "u": final[1],
             "prev_spikes": final[2],
             "syn_state": final[3],
+            "delay_state": final[4],
             "spike_history": final[4],
             "delay_steps_max": jnp.asarray(max_delay, dtype=jnp.int32),
+            "continuation_step_offset": jnp.asarray(
+                int(time_step_offset) + int(n_steps), dtype=jnp.int32
+            ),
             "H_final": final[5],
             "H_trace": H_trace,
             "tau_h_ms": tau_h,
@@ -1363,6 +1445,8 @@ def simulate_edge_recurrent_izhikevich_rbd(
             jnp.asarray(init_state["syn_state"], dtype=jdtype),
             H0,
         )
+
+    time_step_offset = _rbd_continuation_step_offset(init_state)
 
     if drive_schedule is None:
 
@@ -1452,6 +1536,9 @@ def simulate_edge_recurrent_izhikevich_rbd(
         "u": final[1],
         "prev_spikes": final[2],
         "syn_state": final[3],
+        "continuation_step_offset": jnp.asarray(
+            int(time_step_offset) + int(n_steps), dtype=jnp.int32
+        ),
         "H_final": final[4],
         "H_trace": H_trace,
         "tau_h_ms": tau_h,
