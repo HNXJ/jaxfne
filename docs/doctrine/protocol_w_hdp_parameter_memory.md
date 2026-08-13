@@ -1,6 +1,6 @@
 # Protocol W — HDP parameter memory (W0 frozen; implementation closed)
 
-**Status:** **W0 mathematical contract FROZEN** · IMPLEMENTATION **not** authorized  
+**Status:** **W0 FROZEN** · **W1a IMPLEMENTED** · W1b+ **not** authorized  
 **Prerequisite:** Protocol H **closed** at H4 (`docs/doctrine/protocol_h_rbd_memory.md`)  
 **W0 receipt:** `artifacts/protocol_w/w0_mathematical_contract.json`  
 **Out of scope:** H4 rescue, Protocol H extensions, W implementation, conservation/competition in W1
@@ -231,7 +231,16 @@ Afterward:
 
 This is the W1 analytic receipt — analogous to F1 transparency in Protocol H.
 
-Causal chain for W1:
+**W1a implementation:** `jaxfne/w1a_omega_plasticity.py`, `tests/test_protocol_w_w1a.py`.
+
+**Preregistered W1a gates (all tested):** zero-drive null; \(\lambda_W=0\) no-forgetting
+limit (supported scientific mode); sign symmetry and \(W_+W_-=W_0^2\); structural
+positivity without clipping; reference state; \(\tau_{\mathrm{mem},W}\) \(1/e\) decay;
+pulse-duration linear/saturation; discrete-Euler bit-exact recurrence; continuous
+limit convergence. Euler stability: \(0<\lambda_W\Delta t/\tau_W<2\); monotonic
+regime \(\le 1\) recorded but not required for rejection.
+
+Causal chain for W1a:
 
 \[
 \Delta H(t) \rightarrow \omega(t) \rightarrow W(t).
@@ -253,21 +262,25 @@ Causal chain for W1:
 }
 \]
 
-| Phase | Conservation \(C\) | Topology |
-|-------|-------------------|----------|
-| W1 | **off** | single edge (W1a) → \(A\rightleftarrows B\) optional (W1b) |
-| W2+ | optional only if W1 falsification requires it | minimal until W3 passes |
+| Phase | Status |
+|-------|--------|
+| **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
+| **W1b** | not authorized |
+| **W2** | not authorized |
+| **W3** | not authorized |
+| **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
 
 ## 7. Implementation authorization gates
 
-Implementation remains **closed** until:
+| Phase | Authorized |
+|-------|------------|
+| W0 | frozen |
+| W1a | **yes** — scalar integrator only |
+| W1b+ | **no** |
 
-1. W0 contract frozen (this document + JSON receipt) — **done**
-2. W1a analytic tests specified with closed-form tolerances
-3. Explicit sign typing \(s_{ij}\) in edge schema receipt
-4. Null: \(\kappa_W=0\), \(\lambda_W=0\) (separate receipts), \(\Delta H=0\)
+W1b+ remains closed until W1a review.
 
 ### 7.1 Stability receipts (pre-code)
 
@@ -290,6 +303,8 @@ Implementation remains **closed** until:
 
 | Artifact | Role |
 |----------|------|
+| `jaxfne/w1a_omega_plasticity.py` | W1a scalar \(\omega\) integrator + analytic references |
+| `tests/test_protocol_w_w1a.py` | W1a preregistered gates |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
 | `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |

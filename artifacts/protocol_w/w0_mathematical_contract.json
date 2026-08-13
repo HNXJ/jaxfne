@@ -2,7 +2,11 @@
   "schema": "protocol_w_w0_mathematical_contract.v1",
   "protocol_id": "protocol_w_hdp_parameter_memory",
   "status": "W0_FROZEN",
-  "implementation_authorized": false,
+  "implementation_authorized": {
+    "W1a": true,
+    "W1b": false,
+    "W2": false
+  },
   "scientific_question": "Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?",
   "separation_principle": {
     "plastic_drive": "D_ij(H,X,...)",
