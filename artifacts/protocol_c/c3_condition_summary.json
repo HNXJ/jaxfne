@@ -1,0 +1,106 @@
+{
+  "schema": "jaxfne.protocol_c.c3_condition_summary.v1",
+  "per_condition": [
+    {
+      "condition_id": "ordered_uniform",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "N_TW": 0,
+      "N_NW": 10,
+      "N_U": 0,
+      "N_total": 10,
+      "p_W": 0.0,
+      "p_U": 0.0
+    }
+  ],
+  "contrasts": {
+    "delta_p_W_ordered_geometry_derived_minus_uniform": 0.0,
+    "p_W_ordered_geometry_derived": 0.0,
+    "p_W_ordered_uniform": 0.0,
+    "p_W_ordered_geometry_derived_vs_ordered_delay_shuffled": {
+      "geometry_derived": 0.0,
+      "delay_shuffled": 0.0,
+      "delta": 0.0
+    },
+    "p_W_ordered_vs_shuffled_geometry_geometry_derived": {
+      "ordered": 0.0,
+      "shuffled": 0.0,
+      "delta": 0.0
+    }
+  },
+  "directional_conjecture": {
+    "statement": "p_W(ordered, geometry_derived) > p_W(ordered, uniform)",
+    "required_for_success": false,
+    "observed_delta_p_W": 0.0,
+    "conjecture_direction_supported": false
+  },
+  "quality_all_cells": {
+    "spatial_coherence": {
+      "min": 0.3475690164314208,
+      "max": 0.47955162836339665,
+      "mean": 0.4157281363590984,
+      "median": 0.42084785555639026
+    },
+    "phase_fit_r2": {
+      "min": -0.0050894793261884175,
+      "max": 0.13406519274365725,
+      "mean": 0.0463929116270086,
+      "median": 0.041505412155103394
+    },
+    "null_score": {
+      "min": 0.5204483716366033,
+      "max": 0.6524309835685792,
+      "mean": 0.5842718636409016,
+      "median": 0.5791521444436097
+    }
+  },
+  "conditional_TRAVELING_WAVE": {
+    "n": 0,
+    "phase_velocity": null,
+    "direction": null
+  },
+  "v_c_diagnostic_cells": []
+}

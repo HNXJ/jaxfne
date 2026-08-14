@@ -104,11 +104,13 @@ def test_c3_prospective_run_not_authorized():
     assert spec["execution_authorization"]["prospective_run_authorized"] is False
 
 
-def test_c3_protocol_receipt_frozen():
+def test_c3_protocol_receipt_closed():
     receipt = json.loads(
         (C3_SPEC_PATH.parent / "c3_protocol_receipt.json").read_text()
     )
     assert receipt["checkpoint"] == "C3"
-    assert receipt["status"] == "FROZEN"
-    assert receipt["implementation_authorized"] is False
-    assert receipt["next_checkpoint"] == "C4"
+    assert receipt["status"] == "CLOSED"
+    assert receipt["prospective_run_executed"] is True
+    assert receipt["protocol_c_closed"] is True
+    assert receipt["outcome_letter"] == "C"
+    assert receipt["next_checkpoint"] == "0.4.17-D"

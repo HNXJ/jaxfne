@@ -1,7 +1,9 @@
 # Protocol C3 — prospective neural geometry/delay experiment (0.4.17-C)
 
-**Status:** C3 frozen (specification only; prospective run **not** authorized)  
+**Status:** C3 **CLOSED** — prospective run executed; C4 interpretation frozen  
 **Spec:** `artifacts/protocol_c/c3_neural_experiment_spec.json`  
+**Execution:** `artifacts/protocol_c/c3_execution_receipt.json` (60 cells)  
+**Interpretation:** `artifacts/protocol_c/c4_interpretation_receipt.json` (outcome **C**)  
 **Prerequisites:** C1 estimator validated; C2 `delay_state` continuation validated @ `4179660`
 
 ## Causal chain (frozen)
@@ -112,5 +114,5 @@ When `geometry_derived` and `TRAVELING_WAVE`, report \(| \hat v_{\mathrm{phase}}
 
 | ID | Status |
 |----|--------|
-| C3 | This specification (run **not** authorized) |
-| C4 | Frozen prospective receipt + publication interpretation |
+| C3 | Specification frozen; prospective run **executed** (60 cells) |
+| C4 | Frozen prospective receipt + interpretation (**outcome C**) |

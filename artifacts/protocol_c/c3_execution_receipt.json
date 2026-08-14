@@ -1,0 +1,3253 @@
+{
+  "schema": "jaxfne.protocol_c.c3_execution_receipt.v1",
+  "checkpoint": "C3",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "55e42f3962bc1a3c0d688c5b30266ba1c207832f",
+  "spec_path": "artifacts/protocol_c/c3_neural_experiment_spec.json",
+  "n_cells": 60,
+  "expected_n_cells": 60,
+  "cells": [
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1001,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.16130327692754312
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 331.09727296499227,
+        "phase_fit_r2": 0.1168503100380438,
+        "spatial_coherence": 0.4339755652892579,
+        "null_score": 0.5660244347107422,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1002,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11801092027700597
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 452.56044936913077,
+        "phase_fit_r2": 0.10544012071798625,
+        "spatial_coherence": 0.4578882161452184,
+        "null_score": 0.5421117838547815,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1003,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12226211060030917
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 436.8244164017518,
+        "phase_fit_r2": 0.06306683916821798,
+        "spatial_coherence": 0.428777773678626,
+        "null_score": 0.571222226321374,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1004,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12653690252920838
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 422.0671918114843,
+        "phase_fit_r2": 0.08758042275518563,
+        "spatial_coherence": 0.4422654893624025,
+        "null_score": 0.5577345106375975,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1005,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.10109348433172519
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 528.2939396546872,
+        "phase_fit_r2": 0.05899479944663866,
+        "spatial_coherence": 0.4271905760545154,
+        "null_score": 0.5728094239454846,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1006,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.04587164682242286
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1164.272024454988,
+        "phase_fit_r2": 0.012461481359886117,
+        "spatial_coherence": 0.47955162836339665,
+        "null_score": 0.5204483716366033,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1007,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.08525675738031593
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 626.4263004137794,
+        "phase_fit_r2": 0.041505412155103394,
+        "spatial_coherence": 0.36669802901267773,
+        "null_score": 0.6333019709873222,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1008,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.018797790836774304
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 2841.135725722924,
+        "phase_fit_r2": -0.0022432442058011315,
+        "spatial_coherence": 0.4171027169446293,
+        "null_score": 0.5828972830553707,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1009,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.13411902944993048
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 398.20654332250814,
+        "phase_fit_r2": 0.07566882886189341,
+        "spatial_coherence": 0.4343340714358393,
+        "null_score": 0.5656659285641608,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_uniform",
+      "seed": 1010,
+      "geometry_layout": "ordered",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.00929516388567567
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 5745.684074847734,
+        "phase_fit_r2": -4.960046510626981e-06,
+        "spatial_coherence": 0.3475690164314208,
+        "null_score": 0.6524309835685792,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1001,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.16130327692754312
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 331.09727296499227,
+        "phase_fit_r2": 0.1168503100380438,
+        "spatial_coherence": 0.4339755652892579,
+        "null_score": 0.5660244347107422,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1002,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11801092027700597
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 452.56044936913077,
+        "phase_fit_r2": 0.10544012071798625,
+        "spatial_coherence": 0.4578882161452184,
+        "null_score": 0.5421117838547815,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1003,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12226211060030917
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 436.8244164017518,
+        "phase_fit_r2": 0.06306683916821798,
+        "spatial_coherence": 0.428777773678626,
+        "null_score": 0.571222226321374,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1004,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12653690252920838
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 422.0671918114843,
+        "phase_fit_r2": 0.08758042275518563,
+        "spatial_coherence": 0.4422654893624025,
+        "null_score": 0.5577345106375975,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1005,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.10109348433172519
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 528.2939396546872,
+        "phase_fit_r2": 0.05899479944663866,
+        "spatial_coherence": 0.4271905760545154,
+        "null_score": 0.5728094239454846,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1006,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.04587164682242286
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1164.272024454988,
+        "phase_fit_r2": 0.012461481359886117,
+        "spatial_coherence": 0.47955162836339665,
+        "null_score": 0.5204483716366033,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1007,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.08525675738031593
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 626.4263004137794,
+        "phase_fit_r2": 0.041505412155103394,
+        "spatial_coherence": 0.36669802901267773,
+        "null_score": 0.6333019709873222,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1008,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.018797790836774304
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 2841.135725722924,
+        "phase_fit_r2": -0.0022432442058011315,
+        "spatial_coherence": 0.4171027169446293,
+        "null_score": 0.5828972830553707,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1009,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.13411902944993048
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 398.20654332250814,
+        "phase_fit_r2": 0.07566882886189341,
+        "spatial_coherence": 0.4343340714358393,
+        "null_score": 0.5656659285641608,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_geometry_derived",
+      "seed": 1010,
+      "geometry_layout": "ordered",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.00929516388567567
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 5745.684074847734,
+        "phase_fit_r2": -4.960046510626981e-06,
+        "spatial_coherence": 0.3475690164314208,
+        "null_score": 0.6524309835685792,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1001,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.16130327692754312
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 331.09727296499227,
+        "phase_fit_r2": 0.1168503100380438,
+        "spatial_coherence": 0.4339755652892579,
+        "null_score": 0.5660244347107422,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1002,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11801092027700597
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 452.56044936913077,
+        "phase_fit_r2": 0.10544012071798625,
+        "spatial_coherence": 0.4578882161452184,
+        "null_score": 0.5421117838547815,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1003,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12226211060030917
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 436.8244164017518,
+        "phase_fit_r2": 0.06306683916821798,
+        "spatial_coherence": 0.428777773678626,
+        "null_score": 0.571222226321374,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1004,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12653690252920838
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 422.0671918114843,
+        "phase_fit_r2": 0.08758042275518563,
+        "spatial_coherence": 0.4422654893624025,
+        "null_score": 0.5577345106375975,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1005,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.10109348433172519
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 528.2939396546872,
+        "phase_fit_r2": 0.05899479944663866,
+        "spatial_coherence": 0.4271905760545154,
+        "null_score": 0.5728094239454846,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1006,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.04587164682242286
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1164.272024454988,
+        "phase_fit_r2": 0.012461481359886117,
+        "spatial_coherence": 0.47955162836339665,
+        "null_score": 0.5204483716366033,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1007,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.08525675738031593
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 626.4263004137794,
+        "phase_fit_r2": 0.041505412155103394,
+        "spatial_coherence": 0.36669802901267773,
+        "null_score": 0.6333019709873222,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1008,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.018797790836774304
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 2841.135725722924,
+        "phase_fit_r2": -0.0022432442058011315,
+        "spatial_coherence": 0.4171027169446293,
+        "null_score": 0.5828972830553707,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1009,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.13411902944993048
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 398.20654332250814,
+        "phase_fit_r2": 0.07566882886189341,
+        "spatial_coherence": 0.4343340714358393,
+        "null_score": 0.5656659285641608,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "ordered_delay_shuffled",
+      "seed": 1010,
+      "geometry_layout": "ordered",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.00929516388567567
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 5745.684074847734,
+        "phase_fit_r2": -4.960046510626981e-06,
+        "spatial_coherence": 0.3475690164314208,
+        "null_score": 0.6524309835685792,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1001,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11486897287466649
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 464.93908471958684,
+        "phase_fit_r2": 0.05969029601872333,
+        "spatial_coherence": 0.42419572432738517,
+        "null_score": 0.5758042756726148,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1002,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.05156541552199021
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1035.7150150036296,
+        "phase_fit_r2": 0.024884219035628763,
+        "spatial_coherence": 0.4020865848430041,
+        "null_score": 0.5979134151569959,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1003,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.1122024936034908
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 475.98830824348903,
+        "phase_fit_r2": 0.05687387564766888,
+        "spatial_coherence": 0.399176848148525,
+        "null_score": 0.6008231518514751,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1004,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.0706382199943915
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 756.0648486791836,
+        "phase_fit_r2": 0.031014712683239187,
+        "spatial_coherence": 0.3800764082853218,
+        "null_score": 0.6199235917146781,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1005,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.1412267244868451
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 378.16550164343164,
+        "phase_fit_r2": 0.09675105219137325,
+        "spatial_coherence": 0.43980753042266,
+        "null_score": 0.5601924695773399,
+        "quality_reasons": [
+          "standing_or_flipping_spatial_gradient"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1006,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.12355044262431931
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 432.2693952090625,
+        "phase_fit_r2": 0.13406519274365725,
+        "spatial_coherence": 0.44759057147008885,
+        "null_score": 0.5524094285299112,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1007,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.1358179833284453
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 393.2253579547965,
+        "phase_fit_r2": 0.10695584462775198,
+        "spatial_coherence": 0.39087137926028037,
+        "null_score": 0.6091286207397196,
+        "quality_reasons": [
+          "structured_but_fails_traveling_gates"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1008,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11535728222856569
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 462.970989600875,
+        "phase_fit_r2": 0.07902198414583217,
+        "spatial_coherence": 0.423996207754703,
+        "null_score": 0.576003792245297,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1009,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.07819623774388895
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 682.9877837083058,
+        "phase_fit_r2": 0.02759564827723826,
+        "spatial_coherence": 0.4383529998874998,
+        "null_score": 0.5616470001125002,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_uniform",
+      "seed": 1010,
+      "geometry_layout": "shuffled",
+      "delay_policy": "uniform",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.11150754611922709
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 478.9548059278616,
+        "phase_fit_r2": 0.07899180042414533,
+        "spatial_coherence": 0.3794472835539482,
+        "null_score": 0.6205527164460518,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1001,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.04288649531654741
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1245.3121831668952,
+        "phase_fit_r2": 0.009721861733925086,
+        "spatial_coherence": 0.4053474859893164,
+        "null_score": 0.5946525140106835,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1002,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.06296251329735161
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 848.2360743574851,
+        "phase_fit_r2": 0.040748581825936325,
+        "spatial_coherence": 0.4323009581658428,
+        "null_score": 0.5676990418341572,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1003,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.05759706500773411
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 927.2534130663604,
+        "phase_fit_r2": 0.017871456388094953,
+        "spatial_coherence": 0.3687229125019913,
+        "null_score": 0.6312770874980087,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1004,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.038227061410012496
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1397.1012455861442,
+        "phase_fit_r2": 0.009577605991133886,
+        "spatial_coherence": 0.45783037360170514,
+        "null_score": 0.5421696263982949,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1005,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.017294948740323956
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 3088.0158081362492,
+        "phase_fit_r2": 0.0012272341938749376,
+        "spatial_coherence": 0.4159192180374918,
+        "null_score": 0.5840807819625082,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1006,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.003761735521935494
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 14197.456147461264,
+        "phase_fit_r2": -0.0028243623833512643,
+        "spatial_coherence": 0.409153377896172,
+        "null_score": 0.590846622103828,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1007,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.01587845322885215
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 3363.4935557817726,
+        "phase_fit_r2": 0.0015844112521015141,
+        "spatial_coherence": 0.3868283748999477,
+        "null_score": 0.6131716251000523,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1008,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.03432047602616696
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 1556.1286233415683,
+        "phase_fit_r2": 0.0045963377533803085,
+        "spatial_coherence": 0.40195511525198896,
+        "null_score": 0.5980448847480111,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1009,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.13015905546488746
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 410.32162472501903,
+        "phase_fit_r2": 0.08931842324699124,
+        "spatial_coherence": 0.40580830362848475,
+        "null_score": 0.5941916963715153,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_geometry_derived",
+      "seed": 1010,
+      "geometry_layout": "shuffled",
+      "delay_policy": "geometry_derived",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.056169447195983595
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 950.8207357761813,
+        "phase_fit_r2": 0.015675628368005068,
+        "spatial_coherence": 0.3546506977653513,
+        "null_score": 0.6453493022346487,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1001,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.08879583556784407
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 601.4592325134555,
+        "phase_fit_r2": 0.04863678976092156,
+        "spatial_coherence": 0.4047799956527731,
+        "null_score": 0.5952200043472269,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1002,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.0392010441905282
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 1362.3890948274986,
+        "phase_fit_r2": 0.011242552313593612,
+        "spatial_coherence": 0.4410084666106144,
+        "null_score": 0.5589915333893856,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1003,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.11772853235348293
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 453.64597726123327,
+        "phase_fit_r2": 0.06164977830294327,
+        "spatial_coherence": 0.37256960496898645,
+        "null_score": 0.6274303950310136,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1004,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.043792885935937546
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 1219.5376936142793,
+        "phase_fit_r2": 0.011155910290763793,
+        "spatial_coherence": 0.41767231764808566,
+        "null_score": 0.5823276823519143,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1005,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.07253367714968406
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 736.307288003792,
+        "phase_fit_r2": 0.01961063058363144,
+        "spatial_coherence": 0.4146721417939596,
+        "null_score": 0.5853278582060404,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1006,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.01542392207251938
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 3462.6131317261543,
+        "phase_fit_r2": -0.0019372616590709324,
+        "spatial_coherence": 0.41769950335807754,
+        "null_score": 0.5823004966419225,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1007,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.0962407230174667
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 554.9321891662603,
+        "phase_fit_r2": 0.053483167837436896,
+        "spatial_coherence": 0.401600183383838,
+        "null_score": 0.5983998166161619,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1008,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.0610772454748255
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 874.4185284688311,
+        "phase_fit_r2": 0.01687947344121221,
+        "spatial_coherence": 0.431241951429685,
+        "null_score": 0.568758048570315,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1009,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          -0.0020733213188932633
+        ],
+        "direction": [
+          -1.0
+        ],
+        "phase_velocity": 25759.188710573395,
+        "phase_fit_r2": -0.0050894793261884175,
+        "spatial_coherence": 0.41546476625507167,
+        "null_score": 0.5845352337449283,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    },
+    {
+      "condition_id": "shuffled_delay_shuffled",
+      "seed": 1010,
+      "geometry_layout": "shuffled",
+      "delay_policy": "delay_shuffled",
+      "delay_steps": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "estimator": {
+        "classification": "NO_WAVE",
+        "frequency_hz": 8.5,
+        "wave_vector": [
+          0.038645244453362274
+        ],
+        "direction": [
+          1.0
+        ],
+        "phase_velocity": 1381.983109861785,
+        "phase_fit_r2": 0.0066413011579909975,
+        "spatial_coherence": 0.3568016465991545,
+        "null_score": 0.6431983534008455,
+        "quality_reasons": [
+          "synchronous_oscillation_k_near_zero"
+        ],
+        "finite_status": true,
+        "errors": {}
+      },
+      "substrate": "V_m",
+      "n_steps": 4000,
+      "n_neurons": 24
+    }
+  ],
+  "interpretation_deferred_to": "C4"
+}
