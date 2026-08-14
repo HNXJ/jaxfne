@@ -14,13 +14,16 @@
     "W1b": "IMPLEMENTED",
     "W2": "FROZEN",
     "W3": "STABILITY_ANALYSIS_FROZEN_SILENT",
-    "W3a": "STABILITY_ANALYSIS_FROZEN_ACTIVE"
+    "W3a": "STABILITY_ANALYSIS_FROZEN_ACTIVE",
+    "W3b": "SPECIFICATION_OPEN"
   },
   "w2_frozen_receipt": "artifacts/protocol_w/w2_expression/w2_expression_receipt.json",
   "w3_specification": "artifacts/protocol_w/w3_closed_loop_spec.json",
   "w3_stability_receipt": "artifacts/protocol_w/w3_stability/w3_stability_receipt.json",
   "w3a_specification": "artifacts/protocol_w/w3a_stability/w3a_stability_spec.json",
   "w3a_stability_receipt": "artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json",
+  "w3a_margin_audit": "artifacts/protocol_w/w3a_stability/w3a_margin_audit.json",
+  "w3b_specification": "artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json",
   "scientific_question": "Can transient RBS history be written into a slower parameter state while preserving bounded, physically sane dynamics?",
   "separation_principle": {
     "plastic_drive": "D_ij(H,X,...)",

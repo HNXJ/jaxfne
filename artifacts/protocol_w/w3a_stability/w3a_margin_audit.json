@@ -1,0 +1,54 @@
+{
+  "schema": "protocol_w_w3a_margin_audit.v1",
+  "status": "FROZEN_ADDENDUM",
+  "write_once": true,
+  "parent_receipt": "artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json",
+  "parent_receipt_sha": "08bd4a2",
+  "purpose": "Resolve reported stability-margin ambiguity before W3b regime labels",
+  "issue_statement": "Frozen W3a receipt reported Floquet instability bracket I_tonic in [8,10] while summary table showed positive margins at I=20,40 and negative at I=60.",
+  "root_causes": [
+    {
+      "id": "period_one_false_positive",
+      "description": "Period detector accepted period=1 when consecutive states matched within tolerance. Monodromy with T=1 equals the single-step Jacobian, not a periodic-orbit return map.",
+      "evidence": "28/31 scan points activated W3a-PO with period_steps=1 despite ongoing spiking dynamics."
+    },
+    {
+      "id": "subleading_eigenvalue_ambiguity",
+      "description": "floquet_margin_subleading = 1 - rho(second-largest |lambda|). When period=1 and multiple eigenvalues cluster near |lambda|=1, subleading selection is unstable and produces alternating stable/unstable labels across adjacent I_tonic."
+    },
+    {
+      "id": "mixed_metric_at_low_drive",
+      "description": "When W3a-PO inactive (syn~0), local_step_jacobian margin was used. At I=4, syn=0 but rho(step)=1.18 produced negative margin without an active orbit—this is local step sensitivity at a drifting non-equilibrium point, not Floquet stability."
+    },
+    {
+      "id": "reduced_inequality_not_classifier",
+      "description": "2x2 reduced inequality remained satisfied while full Floquet (period=1 proxy) flagged instability. Confirms reduced J_red is explanatory only in active regime, not a stability classifier."
+    }
+  ],
+  "receipt_forensics_summary": {
+    "I_0_to_8": "PO inactive or period=1; margins ~0.001 from step Jacobian (near-critical silent rest)",
+    "I_10_26_60": "period=1 PO with rho_sub>1 flagged unstable",
+    "I_12_to_24_34_38_40_44_58": "period=1 PO with rho_sub<1 flagged stable despite same detector—artifact",
+    "interpretation": "Alternating stable/unstable at moderate I is not a physical multi-crossing; it is metric noise from period=1 misidentification."
+  },
+  "corrected_margin_definition_for_W3b": {
+    "symbol": "m_F",
+    "formula": "m_F = 1 - rho_nonneutral(M)",
+    "rho_nonneutral": "max(|lambda_k|) excluding multipliers with ||lambda_k|-1| < epsilon_neutral",
+    "epsilon_neutral": 0.05,
+    "period_validation": {
+      "min_period_steps": 2,
+      "require_spike_in_period": true,
+      "reject_period_one": true,
+      "note": "If no validated periodic orbit, do not assign S/C/U from Floquet; use D if inactive or PO-unavailable."
+    },
+    "dormant_class": "When mean_syn <= 1e-3, regime D uses no Floquet label (feedback dormant)."
+  },
+  "preserved_W3a_scientific_conclusions": [
+    "At I_tonic=0: b_HW=0, L_HDP=0 (dormant feedback).",
+    "Active drive increases |b_HW| and L_HDP monotonically in mean syn.",
+    "Nominal parameters do not yield a clearly robust active stable window under corrected Floquet; many apparent stable points were period-1 artifacts.",
+    "Stronger activity (high I_tonic) tends toward instability when period=1 proxy is used; corrected W3b must re-evaluate."
+  ],
+  "W3b_blocking_rule": "W3b regime labels must use corrected m_F and validated period>=2 only. Do not import uncorrected floquet_margin_subleading from W3a receipt for domain mapping."
+}

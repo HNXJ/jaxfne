@@ -447,6 +447,56 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 **W3 closed-loop experiment:** blocked until an active operating point passes the W3a gate.
 
+### 5.13 W3a margin audit (**frozen addendum**)
+
+**Issue:** W3a receipt showed instability bracket \(I_{\mathrm{tonic}}\approx 8\)–\(10\) while later points appeared stable at \(I=20,40\).
+
+**Resolution:** `artifacts/protocol_w/w3a_stability/w3a_margin_audit.json`
+
+| Root cause | Effect |
+|------------|--------|
+| `period=1` false positives | Monodromy = single-step Jacobian, not orbit return map |
+| Subleading \(|\lambda|\) selection | Alternating S/U labels at adjacent \(I_{\mathrm{tonic}}\) |
+| Mixed metrics at \(\mathrm{syn}\approx 0\) | Step Jacobian at drifting non-equilibrium |
+
+**W3b rule:** regime labels use corrected \(m_F=1-\rho_{\mathrm{nonneutral}}(M)\) with validated `period>=2` only. Reduced \(J_{\mathrm{red}}\) is explanatory, not a classifier.
+
+### 5.14 W3b — parameter-domain map (**specification open; analysis only**)
+
+**Question:** what parameter domain permits simultaneously **active, bounded, nontrivial, robust** HDP?
+
+**Type:** parameter-domain characterization — **not** post-hoc tuning to pass W3.
+
+**Varied:** \(\kappa_H,\kappa_W,\lambda_W,\tau_H,\tau_W\). **Frozen:** \(W_0\), emitter, topology, synapse geometry. **Operating axis:** \(I_{\mathrm{tonic}}\).
+
+**Dimensionless coordinates:** \(r_\tau=(\tau_W/\lambda_W)/\tau_H\), \(\Gamma_{\mathrm{HDP}}=|2\kappa_W b_{HW}/(a_H\lambda_W)|\).
+
+**Regime labels (frozen gates):**
+
+| Label | Criterion |
+|-------|-----------|
+| **D** | dormant (\(\overline{\mathrm{syn}}\le 10^{-3}\) or \(L_{\mathrm{HDP}}\le L_{\min}\)) |
+| **S** | active, \(m_F>0.02\), \(L_{\mathrm{HDP}}>L_{\min}\), \(r_\tau>1\) |
+| **C** | active, \(0<m_F\le 0.02\) |
+| **U** | active, \(m_F\le 0\) |
+| **X** | active but no validated Floquet orbit |
+
+\[
+\mathcal D_{\mathrm{useful}}=
+\mathcal D_{\mathrm{active}}\cap
+\mathcal D_{\mathrm{stable}}\cap
+\mathcal D_{\mathrm{nontrivial}}\cap
+\mathcal D_{\mathrm{timescale}}
+\]
+
+**May be empty** — if so, the minimal linear HDP law may be insufficient; change the law in a new protocol.
+
+**Selection rule for W3 (fixed before memory):** max \(m_F\) among **S** points with \(L_{\mathrm{HDP}}>L_{\min}\), \(r_\tau>1\). Memory score must not select the point.
+
+**Sequence:** W3a (frozen) \(\to\) W3b map \(\to\) frozen selection \(\to\) W3 experiment.
+
+**Artifacts:** `artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json`, `jaxfne/w3b_parameter_domain.py`
+
 ## 6. Experimental ladder (frozen order)
 
 \[
@@ -468,6 +518,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
 | **W3** | **STABILITY FROZEN (silent rest)** — kernel **not** authorized |
 | **W3a** | **STABILITY FROZEN (activity-enabled)** — kernel **not** authorized |
+| **W3b** | **SPEC OPEN** — parameter-domain map; kernel **not** authorized |
 | **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
@@ -481,7 +532,8 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | W1b | **yes** — shadow plasticity, no feedback |
 | W2 | **frozen** — receipt locked; do not mutate configuration |
 | W3 | **silent-rest stability frozen** — kernel blocked |
-| W3a | **activity-enabled stability frozen** — kernel blocked |
+| W3a | **activity stability frozen** — margin audit addendum |
+| W3b | **spec open** — parameter-domain map; may return \(\mathcal D_{\mathrm{useful}}=\emptyset\) |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.

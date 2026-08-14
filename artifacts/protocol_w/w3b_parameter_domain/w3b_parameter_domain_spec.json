@@ -1,0 +1,64 @@
+{
+  "schema": "protocol_w_w3b_parameter_domain_spec.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory_w3b",
+  "status": "SPECIFICATION_OPEN",
+  "implementation_authorized": false,
+  "analysis_only": true,
+  "parent_checkpoints": {
+    "w3_silent_rest_sha": "953d03b60640ed48636f73524f03a6fce6fe92dc",
+    "w3a_active_sha": "08bd4a2b2ebc89373697cd4be1da85551e7c5952",
+    "w3a_margin_audit": "artifacts/protocol_w/w3a_stability/w3a_margin_audit.json"
+  },
+  "preserved_w3a_result": {
+    "statement": "nominal HDP: silent->dormant, weak activity->low-gain, stronger activity->near-critical/unstable",
+    "note": "Do not select I_tonic=6 merely for passing stability; characterize the model."
+  },
+  "scientific_question": "What parameter domain permits simultaneously active, bounded, nontrivial, robust HDP?",
+  "protocol_type": "parameter_domain_characterization_not_tuning",
+  "varied_parameters": ["kappa_H", "kappa_W", "lambda_W", "tau_H", "tau_W"],
+  "frozen_parameters": ["W_0", "emitter/Izhikevich", "topology", "synapse_tau", "geometry", "beta_H"],
+  "operating_axis": "I_tonic (symmetric tonic drive)",
+  "dimensionless_coordinates": {
+    "r_tau": "tau_mem_W / tau_H = (tau_W / lambda_W) / tau_H",
+    "Gamma_HDP": "|2 * kappa_W * b_HW / (a_H * lambda_W)|",
+    "note": "Gamma_HDP is explanatory; regime label uses implementation-faithful Floquet only"
+  },
+  "regime_labels": {
+    "D": "dormant/vanishing feedback",
+    "S": "robustly stable active HDP",
+    "C": "near-critical",
+    "U": "unstable",
+    "X": "unclassified (no validated periodic orbit or timescale violation)"
+  },
+  "frozen_gates_before_scan": {
+    "active": "mean_syn > 1e-3",
+    "robust_stability": "m_F > 0.02 where m_F = 1 - rho_nonneutral(M)",
+    "rho_nonneutral": "exclude multipliers with ||lambda|-1| < 0.05",
+    "period_validation": "period >= 2 and spike present in period window",
+    "nontrivial": "L_HDP > 1e-6 (prospective null floor, not tuned to create a region)",
+    "timescale": "r_tau > 1"
+  },
+  "D_useful": {
+    "definition": "D_active ∩ D_stable ∩ D_nontrivial ∩ D_timescale",
+    "may_be_empty": true,
+    "empty_interpretation": "linear HDP law tau_W*omega_dot = kappa_W*(H_pre-H_post) - lambda_W*omega may be insufficient; change law in new protocol"
+  },
+  "selection_rule_for_W3": {
+    "timing": "only after W3b identifies prospective admissible domain",
+    "rule": "max m_F among S-regime points subject to L_HDP > L_min and r_tau > 1",
+    "forbidden": "using eventual memory score to choose operating point"
+  },
+  "sequence": [
+    "W3a operating-state analysis (frozen)",
+    "W3b parameter-domain map",
+    "frozen selection rule",
+    "W3 closed-loop memory experiment"
+  ],
+  "margin_correction": {
+    "issue": "W3a period=1 false positives caused ambiguous Floquet margins",
+    "resolution": "w3a_margin_audit.json; W3b uses corrected m_F and period>=2",
+    "reduced_J_red": "explanatory only, not stability classifier in active regime"
+  },
+  "analysis_module": "jaxfne/w3b_parameter_domain.py",
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}
