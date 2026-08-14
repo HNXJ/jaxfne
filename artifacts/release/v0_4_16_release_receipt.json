@@ -1,0 +1,52 @@
+{
+  "schema": "jaxfne.release_receipt.v1",
+  "version": "0.4.16",
+  "status": "PUBLISHED",
+  "write_once": true,
+  "rc_commit": "15f32b3a885dae0d84cb0163bc47c153302898c4",
+  "release_commit": "15f32b3a885dae0d84cb0163bc47c153302898c4",
+  "tag": "v0.4.16",
+  "tag_object_sha": "aeba491a338f6818a11b93549f01e6a1126c747b",
+  "branches": {
+    "main": "15f32b3a885dae0d84cb0163bc47c153302898c4",
+    "dev": "15f32b3a885dae0d84cb0163bc47c153302898c4"
+  },
+  "reconciliation": {
+    "method": "fast-forward",
+    "main_ancestor_before": "58cafef7d1078c1a1d2d0710dd1448cf0d86e715",
+    "unexpected_conflicts": false
+  },
+  "distribution": {
+    "pypi": "https://pypi.org/project/jaxfne/0.4.16/",
+    "github_release": "https://github.com/HNXJ/jaxfne/releases/tag/v0.4.16",
+    "wheel": {
+      "filename": "jaxfne-0.4.16-py3-none-any.whl",
+      "sha256": "2eaae119b688785fb6e3dc50b6e66585e4037f8994896379dea9e8657bd4a636"
+    },
+    "sdist": {
+      "filename": "jaxfne-0.4.16.tar.gz",
+      "sha256": "131bc1c89cc9f93109ed64f9347cf17455d963025dd466fe071f24922d70fc03"
+    }
+  },
+  "post_publication_verification": {
+    "pypi_install_smoke": "PASS",
+    "jaxfne_version": "0.4.16",
+    "install_path_contains_site_packages": true,
+    "manifest_json_safe": true
+  },
+  "compatibility_debt_carried_forward": [
+    {
+      "id": "jax_lt_0_11_pin",
+      "classification": "compatibility_debt",
+      "note": "JAX/jaxlib pinned <0.11 for 0.4.16 RC validation; not permanent doctrine. Audit deferred to 0.4.17 capability/debt matrix."
+    },
+    {
+      "id": "kaleido_optional_vis_smoke",
+      "classification": "optional_dependency",
+      "note": "Plotly PNG vis smoke skips when kaleido absent locally; dev/CI with .[dev] exercises path."
+    }
+  ],
+  "scientific_content_authority": "15f32b3 RC — no scientific code modified during publication workflow",
+  "next_development_step": "0.4.17-A Figure Requirements Matrix v2",
+  "parallel_science_excluded": ["W3c"]
+}
