@@ -1,0 +1,9 @@
+{
+  "schema": "jaxfne.experiment_a.b0_protocol_receipt.v1",
+  "checkpoint": "B0",
+  "status": "FROZEN",
+  "protocol_id": "experiment_a_v0417_b",
+  "protocol_spec": "artifacts/etudes/experiment_a/b0_protocol_spec.json",
+  "protocol_doc": "docs/etudes/experiment_a.md",
+  "next_checkpoint": "B1"
+}
