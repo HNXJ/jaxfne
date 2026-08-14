@@ -5,8 +5,24 @@
   "implementation_authorized": false,
   "prerequisite_receipts": [
     "artifacts/protocol_w/w0_mathematical_contract.json",
-    "artifacts/protocol_w/w2_expression/w2_expression_receipt.json"
+    "artifacts/protocol_w/w2_expression/w2_expression_receipt.json",
+    "artifacts/protocol_w/w3_stability/w3_stability_receipt.json"
   ],
+  "nominal_parameters": {
+    "topology": "A <-> B",
+    "dt_ms": 1.0,
+    "tau_h_ms": 80.0,
+    "tau_w_ms": 100.0,
+    "kappa_w": 1.0,
+    "lambda_w": 0.1,
+    "kappa_h": 0.05,
+    "beta_h": 0.0,
+    "i_ref": 1.0,
+    "w0": 6.0,
+    "syn_tau_ms": 3.0,
+    "rbd_family": "f1",
+    "izhikevich": {"a": 0.02, "b": 0.2, "c": -65.0, "drive": 0.0}
+  },
   "scientific_question": "Does the closed HDP loop H -> omega -> W -> X -> I_rec -> H produce bounded dynamics with timescale-separated parameter retention and history-dependent future response?",
   "composition": {
     "W1": "H --F_W--> omega",
@@ -42,7 +58,18 @@
       "gain_g_syn": "linearized map from delta_W_AB to antisymmetric delta_I at equilibrium; must be identified before implementation from Izhikevich+synapse linearization",
       "characteristic_note": "2x2 Jacobian eigenvalues set closed-loop stability margin; full state Jacobian may be larger but must satisfy same gate"
     },
-    "blocking_rule": "Do not implement W3 simulation until stability analysis receipt is written and nominal parameters pass the gate"
+    "blocking_rule": "Do not implement W3 simulation until stability analysis receipt is frozen and reviewed",
+    "stability_receipt": "artifacts/protocol_w/w3_stability/w3_stability_receipt.json",
+    "stability_analysis_module": "jaxfne/w3_stability_analysis.py",
+    "nominal_gate_summary": {
+      "gate_zero_doctrinal_pass": false,
+      "gate_zero_verified_equilibrium_pass": true,
+      "discrete_step_gate_pass": true,
+      "discrete_spectral_margin": 0.001,
+      "b_HW_at_verified_equilibrium": 0.0,
+      "closed_loop_linearly_active_at_rest": false,
+      "w3_kernel_implementation_authorized": false
+    }
   },
   "timescale_hierarchy": {
     "primary_regime": "tau_W / lambda_W > tau_H",

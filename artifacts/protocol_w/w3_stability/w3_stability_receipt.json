@@ -1,0 +1,443 @@
+{
+  "schema": "protocol_w_w3_stability_receipt.v1",
+  "status": "FROZEN_ANALYSIS",
+  "write_once": true,
+  "repository_sha_at_run": "2cf2e28e2adaa3b8fab253f3a87c3855a9e18f8c",
+  "analysis_only": true,
+  "w3_implementation_authorized": false,
+  "nominal_parameters": {
+    "dt_ms": 1.0,
+    "tau_h_ms": 80.0,
+    "tau_w_ms": 100.0,
+    "kappa_w": 1.0,
+    "lambda_w": 0.1,
+    "kappa_h": 0.05,
+    "beta_h": 0.0,
+    "i_ref": 1.0,
+    "w0": 6.0,
+    "syn_tau_ms": 3.0,
+    "rbd_family": "f1",
+    "v_rest_init": -65.0,
+    "u_rest_init": 0.0,
+    "a": 0.02,
+    "b": 0.2,
+    "c": -65.0,
+    "spike_threshold": 30.0,
+    "drive_a": 0.0,
+    "drive_b": 0.0,
+    "w1a": {
+      "tau_w": 100.0,
+      "kappa_w": 1.0,
+      "lambda_w": 0.1,
+      "w0": 1.0,
+      "dt": 1.0
+    }
+  },
+  "timescale_hierarchy": {
+    "tau_mem_W_ms": 1000.0,
+    "tau_H_ms": 80.0,
+    "ordering_satisfied": true
+  },
+  "state_ordering": [
+    "v_A",
+    "u_A",
+    "v_B",
+    "u_B",
+    "syn_AB",
+    "syn_BA",
+    "H_A",
+    "H_B",
+    "omega_AB",
+    "omega_BA"
+  ],
+  "gate_zero_doctrinal_reference": {
+    "z_doctrinal": [
+      -65.0,
+      -65.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "residual_norm": 22.630404326922662,
+    "residual_max_abs": 16.0,
+    "is_fixed_point": false
+  },
+  "gate_zero_silent_izhikevich_fixed_point": {
+    "v_star": -69.99999999999997,
+    "u_star": -13.999999999999995,
+    "note": "continuous dv=du=0 at I_native=0; used to seed numerical fixed-point search"
+  },
+  "equilibrium": {
+    "z_star": [
+      -69.99999999999997,
+      -69.99999999999997,
+      -13.999999999999995,
+      -13.999999999999995,
+      0.0,
+      0.0,
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "convergence": {
+      "residual_norm": 4.0194366942304644e-14,
+      "residual_max_abs": 2.842170943040401e-14,
+      "iteration_norms": [
+        4.0194366942304644e-14
+      ],
+      "converged": true
+    },
+    "H_A": 1.0,
+    "H_B": 1.0,
+    "omega_AB": 0.0,
+    "omega_BA": 0.0,
+    "syn_AB": 0.0,
+    "syn_BA": 0.0
+  },
+  "b_HW_derivation": {
+    "b_HW_from_autodiff": -0.0,
+    "grad_delta_hdot_wrt_omega_ab": -0.0,
+    "grad_delta_hdot_wrt_omega_ba": 0.0,
+    "syn_ab_at_equilibrium": 0.0,
+    "syn_ba_at_equilibrium": 0.0
+  },
+  "reduced_antisymmetric": {
+    "definition": {
+      "delta": "H_A - H_B",
+      "Omega": "omega_AB - omega_BA"
+    },
+    "plastic_linearization_exact": "tau_W * Omega_dot = 2*kappa_W*delta - lambda_W*Omega",
+    "rbd_linearization_exact_at_F1": "tau_H * delta_dot = -delta + (kappa_H/i_ref) * Delta_I_rec_antisym",
+    "J_red_continuous_analytic": {
+      "matrix": [
+        [
+          -0.0125,
+          -0.0
+        ],
+        [
+          0.02,
+          -0.001
+        ]
+      ],
+      "a_H": 1.0,
+      "b_HW": -0.0,
+      "spectral": {
+        "eigenvalues": [
+          {
+            "real": -0.001,
+            "imag": 0.0
+          },
+          {
+            "real": -0.0125,
+            "imag": 0.0
+          }
+        ],
+        "spectral_radius": 0.0125,
+        "max_real_eigenvalue": -0.001,
+        "stable": true,
+        "discrete_stable": true
+      },
+      "stability_inequality_aH_tauH_lambdaW_vs_2kappaW_bHW_tauW": 8.0,
+      "stability_inequality_pass": true
+    },
+    "from_full_step_projection": {
+      "projection_matrix": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          -1.0
+        ]
+      ],
+      "J_red_step": [
+        [
+          1.975,
+          0.0
+        ],
+        [
+          0.04,
+          1.998
+        ]
+      ],
+      "spectral": {
+        "eigenvalues": [
+          {
+            "real": 1.998,
+            "imag": 0.0
+          },
+          {
+            "real": 1.975,
+            "imag": 0.0
+          }
+        ],
+        "spectral_radius": 1.998,
+        "max_real_eigenvalue": 1.998,
+        "stable": false,
+        "discrete_stable": false
+      },
+      "trace": 3.973,
+      "det": 3.9460499999999996
+    },
+    "continuous_logm_estimate": {
+      "J_red_continuous_estimate": [
+        [
+          0.6805683983530852,
+          0.0
+        ],
+        [
+          0.020136142388307108,
+          0.6921466802263617
+        ]
+      ],
+      "a_H": -0.6805683983530852,
+      "b_HW": 0.0,
+      "kappa_eff": 0.020136142388307108,
+      "lambda_eff": -0.6921466802263617,
+      "stability_inequality_aH_lambda_vs_2kappa_bHW": 0.47105315758706007,
+      "spectral": {
+        "eigenvalues": [
+          {
+            "real": 0.6921466802263617,
+            "imag": 0.0
+          },
+          {
+            "real": 0.6805683983530852,
+            "imag": 0.0
+          }
+        ],
+        "spectral_radius": 0.6921466802263617,
+        "max_real_eigenvalue": 0.6921466802263617,
+        "stable": false,
+        "discrete_stable": true
+      }
+    },
+    "closed_loop_linearly_active_at_equilibrium": false
+  },
+  "full_step_jacobian": {
+    "J_step": [
+      [
+        0.40000000000000213,
+        0.0,
+        -1.0,
+        0.0,
+        0.0,
+        6.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.40000000000000213,
+        0.0,
+        -1.0,
+        6.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.004,
+        0.0,
+        0.98,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.004,
+        0.0,
+        0.98,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.7165313105737893,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.7165313105737893,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0037500000000000007,
+        0.9875,
+        0.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0037500000000000007,
+        0.0,
+        0.0,
+        0.9875,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.01,
+        -0.01,
+        0.999,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -0.01,
+        0.01,
+        0.0,
+        0.999
+      ]
+    ],
+    "autodiff_vs_finite_difference_max_abs": 8.274037099909037e-08,
+    "spectral": {
+      "eigenvalues": [
+        {
+          "real": 0.999,
+          "imag": 0.0
+        },
+        {
+          "real": 0.999,
+          "imag": 0.0
+        },
+        {
+          "real": 0.9875,
+          "imag": 0.0
+        },
+        {
+          "real": 0.9875,
+          "imag": 0.0
+        },
+        {
+          "real": 0.9730194339616981,
+          "imag": 0.0
+        },
+        {
+          "real": 0.9730194339616981,
+          "imag": 0.0
+        },
+        {
+          "real": 0.7165313105737893,
+          "imag": 0.0
+        },
+        {
+          "real": 0.7165313105737893,
+          "imag": 0.0
+        },
+        {
+          "real": 0.406980566038304,
+          "imag": 0.0
+        },
+        {
+          "real": 0.406980566038304,
+          "imag": 0.0
+        }
+      ],
+      "spectral_radius": 0.999,
+      "max_real_eigenvalue": 0.999,
+      "stable": false,
+      "discrete_stable": true,
+      "continuous_rate_from_step_eigenvalues": {
+        "max_real": -0.0010000000000000009,
+        "min_real": -0.593019433961696,
+        "stable": true
+      },
+      "discrete_spectral_margin": 0.0010000000000000009
+    },
+    "first_unstable_mode": null
+  },
+  "stability_gate": {
+    "gate_zero_doctrinal_pass": false,
+    "gate_zero_verified_equilibrium_pass": true,
+    "discrete_criterion": "rho(J_step) < 1",
+    "discrete_pass": true,
+    "discrete_spectral_margin": 0.0010000000000000009,
+    "continuous_from_step_criterion": "max Re((lambda_step - 1)/dt) < 0",
+    "continuous_from_step_pass": true,
+    "reduced_analytic_continuous_pass": true,
+    "reduced_inequality_form": "a_H * lambda_W * tau_H > 2 * kappa_W * b_HW * tau_W",
+    "reduced_inequality_value": 8.0,
+    "reduced_inequality_pass": true,
+    "nominal_overall_discrete_gate_pass": true,
+    "w3_kernel_implementation_authorized": false,
+    "blocking_notes": [
+      "Doctrinal (v,u)=(-65,0) is not a fixed point of the implemented subthreshold map.",
+      "At verified silent equilibrium (syn=0), b_HW=0 exactly: H-omega closed loop is linearly inactive at rest.",
+      "Transient/post-perturbation stability is not certified by this local rest analysis alone."
+    ]
+  },
+  "test_command": "python -m pytest tests/test_protocol_w_w3_stability.py -q",
+  "write_once": true,
+  "modification_policy": "Do not edit after freeze; new stability runs require a new protocol phase ID."
+}

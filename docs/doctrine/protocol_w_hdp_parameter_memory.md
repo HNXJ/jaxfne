@@ -362,6 +362,60 @@ under identical probe input — fast RBS memory faded, slower parameter trace ch
 
 **Forbidden:** tuning closed-loop parameters after observing W3 memory outcome; using \(\lambda_W=0\) as the only W3 demonstration.
 
+### 5.11 W3 — local stability analysis (**frozen; analysis only**)
+
+**Receipt:** `artifacts/protocol_w/w3_stability/w3_stability_receipt.json`  
+**Module:** `jaxfne/w3_stability_analysis.py` (no W3 simulation kernel)
+
+**Gate zero (equilibrium verification):**
+
+| Check | Result |
+|-------|--------|
+| Doctrinal \((v,u)=(-65,0), H=1, \omega=0\) | **Not** a fixed point (Izhikevich drift) |
+| Verified silent fixed point \((v^\*,u^\*)=(-70,-14)\), \(H=1\), \(\omega=0\), \(\mathrm{syn}=0\) | **Converged** fixed point of subthreshold step map |
+
+**Reduced antisymmetric modes:** \(\delta=h_A-h_B\), \(\Omega=\omega_{AB}-\omega_{BA}\).
+
+Plastic linearization (exact):
+
+\[
+\tau_W\dot\Omega = 2\kappa_W\delta - \lambda_W\Omega.
+\]
+
+RBD F1 linearization:
+
+\[
+\tau_H\dot\delta = -\delta + \frac{\kappa_H}{i_{\mathrm{ref}}}\Delta I^{\mathrm{rec}}_{\mathrm{antisym}}.
+\]
+
+**Derived \(b_{HW}\)** from \(\omega\to W_0e^\omega\to I^{\mathrm{rec}}\to H\) via autodiff at verified equilibrium:
+
+\[
+b_{HW} = 0 \quad (\mathrm{syn}=0 \Rightarrow \partial I/\partial\omega = 0).
+\]
+
+Analytic reduced Jacobian:
+
+\[
+J_{\mathrm{red}}=
+\begin{bmatrix}
+-1/\tau_H & b_{HW}/\tau_H \\
+2\kappa_W/\tau_W & -\lambda_W/\tau_W
+\end{bmatrix}.
+\]
+
+At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **linearly inactive** at the verified silent equilibrium.
+
+**Full/step gate (10-state ordering):** implementation-faithful subthreshold step-map Jacobian \(J_{\mathrm{step}}\).
+
+| Criterion | Nominal result |
+|-----------|----------------|
+| \(\rho(J_{\mathrm{step}})<1\) | **Pass** (\(\rho=0.999\), margin \(10^{-3}\)) |
+| \(\max\Re((\lambda_{\mathrm{step}}-1)/\Delta t)<0\) | **Pass** |
+| \(b_{HW}\neq 0\) (loop active at rest) | **Fail** (exactly zero) |
+
+**W3 kernel implementation:** remains **not authorized** — rest equilibrium certifies marginal discrete stability but not active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
+
 ## 6. Experimental ladder (frozen order)
 
 \[
@@ -381,7 +435,7 @@ under identical probe input — fast RBS memory faded, slower parameter trace ch
 | **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
 | **W1b** | **IMPLEMENTED** — RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
 | **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
-| **W3** | **SPEC OPEN** — closed loop spec; implementation blocked pending stability gate |
+| **W3** | **SPEC OPEN** — stability analysis frozen; kernel **not** authorized |
 | **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
@@ -394,7 +448,7 @@ under identical probe input — fast RBS memory faded, slower parameter trace ch
 | W1a | **yes** — scalar integrator only |
 | W1b | **yes** — shadow plasticity, no feedback |
 | W2 | **frozen** — receipt locked; do not mutate configuration |
-| W3 | **spec only** — Jacobian stability gate required before code |
+| W3 | **spec + stability analysis frozen** — kernel blocked (\(b_{HW}=0\) at rest) |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.
@@ -424,7 +478,8 @@ W3 implementation remains blocked until stability analysis receipt passes.
 | `jaxfne/w1b_shadow_plasticity.py` | W1b shadow \(\omega\) from RBD-recorded \(\Delta H\) |
 | `jaxfne/w2_parameter_expression.py` | W2 frozen \(\omega\to W\to X\) expression |
 | `tests/test_protocol_w_w1b.py` | W1b composition, symmetry, F1, nulls, timescale receipts |
-| `tests/test_protocol_w_w2.py` | W2 monotonicity, E/I sign, structural + W1b-memory contrast |
+| `jaxfne/w3_stability_analysis.py` | W3 local stability analysis (no closed-loop kernel) |
+| `tests/test_protocol_w_w3_stability.py` | W3 stability receipts |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
 | `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |
@@ -442,6 +497,10 @@ W2 frozen receipt:
 W3 specification (open):
 
 - `artifacts/protocol_w/w3_closed_loop_spec.json`
+
+W3 stability analysis (frozen):
+
+- `artifacts/protocol_w/w3_stability/w3_stability_receipt.json`
 
 ## 10. Stop rules
 
