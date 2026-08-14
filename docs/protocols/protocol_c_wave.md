@@ -61,7 +61,7 @@ False positives matter more than a visually impressive positive example.
 | ID | Deliverable |
 |----|-------------|
 | C0 | This specification (no estimator code) |
-| C1 | Estimator validation on synthetic fields |
+| C1 | Estimator validation on synthetic fields (`c1_synthetic_validation_receipt.json`) |
 | C2 | General `Model.simulate` `delay_state` continuation |
 | C3 | Prospective neural geometry/delay experiment |
 | C4 | Frozen receipt before Figure 5 interpretation |

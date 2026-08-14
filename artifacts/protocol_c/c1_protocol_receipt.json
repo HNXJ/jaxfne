@@ -1,0 +1,9 @@
+{
+  "schema": "jaxfne.protocol_c.c1_protocol_receipt.v1",
+  "checkpoint": "C1",
+  "status": "FROZEN",
+  "protocol_id": "protocol_c_wave_v0417",
+  "validation_receipt": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+  "implementation_scope": "synthetic_fields_only",
+  "next_checkpoint": "C2"
+}

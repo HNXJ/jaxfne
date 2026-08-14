@@ -1,0 +1,198 @@
+{
+  "cases": [
+    {
+      "case_id": "planar_1d_plus_k",
+      "classification": "TRAVELING_WAVE",
+      "direction": [
+        -1.0
+      ],
+      "errors": {
+        "epsilon_f": 0.0,
+        "epsilon_k": 0.0011327827369677806,
+        "epsilon_theta_deg": 0.0,
+        "epsilon_theta_rad": 0.0,
+        "epsilon_v": 0.0011315009921766862
+      },
+      "expected_classification": "TRAVELING_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.02135271027730945,
+      "phase_fit_r2": 0.9999560168211772,
+      "phase_velocity": 3.32956166335941,
+      "quality_reasons": [
+        "planar_phase_gradient_gates_passed"
+      ],
+      "spatial_coherence": 0.9786472897226905,
+      "wave_vector": [
+        -18.870908373086188
+      ]
+    },
+    {
+      "case_id": "planar_1d_minus_k",
+      "classification": "TRAVELING_WAVE",
+      "direction": [
+        1.0
+      ],
+      "errors": {
+        "epsilon_f": 0.0,
+        "epsilon_k": 0.0009305709643230529,
+        "epsilon_theta_deg": 0.0,
+        "epsilon_theta_rad": 0.0,
+        "epsilon_v": 0.0009297058070933824
+      },
+      "expected_classification": "TRAVELING_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.02157744068278533,
+      "phase_fit_r2": 0.9999490181021883,
+      "phase_velocity": 3.3302343139763546,
+      "quality_reasons": [
+        "planar_phase_gradient_gates_passed"
+      ],
+      "spatial_coherence": 0.9784225593172147,
+      "wave_vector": [
+        18.867096770969727
+      ]
+    },
+    {
+      "case_id": "planar_2d_diagonal_k",
+      "classification": "TRAVELING_WAVE",
+      "direction": [
+        -0.8478561179041715,
+        -0.5302263698954135
+      ],
+      "errors": {
+        "epsilon_f": 0.0,
+        "epsilon_k": 2.4099454996154073e-05,
+        "epsilon_theta_deg": 0.01536779656850405,
+        "epsilon_theta_rad": 0.000268218648897082,
+        "epsilon_v": 2.4100035793914175e-05
+      },
+      "expected_classification": "TRAVELING_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.0390714965762291,
+      "phase_fit_r2": 0.9999152412326794,
+      "phase_velocity": 10.600234259932098,
+      "quality_reasons": [
+        "planar_phase_gradient_gates_passed"
+      ],
+      "spatial_coherence": 0.9609285034237709,
+      "wave_vector": [
+        -5.02558431444697,
+        -3.1428650113883156
+      ]
+    },
+    {
+      "case_id": "sync_k_zero",
+      "classification": "NO_WAVE",
+      "direction": [
+        0.0
+      ],
+      "errors": {},
+      "expected_classification": "NO_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.0,
+      "phase_fit_r2": 1.0,
+      "phase_velocity": null,
+      "quality_reasons": [
+        "synchronous_oscillation_k_near_zero"
+      ],
+      "spatial_coherence": 1.0,
+      "wave_vector": [
+        -0.0
+      ]
+    },
+    {
+      "case_id": "spatially_random_phase",
+      "classification": "NO_WAVE",
+      "direction": [
+        1.0
+      ],
+      "errors": {},
+      "expected_classification": "NO_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.796049004666759,
+      "phase_fit_r2": -0.0022856784775551198,
+      "phase_velocity": 44.19264855054587,
+      "quality_reasons": [
+        "structured_but_fails_traveling_gates"
+      ],
+      "spatial_coherence": 0.203950995333241,
+      "wave_vector": [
+        1.4217716098172115
+      ]
+    },
+    {
+      "case_id": "noise_only",
+      "classification": "NO_WAVE",
+      "direction": [
+        1.0
+      ],
+      "errors": {},
+      "expected_classification": "NO_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 9.5,
+      "null_score": 0.9563940504302725,
+      "phase_fit_r2": 0.03441341466162551,
+      "phase_velocity": 13.205070715473251,
+      "quality_reasons": [
+        "noise_only_power_below_floor"
+      ],
+      "spatial_coherence": 0.04360594956972749,
+      "wave_vector": [
+        4.520252992531351
+      ]
+    },
+    {
+      "case_id": "standing_wave",
+      "classification": "NO_WAVE",
+      "direction": [
+        -1.0
+      ],
+      "errors": {},
+      "expected_classification": "NO_WAVE",
+      "expected_match": true,
+      "finite_status": true,
+      "frequency_hz": 10.0,
+      "null_score": 0.5217504624338523,
+      "phase_fit_r2": 0.0020725675913212394,
+      "phase_velocity": 34.606906824736036,
+      "quality_reasons": [
+        "standing_or_flipping_spatial_gradient"
+      ],
+      "spatial_coherence": 0.4782495375661478,
+      "wave_vector": [
+        -1.8155870846823396
+      ]
+    }
+  ],
+  "checkpoint": "C1",
+  "interpretation": "C1 validates estimator discrimination on synthetic Phi only; it is not evidence that jaxfne neural dynamics generate waves.",
+  "next_checkpoint": "C2",
+  "package_head": "b05e0dc0d9f8835d755006ddecd73d4368064858",
+  "protocol_id": "protocol_c_wave_v0417",
+  "question": "Does W_hat correctly identify known wave and non-wave fields?",
+  "schema": "jaxfne.protocol_c.c1_synthetic_validation_receipt.v1",
+  "scope": "synthetic_fields_only_no_neural_simulation",
+  "status": "FROZEN",
+  "summary": {
+    "c1_pass": true,
+    "negative_expected_match": true,
+    "positive_expected_match": true,
+    "positive_metric_within_c0_tolerances": true
+  },
+  "tolerances_from_c0": {
+    "direction_deg": 15.0,
+    "relative_frequency_error": 0.05,
+    "relative_velocity_error": 0.1
+  }
+}
