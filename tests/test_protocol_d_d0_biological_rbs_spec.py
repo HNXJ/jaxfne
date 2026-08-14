@@ -44,17 +44,23 @@ def test_d0_ionic_vector_grammar_one_d1_coordinate():
     assert d1[0]["id"] == "H_K"
 
 
-def test_d0_h_k_effective_channel_not_concentration():
+def test_d0_h_k_effective_recovery_not_literal_g_k():
     interp = load_d0_spec()["first_coordinate_H_K"]["physical_interpretation"]
-    assert "availability" in interp["is"].lower() or "gain" in interp["is"].lower()
-    assert "potassium concentration" in interp["is_not"]
-    assert "Nernst potential" in interp["is_not"]
+    assert "recovery" in interp["is"].lower() or "adaptation" in interp["is"].lower()
+    assert "explicit Hodgkin-Huxley potassium conductance g_K" in interp["is_not"]
+    assert "literal identification of Izhikevich parameter b with g_K" in interp["is_not"]
 
 
-def test_d0_typed_coupling_g_k_eff():
+def test_d0_izhikevich_realization_frozen():
+    iz = load_d0_spec()["first_coordinate_H_K"]["izhikevich_realization"]
+    assert iz["map"] == "b_eff = H_K * b"
+    assert "a * b * v" in iz["local_jacobian_receipt"]
+
+
+def test_d0_typed_grammar_distinct_from_izhikevich():
     gamma = load_d0_spec()["first_coordinate_H_K"]["typed_coupling_Gamma"]
-    assert "g_K^eff" in gamma["map_display"] or "g_K" in gamma["map_display"]
-    assert gamma["normalization"]
+    assert "grammar_display" in gamma
+    assert "g_K^eff" in gamma["grammar_display"]
 
 
 def test_d0_static_sweep_preregistered():

@@ -1,0 +1,226 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d1_execution_receipt.v1",
+  "checkpoint": "D1",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "aa01b29cd539d76427cdb26cc56b9c30983eee7b",
+  "spec_path": "artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json",
+  "coupling": "b_eff = H_K * b",
+  "mathematical_receipt": {
+    "local_jacobian": "partial du_dot / partial H_K = a * b * v",
+    "note": "instantaneous sign of du_dot w.r.t. H_K depends on operating voltage v"
+  },
+  "documentation_clause": "H_K is an effective relative K-associated recovery coordinate in the Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical dependency; it is not an explicit potassium concentration, Nernst potential, or Hodgkin-Huxley potassium-conductance model.",
+  "n_cells": 9,
+  "expected_n_cells": 9,
+  "cells": [
+    {
+      "seed": 11,
+      "H_K": 0.8,
+      "n_spikes": 12,
+      "t_spike_first_ms": 54.5,
+      "mean_isi_ms": 35.95454545454545,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.158967733383179,
+        "delta_u_rms": 3.269774070979152,
+        "delta_V_max_abs": 100.67731857299805,
+        "delta_V_rms": 16.91676366782162,
+        "delta_N_spike": -2,
+        "delta_t_spike_first_ms": 0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    },
+    {
+      "seed": 11,
+      "H_K": 1.0,
+      "n_spikes": 14,
+      "t_spike_first_ms": 54.0,
+      "mean_isi_ms": 29.884615384615383,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 0.0,
+        "delta_u_rms": 0.0,
+        "delta_V_max_abs": 0.0,
+        "delta_V_rms": 0.0,
+        "delta_N_spike": 0,
+        "delta_t_spike_first_ms": null,
+        "expression_sensitive_u": false,
+        "expression_sensitive_V": false,
+        "expression_sensitive_spikes": false
+      }
+    },
+    {
+      "seed": 11,
+      "H_K": 1.2,
+      "n_spikes": 16,
+      "t_spike_first_ms": 53.5,
+      "mean_isi_ms": 25.5,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.19849419593811,
+        "delta_u_rms": 3.2667665953579523,
+        "delta_V_max_abs": 101.37719917297363,
+        "delta_V_rms": 18.450514949115245,
+        "delta_N_spike": 2,
+        "delta_t_spike_first_ms": -0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    },
+    {
+      "seed": 12,
+      "H_K": 0.8,
+      "n_spikes": 12,
+      "t_spike_first_ms": 54.5,
+      "mean_isi_ms": 35.95454545454545,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.158967733383179,
+        "delta_u_rms": 3.269774070979152,
+        "delta_V_max_abs": 100.67731857299805,
+        "delta_V_rms": 16.91676366782162,
+        "delta_N_spike": -2,
+        "delta_t_spike_first_ms": 0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    },
+    {
+      "seed": 12,
+      "H_K": 1.0,
+      "n_spikes": 14,
+      "t_spike_first_ms": 54.0,
+      "mean_isi_ms": 29.884615384615383,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 0.0,
+        "delta_u_rms": 0.0,
+        "delta_V_max_abs": 0.0,
+        "delta_V_rms": 0.0,
+        "delta_N_spike": 0,
+        "delta_t_spike_first_ms": null,
+        "expression_sensitive_u": false,
+        "expression_sensitive_V": false,
+        "expression_sensitive_spikes": false
+      }
+    },
+    {
+      "seed": 12,
+      "H_K": 1.2,
+      "n_spikes": 16,
+      "t_spike_first_ms": 53.5,
+      "mean_isi_ms": 25.5,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.19849419593811,
+        "delta_u_rms": 3.2667665953579523,
+        "delta_V_max_abs": 101.37719917297363,
+        "delta_V_rms": 18.450514949115245,
+        "delta_N_spike": 2,
+        "delta_t_spike_first_ms": -0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    },
+    {
+      "seed": 13,
+      "H_K": 0.8,
+      "n_spikes": 12,
+      "t_spike_first_ms": 54.5,
+      "mean_isi_ms": 35.95454545454545,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.158967733383179,
+        "delta_u_rms": 3.269774070979152,
+        "delta_V_max_abs": 100.67731857299805,
+        "delta_V_rms": 16.91676366782162,
+        "delta_N_spike": -2,
+        "delta_t_spike_first_ms": 0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    },
+    {
+      "seed": 13,
+      "H_K": 1.0,
+      "n_spikes": 14,
+      "t_spike_first_ms": 54.0,
+      "mean_isi_ms": 29.884615384615383,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 0.0,
+        "delta_u_rms": 0.0,
+        "delta_V_max_abs": 0.0,
+        "delta_V_rms": 0.0,
+        "delta_N_spike": 0,
+        "delta_t_spike_first_ms": null,
+        "expression_sensitive_u": false,
+        "expression_sensitive_V": false,
+        "expression_sensitive_spikes": false
+      }
+    },
+    {
+      "seed": 13,
+      "H_K": 1.2,
+      "n_spikes": 16,
+      "t_spike_first_ms": 53.5,
+      "mean_isi_ms": 25.5,
+      "deltas_vs_H_K_1": {
+        "delta_u_max_abs": 8.19849419593811,
+        "delta_u_rms": 3.2667665953579523,
+        "delta_V_max_abs": 101.37719917297363,
+        "delta_V_rms": 18.450514949115245,
+        "delta_N_spike": 2,
+        "delta_t_spike_first_ms": -0.5,
+        "expression_sensitive_u": true,
+        "expression_sensitive_V": true,
+        "expression_sensitive_spikes": true
+      }
+    }
+  ],
+  "gates": {
+    "G1_containment": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        },
+        {
+          "seed": 12,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        },
+        {
+          "seed": 13,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true
+        }
+      ]
+    },
+    "G2_static_state_integrity": {
+      "passed": true,
+      "details": []
+    },
+    "G3_parameter_locality": {
+      "passed": true,
+      "details": []
+    },
+    "G4_bidirectional_sensitivity": {
+      "passed": true,
+      "evaluated_levels": [
+        0.8,
+        1.0,
+        1.2
+      ]
+    }
+  },
+  "expression_summary": {
+    "criterion": "H_K != 1 => X(H_K) != X(1)",
+    "direction_not_preregistered": true,
+    "any_u_sensitive": true,
+    "any_V_sensitive": true,
+    "any_spike_sensitive": true
+  },
+  "interpretation_deferred_to": "D2"
+}

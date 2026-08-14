@@ -54,28 +54,34 @@
   "first_coordinate_H_K": {
     "id": "H_K",
     "physical_interpretation": {
-      "is": "effective relative potassium-channel availability / gain state",
-      "nominal_reference": "H_K = 1 means nominal channel availability relative to the declared baseline",
+      "is": "effective K-associated recovery/adaptation contribution in the reduced Izhikevich realization",
+      "nominal_reference": "H_K = 1 means nominal recovery-drive contribution relative to the declared classical baseline",
       "is_not": [
         "potassium concentration",
         "Nernst potential",
+        "explicit Hodgkin-Huxley potassium conductance g_K",
+        "literal identification of Izhikevich parameter b with g_K",
         "explicit electrochemical transmembrane K+ dynamics",
         "STDP or synaptic plasticity coordinate",
         "neurotransmitter availability"
       ],
-      "future_refinement_allowed": "H_K -> (H_gK, H_[K]i, H_[K]o, H_availability, ...) under same typed grammar"
+      "future_refinement_allowed": "H_K^effective -> (H_gK, H_[K]i, H_[K]o, H_availability, ...) under same typed grammar"
     },
     "typed_coupling_Gamma": {
-      "map_display": "g_K^eff = H_K * g_K^0",
-      "operator_role": "emitter-local typed gain on a declared baseline conductance/recovery parameter",
-      "normalization": "g(H_K=1) = 1 relative to classical baseline g_K^0",
-      "positivity_gate": "H_K > 0 required wherever multiplicative map is used",
-      "d1_emitter_realization": {
-        "status": "deferred_to_D1",
-        "candidate_from_h1b_inventory": "parameter b effective gain (subthreshold recovery / leak-recovery analogue)",
-        "selection_rule": "choose smallest Izhikevich-native target that realizes g_K^eff semantics without adding a separate adaptation subsystem",
-        "forbidden": "source_scale readout-only gain; separate parallel adaptation ODE outside RBS grammar"
-      }
+      "grammar_display": "g_K^eff = H_K * g_K^0",
+      "grammar_role": "general typed K-channel availability grammar at the containment layer (not a claim that Izhikevich b is g_K)",
+      "operator_role": "emitter-local typed gain on a declared baseline recovery/conductance parameter in a chosen emitter realization",
+      "normalization": "Gamma(H_K=1) = identity relative to classical baseline",
+      "positivity_gate": "H_K > 0 required wherever multiplicative map is used"
+    },
+    "izhikevich_realization": {
+      "status": "frozen_at_D1_authorization",
+      "map": "b_eff = H_K * b",
+      "recovery_ode": "du/dt = a * (b_eff * v - u) = a * (H_K * b * v - u)",
+      "dv_unchanged": "dv/dt = 0.04*v^2 + 5*v + 140 - u + I",
+      "local_jacobian_receipt": "partial du_dot / partial H_K = a * b * v",
+      "containment_null": "H_K = 1 => b_eff = b => classical Izhikevich emitter",
+      "documentation_clause": "H_K is an effective relative K-associated recovery coordinate in the Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical dependency; it is not an explicit potassium concentration, Nernst potential, or Hodgkin-Huxley potassium-conductance model."
     },
     "dynamics_F_H": {
       "status": "specified_for_D2_implementation",
@@ -107,11 +113,18 @@
       "drive schedule fixed"
     ],
     "primary_readouts": [
-      "spike count / rate under frozen step drive",
-      "subthreshold V_m statistics where applicable",
-      "f-I curve shift or recovery-time proxy appropriate to selected emitter coupling"
+      "delta_V(t) relative to H_K=1",
+      "delta_u(t) relative to H_K=1",
+      "delta_N_spike relative to H_K=1",
+      "delta_t_spike (first spike time) relative to H_K=1",
+      "adaptation / inter-spike-interval summaries when applicable"
     ],
-    "success_d1": "monotonic or otherwise falsifiable static phenotype separation across the three H_K levels with classical null at H_K=1"
+    "expression_criterion": {
+      "statement": "H_K != 1 => X(H_K) != X(1) under drive where recovery term is active",
+      "direction_not_preregistered": true,
+      "primary_direct_map_quantity": "u (recovery variable)"
+    },
+    "success_d1": "containment gates pass; all three sweep levels evaluated; expression sensitivity recorded without directional cherry-picking"
   },
   "dynamic_phenotype_protocol": {
     "checkpoint": "D3",
@@ -192,6 +205,11 @@
     "protocol_c": "Figure 5 — wave estimator negative (60/60 NO_WAVE); narrow claim only",
     "protocol_h4": "Figure 6 — topology/delay memory extension negative",
     "rule": "C3 and H4 are joint examples of falsification discipline but answer different scientific questions; keep separate panels and narrative."
+  },
+  "d0_amendment": {
+    "reason": "Separate general K-channel typed grammar from Izhikevich b_eff realization before D1 implementation",
+    "frozen_at": "D1_authorization",
+    "izhikevich_coupling": "b_eff = H_K * b on recovery drive du = a(b_eff*v - u)"
   },
   "execution_authorization": {
     "spec_frozen_at": "D0",

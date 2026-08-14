@@ -63,6 +63,10 @@ def validate_d0_spec(spec: dict[str, Any] | None = None) -> None:
     if values != expected:
         raise ValueError(f"static sweep values must be {expected}, got {values}")
 
+    iz = spec["first_coordinate_H_K"]["izhikevich_realization"]
+    if iz.get("map") != "b_eff = H_K * b":
+        raise ValueError("D0 izhikevich_realization.map must be b_eff = H_K * b")
+
     ladder = spec["checkpoint_ladder"]
     if ladder["D4"].get("mandatory_for_0417") is not False:
         raise ValueError("D4 must not be mandatory for 0.4.17")

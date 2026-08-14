@@ -1,7 +1,9 @@
 # Protocol D — biological RBS containment (0.4.17-D)
 
-**Status:** D0 frozen (specification only; **D1 not** authorized)  
-**Spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
+**Status:** D1 **CLOSED** — static \(H_{\mathrm{K}}\) expression frozen @ `b_{\mathrm{eff}}=H_{\mathrm{K}}b`  
+**D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
+**D1 spec:** `artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json`  
+**D1 receipt:** `artifacts/protocol_d_biological_rbs/d1_static_expression_receipt.json`  
 **Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
@@ -71,34 +73,48 @@ changing the grammar.
 
 ## First coordinate: \(H_{\mathrm{K}}\)
 
-Four separable specification layers (frozen at D0):
+**Physical typing (frozen):** effective **K-associated recovery/adaptation contribution**
+in the reduced Izhikevich realization — not literal \(g_K\), not concentration.
 
-| Layer | D0 content |
-|-------|------------|
-| **Physical interpretation** | Effective relative **potassium-channel availability/gain**; \(H_{\mathrm{K}}=1\) = nominal availability |
-| **\(F_H\)** | \(\tau_{\mathrm{K}}\dot H_{\mathrm{K}} = R_{\mathrm{K}}(H_{\mathrm{K}}) + \text{coupling}\); default \(R_{\mathrm{K}}(H)=1-H\) (F1) at D2 |
-| **\(\Gamma(H)\)** | \(g_{\mathrm{K}}^{\mathrm{eff}} = H_{\mathrm{K}}\, g_{\mathrm{K}}^{0}\) on a declared emitter baseline |
-| **Null / reference** | \(H_{\mathrm{K}}\equiv 1,\ \dot H_{\mathrm{K}}=0 \Rightarrow E_{\mathrm{extended}}=E_{\mathrm{classical}}\) |
+Four separable specification layers:
 
-**What \(H_{\mathrm{K}}\) is not:** potassium concentration, Nernst potential, STDP,
-or neurotransmitter availability. Explicit concentration dynamics require separate
-electrochemical machinery not authorized here.
+| Layer | Content |
+|-------|---------|
+| **Physical interpretation** | Effective K-associated recovery/adaptation contribution; \(H_{\mathrm{K}}=1\) = nominal |
+| **\(\Gamma(H)\) grammar** | \(g_{\mathrm{K}}^{\mathrm{eff}} = H_{\mathrm{K}}\, g_{\mathrm{K}}^{0}\) (containment-layer typed grammar) |
+| **Izhikevich realization (D1)** | \(b_{\mathrm{eff}} = H_{\mathrm{K}}\, b\); \(\dot u = a(b_{\mathrm{eff}} v - u)\) |
+| **\(F_H\)** | Deferred to D2: \(\tau_{\mathrm{K}}\dot H_{\mathrm{K}} = R_{\mathrm{K}}(H_{\mathrm{K}}) + \text{coupling}\) |
+| **Null / reference** | \(H_{\mathrm{K}}\equiv 1,\ \dot H_{\mathrm{K}}=0 \Rightarrow E_{\mathrm{extended}}=E_{\mathrm{classical}}\) (bit-exact on \(V\), spikes) |
 
-D1 selects the smallest Izhikevich-native realization of \(g_{\mathrm{K}}^{\mathrm{eff}}\)
-(e.g. effective \(b\)-gain analogue per H1b inventory) without a parallel adaptation
-subsystem.
-
-## Static sweep before dynamics (D1)
-
-Mirrors successful W1/W2 decomposition — validate state→expression before state evolution:
+Local mathematical receipt:
 
 \[
-H_{\mathrm{K}} \in \{1-\delta,\ 1,\ 1+\delta\},
-\qquad
-\delta = 0.2,
-\qquad
-\dot H_{\mathrm{K}} = 0.
+\frac{\partial \dot u}{\partial H_{\mathrm{K}}} = a\, b\, v.
 \]
+
+> \(H_{\mathrm{K}}\) is an effective relative K-associated recovery coordinate in the
+> Izhikevich realization. It demonstrates typed RBS containment of a reduced biophysical
+> dependency; it is not an explicit potassium concentration, Nernst potential, or
+> Hodgkin–Huxley potassium-conductance model.
+
+**What \(H_{\mathrm{K}}\) is not:** potassium concentration, Nernst potential, STDP,
+or neurotransmitter availability.
+
+## Static sweep (D1 — executed)
+
+Expression criterion (direction **not** preregistered):
+
+\[
+H_{\mathrm{K}} \neq 1 \Rightarrow X(H_{\mathrm{K}}) \neq X(1).
+\]
+
+Frozen levels: \(H_{\mathrm{K}} \in \{0.8,\ 1.0,\ 1.2\}\), \(\dot H_{\mathrm{K}}=0\).
+
+**D1 gates (all passed):** G1 containment (bit-exact classical at \(H_{\mathrm{K}}=1\));
+G2 static-state integrity; G3 parameter locality; G4 bidirectional evaluation of all three levels.
+
+Reported phenotypes vs \(H_{\mathrm{K}}=1\): \(\Delta V(t)\), \(\Delta u(t)\), \(\Delta N_{\mathrm{spike}}\),
+\(\Delta t_{\mathrm{spike}}\) (primary direct map: \(u\)).
 
 ## Checkpoint ladder
 
@@ -136,6 +152,6 @@ questions — keep separate panels and narrative.
 
 | ID | Status |
 |----|--------|
-| D0 | This specification (implementation **not** authorized) |
-| D1 | Static \(H_{\mathrm{K}}\) sweep + classical null |
-| D2–D4 | Specified; not authorized |
+| D0 | Specification frozen |
+| D1 | Static \(H_{\mathrm{K}}\) sweep **executed** (`b_{\mathrm{eff}}=H_{\mathrm{K}}b`) |
+| D2–D4 | Specified; **not** authorized |
