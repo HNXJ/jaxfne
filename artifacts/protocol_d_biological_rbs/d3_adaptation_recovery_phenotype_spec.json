@@ -1,0 +1,276 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d3_spec.v1",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "checkpoint": "D3",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_d_biological_rbs/d2b_activity_h_k_coupling_spec.json",
+  "parent_head": "6ce92354a28b5edf85261edda76fadc08498993b",
+  "question": "Does the frozen D2b activity-written RBS produce activity-dependent adaptation with recovery under a repeated-pulse paradigm?",
+  "phenomenon_label": "activity-dependent adaptation with recovery",
+  "terminology": {
+    "use": ["adaptation", "recovery", "facilitation", "rechallenge"],
+    "avoid_as_formal_mechanism": ["fatigue"],
+    "note": "fatigue-like may be used post hoc as phenomenological description only; implemented state is effective K-associated recovery driven by activity history"
+  },
+  "scientific_scope": {
+    "included": "D3 repeated-pulse adaptation/recovery phenotype specification only",
+    "excluded": "D3 implementation, HDP, geometry, delays, fields, SSA, oddball, habituation, microscopic fatigue mechanism claims"
+  },
+  "paradigm": {
+    "display": "baseline -> repeated stimulation -> recovery interval -> rechallenge",
+    "phases": [
+      {
+        "id": "baseline",
+        "drive": "none",
+        "role": "pre-stimulus reference epoch for hidden states and spontaneous activity"
+      },
+      {
+        "id": "repeated_stimulation",
+        "drive": "m identical pulses u_1 = ... = u_m",
+        "role": "adaptation induction; no stimulus parameter changes across repetitions"
+      },
+      {
+        "id": "recovery_interval",
+        "drive": "none",
+        "role": "prospective recovery duration sweep; holds all else fixed"
+      },
+      {
+        "id": "rechallenge",
+        "drive": "single pulse identical to train pulses",
+        "role": "recovery readout; same amplitude, duration, and analysis window as train pulses"
+      }
+    ]
+  },
+  "pulse_train": {
+    "identical_pulses": true,
+    "n_pulses_m": 6,
+    "amplitude": 15.0,
+    "duration_ms": 40.0,
+    "isi_ms": 60.0,
+    "isi_definition": "onset_to_onset",
+    "inherits_emitter_baseline": "d1_static_h_k_expression_spec",
+    "note": "fixed amplitude, duration, and ISI across all repetitions and rechallenge"
+  },
+  "timing": {
+    "baseline_duration_ms": 100.0,
+    "first_pulse_onset_ms": 100.0,
+    "train_block_end_ms": 440.0,
+    "rechallenge_onset_ms": "train_block_end_ms + T_recovery",
+    "total_duration_ms": 1000.0,
+    "derivation_note": "train ends at 100 + (m-1)*isi + duration = 100 + 300 + 40 = 440 ms; total duration accommodates longest recovery plus rechallenge and post window"
+  },
+  "recovery_intervals": {
+    "selection_rule": "prospective from D2b timescales tau_A=25 ms, tau_K=100 ms; not tuned from spike responses",
+    "tau_A_ms": 25.0,
+    "tau_K_ms": 100.0,
+    "levels": [
+      {
+        "id": "short",
+        "T_recovery_ms": 50.0,
+        "rationale": "2 * tau_A; partial H_A decay, minimal H_K restoration"
+      },
+      {
+        "id": "medium",
+        "T_recovery_ms": 100.0,
+        "rationale": "tau_K; one H_K time constant"
+      },
+      {
+        "id": "long",
+        "T_recovery_ms": 250.0,
+        "rationale": "2.5 * tau_K; substantial H_K restoration toward reference"
+      }
+    ],
+    "mechanistic_prediction": "T_recovery up => H_K(T_rechallenge) -> 1 and, if H_K mediates adaptation, R_rechallenge -> R_early"
+  },
+  "response_metrics": {
+    "primary": {
+      "id": "R_j",
+      "symbol": "N_spike^(j)",
+      "definition": "spike count in fixed post-stimulus window following pulse j onset",
+      "response_window_ms": 80.0,
+      "window_anchor": "pulse_onset"
+    },
+    "secondary": [
+      {
+        "id": "V_int_j",
+        "definition": "voltage integral over the same post-stimulus window as R_j"
+      },
+      {
+        "id": "t_first_spike_j",
+        "definition": "latency to first spike in the post-stimulus window; undefined if zero spikes"
+      }
+    ]
+  },
+  "adaptation_index": {
+    "display": "A_adapt = 1 - R_late / R_early",
+    "R_early": {
+      "definition": "mean of R_j over early pulse indices",
+      "pulse_indices_1_based": [1, 2]
+    },
+    "R_late": {
+      "definition": "mean of R_j over late pulse indices",
+      "pulse_indices_1_based": [5, 6]
+    },
+    "domain": "defined only when R_early > 0",
+    "interpretation": {
+      "positive": "reduced late responses (adaptation)",
+      "zero": "no adaptation",
+      "negative": "facilitation; must be retained, not converted to failure metadata"
+    }
+  },
+  "recovery_index": {
+    "display": "R_recovery = (R_rechallenge - R_late) / (R_early - R_late)",
+    "domain": "defined only when denominator R_early - R_late != 0",
+    "interpretation": {
+      "zero": "no recovery from adapted state",
+      "one": "return to early response level",
+      "note": "perfect recovery not required; secondary metric/classification"
+    },
+    "classification_role": "secondary; not required for initial ADAPTATION classification"
+  },
+  "null_hierarchy": {
+    "display": "N0 classical | N1 static H_K=1 | N2 kappa_AK=0 (D2a) | D full D2b",
+    "arms": [
+      {
+        "id": "N0",
+        "label": "classical emitter / RBS off",
+        "kernel": "simulate_edge_recurrent_izhikevich",
+        "rbs_state": "none"
+      },
+      {
+        "id": "N1",
+        "label": "H_K static at 1",
+        "kernel": "simulate_edge_recurrent_izhikevich_static_h_k_recovery",
+        "H_K": 1.0,
+        "dot_H": 0
+      },
+      {
+        "id": "N2",
+        "label": "kappa_AK = 0 (D2a dynamics only)",
+        "kernel": "simulate_edge_recurrent_izhikevich_activity_h_k_rbd",
+        "kappa_AK": 0.0,
+        "note": "H_A may evolve from local spikes but does not write H_K"
+      },
+      {
+        "id": "D",
+        "label": "full H_A -> H_K D2b",
+        "kernel": "simulate_edge_recurrent_izhikevich_activity_h_k_rbd",
+        "inherits_dynamics": "d2b_activity_h_k_coupling_spec"
+      }
+    ],
+    "primary_contrast": {
+      "id": "D_minus_N2",
+      "statement": "both include dynamic H_K restoration; only D allows activity history to write H_K"
+    }
+  },
+  "hidden_state_mechanism_checks": {
+    "scope": "D arm and full D2b hidden-state traces; not sufficient for adaptation classification alone",
+    "during_repeated_stimulation": [
+      {
+        "id": "M1",
+        "statement": "mean H_A over late train pulses > mean H_A over baseline epoch"
+      },
+      {
+        "id": "M2",
+        "statement": "mean H_K over late train pulses > 1 (requires kappa_AK > 0)"
+      }
+    ],
+    "during_recovery": [
+      {
+        "id": "M3",
+        "statement": "H_A -> 0 toward reference during recovery interval"
+      },
+      {
+        "id": "M4",
+        "statement": "H_K -> 1 toward reference during recovery interval"
+      }
+    ],
+    "informative_null_outcome": "mechanism checks pass but A_adapt <= 0 => reduced coupling does not produce desired adaptation phenotype under frozen paradigm; not a D2b failure"
+  },
+  "classification": {
+    "labels": ["ADAPTATION", "NO_ADAPTATION", "UNRESOLVED"],
+    "forbidden_collapse": [
+      "UNRESOLVED -> ADAPTATION",
+      "UNRESOLVED -> NO_ADAPTATION",
+      "silence -> successful adaptation",
+      "negative A_adapt -> failure metadata"
+    ],
+    "ADAPTATION": {
+      "requires_all": [
+        "A_adapt > theta_A",
+        "H_K_late_mean > 1 + theta_H",
+        "signal_quality_sufficient"
+      ],
+      "note": "phenotype requires both observable and mechanism condition on D arm"
+    },
+    "NO_ADAPTATION": {
+      "requires": "signal_quality_sufficient and not ADAPTATION",
+      "valid_outcome": true,
+      "includes": "A_adapt <= 0 with adequate early response"
+    },
+    "UNRESOLVED": {
+      "requires": "signal quality insufficient to define meaningful adaptation index",
+      "example": "R_early too sparse; do not treat silence as adaptation"
+    }
+  },
+  "frozen_thresholds": {
+    "theta_A": 0.15,
+    "theta_H": 0.01,
+    "min_mean_R_early": 1.0,
+    "mechanism_H_A_baseline_epoch": "baseline phase",
+    "mechanism_H_late_epoch": "late train pulses 5-6",
+    "recovery_state_tol_H_A": 0.02,
+    "recovery_state_tol_H_K_minus_1": 0.02,
+    "post_hoc_tuning_forbidden": true
+  },
+  "simulation_policy": {
+    "topology": "isolated_single_neuron",
+    "n_neurons": 1,
+    "edges": "empty",
+    "inherits_emitter_baseline": "d1_static_h_k_expression_spec",
+    "dt_ms": 0.5,
+    "n_steps": 2000,
+    "duration_ms": 1000.0,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "seeds": [11, 12, 13],
+    "initial_RBS": {
+      "H_A0": 0.0,
+      "H_K0": 1.0
+    },
+    "cell_grid": {
+      "axes": ["seed", "null_arm", "recovery_interval"],
+      "n_cells": 36
+    }
+  },
+  "interpretation_rules": [
+    "NO_ADAPTATION is a valid scientific outcome, not a protocol failure",
+    "mechanism_ok with NO_ADAPTATION means this reduced K-associated coupling does not yield adaptation under the frozen paradigm",
+    "D2b state-space contract is not retroactively invalidated by NO_ADAPTATION",
+    "negative A_adapt indicates facilitation and must be reported",
+    "UNRESOLVED must be reported when early response is too sparse",
+    "recovery classification is secondary to adaptation classification",
+    "do not use fatigue as formal microscopic mechanism in D3 receipts"
+  ],
+  "explicit_prohibitions": [
+    "no_D3_implementation_in_this_checkpoint",
+    "no_fatigue_as_formal_mechanism_label",
+    "no_HDP",
+    "no_geometry_delays_fields_SSA_oddball_habituation",
+    "no_post_hoc_retuning_pulse_params_thresholds_recovery_intervals",
+    "no_collapse_UNRESOLVED_into_ADAPTATION_or_NO_ADAPTATION",
+    "no_collapse_negative_A_adapt_into_failure",
+    "no_retroactive_D2b_modification_on_NO_ADAPTATION",
+    "no_require_perfect_recovery_for_ADAPTATION"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "D3_implementation"
+  },
+  "bundle_root": "artifacts/protocol_d_biological_rbs",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "doctrine_reference": "docs/doctrine/rbs_rbd_hdp.md"
+}

@@ -1,11 +1,12 @@
 # Protocol D — biological RBS containment (0.4.17-D)
 
-**Status:** D2b **CLOSED** — two-coordinate activity-coupled RBS frozen  
+**Status:** D3 **specified** — adaptation/recovery phenotype frozen (D2b closed)  
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
 **D1 spec/receipt:** static \(b_{\mathrm{eff}}=H_{\mathrm{K}}b\) expression (closed)  
 **D2a spec/receipt:** `d2a_autonomous_h_k_relaxation_spec.json` / `d2a_autonomous_relaxation_receipt.json`  
 **D2b spec/receipt:** `d2b_activity_h_k_coupling_spec.json` / `d2b_implementation_receipt.json`  
-**Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen; D2a closed
+**D3:** specified, **not** implemented  
+**Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen; D2b closed
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
 > Protocol D₀/D₁** (`tests/test_edge_delay_protocol_d016.py`). Do not merge receipts
@@ -214,10 +215,79 @@ admissibility \(H_{\mathrm{K}}>0\); post-stimulus analytic/discrete two-timescal
 
 **Scientific contract ends at state-space writing** — adaptation/recovery phenotype is deferred to D3.
 
-## D3 — deferred
+## D3 — activity-dependent adaptation with recovery (specified)
 
-Repeated-stimulus fatigue/adaptation/recovery phenotype protocol. Requires D2b
-implementation gates to pass first; D2b establishes state-writing only.
+\[
+\boxed{
+\text{baseline}
+\rightarrow
+\text{repeated stimulation}
+\rightarrow
+\text{recovery interval}
+\rightarrow
+\text{rechallenge}
+}
+\]
+
+**Phenomenon (frozen label):** activity-dependent **adaptation with recovery** — not
+“fatigue” as a formal microscopic mechanism.
+
+**Pulse train:** \(m=6\) identical pulses (\(u_1=\cdots=u_m\)); amplitude \(15\),
+duration \(40\) ms, onset-to-onset ISI \(60\) ms; no parameter changes across repetitions
+or rechallenge.
+
+**Primary response:** \(R_j = N_{\mathrm{spike}}^{(j)}\) in an \(80\) ms post-onset window.
+Secondary: voltage integral, first-spike latency.
+
+**Adaptation index (prospective):**
+
+\[
+A_{\mathrm{adapt}} = 1 - \frac{\overline R_{\mathrm{late}}}{\overline R_{\mathrm{early}}},
+\qquad
+\overline R_{\mathrm{early}}=\mathrm{mean}(R_1,R_2),
+\qquad
+\overline R_{\mathrm{late}}=\mathrm{mean}(R_5,R_6),
+\]
+
+defined when \(\overline R_{\mathrm{early}}>0\). Negative values (facilitation) are retained.
+
+**Recovery index (secondary):**
+
+\[
+R_{\mathrm{recovery}}=
+\frac{R_{\mathrm{rechallenge}}-\overline R_{\mathrm{late}}}
+{\overline R_{\mathrm{early}}-\overline R_{\mathrm{late}}}.
+\]
+
+**Recovery intervals (from D2b timescales, not tuned post hoc):** short \(50\) ms
+(\(2\tau_{\mathrm{A}}\)), medium \(100\) ms (\(\tau_{\mathrm{K}}\)), long \(250\) ms
+(\(2.5\,\tau_{\mathrm{K}}\)).
+
+**Null hierarchy:**
+
+| Arm | Realization |
+|-----|-------------|
+| N0 | classical emitter / RBS off |
+| N1 | static \(H_{\mathrm{K}}=1\) |
+| N2 | \(\kappa_{\mathrm{AK}}=0\) (D2a dynamics) |
+| D | full D2b \(H_{\mathrm{A}}\to H_{\mathrm{K}}\) |
+
+Primary contrast: **D − N2** (dynamic \(H_{\mathrm{K}}\) restoration in both; only D
+allows activity history to write \(H_{\mathrm{K}}\)).
+
+**Hidden-state mechanism checks (D arm; not sufficient for adaptation):** \(\overline H_{\mathrm{A}}^{\mathrm{late}}>\overline H_{\mathrm{A}}^{\mathrm{baseline}}\),
+\(\overline H_{\mathrm{K}}^{\mathrm{late}}>1\); recovery \((H_{\mathrm{A}},H_{\mathrm{K}})\to(0,1)\).
+
+**Classification (three-way):** `ADAPTATION`, `NO_ADAPTATION`, `UNRESOLVED`.
+`ADAPTATION` requires \(A_{\mathrm{adapt}}>\theta_A\), \(H_{\mathrm{K}}^{\mathrm{late}}>1+\theta_H\),
+and sufficient early signal (\(\overline R_{\mathrm{early}}\ge 1\)). `NO_ADAPTATION` is a
+valid outcome (including \(A_{\mathrm{adapt}}\le 0\) with adequate signal). `UNRESOLVED`
+when early response is too sparse — silence is not adaptation.
+
+**Frozen thresholds:** \(\theta_A=0.15\), \(\theta_H=0.01\).
+
+**Spec:** `artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json`  
+**Implementation:** not authorized.
 
 ## Checkpoint ladder
 
@@ -228,7 +298,7 @@ D0 &: \text{biological RBS specification},\\
 D1 &: \text{static typed-coordinate expression},\\
 D2\mathrm{a} &: \text{autonomous }H_{\mathrm{K}}\text{ relaxation},\\
 D2\mathrm{b} &: \text{activity}\rightarrow H_{\mathrm{K}}\text{ coupling (executed)},\\
-D3 &: \text{biological phenotype protocol},\\
+D3 &: \text{adaptation/recovery phenotype (specified)},\\
 D4 &: \text{optional second RBS class (not mandatory for 0.4.17)}.
 \end{aligned}}
 \]
@@ -260,4 +330,5 @@ questions — keep separate panels and narrative.
 | D1 | Static \(H_{\mathrm{K}}\) sweep **executed** |
 | D2a | Autonomous F1 relaxation **executed** |
 | D2b | Two-coordinate \((H_{\mathrm{A}},H_{\mathrm{K}})\) coupling — **executed** |
-| D3–D4 | Phenotype protocol / optional second class — not authorized |
+| D3 | Adaptation/recovery phenotype — **specified, not implemented** |
+| D4 | Optional second RBS class — not authorized |

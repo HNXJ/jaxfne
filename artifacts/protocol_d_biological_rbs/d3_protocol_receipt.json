@@ -1,0 +1,24 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d3_protocol_receipt.v1",
+  "checkpoint": "D3",
+  "status": "FROZEN",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "spec": "artifacts/protocol_d_biological_rbs/d3_adaptation_recovery_phenotype_spec.json",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "implementation_authorized": false,
+  "parent_head": "6ce92354a28b5edf85261edda76fadc08498993b",
+  "prerequisites": {
+    "d2b_closed": "artifacts/protocol_d_biological_rbs/d2b_implementation_receipt.json"
+  },
+  "phenomenon": "activity-dependent adaptation with recovery",
+  "paradigm": "baseline -> repeated stimulation -> recovery interval -> rechallenge",
+  "primary_metric": "R_j = N_spike^(j) in post-stimulus window",
+  "adaptation_index": "A_adapt = 1 - R_late / R_early",
+  "recovery_index": "R_recovery = (R_rechallenge - R_late) / (R_early - R_late)",
+  "classification_labels": ["ADAPTATION", "NO_ADAPTATION", "UNRESOLVED"],
+  "null_hierarchy": ["N0", "N1", "N2", "D"],
+  "primary_contrast": "D_minus_N2",
+  "recovery_intervals_ms": [50.0, 100.0, 250.0],
+  "next_checkpoint": "D3_implementation"
+}

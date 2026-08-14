@@ -44,6 +44,14 @@ from .d2b_execution import (
     write_d2b_execution_receipt,
 )
 
+from .d3_protocol import (
+    D3_SPEC_PATH,
+    d3_null_arm_ids,
+    d3_recovery_interval_ms,
+    load_d3_spec,
+    validate_d3_spec,
+)
+
 __all__ = [
     "PROTOCOL_ID",
     "D0_SPEC_PATH",
@@ -74,4 +82,9 @@ __all__ = [
     "load_d2b_execution_receipt",
     "run_d2b_activity_h_k_coupling",
     "write_d2b_execution_receipt",
+    "D3_SPEC_PATH",
+    "load_d3_spec",
+    "validate_d3_spec",
+    "d3_null_arm_ids",
+    "d3_recovery_interval_ms",
 ]
