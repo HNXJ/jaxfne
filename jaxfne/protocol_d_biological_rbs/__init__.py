@@ -20,6 +20,18 @@ from .d1_execution import (
     run_d1_static_expression,
     write_d1_execution_receipt,
 )
+from .d2a_protocol import (
+    D2A_EXECUTION_RECEIPT_PATH,
+    D2A_SPEC_PATH,
+    d2a_h_k0_values,
+    load_d2a_spec,
+    validate_d2a_spec,
+)
+from .d2a_execution import (
+    load_d2a_execution_receipt,
+    run_d2a_autonomous_relaxation,
+    write_d2a_execution_receipt,
+)
 
 __all__ = [
     "PROTOCOL_ID",
@@ -36,4 +48,12 @@ __all__ = [
     "load_d1_execution_receipt",
     "run_d1_static_expression",
     "write_d1_execution_receipt",
+    "D2A_SPEC_PATH",
+    "D2A_EXECUTION_RECEIPT_PATH",
+    "load_d2a_spec",
+    "validate_d2a_spec",
+    "d2a_h_k0_values",
+    "load_d2a_execution_receipt",
+    "run_d2a_autonomous_relaxation",
+    "write_d2a_execution_receipt",
 ]

@@ -54,7 +54,7 @@
   "first_coordinate_H_K": {
     "id": "H_K",
     "physical_interpretation": {
-      "is": "effective K-associated recovery/adaptation contribution in the reduced Izhikevich realization",
+      "is": "effective K-associated recovery state in the reduced Izhikevich realization",
       "nominal_reference": "H_K = 1 means nominal recovery-drive contribution relative to the declared classical baseline",
       "is_not": [
         "potassium concentration",

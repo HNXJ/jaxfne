@@ -1,0 +1,21 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d2a_protocol_receipt.v1",
+  "checkpoint": "D2a",
+  "status": "CLOSED",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "spec": "artifacts/protocol_d_biological_rbs/d2a_autonomous_h_k_relaxation_spec.json",
+  "execution_receipt": "artifacts/protocol_d_biological_rbs/d2a_autonomous_relaxation_receipt.json",
+  "parent_head": "c0d3392dffe35d97696f3c228da8d27fa80b84ab",
+  "dynamics": "tau_K * dH_K/dt = 1 - H_K; kappa_K = 0",
+  "coupling": "b_eff = H_K(t) * b",
+  "gates_passed": [
+    "G1_discrete_relaxation",
+    "G2_analytic_consistency",
+    "G3_baseline_invariance",
+    "G4_positivity",
+    "G5_deterministic_repeatability",
+    "G6_classical_convergence"
+  ],
+  "next_checkpoint": "D2b_specification"
+}

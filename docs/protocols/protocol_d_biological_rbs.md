@@ -1,9 +1,10 @@
 # Protocol D — biological RBS containment (0.4.17-D)
 
-**Status:** D1 **CLOSED** — static \(H_{\mathrm{K}}\) expression frozen @ `b_{\mathrm{eff}}=H_{\mathrm{K}}b`  
+**Status:** D2a **CLOSED** — autonomous \(H_{\mathrm{K}}\) F1 relaxation frozen  
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
-**D1 spec:** `artifacts/protocol_d_biological_rbs/d1_static_h_k_expression_spec.json`  
-**D1 receipt:** `artifacts/protocol_d_biological_rbs/d1_static_expression_receipt.json`  
+**D1 spec/receipt:** static \(b_{\mathrm{eff}}=H_{\mathrm{K}}b\) expression (closed)  
+**D2a spec/receipt:** `d2a_autonomous_h_k_relaxation_spec.json` / `d2a_autonomous_relaxation_receipt.json`  
+**D2b:** specified, **not** authorized  
 **Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
@@ -116,6 +117,44 @@ G2 static-state integrity; G3 parameter locality; G4 bidirectional evaluation of
 Reported phenotypes vs \(H_{\mathrm{K}}=1\): \(\Delta V(t)\), \(\Delta u(t)\), \(\Delta N_{\mathrm{spike}}\),
 \(\Delta t_{\mathrm{spike}}\) (primary direct map: \(u\)).
 
+## D2a — autonomous \(H_{\mathrm{K}}\) relaxation (executed)
+
+\[
+\boxed{
+\tau_{\mathrm{K}}\dot H_{\mathrm{K}} = 1 - H_{\mathrm{K}},
+\qquad
+\kappa_{\mathrm{K}} = 0.
+}
+\]
+
+Analytic: \(H_{\mathrm{K}}(t) = 1 + [H_{\mathrm{K}}(0)-1]e^{-t/\tau_{\mathrm{K}}}\).
+
+Complete RBD path on top of D1:
+
+\[
+\boxed{
+H_{\mathrm{K}}(t) \rightarrow b_{\mathrm{eff}}(t) \rightarrow X(t).
+}
+\]
+
+**Gates passed:** discrete Euler contract; analytic consistency; \(H_{\mathrm{K}}(0)=1\) baseline
+invariance (bit-exact classical); positivity; repeatability; \(|V_{\mathrm{ext}}-V_{\mathrm{class}}|\)
+decays in tail as \(H_{\mathrm{K}}\rightarrow 1\).
+
+**Coordinate semantics (standardized):** effective **K-associated recovery state** — not “channel
+availability” until a realization models availability/inactivation kinetics explicitly.
+
+## D2b — deferred (not authorized)
+
+\[
+\mathbf H = (H_{\mathrm{activity}}, H_{\mathrm{K}}),
+\qquad
+S \rightarrow A \rightarrow H_{\mathrm{K}} \rightarrow b_{\mathrm{eff}} \rightarrow X.
+\]
+
+\(H_{\mathrm{activity}}\) is a reduced sufficient trace coordinate, not an ion. Separate spec
+and falsification contract required before implementation.
+
 ## Checkpoint ladder
 
 \[
@@ -153,5 +192,7 @@ questions — keep separate panels and narrative.
 | ID | Status |
 |----|--------|
 | D0 | Specification frozen |
-| D1 | Static \(H_{\mathrm{K}}\) sweep **executed** (`b_{\mathrm{eff}}=H_{\mathrm{K}}b`) |
-| D2–D4 | Specified; **not** authorized |
+| D1 | Static \(H_{\mathrm{K}}\) sweep **executed** |
+| D2a | Autonomous F1 relaxation **executed** |
+| D2b | Activity→\(H_{\mathrm{K}}\) coupling — **specified, not authorized** |
+| D3–D4 | Phenotype protocol / optional second class — not authorized |

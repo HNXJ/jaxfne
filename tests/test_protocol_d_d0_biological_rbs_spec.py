@@ -46,7 +46,7 @@ def test_d0_ionic_vector_grammar_one_d1_coordinate():
 
 def test_d0_h_k_effective_recovery_not_literal_g_k():
     interp = load_d0_spec()["first_coordinate_H_K"]["physical_interpretation"]
-    assert "recovery" in interp["is"].lower() or "adaptation" in interp["is"].lower()
+    assert "recovery state" in interp["is"].lower()
     assert "explicit Hodgkin-Huxley potassium conductance g_K" in interp["is_not"]
     assert "literal identification of Izhikevich parameter b with g_K" in interp["is_not"]
 
