@@ -1,0 +1,265 @@
+{
+  "schema": "jaxfne.protocol_c.c3_neural_experiment_spec.v1",
+  "protocol_id": "protocol_c_wave_v0417",
+  "checkpoint": "C3",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_heads": {
+    "c0": "b05e0dc0d9f8835d755006ddecd73d4368064858",
+    "c1": "ab168b593d52f9980ce0f3a91617419c77fde7b1",
+    "c2": "41796603dd7fbad4eedbd40a107695ecd9300b27"
+  },
+  "question": "Under frozen geometry and delay manipulations, does neural activity X(r,t) yield preregistered traveling-wave classifications via validated W_hat?",
+  "causal_chain": {
+    "display": "G -> (W,tau) -> X(r,t) -> W_hat",
+    "optional_secondary": ["Q(r,t)", "Phi(r,t)"],
+    "primary_substrate": "X",
+    "secondary_rule": "Q and Phi may be analyzed only where existing frozen mappings are already defined; they are never primary endpoints.",
+    "upstream_feed_prohibited": true,
+    "protocol_d_vs_c": {
+      "protocol_d": "how signals are delayed (tau construction and runtime continuation)",
+      "protocol_c": "whether resulting activity exhibits propagation (classification only)"
+    }
+  },
+  "runtime_contract": {
+    "path": "Model.simulate with return_state=False unless segmented continuation explicitly required",
+    "enable_hdp": false,
+    "enable_homeostasis": false,
+    "enable_rbd": false,
+    "recurrent_backend": "edge_list",
+    "synaptic_kernel": "exponential",
+    "delay_continuation": "C2 canonical delay_state when segmented; baseline recurrent only",
+    "rationale": "C2 validated baseline delay_state continuation; HDP+delay continuation is out of scope for C3."
+  },
+  "frozen_topology_and_weights": {
+    "topology": "directed_one_neighbor_ring",
+    "n_neurons": 24,
+    "edge_weight": 6.0,
+    "syn_tau_ms": 3.0,
+    "receptor_index": 0,
+    "emitter": "izhikevich",
+    "labels": "all_excitatory_E",
+    "weight_mutability": "fixed_for_all_conditions_and_seeds"
+  },
+  "frozen_spatial_coordinates": {
+    "embedding": "planar_ring",
+    "ring_radius_mm": 1.0,
+    "coordinate_construction_ordered": "theta_i = 2*pi*i/N; r_i = (R*cos(theta_i), R*sin(theta_i)); analysis_axis = arc_length_i = R*theta_i",
+    "units": "mm",
+    "estimator_positions": "arc_length_column_vector_shape_(N,1)"
+  },
+  "geometry_shuffle": {
+    "algorithm": "fisher_yates_permutation",
+    "applies_to": "neuron_index_to_position_assignment",
+    "preserves": ["edge_pre_post_topology", "edge_weight_multiset", "delay_multiset_when_delay_shuffled_only"],
+    "breaks": "spatial_ordering_of_neuron_labels_relative_to_ring_coordinates",
+    "seed_rule": "geometry_shuffle_seed = base_geometry_seed + condition_index * 9973",
+    "base_geometry_seed": 4242
+  },
+  "delay_construction": {
+    "grid_alignment": "edge_delay_steps_from_ms with atol=1e-9 (Protocol D0)",
+    "dt_ms": 0.5,
+    "uniform_delay_steps": 4,
+    "geometry_derived": {
+      "rule": "tau_ij_ms = arc_length_ij / v_c; delay_steps_ij = tau_ij_ms / dt_ms (grid-aligned)",
+      "arc_length_ij": "directed ring arc from pre to post: (2*pi*R)/N",
+      "conduction_velocity_mm_per_ms": 0.2617993877991494,
+      "conduction_velocity_definition": "v_c = (2*pi*R/N) / (uniform_delay_steps * dt_ms) so geometry-derived neighbor delay matches uniform reference scale",
+      "geometry_derived_delay_steps_neighbor": 4,
+      "note": "On a uniform ring all directed neighbor arcs are equal; heterogeneity enters via shuffle controls not unequal arc lengths."
+    },
+    "delay_shuffle_control": {
+      "algorithm": "fisher_yates_permutation_on_edge_delay_vector",
+      "preserves": "exact_delay_steps_multiset",
+      "breaks": "correspondence_between_edge_identity_and_delay",
+      "reference_policy": "geometry_derived",
+      "seed_rule": "delay_shuffle_seed = base_delay_shuffle_seed + condition_index * 7919",
+      "base_delay_shuffle_seed": 5150
+    }
+  },
+  "design_matrix": {
+    "factors": {
+      "geometry_layout": ["ordered", "shuffled"],
+      "delay_policy": ["uniform", "geometry_derived", "delay_shuffled"]
+    },
+    "conditions": [
+      {
+        "id": "ordered_uniform",
+        "geometry_layout": "ordered",
+        "delay_policy": "uniform"
+      },
+      {
+        "id": "ordered_geometry_derived",
+        "geometry_layout": "ordered",
+        "delay_policy": "geometry_derived"
+      },
+      {
+        "id": "ordered_delay_shuffled",
+        "geometry_layout": "ordered",
+        "delay_policy": "delay_shuffled",
+        "delay_shuffle_reference": "ordered_geometry_derived"
+      },
+      {
+        "id": "shuffled_uniform",
+        "geometry_layout": "shuffled",
+        "delay_policy": "uniform"
+      },
+      {
+        "id": "shuffled_geometry_derived",
+        "geometry_layout": "shuffled",
+        "delay_policy": "geometry_derived"
+      },
+      {
+        "id": "shuffled_delay_shuffled",
+        "geometry_layout": "shuffled",
+        "delay_policy": "delay_shuffled",
+        "delay_shuffle_reference": "shuffled_geometry_derived"
+      }
+    ],
+    "n_conditions": 6
+  },
+  "simulation_policy": {
+    "duration_ms": 2000.0,
+    "dt_ms": 0.5,
+    "n_steps": 4000,
+    "seeds": [1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009, 1010],
+    "n_seeds": 10,
+    "deterministic": true,
+    "noise_scale": 0.0,
+    "dtype": "float32",
+    "record_sources": true,
+    "record_fields": false,
+    "drive": {
+      "type": "stimulus_schedule_pulse",
+      "events": [
+        {
+          "onset_ms": 200.0,
+          "duration_ms": 1.0,
+          "amplitude": 50.0,
+          "target_neuron": 0,
+          "is_drive_event": true
+        },
+        {
+          "onset_ms": 800.0,
+          "duration_ms": 1.0,
+          "amplitude": 45.0,
+          "target_neuron": 6,
+          "is_drive_event": true
+        }
+      ],
+      "statistics_frozen": "two_point_pulse_native_current_uncalibrated"
+    }
+  },
+  "estimator_binding": {
+    "implementation": "jaxfne.protocol_c.estimator.estimate_traveling_wave",
+    "wave_estimate_type": "jaxfne.protocol_c.estimator.WaveEstimate",
+    "c1_validation_receipt": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+    "c0_spec": "artifacts/protocol_c/c0_wave_protocol_spec.json",
+    "frozen_at_parent_head": "41796603dd7fbad4eedbd40a107695ecd9300b27",
+    "frequency_band_hz": [8.0, 13.0],
+    "thresholds_from_c0": {
+      "minimum_spatial_coherence": 0.55,
+      "R2_phase_traveling_threshold": 0.6,
+      "coherence_traveling_threshold": 0.55
+    }
+  },
+  "analysis_substrates": {
+    "primary": {
+      "symbol": "X",
+      "signal": "V_m",
+      "shape": "(T, N)",
+      "preprocessing": "none beyond estimator internal bandpass"
+    },
+    "secondary_optional": [
+      {
+        "symbol": "Q",
+        "signal": "sources",
+        "enabled": true,
+        "primary_endpoint": false
+      }
+    ],
+    "forbidden_primary": ["Phi_as_default", "H4_M_X", "HDP_diagnostics"]
+  },
+  "per_seed_condition_output_contract": {
+    "required_fields": [
+      "classification",
+      "frequency_hz",
+      "wave_vector",
+      "direction",
+      "phase_velocity",
+      "phase_fit_r2",
+      "spatial_coherence",
+      "null_score",
+      "quality_reasons",
+      "finite_status"
+    ],
+    "classification_labels": ["TRAVELING_WAVE", "NO_WAVE", "UNRESOLVED"],
+    "interpretation": {
+      "TRAVELING_WAVE": "sufficient quality + positive wave criteria (C0 gates)",
+      "NO_WAVE": "sufficient quality + wave criteria fail",
+      "UNRESOLVED": "insufficient identifiability; must not collapse into NO_WAVE"
+    },
+    "forbidden_collapse": ["UNRESOLVED -> NO_WAVE", "UNRESOLVED -> TRAVELING_WAVE without gates"]
+  },
+  "population_endpoints": {
+    "primary": {
+      "symbol": "p_W",
+      "definition": "N_TRAVELING_WAVE / N_total",
+      "scope": "per_condition_then_reported"
+    },
+    "identifiability": {
+      "symbol": "p_U",
+      "definition": "N_UNRESOLVED / N_total",
+      "scope": "per_condition_then_reported"
+    },
+    "secondary_conditional": [
+      "phase_velocity_distribution_given_TRAVELING_WAVE",
+      "direction_distribution_given_TRAVELING_WAVE",
+      "v_c_diagnostic_ratio_given_geometry_derived_and_TRAVELING_WAVE"
+    ],
+    "secondary_rule": "Velocity and direction summaries are conditional on TRAVELING_WAVE and must not impute or hide UNRESOLVED/NO_WAVE counts."
+  },
+  "v_c_diagnostic": {
+    "enabled": true,
+    "applies_when": ["delay_policy_is_geometry_derived", "classification_is_TRAVELING_WAVE"],
+    "metric": "abs(v_phase_hat - v_c) / v_c",
+    "interpretation": "diagnostic_only",
+    "forbidden_claim": "network_phase_velocity_equals_axonal_conduction_velocity"
+  },
+  "directional_conjecture": {
+    "statement": "p_W(ordered, geometry_derived) > p_W(ordered, uniform)",
+    "required_for_c3_success": false,
+    "note": "May be preregistered as directional; falsification is a valid C3 outcome."
+  },
+  "success_criteria": {
+    "requires_traveling_waves": false,
+    "requires": [
+      "prospective_run_completes_all_preregistered_condition_seed_cells",
+      "every_cell_emits_full_estimator_output_contract",
+      "no_post_hoc_tuning"
+    ],
+    "valid_outcomes": [
+      "TRAVELING_WAVE_in_some_cells",
+      "NO_WAVE_all_cells",
+      "UNRESOLVED_present_with_p_U_reported"
+    ]
+  },
+  "explicit_prohibitions": [
+    "no_HDP",
+    "no_W3_W3c_machinery",
+    "no_ephaptic_or_field_feedback",
+    "no_post_result_adjustment_of_delays_geometry_band_duration_thresholds_or_quality_gates",
+    "no_H4_M_X_as_wave_evidence",
+    "no_claim_heterogeneous_delays_alone_imply_propagation",
+    "no_claim_detected_wave_is_field_mediated",
+    "no_estimator_output_feeding_upstream",
+    "no_collapse_UNRESOLVED_into_NO_WAVE"
+  ],
+  "execution_authorization": {
+    "spec_frozen_at": "C3",
+    "prospective_run_authorized": false,
+    "next_checkpoint_after_run": "C4"
+  },
+  "bundle_root": "artifacts/protocol_c",
+  "protocol_doc": "docs/protocols/protocol_c_c3_neural.md"
+}

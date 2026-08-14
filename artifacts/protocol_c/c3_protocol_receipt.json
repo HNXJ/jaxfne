@@ -1,0 +1,16 @@
+{
+  "schema": "jaxfne.protocol_c.c3_protocol_receipt.v1",
+  "checkpoint": "C3",
+  "status": "FROZEN",
+  "protocol_id": "protocol_c_wave_v0417",
+  "spec": "artifacts/protocol_c/c3_neural_experiment_spec.json",
+  "protocol_doc": "docs/protocols/protocol_c_c3_neural.md",
+  "implementation_authorized": false,
+  "prospective_run_authorized": false,
+  "parent_head": "41796603dd7fbad4eedbd40a107695ecd9300b27",
+  "prerequisites": {
+    "c1": "artifacts/protocol_c/c1_synthetic_validation_receipt.json",
+    "c2": "artifacts/protocol_c/c2_delay_continuation_receipt.json"
+  },
+  "next_checkpoint": "C4"
+}

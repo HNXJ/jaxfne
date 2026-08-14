@@ -7,6 +7,13 @@ from .protocol import (
 )
 from .estimator import WaveEstimate, estimate_traveling_wave
 from .c1_validation import run_c1_synthetic_validation, write_c1_receipt
+from .c3_protocol import (
+    C3_SPEC_PATH,
+    c3_condition_ids,
+    c3_total_cells,
+    load_c3_spec,
+    validate_c3_spec,
+)
 
 __all__ = [
     "PROTOCOL_ID",
@@ -16,4 +23,9 @@ __all__ = [
     "estimate_traveling_wave",
     "run_c1_synthetic_validation",
     "write_c1_receipt",
+    "C3_SPEC_PATH",
+    "load_c3_spec",
+    "validate_c3_spec",
+    "c3_condition_ids",
+    "c3_total_cells",
 ]
