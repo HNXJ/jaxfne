@@ -1,7 +1,8 @@
 {
   "schema": "protocol_w_w3b_parameter_domain_spec.v1",
   "protocol_id": "protocol_w_hdp_parameter_memory_w3b",
-  "status": "SPECIFICATION_OPEN",
+  "status": "FROZEN_ANALYSIS",
+  "domain_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json",
   "implementation_authorized": false,
   "analysis_only": true,
   "parent_checkpoints": {
@@ -60,5 +61,26 @@
     "reduced_J_red": "explanatory only, not stability classifier in active regime"
   },
   "analysis_module": "jaxfne/w3b_parameter_domain.py",
+  "frozen_lattice": {
+    "description": "Coarse preregistered factorial lattice (fixed before scan; not tuned post-hoc)",
+    "kappa_H": [0.02, 0.05, 0.1],
+    "kappa_W": [0.5, 1.0, 2.0],
+    "lambda_W": [0.05, 0.1, 0.2],
+    "tau_H_ms": [60.0, 80.0, 120.0],
+    "tau_W_ms": [80.0, 100.0, 150.0],
+    "I_tonic": [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0],
+    "parameter_combinations": 243,
+    "drive_points": 9,
+    "total_points": 2187
+  },
+  "aggregate_quantities": {
+    "N_S": "|D_useful| = count of S-regime points",
+    "N_X": "count of active but stability-unresolved (regime X with mean_syn > active threshold)"
+  },
+  "interpretation_branches": {
+    "N_S_gt_0": "nonempty robust active domain; apply selection rule; consider W3",
+    "N_S_eq_0_and_N_X_eq_0": "genuine negative parameter-domain result; version new F_W",
+    "N_S_eq_0_and_N_X_gt_0": "no demonstrated robust domain; active regimes unresolved; next step W3c orbit characterization"
+  },
   "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
 }

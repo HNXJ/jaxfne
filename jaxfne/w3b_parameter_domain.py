@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from enum import Enum
+from itertools import product
 from typing import Any
 
 import jax.numpy as jnp
@@ -28,6 +29,14 @@ from jaxfne.w3a_stability_analysis import (
 )
 
 W3A_FREEZE_SHA = "08bd4a2b2ebc89373697cd4be1da85551e7c5952"
+
+# Preregistered full W3b lattice (frozen in w3b_parameter_domain_spec.json).
+FROZEN_LATTICE_KAPPA_H = (0.02, 0.05, 0.1)
+FROZEN_LATTICE_KAPPA_W = (0.5, 1.0, 2.0)
+FROZEN_LATTICE_LAMBDA_W = (0.05, 0.1, 0.2)
+FROZEN_LATTICE_TAU_H_MS = (60.0, 80.0, 120.0)
+FROZEN_LATTICE_TAU_W_MS = (80.0, 100.0, 150.0)
+FROZEN_LATTICE_I_TONIC = (0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0)
 
 
 class Regime(str, Enum):
@@ -77,18 +86,30 @@ class W3bParameterPoint:
 
 @dataclass(frozen=True)
 class W3bDomainScanConfig:
-    """Preregistered coarse W3b scan lattice (analysis budget, not tuned)."""
+    """Preregistered W3b scan lattice."""
 
-    i_tonic_grid: tuple[float, ...] = tuple(np.linspace(0.0, 40.0, 9).tolist())
-    parameter_points: tuple[W3bParameterPoint, ...] = (
-        W3bParameterPoint(0.05, 1.0, 0.1, 80.0, 100.0),  # W3a nominal
-    )
+    i_tonic_grid: tuple[float, ...] = FROZEN_LATTICE_I_TONIC
+    parameter_points: tuple[W3bParameterPoint, ...] = ()
     w3a_sim: W3aScanConfig = W3aScanConfig(
-        i_tonic_grid=(0.0,),  # overridden per call
+        i_tonic_grid=(0.0,),
         burn_in_steps=400,
         sample_steps=600,
         period_search_max=80,
     )
+
+    @staticmethod
+    def frozen_full_lattice() -> W3bDomainScanConfig:
+        pts = tuple(
+            W3bParameterPoint(kh, kw, lw, th, tw)
+            for kh, kw, lw, th, tw in product(
+                FROZEN_LATTICE_KAPPA_H,
+                FROZEN_LATTICE_KAPPA_W,
+                FROZEN_LATTICE_LAMBDA_W,
+                FROZEN_LATTICE_TAU_H_MS,
+                FROZEN_LATTICE_TAU_W_MS,
+            )
+        )
+        return W3bDomainScanConfig(parameter_points=pts)
 
 
 def floquet_margin_nonneutral(
@@ -224,7 +245,35 @@ def analyze_w3b_point(
         gates=gates,
     )
 
+    orbit_status = "dormant"
+    period_t: int | None = None
+    rho_nn: float | None = None
+    if mean_syn > gates.active_syn_threshold:
+        if period_val.get("valid"):
+            orbit_status = "validated_periodic_orbit"
+            period_t = int(period_val["period"])
+            rho_nn = float(floquet_block["nonneutral"]["rho_nonneutral"])
+        else:
+            orbit_status = str(period_val.get("reason", "stability_unresolved"))
+
     return {
+        "kappa_H": param.kappa_h,
+        "kappa_W": param.kappa_w,
+        "lambda_W": param.lambda_w,
+        "tau_H": param.tau_h_ms,
+        "tau_W": param.tau_w_ms,
+        "I_tonic": float(i_tonic),
+        "mean_syn": mean_syn,
+        "L_HDP": l_hdp,
+        "r_tau": param.r_tau(),
+        "Gamma_HDP": g_hdp,
+        "b_HW": b_hw,
+        "orbit_status": orbit_status,
+        "T": period_t,
+        "rho_nonneutral": rho_nn,
+        "m_F": m_f,
+        "regime": regime.value,
+        "in_D_useful": regime == Regime.STABLE,
         "parameter_point": {
             "kappa_h": param.kappa_h,
             "kappa_w": param.kappa_w,
@@ -262,32 +311,92 @@ def selection_rule_max_margin(
     return max(pool, key=lambda c: float(c.get("m_F") or -1.0))
 
 
+def _count_active_unresolved(
+    results: list[dict[str, Any]],
+    *,
+    gates: W3bFrozenGates,
+) -> int:
+    return sum(
+        1
+        for r in results
+        if r["regime"] == Regime.UNCLASSIFIED.value
+        and r["mean_syn"] > gates.active_syn_threshold
+    )
+
+
+def _interpretation_branch(n_s: int, n_x: int) -> dict[str, Any]:
+    if n_s > 0:
+        branch = "N_S_gt_0"
+        text = "Nonempty robust active domain; apply preregistered selection rule; consider W3."
+        next_steps = ["freeze_selected_operating_point", "authorize_W3_perturb_relax_probe"]
+    elif n_x == 0:
+        branch = "N_S_eq_0_and_N_X_eq_0"
+        text = (
+            "Genuine negative parameter-domain result over tested lattice; "
+            "close minimal HDP law and version new F_W."
+        )
+        next_steps = ["version_new_plasticity_law"]
+    else:
+        branch = "N_S_eq_0_and_N_X_gt_0"
+        text = (
+            "No demonstrated robust active domain; active regimes stability-unresolved "
+            "(X != U). Next step is orbit characterization (W3c), not law redesign."
+        )
+        next_steps = ["W3c_orbit_characterization"]
+    return {
+        "branch": branch,
+        "interpretation": text,
+        "next_steps": next_steps,
+    }
+
+
 def run_w3b_domain_scan(
     cfg: W3bDomainScanConfig | None = None,
     gates: W3bFrozenGates | None = None,
 ) -> dict[str, Any]:
-    cfg = cfg or W3bDomainScanConfig()
+    cfg = cfg or W3bDomainScanConfig.frozen_full_lattice()
     gates = gates or W3bFrozenGates()
     results: list[dict[str, Any]] = []
-    for param in cfg.parameter_points:
+    n_total = len(cfg.parameter_points) * len(cfg.i_tonic_grid)
+    for i_pt, param in enumerate(cfg.parameter_points):
         for i_tonic in cfg.i_tonic_grid:
             results.append(analyze_w3b_point(param, float(i_tonic), gates=gates, sim_cfg=cfg.w3a_sim))
+            if len(results) % 100 == 0:
+                print(f"W3b scan progress: {len(results)}/{n_total}", flush=True)
 
     useful = [r for r in results if r["in_D_useful"]]
-    selected = selection_rule_max_margin(useful, gates=gates)
+    selected = selection_rule_max_margin(results, gates=gates)
+    n_s = len(useful)
+    n_x = _count_active_unresolved(results, gates=gates)
 
     regime_counts = {k.value: 0 for k in Regime}
     for r in results:
         regime_counts[r["regime"]] = regime_counts.get(r["regime"], 0) + 1
 
+    branch = _interpretation_branch(n_s, n_x)
+
     return {
-        "schema": "protocol_w_w3b_domain_scan.v1",
-        "status": "SPECIFICATION_OPEN",
+        "schema": "protocol_w_w3b_domain_receipt.v1",
+        "status": "FROZEN_ANALYSIS",
+        "write_once": True,
         "analysis_only": True,
         "w3_kernel_implementation_authorized": False,
         "parent_w3a_sha": W3A_FREEZE_SHA,
         "margin_audit": "artifacts/protocol_w/w3a_stability/w3a_margin_audit.json",
-        "scientific_question": "What parameter domain permits simultaneously active, bounded, nontrivial, robust HDP?",
+        "specification": "artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json",
+        "scientific_question": (
+            "Exists (kappa_H, kappa_W, lambda_W, tau_H, tau_W, I_tonic) in preregistered lattice "
+            "satisfying useful-domain gates?"
+        ),
+        "frozen_lattice": {
+            "kappa_H": list(FROZEN_LATTICE_KAPPA_H),
+            "kappa_W": list(FROZEN_LATTICE_KAPPA_W),
+            "lambda_W": list(FROZEN_LATTICE_LAMBDA_W),
+            "tau_H_ms": list(FROZEN_LATTICE_TAU_H_MS),
+            "tau_W_ms": list(FROZEN_LATTICE_TAU_W_MS),
+            "I_tonic": list(cfg.i_tonic_grid),
+            "total_points": n_total,
+        },
         "frozen_gates": {
             "active_syn_threshold": gates.active_syn_threshold,
             "robust_margin_m_F": gates.robust_margin,
@@ -300,18 +409,26 @@ def run_w3b_domain_scan(
             "D": "dormant/vanishing feedback",
             "S": "robustly stable active HDP (m_F > 0.02)",
             "C": "near-critical (0 < m_F <= 0.02)",
-            "U": "unstable (m_F <= 0)",
-            "X": "unclassified (no validated Floquet or timescale fail)",
+            "U": "unstable (m_F <= 0); negative evidence",
+            "X": "active but stability-unresolved (X != U)",
         },
-        "D_useful_definition": "active AND robust_stable AND nontrivial AND r_tau>1",
-        "D_useful_empty": len(useful) == 0,
-        "D_useful_count": len(useful),
+        "aggregate_quantities": {
+            "N_S": n_s,
+            "N_X": n_x,
+            "D_useful_count": n_s,
+            "D_useful_empty": n_s == 0,
+        },
         "regime_counts": regime_counts,
+        "regime_distribution": regime_counts,
+        "interpretation": branch,
         "scan_results": results,
         "selection_rule": "max m_F among S-regime points with L_HDP>L_min and r_tau>1 (fixed before memory experiment)",
         "selected_operating_point": selected,
-        "interpretation_if_empty": (
-            "If D_useful is empty, nominal linear HDP law may be insufficient; "
-            "change plasticity law in a new protocol rather than patch parameters."
-        ),
     }
+
+
+def export_w3b_domain_receipt(
+    cfg: W3bDomainScanConfig | None = None,
+    gates: W3bFrozenGates | None = None,
+) -> dict[str, Any]:
+    return run_w3b_domain_scan(cfg, gates)

@@ -10,11 +10,14 @@ import pytest
 
 from jaxfne.w3b_parameter_domain import (
     Regime,
+    W3bDomainScanConfig,
     W3bFrozenGates,
     W3bParameterPoint,
     classify_regime,
+    export_w3b_domain_receipt,
     floquet_margin_nonneutral,
     gamma_hdp,
+    run_w3b_domain_scan,
     validate_period_for_floquet,
 )
 
@@ -59,6 +62,23 @@ def test_classify_regime_stable_requires_margin_and_gain():
     assert classify_regime(mean_syn=0.1, l_hdp=1e-5, r_tau=10.0, m_f=0.05, floquet_available=True, gates=gates) == Regime.STABLE
     assert classify_regime(mean_syn=0.1, l_hdp=1e-5, r_tau=10.0, m_f=0.01, floquet_available=True, gates=gates) == Regime.CRITICAL
     assert classify_regime(mean_syn=0.1, l_hdp=1e-5, r_tau=10.0, m_f=-0.1, floquet_available=True, gates=gates) == Regime.UNSTABLE
+
+
+def test_frozen_lattice_size():
+    cfg = W3bDomainScanConfig.frozen_full_lattice()
+    assert len(cfg.parameter_points) == 243
+    assert len(cfg.i_tonic_grid) == 9
+
+
+def test_frozen_domain_receipt_three_branch_interpretation():
+    receipt = json.loads(
+        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json").read_text()
+    )
+    agg = receipt["aggregate_quantities"]
+    assert agg["N_S"] == 0
+    assert agg["N_X"] > 0
+    assert receipt["interpretation"]["branch"] == "N_S_eq_0_and_N_X_gt_0"
+    assert len(receipt["scan_results"]) == 2187
 
 
 def test_gamma_hdp_matches_reduced_convention():
