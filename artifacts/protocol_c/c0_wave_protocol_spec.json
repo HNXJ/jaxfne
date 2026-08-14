@@ -1,0 +1,171 @@
+{
+  "schema": "jaxfne.protocol_c.c0_wave_protocol_spec.v1",
+  "protocol_id": "protocol_c_wave_v0417",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_audit": "artifacts/audit/v0417_a_capability_audit.json",
+  "parent_experiment": "artifacts/etudes/experiment_a/b3_experiment_a_receipt.json",
+  "baseline": {
+    "version": "0.4.16",
+    "experiment_a_closed": "c8badca"
+  },
+  "scope_separation": {
+    "C_D": {
+      "name": "delay_dynamics",
+      "owner": "Protocol D (frozen)",
+      "status": "OUT_OF_SCOPE_FOR_C_IMPLEMENTATION",
+      "reference": "tests/test_edge_delay_protocol_d016.py",
+      "note": "C must not conflate delay dynamics with wave inference or H4 topology rescue."
+    },
+    "C_W": {
+      "name": "wave_inference",
+      "owner": "Protocol C",
+      "status": "IN_SCOPE",
+      "deliverable": "estimator producing W_hat from Phi or appropriately structured X/Q"
+    },
+    "C_F": {
+      "name": "field_feedback",
+      "owner": "reserved",
+      "status": "CLOSED",
+      "note": "Ephaptic / field-to-neuron feedback is explicitly excluded from 0.4.17-C."
+    }
+  },
+  "causal_hierarchy": {
+    "display": "G -> (W,tau) -> X(r,t) -> Q(r,t) -> Phi(r,t) -> W_hat",
+    "estimator_symbol": "W_hat",
+    "upstream_feed_prohibited": true,
+    "rule": "Nothing computed by the estimator may feed upstream into S, F, emitters, or simulate state."
+  },
+  "operational_wave_definition": {
+    "requires_more_than_phase_difference": true,
+    "statement": "A traveling wave requires preregistered band-limited phase structure with spatially coherent phase gradient exceeding null thresholds; pairwise phase differences alone are insufficient.",
+    "preregistered_elements": [
+      "frequency_band_hz",
+      "phase_extraction_method",
+      "spatial_coordinates_and_units",
+      "minimum_spatial_coherence",
+      "phase_gradient_fit_model",
+      "propagation_direction_convention",
+      "phase_velocity_convention",
+      "fit_quality_metric",
+      "classification_labels"
+    ]
+  },
+  "classification_labels": {
+    "TRAVELING_WAVE": "Preregistered gates passed; planar phase-gradient fit exceeds coherence and R2 thresholds with identifiable k and v_phase.",
+    "NO_WAVE": "Valid negative outcome: input fails wave gates under frozen thresholds (e.g. k=0 synchronous, random phase, noise-only).",
+    "UNRESOLVED": "Estimator identifiability or data quality insufficient; must not be collapsed into NO_WAVE (W3b lesson: unresolved is not negative).",
+    "forbidden_collapse": ["UNRESOLVED -> NO_WAVE", "UNRESOLVED -> TRAVELING_WAVE without gates"]
+  },
+  "estimator_output_contract": {
+    "required_fields_per_condition": [
+      "classification",
+      "f_hz",
+      "k_vector",
+      "v_phase",
+      "R2_phase",
+      "coherence",
+      "uncertainty_or_null_score"
+    ],
+    "display_box": "(classification, f, k, v_phase, R2_phase, coherence, uncertainty/null score)"
+  },
+  "preregistered_estimator_parameters": {
+    "frequency_band_hz": [8.0, 13.0],
+    "phase_extraction": "hilbert_analytic_phase_per_channel",
+    "spatial_coordinates": "relative_depth_z_from_positions_or_contact_axis",
+    "minimum_spatial_coherence": 0.55,
+    "phase_gradient_fit": "linear_regression_unwrapped_phase_vs_position",
+    "propagation_direction_convention": "direction_of_increasing_phase_in_degrees_from_depth_axis",
+    "velocity_convention": "v_phase = omega / |k| with omega = 2*pi*f_fit and k from spatial gradient",
+    "fit_quality_metric": "R2_phase",
+    "R2_phase_traveling_threshold": 0.60,
+    "coherence_traveling_threshold": 0.55,
+    "unresolved_rules": [
+      "R2_phase < 0.35 and coherence < minimum_spatial_coherence",
+      "fewer than 4 spatial samples",
+      "non-finite k or v_phase"
+    ],
+    "no_wave_rules": [
+      "synchronous_oscillation_k_near_zero",
+      "random_phase_coherence_below_null",
+      "noise_only_power_below_floor"
+    ]
+  },
+  "synthetic_controls": {
+    "positive_planar_wave": {
+      "model": "phi(r,t) = A * cos(k·r - omega*t + phi0)",
+      "known_quantities": ["k", "f = omega/(2*pi)", "v_phase = omega/|k|"],
+      "default_A": 1.0,
+      "default_phi0": 0.0,
+      "tolerances": {
+        "direction_deg": 15.0,
+        "relative_frequency_error": 0.05,
+        "relative_velocity_error": 0.10
+      }
+    },
+    "negative_controls": [
+      {
+        "id": "sync_k_zero",
+        "model": "k = 0 synchronous oscillation across space",
+        "expected_classification": "NO_WAVE"
+      },
+      {
+        "id": "spatially_random_phase",
+        "model": "band-limited noise with random phase per channel",
+        "expected_classification": "NO_WAVE"
+      },
+      {
+        "id": "standing_wave",
+        "model": "cos(k*r)*cos(omega*t) separable standing pattern",
+        "expected_classification": "NO_WAVE"
+      },
+      {
+        "id": "noise_only",
+        "model": "Gaussian noise below signal band",
+        "expected_classification": "NO_WAVE"
+      }
+    ],
+    "false_positive_priority": "Negative-control specificity outweighs positive-example visual impressiveness."
+  },
+  "checkpoints": {
+    "C0": "Wave protocol specification (this document); no estimator implementation",
+    "C1": "Estimator validation on synthetic fields only",
+    "C2": "General Model.simulate delay_state continuation (Protocol D/H2 semantics; zero-delay unchanged)",
+    "C3": "Prospective neural geometry/delay experiment; acceptance does not require waves",
+    "C4": "Frozen receipt and publication interpretation before Figure 5 use"
+  },
+  "C2_delay_continuation_requirements": {
+    "scope": "general_runtime_not_wave_specific",
+    "reference_implementation": "tests/test_protocol_h_rbd_h2.py delay_state continuation",
+    "required_equivalence": "segmented vs uninterrupted continuation matches on X, H, delay_state (B_t), and other declared recurrence state",
+    "zero_delay_regression": "delay_steps=0 embeds legacy instantaneous kernel (Protocol D0)"
+  },
+  "C3_neural_experiment": {
+    "timing": "only_after_C1_and_C2_pass",
+    "freeze_before_run": true,
+    "vary": ["geometry", "delay_ms on edges"],
+    "hold_fixed": ["emitter_equations", "estimator_thresholds", "bands", "duration_ms"],
+    "hypothesis_may_be_directional": true,
+    "acceptance_requires_wave": false,
+    "successful_no_wave_outcome": "validated_estimator + prospective_neural_NO_WAVE_all_conditions"
+  },
+  "experiment_a_integration": {
+    "estimator_may_consume": ["X", "Q", "Phi when spatially structured"],
+    "must_not_force_wave_on_experiment_a": true,
+    "note": "Experiment A (40-neuron seed 7) answers operator factorization; Protocol C answers wave inference under frozen geometry/delay conditions."
+  },
+  "excluded_from_0417_C": [
+    "field_ephaptic_feedback_C_F",
+    "manuscript_figure_generation",
+    "jax_0_11_compatibility",
+    "retuning_after_prospective_outcome"
+  ],
+  "publication_sequence_after_C": [
+    "0.4.17-C",
+    "0.4.17-D biological RBS",
+    "0.4.17-E hierarchy",
+    "publication figure production"
+  ],
+  "bundle_root": "artifacts/protocol_c",
+  "protocol_doc": "docs/protocols/protocol_c_wave.md"
+}

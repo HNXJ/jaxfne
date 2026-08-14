@@ -1,0 +1,10 @@
+{
+  "schema": "jaxfne.protocol_c.c0_protocol_receipt.v1",
+  "checkpoint": "C0",
+  "status": "FROZEN",
+  "protocol_id": "protocol_c_wave_v0417",
+  "protocol_spec": "artifacts/protocol_c/c0_wave_protocol_spec.json",
+  "protocol_doc": "docs/protocols/protocol_c_wave.md",
+  "implementation_authorized": false,
+  "next_checkpoint": "C1"
+}
