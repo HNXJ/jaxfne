@@ -7,7 +7,11 @@ principal theoretical source. Project sources were aligned in the `4a8e54b`
 semantic migration; this document remains the compact repository index.
 
 **Active protocols:** Protocol D₀/D₁ (delays, frozen `724aa32`); Protocol H
-(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`).
+(state memory under \(\dot W=0\), `docs/doctrine/protocol_h_rbd_memory.md`);
+Protocol C (wave evidence, **closed** @ C4,
+`docs/doctrine/protocol_c_wave_evidence.md`); **Protocol D biological RBS**
+(D0 spec frozen, `docs/protocols/protocol_d_biological_rbs.md` — distinct from
+edge-delay Protocol D₀/D₁).
 
 **Containment architecture:** `docs/doctrine/tfne_containment_architecture.md`
 — TFNE as composition framework; \(H\) as unified dependency state; typed
