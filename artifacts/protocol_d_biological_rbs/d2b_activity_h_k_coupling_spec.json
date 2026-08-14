@@ -1,0 +1,154 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d2b_spec.v1",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "checkpoint": "D2b",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_d_biological_rbs/d2a_autonomous_h_k_relaxation_spec.json",
+  "parent_head": "ef6c478cca721029f9a41165213c9536fba885d4",
+  "question": "Does a minimal two-coordinate RBS realize activity-dependent state writing S -> H_A -> H_K while preserving D2a null reductions?",
+  "scientific_scope": {
+    "included": "D2b two-timescale (H_A, H_K) state dynamics specification only",
+    "excluded": "D2b implementation, D3 phenotype protocol, HDP, observable adaptation claims"
+  },
+  "containment_ladder": {
+    "display": "classical emitter subset static RBS emitter subset dynamic RBS emitter subset activity-coupled RBS emitter",
+    "d1": "static b_eff = H_K * b",
+    "d2a": "autonomous H_K relaxation",
+    "d2b": "activity writes H_A then H_A writes H_K"
+  },
+  "rbs_vector": {
+    "display": "H_i = [H_{A,i}; H_{K,i}]",
+    "dimension": 2,
+    "coordinates": [
+      {
+        "id": "H_A",
+        "role": "activity_history_trace",
+        "is_ion": false,
+        "reference": 0,
+        "reference_convention": "baseline_zero_deviation_trace"
+      },
+      {
+        "id": "H_K",
+        "role": "effective_K_associated_recovery_state",
+        "is_ion": false,
+        "reference": 1,
+        "reference_convention": "baseline_one_multiplicative_relative_gain"
+      }
+    ],
+    "doctrine": "RBS reference coordinates need not universally equal 1; use 1 for multiplicative relative states and 0 for deviation/trace coordinates when explicitly typed"
+  },
+  "causal_chain": {
+    "display": "S_i -> H_{A,i} -> H_{K,i} -> b_i^eff -> X_i",
+    "no_separate_subsystems": true,
+    "phenotype_not_preregistered": "H_K up does not imply firing down"
+  },
+  "activity_input_S": {
+    "definition": "per-neuron spike indicator at Euler step n after threshold crossing",
+    "symbol": "S_i(t_n)",
+    "range": "[0, 1]",
+    "normalization": "binary spike event per step (timestep-independent unit event)",
+    "note": "low-pass activity trace is H_A, not raw S"
+  },
+  "dynamics": {
+    "H_A": {
+      "display": "tau_A * dH_{A,i}/dt = -H_{A,i} + S_i(t)",
+      "reference_equilibrium": "H_A* = 0 when S = 0",
+      "discrete_euler": "H_A^{n+1} = H_A^n + dt * (-H_A^n + S^n) / tau_A"
+    },
+    "H_K": {
+      "display": "tau_K * dH_{K,i}/dt = (1 - H_{K,i}) + kappa_AK * H_{A,i}",
+      "inherits_restoring": "D2a F1 term (1 - H_K)",
+      "reference_equilibrium": "H_K* = 1 when H_A = 0",
+      "discrete_euler": "H_K^{n+1} = H_K^n + dt * ((1 - H_K^n) + kappa_AK * H_A^n) / tau_K"
+    },
+    "coupling_constant": {
+      "symbol": "kappa_AK",
+      "value": 0.4,
+      "sign_semantics": "kappa_AK > 0: recent activity increases effective K-associated recovery state",
+      "state_level_interpretation": "S up => H_A up => H_K up (not a preregistered spike-count phenotype)"
+    },
+    "timescales": {
+      "tau_A_ms": 25.0,
+      "tau_K_ms": 100.0,
+      "ordering_preregistered": "tau_A < tau_K",
+      "rationale": "activity history written quickly; recovery state relaxes more slowly",
+      "post_hoc_optimization_forbidden": true
+    },
+    "discrete_update_ordering": {
+      "rule": "causal within one Euler step",
+      "steps": [
+        "H_A^{n+1} = F_A(H_A^n, S^n)",
+        "H_K^{n+1} = F_K(H_K^n, H_A^n)"
+      ],
+      "forbidden": "same-step instantaneous S^n -> H_A^{n+1} -> H_K^{n+1} without using H_A^n in H_K update"
+    }
+  },
+  "emitter_coupling": {
+    "inherits": "D1",
+    "map": "b_i^eff = H_{K,i} * b_i",
+    "recovery_ode": "du/dt = a * (H_K * b * v - u)"
+  },
+  "null_hierarchy": {
+    "kappa_AK_zero": {
+      "condition": "kappa_AK = 0",
+      "reduction": "exact D2a autonomous H_K dynamics (H_A may evolve but does not write H_K)"
+    },
+    "S_zero": {
+      "condition": "S(t) = 0",
+      "reduction": "H_A -> 0 and H_K -> 1"
+    },
+    "reference_equilibrium": {
+      "condition": "H_A = 0 and H_K = 1",
+      "label": "RBS reference equilibrium under no activity"
+    },
+    "classical_emitter": {
+      "condition": "H_A = 0, H_K = 1, dot H = 0",
+      "reduction": "classical Izhikevich emitter (D1 containment)"
+    }
+  },
+  "analytic_post_stimulus_contract": {
+    "precondition": "S(t) = 0 for t >= 0",
+    "H_A_solution": "H_A(t) = H_A(0) * exp(-t / tau_A)",
+    "deviation_variable": "h_K = H_K - 1",
+    "h_K_ode": "tau_K * dh_K/dt = -h_K + kappa_AK * H_A(0) * exp(-t / tau_A)",
+    "use": "analytic/discrete two-timescale recovery receipt before D3 implementation",
+    "note": "closed-form h_K(t) is sum of exponentials when tau_A != tau_K"
+  },
+  "admissible_domain": {
+    "H_K": "H_K > 0",
+    "H_A": "H_A >= 0",
+    "operating_note": "positivity gates required at implementation"
+  },
+  "success_criteria_state_space": [
+    "spikes_or_S write H_A",
+    "H_A causally writes H_K per discrete ordering",
+    "no-activity relaxation (H_A, H_K) -> (0, 1)",
+    "kappa_AK = 0 reduces to D2a",
+    "H_K remains in admissible positive domain",
+    "post-stimulus recovery matches analytic/discrete two-timescale model",
+    "W fixed (dot W = 0)"
+  ],
+  "explicit_prohibitions": [
+    "no_D2b_implementation_in_this_checkpoint",
+    "no_D3_phenotype_claims_in_D2b",
+    "no_HDP",
+    "no_preregister_H_K_up_implies_firing_down",
+    "no_post_result_retuning_tau_A_tau_K_kappa_AK",
+    "no_call_H_A_an_ion"
+  ],
+  "d3_deferred": {
+    "checkpoint": "D3",
+    "question": "repeated-stimulus fatigue/adaptation/recovery phenotype",
+    "requires": "D2b implementation gates pass first"
+  },
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "D2b_implementation"
+  },
+  "bundle_root": "artifacts/protocol_d_biological_rbs",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "doctrine_reference": "docs/doctrine/rbs_rbd_hdp.md"
+}

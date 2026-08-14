@@ -1,0 +1,19 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d2b_protocol_receipt.v1",
+  "checkpoint": "D2b",
+  "status": "FROZEN",
+  "protocol_id": "protocol_d_biological_rbs_v0417",
+  "milestone": "0.4.17-D",
+  "spec": "artifacts/protocol_d_biological_rbs/d2b_activity_h_k_coupling_spec.json",
+  "protocol_doc": "docs/protocols/protocol_d_biological_rbs.md",
+  "implementation_authorized": false,
+  "parent_head": "ef6c478cca721029f9a41165213c9536fba885d4",
+  "prerequisites": {
+    "d2a_closed": "artifacts/protocol_d_biological_rbs/d2a_autonomous_relaxation_receipt.json"
+  },
+  "rbs_vector": "[H_A; H_K]",
+  "causal_chain": "S -> H_A -> H_K -> b_eff -> X",
+  "kappa_AK_sign": "positive",
+  "timescale_ordering": "tau_A < tau_K",
+  "next_checkpoint": "D2b_implementation"
+}

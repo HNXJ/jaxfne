@@ -32,6 +32,11 @@ from .d2a_execution import (
     run_d2a_autonomous_relaxation,
     write_d2a_execution_receipt,
 )
+from .d2b_protocol import (
+    D2B_SPEC_PATH,
+    load_d2b_spec,
+    validate_d2b_spec,
+)
 
 __all__ = [
     "PROTOCOL_ID",
@@ -56,4 +61,7 @@ __all__ = [
     "load_d2a_execution_receipt",
     "run_d2a_autonomous_relaxation",
     "write_d2a_execution_receipt",
+    "D2B_SPEC_PATH",
+    "load_d2b_spec",
+    "validate_d2b_spec",
 ]

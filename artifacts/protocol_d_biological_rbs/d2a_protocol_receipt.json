@@ -17,5 +17,5 @@
     "G5_deterministic_repeatability",
     "G6_classical_convergence"
   ],
-  "next_checkpoint": "D2b_specification"
+  "next_checkpoint": "D2b_implementation"
 }

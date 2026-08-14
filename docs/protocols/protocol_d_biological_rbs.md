@@ -4,8 +4,8 @@
 **D0 spec:** `artifacts/protocol_d_biological_rbs/d0_intrinsic_ionic_rbs_spec.json`  
 **D1 spec/receipt:** static \(b_{\mathrm{eff}}=H_{\mathrm{K}}b\) expression (closed)  
 **D2a spec/receipt:** `d2a_autonomous_h_k_relaxation_spec.json` / `d2a_autonomous_relaxation_receipt.json`  
-**D2b:** specified, **not** authorized  
-**Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen
+**D2b:** specified, **not** implemented  
+**Prerequisites:** Protocol C closed @ C4; Protocol H closed @ H4; W2 expression frozen; D2a closed
 
 > **Naming:** This is **0.4.17-D biological RBS**, distinct from **0.4.16 edge-delay
 > Protocol D₀/D₁** (`tests/test_edge_delay_protocol_d016.py`). Do not merge receipts
@@ -144,25 +144,79 @@ decays in tail as \(H_{\mathrm{K}}\rightarrow 1\).
 **Coordinate semantics (standardized):** effective **K-associated recovery state** — not “channel
 availability” until a realization models availability/inactivation kinetics explicitly.
 
-## D2b — deferred (not authorized)
+## D2b — two-timescale activity→\(H_{\mathrm{K}}\) coupling (specified)
 
 \[
-\mathbf H = (H_{\mathrm{activity}}, H_{\mathrm{K}}),
-\qquad
-S \rightarrow A \rightarrow H_{\mathrm{K}} \rightarrow b_{\mathrm{eff}} \rightarrow X.
+\boxed{
+\mathbf H_i =
+\begin{bmatrix}
+H_{A,i} \\
+H_{K,i}
+\end{bmatrix}
+}
 \]
 
-\(H_{\mathrm{activity}}\) is a reduced sufficient trace coordinate, not an ion. Separate spec
-and falsification contract required before implementation.
+**Causal chain:**
+
+\[
+\boxed{
+S_i \rightarrow H_{A,i} \rightarrow H_{K,i} \rightarrow b_i^{\mathrm{eff}} \rightarrow X_i
+}
+\]
+
+| Coordinate | Reference | Role |
+|------------|-----------|------|
+| \(H_{\mathrm{A}}\) | \(0\) | activity-history trace (not an ion) |
+| \(H_{\mathrm{K}}\) | \(1\) | effective K-associated recovery state |
+
+**Dynamics (frozen):**
+
+\[
+\tau_{\mathrm{A}}\dot H_{\mathrm{A},i} = -H_{\mathrm{A},i} + S_i(t),
+\qquad
+\tau_{\mathrm{K}}\dot H_{\mathrm{K},i} = (1 - H_{\mathrm{K},i}) + \kappa_{\mathrm{AK}} H_{\mathrm{A},i},
+\qquad
+\kappa_{\mathrm{AK}} > 0.
+\]
+
+**Timescales (frozen, not optimized for D3):** \(\tau_{\mathrm{A}}=25\) ms, \(\tau_{\mathrm{K}}=100\) ms, \(\tau_{\mathrm{A}}<\tau_{\mathrm{K}}\).
+
+**Discrete causal ordering:**
+
+\[
+H_{\mathrm{A},n+1} = F_{\mathrm{A}}(H_{\mathrm{A},n}, S_n),
+\qquad
+H_{\mathrm{K},n+1} = F_{\mathrm{K}}(H_{\mathrm{K},n}, H_{\mathrm{A},n}).
+\]
+
+**State-level semantics (not phenotype):** \(S\uparrow \Rightarrow H_{\mathrm{A}}\uparrow \Rightarrow H_{\mathrm{K}}\uparrow\).  
+**Not preregistered:** \(H_{\mathrm{K}}\uparrow \Rightarrow\) firing \(\downarrow\).
+
+**Null hierarchy:**
+
+- \(\kappa_{\mathrm{AK}}=0 \Rightarrow\) exact D2a
+- \(S=0 \Rightarrow H_{\mathrm{A}}\to 0,\ H_{\mathrm{K}}\to 1\)
+- \((H_{\mathrm{A}},H_{\mathrm{K}})=(0,1)\) = RBS reference equilibrium
+
+**Post-stimulus analytic contract:** with \(S=0\), \(H_{\mathrm{A}}(t)=H_{\mathrm{A}}(0)e^{-t/\tau_{\mathrm{A}}}\); \(h_{\mathrm{K}}=H_{\mathrm{K}}-1\) obeys \(\tau_{\mathrm{K}}\dot h_{\mathrm{K}} = -h_{\mathrm{K}} + \kappa_{\mathrm{AK}} H_{\mathrm{A}}(0)e^{-t/\tau_{\mathrm{A}}}\).
+
+**Spec:** `artifacts/protocol_d_biological_rbs/d2b_activity_h_k_coupling_spec.json`  
+**Implementation:** not authorized.
+
+## D3 — deferred
+
+Repeated-stimulus fatigue/adaptation/recovery phenotype protocol. Requires D2b
+implementation gates to pass first; D2b establishes state-writing only.
 
 ## Checkpoint ladder
 
 \[
 \boxed{
 \begin{aligned}
-D0 &: \text{biological RBS specification (this document)},\\
+D0 &: \text{biological RBS specification},\\
 D1 &: \text{static typed-coordinate expression},\\
-D2 &: \text{dynamic }F_H\text{ + recovery/stability},\\
+D2\mathrm{a} &: \text{autonomous }H_{\mathrm{K}}\text{ relaxation},\\
+D2\mathrm{b} &: \text{activity}\rightarrow H_{\mathrm{K}}\text{ coupling (specified)},\\
 D3 &: \text{biological phenotype protocol},\\
 D4 &: \text{optional second RBS class (not mandatory for 0.4.17)}.
 \end{aligned}}
@@ -194,5 +248,5 @@ questions — keep separate panels and narrative.
 | D0 | Specification frozen |
 | D1 | Static \(H_{\mathrm{K}}\) sweep **executed** |
 | D2a | Autonomous F1 relaxation **executed** |
-| D2b | Activity→\(H_{\mathrm{K}}\) coupling — **specified, not authorized** |
+| D2b | Two-coordinate \((H_{\mathrm{A}},H_{\mathrm{K}})\) coupling — **specified, not implemented** |
 | D3–D4 | Phenotype protocol / optional second class — not authorized |
