@@ -81,6 +81,19 @@ def test_frozen_domain_receipt_three_branch_interpretation():
     assert len(receipt["scan_results"]) == 2187
 
 
+def test_frozen_interpretation_receipt_unresolved_not_negative():
+    interp = json.loads(
+        Path("artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json").read_text()
+    )
+    assert interp["status"] == "FROZEN_UNRESOLVED"
+    assert interp["w3b_outcome"] == "unresolved, not negative"
+    assert interp["counts"]["N_S"] == 0
+    assert interp["counts"]["N_X"] == 1944
+    assert interp["prohibited_inferences"]["N_S_zero_implies_empty_useful_domain"] is False
+    assert interp["release_blocking"] is False
+    assert interp["w3_kernel_implementation_authorized"] is False
+
+
 def test_gamma_hdp_matches_reduced_convention():
     p = W3bParameterPoint(0.05, 1.0, 0.1, 80.0, 100.0)
     assert gamma_hdp(p, 0.01) == pytest.approx(abs(2.0 * 1.0 * 0.01 / 0.1))

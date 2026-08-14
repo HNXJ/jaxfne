@@ -1,0 +1,90 @@
+{
+  "schema": "protocol_w_w3b_interpretation.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory_w3b",
+  "protocol": "W3b",
+  "status": "FROZEN_UNRESOLVED",
+  "write_once": true,
+  "modification_policy": "Do not edit after freeze; W3c must not retroactively alter W3b scientific claims.",
+  "outcome_classification": "unresolved_not_negative",
+  "w3b_outcome": "unresolved, not negative",
+  "prospective_domain_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json",
+  "prospective_domain_receipt_sha": "20853f32df3cc70d4edb0f9fa86e83a85726d782",
+  "parent_checkpoints": {
+    "w3_silent_rest_sha": "953d03b60640ed48636f73524f03a6fce6fe92dc",
+    "w3a_active_sha": "08bd4a2b2ebc89373697cd4be1da85551e7c5952",
+    "w3b_domain_sha": "20853f32df3cc70d4edb0f9fa86e83a85726d782",
+    "w3a_margin_audit": "artifacts/protocol_w/w3a_stability/w3a_margin_audit.json"
+  },
+  "counts": {
+    "D": 243,
+    "S": 0,
+    "C": 0,
+    "U": 0,
+    "X": 1944,
+    "N_S": 0,
+    "N_X": 1944,
+    "total": 2187
+  },
+  "aggregate_identity": {
+    "N_S_equals_D_useful_count": true,
+    "note": "N_S=0 is the count of S-regime points only; it does not imply scientific emptiness of the useful domain when N_X>0."
+  },
+  "three_level_interpretation": {
+    "demonstrated": [
+      "No robust active point was classified in the frozen W3b lattice (N_S=0).",
+      "Silent-rest HDP dormancy remains established by frozen W3 (syn*=0 => dI_rec/domega=0).",
+      "Active HDP loop gain L_HDP exists and rises with characterized synaptic activity in active regimes.",
+      "Full preregistered lattice scan completed under frozen gates without detector modification."
+    ],
+    "unresolved": [
+      "Stability classification of 1944 active X points (X != U).",
+      "Existence of a useful robust-active domain inside the unresolved X region.",
+      "Whether unresolved active regimes are quasiperiodic, long-period, irregular, or detector-limited."
+    ],
+    "not_demonstrated": [
+      "A robust closed-loop HDP operating domain within the tested lattice.",
+      "Closed-loop HDP parameter memory.",
+      "Scientific emptiness of the useful HDP domain (requires N_X=0 for negative-domain inference)."
+    ]
+  },
+  "prohibited_inferences": {
+    "N_S_zero_implies_empty_useful_domain": false,
+    "reason": "N_X=1944>0; unresolved active regimes prevent concluding D_useful=empty in the scientific sense.",
+    "formal": "N_S=0 does not imply D_useful=empty because N_X>0."
+  },
+  "prohibited_interpretations": [
+    "X means unstable (X != U).",
+    "The useful domain is scientifically empty.",
+    "The minimal F_W law has been falsified.",
+    "W3 closed-loop memory is authorized.",
+    "A new F_W plasticity law is required.",
+    "W3c orbit work may retroactively redefine what W3b established."
+  ],
+  "next_scientific_protocol": "W3c orbit characterization",
+  "release_blocking": false,
+  "w3_kernel_implementation_authorized": false,
+  "protocol_w_scientific_development_boundary": "CLOSED at W3b interpretation for 0.4.16",
+  "figure_6_evidence_ladder": {
+    "RBS_fading_memory": "demonstrated",
+    "H_to_X_activity_coupling": "demonstrated",
+    "topology_delay_extension": "negative (H4)",
+    "H_to_omega_writing": "demonstrated (W1a/W1b)",
+    "omega_to_W_to_X_expression": "demonstrated (W2)",
+    "closed_HDP_loop": "unresolved (W3b)"
+  },
+  "development_path_after_freeze": [
+    "W3b interpretation freeze",
+    "0.4.16 RC",
+    "0.4.17-A Figure Requirements Matrix v2"
+  ],
+  "parallel_science_path": {
+    "protocol": "W3c",
+    "on_critical_release_path": false,
+    "branches": [
+      "resolved active stability -> prospective W3 point selection -> W3",
+      "no resolution -> preserve unresolved or negative outcome as appropriate"
+    ]
+  },
+  "manuscript_facing_summary": "W3b completed a prospective 2187-point parameter-domain map under frozen stability gates. No robust active stable (S) points were classified (N_S=0), while 1944 active points remained stability-unresolved (X). This is an unresolved result, not a negative domain falsification of the minimal HDP law. Closed-loop HDP memory is not demonstrated or authorized.",
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}

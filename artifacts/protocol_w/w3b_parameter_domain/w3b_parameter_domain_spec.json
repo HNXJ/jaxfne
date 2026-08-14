@@ -3,6 +3,8 @@
   "protocol_id": "protocol_w_hdp_parameter_memory_w3b",
   "status": "FROZEN_ANALYSIS",
   "domain_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_domain_receipt.json",
+  "interpretation_receipt": "artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json",
+  "interpretation_status": "FROZEN_UNRESOLVED",
   "implementation_authorized": false,
   "analysis_only": true,
   "parent_checkpoints": {

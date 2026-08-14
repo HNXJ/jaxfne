@@ -494,6 +494,23 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 **Artifacts:** `artifacts/protocol_w/w3b_parameter_domain/w3b_parameter_domain_spec.json`, `jaxfne/w3b_parameter_domain.py`
 
+### 5.16 W3b interpretation receipt (**frozen — unresolved, not negative**)
+
+**Receipt:** `artifacts/protocol_w/w3b_parameter_domain/w3b_interpretation_receipt.json`  
+**Outcome:** `unresolved, not negative` — **not** a negative domain result.
+
+| Level | W3b establishes |
+|-------|-----------------|
+| **Demonstrated** | \(N_S=0\); silent-rest dormancy (W3); active \(L_{\mathrm{HDP}}\) rises with activity |
+| **Unresolved** | 1944 active **X** points (\(X\neq U\)); stability not classified under frozen Floquet gates |
+| **Not demonstrated** | Robust closed-loop HDP domain; closed-loop parameter memory |
+
+**Prohibited:** \(N_S=0 \Rightarrow \mathcal D_{\mathrm{useful}}=\emptyset\) when \(N_X>0\); treating **X** as **U**; authorizing W3 or new \(F_W\) from this receipt.
+
+**Release:** `release_blocking: false` for 0.4.16. **W3c** is parallel science, not on the 0.4.16 critical path.
+
+**Protocol W scientific development:** **CLOSED at W3b interpretation** for 0.4.16. Next main path: **0.4.16 RC** \(\to\) **0.4.17-A Figure Requirements Matrix v2**.
+
 ## 6. Experimental ladder (frozen order)
 
 \[
@@ -515,7 +532,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
 | **W3** | **STABILITY FROZEN (silent rest)** — kernel **not** authorized |
 | **W3a** | **STABILITY FROZEN (activity-enabled)** — kernel **not** authorized |
-| **W3b** | **DOMAIN FROZEN** — \(N_S=0, N_X>0\); W3c next |
+| **W3b** | **INTERPRETATION FROZEN** — unresolved (\(N_S=0, N_X>0\)); W3c parallel |
 | **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
@@ -530,7 +547,7 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | W2 | **frozen** — receipt locked; do not mutate configuration |
 | W3 | **silent-rest stability frozen** — kernel blocked |
 | W3a | **activity stability frozen** — margin audit addendum |
-| W3b | **domain receipt frozen** — branch `N_S_eq_0_and_N_X_gt_0` |
+| W3b | **interpretation frozen** — unresolved not negative; 0.4.16 science closed |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.
