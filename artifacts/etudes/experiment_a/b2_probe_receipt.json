@@ -1,0 +1,16 @@
+{
+  "checkpoint": "B2",
+  "fixed_field": "lfp_ref",
+  "invariants": {
+    "Q_zero_implies_Y_zero": true,
+    "phi_e_unchanged_between_probes": true,
+    "probe_distinct": true,
+    "q_hash_invariant": true,
+    "shallow_vs_deep_rel_distinctness": 0.11374732106924057
+  },
+  "lfp_proxy_probe_fix": "contact_depths interpolates phi_e along field_contact_depths",
+  "next_checkpoint": "B3",
+  "protocol_id": "experiment_a_v0417_b",
+  "schema": "jaxfne.experiment_a.b2_probe_receipt.v1",
+  "status": "FROZEN"
+}

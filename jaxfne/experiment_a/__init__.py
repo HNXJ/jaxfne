@@ -12,6 +12,13 @@ from .canonical import (
     write_b1_receipt,
     write_canonical_npz,
 )
+from .observe import (
+    FactorizedObservation,
+    apply_independent_probe,
+    materialize_field,
+    verify_b2_invariants,
+    write_b2_receipt,
+)
 
 __all__ = [
     "PROTOCOL_ID",
@@ -22,4 +29,9 @@ __all__ = [
     "freeze_canonical_dataset",
     "write_b1_receipt",
     "write_canonical_npz",
+    "FactorizedObservation",
+    "apply_independent_probe",
+    "materialize_field",
+    "verify_b2_invariants",
+    "write_b2_receipt",
 ]
