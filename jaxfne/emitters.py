@@ -716,18 +716,17 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
+    step_indices: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Finite edge-delay recurrent kernel (Protocol D).
 
     Memory: ``O(N * D_max)`` spike-history ring per neuron plus ``O(E)`` synaptic
     state, where ``D_max = max(delay_steps)``.
-    """
-    if init_state is not None:
-        raise ValueError(
-            "init_state continuation is not supported when edge delay_steps > 0 "
-            "(Protocol D0/D1); delay history is required dynamical state"
-        )
 
+    Segmented continuation requires full ``init_state`` including canonical
+    ``delay_state`` (legacy alias ``spike_history``) and
+    ``continuation_step_offset`` (global step index at segment start).
+    """
     jdtype = _dtype_from_policy(dtype)
     a = params.a.astype(jdtype)
     b = params.b.astype(jdtype)
@@ -760,15 +759,49 @@ def _simulate_edge_recurrent_izhikevich_delayed(
     bulk_noise = jax.random.normal(
         noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
     )
-    step_indices = jnp.arange(int(n_steps), dtype=jnp.int32)
-
-    init = (
-        params.v0.astype(jdtype),
-        params.u0.astype(jdtype),
-        jnp.zeros_like(params.v0, dtype=jdtype),
-        jnp.zeros((edges.n_edges,), dtype=jdtype),
-        jnp.zeros((bufsize, n_neurons), dtype=jdtype),
-    )
+    time_step_offset = _rbd_continuation_step_offset_array(init_state)
+    if init_state is not None and "v" in init_state:
+        _validate_delayed_init_state(
+            init_state,
+            bufsize=bufsize,
+            n_neurons=n_neurons,
+            n_edges=edges.n_edges,
+        )
+        delay0 = _rbd_delay_state_from_init(
+            init_state, bufsize=bufsize, n_neurons=n_neurons, jdtype=jdtype
+        )
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+            delay0,
+        )
+    else:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+            jnp.zeros((bufsize, n_neurons), dtype=jdtype),
+        )
+    if step_indices is not None:
+        step_indices = jnp.asarray(step_indices, dtype=jnp.int32).reshape(-1)
+        if int(step_indices.shape[0]) != int(n_steps):
+            raise ValueError(
+                "step_indices must have shape (n_steps,) when provided; got "
+                f"{step_indices.shape} for n_steps={n_steps}"
+            )
+    else:
+        off = time_step_offset
+        if isinstance(off, int):
+            step_indices = jnp.arange(off, off + int(n_steps), dtype=jnp.int32)
+        else:
+            step_indices = jnp.arange(
+                off,
+                off + jnp.asarray(int(n_steps), dtype=jnp.int32),
+                dtype=jnp.int32,
+            )
 
     def step_delayed(carry, xs_t):
         t_idx, noise_t = xs_t
@@ -844,8 +877,10 @@ def _simulate_edge_recurrent_izhikevich_delayed(
         "u": final[1],
         "prev_spikes": final[2],
         "syn_state": final[3],
+        "delay_state": final[4],
         "spike_history": final[4],
         "delay_steps_max": jnp.asarray(max_delay, dtype=jnp.int32),
+        "continuation_step_offset": step_indices[-1] + jnp.asarray(1, dtype=jnp.int32),
         "presynaptic_drive_trace": presyn_trace,
     }
     return voltages, spikes, sources, final_state
@@ -863,6 +898,7 @@ def simulate_edge_recurrent_izhikevich(
     silence_mask: "jax.Array | None" = None,
     noise_scale: "jax.Array | float | None" = None,
     init_state: "dict | None" = None,
+    step_indices: "jax.Array | None" = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
     """Simulate reduced Izhikevich emitters with sparse recurrent synapses.
 
@@ -877,9 +913,9 @@ def simulate_edge_recurrent_izhikevich(
     scalar or ``(n_neurons,)`` array gives per-neuron control of internal noise.
     ``init_state`` optionally supplies ``v``, ``u``, ``prev_spikes``, and
     ``syn_state`` for deterministic or explicitly keyed segmented continuation.
-    Nonzero ``edges.delay_steps`` select the finite-delay kernel; continuation
-    with ``init_state`` is rejected when any delay is positive (delay history is
-    required dynamical state).
+    Nonzero ``edges.delay_steps`` select the finite-delay kernel; segmented
+    continuation with positive delays requires full ``init_state`` including
+    ``delay_state`` (legacy alias ``spike_history``).
     """
 
     delay_host = _edge_delay_steps_host(edges)
@@ -897,6 +933,7 @@ def simulate_edge_recurrent_izhikevich(
             silence_mask=silence_mask,
             noise_scale=noise_scale,
             init_state=init_state,
+            step_indices=step_indices,
         )
 
     jdtype = _dtype_from_policy(dtype)
@@ -1127,16 +1164,20 @@ def _rbd_delay_state_from_init(
 
 
 def _rbd_continuation_step_offset(init_state: "dict | None") -> int:
+    return int(np.asarray(_rbd_continuation_step_offset_array(init_state)))
+
+
+def _rbd_continuation_step_offset_array(init_state: "dict | None") -> int | jax.Array:
     if init_state is None:
         return 0
     if "continuation_step_offset" in init_state:
-        return int(np.asarray(init_state["continuation_step_offset"]))
+        return jnp.asarray(init_state["continuation_step_offset"], dtype=jnp.int32)
     if "time_step_offset" in init_state:
-        return int(np.asarray(init_state["time_step_offset"]))
-    return 0
+        return jnp.asarray(init_state["time_step_offset"], dtype=jnp.int32)
+    return jnp.asarray(0, dtype=jnp.int32)
 
 
-def _rbd_validate_delayed_init_state(
+def _validate_delayed_init_state(
     init_state: dict,
     *,
     bufsize: int,
@@ -1147,13 +1188,28 @@ def _rbd_validate_delayed_init_state(
     missing = [k for k in required if k not in init_state]
     if missing:
         raise ValueError(
-            "delayed RBD continuation requires init_state keys "
+            "delayed continuation requires init_state keys "
             f"{list(required)}; missing {missing}"
         )
     if "delay_state" not in init_state and "spike_history" not in init_state:
         raise ValueError(
-            "delayed RBD continuation requires delay_state (or legacy spike_history)"
+            "delayed continuation requires delay_state (or legacy spike_history)"
         )
+
+
+def _rbd_validate_delayed_init_state(
+    init_state: dict,
+    *,
+    bufsize: int,
+    n_neurons: int,
+    n_edges: int,
+) -> None:
+    _validate_delayed_init_state(
+        init_state,
+        bufsize=bufsize,
+        n_neurons=n_neurons,
+        n_edges=n_edges,
+    )
     ds = init_state.get("delay_state", init_state.get("spike_history"))
     ds_host = np.asarray(ds)
     if ds_host.shape != (bufsize, n_neurons):

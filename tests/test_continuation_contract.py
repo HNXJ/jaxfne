@@ -170,12 +170,9 @@ def test_deterministic_baseline_continuation_at_step_interface():
         kernel="baseline",
         noise_scale=0.0,
     )
-    schedule_full = jnp.zeros((24, init.v.shape[0]), dtype=init.v.dtype)
+    schedule_full = jnp.zeros((24, init.dynamic.v.shape[0]), dtype=init.dynamic.v.dtype)
     schedule_half = schedule_full[:12]
-    initial = jtfne.ContinuationState(
-        dynamic=init,
-        prng_key=jax.random.PRNGKey(17),
-    )
+    initial = init._replace(prng_key=jax.random.PRNGKey(17))
     full_state, full_outputs = _pipeline.run_continuation(
         step_fn, initial, schedule_full
     )

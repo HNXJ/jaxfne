@@ -535,6 +535,7 @@ def _simulate_continuation_arrays(
         compile_step_fn,
         continuation_state_from_model,
         run_continuation,
+        validate_continuation_delay_state,
     )
 
     if runtime_cfg.enable_homeostasis:
@@ -581,6 +582,10 @@ def _simulate_continuation_arrays(
             )
 
     hp = dict(runtime_cfg.hdp_params or {}) if runtime_cfg.enable_hdp else {}
+    baseline_kw = {}
+    if not runtime_cfg.enable_hdp and runtime_cfg.hdp_params:
+        if "noise_scale" in runtime_cfg.hdp_params:
+            baseline_kw["noise_scale"] = runtime_cfg.hdp_params["noise_scale"]
     if runtime_cfg.enable_hdp:
         from ._hdp_adaptive import reject_population_continuation, resolve_h_state_locality
 
@@ -596,6 +601,9 @@ def _simulate_continuation_arrays(
         )
     elif isinstance(continuation, ContinuationState):
         state = continuation
+        validate_continuation_delay_state(
+            self, state, continuing=True
+        )
     else:
         raise TypeError(
             "continuation must be a jaxfne.ContinuationState returned by "
@@ -615,6 +623,7 @@ def _simulate_continuation_arrays(
             self,
             dt_ms=sim.dt_ms,
             kernel="baseline",
+            **baseline_kw,
         )
 
     next_state, outputs = run_continuation(step_fn, state, schedule)
