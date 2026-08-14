@@ -47,6 +47,7 @@ class W3NominalParameters:
     a: float = 0.02
     b: float = 0.2
     c: float = -65.0
+    d: float = 8.0
     spike_threshold: float = 30.0
     drive_a: float = 0.0
     drive_b: float = 0.0

@@ -1,0 +1,41 @@
+{
+  "schema": "protocol_w_w3a_stability_spec.v1",
+  "protocol_id": "protocol_w_hdp_parameter_memory_w3a",
+  "status": "SPECIFICATION_OPEN",
+  "implementation_authorized": false,
+  "analysis_only": true,
+  "preserved_prerequisite": {
+    "silent_rest_w3_sha": "953d03b60640ed48636f73524f03a6fce6fe92dc",
+    "silent_rest_receipt": "artifacts/protocol_w/w3_stability/w3_stability_receipt.json",
+    "theoretical_result": "At silent equilibrium syn*=0 => dI_rec/domega=0 => b_HW=0; HDP feedback linearly dormant at rest."
+  },
+  "scientific_question": "Is the HDP closed loop locally stable around an active recurrent operating state?",
+  "independent_variable": "I_tonic (symmetric tonic drive on A and B)",
+  "frozen_hdp_parameters": "W3NominalParameters from W3 stability receipt; do not tune kappa_H, kappa_W, lambda_W, tau_H, tau_W, W0",
+  "ordered_gates": [
+    {
+      "id": "W3a-FP",
+      "description": "Search for self-consistent active fixed point with syn*>0"
+    },
+    {
+      "id": "W3a-PO",
+      "description": "If FP unavailable, periodic-orbit return map P_T and monodromy M with rho(M)<1 (subleading multiplier)"
+    }
+  ],
+  "reduced_modes": {
+    "delta": "H_A - H_B",
+    "Omega": "omega_AB - omega_BA",
+    "J_red": "[[-a_H/tau_H, b_HW/tau_H], [2*kappa_W/tau_W, -lambda_W/tau_W]]",
+    "stability_inequality": "a_H * lambda_W * tau_H > 2 * kappa_W * b_HW * tau_W (when b_HW > 0)"
+  },
+  "loop_gain": {
+    "definition": "L_HDP ~ (dH/dI)(dI/domega)(domega/dH)",
+    "silent_rest": "L_HDP = 0 because dI/domega = 0 at syn=0",
+    "activity_dependence": "dI/domega proportional to synaptic occupancy"
+  },
+  "margin_policy": "Report spectral margins vs I_tonic; margins below 0.01 are near-critical, not robustly stable",
+  "stability_receipt": "artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json",
+  "analysis_module": "jaxfne/w3a_stability_analysis.py",
+  "w3_kernel_blocked_until": "active operating regime passes W3a local stability gate",
+  "doctrine_reference": "docs/doctrine/protocol_w_hdp_parameter_memory.md"
+}

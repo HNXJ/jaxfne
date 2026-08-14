@@ -416,6 +416,37 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 
 **W3 kernel implementation:** remains **not authorized** — rest equilibrium certifies marginal discrete stability but not active closed-loop coupling; transient/post-perturbation analysis requires a separately versioned protocol if an activity-enabled operating point is needed.
 
+### 5.12 W3a — activity-enabled stability (**frozen analysis; W3 kernel not authorized**)
+
+**Preserves:** silent-rest W3 result at `953d03b` — at \(\mathrm{syn}^\*=0\),
+\(\partial I^{\mathrm{rec}}/\partial\omega=0\Rightarrow b_{HW}=0\): **synaptic HDP feedback is linearly dormant at rest.**
+
+**Question:** is the HDP closed loop locally stable around an **active** recurrent operating state?
+
+**Independent variable:** symmetric tonic drive \(I_{\mathrm{tonic}}\) on \(A\) and \(B\).  
+**Frozen:** all nominal HDP parameters from `W3NominalParameters`; no post-hoc tuning of \(\kappa_H,\kappa_W,\lambda_W,\tau_H,\tau_W,W_0\).
+
+**Ordered gates:**
+
+| Gate | Result (nominal scan) |
+|------|----------------------|
+| **W3a-FP** | No self-consistent active fixed point with \(\mathrm{syn}^\*>0\) found (spike-driven syn dynamics) |
+| **W3a-PO** | Periodic-orbit monodromy \(M=\partial P_T/\partial\mathcal Z\) when \(\mathrm{syn}\) active |
+
+**Activity-dependent quantities:** \(b_{HW}(I_{\mathrm{tonic}})\), \(L_{\mathrm{HDP}}(I_{\mathrm{tonic}})\), spectral margins vs drive.
+
+**Nominal findings (prospective receipt):**
+
+- \(I_{\mathrm{tonic}}=0\): \(b_{HW}=0\), \(L_{\mathrm{HDP}}=0\), discrete margin \(\approx10^{-3}\) (weak, as in silent W3)
+- Active drive: \(b_{HW}\neq0\), \(L_{\mathrm{HDP}}\) grows with mean synaptic occupancy
+- Floquet instability bracket: margin crosses zero between \(I_{\mathrm{tonic}}\approx 8\) and \(10\) ms-equivalent drive units (nominal parameters)
+
+**Margin policy:** margins below \(0.01\) are **near-critical**, not robustly stable.
+
+**Artifacts:** `artifacts/protocol_w/w3a_stability/w3a_stability_spec.json`, `w3a_stability_receipt.json`, `jaxfne/w3a_stability_analysis.py`
+
+**W3 closed-loop experiment:** blocked until an active operating point passes the W3a gate.
+
 ## 6. Experimental ladder (frozen order)
 
 \[
@@ -435,7 +466,8 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | **W1a** | **IMPLEMENTED** — prescribed \(\Delta H\to\omega\), analytic + Euler receipts |
 | **W1b** | **IMPLEMENTED** — RBD shadow \(\omega\) on \(A\rightleftarrows B\); no \(W\to X\) |
 | **W2** | **FROZEN** — prospective receipt; frozen \(\omega\to W\to X\) |
-| **W3** | **SPEC OPEN** — stability analysis frozen; kernel **not** authorized |
+| **W3** | **STABILITY FROZEN (silent rest)** — kernel **not** authorized |
+| **W3a** | **STABILITY FROZEN (activity-enabled)** — kernel **not** authorized |
 | **W4** | not authorized |
 
 \(\text{W2}_{\mathrm{competition}}\): competition/conservation — **only if necessary** after W1.
@@ -448,7 +480,8 @@ At rest, \(b_{HW}=0\): \(\delta\) and \(\Omega\) decouple; closed HDP loop is **
 | W1a | **yes** — scalar integrator only |
 | W1b | **yes** — shadow plasticity, no feedback |
 | W2 | **frozen** — receipt locked; do not mutate configuration |
-| W3 | **spec + stability analysis frozen** — kernel blocked (\(b_{HW}=0\) at rest) |
+| W3 | **silent-rest stability frozen** — kernel blocked |
+| W3a | **activity-enabled stability frozen** — kernel blocked |
 | W4+ | **no** |
 
 W3 implementation remains blocked until stability analysis receipt passes.
@@ -479,7 +512,8 @@ W3 implementation remains blocked until stability analysis receipt passes.
 | `jaxfne/w2_parameter_expression.py` | W2 frozen \(\omega\to W\to X\) expression |
 | `tests/test_protocol_w_w1b.py` | W1b composition, symmetry, F1, nulls, timescale receipts |
 | `jaxfne/w3_stability_analysis.py` | W3 local stability analysis (no closed-loop kernel) |
-| `tests/test_protocol_w_w3_stability.py` | W3 stability receipts |
+| `jaxfne/w3a_stability_analysis.py` | W3a activity-enabled stability scan (no closed-loop kernel) |
+| `tests/test_protocol_w_w3a_stability.py` | W3a stability receipts |
 | `simulate_edge_recurrent_izhikevich_rbd` | RBD substrate (\(\dot W=0\)) |
 | `simulate_edge_recurrent_izhikevich_hdp` | Legacy reference — **not** canonical W; lacks W0 \(\omega\) grammar |
 | `docs/doctrine/rbs_rbd_hdp.md` | RBS/RBD/HDP authority |
@@ -498,9 +532,14 @@ W3 specification (open):
 
 - `artifacts/protocol_w/w3_closed_loop_spec.json`
 
-W3 stability analysis (frozen):
+W3 stability analysis (frozen, silent rest):
 
 - `artifacts/protocol_w/w3_stability/w3_stability_receipt.json`
+
+W3a activity-enabled stability (frozen):
+
+- `artifacts/protocol_w/w3a_stability/w3a_stability_spec.json`
+- `artifacts/protocol_w/w3a_stability/w3a_stability_receipt.json`
 
 ## 10. Stop rules
 
