@@ -165,4 +165,4 @@ nav:
       - Limitations: limitations_and_future_plans.md
 
 extra:
-  jaxfne_version: "0.4.15"
+  jaxfne_version: "0.4.16"

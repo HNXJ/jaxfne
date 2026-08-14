@@ -14,9 +14,21 @@ real recompilation inside that later test. Only
 the suite, so a full-suite run's alert count depended on test order rather
 than actual behavior.
 """
+import jax
 import pytest
 
 from jaxfne import compilation_registry
+
+
+@pytest.fixture(autouse=True)
+def _reset_jax_x64_between_tests(request):
+    """Protocol analysis modules may enable x64 at import; reset before each test."""
+    orig = jax.config.read("jax_enable_x64")
+    jax.config.update("jax_enable_x64", False)
+    if "test_protocol_w_" in request.node.fspath.basename:
+        jax.config.update("jax_enable_x64", True)
+    yield
+    jax.config.update("jax_enable_x64", orig)
 
 
 @pytest.fixture(autouse=True)

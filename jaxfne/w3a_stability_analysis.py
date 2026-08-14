@@ -34,7 +34,6 @@ from jaxfne.w3_stability_analysis import (
 )
 from jaxfne.w1a_omega_plasticity import W1aConfig, euler_step_omega
 
-jax.config.update("jax_enable_x64", True)
 _JDTYPE = jnp.float64
 
 W3_SILENT_REST_SHA = "953d03b60640ed48636f73524f03a6fce6fe92dc"

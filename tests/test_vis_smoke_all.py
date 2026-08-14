@@ -179,6 +179,7 @@ def _case_export_figure():
 
 
 def _case_export_figures():
+    pytest.importorskip("kaleido")
     import matplotlib.pyplot as plt
     import plotly.graph_objects as go
     fig_mpl, ax = plt.subplots()

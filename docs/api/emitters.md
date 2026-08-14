@@ -413,7 +413,7 @@ I_i^{\mathrm{drive}} = I_i^{\mathrm{ext}} + G_H(H_i;\beta_H)\,I_i^{\mathrm{rec}}
 
 External drive is untouched. ``F_H`` uses **pre-gain** ``I_i^rec`` for
 ``kappa_H * I_i^rel``. ``beta_h=0`` and ``H=1`` recover H1a / legacy activity.
-Nonpositive ``G_H`` invalidates (no clip). Parameter: ``beta_h`` (default ``0.0``).
+``G_H`` must stay positive; values at or below zero end the step.
 
 **H2 continuation:** pass ``init_state`` with ``v``, ``u``, ``prev_spikes``,
 ``syn_state``, ``H_final``/``H``, ``delay_state`` (when delays active), and
@@ -428,9 +428,9 @@ Nonpositive ``G_H`` invalidates (no clip). Parameter: ``beta_h`` (default ``0.0`
 | ``"f2"`` | ``tau_H * dH_i/dt = (H_i^{-1} - 1) + kappa_H * I_i^rel`` (requires ``H>0``) |
 
 ``I_i^rel`` is total recurrent synaptic input at neuron ``i`` divided by ``i_ref``.
-F2 trajectories that reach ``H<=0`` propagate non-finite ``H`` (no clip).
+F2 trajectories with ``H<=0`` propagate non-finite ``H``; values are unclipped.
 ``final_state`` includes ``H_trace``, ``H_final``, and ``w_fixed`` (the constant edge
-weights). Nonzero-delay continuation is rejected until Protocol H2.
+weights). Zero-delay continuation only; nonzero-delay continuation awaits Protocol H2.
 
 Authority: ``docs/doctrine/protocol_h_rbd_memory.md``.
 

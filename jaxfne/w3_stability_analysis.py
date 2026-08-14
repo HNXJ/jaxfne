@@ -19,7 +19,6 @@ from scipy.linalg import logm
 
 from jaxfne.w1a_omega_plasticity import W1aConfig, euler_step_omega
 
-jax.config.update("jax_enable_x64", True)
 _JDTYPE = jnp.float64
 
 IDX_A = 0

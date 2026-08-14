@@ -9,8 +9,6 @@ import jax.numpy as jnp
 import numpy as np
 import pytest
 
-jax.config.update("jax_enable_x64", True)
-
 from jaxfne.w1a_omega_plasticity import (
     W1aConfig,
     integrate_prescribed_delta_h,

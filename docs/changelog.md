@@ -4,6 +4,38 @@ All notable changes are documented here in [Keep a Changelog](https://keepachang
 
 ## [Unreleased]
 
+## v0.4.16 (2026-08-13)
+
+RBS/RBD/HDP containment release: finite edge-delay recurrent kernel (Protocol D),
+frozen Protocol H ladder through H4 falsification receipt, frozen Protocol W ladder
+through W3b unresolved interpretation receipt, and doctrine alignment for TFNE
+containment architecture.
+
+### Added
+- Protocol D0/D1: finite edge-delay recurrent kernel with grid-aligned delay
+  quantization (`edge_delay_steps_from_ms`, `edge_list_with_delay_ms`).
+- Protocol H: RBD state-memory ladder (H1–H4) with frozen prospective receipts;
+  H4 falsification receipt (topology/delay extension).
+- Protocol W: HDP parameter-memory ladder (W0–W3b) with frozen receipts;
+  W3b interpretation frozen as **unresolved classification** (`N_S=0`, `N_X=1944`).
+- Doctrine: TFNE containment architecture, unified RBS/RBD/HDP grammar,
+  Protocol W HDP parameter-memory specification.
+
+### Changed
+- Emitters: Protocol D delay-step validation on recurrent edge lists.
+- Scientific development boundary for Protocol W closed at W3b interpretation
+  for 0.4.16; W3c remains parallel science off the release critical path.
+
+### Fixed
+- Test isolation: remove import-time `jax_enable_x64` side effects from Protocol W
+  analysis modules; reset x64 in session `conftest.py`.
+- Optional `kaleido` dependency: skip plotly PNG export vis smoke when absent.
+- Pin JAX/jaxlib to `<0.11` pending homeostatic-EI cubic_penalty compatibility audit.
+
+### Unchanged
+- Public root export count and stable API contract from 0.4.15.
+- Fused observation-operator execution and observation provenance semantics.
+
 ## v0.4.15 (2026-08-12)
 
 Observation-composability release: explicit fused-operator provenance,

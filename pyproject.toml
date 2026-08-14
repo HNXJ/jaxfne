@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "jaxfne"
-version = "0.4.15"
+version = "0.4.16"
 description = "JAX Field Neural Equations: a source-to-field neurophysiology engine for TFNE models."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -36,8 +36,8 @@ classifiers = [
 ]
 
 dependencies = [
-  "jax>=0.4.25",
-  "jaxlib>=0.4.25",
+  "jax>=0.4.25,<0.11",
+  "jaxlib>=0.4.25,<0.11",
   "numpy>=1.24",
   "scipy>=1.10",
 ]

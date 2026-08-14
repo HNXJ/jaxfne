@@ -52,3 +52,16 @@ Scientific experiments preserve failed prospective receipts. Do not tune a froze
 - Use targeted tests during development; broader/release gates are separate evidence tiers.
 - Do not commit, push, tag, release, or mutate remote state without explicit authorization.
 - Public README/docs should be compact mathematical descriptions using positive definitions; engineering history and agent governance stay outside public scientific documentation.
+
+## Step completion rule (operational)
+
+At the end of each successfully validated discrete development or protocol step:
+
+```text
+specify → implement → test → freeze evidence → commit → push dev → verify → next step
+```
+
+1. Commit the complete scoped delta for that step only.
+2. Push to `origin/dev`.
+3. Verify `dev == origin/dev` and a clean working tree before declaring the step complete or beginning the next step.
+4. Do not bundle unfinished work from the next step into that commit.
