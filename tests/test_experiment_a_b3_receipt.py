@@ -30,3 +30,16 @@ def test_b3_frozen_receipt_in_repo():
     assert receipt["status"] == "FROZEN"
     metrics = json.loads((BUNDLE / "metrics.json").read_text())
     assert metrics["q_hash_invariant"] is True
+
+
+def test_b3_receipt_preserves_exact_test_disposition():
+    receipt = json.loads((BUNDLE / "b3_experiment_a_receipt.json").read_text())
+    ev = receipt["test_evidence"]
+    gate = ev["initial_b3_gate_disposition"]
+    assert gate["collected"] == 19
+    assert gate["passed"] == 18
+    assert gate["skipped"] == 1
+    assert gate["failed"] == 0
+    post = ev["post_runner_disposition"]
+    assert post["passed"] == 19
+    assert post["skipped"] == 0
