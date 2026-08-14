@@ -1,0 +1,62 @@
+{
+  "amplitude_semantics": "relative",
+  "b2_invariants": {
+    "Q_zero_implies_Y_zero": true,
+    "phi_e_unchanged_between_probes": true,
+    "probe_distinct": true,
+    "q_hash_invariant": true,
+    "shallow_vs_deep_rel_distinctness": 0.11374732106924057
+  },
+  "canonical_q_hash": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+  "cause_hashes": {
+    "H": "46420b29cb0ba696ab991b3e33c1799b5d3de8184a5b3b00cb54bb4cb8644f46",
+    "Q": "02f4c9e98f8eba004a741ccad83786d82b8a7f1df3aa61949fa2fd75b9203f51",
+    "V_m": "57b58914a6efedbfdd03eaa3ed45d0927376a7eb458a77ebc327570fc09ad5fd",
+    "positions": "25cfd8213ccc887b823a48fef8c8ce172a4957990147f252de1faab37de167ef",
+    "spikes": "7461b42b92b8cdb4c4dee49c5a08972ebe351fbd80c0905c0615378cd12b62ac"
+  },
+  "compilation_identity_max_abs": 0.0,
+  "distinctness": {
+    "eeg_sup_vs_deep": 0.08190755989294807,
+    "lfp_vs_csd": 0.9921651392040306,
+    "narrow_vs_wide": 0.7686987014688431,
+    "shallow_vs_deep_probe": 0.11374731664980431
+  },
+  "dt_ms": 0.5,
+  "levels": {
+    "A": true,
+    "B": true,
+    "C": true
+  },
+  "n_neurons": 40,
+  "n_steps": 4000,
+  "negative_control_max_abs": 0.0,
+  "operator_status": {
+    "csd_from_lfp_ref": "relative_proxy",
+    "eeg_deep": "analysis_only",
+    "eeg_superficial": "analysis_only",
+    "lfp_contact_deep": "relative_proxy",
+    "lfp_contact_shallow": "relative_proxy",
+    "lfp_ref": "relative_proxy",
+    "meg_relative": "analysis_only"
+  },
+  "package_head": "5206c54e209141d50604f43bcf2c27b9b5ad6a26",
+  "physical_claim": "proxy_readout",
+  "protocol": "experiment_a_v0417_b",
+  "q_hash_invariant": true,
+  "r90": {
+    "lfp_dense": 0.15808389972274503,
+    "lfp_narrow": 0.07976396777667105,
+    "lfp_ref": 0.1627770783379674,
+    "lfp_sparse": 0.15617954917252064,
+    "lfp_wide": 0.3706348310224712
+  },
+  "spectral_centroid_hz": {
+    "CSD": 43.83680068224271,
+    "EEG_deep": 28.20076742669704,
+    "EEG_sup": 27.23970567481704,
+    "LFP": 29.63667852679251,
+    "Q": 46.70724533480392
+  },
+  "validation_status": "computational"
+}

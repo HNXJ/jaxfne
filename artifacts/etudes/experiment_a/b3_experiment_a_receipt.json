@@ -1,0 +1,11 @@
+{
+  "canonical_npz": "artifacts/etudes/experiment_a/canonical_source.npz",
+  "checkpoint": "B3",
+  "completion_criterion": "One frozen neural/source dataset passes through independently declared observation/probe operators with explicit semantic status and invariants.",
+  "manifest": "artifacts/etudes/experiment_a/manifest.json",
+  "metrics": "artifacts/etudes/experiment_a/metrics.json",
+  "package_head": "5206c54e209141d50604f43bcf2c27b9b5ad6a26",
+  "protocol_id": "experiment_a_v0417_b",
+  "schema": "jaxfne.experiment_a.b3_receipt.v1",
+  "status": "FROZEN"
+}
