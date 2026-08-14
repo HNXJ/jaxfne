@@ -1,0 +1,226 @@
+{
+  "schema": "jaxfne.protocol_d_biological_rbs.d2b_execution_receipt.v1",
+  "checkpoint": "D2b",
+  "status": "FROZEN",
+  "write_once": true,
+  "implementation_authorized": true,
+  "package_head": "4a13eb067d080bf456effda7d2f0b4e12a17de11",
+  "spec_path": "artifacts/protocol_d_biological_rbs/d2b_activity_h_k_coupling_spec.json",
+  "activity_input_S": "binary spike indicator S_n in {0,1} per Euler step (timestep-independent)",
+  "causal_ordering": "H_K^{n+1} uses H_A^n not H_A^{n+1}",
+  "dynamics": "tau_A dH_A/dt = -H_A + S; tau_K dH_K/dt = (1-H_K) + kappa_AK H_A",
+  "coupling": "b_eff = H_K(t) * b (D1 map)",
+  "tau_A_ms": 25.0,
+  "tau_K_ms": 100.0,
+  "kappa_AK": 0.4,
+  "n_cells": 3,
+  "cells": [
+    {
+      "seed": 11,
+      "n_spikes": 14,
+      "H_A_final": 6.6092211580159244e-21,
+      "H_K_final": 1.000011920928955,
+      "min_H_K": 1.0
+    },
+    {
+      "seed": 12,
+      "n_spikes": 14,
+      "H_A_final": 6.6092211580159244e-21,
+      "H_K_final": 1.000011920928955,
+      "min_H_K": 1.0
+    },
+    {
+      "seed": 13,
+      "n_spikes": 14,
+      "H_A_final": 6.6092211580159244e-21,
+      "H_K_final": 1.000011920928955,
+      "min_H_K": 1.0
+    }
+  ],
+  "gates": {
+    "G1_activity_writing": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "n_spike_steps": 14,
+          "min_H_A_on_spike": 0.019999999552965164
+        },
+        {
+          "seed": 12,
+          "n_spike_steps": 14,
+          "min_H_A_on_spike": 0.019999999552965164
+        },
+        {
+          "seed": 13,
+          "n_spike_steps": 14,
+          "min_H_A_on_spike": 0.019999999552965164
+        }
+      ]
+    },
+    "G2_causal_transfer": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "min_H_K_when_prior_H_A_positive": 1.000040054321289,
+          "first_prior_H_A_positive_step": 108,
+          "ordering": "H_K^{n+1} uses H_A^n (lagged check)"
+        },
+        {
+          "seed": 12,
+          "min_H_K_when_prior_H_A_positive": 1.000040054321289,
+          "first_prior_H_A_positive_step": 108,
+          "ordering": "H_K^{n+1} uses H_A^n (lagged check)"
+        },
+        {
+          "seed": 13,
+          "min_H_K_when_prior_H_A_positive": 1.000040054321289,
+          "first_prior_H_A_positive_step": 108,
+          "ordering": "H_K^{n+1} uses H_A^n (lagged check)"
+        }
+      ]
+    },
+    "G3_reference_recovery": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "H_A_final": 6.6092211580159244e-21,
+          "H_K_final": 1.000011920928955,
+          "tail_max_abs_H_A": 1.57884188511123e-16,
+          "tail_max_abs_H_K_minus_1": 1.1920928955078125e-05
+        },
+        {
+          "seed": 12,
+          "H_A_final": 6.6092211580159244e-21,
+          "H_K_final": 1.000011920928955,
+          "tail_max_abs_H_A": 1.57884188511123e-16,
+          "tail_max_abs_H_K_minus_1": 1.1920928955078125e-05
+        },
+        {
+          "seed": 13,
+          "H_A_final": 6.6092211580159244e-21,
+          "H_K_final": 1.000011920928955,
+          "tail_max_abs_H_A": 1.57884188511123e-16,
+          "tail_max_abs_H_K_minus_1": 1.1920928955078125e-05
+        }
+      ]
+    },
+    "G4_d2a_reduction": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "max_abs_H_K_diff": 0.0
+        },
+        {
+          "seed": 12,
+          "max_abs_H_K_diff": 0.0
+        },
+        {
+          "seed": 13,
+          "max_abs_H_K_diff": 0.0
+        }
+      ]
+    },
+    "G5_admissibility": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "min_H_K": 1.0
+        },
+        {
+          "seed": 12,
+          "min_H_K": 1.0
+        },
+        {
+          "seed": 13,
+          "min_H_K": 1.0
+        }
+      ]
+    },
+    "G6_analytic_discrete_recovery": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "post_stimulus_origin_step": 900,
+          "H_A0_post": 0.017595097422599792,
+          "H_K0_post": 1.0064419507980347,
+          "max_abs_euler_H_A_diff": 0.0,
+          "max_abs_euler_H_K_diff": 0.0,
+          "max_abs_analytic_H_K_diff": 1.1678939635384467e-05
+        },
+        {
+          "seed": 12,
+          "post_stimulus_origin_step": 900,
+          "H_A0_post": 0.017595097422599792,
+          "H_K0_post": 1.0064419507980347,
+          "max_abs_euler_H_A_diff": 0.0,
+          "max_abs_euler_H_K_diff": 0.0,
+          "max_abs_analytic_H_K_diff": 1.1678939635384467e-05
+        },
+        {
+          "seed": 13,
+          "post_stimulus_origin_step": 900,
+          "H_A0_post": 0.017595097422599792,
+          "H_K0_post": 1.0064419507980347,
+          "max_abs_euler_H_A_diff": 0.0,
+          "max_abs_euler_H_K_diff": 0.0,
+          "max_abs_analytic_H_K_diff": 1.1678939635384467e-05
+        }
+      ]
+    },
+    "G7_no_plasticity": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "max_abs_W_matrix_diff": 0.0,
+          "max_abs_edge_weight_diff": 0.0
+        },
+        {
+          "seed": 12,
+          "max_abs_W_matrix_diff": 0.0,
+          "max_abs_edge_weight_diff": 0.0
+        },
+        {
+          "seed": 13,
+          "max_abs_W_matrix_diff": 0.0,
+          "max_abs_edge_weight_diff": 0.0
+        }
+      ]
+    },
+    "D_node_local_diagnostic": {
+      "passed": true,
+      "details": [
+        {
+          "seed": 11,
+          "neuron0_max_H_A": 0.03308511897921562,
+          "neuron1_max_H_A": 0.0,
+          "neuron1_spike_steps": 0,
+          "node_local_ok": true
+        },
+        {
+          "seed": 12,
+          "neuron0_max_H_A": 0.03308511897921562,
+          "neuron1_max_H_A": 0.0,
+          "neuron1_spike_steps": 0,
+          "node_local_ok": true
+        },
+        {
+          "seed": 13,
+          "neuron0_max_H_A": 0.03308511897921562,
+          "neuron1_max_H_A": 0.0,
+          "neuron1_spike_steps": 0,
+          "node_local_ok": true
+        }
+      ]
+    }
+  },
+  "d3_status": "not_authorized",
+  "interpretation_deferred_to": "D3",
+  "scientific_contract": "activity -> H_A -> H_K -> b_eff -> X (state-space only; no adaptation phenotype claim)"
+}

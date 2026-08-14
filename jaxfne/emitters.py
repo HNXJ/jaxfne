@@ -1397,6 +1397,236 @@ def simulate_edge_recurrent_izhikevich_dynamic_h_k_recovery(
     return voltages, spikes, sources, final_state
 
 
+def _advance_h_a_trace(
+    H_A: jax.Array,
+    S: jax.Array,
+    dt: jax.Array,
+    tau_a_ms: jax.Array,
+) -> jax.Array:
+    """Protocol D2b — ``tau_A * dH_A/dt = -H_A + S`` with ``S in {0, 1}`` (Euler)."""
+    return H_A + dt * (-H_A + S) / tau_a_ms
+
+
+def _advance_h_k_activity_coupled(
+    H_K: jax.Array,
+    H_A_old: jax.Array,
+    dt: jax.Array,
+    tau_k_ms: jax.Array,
+    kappa_ak: jax.Array,
+) -> jax.Array:
+    """Protocol D2b — uses **old** ``H_A^n`` in the ``H_K`` update (causal one-step lag)."""
+    return H_K + dt * ((1.0 - H_K) + kappa_ak * H_A_old) / tau_k_ms
+
+
+def simulate_edge_recurrent_izhikevich_activity_h_k_rbd(
+    params: IzhikevichParams,
+    edges: EdgeList,
+    n_steps: int,
+    dt_ms: float,
+    key: jax.Array,
+    *,
+    h_a0: jax.Array | None = None,
+    h_k0: jax.Array,
+    tau_a_ms: float,
+    tau_k_ms: float,
+    kappa_ak: float,
+    dtype: str = "float32",
+    drive_schedule: "jax.Array | None" = None,
+    silence_mask: "jax.Array | None" = None,
+    noise_scale: "jax.Array | float | None" = None,
+    init_state: "dict | None" = None,
+) -> tuple[jax.Array, jax.Array, jax.Array, dict[str, jax.Array]]:
+    """Protocol D2b — two-coordinate RBS ``[H_A, H_K]`` with node-local spike drive.
+
+    Frozen discrete updates (causal ordering):
+
+    ``S^n`` — binary per-neuron spike indicator in ``{0, 1}`` (timestep-independent
+    unit event; not scaled by ``dt``).
+
+    ``H_A^{n+1} = H_A^n + dt/tau_A * (-H_A^n + S^n)``
+
+    ``H_K^{n+1} = H_K^n + dt/tau_K * ((1 - H_K^n) + kappa_AK * H_A^n)``
+
+    Emitter coupling at step ``n``: ``b_eff = H_K^n * b`` (D1 map).
+
+    ``kappa_AK = 0`` reduces to D2a ``H_K`` dynamics; ``H_A`` may still evolve from
+    local spikes but does not write ``H_K``.
+    """
+    if tau_a_ms <= 0 or tau_k_ms <= 0:
+        raise ValueError("tau_a_ms and tau_k_ms must be > 0")
+
+    delay_host = _edge_delay_steps_host(edges)
+    if np.any(delay_host > 0):
+        raise ValueError("activity H_K RBD kernel requires zero edge delays")
+
+    jdtype = _dtype_from_policy(dtype)
+    n_neurons = params.v0.shape[0]
+    h_k_init = jnp.asarray(h_k0, dtype=jdtype)
+    if h_k_init.shape != (n_neurons,):
+        raise ValueError(f"h_k0 must have shape ({n_neurons},), got {h_k_init.shape}")
+    if h_a0 is None:
+        h_a_init = jnp.zeros((n_neurons,), dtype=jdtype)
+    else:
+        h_a_init = jnp.asarray(h_a0, dtype=jdtype)
+        if h_a_init.shape != (n_neurons,):
+            raise ValueError(f"h_a0 must have shape ({n_neurons},), got {h_a_init.shape}")
+
+    try:
+        h_host = np.asarray(jax.device_get(h_k_init))
+        ha_host = np.asarray(jax.device_get(h_a_init))
+    except (jax.errors.TracerArrayConversionError, TypeError, ValueError):
+        h_host = ha_host = None
+    if h_host is not None and np.any(h_host <= 0):
+        raise ValueError("D2b requires H_K > 0")
+    if ha_host is not None and np.any(ha_host < 0):
+        raise ValueError("D2b requires H_A >= 0")
+
+    a = params.a.astype(jdtype)
+    b = params.b.astype(jdtype)
+    c = params.c.astype(jdtype)
+    d = params.d.astype(jdtype)
+    drive = params.drive.astype(jdtype)
+    source_scale = params.source_scale.astype(jdtype)
+    dt = jnp.asarray(dt_ms, dtype=jdtype)
+    tau_a = jnp.asarray(tau_a_ms, dtype=jdtype)
+    tau_k = jnp.asarray(tau_k_ms, dtype=jdtype)
+    kappa = jnp.asarray(kappa_ak, dtype=jdtype)
+    noise_coef = (
+        jnp.asarray(0.5, dtype=jdtype)
+        if noise_scale is None
+        else jnp.asarray(noise_scale, dtype=jdtype)
+    )
+    pre = edges.pre.astype(jnp.int32)
+    post = edges.post.astype(jnp.int32)
+    weight = edges.weight.astype(jdtype)
+    tau_ms = jnp.maximum(edges.tau_ms.astype(jdtype), jnp.asarray(1e-6, dtype=jdtype))
+    decay = jnp.exp(-dt / tau_ms)
+    w_initial = weight
+
+    if silence_mask is not None:
+        s_mask = silence_mask.astype(jdtype)
+    else:
+        s_mask = jnp.ones(params.v0.shape[0], dtype=jdtype)
+
+    key, noise_key = jax.random.split(key)
+    bulk_noise = jax.random.normal(
+        noise_key, shape=(int(n_steps), params.v0.shape[0]), dtype=jdtype
+    )
+
+    if init_state is None:
+        init = (
+            params.v0.astype(jdtype),
+            params.u0.astype(jdtype),
+            jnp.zeros_like(params.v0, dtype=jdtype),
+            jnp.zeros((edges.n_edges,), dtype=jdtype),
+            h_a_init,
+            h_k_init,
+        )
+    else:
+        init = (
+            jnp.asarray(init_state["v"], dtype=jdtype),
+            jnp.asarray(init_state["u"], dtype=jdtype),
+            jnp.asarray(init_state["prev_spikes"], dtype=jdtype),
+            jnp.asarray(init_state["syn_state"], dtype=jdtype),
+            jnp.asarray(init_state.get("H_A", h_a_init), dtype=jdtype),
+            jnp.asarray(init_state.get("H_K", h_k_init), dtype=jdtype),
+        )
+
+    def _rbd_updates(H_A: jax.Array, H_K: jax.Array, S: jax.Array) -> tuple[jax.Array, jax.Array]:
+        H_A_old = H_A
+        H_A_next = _advance_h_a_trace(H_A_old, S, dt, tau_a)
+        H_K_next = _advance_h_k_activity_coupled(H_K, H_A_old, dt, tau_k, kappa)
+        return H_A_next, H_K_next
+
+    if drive_schedule is None:
+
+        def step(carry, noise_t):
+            v, u, prev_spikes, syn_state, H_A, H_K = carry
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = drive + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            S_n = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + S_n[pre]
+            H_A_next, H_K_next = _rbd_updates(H_A, H_K, S_n)
+            source_proxy = _source_proxy_from_components(
+                current_native, S_n, source_scale, dtype=jdtype
+            )
+            return (v_reset, u_reset, S_n, syn_next, H_A_next, H_K_next), (
+                v_reset,
+                u_reset,
+                S_n,
+                source_proxy,
+                H_A_next,
+                H_K_next,
+                S_n,
+            )
+
+        final, outs = jax.lax.scan(step, init, xs=bulk_noise)
+    else:
+        sched = drive_schedule.astype(jdtype)
+
+        def step_sched(carry, xs_t):
+            sched_t, noise_t = xs_t
+            v, u, prev_spikes, syn_state, H_A, H_K = carry
+            edge_current = weight * syn_state
+            syn = _segment_sum(edge_current, post, n_neurons)
+            current_native = drive + sched_t + syn + noise_coef * noise_t
+            dv, du = _izhikevich_dv_du_recovery_h_k(v, u, current_native, a, b, H_K)
+            v_next = v + dt * dv
+            u_next = u + dt * du
+            v_next = jnp.where(s_mask > 0.5, v_next, c)
+            spikes_bool = (v_next >= 30.0) & (s_mask > 0.5)
+            S_n = spikes_bool.astype(jdtype)
+            v_reset = jnp.where(spikes_bool, c, v_next)
+            u_reset = jnp.where(spikes_bool, u_next + d, u_next)
+            syn_next = syn_state * decay + S_n[pre]
+            H_A_next, H_K_next = _rbd_updates(H_A, H_K, S_n)
+            source_proxy = _source_proxy_from_components(
+                current_native, S_n, source_scale, dtype=jdtype
+            )
+            return (v_reset, u_reset, S_n, syn_next, H_A_next, H_K_next), (
+                v_reset,
+                u_reset,
+                S_n,
+                source_proxy,
+                H_A_next,
+                H_K_next,
+                S_n,
+            )
+
+        final, outs = jax.lax.scan(step_sched, init, xs=(sched, bulk_noise))
+
+    voltages, u_trace, spikes, sources, H_A_trace, H_K_trace, S_trace = outs
+    final_state = {
+        "v": final[0],
+        "u": final[1],
+        "prev_spikes": final[2],
+        "syn_state": final[3],
+        "u_trace": u_trace,
+        "H_A_trace": H_A_trace,
+        "H_K_trace": H_K_trace,
+        "H_trace": jnp.stack([H_A_trace, H_K_trace], axis=-1),
+        "S_trace": S_trace,
+        "H_A_final": final[4],
+        "H_K_final": final[5],
+        "H_A0": h_a_init,
+        "H_K0": h_k_init,
+        "tau_a_ms": tau_a,
+        "tau_k_ms": tau_k,
+        "kappa_ak": kappa,
+        "w_initial": w_initial,
+        "w_final": weight,
+    }
+    return voltages, spikes, sources, final_state
+
+
 RBD_FAMILIES = ("f0", "f1", "f2")
 RbdFamily = Literal["f0", "f1", "f2"]
 

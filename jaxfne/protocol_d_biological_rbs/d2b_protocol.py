@@ -10,6 +10,9 @@ from jaxfne.protocol_d_biological_rbs.d0_protocol import PROTOCOL_ID
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 D2B_SPEC_PATH = _REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d2b_activity_h_k_coupling_spec.json"
+D2B_EXECUTION_RECEIPT_PATH = (
+    _REPO_ROOT / "artifacts" / "protocol_d_biological_rbs" / "d2b_implementation_receipt.json"
+)
 
 
 def load_d2b_spec(path: Path | None = None) -> dict[str, Any]:

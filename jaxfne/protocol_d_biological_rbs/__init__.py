@@ -33,9 +33,15 @@ from .d2a_execution import (
     write_d2a_execution_receipt,
 )
 from .d2b_protocol import (
+    D2B_EXECUTION_RECEIPT_PATH,
     D2B_SPEC_PATH,
     load_d2b_spec,
     validate_d2b_spec,
+)
+from .d2b_execution import (
+    load_d2b_execution_receipt,
+    run_d2b_activity_h_k_coupling,
+    write_d2b_execution_receipt,
 )
 
 __all__ = [
@@ -62,6 +68,10 @@ __all__ = [
     "run_d2a_autonomous_relaxation",
     "write_d2a_execution_receipt",
     "D2B_SPEC_PATH",
+    "D2B_EXECUTION_RECEIPT_PATH",
     "load_d2b_spec",
     "validate_d2b_spec",
+    "load_d2b_execution_receipt",
+    "run_d2b_activity_h_k_coupling",
+    "write_d2b_execution_receipt",
 ]

@@ -98,8 +98,9 @@ def test_d2b_validate_spec_passes():
     validate_d2b_spec()
 
 
-def test_d2b_protocol_receipt_frozen():
+def test_d2b_protocol_receipt_closed_after_implementation():
     receipt = json.loads((D2B_SPEC_PATH.parent / "d2b_protocol_receipt.json").read_text())
-    assert receipt["status"] == "FROZEN"
-    assert receipt["implementation_authorized"] is False
-    assert receipt["next_checkpoint"] == "D2b_implementation"
+    assert receipt["status"] == "CLOSED"
+    assert receipt["implementation_authorized"] is True
+    assert receipt["next_checkpoint"] == "D3"
+    assert "execution_receipt" in receipt
