@@ -1,10 +1,16 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0 **specified** — composition experiment; **not** implemented  
-**Spec:** `artifacts/protocol_e_integration/e0_composition_spec.json`  
+**Status:** E0.1 ladder **frozen**; **E1 implementation authorized** (not yet executed)  
+**Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
+
+**Specs:**  
+- E0: `artifacts/protocol_e_integration/e0_composition_spec.json`  
+- E0.1: `artifacts/protocol_e_integration/e0_1_implementation_ladder_spec.json`  
+- E1: `artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json`
+
 **Prerequisites:** Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved
 
-## Central question
+## Central question (E0)
 
 \[
 \boxed{
@@ -15,57 +21,98 @@ hierarchical multi-area system without semantic or dynamical failure?}
 
 E is a **composition experiment**, not a phenotype-manufacturing experiment.
 
-## Composition stack
+## Composition target
 
 \[
 \boxed{
-\begin{aligned}
-&\text{structured multi-area/laminar geometry}\\
-+&\text{heterogeneous emitters/populations}\\
-+&\text{explicit delays}\\
-+&\text{RBS/RBD under }\dot W=0\\
-+&\text{Source}\rightarrow\text{Field/Proxy}\rightarrow\text{Probe}
-\end{aligned}}
-\]
-
-## Primary success criteria (compositional invariants)
-
-- Finite stable dynamics over preregistered horizon
-- Exact geometry/topology identity preserved
-- Delay continuation semantics honored
-- RBS node-locality and typed coupling preserved
-- Source/field/probe bookkeeping explicit
-- Deterministic reproducibility under fixed seeds
-
-**Not required:** preferred gamma/beta patterns, adaptation phenotype, closed-loop memory.
-
-## Explicit blocks
-
-| Block | Status |
-|-------|--------|
-| W3 closed-loop HDP | **unresolved** — \(\dot W=0\) only |
-| D3 adaptation requirement | **NO_ADAPTATION frozen** — do not require D2b adaptation in E |
-| D4 second RBS class | **not authorized** |
-
-## Methodological inheritance from D3
-
-\[
-\boxed{
-\text{Every E phenotype claim requires a mechanism-null contrast.}
+\text{geometry}
++
+\text{heterogeneous populations}
++
+\text{delays}
++
+\text{RBS/RBD}
++
+S\rightarrow F/P
+\rightarrow
+\text{one coherent hierarchical system}
 }
 \]
 
-D3 showed identical observable attenuation across mechanistic nulls; baseline-vs-perturbation
-alone is insufficient.
+**Naming:** heterogeneous **populations/parameters** within one emitter family (e.g. Izhikevich) is not the same as heterogeneous **emitter equations** (\(F_X\) families).
 
-## Secondary questions (deferred)
+## E0.1 implementation ladder (frozen)
 
-Feedforward/feedback spectral hypotheses and population oscillation claims are
-**secondary** and preregister only after E0 compositional substrate gates pass.
+\[
+\boxed{
+E1\ \text{hierarchy/runtime}
+\rightarrow
+E2\ \text{delayed coupling}
+\rightarrow
+E3\ \text{RBS composition}
+\rightarrow
+E4\ \text{observation chain}
+\rightarrow
+E5\ \text{integrated perturbation}
+}
+\]
+
+### Integration monotonicity
+
+> Adding a validated TFNE layer must not invalidate previously established lower-layer semantics.
+
+\[
+E1 \subset E2 \subset E3 \subset E4
+\]
+
+**Reduction contracts (required):**
+
+| Contract | When | Must recover |
+|----------|------|--------------|
+| R\_E2→E1 | delays = 0 | E1-like coupling |
+| R\_E3→E2 | RBS at reference \(H=H^\*\) | E2 dynamics |
+| R\_E4→E3 | observation removed | E3 trajectories unchanged |
+
+### Checkpoint scope summary
+
+| ID | Adds | Excludes |
+|----|------|----------|
+| **E1** | Two-area laminar hierarchy, E/PV populations, FF/FB ownership, zero delay | RBS, delays, observation, phenotype |
+| **E2** | \(\mathcal G \to \tau_{ij} \to X\), `delay_state` continuation | RBS, wave claims |
+| **E3** | RBS/RBD on selected populations; \(H=H^\*\Rightarrow E3=E2\) | D3 adaptation target |
+| **E4** | \(X,H\to Q\to\Phi\to P\to Y\) (Experiment-A semantics) | Stronger-than-proxy field claims |
+| **E5** | Integrated perturbation | — (requires E1–E4) |
+
+### E5 phenotype rule (from D3)
+
+\[
+\boxed{
+\text{phenotype evidence} = \text{perturbation effect} - \text{mechanism-null effect}
+}
+\]
+
+## E1 — hierarchy/runtime (authorized)
+
+Minimal **A1/A2** laminar hierarchy with **E** and **PV** populations (same Izhikevich family, distinct parameters), explicit **FF** (A1 L2/3 E → A2 L4) and **FB** (A2 L5 E → A1 L2/3), **zero delay**, **no RBS**.
+
+**Structural gates:** construction, identity recovery, FF/FB ownership, finite deterministic execution, reproducibility, no RBS/no delay.
+
+**Not required:** publication phenotype, spectral claims.
+
+## Explicit blocks (unchanged from E0)
+
+| Block | Status |
+|-------|--------|
+| W3 closed-loop HDP | **unresolved** |
+| D3 adaptation requirement | **NO_ADAPTATION frozen** |
+| D4 second RBS class | **not authorized** |
+| Monolithic E implementation | **prohibited** |
 
 ## Checkpoints
 
 | ID | Status |
 |----|--------|
-| E0 | Composition specification **frozen** |
-| E1+ | Not authorized |
+| E0 | Composition question **frozen** |
+| E0.1 | Implementation ladder + reduction contracts **frozen** |
+| E1 | Hierarchy/runtime spec **frozen**; **implementation authorized** |
+| E2–E5 | Not authorized (spec deferred) |

@@ -1,0 +1,97 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e0_1_spec.v1",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "checkpoint": "E0.1",
+  "status": "FROZEN",
+  "write_once": true,
+  "parent_spec": "artifacts/protocol_e_integration/e0_composition_spec.json",
+  "parent_head": "958993347163199b718a0274a06721d1d2f06bda",
+  "question": "How should E composition be implemented in layers with explicit reduction contracts, avoiding monolithic integration failure?",
+  "purpose": "Architectural decomposition only; no additional scientific theory beyond E0",
+  "implementation_ladder": {
+    "display": "E1 hierarchy/runtime -> E2 delayed coupling -> E3 RBS composition -> E4 observation chain -> E5 integrated perturbation",
+    "ordered_checkpoints": [
+      {
+        "id": "E1",
+        "label": "hierarchy/runtime",
+        "adds": "minimal two-area laminar hierarchy, heterogeneous populations/parameters, FF/FB ownership, zero delay",
+        "excludes": ["RBS", "nonzero_delays", "field/probe chain", "publication_phenotype"]
+      },
+      {
+        "id": "E2",
+        "label": "delayed coupling",
+        "adds": "validated delay machinery G -> tau_ij -> X with delay_state continuation",
+        "excludes": ["RBS", "observation_chain", "wave_claim"]
+      },
+      {
+        "id": "E3",
+        "label": "RBS composition",
+        "adds": "validated RBS/RBD slice on selected populations under dot W = 0",
+        "excludes": ["D3_adaptation_phenotype_target", "observation_chain"]
+      },
+      {
+        "id": "E4",
+        "label": "observation chain",
+        "adds": "X,H -> Q -> Phi -> P -> Y using Experiment-A semantics",
+        "excludes": ["stronger_field_claims_than_proxy", "neural_trajectory_mutation_by_probe"]
+      },
+      {
+        "id": "E5",
+        "label": "integrated perturbation experiment",
+        "adds": "full-stack perturbation with mechanism-null contrasts",
+        "requires": "E1-E4 gates pass"
+      }
+    ]
+  },
+  "integration_monotonicity_principle": {
+    "statement": "Adding a validated TFNE layer must not invalidate the previously established semantics of lower layers",
+    "containment": "E1 subset E2 subset E3 subset E4",
+    "explicit_reduction_tests_required": true
+  },
+  "reduction_contracts": [
+    {
+      "id": "R_E2_to_E1",
+      "when": "E2 delays set to zero",
+      "must_recover": "E1-like coupling and identity semantics"
+    },
+    {
+      "id": "R_E3_to_E2",
+      "when": "E3 RBS at reference/null (H = H*)",
+      "must_recover": "E2 dynamics where applicable"
+    },
+    {
+      "id": "R_E4_to_E3",
+      "when": "E4 observation operators removed or bypassed",
+      "must_recover": "E3 neural/source trajectories unchanged"
+    }
+  ],
+  "terminology": {
+    "heterogeneous_populations": "distinct population labels, layer/cell-type routing, and parameter sets within one emitter family",
+    "heterogeneous_emitter_equations": "genuinely different F_X realizations across populations",
+    "rule": "Do not describe E1 heterogeneous populations/parameters as heterogeneous emitter equations unless F_X families actually differ"
+  },
+  "methodological_inheritance_from_D3": {
+    "E5_phenotype_rule": "phenotype evidence = perturbation effect minus mechanism-null effect",
+    "forbidden": "baseline_vs_perturbation_without_mechanism_null",
+    "example": "FF/FB spectral claim requires contribution beyond matched null/ablation, not Y_FF != Y_baseline alone"
+  },
+  "authorization_policy": {
+    "E1": "implementation_authorized_after_E0_1_freeze",
+    "E2_through_E5": "specification_deferred_until_prior_checkpoint_closed"
+  },
+  "explicit_prohibitions": [
+    "no_monolithic_E_implementation",
+    "no_E2_implementation_at_E0_1",
+    "no_closed_loop_HDP",
+    "no_D3_adaptation_as_E_success_criterion",
+    "no_skip_reduction_tests"
+  ],
+  "execution_authorization": {
+    "specification_only": true,
+    "implementation_authorized": false,
+    "next_checkpoint": "E1_implementation"
+  },
+  "bundle_root": "artifacts/protocol_e_integration",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md"
+}

@@ -12,5 +12,5 @@
     "protocol_D_closed": "artifacts/protocol_d_biological_rbs/d_closure_interpretation_receipt.json"
   },
   "experiment_type": "composition_not_phenotype_manufacturing",
-  "next_checkpoint": "E0_implementation"
+  "next_checkpoint": "E0.1_specification"
 }

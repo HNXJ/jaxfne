@@ -57,4 +57,4 @@ def test_e0_protocol_receipt_frozen():
     receipt = json.loads((E0_SPEC_PATH.parent / "e0_protocol_receipt.json").read_text())
     assert receipt["status"] == "FROZEN"
     assert receipt["implementation_authorized"] is False
-    assert receipt["next_checkpoint"] == "E0_implementation"
+    assert receipt["next_checkpoint"] == "E0.1_specification"
