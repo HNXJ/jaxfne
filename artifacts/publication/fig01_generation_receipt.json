@@ -1,0 +1,19 @@
+{
+  "schema": "jaxfne.publication.fig01_generation_receipt.v1",
+  "checkpoint": "figure_1_generation",
+  "status": "CLOSED",
+  "write_once": true,
+  "pec_panel_id": "Fig01.grammar",
+  "pec_authority": "artifacts/publication/publication_evidence_index.json#Fig01.grammar",
+  "figure_path": "figures/publication/fig01_tfne_grammar.png",
+  "figure_sha256": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
+  "generator_script": "scripts/publication_figures/fig01_grammar.py",
+  "spec_path": "artifacts/publication/fig01_grammar_spec.json",
+  "semantic_audit_path": "artifacts/publication/fig01_semantic_audit.json",
+  "semantic_audit_status": "PASSED",
+  "repo_head": "270b85e7e7bd969841aeb14f653cfe5d88ce1f0e",
+  "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+  "takeaway": "TFNE factorizes neural biophysics into relative finite-dimensional state, typed dynamical operators, and transformable geometry.",
+  "next_checkpoint": "figures_2_4_generation",
+  "feature_freeze": "hard scientific feature freeze; no new science on publication path"
+}

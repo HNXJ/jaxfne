@@ -50,19 +50,25 @@
       "panel_id": "Fig01.grammar",
       "figure": 1,
       "panel": "TFNE_grammar_map",
-      "scientific_claim": "TFNE stages Emitter->Source->Field->Probe->Objective compose without collapsing semantics",
+      "scientific_claim": "TFNE factorizes neural biophysics into relative finite-dimensional state, typed dynamical operators, and transformable geometry (grammar map; no empirical results)",
       "claim_level": "REPRESENTATIONAL",
       "polarity": "POSITIVE",
-      "protocol_authority": "doctrine + AGENTS.md; not a single protocol receipt",
+      "protocol_authority": "doctrine + AGENTS.md; fig01_grammar_spec.json",
       "raw_receipt": null,
-      "interpretation_receipt": null,
+      "interpretation_receipt": "artifacts/publication/fig01_generation_receipt.json",
       "source_arrays": [],
-      "analysis_function": "DEFERRED: scripts/evidence_figures/fig01_architecture.py",
+      "analysis_function": "scripts/publication_figures/fig01_grammar.py",
       "semantic_status": "representational_grammar",
       "null_control": "not_applicable",
       "numeric_values_to_display": {},
-      "figure_generation_entry_point": "DEFERRED until figure_1 phase",
-      "reproducibility_sha": {"artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5"}
+      "figure_generation_entry_point": "scripts/publication_figures/fig01_grammar.py",
+      "figure_output": "figures/publication/fig01_tfne_grammar.png",
+      "semantic_audit": "artifacts/publication/fig01_semantic_audit.json",
+      "figure_sha256": "707c3fec9f4b6747551e994897f70910c41ff88d5ed5a7b6910b441bc2e65678",
+      "reproducibility_sha": {
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+        "figure_generation_repo_head": "270b85e7e7bd969841aeb14f653cfe5d88ce1f0e"
+      }
     },
     {
       "panel_id": "Fig02.canonical_Q",

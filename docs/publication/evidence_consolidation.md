@@ -35,14 +35,26 @@ Examples: H4 = `DEMONSTRATED + NEGATIVE`; C3 = `DEMONSTRATED + NEGATIVE`; D3 = `
 
 ## Publication sequence (authorized next steps)
 
-1. Evidence consolidation (**this checkpoint — complete**)
-2. Figure 1 (grammar map; draw after terminology frozen)
-3. Figures 2–4 (Experiment A)
+1. Evidence consolidation (**complete @ PEC**)
+2. Figure 1 grammar map (**complete @ fig01_generation_receipt**)
+3. Figures 2–4 (Experiment A) — **next authorized checkpoint**
 4. Figure 5 (Protocol C)
 5. Figure 6 (H / W / D)
 6. Figure 7 (E1–E5)
 7. Main-text reconstruction
 8. Supplement
+
+### Figure 1 authority
+
+| Artifact | Path |
+|----------|------|
+| Spec | `artifacts/publication/fig01_grammar_spec.json` |
+| Generator | `scripts/publication_figures/fig01_grammar.py` |
+| Output | `figures/publication/fig01_tfne_grammar.png` |
+| Semantic audit | `artifacts/publication/fig01_semantic_audit.json` |
+| Receipt | `artifacts/publication/fig01_generation_receipt.json` |
+
+Provenance: `artifact_introduction_commit` = PEC introduction (`c6d4c89`); verified checkpoint advances on `dev` without rewriting frozen PEC receipt.
 
 ## Feature freeze invariant
 

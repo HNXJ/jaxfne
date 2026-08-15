@@ -65,7 +65,9 @@ scripts/hdp_mvc_*.py
 
 # Development & local experimentation
 .cursor/
-figures/
+figures/*
+!figures/publication/
+!figures/publication/**
 internal_docs/
 reports/v1_spectrolaminar_10k/
 test_gpu.py
