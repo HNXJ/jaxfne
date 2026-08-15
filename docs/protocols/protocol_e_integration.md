@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed**; **E4 specification frozen** (implementation not authorized)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed**; **E4 closed** (implementation frozen; E5 not authorized)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -179,7 +179,7 @@ E3\equiv E2
 
 **Closed:** G1–G9 pass; E2 delay digest and hierarchy fingerprints inherited unchanged.
 
-## E4 — observation chain (spec frozen)
+## E4 — observation chain (closed)
 
 **Question:** Can the E3 hierarchical trajectory generate independently declared multiscale observations while preserving the underlying neural/source state?
 
@@ -200,27 +200,27 @@ E4\equiv E3
 
 \[
 \boxed{
-(X,H,\mathcal B,Q,\mathcal G)_{\mathrm{E4}}
+(X,H,\mathcal B,Q,\mathcal G)_{P_1}
 =
-(X,H,\mathcal B,Q,\mathcal G)_{\mathrm{E3}}
+(X,H,\mathcal B,Q,\mathcal G)_{P_2}
 }
 \]
-
-for identical simulation conditions regardless of downstream probe selection.
 
 **Workflow:** simulate once (E3 path) \(\rightarrow\) freeze \(X,H,Q,\mathcal B,\mathcal G\) \(\rightarrow\) apply multiple \(F/P\). No re-simulation per probe.
 
 **Experiment A inheritance:** reuse canonical relative \(Q\) (`signals.sources_canonical_relative_source`) and validated `project_laminar_sources` / `lfp_proxy_probe` / `csd_proxy_probe` semantics — **no integrated-model source variant**.
 
-**Primary evidence (conservative):** native `V_m`, spikes, first-class `Q`; `lfp_ref` relative proxy; shallow/deep LFP contacts; CSD-from-LFP relative proxy.
+**Primary evidence:** native `V_m`, spikes, first-class `Q`; `lfp_ref` relative proxy; shallow/deep LFP contacts; CSD-from-LFP finite-difference relative proxy.
 
-**Excluded from primary evidence:** EEG/MEG (`analysis_only`, deferred).
+**Hierarchy-aware source table:** \(Q \rightarrow (\mathrm{area},\mathrm{layer},\mathrm{cell\_type},t)\) with conservation \(\sum_{a,\ell,c}Q_{a,\ell,c}(t)=\sum_i Q_i(t)\).
 
-**Hierarchy-aware source table:** \(Q \rightarrow (\mathrm{area},\mathrm{layer},\mathrm{cell\_type},t)\) via frozen E1 identity map (Figure-7-facing; does not redefine \(Q\)).
+**Gates (G1–G10):** E3 reduction/neural invariance, single source-of-truth, source identity + T\_E4, probe independence, zero-source (declared operators), linearity (declared \(F\)), semantic status, hierarchy/provenance preservation, reproducibility, no phenotype claim.
 
-**Gates (G1–G10):** E3 reduction/neural invariance, single source-of-truth, source identity, probe independence, zero-source property, linearity (declared \(F\)), semantic status, hierarchy/provenance preservation, reproducibility, no phenotype claim.
+**Diagnostic (outside G1):** E3-dynamic observation run confirms non-reference \(H_K\) trajectories accept the same observation chain (not phenotype evidence).
 
-**Not authorized:** E4 implementation, observation feedback, new source definition, calibrated physical claims, spectral/FF/FB phenotype.
+**Receipt:** `artifacts/protocol_e_integration/e4_execution_receipt.json`
+
+**Closed:** G1–G10 pass; Experiment A semantics reused; source aggregation conservation verified.
 
 ## Explicit blocks (unchanged from E0)
 
@@ -240,5 +240,5 @@ for identical simulation conditions regardless of downstream probe selection.
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
 | E3 | RBS composition **closed** (G1–G9 pass; execution receipt frozen) |
-| E4 | Observation chain spec **frozen**; implementation **not authorized** |
+| E4 | Observation chain **closed** (G1–G10 pass; execution receipt frozen) |
 | E5 | Not authorized (spec deferred) |

@@ -1,0 +1,401 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e4_execution_receipt.v1",
+  "checkpoint": "E4",
+  "status": "FROZEN",
+  "write_once": true,
+  "package_head": "fe649a4de2624c141d808e0656757a56162ba16b",
+  "spec_path": "artifacts/protocol_e_integration/e4_observation_chain_spec.json",
+  "scientific_question": "Can the E3 hierarchical trajectory generate independently declared multiscale observations while preserving the underlying neural/source state?",
+  "composition_claim": "hierarchy + delays + local RBD + downstream observation without mutating E3 dynamics",
+  "reduction_contract": "R_E4_to_E3",
+  "trajectory_invariance_contract": "T_E4_probe_independent_neural_source",
+  "experiment_a_inheritance": {
+    "source_protocol": "artifacts/etudes/experiment_a/b0_protocol_spec.json",
+    "Q_contract": "signals.sources_canonical_relative_source",
+    "field_api": "jaxfne.fields.project_laminar_sources",
+    "probe_apis": [
+      "lfp_proxy_probe",
+      "csd_proxy_probe"
+    ]
+  },
+  "source_of_truth_hashes": {
+    "V_m": "be1273845364d2c4f44e1110c20905a1aad9581f83800f889004c56878b53417",
+    "spikes": "54da70bf171d48d7be7b16ff635e082c62ea4b0cbffe6c334fadd64fc5aa4a48",
+    "Q": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+    "H_K": "6898b3dd12bef4c2d48388d54d98607ae5a3a3847dc24a4a5737df6c26957597",
+    "delay_state": "4a3e61ee01be930bcc453b5081e028e80a3122bad2bf7d2fc8880a000d217cfa",
+    "positions": "e1f4431e2a46b3eab3934887570e5f53202cf58690335614a6994e4c5750e460",
+    "identity_map": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963"
+  },
+  "hierarchy_aware_source_table": {
+    "display": "Q -> (area, layer, cell_type, t)",
+    "identity_source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map",
+    "conservation": {
+      "passed": true,
+      "max_abs_conservation_error": 0.0,
+      "n_groups": 16,
+      "rule": "sum_{a,l,c} Q_{a,l,c}(t) = sum_i Q_i(t)"
+    },
+    "groups": [
+      {
+        "area": "A1",
+        "layer": "L2",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "b74aad026d0fe8245cda7f39e9ac0035b72553d6a4400bcdbe75e0493f188814"
+      },
+      {
+        "area": "A1",
+        "layer": "L2",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "23581f2d2b844c5b45eb9a31df17cf2de4a57002322ed38098c5aeeff0416d1b"
+      },
+      {
+        "area": "A1",
+        "layer": "L3",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "fe9959ed5ed4c8a3064a0144db371f742d240c608aa4b7d8a512a56518e5e609"
+      },
+      {
+        "area": "A1",
+        "layer": "L3",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "88525da01f8a5e7791930d318a055559b87ab5272160f193360fc99f66c93419"
+      },
+      {
+        "area": "A1",
+        "layer": "L4",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "c53e6fb828ea4173e4806a792a14c1bb86ff60c14239a41169544e51643309d9"
+      },
+      {
+        "area": "A1",
+        "layer": "L4",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "9b13b8d2ae07034984a6ab27fcb2a2295aa84a84b55166658f3228e70fa48d3a"
+      },
+      {
+        "area": "A1",
+        "layer": "L5",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "fca49e767345a3db913fc78b87fc7821cb9c59b2eea23cc49500ba433b4053a3"
+      },
+      {
+        "area": "A1",
+        "layer": "L5",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "7c6b28902aa7658d9c59f5eed4b94261dcb6295071743176f60a26be6c4cac60"
+      },
+      {
+        "area": "A2",
+        "layer": "L2",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "191c216e46aea69003a8fb464f3202bfdcf0c485b562e359eba80a55e7dece06"
+      },
+      {
+        "area": "A2",
+        "layer": "L2",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "0c47958de1363d633c1b6727d0dbc3f4df881353cd5ffac71c01f4fd14b807df"
+      },
+      {
+        "area": "A2",
+        "layer": "L3",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "3096e571f7cc7ccc475cc0fa60cac5a7f9e61dd94152fd5b915b51e51d194ca1"
+      },
+      {
+        "area": "A2",
+        "layer": "L3",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "05a51961eea77dbe367db817afefb4f44a5cac364e3d1b90b7af052207880629"
+      },
+      {
+        "area": "A2",
+        "layer": "L4",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "74925b7b929ec6db6caa12240ef1e0748fa4bdfca128373025ce2f83ebb0fd43"
+      },
+      {
+        "area": "A2",
+        "layer": "L4",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "e5c006e3509f9328228d3a40520a56d31d0d173036a5cf9d219685a48b5365d3"
+      },
+      {
+        "area": "A2",
+        "layer": "L5",
+        "cell_type": "E",
+        "n_neurons": 7,
+        "Q_series_hash": "9342a33a8f6edab3d241aa233e53d46ed6cb7986e6ab50054a7aaea49d55e0d3"
+      },
+      {
+        "area": "A2",
+        "layer": "L5",
+        "cell_type": "PV",
+        "n_neurons": 3,
+        "Q_series_hash": "59eff17530864325ebb4d09c8ed9451889c6f7edce4947b28f897c9ee048bd50"
+      }
+    ],
+    "flat_Q_hash": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd"
+  },
+  "semantic_status_table": [
+    {
+      "output": "V_m",
+      "status": "native"
+    },
+    {
+      "output": "spikes",
+      "status": "native/event"
+    },
+    {
+      "output": "Q",
+      "status": "canonical relative source"
+    },
+    {
+      "output": "lfp_ref",
+      "status": "relative proxy"
+    },
+    {
+      "output": "lfp_contact_shallow",
+      "status": "relative proxy"
+    },
+    {
+      "output": "lfp_contact_deep",
+      "status": "relative proxy"
+    },
+    {
+      "output": "csd_from_lfp_ref",
+      "status": "relative proxy / finite-difference semantics"
+    },
+    {
+      "output": "EEG",
+      "status": "analysis-only / not computed"
+    },
+    {
+      "output": "MEG",
+      "status": "analysis-only / not computed"
+    }
+  ],
+  "inherited_e3_execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+  "inherited_e3_hierarchy_fingerprints": {
+    "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+    "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+    "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+  },
+  "inherited_e3_delay_digest": "1c9e28c9daec177bd869939fad865d4b13a7aaf0b83f68e4f5f1d744a4165b71",
+  "primary_observations_seed11": {
+    "phi_ref_hash": "9c0d9c12bcb9dd558925da5a9b0ebd7f2cc81197d6d8a2eea604548f0cf38918",
+    "Y_hashes": {
+      "lfp_contact_shallow": "018208c047d121cfda1e9058eac1201253ca84da10848caaeadc0a58c972d39e",
+      "lfp_contact_deep": "9f9b5bfb5f086b6385cf0631cd0662fb73e3fb46e8a09e122239eebeab78b564",
+      "csd_from_lfp_ref": "e398affe45acb2165cf75a16e83e27aaba72234553c9e37b4f1dfe3ed05b9b57"
+    },
+    "source_hashes_cited": {
+      "V_m": "be1273845364d2c4f44e1110c20905a1aad9581f83800f889004c56878b53417",
+      "spikes": "54da70bf171d48d7be7b16ff635e082c62ea4b0cbffe6c334fadd64fc5aa4a48",
+      "Q": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+      "H_K": "6898b3dd12bef4c2d48388d54d98607ae5a3a3847dc24a4a5737df6c26957597",
+      "delay_state": "4a3e61ee01be930bcc453b5081e028e80a3122bad2bf7d2fc8880a000d217cfa",
+      "positions": "e1f4431e2a46b3eab3934887570e5f53202cf58690335614a6994e4c5750e460",
+      "identity_map": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963"
+    }
+  },
+  "e3_dynamic_observation_diagnostic": {
+    "outside_g1_reduction": true,
+    "outside_phenotype_claims": true,
+    "neural_mode": "E3-dynamic",
+    "seed": 11,
+    "max_abs_H_K_minus_1_owners": 0.19900000095367432,
+    "observation_completed": true,
+    "phi_ref_hash": "da88d2c3e1291e4bd08b2d4290918d86c1c446785ff9c47a09949afc06606945",
+    "interpretation": "non-reference H trajectory accepts same observation chain; not phenotype evidence"
+  },
+  "gates": {
+    "G1_e3_reduction_neural_invariance": {
+      "passed": true,
+      "path": "E4 neural-only (observation disabled) vs E3-null direct kernel",
+      "seeds": [
+        {
+          "seed": 11,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "Q_bit_exact": true,
+          "H_K_bit_exact": true,
+          "delay_state_bit_exact": true,
+          "passed": true
+        },
+        {
+          "seed": 12,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "Q_bit_exact": true,
+          "H_K_bit_exact": true,
+          "delay_state_bit_exact": true,
+          "passed": true
+        },
+        {
+          "seed": 13,
+          "V_m_bit_exact": true,
+          "spikes_bit_exact": true,
+          "Q_bit_exact": true,
+          "H_K_bit_exact": true,
+          "delay_state_bit_exact": true,
+          "passed": true
+        }
+      ]
+    },
+    "G2_single_source_of_truth": {
+      "passed": true,
+      "simulate_once_per_seed": true,
+      "source_hashes": {
+        "V_m": "be1273845364d2c4f44e1110c20905a1aad9581f83800f889004c56878b53417",
+        "spikes": "54da70bf171d48d7be7b16ff635e082c62ea4b0cbffe6c334fadd64fc5aa4a48",
+        "Q": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+        "H_K": "6898b3dd12bef4c2d48388d54d98607ae5a3a3847dc24a4a5737df6c26957597",
+        "delay_state": "4a3e61ee01be930bcc453b5081e028e80a3122bad2bf7d2fc8880a000d217cfa",
+        "positions": "e1f4431e2a46b3eab3934887570e5f53202cf58690335614a6994e4c5750e460",
+        "identity_map": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963"
+      },
+      "n_probes_applied": 3
+    },
+    "G3_source_identity": {
+      "passed": true,
+      "Q_hash": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+      "trajectory_invariance_T_E4": {
+        "passed": true,
+        "display": "(X,H,B,Q,G)_P1 = (X,H,B,Q,G)_P2",
+        "cause_hashes_unchanged_after_all_probes": true
+      },
+      "probe_Q_hashes": {
+        "lfp_contact_shallow": {
+          "before": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+          "after": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd"
+        },
+        "lfp_contact_deep": {
+          "before": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+          "after": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd"
+        },
+        "csd_from_lfp_ref": {
+          "before": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd",
+          "after": "226b359aa69163d3ce1745cb56764a795029048866b73d8a48aef7434fa7abdd"
+        }
+      }
+    },
+    "G4_probe_independence": {
+      "passed": true,
+      "phi_ref_hash_shared": "9c0d9c12bcb9dd558925da5a9b0ebd7f2cc81197d6d8a2eea604548f0cf38918",
+      "shallow_vs_deep_rel_distinctness": 0.08167652785778046,
+      "probe_distinct": true
+    },
+    "G5_zero_source_property": {
+      "passed": true,
+      "checks": {
+        "project_laminar_sources_phi_max": 0.0,
+        "lfp_proxy_probe_max": 0.0,
+        "csd_proxy_probe_max": 0.0
+      }
+    },
+    "G6_linearity": {
+      "passed": true,
+      "max_abs_superposition_error": 4.57763671875e-05,
+      "operator": "project_laminar_sources",
+      "tolerance": "float32_superposition"
+    },
+    "G7_semantic_status": {
+      "passed": true,
+      "semantic_status_table": [
+        {
+          "output": "V_m",
+          "status": "native"
+        },
+        {
+          "output": "spikes",
+          "status": "native/event"
+        },
+        {
+          "output": "Q",
+          "status": "canonical relative source"
+        },
+        {
+          "output": "lfp_ref",
+          "status": "relative proxy"
+        },
+        {
+          "output": "lfp_contact_shallow",
+          "status": "relative proxy"
+        },
+        {
+          "output": "lfp_contact_deep",
+          "status": "relative proxy"
+        },
+        {
+          "output": "csd_from_lfp_ref",
+          "status": "relative proxy / finite-difference semantics"
+        },
+        {
+          "output": "EEG",
+          "status": "analysis-only / not computed"
+        },
+        {
+          "output": "MEG",
+          "status": "analysis-only / not computed"
+        }
+      ]
+    },
+    "G8_hierarchy_provenance_preservation": {
+      "passed": true,
+      "pre_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      },
+      "post_fingerprints": {
+        "identity_digest": "aa768b3b8cab0fc1e5c5de76fa7f1d8a2ce35c8940b6b6ced4dc27e1c02d9963",
+        "provenance_digest": "8e0ac2ded42f15e03202125c99d5e07621b95adc2c4d96d1bf0089ce90ce1a86",
+        "edge_topology_digest": "f25a3f3dd140f088600acfb2b84d6dd668325837503882152a88f2dd8253f6ac"
+      },
+      "delay_table_digest": "1c9e28c9daec177bd869939fad865d4b13a7aaf0b83f68e4f5f1d744a4165b71",
+      "e3_rbs_owner_unchanged": {
+        "area": "A2",
+        "layer": "L5",
+        "cell_type": "E",
+        "n_nodes": 7,
+        "flat_indices": [
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76
+        ],
+        "identity_source": "artifacts/protocol_e_integration/e1_execution_receipt.json#identity_map"
+      }
+    },
+    "G9_reproducibility": {
+      "passed": true,
+      "same_sot_same_Y": true,
+      "same_seed_same_sot_hashes": true
+    },
+    "G10_no_phenotype_claim": {
+      "passed": true,
+      "statement": "observation outputs are composition evidence only; no FF/FB/spectral/adaptation claim",
+      "forbidden_metrics_absent": true
+    }
+  },
+  "e5_deferred": "integrated perturbation with mechanism-null contrasts only"
+}

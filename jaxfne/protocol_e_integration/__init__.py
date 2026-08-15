@@ -54,12 +54,18 @@ from .e3_execution import (
     write_e3_execution_receipt,
 )
 from .e4_protocol import (
+    E4_EXECUTION_RECEIPT_PATH,
     E4_SPEC_PATH,
     e4_gate_ids,
     e4_primary_field_ids,
     e4_primary_probe_ids,
     load_e4_spec,
     validate_e4_spec,
+)
+from .e4_execution import (
+    load_e4_execution_receipt,
+    run_e4_observation_composition,
+    write_e4_execution_receipt,
 )
 from .e1_execution import (
     build_edge_provenance_table,
@@ -126,4 +132,8 @@ __all__ = [
     "e4_gate_ids",
     "e4_primary_field_ids",
     "e4_primary_probe_ids",
+    "E4_EXECUTION_RECEIPT_PATH",
+    "run_e4_observation_composition",
+    "write_e4_execution_receipt",
+    "load_e4_execution_receipt",
 ]
