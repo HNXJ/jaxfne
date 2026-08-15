@@ -164,6 +164,36 @@ def _build_c3_model(
     return model
 
 
+def _cell_row(
+    spec: dict[str, Any],
+    *,
+    condition: dict[str, Any],
+    seed: int,
+    vm: np.ndarray,
+    est: Any,
+    delay_steps: np.ndarray,
+) -> dict[str, Any]:
+    vc_diag = None
+    if condition["delay_policy"] == "geometry_derived" and est.classification == "TRAVELING_WAVE":
+        vc = float(spec["delay_construction"]["geometry_derived"]["conduction_velocity_mm_per_ms"])
+        if math.isfinite(est.phase_velocity) and vc > 0:
+            vc_diag = abs(float(est.phase_velocity) - vc) / vc
+    row = {
+        "condition_id": condition["id"],
+        "seed": int(seed),
+        "geometry_layout": condition["geometry_layout"],
+        "delay_policy": condition["delay_policy"],
+        "delay_steps": delay_steps.tolist(),
+        "estimator": est.to_dict(),
+        "substrate": "V_m",
+        "n_steps": int(vm.shape[0]),
+        "n_neurons": int(vm.shape[1]),
+    }
+    if vc_diag is not None:
+        row["v_c_diagnostic_ratio"] = float(vc_diag)
+    return row
+
+
 def _simulate_cell(
     spec: dict[str, Any],
     *,
@@ -172,6 +202,25 @@ def _simulate_cell(
     seed: int,
     reference_delays: dict[str, np.ndarray],
 ) -> dict[str, Any]:
+    vm, positions, est, delay_steps = _simulate_cell_arrays(
+        spec,
+        condition=condition,
+        condition_index=condition_index,
+        seed=seed,
+        reference_delays=reference_delays,
+    )
+    _ = positions
+    return _cell_row(spec, condition=condition, seed=seed, vm=vm, est=est, delay_steps=delay_steps)
+
+
+def _simulate_cell_arrays(
+    spec: dict[str, Any],
+    *,
+    condition: dict[str, Any],
+    condition_index: int,
+    seed: int,
+    reference_delays: dict[str, np.ndarray],
+) -> tuple[np.ndarray, np.ndarray, Any, np.ndarray]:
     topo = spec["frozen_topology_and_weights"]
     n = int(topo["n_neurons"])
     sim_pol = spec["simulation_policy"]
@@ -207,25 +256,7 @@ def _simulate_cell(
     positions = _estimator_positions(spec, condition, condition_index)
     vm = np.asarray(signals.V_m, dtype=np.float64)
     est = estimate_traveling_wave(vm, positions, dt_ms=dt_ms, spec=load_protocol_spec())
-    vc_diag = None
-    if condition["delay_policy"] == "geometry_derived" and est.classification == "TRAVELING_WAVE":
-        vc = float(spec["delay_construction"]["geometry_derived"]["conduction_velocity_mm_per_ms"])
-        if math.isfinite(est.phase_velocity) and vc > 0:
-            vc_diag = abs(float(est.phase_velocity) - vc) / vc
-    row = {
-        "condition_id": condition["id"],
-        "seed": int(seed),
-        "geometry_layout": condition["geometry_layout"],
-        "delay_policy": condition["delay_policy"],
-        "delay_steps": delay_steps.tolist(),
-        "estimator": est.to_dict(),
-        "substrate": "V_m",
-        "n_steps": int(vm.shape[0]),
-        "n_neurons": int(vm.shape[1]),
-    }
-    if vc_diag is not None:
-        row["v_c_diagnostic_ratio"] = float(vc_diag)
-    return row
+    return vm, positions, est, delay_steps
 
 
 def run_c3_prospective_execution(
@@ -273,3 +304,38 @@ def write_c3_execution_receipt(*, package_head: str | None = None) -> dict[str, 
 
 def load_c3_execution_receipt() -> dict[str, Any]:
     return json.loads(C3_EXECUTION_RECEIPT_PATH.read_text())
+
+
+def replay_c3_cell(
+    condition_id: str,
+    seed: int,
+    *,
+    spec: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Re-run one preregistered C3 cell for deterministic display (not new science)."""
+    spec = spec or load_c3_spec()
+    validate_c3_spec(spec)
+    conditions = spec["design_matrix"]["conditions"]
+    condition = next(c for c in conditions if c["id"] == condition_id)
+    ci = conditions.index(condition)
+    reference_delays: dict[str, np.ndarray] = {}
+    for i, cond in enumerate(conditions):
+        if cond["delay_policy"] in ("uniform", "geometry_derived"):
+            reference_delays[cond["id"]] = _delay_steps_for_condition(
+                spec, cond, i, reference_delays=reference_delays
+            )
+    vm, positions, est, delay_steps = _simulate_cell_arrays(
+        spec,
+        condition=condition,
+        condition_index=ci,
+        seed=int(seed),
+        reference_delays=reference_delays,
+    )
+    row = _cell_row(spec, condition=condition, seed=int(seed), vm=vm, est=est, delay_steps=delay_steps)
+    return {
+        "row": row,
+        "V_m": vm,
+        "positions": positions,
+        "estimator": est,
+        "delay_steps": delay_steps,
+    }

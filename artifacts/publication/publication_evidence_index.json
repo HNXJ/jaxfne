@@ -162,9 +162,14 @@
       "semantic_status": "estimator_validated_synthetic_only",
       "null_control": "synthetic ground truth",
       "numeric_values_to_display": {"evidence_level_estimator": "C1_VALIDATED_SYNTHETIC_ONLY"},
-      "figure_generation_entry_point": "DEFERRED: figure_5 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig05_protocol_c.py",
+      "figure_output": "figures/publication/fig05_traveling_wave_no_wave.png",
+      "generation_receipt": "artifacts/publication/fig05_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig05_semantic_audit.json",
+      "figure_sha256": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+      "polarity_combined": "DEMONSTRATED + NEGATIVE (prospective NO_WAVE)",
       "reproducibility_sha": {
-        "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_c/c4_interpretation_receipt.json#package_head"
       }
     },
@@ -186,9 +191,15 @@
         "outcome_letter": "C",
         "p_W_ordered_geometry_derived": 0.0
       },
-      "figure_generation_entry_point": "DEFERRED: figure_5 phase",
+      "figure_generation_entry_point": "scripts/publication_figures/fig05_protocol_c.py",
+      "figure_output": "figures/publication/fig05_traveling_wave_no_wave.png",
+      "generation_receipt": "artifacts/publication/fig05_generation_receipt.json",
+      "semantic_audit": "artifacts/publication/fig05_semantic_audit.json",
+      "figure_sha256": "f7f9a49439c134cde41333512694ad676e08bb9eb174ac1ae6a0f20b7171a1b2",
+      "polarity_combined": "DEMONSTRATED + NEGATIVE",
+      "outcome_letter": "C",
       "reproducibility_sha": {
-        "artifact_commit_sha": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
+        "artifact_introduction_commit": "c6d4c893291f568d02c3aba20969ddcd13825bb5",
         "execution_parent_sha": "artifacts/protocol_c/c4_interpretation_receipt.json#package_head"
       }
     },

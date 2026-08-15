@@ -31,6 +31,18 @@ from .fig02_04_protocol import (
     validate_fig02_04_receipts,
     validate_fig02_04_spec,
 )
+from .fig05_protocol import (
+    FIG05_AUDIT_PATH,
+    FIG05_PATH,
+    FIG05_RECEIPT_PATH,
+    FIG05_SPEC_PATH,
+    load_fig05_generation_receipt,
+    load_fig05_semantic_audit,
+    load_fig05_spec,
+    validate_fig05_generation_receipt,
+    validate_fig05_semantic_audit,
+    validate_fig05_spec,
+)
 from .pec_protocol import (
     PEC_CONSOLIDATION_RECEIPT_PATH,
     PEC_SPEC_PATH,
@@ -61,6 +73,10 @@ __all__ = [
     "FIG03_PATH",
     "FIG04_PATH",
     "CANONICAL_NPZ",
+    "FIG05_SPEC_PATH",
+    "FIG05_AUDIT_PATH",
+    "FIG05_RECEIPT_PATH",
+    "FIG05_PATH",
     "load_pec_spec",
     "load_publication_evidence_index",
     "load_pec_consolidation_receipt",
@@ -82,4 +98,10 @@ __all__ = [
     "validate_fig02_04_spec",
     "validate_fig02_04_cross_audit",
     "validate_fig02_04_receipts",
+    "load_fig05_spec",
+    "load_fig05_semantic_audit",
+    "load_fig05_generation_receipt",
+    "validate_fig05_spec",
+    "validate_fig05_semantic_audit",
+    "validate_fig05_generation_receipt",
 ]

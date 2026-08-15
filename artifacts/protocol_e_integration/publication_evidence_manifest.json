@@ -26,5 +26,5 @@
     "E5_raw": "artifacts/protocol_e_integration/e5_execution_receipt.json",
     "E5_interpretation": "artifacts/protocol_e_integration/e5_interpretation_receipt.json"
   },
-  "next_phase": "figure_5_generation from publication_evidence_index; Figures 2-4 closed"
+  "next_phase": "figure_6_generation from publication_evidence_index; Figure 5 closed"
 }
