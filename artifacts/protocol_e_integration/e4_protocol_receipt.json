@@ -1,0 +1,23 @@
+{
+  "schema": "jaxfne.protocol_e_integration.e4_protocol_receipt.v1",
+  "checkpoint": "E4",
+  "status": "FROZEN",
+  "protocol_id": "protocol_e_integration_v0417",
+  "milestone": "0.4.17-E",
+  "spec": "artifacts/protocol_e_integration/e4_observation_chain_spec.json",
+  "protocol_doc": "docs/protocols/protocol_e_integration.md",
+  "implementation_authorized": false,
+  "parent_head": "75e7212cdaf7ad679d8006390105f51cbb9dbc3c",
+  "prerequisites": {
+    "e3_spec": "artifacts/protocol_e_integration/e3_rbs_composition_spec.json",
+    "e3_execution_receipt": "artifacts/protocol_e_integration/e3_execution_receipt.json",
+    "e1_execution_receipt": "artifacts/protocol_e_integration/e1_execution_receipt.json",
+    "experiment_a_spec": "artifacts/etudes/experiment_a/b0_protocol_spec.json",
+    "experiment_a_receipt": "artifacts/etudes/experiment_a/b3_experiment_a_receipt.json"
+  },
+  "scope": "downstream S/F/P observation on frozen E3 trajectories; R_E4_to_E3 and probe-independent (X,H,B,Q) invariance",
+  "reduction_contract": "R_E4_to_E3",
+  "trajectory_invariance": "T_E4_probe_independent_neural_source",
+  "experiment_a_semantics": "reuse canonical relative Q and validated F/P operators; no integrated-model variant",
+  "next_checkpoint": "E4_implementation"
+}

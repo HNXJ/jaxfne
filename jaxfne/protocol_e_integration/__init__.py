@@ -53,6 +53,14 @@ from .e3_execution import (
     run_e3_rbs_composition,
     write_e3_execution_receipt,
 )
+from .e4_protocol import (
+    E4_SPEC_PATH,
+    e4_gate_ids,
+    e4_primary_field_ids,
+    e4_primary_probe_ids,
+    load_e4_spec,
+    validate_e4_spec,
+)
 from .e1_execution import (
     build_edge_provenance_table,
     build_e1_configuration,
@@ -112,4 +120,10 @@ __all__ = [
     "run_e3_rbs_composition",
     "write_e3_execution_receipt",
     "load_e3_execution_receipt",
+    "E4_SPEC_PATH",
+    "load_e4_spec",
+    "validate_e4_spec",
+    "e4_gate_ids",
+    "e4_primary_field_ids",
+    "e4_primary_probe_ids",
 ]

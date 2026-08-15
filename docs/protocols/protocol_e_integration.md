@@ -1,6 +1,6 @@
 # Protocol E — integrated TFNE composition (0.4.17-E)
 
-**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed** (implementation frozen; E4 not authorized)
+**Status:** E0.1 ladder **frozen**; **E1 closed**; **E2 closed**; **E3 closed**; **E4 specification frozen** (implementation not authorized)
 **Milestone boundary:** `9589933` — 0.4.17 transitions from component validation (D) to TFNE grammar composition (E)
 
 **Specs:**  
@@ -9,6 +9,7 @@
 - E1: `artifacts/protocol_e_integration/e1_hierarchy_runtime_spec.json`
 - E2: `artifacts/protocol_e_integration/e2_delayed_coupling_spec.json`
 - E3: `artifacts/protocol_e_integration/e3_rbs_composition_spec.json`
+- E4: `artifacts/protocol_e_integration/e4_observation_chain_spec.json`
 
 **Prerequisites:** Protocol D closed @ D3; Protocol C closed @ C4; Protocol H closed @ H4; W3 unresolved
 
@@ -178,6 +179,49 @@ E3\equiv E2
 
 **Closed:** G1–G9 pass; E2 delay digest and hierarchy fingerprints inherited unchanged.
 
+## E4 — observation chain (spec frozen)
+
+**Question:** Can the E3 hierarchical trajectory generate independently declared multiscale observations while preserving the underlying neural/source state?
+
+**Added DOF:** downstream-only observation \((X,H,\mathcal B)\xrightarrow{S}Q\xrightarrow{F}\Phi\xrightarrow{P}Y\) with no feedback into E3 dynamics.
+
+**Reduction contract:**
+
+\[
+\boxed{
+R_{E4\rightarrow E3}:\quad
+\text{observation disabled}
+\Rightarrow
+E4\equiv E3
+}
+\]
+
+**Stronger invariant (probe-independent):**
+
+\[
+\boxed{
+(X,H,\mathcal B,Q,\mathcal G)_{\mathrm{E4}}
+=
+(X,H,\mathcal B,Q,\mathcal G)_{\mathrm{E3}}
+}
+\]
+
+for identical simulation conditions regardless of downstream probe selection.
+
+**Workflow:** simulate once (E3 path) \(\rightarrow\) freeze \(X,H,Q,\mathcal B,\mathcal G\) \(\rightarrow\) apply multiple \(F/P\). No re-simulation per probe.
+
+**Experiment A inheritance:** reuse canonical relative \(Q\) (`signals.sources_canonical_relative_source`) and validated `project_laminar_sources` / `lfp_proxy_probe` / `csd_proxy_probe` semantics — **no integrated-model source variant**.
+
+**Primary evidence (conservative):** native `V_m`, spikes, first-class `Q`; `lfp_ref` relative proxy; shallow/deep LFP contacts; CSD-from-LFP relative proxy.
+
+**Excluded from primary evidence:** EEG/MEG (`analysis_only`, deferred).
+
+**Hierarchy-aware source table:** \(Q \rightarrow (\mathrm{area},\mathrm{layer},\mathrm{cell\_type},t)\) via frozen E1 identity map (Figure-7-facing; does not redefine \(Q\)).
+
+**Gates (G1–G10):** E3 reduction/neural invariance, single source-of-truth, source identity, probe independence, zero-source property, linearity (declared \(F\)), semantic status, hierarchy/provenance preservation, reproducibility, no phenotype claim.
+
+**Not authorized:** E4 implementation, observation feedback, new source definition, calibrated physical claims, spectral/FF/FB phenotype.
+
 ## Explicit blocks (unchanged from E0)
 
 | Block | Status |
@@ -196,4 +240,5 @@ E3\equiv E2
 | E1 | Hierarchy/runtime **closed** (G1–G6 pass; execution receipt frozen) |
 | E2 | Delayed coupling **closed** (G1–G8 pass; execution receipt frozen) |
 | E3 | RBS composition **closed** (G1–G9 pass; execution receipt frozen) |
-| E4–E5 | Not authorized (spec deferred) |
+| E4 | Observation chain spec **frozen**; implementation **not authorized** |
+| E5 | Not authorized (spec deferred) |
